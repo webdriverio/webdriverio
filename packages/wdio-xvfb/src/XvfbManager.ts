@@ -22,13 +22,22 @@ export interface XvfbOptions {
      */
     forceInstall?: boolean;
     /**
-     * Control automatic installation of `xvfb-run` if missing.
-     * - false (default): never install; warn and continue without Xvfb
-     * - true: install only if running as root (no sudo)
-     * - 'sudo': install if root or via non-interactive sudo (`sudo -n`) if available
-     * - { mode?: 'root' | 'sudo', command?: string | string[] }: advanced control, optional custom command
+     * Enable automatic installation of `xvfb-run` if missing.
+     * @default false
      */
-    autoInstall?: false | true | 'sudo' | { mode?: 'root' | 'sudo', command?: string | string[] };
+    autoInstall?: boolean;
+    /**
+     * Mode for automatic installation when autoInstall is true.
+     * - 'root': install only if running as root (no sudo)
+     * - 'sudo': install if root or via non-interactive sudo (`sudo -n`) if available
+     * @default 'root'
+     */
+    autoInstallMode?: 'root' | 'sudo';
+    /**
+     * Custom command to use for installation instead of built-in package manager detection.
+     * When provided, this command is executed as-is and overrides the built-in installation logic.
+     */
+    autoInstallCommand?: string | string[];
     /**
      * Number of retry attempts for xvfb process failures (default: 3)
      */
@@ -46,7 +55,9 @@ export class XvfbManager {
     #force: boolean
     #packageManagerOverride?: string
     #forceInstall: boolean
-    #autoInstallSetting: false | true | 'sudo' | { mode?: 'root' | 'sudo', command?: string | string[] }
+    #autoInstallSetting: boolean
+    #autoInstallMode: 'root' | 'sudo'
+    #autoInstallCommand?: string | string[]
     #enabled: boolean
     #maxRetries: number
     #retryDelay: number
@@ -57,6 +68,8 @@ export class XvfbManager {
         this.#packageManagerOverride = options.packageManager
         this.#forceInstall = options.forceInstall ?? false
         this.#autoInstallSetting = options.autoInstall ?? false
+        this.#autoInstallMode = options.autoInstallMode ?? 'root'
+        this.#autoInstallCommand = options.autoInstallCommand
         this.#enabled = options.enabled ?? true
         this.#maxRetries = options.xvfbMaxRetries ?? 3
         this.#retryDelay = options.xvfbRetryDelay ?? 1000
@@ -334,8 +347,7 @@ export class XvfbManager {
     }
 
     #getInstallMode(): 'root' | 'sudo' {
-        const configured = this.#autoInstallSetting && typeof this.#autoInstallSetting === 'object' ? this.#autoInstallSetting : undefined
-        const mode = (this.#autoInstallSetting === 'sudo' || configured?.mode === 'sudo') ? 'sudo' : 'root'
+        const mode = this.#autoInstallMode
         return mode
     }
 
@@ -361,8 +373,7 @@ export class XvfbManager {
         // Determine privileges and desired mode
         const isRoot = typeof process.getuid === 'function' ? process.getuid() === 0 : false
         const mode = this.#getInstallMode()
-        const configured = this.#autoInstallSetting && typeof this.#autoInstallSetting === 'object' ? this.#autoInstallSetting : undefined
-        const hasCustomCommand = Boolean(configured?.command)
+        const hasCustomCommand = Boolean(this.#autoInstallCommand)
 
         let hasSudo = false
         if (!isRoot && mode === 'sudo') {
@@ -396,9 +407,8 @@ export class XvfbManager {
     }
 
     async #getInstallCommand(isRoot: boolean, hasSudo: boolean): Promise<string> {
-        const configured = this.#autoInstallSetting && typeof this.#autoInstallSetting === 'object' ? this.#autoInstallSetting : undefined
-        const customInstallCommand = configured?.command
-            ? (Array.isArray(configured.command) ? this.#shellEscapeArray(configured.command) : configured.command)
+        const customInstallCommand = this.#autoInstallCommand
+            ? (Array.isArray(this.#autoInstallCommand) ? this.#shellEscapeArray(this.#autoInstallCommand) : this.#autoInstallCommand)
             : undefined
 
         if (customInstallCommand) {
