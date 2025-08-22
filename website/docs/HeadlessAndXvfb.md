@@ -26,11 +26,17 @@ Four runner options control Xvfb behavior:
   - Authoritative toggle for usage. If `false`, the runner never uses Xvfb.
   - If `true`, the runner may use Xvfb when needed.
 
-- `xvfbAutoInstall` (false | true | 'sudo' | { mode?: 'root' | 'sudo', command?: string | string[] }, default: false)
-  - false: never install; warn and continue without Xvfb
-  - true: root-only, non-interactive install (no sudo)
+- `xvfbAutoInstall` (boolean, default: false)
+  - Enable automatic installation of `xvfb-run` if missing
+  - When false, the runner will warn and continue without installing
+
+- `xvfbAutoInstallMode` ('root' | 'sudo', default: 'root')
+  - 'root': install only if running as root (no sudo)
   - 'sudo': allow non-interactive sudo (`sudo -n`) if not root; skip if sudo missing
-  - object: advanced control with optional `mode` (default: 'root') and optional custom `command` (executed as-is)
+
+- `xvfbAutoInstallCommand` (string | string[], optional)
+  - Custom command to use for installation instead of built-in package manager detection
+  - When provided, this command is executed as-is and overrides the built-in installation logic
 
 - `xvfbMaxRetries` (number, default: 3)
   - Number of retry attempts for xvfb process failures.
@@ -48,7 +54,8 @@ export const config: WebdriverIO.Config = {
   autoXvfb: true,
 
   // Auto-install Xvfb packages using sudo
-  xvfbAutoInstall: 'sudo',
+  xvfbAutoInstall: true,
+  xvfbAutoInstallMode: 'sudo',
 
   capabilities: [{
     browserName: 'chrome',
@@ -63,7 +70,9 @@ export const config: WebdriverIO.Config = {
   autoXvfb: true,
 
   // Auto-install Xvfb packages using a custom command and sudo
-  xvfbAutoInstall: { mode: 'sudo', command: 'curl -L https://github.com/X11/xvfb/releases/download/v1.20.14/xvfb-linux-x64.tar.gz | tar -xz -C /usr/local/bin/' },
+  xvfbAutoInstall: true,
+  xvfbAutoInstallMode: 'sudo',
+  xvfbAutoInstallCommand: 'curl -L https://github.com/X11/xvfb/releases/download/v1.20.14/xvfb-linux-x64.tar.gz | tar -xz -C /usr/local/bin/',
 
   capabilities: [{
     browserName: 'chrome',
@@ -78,7 +87,8 @@ export const config: WebdriverIO.Config = {
   autoXvfb: true,
 
   // Auto-install Xvfb packages using sudo
-  xvfbAutoInstall: 'sudo',
+  xvfbAutoInstall: true,
+  xvfbAutoInstallMode: 'sudo',
 
   // Configure retry behavior for flaky CI environments
   xvfbMaxRetries: 5,
@@ -103,6 +113,7 @@ export const config: WebdriverIO.Config = {
 Notes:
 - `autoXvfb: false` disables Xvfb usage entirely (no wrapping with `xvfb-run`).
 - `xvfbAutoInstall` only affects installation if `xvfb-run` is missing; it does not turn usage on/off.
+- `xvfbAutoInstallMode` controls the installation method: 'root' for root-only installs, 'sudo' for sudo-based installs.
 - Built-in package installs are always non-interactive. Root-only unless you opt into 'sudo' mode.
 - The retry mechanism uses progressive delays: `xvfbRetryDelay × attempt number` (e.g., 1000ms, 2000ms, 3000ms, etc.).
 
