@@ -533,7 +533,7 @@ describe('XvfbManager', () => {
                 // Mock getuid to return root (0) - works on all platforms
                 ;(process as any).getuid = vi.fn().mockReturnValue(0)
 
-                const manager = new XvfbManager({ autoInstall: true })
+                const manager = new XvfbManager({ autoInstall: true, autoInstallMode: 'root' })
                 mockPlatform.mockReturnValue('linux')
                 delete process.env.DISPLAY
 
@@ -553,7 +553,7 @@ describe('XvfbManager', () => {
                 // Mock getuid to return non-root (1000) - works on all platforms
                 ;(process as any).getuid = vi.fn().mockReturnValue(1000)
 
-                const manager = new XvfbManager({ autoInstall: true })
+                const manager = new XvfbManager({ autoInstall: true, autoInstallMode: 'root' })
                 mockPlatform.mockReturnValue('linux')
                 delete process.env.DISPLAY
 
@@ -660,7 +660,7 @@ describe('XvfbManager', () => {
                 // Mock getuid to return non-root (1000) - works on all platforms
                 ;(process as any).getuid = vi.fn().mockReturnValue(1000)
 
-                const manager = new XvfbManager({ autoInstall: true })
+                const manager = new XvfbManager({ autoInstall: true, autoInstallMode: 'root' })
                 mockPlatform.mockReturnValue('linux')
                 delete process.env.DISPLAY
 
