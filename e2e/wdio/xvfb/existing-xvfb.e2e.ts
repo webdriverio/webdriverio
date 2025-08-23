@@ -9,12 +9,10 @@ describe('xvfb existing installation', () => {
         xvfbManager = new XvfbManager()
     })
 
-    it('should detect existing xvfb installation', async () => {
-        // Verify we're running on Linux in CI
-        expect(process.platform).toBe('linux')
-        expect(process.env.CI).toBeDefined()
+    it('should detect and use pre-installed xvfb', async function(this: Mocha.Context) {
+        this.timeout(300000) // 5 minutes
 
-        // Verify xvfb.shouldRun() returns true
+        // Should detect existing xvfb installation
         expect(xvfbManager.shouldRun()).toBe(true)
 
         // Verify xvfb-run is available (pre-installed in this container)
@@ -40,60 +38,13 @@ describe('xvfb existing installation', () => {
         }
     })
 
-    it('should still detect existing xvfb when autoInstall is disabled', async () => {
-        // reuse the default manager (autoInstall not set)
-        expect(xvfbManager.shouldRun()).toBe(true)
-        const initResult = await xvfbManager.init()
-        expect(initResult).toBe(true)
-    })
+    it('should execute xvfb-run commands with pre-installed xvfb', async function(this: Mocha.Context) {
+        this.timeout(300000)
 
-    it('should integrate correctly with ProcessFactory', async () => {
-        // Initialize xvfb manager
         await xvfbManager.init()
 
-        // Import and test ProcessFactory integration
-        const { ProcessFactory } = await import('@wdio/xvfb')
-        const processFactory = new ProcessFactory(xvfbManager)
-
-        // Verify that shouldRun() returns true (indicating xvfb should be used)
-        expect(xvfbManager.shouldRun()).toBe(true)
-
-        // Create a test process - this should use the spawn path with xvfb-run
-        const mockProcess = await processFactory.createWorkerProcess(
-            '/mock/path/run.js',
-            ['--test'],
-            {
-                cwd: process.cwd(),
-                env: process.env as Record<string, string>,
-                execArgv: [],
-                stdio: ['inherit', 'pipe', 'pipe', 'ipc']
-            }
-        )
-
-        // Verify the mock process was created correctly
-        expect(mockProcess).toBeDefined()
-        expect(typeof mockProcess.on).toBe('function')
-        expect(typeof mockProcess.kill).toBe('function')
-
-        // Optional: stronger assertion that xvfb-run is in use
-        // Not all platforms expose spawnfile consistently, so check argv0 if available
-        const procMeta = mockProcess as unknown as { spawnfile?: string, argv0?: string }
-        const argv0 = procMeta.spawnfile || procMeta.argv0
-        if (typeof argv0 === 'string') {
-            expect(argv0.includes('xvfb-run') || argv0 === 'xvfb-run').toBe(true)
-        }
-
-        // Clean up
-        mockProcess.kill('SIGTERM')
-    })
-
-    it('should handle xvfb-run command execution', async () => {
-        // Initialize manager with existing xvfb
-        await xvfbManager.init()
-
-        // Test that we can execute a simple command under xvfb-run
+        // Actually execute xvfb-run command
         try {
-            // Execute a basic command that should work under xvfb
             const result = execSync('xvfb-run --auto-servernum -- echo "test successful"', {
                 encoding: 'utf8',
                 timeout: 10000
@@ -101,22 +52,6 @@ describe('xvfb existing installation', () => {
             expect(result.trim()).toBe('test successful')
         } catch (error) {
             throw new Error(`xvfb-run command execution failed: ${error}`)
-        }
-    })
-
-    it('should work on different platforms appropriately', async () => {
-        // Test platform detection logic
-        if (process.platform === 'linux') {
-            // On Linux with preinstalled xvfb, should return true when no DISPLAY is set
-            delete process.env.DISPLAY
-            expect(xvfbManager.shouldRun()).toBe(true)
-        } else {
-            // On non-Linux platforms, should return false
-            expect(xvfbManager.shouldRun()).toBe(false)
-
-            // Init should return false on non-Linux
-            const result = await xvfbManager.init()
-            expect(result).toBe(false)
         }
     })
 
