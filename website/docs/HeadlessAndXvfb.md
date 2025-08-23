@@ -30,7 +30,7 @@ Four runner options control Xvfb behavior:
   - Enable automatic installation of `xvfb-run` if missing
   - When false, the runner will warn and continue without installing
 
-- `xvfbAutoInstallMode` ('root' | 'sudo', default: 'root')
+- `xvfbAutoInstallMode` ('root' | 'sudo', default: 'sudo')
   - 'root': install only if running as root (no sudo)
   - 'sudo': allow non-interactive sudo (`sudo -n`) if not root; skip if sudo missing
 
@@ -113,7 +113,7 @@ export const config: WebdriverIO.Config = {
 Notes:
 - `autoXvfb: false` disables Xvfb usage entirely (no wrapping with `xvfb-run`).
 - `xvfbAutoInstall` only affects installation if `xvfb-run` is missing; it does not turn usage on/off.
-- `xvfbAutoInstallMode` controls the installation method: 'root' for root-only installs, 'sudo' for sudo-based installs.
+- `xvfbAutoInstallMode` controls the installation method: 'root' for root-only installs, 'sudo' for sudo-based installs (default: 'sudo').
 - Built-in package installs are always non-interactive. Root-only unless you opt into 'sudo' mode.
 - The retry mechanism uses progressive delays: `xvfbRetryDelay × attempt number` (e.g., 1000ms, 2000ms, 3000ms, etc.).
 
@@ -139,7 +139,7 @@ GitHub Actions (virtual display via Xvfb if missing and opted in):
 // wdio.conf.ts
 export const config = {
   autoXvfb: true,
-  xvfbAutoInstall: 'sudo'
+  xvfbAutoInstall: true
 }
 ```
 
