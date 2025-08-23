@@ -47,7 +47,7 @@ interface XvfbOptions {
     enabled?: boolean;         // Authoritative usage toggle (default: true). If false, never uses Xvfb
     force?: boolean;           // Force Xvfb even on non-Linux systems (for testing)
     autoInstall?: boolean;     // Enable automatic installation of xvfb-run if missing (default: false)
-    autoInstallMode?: 'root' | 'sudo'; // Installation mode when autoInstall is true (default: 'root')
+    autoInstallMode?: 'root' | 'sudo'; // Installation mode when autoInstall is true (default: 'sudo')
     autoInstallCommand?: string | string[]; // Custom installation command (overrides built-in package manager detection)
     xvfbMaxRetries?: number;   // Number of retry attempts for xvfb failures (default: 3)
     xvfbRetryDelay?: number;   // Base delay between retries in milliseconds (default: 1000)
@@ -242,7 +242,7 @@ export const config = {
     // Xvfb configuration options (all optional)
     autoXvfb: true,              // Authoritative usage toggle (default: true). If false, never uses Xvfb
     xvfbAutoInstall: false,      // Enable automatic installation of xvfb-run if missing (default: false)
-    xvfbAutoInstallMode: 'root', // Installation mode: 'root' or 'sudo' (default: 'root')
+    xvfbAutoInstallMode: 'sudo', // Installation mode: 'root' or 'sudo' (default: 'sudo')
     xvfbAutoInstallCommand: undefined, // Custom installation command (optional)
     xvfbMaxRetries: 5,           // Max retry attempts for xvfb failures (default: 3)
     xvfbRetryDelay: 2000,        // Base delay between retries in ms (default: 1000)
@@ -260,7 +260,7 @@ export const config = {
 
 - **`autoXvfb`** *(boolean, default: true)*: Authoritative usage toggle – if `false`, Xvfb is never used
 - **`xvfbAutoInstall`** *(boolean, default: false)*: Enable automatic installation when `xvfb-run` is missing
-- **`xvfbAutoInstallMode`** *('root' | 'sudo', default: 'root')*: Installation mode
+- **`xvfbAutoInstallMode`** *('root' | 'sudo', default: 'sudo')*: Installation mode
   - 'root': install only if running as root (no sudo)
   - 'sudo': allow non-interactive sudo (`sudo -n`) when not root; skip if sudo not present
 - **`xvfbAutoInstallCommand`** *(string | string[], optional)*: Custom installation command that overrides built-in package manager detection
