@@ -30,7 +30,7 @@ export interface XvfbOptions {
      * Mode for automatic installation when autoInstall is true.
      * - 'root': install only if running as root (no sudo)
      * - 'sudo': install if root or via non-interactive sudo (`sudo -n`) if available
-     * @default 'root'
+     * @default 'sudo'
      */
     autoInstallMode?: 'root' | 'sudo';
     /**
@@ -68,7 +68,7 @@ export class XvfbManager {
         this.#packageManagerOverride = options.packageManager
         this.#forceInstall = options.forceInstall ?? false
         this.#autoInstallSetting = options.autoInstall ?? false
-        this.#autoInstallMode = options.autoInstallMode ?? 'root'
+        this.#autoInstallMode = options.autoInstallMode ?? 'sudo'
         this.#autoInstallCommand = options.autoInstallCommand
         this.#enabled = options.enabled ?? true
         this.#maxRetries = options.xvfbMaxRetries ?? 3
