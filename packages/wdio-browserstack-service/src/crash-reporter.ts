@@ -136,6 +136,8 @@ export default class CrashReporter {
                     for (let idx = 1; idx < serviceArray.length; idx++) {
                         this.deletePIIKeysFromObject(serviceArray[idx])
                         if (serviceArray[idx]) {
+                            // Handle both new testReportingOptions and legacy testObservabilityOptions
+                            this.deletePIIKeysFromObject(serviceArray[idx].testReportingOptions)
                             this.deletePIIKeysFromObject(serviceArray[idx].testObservabilityOptions)
                         }
                     }
