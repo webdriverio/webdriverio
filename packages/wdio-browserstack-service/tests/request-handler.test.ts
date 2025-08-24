@@ -28,7 +28,7 @@ describe('RequestQueueHandler', () => {
     describe('add', () => {
         it('throw error if BS_TESTOPS_BUILD_COMPLETED not present', () => {
             delete process.env[TESTOPS_BUILD_COMPLETED_ENV]
-            expect(() => requestQueueHandler.add({ event_type: 'there' })).toThrowError(/Observability build start not completed yet/)
+            expect(() => requestQueueHandler.add({ event_type: 'there' })).toThrowError(/Test Reporting and Analytics build start not completed yet/)
         })
 
         it('if event_type in BATCH_EVENT_TYPES', () => {
