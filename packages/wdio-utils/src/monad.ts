@@ -59,7 +59,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
     /**
      * WebDriver monad
      */
-    function unit(this: void, sessionId: string, commandWrapper?: Function) {
+    function unit(this: void, sessionId: string, commandWrapper?: Function, elementCmdImplicitWaitExclusionList?: string[]) {
         /**
          * capabilities attached to the instance prototype not being shown if
          * logging the instance
@@ -116,11 +116,15 @@ export default function WebDriver(options: object, modifier?: Function, properti
             client = modifier(client, options)
         }
 
-        client.addCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, unknown>, instances?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+        client.addCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, unknown>, instances?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, disableElementImplicitWait?: boolean) {
             const customCommand = typeof commandWrapper === 'function'
                 ? commandWrapper(name, func)
                 : func
             if (attachToElement) {
+                if (disableElementImplicitWait && elementCmdImplicitWaitExclusionList && !elementCmdImplicitWaitExclusionList.includes(name)) {
+                    elementCmdImplicitWaitExclusionList.push(name)
+                }
+
                 /**
                  * add command to every multiremote instance
                  */

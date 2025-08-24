@@ -228,7 +228,8 @@ export interface CustomInstanceCommands<T> {
         func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
         attachToElement?: IsElement,
         proto?: Record<string, any>,
-        instances?: Record<string, Instances>
+        instances?: Record<string, Instances>,
+        disableElementImplicitWait?: boolean
     ): void;
 
     /**
