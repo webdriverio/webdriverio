@@ -23,6 +23,27 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.19.2 (2025-08-24)
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#14706](https://github.com/webdriverio/webdriverio/pull/14706) fix(junit-reporter): improve error handling and skipped test reportin… ([@nair-sumesh](https://github.com/nair-sumesh))
+* `webdriverio`
+  * [#14717](https://github.com/webdriverio/webdriverio/pull/14717) fix(webdriverio): escape scripts in addInitScript ([@birtles](https://github.com/birtles))
+* `wdio-local-runner`, `wdio-types`, `wdio-xvfb`
+  * [#14700](https://github.com/webdriverio/webdriverio/pull/14700) fix(wdio-xvfb): `autoXvfb` should disable xvfb completely ([@goosewobbler](https://github.com/goosewobbler))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#14704](https://github.com/webdriverio/webdriverio/pull/14704) Add chaining of multiple layers of overwritten command definitions ([@amaanbs](https://github.com/amaanbs))
+
+#### Committers: 4
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- Brian Birtles ([@birtles](https://github.com/birtles))
+- [@goosewobbler](https://github.com/goosewobbler)
+- [@nair-sumesh](https://github.com/nair-sumesh)
+
+
 ## v9.19.1 (2025-08-12)
 
 #### :nail_care: Polish
