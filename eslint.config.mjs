@@ -20,9 +20,11 @@ export default wdioEslint.config([
     },
     {
         /**
-         * Eslint rules for /example directory and unit tests
+         * Eslint rules for /example directory, e2e and unit tests
          */
         files: [
+            'e2e/**/*.test.ts',
+            'e2e/**/*.test.js',
             'examples/**/*.ts',
             'examples/**/*.js',
             'packages/**/*.test.ts',

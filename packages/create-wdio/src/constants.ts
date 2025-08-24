@@ -566,19 +566,19 @@ export const QUESTIONNAIRE = [{
         const pattern = isBrowserRunner(answers) ? 'src/**/*.test' : 'test/specs/**/*'
         return getDefaultFiles(answers, pattern)
     },
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && /(mocha|jasmine)/.test(answers.framework)
+    when: /* istanbul ignore next */ (answers: Questionnair) => /(mocha|jasmine)/.test(answers.framework)
 }, {
     type: 'input',
     name: 'specs',
     message: 'What should be the location of your feature files?',
     default: (answers: Questionnair) => getDefaultFiles(answers, 'features/**/*.feature'),
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.includes('cucumber')
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.framework.includes('cucumber')
 }, {
     type: 'input',
     name: 'stepDefinitions',
     message: 'What should be the location of your step definitions?',
     default: (answers: Questionnair) => getDefaultFiles(answers, 'features/step-definitions/steps'),
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.includes('cucumber')
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.framework.includes('cucumber')
 }, {
     type: 'confirm',
     name: 'usePageObjects',

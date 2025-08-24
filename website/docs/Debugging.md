@@ -12,7 +12,10 @@ For starters, it is extremely helpful to limit parallelism by setting `maxInstan
 In `wdio.conf`:
 
 ```js
-export const config = {
+// @ts-check
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     maxInstances: 1,
     specs: [
@@ -22,7 +25,7 @@ export const config = {
         browserName: 'firefox'
     }],
     // ...
-}
+})
 ```
 
 ## The Debug Command
@@ -51,21 +54,21 @@ Note that `wdio.conf.js` can contain Javascript. Since you probably do not want 
 Using this technique, you can dynamically change the configuration:
 
 ```js
-const debug = process.env.DEBUG
-const defaultCapabilities = ...
-const defaultTimeoutInterval = ...
-const defaultSpecs = ...
+// @ts-check
+import { defineConfig } from '@wdio/config'
 
-export const config = {
+const debug = process.env.DEBUG
+
+export const config = defineConfig({
     // ...
-    maxInstances: debug ? 1 : 100,
-    capabilities: debug ? [{ browserName: 'chrome' }] : defaultCapabilities,
     execArgv: debug ? ['--inspect'] : [],
+    maxInstances: debug ? 1 : 100,
+    capabilities: debug ? [{ browserName: 'chrome' }] : [{ browserName: 'firefox' }],
     jasmineOpts: {
-      defaultTimeoutInterval: debug ? (24 * 60 * 60 * 1000) : defaultTimeoutInterval
+        defaultTimeoutInterval: debug ? (24 * 60 * 60 * 1000) : 5000
     }
     // ...
-}
+})
 ```
 
 You can then prefix the `wdio` command with the `debug` flag:
