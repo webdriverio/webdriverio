@@ -11,10 +11,17 @@ import { getContextManager } from '../../../src/session/context.js'
 describe('dismiss', () => {
     let browser: WebdriverIO.Browser
     let dialog: Dialog
-    let mockContextManager: { getCurrentContext: () => Promise<string> }
+    let mockContextManager: { initialize: () => Promise<unknown>, getCurrentContext: () => Promise<string> }
     let browseStub: ReturnType<typeof vi.spyOn>
 
     beforeEach(async () => {
+        mockContextManager = {
+            initialize: vi.fn(),
+            getCurrentContext: vi.fn()
+        };
+
+        (getContextManager as Mock).mockReturnValue(mockContextManager)
+
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: { browserName: 'dialog' }
@@ -22,12 +29,6 @@ describe('dismiss', () => {
 
         browseStub = vi.spyOn(browser, 'browsingContextHandleUserPrompt')
             .mockResolvedValue({})
-
-        mockContextManager = {
-            getCurrentContext: vi.fn()
-        };
-
-        (getContextManager as Mock).mockReturnValue(mockContextManager)
     })
 
     it('should NOT call browsingContextHandleUserPrompt if contexts differ', async () => {
