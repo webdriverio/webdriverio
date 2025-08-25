@@ -38,11 +38,13 @@ import {
     TESTOPS_BUILD_COMPLETED_ENV,
     BROWSERSTACK_TESTHUB_JWT,
     BROWSERSTACK_OBSERVABILITY,
+    BROWSERSTACK_TEST_REPORTING,
     BROWSERSTACK_ACCESSIBILITY,
     MAX_GIT_META_DATA_SIZE_IN_BYTES,
     GIT_META_DATA_TRUNCATED,
     APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
     APP_ALLY_ISSUES_ENDPOINT,
+    TEST_REPORTING_PROJECT_NAME,
     CLI_DEBUG_LOGS_FILE,
     WDIO_NAMING_PREFIX
 } from './constants.js'
@@ -1218,9 +1220,35 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
         }).json()
         BStackLogger.debug(`[${kind}] Success response: ${JSON.stringify(response)}`)
     } catch (error) {
-        BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)
+        BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST Reporting and Analytics : ${error}`)
         throw new Error('Exception in request ' + error)
     }
+}
+
+export function normalizeTestReportingConfig(_options: BrowserstackConfig & Options.Testrunner){
+    if (!isUndefined(_options.testReporting)){
+        _options.testObservability = _options.testReporting
+    }
+
+    if (!isUndefined(_options.testReportingOptions)){
+        _options.testObservabilityOptions = _options.testReportingOptions
+    }
+}
+
+export function normalizeTestReportingEnvVariables(){
+    if (!isUndefined(process.env[BROWSERSTACK_TEST_REPORTING])){
+        process.env[BROWSERSTACK_OBSERVABILITY] = process.env[BROWSERSTACK_TEST_REPORTING]
+    }
+    if (!isUndefined(process.env[TEST_REPORTING_PROJECT_NAME])){
+        process.env.TEST_OBSERVABILITY_PROJECT_NAME = process.env[TEST_REPORTING_PROJECT_NAME]
+    }
+    if (!isUndefined(process.env.TEST_REPORTING_BUILD_NAME)) {
+        process.env.TEST_OBSERVABILITY_BUILD_NAME = process.env.TEST_REPORTING_BUILD_NAME
+    }
+    if (!isUndefined(process.env.TEST_REPORTING_BUILD_TAG)) {
+        process.env.TEST_OBSERVABILITY_BUILD_TAG = process.env.TEST_REPORTING_BUILD_TAG
+    }
+
 }
 
 export function getObservabilityUser(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {

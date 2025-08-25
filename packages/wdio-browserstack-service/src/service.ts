@@ -10,7 +10,9 @@ import {
     isBrowserstackSession,
     patchConsoleLogs,
     shouldAddServiceVersion,
-    isTrue
+    isTrue,
+    normalizeTestReportingConfig,
+    normalizeTestReportingEnvVariables
 } from './util.js'
 import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction, SessionResponse, TurboScaleSessionResponse } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
@@ -72,6 +74,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._options = { ...DEFAULT_OPTIONS, ...options }
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = this._options)
+
+        normalizeTestReportingConfig(this._options)
+
+        normalizeTestReportingEnvVariables()
         this._observability = this._options.testObservability
         this._accessibility = this._options.accessibility
         this._percy = isTrue(process.env.BROWSERSTACK_PERCY)

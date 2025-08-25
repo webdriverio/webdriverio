@@ -41,7 +41,9 @@ import {
     isValidCapsForHealing,
     getBooleanValueFromString,
     validateCapsWithNonBstackA11y,
-    mergeChromeOptions
+    mergeChromeOptions,
+    normalizeTestReportingConfig,
+    normalizeTestReportingEnvVariables
 } from './util.js'
 import { getProductMap } from './testHub/utils.js'
 import CrashReporter from './crash-reporter.js'
@@ -89,6 +91,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = _options)
 
+        //normalizing testReporting config and env variables
+        normalizeTestReportingConfig(this._options)
+
+        normalizeTestReportingEnvVariables()
         this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config)
         if (Array.isArray(capabilities)) {
             capabilities
@@ -433,7 +439,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 BStackLogger.error(`Error while stoping CLI ${err}`)
             }
             if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
-                console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
+                console.log(`\nVisit https://automation.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
             }
             this.browserStackConfig.testObservability.buildStopped = true
 

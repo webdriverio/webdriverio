@@ -542,7 +542,7 @@ class _InsightsHandler {
                 this.listener.logCreated([stdLog])
             }
         } catch (error) {
-            BStackLogger.debug(`Exception in uploading log data to Observability with error : ${error}`)
+            BStackLogger.debug(`Exception in uploading log data to Test Reporting and Analytics with error : ${error}`)
         }
     }
 
