@@ -83,7 +83,7 @@ describe('ProcessFactory', () => {
             cwd: '/working/dir',
             env: { NODE_ENV: 'test' },
             execArgv: ['--inspect'],
-            stdio: ['inherit', 'pipe', 'pipe', 'ipc'] as const
+            stdio: ['inherit', 'pipe', 'pipe', 'ipc'] as ('inherit' | 'pipe' | 'ignore' | 'ipc')[]
         }
 
         describe('when xvfb should not run', () => {
@@ -105,9 +105,20 @@ describe('ProcessFactory', () => {
                 expect(result).toBe(mockChildProcess)
             })
 
+            it('should not wrap with xvfb-run when explicitly disabled', async () => {
+                mockXvfbManager.shouldRun.mockReturnValue(false) // disabled -> shouldRun false
+                // even if xvfb-run exists, we shouldn't check for it when shouldRun is false
+                mockExecSync.mockReturnValue('/usr/bin/xvfb-run')
+
+                await processFactory.createWorkerProcess(scriptPath, args, options)
+
+                // we still call execSync('which xvfb-run') before deciding, so we only assert we didn't spawn xvfb-run
+                expect(mockSpawn).not.toHaveBeenCalled()
+                expect(mockFork).toHaveBeenCalled()
+            })
+
             it('should use fork with default execArgv when not provided', async () => {
-                const optionsWithoutExecArgv = { ...options }
-                delete optionsWithoutExecArgv.execArgv
+                const { execArgv: _ignored, ...optionsWithoutExecArgv } = options
 
                 await processFactory.createWorkerProcess(scriptPath, args, optionsWithoutExecArgv)
 

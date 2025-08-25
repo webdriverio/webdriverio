@@ -33,12 +33,71 @@ vi.mock('@wdio/xvfb', () => {
     }
 })
 
+test("should pass xvfbAutoInstall:'sudo' to XvfbManager", async () => {
+    const xvfb = await import('@wdio/xvfb')
+    const runner = new LocalRunner(
+        {} as never,
+        {
+            xvfbAutoInstall: 'sudo',
+            autoXvfb: true,
+            xvfbAutoInstallMode: undefined,
+            xvfbAutoInstallCommand: undefined
+        } as any
+    )
+
+    await runner.run({
+        cid: 'auto-3',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    })
+
+    expect(vi.mocked(xvfb.XvfbManager)).toHaveBeenCalledWith(
+        expect.objectContaining({ autoInstall: 'sudo', autoInstallMode: undefined })
+    )
+})
+
+test('should pass object-form xvfbAutoInstall to XvfbManager', async () => {
+    const xvfb = await import('@wdio/xvfb')
+    const runner = new LocalRunner(
+        {} as never,
+        {
+            xvfbAutoInstall: { mode: 'sudo', command: 'echo install' },
+            autoXvfb: true,
+            xvfbAutoInstallMode: undefined,
+            xvfbAutoInstallCommand: undefined
+        } as any
+    )
+
+    await runner.run({
+        cid: 'auto-4',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    })
+
+    expect(vi.mocked(xvfb.XvfbManager)).toHaveBeenCalledWith(
+        expect.objectContaining({ autoInstall: { mode: 'sudo', command: 'echo install' }, autoInstallMode: undefined, autoInstallCommand: undefined })
+    )
+})
 test('should fork a new process', async () => {
     const runner = new LocalRunner(
-        undefined as never,
+        {} as never,
         {
             outputDir: '/foo/bar',
             runnerEnv: { FORCE_COLOR: 1 },
+            autoXvfb: true,
+            xvfbAutoInstall: undefined,
+            xvfbAutoInstallMode: undefined,
+            xvfbAutoInstallCommand: undefined
         } as any
     )
     const worker = await runner.run({
@@ -72,10 +131,14 @@ test('should fork a new process', async () => {
 
 test('should shut down worker processes', async () => {
     const runner = new LocalRunner(
-        undefined as never,
+        {} as never,
         {
             outputDir: '/foo/bar',
             runnerEnv: { FORCE_COLOR: 1 },
+            autoXvfb: true,
+            xvfbAutoInstall: undefined,
+            xvfbAutoInstallMode: undefined,
+            xvfbAutoInstallCommand: undefined
         } as any
     )
     const worker1 = await runner.run({
@@ -126,10 +189,14 @@ test('should shut down worker processes', async () => {
 
 test('should avoid shutting down if worker is not busy', async () => {
     const runner = new LocalRunner(
-        undefined as never,
+        {} as never,
         {
             outputDir: '/foo/bar',
             runnerEnv: { FORCE_COLOR: 1 },
+            autoXvfb: true,
+            xvfbAutoInstall: undefined,
+            xvfbAutoInstallMode: undefined,
+            xvfbAutoInstallCommand: undefined
         } as any
     )
 
@@ -152,11 +219,15 @@ test('should avoid shutting down if worker is not busy', async () => {
 
 test('should shut down worker processes in watch mode - regular', async () => {
     const runner = new LocalRunner(
-        undefined as never,
+        {} as never,
         {
             outputDir: '/foo/bar',
             runnerEnv: { FORCE_COLOR: 1 },
             watch: true,
+            autoXvfb: true,
+            xvfbAutoInstall: undefined,
+            xvfbAutoInstallMode: undefined,
+            xvfbAutoInstallCommand: undefined
         } as any
     )
 
@@ -198,11 +269,15 @@ test('should shut down worker processes in watch mode - regular', async () => {
 
 test('should shut down worker processes in watch mode - mutliremote', async () => {
     const runner = new LocalRunner(
-        undefined as never,
+        {} as never,
         {
             outputDir: '/foo/bar',
             runnerEnv: { FORCE_COLOR: 1 },
             watch: true,
+            autoXvfb: true,
+            xvfbAutoInstall: undefined,
+            xvfbAutoInstallMode: undefined,
+            xvfbAutoInstallCommand: undefined
         } as any
     )
 
@@ -246,12 +321,17 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
 })
 
 test('should avoid shutting down if worker is not busy', async () => {
-    const runner = new LocalRunner(undefined as never, {} as any)
+    const runner = new LocalRunner({} as never, {
+        autoXvfb: true,
+        xvfbAutoInstall: undefined,
+        xvfbAutoInstallMode: undefined,
+        xvfbAutoInstallCommand: undefined
+    } as any)
     expect(await runner.initialize()).toBe(undefined)
 })
 
 test('should initialize xvfb lazily during first run when needed', async () => {
-    const runner = new LocalRunner(undefined as never, {} as any)
+    const runner = new LocalRunner({} as never, { autoXvfb: true } as any)
 
     // Mock the xvfbManager instance that was created in constructor
     const mockInit = vi.fn().mockResolvedValue(true)
@@ -277,7 +357,7 @@ test('should initialize xvfb lazily during first run when needed', async () => {
 })
 
 test('should not initialize xvfb during run when not needed', async () => {
-    const runner = new LocalRunner(undefined as never, {} as any)
+    const runner = new LocalRunner({} as never, { autoXvfb: true } as any)
 
     // Mock the xvfbManager instance that was created in constructor
     const mockInit = vi.fn().mockResolvedValue(false)
@@ -303,7 +383,7 @@ test('should not initialize xvfb during run when not needed', async () => {
 })
 
 test('should handle xvfb initialization failure gracefully', async () => {
-    const runner = new LocalRunner(undefined as never, {} as any)
+    const runner = new LocalRunner({} as never, { autoXvfb: true } as any)
 
     // Mock the xvfbManager instance that was created in constructor
     const mockInit = vi.fn().mockResolvedValue(true)
@@ -324,7 +404,7 @@ test('should handle xvfb initialization failure gracefully', async () => {
 })
 
 test('should only initialize xvfb once across multiple runs', async () => {
-    const runner = new LocalRunner(undefined as never, {} as any)
+    const runner = new LocalRunner({} as never, { autoXvfb: true } as any)
 
     // Mock the xvfbManager instance that was created in constructor
     const mockInit = vi.fn().mockResolvedValue(true)
@@ -352,17 +432,21 @@ test('should only initialize xvfb once across multiple runs', async () => {
         specs: ['/foo/bar2.test.js'],
         execArgv: [],
         retries: 0,
-    })
+    } as any)
 
     expect(mockInit).toHaveBeenCalledTimes(1)
 })
 
 test('should handle xvfb operations with existing workers', async () => {
     const runner = new LocalRunner(
-        undefined as never,
+        {} as never,
         {
             outputDir: '/foo/bar',
             runnerEnv: { FORCE_COLOR: 1 },
+            autoXvfb: true,
+            xvfbAutoInstall: undefined,
+            xvfbAutoInstallMode: undefined,
+            xvfbAutoInstallCommand: undefined
         } as any
     )
 
@@ -395,8 +479,10 @@ test('should handle xvfb operations with existing workers', async () => {
 
 test('should skip xvfb initialization when disabled in config', async () => {
     const runner = new LocalRunner(
-        undefined as never,
-        { autoXvfb: false } as any
+        {} as never,
+        {
+            autoXvfb: false
+        } as any
     )
 
     // Mock the xvfbManager instance that was created in constructor
@@ -415,4 +501,107 @@ test('should skip xvfb initialization when disabled in config', async () => {
     })
 
     expect(mockInit).not.toHaveBeenCalled()
+})
+
+test('should pass xvfbAutoInstall:true to XvfbManager', async () => {
+    const xvfb = await import('@wdio/xvfb')
+    const runner = new LocalRunner(
+        {} as never,
+        {
+            xvfbAutoInstall: true,
+            autoXvfb: true
+        } as any
+    )
+
+    // Trigger lazy init to ensure constructor ran
+    await runner.run({
+        cid: 'auto-1',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    })
+
+    expect(vi.mocked(xvfb.XvfbManager)).toHaveBeenCalledWith(
+        expect.objectContaining({ autoInstall: true })
+    )
+})
+
+test('should pass xvfbAutoInstall:false to XvfbManager', async () => {
+    const xvfb = await import('@wdio/xvfb')
+    const runner = new LocalRunner(
+        {} as never,
+        {
+            xvfbAutoInstall: false,
+            autoXvfb: true
+        } as any
+    )
+
+    await runner.run({
+        cid: 'auto-2',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    })
+
+    expect(vi.mocked(xvfb.XvfbManager)).toHaveBeenCalledWith(
+        expect.objectContaining({ autoInstall: false })
+    )
+})
+
+test('should pass enabled:true to XvfbManager by default', async () => {
+    const xvfb = await import('@wdio/xvfb')
+    const runner = new LocalRunner(
+        {} as never,
+        {
+            autoXvfb: true
+        } as any
+    )
+
+    await runner.run({
+        cid: 'en-1',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    })
+
+    expect(vi.mocked(xvfb.XvfbManager)).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: true })
+    )
+})
+
+test('should pass enabled:false to XvfbManager when autoXvfb is false', async () => {
+    const xvfb = await import('@wdio/xvfb')
+    const runner = new LocalRunner(
+        {} as never,
+        {
+            autoXvfb: false
+        } as any
+    )
+
+    await runner.run({
+        cid: 'en-2',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    })
+
+    expect(vi.mocked(xvfb.XvfbManager)).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false })
+    )
 })
