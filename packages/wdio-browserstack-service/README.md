@@ -1,9 +1,7 @@
 WebdriverIO BrowserStack Service
 ==========
 
-> ATest Ru can use Test Reporting and Analytics even if you don't run your tests on the BrowserStack infrastructure. Even if you run your tests on a CI, a local machine, or even on other cloud service providers, Test Reporting and Analytics can still generate intelligent test reports and advanced analytics on your tests.porting and Analytics (formerly Test Observability) is an advanced test reporting tool that gives insights to improve your automation tests and helps you debug faster. It's enabled by default by setting the `testReporting` flag as `true` for all users of browserstack-service. You can disable this by setting the `testReporting` flag to `false`.
-
-For backward compatibility, you can still use the `testObservability` flag, but we recommend migrating to `testReporting`.WebdriverIO service that manages local tunnel and job metadata for BrowserStack users.
+> A WebdriverIO service that manages local tunnel and job metadata for BrowserStack users.
 
 ## Installation
 
