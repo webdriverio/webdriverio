@@ -72,8 +72,19 @@ export class CLIUtils {
             sessionNameFormat: modifiedOpts.sessionNameFormat || ''
         }
 
-        const commonBstackOptions = (config.commonCapabilities &&
-            config.commonCapabilities['bstack:options']) || {}
+        const commonBstackOptions = (() => {
+            const caps = config.capabilities as unknown
+            if (
+                caps &&
+                !Array.isArray(caps) &&
+                typeof caps === 'object' &&
+                'bstack:options' in (caps as Record<string, unknown>)
+            ) {
+                // Cast after guard to satisfy TypeScript
+                return (caps as { ['bstack:options']?: Record<string, unknown> })['bstack:options'] || {}
+            }
+            return {}
+        })()
 
         const isNonBstackA11y = isTurboScale(options) || !shouldAddServiceVersion(config as Options.Testrunner, options.testObservability)
         const observabilityOptions: TestObservabilityOptions = options.testObservabilityOptions || {}

@@ -66,11 +66,11 @@ describe('CLIUtils', () => {
         const mockConfig = {
             user: 'testuser',
             key: 'testkey',
-            commonCapabilities: {
+            capabilities: {
                 'bstack:options': {
                     buildName: 'common-build'
                 }
-            }
+            } as Record <string, unknown>
         } as Options.Testrunner
 
         it('returns stringified config with basic options', () => {

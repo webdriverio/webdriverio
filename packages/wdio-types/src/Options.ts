@@ -349,22 +349,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * ```
      */
     capabilities: RemoteCapabilities
-    /**
-     * Defines a set of capabilities to be applied to all platforms.
-     * ```
-     * // wdio.conf.js
-     * export const config = {
-     *   // multiremote example
-     *   commonCapabilities: {
-     *     'bstack:options': {
-     *        projectName: "Your static project name goes here",
-     *        buildName: "Your static build/job name goes here"
-     *      }
-     *    }
-     * })
-     * ```
-     */
-    commonCapabilities?: WebdriverIO.Capabilities
+
     /**
      * Type of runner
      * - local: every spec file group is spawned in its own local process
