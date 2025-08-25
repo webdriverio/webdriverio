@@ -10,8 +10,5 @@
     "src/**/*",
     "../../@types",
     "src/@types/**/*"
-  ],
-  "exclude": [
-    "src/proto/**/*"
   ]
 }
