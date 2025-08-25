@@ -18,6 +18,7 @@ import { environment } from './environment.js'
 
 import type { AttachOptions } from './types.js'
 import type * as elementCommands from './commands/element.js'
+import { IMPLICIT_WAIT_EXCLUSION_LIST } from './middlewares.js'
 
 export * from './types.js'
 export const Key = KeyConstant
@@ -63,7 +64,7 @@ export const remote = async function(
 
     const { Driver, options } = await getProtocolDriver({ ...params, ...config })
     const prototype = getPrototype('browser')
-    const instance = await Driver.newSession(options, modifier, prototype, wrapCommand) as WebdriverIO.Browser
+    const instance = await Driver.newSession(options, modifier, prototype, wrapCommand, IMPLICIT_WAIT_EXCLUSION_LIST) as WebdriverIO.Browser
 
     /**
      * we need to overwrite the original addCommand and overwriteCommand
@@ -172,9 +173,9 @@ export const multiremote = async function (
      */
     if (!isStub(automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
-        driver.addCommand = (name: string, fn, attachToElement) => {
+        driver.addCommand = (name: string, fn, attachToElement, _proto, _instance, disableElementImplicitWait) => {
             driver.instances.forEach(instanceName =>
-                driver.getInstance(instanceName).addCommand(name, fn, attachToElement)
+                driver.getInstance(instanceName).addCommand(name, fn, attachToElement, undefined, undefined, disableElementImplicitWait)
             )
 
             return origAddCommand(

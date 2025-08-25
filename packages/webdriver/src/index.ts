@@ -21,7 +21,8 @@ export default class WebDriver {
         options: Capabilities.RemoteConfig,
         modifier?: (...args: any[]) => any,
         userPrototype = {},
-        customCommandWrapper?: (...args: any[]) => any
+        customCommandWrapper?: (...args: any[]) => any,
+        implicitWaitExclusionList: string[] = []
     ): Promise<Client> {
         const envLogLevel = environmentValue.value.variables.WDIO_LOG_LEVEL
         options.logLevel = envLogLevel ?? options.logLevel
@@ -70,7 +71,7 @@ export default class WebDriver {
                 ...bidiPrototype
             }
         )
-        const client = monad(sessionId, customCommandWrapper)
+        const client = monad(sessionId, customCommandWrapper, implicitWaitExclusionList)
 
         /**
          * parse and propagate all Bidi events to the browser instance

@@ -5,7 +5,7 @@ import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
 import { isStaleElementError } from './utils/index.js'
 
-const COMMANDS_TO_SKIP = ['getElement', 'getElements', 'emit']
+export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements', 'emit']
 
 /**
  * This method is an command wrapper for elements that checks if a command is called
@@ -16,7 +16,7 @@ const COMMANDS_TO_SKIP = ['getElement', 'getElements', 'emit']
 export const elementErrorHandler = (fn: Function) => (commandName: string, commandFn: Function) => {
     return function elementErrorHandlerCallback (this: WebdriverIO.Element, ...args: unknown[]) {
         return fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element) {
-            if (COMMANDS_TO_SKIP.includes(commandName)) {
+            if (IMPLICIT_WAIT_EXCLUSION_LIST.includes(commandName)) {
                 return fn(commandName, commandFn).apply(this, args)
             }
 

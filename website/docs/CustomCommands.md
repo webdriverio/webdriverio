@@ -3,7 +3,7 @@ id: customcommands
 title: Custom Commands
 ---
 
-If you want to extend the `browser` instance with your own set of commands, the browser method  `addCommand` is here for you. You can write your command in a asynchronous way, just as in your specs.
+If you want to extend the `browser` instance with your own set of commands, the browser method `addCommand` is here for you. You can write your command in an asynchronous way, just as in your specs.
 
 ## Parameters
 
@@ -22,6 +22,13 @@ Type: `Function`
 ### Target Scope
 
 Flag to decide whether to attach the command to the browser or element scope. If set to `true` the command will be an element command.
+
+Type: `Boolean`<br />
+Default: `false`
+
+### Disable implicitWait
+
+Flag to decide whether to implicitly wait for the element to exist before calling the custom command.
 
 Type: `Boolean`<br />
 Default: `false`
@@ -50,6 +57,17 @@ browser.addCommand("waitAndClick", async function () {
     await this.click()
 }, true)
 ```
+
+By default, element custom commands wait for the element to exist before calling the custom command. Even though most of the time this is desired, if not, it can be disabled with `disableImplicitWait`:
+
+```js
+browser.addCommand("waitAndClick", async function () {
+    // `this` is return value of $(selector)
+    await this.waitForExists()
+    await this.click()
+}, true /* element scope flag */, undefined, undefined, true /* disable implicit wait flag */)
+```
+
 
 Custom commands give you the opportunity to bundle a specific sequence of commands you use frequently as a single call. You can define custom commands at any point in your test suite; just make sure that the command is defined *before* its first use. (The `before` hook in your `wdio.conf.js` is one good place to create them.)
 
@@ -146,7 +164,7 @@ With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your c
 1. Create a type definition file (e.g., `./src/types/wdio.d.ts`)
 2. a. If using a module-style type definition file (using import/export and `declare global WebdriverIO` in the type definition file), make sure to include the file path in the `tsconfig.json` `include` property.
 
-   b.  If using ambient-style type definition files (no import/export in type definition files and `declare namespace WebdriverIO` for custom commands), make sure the `tsconfig.json` does *not* contain any `include` section, since this will cause all type definition files not listed in the `include` section to not be recognized by typescript.
+   b. If using ambient-style type definition files (no import/export in type definition files and `declare namespace WebdriverIO` for custom commands), make sure the `tsconfig.json` does *not* contain any `include` section, since this will cause all type definition files not listed in the `include` section to not be recognized by TypeScript.
 
 <Tabs
   defaultValue="modules"
