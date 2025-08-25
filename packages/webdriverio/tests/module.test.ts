@@ -171,6 +171,25 @@ describe('WebdriverIO module interface', () => {
                 isMacApp: false,
             })
         })
+
+        it('should use the element disable implicitWait exclusion list', async () => {
+            await remote({
+                automationProtocol: 'webdriver',
+                capabilities: { browserName: 'chrome' }
+            })
+
+            expect(WebDriver.newSession).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.any(Function),
+                expect.any(Object),
+                expect.any(Function),
+                expect.arrayContaining([
+                    'getElement',
+                    'getElements',
+                    'emit',
+                ])
+            )
+        })
     })
 
     describe('multiremote', () => {
@@ -293,6 +312,37 @@ describe('WebdriverIO module interface', () => {
             const newBrowser = await attach(browser)
             expect(newBrowser).toHaveProperty('addLocatorStrategy')
         })
+    })
+
+    it('should use the element disable implicitWait exclusion list', async () => {
+        await multiremote({
+            browserA: {
+                // @ts-ignore mock feature
+                test_multiremote: true,
+                automationProtocol: 'webdriver',
+                capabilities: { browserName: 'chrome' }
+            },
+            browserB: {
+                // @ts-ignore mock feature
+                test_multiremote: true,
+                automationProtocol: 'webdriver',
+                capabilities: { browserName: 'firefox' }
+            }
+        })
+
+        expect(WebDriver.newSession).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.any(Function),
+            expect.any(Object),
+            expect.any(Function),
+            expect.arrayContaining([
+                'getElement',
+                'getElements',
+                'emit',
+            ])
+
+        )
+        expect(WebDriver.newSession).toHaveBeenCalledTimes(2)
     })
 
     afterEach(() => {
