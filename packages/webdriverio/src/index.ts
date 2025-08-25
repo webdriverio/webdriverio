@@ -173,10 +173,9 @@ export const multiremote = async function (
      */
     if (!isStub(automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
-        // TODO dprevost need to add disableElementImplicitWait here ?
-        driver.addCommand = (name: string, fn, attachToElement) => {
+        driver.addCommand = (name: string, fn, attachToElement, _proto, _instance, disableElementImplicitWait) => {
             driver.instances.forEach(instanceName =>
-                driver.getInstance(instanceName).addCommand(name, fn, attachToElement)
+                driver.getInstance(instanceName).addCommand(name, fn, attachToElement, undefined, undefined, disableElementImplicitWait)
             )
 
             return origAddCommand(
