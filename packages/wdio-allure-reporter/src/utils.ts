@@ -5,6 +5,7 @@ import type { AllureGroup, AllureStep, AllureTest, ExecutableItemWrapper, Fixtur
 import { LabelName, md5, Stage, Status, Status as AllureStatus } from 'allure-js-commons'
 import CompoundError from './compoundError.js'
 import { allHooks, eachHooks, linkPlaceholder } from './constants.js'
+import { encode } from 'html-entities'
 
 /**
  * Get allure test status by TestStat object
@@ -138,8 +139,8 @@ export const getHookStatus = (newHookStats: HookStats, hookElement: ExecutableIt
         Stage.FINISHED
     // set error detail information
     const formattedError = getErrorFromFailedTest(newHookStats)
-    hookElement.detailsMessage = hookRootStep.detailsMessage = formattedError?.message
-    hookElement.detailsTrace = hookRootStep.detailsTrace = formattedError?.stack
+    hookElement.detailsMessage = hookRootStep.detailsMessage = encode(formattedError?.message)
+    hookElement.detailsTrace = hookRootStep.detailsTrace = encode(formattedError?.stack)
 
     let finalStatus = Status.PASSED
     // set status to hook root step

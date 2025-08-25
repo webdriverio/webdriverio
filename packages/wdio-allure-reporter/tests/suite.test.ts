@@ -21,7 +21,9 @@ import { suiteEnd, suiteStart } from './__fixtures__/suite.js'
 import {
     testFailed, testPending, testStart, testFailedWithMultipleErrors, testFailedWithMultipleErrorsAndStacksNotContainingMessages,
     hookStart, hookFailed,
-    testFailedWithAssertionErrorFromExpectWebdriverIO, eachHookFailed, eachHookStart
+    testFailedWithAssertionErrorFromExpectWebdriverIO, eachHookFailed, eachHookStart,
+    testFailedWithHtmlEntities,
+    hookFailedWithHtmlEntities
 } from './__fixtures__/testState.js'
 import {
     commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot
@@ -407,9 +409,69 @@ describe('Failed tests', () => {
         const { message } = results[0].statusDetails
         const lines = message.split('\n')
 
-        expect(lines[0]).toBe('Expect $(`login-app`).$(`<fn>`).$(`<fn>`).$(`<fn>`) to be displayed')
-        expect(lines[1].trim()).toBe('Expected: "displayed"')
-        expect(lines[2].trim()).toBe('Received: "not displayed"')
+        expect(lines[0]).toBe('Expect $(`login-app`).$(`&lt;fn&gt;`).$(`&lt;fn&gt;`).$(`&lt;fn&gt;`) to be displayed')
+        expect(lines[1].trim()).toBe('Expected: &quot;displayed&quot;')
+        expect(lines[2].trim()).toBe('Received: &quot;not displayed&quot;')
+    })
+
+    it('should encode html entities in stack traces and error messages', () => {
+        const reporter = new AllureReporter({ outputDir })
+
+        const runnerEvent = runnerStart()
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestFail(testFailedWithHtmlEntities())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].name).toEqual('should can do something')
+        expect(results[0].status).toEqual(Status.BROKEN)
+
+        const { message } = results[0].statusDetails
+
+        expect(message).toBe(`Found multiple elements with the role &quot;list&quot; and name \`/.*/\`·
+Here are the matching elements:·
+Ignored nodes: comments, script, style
+&lt;ul
+  class=&quot;some class&quot;
+&gt;`)
+    })
+
+    it('should encode html entities in stack traces and error messages of hooks', () => {
+        const reporter = new AllureReporter({ outputDir })
+
+        const runnerEvent = runnerStart()
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onHookStart(hookStart())
+        reporter.onHookEnd(hookFailedWithHtmlEntities())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].name).toEqual('"before all" hook for "should login with valid credentials"')
+        expect(results[0].status).toEqual(Status.BROKEN)
+
+        const { message } = results[0].statusDetails
+
+        expect(message).toBe(`Found multiple elements with the role &quot;list&quot; and name \`/.*/\`·
+Here are the matching elements:·
+Ignored nodes: comments, script, style
+&lt;ul
+  class=&quot;some class&quot;
+&gt;`)
     })
 })
 
