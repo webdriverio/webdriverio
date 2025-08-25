@@ -51,6 +51,7 @@ export interface AllureReporterOptions extends ReporterConfig {
      * Note that setting this does not modify the actual environment variables.
      */
     reportedEnvironmentVars?: Record<string, string>
+    enforceTestPlan?: boolean
 }
 
 export type WDIORunnable =

@@ -24,7 +24,8 @@ import {
     Status as AllureStatusEnum,
 } from 'allure-js-commons'
 import type { RuntimeMessage } from 'allure-js-commons/sdk'
-import { FileSystemWriter, getEnvironmentLabels, getSuiteLabels, ReporterRuntime, } from 'allure-js-commons/sdk/reporter'
+import { getMessageAndTraceFromError } from 'allure-js-commons/sdk'
+import { FileSystemWriter, getEnvironmentLabels, getSuiteLabels, ReporterRuntime } from 'allure-js-commons/sdk/reporter'
 import { setGlobalTestRuntime } from 'allure-js-commons/sdk/runtime'
 
 import { WdioTestRuntime } from './WdioTestRuntime.js'
@@ -38,8 +39,15 @@ import {
     isEmpty,
     isScreenshotCommand,
 } from './utils.js'
-import type { AddTestInfoEventArgs, AllureReporterOptions, WDIORuntimeMessage, } from './types.js'
+import type { AddTestInfoEventArgs, AllureReporterOptions, WDIORuntimeMessage } from './types.js'
 import { DEFAULT_CID, events } from './constants.js'
+
+import {
+    loadTestPlan,
+    applyTestPlanLabel,
+    installBddTestPlanFilter,
+    type LoadedTestPlan,
+} from './testplan.js'
 
 export default class AllureReporter extends WDIOReporter {
     private _allureRuntime: ReporterRuntime
@@ -52,6 +60,9 @@ export default class AllureReporter extends WDIOReporter {
     private _originalStdoutWrite: typeof process.stdout.write
     private _isFlushing = false
     private _cid?: string
+
+    private _testPlan: LoadedTestPlan | null
+    private _suiteStartedDepthByCid = new Map<string, number>()
 
     private _currentCid(): string {
         return this._cid || DEFAULT_CID
@@ -86,6 +97,11 @@ export default class AllureReporter extends WDIOReporter {
         this._allureState = new AllureReportState(this._allureRuntime)
         this._capabilities = {}
         this._options = options
+
+        this._testPlan = loadTestPlan()
+        if (this._testPlan) {
+            installBddTestPlanFilter(this._testPlan)
+        }
 
         this._registerListeners()
 
@@ -139,9 +155,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     _attachLogs(): void {
-        if (!this._consoleOutput) {
-            return
-        }
+        if (!this._consoleOutput) {return}
         this._attachFile({
             name: 'Console Logs',
             content: Buffer.from(`.........Console Logs.........\n\n${this._consoleOutput}`, 'utf8'),
@@ -280,6 +294,11 @@ export default class AllureReporter extends WDIOReporter {
                 data: { fullName: `${file}#${testPath.join(' ')}` },
             })
 
+            applyTestPlanLabel(this._testPlan, (m) => this._pushRuntimeMessage(m), {
+                file,
+                fullTitle: testPath.join(' '),
+            })
+
             if (file) {
                 this._pkgByCid.set(cid, file.replace(sep, '.'))
             }
@@ -309,9 +328,16 @@ export default class AllureReporter extends WDIOReporter {
         process.on(events.startStep, (name: string) => {
             this._pushRuntimeMessage({ type: 'step_start', data: { name, start: Date.now() } })
         })
-        process.on(events.endStep, (status: AllureStatus) => {
-            this._pushRuntimeMessage({ type: 'step_stop', data: { status, stop: Date.now() } })
-        })
+        process.on(
+            events.endStep,
+            (arg: AllureStatus | { status: AllureStatus; statusDetails?: StatusDetails }) => {
+                const payload = typeof arg === 'string' ? { status: arg } : arg
+                this._pushRuntimeMessage({
+                    type: 'step_stop',
+                    data: { ...payload, stop: Date.now() },
+                })
+            }
+        )
         process.on(events.runtimeMessage, (payload: RuntimeMessage) => {
             this._pushRuntimeMessage(payload as WDIORuntimeMessage)
         })
@@ -343,10 +369,14 @@ export default class AllureReporter extends WDIOReporter {
 
     onSuiteStart(suite: SuiteStats & { start: Date }): void {
         const isScenario = suite.type === 'scenario'
+        const cid = this._currentCid()
         const isFeature = suite.type === 'feature'
+
         if (!isScenario) {
-            this._suiteStack(this._currentCid()).push(suite.title)
-            this._startSuite({ name: suite.title, feature: isFeature })
+            this._suiteStack(cid).push(suite.title)
+            if (!this._tpActive()) {
+                this._startSuite({ name: suite.title, feature: isFeature })
+            }
             return
         }
 
@@ -372,9 +402,23 @@ export default class AllureReporter extends WDIOReporter {
 
     onSuiteEnd(suite: SuiteStats & { end: Date }): void {
         const isScenario = suite.type === 'scenario'
+        const cid = this._currentCid()
+
         if (!isScenario) {
-            this._endSuite()
-            const stack = this._suiteStack(this._currentCid())
+            const stack = this._suiteStack(cid)
+            const depthBeforePop = stack.length
+            const startedDepth = this._suiteStartedDepthByCid.get(cid) ?? 0
+
+            if (!this._tpActive()) {
+                this._endSuite()
+                stack.pop()
+                return
+            }
+
+            if (startedDepth >= depthBeforePop) {
+                this._endSuite()
+                this._suiteStartedDepthByCid.set(cid, startedDepth - 1)
+            }
             if (stack.length) {
                 stack.pop()
             }
@@ -432,10 +476,17 @@ export default class AllureReporter extends WDIOReporter {
     onTestStart(test: TestStats | HookStats): void {
         this._consoleOutput = ''
 
+        const fullTitle = (test as TestStats).fullTitle
+        const file = (test as unknown as { file?: string })?.file
+
+        applyTestPlanLabel(this._testPlan, (m) => this._pushRuntimeMessage(m), { file, fullTitle })
+
         if (!this._isCucumberExecutable(test)) {
+            const cid = this._currentCid()
+            this._ensureSuitesStarted(cid)
+
             const start = AllureReporter.getTimeOrNow((test as TestStats).start)
             this._startTest({ name: test.title, start })
-            const cid = this._currentCid()
             this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName: (test as TestStats)?.fullTitle } })
             const suitePath = [...this._suiteStack(cid)]
             const pkg = this._pkgByCid.get(cid)
@@ -453,15 +504,11 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        if (!this._hasPendingTest) {
-            return
-        }
+        if (!this._hasPendingTest) {return}
         const t = test as TestStats
         const argument = t?.argument as Argument
         const dataTable = argument?.rows?.map((a: { cells: string[] }) => a?.cells)
-        if (!dataTable) {
-            return
-        }
+        if (!dataTable) {return}
 
         this._attachFile({
             name: 'Data Table',
@@ -471,9 +518,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onTestPass(test: TestStats | HookStats): void {
-        if (this._isCucumberExecutable(test)) {
-            return
-        }
+        if (this._isCucumberExecutable(test)) {return}
         this._attachLogs()
         const end = AllureReporter.getTimeOrNow((test as TestStats).end)
         this._endTest({
@@ -485,9 +530,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onTestRetry(test: TestStats): void {
-        if (this._isCucumberExecutable(test)) {
-            return
-        }
+        if (this._isCucumberExecutable(test)) {return}
         this._attachLogs()
         const status = getTestStatus(test, this._config)
         this._endTest({
@@ -499,9 +542,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onTestFail(test: TestStats | HookStats): void {
-        if (this._isCucumberExecutable(test)) {
-            return
-        }
+        if (this._isCucumberExecutable(test)) {return}
         if (!this._hasPendingTest) {
             this.onTestStart(test)
         }
@@ -517,9 +558,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onTestSkip(test: TestStats): void {
-        if (this._isCucumberExecutable(test)) {
-            return
-        }
+        if (this._isCucumberExecutable(test)) {return}
         if (this._hasPendingTest) {
             this._attachLogs()
             this._skipTest()
@@ -533,9 +572,7 @@ export default class AllureReporter extends WDIOReporter {
 
     onBeforeCommand(command: BeforeCommandArgs): void {
         const { disableWebdriverStepsReporting } = this._options
-        if (disableWebdriverStepsReporting || this._isMultiremote) {
-            return
-        }
+        if (disableWebdriverStepsReporting || this._isMultiremote) {return}
 
         const { method, endpoint } = command
         const stepName = command.command ? (command.command as string) : `${method} ${endpoint}`
@@ -558,16 +595,11 @@ export default class AllureReporter extends WDIOReporter {
                 ? (res as Record<string, unknown>)['value']
                 : res
 
-        if (!disableWebdriverScreenshotsReporting && isShot && commandResult) {
-            const base64 = typeof commandResult === 'string' ? commandResult : undefined
-            if (base64) {
-                this._attachScreenshot({ name: 'Screenshot', content: Buffer.from(base64, 'base64') })
-            }
+        if (!disableWebdriverScreenshotsReporting && isShot && commandResult && typeof commandResult === 'string') {
+            this._attachScreenshot({ name: 'Screenshot', content: Buffer.from(commandResult, 'base64') })
         }
 
-        if (disableWebdriverStepsReporting || this._isMultiremote) {
-            return
-        }
+        if (disableWebdriverStepsReporting || this._isMultiremote) {return}
 
         const hasData =
             commandResult !== undefined &&
@@ -583,9 +615,7 @@ export default class AllureReporter extends WDIOReporter {
 
     onHookStart(hook: HookStats): void {
         const { disableMochaHooks } = this._options
-        if (disableMochaHooks || !hook.parent || !this._hasPendingSuite) {
-            return
-        }
+        if (disableMochaHooks || !hook.parent) {return}
 
         const hookTypeFromName = hook.title && /before/i.test(hook.title) ? 'before' : 'after'
         const hookType: 'before' | 'after' =
@@ -601,12 +631,8 @@ export default class AllureReporter extends WDIOReporter {
 
     onHookEnd(hook: HookStats): void {
         const { disableMochaHooks } = this._options
-        if (!this._hasPendingSuite || !hook.parent) {
-            return
-        }
-        if (disableMochaHooks && !hook.error) {
-            return
-        }
+        if (!this._hasPendingSuite || !hook.parent) {return}
+        if (disableMochaHooks && !hook.error) {return}
 
         const hookTypeFromName = hook.title && /before/i.test(hook.title) ? 'before' : 'after'
         const hookType: 'before' | 'after' =
@@ -617,8 +643,9 @@ export default class AllureReporter extends WDIOReporter {
             this._startTest({ name: hook.title, start })
             this._startHook({ name: hook.title ?? 'Unnamed hook', type: hookType, start })
             this._endHook({
-                status: AllureStatusEnum.BROKEN,
-                statusDetails: { message: hook.error.message, trace: hook.error.stack },
+                status: hook.error ? AllureStatusEnum.BROKEN : AllureStatusEnum.PASSED,
+                statusDetails: hook.error && getMessageAndTraceFromError(hook.error),
+                stop: AllureReporter.getTimeOrNow(hook.end),
                 duration: hook.duration,
             })
             this._endTest({
@@ -637,7 +664,7 @@ export default class AllureReporter extends WDIOReporter {
 
         this._endHook({
             status: hook.error ? AllureStatusEnum.BROKEN : AllureStatusEnum.PASSED,
-            statusDetails: hook.error && { message: hook.error.message, trace: hook.error.stack },
+            statusDetails: hook.error && getMessageAndTraceFromError(hook.error),
             stop: AllureReporter.getTimeOrNow(hook.end),
             duration: hook.duration,
         })
@@ -661,5 +688,19 @@ export default class AllureReporter extends WDIOReporter {
     private _isCucumberExecutable(executable: TestStats | HookStats | SuiteStats): boolean {
         const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
         return uuidRe.test(executable.uid)
+    }
+
+    private _tpActive(): boolean {
+        return Boolean(this._testPlan)
+    }
+
+    private _ensureSuitesStarted(cid: string): void {
+        if (!this._tpActive()) {return}
+        const stack = this._suiteStack(cid)
+        const started = this._suiteStartedDepthByCid.get(cid) ?? 0
+        for (let i = started; i < stack.length; i++) {
+            this._startSuite({ name: stack[i] })
+        }
+        this._suiteStartedDepthByCid.set(cid, stack.length)
     }
 }
