@@ -112,11 +112,11 @@ export const config = {
         /**
          * only run this test in lit
          */
-        // TODO dprevost reanable && add a better e2e tests?
-        // if (process.env.WDIO_PRESET !== 'lit') {
-        //     return
-        // }
+        if (process.env.WDIO_PRESET !== 'lit') {
+            return
+        }
 
-        browser.addCommand('someCustomCommand', () => 'Hello World', true, undefined, undefined, true)
+        browser.addCommand('someCustomCommand', () => 'Hello World', true)
+        browser.addCommand('someCustomCommandWithNoWait', () => 'Hello World with no implicit wait', true, undefined, undefined, true)
     }
 }
