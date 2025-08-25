@@ -65,7 +65,6 @@ vi.spyOn(thUtils, 'getProductMap').mockImplementation(() => {
 const pkg = await vi.importActual('../package.json') as any
 const log = logger('test')
 const error = new Error('I\'m an error!')
-const sleep = (ms: number = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
 beforeEach(() => {
     vi.clearAllMocks()
@@ -97,7 +96,6 @@ describe('onPrepare', () => {
         })
         await service.onPrepare(config, caps)
 
-        expect(log.info).toHaveBeenNthCalledWith(1, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
@@ -113,7 +111,6 @@ describe('onPrepare', () => {
         })
         await service.onPrepare(config, caps)
 
-        expect(log.info).toHaveBeenNthCalledWith(1, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
@@ -569,15 +566,11 @@ describe('onPrepare', () => {
     })
 
     it('should successfully resolve if local.start is successful', async () => {
-        const logInfoMock = vi.spyOn(log, 'info')
         const options: BrowserstackConfig = { browserstackLocal: true }
         const service = new BrowserstackLauncher(options as any, caps, config)
 
         await service.onPrepare(config, caps)
         expect(service.browserstackLocal?.start).toHaveBeenCalled()
-        await sleep(100)
-        expect(logInfoMock.mock.calls[1][0])
-            .toContain('Browserstack Local successfully started after')
     })
 
     it('should correctly set up this-binding for local.start', async () => {

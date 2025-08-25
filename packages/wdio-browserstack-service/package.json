@@ -31,6 +31,7 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@browserstack/ai-sdk-node": "1.5.17",
+    "@browserstack/wdio-browserstack-service": "^2.0.0",
     "@percy/appium-app": "^2.0.1",
     "@percy/selenium-webdriver": "^2.0.3",
     "@types/gitconfiglocal": "^2.0.1",
@@ -44,6 +45,7 @@
     "git-repo-info": "^2.1.1",
     "gitconfiglocal": "^2.1.0",
     "got": "^12.6.1",
+    "tar": "^6.1.15",
     "uuid": "^10.0.0",
     "webdriverio": "8.46.0",
     "winston-transport": "^4.5.0",
@@ -54,6 +56,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.2.0",
+    "@types/tar": "^6.1.13",
     "@wdio/globals": "8.46.0"
   },
   "publishConfig": {
