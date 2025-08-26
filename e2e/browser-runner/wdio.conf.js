@@ -116,6 +116,6 @@ export const config = {
             return
         }
 
-        browser.addCommand('someCustomCommand', () => 'Hello World', true)
+        browser.addCommand('someCustomCommand', () => 'Hello World')
     }
 }
