@@ -85,6 +85,17 @@ describe('monad', () => {
         expect(client.__propertiesObject__.myCustomElementCommand.value).toBe(func)
     })
 
+    it('should add element commands to the __propertiesObject__ cache with implicit wait disabled', () => {
+        const monad = webdriverMonad({}, (client: any) => client, prototype)
+        const client = monad(sessionId)
+
+        const func = function (x: number, y: number) { return x + y }
+
+        client.addCommand('myCustomElementCommandNoImplicitWait', func, true, undefined, undefined, true)
+        expect(typeof client.__propertiesObject__.myCustomElementCommandNoImplicitWait).toBe('object')
+        expect(client.__propertiesObject__.myCustomElementCommandNoImplicitWait.value).toBe(func)
+    })
+
     it('should add element commands for override to the __propertiesObject__.__elementOverrides__ cache', () => {
         const monad = webdriverMonad({}, (client: any) => client, { ...prototype })
         const client = monad(sessionId)
