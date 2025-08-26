@@ -117,6 +117,6 @@ export const config = {
         }
 
         browser.addCommand('someCustomCommand', () => 'Hello World', true)
-        browser.addCommand('someCustomCommandWithNoWait', () => 'Hello World with no implicit wait', true, undefined, undefined, true)
+        // browser.addCommand('someCustomCommandWithNoWait', () => 'Hello World with no implicit wait', true, undefined, undefined, true)
     }
 }
