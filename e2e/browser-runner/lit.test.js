@@ -523,7 +523,6 @@ describe('Lit Component testing', () => {
 
         it('supports custom command registration in before hook', async () => {
             expect(await browser.someCustomCommand()).toBe('Hello World')
-            // expect(await browser.someCustomCommandWithNoWait()).toBe('Hello World with no implicit wait')
         })
 
         it('supports custom matchers added by services', async () => {
