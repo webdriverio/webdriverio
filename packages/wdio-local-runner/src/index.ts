@@ -13,6 +13,7 @@ export type { WorkerInstance }
 export interface RunArgs extends Workers.WorkerRunPayload {
     command: string
     args: Workers.WorkerMessageArgs
+    cid: string
 }
 
 export default class LocalRunner {
@@ -29,7 +30,10 @@ export default class LocalRunner {
     ) {
         // Initialize XvfbManager
         this.xvfbManager = new XvfbManager({
+            enabled: this.config.autoXvfb !== false,
             autoInstall: this.config.xvfbAutoInstall,
+            autoInstallMode: this.config.xvfbAutoInstallMode,
+            autoInstallCommand: this.config.xvfbAutoInstallCommand,
             xvfbMaxRetries: this.config.xvfbMaxRetries,
             xvfbRetryDelay: this.config.xvfbRetryDelay
         })

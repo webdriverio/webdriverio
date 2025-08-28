@@ -430,6 +430,25 @@ describe('main suite 1', () => {
             expect(await browser.execute(() => Math.random())).not.toBe(42)
         })
 
+        it('should escape the init script', async () => {
+            type WindowWithHello = Window & {
+                sayHello?: (name: string) => string;
+            }
+            const script = await browser.addInitScript(() => {
+                (window as WindowWithHello).sayHello = (name) =>
+                    `Hello ${name}`
+            })
+
+            await browser.url('https://webdriver.io')
+            expect(
+                await browser.execute(() =>
+                    (window as WindowWithHello).sayHello!('there'),
+                ),
+            ).toBe('Hello there')
+
+            await script.remove()
+        })
+
         it('passed on callback function', async () => {
             const script = await browser.addInitScript((num, str, bool, emit) => {
                 setTimeout(() => emit(JSON.stringify([num, str, bool])), 500)

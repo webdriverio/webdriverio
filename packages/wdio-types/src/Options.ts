@@ -334,11 +334,23 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     autoXvfb?: boolean
     /**
-     * Enable automatic installation of Xvfb packages on Linux if `xvfb-run` is missing.
+     * Enable automatic installation of `xvfb-run` on Linux if missing.
      * When false, the runner will warn and continue without installing.
      * @default false
      */
     xvfbAutoInstall?: boolean
+    /**
+     * Mode for automatic installation when xvfbAutoInstall is true.
+     * - 'root': install only if running as root (no sudo)
+     * - 'sudo': install if root or via non-interactive sudo (`sudo -n`) if available
+     * @default 'root'
+     */
+    xvfbAutoInstallMode?: 'root' | 'sudo'
+    /**
+     * Custom command to use for installation instead of built-in package manager detection.
+     * When provided, this command is executed as-is and overrides the built-in installation logic.
+     */
+    xvfbAutoInstallCommand?: string | string[]
     /**
      * Number of retry attempts for xvfb process failures.
      * @default 3
