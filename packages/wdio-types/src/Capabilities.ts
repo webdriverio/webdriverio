@@ -854,6 +854,7 @@ export interface AppiumXCUITestCapabilities {
     'appium:otherApps'?: string | string[]
     'appium:includeSafariInWebviews'?: boolean
     'appium:additionalWebviewBundleIds'?: Array<string>
+    'appium:webviewAtomWaitTimeout'?: number
     'appium:webviewConnectTimeout'?: number
     'appium:iosSimulatorLogsPredicate'?: string
     'appium:appPushTimeout'?: number
