@@ -1,4 +1,4 @@
-WebdriverIO XML Reporter
+WebdriverIO JUnit Reporter
 ========================
 
 > A WebdriverIO reporter that creates [Jenkins](http://jenkins-ci.org/) compatible XML based JUnit reports
@@ -15,7 +15,7 @@ Instructions on how to install `WebdriverIO` can be found [here](https://webdriv
 
 ## Output
 
-This reporter will output a report for each runner, so in turn you will receive an xml report for each spec file. Below
+This reporter will output a report for each runner, so in turn you will receive an XML report for each spec file. Below
 are examples of XML output given different scenarios in the spec file.
 
 ### Single describe block
@@ -132,22 +132,16 @@ Error: some assertion failure
 
 ## Configuration
 
-Following code shows the default wdio test runner configuration. Just add `'junit'` as reporter
-to the array. To get some output during the test you can run the [WDIO Dot Reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-dot-reporter) and the WDIO JUnit Reporter at the same time:
+The following example shows a basic configuration for this reporter:
 
 ```js
 // wdio.conf.js
-module.exports = {
+export const config = {
     // ...
-    reporters: [
-        'dot',
-        ['junit', {
-            outputDir: './',
-            outputFileFormat: function(options) { // optional
-                return `results-${options.cid}.${options.capabilities}.xml`
-            }
-        }]
-    ],
+    reporters: [['junit', {
+        outputDir: './',
+        outputFileFormat: () => `test-results.xml`;
+    }]],
     // ...
 };
 ```
@@ -155,76 +149,182 @@ module.exports = {
 The following options are supported:
 
 ### outputDir
-Define a directory where your xml files should get stored.
+Define a directory where your XML files should get stored. Ignored if either `logFile` or `setLogFile` are defined.
 
-Type: `String`<br />
-Required
+Type: `String`
 
 ### outputFileFormat
-Define the xml files created after the test execution.
+Function for defining the filename format for the reporter log files. Ignored if either `logFile` or `setLogFile`
+are defined.
+
+The function accepts an object input parameter with the `cid` and `capabilities` keys.
 
 Type: `Object`<br />
-Default: ``function (opts) { return `wdio-${this.cid}-${name}-reporter.log` }``
-
-```
-outputFileFormat: function (options) {
-    return 'mycustomfilename.xml';
-}
-```
-
-> Note: `options.capabilities` is your capabilities object for that runner, so specifying `${options.capabilities}` in your string will return [Object object]. You must specify which properties of capabilities you want in your filename.
-
-### suiteNameFormat
-
-Gives the ability to provide custom regex for formatting test suite name (e.g. in output xml ).
-
-Type: `Regex`,<br />
-Default: `/[^a-zA-Z0-9@]+/`
-
+Default: ``(opts) => `wdio-${opts.cid}-junit-reporter.log` ``<br />
+Example:
 ```js
 // wdio.conf.js
-module.exports = {
+export const config = {
     // ...
-    reporters: [
-        'dot',
-        ['junit', {
-            outputDir: './',
-            suiteNameFormat: /[^a-zA-Z0-9@]+/
-            outputFileFormat: function(options) { // optional
-                return `results-${options.cid}.${options.capabilities}.xml`
-            }
-        }]
-    ],
+    reporters: [['junit', {
+        outputDir: './',
+        outputFileFormat: (opts) => `results-${opts.cid}-${opts.capabilities.browserName}.xml`,
+    }]],
     // ...
 };
 ```
 
-### addFileAttribute
+### logFile
+Path to the reporter log file relative to the current directory. Overrides `outputDir` and `outputFileFormat`.
+Ignored if `setLogFile` is defined.
 
-Adds a file attribute to each testcase. This config is primarily for CircleCI. This setting provides richer details but may break on other CI platforms.
+Type: `String`<br />
+Example:
+```js
+// wdio.conf.js
+export const config = {
+    // ...
+    reporters: [['junit', {
+        logFile: './reports/junit-report.xml',
+    }]],
+    // ...
+};
+```
 
-Type: `Boolean`,<br />
+### setLogFile
+Function for defining the path for the reporter log files. Overrides `outputDir`, `outputFileFormat`, and `logFile`.
+
+The function accepts two input parameters: `cid` and `name` (the reporter name, set to `junit`).
+
+Type: `Object`<br />
+Example:
+```js
+// wdio.conf.js
+export const config = {
+    // ...
+    reporters: [['junit', {
+        setLogFile: (cid, name) => `./reports/results-${cid}-${name}.xml`,
+    }]],
+    // ...
+};
+```
+
+### stdout
+Output the generated XML to the console instead of creating a log file.
+
+Type: `boolean`<br />
 Default: `false`
 
+### writeStream
+Set a stream to which the generated XML should be output, instead of creating a log file.
+
+Note: `logFile` must not be set, unless `stdout` is set to `true`.
+
+Type: `WriteStream`
+
+### suiteNameFormat
+Format the generated name of a test suite, using custom regex or a function.
+
+The function accepts an object input parameter with the `name` and `suite` keys.
+
+Type: `Regex | Object`,<br />
+Default: `/[^a-zA-Z0-9@]+/`<br />
+Example with Regex:
+```js
+// wdio.conf.js
+export const config = {
+    // ...
+    reporters: [['junit', {
+        outputDir: './',
+        suiteNameFormat: /[^a-zA-Z0-9@]+/
+    }]],
+    // ...
+};
+```
+Example with function:
+```js
+// wdio.conf.js
+export const config = {
+    // ...
+    reporters: [['junit', {
+        outputDir: './',
+        suiteNameFormat: ({name, suite}) => `suite-${name}-${suite.title}`,
+    }]],
+    // ...
+};
+```
+
+### classNameFormat
+Format the generated classname of a test case.
+
+The function accepts an object input parameter with the [`packageName`](#packagename), `activeFeatureName`
+(Cucumber only), and `suite` (non-Cucumber only) keys.
+
+Type: `Object`<br />
+Default (Cucumber): ``function (opts) { return `${opts.packageName}${opts.activeFeatureName}` }``<br />
+Default (others): ``function (opts) { return `${opts.packageName}.${(opts.suite.fullTitle || opts.suite.title).replace(/\s/g, '_')}` }``<br />
+Example (Cucumber):
+```js
+// wdio.conf.js
+export const config = {
+    // ...
+    reporters: [['junit', {
+        outputDir: './',
+        classNameFormat: ({packageName, activeFeatureName}) => `class-${packageName}-${activeFeatureName}`,
+    }]],
+    // ...
+};
+```
+Example (others):
+```js
+// wdio.conf.js
+export const config = {
+    // ...
+    reporters: [['junit', {
+        outputDir: './',
+        classNameFormat: ({packageName, suite}) => `class-${packageName}-${suite.title}`,
+    }]],
+    // ...
+};
+```
+
+
+### addFileAttribute
+
+Adds a `file` attribute to each testcase. The value of this attribute matches the filepath property of the parent test
+suite. This config is primarily for CircleCI, but may break on other CI platforms.
+
+Type: `Boolean`<br />
+Default: `false`<br />
+Example simplified XML:
+```xml
+<testsuite>
+    <properties>
+        <property name="file" value="file://./path/to/test/file.js"/>
+    </properties>
+    <testcase file="file://./path/to/test/file.js">
+        <!-- ... -->
+    </testcase>
+</testsuite>
+```
 
 ### packageName
 
-You can break out packages by an additional level by setting `'packageName'`. For example, if you wanted to iterate over a test suite with different environment variable set:
+You can break out packages by an additional level by setting `'packageName'`. For example, if you wanted to iterate over a test suite with a different environment variable set:
 
 Type: `String`<br />
+Default (Cucumber): `CucumberJUnitReport-${sanitizedCapabilities}`<br />
+Default (others): `${sanitizedCapabilities}`<br />
 Example:
 
 ```js
 // wdio.conf.js
-module.exports = {
+export const config = {
     // ...
-    reporters: [
-        'dot',
-        ['junit', {
-            outputDir: './',
-            packageName: process.env.USER_ROLE // chrome.41 - administrator
-        }]
-    ]
+    reporters: [['junit', {
+        outputDir: './',
+        packageName: process.env.USER_ROLE // chrome.41 - administrator
+    }]],
     // ...
 };
 ```
@@ -253,26 +353,23 @@ Example:
 
 ```js
 // wdio.conf.js
-module.exports = {
+export const config = {
     // ...
-    reporters: [
-        'dot',
-        ['junit', {
-            outputDir: './',
-            errorOptions: {
-                error: 'message',
-                failure: 'message',
-                stacktrace: 'stack'
-            }
-        }]
-    ],
+    reporters: [['junit', {
+        outputDir: './',
+        errorOptions: {
+            error: 'message',
+            failure: 'message',
+            stacktrace: 'stack'
+        }
+    }]],
     // ...
 };
 ```
 
 ### addWorkerLogs
 
-Optional parameter, set this parameter to true in order to attach console logs from the test in the reporter.
+Attach console logs from the test in the reporter.
 
 Type: `Boolean`<br />
 Default: `false`<br />
@@ -280,29 +377,24 @@ Example:
 
 ```js
 // wdio.conf.js
-module.exports = {
+export const config = {
     // ...
-    reporters: [
-        'dot',
-        ['junit', {
-            outputDir: './',
-            addWorkerLogs: true
-        }]
-    ],
+    reporters: [['junit', {
+        outputDir: './',
+        addWorkerLogs: true
+    }]],
     // ...
 };
 ```
 
-## Adding custom properties to testcases
+## API
 
-This plugin provides a function `addProperty(name, value)`. This function may be used to add additional junit testcase properties to the currently running test step. These properties will be reported in the resulting xml as `<property name="${name}" value="${value}" />`.
+### addProperty
 
-Typical usecase for this is adding a link to an issue or a testcase.
+Add a JUnit testcase property to the currently running test step. The typical usecase for this is adding a link to
+an issue or a testcase.
 
-
-### Usage example
-
-An example for mocha:
+Simplified example (Mocha):
 
 ```js
 import { addProperty } from '@wdio/junit-reporter'
@@ -313,14 +405,23 @@ describe('Suite', () => {
     })
 })
 ```
+```xml
+<testsuite name="Suite">
+    <testcase classname="chrome.Case" name="Suite Case">
+        <properties>
+            <property name="test_case" value="TC-1234" />
+        </properties>
+    </testcase>
+</testsuite>
+```
 
 ## Jenkins Setup
 
-Last but not least you need to tell your CI job (e.g. Jenkins) where it can find the xml file. To do that, add a post-build action to your job that gets executed after the test has run and point Jenkins (or your desired CI system) to your XML test results:
+Last but not least you need to tell your CI job (e.g. Jenkins) where it can find the XML file. To do that, add a post-build action to your job that gets executed after the test has run and point Jenkins (or your desired CI system) to your XML test results:
 
 ![Point Jenkins to XML files](https://webdriver.io/img/jenkins-postjob.png "Point Jenkins to XML files")
 
-If there is no such post-build step in your CI system there is probably a plugin for that somewhere on the internet.
+If there is no such post-build step in your CI system, there is probably a plugin for that somewhere on the internet.
 
 ----
 
