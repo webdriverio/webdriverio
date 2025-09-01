@@ -68,6 +68,7 @@ browser.addCommand("waitAndClick", async function () {
 }, true /* element scope flag */, undefined, undefined, true /* disable implicit wait flag */)
 ```
 
+
 Custom commands give you the opportunity to bundle a specific sequence of commands you use frequently as a single call. You can define custom commands at any point in your test suite; just make sure that the command is defined *before* its first use. (The `before` hook in your `wdio.conf.js` is one good place to create them.)
 
 Once defined, you can use them as follows:
