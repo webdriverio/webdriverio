@@ -261,8 +261,8 @@ The function accepts an object input parameter with the [`packageName`](#package
 (Cucumber only), and `suite` (non-Cucumber only) keys.
 
 Type: `Object`<br />
-Default (Cucumber): ``function (opts) { return `${opts.packageName}${opts.activeFeatureName}` }``<br />
-Default (others): ``function (opts) { return `${opts.packageName}.${(opts.suite.fullTitle || opts.suite.title).replace(/\s/g, '_')}` }``<br />
+Default (Cucumber): ``(opts) => `${opts.packageName}${opts.activeFeatureName}` ``<br />
+Default (others): ``(opts) => `${opts.packageName}.${(opts.suite.fullTitle || opts.suite.title).replace(/\s/g, '_')}` ``<br />
 Example (Cucumber):
 ```js
 // wdio.conf.js
