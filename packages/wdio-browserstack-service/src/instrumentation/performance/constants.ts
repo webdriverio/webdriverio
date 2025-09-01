@@ -16,7 +16,14 @@ export const EVENTS = {
     SDK_TURBOSCALE: 'sdk:turboscale',
     SDK_PERCY: 'sdk:percy',
     SDK_PRE_INITIALIZE: 'sdk:driver:pre-initialization',
-    SDK_POST_INITIALIZE: 'sdk:driver:post-initialization'
+    SDK_POST_INITIALIZE: 'sdk:driver:post-initialization',
+    SDK_CLI_CHECK_UPDATE: 'sdk:cli:check-update',
+    SDK_CLI_DOWNLOAD: 'sdk:cli:download',
+    SDK_CLI_ON_BOOTSTRAP: 'sdk:cli:on-bootstrap',
+    SDK_CLI_START: 'sdk:cli:start',
+    SDK_CLI_ON_STOP: 'sdk:cli:on-stop',
+    SDK_CONNECT_BIN_SESSION: 'sdk:cli:connect-bin-session',
+    SDK_START_BIN_SESSION: 'sdk:cli:start-bin-session'
 }
 
 export const TESTHUB_EVENTS = {

@@ -22,7 +22,8 @@ import {
     BROWSERSTACK_TESTHUB_UUID,
     VALID_APP_EXTENSION,
     BROWSERSTACK_PERCY,
-    BROWSERSTACK_OBSERVABILITY
+    BROWSERSTACK_OBSERVABILITY,
+    WDIO_NAMING_PREFIX
 } from './constants.js'
 import {
     launchTestSession,
@@ -52,6 +53,8 @@ import { sendFinish, sendStart } from './instrumentation/funnelInstrumentation.j
 import AiHandler from './ai-handler.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
+import { BrowserstackCLI } from './cli/index.js'
+import { CLIUtils } from './cli/cliUtils.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
 import { _fetch as fetch } from './fetchWrapper.js'
 
@@ -210,6 +213,17 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         // Send Funnel start request
         await sendStart(this.browserStackConfig)
 
+        try {
+            if (CLIUtils.checkCLISupportedFrameworks(config.framework)) {
+                CLIUtils.setFrameworkDetail(WDIO_NAMING_PREFIX + config.framework, 'WebdriverIO')
+                const binconfig = CLIUtils.getBinConfig(config, capabilities, this._options, this._buildTag)
+                await BrowserstackCLI.getInstance().bootstrap(this._options, config, binconfig)
+                BStackLogger.debug(`Is CLI running ${BrowserstackCLI.getInstance().isRunning()}`)
+            }
+        } catch (err) {
+            BStackLogger.error(`Error while starting CLI ${err}`)
+        }
+
         // Setting up healing for those sessions where we don't add the service version capability as it indicates that the session is not being run on BrowserStack
         if (!shouldAddServiceVersion(this._config, this._options.testObservability, capabilities as Capabilities.BrowserStackCapabilities)) {
             try {
@@ -238,32 +252,34 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
          * Upload app to BrowserStack if valid file path to app is given.
          * Update app value of capability directly if app_url, custom_id, shareable_id is given
          */
-        if (!this._options.app) {
-            BStackLogger.debug('app is not defined in browserstack-service config, skipping ...')
-        } else {
-            let app: App = {}
-            const appConfig: AppConfig | string = this._options.app
+        if (!BrowserstackCLI.getInstance().isRunning()) {
+            if (!this._options.app) {
+                BStackLogger.debug('app is not defined in browserstack-service config, skipping ...')
+            } else {
+                let app: App = {}
+                const appConfig: AppConfig | string = this._options.app
 
-            try {
-                app = await this._validateApp(appConfig)
-            } catch (error: unknown){
-                throw new SevereServiceError((error as Error).message)
-            }
-
-            if (VALID_APP_EXTENSION.includes(path.extname(app.app!))){
-                if (fs.existsSync(app.app!)) {
-                    const data: AppUploadResponse = await this._uploadApp(app)
-                    BStackLogger.info(`app upload completed: ${JSON.stringify(data)}`)
-                    app.app = data.app_url
-                } else if (app.customId){
-                    app.app = app.customId
-                } else {
-                    throw new SevereServiceError(`[Invalid app path] app path ${app.app} is not correct, Provide correct path to app under test`)
+                try {
+                    app = await this._validateApp(appConfig)
+                } catch (error: unknown){
+                    throw new SevereServiceError((error as Error).message)
                 }
-            }
 
-            BStackLogger.info(`Using app: ${app.app}`)
-            this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'app', app.app)
+                if (VALID_APP_EXTENSION.includes(path.extname(app.app!))){
+                    if (fs.existsSync(app.app!)) {
+                        const data: AppUploadResponse = await this._uploadApp(app)
+                        BStackLogger.info(`app upload completed: ${JSON.stringify(data)}`)
+                        app.app = data.app_url
+                    } else if (app.customId){
+                        app.app = app.customId
+                    } else {
+                        throw new SevereServiceError(`[Invalid app path] app path ${app.app} is not correct, Provide correct path to app under test`)
+                    }
+                }
+
+                BStackLogger.info(`Using app: ${app.app}`)
+                this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'app', app.app)
+            }
         }
 
         /**
@@ -286,7 +302,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
 
         let buildStartResponse = null
-        if (this._options.testObservability || this._accessibilityAutomation || shouldSetupPercy) {
+        if (!BrowserstackCLI.getInstance().isRunning() && (this._options.testObservability || this._accessibilityAutomation || shouldSetupPercy)) {
             BStackLogger.debug('Sending launch start event')
 
             buildStartResponse = await launchTestSession(this._options, this._config, {
@@ -404,7 +420,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         BStackLogger.debug('Inside OnComplete hook..')
 
         BStackLogger.debug('Sending stop launch event')
-        await stopBuildUpstream()
+        await (BrowserstackCLI.getInstance().isRunning() ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
         if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
             console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
         }
@@ -521,7 +537,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         const form = new FormData()
         if (app.app) {
             const fileName = path.basename(app.app)
-            const fileBlob = new Blob([await readFile(app.app)])
+            const fileBuffer = await readFile(app.app)
+            const fileBlob = new Blob([new Uint8Array(fileBuffer)])
             form.append('file', fileBlob, fileName)
         }
         if (app.customId) {
