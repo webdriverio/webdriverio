@@ -365,6 +365,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'testhubBuildUuid')
         this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'buildProductMap')
 
+        // local binary will be handled by CLI
+        if (BrowserstackCLI.getInstance().isRunning()) {
+            return
+        }
+
         if (!this._options.browserstackLocal) {
             return BStackLogger.info('browserstackLocal is not enabled - skipping...')
         }
@@ -450,6 +455,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (this._options.percy) {
             await this.stopPercy()
             PercyLogger.clearLogger()
+        }
+
+        // local binary will be handled by CLI
+        if (BrowserstackCLI.getInstance().isRunning()) {
+            return
         }
 
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {

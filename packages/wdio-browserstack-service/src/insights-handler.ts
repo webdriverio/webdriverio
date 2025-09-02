@@ -938,6 +938,27 @@ class _InsightsHandler {
         }
         return getUniqueIdentifier(test, this._framework)
     }
+
+    public async setGitConfigPath() {
+        const gitMeta = await getGitMetaData()
+        if (gitMeta) {
+            this._gitConfigPath = gitMeta.root
+        }
+    }
+
+    public setTestData (test: Frameworks.Test, uuid: string) {
+        InsightsHandler.currentTest = {
+            test, uuid
+        }
+        if (this._framework !== 'mocha') {
+            return
+        }
+        const fullTitle = getUniqueIdentifier(test, this._framework)
+        this._tests[fullTitle] = {
+            uuid,
+            startedAt: (new Date()).toISOString()
+        }
+    }
 }
 
 // https://github.com/microsoft/TypeScript/issues/6543

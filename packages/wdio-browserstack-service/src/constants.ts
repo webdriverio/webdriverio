@@ -129,7 +129,7 @@ export const GIT_META_DATA_TRUNCATED = '...[TRUNCATED]'
 
 // CLI related constants
 export const CLI_STOP_TIMEOUT = 5000 // 5 seconds
-export const WDIO_NAMING_PREFIX = 'wdio-'
+export const WDIO_NAMING_PREFIX = 'WebdriverIO-'
 
 // API Endpoint constants
 export const UPDATED_CLI_ENDPOINT = 'sdk/v1/update_cli'

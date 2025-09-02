@@ -15,6 +15,8 @@ import APIUtils from '../apiUtils.js'
 import { AutomationFrameworkState } from '../states/automationFrameworkState.js'
 import { _fetch as fetch } from '../../fetchWrapper.js'
 
+import util from 'node:util'
+
 interface TestResult {
     testName: string
     status: 'passed' | 'failed'
@@ -206,7 +208,7 @@ export default class AutomateModule extends BaseModule {
                         this.logger.info('Marking session name for Automate')
                     }
 
-                    const sessionStatusApiUrl = isAppAutomate
+                    const sessionNameApiUrl = isAppAutomate
                         ? `${APIUtils.BROWSERSTACK_AA_API_URL}/app-automate/sessions/${sessionId}.json`
                         : `${APIUtils.BROWSERSTACK_AUTOMATE_API_URL}/automate/sessions/${sessionId}.json`
 
@@ -220,13 +222,12 @@ export default class AutomateModule extends BaseModule {
                             Authorization: `Basic ${auth}`,
                             'Content-Type': 'application/json'
                         },
-                        json: requestBody,
-                        responseType: 'json'
+                        body: JSON.stringify(requestBody)
                     }
 
-                    const response = await fetch(sessionStatusApiUrl, options)
-                    this.logger.debug('Session name updated:', response.body)
-                    this.logger.debug(`Done for sessionId ${sessionId}`)
+                    const response = await fetch(sessionNameApiUrl, options)
+                    const responseData = await response.json()
+                    this.logger.debug(`Session name updated: ${util.format(responseData)}. Done for sessionId ${sessionId}`)
                 } catch (err) {
                     this.logger.error(`Failed to update session name on BrowserStack: ${err}`)
                 }
@@ -262,12 +263,12 @@ export default class AutomateModule extends BaseModule {
                             Authorization: `Basic ${auth}`,
                             'Content-Type': 'application/json'
                         },
-                        json: body,
-                        responseType: 'json'
+                        body: JSON.stringify(body)
                     }
 
                     const response = await fetch(sessionStatusApiUrl, options)
-                    this.logger.debug('Session update response:', response.body)
+                    const responseData = await response.json()
+                    this.logger.debug(`Session status updated: ${util.format(responseData)}. Done for sessionId ${sessionId}`)
                 } catch (err) {
                     this.logger.error(`Failed to update session status on BrowserStack: ${err}`)
                 }
