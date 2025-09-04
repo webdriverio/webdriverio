@@ -87,25 +87,26 @@ export const mapSeries = async <T>(array: T[], callback: Function, thisArg?: T) 
  * @return {Promise} - Returns a Promise with the element that passed the test as value, otherwise *undefined*.
  */
 export const find = <T>(array: T[], callback: Function, thisArg?: T) => {
-    return new Promise<T | undefined>((resolve, reject) => {
-        if (array.length === 0) {
-            return resolve(undefined)
-        }
-        let counter = 1
-        for (let i = 0; i < array.length; i++) {
-            const check = (found: T) => {
-                if (found) {
-                    resolve(array[i])
-                } else if (counter === array.length) {
-                    resolve(undefined)
+    const promises = Array.from(array, (element, index) =>
+        Promise.resolve(element)
+            .then(resolvedElement => callback.call(thisArg || this, resolvedElement, index, array))
+            .then(result => {
+                if (result) {
+                    return element
                 }
-                counter++
+                return Promise.reject(new Error('Continue'))
+            })
+    )
+
+    return Promise.any(promises).catch(error => {
+        if (error instanceof AggregateError) {
+            for (const individualError of error.errors) {
+                if (individualError && individualError.message !== 'Continue') {
+                    throw individualError
+                }
             }
-            Promise.resolve(array[i])
-                .then((elem) => callback.call(thisArg || this, elem, i, array))
-                .then(check)
-                .catch(reject)
         }
+        return undefined
     })
 }
 
