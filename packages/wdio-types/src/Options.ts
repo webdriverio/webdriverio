@@ -349,7 +349,6 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * ```
      */
     capabilities: RemoteCapabilities
-
     /**
      * Type of runner
      * - local: every spec file group is spawned in its own local process
