@@ -1,4 +1,5 @@
 import type { WaitForOptions } from '../../types.js'
+import { getBrowserObject } from '@wdio/utils'
 
 /**
  * Wait for an element for the provided amount of milliseconds to be clickable or not clickable.
@@ -42,7 +43,8 @@ export async function waitForClickable (
         timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}clickable after ${timeout}ms`
     }: WaitForOptions = {}
 ) {
-    if (this.isMobile && this.isNativeContext) {
+    const browser = getBrowserObject(this)
+    if (browser.isMobile && browser.isNativeContext) {
         throw new Error('The `waitForClickable` command is only available for desktop and mobile browsers.')
     }
 
