@@ -72,27 +72,6 @@ export const getPrototype = (scope: 'browser' | 'element') => {
                 return context.mobileContext
             }
         }
-    } else if (scope === 'element') {
-        /**
-         * Returns a boolean if the current context is the Mobile native context
-         * Elements inherit this from their parent browser
-         */
-        prototype.isNativeContext = {
-            get: function (this: WebdriverIO.Element) {
-                const browser = getBrowserObject(this)
-                return browser.isNativeContext
-            }
-        }
-        /**
-         * Returns the current mobile context which could be `NATIVE_APP` or `WEBVIEW_***`
-         * Elements inherit this from their parent browser
-         */
-        prototype.mobileContext = {
-            get: function (this: WebdriverIO.Element) {
-                const browser = getBrowserObject(this)
-                return browser.mobileContext
-            }
-        }
     }
 
     /**
