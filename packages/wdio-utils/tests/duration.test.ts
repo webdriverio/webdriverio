@@ -29,15 +29,15 @@ describe('duration', () => {
 
     describe('start and end', () => {
         it('should measure basic timing', () => {
-            duration.start('test')
-            const durationValue = duration.end('test')
+            duration.start('setup')
+            const durationValue = duration.end('setup')
 
             expect(typeof durationValue).toBe('number')
             expect(durationValue).toBeGreaterThanOrEqual(0)
         })
 
         it('should return 0 for non-existent phase', () => {
-            expect(duration.end('nonexistent')).toBe(0)
+            expect(duration.end('execute')).toBe(0)
         })
 
         it('should handle multiple phases independently', () => {
@@ -52,10 +52,10 @@ describe('duration', () => {
         })
 
         it('should clean up timers after measuring', () => {
-            duration.start('test')
-            duration.end('test')
+            duration.start('setup')
+            duration.end('setup')
 
-            expect(duration.end('test')).toBe(0)
+            expect(duration.end('setup')).toBe(0)
         })
     })
 
@@ -89,10 +89,10 @@ describe('duration', () => {
 
     describe('realistic timing', () => {
         it('should measure actual time with setTimeout', async () => {
-            duration.start('async-test')
+            duration.start('execute')
 
             await new Promise(resolve => setTimeout(resolve, 10))
-            const durationValue = duration.end('async-test')
+            const durationValue = duration.end('execute')
             expect(durationValue).toBeGreaterThanOrEqual(9)
             expect(durationValue).toBeLessThan(50)
         })

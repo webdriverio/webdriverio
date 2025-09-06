@@ -1,12 +1,13 @@
+type DurationPhase = 'setup' | 'prepare' | 'execute' | 'complete'
 class DurationTracker {
-    private timers: Record<string, number> = {}
-    private durations: Record<string, number> = {}
+    private timers: Partial<Record<DurationPhase, number>> = {}
+    private durations: Partial<Record<DurationPhase, number>> = {}
 
-    start(phase: string): void {
+    start(phase: DurationPhase): void {
         this.timers[phase] = performance.now()
     }
 
-    end(phase: string): number {
+    end(phase: DurationPhase): number {
         if (!this.timers[phase]) { return 0 }
         const duration = Math.round(performance.now() - this.timers[phase])
         delete this.timers[phase]
