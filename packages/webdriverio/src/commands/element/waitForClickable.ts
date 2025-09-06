@@ -8,6 +8,8 @@ import type { WaitForOptions } from '../../types.js'
  * As opposed to other element commands WebdriverIO will not wait for the element to exist to execute
  * this command.
  *
+ * This command is only available for desktop and mobile browsers, not for native mobile apps.
+ *
  * :::
  *
  * <example>
@@ -40,6 +42,10 @@ export async function waitForClickable (
         timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}clickable after ${timeout}ms`
     }: WaitForOptions = {}
 ) {
+    if (this.isMobile && this.isNativeContext) {
+        throw new Error('The `waitForClickable` command is only available for desktop and mobile browsers.')
+    }
+
     return this.waitUntil(
         async () => reverse !== await this.isClickable(),
         { timeout, timeoutMsg, interval }
