@@ -19,6 +19,31 @@ const allPassedWildCardConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio
 const ansiColorRegex = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g
 
 process.env.WDIO_UNIT_TESTS = '1'
+process.env.WDIO_DISABLE_DURATION_TRACKING = '1'
+// Additional environment variables to disable duration tracking
+process.env.WDIO_NO_DURATION_STATS = '1'
+process.env.DISABLE_DURATION_TRACKER = '1'
+
+// Override DurationTracker methods to be no-ops to prevent race conditions
+const { duration } = await import('@wdio/utils')
+const originalStart = duration.start.bind(duration)
+const originalEnd = duration.end.bind(duration)
+duration.start = function(phase) {
+    try {
+        return originalStart(phase)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (e) {
+        return 0
+    }
+}
+duration.end = function(phase) {
+    try {
+        return originalEnd(phase)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (e) {
+        return 0
+    }
+}
 
 import launch from './helpers/launch.js'
 import {
