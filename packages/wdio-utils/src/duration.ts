@@ -1,14 +1,29 @@
 type DurationPhase = 'setup' | 'prepare' | 'execute' | 'complete'
+export class DurationPhaseError extends Error {
+    public phase: DurationPhase
+
+    constructor(phase: DurationPhase, message: string) {
+        super(message)
+        this.name = 'DurationPhaseError'
+        this.phase = phase
+    }
+}
+
 class DurationTracker {
     private timers: Partial<Record<DurationPhase, number>> = {}
     private durations: Partial<Record<DurationPhase, number>> = {}
 
     start(phase: DurationPhase): void {
+        if (this.timers[phase] !== undefined) {
+            throw new DurationPhaseError(phase, `Cannot start phase: ${phase} phase is already running`)
+        }
         this.timers[phase] = performance.now()
     }
 
     end(phase: DurationPhase): number {
-        if (!this.timers[phase]) { return 0 }
+        if (!this.timers[phase]) {
+            throw new DurationPhaseError(phase, `Cannot end phase: ${phase} phase has not been started`)
+        }
         const duration = Math.round(performance.now() - this.timers[phase])
         delete this.timers[phase]
 

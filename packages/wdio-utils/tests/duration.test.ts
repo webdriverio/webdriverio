@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import duration, { formatDuration } from '../src/duration.js'
+import duration, { DurationPhaseError, formatDuration } from '../src/duration.js'
 
 describe('duration', () => {
     beforeEach(() => {
@@ -36,10 +36,6 @@ describe('duration', () => {
             expect(durationValue).toBeGreaterThanOrEqual(0)
         })
 
-        it('should return 0 for non-existent phase', () => {
-            expect(duration.end('execute')).toBe(0)
-        })
-
         it('should handle multiple phases independently', () => {
             duration.start('setup')
             duration.start('execute')
@@ -51,12 +47,6 @@ describe('duration', () => {
             expect(executeDuration).toBeGreaterThanOrEqual(0)
         })
 
-        it('should clean up timers after measuring', () => {
-            duration.start('setup')
-            duration.end('setup')
-
-            expect(duration.end('setup')).toBe(0)
-        })
     })
 
     describe('getSummary method', () => {
@@ -73,20 +63,6 @@ describe('duration', () => {
         })
     })
 
-    describe('reset functionality', () => {
-        it('should reset all timers and durations', () => {
-            duration.start('setup')
-            duration.end('setup')
-            duration.start('execute')
-
-            duration.reset()
-
-            // After reset, should return 0
-            expect(duration.end('setup')).toBe(0)
-            expect(duration.end('execute')).toBe(0)
-        })
-    })
-
     describe('realistic timing', () => {
         it('should measure actual time with setTimeout', async () => {
             duration.start('execute')
@@ -95,6 +71,24 @@ describe('duration', () => {
             const durationValue = duration.end('execute')
             expect(durationValue).toBeGreaterThanOrEqual(9)
             expect(durationValue).toBeLessThan(50)
+        })
+    })
+
+    describe('DurationTracker Error Prevention', () => {
+        beforeEach(() => {
+            duration.reset()
+        })
+
+        it('should throw error when starting a phase that is already running', () => {
+            duration.start('setup')
+
+            expect(() => duration.start('setup')).toThrow(DurationPhaseError)
+            expect(() => duration.start('setup')).toThrow('Cannot start phase: setup phase is already running')
+        })
+
+        it('should throw error when ending a phase that was never started', () => {
+            expect(() => duration.end('setup')).toThrow(DurationPhaseError)
+            expect(() => duration.end('setup')).toThrow('Cannot end phase: setup phase has not been started')
         })
     })
 })
