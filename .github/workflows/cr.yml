@@ -29,4 +29,5 @@ jobs:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish
-        run: pnpx pkg-pr-new publish --pnpm './packages/*'
+        run: pnpx pkg-pr-new@latest publish --pnpm './packages/*'
+        timeout-minutes: 10
