@@ -6,6 +6,19 @@ import run from '../src/run.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
+vi.mock('@wdio/utils', async (importOriginal) => {
+    const actual = await importOriginal() as any
+    return {
+        ...actual,
+        duration: {
+            start: vi.fn(),
+            end: vi.fn(),
+            reset: vi.fn(),
+            getSummary: vi.fn(() => '100ms (setup 50ms, prepare 25ms, execute 20ms, complete 5ms)')
+        }
+    }
+})
+
 vi.mock('../src/launcher', () => ({
     default: class MockLauncher {
         constructor (public path: string, public params: any) {}
