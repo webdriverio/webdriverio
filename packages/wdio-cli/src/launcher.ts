@@ -1,5 +1,5 @@
 import exitHook from 'async-exit-hook'
-import { resolve } from 'import-meta-resolve'
+import { createRequire } from 'node:module'
 
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
@@ -13,6 +13,7 @@ import { runLauncherHook, runOnCompleteHook, runServiceHook, nodeVersion, type H
 import { TESTRUNNER_DEFAULTS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
 import type { RunCommandArguments } from './types.js'
 const log = logger('@wdio/cli:launcher')
+const require = createRequire(import.meta.url)
 
 interface Schedule {
     cid: number
@@ -179,7 +180,7 @@ class Launcher {
         /**
          * add tsx to process NODE_OPTIONS so it will be passed along the worker process
          */
-        const tsxPath = resolve('tsx', import.meta.url)
+        const tsxPath = require.resolve('tsx')
         if (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes(tsxPath)) {
             /**
              * The `--import` flag is only available in Node 20.6.0 / 18.19.0 and later.
