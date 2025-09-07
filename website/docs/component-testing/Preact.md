@@ -11,13 +11,15 @@ To setup WebdriverIO within your Preact project, follow the [instructions](/docs
 
 ```js
 // wdio.conf.js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     runner: ['browser', {
         preset: 'preact'
     }],
     // ...
-}
+})
 ```
 
 :::info

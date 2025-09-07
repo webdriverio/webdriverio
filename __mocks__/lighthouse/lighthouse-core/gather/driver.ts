@@ -8,7 +8,7 @@ export default class Driver {
     beginTrace: typeof beginTrace
     endTrace: typeof endTrace
 
-    constructor (public connection: any) {
+    constructor (public connection: unknown) {
         this.beginTrace = beginTrace
         this.endTrace = endTrace
     }
