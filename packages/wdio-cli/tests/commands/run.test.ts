@@ -50,7 +50,14 @@ vi.mock('./../../src/watcher', () => ({
         }
     }
 }))
-
+vi.mock('@wdio/utils', () => ({
+    duration: {
+        start: vi.fn(),
+        end: vi.fn(),
+        reset: vi.fn(),
+        getSummary: vi.fn(() => '100ms (setup 50ms, prepare 25ms, execute 20ms, complete 5ms)')
+    }
+}))
 describe('Command: run', () => {
     const setEncodingMock = vi.fn()
     const onMock = vi.fn((s, c) => c())
