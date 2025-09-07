@@ -3,10 +3,14 @@ import { execSync } from 'node:child_process'
 import { XvfbManager } from '@wdio/xvfb'
 
 describe('xvfb fresh installation', () => {
+    let manager: XvfbManager
+
+    beforeEach(() => {
+        manager = new XvfbManager({ autoInstall: true })
+    })
+
     it('should install xvfb using detected package manager', async function(this: Mocha.Context) {
         this.timeout(300000) // 5 minutes for real installation
-
-        const manager = new XvfbManager({ autoInstall: true })
 
         // Should initially not be available in base image
         expect(manager.shouldRun()).toBe(true)
@@ -23,8 +27,6 @@ describe('xvfb fresh installation', () => {
     it('should verify xvfb works after installation', async function(this: Mocha.Context) {
         this.timeout(300000)
 
-        const manager = new XvfbManager({ autoInstall: true })
-
         // Install and initialize
         const result = await manager.init()
         expect(result).toBe(true)
@@ -39,6 +41,17 @@ describe('xvfb fresh installation', () => {
         } catch (error) {
             throw new Error(`xvfb-run execution failed after installation: ${error}`)
         }
+    })
+
+    afterEach(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100))
+    })
+
+    after(() => {
+        // Ensure clean exit
+        setTimeout(() => {
+            process.exit(0)
+        }, 1000)
     })
 
 })
