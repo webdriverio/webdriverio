@@ -1,4 +1,5 @@
 import type { WaitForOptions } from '../../types.js'
+import { getBrowserObject } from '@wdio/utils'
 
 /**
  * Wait for an element for the provided amount of milliseconds to be clickable or not clickable.
@@ -7,6 +8,8 @@ import type { WaitForOptions } from '../../types.js'
  *
  * As opposed to other element commands WebdriverIO will not wait for the element to exist to execute
  * this command.
+ *
+ * This command is only available for desktop and mobile browsers, not for native mobile apps.
  *
  * :::
  *
@@ -40,6 +43,11 @@ export async function waitForClickable (
         timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}clickable after ${timeout}ms`
     }: WaitForOptions = {}
 ) {
+    const browser = getBrowserObject(this)
+    if (browser.isMobile && browser.isNativeContext) {
+        throw new Error('The `waitForClickable` command is only available for desktop and mobile browsers.')
+    }
+
     return this.waitUntil(
         async () => reverse !== await this.isClickable(),
         { timeout, timeoutMsg, interval }
