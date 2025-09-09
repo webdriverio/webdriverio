@@ -11,7 +11,8 @@ import { arch, hostname, platform, type, version } from 'node:os'
 import got from 'got'
 
 import { BStackLogger } from '../../bstackLogger.js'
-import { EDS_URL, PERF_MEASUREMENT_ENV } from '../../constants.js'
+import { PERF_MEASUREMENT_ENV, PERF_METRICS_WAIT_TIME } from '../../constants.js'
+import APIUtils from '../../cli/apiUtils.js'
 
 type PerformanceDetails = {
     success?: true,
@@ -97,6 +98,8 @@ export default class PerformanceTester {
             return
         }
 
+        await PerformanceTester.sleep(PERF_METRICS_WAIT_TIME) // Wait to ensure all pending measurements are processed by the observer
+
         try {
             const eventsJson = JSON.stringify(this._measuredEvents)
             // remove enclosing array and add a trailing comma so that we
@@ -112,7 +115,7 @@ export default class PerformanceTester {
             return
         }
 
-        await PerformanceTester.sleep(2000) // Wait to 2s just to finish any running callbacks for timerify
+        await PerformanceTester.sleep(PERF_METRICS_WAIT_TIME) // Wait to 2s just to finish any running callbacks for timerify
 
         this.started = false
 
@@ -299,7 +302,7 @@ export default class PerformanceTester {
                     event_json: { measures: measures, sdkRunId: process.env.PERF_SDK_RUN_ID }
                 }
             }
-            const result = await got.post(`${EDS_URL}/send_sdk_events`, {
+            const result = await got.post(`${APIUtils.EDS_URL}/send_sdk_events`, {
                 headers: {
                     'content-type': 'application/json'
                 }, json: payload

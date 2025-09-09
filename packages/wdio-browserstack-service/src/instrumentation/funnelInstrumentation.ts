@@ -7,10 +7,11 @@ import UsageStats from '../testOps/usageStats.js'
 import TestOpsConfig from '../testOps/testOpsConfig.js'
 import { BStackLogger } from '../bstackLogger.js'
 import type BrowserStackConfig from '../config.js'
-import { BSTACK_A11Y_POLLING_TIMEOUT, BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
+import { BSTACK_A11Y_POLLING_TIMEOUT, BSTACK_SERVICE_VERSION, WDIO_NAMING_PREFIX } from '../constants.js'
 import { getDataFromWorkers, removeWorkersDataDir } from '../data-store.js'
 import { getProductMap } from '../testHub/utils.js'
 import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
+import APIUtils from '../cli/apiUtils.js'
 
 async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig) {
     if (!config.userName || !config.accessKey) {
@@ -66,7 +67,7 @@ export async function fireFunnelRequest(data: any): Promise<void> {
     const { userName, accessKey } = data
     redactCredentialsFromFunnelData(data)
     BStackLogger.debug('Sending SDK event with data ' + util.inspect(data, { depth: 6 }))
-    await got.post(FUNNEL_INSTRUMENTATION_URL, {
+    await got.post(APIUtils.FUNNEL_INSTRUMENTATION_URL, {
         headers: {
             'content-type': 'application/json'
         }, username: userName, password: accessKey, json: data
@@ -145,7 +146,7 @@ function buildEventData(eventType: string, config: BrowserStackConfig): any {
         userName: config.userName,
         accessKey: config.accessKey,
         event_type: eventType,
-        detectedFramework: 'WebdriverIO-' + config.framework,
+        detectedFramework: WDIO_NAMING_PREFIX + config.framework,
         event_properties: eventProperties
     }
 
@@ -162,7 +163,7 @@ function getLanguageFramework(framework?: string) {
 }
 
 function getReferrer(framework?: string) {
-    const fullName = framework ? 'WebdriverIO-' + framework : 'WebdriverIO'
+    const fullName = framework ? WDIO_NAMING_PREFIX + framework : 'WebdriverIO'
     return `${fullName}/${BSTACK_SERVICE_VERSION}`
 }
 

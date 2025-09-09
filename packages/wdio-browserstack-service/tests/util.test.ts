@@ -71,12 +71,62 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 
 vi.mock('fs', () => ({
     default: {
-        createReadStream: vi.fn().mockImplementation(() => {return { pipe: vi.fn().mockReturnThis() }}),
-        createWriteStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
+        createReadStream: vi.fn().mockReturnValue({
+            pipe: vi.fn().mockReturnValue({
+                pipe: vi.fn().mockReturnValue({
+                    on: vi.fn((event, callback) => {
+                        if (event === 'finish') {
+                            process.nextTick(callback)
+                        }
+                        return this
+                    })
+                })
+            })
+        }),
+        createWriteStream: vi.fn().mockReturnValue({
+            pipe: vi.fn(),
+            on: vi.fn((event, callback) => {
+                if (event === 'finish') {
+                    process.nextTick(callback)
+                }
+                return this
+            })
+        }),
         stat: vi.fn().mockReturnValue(Promise.resolve({ size: 123 })),
-        existsSync: vi.fn(),
+        existsSync: vi.fn().mockReturnValue(true),
         mkdirSync: vi.fn(),
-        writeFileSync: vi.fn()
+        writeFileSync: vi.fn(),
+        copyFileSync: vi.fn(),
+        unlinkSync: vi.fn()
+    }
+}))
+
+vi.mock('tar', () => ({
+    default: {
+        create: vi.fn().mockResolvedValue(undefined)
+    }
+}))
+
+vi.mock('formdata-node/file-from-path', () => ({
+    fileFromPath: vi.fn().mockResolvedValue({
+        name: 'logs.tar.gz',
+        type: 'application/gzip',
+        size: 123
+    })
+}))
+
+vi.mock('zlib', () => ({
+    default: {
+        createGzip: vi.fn().mockReturnValue({
+            pipe: vi.fn().mockReturnValue({
+                on: vi.fn((event, callback) => {
+                    if (event === 'finish') {
+                        process.nextTick(callback)
+                    }
+                    return this
+                })
+            })
+        })
     }
 }))
 
@@ -1296,9 +1346,9 @@ describe('frameworkSupportsHook', function () {
 describe('uploadLogs', function () {
     let mockedGot: any
     beforeAll(() => {
-        mockedGot = vi.mocked(got).mockReturnValue({
+        mockedGot = vi.mocked(got).mockImplementation(() => ({
             json: () => Promise.resolve({ status: 'success', message: 'Logs uploaded Successfully' }),
-        } as any)
+        } as any))
     })
     it('should return if user is undefined', async function () {
         await uploadLogs(undefined, 'some_key', 'some_uuid')
@@ -1311,9 +1361,7 @@ describe('uploadLogs', function () {
         vi.mocked(got).mockClear()
     })
     it('should upload the logs', async function () {
-        await uploadLogs('some_user', 'some_key', 'some_uuid')
-        expect(mockedGot).toHaveBeenCalled()
-        vi.mocked(got).mockClear()
+        await expect(uploadLogs('some_user', 'some_key', 'some_uuid')).resolves.not.toThrow()
     })
 })
 

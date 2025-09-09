@@ -1,6 +1,5 @@
 import type { UploadType } from '../types.js'
 import {
-    DATA_ENDPOINT,
     DATA_EVENT_ENDPOINT,
     DATA_SCREENSHOT_ENDPOINT,
     TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT
@@ -8,6 +7,7 @@ import {
 import { BStackLogger } from '../bstackLogger.js'
 import { DEFAULT_REQUEST_CONFIG, getLogTag } from '../util.js'
 import got from 'got'
+import APIUtils from '../cli/apiUtils.js'
 
 export async function uploadEventData (eventData: UploadType | Array<UploadType>, eventUrl: string = DATA_EVENT_ENDPOINT) {
     let logTag: string = 'BATCH_UPLOAD'
@@ -29,7 +29,7 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
     }
 
     try {
-        const url = `${DATA_ENDPOINT}/${eventUrl}`
+        const url = `${APIUtils.DATA_ENDPOINT}/${eventUrl}`
         const data = await got.post(url, {
             agent: DEFAULT_REQUEST_CONFIG.agent,
             headers: {

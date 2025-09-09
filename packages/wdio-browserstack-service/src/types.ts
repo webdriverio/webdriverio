@@ -198,6 +198,11 @@ export interface BrowserstackConfig {
      * @default false
     */
     turboScale?: boolean;
+    /**
+     * Set this to true to enable enterprise whitelisting
+     * @default false
+    */
+    ipWhiteListing?: boolean;
 }
 
 /**
