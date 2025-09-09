@@ -21,6 +21,17 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.47.0 (2025-09-09)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#14711](https://github.com/webdriverio/webdriverio/pull/14711) Support added for change in product name:- Observability -> Test Reporting and Analytics v8 ([@Tanmay-Bstack](https://github.com/Tanmay-Bstack))
+
+#### Committers: 2
+- Aditya Hirapara ([@AdityaHirapara](https://github.com/AdityaHirapara))
+- [@Tanmay-Bstack](https://github.com/Tanmay-Bstack)
+
+
 ## v8.46.0 (2025-08-11)
 
 #### :rocket: New Feature
