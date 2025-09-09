@@ -31,7 +31,7 @@
     "@wdio/protocols": "workspace:*",
     "@wdio/types": "workspace:*",
     "nock": "14.0.5",
-    "uuid": "^11.1.0",
+    "uuid": "^12.0.0",
     "webdriverio": "workspace:*"
   },
   "devDependencies": {
