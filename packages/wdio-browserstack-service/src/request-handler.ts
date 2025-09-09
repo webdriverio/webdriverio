@@ -29,7 +29,7 @@ export default class RequestQueueHandler {
 
     add (event: UploadType) {
         if (!process.env[TESTOPS_BUILD_COMPLETED_ENV]) {
-            throw new Error('Observability build start not completed yet.')
+            throw new Error('Test Reporting and Analytics build start not completed yet.')
         }
 
         this.queue.push(event)

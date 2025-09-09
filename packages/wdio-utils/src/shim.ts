@@ -239,13 +239,13 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                      * ```
                      */
                     if (commandName.endsWith('$$') && typeof iterators[prop as keyof typeof iterators] === 'function') {
-                        return (mapIterator: Function) => wrapElementFn(
+                        return (...iteratorArgs: [Function, ...unknown[]]) => wrapElementFn(
                             target,
-                            function (this: never, mapIterator: Function) {
+                            function (this: never, ...iteratorArgs: [Function, ...unknown[]]) {
                                 // @ts-ignore
-                                return iterators[prop](this, mapIterator)
+                                return iterators[prop](this, ...iteratorArgs)
                             },
-                            [mapIterator]
+                            iteratorArgs
                         )
                     }
 

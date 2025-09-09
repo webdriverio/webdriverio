@@ -41,7 +41,7 @@ import {
     GIT_META_DATA_TRUNCATED,
     APP_ALLY_ENDPOINT,
     APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
-    APP_ALLY_ISSUES_ENDPOINT,
+    APP_ALLY_ISSUES_ENDPOINT
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -1211,7 +1211,7 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
         })
         BStackLogger.debug(`[${kind}] Success response: ${JSON.stringify(await response.json())}`)
     } catch (error) {
-        BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)
+        BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST REPORTING AND ANALYTICS : ${error}`)
         throw new Error('Exception in request ' + error)
     }
 }

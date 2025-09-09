@@ -141,7 +141,7 @@ describe('onReload()', () => {
 })
 
 describe('beforeSession', () => {
-    describe('testObservabilityOpts not passed', () => {
+    describe('testObservabilityOpts not passed (legacy)', () => {
         it('should set some default to make missing user and key parameter apparent', () => {
             service.beforeSession({} as any)
             expect(service['_config']).toEqual({ user: 'NotSetUser', key: 'NotSetKey' })
@@ -158,7 +158,7 @@ describe('beforeSession', () => {
         })
     })
 
-    describe('testObservabilityOpts passed', () => {
+    describe('testObservabilityOpts passed (legacy)', () => {
         it('should not set some default value if user and key in observability options', () => {
             const observabilityService = new BrowserstackService(
                 {
@@ -188,11 +188,47 @@ describe('beforeSession', () => {
             expect(observabilityService['_config']).toEqual({ user: 'NotSetUser', key: 'NotSetKey' })
         })
     })
+
+    describe('testReportingOpts - new configuration', () => {
+        it('should set default values if user and key are not in test reporting options', () => {
+            const testReportingService = new BrowserstackService(
+                {
+                    testReporting: true,
+                    testReportingOptions: {}
+                } as any,
+                [] as any,
+                { user: 'foo', key: 'bar' } as any
+            )
+            testReportingService.beforeSession({} as any)
+            expect(testReportingService['_config']).toEqual({ user: 'NotSetUser', key: 'NotSetKey' })
+        })
+
+        it('testReporting should take precedence over legacy testObservability', () => {
+            const mixedService = new BrowserstackService(
+                {
+                    testReporting: true,
+                    testReportingOptions: {
+                        user: 'new_user',
+                        key: 'new_key',
+                    },
+                    testObservability: true,
+                    testObservabilityOptions: {
+                        user: 'old_user',
+                        key: 'old_key',
+                    }
+                } as any,
+                [] as any,
+                { user: 'foo', key: 'bar' } as any
+            )
+            mixedService.beforeSession({} as any)
+            expect(mixedService['_config']).toEqual({ user: undefined, key: undefined })
+        })
+    })
 })
 
 describe('_multiRemoteAction', () => {
     it('resolve if no browser object', () => {
-        const tmpService = new BrowserstackService({ testObservability: false }, [] as any,
+        const tmpService = new BrowserstackService({ testReporting: false }, [] as any,
             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
         tmpService['_browser'] = undefined
         expect(tmpService._multiRemoteAction({} as any)).toEqual(Promise.resolve())

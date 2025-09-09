@@ -25,6 +25,7 @@ export class ContextManager extends SessionManager {
     #mobileContext?: string
     #isNativeContext: boolean
     #getContextSupport = true
+    #currentWindowHandle?: string
 
     constructor(browser: WebdriverIO.Browser) {
         super(browser, ContextManager.name)
@@ -109,18 +110,43 @@ export class ContextManager extends SessionManager {
         }
     }
 
-    #onCommandResultBidiAndClassic(event: { command: string, result: unknown }) {
+    #onCommandResultBidiAndClassic(event: { command: string, result: unknown, body: unknown }) {
         /**
          * the `closeWindow` command returns:
          *   > the result of running the remote end steps for the Get Window Handles command, with session, URL variables and parameters.
          */
         if (event.command === 'closeWindow') {
+            // Clear cached window handle
+            this.#currentWindowHandle = undefined
+
             const windowHandles = (event.result as { value?: string[] }).value || []
             if (windowHandles.length === 0) {
                 throw new Error('All window handles were removed, causing WebdriverIO to close the session.')
             }
             this.#currentContext = windowHandles[0]
             return this.#browser.switchToWindow(this.#currentContext)
+        }
+
+        /**
+         * Update current window handle when 'getWindowHandle' succeeds
+         */
+        if (event.command === 'getWindowHandle') {
+            const windowHandle = (event.result as { value?: string }).value || undefined
+            this.#currentWindowHandle = windowHandle
+        }
+
+        /**
+         * the `closeWindow` command returns:
+         *  > the body of the Close Window command request, including the window handle it's switching to.
+         *  > the result of the Close Window command, either an error object on failure, or null data on success.
+         */
+        if (event.command === 'switchToWindow') {
+            const err = (event.result as { error?: unknown }).error || undefined
+            // Only update current window handle when 'switchToWindow' has no error
+            if (!err) {
+                const windowHandle = (event.body as { handle?: string }).handle || undefined
+                this.#currentWindowHandle = windowHandle
+            }
         }
     }
 
@@ -242,6 +268,23 @@ export class ContextManager extends SessionManager {
             return this.initialize()
         }
         return this.#currentContext
+    }
+
+    /**
+     * Sets the cached current window handle value.
+     * @param handle current window handle to set
+     */
+    setCurrentWindowHandle (handle?: string) {
+        this.#currentWindowHandle = handle
+    }
+
+    /**
+     * Returns the cached window handle.
+     *
+     * @returns the current window handle, or undefined if the current window is closed.
+     */
+    getCurrentWindowHandle() {
+        return this.#currentWindowHandle
     }
 
     get isNativeContext() {

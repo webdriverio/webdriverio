@@ -160,4 +160,18 @@ describe('waitForClickable', () => {
             expect(err.message).toBe('Element foo never clickable')
         }
     })
+
+    it('should throw an error if in native context', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'Android',
+                mobileMode: true,
+                nativeAppMode: true,
+            } as any
+        })
+        const elem = await browser.$('#foo')
+
+        await expect(elem.waitForClickable()).rejects.toThrow('The `waitForClickable` command is only available for desktop and mobile browsers.')
+    })
 })

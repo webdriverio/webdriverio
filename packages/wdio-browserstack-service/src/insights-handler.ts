@@ -101,7 +101,7 @@ class _InsightsHandler {
             await (this._browser as WebdriverIO.Browser).executeScript(`browserstack_executor: ${JSON.stringify({
                 action: 'annotate',
                 arguments: {
-                    data: `ObservabilitySync:${Date.now()}`,
+                    data: `TestReportingSync:${Date.now()}`,
                     level: 'debug'
                 }
             })}`, [])
@@ -529,7 +529,7 @@ class _InsightsHandler {
                 this.listener.logCreated([stdLog])
             }
         } catch (error) {
-            BStackLogger.debug(`Exception in uploading log data to Observability with error : ${error}`)
+            BStackLogger.debug(`Exception in uploading log data to Test Reporting and Analytics with error : ${error}`)
         }
     }
 

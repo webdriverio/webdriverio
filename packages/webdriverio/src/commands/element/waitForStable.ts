@@ -1,3 +1,4 @@
+import { getBrowserObject } from '@wdio/utils'
 import type { WaitForOptions } from '../../types.js'
 
 /**
@@ -8,7 +9,9 @@ import type { WaitForOptions } from '../../types.js'
  * error. If the reverse flag is true, the command will instead return true
  * if the selector does not match any stable elements.
  *
- * __Note:__ it's best to disable animations instead of using this command
+ * __Note 1:__ it's best to disable animations instead of using this command
+ *
+ * __Note 2:__ this command is only available for desktop and mobile browsers, not for native mobile apps.
  *
  * <example>
     :index.html
@@ -72,6 +75,11 @@ export async function waitForStable (
     }: WaitForOptions = {}
 ) {
     let errorMsg!: string
+    const browser = getBrowserObject(this)
+
+    if (browser.isMobile && browser.isNativeContext) {
+        throw new Error('The `waitForStable` command is only available for desktop and mobile browsers.')
+    }
 
     await this.waitUntil(
         async () => {

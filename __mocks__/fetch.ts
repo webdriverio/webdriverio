@@ -106,6 +106,7 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     ) {
         sessionResponse.capabilities.app = 'mockApp'
         delete sessionResponse.capabilities.browserName
+        delete sessionResponse.capabilities.browserVersion
     }
 
     if (
@@ -152,6 +153,9 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
 
         if (body.capabilities.alwaysMatch.platformName && body.capabilities.alwaysMatch.platformName.includes('iOS')) {
             value.capabilities.platformName = 'iOS'
+        }
+        if (body.capabilities.alwaysMatch.platformName && body.capabilities.alwaysMatch.platformName.includes('Android')) {
+            value.capabilities.platformName = 'Android'
         }
 
         break
