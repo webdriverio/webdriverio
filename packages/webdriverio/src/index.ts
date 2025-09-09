@@ -84,8 +84,8 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
      */
     const params: Capabilities.WebdriverIOConfig & { requestedCapabilities: Capabilities.RequestedStandaloneCapabilities } = {
         automationProtocol: 'webdriver',
-        ...attachOptions,
         ...detectBackend(attachOptions.options),
+        ...attachOptions,
         capabilities: attachOptions.capabilities || {},
         requestedCapabilities: attachOptions.requestedCapabilities || {}
     }
