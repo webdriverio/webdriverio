@@ -22,7 +22,9 @@ import {
     BROWSERSTACK_TESTHUB_UUID,
     VALID_APP_EXTENSION,
     BROWSERSTACK_PERCY,
-    BROWSERSTACK_OBSERVABILITY
+    BROWSERSTACK_OBSERVABILITY,
+    BROWSERSTACK_TEST_REPORTING,
+    TEST_REPORTING_PROJECT_NAME
 } from './constants.js'
 import {
     launchTestSession,
@@ -83,6 +85,32 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (!this._config) {
             this._config = _options
         }
+
+        //normalizing testReporting config and env variables
+        if (!isUndefined(_options.testReporting)){
+            _options.testObservability = _options.testReporting
+        }
+
+        if (!isUndefined(_options.testReportingOptions)){
+            _options.testObservabilityOptions = _options.testReportingOptions
+        }
+
+        if (!isUndefined(process.env[BROWSERSTACK_TEST_REPORTING])){
+            process.env[BROWSERSTACK_OBSERVABILITY] = process.env[BROWSERSTACK_TEST_REPORTING]
+        }
+
+        if (!isUndefined(process.env[TEST_REPORTING_PROJECT_NAME])){
+            process.env.TEST_OBSERVABILITY_PROJECT_NAME = process.env[TEST_REPORTING_PROJECT_NAME]
+        }
+
+        if (!isUndefined(process.env.TEST_REPORTING_BUILD_NAME)) {
+            process.env.TEST_OBSERVABILITY_BUILD_NAME = process.env.TEST_REPORTING_BUILD_NAME
+        }
+
+        if (!isUndefined(process.env.TEST_REPORTING_BUILD_TAG)) {
+            process.env.TEST_OBSERVABILITY_BUILD_TAG = process.env.TEST_REPORTING_BUILD_TAG
+        }
+
         this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config)
         if (Array.isArray(capabilities)) {
             capabilities
@@ -113,7 +141,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             }
                         }
 
-                        // Need this details for sending data to Observability
+                        // Need this details for sending data to Test Reporting and Analytics
                         this._buildIdentifier = capability['browserstack.buildIdentifier']?.toString()
                         // @ts-expect-error ToDo: fix invalid cap
                         this._buildName = capability.build?.toString()
@@ -174,7 +202,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
         this._options.accessibility = this._accessibilityAutomation as boolean
 
-        // by default observability will be true unless specified as false
+        // Default is true unless explicitly set to false
         this._options.testObservability = this._options.testObservability !== false
 
         if (this._options.testObservability
@@ -405,8 +433,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         BStackLogger.debug('Sending stop launch event')
         await stopBuildUpstream()
-        if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
-            console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
+
+        if ((process.env[BROWSERSTACK_OBSERVABILITY]) && process.env[BROWSERSTACK_TESTHUB_UUID]) {
+            console.log(`\nVisit https://automation.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
         }
         this.browserStackConfig.testObservability.buildStopped = true
 
@@ -441,7 +470,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         if (this._options.forcedStop) {
-            return process.kill(this.browserstackLocal.pid as number)
+            const pid = this.browserstackLocal.pid as number
+            process.kill(pid)
+            return pid
         }
 
         let timer: NodeJS.Timeout

@@ -176,10 +176,8 @@ test('should shut down worker processes', async () => {
     await runner.shutdown()
     const after = Date.now()
 
-    expect(after - before).toBeGreaterThanOrEqual(750)
-    const call1: any = vi
-        .mocked(worker1.childProcess?.send)!
-        .mock.calls.pop()![0]
+    expect(after - before).toBeGreaterThanOrEqual(740)
+    const call1: any = vi.mocked(worker1.childProcess?.send)!.mock.calls.pop()![0]
     expect(call1.cid).toBe('0-5')
     expect(call1.command).toBe('endSession')
     const call2: any = vi

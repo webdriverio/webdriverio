@@ -43,24 +43,24 @@ export default class BStackCleanup {
         if (!process.env[BROWSERSTACK_TESTHUB_JWT]) {
             return
         }
-        BStackLogger.debug('Executing observability cleanup')
+        BStackLogger.debug('Executing Test Reporting and Analytics cleanup')
         try {
             const result = await stopBuildUpstream()
-            if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
-                BStackLogger.info(`\nVisit https://observability.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
+            if ((process.env[BROWSERSTACK_OBSERVABILITY]) && process.env[BROWSERSTACK_TESTHUB_UUID]) {
+                BStackLogger.info(`\nVisit https://automation.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
             }
             const status = (result && result.status) || 'failed'
             const message = (result && result.message)
             this.updateO11yStopData(funnelData, status, status === 'failed' ? message : undefined)
         } catch (e: unknown) {
-            BStackLogger.error('Error in stopping Observability build: ' + e)
+            BStackLogger.error('Error in stopping Test Reporting and Analytics build: ' + e)
             this.updateO11yStopData(funnelData, 'failed', e)
         }
     }
 
     static updateO11yStopData(funnelData: FunnelData, status: string, error: unknown = undefined) {
         const toData = funnelData?.event_properties?.productUsage?.testObservability
-        // Return if no O11y data in funnel data
+        // Return if no Test Reporting and Analytics data in funnel data
         if (!toData) {
             return
         }

@@ -41,7 +41,7 @@ describe('BStackCleanup', () => {
     })
 
     describe('startCleanup', () => {
-        it('executes observability cleanup if --observability is present in argv', async () => {
+        it('executes test reporting cleanup if --observability is present in argv', async () => {
             process.argv.push('--observability', '--funnelData')
             process.env[BROWSERSTACK_TESTHUB_JWT] = 'some jwt'
 
@@ -66,13 +66,13 @@ describe('BStackCleanup', () => {
         })
     })
 
-    describe('executeObservabilityCleanup', () => {
-        it('does not invoke stop call for observability when jwt is not set', async () => {
+    describe('executeTestReportingCleanup (legacy executeObservabilityCleanup)', () => {
+        it('does not invoke stop call for test reporting when jwt is not set', async () => {
             await BStackCleanup.executeObservabilityCleanup({} as any)
             expect(stopBuildUpstream).toBeCalledTimes(0)
         })
 
-        it('invoke stop call for observability when jwt is set', async () => {
+        it('invoke stop call for test reporting when jwt is set', async () => {
             process.env[BROWSERSTACK_TESTHUB_JWT] = 'jwtToken'
             await BStackCleanup.executeObservabilityCleanup({} as any)
             expect(stopBuildUpstream).toBeCalledTimes(1)

@@ -40,7 +40,7 @@ describe('shouldProcessEventForTesthub', () => {
         delete process.env['BROWSERSTACK_PERCY']
     })
 
-    it('should return true when only observability is true', () => {
+    it('should return true when only observability is', () => {
         process.env['BROWSERSTACK_OBSERVABILITY'] = 'true'
         expect(utils.shouldProcessEventForTesthub('')).to.equal(true)
     })
@@ -79,12 +79,12 @@ describe('logBuildError', () => {
             errors: [
                 {
                     key: 'ERROR_INVALID_CREDENTIALS',
-                    message: 'Access to BrowserStack Test Observability denied due to incorrect credentials.'
+                    message: 'Access to BrowserStack Test Reporting and Analytics denied due to incorrect credentials.'
                 }
             ],
         }
-        utils.logBuildError(errorJson as any, 'observability')
-        expect(logErrorMock.mock.calls[0][0]).toContain('Access to BrowserStack Test Observability denied due to incorrect credentials.')
+        utils.logBuildError(errorJson as any, 'Test Reporting and Analytics')
+        expect(logErrorMock.mock.calls[0][0]).toContain('Access to BrowserStack Test Reporting and Analytics denied due to incorrect credentials.')
     })
 
     it('should log error for ERROR_ACCESS_DENIED', () => {
@@ -94,12 +94,12 @@ describe('logBuildError', () => {
             errors: [
                 {
                     key: 'ERROR_ACCESS_DENIED',
-                    message: 'Access to BrowserStack Test Observability denied.'
+                    message: 'Access to BrowserStack Test Reporting and Analytics denied.'
                 }
             ],
         }
-        utils.logBuildError(errorJson as any, 'observability')
-        expect(logErrorMock.mock.calls[0][0]).toContain('Access to BrowserStack Test Observability denied.')
+        utils.logBuildError(errorJson as any, 'Test Reporting and Analytics')
+        expect(logErrorMock.mock.calls[0][0]).toContain('Access to BrowserStack Test Reporting and Analytics denied.')
     })
 
     it('should log error for ERROR_SDK_DEPRECATED', () => {
@@ -110,12 +110,12 @@ describe('logBuildError', () => {
             errors: [
                 {
                     key: 'ERROR_SDK_DEPRECATED',
-                    message: 'Access to BrowserStack Test Observability denied due to SDK deprecation.'
+                    message: 'Access to BrowserStack Test Reporting and Analytics denied due to SDK deprecation.'
                 }
             ],
         }
-        utils.logBuildError(errorJson as any, 'observability')
-        expect(logErrorMock.mock.calls[0][0]).toContain('Access to BrowserStack Test Observability denied due to SDK deprecation.')
+        utils.logBuildError(errorJson as any, 'Test Reporting and Analytics')
+        expect(logErrorMock.mock.calls[0][0]).toContain('Access to BrowserStack Test Reporting and Analytics denied due to SDK deprecation.')
     })
 
     it('should log error for RANDOM_ERROR_TYPE', () => {
@@ -130,7 +130,7 @@ describe('logBuildError', () => {
                 }
             ],
         }
-        utils.logBuildError(errorJson as any, 'observability')
+        utils.logBuildError(errorJson as any, 'Test Reporting and Analytics')
         expect(logErrorMock.mock.calls[0][0]).toContain('Random error message.')
     })
 
@@ -141,7 +141,7 @@ describe('logBuildError', () => {
         expect(logErrorMock.mock.calls[0][0]).toContain('PRODUCT_NAME Build creation failed ')
     })
 
-    it('handleErrorForObservability', () => {
+    it('handleErrorForTestReporting should disable both flags', () => {
         const errorJson = {
             errors: [
                 {
