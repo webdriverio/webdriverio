@@ -14,6 +14,7 @@ import * as asyncIterators from './pIteration.js'
 import { testFnWrapper, wrapGlobalTestMethod } from './test-framework/index.js'
 import { isW3C, isBidi, capabilitiesEnvironmentDetector, sessionEnvironmentDetector } from './envDetector.js'
 import { UNICODE_CHARACTERS, HOOK_DEFINITION } from './constants.js'
+import duration from './duration.js'
 
 export {
     startWebDriver,
@@ -55,5 +56,10 @@ export {
      * constants
      */
     UNICODE_CHARACTERS,
-    HOOK_DEFINITION
+    HOOK_DEFINITION,
+
+    /**
+     * duration
+     */
+    duration
 }

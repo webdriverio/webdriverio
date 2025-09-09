@@ -9,6 +9,7 @@ import { coerceOptsFor,  } from '../utils.js'
 import { CLI_EPILOGUE } from '../constants.js'
 import type { RunCommandArguments } from '../types.js'
 import { config } from 'create-wdio/config/cli'
+import { duration } from '@wdio/utils'
 
 export const command = 'run <configPath>'
 
@@ -174,6 +175,8 @@ export async function launch(wdioConfPath: string, params: Partial<RunCommandArg
 
 export async function handler(argv: RunCommandArguments) {
     const { configPath = 'wdio.conf.js', ...params } = argv
+
+    duration.start('setup')
 
     const wdioConf = await config.formatConfigFilePaths(configPath)
     const confAccess = await config.canAccessConfigPath(wdioConf.fullPathNoExtension, wdioConf.fullPath)

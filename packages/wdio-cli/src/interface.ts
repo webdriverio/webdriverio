@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events'
 import chalk, { supportsColor } from 'chalk'
 import logger from '@wdio/logger'
+import { duration } from '@wdio/utils'
 import { SnapshotManager } from '@vitest/snapshot/manager'
 import type { SnapshotResult } from '@vitest/snapshot'
 import type { Workers } from '@wdio/types'
@@ -356,6 +357,7 @@ export default class WDIOCLInterface extends EventEmitter {
             snapshotNotes.forEach((note) => this.log(note))
         }
 
+        log.info('Duration:', chalk.green(duration.getSummary()))
         return this.log(
             '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,
             this.#hasShard()
