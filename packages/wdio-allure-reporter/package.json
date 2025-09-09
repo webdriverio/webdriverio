@@ -41,6 +41,7 @@
     "@wdio/types": "workspace:*",
     "allure-js-commons": "^2.5.0",
     "csv-stringify": "^6.0.4",
+    "html-entities": "^2.6.0",
     "strip-ansi": "^7.1.0"
   },
   "publishConfig": {
