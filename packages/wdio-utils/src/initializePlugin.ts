@@ -1,6 +1,7 @@
 import type { Services } from '@wdio/types'
 
-import { safeImport, isAbsolute, REG_EXP_WINDOWS_ABS_PATH, SLASH } from './utils.js'
+import { safeImport, isAbsolute } from './utils.js'
+import { pathToFileURL } from 'node:url'
 
 const FILE_PROTOCOL = 'file://'
 
@@ -16,7 +17,17 @@ export default async function initializePlugin (name: string, type?: string): Pr
      */
     if (name[0] === '@' || isAbsolute(name)) {
         const fileUrl = name[0] === '@' ? name : ensureFileURL(name)
-        const service = await safeImport(fileUrl)
+        let service = await safeImport(fileUrl)
+
+        // Fallback: safeImport may return null for file URLs on some platforms (e.g. Windows + spaces)
+        if (!service && isAbsolute(name)) {
+            try {
+                // dynamic import of file URL (already encoded)
+                service = await import(fileUrl)
+            } catch {
+                // ignore, will continue with plugin name resolution below
+            }
+        }
 
         if (service) {
             return service
@@ -50,20 +61,12 @@ export default async function initializePlugin (name: string, type?: string): Pr
     )
 }
 
-function ensureFileURL(path:string) {
-    if (path.startsWith(FILE_PROTOCOL)) {
-        return path
+function ensureFileURL(p: string) {
+    if (p.startsWith(FILE_PROTOCOL)) {
+        return p
     }
-
-    // Windows drive path
-    if (REG_EXP_WINDOWS_ABS_PATH.test(path)) {
-        return `${FILE_PROTOCOL}/${path.replace(/\\/g, '/')}`
-    }
-
-    // Unix absolute path
-    if (path.startsWith(SLASH)) {
-        return `${FILE_PROTOCOL}${path}`
-    }
-
-    return path
+    if (isAbsolute(p)) {
+        return pathToFileURL(p).href
+    } // encodes spaces
+    return p
 }
