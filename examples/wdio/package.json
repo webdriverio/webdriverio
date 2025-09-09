@@ -6,6 +6,7 @@
   "private": true,
   "scripts": {
     "test:mocha": "wdio run ./mocha/wdio.conf.ts",
+    "test:mocha-browser": "wdio run ./mocha-browser/wdio.conf.ts",
     "test:jasmine": "wdio run ./jasmine/wdio.conf.ts",
     "test:cucumber": "wdio run ./cucumber/wdio.conf.ts",
     "test:multiremote": "wdio run ./multiremote/wdio.conf.js",
