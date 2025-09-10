@@ -45,8 +45,8 @@ const tellReporter = (event: string, msg: never = {}) => {
  * @param {string} name - label name
  * @param {string} value - label value
  */
-export async function addLabel (name: string, value: string) {
-    await label(name, value)
+export function addLabel (name: string, value: string) {
+    label(name, value)
 }
 
 /**
