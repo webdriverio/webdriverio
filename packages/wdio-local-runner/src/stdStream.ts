@@ -18,7 +18,7 @@ export default class RunnerStream extends Transform {
         })
     }
 
-    _transform (chunk: any, encoding: BufferEncoding, callback: TransformCallback): void {
+    _transform (chunk: Buffer, _encoding: BufferEncoding, callback: TransformCallback): void {
         callback(undefined, chunk)
     }
 

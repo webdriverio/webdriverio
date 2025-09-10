@@ -308,7 +308,14 @@ describe('launcher', () => {
         it('should requeue retried specfiles at end of queue', async () => {
             launcher['_schedule'] = [{ cid: 0, specs: [{ files: ['b.js'] }] }] as any
             await launcher['_endHandler']({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
-            expect(launcher['_schedule']).toMatchObject([{ cid: 0, specs: [{ files: ['b.js'] }, { rid: '0-5', files: ['a.js'], retries: 0 }] }])
+            expect(launcher['_schedule']).toMatchObject([{
+                cid: 0,
+                specs: [{
+                    files: ['a.js']
+                }, {
+                    files: ['b.js'],
+                }]
+            }])
         })
     })
 
@@ -631,6 +638,7 @@ describe('launcher', () => {
 
             expect(sleep).not.toHaveBeenCalled()
             expect(launcher['_runnerStarted']).toBe(1)
+            // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
             expect(vi.mocked(launcher.runner?.run!).mock.calls[0][0]).toHaveProperty('cid', '0-5')
             expect(launcher['_getRunnerId'](0)).toBe('0-0')
 
@@ -641,6 +649,46 @@ describe('launcher', () => {
                 { hostname: '127.0.0.2' },
                 []
             )
+        })
+
+        it('should start an instance with different capability worker by worker', async () => {
+            const hostname = '127.0.0.2'
+            const caps = {
+                browserName: 'chrome'
+            }
+            const expectedCaps = Object.assign({}, caps, {
+                'goog:chromeOptions': {
+                    args: `--inspect=${hostname}:50000`,
+                }
+            })
+            const onWorkerStartMock = vi.fn().mockImplementation((_runnerId, caps)=>{
+                caps['goog:chromeOptions'] = {
+                    args: `--inspect=${hostname}:50000`
+                }
+            })
+            launcher.configParser.getConfig = () => ({ onWorkerStart: onWorkerStartMock }) as any
+            launcher['_args'].hostname = hostname
+
+            expect(launcher['_runnerStarted']).toBe(0)
+            await launcher['_startInstance'](
+                ['/foo.test.js'],
+                caps,
+                0,
+                '0-5',
+                0
+            )
+
+            expect(onWorkerStartMock).toHaveBeenCalledWith(
+                '0-5',
+                expectedCaps,
+                ['/foo.test.js'],
+                { hostname: '127.0.0.2' },
+                []
+            )
+
+            expect(caps).toStrictEqual({
+                browserName: 'chrome'
+            })
         })
 
         it('should wait before starting an instance on retry', async () => {

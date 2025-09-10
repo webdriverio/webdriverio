@@ -3,9 +3,9 @@ import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
-import treeKill from 'tree-kill'
 import { spawn, type ChildProcessByStdio } from 'node:child_process'
 import { type Readable } from 'node:stream'
+import { promisify } from 'node:util'
 
 import logger from '@wdio/logger'
 import getPort from 'get-port'
@@ -17,6 +17,7 @@ import { isAppiumCapability } from '@wdio/utils'
 
 import { getFilePath, formatCliArgs } from './utils.js'
 import type { AppiumServerArguments, AppiumServiceConfig } from './types.js'
+import treeKill from 'tree-kill'
 
 const log = logger('@wdio/appium-service')
 const DEFAULT_APPIUM_PORT = 4723
@@ -92,7 +93,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                     )
                 }
             }
-            return
+            return capabilityWasUpdated
         }
 
         this._capabilities.forEach((cap) => {
@@ -182,9 +183,9 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         log.warn(data.toString())
     }
 
-    onComplete() {
+    private promisifiedTreeKill = promisify<number, string>(treeKill)
+    async onComplete() {
         this._isShuttingDown = true
-
         /**
          * Kill appium and all process' spawned from it
          */
@@ -194,18 +195,28 @@ export default class AppiumLauncher implements Services.ServiceInstance {
              */
             this._process.stdout.off('data', this.#logStdout)
             this._process.stderr.off('data', this.#logStderr)
-
             /**
              * Ensure all child processes are also killed
-             */
+            */
             log.info('Killing entire Appium tree')
-            treeKill(this._process.pid, 'SIGTERM', (err) => {
-                if (err) {
-                    return log.warn('Failed to kill process:', err)
-                }
-
+            try {
+                // First attempt with SIGTERM
+                await this.promisifiedTreeKill(this._process.pid, 'SIGTERM')
+                    .catch(async (err) => {
+                        log.warn('SIGTERM failed, attempting SIGKILL:', err)
+                        // If SIGTERM fails, try SIGKILL
+                        await this.promisifiedTreeKill(this._process!.pid!, 'SIGKILL')
+                    })
                 log.info('Process and its children successfully terminated')
-            })
+            } catch (err) {
+                log.error('Failed to kill Appium process tree:', err)
+                try {
+                    this._process.kill('SIGKILL')
+                    log.info('Killed main process directly')
+                } catch (e) {
+                    log.error('Failed to kill process directly:', e)
+                }
+            }
         }
     }
     private _startAppium(command: string, args: Array<string>, timeout = APPIUM_START_TIMEOUT) {
@@ -247,8 +258,13 @@ export default class AppiumLauncher implements Services.ServiceInstance {
              * only capture first error to print it in case Appium failed to start.
              */
             const onErrorMessage = (data: Buffer) => {
+                /**
+                 * filter 'Debugger attached' message as it is not an error
+                 */
                 error = data.toString() || 'Appium exited without unknown error message'
-                log.error(error)
+                if (!data.toString().includes('Debugger attached')) {
+                    log.error(error)
+                }
                 rejectOnce(new Error(error))
             }
 
@@ -304,12 +320,12 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         try {
             const entryPath = await resolve(command, import.meta.url)
             return url.fileURLToPath(entryPath)
-        } catch (err: any) {
+        } catch (err) {
             const errorMessage = (
                 'Appium is not installed locally. Please install via e.g. `npm i --save-dev appium`.\n' +
                 'If you use globally installed appium please add: `appium: { command: \'appium\' }`\n' +
                 'to your wdio.conf.js!\n\n' +
-                err.stack
+                (err as Error).stack
             )
             log.error(errorMessage)
             throw new SevereServiceError(errorMessage)

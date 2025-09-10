@@ -19,9 +19,14 @@ const workerConfig = {
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
+// Mock XvfbManager
+const mockXvfbManager = {
+    init: vi.fn().mockResolvedValue(true)
+}
+
 describe('handleMessage', () => {
     it('should emit payload with cid', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
         worker.emit = vi.fn()
 
         worker['_handleMessage']({ foo: 'bar' } as unknown as Workers.WorkerMessage)
@@ -32,20 +37,20 @@ describe('handleMessage', () => {
     })
 
     it('should un mark worker as busy if command is finished', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
         worker.isBusy = true
         worker['_handleMessage']({ name: 'finishedCommand' } as unknown as Workers.WorkerMessage)
         expect(worker.isBusy).toBe(false)
     })
 
     it('should mark worker as ready if ready message was received', async () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
         worker['_handleMessage']({ name: 'ready' } as unknown as Workers.WorkerMessage)
         expect(await worker.isReady).toBe(true)
     })
 
     it('stores sessionId and connection data to worker instance', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
         worker.emit = vi.fn()
         const payload = {
             name: 'sessionStarted',
@@ -59,7 +64,7 @@ describe('handleMessage', () => {
     })
 
     it('stores instances to worker instance in Multiremote mode', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
         const payload = {
             name: 'sessionStarted',
             content: {
@@ -75,7 +80,7 @@ describe('handleMessage', () => {
 
 describe('handleError', () => {
     it('should emit error', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
         worker.emit = vi.fn()
         worker['_handleError']({ foo: 'bar' } as unknown as Error)
         expect(worker.emit).toBeCalledWith('error', {
@@ -87,7 +92,7 @@ describe('handleError', () => {
 
 describe('handleExit', () => {
     it('should handle it', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
         const childProcess = { kill: vi.fn() }
         worker.childProcess = childProcess as unknown as ChildProcess
         worker.isBusy = true
@@ -106,25 +111,25 @@ describe('handleExit', () => {
 })
 
 describe('postMessage', () => {
-    it('should log if the cid is busy and exit', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+    it('should log if the cid is busy and exit', async () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
         const log = logger('webdriver')
         vi.spyOn(log, 'info').mockImplementation((string) => string)
 
         worker.isBusy = true
-        worker.postMessage('test-message', {})
+        await worker.postMessage('test-message', {})
 
         expect(log.info)
             .toHaveBeenCalledWith('worker with cid 0-3 already busy and can\'t take new commands')
     })
 
-    it('should create a process if it does not have one', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+    it('should create a process if it does not have one', async () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
         worker.isReady = Promise.resolve(true)
         worker.childProcess = undefined
         vi.spyOn(worker, 'startProcess').mockImplementation(
-            () => ({ send: vi.fn() }) as unknown as ChildProcess)
-        worker.postMessage('test-message', {})
+            async () => ({ send: vi.fn() }) as unknown as ChildProcess)
+        await worker.postMessage('test-message', {})
 
         expect(worker.startProcess).toHaveBeenCalled()
         expect(worker.isBusy).toBeTruthy()
@@ -133,9 +138,9 @@ describe('postMessage', () => {
     })
 
     it('should wait sending the command until worker is ready', async () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
         worker.childProcess = { send: vi.fn() } as any
-        worker.postMessage('test-message', {})
+        await worker.postMessage('test-message', {})
         expect(worker.childProcess!.send).toBeCalledTimes(0)
         worker.isReadyResolver(true)
         await worker.isReady

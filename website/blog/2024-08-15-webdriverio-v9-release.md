@@ -298,6 +298,15 @@ Migrating to asymmetric matchers is straightforward. Here is an example:
 + await expect($('elem')).toHaveText(expect.stringContaining('Hello'))
 ```
 
+### Removal of `isDisplayedViewport`
+
+We have removed the `isDisplayedViewport` command and merged the functionality with the `isDisplayed` command, e.g.:
+
+```patch
+- await $('element').isDisplayedViewport()
++ await $('element').isDisplayed({ withinViewport: true })
+```
+
 ### Removal of JSON Wire Protocol Commands
 
 The JSON Wire Protocol was the first automation protocol developed by Selenium, enabling remote browser automation using any language that supports HTTP. In 2012, the creators of Selenium began working on formally standardizing the protocol, which is now supported in all browsers. This effort culminated in the WebDriver protocol becoming a W3C Recommendation, leading browser drivers and cloud vendors to migrate to this official standard.

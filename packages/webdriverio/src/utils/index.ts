@@ -1,7 +1,3 @@
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { URL } from 'node:url'
-
 import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
@@ -15,10 +11,11 @@ import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
 import elementContains from '../scripts/elementContains.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
+import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
 import { DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
-import { getShadowRootManager, type ShadowRootManager } from '../shadowRoot.js'
-import { getContextManager } from '../context.js'
+import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
+import { getContextManager } from '../session/context.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference, ExtendedElementReference } from '../types.js'
 
@@ -93,8 +90,8 @@ export const getPrototype = (scope: 'browser' | 'element') => {
  */
 export const getElementFromResponse = (res?: ElementReference) => {
     /**
-    * a function selector can return null
-    */
+     * a function selector can return null
+     */
     if (!res) {
         return null
     }
@@ -102,8 +99,8 @@ export const getElementFromResponse = (res?: ElementReference) => {
     /**
      * deprecated JSONWireProtocol response
      */
-    if ((res as any).ELEMENT) {
-        return (res as any as { ELEMENT: string }).ELEMENT
+    if ((res as unknown as { ELEMENT: string }).ELEMENT) {
+        return (res as unknown as { ELEMENT: string }).ELEMENT
     }
 
     /**
@@ -174,7 +171,7 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
             if (parsedValue.parsed.type && parsedValue.parsed.type === 'number' && parsedValue.parsed.unit === '') {
                 parsedValue.value = parsedValue.parsed.value
             }
-        } catch (err: any) {
+        } catch {
             // TODO improve css-parse lib to handle properties like
             // `-webkit-animation-timing-function :  cubic-bezier(0.25, 0.1, 0.25, 1)
         }
@@ -212,13 +209,14 @@ function fetchElementByJSFunction (
     referenceId?: string
 ): Promise<ElementReference | ElementReference[]> {
     if (!('elementId' in scope)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return scope.execute(selector as any, referenceId)
     }
     /**
      * use a regular function because IE does not understand arrow functions
      */
     const script = (function (elem: HTMLElement, id: string) {
-        return (selector as any as Function).call(elem, id)
+        return (selector as unknown as Function).call(elem, id)
     }).toString().replace('selector', `(${selector.toString()})`)
     const args: (WebdriverIO.Element | string)[] = [scope as WebdriverIO.Element]
     if (referenceId) {
@@ -308,7 +306,7 @@ export function transformClassicToBidiSelector (using: string, value: string): r
 export async function findDeepElement(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
-): Promise<ElementReference | Error> {
+): Promise<ElementReference | undefined> {
     const browser = getBrowserObject(this)
     const shadowRootManager = getShadowRootManager(browser)
     const contextManager = getContextManager(browser)
@@ -330,10 +328,12 @@ export async function findDeepElement(
             ? [{ sharedId: (this as WebdriverIO.Element).elementId }]
             : undefined
     const deepElementResult = await browser.browsingContextLocateNodes({ locator, context, startNodes }).then(async (result) => {
-        const nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
+        let nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
             [ELEMENT_KEY]: node.sharedId as string,
             locator
         }))
+
+        nodes = returnUniqueNodes(nodes)
 
         if (!(this as WebdriverIO.Element).elementId) {
             return nodes[0]
@@ -349,7 +349,7 @@ export async function findDeepElement(
                 node as unknown as HTMLElement
             )
             return [isIn, node]
-        })).then((elems) => elems.filter(([isIn]) => isIn).map(([, elem]) => elem))
+        })).then((elems) => elems.filter(([isIn]) => isIn).map(([, elem]) => elem)) as ExtendedElementReference[]
 
         return scopedNodes[0]
     }, (err) => {
@@ -359,11 +359,7 @@ export async function findDeepElement(
             : browser.findElement(using, value)
     })
 
-    if (!deepElementResult) {
-        return new Error(`Couldn't find element with selector "${selector}"`)
-    }
-
-    return deepElementResult as ElementReference
+    return deepElementResult
 }
 
 /**
@@ -398,10 +394,13 @@ export async function findDeepElements(
             ? [{ sharedId: (this as WebdriverIO.Element).elementId }]
             : undefined
     const deepElementResult = await browser.browsingContextLocateNodes({ locator, context, startNodes }).then(async (result) => {
-        const nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
-            [ELEMENT_KEY]: node.sharedId as string,
-            locator
-        }))
+        let nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId))
+            .map((node) => ({
+                [ELEMENT_KEY]: node.sharedId as string,
+                locator
+            }))
+
+        nodes = returnUniqueNodes(nodes)
 
         if (!(this as WebdriverIO.Element).elementId) {
             return nodes
@@ -430,6 +429,14 @@ export async function findDeepElements(
 }
 
 /**
+* Temporary patch for https://github.com/mozilla/geckodriver/issues/2223
+*/
+function returnUniqueNodes(nodes: ExtendedElementReference[]): ExtendedElementReference[] {
+    const ids = new Set()
+    return nodes.filter((node) => !ids.has(node[ELEMENT_KEY]) && ids.add(node[ELEMENT_KEY]))
+}
+
+/**
  * logic to find an element
  * Note: the order of if statements matters
  */
@@ -448,7 +455,9 @@ export async function findElement(
      * - and we are not in an iframe (because it is currently not supported to locate nodes in an iframe via Bidi)
      */
     if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR) && !shadowRootManager.isWithinFrame()) {
-        return findDeepElement.call(this, selector)
+        const notFoundError = new Error(`Couldn't find element with selector "${selector}"`)
+        const elem = await findDeepElement.call(this, selector)
+        return getElementFromResponse(elem) ? elem : notFoundError
     }
 
     /**
@@ -461,7 +470,7 @@ export async function findElement(
             false,
             selector.slice(DEEP_SELECTOR.length),
             // hard conversion from element id to Element is done by browser driver
-            ((this as WebdriverIO.Element).elementId ? this : undefined) as any as Element | Document
+            ((this as WebdriverIO.Element).elementId ? this : undefined) as unknown as Element | Document
         )
         elem = Array.isArray(elem) ? elem[0] : elem
         return getElementFromResponse(elem) ? elem : notFoundError
@@ -485,8 +494,8 @@ export async function findElement(
         const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
         return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
-            ? this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value) as any as ElementReference
-            : this.findElement(using, value) as any as ElementReference
+            ? this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value) as unknown as ElementReference
+            : this.findElement(using, value) as unknown as ElementReference
     }
 
     /**
@@ -510,7 +519,7 @@ export async function findElement(
         const notFoundError = new Error('DOM Node couldn\'t be found anymore')
         const uid = Math.random().toString().slice(2)
         window.__wdio_element[uid] = selector as HTMLElement
-        selector = ((id: string) => window.__wdio_element[id]) as any as ElementFunction
+        selector = ((id: string) => window.__wdio_element[id]) as unknown as ElementFunction
         let elem = await fetchElementByJSFunction(selector, this, uid).catch((err) => {
             /**
              * WebDriver throws a stale element reference error if the element is not found
@@ -546,7 +555,7 @@ export async function findElements(
             true,
             selector.slice(DEEP_SELECTOR.length),
             // hard conversion from element id to Element is done by browser driver
-            ((this as WebdriverIO.Element).elementId ? this : undefined) as any as Element | Document
+            ((this as WebdriverIO.Element).elementId ? this : undefined) as unknown as Element | Document
         )
         const elemArray = Array.isArray(elems) ? elems : [elems]
         return elemArray.filter((elem) => elem && getElementFromResponse(elem))
@@ -569,8 +578,8 @@ export async function findElements(
         const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
         return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
-            ? this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value) as any as ElementReference[]
-            : this.findElements(using, value) as any as ElementReference[]
+            ? this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value) as unknown as ElementReference[]
+            : this.findElements(using, value) as unknown as ElementReference[]
     }
 
     /**
@@ -588,8 +597,8 @@ export async function findElements(
 /**
  * Strip element object and return w3c and jsonwp compatible keys
  */
-export function verifyArgsAndStripIfElement(args: any) {
-    function verify (arg: any) {
+export function verifyArgsAndStripIfElement(args: unknown) {
+    function verify (arg: unknown) {
         if (arg && typeof arg === 'object' && arg.constructor.name === 'Element') {
             const elem = arg as WebdriverIO.Element
             if (!elem.elementId) {
@@ -633,7 +642,7 @@ export async function getElementRect(scope: WebdriverIO.Element) {
                 width,
                 height
             }
-        }, scope as any as HTMLElement)
+        }, scope as unknown as HTMLElement)
 
         // try set proper value
         Object.keys(defaults).forEach((key: keyof typeof defaults) => {
@@ -652,22 +661,6 @@ export async function getElementRect(scope: WebdriverIO.Element) {
     return rect
 }
 
-export function getAbsoluteFilepath(filepath: string) {
-    return filepath.startsWith('/') || filepath.startsWith('\\') || filepath.match(/^[a-zA-Z]:\\/)
-        ? filepath
-        : path.join(process.cwd(), filepath)
-}
-
-/**
- * check if directory exists
- */
-export async function assertDirectoryExists(filepath: string) {
-    const exist = await fs.access(path.dirname(filepath)).then(() => true, () => false)
-    if (!exist) {
-        throw new Error(`directory (${path.dirname(filepath)}) doesn't exist`)
-    }
-}
-
 /**
  * check if urls are valid and fix them if necessary
  * @param  {string}  url                url to navigate to
@@ -678,7 +671,7 @@ export function validateUrl (url: string, origError?: Error): string {
     try {
         const urlObject = new URL(url)
         return urlObject.href
-    } catch (err: any) {
+    } catch {
         /**
          * if even adding http:// doesn't help, fail with original error
          */
@@ -724,7 +717,7 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
 
 type Entries<T> = {
     [K in keyof T]: [K, T[K]];
-}[keyof T][];
+}[keyof T][]
 
 /**
  * Enhance elements array with data required to refetch it
@@ -740,7 +733,7 @@ export const enhanceElementsArray = (
     parent: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[],
     foundWith = '$$',
-    props: any[] = []
+    props: unknown[] = []
 ) => {
     /**
      * as we enhance the element array in this method we need to cast its
@@ -772,7 +765,7 @@ export const enhanceElementsArray = (
         /**
          * ToDo(Christian): typing fails here for unknown reason
          */
-        elementArray[name] = fn.bind(null, elementArray as any)
+        elementArray[name] = fn.bind(null, elementArray as unknown)
     }
 
     elementArray.parent = parent
@@ -804,4 +797,11 @@ export const containsHeaderObject = (
     }
 
     return true
+}
+
+export function createFunctionDeclarationFromString (userScript: Function | string) {
+    if (typeof userScript === 'string') {
+        return `(${SCRIPT_PREFIX}function () {\n${userScript.toString()}\n}${SCRIPT_SUFFIX}).apply(this, arguments);`
+    }
+    return new Function(`return (${SCRIPT_PREFIX}${userScript.toString()}${SCRIPT_SUFFIX}).apply(this, arguments);`).toString()
 }

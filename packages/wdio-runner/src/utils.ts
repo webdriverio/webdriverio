@@ -40,7 +40,7 @@ export function sanitizeCaps (
         obj: WebdriverIO.Capabilities,
         key: keyof WebdriverIO.Capabilities
     ) => {
-        obj[key] = caps[key] as any
+        obj[key] = caps[key] as undefined
         return obj
     }, {})
 }
@@ -53,7 +53,7 @@ export function sanitizeCaps (
  * @return {Promise}               resolves with browser object
  */
 export async function initializeInstance (
-    config: ConfigWithSessionId | Options.Testrunner,
+    config: ConfigWithSessionId | WebdriverIO.Config,
     capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities,
     isMultiremote?: boolean
 ): Promise<WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser> {
@@ -198,16 +198,16 @@ const SUPPORTED_ASYMMETRIC_MATCHER = {
  * @param arg raw value or a stringified asymmetric matcher
  * @returns   raw value or an actual asymmetric matcher
  */
-export function transformExpectArgs (arg: any) {
-    if (typeof arg === 'object' && '$$typeof' in arg && Object.keys(SUPPORTED_ASYMMETRIC_MATCHER).includes(arg.$$typeof)) {
+export function transformExpectArgs (arg: unknown) {
+    if (typeof arg === 'object' && arg && '$$typeof' in arg && typeof arg.$$typeof === 'string' && Object.keys(SUPPORTED_ASYMMETRIC_MATCHER).includes(arg.$$typeof)) {
         const matcherKey = SUPPORTED_ASYMMETRIC_MATCHER[arg.$$typeof as keyof typeof SUPPORTED_ASYMMETRIC_MATCHER] as keyof AsymmetricMatchers
-        const matcher: any = arg.inverse ? expect.not[matcherKey] : expect[matcherKey]
+        const matcher = ('inverse' in arg && arg.inverse ? expect.not[matcherKey] : expect[matcherKey]) as unknown as (sample: string) => unknown
 
         if (!matcher) {
             throw new Error(`Matcher "${matcherKey}" is not supported by expect-webdriverio`)
         }
 
-        return matcher(arg.sample)
+        return matcher((arg as unknown as { sample: string }).sample)
     }
 
     return arg

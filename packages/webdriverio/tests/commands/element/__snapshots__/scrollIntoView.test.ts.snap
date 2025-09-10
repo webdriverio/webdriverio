@@ -100,68 +100,13 @@ exports[`scrollIntoView test > desktop > scrolls element when using boolean scro
 }
 `;
 
-exports[`scrollIntoView test > mobile Android app > does not find the default scroll element 1`] = `
-"Default scrollable element '//android.widget.ScrollView' was not found. Our advice is to provide a scrollable element like this:
+exports[`scrollIntoView test > mobile native app > does not find the element after max 5 scrolls 1`] = `
+"Element not found within scroll limit of 5 scrolls by scrolling "up". Are you sure the element is within the scrollable element or the direction is correct? You can change the scrollable element or direction like this:
 
-        await elem.scrollIntoView({ scrollableElement: $('#scrollable') });
-
-        "
-`;
-
-exports[`scrollIntoView test > mobile Android app > scrolls by default the element to the top 1`] = `
-{
-  "args": [
-    {
-      "direction": "down",
-      "elementId": "scrollable-element-id",
-      "percent": 0.5,
-    },
-  ],
-  "script": "mobile: scrollGesture",
-}
-`;
-
-exports[`scrollIntoView test > mobile ios app > does not find the default scroll element 1`] = `
-"Default scrollable element '-ios predicate string:type == "XCUIElementTypeApplication"' was not found. Our advice is to provide a scrollable element like this:
-
-        await elem.scrollIntoView({ scrollableElement: $('#scrollable') });
+await elem.scrollIntoView({
+    direction: 'left' // possible options are: 'up|down|left|right'
+    scrollableElement: $('#scrollable'),
+});
 
         "
-`;
-
-exports[`scrollIntoView test > mobile ios app > does not find the element after max 5 scrolls 1`] = `
-"Element not found within scroll limit of 5 scrolls by scrolling "down". Are you sure the element is within the scrollable element or the direction is correct? You can change the scrollable element or direction like this:
-
-        await elem.scrollIntoView({
-            direction: 'left' // posible options are: 'up|down|left|right'
-            scrollableElement: $('#scrollable'),
-        });
-
-        "
-`;
-
-exports[`scrollIntoView test > mobile ios app > scrolls by default the element to the top 1`] = `
-{
-  "args": [
-    {
-      "direction": "down",
-      "elementId": "scrollable-element-id",
-    },
-  ],
-  "script": "mobile: scroll",
-}
-`;
-
-exports[`scrollIntoView test > mobile ios app > scrolls in a provided scroll-container to the left 1`] = `"{"using":"css selector","value":"#scrollContainer"}"`;
-
-exports[`scrollIntoView test > mobile ios app > scrolls in a provided scroll-container to the left 2`] = `
-{
-  "args": [
-    {
-      "direction": "left",
-      "elementId": "some-elem-123",
-    },
-  ],
-  "script": "mobile: scroll",
-}
 `;

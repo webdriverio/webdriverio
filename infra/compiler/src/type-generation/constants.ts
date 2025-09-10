@@ -34,7 +34,7 @@ export const returnTypeMap = {
     getElementShadowRoot: 'ShadowElementReference',
     getAllCookies: 'Cookie[]',
     send: 'BidiResponse',
-    getContext: 'Context',
-    getContexts: 'Context[]',
+    getAppiumContext: 'Context',
+    getAppiumContexts: 'Context[]',
     getCredentials: 'Credential[]'
 }

@@ -9,9 +9,10 @@ import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PAT
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
 const REGEX_SCRIPT_NAME = /return \((async )?function (\w+)/
-const SLASH = '/'
+export const SLASH = '/'
+export const REG_EXP_WINDOWS_ABS_PATH = /^[A-Za-z]:\\/
 
-function assertPath(path?: any) {
+function assertPath(path?: unknown) {
     if (typeof path !== 'string') {
         throw new TypeError('Path must be a string. Received ' + JSON.stringify(path))
     }
@@ -19,14 +20,14 @@ function assertPath(path?: any) {
 
 export function isAbsolute(p: string) {
     assertPath(p)
-    return p.length > 0 && p.charCodeAt(0) === SLASH.codePointAt(0)
+    return p.length > 0 && (p.charCodeAt(0) === SLASH.codePointAt(0) || REG_EXP_WINDOWS_ABS_PATH.test(p))
 }
 
 /**
  * overwrite native element commands with user defined
  * @param {object} propertiesObject propertiesObject
  */
-export function overwriteElementCommands(propertiesObject: { '__elementOverrides__'?: { value: any }, [key: string]: any }) {
+export function overwriteElementCommands(propertiesObject: { '__elementOverrides__'?: { value: Record<string, unknown> }, [key: string]: unknown }) {
     const elementOverrides = propertiesObject.__elementOverrides__
         ? propertiesObject.__elementOverrides__.value
         : {}
@@ -40,18 +41,20 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
             throw new Error('overwriteCommand: no command to be overwritten: ' + commandName)
         }
 
-        if (typeof propertiesObject[commandName].value !== 'function') {
+        const propertiesObjectCommand = (propertiesObject[commandName] as { value: unknown }).value
+        if (typeof propertiesObjectCommand !== 'function') {
             throw new Error('overwriteCommand: only functions can be overwritten, command: ' + commandName)
         }
 
-        const origCommand = propertiesObject[commandName].value
+        const origCommand = propertiesObjectCommand
         delete propertiesObject[commandName]
 
-        const newCommand = function (this: WebdriverIO.Browser, ...args: any[]) {
+        const newCommand = function (this: WebdriverIO.Browser, ...args: unknown[]) {
             const element = this
             return userDefinedCommand.apply(element, [
-                function origCommandFunction (this: WebdriverIO.Browser) {
+                function origCommandFunction (this: WebdriverIO.Browser, ..._args: unknown[]) {
                     const context = this || element // respect explicite context binding, use element as default
+                    // eslint-disable-next-line prefer-rest-params
                     return origCommand.apply(context, arguments)
                 },
                 ...args
@@ -72,9 +75,21 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
  * get command call structure
  * (for logging purposes)
  */
-export function commandCallStructure (commandName: string, args: any[], unfurl = false) {
+export function commandCallStructure (commandName: string, args: unknown[], unfurl = false) {
     const callArgs = args.map((arg) => {
-        if (typeof arg === 'string' && (arg.startsWith('!function(') || arg.startsWith('return (function') || arg.startsWith('return (async function'))) {
+        if (
+            typeof arg === 'string' &&
+            /**
+             * The regex pattern matches:
+             *  - Regular functions: `function()` or `function foo()`
+             *  - Async functions: `async function()` or `async function foo()`
+             *  - IIFEs: `!function()`
+             *  - Returned functions: `return function` or `return (function`
+             *  - Returned async functions: `return async function` or `return (async function`
+             *  - Arrow functions: `() =>` or `param =>` or `(param1, param2) =>`
+             */
+            /^\s*(?:(?:async\s+)?function(?:\s+\w+)?\s*\(|!function\(|return\s+\(?(?:async\s+)?function|\([^)]*\)\s*=>|\w+\s*=>)/.test(arg.trim())
+        ) {
             arg = '<fn>'
         } else if (
             typeof arg === 'string' &&
@@ -84,6 +99,12 @@ export function commandCallStructure (commandName: string, args: any[], unfurl =
              * include a command check in here.
              */
             !commandName.startsWith('findElement') &&
+            /**
+             * the isBase64 method returns for the argument value like
+             * "9A562133B0552E0ECB7628F2E8A09E86" a true value which is
+             * why we should include a command check in here.
+             */
+            !commandName.startsWith('switch') &&
             isBase64(arg)
         ) {
             arg = SCREENSHOT_REPLACEMENT
@@ -110,15 +131,19 @@ export function commandCallStructure (commandName: string, args: any[], unfurl =
  * result strings e.g. if it contains a screenshot
  * @param {object} result WebDriver response body
  */
-export function transformCommandLogResult (result: { file?: string, script?: string }) {
-    if (typeof result.file === 'string' && isBase64(result.file)) {
+export function transformCommandLogResult (result: unknown) {
+    if (typeof result === 'undefined') {
+        return '<empty result>'
+    } else if (typeof result !== 'object' || !result) {
+        return result
+    } else if ('file' in result && typeof result.file === 'string' && isBase64(result.file)) {
         return SCREENSHOT_REPLACEMENT
-    } else if (typeof result.script === 'string' && isBase64(result.script)) {
+    } else if ('script' in result && typeof result.script === 'string' && isBase64(result.script)) {
         return SCRIPT_PLACEHOLDER
-    } else if (typeof result.script === 'string' && result.script.match(REGEX_SCRIPT_NAME)) {
+    } else if ('script' in result && typeof result.script === 'string' && result.script.match(REGEX_SCRIPT_NAME)) {
         const newScript = result.script.match(REGEX_SCRIPT_NAME)![2]
         return { ...result, script: `${newScript}(...) [${Buffer.byteLength(result.script, 'utf-8')} bytes]` }
-    } else if (typeof result.script === 'string' && result.script.startsWith('!function(')) {
+    } else if ('script' in result && typeof result.script === 'string' && result.script.startsWith('!function(')) {
         return { ...result, script: `<minified function> [${Buffer.byteLength(result.script, 'utf-8')} bytes]` }
     }
 
@@ -132,7 +157,7 @@ export function transformCommandLogResult (result: { file?: string, script?: str
  * @param  {Object}  expectedType  parameter type (e.g. `number`, `string[]` or `(number|string)`)
  * @return {Boolean}               true if argument is valid
  */
-export function isValidParameter (arg: any, expectedType: string) {
+export function isValidParameter (arg: unknown, expectedType: string) {
     let shouldBeArray = false
 
     if (expectedType.slice(-2) === '[]') {
@@ -154,10 +179,12 @@ export function isValidParameter (arg: any, expectedType: string) {
         arg = [arg]
     }
 
-    for (const argEntity of arg) {
-        const argEntityType = getArgumentType(argEntity)
-        if (!argEntityType.match(expectedType)) {
-            return false
+    if (Array.isArray(arg)) {
+        for (const argEntity of arg) {
+            const argEntityType = getArgumentType(argEntity)
+            if (!argEntityType.match(expectedType)) {
+                return false
+            }
         }
     }
 
@@ -167,7 +194,7 @@ export function isValidParameter (arg: any, expectedType: string) {
 /**
  * get type of command argument
  */
-export function getArgumentType (arg: any) {
+export function getArgumentType (arg: unknown) {
     return arg === null ? 'null' : typeof arg
 }
 
@@ -183,7 +210,7 @@ export async function userImport<T> (moduleName: string, namedImport = 'default'
         if (namedImport in mod) {
             return mod[namedImport]
         }
-    } catch (err) {
+    } catch {
         throw new Error(`Couldn't import "${moduleName}"! Do you have it installed? If not run "npm install ${moduleName}"!`)
     }
 
@@ -220,16 +247,16 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
             const { resolve } = await import('import-meta-resolve')
             try {
                 importPath = await resolve(name, import.meta.url)
-            } catch (err: any) {
+            } catch {
                 const localNodeModules = path.join(process.cwd(), 'node_modules')
                 try {
                     importPath = await resolve(name, url.pathToFileURL(localNodeModules).toString())
-                } catch (err: any) {
+                } catch {
                     return null
                 }
             }
         }
-    } catch (err: any) {
+    } catch {
         return null
     }
 
@@ -255,8 +282,8 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
             return pkg.default
         }
         return pkg
-    } catch (e: any) {
-        throw new Error(`Couldn't initialize "${name}".\n${e.stack}`)
+    } catch (e: unknown) {
+        throw new Error(`Couldn't initialize "${name}".\n${(e as Error).stack}`)
     }
 }
 
@@ -273,7 +300,7 @@ export function isFunctionAsync (fn: Function) {
  * filter out arguments passed to specFn & hookFn, don't allow callbacks
  * as there is no need for user to call e.g. `done()`
  */
-export function filterSpecArgs (args: any[]) {
+export function filterSpecArgs (args: unknown[]) {
     return args.filter((arg) => typeof arg !== 'function')
 }
 
@@ -318,12 +345,17 @@ export function isAppiumCapability(caps: WebdriverIO.Capabilities): boolean {
             // @ts-expect-error outdated jsonwp cap
             caps.automationName ||
             caps['appium:automationName'] ||
+            ('appium:options' in caps && caps['appium:options']?.automationName) ||
             // @ts-expect-error outdated jsonwp cap
             caps.deviceName ||
             caps['appium:deviceName'] ||
+            ('appium:options' in caps && caps['appium:options']?.deviceName) ||
+            ('lt:options' in caps && caps['lt:options']?.deviceName) ||
             // @ts-expect-error outdated jsonwp cap
             caps.appiumVersion ||
-            caps['appium:appiumVersion']
+            caps['appium:appiumVersion'] ||
+            ('appium:options' in caps && caps['appium:options']?.appiumVersion) ||
+            ('lt:options' in caps && caps['lt:options']?.appiumVersion)
         )
     )
 }

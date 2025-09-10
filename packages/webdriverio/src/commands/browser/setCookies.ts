@@ -41,7 +41,7 @@ import type { Cookie } from '@wdio/protocols'
  * </example>
  *
  * @alias browser.setCookies
- * @param {Array<WebDriverCookie>|WebDriverCookie} cookie   cookie object or object array.
+ * @param {`Array<WebDriverCookie>|WebDriverCookie`} cookie   cookie object or object array.
  * @param {String=}       cookie.name     The name of the cookie.
  * @param {String=}       cookie.value    The cookie value.
  * @param {String=}       cookie.path     The cookie path. Defaults to "/" if omitted when adding a cookie.
@@ -57,7 +57,7 @@ import type { Cookie } from '@wdio/protocols'
 export async function setCookies(
     this: WebdriverIO.Browser,
     cookieObjs: Cookie | Cookie[]
-) {
+): Promise<void> {
     const cookieObjsList = !Array.isArray(cookieObjs) ? [cookieObjs] : cookieObjs
 
     if (cookieObjsList.some(obj => (typeof obj !== 'object'))) {
@@ -68,9 +68,7 @@ export async function setCookies(
      * if session doesn't use Bidi, use WebDriver Classic command
      */
     if (!this.isBidi) {
-        for (const cookieObj of cookieObjsList) {
-            await this.addCookie(cookieObj)
-        }
+        await Promise.all(cookieObjsList.map(cookieObj => this.addCookie(cookieObj)))
         return
     }
 

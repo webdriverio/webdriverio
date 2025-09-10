@@ -1,31 +1,26 @@
-import type { Capabilities } from '@wdio/types'
 import type { PinchAndZoomOptions } from '../types.js'
 
-const appiumKeys = ['app', 'bundleId', 'appPackage', 'appActivity', 'appWaitActivity', 'appWaitPackage'] as const
-type AppiumKeysType = typeof appiumKeys[number]
-
 export function getNativeContext({ capabilities, isMobile }:
-    { capabilities: WebdriverIO.Capabilities, isMobile: boolean }
+{ capabilities: WebdriverIO.Capabilities, isMobile: boolean }
 ): boolean {
     if (!capabilities || typeof capabilities !== 'object' || !isMobile) {
         return false
     }
 
-    const isAppiumAppCapPresent = (capabilities: Capabilities.RequestedStandaloneCapabilities) => {
-        return appiumKeys.some((key) => (
-            (capabilities as Capabilities.AppiumCapabilities)[key as keyof Capabilities.AppiumCapabilities] !== undefined ||
-            (capabilities as WebdriverIO.Capabilities)['appium:options']?.[key as AppiumKeysType] !== undefined)
-        )
-    }
     const isBrowserNameFalse = !!capabilities?.browserName === false
-    // @ts-expect-error
-    const isAutoWebviewFalse = capabilities?.autoWebview !== true
+    const isAutoWebviewFalse = !(
+        // @ts-expect-error
+        capabilities?.autoWebview === true ||
+        capabilities['appium:autoWebview'] === true ||
+        capabilities['appium:options']?.autoWebview === true ||
+        capabilities['lt:options']?.autoWebview === true
+    )
 
-    return isBrowserNameFalse && isAppiumAppCapPresent(capabilities) && isAutoWebviewFalse
+    return isBrowserNameFalse && isMobile && isAutoWebviewFalse
 }
 
 export function getMobileContext({ capabilities, isAndroid, isNativeContext }:
-    { capabilities: WebdriverIO.Capabilities, isAndroid: boolean, isNativeContext: boolean }
+{ capabilities: WebdriverIO.Capabilities, isAndroid: boolean, isNativeContext: boolean }
 ): string | undefined {
     return isNativeContext ? 'NATIVE_APP' :
     // Android webviews are always WEBVIEW_<package_name>, Chrome will always be CHROMIUM
@@ -35,7 +30,7 @@ export function getMobileContext({ capabilities, isAndroid, isNativeContext }:
 }
 
 export function calculateAndroidPinchAndZoomSpeed({ browser, duration, scale }:
-    { browser: WebdriverIO.Browser, duration: number, scale: number }
+{ browser: WebdriverIO.Browser, duration: number, scale: number }
 ): number {
     // @ts-expect-error
     const deviceScreenSize = (browser.capabilities?.deviceScreenSize || '1080x2400').split('x').reduce((a, b) => a * b)
@@ -49,7 +44,7 @@ export function calculateAndroidPinchAndZoomSpeed({ browser, duration, scale }:
 }
 
 export function validatePinchAndZoomOptions({ browser, gesture, options }:
-    { browser: WebdriverIO.Browser, gesture: 'pinch' | 'zoom', options: Partial<PinchAndZoomOptions> }
+{ browser: WebdriverIO.Browser, gesture: 'pinch' | 'zoom', options: Partial<PinchAndZoomOptions> }
 ): { scale: number, duration: number } {
     if (typeof options !== 'undefined' && (typeof options !== 'object' || Array.isArray(options))) {
         throw new TypeError('Options must be an object')

@@ -34,8 +34,8 @@ exports[`getTemplate > renders template correctly 1`] = `
                     return mod
                 }
             </script>
-            <link rel="stylesheet" href="/@fs//foo/bar/mocha.css">
-            <script type="module" src="/@fs//foo/bar/mocha.js"></script>
+            <link rel="stylesheet" href="@wdio/browser-runner/third_party/mocha.css">
+            <script type="module" src="@wdio/browser-runner/third_party/mocha.js"></script>
             <script src="/@fs//foo/bar/browser-source-map-support.js"></script>
             <script type="module">
                 sourceMapSupport.install()

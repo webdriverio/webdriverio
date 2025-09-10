@@ -3,19 +3,26 @@ import type { ClientOptions, RawData, WebSocket } from 'ws'
 
 import { environment } from '../environment.js'
 import type * as remote from './remoteTypes.js'
+import type * as local from './localTypes.js'
 import type { CommandData } from './remoteTypes.js'
-import type { CommandResponse } from './localTypes.js'
+import type { CommandResponse, ErrorResponse } from './localTypes.js'
 
 import type { Client } from '../types.js'
+import { isBase64Safe } from './utils.js'
+
+const SCRIPT_PREFIX = '/* __wdio script__ */'
+const SCRIPT_SUFFIX = '/* __wdio script end__ */'
 
 const log = logger('webdriver')
 const RESPONSE_TIMEOUT = 1000 * 60
 
 export class BidiCore {
     #id = 0
-    #ws: WebSocket
-    #waitForConnected = Promise.resolve(false)
+    #ws: WebSocket | undefined
+    #waitForConnected: Promise<boolean>
+    #resolveWaitForConnected: (value: boolean) => void
     #webSocketUrl: string
+    #clientOptions: ClientOptions | undefined
     #pendingCommands: Map<number, (value: CommandResponse) => void> = new Map()
 
     client: Client | undefined
@@ -26,9 +33,11 @@ export class BidiCore {
 
     constructor (webSocketUrl: string, opts?: ClientOptions) {
         this.#webSocketUrl = webSocketUrl
-        log.info(`Connect to webSocketUrl ${this.#webSocketUrl}`)
-        this.#ws = new environment.value.Socket(this.#webSocketUrl, opts) as unknown as WebSocket
-        this.#ws.on('message', this.#handleResponse.bind(this))
+        this.#clientOptions = opts
+        this.#resolveWaitForConnected = () => {}
+        this.#waitForConnected = new Promise((resolve) => {
+            this.#resolveWaitForConnected = resolve
+        })
     }
 
     /**
@@ -41,28 +50,20 @@ export class BidiCore {
     }
 
     public async connect () {
+        log.info(`Connecting to webSocketUrl ${this.#webSocketUrl}`)
+
         /**
-         * don't connect and stale unit tests when the websocket url is set to a dummy value
-         * Note: the value is defined in __mocks__/fetch.ts
+         * try to connect to different websocket urls depending on the protocol
          */
-        if (process.env.WDIO_UNIT_TESTS) {
-            this._isConnected = true
-            return
+        this.#ws = await environment.value.createBidiConnection(this.#webSocketUrl, this.#clientOptions)
+        this._isConnected = Boolean(this.#ws)
+        this.#resolveWaitForConnected(this._isConnected)
+
+        if (this.#ws) {
+            this.#ws.on('message', this.#handleResponse.bind(this))
         }
 
-        this.#waitForConnected = new Promise<boolean>((resolve) => {
-            this.#ws.on('open', () => {
-                log.info('Connected session to Bidi protocol')
-                this._isConnected = true
-                resolve(this._isConnected)
-            })
-            this.#ws.on('error', (err) => {
-                log.warn(`Couldn't connect to Bidi protocol: ${err.message}`)
-                this._isConnected = false
-                resolve(this._isConnected)
-            })
-        })
-        return this.#waitForConnected
+        return this._isConnected
     }
 
     public close () {
@@ -72,17 +73,19 @@ export class BidiCore {
 
         log.info(`Close Bidi connection to ${this.#webSocketUrl}`)
         this._isConnected = false
-        this.#ws.off('message', this.#handleResponse.bind(this))
-        this.#ws.close()
-        this.#ws.terminate()
+        if (this.#ws) {
+            this.#ws.off('message', this.#handleResponse.bind(this))
+            this.#ws.close()
+            this.#ws.terminate()
+            this.#ws = undefined
+        }
     }
 
     public reconnect (webSocketUrl: string, opts?: ClientOptions) {
         log.info(`Reconnect to new Bidi session at ${webSocketUrl}`)
         this.close()
         this.#webSocketUrl = webSocketUrl
-        this.#ws = new environment.value.Socket(this.#webSocketUrl, opts) as unknown as WebSocket
-        this.#ws.on('message', this.#handleResponse.bind(this))
+        this.#clientOptions = opts
         return this.connect()
     }
 
@@ -117,7 +120,19 @@ export class BidiCore {
                 return
             }
 
-            log.info('BIDI RESULT', data.toString())
+            /**
+             * If the result is a base64 encoded string, we want to log a simplified version
+             * of the result instead of the raw base64 encoded string
+             */
+            let resultLog = data.toString()
+            if (typeof payload.result === 'object' && payload.result && 'data' in payload.result && typeof payload.result.data === 'string' && isBase64Safe(payload.result.data)) {
+                resultLog = JSON.stringify({
+                    ...payload.result,
+                    data: `Base64 string [${payload.result.data.length} chars]`
+                })
+            }
+
+            log.info('BIDI RESULT', resultLog)
             this.client?.emit('bidiResult', payload)
             const resolve = this.#pendingCommands.get(payload.id)
             if (!resolve) {
@@ -127,7 +142,7 @@ export class BidiCore {
 
             this.#pendingCommands.delete(payload.id)
             resolve(payload)
-        } catch (err: unknown) {
+        } catch (err) {
             const error = err instanceof Error ? err : new Error(`Failed parse message: ${String(err)}`)
             log.error(`Failed parse message: ${error.message}`)
         }
@@ -136,7 +151,7 @@ export class BidiCore {
     public async send (params: Omit<CommandData, 'id'>): Promise<CommandResponse> {
         const id = this.sendAsync(params)
         const failError = new Error(`WebDriver Bidi command "${params.method}" failed`)
-        const payload = await new Promise<CommandResponse>((resolve, reject) => {
+        const payload = await new Promise<CommandResponse | ErrorResponse>((resolve, reject) => {
             const t = setTimeout(() => {
                 reject(new Error(`Command ${params.method} with id ${id} (with the following parameter: ${JSON.stringify(params.params)}) timed out`))
                 this.#pendingCommands.delete(id)
@@ -147,10 +162,11 @@ export class BidiCore {
             })
         })
 
-        if (payload.error) {
-            failError.message += ` with error: ${payload.error} - ${payload.message}`
-            if (payload.stacktrace) {
-                const driverStack = payload.stacktrace
+        if (payload.type === 'error' || 'error' in payload) {
+            const error = payload as local.ErrorResponse
+            failError.message += ` with error: ${payload.error} - ${error.message}`
+            if (error.stacktrace && typeof error.stacktrace === 'string') {
+                const driverStack = error.stacktrace
                     .split('\n')
                     .filter(Boolean)
                     .map((line: string) => `    at ${line}`)
@@ -165,7 +181,7 @@ export class BidiCore {
     }
 
     public sendAsync (params: Omit<CommandData, 'id'>) {
-        if (!this._isConnected) {
+        if (!this.#ws || !this._isConnected) {
             throw new Error('No connection to WebDriver Bidi was established')
         }
 
@@ -177,7 +193,7 @@ export class BidiCore {
     }
 }
 
-function parseBidiCommand (params:  Omit<CommandData, 'id'>) {
+export function parseBidiCommand (params:  Omit<CommandData, 'id'>) {
     const commandName = params.method
     if (commandName === 'script.addPreloadScript') {
         const param = params.params as remote.ScriptAddPreloadScriptParameters
@@ -185,9 +201,33 @@ function parseBidiCommand (params:  Omit<CommandData, 'id'>) {
         return [commandName, logString]
     } else if (commandName === 'script.callFunction') {
         const param = params.params as remote.ScriptCallFunctionParameters
+        const fn = param.functionDeclaration
+        let fnName = ''
+
+        /**
+         * extract function name from script when it's a function call from the 'webdriverio' package
+         */
+        if (fn.includes(SCRIPT_PREFIX)) {
+            const internalFn = fn.slice(
+                fn.indexOf(SCRIPT_PREFIX) + SCRIPT_PREFIX.length,
+                fn.indexOf(SCRIPT_SUFFIX)
+            )
+            const functionPrefix = 'function '
+
+            /**
+             * we can only extract function name if it's a named function
+             */
+            if (internalFn.startsWith(functionPrefix)) {
+                fnName = internalFn.slice(
+                    internalFn.indexOf(functionPrefix) + functionPrefix.length,
+                    internalFn.indexOf('(')
+                )
+            }
+        }
+
         const logString = JSON.stringify({
             ...param,
-            functionDeclaration: `<Function[${new TextEncoder().encode(param.functionDeclaration).length} bytes]>`
+            functionDeclaration: `<Function[${new TextEncoder().encode(param.functionDeclaration).length} bytes] ${fnName || 'anonymous'}>`
         })
         return [commandName, logString]
     }

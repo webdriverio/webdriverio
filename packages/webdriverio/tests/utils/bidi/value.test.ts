@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
 import stringify from 'safe-stable-stringify'
 
-import { deserializeValue } from '../../../src/utils/bidi/index.js'
+import { deserialize } from '../../../src/utils/bidi/index.js'
 import { LocalValue } from '../../../src/utils/bidi/value.js'
 
 describe('LocalValue', () => {
@@ -18,7 +18,7 @@ describe('LocalValue', () => {
         new Map([[1, 2]]),
         new Set([1, new Map([['string', true]]), 3, new Map([[1, 2]])]),
         /foobar/,
-        { 'foo': 'bar', nested: new Map([['this', 'works']]) },
+        { foo: 'bar', nested: new Map([['this', 'works']]) },
         { [ELEMENT_KEY]: 'foobar' }
     ])
 
@@ -57,7 +57,7 @@ describe('LocalValue', () => {
               },
               {
                 "type": "bigint",
-                "value": "9007199254740991"
+                "value": 9007199254740991
               },
               {
                 "type": "map",
@@ -157,7 +157,7 @@ describe('LocalValue', () => {
     })
 
     it('should be able to deserialize it', () => {
-        expect(deserializeValue(value.asMap() as any)).toMatchInlineSnapshot(`
+        expect(deserialize(value.asMap() as any)).toMatchInlineSnapshot(`
           [
             undefined,
             "string",
@@ -190,7 +190,7 @@ describe('LocalValue', () => {
             undefined,
           ]
         `)
-        expect(deserializeValue({
+        expect(deserialize({
             sharedId: 'f.44C98D3D1D8C6C82E24E94E038744493.d.123615DE0B294C5077D7F1903A856E6A.e.9',
             type: 'node',
             value: {
@@ -204,5 +204,84 @@ describe('LocalValue', () => {
         })).toEqual({
             [ELEMENT_KEY]: 'f.44C98D3D1D8C6C82E24E94E038744493.d.123615DE0B294C5077D7F1903A856E6A.e.9'
         })
+    })
+
+    it('should resolve references', () => {
+        expect(deserialize({
+            type: 'array',
+            value: [
+                {
+                    type: 'object',
+                    value: [
+                        [
+                            'id',
+                            {
+                                type: 'string',
+                                value: '__button1'
+                            }
+                        ] as any,
+                        [
+                            'properties',
+                            {
+                                internalId: '8f3ed8d7-b8f7-4f8c-a958-49a94e85d18c',
+                                type: 'array',
+                                value: [
+                                    {
+                                        type: 'number',
+                                        value: 1
+                                    },
+                                    {
+                                        type: 'number',
+                                        value: 2
+                                    },
+                                    {
+                                        type: 'number',
+                                        value: 3
+                                    }
+                                ]
+                            }
+                        ]
+                    ]
+                },
+                {
+                    type: 'object',
+                    value: [
+                        [
+                            'id',
+                            {
+                                type: 'string',
+                                value: '__button2'
+                            }
+                        ],
+                        [
+                            'properties',
+                            {
+                                internalId: '8f3ed8d7-b8f7-4f8c-a958-49a94e85d18c',
+                                type: 'array'
+                            }
+                        ]
+                    ]
+                }
+            ]
+        })).toMatchInlineSnapshot(`
+          [
+            {
+              "id": "__button1",
+              "properties": [
+                1,
+                2,
+                3,
+              ],
+            },
+            {
+              "id": "__button2",
+              "properties": [
+                1,
+                2,
+                3,
+              ],
+            },
+          ]
+        `)
     })
 })

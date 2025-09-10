@@ -1,4 +1,5 @@
 import { getBrowserObject } from '@wdio/utils'
+import type { TransformElement, TransformReturn } from '../../types.js'
 
 /**
  *
@@ -36,11 +37,13 @@ import { getBrowserObject } from '@wdio/utils'
  * @type protocol
  *
  */
-export async function execute<ReturnValue, InnerArguments extends any[]> (
+export async function execute<ReturnValue, InnerArguments extends unknown[]> (
     this: WebdriverIO.Element,
-    script: string | ((...innerArgs: [WebdriverIO.Element, ...InnerArguments]) => ReturnValue),
+    script: string | ((...innerArgs: TransformElement<[WebdriverIO.Element, ...InnerArguments]>) => ReturnValue),
     ...args: InnerArguments
-): Promise<ReturnValue> {
-    const browser = getBrowserObject(this)
-    return browser.execute(script, this, ...args)
+): Promise<TransformReturn<ReturnValue>> {
+    const scope = this as WebdriverIO.Element
+    const browser = getBrowserObject(scope)
+    await scope.waitForExist()
+    return browser.execute(script, scope, ...args)
 }

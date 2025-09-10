@@ -59,6 +59,26 @@ const customCommand = async () => {
 
 describe('addCommand', () => {
     describe('remote', () => {
+
+        test('should resolve the this parameter by inference', async () => {
+            const browser = await remote(remoteConfig)
+            browser.addCommand(
+                'press',
+                async function (this /* Expect to be infer to WebDriverIO.Element by default */) {
+                    await this.click()
+                    return
+                },
+                true,
+            )
+
+            const element = await browser.$('.someRandomElement')
+            vi.spyOn(element, 'click')
+
+            // @ts-expect-error undefined custom command
+            expect(await element.press()).toBeUndefined()
+            expect(element.click).toBeCalledTimes(1)
+        })
+
         test('should be able to handle async', async () => {
             const browser = await remote(remoteConfig)
 
@@ -335,6 +355,35 @@ describe('addCommand', () => {
             }
             // @ts-ignore uses expect-webdriverio
             expect.assertions(2)
+        })
+
+        describe('when browser custom command is a function', () => {
+            test('should return result when running custom command as a function', async () => {
+                const browser = await remote(remoteConfig)
+                browser.addCommand(
+                    'press1',
+                    () => 'command result'
+                )
+
+                // @ts-expect-error undefined custom command
+                expect(await browser.press1()).toEqual('command result')
+            })
+        })
+
+        describe('when element custom command is a function', () => {
+            test('should return result when running custom command as a function', async () => {
+                const browser = await remote(remoteConfig)
+                browser.addCommand(
+                    'press2',
+                    () => {return 'command result'},
+                    true
+                )
+
+                const element = await browser.$('.someRandomElement')
+
+                // @ts-expect-error undefined custom command
+                expect(await element.press2()).toEqual('command result')
+            })
         })
     })
 

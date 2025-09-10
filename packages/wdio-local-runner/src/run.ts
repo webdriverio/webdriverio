@@ -1,7 +1,7 @@
-import exitHook from 'async-exit-hook'
+import { asyncExitHook, gracefulExit } from 'exit-hook'
 
-import Runner from '@wdio/runner'
 import logger from '@wdio/logger'
+import Runner from '@wdio/runner'
 import type { Workers } from '@wdio/types'
 
 import { SHUTDOWN_TIMEOUT } from './constants.js'
@@ -13,7 +13,7 @@ const log = logger('@wdio/local-runner')
  */
 interface RunnerInterface extends NodeJS.EventEmitter {
     sigintWasCalled: boolean
-    [key: string]: any
+    [key: string]: unknown
 }
 
 /**
@@ -27,7 +27,7 @@ if (typeof process.send === 'function') {
 }
 
 export const runner = new Runner() as unknown as RunnerInterface
-runner.on('exit', process.exit.bind(process))
+runner.on('exit', (code = 0) => gracefulExit(code))
 runner.on('error', ({ name, message, stack }) => process.send!({
     origin: 'worker',
     name: 'error',
@@ -35,13 +35,13 @@ runner.on('error', ({ name, message, stack }) => process.send!({
 }))
 
 process.on('message', (m: Workers.WorkerCommand) => {
-    if (!m || !m.command || !runner[m.command]) {
+    if (!m || !m.command || !runner[m.command] || typeof runner[m.command] !== 'function') {
         return
     }
 
     log.info(`Run worker command: ${m.command}`)
-    runner[m.command](m).then(
-        (result: any) => process.send!({
+    ;(runner[m.command] as Function)(m).then(
+        (result: unknown) => process.send!({
             origin: 'worker',
             name: 'finishedCommand',
             content: {
@@ -56,16 +56,24 @@ process.on('message', (m: Workers.WorkerCommand) => {
     )
 })
 
-/**
- * catch sigint messages as they are handled by main process
- */
-export const exitHookFn = (callback: () => void) => {
-    if (!callback) {
-        return
-    }
-
+process.once('SIGINT', () => {
     runner.sigintWasCalled = true
-    log.info(`Received SIGINT, giving process ${SHUTDOWN_TIMEOUT}ms to shutdown gracefully`)
-    setTimeout(callback, SHUTDOWN_TIMEOUT)
-}
-exitHook(exitHookFn)
+    gracefulExit(130)
+})
+
+/**
+ * registers an asynchronous exit hook to allow graceful shutdown
+ * if the process is being terminated due to SIGINT, delays exit for SHUTDOWN_TIMEOUT ms to allow cleanup
+ * otherwise, exits immediately without delay
+ */
+asyncExitHook(
+    async () => {
+        if (runner.sigintWasCalled) {
+            log.info(`Received SIGINT, giving process ${SHUTDOWN_TIMEOUT}ms to shutdown gracefully`)
+
+            return await new Promise(res => setTimeout(res, SHUTDOWN_TIMEOUT))
+        }
+    }, {
+        wait: SHUTDOWN_TIMEOUT
+    }
+)

@@ -203,7 +203,8 @@ describe('startWebDriver', () => {
             capabilities: {
                 browserName: 'chrome',
                 'goog:chromeOptions': {
-                    binary: expect.any(String)
+                    binary: expect.any(String),
+                    prefs: { 'profile.password_manager_leak_detection': false }
                 },
                 'wdio:chromedriverOptions': {
                     allowedIps: ['0.0.0.0'],
@@ -225,6 +226,29 @@ describe('startWebDriver', () => {
         )
     })
 
+    it('should start driver with no prefs if debuggerAddress is set', async () => {
+        const options = {
+            capabilities: {
+                browserName: 'chrome',
+                'goog:chromeOptions': { debuggerAddress: 'localhost:9222' }
+            } as any
+        }
+        const res = await startWebDriver(options)
+        expect(Boolean(res?.stdout)).toBe(true)
+        expect(options).toEqual({
+            hostname: 'localhost',
+            port: 1234,
+            capabilities: {
+                browserName: 'chrome',
+                'goog:chromeOptions': {
+                    // no prefs should be set in this case
+                    binary: expect.any(String),
+                    debuggerAddress: 'localhost:9222'
+                }
+            }
+        })
+    })
+
     it('should start no driver or download chrome if binaries are defined', async () => {
         const options = {
             capabilities: {
@@ -241,7 +265,8 @@ describe('startWebDriver', () => {
             capabilities: {
                 browserName: 'chrome',
                 'goog:chromeOptions': {
-                    binary: '/my/chrome'
+                    binary: '/my/chrome',
+                    prefs: { 'profile.password_manager_leak_detection': false }
                 },
                 'wdio:chromedriverOptions': {
                     allowedIps: ['0.0.0.0'],

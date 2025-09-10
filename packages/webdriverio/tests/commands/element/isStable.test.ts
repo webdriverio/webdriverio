@@ -41,7 +41,21 @@ describe('isStable test', () => {
 
     it('should throw if used on an inactive tab', async () => {
         global.document = { visibilityState: 'hidden' } as any
-        await expect(elem.isStable()).rejects.toThrowError('You are are checking for animations on an inactive tab, animations do not run for inactive tabs')
+        await expect(elem.isStable()).rejects.toThrowError('You are checking for animations on an inactive tab, animations do not run for inactive tabs')
+    })
+
+    it('should throw an error if in native context', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'Android',
+                mobileMode: true,
+                nativeAppMode: true,
+            } as any
+        })
+        const elem = await browser.$('#foo')
+
+        await expect(elem.isStable()).rejects.toThrow('The `isStable` command is only available for desktop and mobile browsers.')
     })
 
     afterEach(() => {

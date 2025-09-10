@@ -1,4 +1,4 @@
-import type { Services, Options, Capabilities } from '@wdio/types'
+import type { Services, Capabilities } from '@wdio/types'
 import logger from '@wdio/logger'
 
 import initializePlugin from './initializePlugin.js'
@@ -7,7 +7,7 @@ const log = logger('@wdio/utils:initializeServices')
 
 type IntialisedService = (
     [Services.ServiceClass | { default: Function }, WebdriverIO.ServiceOption, string] |
-    [Services.HookFunctions, Record<string, any>] |
+    [Services.HookFunctions, Record<string, unknown>] |
     [Services.ServiceClass, WebdriverIO.ServiceOption]
 )
 
@@ -92,7 +92,7 @@ function sanitizeServiceArray (service: Services.ServiceEntry): ServiceWithOptio
  *                            required in the worker
  */
 export async function initializeLauncherService (
-    config: Omit<Options.Testrunner, 'capabilities' | keyof Services.HookFunctions>,
+    config: Omit<WebdriverIO.Config, 'capabilities' | keyof Services.HookFunctions>,
     caps: Capabilities.TestrunnerCapabilities
 ): Promise<{
     ignoredWorkerServices: string[];
@@ -143,8 +143,8 @@ export async function initializeLauncherService (
                 ignoredWorkerServices.push(serviceName)
             }
         }
-    } catch (err: any) {
-        throw new Error(`Failed to initialise launcher service ${serviceLabelToBeInitialised}: ${err.stack}`)
+    } catch (err) {
+        throw new Error(`Failed to initialise launcher service ${serviceLabelToBeInitialised}: ${(err as Error).stack}`)
     }
 
     return { ignoredWorkerServices, launcherServices }
@@ -159,7 +159,7 @@ export async function initializeLauncherService (
  * @return {Object[]}                      list if worker initiated worker services
  */
 export async function initializeWorkerService (
-    config: Options.Testrunner,
+    config: WebdriverIO.Config,
     caps: WebdriverIO.Capabilities,
     ignoredWorkerServices: string[] = []
 ): Promise<Services.ServiceInstance[]> {
@@ -190,7 +190,7 @@ export async function initializeWorkerService (
         }
 
         return initializedServices
-    } catch (err: any) {
-        throw new Error(`Failed to initialise service ${serviceLabelToBeInitialised}: ${err.stack}`)
+    } catch (err) {
+        throw new Error(`Failed to initialise service ${serviceLabelToBeInitialised}: ${(err as Error).stack}`)
     }
 }

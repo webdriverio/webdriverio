@@ -1,4 +1,5 @@
-/* eslint-disable brace-style */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @stylistic/brace-style */
 /* eslint-disable camelcase */
 /* istanbul ignore file */
 /**
@@ -38,7 +39,6 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
             prev_match_idx
         sel = sel.trim()
 
-        // eslint-disable-next-line no-constant-condition
         while (true) {
             unmatched = ''
 
@@ -303,8 +303,9 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
                     }
                 }
             }
-            if ((root as Element).shadowRoot) {
-                findAllElements((root as Element).shadowRoot?.querySelectorAll('*')!)
+            const shadowRoot = (root as Element).shadowRoot
+            if (shadowRoot) {
+                findAllElements(shadowRoot.querySelectorAll('*')!)
             }
             findAllElements(root.querySelectorAll('*'))
         }

@@ -134,6 +134,7 @@ __Did you build a WebdriverIO service or reporter?__ That's awesome! Please add 
 
 ### Others
 
+- [create-wdio](https://github.com/webdriverio/webdriverio/tree/main/packages/create-wdio) - A CLI and utility to install and setup a WebdriverIO
 - [eslint-plugin-wdio](https://github.com/webdriverio/webdriverio/tree/main/packages/eslint-plugin-wdio) - Eslint rules for WebdriverIO
 - [@wdio/smoke-test-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-smoke-test-reporter) - A WebdriverIO utility to smoke test reporters for internal testing purposes
 - [@wdio/smoke-test-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-smoke-test-service) - A WebdriverIO utility to smoke test services for internal testing purposes
@@ -169,28 +170,27 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 
 <p align="center">
     <a href="https://www.browserstack.com/automation-webdriverio"><img src="https://webdriver.io/img/sponsors/browserstack_black.svg" alt="BrowserStack" /></a>
-    &nbsp; &nbsp; &nbsp;
-    <a href="https://saucelabs.com"><img src="https://webdriver.io/img/sponsors/saucelabs_black.svg" alt="Sauce Labs" width=400 /></a>
 </p>
 
 ### 🥇 Gold Sponsor
 
 <p align="center">
-    <a href="https://www.route4me.com/"><img src="https://webdriver.io/img/sponsors/route4me.svg" width="250" alt="Route4Me" /></a>
+    <a href="https://www.jetify.com/"><img src="https://webdriver.io/img/sponsors/jetify_black.png" width="250" alt="Jetify" /></a>
+    &nbsp; &nbsp; &nbsp;
+    <a href="https://www.lambdatest.com/"><img src="https://webdriver.io/img/sponsors/lambdatest_black.svg" width="300" alt="Lambdatest" /></a>
 </p>
 
 ### 🥈 Silver Sponsor
 
 <p align="center">
     <a href="https://testingbot.com/"><img src="https://webdriver.io/img/sponsors/testingbot.svg" width="250" alt="TestingBot" /></a>
-    &nbsp; &nbsp; &nbsp;
-    <a href="https://www.lambdatest.com/"><img src="https://webdriver.io/img/sponsors/lambdatest_black.svg" width="300" alt="Lambdatest" /></a>
 </p>
 
 ### 🥉 Bronze Sponsor
 
 <p align="center">
     <a href="https://eslint.org/"><img src="https://eslint.org/assets/images/logo/eslint-logo-color.png" alt="Eslint" /></a>
+    <a href="https://www.gridlastic.com/webdriverio.html"><img src="https://webdriver.io/img/sponsors/gridlastic.png" width="200" alt="Gridlastic" /></a>
 </p>
 
 ## :page_facing_up: License

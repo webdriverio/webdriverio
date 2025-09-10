@@ -258,6 +258,14 @@ describe('wrapCommand', () => {
             .$$('bar')
             .map((el: any) => el.getTagName())
         ).toEqual(['Yayy0', 'Yayy1', 'Yayy2'])
+
+        expect(await commandA.call(scope(0))
+            .$('foo')
+            .$$('bar')
+            .reduce(async (acc: string, el: any) => {
+                return await el.getTagName() + '_' + acc
+            }, '')
+        ).toEqual('Yayy2_Yayy1_Yayy0_')
     })
 
     it('can access element properties', async () => {
@@ -290,7 +298,7 @@ describe('wrapCommand', () => {
         }]
         scope.options = options
         const rawCommand = vi.fn().mockReturnValue(Promise.resolve(scope))
-        const commandA = wrapCommand('$$', rawCommand).bind(scope) as any as (sel: string) => Promise<any>[]
+        const commandA = wrapCommand('$$', rawCommand).bind(scope) as unknown as (sel: string) => Promise<any>[]
 
         const expectedResults = ['foobarA', 'foobarB', 'foobarC']
         let i = 0
@@ -311,7 +319,7 @@ describe('wrapCommand', () => {
         }
         scope.options = options
         const rawCommand = vi.fn().mockReturnValue(Promise.resolve(scope))
-        const commandA = wrapCommand('$', rawCommand).bind(scope) as any as (sel: string) => Promise<any>[]
+        const commandA = wrapCommand('$', rawCommand).bind(scope) as unknown as (sel: string) => Promise<any>[]
 
         try {
             for await (const elem of commandA('selector')) {

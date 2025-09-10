@@ -23,7 +23,7 @@ export interface TunnelLauncherOptions {
     // Write logging output to this logfile (optional)
     logfile?: string,
 
-    // Change the tunnel version - see versions on https://testingbot.com/support/other/tunnel
+    // Change the tunnel version - see versions on https://testingbot.com/support/other/tunnel/changelog.html
     // "1.19" // or 2.1 (Java 8)
     tunnelVersion?: string,
 
@@ -36,8 +36,14 @@ export interface TunnelLauncherOptions {
     // Use a custom DNS server. For example: 8.8.8.8 (optional)
     dns?: string,
 
-    // Bypass the Caching Proxy running on the TestingBot tunnel VM.
+    // Do not start a local proxy (requires user provided proxy server on port 8087)
     noproxy?: string,
+
+    // Set to true if you do not want TestingBot to override SSL traffic with its own certificate
+    noBump?: boolean;
+
+    // Set to true if you do not want to have static content cached
+    noCache?: boolean;
 }
 
 export interface TestingbotOptions {

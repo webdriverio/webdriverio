@@ -19,6 +19,7 @@ import { getTemplate, getErrorTemplate, normalizeId } from '../utils.js'
 const log = logger('@wdio/browser-runner:plugin')
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const commands = deepmerge<any>(
     WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol
@@ -95,6 +96,13 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
             if (MODULES_TO_MOCK.includes(id)) {
                 return mockModulePath
             }
+
+            /**
+             * redirect requests to 3rd party dependencies
+             */
+            if (id.startsWith('/@wdio/browser-runner/third_party/')) {
+                return path.resolve(__dirname, ...id.split('/').slice(3))
+            }
         },
         load(id) {
             /**
@@ -157,9 +165,9 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                         const template = await getTemplate(options, env, spec)
                         log.debug(`Render template for ${req.originalUrl}`)
                         res.end(await server.transformIndexHtml(`${req.originalUrl}`, template))
-                    } catch (err: any) {
-                        const template = getErrorTemplate(req.originalUrl, err)
-                        log.error(`Failed to render template: ${err.message}`)
+                    } catch (err) {
+                        const template = getErrorTemplate(req.originalUrl, err as Error)
+                        log.error(`Failed to render template: ${(err as Error).message}`)
                         res.end(await server.transformIndexHtml(`${req.originalUrl}`, template))
                     }
 

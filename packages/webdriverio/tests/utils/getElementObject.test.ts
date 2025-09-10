@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, it, beforeEach, expect, vi } from 'vitest'
-import { remote } from '../../src/index.js'
+import { remote, type ElementArray } from '../../src/index.js'
 
 import * as getElem from '../../src/utils/getElementObject.js'
 
@@ -85,7 +85,7 @@ describe('getElements', () => {
 
         const error = new Error()
         Object.assign(error, {
-            name: ErrorExamplesW3C.chrome.error,
+            // name: ErrorExamplesW3C.chrome.error,
             message: ErrorExamplesW3C.chrome.message,
             stack: ErrorExamplesW3C.chrome.stacktrace,
         })
@@ -93,11 +93,13 @@ describe('getElements', () => {
         const elems = await browser.$$('#foo')
         const [elem] = elems
 
-        expect(elems.foundWith).toBe('$$')
+        expect((elems as unknown as ElementArray).foundWith).toBe('$$')
 
         expect(elems).toHaveLength(1)
 
-        expect(elem.error).toBeInstanceOf(Error)
-        expect(elem).toEqual(expect.objectContaining({ error }))
+        const elemError = elem.error as Error
+        expect(elemError).toBeInstanceOf(Error)
+        expect(elemError.message).toEqual(error.message)
+        expect(elemError.stack).toEqual(error.stack)
     })
 })

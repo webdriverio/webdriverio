@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
     WebDriver as WebDriverOptions,
     WebdriverIO as WebDriverIOOptions,
@@ -296,6 +297,8 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
     'experitest:accessKey'?: string
     //LambdaTest w3c specific
     'LT:Options'?: LambdaTestCapabilities
+    // LT w3c specific as "officially" documented
+    'lt:options'?: LambdaTestCapabilities
     // Browserstack w3c specific
     'bstack:options'?: BrowserStackCapabilities
     'browserstack.local'?: boolean
@@ -546,7 +549,7 @@ export interface EdgeCapabilities {
 /**
  * Appium General W3C Capabilities
  *
- * @see https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/
+ * @see https://appium.io/docs/en/latest/guides/caps/
  */
 export interface AppiumCapabilities {
     /**
@@ -589,7 +592,7 @@ export interface AppiumCapabilities {
     'appium:deviceName'?: string
     /**
      * The absolute local path or remote http URL to a .ipa file (IOS), .app folder (IOS Simulator), .apk file (Android)
-     * or [.apks file (Android App Bundle)](https://appium.github.io/appium.io/docs/en/writing-running-appium/android/android-appbundle/index.html),
+     * or [.apks file (Android App Bundle)](https://github.com/appium/appium-uiautomator2-driver/blob/master/docs/android-appbundle.md),
      * or a .zip file containing one of these.
      *
      * Appium will attempt to install this app binary on the appropriate device first.
@@ -633,7 +636,7 @@ export interface AppiumCapabilities {
      */
     'appium:appTopLevelWindow'?: string
     /**
-     * https://appium.io/docs/en/2.11/guides/settings/#initializing-settings-via-capabilities
+     * https://appium.io/docs/en/latest/guides/settings/#initializing-settings-via-capabilities
      */
     'appium:settings'?: Record<string, any>
 }
@@ -641,7 +644,7 @@ export interface AppiumCapabilities {
 /**
  * Appium Android Only Capabilities
  *
- * @see https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/#android-only
+ * @see https://github.com/appium/appium-uiautomator2-driver#capabilities
  */
 export interface AppiumAndroidCapabilities {
     'appium:appiumVersion'?: string
@@ -743,7 +746,7 @@ export interface AppiumAndroidCapabilities {
 /**
  * Appium xcuitest Capabilities
  *
- * @see https://github.com/appium/appium-xcuitest-driver
+ * @see https://appium.github.io/appium-xcuitest-driver/latest/reference/capabilities/
  */
 export interface AppiumXCUITestCapabilities {
     'appium:platformName'?: string
@@ -851,6 +854,7 @@ export interface AppiumXCUITestCapabilities {
     'appium:otherApps'?: string | string[]
     'appium:includeSafariInWebviews'?: boolean
     'appium:additionalWebviewBundleIds'?: Array<string>
+    'appium:webviewAtomWaitTimeout'?: number
     'appium:webviewConnectTimeout'?: number
     'appium:iosSimulatorLogsPredicate'?: string
     'appium:appPushTimeout'?: number
@@ -1417,9 +1421,9 @@ export interface SauceLabsCapabilities {
 
     /**
      * You can provide a URL to an executable file, which will be downloaded and executed to configure the
-     * VM before the test starts. For faster performance, you may want to upload the executable to [Sauce Storage](https://wiki.saucelabs.com/display/DOCS/Uploading+your+Application+to+Emulators+and+Simulators),
+     * VM before the test starts. For faster performance, you may want to upload the executable to [Sauce Storage](https://docs.saucelabs.com/mobile-apps/app-storage/#uploading-apps),
      * a private temporary storage space. This capability takes a JSON object with four main keys.
-     * Check out the topics under [Using Pre-Run Executables to Configure Browsers and Virtual Machines](https://wiki.saucelabs.com/display/DOCS/Using+Pre-Run+Executables+to+Configure+Browsers+and+Virtual+Machines) for
+     * Check out the topics under [Using Pre-Run Executables to Configure Browsers and Virtual Machines](https://docs.saucelabs.com/web-apps/automated-testing/selenium/pre-run-executables/) for
      * more information.
      *
      * __Running AutoIt Scripts__
@@ -1450,8 +1454,10 @@ export interface LambdaTestCapabilities {
     deviceName?: string
     platformVersion?: string
     app?: string
+    appiumVersion?: string
     browserName?: string
     browserVersion?: string
+    w3c?: boolean
     /**
      * Set the resolution of the VM.
      */
@@ -1508,25 +1514,33 @@ export interface LambdaTestCapabilities {
     locale?: string
     idleTimeout?: number
     queueTimeout?: number
+    /**
+     * Appium specific
+     */
     autoGrantPermissions?: boolean
     autoAcceptAlerts?: boolean
     otherApps?: Array<string>
     isRealMobile?: boolean
-    networkThrottling?: string,
+    networkThrottling?: string
     deviceOrientation?: 'portrait' | 'landscape'
+    bundleId?: string
+    appPackage?: string
+    appActivity?: string
+    appWaitActivity?: string
+    appWaitPackage?: string
+    autoWebview?: boolean
 }
 
 export interface BrowserStackCapabilities {
     browser?: string
-    // eslint-disable-next-line
     browser_version?: string
     os?: string
-    // eslint-disable-next-line
     os_version?: string
     osVersion?: string
     desired?: unknown
     device?: string
     platformName?: string
+    platformVersion?: string
     /**
      * Specify a name for a logical group of builds.
      */
@@ -1741,6 +1755,14 @@ export interface BrowserStackCapabilities {
      * Example: 'setValues, getValues, setCookies, getCookies'
      */
     maskCommands?: string,
+
+    /**
+     * Enables the camera image injection feature.
+     *
+     * Real Devices only.
+     * @see https://www.browserstack.com/docs/app-automate/appium/advanced-features/camera-image-injection
+     */
+    enableCameraImageInjection?: boolean
 
     testhubBuildUuid?: string,
     buildProductMap?: { [key: string]: boolean }

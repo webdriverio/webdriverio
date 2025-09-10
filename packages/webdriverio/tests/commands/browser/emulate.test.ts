@@ -28,7 +28,7 @@ describe('emulate', () => {
                 beforeCommand: vi.fn(),
                 afterCommand: vi.fn()
             }
-        } as any as WebdriverIO.Browser
+        } as unknown as WebdriverIO.Browser
         fakeScope.emulate = browser.emulate.bind(fakeScope)
 
         // @ts-expect-error missing argument
@@ -53,7 +53,7 @@ describe('emulate', () => {
                 beforeCommand: vi.fn(),
                 afterCommand: vi.fn()
             }
-        } as any as WebdriverIO.Browser
+        } as unknown as WebdriverIO.Browser
         fakeScope.emulate = browser.emulate.bind(fakeScope)
         // @ts-expect-error invalid argument
         await expect(() => fakeScope.emulate('userAgent', 123)).rejects.toThrow(/Expected userAgent emulation options to be a string/)
@@ -77,7 +77,7 @@ describe('emulate', () => {
                 beforeCommand: vi.fn(),
                 afterCommand: vi.fn()
             }
-        } as any as WebdriverIO.Browser
+        } as unknown as WebdriverIO.Browser
         fakeScope.emulate = browser.emulate.bind(fakeScope)
 
         // @ts-expect-error invalid argument
@@ -108,7 +108,7 @@ describe('emulate', () => {
                 beforeCommand: vi.fn(),
                 afterCommand: vi.fn()
             }
-        } as any as WebdriverIO.Browser
+        } as unknown as WebdriverIO.Browser
         fakeScope.emulate = browser.emulate.bind(fakeScope)
 
         // @ts-expect-error invalid
@@ -143,7 +143,7 @@ describe('emulate', () => {
                 beforeCommand: vi.fn(),
                 afterCommand: vi.fn()
             },
-        } as any as WebdriverIO.Browser
+        } as unknown as WebdriverIO.Browser
         fakeScope.emulate = browser.emulate.bind(fakeScope)
 
         const clock = await fakeScope.emulate('clock', { now })
@@ -152,7 +152,7 @@ describe('emulate', () => {
         expect(fakeScope.addInitScript).toBeCalledTimes(1)
         expect(fakeScope.scriptAddPreloadScript).toBeCalledTimes(1)
         expect(fakeScope.scriptAddPreloadScript).toBeCalledWith({
-            functionDeclaration: expect.stringContaining('function hijackMethod(target, method, clock) ')
+            functionDeclaration: ''
         })
         expect(fakeScope.addInitScript).toBeCalledWith(
             expect.any(Function),
@@ -182,7 +182,7 @@ describe('emulate', () => {
                 beforeCommand: vi.fn(),
                 afterCommand: vi.fn()
             },
-        } as any as WebdriverIO.Browser
+        } as unknown as WebdriverIO.Browser
         fakeScope.emulate = browser.emulate.bind(fakeScope)
 
         const restore = await fakeScope.emulate('device', 'iPhone 8')

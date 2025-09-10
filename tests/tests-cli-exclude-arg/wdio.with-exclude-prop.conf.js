@@ -45,11 +45,9 @@ export const config = {
      * hooks
      */
     onPrepare: function() {
-        // eslint-disable-next-line
         console.log('let\'s go')
     },
     onComplete: function() {
-        // eslint-disable-next-line
         console.log('that\'s it')
     }
 }

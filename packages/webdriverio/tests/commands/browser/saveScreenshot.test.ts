@@ -1,20 +1,27 @@
-import type { SpyInstance } from 'vitest'
-import { expect, describe, beforeEach, afterEach, it, vi } from 'vitest'
-import fs from 'node:fs'
+import { expect, describe, beforeEach, afterEach, it, vi, type MockInstance } from 'vitest'
+import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import { remote } from '../../../src/index.js'
-import * as utils from '../../../src/utils/index.js'
+import * as utils from '../../../src/node/utils.js'
 
-vi.mock('fs')
+import '../../../src/node.js'
+
+vi.mock('fs/promises', () => ({
+    default: {
+        writeFile: vi.fn().mockResolvedValue({}),
+        access: vi.fn().mockResolvedValue({})
+    }
+
+}))
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('saveScreenshot', () => {
     let browser: WebdriverIO.Browser
-    let getAbsoluteFilepathSpy: SpyInstance
-    let assertDirectoryExistsSpy: SpyInstance
-    let writeFileSyncSpy: SpyInstance
+    let getAbsoluteFilepathSpy: MockInstance
+    let assertDirectoryExistsSpy: MockInstance
+    let writeFileSpy: MockInstance
 
     beforeEach(async () => {
         browser = await remote({
@@ -25,13 +32,13 @@ describe('saveScreenshot', () => {
         })
         getAbsoluteFilepathSpy = vi.spyOn(utils, 'getAbsoluteFilepath')
         assertDirectoryExistsSpy = vi.spyOn(utils, 'assertDirectoryExists')
-        writeFileSyncSpy = vi.spyOn(fs, 'writeFileSync')
+        writeFileSpy = vi.spyOn(fs, 'writeFile')
     })
 
     afterEach(() => {
         getAbsoluteFilepathSpy.mockClear()
         assertDirectoryExistsSpy.mockClear()
-        writeFileSyncSpy.mockClear()
+        writeFileSpy.mockClear()
     })
 
     it('should take screenshot of page', async () => {
@@ -53,22 +60,22 @@ describe('saveScreenshot', () => {
         expect(screenshot.toString()).toBe('some screenshot')
 
         // write to file
-        expect(writeFileSyncSpy).toHaveBeenCalledTimes(1)
-        expect(writeFileSyncSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value, expect.any(Buffer))
+        expect(writeFileSpy).toHaveBeenCalledTimes(1)
+        expect(writeFileSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value, expect.any(Buffer))
     })
 
     it('should fail if no filename provided', async () => {
-        const expectedError = new Error('saveScreenshot expects a filepath of type string and ".png" file ending')
+        const expectedError =
 
         // no file
         await expect(
             // @ts-ignore test invalid parameter
             browser.saveScreenshot()
-        ).rejects.toEqual(expectedError)
+        ).rejects.toEqual(new Error('saveScreenshot expects a filepath of type string and ".png" file ending'))
 
         // wrong extension
         await expect(
             browser.saveScreenshot('./file.txt')
-        ).rejects.toEqual(expectedError)
+        ).rejects.toEqual(new Error('Invalid file extension, use ".png" for PNG format'))
     })
 })

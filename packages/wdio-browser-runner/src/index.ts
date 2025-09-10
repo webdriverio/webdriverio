@@ -11,7 +11,6 @@ import libReport from 'istanbul-lib-report'
 import reports from 'istanbul-reports'
 
 import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
-import type { Options } from '@wdio/types'
 import type { MaybeMocked, MaybeMockedDeep, MaybePartiallyMocked, MaybePartiallyMockedDeep } from '@vitest/spy'
 import type { InlineConfig } from 'vite'
 
@@ -27,7 +26,7 @@ const log = logger('@wdio/browser-runner')
 
 export default class BrowserRunner extends LocalRunner {
     #options: BrowserRunnerOptionsImport
-    #config: Options.Testrunner
+    #config: WebdriverIO.Config
     #servers: Set<ViteServer> = new Set()
     #coverageOptions: CoverageOptions
     #reportsDirectory: string
@@ -36,7 +35,7 @@ export default class BrowserRunner extends LocalRunner {
 
     constructor(
         private options: BrowserRunnerOptionsImport,
-        protected _config: Options.Testrunner
+        protected _config: WebdriverIO.Config,
     ) {
         super(options as never, _config)
 
@@ -110,8 +109,8 @@ export default class BrowserRunner extends LocalRunner {
                     allowOrigins: [`http://localhost:${port}`]
                 }
             }
-        } catch (err: any) {
-            throw new Error(`Vite server failed to start: ${err.stack}`)
+        } catch (err) {
+            throw new Error(`Vite server failed to start: ${(err as Error).stack}`)
         }
 
         if (!runArgs.args.baseUrl && runArgs.command === 'run') {
@@ -130,9 +129,7 @@ export default class BrowserRunner extends LocalRunner {
      */
     async shutdown() {
         await super.shutdown()
-        for (const server of this.#servers) {
-            await server.close()
-        }
+        await Promise.allSettled(Array.from(this.#servers).map((server) => server.close()))
         return this._generateCoverageReports()
     }
 
@@ -183,13 +180,14 @@ export default class BrowserRunner extends LocalRunner {
                 ...this.#coverageOptions.perFile
                     ? Object.entries(summary)
                         .filter(([source]) => source !== 'total')
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         .map(([source, summary]: any) => (
                             getCoverageByFactor(this.#coverageOptions, summary, source.replace(this.#config.rootDir, '')))
                         )
                         .flat()
                     : getCoverageByFactor(this.#coverageOptions, summary.total)
             )
-        } catch (err: unknown) {
+        } catch (err) {
             console.error(`Failed to generate code coverage report: ${(err as Error).message}`)
             return false
         }
@@ -265,18 +263,17 @@ export function mocked<T>(item: T, deep?: false): MaybeMockedDeep<T>
 export function mocked<T>(item: T, options: {
     partial?: false;
     deep?: false;
-}): MaybeMocked<T>;
+}): MaybeMocked<T>
 export function mocked<T>(item: T, options: {
     partial?: false;
     deep: true;
-}): MaybeMockedDeep<T>;
+}): MaybeMockedDeep<T>
 export function mocked<T>(item: T, options: {
     partial: true;
     deep?: false;
-}): MaybePartiallyMocked<T>;
+}): MaybePartiallyMocked<T>
 export function mocked<T>(item: T, options: {
     partial: true;
     deep: true;
 }): MaybePartiallyMockedDeep<T>
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function mocked (item: any, options: any) {}
+export function mocked (_item: unknown, _options: unknown) {}

@@ -59,7 +59,8 @@ vi.mock('node:fs/promises', () => ({
 
 vi.mock('node:child_process', () => ({
     default: {
-        execSync: vi.fn()
+        execSync: vi.fn(),
+        spawnSync: vi.fn()
     }
 }))
 
@@ -75,7 +76,14 @@ vi.mock('@puppeteer/browsers', () => ({
 
 describe('driver utils', () => {
     beforeEach(() => {
-        vi.mocked(cp.execSync).mockReturnValue(Buffer.from('Google Chrome 116.0.5845.110 \n'))
+        vi.mocked(cp.spawnSync).mockReturnValue({
+            pid: 123,
+            output: [],
+            stdout: 'Google Chrome 116.0.5845.110 \n',
+            stderr: '',
+            status: 0,
+            signal: null
+        })
     })
 
     it('should parse params', () => {
@@ -86,10 +94,24 @@ describe('driver utils', () => {
     it('getBuildIdByChromePath', () => {
         expect(getBuildIdByChromePath()).toBe(undefined)
         expect(getBuildIdByChromePath('/foo/bar')).toBe('116.0.5845.110')
-        expect(cp.execSync).toBeCalledWith('"/foo/bar" --version --no-sandbox')
-        vi.mocked(cp.execSync).mockReturnValue(Buffer.from('Chromium 117.0.5938.88 Fedora Project \n'))
+        expect(cp.spawnSync).toBeCalledWith('/foo/bar', ['--version', '--no-sandbox'], expect.any(Object))
+        vi.mocked(cp.spawnSync).mockReturnValue({
+            pid: 123,
+            output: [],
+            stdout: 'Chromium 117.0.5938.88 Fedora Project \n',
+            stderr: '',
+            status: 0,
+            signal: null
+        })
         expect(getBuildIdByChromePath('/foo/bar')).toBe('117.0.5938.88')
-        vi.mocked(cp.execSync).mockReturnValue(Buffer.from('Chromium 117.0.5938.92 snap \n'))
+        vi.mocked(cp.spawnSync).mockReturnValue({
+            pid: 123,
+            output: [],
+            stdout: 'Chromium 117.0.5938.92 snap \n',
+            stderr: '',
+            status: 0,
+            signal: null
+        })
         expect(getBuildIdByChromePath('/foo/bar')).toBe('117.0.5938.92')
         vi.mocked(os.platform).mockReturnValueOnce('win32')
         expect(getBuildIdByChromePath('/foo/bar')).toBe('115.0.5790.110')

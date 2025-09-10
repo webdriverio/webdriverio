@@ -12,10 +12,13 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 vi.mock('webdriver', () => {
     const client = {
         sessionId: 'foobar-123',
+        options: {},
         addCommand: vi.fn(),
         overwriteCommand: vi.fn(),
         strategies: new Map(),
-        isWebDriver: true
+        isWebDriver: true,
+        capabilities: { webSocketUrl: 'ws://' },
+        on: vi.fn()
     }
     const newSessionMock = vi.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
@@ -114,7 +117,7 @@ describe('WebdriverIO module interface', () => {
                 automationProtocol: 'webdriver',
                 capabilities: { browserName: 'chrome' }
             })
-            const fakeFn = () => { return 'test' as any as HTMLElement }
+            const fakeFn = () => { return 'test' as unknown as HTMLElement }
 
             browser.addLocatorStrategy('test-strat', fakeFn)
             expect(browser.strategies.get('test-strat').toString()).toBe(fakeFn.toString())
@@ -129,7 +132,7 @@ describe('WebdriverIO module interface', () => {
             })
 
             try {
-                const fakeFn = () => { return 'test' as any as HTMLElement }
+                const fakeFn = () => { return 'test' as unknown as HTMLElement }
                 browser.addLocatorStrategy('test-strat', fakeFn)
             } catch (error: any) {
                 browser.strategies.delete('test-strat')
@@ -163,7 +166,9 @@ describe('WebdriverIO module interface', () => {
                 isIOS: false,
                 isMobile: false,
                 isSauce: false,
-                isBidi: false
+                isBidi: false,
+                isWindowsApp: false,
+                isMacApp: false,
             })
         })
     })
@@ -207,7 +212,7 @@ describe('WebdriverIO module interface', () => {
                 }
             })
 
-            const fakeFn = () => { return 'test' as any as HTMLElement }
+            const fakeFn = () => { return 'test' as unknown as HTMLElement }
             driver.addLocatorStrategy('test-strat', fakeFn)
             expect(driver.strategies.get('test-strat').toString()).toBe(fakeFn.toString())
         })
@@ -223,7 +228,7 @@ describe('WebdriverIO module interface', () => {
             })
 
             try {
-                const fakeFn = () => { return 'test' as any as HTMLElement }
+                const fakeFn = () => { return 'test' as unknown as HTMLElement }
                 driver.addLocatorStrategy('test-strat', fakeFn)
             } catch (error: any) {
                 driver.strategies.delete('test-strat')
@@ -247,6 +252,31 @@ describe('WebdriverIO module interface', () => {
             await attach(browser)
             expect(WebDriver.attachToSession).toBeCalledTimes(1)
             expect(vi.mocked(WebDriver.attachToSession).mock.calls[0][0]).toMatchSnapshot()
+        })
+
+        it('should apply attach parameters with priority to Driver.attachToSession', async () => {
+
+            let capturedParams
+            const actualDetectBackend = await vi.importActual('../src/utils/detectBackend') as { default: typeof detectBackend }
+            vi.mocked(detectBackend).mockImplementation(actualDetectBackend.default)
+
+            const originalMockImplementation = vi.mocked(WebDriver.attachToSession).getMockImplementation()
+
+            vi.mocked(WebDriver.attachToSession).mockImplementation((params, modifier, prototype, commandWrapper) => {
+                capturedParams = params
+                return originalMockImplementation!(params, modifier, prototype, commandWrapper)
+            })
+
+            await attach({
+                sessionId: 'test-session-id',
+                port: 1234,
+                path: '/wd/hub',
+            })
+
+            expect(capturedParams).toMatchObject({
+                port: 1234,
+                path: '/wd/hub',
+            })
         })
 
         it('should have defined locatorStrategy', async () => {

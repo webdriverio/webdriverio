@@ -71,7 +71,7 @@ Next to the WebDriver based capabilities you can apply browser and vendor specif
 - `bstack:options`: for [BrowserStack](https://www.browserstack.com/automate/capabilities?tag=selenium-4#)
 - `selenoid:options`: for [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 
-Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/), which helps you create this object by clicking together your desired capabilities.
+Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](https://docs.saucelabs.com/basics/platform-configurator/), which helps you create this object by clicking together your desired capabilities.
 
 Type: `Object`<br />
 Default: `null`
@@ -86,7 +86,7 @@ Default: `null`
 }
 ```
 
-If you’re running web or native tests on mobile devices, `capabilities` differs from the WebDriver protocol. See the [Appium Docs](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) for more details.
+If you’re running web or native tests on mobile devices, `capabilities` differs from the WebDriver protocol. See the [Appium Docs](https://appium.io/docs/en/latest/guides/caps/) for more details.
 
 ### logLevel
 
@@ -197,6 +197,23 @@ The path to the root of the cache directory. This directory is used to store all
 Type: `String`<br />
 Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
 
+### maskingPatterns
+
+For more secure logging, regular expressions set with `maskingPatterns` can obfuscate sensitive information from the log.
+ - The string format is a regular expression with or without flags (e.g. `/.../i`) and comma-separated for multiple regular expressions.
+ - For more details on masking patterns, see the [Masking Patterns section in the WDIO Logger README](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-logger/README.md#masking-patterns).
+
+Type: `String`<br />
+Default: `undefined`
+
+**Example:**
+
+```js
+{
+    maskingPatterns: '/--key=([^ ]*)/i,/RESULT (.*)/'
+}
+```
+
 ---
 
 ## WebdriverIO
@@ -205,15 +222,57 @@ The following options (including the ones listed above) can be used with Webdriv
 
 ### automationProtocol
 
-:::warning Deprecation
+Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) is supported, as it is the main browser automation technology WebdriverIO uses.
 
-WebdriverIO is deprecating the use of Chrome Devtools as automation protocol through a WebDriver like interface. Instead, you should use [`webdriver`](https://www.npmjs.com/package/webdriver) .
+If you want to automate the browser using a different automation technology, make you set this property to a path that resolves to a module that adheres to the following interface:
 
-:::
+```ts
+import type { Capabilities } from '@wdio/types';
+import type { Client, AttachOptions } from 'webdriver';
 
-Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools) are supported, as these are the main browser automation technologies available.
+export default class YourAutomationLibrary {
+    /**
+     * Start a automation session and return a WebdriverIO [monad](https://github.com/webdriverio/webdriverio/blob/940cd30939864bdbdacb2e94ee6e8ada9b1cc74c/packages/wdio-utils/src/monad.ts)
+     * with respective automation commands. See the [webdriver](https://www.npmjs.com/package/webdriver) package
+     * as a reference implementation
+     *
+     * @param {Capabilities.RemoteConfig} options WebdriverIO options
+     * @param {Function} hook that allows to modify the client before it gets released from the function
+     * @param {PropertyDescriptorMap} userPrototype allows user to add custom protocol commands
+     * @param {Function} customCommandWrapper allows to modify the command execution
+     * @returns a WebdriverIO compatible client instance
+     */
+    static newSession(
+        options: Capabilities.RemoteConfig,
+        modifier?: (...args: any[]) => any,
+        userPrototype?: PropertyDescriptorMap,
+        customCommandWrapper?: (...args: any[]) => any
+    ): Promise<Client>;
 
-If you want to automate the browser using `devtools`, make sure you have the NPM package installed (`$ npm install --save-dev devtools`).
+    /**
+     * allows user to attach to existing sessions
+     * @optional
+     */
+    static attachToSession(
+        options?: AttachOptions,
+        modifier?: (...args: any[]) => any, userPrototype?: {},
+        commandWrapper?: (...args: any[]) => any
+    ): Client;
+
+    /**
+     * Changes The instance session id and browser capabilities for the new session
+     * directly into the passed in browser object
+     *
+     * @optional
+     * @param   {object} instance  the object we get from a new browser session.
+     * @returns {string}           the new session id of the browser
+     */
+    static reloadSession(
+        instance: Client,
+        newCapabilities?: WebdriverIO.Capabilitie
+    ): Promise<string>;
+}
+```
 
 Type: `String`<br />
 Default: `webdriver`
@@ -241,7 +300,7 @@ Default: `5000`
 Default interval for all `waitFor*` commands to check if an expected state (e.g., visibility) has been changed.
 
 Type: `Number`<br />
-Default: `500`
+Default: `100`
 
 ### region
 
@@ -277,14 +336,14 @@ Default: `[]`
 
 ### suites
 
-An object describing various of suites, which you can then specify with the `--suite` option on the `wdio` CLI.
+An object describing various suites, which you can then specify with the `--suite` option on the `wdio` CLI.
 
 Type: `Object`<br />
 Default: `{}`
 
 ### capabilities
 
-The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](multiremote) object, or multiple WebDriver sessions in an array for parallel execution.
+The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](/docs/multiremote) object, or multiple WebDriver sessions in an array for parallel execution.
 
 You can apply the same vendor and browser specific capabilities as defined [above](/docs/configuration#capabilities).
 
@@ -364,6 +423,13 @@ By default, it is set to `false` so logs are printed in real-time.
 
 Type: `Boolean`<br />
 Default: `false`
+
+### autoAssertOnTestEnd
+
+Controls whether WebdriverIO automatically asserts all soft assertions at the end of each test. When set to `true`, any accumulated soft assertions will be automatically checked and cause the test to fail if any assertions failed. When set to `false`, you must manually call the assert method to check soft assertions.
+
+Type: `Boolean`<br />
+Default: `true`
 
 ### services
 

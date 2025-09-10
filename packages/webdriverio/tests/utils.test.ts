@@ -11,8 +11,6 @@ import {
     findElements,
     verifyArgsAndStripIfElement,
     getElementRect,
-    getAbsoluteFilepath,
-    assertDirectoryExists,
     validateUrl
 } from '../src/utils/index.js'
 
@@ -165,8 +163,10 @@ describe('utils', () => {
                 findElements: vi.fn(),
                 findElement: vi.fn(),
                 execute: vi.fn(),
-                executeScript: vi.fn()
-            } as any as WebdriverIO.Element
+                executeScript: vi.fn(),
+                on: vi.fn(),
+                removeAllListeners: vi.fn()
+            } as unknown as WebdriverIO.Element
         })
 
         it('fetches element using a selector string with browser scope', async () => {
@@ -207,7 +207,7 @@ describe('utils', () => {
             vi.mocked(scope.execute).mockResolvedValue(elementsResponse)
             const elem = await findElement.call(
                 scope as any,
-                (() => { return global.document.body as any as ElementReference }) as any
+                (() => { return global.document.body as unknown as ElementReference }) as any
             ) as Element
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
@@ -280,7 +280,7 @@ describe('utils', () => {
                 findElement: vi.fn(),
                 execute: vi.fn(),
                 executeScript: vi.fn()
-            } as any as WebdriverIO.Element
+            } as unknown as WebdriverIO.Element
         })
 
         it('fetches element using a selector string with browser scope', async () => {
@@ -443,7 +443,7 @@ describe('utils', () => {
                 elementId: 123,
                 getElementRect: vi.fn(() => Promise.resolve({ x: 10, width: 300, height: 400 })),
                 execute: vi.fn(() => Promise.resolve({ x: 11, y: 22, width: 333, height: 444 }))
-            } as any as WebdriverIO.Element
+            } as unknown as WebdriverIO.Element
             expect(await getElementRect(fakeScope as any)).toEqual({ x: 10, y: 22, width: 300, height: 400 })
             expect(fakeScope.getElementRect).toHaveBeenCalled()
             expect(fakeScope.execute).toHaveBeenCalled()
@@ -454,41 +454,10 @@ describe('utils', () => {
                 elementId: 123,
                 getElementRect: vi.fn(() => Promise.resolve({ x: 10, y: 0, width: 300, height: 400 })),
                 execute: vi.fn(() => Promise.reject(new Error('Method is not implemented')))
-            } as any as WebdriverIO.Element
+            } as unknown as WebdriverIO.Element
             expect(await getElementRect(fakeScope as any)).toEqual({ x: 10, y: 0, width: 300, height: 400 })
             expect(fakeScope.getElementRect).toHaveBeenCalled()
             expect(fakeScope.execute).not.toHaveBeenCalled()
-        })
-    })
-
-    describe('getAbsoluteFilepath', () => {
-        it('should not change filepath if starts with forward slash', () => {
-            const filepath = '/packages/bar.png'
-            expect(getAbsoluteFilepath(filepath)).toEqual(filepath)
-        })
-
-        it('should not change filepath if starts with backslash slash', () => {
-            const filepath = '\\packages\\bar.png'
-            expect(getAbsoluteFilepath(filepath)).toEqual(filepath)
-        })
-
-        it('should not change filepath if starts with windows drive letter', async () => {
-            const filepath = 'E:\\foo\\bar.png'
-            expect(getAbsoluteFilepath(filepath)).toEqual(filepath)
-        })
-
-        it('should change filepath if does not start with forward or back slash', async () => {
-            const filepath = 'packages/bar.png'
-            expect(getAbsoluteFilepath(filepath)).toEqual(path.join(process.cwd(), 'packages/bar.png'))
-        })
-    })
-
-    describe('assertDirectoryExists', () => {
-        it('should fail if not existing directory', async () => {
-            await expect(() => assertDirectoryExists('/i/dont/exist.png')).rejects.toThrowError(new Error('directory (/i/dont) doesn\'t exist'))
-        })
-        it('should not fail if directory exists', async () => {
-            expect(await assertDirectoryExists('.')).toBe(undefined)
         })
     })
 

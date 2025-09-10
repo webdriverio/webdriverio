@@ -1,6 +1,5 @@
 import { basename, join, resolve } from 'node:path'
 import { kebabCase } from 'change-case'
-
 import type { ArgValue, KeyValueArgs } from './types.js'
 
 const FILE_EXTENSION_REGEX = /\.[0-9a-z]+$/i

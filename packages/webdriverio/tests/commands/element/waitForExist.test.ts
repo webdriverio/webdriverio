@@ -27,7 +27,7 @@ describe('waitForExists', () => {
             waitForExist: tmpElem.waitForExist,
             waitUntil: vi.fn(),
             options: { waitforInterval: 5, waitforTimeout: timeout }
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
 
         await elem.waitForExist()
         expect(vi.mocked(elem.waitUntil).mock.calls).toMatchSnapshot()
@@ -39,7 +39,7 @@ describe('waitForExists', () => {
             waitForExist: tmpElem.waitForExist,
             waitUntil: vi.fn(),
             options: { waitforInterval: 5, waitforTimeout: timeout }
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
 
         await elem.waitForExist({
             timeout,

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { isCloudCapability, removeLineNumbers, validObjectOrArray, objectToEnv } from '../src/utils.js'
+import { isCloudCapability, removeLineNumbers, validObjectOrArray } from '../src/utils.js'
 
 describe('utils', () => {
     describe('removeLineNumbers', () => {
@@ -65,22 +65,5 @@ describe('utils', () => {
         it('should handle null or empty capabilities', ()  => {
             expect(isCloudCapability({})).toBe(false)
         })
-    })
-
-    it('objectToEnv', () => {
-        objectToEnv({
-            wdioFoo: true,
-            wdioBar: 'foobar',
-            wdioArray: ['foo', 'bar'],
-            wdioObject: { foo: 'bar' },
-            wdioRegex: /foo/,
-            wdioFalse: false
-        })
-        expect(process.env.WDIO_FOO).toBe('1')
-        expect(process.env.WDIO_BAR).toBe('foobar')
-        expect(process.env.WDIO_ARRAY).toBe('foo,bar')
-        expect(process.env.WDIO_OBJECT).toBe('{"foo":"bar"}')
-        expect(process.env.WDIO_REGEX).toBe('/foo/')
-        expect(process.env.WDIO_FALSE).toBeUndefined()
     })
 })

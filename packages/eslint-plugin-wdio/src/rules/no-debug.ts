@@ -14,14 +14,33 @@ const rule: Rule.RuleModule = {
             unexpectedDebug: 'Unexpected browser.debug() not allowed'
         },
         hasSuggestions: true,
-        schema: [],
+        schema: [{
+            type: 'object',
+            properties: {
+                instances: {
+                    type: 'array',
+                    items: {
+                        type: 'string',
+                    },
+                    description: 'List of browser instances to check (default: ["browser"])',
+                    default: ['browser'],
+                },
+            },
+            additionalProperties: false,
+        }],
     },
 
     create: function (context: Rule.RuleContext): Rule.RuleListener {
+        const options = context.options[0] || {}
+        const instances = options.instances || ['browser']
         return {
             CallExpression(node): void {
-                if (isCommand(node, 'debug')) {
-                    context.report({ node, messageId: 'unexpectedDebug' })
+                if (isCommand(node, 'debug', instances)) {
+                    context.report({
+                        node,
+                        messageId: 'unexpectedDebug',
+                        data: { instance: instances.join(', ') }
+                    })
                 }
             }
         }

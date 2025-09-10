@@ -4,17 +4,26 @@ import url from 'node:url'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
+interface Event {
+    id: string
+    time: string
+    title: string
+    image: string
+    description: string
+    signup: boolean
+}
+
 export async function generateEventDocs () {
     const eventsDir = path.resolve(__dirname, '..', '..', 'website', 'community', 'events')
     await fs.mkdir(eventsDir, { recursive: true })
 
     const res = await fetch('https://events.webdriver.io/api/events')
-    const events = await res.json()
+    const events = await res.json() as Event[]
 
     const sidebarPath = path.join(__dirname, '..', '..', 'website', 'events.json')
     const sidebarContent = events
-        .filter((event: any) => new Date(event.time) > new Date())
-        .map((event: any) => event.id)
+        .filter((event) => new Date(event.time) > new Date())
+        .map((event) => event.id)
 
     await fs.writeFile(
         sidebarPath,
@@ -22,7 +31,7 @@ export async function generateEventDocs () {
         'utf-8'
     )
 
-    return Promise.all(events.map(async (event: any) => {
+    return Promise.all(events.map(async (event) => {
         console.log(`Generate Event Docs for ${event.id}`)
         const date = new Date(event.time)
         const content = `---

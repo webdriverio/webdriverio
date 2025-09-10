@@ -17,6 +17,8 @@ enum BrowserDriverTaskLabel {
     DRIVER = 'browser driver'
 }
 
+const firefoxChannels: string[] = ['stable', 'latest'] as const
+
 function mapCapabilities (
     options: Options.WebdriverIO,
     caps: Capabilities.TestrunnerCapabilities,
@@ -111,8 +113,14 @@ export async function setupDriver (options: Omit<Options.WebDriver, 'capabilitie
         if (isEdge(cap.browserName)) {
             return setupEdgedriver(cacheDir, cap.browserVersion)
         } else if (isFirefox(cap.browserName)) {
-            // "latest" works for setting up browser only but not geckodriver
-            const version = cap.browserVersion === 'latest' ? undefined : cap.browserVersion
+            /**
+             * Some Firefox channels are allowed to be set for the browserVersion.
+             * We unset these variables here to make `node-geckodriver` download
+             * the latest driver version.
+             */
+            const version = firefoxChannels.includes(cap.browserVersion ?? '')
+                ? undefined
+                : cap.browserVersion
             return setupGeckodriver(cacheDir, version)
         } else if (isChrome(cap.browserName)) {
             return setupChromedriver(cacheDir, cap.browserVersion)

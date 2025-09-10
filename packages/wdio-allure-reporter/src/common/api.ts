@@ -8,7 +8,9 @@ import { events } from '../constants.js'
  * @param {object} msg - event payload
  * @private
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const tellReporter = (event: string, msg: any = {}) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     process.emit(event as any, msg)
 }
 
@@ -212,6 +214,7 @@ export function addStep (
         content,
         name = 'attachment',
         type = 'text/plain'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }: any = {},
     status: Status = Status.PASSED
 ) {

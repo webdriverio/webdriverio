@@ -27,11 +27,12 @@ export interface Test {
     errors?: Error[]
     retries?: number
     argument?: string | Argument
+    state?: string
 }
 
 interface Output {
     command: string
-    params: any
+    params: unknown[]
     method: 'PUT' | 'POST' | 'GET' | 'DELETE'
     endpoint: string
     body: {}

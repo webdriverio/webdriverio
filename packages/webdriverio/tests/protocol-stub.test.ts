@@ -19,7 +19,7 @@ describe('newSession', () => {
                 foo: 'bar'
             }
         })
-        expect(Object.keys(session)).toHaveLength(19)
+        expect(Object.keys(session)).toHaveLength(21)
         expect(session.isAndroid).toBe(false)
         expect(session.isChrome).toBe(false)
         expect(session.isChromium).toBe(false)
@@ -28,6 +28,8 @@ describe('newSession', () => {
         expect(session.isMobile).toBe(true)
         expect(session.isSauce).toBe(false)
         expect(session.isBidi).toBe(false)
+        expect(session.isWindowsApp).toBe(false)
+        expect(session.isMacApp).toBe(false)
         expect(session.capabilities).toEqual({
             deviceName: 'Some Device',
             platformName: 'iOS',
@@ -54,7 +56,7 @@ describe('attachToSession', () => {
     it('should call modifier if multiremote', async () => {
         const multiremote = new Multiremote()
         // @ts-ignore test scenario
-        multiremote.instances['instanceName'] = 'instance'
+        multiremote.instances.instanceName = 'instance'
 
         const session = await ProtocolStub.attachToSession(
             // @ts-expect-error

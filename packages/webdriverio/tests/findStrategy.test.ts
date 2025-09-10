@@ -2,7 +2,13 @@ import fs from 'node:fs'
 import { describe, it, expect, vi } from 'vitest'
 import { findStrategy } from '../src/utils/findStrategy.js'
 
-vi.mock('fs')
+import '../src/node.js'
+
+vi.mock('fs', () => ({
+    default: {
+        readFileSync: vi.fn().mockReturnValue('random string')
+    }
+}))
 
 describe('selector strategies helper', () => {
     it('should find an element using "css selector" method', () => {

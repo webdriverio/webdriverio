@@ -1,15 +1,10 @@
-import fs from 'node:fs/promises'
-import url from 'node:url'
-
-import { resolve } from 'import-meta-resolve'
+import { getBrowserObject } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
-import { getBrowserObject } from '@wdio/utils'
+import { resqScript } from '../constant.js'
 import { getElement } from '../../utils/getElementObject.js'
 import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq.js'
 import type { ReactSelectorOptions } from '../../types.js'
-
-let resqScript: string
 
 /**
  *
@@ -50,8 +45,8 @@ let resqScript: string
  * @param {string}  selector        of React component
  * @param {ReactSelectorOptions=}                    options         React selector options
  * @param {Object=}                                  options.props   React props the element should contain
- * @param {Array<any>|number|string|object|boolean=} options.state  React state the element should be in
- * @return {Element}
+ * @param {`Array<any>|number|string|object|boolean`=} options.state  React state the element should be in
+ * @return {WebdriverIO.Element}
  *
  */
 export async function react$(
@@ -59,17 +54,12 @@ export async function react$(
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}
 ) {
-    if (!resqScript) {
-        const resqScriptPath = url.fileURLToPath(await resolve('resq', import.meta.url))
-        resqScript = (await fs.readFile(resqScriptPath)).toString()
-    }
-
     const browser = await getBrowserObject(this)
     await this.executeScript(resqScript.toString(), [])
     await browser.execute(waitToLoadReact)
     const res = await browser.execute(
-        react$Script as any, selector, props, state, this
-    ) as any as ElementReference
+        react$Script, selector, props, state, this as unknown as HTMLElement
+    ) as unknown as ElementReference
 
     return getElement.call(this, selector, res, { isReactElement: true })
 }

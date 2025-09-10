@@ -1,7 +1,7 @@
 /**
  * Contains all settings as key value pair. You can find all available settings on the `about:config` page.
  */
-type FirefoxSettings = Record<string, any>
+type FirefoxSettings = Record<string, unknown>
 interface NoProxySettings {
     proxyType: 'direct';
 }
@@ -23,7 +23,7 @@ interface ManualProxySettings {
     socksProxy?: string;
 }
 
-type ProxySettings = NoProxySettings | SystemProxySettings | AutomaticProxySettings | ManualProxySettings;
+type ProxySettings = NoProxySettings | SystemProxySettings | AutomaticProxySettings | ManualProxySettings
 
 export interface FirefoxProfileOptions extends FirefoxSettings {
     /**

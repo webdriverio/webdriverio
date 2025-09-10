@@ -5,7 +5,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "test:mocha": "wdio run ./mocha/wdio.conf.js",
+    "test:mocha": "wdio run ./mocha/wdio.conf.ts",
     "test:jasmine": "wdio run ./jasmine/wdio.conf.ts",
     "test:cucumber": "wdio run ./cucumber/wdio.conf.ts",
     "test:multiremote": "wdio run ./multiremote/wdio.conf.js",
@@ -20,6 +20,7 @@
     "@wdio/cucumber-framework": "workspace:*",
     "@wdio/dot-reporter": "workspace:*",
     "@wdio/globals": "workspace:*",
+    "@wdio/jasmine-framework": "workspace:*",
     "@wdio/junit-reporter": "workspace:*",
     "@wdio/lighthouse-service": "workspace:*",
     "@wdio/local-runner": "workspace:*",

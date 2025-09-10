@@ -4,7 +4,7 @@ interface EnhancedHTMLElement extends HTMLElement {
 }
 
 interface CustomElementConstructor {
-    new (...params: any[]): EnhancedHTMLElement;
+    new (...params: unknown[]): EnhancedHTMLElement;
 }
 
 export default function customElementWrapper () {

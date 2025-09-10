@@ -8,26 +8,25 @@ on:
 
 jobs:
   build:
+    permissions:
+      contents: write
+      pull-requests: write
+      packages: read
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
-      - name: Enable Corepack
-        run: corepack enable
+      - name: 🧑‍🔧 Get Core Dependencies
+        uses: ./.github/workflows/actions/get-core-dependencies
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build
-        run: pnpm build
+      - name: 👷 Bootstrap Packages
+        run: pnpm run setup
+        shell: bash
+        env:
+          NODE_ENV: production
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish
         run: pnpx pkg-pr-new publish --pnpm './packages/*'

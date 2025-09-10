@@ -25,6 +25,8 @@ A browser object has the following properties:
 | `isFirefox` | `Boolean` | Indicates if this Firefox instance |
 | `isBidi` | `Boolean` | Indicates if this session uses Bidi |
 | `isSauce` | `Boolean` | Indicates if this session is Running on Sauce Labs |
+| `isMacApp` | `Boolean` | Indicates if this session is Running for a native Mac App |
+| `isWindowsApp` | `Boolean` | Indicates if this session is Running for a native Windows App |
 | `isMobile` | `Boolean` | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags). |
 | `isIOS` | `Boolean` | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags). |
 | `isAndroid` | `Boolean` | Indicates an Android session. See more under [Mobile Flags](#mobile-flags). |
@@ -139,7 +141,7 @@ This event is emitted whenever WebdriverIO receives a result of a WebDriver Clas
 
 This event is emitted whenever WebdriverIO sends a WebDriver Bidi command to the browser driver. It contains information about:
 
-- `method`: WebDriver Bidi command methid
+- `method`: WebDriver Bidi command method
 - `params`: associated command parameter (see [API](/docs/api/webdriverBidi))
 
 #### `bidiResult`
@@ -157,6 +159,33 @@ In case of a command error, the event payload will be:
 - `error`: the error code, e.g. `invalid argument`
 - `message`: details about the error
 - `stacktrace`: a stack trace
+
+#### `request.start`
+This event is fired before a WebDriver request is sent to the driver. It contains information about the request and its payload.
+
+```ts
+browser.on('request.start', (ev: RequestInit) => {
+    // ...
+})
+```
+
+#### `request.end`
+This event is fired once the request to the driver received a response. The event object either contains the response body as result or an error if the WebDriver command failed.
+
+```ts
+browser.on('request.end', (ev: { result: unknown, error?: Error }) => {
+    // ...
+})
+```
+
+#### `request.retry`
+The retry event can notify you when WebdriverIO attempts to retry running the command, e.g. due to a network issue. It contains information about the error that caused the retry and the amount of retries already done.
+
+```ts
+browser.on('request.retry', (ev: { error: Error, retryCount: number }) => {
+    // ...
+})
+```
 
 #### `request.performance`
 This is an event to measure WebDriver level operations. Whenever WebdriverIO sends a request to the WebDriver backend, this event will be emitted with some useful information:

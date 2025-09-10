@@ -3,8 +3,8 @@ import type { CheerioAPI } from 'cheerio'
 import { prettify as prettifyFn } from 'htmlfy'
 
 import { getBrowserObject } from '@wdio/utils'
-import { getShadowRootManager } from '../../shadowRoot.js'
-import { getContextManager } from '../../context.js'
+import { getShadowRootManager } from '../../session/shadowRoot.js'
+import { getContextManager } from '../../session/context.js'
 import getHTMLScript from '../../scripts/getHTML.js'
 import getHTMLShadowScript from '../../scripts/getHTMLShadow.js'
 
@@ -63,10 +63,10 @@ const SHADOW_ID_ATTR = `[${SHADOW_ID_ATTR_NAME}]`
  *
  * @alias element.getHTML
  * @param {GetHTMLOptions} options                    command options
- * @param {Boolean=}       options.includeSelectorTag if true it includes the selector element tag (default: true)
- * @param {Boolean=}       options.pierceShadowRoot   if true it includes content of the shadow roots of all web components in the DOM
- * @param {Boolean=}       options.removeCommentNodes if true it removes all comment nodes from the HTML, e.g. `<!--?lit$206212805$--><!--?lit$206212805$-->`
- * @param {Boolean=}       options.prettify           if true, the html output will be prettified
+ * @param {Boolean=}       options.includeSelectorTag if true it includes the selector element tag (default: `true`)
+ * @param {Boolean=}       options.pierceShadowRoot   if true it includes content of the shadow roots of all web components in the DOM (default: `true`)
+ * @param {Boolean=}       options.removeCommentNodes if true it removes all comment nodes from the HTML, e.g. `<!--?lit$206212805$--><!--?lit$206212805$-->` (default: `true`)
+ * @param {Boolean=}       options.prettify           if true, the html output will be prettified (default: `true`)
  * @return {String}  the HTML of the specified element
  * @uses action/selectorExecute
  * @type property
@@ -100,7 +100,7 @@ export async function getHTML(
         return browser.execute(getHTMLScript, {
             [ELEMENT_KEY]: elementId, // w3c compatible
             ELEMENT: elementId // jsonwp compatible
-        } as any as HTMLElement, includeSelectorTag)
+        } as unknown as HTMLElement, includeSelectorTag)
     }
 
     if (pierceShadowRoot && this.isBidi) {
@@ -126,7 +126,7 @@ export async function getHTML(
         const elementsWithShadowRootAndIdVerified = ((
             await Promise.all(
                 shadowRootElementPairs.map(([elemId, elem]) => (
-                    browser.execute((elem) => elem.tagName, { [ELEMENT_KEY]: elemId } as any as HTMLElement).then(
+                    browser.execute((elem) => elem.tagName, { [ELEMENT_KEY]: elemId } as unknown as HTMLElement).then(
                         () => [elemId, elem],
                         () => undefined
                     )
@@ -134,16 +134,15 @@ export async function getHTML(
             )
         ).filter(Boolean) as [string, string | undefined][]).map(([elemId, shadowId]) => [
             elemId,
-            { [ELEMENT_KEY]: elemId } as any as HTMLElement,
+            { [ELEMENT_KEY]: elemId } as unknown as HTMLElement,
             shadowId ? { [ELEMENT_KEY]: shadowId } : undefined
         ]) as [string, HTMLElement, HTMLElement | undefined][]
 
         /**
          * then get the HTML of the element and its shadow roots
          */
-        const { html, shadowElementHTML } = await browser.execute(
+        const { html, shadowElementHTML } = await this.execute(
             getHTMLShadowScript,
-            { [ELEMENT_KEY]: this.elementId } as any as HTMLElement,
             includeSelectorTag,
             elementsWithShadowRootAndIdVerified
         )
@@ -202,7 +201,7 @@ function populateHTML (
  * @param options command options
  * @returns a string with the cleaned up HTML
  */
-function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): string {
+export function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): string {
     /**
      * delete data-wdio-shadow-id attribute as it contains random ids that
      * can cause failures when taking a snapshot of a Shadow DOM element
@@ -216,12 +215,31 @@ function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): st
         for (const elemToRemove of (options.excludeElements || [])) {
             $(elemToRemove).remove()
         }
+
+        /**
+         * Remove HTML comments using Cheerio's built-in functionality
+         * This is more secure and reliable than regex-based removal
+         */
+        if (options.removeCommentNodes) {
+            // Find all comment nodes and remove them
+            $('*').contents().filter(function() {
+                return this.type === 'comment'
+            }).remove()
+        }
     }
 
     let returnHTML = isCheerioObject ? $('body').html() as string : $
-    if (options.removeCommentNodes) {
-        returnHTML = returnHTML?.replace(/<!--[\s\S]*?-->/g, '')
+
+    /**
+     * Fallback regex-based comment removal for string input
+     * Only used when we don't have a Cheerio object
+     */
+    if (!isCheerioObject && options.removeCommentNodes && returnHTML) {
+        // Use a simpler, safer regex that avoids catastrophic backtracking
+        // This regex matches complete HTML comments only
+        returnHTML = returnHTML.replace(/<!--[\s\S]*?-->/g, '')
     }
+
     return options.prettify
         ? prettifyFn(returnHTML)
         : returnHTML

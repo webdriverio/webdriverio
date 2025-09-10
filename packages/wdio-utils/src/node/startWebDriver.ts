@@ -15,11 +15,15 @@ import type { InstallOptions } from '@puppeteer/browsers'
 
 import type { Capabilities } from '@wdio/types'
 
-import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir } from './utils.js'
+import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir, generateDefaultPrefs } from './utils.js'
 import { isChrome, isFirefox, isEdge, isSafari, isAppiumCapability } from '../utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 
-export type ChromedriverParameters = Partial<InstallOptions> & Omit<EdgedriverParameters, 'port' | 'edgeDriverVersion' | 'customEdgeDriverPath'>
+export type ChromedriverParameters = (
+    Partial<InstallOptions> &
+    Omit<EdgedriverParameters, 'port' | 'edgeDriverVersion' | 'customEdgeDriverPath'> &
+    Pick<GeckodriverParameters, 'spawnOpts'>
+)
 declare global {
     namespace WebdriverIO {
         interface ChromedriverOptions extends ChromedriverParameters {}
@@ -31,6 +35,7 @@ declare global {
 
 const log = logger('@wdio/utils')
 const DRIVER_WAIT_TIMEOUT = 10 * 1000 // 10s
+const DRIVER_RETRY_INTERVAL = 100
 
 export async function startWebDriver (options: Capabilities.RemoteConfig) {
     /**
@@ -79,8 +84,10 @@ export async function startWebDriver (options: Capabilities.RemoteConfig) {
             ? { executablePath: chromedriverBinary }
             : await setupChromedriver(cacheDir, browserVersion)
 
+        const prefs = generateDefaultPrefs(caps)
         caps['goog:chromeOptions'] = deepmerge(
             { binary: chromeExecuteablePath },
+            prefs,
             caps['goog:chromeOptions'] || {}
         )
         chromedriverOptions.allowedOrigins = chromedriverOptions.allowedOrigins || ['*']
@@ -90,7 +97,8 @@ export async function startWebDriver (options: Capabilities.RemoteConfig) {
          * Set NODE_OPTIONS empty to avoid passing it to the chromedriver process so that Electron doesn't crash
          */
         driverProcess = cp.spawn(chromedriverExcecuteablePath, driverParams, {
-            env: { ...process.env, NODE_OPTIONS: '' }
+            env: { ...process.env, NODE_OPTIONS: '' },
+            ...(chromedriverOptions.spawnOpts || {})
         })
         driver = `Chromedriver v${browserVersion} with params ${driverParams.join(' ')}`
     } else if (isSafari(caps.browserName)) {
@@ -100,7 +108,7 @@ export async function startWebDriver (options: Capabilities.RemoteConfig) {
          */
         driver = 'SafariDriver'
         driverProcess = startSafaridriver({
-            useTechnologyPreview: Boolean(caps.browserName.match(/preview/i)),
+            useTechnologyPreview: /preview/i.test(caps.browserName),
             ...safaridriverOptions,
             port
         })
@@ -176,7 +184,7 @@ export async function startWebDriver (options: Capabilities.RemoteConfig) {
         driverProcess.stderr?.pipe(split2()).on('data', driverLog.warn.bind(driverLog))
     }
 
-    await waitPort({ port, output: 'silent', timeout: DRIVER_WAIT_TIMEOUT })
+    await waitPort({ port, output: 'silent', timeout: DRIVER_WAIT_TIMEOUT, interval: DRIVER_RETRY_INTERVAL })
         .catch((e) => { throw new Error(`Timed out to connect to ${driver}: ${e.message}`) })
 
     options.hostname = 'localhost'

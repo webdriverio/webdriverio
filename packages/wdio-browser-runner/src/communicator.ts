@@ -4,7 +4,7 @@ import libCoverage, { type CoverageMap, type CoverageMapData } from 'istanbul-li
 import logger from '@wdio/logger'
 import type { WebSocketClient } from 'vite'
 import type { WorkerInstance } from '@wdio/local-runner'
-import { MESSAGE_TYPES, type Options, type Workers } from '@wdio/types'
+import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 import type { SessionStartedMessage, SessionEndedMessage, WorkerResponseMessage } from '@wdio/runner'
 
 import { SESSIONS } from './constants.js'
@@ -22,7 +22,7 @@ interface WorkerMessage {
 
 export class ServerWorkerCommunicator {
     #mapStore = libSourceMap.createSourceMapStore()
-    #config: Options.Testrunner
+    #config: WebdriverIO.Config
     #msgId = 0
 
     /**
@@ -37,7 +37,7 @@ export class ServerWorkerCommunicator {
 
     public coverageMaps: CoverageMap[] = []
 
-    constructor (config: Options.Testrunner) {
+    constructor (config: WebdriverIO.Config) {
         this.#config = config
     }
 
@@ -106,6 +106,6 @@ export class ServerWorkerCommunicator {
         const msg: WorkerMessage = { id, client }
         this.#pendingMessages.set(id, msg)
         const args: Workers.WorkerRequest['args'] = { id, message }
-        return worker.postMessage('workerRequest', args, true)
+        return worker.postMessage('workerRequest', args as unknown as Workers.WorkerMessageArgs, true)
     }
 }

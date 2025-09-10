@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ChildProcess } from 'node:child_process'
 
 import logger from '@wdio/logger'
@@ -9,6 +10,7 @@ import type { Capabilities, Options } from '@wdio/types'
 import command from './command.js'
 import { DEFAULTS } from './constants.js'
 import type { BidiHandler } from './bidi/handler.js'
+import { environment as environmentValue } from './environment.js'
 import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect, initiateBidi, parseBidiMessage } from './utils.js'
 import type { Client, AttachOptions, SessionFlags } from './types.js'
 
@@ -21,7 +23,7 @@ export default class WebDriver {
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
     ): Promise<Client> {
-        const envLogLevel = process.env.WDIO_LOG_LEVEL as Options.WebDriverLogTypes | undefined
+        const envLogLevel = environmentValue.value.variables.WDIO_LOG_LEVEL
         options.logLevel = envLogLevel ?? options.logLevel
         const params = validateConfig(DEFAULTS, options)
 
@@ -49,9 +51,13 @@ export default class WebDriver {
          * initiate WebDriver Bidi
          */
         const bidiPrototype: PropertyDescriptorMap = {}
-        if (isBidi(requestedCapabilities, capabilities)) {
+        if (isBidi(capabilities)) {
             log.info(`Register BiDi handler for session with id ${sessionId}`)
-            Object.assign(bidiPrototype, initiateBidi(capabilities.webSocketUrl as any as string, options.strictSSL))
+            Object.assign(bidiPrototype, initiateBidi(
+                capabilities.webSocketUrl as unknown as string,
+                options.strictSSL,
+                options.headers
+            ))
         }
 
         const monad = webdriverMonad(
@@ -69,12 +75,13 @@ export default class WebDriver {
         /**
          * parse and propagate all Bidi events to the browser instance
          */
-        if (isBidi(requestedCapabilities, capabilities)) {
+        if (isBidi(capabilities)) {
             /**
              * make sure the Bidi connection is established before returning
              */
-            await client._bidiHandler.waitForConnected()
-            client._bidiHandler.socket.on('message', parseBidiMessage.bind(client))
+            if (await client._bidiHandler.waitForConnected()) {
+                client._bidiHandler.socket?.on('message', parseBidiMessage.bind(client))
+            }
         }
 
         /**
@@ -125,10 +132,14 @@ export default class WebDriver {
          * initiate WebDriver Bidi
          */
         const bidiPrototype: PropertyDescriptorMap = {}
-        if (isBidi(options.requestedCapabilities || {}, options.capabilities || {})) {
+        if (isBidi(options.capabilities || {})) {
             const webSocketUrl = options.capabilities?.webSocketUrl as unknown as string
             log.info(`Register BiDi handler for session with id ${options.sessionId}`)
-            Object.assign(bidiPrototype, initiateBidi(webSocketUrl as unknown as string, options.strictSSL))
+            Object.assign(bidiPrototype, initiateBidi(
+                webSocketUrl as string,
+                options.strictSSL,
+                options.headers
+            ))
         }
 
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype, ...bidiPrototype }
@@ -138,8 +149,10 @@ export default class WebDriver {
         /**
          * parse and propagate all Bidi events to the browser instance
          */
-        if (isBidi(options.requestedCapabilities || {}, options.capabilities || {})) {
-            client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
+        if (isBidi(options.capabilities || {})) {
+            client._bidiHandler?.waitForConnected().then(()=>{
+                client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
+            })
         }
         return client
     }
@@ -201,9 +214,10 @@ export default class WebDriver {
         /**
          * reconnect to new Bidi session
          */
-        if (isBidi(instance.requestedCapabilities || {}, instance.capabilities || {})) {
+        if (isBidi(instance.capabilities || {})) {
             const bidiReqOpts = instance.options.strictSSL ? {} : { rejectUnauthorized: false }
             await instance._bidiHandler?.reconnect(newSessionCapabilities.webSocketUrl as unknown as string, bidiReqOpts)
+            instance._bidiHandler?.socket?.on('message', parseBidiMessage.bind(instance))
         }
 
         return sessionId

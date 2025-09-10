@@ -1,10 +1,11 @@
 import url from 'node:url'
 import path from 'node:path'
-import child from 'node:child_process'
 import { EventEmitter } from 'node:events'
 import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
-import type { Options, Workers } from '@wdio/types'
+import { ProcessFactory, type XvfbManager } from '@wdio/xvfb'
+import type { Workers } from '@wdio/types'
+import type { ReplConfig } from '@wdio/repl'
 
 import logger from '@wdio/logger'
 
@@ -29,7 +30,7 @@ stdErrStream.pipe(process.stderr)
  */
 export default class WorkerInstance extends EventEmitter implements Workers.Worker {
     cid: string
-    config: Options.Testrunner
+    config: WebdriverIO.Config
     configFile: string
     // requestedCapabilities
     caps: WebdriverIO.Capabilities
@@ -42,8 +43,9 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     stderr: WritableStreamBuffer
     childProcess?: ChildProcess
     sessionId?: string
-    server?: Record<string, any>
+    server?: Record<string, string>
     logsAggregator: string[] = []
+    #processFactory: ProcessFactory
 
     instances?: Record<string, { sessionId: string }>
     isMultiremote?: boolean
@@ -64,12 +66,14 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
      * @param  {string[]} specs       list of paths to test files to run in this worker
      * @param  {number}   retries     number of retries remaining
      * @param  {object}   execArgv    execution arguments for the test run
+     * @param  {XvfbManager} xvfbManager configured XvfbManager instance
      */
     constructor(
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         { cid, configFile, caps, specs, execArgv, retries }: Workers.WorkerRunPayload,
         stdout: WritableStreamBuffer,
-        stderr: WritableStreamBuffer
+        stderr: WritableStreamBuffer,
+        xvfbManager: XvfbManager
     ) {
         super()
         this.cid = cid
@@ -82,6 +86,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         this.retries = retries
         this.stdout = stdout
         this.stderr = stderr
+        this.#processFactory = new ProcessFactory(xvfbManager)
 
         this.isReady = new Promise((resolve) => { this.isReadyResolver = resolve })
         this.isSetup = new Promise((resolve) => { this.isSetupResolver = resolve })
@@ -90,7 +95,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     /**
      * spawns process to kick of wdio-runner
      */
-    startProcess() {
+    async startProcess() {
         const { cid, execArgv } = this
         const argv = process.argv.slice(2)
 
@@ -106,28 +111,23 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         }
 
         /**
-         * only attach ts loader if
+         * propagate node flags to child process, e.g. `--import tsx`
          */
-        if (
-            /**
-             * autoCompile feature is enabled
-             */
-            process.env.WDIO_LOAD_TSX === '1' &&
-            /**
-             * the `@wdio/cli` didn't already attached the loader to the environment
-             */
-            !(process.env.NODE_OPTIONS || '').includes('--import tsx')
-        ) {
-            runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --import tsx'
-        }
+        runnerEnv.NODE_OPTIONS = process.env.NODE_OPTIONS + ' ' + (runnerEnv.NODE_OPTIONS || '')
 
         log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
-        const childProcess = this.childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
-            cwd: process.cwd(),
-            env: runnerEnv,
-            execArgv,
-            stdio: ['inherit', 'pipe', 'pipe', 'ipc']
-        })
+
+        // Use ProcessFactory to create the appropriate process
+        const childProcess = this.childProcess = await this.#processFactory.createWorkerProcess(
+            path.join(__dirname, 'run.js'),
+            argv,
+            {
+                cwd: process.cwd(),
+                env: runnerEnv,
+                execArgv,
+                stdio: ['inherit', 'pipe', 'pipe', 'ipc']
+            }
+        )
 
         childProcess.on('message', this._handleMessage.bind(this))
         childProcess.on('error', this._handleError.bind(this))
@@ -191,9 +191,9 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         if (childProcess && payload.origin === 'debugger' && payload.name === 'start') {
             replQueue.add(
                 childProcess,
-                { prompt: `[${cid}] \u203A `, ...payload.params },
+                { prompt: `[${cid}] \u203A `, ...payload.params } as ReplConfig,
                 () => this.emit('message', Object.assign(payload, { cid })),
-                (ev: any) => this.emit('message', ev)
+                (ev: unknown) => this.emit('message', ev)
             )
             return replQueue.next()
         }
@@ -236,7 +236,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
      * @param  command  method to run in wdio-runner
      * @param  args     arguments for functions to call
      */
-    postMessage (command: string, args: Workers.WorkerMessageArgs, requiresSetup = false): void {
+    async postMessage (command: string, args: Workers.WorkerMessageArgs, requiresSetup = false): Promise<void> {
         const { cid, configFile, capabilities, specs, retries, isBusy } = this
 
         if (isBusy && !ACCEPTABLE_BUSY_COMMANDS.includes(command)) {
@@ -248,7 +248,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
          * closes after running its job
          */
         if (!this.childProcess) {
-            this.childProcess = this.startProcess()
+            this.childProcess = await this.startProcess()
         }
 
         const cmd: Workers.WorkerCommand = { cid, command, configFile, args, caps: capabilities, specs, retries }

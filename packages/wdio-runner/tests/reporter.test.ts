@@ -1,6 +1,5 @@
 import path from 'node:path'
 import { describe, expect, it, vi, test, afterEach } from 'vitest'
-import type { Options, Capabilities } from '@wdio/types'
 
 import BaseReporter from '../src/reporter.js'
 
@@ -20,7 +19,7 @@ class CustomReporter {
     }
 }
 
-const capability: Capabilities.WebdriverIO = { browserName: 'foo' }
+const capability: WebdriverIO.Capabilities = { browserName: 'foo' }
 
 process.send = vi.fn()
 
@@ -32,10 +31,21 @@ describe('BaseReporter', () => {
                 'dot',
                 ['dot', { foo: 'bar' }]
             ]
-        } as Options.Testrunner, '0-0', capability)
+        } as WebdriverIO.Config, '0-0', capability)
         await reporter.initReporters()
 
         expect(reporter['_reporters']).toHaveLength(2)
+    })
+
+    it('should make "dot" reporter default', async () => {
+        const reporter = new BaseReporter({
+            outputDir: '/foo/bar',
+            reporters: [],
+        } as WebdriverIO.Config, '0-0', capability)
+        await reporter.initReporters()
+
+        expect(reporter['_reporters']).toHaveLength(1)
+        expect(reporter['_reporters'][0].constructor.name).toBe('DotReporter')
     })
 
     it('getLogFile', async () => {
@@ -45,7 +55,7 @@ describe('BaseReporter', () => {
                 'dot',
                 ['dot', { foo: 'bar' }]
             ]
-        } as Options.Testrunner, '0-0', capability)
+        } as WebdriverIO.Config, '0-0', capability)
         await reporter.initReporters()
 
         expect(reporter.getLogFile('foobar'))
@@ -60,7 +70,7 @@ describe('BaseReporter', () => {
                 ['dot', { foo: 'bar', logFile: '/foobar.log' }]
             ],
             capabilities: [capability]
-        } as Options.Testrunner, '0-0', capability)
+        } as WebdriverIO.Config, '0-0', capability)
         await reporter.initReporters()
 
         // @ts-expect-error
@@ -81,7 +91,7 @@ describe('BaseReporter', () => {
                 }]
             ],
             capabilities: [capability]
-        } as Options.Testrunner, '0-0', capability)
+        } as WebdriverIO.Config, '0-0', capability)
         await reporter.initReporters()
         expect(reporter.getLogFile('dot'))
             .toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)baz(\\|\/)wdio-0-0-dot-reporter.log/)
@@ -105,7 +115,7 @@ describe('BaseReporter', () => {
                     }
                 }]
             ]
-        } as Options.Testrunner, '0-0', capability)
+        } as WebdriverIO.Config, '0-0', capability)
         await reporter.initReporters()
         expect(reporter.getLogFile('dot'))
             .toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-results-0-0-foo.log/)
@@ -122,7 +132,7 @@ describe('BaseReporter', () => {
                         outputFileFormat: 'foo'
                     }]
                 ]
-            } as Options.Testrunner, '0-0', capability)
+            } as WebdriverIO.Config, '0-0', capability)
             await reporter.initReporters()
         }).rejects.toThrow('outputFileFormat must be a function')
     })
@@ -133,7 +143,7 @@ describe('BaseReporter', () => {
                 'dot',
                 ['dot', { foo: 'bar' }]
             ]
-        } as Options.Testrunner, '0-0', capability)
+        } as WebdriverIO.Config, '0-0', capability)
 
         expect(reporter.getLogFile('foobar')).toBe(undefined)
     })
@@ -145,10 +155,10 @@ describe('BaseReporter', () => {
                 'dot',
                 ['dot', { foo: 'bar' }]
             ]
-        } as Options.Testrunner, '0-0', capability)
+        } as WebdriverIO.Config, '0-0', capability)
         await reporter.initReporters()
 
-        const payload = { foo: [1, 2, 3] }
+        const payload: any = { foo: [1, 2, 3] }
         reporter.emit('runner:start', payload)
         expect(reporter['_reporters'].map((r) => vi.mocked(r.emit).mock.calls)).toEqual([
             [['runner:start', Object.assign(payload, { cid: '0-0' })]],
@@ -164,10 +174,10 @@ describe('BaseReporter', () => {
                 'dot',
                 ['dot', { foo: 'bar' }]
             ]
-        } as Options.Testrunner, '0-0', capability)
+        } as WebdriverIO.Config, '0-0', capability)
         await reporter.initReporters()
 
-        const payload = { foo: [1, 2, 3] }
+        const payload: any = { foo: [1, 2, 3] }
         reporter.emit('test:fail', payload)
 
         reporter['_reporters'].forEach((reporter) => {
@@ -184,7 +194,7 @@ describe('BaseReporter', () => {
                 'dot',
                 ['dot', { foo: 'bar' }]
             ]
-        } as Options.Testrunner, '0-0', capability)
+        } as WebdriverIO.Config, '0-0', capability)
         await reporter.initReporters()
         const error = new Error('foobar')
 
@@ -203,7 +213,7 @@ describe('BaseReporter', () => {
         const workingReporter = ['dot', { foo: 'bar' }]
         const reporter = new BaseReporter({
             outputDir: '/foo/bar',
-            reporters: [faultyReporter, workingReporter] } as Options.Testrunner, '0-0', capability)
+            reporters: [faultyReporter, workingReporter] } as WebdriverIO.Config, '0-0', capability)
 
         await reporter.initReporters()
         const faultyReporterInstance = reporter['_reporters'][0]
@@ -212,7 +222,7 @@ describe('BaseReporter', () => {
             throw new Error('Reporter throws an error')
         })
 
-        const payload = { foo: [1] }
+        const payload: any = { foo: [1] }
         reporter.emit('any', payload)
 
         expect(faultyReporterInstance.emit).toBeCalledTimes(1)
@@ -239,7 +249,7 @@ describe('BaseReporter', () => {
             outputDir: '/foo/bar',
             reporters: [CustomReporter] as any,
             capabilities: [capability]
-        } as Options.Testrunner, '0-0', capability)
+        } as WebdriverIO.Config, '0-0', capability)
         await reporter.initReporters()
         expect(reporter['_reporters']).toHaveLength(1)
         // @ts-ignore
@@ -253,7 +263,7 @@ describe('BaseReporter', () => {
                 outputDir: '/foo/baz/bar'
             }]] as any,
             capabilities: [capability]
-        } as Options.Testrunner, '0-0', capability)
+        } as WebdriverIO.Config, '0-0', capability)
         await reporter.initReporters()
 
         expect(reporter.getLogFile('CustomReporter')).toMatch(/(\\|\/)foo(\\|\/)baz(\\|\/)bar(\\|\/)wdio-0-0-CustomReporter-reporter.log/)
@@ -266,7 +276,7 @@ describe('BaseReporter', () => {
                 outputDir: '/foo/bar',
                 reporters: [{ foo: 'bar' } as any],
                 capabilities: [capability]
-            } as Options.Testrunner, '0-0', capability)
+            } as WebdriverIO.Config, '0-0', capability)
             await reporter.initReporters()
         } catch (err: any) {
             expect(err.message).toBe('Invalid reporters config')
@@ -281,7 +291,7 @@ describe('BaseReporter', () => {
             outputDir: '/foo/bar',
             reporters: [CustomReporter, CustomReporter] as any,
             capabilities: [capability]
-        } as Options.Testrunner, '0-0', capability)
+        } as WebdriverIO.Config, '0-0', capability)
         await reporter.initReporters()
 
         // @ts-ignore test reporter param
@@ -301,7 +311,7 @@ describe('BaseReporter', () => {
             reporterSyncInterval: 10,
             reporterSyncTimeout: 100,
             capabilities: [capability]
-        } as Options.Testrunner, '0-0', capability)
+        } as WebdriverIO.Config, '0-0', capability)
         await reporter.initReporters()
 
         // @ts-ignore test reporter param

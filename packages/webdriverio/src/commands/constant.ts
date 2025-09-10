@@ -9,6 +9,12 @@ const ACCEPTED_OPTIONS = ['x', 'y', 'element']
 export const SCRIPT_PREFIX = '/* __wdio script__ */'
 export const SCRIPT_SUFFIX = '/* __wdio script end__ */'
 
+/**
+ * These scripts are loaded by Esbuild at build time and injected into the bundle
+ */
+declare const WDIO_RESQ_SCRIPT: string
+export const resqScript = WDIO_RESQ_SCRIPT
+
 interface FormattedTouchAction extends Omit<TouchAction, 'element'> {
     element?: string
 }
@@ -24,7 +30,7 @@ export const formatArgs = function (
 ): FormattedActions[] {
     return actions.map((action: TouchAction) => {
         if (Array.isArray(action)) {
-            return formatArgs(scope, action) as any
+            return formatArgs(scope, action) as unknown as FormattedActions
         }
 
         if (typeof action === 'string') {
@@ -39,8 +45,8 @@ export const formatArgs = function (
         /**
          * don't propagate for actions that don't require element options
          */
-        const actionElement = action.element && typeof (action.element as any as WebdriverIO.Element).elementId === 'string'
-            ? (action.element as any as WebdriverIO.Element).elementId
+        const actionElement = action.element && typeof (action.element as unknown as WebdriverIO.Element).elementId === 'string'
+            ? (action.element as unknown as WebdriverIO.Element).elementId
             : (scope as WebdriverIO.Element).elementId
         if (POS_ACTIONS.includes(action.action) && formattedAction.options && actionElement) {
             formattedAction.options.element = actionElement

@@ -3,12 +3,16 @@ import { createHmac } from 'node:crypto'
 
 const SEPARATOR = '│'
 
+interface Row {
+    cells: string[]
+}
+
 /**
  * transform cucumber table to format suitable for `easy-table`
  * @param   {object[]} rows cucumber table rows
  * @returns {object[]}
  */
-export const buildTableData = (rows: any) => rows.map((row: any) => {
+export const buildTableData = (rows: Row[]) => rows.map((row: Row) => {
     const tableRow: Record<number, string> = {};
     [...row.cells, ''].forEach((cell, idx) => {
         tableRow[idx] = (idx === 0 ? `${SEPARATOR} ` : '') + cell
@@ -21,7 +25,7 @@ export const buildTableData = (rows: any) => rows.map((row: any) => {
  * @param   {object[]} data table data
  * @returns {string}
  */
-export const printTable = (data: any) => Table.print(data, undefined, (table) => {
+export const printTable = (data: unknown) => Table.print(data, undefined, (table) => {
     table.separator = ` ${SEPARATOR} `
     return table.print()
 })

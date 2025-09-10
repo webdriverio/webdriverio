@@ -80,6 +80,72 @@ More service options can be found [here](/docs/visual-testing/service-options).
 
 Once set up in your WebdriverIO configuration, you can go ahead and add visual assertions to [your tests](/docs/visual-testing/writing-tests).
 
+### Capabilities
+To use the Visual Testing module, **you don’t need to add any extra options to your capabilities**. However, in some cases, you may want to add additional metadata to your visual tests, such as a `logName`.
+
+The `logName` allows you to assign a custom name to each capability, which can then be included in the image filenames. This is particularly useful for distinguishing screenshots taken across different browsers, devices, or configurations.
+
+To enable this, you can define `logName` in the `capabilities` section and ensure the `formatImageName` option in the Visual Testing service references it. Here's how you can set it up:
+
+```js
+import path from "node:path";
+
+// wdio.conf.ts
+export const config = {
+    // ...
+    // =====
+    // Setup
+    // =====
+    capabilities: [
+        {
+            browserName: 'chrome',
+            'wdio-ics:options': {
+                logName: 'chrome-mac-15', // Custom log name for Chrome
+            },
+        }
+        {
+            browserName: 'firefox',
+            'wdio-ics:options': {
+                logName: 'firefox-mac-15', // Custom log name for Firefox
+            },
+        }
+    ],
+    services: [
+        [
+            "visual",
+            {
+                // Some options, see the docs for more
+                baselineFolder: path.join(process.cwd(), "tests", "baseline"),
+                screenshotPath: path.join(process.cwd(), "tmp"),
+                // The format below will use the `logName` from capabilities
+                formatImageName: "{tag}-{logName}-{width}x{height}",
+                // ... more options
+            },
+        ],
+    ],
+    // ...
+};
+```
+
+#### How it works
+1. Setting Up the `logName`:
+
+    - In the `capabilities` section, assign a unique `logName` to each browser or device. For example, `chrome-mac-15` identifies tests running on Chrome on macOS version 15.
+
+2. Custom Image Naming:
+
+    - The `formatImageName` option integrates the `logName` into the screenshot filenames. For example, if the `tag` is homepage and the resolution is `1920x1080`, the resulting filename might look like this:
+
+        `homepage-chrome-mac-15-1920x1080.png`
+
+3. Benefits of Custom Naming:
+
+    - Distinguishing between screenshots from different browsers or devices becomes much easier, especially when managing baselines and debugging discrepancies.
+
+4. Note on Defaults:
+
+    -If `logName` is not set in the capabilities, the `formatImageName` option will show it as an empty string in the filenames (`homepage--15-1920x1080.png`)
+
 ### WebdriverIO MultiRemote
 
 We also support [MultiRemote](https://webdriver.io/docs/multiremote/). To make this work properly make sure that you add `wdio-ics:options` to your
@@ -182,12 +248,11 @@ the `checkTabbablePage` will first create the _actual_ image and then compare it
 
 ##### Options
 
-Both methods use the same options as the [`saveFullPageScreen`](https://github.com/wswebcreation/webdriver-image-comparison/blob/master/docs/OPTIONS.md#savefullpagescreen-or-savetabbablepage) or the
-[`compareFullPageScreen`](https://github.com/wswebcreation/webdriver-image-comparison/blob/master/docs/OPTIONS.md#comparefullpagescreen-or-comparetabbablepage).
+Both methods use the same options as the `saveFullPageScreen` or the `compareFullPageScreen`.
 
 #### Example
 
-This is an example of how the tabbing works on our [guinea pig website](http://guinea-pig.webdriver.io/image-compare.html):
+This is an example of how the tabbing works on our [guinea pig website](https://guinea-pig.webdriver.io/image-compare.html):
 
 ![WDIO tabbing example](/img/visual/tabbable-chrome-latest-1366x768.png)
 
@@ -218,7 +283,10 @@ When running logs info/debug mode you will see the following logs added
 
 ## Typescript support
 
-We now also support typescript types. Add the following to the `types` in your `tsconfig.json`:
+This module includes TypeScript support, allowing you to benefit from auto-completion, type safety, and improved developer experience when using the Visual Testing service.
+
+### Step 1: Add Type Definitions
+To ensure TypeScript recognizes the module types, add the following entry to the types field in your tsconfig.json:
 
 ```json
 {
@@ -226,6 +294,35 @@ We now also support typescript types. Add the following to the `types` in your `
         "types": ["@wdio/visual-service"]
     }
 }
+```
+
+### Step 2: Enable Type Safety for Service Options
+To enforce type checking on the service options, update your WebdriverIO configuration:
+
+```ts
+// wdio.conf.ts
+import { join } from 'node:path';
+// Import the type definition
+import type { VisualServiceOptions } from '@wdio/visual-service';
+
+export const config = {
+    // ...
+    // =====
+    // Setup
+    // =====
+    services: [
+        [
+            "visual",
+            {
+                // Service options
+                baselineFolder: join(process.cwd(), './__snapshots__/'),
+                formatImageName: '{tag}-{logName}-{width}x{height}',
+                screenshotPath: join(process.cwd(), '.tmp/'),
+            } satisfies VisualServiceOptions, // Ensures type safety
+        ],
+    ],
+    // ...
+};
 ```
 
 ## System Requirements

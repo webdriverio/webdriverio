@@ -100,19 +100,23 @@ If no baseline image is found during the comparison the image is automatically c
 
 ### `baselineFolder`
 
--   **Type:** `any`
+-   **Type:** `string|()=> string`
 -   **Mandatory:** No
 -   **Default:** `.path/to/testfile/__snapshots__/`
 -   **Supported:** Web, Hybrid App (Webview), Native App
 
-The directory will hold all the baseline images that are used during the comparison. If not set, the default value will be used which will store the files in a `__snapshots__/`-folder next to the spec that executes the visual tests. A function that accepts an option object can also be used to set the `baselineFolder` value:
+The directory that will hold all the baseline images that are used during the comparison. If not set, the default value will be used which will store the files in a `__snapshots__/`-folder next to the spec that executes the visual tests. A function that returns a `string` can also be used to set the `baselineFolder` value:
 
 ```js
 {
-    baselineFolder: (options) => {
-        const testFolder = path.dirname(options.specs[0]);
-        return path.join(testFolder, "snapshots", type);
-    };
+    baselineFolder: path.join(process.cwd(), 'foo', 'bar', 'baseline')
+},
+// OR
+{
+    baselineFolder: () => {
+        // Do some magic here
+        return path.join(process.cwd(), 'foo', 'bar', 'baseline');
+    }
 }
 ```
 
@@ -254,6 +258,16 @@ The report data will give you the opportunity to build your own visual report wi
 You need to use `@wdio/visual-testing` version `5.2.0` or higher
 :::
 
+### `disableBlinkingCursor`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `false`
+-   **Supported:** Web, Hybrid App (Webview)
+
+En/Disable all `input`, `textarea`, `[contenteditable]` caret "blinking" in the application. If set to `true` the caret will be set to `transparent` before taking a screenshot
+and reset when done
+
 ### `disableCSSAnimation`
 
 -   **Type:** `boolean`
@@ -261,7 +275,7 @@ You need to use `@wdio/visual-testing` version `5.2.0` or higher
 -   **Default:** `false`
 -   **Supported:** Web, Hybrid App (Webview)
 
-En/Disable all CSS animations and the input caret and the input caret in the application. If set to true all animations will be disabled before taking a screenshot
+En/Disable all CSS animations in the application. If set to `true` all animations will be disabled before taking a screenshot
 and reset when done
 
 ### `enableLayoutTesting`
@@ -273,7 +287,7 @@ and reset when done
 
 This will hide all text on a page so only the layout will be used for comparison. Hiding will be done by adding the style `'color': 'transparent !important'` to **each** element.
 
-For the output see [Test Output](./test-output#enablelayouttesting)
+For the output see [Test Output](/docs/visual-testing/test-output#enablelayouttesting)
 
 :::info
 By using this flag each element that contains text (so not only `p, h1, h2, h3, h4, h5, h6, span, a, li`, but also `div|button|..`) will get this property. There is **no** option to tailor this.
@@ -307,6 +321,16 @@ If they can't be determined the defaults will be used.
 -   `tag`: The tag that is provided in the methods that is being called
 -   `width`: The width of the screen
 
+:::info
+
+You can not provide custom paths/folders in the `formatImageName`. If you want to change the path then please check changing the following options:
+
+- [`baselineFolder`](/docs/visual-testing/service-options#baselinefolder)
+- [`screenshotPath`](/docs/visual-testing/service-options#screenshotpath)
+- [`folderOptions`](/docs/visual-testing/method-options#folder-options) per method
+
+:::
+
 ### `fullPageScrollTimeout`
 
 -   **Type:** `number`
@@ -316,6 +340,12 @@ If they can't be determined the defaults will be used.
 
 The timeout in milliseconds to wait after a scroll. This might help identify pages with lazy loading.
 
+:::info
+
+This will only work when the service/method option `userBasedFullPageScreenshot` is set to `true`, see also [`userBasedFullPageScreenshot`](/docs/visual-testing/service-options#userbasedbullpagescreenshot)
+
+:::
+
 ### `hideScrollBars`
 
 -   **Type:** `boolean`
@@ -324,15 +354,6 @@ The timeout in milliseconds to wait after a scroll. This might help identify pag
 -   **Supported:** Web, Hybrid App (Webview)
 
 Hide scrollbars in the application. If set to true all scrollbars will be disabled before taking a screenshot. This is set to default `true` to prevent extra issues.
-
-### `isHybridApp`
-
--   **Type:** `boolean`
--   **Mandatory:** No
--   **Default:** `false`
--   **Supported:** Hybrid App
-
-Tell the module if the used app is a Hybrid app, this will not calculate the address bar height because it is not there.
 
 ### `logLevel`
 
@@ -356,22 +377,24 @@ Save the images per instance in a separate folder so for example all Chrome scre
 
 ### `screenshotPath`
 
--   **Type:** `any`
+-   **Type:** `string | () => string`
 -   **Default:** `.tmp/`
 -   **Mandatory:** no
 -   **Supported:** Web, Hybrid App (Webview), Native App
 
 The directory that will hold all the actual/different screenshots. If not set, the default value will be used. A function that
-accepts an option object can also be used to set the screenshotPath value:
+returns a string can also be used to set the screenshotPath value:
 
 ```js
-getFolder = type = (options) => {
-    const testFolder = path.dirname(options.specs[0]);
-
-    return path.join(testFolder, "snapshots", type);
-};
 {
-    screenshotPath: getFolder(options);
+    screenshotPath: path.join(process.cwd(), 'foo', 'bar', 'screenshotPath')
+},
+// OR
+{
+    screenshotPath: () => {
+        // Do some magic here
+        return path.join(process.cwd(), 'foo', 'bar', 'screenshotPath');
+    }
 }
 ```
 
@@ -383,6 +406,27 @@ getFolder = type = (options) => {
 -   **Supported:** Web
 
 The padding which needs to be added to the toolbar bar on iOS and Android to do a proper cutout of the viewport.
+
+### `userBasedFullPageScreenshot`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `false`
+-   **Supported:** Web, Hybrid App (Webview) **Introduced in visual-service@7.0.0**
+
+By default, full-page screenshots on desktop web are captured using the WebDriver BiDi protocol, which enables fast, stable, and consistent screenshots without scrolling.
+When userBasedFullPageScreenshot is set to true, the screenshot process simulates a real user: scrolling through the page, capturing viewport-sized screenshots, and stitching them together. This method is useful for pages with lazy-loaded content or dynamic rendering that depends on scroll position.
+
+Use this option if your page relies on content loading while scrolling or if you want to preserve the behavior of older screenshot methods.
+
+### `waitForFontsLoaded`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `true`
+-   **Supported:** Web, Hybrid App (Webview)
+
+Fonts, including third-party fonts, can be loaded synchronously or asynchronously. Asynchronous loading means that fonts might load after WebdriverIO determines that a page has fully loaded. To prevent font rendering issues, this module, by default, will wait for all fonts to be loaded before taking a screenshot.
 
 ## Tabbable Options
 
@@ -398,7 +442,7 @@ The way tabbable elements are selected is based on the module [tabbable](https:/
 
 -   **Type:** `object`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The options that can be changed for the lines and dots if you use the `{save|check}Tabbable`-methods. The options are explained below.
@@ -407,7 +451,7 @@ The options that can be changed for the lines and dots if you use the `{save|che
 
 -   **Type:** `object`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The options to change the circle.
@@ -416,7 +460,7 @@ The options to change the circle.
 
 -   **Type:** `string`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The background color of the circle.
@@ -425,7 +469,7 @@ The background color of the circle.
 
 -   **Type:** `string`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The border color of the circle.
@@ -434,7 +478,7 @@ The border color of the circle.
 
 -   **Type:** `number`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The border width of the circle.
@@ -443,7 +487,7 @@ The border width of the circle.
 
 -   **Type:** `string`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The color of the font of the text in the circle. This will only be shown if [`showNumber`](./#tabbableoptionscircleshownumber) is set to `true`.
@@ -452,7 +496,7 @@ The color of the font of the text in the circle. This will only be shown if [`sh
 
 -   **Type:** `string`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The family of the font of the text in the circle. This will only be shown if [`showNumber`](./#tabbableoptionscircleshownumber) is set to `true`.
@@ -463,7 +507,7 @@ Make sure to set fonts that are supported by the browsers.
 
 -   **Type:** `number`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The size of the font of the text in the circle. This will only be shown if [`showNumber`](./#tabbableoptionscircleshownumber) is set to `true`.
@@ -472,7 +516,7 @@ The size of the font of the text in the circle. This will only be shown if [`sho
 
 -   **Type:** `number`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The size of the circle.
@@ -481,7 +525,7 @@ The size of the circle.
 
 -   **Type:** `showNumber`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 Show the tab sequence number in the circle.
@@ -490,7 +534,7 @@ Show the tab sequence number in the circle.
 
 -   **Type:** `object`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The options to change the line.
@@ -499,7 +543,7 @@ The options to change the line.
 
 -   **Type:** `string`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The color of the line.
@@ -508,20 +552,18 @@ The color of the line.
 
 -   **Type:** `number`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The width of the line.
 
-### `waitForFontsLoaded`
-
--   **Type:** `boolean`
--   **Mandatory:** No
--   **Default:** `true`
--   **Supported:** Web, Hybrid App (Webview)
-
-Fonts, including third-party fonts, can be loaded synchronously or asynchronously. Asynchronous loading means that fonts might load after WebdriverIO determines that a page has fully loaded. To prevent font rendering issues, this module, by default, will wait for all fonts to be loaded before taking a screenshot.
-
 ## Compare options
 
-The compare options can also be set as service options, they are described in the [Method Compare options](./method-options#compare-check-options)
+### `compareOptions`
+
+-   **Type:** `object`
+-   **Mandatory:** No
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/6a988808c9adc58f58c5a66cd74296ae5c1ad6dc/packages/webdriver-image-comparison/src/helpers/options.ts#L46-L60) for all default values
+-   **Supported:** Web, Hybrid App (Webview), Native App (See [Method Compare options](./method-options#compare-check-options) for more information)
+
+The compare options can also be set as service options, they are described in the [Method Compare options](/docs/visual-testing/method-options#compare-check-options)

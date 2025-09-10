@@ -7,6 +7,8 @@ import type { EventData } from './bidi/localTypes.js'
 import type { CommandData } from './bidi/remoteTypes.js'
 import type { CommandResponse } from './bidi/localTypes.js'
 
+import type { RequestStartEvent, RequestEndEvent, RequestPerformanceEvent, RequestRetryEvent } from './request/types.js'
+
 export interface JSONWPCommandError extends Error {
     code?: string
     statusCode?: string
@@ -25,9 +27,11 @@ export interface SessionFlags {
     isSauce: boolean
     isSeleniumStandalone: boolean
     isBidi: boolean
+    isWindowsApp: boolean
+    isMacApp: boolean
 }
 
-type Fn = (...args: any) => any
+type Fn = (...args: unknown[]) => unknown
 type ValueOf<T> = T[keyof T]
 type ObtainMethods<T> = { [Prop in keyof T]: T[Prop] extends Fn ? ThenArg<ReturnType<T[Prop]>> : never }
 type WebDriverBidiCommands = typeof WebDriverBidiProtocol
@@ -36,18 +40,34 @@ export type BidiResponses = ValueOf<ObtainMethods<Pick<BidiHandler, BidiCommands
 export type RemoteConfig = Options.WebDriver & Capabilities.WithRequestedCapabilities
 
 type BidiInterface = ObtainMethods<Pick<BidiHandler, BidiCommands>>
+export interface WebDriverCommandEvent {
+    command: string
+    method: string
+    endpoint: string
+    body: unknown
+}
+export interface WebDriverResultEvent {
+    command: string
+    method: string
+    endpoint: string
+    body: unknown
+    result: unknown
+}
 type WebDriverClassicEvents = {
-    command: { command: string, method: string, endpoint: string, body: any }
-    result: { command: string, method: string, endpoint: string, body: any, result: any }
+    command: WebDriverCommandEvent
+    result: WebDriverResultEvent
     bidiCommand: Omit<CommandData, 'id'>,
     bidiResult: CommandResponse,
-    'request.performance': { durationMillisecond: number, error: string, request: any, retryCount: number, success: boolean }
+    'request.performance': RequestPerformanceEvent
+    'request.retry': RequestRetryEvent
+    'request.start': RequestStartEvent
+    'request.end': RequestEndEvent
 }
 export type BidiEventMap = {
     [Event in keyof Omit<WebDriverBidiCommands, 'sendCommand' | 'sendAsyncCommand'>]: BidiInterface[WebDriverBidiCommands[Event]['socket']['command']]
 }
 
-type GetParam<T extends { method: string, params: any }, U extends string> = T extends { method: U } ? T['params'] : never
+type GetParam<T extends { method: string, params: unknown }, U extends string> = T extends { method: U } ? T['params'] : never
 export type EventMap = {
     [Event in EventData['method']]: GetParam<EventData, Event>
 } & WebDriverClassicEvents
@@ -75,4 +95,17 @@ export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.We
     capabilities?: WebdriverIO.Capabilities
     // original requested capabilities
     requestedCapabilities?: Capabilities.WithRequestedCapabilities['capabilities']
+}
+
+/**
+ * Additional options outside of the WebDriver spec, exclusively for WebdriverIO, only for runtime, and not sent to Appium
+ */
+export class CommandRuntimeOptions {
+
+    // mask the text parameter value of the command
+    mask?: boolean
+
+    constructor (options: { mask?: boolean }) {
+        this.mask = options.mask
+    }
 }

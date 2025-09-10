@@ -4,6 +4,8 @@ import { describe, it, expect, beforeAll, vi, beforeEach } from 'vitest'
 
 import { remote, Key } from '../../../src/index.js'
 
+import '../../../src/node.js'
+
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('fetch')
 vi.mock('node:os')
@@ -207,7 +209,7 @@ describe('action command', () => {
             .move({ origin: browser.$('#drag') })
             .perform()
         const calls = vi.mocked(fetch).mock.calls
-        const [,, [, performActionParam]] = calls as any
+        const [,,, [, performActionParam]] = calls as any
         expect(JSON.parse(performActionParam.body)).toMatchSnapshot()
     })
 
@@ -216,7 +218,7 @@ describe('action command', () => {
             .scroll({ origin: browser.$('#drag') })
             .perform()
         const calls = vi.mocked(fetch).mock.calls
-        const [,, [, performActionParam]] = calls as any
+        const [,,, [, performActionParam]] = calls as any
         expect(JSON.parse(performActionParam.body)).toMatchSnapshot()
     })
 })

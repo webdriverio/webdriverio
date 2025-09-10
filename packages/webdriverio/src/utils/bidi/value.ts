@@ -1,4 +1,6 @@
 import { ELEMENT_KEY, type remote } from 'webdriver'
+import type { ElementReference } from '@wdio/protocols'
+
 import { PrimitiveType, NonPrimitiveType } from './constants.js'
 
 const TYPE_CONSTANT = 'type'
@@ -106,7 +108,7 @@ export class LocalValue {
      * @param {BigInt} value - The BigInt value.
      * @returns {LocalValue} - The created LocalValue object.
      */
-    static createBigIntValue(value: BigInt) {
+    static createBigIntValue(value: bigint) {
         return new LocalValue(PrimitiveType.BigInt, value)
     }
 
@@ -172,7 +174,7 @@ export class LocalValue {
      * @param {Set} value - The value to be set.
      * @returns {LocalValue} - The created LocalValue object.
      */
-    static createSetValue(value: ([unknown, unknown] | LocalValue)[]) {
+    static createSetValue(value: ([unknown, unknown] | ReferenceValue | LocalValue)[]) {
         return new LocalValue(NonPrimitiveType.Set, value)
     }
 
@@ -190,25 +192,25 @@ export class LocalValue {
         return new ReferenceValue(handle, sharedId)
     }
 
-    static getArgument(argument: any) {
+    static getArgument(argument: unknown) {
         const type = typeof argument
         switch (type) {
         case PrimitiveType.String:
-            return LocalValue.createStringValue(argument)
+            return LocalValue.createStringValue(argument as string)
         case PrimitiveType.Number:
             if (
                 Number.isNaN(argument) ||
                 Object.is(argument, -0) ||
                 !Number.isFinite(argument)
             ) {
-                return LocalValue.createSpecialNumberValue(argument)
+                return LocalValue.createSpecialNumberValue(argument as number)
             }
 
-            return LocalValue.createNumberValue(argument)
+            return LocalValue.createNumberValue(argument as number)
         case PrimitiveType.Boolean:
-            return LocalValue.createBooleanValue(argument)
+            return LocalValue.createBooleanValue(argument as boolean)
         case PrimitiveType.BigInt:
-            return LocalValue.createBigIntValue(argument.toString())
+            return LocalValue.createBigIntValue(argument as bigint)
         case PrimitiveType.Undefined:
             return LocalValue.createUndefinedValue()
         case NonPrimitiveType.Object:
@@ -231,14 +233,14 @@ export class LocalValue {
                 return new LocalValue(NonPrimitiveType.Map, map)
             }
             if (argument instanceof Set) {
-                const set: (any | LocalValue)[] = []
+                const set: (ReferenceValue | LocalValue)[] = []
                 argument.forEach((value) => {
                     set.push(LocalValue.getArgument(value))
                 })
                 return LocalValue.createSetValue(set)
             }
             if (argument instanceof Array) {
-                const arr: (any | LocalValue)[] = []
+                const arr: (ReferenceValue | LocalValue)[] = []
                 argument.forEach((value) => {
                     arr.push(LocalValue.getArgument(value))
                 })
@@ -250,14 +252,14 @@ export class LocalValue {
                     flags: argument.flags,
                 })
             }
-            if (ELEMENT_KEY in argument) {
+            if (argument && ELEMENT_KEY in (argument as ElementReference)) {
                 return LocalValue.createReferenceValue(
                     RemoteReferenceType.SharedId,
-                    argument[ELEMENT_KEY]
+                    (argument as ElementReference)[ELEMENT_KEY]
                 )
             }
 
-            return LocalValue.createObjectValue(argument)
+            return LocalValue.createObjectValue(argument as Record<string | number | symbol, unknown>)
         }
 
         throw new Error(`Unsupported type: ${type}`)

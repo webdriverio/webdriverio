@@ -22,7 +22,8 @@ import {
     isUndefined,
     o11yClassErrorHandler,
     removeAnsiColors,
-    getObservabilityProduct
+    getObservabilityProduct,
+    generateHashCodeFromFields
 } from './util.js'
 import type {
     TestData,
@@ -30,7 +31,8 @@ import type {
     PlatformMeta,
     CurrentRunInfo,
     StdLog,
-    CBTData
+    CBTData,
+    IntegrationObject
 } from './types.js'
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
@@ -52,6 +54,7 @@ class _InsightsHandler {
         steps: []
     }
     private _userCaps?: Capabilities.ResolvedTestrunnerCapabilities = {}
+    private _options?: BrowserstackConfig & BrowserstackOptions
     private listener = Listener.getInstance()
     public currentTestId: string | undefined
     public cbtQueue: Array<CBTData> = []
@@ -61,6 +64,7 @@ class _InsightsHandler {
         const sessionId = (this._browser as WebdriverIO.Browser).sessionId
 
         this._userCaps = _userCaps
+        this._options = _options
 
         this._platformMeta = {
             browserName: caps.browserName,
@@ -76,8 +80,8 @@ class _InsightsHandler {
 
     _isAppAutomate(): boolean {
         const browserDesiredCapabilities = (this._browser?.capabilities ?? {})
-        const desiredCapabilities = (this._userCaps ?? {})
-        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!(( desiredCapabilities as any)['appium:options']?.app)
+        const desiredCapabilities = (this._userCaps ?? {}) as WebdriverIO.Capabilities
+        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!(desiredCapabilities['appium:options']?.app)
     }
 
     registerListeners() {
@@ -94,13 +98,13 @@ class _InsightsHandler {
 
     async before () {
         if (isBrowserstackSession(this._browser)) {
-            await (this._browser as WebdriverIO.Browser).execute(`browserstack_executor: ${JSON.stringify({
+            await (this._browser as WebdriverIO.Browser).executeScript(`browserstack_executor: ${JSON.stringify({
                 action: 'annotate',
                 arguments: {
-                    data: `ObservabilitySync:${Date.now()}`,
+                    data: `TestReportingSync:${Date.now()}`,
                     level: 'debug'
                 }
-            })}`)
+            })}`, [])
         }
 
         const gitMeta = await getGitMetaData()
@@ -238,7 +242,7 @@ class _InsightsHandler {
         }
     }
 
-    async beforeHook (test: Frameworks.Test|CucumberHook|undefined, context: any) {
+    async beforeHook (test: Frameworks.Test|CucumberHook|undefined, context: unknown) {
         if (!frameworkSupportsHook('before', this._framework)) {
             return
         }
@@ -291,6 +295,7 @@ class _InsightsHandler {
             This won't be needed for `afterAll`, as even if `afterAll` fails all the tests that we need are already run by then, so we don't need to send the stats for them separately
          */
         if (!result.passed && (hookType === 'BEFORE_EACH' || hookType === 'BEFORE_ALL' || hookType === 'AFTER_EACH')) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const sendTestSkip = async (skippedTest: any) => {
 
                 // We only need to send the tests that whose state is not determined yet. The state of tests which is determined will already be sent.
@@ -308,11 +313,12 @@ class _InsightsHandler {
             /*
                 Recursively send the tests as skipped for all suites below the hook. This is to handle nested describe blocks
              */
-            const sendSuiteSkipped = async (suite: any) => {
+            const sendSuiteSkipped = async (suite: { tests: unknown[], suites: unknown[] }) => {
                 for (const skippedTest of suite.tests) {
                     await sendTestSkip(skippedTest)
                 }
                 for (const skippedSuite of suite.suites) {
+                    // @ts-expect-error fix types here
                     await sendSuiteSkipped(skippedSuite)
                 }
             }
@@ -392,7 +398,21 @@ class _InsightsHandler {
             finishedAt: (new Date()).toISOString()
         }
         this.flushCBTDataQueue()
-        this.listener.testFinished(this.getRunData(test, 'TestRunFinished', result))
+        const testData = this.getRunData(test, 'TestRunFinished', result)
+        this.listener.testFinished(testData)
+        const testFinishHashCode = generateHashCodeFromFields(
+            [
+                testData.integrations?.browserstack?.browser ?? '',
+                testData.integrations?.browserstack?.browser_version ?? '',
+                testData.integrations?.browserstack?.platform ?? '',
+                testData.integrations?.browserstack?.session_id ?? '',
+                testData.integrations?.capabilities ?? {},
+                testData.file_name ?? '',
+                testData.scopes ?? [],
+                testData.name ?? ''
+            ]
+        )
+        TestReporter.hashCodeToHandleTestSkip[testFinishHashCode] = testData.uuid ?? ''
     }
 
     /**
@@ -509,7 +529,7 @@ class _InsightsHandler {
                 this.listener.logCreated([stdLog])
             }
         } catch (error) {
-            BStackLogger.debug(`Exception in uploading log data to Observability with error : ${error}`)
+            BStackLogger.debug(`Exception in uploading log data to Test Reporting and Analytics with error : ${error}`)
         }
     }
 
@@ -532,7 +552,7 @@ class _InsightsHandler {
 
         // log screenshot
         const body = 'body' in args ? args.body : undefined
-        const result = 'result' in args ? args.result : undefined
+        const result = 'result' in args ? args.result as { value: string } : undefined
         if (Boolean(process.env[TESTOPS_SCREENSHOT_ENV]) && isScreenshotCommand(args) && result?.value) {
             await this.listener.onScreenshot([{
                 test_run_uuid: testMeta.uuid,
@@ -566,6 +586,27 @@ class _InsightsHandler {
      * private methods
      */
 
+    /**
+     * Check if any test steps failed (excluding hook failures)
+     * This is used when ignoreHooksStatus is true to determine test status based only on test steps
+     */
+    public hasTestStepFailures(world: ITestCaseHookParameter): boolean {
+        if (!world?.pickle) {
+            return false
+        }
+
+        const uniqueId = getUniqueIdentifierForCucumber(world)
+        const testMetaData = this._tests[uniqueId]
+
+        if (!testMetaData?.steps) {
+            return false
+        }
+
+        // Check if any step failed
+        return testMetaData.steps.some(step => step.result === 'FAILED')
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private attachHookData (context: any, hookId: string): void {
         if (context.currentTest && context.currentTest.parent) {
             const parentTest = `${context.currentTest.parent.title} - ${context.currentTest.title}`
@@ -580,6 +621,7 @@ class _InsightsHandler {
         }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private setHooksFromSuite(parent: any, hookId: string): boolean {
         if (!parent) {
             return false
@@ -655,6 +697,11 @@ class _InsightsHandler {
         }
 
         if ((eventType === 'TestRunFinished' || eventType === 'HookRunFinished') && results) {
+            testData.integrations = {}
+            if (this._browser && this._platformMeta) {
+                const provider = getCloudProvider(this._browser)
+                testData.integrations[provider] = this.getIntegrationsObject()
+            }
             const { error, passed } = results
             if (!passed) {
                 testData.result = (error && error.message && error.message.includes('sync skip; aborting execution')) ? 'ignore' : 'failed'
@@ -683,6 +730,9 @@ class _InsightsHandler {
         }
 
         if (eventType === 'TestRunSkipped') {
+            if (this._hooks[fullTitle]) {
+                testData.hooks = this._hooks[fullTitle]
+            }
             testData.result = 'skipped'
             eventType = 'TestRunFinished'
         }
@@ -697,6 +747,7 @@ class _InsightsHandler {
 
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private getTestRunId(context: any): string|undefined {
         if (!context) {
             return
@@ -713,6 +764,7 @@ class _InsightsHandler {
         return this.getTestRunIdFromSuite(context.test.parent)
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private getTestRunIdFromSuite(parent: any): string|undefined {
         if (!parent) {
             return
@@ -793,6 +845,18 @@ class _InsightsHandler {
             if (result !== 'passed' && result !== 'failed') {
                 result = 'skipped' // mark UNKNOWN/UNDEFINED/AMBIGUOUS/PENDING as skipped
             }
+
+            // Handle ignoreHooksStatus: when enabled and scenario failed, check if it's due to hook failures only
+            const ignoreHooksStatus = this._options?.testObservabilityOptions?.ignoreHooksStatus === true
+            if (ignoreHooksStatus && result === 'failed' && world) {
+                // Check if any test steps failed (excluding hook failures)
+                const hasTestStepFailures = this.hasTestStepFailures(world)
+                if (!hasTestStepFailures) {
+                    // Only hooks failed, override result to passed for Test Observability
+                    result = 'passed'
+                }
+            }
+
             testData.finished_at = (new Date()).toISOString()
             testData.result = result
             testData.duration_in_ms = world.result.duration.seconds * 1000 + world.result.duration.nanos / 1000000 // send duration in ms
@@ -833,10 +897,10 @@ class _InsightsHandler {
     }
 
     async sendCBTInfo() {
-        const integrationsData: any = {}
+        const integrationsData: Record<string, IntegrationObject> = {}
 
         if (this._browser && this._platformMeta) {
-            const provider = getCloudProvider(this._browser)
+            const provider = getCloudProvider(this._browser) as keyof IntegrationObject
             integrationsData[provider] = this.getIntegrationsObject()
         }
 
@@ -864,7 +928,7 @@ class _InsightsHandler {
             browser_version: caps?.browserVersion,
             platform: caps?.platformName,
             product: this._platformMeta?.product,
-            platform_version: getPlatformVersion(this._userCaps as WebdriverIO.Capabilities)
+            platform_version: getPlatformVersion(caps, this._userCaps as WebdriverIO.Capabilities)
         }
     }
 

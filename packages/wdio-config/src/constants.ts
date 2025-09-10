@@ -1,19 +1,20 @@
-import type { Options, Services } from '@wdio/types'
+import type { Services } from '@wdio/types'
 
 const DEFAULT_TIMEOUT = 10000
 
 /* istanbul ignore next */
-export const DEFAULT_CONFIGS: () => Options.Testrunner = () => ({
+export const DEFAULT_CONFIGS: () => WebdriverIO.Config = () => ({
     specs: [],
     suites: {},
     exclude: [],
+    capabilities: [],
     outputDir: undefined,
     logLevel: 'info' as const,
     logLevels: {},
     groupLogsByTestSpec: false,
     excludeDriverLogs: [],
     bail: 0,
-    waitforInterval: 500,
+    waitforInterval: 100,
     waitforTimeout: 5000,
     framework: 'mocha' as const,
     reporters: [],
@@ -34,6 +35,7 @@ export const DEFAULT_CONFIGS: () => Options.Testrunner = () => ({
     specFileRetries: 0,
     specFileRetriesDelay: 0,
     specFileRetriesDeferred: false,
+    autoAssertOnTestEnd: true,
     reporterSyncInterval: 100,
     reporterSyncTimeout: 5000,
     cucumberFeaturesWithLineNumbers: [],

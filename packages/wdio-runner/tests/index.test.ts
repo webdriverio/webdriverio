@@ -6,7 +6,7 @@ import { executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { attach } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
-import { setOptions, SnapshotService } from 'expect-webdriverio'
+import { setOptions, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
 
@@ -18,6 +18,7 @@ vi.mock('util')
 vi.mock('expect-webdriverio', () => ({
     setOptions: vi.fn(),
     expect: vi.fn(),
+    SoftAssertionService: vi.fn(),
     SnapshotService: {
         initiate: vi.fn().mockReturnValue({
             results: ['foobar']
@@ -50,7 +51,7 @@ describe('wdio-runner', () => {
                 deleteSession: vi.fn(),
                 sessionId: '123',
                 config: { afterSession: [hook] }
-            } as any as BrowserObject
+            } as unknown as BrowserObject
             runner['_config'] = { logLevel: 'info', afterSession: [hook] } as any
             await runner.endSession()
             expect(executeHooksWithArgs).toBeCalledWith(
@@ -98,8 +99,8 @@ describe('wdio-runner', () => {
                 [hook],
                 [{ logLevel: 'error', afterSession: [hook] }, { foo: undefined, bar: undefined }, undefined])
             expect(runner['_browser']!.deleteSession).toBeCalledTimes(1)
-            expect(!(runner['_browser'] as any as MultiRemoteBrowserObject).getInstance('foo').sessionId).toBe(true)
-            expect(!(runner['_browser'] as any as MultiRemoteBrowserObject).getInstance('bar').sessionId).toBe(true)
+            expect(!(runner['_browser'] as unknown as MultiRemoteBrowserObject).getInstance('foo').sessionId).toBe(true)
+            expect(!(runner['_browser'] as unknown as MultiRemoteBrowserObject).getInstance('bar').sessionId).toBe(true)
             expect(runner['_shutdown']).toBeCalledTimes(0)
         })
 
@@ -209,7 +210,7 @@ describe('wdio-runner', () => {
                 runner: 'local'
             }
             vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
-            runner['_browser'] = { url: vi.fn(url => url) } as any as BrowserObject
+            runner['_browser'] = { url: vi.fn(url => url) } as unknown as BrowserObject
             runner['_startSession'] = vi.fn().mockReturnValue({ })
             runner['_initSession'] = vi.fn().mockReturnValue({ options: { capabilities: {} } })
             const failures = await runner.run({ args: { watch: true }, caps: {}, configFile: '/foo/bar' } as any)
@@ -230,7 +231,7 @@ describe('wdio-runner', () => {
             }
             vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
             const addServiceSpy = vi.spyOn(ConfigParser.prototype, 'addService')
-            runner['_browser'] = { url: vi.fn(url => url) } as any as BrowserObject
+            runner['_browser'] = { url: vi.fn(url => url) } as unknown as BrowserObject
             runner['_startSession'] = vi.fn().mockReturnValue({ })
             runner['_initSession'] = vi.fn().mockReturnValue({ options: { capabilities: {} } })
             await runner.run({ args: { watch: true }, caps: {}, configFile: '/foo/bar' } as any)
@@ -442,7 +443,7 @@ describe('wdio-runner', () => {
     describe('_shutdown', () => {
         it('should emit exit', async () => {
             const runner = new WDIORunner()
-            runner['_browser'] = {} as any as BrowserObject
+            runner['_browser'] = {} as unknown as BrowserObject
             runner['_reporter'] = {
                 waitForSync: vi.fn().mockReturnValue(Promise.resolve()),
                 emit: vi.fn()
@@ -459,7 +460,7 @@ describe('wdio-runner', () => {
             vi.spyOn(log, 'error').mockImplementation((string) => string)
 
             const runner = new WDIORunner()
-            runner['_browser'] = {} as any as BrowserObject
+            runner['_browser'] = {} as unknown as BrowserObject
             runner['_reporter'] = {
                 waitForSync: vi.fn().mockReturnValue(Promise.reject('foo')),
                 emit: vi.fn()
@@ -475,7 +476,8 @@ describe('wdio-runner', () => {
         it('should emit runner:start if the initialization failed', async () => {
             const runner = new WDIORunner()
             runner['_configParser'] = { getCapabilities: vi.fn().mockReturnValue([{ browserName: 'safari' }]) } as any
-            runner['_browser'] = {} as any as BrowserObject
+            runner['_browser'] = {} as unknown as BrowserObject
+            runner['_caps'] = { 'browserName': 'safari' }
             runner['_reporter'] = {
                 waitForSync: vi.fn().mockReturnValue(Promise.resolve()),
                 emit: vi.fn()
@@ -485,9 +487,7 @@ describe('wdio-runner', () => {
 
             const args = [
                 ['runner:start', {
-                    'capabilities': {
-                        '0': { 'browserName': 'safari' }
-                    },
+                    'capabilities': { 'browserName': 'safari' },
                     'cid': undefined,
                     'config': undefined,
                     'instanceOptions': {},

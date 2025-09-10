@@ -1,7 +1,13 @@
 import { describe, it, expect, vi } from 'vitest'
-import { ELEMENT_KEY } from 'webdriver'
+import { ELEMENT_KEY, type local } from 'webdriver'
 
-import { findElement, isStaleElementError, elementPromiseHandler, transformClassicToBidiSelector } from '../../src/utils/index.js'
+import {
+    findElement,
+    isStaleElementError,
+    elementPromiseHandler,
+    transformClassicToBidiSelector,
+    createFunctionDeclarationFromString
+} from '../../src/utils/index.js'
 
 vi.mock('is-plain-obj', () => ({
     default: vi.fn().mockReturnValue(false)
@@ -11,16 +17,18 @@ describe('findElement', () => {
     it('should find element using JS function', async () => {
         const elemRes = { [ELEMENT_KEY]: 'element-0' }
         const browser: any = {
+            on: vi.fn(),
             elementId: 'source-elem',
             executeScript: vi.fn().mockReturnValue(elemRes)
         }
-        expect(await findElement.call(browser, () => 'testme' as any as HTMLElement)).toEqual(elemRes)
+        expect(await findElement.call(browser, () => 'testme' as unknown as HTMLElement)).toEqual(elemRes)
         expect(browser.executeScript).toBeCalledWith(expect.any(String), [browser])
     })
 
     it('should find element using JS function with referenceId', async () => {
         const elemRes = { [ELEMENT_KEY]: 'element-0' }
         const browser: any = {
+            on: vi.fn(),
             elementId: 'source-elem',
             executeScript: vi.fn().mockResolvedValue(elemRes)
         }
@@ -39,6 +47,7 @@ describe('findElement', () => {
 
     it('should not find element using JS function with referenceId', async () => {
         const browser: any = {
+            on: vi.fn(),
             elementId: 'source-elem',
             executeScript: vi.fn().mockRejectedValue(new Error('stale element reference: element is not attached to the page document'))
         }
@@ -154,6 +163,33 @@ describe('transformClassicToBidiSelector', () => {
         const bidiSelector = transformClassicToBidiSelector('partial link text', 'new')
         expect(bidiSelector.type).toBe('innerText')
         expect(bidiSelector.value).toBe('new')
-        expect(bidiSelector.matchType).toBe('partial')
+        expect((bidiSelector as local.BrowsingContextInnerTextLocator).matchType).toBe('partial')
+    })
+})
+
+describe('createFunctionDeclarationFromString', () => {
+    it('should return a wrapped function string', () => {
+        expect(createFunctionDeclarationFromString((a: string, b: string, c: string) => console.log('foobar' + a + b + c))).toMatchInlineSnapshot(`
+          "function anonymous(
+          ) {
+          return (/* __wdio script__ */(a, b, c) => console.log("foobar" + a + b + c)/* __wdio script end__ */).apply(this, arguments);
+          }"
+        `)
+        function namedFunction (a: string, b: string, c: string) {
+            console.log('foobar' + a + b + c)
+        }
+        expect(createFunctionDeclarationFromString(namedFunction)).toMatchInlineSnapshot(`
+          "function anonymous(
+          ) {
+          return (/* __wdio script__ */function namedFunction(a, b, c) {
+                console.log("foobar" + a + b + c);
+              }/* __wdio script end__ */).apply(this, arguments);
+          }"
+        `)
+        expect(createFunctionDeclarationFromString('console.log("foobar")')).toMatchInlineSnapshot(`
+          "(/* __wdio script__ */function () {
+          console.log("foobar")
+          }/* __wdio script end__ */).apply(this, arguments);"
+        `)
     })
 })

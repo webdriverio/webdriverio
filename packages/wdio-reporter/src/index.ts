@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import path from 'node:path'
 import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
 import type { Reporters, Options } from '@wdio/types'
@@ -12,7 +13,7 @@ import TestStats, { type Test } from './stats/test.js'
 import RunnerStats from './stats/runner.js'
 import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types.js'
 
-type CustomWriteStream = { write: (content: any) => boolean }
+type CustomWriteStream = { write: (content: unknown) => boolean }
 
 export default class WDIOReporter extends EventEmitter {
     outputStream: WriteStream | CustomWriteStream
@@ -27,7 +28,8 @@ export default class WDIOReporter extends EventEmitter {
         hooks: 0,
         passes: 0,
         skipping: 0,
-        failures: 0
+        failures: 0,
+        pending: 0
     }
     retries = 0
     runnerStat?: RunnerStats
@@ -42,8 +44,8 @@ export default class WDIOReporter extends EventEmitter {
         if (this.options.outputDir) {
             try {
                 fs.mkdirSync(this.options.outputDir, { recursive: true })
-            } catch (err: any) {
-                throw new Error(`Couldn't create output directory at "${this.options.outputDir}": ${err.stack}`)
+            } catch (err) {
+                throw new Error(`Couldn't create output directory at "${this.options.outputDir}": ${(err as Error).stack}`)
             }
         }
 
@@ -65,14 +67,14 @@ export default class WDIOReporter extends EventEmitter {
         this.on('client:beforeAssertion', this.onBeforeAssertion.bind(this))
         this.on('client:afterAssertion', this.onAfterAssertion.bind(this))
 
-        this.on('runner:start', /* istanbul ignore next */ (runner: Options.RunnerStart) => {
+        this.on('runner:start', (runner: Options.RunnerStart) => {
             rootSuite.cid = runner.cid
             this.specs.push(...runner.specs)
             this.runnerStat = new RunnerStats(runner)
             this.onRunnerStart(this.runnerStat)
         })
 
-        this.on('suite:start', /* istanbul ignore next */ (params: Suite) => {
+        this.on('suite:start', (params: Suite) => {
             /**
              * the jasmine framework doesn't give us information about the file
              * therefore we need to propagate these information into params
@@ -103,7 +105,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onSuiteRetry(suiteStat)
         })
 
-        this.on('hook:start', /* istanbul ignore next */ (hook: Hook) => {
+        this.on('hook:start', (hook: Hook) => {
             const hookStats = new HookStats(hook)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.hooks.push(hookStats)
@@ -112,14 +114,14 @@ export default class WDIOReporter extends EventEmitter {
             this.onHookStart(hookStats)
         })
 
-        this.on('hook:end',  /* istanbul ignore next */(hook: Hook) => {
+        this.on('hook:end', (hook: Hook) => {
             const hookStats = this.hooks[hook.uid!]
             hookStats.complete(getErrorsFromEvent(hook))
             this.counts.hooks++
             this.onHookEnd(hookStats)
         })
 
-        this.on('test:start', /* istanbul ignore next */ (test: Test) => {
+        this.on('test:start', (test: Test) => {
             test.retries = this.retries
             currentTest = new TestStats(test)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
@@ -129,7 +131,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestStart(currentTest)
         })
 
-        this.on('test:pass',  /* istanbul ignore next */(test: Test) => {
+        this.on('test:pass', (test: Test) => {
             const testStat = this.tests[test.uid]
             testStat.pass()
             this.counts.passes++
@@ -145,7 +147,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestSkip(testStat)
         })
 
-        this.on('test:fail',  /* istanbul ignore next */(test: Test) => {
+        this.on('test:fail', (test: Test) => {
             const testStat = this.tests[test.uid]
 
             testStat.fail(getErrorsFromEvent(test))
@@ -185,30 +187,38 @@ export default class WDIOReporter extends EventEmitter {
             }
 
             this.tests[currentTest.uid] = currentTest
-            currentTest.skip(test.pendingReason!)
-            this.counts.skipping++
-            this.counts.tests++
-            this.onTestSkip(currentTest)
+            if (test.state === 'pending') {
+                currentTest.state = 'pending'
+                this.counts.pending++
+                this.counts.tests++
+                this.onTestPending(currentTest)
+            } else {
+                currentTest.skip(test.pendingReason!)
+                this.counts.skipping++
+                this.counts.tests++
+                this.onTestSkip(currentTest)
+            }
         })
 
-        this.on('test:end',  /* istanbul ignore next */(test: Test) => {
+        this.on('test:end', (test: Test) => {
             const testStat = this.tests[test.uid]
             this.retries = 0
             this.onTestEnd(testStat)
         })
 
-        this.on('suite:end',  /* istanbul ignore next */(suite: Suite) => {
+        this.on('suite:end', (suite: Suite) => {
             const suiteStat = this.suites[suite.uid!]
             suiteStat.complete()
             this.currentSuites.pop()
             this.onSuiteEnd(suiteStat)
         })
 
-        this.on('runner:end',  /* istanbul ignore next */(runner: Options.RunnerEnd) => {
+        this.on('runner:end', (runner: Options.RunnerEnd) => {
             rootSuite.complete()
             if (this.runnerStat) {
                 this.runnerStat.failures = runner.failures
                 this.runnerStat.retries = runner.retries
+                this.runnerStat.error = runner.error
                 this.runnerStat.complete()
                 this.onRunnerEnd(this.runnerStat)
             }
@@ -221,7 +231,7 @@ export default class WDIOReporter extends EventEmitter {
         /**
          * browser client event handlers
          */
-        this.on('client:beforeCommand',  /* istanbul ignore next */(payload) => {
+        this.on('client:beforeCommand', (payload) => {
             if (!currentTest) {
                 return
             }
@@ -233,7 +243,7 @@ export default class WDIOReporter extends EventEmitter {
             }
             currentTest.output.push(Object.assign(payload, { type: 'command' }))
         })
-        this.on('client:afterCommand',  /* istanbul ignore next */(payload) => {
+        this.on('client:afterCommand', (payload) => {
             if (!currentTest) {
                 return
             }
@@ -258,67 +268,51 @@ export default class WDIOReporter extends EventEmitter {
     /**
      * function to write to reporters output stream
      */
-    write(content: any) {
+    write(content: unknown) {
         if (content) {
             this.isContentPresent = true
         }
         this.outputStream.write(content)
     }
+    onRunnerStart(_runnerStats: RunnerStats) { }
+    onBeforeCommand(_commandArgs: BeforeCommandArgs) { }
+    onAfterCommand(_commandArgs: AfterCommandArgs) { }
+    onBeforeAssertion(_assertionArgs: unknown) { }
+    onAfterAssertion(_assertionArgs: unknown) { }
+    onSuiteStart(_suiteStats: SuiteStats) { }
+    onHookStart(_hookStat: HookStats) { }
+    onHookEnd(_hookStats: HookStats) { }
+    onTestStart(_testStats: TestStats) { }
+    onTestPass(_testStats: TestStats) { }
+    onTestFail(_testStats: TestStats) { }
+    onTestRetry(_testStats: TestStats) { }
+    onTestSkip(_testStats: TestStats) { }
+    onTestPending(_testStats: TestStats) { }
+    onTestEnd(_testStats: TestStats) { }
+    onSuiteRetry(_suiteStats: SuiteStats) { }
+    onSuiteEnd(_suiteStats: SuiteStats) { }
+    onRunnerEnd(_runnerStats: RunnerStats) { }
+}
 
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onRunnerStart(runnerStats: RunnerStats) { }
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onBeforeCommand(commandArgs: BeforeCommandArgs) { }
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onAfterCommand(commandArgs: AfterCommandArgs) { }
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onBeforeAssertion(assertionArgs: unknown) { }
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onAfterAssertion(assertionArgs: unknown) { }
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onSuiteStart(suiteStats: SuiteStats) { }
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onHookStart(hookStat: HookStats) { }
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onHookEnd(hookStats: HookStats) { }
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onTestStart(testStats: TestStats) { }
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onTestPass(testStats: TestStats) { }
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onTestFail(testStats: TestStats) { }
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onTestRetry(testStats: TestStats) { }
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onTestSkip(testStats: TestStats) { }
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onTestEnd(testStats: TestStats) { }
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onSuiteRetry(suiteStats: SuiteStats) { }
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onSuiteEnd(suiteStats: SuiteStats) { }
-    /* istanbul ignore next */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onRunnerEnd(runnerStats: RunnerStats) { }
+/**
+ * Returns the browser name from the capabilities
+ * @param caps WebdriverIO Capabilities
+ * @returns {string} Browser name
+ */
+function getBrowserName(caps: WebdriverIO.Capabilities) {
+    // @ts-expect-error outdated JSONWP capabilities
+    const app = ((caps['appium:app'] || caps.app) || '').replace('sauce-storage:', '')
+    const appName = (
+        caps['appium:bundleId'] ||
+        caps['appium:appPackage'] ||
+        caps['appium:appActivity'] ||
+        (path.isAbsolute(app) ? path.basename(app) : app)
+    )
+    // @ts-expect-error outdated JSONWP capabilities
+    return caps.browserName || caps.browser || appName
 }
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, Argument, Test
+    AfterCommandArgs, CommandArgs, Argument, Test, getBrowserName
 }

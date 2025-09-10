@@ -1,5 +1,3 @@
-import os from 'node:os'
-
 /**
  * Determine if the current instance is a RDC instance. RDC tests are Real Device tests
  * that can be started with different sets of capabilities. A deviceName is not mandatory, the only mandatory cap for
@@ -64,21 +62,18 @@ export function isEmuSim(caps: WebdriverIO.Capabilities) {
 }
 
 /** Ensure capabilities are in the correct format for Sauce Labs
- * @param {string} tunnelIdentifier - The default Sauce Connect tunnel identifier
+ * @param {string} tunnelName - The default Sauce Connect tunnel identifier
  * @param {object} options - Additional options to set on the capability
  * @returns {function(object): void} - A function that mutates a single capability
  */
-export function makeCapabilityFactory(tunnelIdentifier: string) {
+export function makeCapabilityFactory(tunnelName: string) {
     return (capability: WebdriverIO.Capabilities) => {
         // If the `sauce:options` are not provided and it is a W3C session then add it
         if (!capability['sauce:options']) {
             capability['sauce:options'] = {}
         }
 
-        capability['sauce:options'].tunnelIdentifier = (
-            capability['sauce:options'].tunnelIdentifier ||
-            tunnelIdentifier
-        )
+        capability['sauce:options'].tunnelName = (capability['sauce:options'].tunnelName || tunnelName)
     }
 }
 
@@ -89,15 +84,4 @@ export function ansiRegex() {
     ].join('|')
 
     return new RegExp(pattern, 'g')
-}
-
-export function getLocalIpAddress(): string {
-    const interfaces = os.networkInterfaces()
-    const internalAddresses = Object.keys(interfaces)
-        .map((nic) => {
-            const addresses = interfaces[nic]?.filter((details) => details.internal) || []
-            return addresses.length ? addresses[0].address : undefined
-        })
-        .filter(Boolean) as string[]
-    return internalAddresses.length ? internalAddresses[0] : '127.0.0.1'
 }

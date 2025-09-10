@@ -1,8 +1,8 @@
 import { stringify } from 'csv-stringify/sync'
 import type {
     SuiteStats, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
-    AfterCommandArgs, Argument
-} from '@wdio/reporter'
+    AfterCommandArgs, Argument } from '@wdio/reporter'
+import { getBrowserName } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 import type { Label, MetadataMessage } from 'allure-js-commons'
@@ -62,7 +62,8 @@ export default class AllureReporter extends WDIOReporter {
 
         this.registerListeners()
 
-        const processObj:any = process
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const processObj: any = process
 
         if (options.addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
@@ -75,7 +76,9 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         const { reportedEnvironmentVars } = this._options
-        reportedEnvironmentVars && this._allure.writeEnvironmentInfo(reportedEnvironmentVars)
+        if (reportedEnvironmentVars) {
+            this._allure.writeEnvironmentInfo(reportedEnvironmentVars)
+        }
     }
 
     attachLogs() {
@@ -111,11 +114,19 @@ export default class AllureReporter extends WDIOReporter {
         )
     }
 
-    attachJSON(name: string, json: any) {
-        const isStr = typeof json === 'string'
-        const content = isStr ? json : JSON.stringify(json, null, 2)
+    attachJSON(name: string, value: unknown) {
+        let isJson = !!value && (typeof value === 'object' || Array.isArray(value))
+        if (typeof value === 'string' && (value.trim().startsWith('{') || value.trim().startsWith('['))) {
+            try {
+                value = JSON.parse(value)
+                isJson = !!value
+            } catch {
+                isJson = false
+            }
+        }
 
-        this.attachFile(name, String(content), isStr ? ContentType.JSON : ContentType.TEXT)
+        const content = isJson ? JSON.stringify(value, null, 2) : value
+        this.attachFile(name, String(content), isJson ? ContentType.JSON: ContentType.TEXT)
     }
 
     attachScreenshot(name: string, content: Buffer) {
@@ -240,10 +251,10 @@ export default class AllureReporter extends WDIOReporter {
         if (!this._isMultiremote) {
             const caps = this._capabilities
             // @ts-expect-error outdated JSONWP capabilities
-            const { browserName, desired, device } = caps
+            const { desired, device } = caps
             // @ts-expect-error outdated JSONWP capabilities
             const deviceName = (desired || {}).deviceName || (desired || {})['appium:deviceName'] || caps.deviceName || caps['appium:deviceName']
-            let targetName = device || browserName || deviceName || cid
+            let targetName = device || getBrowserName(caps) || deviceName || cid
             // custom mobile grids can have device information in a `desired` cap
             if (desired && deviceName && desired['appium:platformVersion']) {
                 targetName = `${device || deviceName} ${desired['appium:platformVersion']}`
@@ -485,7 +496,7 @@ export default class AllureReporter extends WDIOReporter {
         this._skipTest()
     }
 
-    onBeforeCommand(command: BeforeCommandArgs) {
+    onBeforeCommand(beforeCommand: BeforeCommandArgs) {
         if (!this._state.currentAllureStepableEntity) {
             return
         }
@@ -495,14 +506,15 @@ export default class AllureReporter extends WDIOReporter {
         if (disableWebdriverStepsReporting || this._isMultiremote) {
             return
         }
-        const { method, endpoint } = command
 
-        const stepName = command.command ? command.command : `${method} ${endpoint}`
-        const payload = command.body || command.params
+        const { command, method = '', endpoint = '', body, params } = beforeCommand
+
+        const stepName = command ? command : `${method} ${endpoint}`.trim() || 'unknown command'
+        const payload = body || params
 
         this._startStep(stepName as string)
 
-        if (!isEmpty(payload)) {
+        if (payload && (typeof payload === 'object' || Array.isArray(payload))  && !isEmpty(payload)) {
             this.attachJSON('Request', payload)
         }
     }
@@ -510,17 +522,23 @@ export default class AllureReporter extends WDIOReporter {
     onAfterCommand(command: AfterCommandArgs) {
         const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
 
-        const commandResult = command?.result?.value || command?.result?.error?.name ||  {}
-        const isScreenshot = isScreenshotCommand(command)
-        if (!disableWebdriverScreenshotsReporting && isScreenshot && commandResult) {
-            this.attachScreenshot('Screenshot', Buffer.from(commandResult, 'base64'))
+        const commandResult = (
+            (command.result as { value?: unknown } | undefined)?.value ||
+            (command.result as { error?: Error | undefined } | undefined)?.error?.name ||
+            undefined
+        )
+
+        if (!disableWebdriverScreenshotsReporting && isScreenshotCommand(command) && commandResult) {
+            this.attachScreenshot('Screenshot', Buffer.from(commandResult as string, 'base64'))
         }
 
         if (disableWebdriverStepsReporting || this._isMultiremote || !this._state.currentStep) {
             return
         }
 
-        this.attachJSON('Response', commandResult)
+        if (commandResult) {
+            this.attachJSON('Response', commandResult)
+        }
         this.endStep(AllureStatus.PASSED)
     }
 
@@ -666,7 +684,11 @@ export default class AllureReporter extends WDIOReporter {
          */
         if (useCucumberStepReporter && !disableMochaHooks) {
             // closing the cucumber hook (in this case, it's reported as a step)
-            hook.error ? this.onTestFail(hook) : this.onTestPass()
+            if (hook.error) {
+                this.onTestFail(hook)
+            } else {
+                this.onTestPass()
+            }
 
             // remove cucumber hook (reported as a step) from a suite if it has no steps or attachments.
             const currentItem = this._state.currentAllureStepableEntity?.wrappedItem
@@ -885,7 +907,7 @@ export default class AllureReporter extends WDIOReporter {
 
     addStep({
         step
-    }: any) {
+    }: { step: { title: string, attachment: { name: string, content: string, type: ContentType }, status: AllureStatus } }) {
         if (!this._state.currentAllureStepableEntity) {
             return
         }
@@ -902,7 +924,7 @@ export default class AllureReporter extends WDIOReporter {
     addArgument({
         name,
         value
-    }: any) {
+    }: { name: string, value: string }) {
         if (!this._state.currentTest) {
             return
         }

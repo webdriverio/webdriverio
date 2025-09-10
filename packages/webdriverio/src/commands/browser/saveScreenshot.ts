@@ -1,8 +1,5 @@
-import fs from 'node:fs'
-import { getBrowserObject } from '@wdio/utils'
-
-import { getContextManager } from '../../context.js'
-import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js'
+import { environment } from '../../environment.js'
+import type { SaveScreenshotOptions } from '../../types.js'
 
 /**
  *
@@ -12,8 +9,24 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js
  *
  * <example>
     :saveScreenshot.js
-    it('should save a screenshot of the browser view', async () => {
+    it('should save a screenshot of the browser viewport', async () => {
         await browser.saveScreenshot('./some/path/screenshot.png');
+    });
+
+    it('should save a screenshot of the full page', async () => {
+        await browser.saveScreenshot('./some/path/screenshot.png', { fullPage: true });
+    });
+
+    it('should save a screenshot of a specific rectangle', async () => {
+        await browser.saveScreenshot('./some/path/screenshot.png', { clip: { x: 0, y: 0, width: 100, height: 100 } });
+    });
+
+    it('should save a screenshot of the full page in JPEG format', async () => {
+        await browser.saveScreenshot('./some/path/screenshot.jpeg', { fullPage: true, format: 'jpeg' });
+    });
+
+    it('should save a screenshot of the full page in JPEG format with quality 50', async () => {
+        await browser.saveScreenshot('./some/path/screenshot.jpeg', { fullPage: true, format: 'jpeg', quality: 50 });
     });
  * </example>
  *
@@ -26,36 +39,22 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js
  * </example>
  * @alias browser.saveScreenshot
  * @param   {String}  filepath  path to the generated image (`.png` suffix is required) relative to the execution directory
- * @return  {Buffer}            screenshot buffer
+ * @param   {Object}  options   screenshot options
+ * @param   {Boolean} [options.fullPage=false]  whether to take a screenshot of the full page or just the current viewport
+ * @param   {String}  [options.format='png']    the format of the screenshot (either `png` or `jpeg`)
+ * @param   {Number}  [options.quality=100]     the quality of the screenshot in case of JPEG format in range 0-100 percent
+ * @param   {Object}  [options.clip]            clipping a rectangle of the screenshot
+ * @return  {Buffer}                            screenshot buffer
  * @type utility
  *
  */
 export async function saveScreenshot (
     this: WebdriverIO.Browser,
-    filepath: string
-) {
+    filepath: string,
+    options?: SaveScreenshotOptions
+): Promise<Buffer<ArrayBuffer>> {
     /**
-     * type check
+     * run command implementation based on given environment
      */
-    if (typeof filepath !== 'string' || !filepath.endsWith('.png')) {
-        throw new Error('saveScreenshot expects a filepath of type string and ".png" file ending')
-    }
-
-    const absoluteFilepath = getAbsoluteFilepath(filepath)
-    await assertDirectoryExists(absoluteFilepath)
-
-    let screenBuffer: string
-    if (this.isBidi) {
-        const browser = getBrowserObject(this)
-        const contextManager = getContextManager(browser)
-        const context = await contextManager.getCurrentContext()
-        const { data } = await this.browsingContextCaptureScreenshot({ context })
-        screenBuffer = data
-    } else {
-        screenBuffer = await this.takeScreenshot()
-    }
-    const screenshot = Buffer.from(screenBuffer, 'base64')
-    fs.writeFileSync(absoluteFilepath, screenshot)
-
-    return screenshot
+    return environment.value.saveScreenshot.call(this, filepath, options)
 }

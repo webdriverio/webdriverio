@@ -31,7 +31,7 @@ describe('waitForStable', () => {
             waitUntil: vi.fn(),
             options: { waitforInterval: 5, waitforTimeout: timeout },
             selector,
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
 
         await elem.waitForStable()
         expect(vi.mocked(elem.waitUntil).mock.calls[0][1]?.interval).toEqual(5)
@@ -45,7 +45,7 @@ describe('waitForStable', () => {
             waitForStable: tmpElem.waitForStable,
             waitUntil: vi.fn(),
             options: { waitforInterval: 5, waitforTimeout: timeout }
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
 
         await elem.waitForStable({
             timeout,
@@ -58,7 +58,20 @@ describe('waitForStable', () => {
     it('should throw when used on an inactive tab', async () => {
         global.document = { visibilityState: 'hidden' } as any
         const elem = await browser.$('#foo')
-        await expect(elem.waitForStable()).rejects.toThrowError('You are are checking for animations on an inactive tab, animations do not run for inactive tabs')
+        await expect(elem.waitForStable()).rejects.toThrowError('You are checking for animations on an inactive tab, animations do not run for inactive tabs')
     })
 
+    it('should throw an error if in native context', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'Android',
+                mobileMode: true,
+                nativeAppMode: true,
+            } as any
+        })
+        const elem = await browser.$('#foo')
+
+        await expect(elem.waitForStable()).rejects.toThrow('The `waitForStable` command is only available for desktop and mobile browsers.')
+    })
 })

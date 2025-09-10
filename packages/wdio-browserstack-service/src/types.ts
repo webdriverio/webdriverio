@@ -1,7 +1,7 @@
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Options as BSOptions } from 'browserstack-local'
 
-export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<any>;
+export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<unknown>
 
 export type AppConfig = {
     id?: string,
@@ -26,6 +26,22 @@ export interface TestObservabilityOptions {
     projectName?: string,
     buildTag?: string[],
     user?: string,
+    key?: string,
+    /**
+     * When set to true, hook failures will not influence the test status.
+     * Tests will be marked as "passed" if all test steps pass, even if hooks fail.
+     * When set to false or not set (default), hook failures will mark tests as "failed".
+     * @default false
+     */
+    ignoreHooksStatus?: boolean
+}
+
+// New interface for Test Reporting and Analytics (same structure as TestObservabilityOptions for backward compatibility)
+export interface TestReportingOptions {
+    buildName?: string,
+    projectName?: string,
+    buildTag?: string[],
+    user?: string,
     key?: string
 }
 
@@ -40,19 +56,33 @@ export interface BrowserstackConfig {
      * ${BUILD_NUMBER} (Default): Generates an incremental counter with every execution
      * ${DATE_TIME}: Generates a Timestamp with every execution. Eg. 05-Nov-19:30
      */
-     buildIdentifier?: string;
+    buildIdentifier?: string;
     /**
-     * Set this to true to enable BrowserStack Test Observability which will collect test related data
+     * Set this to true to enable BrowserStack Test Reporting and Analytics which will collect test related data
      * (name, hierarchy, status, error stack trace, file name and hierarchy), test commands, etc.
-     * and show all the data in a meaningful manner in BrowserStack Test Observability dashboards for faster test debugging and better insights.
+     * and show all the data in a meaningful manner in BrowserStack Test Reporting and Analytics dashboards for faster test debugging and better insights.
      * @default true
+     * @deprecated Use testReporting instead
      */
     testObservability?: boolean;
     /**
-     * Set the Test Observability related config options under this key.
+     * Set this to true to enable BrowserStack Test Reporting and Analytics which will collect test related data
+     * (name, hierarchy, status, error stack trace, file name and hierarchy), test commands, etc.
+     * and show all the data in a meaningful manner in BrowserStack Test Reporting and Analytics dashboards for faster test debugging and better insights.
+     * @default true
+     */
+    testReporting?: boolean;
+    /**
+     * Set the Test Reporting and Analytics related config options under this key.
      * For e.g. buildName, projectName, BrowserStack access credentials, etc.
+     * @deprecated Use testReportingOptions instead
      */
     testObservabilityOptions?: TestObservabilityOptions;
+    /**
+     * Set the Test Reporting and Analytics related config options under this key.
+     * For e.g. buildName, projectName, BrowserStack access credentials, etc.
+     */
+    testReportingOptions?: TestReportingOptions;
     /**
      * Set this to true to enable BrowserStack Percy which will take screenshots
      * and snapshots for your tests run on Browserstack
@@ -67,7 +97,9 @@ export interface BrowserstackConfig {
     /**
      * Set the Percy related config options under this key.
     */
-    percyOptions?: any;
+    percyOptions?: {
+        version?: string,
+    };
     /**
     * Set this to true to enable BrowserStack Accessibility Automation which will
     * automically conduct accessibility testing on your pre-existing test builds
@@ -79,7 +111,7 @@ export interface BrowserstackConfig {
     * Customise the Accessibility-related config options under this key.
     * For e.g. wcagVersion, bestPractice issues, needsReview issues etc.
     */
-    accessibilityOptions?: { [key: string]: any; };
+    accessibilityOptions?: { [key: string]: unknown; };
     /**
      * Set this with app file path present locally on your device or
      * app hashed id returned after uploading app to BrowserStack or
@@ -160,7 +192,7 @@ export interface BrowserstackConfig {
 }
 
 /**
- * Observability types
+ * Test Reporting and Analytics types
  */
 export interface PlatformMeta {
     sessionId?: string,
@@ -225,7 +257,7 @@ export interface UserConfig {
     buildTag?: string,
     bstackServiceVersion?: string,
     buildIdentifier?: string,
-    accessibilityOptions?: { [key: string]: any; }
+    accessibilityOptions?: { [key: string]: unknown; }
 }
 
 export interface UploadType {
@@ -242,7 +274,7 @@ export interface LogData {
     hook_run_uuid?: string
     message?: string
     level?: string
-    http_response?: any
+    http_response?: unknown
 }
 
 export interface StdLog extends LogData {
@@ -276,7 +308,7 @@ export interface LaunchResponse {
             status: string;
             commandsToWrap: {
                 scriptsToRun: string[];
-                commands: any[];
+                commands: unknown[];
             };
             scripts: {
                 name: string;
@@ -284,29 +316,29 @@ export interface LaunchResponse {
             }[];
             capabilities: {
                 name: string,
-                value: any
+                value: unknown
             }[];
         }
     };
 }
 
 export interface UserConfigforReporting {
-  framework?: string,
-  services?: any[],
-  capabilities?: WebdriverIO.Capabilities,
-  env?: {
-    'BROWSERSTACK_BUILD': string | undefined,
-    'BROWSERSTACK_BUILD_NAME': string | undefined,
-    'BUILD_TAG': string | undefined,
-  }
+    framework?: string,
+    services?: unknown[],
+    capabilities?: WebdriverIO.Capabilities,
+    env?: {
+        'BROWSERSTACK_BUILD': string | undefined,
+        'BROWSERSTACK_BUILD_NAME': string | undefined,
+        'BUILD_TAG': string | undefined,
+    }
 }
 
 export interface CredentialsForCrashReportUpload {
-  username?: string,
-  password?: string
+    username?: string,
+    password?: string
 }
 
-interface IntegrationObject {
+export interface IntegrationObject {
     capabilities?: WebdriverIO.Capabilities,
     session_id?: string
     browser?: string
@@ -351,5 +383,43 @@ export interface TOUsageStats {
     enabled: boolean
     manuallySet: boolean
     buildHashedId?: string
-    events?: any
+    events?: unknown
+}
+
+export interface EventProperties {
+    sdkRunId: string
+    testhub_uuid?: string
+    language_framework: string
+    referrer: string
+    language: string
+    languageVersion: string
+    buildName: string
+    buildIdentifier: string
+    os: string
+    hostname: string
+    productMap: { [key: string]: boolean }
+    product: string[]
+    framework?: string
+    pollingTimeout?: string,
+    productUsage?: {
+        testObservability: {
+            events: {
+                buildEvents: {
+                    finished: {
+                        status: string
+                        error?: string
+                        stoppedFrom: string
+                    }
+                }
+            }
+        }
+    }
+}
+
+export interface FunnelData {
+    userName?: string
+    accessKey?: string
+    event_type?: string,
+    detectedFramework?: string,
+    event_properties: EventProperties
 }

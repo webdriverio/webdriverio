@@ -206,7 +206,7 @@ describe('bidi e2e test', () => {
     })
 
     it('supports execute with bidi on element scope', async () => {
-        await browser.url('http://guinea-pig.webdriver.io')
+        await browser.url('https://guinea-pig.webdriver.io')
         const result = await browser.$('.findme').execute(function (elem, a, b, c, d) {
             return (elem as unknown as HTMLElement).innerText.length + a + b + c + d
         }, 1, 2, 3, 4)
@@ -236,7 +236,7 @@ describe('bidi e2e test', () => {
         })
 
         it('works on element scope', async () => {
-            await browser.url('http://guinea-pig.webdriver.io')
+            await browser.url('https://guinea-pig.webdriver.io')
             const result = await browser.$('.findme').executeAsync(function (elem, a, b, c, d, done) {
                 // browser context - you may not access client or console
                 setTimeout(() => {

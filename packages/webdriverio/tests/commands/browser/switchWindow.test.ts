@@ -1,10 +1,11 @@
 import path from 'node:path'
 import { expect, describe, beforeEach, it, vi, beforeAll, afterAll } from 'vitest'
 import { remote } from '../../../src/index.js'
+import { getContextManager } from '../../../src/session/context.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-const webdriverResponses = [null, null, null, 'foo', 'bar', 'loo', null, 'hello', 'world', 'yo', null, 'some', 'url', 'here']
+const webdriverResponses = [null, null, 'foo', 'bar', 'loo', null, 'hello', 'world', 'yo', null, 'some', 'url', 'here']
 
 describe('switchWindow', () => {
     // @ts-ignore
@@ -103,6 +104,30 @@ describe('switchWindow', () => {
         vi.mocked(fetch).setMockResponse([null, null, null, 'foo.com?foo=bar', 'bar', null, 'hello', 'world', null, 'some', 'url'])
         const tabId = await browser.switchWindow('foo.com?foo=bar')
         expect(tabId).toBe('window-handle-1')
+    })
+
+    it('should allow switchWindow call even when the currently active one is closed', async () => {
+        vi.spyOn(browser, 'getWindowHandle').mockImplementation(() =>
+            Promise.reject('target window already closed')
+        )
+
+        const tabId = await browser.switchWindow('webdriver.io')
+        expect(tabId).toBe('window-handle-1')
+    })
+
+    it('should avoid calling getWindowHandle and use the cached value instead', async () => {
+        const desiredHandle = 'window-handle-3'
+        getContextManager(browser).setCurrentWindowHandle(desiredHandle)
+        const spy = vi.spyOn(browser, 'getWindowHandle').mockImplementation(() =>
+            Promise.reject('target window already closed')
+        )
+        vi.spyOn(browser, 'switchToWindow').mockImplementation(() => {
+            throw new Error('switchToWindow should not have been called')
+        })
+
+        const tabId = await browser.switchWindow(desiredHandle)
+        expect(spy).not.toHaveBeenCalled()
+        expect(tabId).toBe(desiredHandle)
     })
 
     afterAll(() => {

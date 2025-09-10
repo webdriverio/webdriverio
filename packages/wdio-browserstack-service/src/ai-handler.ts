@@ -57,11 +57,11 @@ class AiHandler {
         await browser.installAddOn(extFile.toString('base64'), true)
     }
 
-    async handleHealing(orginalFunc: (arg0: string, arg1: string) => any, using: string, value: string, browser: WebdriverIO.Browser, options: BrowserstackOptions){
+    async handleHealing(orginalFunc: (arg0: string, arg1: string) => { error?: string }, using: string, value: string, browser: WebdriverIO.Browser, options: BrowserstackOptions){
         const sessionId = browser.sessionId
 
         // a utility function to escape single and double quotes
-        const escapeString = (str: string) => str.replace(/'/g, "\\'").replace(/"/g, '\\"')
+        const escapeString = (str: string) => str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t')
 
         const tcgDetails = escapeString(JSON.stringify({
             region: TCG_INFO.tcgRegion,
@@ -114,17 +114,18 @@ class AiHandler {
         config: Options.Testrunner,
         browserStackConfig: BrowserStackConfig,
         options: BrowserstackOptions,
-        caps: any,
+        caps: Capabilities.RequestedMultiremoteCapabilities,
         browser: string
     ) {
         if ( caps[browser].capabilities &&
             !(isBrowserstackInfra(caps[browser])) &&
-            SUPPORTED_BROWSERS_FOR_AI.includes(caps[browser]?.capabilities?.browserName?.toLowerCase())
+            SUPPORTED_BROWSERS_FOR_AI.includes((caps[browser]?.capabilities as WebdriverIO.Capabilities)?.browserName?.toLowerCase() || 'unknown browser')
         ) {
             const innerConfig = getBrowserStackUserAndKey(config, options)
             if (innerConfig?.user && innerConfig.key) {
+                // @ts-expect-error fix type
                 handleHealingInstrumentation(authResult, browserStackConfig, options.selfHeal)
-                caps[browser].capabilities = this.updateCaps(authResult, options, caps[browser].capabilities)
+                caps[browser].capabilities = this.updateCaps(authResult, options, caps[browser].capabilities as WebdriverIO.Capabilities) as WebdriverIO.Capabilities
             }
         }
     }
@@ -134,7 +135,7 @@ class AiHandler {
         config: Options.Testrunner,
         browserStackConfig: BrowserStackConfig,
         options: BrowserstackOptions,
-        caps: any,
+        caps: Capabilities.RequestedMultiremoteCapabilities,
     ) {
         const browserNames = Object.keys(caps)
         for (let i = 0; i < browserNames.length; i++) {
@@ -147,7 +148,7 @@ class AiHandler {
         config: Options.Testrunner,
         browserStackConfig: BrowserStackConfig,
         options: BrowserstackOptions,
-        caps: any,
+        caps: WebdriverIO.Capabilities,
         isMultiremote: boolean
     ) {
         try {
@@ -155,13 +156,14 @@ class AiHandler {
             if (innerConfig?.user && innerConfig.key) {
                 const authResult = await this.authenticateUser(innerConfig.user, innerConfig.key)
                 process.env[BSTACK_TCG_AUTH_RESULT] = JSON.stringify(authResult)
-                if (!isMultiremote && SUPPORTED_BROWSERS_FOR_AI.includes(caps?.browserName?.toLowerCase())) {
+                if (!isMultiremote && SUPPORTED_BROWSERS_FOR_AI.includes(caps.browserName?.toLowerCase() || 'unknown browser')) {
 
+                    // @ts-expect-error fix type
                     handleHealingInstrumentation(authResult, browserStackConfig, options.selfHeal)
                     this.updateCaps(authResult, options, caps)
 
                 } else if (isMultiremote) {
-                    this.handleMultiRemoteSetup(authResult, config, browserStackConfig, options, caps)
+                    this.handleMultiRemoteSetup(authResult, config, browserStackConfig, options, caps as unknown as Capabilities.RequestedMultiremoteCapabilities)
                 }
             }
 
@@ -193,7 +195,9 @@ class AiHandler {
                     await this.installFirefoxExtension(browser)
                 }
 
-                browser.overwriteCommand('findElement' as any, async (orginalFunc: (arg0: string, arg1: string) => any, using: string, value: string) => {
+                // @ts-expect-error fix type
+                browser.overwriteCommand('findElement', async (orginalFunc: unknown, using: string, value: string) => {
+                    // @ts-expect-error fix type
                     return await this.handleHealing(orginalFunc, using, value, browser, options)
                 })
             }
@@ -206,6 +210,7 @@ class AiHandler {
             const multiRemoteBrowsers = Object.keys(caps).filter(e => Object.keys(browser).includes(e))
             if (multiRemoteBrowsers.length > 0) {
                 for (let i = 0; i < multiRemoteBrowsers.length; i++) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const remoteBrowser = (browser as any)[multiRemoteBrowsers[i]]
                     await this.handleSelfHeal(options, remoteBrowser)
                 }

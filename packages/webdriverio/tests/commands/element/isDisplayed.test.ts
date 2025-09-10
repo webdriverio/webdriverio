@@ -28,12 +28,22 @@ describe('isDisplayed test', () => {
             }
         })
         elem = await browser.$('#foo')
+        elem.addCommand('checkVisibility', vi.fn())
         vi.mocked(fetch).mockClear()
     })
 
     it('should allow to check if element is displayed', async () => {
+        // @ts-expect-error mock feature
+        fetch.customResponseFor(/\/css\/display/, { value: 'block' })
         expect(await elem.isDisplayed()).toBe(true)
-        expect(fetch).toBeCalledTimes(1)
+
+        /**
+         * expect fetch to be called for
+         *   - isElementDisplayed script
+         *   - getCSSProperty for display property
+         */
+        expect(fetch).toBeCalledTimes(2)
+
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/execute/sync')
@@ -44,8 +54,10 @@ describe('isDisplayed test', () => {
     })
 
     it('should allow to check if element is displayed within viewport', async () => {
+        // @ts-expect-error mock feature
+        fetch.customResponseFor(/\/css\/display/, { value: 'block' })
         expect(await elem.isDisplayed({ withinViewport: true })).toBe(true)
-        expect(fetch).toBeCalledTimes(2)
+        expect(fetch).toBeCalledTimes(3)
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/execute/sync')
@@ -54,12 +66,26 @@ describe('isDisplayed test', () => {
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
         })
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/execute/sync')
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[1][1]?.body as any).args[0]).toEqual({
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).args[0]).toEqual({
             ELEMENT: 'some-elem-123',
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
         })
+    })
+
+    it('should use legacy script if element has display: contents set', async () => {
+        // @ts-expect-error mock feature
+        fetch.customResponseFor(/\/css\/display/, { value: 'contents' })
+        expect(await elem.isDisplayed()).toBe(true)
+        expect(fetch).toBeCalledTimes(3)
+
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
+            .toBe('/session/foobar-123/execute/sync')
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
+            .toBe('/session/foobar-123/execute/sync')
     })
 
     it('should allow to check if element is displayed in mobile mode without browserName', async () => {
@@ -68,7 +94,48 @@ describe('isDisplayed test', () => {
             capabilities: {
                 // @ts-ignore mock feature
                 keepBrowserName: true,
-                mobileMode: true
+                mobileMode: true,
+                nativeAppMode: true,
+            } as any
+        })
+        elem = await browser.$('#foo')
+        vi.mocked(fetch).mockClear()
+        expect(await elem.isDisplayed()).toBe(true)
+        // Due to mobileMode being enabled we will have extra calls to fetch
+        expect(fetch).toBeCalledTimes(1)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
+            .toBe('/session/foobar-123/element/some-elem-123/displayed')
+    })
+
+    it('should allow to check if element is displayed in mobile mode for Windows Apps', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                // @ts-ignore mock feature
+                keepBrowserName: true,
+                mobileMode: true,
+                windowsAppMode: true,
+            } as any
+        })
+        elem = await browser.$('#foo')
+        vi.mocked(fetch).mockClear()
+        expect(await elem.isDisplayed()).toBe(true)
+        // Due to mobileMode being enabled we will have extra calls to fetch
+        expect(fetch).toBeCalledTimes(1)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
+            .toBe('/session/foobar-123/element/some-elem-123/displayed')
+    })
+
+    it('should allow to check if element is displayed in mobile mode for Mac Apps', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                // @ts-ignore mock feature
+                keepBrowserName: true,
+                mobileMode: true,
+                macAppMode: true,
             } as any
         })
         elem = await browser.$('#foo')
@@ -87,7 +154,8 @@ describe('isDisplayed test', () => {
             capabilities: {
                 // @ts-ignore mock feature
                 keepBrowserName: true,
-                mobileMode: true
+                mobileMode: true,
+                nativeAppMode: true,
             } as any
         })
         elem = await browser.$('#foo')
@@ -100,7 +168,7 @@ describe('isDisplayed test', () => {
         // @ts-ignore test scenario
         delete elem.elementId
         expect(await elem.isDisplayed()).toBe(true)
-        expect(fetch).toBeCalledTimes(2)
+        expect(fetch).toBeCalledTimes(4)
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/element')
@@ -132,7 +200,10 @@ describe('isDisplayed test', () => {
 
         elem.selector = '#nonexisting'
         // @ts-ignore mock feature
-        vi.mocked(fetch).setMockResponse([{ error: 'no such element', statusCode: 404 }])
+        vi.mocked(fetch).setMockResponse([
+            { error: 'no such element', statusCode: 404 },
+            { error: 'no such element', statusCode: 404 }
+        ])
 
         expect(await elem.isDisplayed()).toBe(false)
     })

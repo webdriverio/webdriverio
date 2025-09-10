@@ -13,17 +13,19 @@ export interface CommandArgs {
      */
     retries?: number
     command?: string
-    params?: any
+    params?: unknown
 }
 
 export interface BeforeCommandArgs extends CommandArgs {
-    body: any
+    body: unknown
 }
 
 export interface AfterCommandArgs extends CommandArgs {
-    result: any
+    result: unknown
 
     /**
+     * @deprecated Use `command` instead, moreover since the `onAfterCommand` was never called in the case of custom commands, it was breaking reports, and we do not emit this one in the fix!
+     *
      * custom commands also send along the command name
      */
     name?: string

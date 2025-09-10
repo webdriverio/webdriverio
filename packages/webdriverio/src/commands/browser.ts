@@ -42,3 +42,13 @@ export * from './browser/touchAction.js'
 export * from './browser/uploadFile.js'
 export * from './browser/url.js'
 export * from './browser/waitUntil.js'
+/**
+ * Add it to the Browser scope, but not to the docs by providing a different folder
+ */
+export * from './mobile/swipe.js'
+export * from './mobile/tap.js'
+export * from './mobile/getContext.js'
+export * from './mobile/getContexts.js'
+export * from './mobile/switchContext.js'
+export * from './mobile/relaunchActiveApp.js'
+export * from './mobile/deepLink.js'

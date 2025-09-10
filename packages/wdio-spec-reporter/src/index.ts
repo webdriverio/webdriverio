@@ -1,10 +1,9 @@
-import path from 'node:path'
 import { format } from 'node:util'
 
 import prettyMs from 'pretty-ms'
 import type { Capabilities } from '@wdio/types'
 import { Chalk, type ChalkInstance } from 'chalk'
-import WDIOReporter, { TestStats } from '@wdio/reporter'
+import WDIOReporter, { TestStats, getBrowserName } from '@wdio/reporter'
 import type { SuiteStats, HookStats, RunnerStats, Argument } from '@wdio/reporter'
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
 import { ChalkColors, type SpecReporterOptions, type TestLink, type StateCount, type Symbols, State } from './types.js'
@@ -40,6 +39,7 @@ export default class SpecReporter extends WDIOReporter {
         passed: 0,
         failed: 0,
         skipped: 0,
+        pending: 0,
         retried: 0
     }
 
@@ -58,7 +58,7 @@ export default class SpecReporter extends WDIOReporter {
         /**
          * make spec reporter to write to output stream by default
          */
-        super(Object.assign({ stdout: true }, options))
+        super(Object.assign({ stdout: true } as Record<string, unknown>, options))
 
         this._symbols = { ...this._symbols, ...this.options.symbols || {} }
         this._onlyFailures = options.onlyFailures || false
@@ -67,7 +67,8 @@ export default class SpecReporter extends WDIOReporter {
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
             ? options.sauceLabsSharableLinks as boolean
             : this._sauceLabsSharableLinks
-        const processObj:any = process
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const processObj = process as any
         if (options.addConsoleLogs || this._addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
@@ -151,6 +152,13 @@ export default class SpecReporter extends WDIOReporter {
         this._stateCounts.skipped++
     }
 
+    onTestPending(testStat: TestStats) {
+        this.printCurrentStats(testStat)
+        this._pendingReasons.push(testStat.pendingReason as string)
+        this._consoleLogs.push(this._consoleOutput)
+        this._stateCounts.pending++
+    }
+
     onRunnerEnd (runner: RunnerStats) {
         this.printReport(runner)
     }
@@ -211,6 +219,14 @@ export default class SpecReporter extends WDIOReporter {
 
         // Get the results
         const results = this.getResultDisplay(preface)
+
+        if (results.length === 0 && runner.error) {
+            results.push(
+                this.setMessageColor(`${this.getSymbol(State.FAILED)} Failed to create a session:`, State.FAILED),
+                runner.error,
+                ''
+            )
+        }
 
         // If there are no test results then return nothing
         if (results.length === 0) {
@@ -364,7 +380,7 @@ export default class SpecReporter extends WDIOReporter {
 
             // Display file path of spec
             if (suite.file && !specFileReferences.includes(suite.file)) {
-                output.push(`${suiteIndent}» ${suite.file.replace(process.cwd(), '')}`)
+                output.push(`${suiteIndent}» ${suite.file.replace(process.cwd(), '').slice(1)}`)
                 specFileReferences.push(suite.file)
             }
 
@@ -475,6 +491,13 @@ export default class SpecReporter extends WDIOReporter {
             output.push(this.setMessageColor(text, State.SKIPPED))
         }
 
+        // Get the pending tests
+        if (this._stateCounts.pending > 0) {
+            const text = `${this._stateCounts.pending} pending ${duration}`.trim()
+            output.push(this.setMessageColor(text, State.PENDING))
+            duration = ''
+        }
+
         // Get the skipped tests
         if (this._stateCounts.retried > 0) {
             const text = `${this._stateCounts.retried} retried ${duration}`.trim()
@@ -510,9 +533,11 @@ export default class SpecReporter extends WDIOReporter {
 
                 )
                 for (const error of errors) {
-                    !error?.stack?.includes('new AssertionError')
-                        ? output.push(this.setMessageColor(error.message, State.FAILED))
-                        : output.push(...error.message.split('\n'))
+                    if (!error?.stack?.includes('new AssertionError')) {
+                        output.push(this.setMessageColor(error.message, State.FAILED))
+                    } else {
+                        output.push(...error.message.split('\n'))
+                    }
                     if (error.stack) {
                         output.push(...error.stack.split(/\n/g).map(value => this.setMessageColor(value)))
                     }
@@ -634,16 +659,7 @@ export default class SpecReporter extends WDIOReporter {
         }
         const caps = 'alwaysMatch' in capability ? capability.alwaysMatch : capability
         const device = caps['appium:deviceName']
-        // @ts-expect-error outdated JSONWP capabilities
-        const app = ((caps['appium:app'] || caps.app) || '').replace('sauce-storage:', '')
-        const appName = (
-            caps['appium:bundleId'] ||
-            caps['appium:appPackage'] ||
-            caps['appium:appActivity'] ||
-            (path.isAbsolute(app) ? path.basename(app) : app)
-        )
-        // @ts-expect-error outdated JSONWP capabilities
-        const browser = caps.browserName || caps.browser || appName
+        const browser = getBrowserName(caps)
         /**
          * fallback to different capability types:
          * browserVersion: W3C format
@@ -664,7 +680,7 @@ export default class SpecReporter extends WDIOReporter {
 
         // Mobile capabilities
         if (device) {
-            const program = appName || caps.browserName
+            const program = getBrowserName(caps)
             const executing = program ? `executing ${program}` : ''
             if (!verbose) {
                 return `${device} ${platform} ${version}`

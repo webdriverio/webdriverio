@@ -1,8 +1,8 @@
 import type { EventEmitter } from 'node:events'
 import { deepmergeCustom } from 'deepmerge-ts'
 
-import logger from '@wdio/logger'
-import type { Protocol } from '@wdio/protocols'
+import logger, { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
+import type { CommandEndpoint, Protocol } from '@wdio/protocols'
 import {
     WebDriverProtocol, MJsonWProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
@@ -10,12 +10,11 @@ import {
 import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options } from '@wdio/types'
 
-import type { WebDriverResponse } from './request/types.js'
 import command from './command.js'
 import { environment } from './environment.js'
 import { BidiHandler } from './bidi/handler.js'
 import type { Event } from './bidi/localTypes.js'
-import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig } from './types.js'
+import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig, CommandRuntimeOptions } from './types.js'
 
 const log = logger('webdriver')
 const deepmerge = deepmergeCustom({ mergeArrays: false })
@@ -26,6 +25,14 @@ const BROWSER_DRIVER_ERRORS = [
     "'POST /wd/hub/session' was not found.", // safaridriver
     'Command not found' // iedriver
 ]
+
+interface SessionInitializationResponse {
+    value: {
+        sessionId?: string,
+        capabilities?: WebdriverIO.Capabilities
+    },
+    sessionId: string
+}
 
 /**
  * start browser session with WebDriver protocol
@@ -78,13 +85,13 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
         { capabilities }
     )
 
-    let response
+    let response: SessionInitializationResponse
     try {
-        response = await sessionRequest.makeRequest(params)
-    } catch (err: any) {
+        response = await sessionRequest.makeRequest(params) as SessionInitializationResponse
+    } catch (err) {
         log.error(err)
-        const message = getSessionError(err, params)
-        throw new Error('Failed to create session.\n' + message)
+        const message = getSessionError(err as Error, params)
+        throw new Error(message)
     }
     const sessionId = response.value.sessionId || response.sessionId
 
@@ -143,11 +150,11 @@ export function validateCapabilities (capabilities: WebdriverIO.Capabilities) {
  * @param  {Object}  body       body payload of response
  * @return {Boolean}            true if request was successful
  */
-export function isSuccessfulResponse (statusCode?: number, body?: WebDriverResponse) {
+export function isSuccessfulResponse (statusCode?: number, body?: unknown) {
     /**
      * response contains a body
      */
-    if (!body || typeof body.value === 'undefined') {
+    if (!body || typeof body !== 'object' || !('value' in body) || typeof body.value === 'undefined') {
         log.debug('request failed due to missing body')
         return false
     }
@@ -156,7 +163,8 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
      * ignore failing element request to enable lazy loading capability
      */
     if (
-        body.status === 7 && body.value && body.value.message &&
+        'status' in body && body.status === 7 && body.value && typeof body.value === 'object' &&
+        'message' in body.value && body.value.message && typeof body.value.message === 'string' &&
         (
             body.value.message.toLowerCase().startsWith('no such element') ||
             // Appium
@@ -172,12 +180,16 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
      * if it has a status property, it should be 0
      * (just here to stay backwards compatible to the jsonwire protocol)
      */
-    if (body.status && body.status !== 0) {
+    if ('status' in body && body.status && body.status !== 0) {
         log.debug(`request failed due to status ${body.status}`)
         return false
     }
 
-    const hasErrorResponse = body.value && (body.value.error || body.value.stackTrace || body.value.stacktrace)
+    const hasErrorResponse = body.value && (
+        (typeof body.value === 'object' && 'error' in body.value && body.value.error) ||
+        (typeof body.value === 'object' && 'stackTrace' in body.value && body.value.stackTrace) ||
+        (typeof body.value === 'object' && 'stacktrace' in body.value && body.value.stacktrace)
+    )
 
     /**
      * check status code
@@ -190,7 +202,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
      * if an element was not found we don't flag it as failed request because
      * we lazy load it
      */
-    if (statusCode === 404 && body.value && body.value.error === 'no such element') {
+    if (statusCode === 404 && typeof body.value === 'object' && body.value && 'error' in body.value && body.value.error === 'no such element') {
         return true
     }
 
@@ -198,7 +210,8 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
      * that has no error property (Appium only)
      */
     if (hasErrorResponse) {
-        log.debug('request failed due to response error:', body.value.error)
+        const errMsg = typeof body.value === 'object' && body.value && 'error' in body.value ? body.value.error : body.value
+        log.debug('request failed due to response error:', errMsg)
         return false
     }
 
@@ -210,6 +223,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
  */
 export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ProtocolCommands = deepmerge<any>(
         /**
          * if mobile apply JSONWire and WebDriver protocol because
@@ -217,6 +231,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
          * (e.g. set/get geolocation)
          */
         isMobile
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ? deepmerge<any>(AppiumProtocol as Protocol, WebDriverProtocol as Protocol) as Protocol
             : WebDriverProtocol,
         /**
@@ -226,6 +241,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
         /**
          * only apply mobile protocol if session is actually for mobile
          */
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         isMobile ? deepmerge<any>(MJsonWProtocol, AppiumProtocol) : {},
         /**
          * only apply special Chromium commands if session is using Chrome or Edge
@@ -262,7 +278,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium }: Partial<SessionFlags>): PropertyDescriptorMap {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium, isWindowsApp, isMacApp }: Partial<SessionFlags>): PropertyDescriptorMap {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
@@ -282,6 +298,8 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefo
             }
         },
         isChromium: { value: isChromium },
+        isWindowsApp: { value: isWindowsApp },
+        isMacApp: { value: isMacApp }
     }
 }
 
@@ -310,8 +328,9 @@ export function setupDirectConnect(client: Client) {
 }
 
 /**
- * get human readable message from response error
+ * get human-readable message from response error
  * @param {Error} err response error
+ * @param params
  */
 export const getSessionError = (err: JSONWPCommandError, params: Partial<Options.WebDriver> = {}) => {
     // browser driver / service is not started
@@ -357,7 +376,7 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
             '\nIf you use a grid server ' + w3cCapMessage
     }
 
-    if (err.message.includes('failed serving request POST /wd/hub/session: Unauthorized') && params.hostname?.endsWith('saucelabs.com')) {
+    if (err.message.includes('failed serving request POST /wd/hub/session: Unauthorized') && (params.hostname === 'saucelabs.com' || params.hostname?.endsWith('.saucelabs.com'))) {
         return 'Session request was not authorized because you either did provide a wrong access key or tried to run ' +
             'in a region that has not been enabled for your user. If have registered a free trial account it is connected ' +
             'to a specific region. Ensure this region is set in your configuration (https://webdriver.io/docs/options.html#region).'
@@ -369,11 +388,37 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
 /**
  * Enhance the monad with WebDriver Bidi primitives if a connection can be established successfully
  * @param socketUrl url to bidi interface
+ * @param strictSSL
+ * @param userHeaders
  * @returns prototype with interface for bidi primitives
  */
-export function initiateBidi (socketUrl: string, strictSSL: boolean = true): PropertyDescriptorMap {
+export function initiateBidi (
+    socketUrl: string,
+    strictSSL: boolean = true,
+    userHeaders?: Record<string, string>
+): PropertyDescriptorMap {
+    /**
+     * don't connect and stale unit tests when the websocket url is set to a dummy value
+     */
+    const isUnitTesting = environment.value.variables.WDIO_UNIT_TESTS
+    if (isUnitTesting) {
+        log.info('Skip connecting to WebDriver Bidi interface due to unit tests')
+        return {
+            _bidiHandler: {
+                value: {
+                    isConnected: true,
+                    waitForConnected: () => Promise.resolve(),
+                    socket: { on: () => {}, off: () => {} }
+                }
+            }
+        }
+    }
+
     socketUrl = socketUrl.replace('localhost', '127.0.0.1')
-    const bidiReqOpts = strictSSL ? {} : { rejectUnauthorized: false }
+    const bidiReqOpts: { rejectUnauthorized?: boolean, headers?: Record<string, string> } = strictSSL ? {} : { rejectUnauthorized: false }
+    if (userHeaders) {
+        bidiReqOpts.headers = userHeaders
+    }
     const handler = new BidiHandler(socketUrl, bidiReqOpts)
     handler.connect().then((isConnected) => isConnected && log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`))
 
@@ -381,7 +426,7 @@ export function initiateBidi (socketUrl: string, strictSSL: boolean = true): Pro
         _bidiHandler: { value: handler },
         ...Object.values(WebDriverBidiProtocol).map((def) => def.socket).reduce((acc, cur) => {
             acc[cur.command] = {
-                value: function (this: Client, ...args: any) {
+                value: function (this: Client, ...args: unknown[]) {
                     const bidiFn = handler[cur.command] as Function | undefined
 
                     /**
@@ -398,15 +443,63 @@ export function initiateBidi (socketUrl: string, strictSSL: boolean = true): Pro
     }
 }
 
-export function parseBidiMessage (this: EventEmitter, data: Buffer) {
+export function parseBidiMessage (this: EventEmitter, data: ArrayBuffer) {
     try {
         const payload: Event = JSON.parse(data.toString())
         if (payload.type !== 'event') {
             return
         }
 
-        this.emit(payload.method, payload.params)
-    } catch (err: unknown) {
+        this.emit(payload.method as string, payload.params)
+    } catch (err) {
         log.error(`Failed parse WebDriver Bidi message: ${(err as Error).message}`)
+    }
+}
+
+/**
+ * Masks the `text` parameter in a WebDriver command if masking is enabled in the options.
+ *
+ * - If `options.mask` is not set or the command does not have a `text` parameter, returns the original body and args.
+ * - If masking is enabled and a `text` parameter is present and non-empty, replaces its value with the mask in both the body and args.
+ *
+ * @param {CommandEndpoint} commandInfo - The command endpoint metadata, including parameters and variables.
+ * @param {CommandRuntimeOptions} options - Runtime options for the command, including the `mask` flag.
+ * @param {Record<string, unknown>} body - The request body object to potentially mask.
+ * @param {unknown[]} args - The arguments array to potentially mask.
+ * @returns {{
+ *   maskedBody: Record<string, unknown>,
+ *   maskedArgs: unknown[],
+ *   isMasked: boolean
+ * }} An object containing the (possibly) masked body and args, and a flag indicating if masking was applied.
+ */
+export function mask(commandInfo: CommandEndpoint, options: CommandRuntimeOptions, body: Record<string, unknown>, args: unknown[]) {
+    const unmaskedResult = { maskedBody: body, maskedArgs: args, isMasked: false }
+    if (!options.mask) {
+        return unmaskedResult
+    }
+
+    const textValueParamIndex = commandInfo.parameters.findIndex((param) => param.name === 'text')
+    if (textValueParamIndex === -1 ) {
+        return unmaskedResult
+    }
+
+    const textValueIndexInArgs = (commandInfo.variables?.length ?? 0) + textValueParamIndex
+    const text = args[textValueIndexInArgs]
+    if (typeof text !== 'string' || !text) {
+        return unmaskedResult
+    }
+
+    const maskedBody = {
+        ...body,
+        text: SENSITIVE_DATA_REPLACER
+    } satisfies Record<string, unknown> as Record<string, unknown>
+
+    const textValueArgsIndex = textValueParamIndex + (commandInfo.variables?.length ?? 0)
+    const maskedArgs = args.slice(0, textValueArgsIndex).concat(SENSITIVE_DATA_REPLACER).concat(args.slice(textValueArgsIndex + 1))
+
+    return {
+        maskedBody,
+        maskedArgs,
+        isMasked: true,
     }
 }

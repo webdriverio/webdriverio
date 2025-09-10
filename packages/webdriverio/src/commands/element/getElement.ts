@@ -13,7 +13,7 @@ import type { ChainablePromiseElement } from '../../types.js'
  * </example>
  *
  * @alias element.getElement
- * @return {Element}
+ * @return {WebdriverIO.Element}
  * @type utility
  *
  */

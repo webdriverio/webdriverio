@@ -19,9 +19,21 @@
     "message": "Guides",
     "description": "The label for category Guides in sidebar docs"
   },
+  "sidebar.docs.category.Best Practices": {
+    "message": "Best Practices",
+    "description": "The label for category Best Practices in sidebar docs"
+  },
   "sidebar.docs.category.Testrunner": {
     "message": "Testrunner",
     "description": "The label for category Testrunner in sidebar docs"
+  },
+  "sidebar.docs.category.Desktop Testing": {
+    "message": "Desktop Testing",
+    "description": "The label for category Desktop Testing in sidebar docs"
+  },
+  "sidebar.docs.category.Electron": {
+    "message": "Electron",
+    "description": "The label for category Electron in sidebar docs"
   },
   "sidebar.docs.category.Component Testing": {
     "message": "Component Testing",
@@ -30,6 +42,34 @@
   "sidebar.docs.category.Framework Setup": {
     "message": "Framework Setup",
     "description": "The label for category Framework Setup in sidebar docs"
+  },
+  "sidebar.docs.category.Extension Testing": {
+    "message": "Extension Testing",
+    "description": "The label for category Extension Testing in sidebar docs"
+  },
+  "sidebar.docs.category.Accessibility Testing": {
+    "message": "Accessibility Testing",
+    "description": "The label for category Accessibility Testing in sidebar docs"
+  },
+  "sidebar.docs.category.OCR Testing": {
+    "message": "OCR Testing",
+    "description": "The label for category OCR Testing in sidebar docs"
+  },
+  "sidebar.docs.category.Commands": {
+    "message": "Commands",
+    "description": "The label for category Commands in sidebar docs"
+  },
+  "sidebar.docs.category.Visual Testing": {
+    "message": "Visual Testing",
+    "description": "The label for category Visual Testing in sidebar docs"
+  },
+  "sidebar.docs.category.Options": {
+    "message": "Options",
+    "description": "The label for category Options in sidebar docs"
+  },
+  "sidebar.docs.category.Percy": {
+    "message": "Percy",
+    "description": "The label for category Percy in sidebar docs"
   },
   "sidebar.docs.category.Migrate": {
     "message": "Migrate",
@@ -47,6 +87,10 @@
     "message": "Services",
     "description": "The label for category Services in sidebar docs"
   },
+  "sidebar.docs.doc.Argos": {
+    "message": "Argos",
+    "description": "The label for the doc item Argos in sidebar docs, linking to the doc visual-testing/argos"
+  },
   "sidebar.api.category.Protocols": {
     "message": "Protocols",
     "description": "The label for category Protocols in sidebar api"
@@ -59,16 +103,24 @@
     "message": "element",
     "description": "The label for category element in sidebar api"
   },
+  "sidebar.api.category.mobile": {
+    "message": "mobile",
+    "description": "The label for category mobile in sidebar api"
+  },
   "sidebar.api.category.mock": {
     "message": "mock",
     "description": "The label for category mock in sidebar api"
   },
+  "sidebar.api.category.dialog": {
+    "message": "dialog",
+    "description": "The label for category dialog in sidebar api"
+  },
+  "sidebar.api.category.clock": {
+    "message": "clock",
+    "description": "The label for category clock in sidebar api"
+  },
   "sidebar.flowcharts.category.Flowcharts": {
     "message": "Flowcharts",
     "description": "The label for category Flowcharts in sidebar flowcharts"
-  },
-  "sidebar.docs.category.Web Extension Testing": {
-    "message": "Web Extension Testing",
-    "description": "The label for category Web Extension Testing in sidebar docs"
   }
 }

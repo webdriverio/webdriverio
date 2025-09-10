@@ -1,22 +1,29 @@
 import path from 'node:path'
 import { describe, it, vi, expect, beforeEach } from 'vitest'
 import { remote } from '../../../src/index.js'
-import { getContextManager } from '../../../src/context.js'
+import { getContextManager } from '../../../src/session/context.js'
 import { ELEMENT_KEY } from 'webdriver'
 
 let browser: WebdriverIO.Browser
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('../../../src/context.ts', () => {
+vi.mock('../../../src/session/context.ts', () => {
     const manager = {
         getCurrentContext: vi.fn().mockResolvedValue('5D4662C2B4465334DFD34239BA1E9E66'),
         setCurrentContext: vi.fn(),
-        initialize: vi.fn()
+        getFlatContextTree: vi.fn().mockResolvedValue([]),
+        initialize: vi.fn(),
+        findContext: vi.fn().mockImplementation((search, contexts, strategy) => {
+            if (strategy === 'byUrl' && search === 'https://mno.com') {
+                return { context: '5', url: 'https://mno.com' }
+            }
+            return undefined
+        })
     }
     return { getContextManager: () => manager }
 })
 
-const contextManager = getContextManager({} as any)
+const contextManager = getContextManager({ on: vi.fn() } as any)
 
 describe('switchFrame command', () => {
     describe('non bidi', () => {
@@ -130,7 +137,7 @@ describe('switchFrame command', () => {
             elemExecute.mockResolvedValue({
                 context: '5D4662C2B4465334DFD34239BA1E9E66'
             })
-            vi.spyOn(elem, 'waitForExist').mockResolvedValue({})
+            vi.spyOn(elem, 'waitForExist').mockResolvedValue(true)
 
             await browser.switchFrame(elem)
             expect(contextManager.setCurrentContext).toBeCalledWith('5D4662C2B4465334DFD34239BA1E9E66')
@@ -139,6 +146,162 @@ describe('switchFrame command', () => {
         it('should switch context via null', async () => {
             await browser.switchFrame(null)
             expect(contextManager.setCurrentContext).toBeCalledWith('5D4662C2B4465334DFD34239BA1E9E66')
+        })
+
+        it('should NOT re-resolve if element already has an elementId', async () => {
+            // Mock the resolved element
+            const resolvedElem = {
+                elementId: 'elem-456',
+                [ELEMENT_KEY]: 'elem-456',
+                selector: 'iframe',
+                waitForExist: vi.fn().mockResolvedValue(true),
+                isExisting: vi.fn().mockResolvedValue(true),
+                isElement: true,
+                getElement: vi.fn()
+            } as any
+
+            resolvedElem.getElement.mockResolvedValue(resolvedElem)
+
+            const switchToFrame = vi.spyOn(browser, 'switchToFrame').mockResolvedValue(undefined)
+
+            await browser.switchFrame(resolvedElem)
+
+            expect(switchToFrame).toHaveBeenCalledWith(expect.objectContaining({
+                [ELEMENT_KEY]: 'elem-456'
+            }))
+        })
+
+        it('should re-resolve element if elementId is missing', async () => {
+            // Mock the resolved element
+            const resolvedElement = {
+                selector: 'iframe',
+                elementId: 'elem-789',
+                [ELEMENT_KEY]: 'elem-789',
+                waitForExist: vi.fn().mockResolvedValue(true),
+                isExisting: vi.fn().mockResolvedValue(true),
+                isElement: true
+            }
+
+            // Spy on browser.$ to simulate re-resolving the selector
+            const $spy = vi.spyOn(browser, '$').mockResolvedValue(resolvedElement as any)
+            const switchToFrame = vi.spyOn(browser, 'switchToFrame').mockResolvedValue(undefined)
+
+            // Fake unresolved element (missing elementId/ELEMENT_KEY)
+            const unresolvedElement = {
+                selector: 'iframe',
+                parent: browser,
+                isElement: true,
+                elementId: undefined,
+                [ELEMENT_KEY]: undefined,
+                async getElement() {
+                    if (!this.elementId && typeof this.selector === 'string') {
+                        const resolved = await this.parent.$(this.selector)
+                        this.elementId = resolved.elementId
+                        this[ELEMENT_KEY] = resolved[ELEMENT_KEY]
+                        return resolved
+                    }
+                    return this as any
+                }
+            }
+
+            await browser.switchFrame(unresolvedElement as any)
+
+            // Assert: re-resolution happened and switchToFrame was called with resolved element
+            expect($spy).toHaveBeenCalledWith('iframe')
+            expect(switchToFrame).toHaveBeenCalledWith(expect.objectContaining({
+                [ELEMENT_KEY]: 'elem-789'
+            }))
+        })
+
+        it('should switch context for delayed iframe URL', async () => {
+            const resolvedTree = {
+                '1': {
+                    context: '1',
+                    parent: null,
+                    url: 'https://abc.com',
+                    clientWindow: 'window-1',
+                    originalOpener: null,
+                    userContext: 'default',
+                    children: ['5']
+                },
+                '5': {
+                    context: '5',
+                    parent: '1',
+                    url: 'https://mno.com',
+                    clientWindow: 'window-5',
+                    originalOpener: null,
+                    userContext: 'default',
+                    children: []
+                }
+            }
+
+            const sessionContext = getContextManager(browser)
+
+            // Mock `browsingContextGetTree` to simulate retry behavior
+            let getTreeCall = 0
+            const browsingContextGetTreeMock = vi
+                .spyOn(browser, 'browsingContextGetTree')
+                .mockImplementation(() => {
+                    getTreeCall++
+                    if (getTreeCall < 3) {
+                        return Promise.resolve({ contexts: [] }) // 1st & 2nd retries
+                    }
+                    return Promise.resolve({
+                        contexts: [{ context: '5', url: 'https://mno.com', children: [] }]
+                    }) // 3rd call resolves
+                })
+
+            // `findContext` returns match only on 3rd call
+            let findCall = 0
+            vi.spyOn(sessionContext, 'findContext').mockImplementation((ctx, contexts, strategy) => {
+                findCall++
+                if (
+                    strategy === 'byUrl' &&
+                    findCall >= 3 &&
+                    Array.isArray(contexts) &&
+                    contexts.some(c => c.url === 'https://mno.com')
+                ) {
+                    return { context: '5', url: 'https://mno.com' }
+                }
+                return undefined
+            })
+
+            // After resolving, context tree is fetched
+            const getFlatContextTreeMock = vi
+                .spyOn(sessionContext, 'getFlatContextTree')
+                .mockResolvedValue(resolvedTree)
+
+            // Locate iframe node in DOM
+            vi.spyOn(browser, 'browsingContextLocateNodes').mockResolvedValue({
+                nodes: [{
+                    sharedId: 'node-5',
+                    value: {
+                        nodeType: 1,
+                        childNodeCount: 0,
+                        attributes: { src: 'https://mno.com' }
+                    }
+                }]
+            })
+
+            // Resolve context from iframe node
+            vi.spyOn(browser, 'scriptCallFunction').mockResolvedValue({
+                type: 'success',
+                result: { type: 'window', value: { context: '5' } }
+            })
+
+            // Ensure switchToFrame is called
+            const switchToFrameMock = vi
+                .spyOn(browser, 'switchToFrame')
+                .mockResolvedValue(undefined)
+
+            // Execute
+            const result = await browser.switchFrame('https://mno.com')
+            expect(result).toBe('5')
+
+            // Assertions
+            expect(browsingContextGetTreeMock).toHaveBeenCalledTimes(3) // Ensures retries
+            expect(getFlatContextTreeMock).toHaveBeenCalledTimes(1)
+            expect(switchToFrameMock).toHaveBeenCalled()
         })
     })
 })

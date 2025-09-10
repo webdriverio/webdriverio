@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /// <reference types="@wdio/globals/types" />
 import { commands } from 'virtual:wdio'
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
@@ -80,7 +81,7 @@ export default class ProxyDriver {
             ? params.capabilities.alwaysMatch?.webSocketUrl
             : params.capabilities!.webSocketUrl
         if (webSocketUrl) {
-            Object.assign(bidiPrototype, initiateBidi(webSocketUrl as any as string))
+            Object.assign(bidiPrototype, initiateBidi(webSocketUrl as unknown as string))
         }
 
         /**
@@ -139,8 +140,9 @@ export default class ProxyDriver {
          */
         if (params.capabilities.webSocketUrl && client._bidiHandler) {
             // make sure the Bidi connection is established before returning
-            await client._bidiHandler.connect()
-            client._bidiHandler.socket.on('message', parseBidiMessage.bind(client))
+            if (await client._bidiHandler.connect()) {
+                client._bidiHandler.socket?.on('message', parseBidiMessage.bind(client))
+            }
         }
 
         /**

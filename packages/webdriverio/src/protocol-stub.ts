@@ -11,22 +11,24 @@ export default class ProtocolStub {
     static async newSession (options: Capabilities.RemoteConfig) {
         const capabilities = emulateSessionCapabilities(options.capabilities)
 
-        const browser: any = {
+        const browser = {
             options,
             capabilities,
             requestedCapabilities: capabilities,
-            customCommands: [], // internally used to transfer custom commands to the actual protocol instance
-            overwrittenCommands: [], // internally used to transfer overwritten commands to the actual protocol instance
+            customCommands: [] as unknown[], // internally used to transfer custom commands to the actual protocol instance
+            overwrittenCommands: [] as unknown[], // internally used to transfer overwritten commands to the actual protocol instance
             commandList: [],
             getWindowHandle: NOOP,
             on: NOOP,
             off: NOOP,
+            addCommand: NOOP,
+            overwriteCommand: NOOP,
             ...capabilitiesEnvironmentDetector(capabilities)
         }
 
-        browser.addCommand = (...args: any) => browser.customCommands.push(args)
-        browser.overwriteCommand = (...args: any) => browser.overwrittenCommands.push(args)
-        return browser
+        browser.addCommand = (...args: unknown[]) => browser.customCommands.push(args)
+        browser.overwriteCommand = (...args: unknown[]) => browser.overwrittenCommands.push(args)
+        return browser as unknown as WebdriverIO.Browser
     }
 
     /**
@@ -57,7 +59,7 @@ export default class ProtocolStub {
  * @return  {object}
  */
 function emulateSessionCapabilities (caps: Capabilities.RequestedStandaloneCapabilities) {
-    const capabilities: Record<string, any> = {}
+    const capabilities: Record<string, unknown> = {}
 
     // remove appium vendor prefix from capabilities
     Object.entries(caps).forEach(([key, value]) => {

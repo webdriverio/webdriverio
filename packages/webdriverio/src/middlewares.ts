@@ -5,7 +5,7 @@ import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
 import { isStaleElementError } from './utils/index.js'
 
-const COMMANDS_TO_SKIP = ['getElement', 'getElements']
+const COMMANDS_TO_SKIP = ['getElement', 'getElements', 'emit']
 
 /**
  * This method is an command wrapper for elements that checks if a command is called
@@ -14,7 +14,7 @@ const COMMANDS_TO_SKIP = ['getElement', 'getElements']
  * @param  {Function} fn  command shim
  */
 export const elementErrorHandler = (fn: Function) => (commandName: string, commandFn: Function) => {
-    return function elementErrorHandlerCallback (this: WebdriverIO.Element, ...args: any[]) {
+    return function elementErrorHandlerCallback (this: WebdriverIO.Element, ...args: unknown[]) {
         return fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element) {
             if (COMMANDS_TO_SKIP.includes(commandName)) {
                 return fn(commandName, commandFn).apply(this, args)
@@ -40,16 +40,17 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                 }
 
                 return result
-            } catch (err: any) {
+            } catch (_err: unknown) {
+                const err = _err as Error
                 if (err.name === 'element not interactable') {
                     try {
                         await element.waitForClickable()
                         return await fn(commandName, commandFn).apply(this, args)
-                    } catch (error) {
+                    } catch {
                         const elementHTML = await element.getHTML()
                         err.name = 'webdriverio(middleware): element did not become interactable'
                         err.message = `Element ${elementHTML} did not become interactable`
-                        err.stack = err.stack ?? Error.captureStackTrace(err)
+                        err.stack = err.stack ?? Error.captureStackTrace(err) ?? ''
                     }
                 }
 
@@ -72,7 +73,7 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
 export const multiremoteHandler = (
     wrapCommand: Function
 ) => (commandName: keyof WebdriverIO.Browser) => {
-    return wrapCommand(commandName, function (this: WebdriverIO.MultiRemoteBrowser, ...args: any[]) {
+    return wrapCommand(commandName, function (this: WebdriverIO.MultiRemoteBrowser, ...args: unknown[]) {
         // @ts-ignore
         const commandResults = this.instances.map((instanceName: string) => {
             // @ts-ignore ToDo(Christian)

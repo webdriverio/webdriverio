@@ -2,11 +2,9 @@ import type { Hooks, ServiceEntry } from './Services.js'
 import type { ReporterEntry } from './Reporters.js'
 
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-export type SupportedProtocols = 'webdriver' | './protocol-stub.js'
-
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
 
-export interface RequestLibResponse<Body = any> {
+export interface RequestLibResponse<Body = unknown> {
     statusCode: number
     body?: Body
     rawBody?: Buffer
@@ -51,7 +49,7 @@ export interface Connection {
      */
     path?: string
     /**
-     * Query paramaters that are propagated to the driver server.
+     * Query parameters that are propagated to the driver server.
      */
     queryParams?: {
         [name: string]: string
@@ -141,15 +139,24 @@ export interface WebDriver extends Connection {
      * when attempting to start a session.
      */
     cacheDir?: string
+
+    /**
+     * Mask sensitive data in logs by replacing matching string or all captured groups for the provided regular expressions as string
+     * It replaces the matched string or the capture groups with `**MASKED**`
+     * Useful for masking sensitive data like cloud provider credentials for example with '/--key=([^ ]*)/'
+     * Use comma separated strings to use multiple patterns.
+     */
+    maskingPatterns?: string
 }
 
 export type SauceRegions = 'us' | 'eu' | 'us-west-1' | 'us-east-4' | 'eu-central-1' | 'staging'
 
 export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'beforeCommand' | 'afterCommand'> {
     /**
-     * @private
+     * Define the underlying driver package that executes the WebDriver commands.
+     * @default 'webdriver'
      */
-    automationProtocol?: SupportedProtocols
+    automationProtocol?: string
     /**
      * If running on Sauce Labs, you can choose to run tests between different data centers:
      * US or EU. To change your region to EU, add region: 'eu' to your config.
@@ -168,6 +175,7 @@ export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'before
     /**
      * Default interval for all `waitFor*` commands to check if an expected state (e.g.,
      * visibility) has been changed.
+     * @default 500
      */
     waitforInterval?: number
 }
@@ -195,7 +203,7 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     exclude?: string[]
     /**
-     * An object describing various of suites, which you can then specify
+     * An object describing various suites, which you can then specify
      * with the --suite option on the wdio CLI.
      */
     suites?: Record<string, (string |string[])[] | string[][]>
@@ -239,6 +247,11 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     resolveSnapshotPath?: (testPath: string, snapExtension: string) => string
     /**
+     * If set to true, soft assertions will be automatically asserted at the end of each test.
+     * @default true
+     */
+    autoAssertOnTestEnd?: boolean
+    /**
      * The number of retry attempts for an entire specfile when it fails as a whole.
      */
     specFileRetries?: number
@@ -248,6 +261,8 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
     specFileRetriesDelay?: number
     /**
      * Whether or not retried spec files should be retried immediately or deferred to the end of the queue
+     *
+     * @default true
      */
     specFileRetriesDeferred?: boolean
     /**
@@ -301,7 +316,7 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
     /**
      * A set of environment variables to be injected into the worker process.
      */
-    runnerEnv?: Record<string, any>
+    runnerEnv?: Record<string, string>
     /**
      * Files to watch when running `wdio` with the `--watch` flag.
      */
@@ -311,8 +326,9 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * @default []
      */
     cucumberFeaturesWithLineNumbers?: string[]
+    // flags
     /**
-     * flags
+     * Toggle watch mode on/off
      */
     watch?: boolean
     /**
@@ -320,10 +336,52 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     shard?: ShardOptions
     /**
-     * framework options
+     * Enable automatic Xvfb initialization in local runner for headless testing on Linux.
+     * When disabled, tests should manually call xvfb.init() if needed.
+     * @default true
+     */
+    autoXvfb?: boolean
+    /**
+     * Enable automatic installation of `xvfb-run` on Linux if missing.
+     * When false, the runner will warn and continue without installing.
+     * @default false
+     */
+    xvfbAutoInstall?: boolean
+    /**
+     * Mode for automatic installation when xvfbAutoInstall is true.
+     * - 'root': install only if running as root (no sudo)
+     * - 'sudo': install if root or via non-interactive sudo (`sudo -n`) if available
+     * @default 'root'
+     */
+    xvfbAutoInstallMode?: 'root' | 'sudo'
+    /**
+     * Custom command to use for installation instead of built-in package manager detection.
+     * When provided, this command is executed as-is and overrides the built-in installation logic.
+     */
+    xvfbAutoInstallCommand?: string | string[]
+    /**
+     * Number of retry attempts for xvfb process failures.
+     * @default 3
+     */
+    xvfbMaxRetries?: number
+    /**
+     * Base delay between retries in milliseconds for xvfb process failures.
+     * Progressive delay will be: xvfbRetryDelay * attemptNumber
+     * @default 1000
+     */
+    xvfbRetryDelay?: number
+    // framework options
+    /**
+     * Mocha specific options
      */
     mochaOpts?: WebdriverIO.MochaOpts
+    /**
+     * Jasmine specific options
+     */
     jasmineOpts?: WebdriverIO.JasmineOpts
+    /**
+     * Cucumber specific options
+     */
     cucumberOpts?: WebdriverIO.CucumberOpts
     /**
      * TSX custom TSConfig path
@@ -365,4 +423,5 @@ export interface RunnerEnd {
     failures: number
     cid: string
     retries: number
+    error?: string
 }

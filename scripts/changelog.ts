@@ -14,7 +14,7 @@ import { highlight } from 'cli-highlight'
 import { Changelog } from 'lerna-changelog'
 import { load } from 'lerna-changelog/lib/configuration.js'
 
-import pkg from '../lerna.json' assert { type: 'json' }
+import pkg from '../lerna.json' with { type: 'json' }
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
@@ -55,7 +55,6 @@ const api = new Octokit({ auth: process.env.GITHUB_AUTH })
  * as parameter into `createMarkdown` and set the version from which
  * a release was made (the older version).
  */
-// eslint-disable-next-line no-console
 console.log('Start generating changelog...')
 changelog.createMarkdown({ tagFrom: `${latestRelease}` }).then((newChangelog) => {
     const changes = newChangelog.slice(newChangelog.indexOf('('))
@@ -82,9 +81,7 @@ changelog.createMarkdown({ tagFrom: `${latestRelease}` }).then((newChangelog) =>
         }
     })
 
-    // eslint-disable-next-line no-console
     console.log(BANNER)
-    // eslint-disable-next-line no-console
     console.log(highlighted, '\n\n')
     return newChangelog
 }, (err) => {

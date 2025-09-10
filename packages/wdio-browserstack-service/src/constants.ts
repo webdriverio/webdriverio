@@ -1,5 +1,5 @@
 import type { BrowserstackConfig } from './types.js'
-import pkg from '../package.json' assert { type: 'json' }
+import pkg from '../package.json' with { type: 'json' }
 
 const bstackServiceVersion = pkg.version
 
@@ -30,6 +30,9 @@ export const DEFAULT_OPTIONS: Partial<BrowserstackConfig> = {
 export const consoleHolder: typeof console = Object.assign({}, console)
 
 export const DATA_ENDPOINT = 'https://collector-observability.browserstack.com'
+export const APP_ALLY_ENDPOINT = 'https://app-accessibility.browserstack.com/automate'
+export const APP_ALLY_ISSUES_ENDPOINT = 'api/v1/issues'
+export const APP_ALLY_ISSUES_SUMMARY_ENDPOINT = 'api/v1/issues-summary'
 export const DATA_EVENT_ENDPOINT = 'api/v1/event'
 export const DATA_BATCH_ENDPOINT = 'api/v1/batch'
 export const DATA_SCREENSHOT_ENDPOINT = 'api/v1/screenshots'
@@ -67,6 +70,8 @@ export const LOG_KIND_USAGE_MAP = {
 }
 
 export const FUNNEL_INSTRUMENTATION_URL = 'https://api.browserstack.com/sdk/v1/event'
+
+export const EDS_URL = 'https://eds.browserstack.com'
 
 export const SUPPORTED_BROWSERS_FOR_AI = ['chrome', 'microsoftedge', 'firefox']
 
@@ -112,8 +117,15 @@ export const BROWSERSTACK_PERCY = 'BROWSERSTACK_PERCY'
 // Whether session is a accessibility session
 export const BROWSERSTACK_ACCESSIBILITY = 'BROWSERSTACK_ACCESSIBILITY'
 
-// Whether session is a observability session
+// Whether session is a test reporting session
 export const BROWSERSTACK_OBSERVABILITY = 'BROWSERSTACK_OBSERVABILITY'
+
+// New Test Reporting and Analytics environment variables
+export const BROWSERSTACK_TEST_REPORTING = 'BROWSERSTACK_TEST_REPORTING'
+export const BROWSERSTACK_TEST_REPORTING_DEBUG = 'BROWSERSTACK_TEST_REPORTING_DEBUG'
+export const TEST_REPORTING_BUILD_TAG = 'TEST_REPORTING_BUILD_TAG'
+export const TEST_REPORTING_PROJECT_NAME = 'TEST_REPORTING_PROJECT_NAME'
+export const TEST_REPORTING_BUILD_NAME = 'TEST_REPORTING_BUILD_NAME'
 
 // Maximum size of VCS info which is allowed
 export const MAX_GIT_META_DATA_SIZE_IN_BYTES = 64 * 1024

@@ -1,7 +1,7 @@
 WebdriverIO Appium Service
 ==========================
 
-Handling the Appium server is out of the scope of the actual WebdriverIO project. This service helps you to run the Appium server seamlessly when running tests with the [WDIO testrunner](https://webdriver.io/docs/clioptions). It starts the [Appium Server](https://appium.github.io/appium.io/docs/en/about-appium/getting-started/index.html#starting-appium) in a child process.
+Handling the Appium server is out of the scope of the actual WebdriverIO project. This service helps you to run the Appium server seamlessly when running tests with the [WDIO testrunner](https://webdriver.io/docs/clioptions). It starts the [Appium Server](https://appium.io/docs/en/latest/quickstart/install/#starting-appium) in a child process.
 
 ## Installation
 
@@ -85,7 +85,7 @@ export const config = {
 ### args
 Map of arguments for the Appium server, passed directly to `appium`.
 
-See [the documentation](https://github.com/appium/appium/blob/master/packages/appium/docs/en/cli/args.md) for possible arguments.
+See [the documentation](https://appium.io/docs/en/latest/cli/args/) for possible arguments.
 The arguments are supplied in lower camel case. For instance, `debugLogSpacing: true` transforms into `--debug-log-spacing`, or they can be supplied as outlined in the Appium documentation.
 
 Type: `Object`

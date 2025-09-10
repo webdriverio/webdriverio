@@ -36,7 +36,7 @@ describe('selectByIndex test', () => {
         expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/elements')
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[3][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[4][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-456/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-elem-456',
@@ -62,6 +62,7 @@ describe('selectByIndex test', () => {
             selector: 'foobar2',
             elementId: 'some-elem-123',
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+            waitUntil: vi.fn().mockRejectedValue(new Error('Select element doesn\'t contain any option element')),
             findElementsFromElement: vi.fn().mockReturnValue(Promise.resolve([]))
         }
         // @ts-ignore mock feature
@@ -75,8 +76,6 @@ describe('selectByIndex test', () => {
     })
 
     it('should throw if index is out of range', async () => {
-        // @ts-ignore uses expect-webdriverio
-        expect.hasAssertions()
         const mockElem = {
             options: {},
             selector: 'foobar',
@@ -85,21 +84,13 @@ describe('selectByIndex test', () => {
         // @ts-ignore mock feature
         mockElem.selectByIndex = elem.selectByIndex.bind(mockElem)
 
-        try {
-            // @ts-ignore mock feature
-            await mockElem.selectByIndex(2)
-        } catch (err: any) {
-            expect(err.toString()).toBe('Error: Can\'t call selectByIndex on element with selector "foobar" because element wasn\'t found')
-        }
+        // @ts-expect-error
+        const err = await mockElem.selectByIndex(2).catch((err: any) => err)
+        expect(err.toString()).toBe('Error: Can\'t call selectByIndex on element with selector "foobar" because element wasn\'t found')
     })
 
-    it('should throw if index is out of rangew', async () => {
-        // @ts-ignore uses expect-webdriverio
-        expect.hasAssertions()
-        try {
-            await elem.selectByIndex(3)
-        } catch (err: any) {
-            expect(err.toString()).toBe('Error: Option with index "3" not found. Select element only contains 3 option elements')
-        }
-    })
+    it('should throw if index is out of range', async function () {
+        const err = await elem.selectByIndex(3).catch((err: any) => err)
+        expect(err.toString()).toBe('Error: Option with index "3" not found. Select element only contains 3 option elements')
+    }, { timeout: 10000 })
 })

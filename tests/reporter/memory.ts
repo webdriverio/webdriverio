@@ -32,10 +32,8 @@ describe('`execute` memory leak check', () => {
             heapUsage = getHeapUsageMiB()
             log.debug(`[${i.toString().padStart(2, '0')}] Heap usage ${heapUsage.toFixed(2)} MiB`)
         }
-        // @ts-ignore nock retains all timers even after they're finished, leading to a conflicting memory leak
         nockReset()
-        // @ts-expect-error gc is exposed
-        globalThis.gc()
+        globalThis.gc?.()
         const finalHeapUsage = getHeapUsageMiB()
         log.debug(`Final heap usage ${finalHeapUsage.toFixed(2)} MiB (${heapSnapshot()})`)
         // 5% for variability / v8 internals + script size once due to nock interceptor leaking the last request+response (despite nockReset)

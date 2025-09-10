@@ -5,9 +5,29 @@ import isElementStable from '../../scripts/isElementStable.js'
 
 /**
  *
- * Will return true when stable (in animation) or when unstable (not in animation).
+ * Will return true when the element is stable (not animating) or false when unstable (currently animating).
+ * We generally recommend disabling animations in your test environment instead of using this command,
+ * but this method is provided for cases where that's not feasible.
  *
- * __Note:__ it's best to disable animations instead of using this command.
+ * __Note:__ This command is only available for desktop and mobile browsers, not for native mobile apps.
+ *
+ * __Background/Inactive Tab Issue:__ This command will fail with an error if the browser tab is inactive
+ * (minimized, in background, or hidden) because animations don't run in inactive tabs due to browser
+ * performance optimizations. To work around this issue, you can add Chrome options to prevent background
+ * throttling:
+ *
+ * ```js
+ * // In your wdio.conf.js
+ * capabilities: [{
+ *     browserName: 'chrome',
+ *     'goog:chromeOptions': {
+ *         args: [
+ *             '--disable-backgrounding-occluded-windows',
+ *             '--disable-renderer-backgrounding'
+ *         ]
+ *     }
+ * }]
+ * ```
  *
  * <example>
     :index.html
@@ -57,8 +77,13 @@ import isElementStable from '../../scripts/isElementStable.js'
  */
 export async function isStable (this: WebdriverIO.Element) {
     const browser = getBrowserObject(this)
+
+    if (browser.isMobile && browser.isNativeContext) {
+        throw new Error('The `isStable` command is only available for desktop and mobile browsers.')
+    }
+
     return await browser.executeAsync(isElementStable, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
-    } as any as HTMLElement)
+    } as unknown as HTMLElement)
 }

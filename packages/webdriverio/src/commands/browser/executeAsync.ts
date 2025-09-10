@@ -4,8 +4,9 @@ import type { remote } from 'webdriver'
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
-import { getContextManager } from '../../context.js'
-import { NAME_POLYFILL } from '../../polyfill.js'
+import { getContextManager } from '../../session/context.js'
+import { polyfillFn } from '../../scripts/polyfill.js'
+import type { TransformElement } from '../../types.js'
 
 /**
  * :::warning
@@ -44,6 +45,15 @@ import { NAME_POLYFILL } from '../../polyfill.js'
         // node.js context - client and console are available
         console.log(result) // outputs: 10
     });
+
+    :executeAsync.ts
+    // explicitly type the return value of the script to ensure type safety
+    const result: number = await browser.executeAsync(function(a, b, c, d, done) {
+        // browser context - you may not access client or console
+        setTimeout(() => {
+            done(a + b + c + d)
+        }, 3000);
+    }, 1, 2, 3, 4)
  * </example>
  *
  * @param {String|Function} script     The script to execute.
@@ -55,11 +65,16 @@ import { NAME_POLYFILL } from '../../polyfill.js'
  * @type protocol
  * @deprecated Please use `execute` instead
  */
-export async function executeAsync<ReturnValue, InnerArguments extends any[]>(
+export async function executeAsync<ReturnValue, InnerArguments extends unknown[]>(
     this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     script:
         string |
-        ((...args: [...innerArgs: InnerArguments, callback: (result?: ReturnValue) => void]) => void),
+        (
+            (
+                ...args: [...innerArgs: { [K in keyof InnerArguments]: TransformElement<InnerArguments[K]> },
+                callback: (result?: TransformElement<ReturnValue>) => void]
+            ) => void
+        ),
     ...args: InnerArguments
 ): Promise<ReturnValue> {
     /**
@@ -88,7 +103,7 @@ export async function executeAsync<ReturnValue, InnerArguments extends any[]>(
         const params: remote.ScriptCallFunctionParameters = {
             functionDeclaration,
             awaitPromise: true,
-            arguments: args.map((arg) => LocalValue.getArgument(arg)) as any,
+            arguments: args.map((arg) => LocalValue.getArgument(arg)) as remote.ScriptLocalValue[],
             target: {
                 context
             }
@@ -103,10 +118,11 @@ export async function executeAsync<ReturnValue, InnerArguments extends any[]>(
      */
     if (typeof script === 'function') {
         script = `
-            ${NAME_POLYFILL}
+            ${polyfillFn}
+            webdriverioPolyfill()
             return (${script}).apply(null, arguments)
         `
     }
 
-    return this.executeAsyncScript(script, verifyArgsAndStripIfElement(args))
+    return this.executeAsyncScript(script, verifyArgsAndStripIfElement(args) as (string | number | boolean)[])
 }

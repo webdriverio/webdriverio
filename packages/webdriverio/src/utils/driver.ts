@@ -1,8 +1,8 @@
 import type { Automation, Capabilities } from '@wdio/types'
 
+import { isStub } from './index.js'
 import ProtocolStub from '../protocol-stub.js'
 import detectBackend from './detectBackend.js'
-import { SupportedAutomationProtocols } from '../constants.js'
 
 interface ProtocolDriver {
     Driver: Automation.Driver<Capabilities.RemoteConfig>
@@ -25,7 +25,7 @@ export async function getProtocolDriver (options: Capabilities.WebdriverIOConfig
      *   whether tests are being executed in the worker before starting a session
      * - when running component tests where we don't need a driver at all
      */
-    if (options.automationProtocol === SupportedAutomationProtocols.stub) {
+    if (isStub(options.automationProtocol)) {
         return { Driver: ProtocolStub, options }
     }
 

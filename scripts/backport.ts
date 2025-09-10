@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import Octokit from '@octokit/rest'
+import { Octokit } from '@octokit/rest'
 import inquirer from 'inquirer'
 import shell from 'shelljs'
 
@@ -28,24 +28,23 @@ if (branch.trim() !== maintenanceLTSVersion) {
     )
 }
 
-function getPrompt (pr) {
+function getPrompt (pr: { title: string, user: { login: string } | null, html_url: string }) {
     return [{
         name: 'toBackport',
         type: 'confirm',
         default: true,
-        message: `You want to backport "${pr.title}" by ${pr.user.login}?\n(See PR ${pr.html_url})`
+        message: `You want to backport "${pr.title}" by ${pr.user?.login || 'unknown user'}?\n(See PR ${pr.html_url})`
     }, {
         name: 'exit',
         type: 'confirm',
         default: false,
         message: 'Exit process?',
-        when: ({ toBackport }) => !toBackport
+        when: ({ toBackport }: { toBackport: boolean }) => !toBackport
     }]
 }
 
 const api = new Octokit({ auth: process.env.GITHUB_AUTH })
 
-/* eslint-disable no-console */
 ;(async () => {
     let backportedPRs = 0
 
@@ -69,7 +68,8 @@ const api = new Octokit({ auth: process.env.GITHUB_AUTH })
     }
 
     for (const prToBackport of prsToBackport) {
-        const { toBackport, exit } = await inquirer.prompt(getPrompt(prToBackport))
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { toBackport, exit } = await inquirer.prompt(getPrompt(prToBackport) as any)
 
         if (exit) {
             return backportedPRs

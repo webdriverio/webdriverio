@@ -1,7 +1,6 @@
 import cp, { type ExecException } from 'node:child_process'
 import url from 'node:url'
 import path from 'node:path'
-import util from 'node:util'
 import chalk from 'chalk'
 import { rimraf } from 'rimraf'
 import { copy } from 'esbuild-plugin-copy'
@@ -10,7 +9,6 @@ import type { PackageJson } from 'type-fest'
 
 const MAX_RETRIES = 3
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-const exec = util.promisify(cp.exec)
 const tscPath = path.resolve(path.dirname(url.fileURLToPath(import.meta.resolve('typescript'))), '..', 'bin', 'tsc')
 
 const l = {
@@ -74,8 +72,36 @@ export function clear(config: BuildOptions): Plugin {
  * @return {Promise<void>} A promise that resolves when the types are generated.
  */
 function generateTypes(cwd: string, pkg: PackageJson, retry = MAX_RETRIES): Promise<void> {
-    const child = exec(`node ${tscPath} --emitDeclarationOnly`, { cwd })
-    return child.then(() => {}, (err) => {
+    return new Promise<void>((resolve, reject) => {
+        const child = cp.spawn('node', [tscPath, '--emitDeclarationOnly'], { cwd })
+        let stdout = ''
+        let stderr = ''
+
+        child.stdout?.on('data', (data) => {
+            stdout += data
+        })
+
+        child.stderr?.on('data', (data) => {
+            stderr += data
+        })
+
+        child.on('close', (code) => {
+            if (code === 0) {
+                resolve(undefined)
+            } else {
+                const error = new Error(`TypeScript compilation failed with code ${code}`)
+                // @ts-ignore
+                error.stdout = stdout
+                // @ts-ignore
+                error.stderr = stderr
+                reject(error)
+            }
+        })
+
+        child.on('error', (error) => {
+            reject(error)
+        })
+    }).catch((err) => {
         if (retry > 0) {
             console.log(`${l.name(pkg.name)} ↻ Retrying (${MAX_RETRIES - (retry - 1)}/${MAX_RETRIES}) building types for ${pkg.name}`)
             return generateTypes(cwd, pkg, retry - 1)
@@ -109,11 +135,12 @@ export function generateDts(absWorkingDir: string, pkg: PackageJson): Plugin {
 }
 
 /**
- * Plugin to copy EJS templates from the `@wdio/cli` package to build directory
+ * Plugin to copy EJS templates from specified package to build directory
+ * @param {string} pkgName Name of the package to copy
  * @returns {Plugin} an Esbuild plugin
  */
-export function copyEJSTemplates () {
-    const cliPackage = path.resolve(__dirname, '..', '..', '..', 'packages', 'wdio-cli')
+export function copyEJSTemplates(pkgName: string): Plugin {
+    const cliPackage = path.resolve(__dirname, '..', '..', '..', 'packages', pkgName)
     return copy({
         resolveFrom: cliPackage,
         assets: [{
@@ -148,7 +175,7 @@ export function runBuildScript(absWorkingDir: string, pkg: PackageJson): Plugin 
         name: `build-${pkg.name || 'unknown'}`,
         setup(build) {
             build.onEnd(async () => {
-                const child =cp.spawn('pnpm',
+                const child = cp.spawn('pnpm',
                     ['run', 'build'],
                     { cwd: absWorkingDir, stdio: 'inherit' }
                 )

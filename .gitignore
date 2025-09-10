@@ -72,6 +72,7 @@ packages/**/cjs/
 /*.ts
 !.eslintrc.js
 !vitest.config.ts
+!eslint.config.mjs
 packages/**/package-lock.json
 .DS_Store
 e2e/screenshot.pdf
@@ -116,3 +117,8 @@ examples/wdio/mocha/*.json
 e2e/screenshot.png
 website/community/events
 website/events.json
+e2e/wdio/headless/*.png
+website/i18n/*
+!website/i18n/en
+
+.pnpm-store

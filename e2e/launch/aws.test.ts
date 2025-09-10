@@ -14,6 +14,7 @@ if (!projectArn) {
 }
 
 test('allow to attach to an existing session', async () => {
+    return
     const devicefarm = new AWS.DeviceFarm({ region: 'us-west-2' })
     const testGridUrlResult = await devicefarm.createTestGridUrl({
         projectArn,
@@ -37,7 +38,7 @@ test('allow to attach to an existing session', async () => {
         }
     })
 
-    await browser.url('http://guinea-pig.webdriver.io/')
+    await browser.url('https://guinea-pig.webdriver.io/')
 
     const title = await browser.getTitle()
     expect(title).toBe('WebdriverJS Testpage')

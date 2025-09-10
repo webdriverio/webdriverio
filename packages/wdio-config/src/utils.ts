@@ -1,8 +1,7 @@
-import decamelize from 'decamelize'
-
 import type { Options } from '@wdio/types'
+import { DEFAULT_CONFIGS } from './constants.js'
 
-export const validObjectOrArray = (object: any): object is object | Array<any> => (Array.isArray(object) && object.length > 0) ||
+export const validObjectOrArray = (object: object): object is object | Array<unknown> => (Array.isArray(object) && object.length > 0) ||
     (typeof object === 'object' && Object.keys(object).length > 0)
 
 /**
@@ -26,12 +25,20 @@ export function removeLineNumbers(filePath: string) {
  */
 export function isCucumberFeatureWithLineNumber(spec: string | string[]) {
     const specs = Array.isArray(spec) ? spec : [spec]
-    return specs.some((s) => s.match(/:\d+(:\d+$|$)/))
+    return specs.some((s) => /:\d+(:\d+$|$)/.test(s))
 }
 
 export function isCloudCapability(caps: WebdriverIO.Capabilities) {
     return Boolean(caps && (caps['bstack:options'] || caps['sauce:options'] || caps['tb:options']))
 }
+
+/**
+ * Creates a configuration object while providing types for both TypeScript and Javascript
+ */
+export const defineConfig = (options?: Partial<WebdriverIO.Config> | WebdriverIO.Config): WebdriverIO.Config => ({
+    ...DEFAULT_CONFIGS(),
+    ...options,
+})
 
 /**
  * validates configurations based on default values
@@ -63,8 +70,8 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
             if (typeof expectedOption.validate === 'function') {
                 try {
                     expectedOption.validate(optValue)
-                } catch (e: any) {
-                    throw new Error(`Type check for option "${name.toString()}" failed: ${e.message}`)
+                } catch (e: unknown) {
+                    throw new Error(`Type check for option "${name.toString()}" failed: ${(e as Error).message}`)
                 }
             }
 
@@ -76,7 +83,7 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
         }
     }
 
-    for (const [name, option] of Object.entries(options as any) as [keyof T, T[keyof T]][]) {
+    for (const [name, option] of Object.entries(options as object) as [keyof T, T[keyof T]][]) {
         /**
          * keep keys from source object if desired
          */
@@ -87,24 +94,3 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
 
     return params
 }
-
-export function objectToEnv (params?: Record<string, any>) {
-    /**
-     * apply all config options as environment variables
-     */
-    for (const [key, value] of Object.entries(params || {})) {
-        const envKey = decamelize(key).toUpperCase()
-        if (Array.isArray(value)) {
-            process.env[envKey] = value.join(',')
-        } else if (typeof value === 'boolean' && value) {
-            process.env[envKey] = '1'
-        } else if (value instanceof RegExp) {
-            process.env[envKey] = value.toString()
-        } else if (typeof value === 'object') {
-            process.env[envKey] = JSON.stringify(value)
-        } else if (value && typeof value.toString === 'function') {
-            process.env[envKey] = value.toString()
-        }
-    }
-}
-

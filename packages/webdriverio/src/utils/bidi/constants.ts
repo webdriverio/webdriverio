@@ -7,6 +7,7 @@ export enum PrimitiveType {
     Null = 'null',
     String = 'string',
     Number = 'number',
+    // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
     SpecialNumber = 'number',
     Boolean = 'boolean',
     BigInt = 'bigint'
@@ -66,4 +67,4 @@ export enum SpecialNumberType {
 export enum EvaluateResultType {
     Success = 'success',
     Exception = 'exception'
-  }
+}

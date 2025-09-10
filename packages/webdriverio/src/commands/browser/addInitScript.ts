@@ -1,36 +1,6 @@
-import { EventEmitter } from 'node:events'
-import type { local } from 'webdriver'
+import type { local, remote } from 'webdriver'
 
-import { deserializeValue } from '../../utils/bidi/index.js'
-
-export interface InitScript<Payload = undefined> {
-    remove: () => Promise<void>
-    on: (event: 'data', listener: (data: Payload) => void) => void
-}
-
-/**
- * Callback to emit data from the browser back to the Node.js environment. In order to receive the
- * data returned by the callback function you have to listen to the `data` event, e.g.
- *
- * ```js
- * const script = await browser.addInitScript((emit) => {
- *    emit('hello')
- * })
- * script.on('data', (data) => {
- *   console.log(data) // prints: hello
- * })
- * ```
- *
- * @param {any} data  The data to emit.
- */
-type InitScriptCallback<Payload> = (data: Payload) => void
-
-type InitScriptFunction<Payload> = ((emit: InitScriptCallback<Payload>) => void | Promise<void>)
-type InitScriptFunctionArg1<Payload, Arg1> = ((arg1: Arg1, emit: InitScriptCallback<Payload>) => void | Promise<void>)
-type InitScriptFunctionArg2<Payload, Arg1, Arg2> = ((arg1: Arg1, arg2: Arg2, emit: InitScriptCallback<Payload>) => void | Promise<void>)
-type InitScriptFunctionArg3<Payload, Arg1, Arg2, Arg3> = ((arg1: Arg1, arg2: Arg2, arg3: Arg3, emit: InitScriptCallback<Payload>) => void | Promise<void>)
-type InitScriptFunctionArg4<Payload, Arg1, Arg2, Arg3, Arg4> = ((arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, emit: InitScriptCallback<Payload>) => void | Promise<void>)
-type InitScriptFunctionArg5<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> = ((arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, emit: InitScriptCallback<Payload>) => void | Promise<void>)
+import { deserialize } from '../../utils/bidi/index.js'
 
 /**
  * Adds a script which would be evaluated in one of the following scenarios:
@@ -127,6 +97,7 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
 export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
     this: WebdriverIO.Browser,
     script: string | InitScriptFunction<Payload> | InitScriptFunctionArg1<Payload, Arg1> | InitScriptFunctionArg2<Payload, Arg1, Arg2> | InitScriptFunctionArg3<Payload, Arg1, Arg2, Arg3> | InitScriptFunctionArg4<Payload, Arg1, Arg2, Arg3, Arg4> | InitScriptFunctionArg5<Payload, Arg1, Arg2, Arg3, Arg4, Arg5>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...args: any
 ): Promise<InitScript<Payload>> {
     /**
@@ -140,10 +111,11 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
         throw new Error('This command is only supported when automating browser using WebDriver Bidi protocol')
     }
 
-    const serializedParameters = (args || []).map((arg: any) => JSON.stringify(arg))
+    const serializedParameters = (args || []).map((arg: unknown) => JSON.stringify(arg))
     const context = await this.getWindowHandle()
+    const src = 'return ' + script.toString()
     const fn = `(emit) => {
-        const closure = new Function(\`return ${script.toString()}\`)
+        const closure = new Function(${JSON.stringify(src)})
         return closure()(${serializedParameters.length ? `${serializedParameters.join(', ')}, emit` : 'emit'})
     }`
     const channel = btoa(fn.toString())
@@ -159,21 +131,59 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
     await this.sessionSubscribe({
         events: ['script.message']
     })
-    const emitter = new EventEmitter()
+    const eventHandler: Map<string, EventHandlerFunction<Payload>[]> = new Map()
     const messageHandler = (msg: local.ScriptMessageParameters) => {
         if (msg.channel === channel) {
-            emitter.emit('data', deserializeValue(msg.data as any))
+            const handler = eventHandler.get('data') || []
+            return handler.forEach((fn) => fn(deserialize(msg.data as remote.ScriptLocalValue)))
         }
     }
     this.on('script.message', messageHandler)
     const resetFn = (() => {
+        eventHandler.clear()
         this.off('script.message', messageHandler)
         return this.scriptRemovePreloadScript({ script: result.script })
     }) as unknown as () => Promise<void>
 
     const returnVal: InitScript<Payload> = {
         remove: resetFn,
-        on: emitter.on.bind(emitter)
+        on: (event: 'data', listener: (data: Payload) => void) => {
+            if (!eventHandler.has(event)) {
+                eventHandler.set(event, [])
+            }
+            eventHandler.get(event)?.push(listener)
+        }
     }
     return returnVal
+}
+
+type EventHandlerFunction<Payload> = (data: Payload) => void
+
+/**
+ * Callback to emit data from the browser back to the Node.js environment. In order to receive the
+ * data returned by the callback function you have to listen to the `data` event, e.g.
+ *
+ * ```js
+ * const script = await browser.addInitScript((emit) => {
+ *    emit('hello')
+ * })
+ * script.on('data', (data) => {
+ *   console.log(data) // prints: hello
+ * })
+ * ```
+ *
+ * @param {any} data  The data to emit.
+ */
+type InitScriptCallback<Payload> = (data: Payload) => void
+
+type InitScriptFunction<Payload> = ((emit: InitScriptCallback<Payload>) => void | Promise<void>)
+type InitScriptFunctionArg1<Payload, Arg1> = ((arg1: Arg1, emit: InitScriptCallback<Payload>) => void | Promise<void>)
+type InitScriptFunctionArg2<Payload, Arg1, Arg2> = ((arg1: Arg1, arg2: Arg2, emit: InitScriptCallback<Payload>) => void | Promise<void>)
+type InitScriptFunctionArg3<Payload, Arg1, Arg2, Arg3> = ((arg1: Arg1, arg2: Arg2, arg3: Arg3, emit: InitScriptCallback<Payload>) => void | Promise<void>)
+type InitScriptFunctionArg4<Payload, Arg1, Arg2, Arg3, Arg4> = ((arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, emit: InitScriptCallback<Payload>) => void | Promise<void>)
+type InitScriptFunctionArg5<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> = ((arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, emit: InitScriptCallback<Payload>) => void | Promise<void>)
+
+export interface InitScript<Payload = undefined> {
+    remove: () => Promise<void>
+    on: (event: 'data', listener: (data: Payload) => void) => void
 }

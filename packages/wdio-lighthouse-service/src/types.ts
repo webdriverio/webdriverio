@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { TraceStreamJson } from '@tracerbench/trace-event'
 import type { ReportOptions } from 'istanbul-reports'
 import type { Totals, CoverageSummaryData } from 'istanbul-lib-coverage'
@@ -152,7 +153,7 @@ export interface ErrorAudit {
 }
 
 export type PWAAudits = keyof typeof PWA_AUDITS
-export type NetworkStates = 'offline' | 'GPRS' | 'Regular 2G' | 'Good 2G' | 'Regular 3G' | 'Good 3G' | 'Regular 4G' | 'DSL' | 'Wifi' | 'online';
+export type NetworkStates = 'offline' | 'GPRS' | 'Regular 2G' | 'Good 2G' | 'Regular 3G' | 'Good 3G' | 'Regular 4G' | 'DSL' | 'Wifi' | 'online'
 
 export interface Coverage {
     lines: Totals
@@ -187,5 +188,5 @@ export interface PerformanceAuditOptions {
 export interface GathererDriver {
     beginTrace (): Promise<void>
     endTrace (): Promise<TraceStreamJson>
-    evaluate (script: Function, args: Object): Promise<any>
+    evaluate (script: Function, args: unknown): Promise<any>
 }

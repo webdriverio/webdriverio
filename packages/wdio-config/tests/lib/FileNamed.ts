@@ -16,7 +16,7 @@ export function FileNamed(filename: MockSystemFilePath) {
     return { withContents }
 }
 
-export type RealSystemPath = string;
+export type RealSystemPath = string
 
 /**
  * Mock a real config file by loading it in from the file system.

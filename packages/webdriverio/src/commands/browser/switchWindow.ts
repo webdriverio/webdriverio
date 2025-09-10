@@ -1,4 +1,4 @@
-import { getContextManager } from '../../context.js'
+import { getContextManager } from '../../session/context.js'
 
 /**
  *
@@ -37,7 +37,7 @@ import { getContextManager } from '../../context.js'
 export async function switchWindow (
     this: WebdriverIO.Browser,
     matcher: string | RegExp
-) {
+): Promise<string> {
     /**
      * parameter check
      */
@@ -45,28 +45,25 @@ export async function switchWindow (
         throw new Error('Unsupported parameter for switchWindow, required is "string" or a RegExp')
     }
 
-    const currentWindow = await this.getWindowHandle()
-
-    // is the matcher a window handle, and are we in the right window already?
-    if (typeof matcher === 'string' && currentWindow === matcher) {
-        return currentWindow
-    }
-
     const contextManager = getContextManager(this)
     const tabs = await this.getWindowHandles()
 
     // is the matcher a window handle and is it in the list of tabs?
     if (typeof matcher === 'string' && tabs.includes(matcher)) {
+        // are we in the right window already?
+        if (matcher ===  contextManager.getCurrentWindowHandle()) {
+            return matcher
+        }
         await this.switchToWindow(matcher)
         contextManager.setCurrentContext(matcher)
         return matcher
     }
 
     const matchesTarget = (target: string): boolean => {
-        if (typeof matcher ==='string') {
+        if (typeof matcher === 'string') {
             return target.includes(matcher)
         }
-        return !!target.match(matcher)
+        return matcher.test(target)
     }
 
     for (const tab of tabs) {
@@ -100,6 +97,5 @@ export async function switchWindow (
         }
     }
 
-    await this.switchToWindow(currentWindow)
     throw new Error(`No window found with title, url, name or window handle matching "${matcher}"`)
 }

@@ -1,6 +1,5 @@
 import path from 'node:path'
 import assert from 'node:assert'
-import type { Options } from '@wdio/types'
 
 describe('Mocha smoke test', () => {
     const testJs = path.join('tests', 'mocha', 'test.ts')
@@ -30,7 +29,7 @@ describe('Mocha smoke test', () => {
     })
 
     it('has a testrunner config object', () => {
-        const opts = browser.options as Options.Testrunner
+        const opts = browser.options as WebdriverIO.Config
         expect(Array.isArray(opts.services)).toBe(true)
         expect(opts).toHaveProperty('mochaOpts')
         expect(opts).toHaveProperty('jasmineOpts')
@@ -129,7 +128,7 @@ describe('Mocha smoke test', () => {
                 await elem.click()
                 return false
             }, { timeout: 1000 })
-        } catch (err) {
+        } catch {
             // ignored
         }
         assert.equal(JSON.stringify(await elem.getSize()), JSON.stringify({ width: 1, height: 2 }))
@@ -416,5 +415,28 @@ describe('Mocha smoke test', () => {
             await browser.requestRetryScenario()
             await browser.url('https://mymockpage.com')
         })
+    })
+
+    describe('waitForExist', () => {
+        it('should return true if element exists', async () => {
+            // @ts-expect-error custom command
+            await browser.waitForExistScenario()
+            const elem = await $('elem')
+            expect(elem.error).toBeDefined()
+            expect(elem.elementId).toBeUndefined()
+            expect(await elem.waitForExist()).toBe(true)
+            expect(elem.error).toBeUndefined()
+            expect(elem.elementId).toBeDefined()
+        })
+    })
+
+    it('supports inline snapshots', () => {
+        expect({ deep: { foo: 'bar' } }).toMatchInlineSnapshot(`
+          {
+            "deep": {
+              "foo": "bar",
+            },
+          }
+        `)
     })
 })

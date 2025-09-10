@@ -1,4 +1,4 @@
-/* eslint-disable quotes */
+
 import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
@@ -18,8 +18,6 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
     const isHeadless = options.headless || Boolean(process.env.CI)
     const alias = (options.viteConfig as (InlineConfig | undefined))?.resolve?.alias || {}
     const usesTailwindCSS = await hasFileByExtensions(path.join(root, 'tailwind.config'))
-    const mochaCSSHref = path.join(__dirname, 'third_party', 'mocha.css')
-    const mochaJSSrc = path.join(__dirname, 'third_party', 'mocha.js')
 
     /**
      * clean up some values that might cause serialization issues
@@ -34,7 +32,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         const sourceMapSupportDir = await resolve('source-map-support', import.meta.url)
         sourceMapScript = /*html*/`<script src="/@fs/${url.fileURLToPath(path.dirname(sourceMapSupportDir))}/browser-source-map-support.js"></script>`
         sourceMapSetupCommand = 'sourceMapSupport.install()'
-    } catch (err: unknown) {
+    } catch (err) {
         log.error(`Failed to setup source-map-support: ${(err as Error).message}`)
     }
 
@@ -44,7 +42,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         <head>
             <title>WebdriverIO Browser Test</title>
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
-            ${usesTailwindCSS ? /*html*/`<link rel="stylesheet" href="/node_modules/tailwindcss/tailwind.css">` : ''}
+            ${usesTailwindCSS ? /*html*/'<link rel="stylesheet" href="/node_modules/tailwindcss/tailwind.css">' : ''}
             <script type="module">
                 const alias = ${JSON.stringify(alias)}
                 window.__wdioMockCache__ = new Map()
@@ -71,8 +69,8 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                     return mod
                 }
             </script>
-            <link rel="stylesheet" href="/@fs/${mochaCSSHref}">
-            <script type="module" src="/@fs/${mochaJSSrc}"></script>
+            <link rel="stylesheet" href="@wdio/browser-runner/third_party/mocha.css">
+            <script type="module" src="@wdio/browser-runner/third_party/mocha.js"></script>
             ${sourceMapScript}
             <script type="module">
                 ${sourceMapSetupCommand}
@@ -127,7 +125,7 @@ export async function userfriendlyImport(preset: FrameworkPreset, pkg?: string) 
 
     try {
         return await import(pkg)
-    } catch (err: any) {
+    } catch {
         throw new Error(
             `Couldn't load preset "${preset}" given important dependency ("${pkg}") is not installed.\n` +
             `Please run:\n\n\tnpm install ${pkg}\n\tor\n\tyarn add --dev ${pkg}`

@@ -59,7 +59,7 @@ export const EDIT_WARNING = `// -------------------- ATTENTION -----------------
 
 export const SAUCE_API_DESCRIPTION = /*md*/`
 All commands are only supported on Chrome using Sauce Labs
-[Extended Debugging](https://wiki.saucelabs.com/pages/viewpage.action?pageId=70072943)
+[Extended Debugging](https://docs.saucelabs.com/insights/debug/#enabling-extended-debugging)
 capabilities. You can enable these by setting the following Sauce options:\n\n
 \`\`\`js
 {

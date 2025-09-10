@@ -263,7 +263,9 @@ export const wrapGlobalTestMethod = function (
     cid: string,
     scope = globalThis
 ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const origFn = (scope as any)[fnName];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (scope as any)[fnName] = wrapTestFunction(
         origFn,
         isSpec,
@@ -273,6 +275,7 @@ export const wrapGlobalTestMethod = function (
         afterArgsFn,
         cid
     )
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     addMochaCommands(origFn, (scope as any)[fnName])
 }
 

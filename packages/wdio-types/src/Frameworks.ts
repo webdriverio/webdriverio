@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface Suite {
     type: string
     title: string
@@ -82,7 +83,7 @@ export interface PickleResult {
 }
 
 /**
- * Info on of a pick (step)
+ * Info of a pickle (step)
  */
 export interface PickleStep {
     /**
@@ -100,5 +101,49 @@ export interface PickleStep {
     /**
      * 'Given|When|Then|And' followed by a space
      */
-    keyword: string
+    keyword: 'Given ' | 'When ' | 'Then ' | 'And '
+}
+
+/**
+ * Info of a cucumber tag
+ */
+export interface Tag {
+    /**
+     * name of the tag
+     */
+    name: string
+    /**
+     * line number in the feature file
+     */
+    astNodeId: string
+}
+
+/**
+ * Info of a cucumber scenario
+ */
+export interface Scenario {
+    /**
+     * line number in the feature file
+     */
+    id: string
+    /**
+     * uri of the feature file
+     */
+    uri: string
+    /**
+     * name of the scenario
+     */
+    name: string
+    /**
+     * Array of line numbers
+     */
+    astNodeIds: string[]
+    /**
+     * Array of steps
+     */
+    steps: PickleStep[]
+    /**
+     * Array of tags
+     */
+    tags: Tag[]
 }

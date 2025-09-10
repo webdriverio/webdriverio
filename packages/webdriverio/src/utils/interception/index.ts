@@ -1,9 +1,6 @@
-/* eslint-disable no-dupe-class-members */
-import EventEmitter from 'node:events'
-
 import logger from '@wdio/logger'
 import type { JsonCompatible } from '@wdio/types'
-import { type local } from 'webdriver'
+import { type local, type remote } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
 
 import Timer from '../Timer.js'
@@ -35,11 +32,12 @@ export default class WebDriverInterception {
     #filterOptions: MockFilterOptions
     #browser: WebdriverIO.Browser
 
-    #emitter = new EventEmitter()
+    #eventHandler: Map<string, Function[]> = new Map()
     #restored = false
     #requestOverwrites: Overwrite[] = []
     #respondOverwrites: Overwrite[] = []
     #calls: local.NetworkResponseCompletedParameters[] = []
+    #responseBodies = new Map<string, remote.NetworkBytesValue>()
 
     constructor (
         pattern: URLPattern,
@@ -94,6 +92,26 @@ export default class WebDriverInterception {
         return new WebDriverInterception(pattern, interception.intercept, filterOptions, browser)
     }
 
+    #emit (event: string, args: unknown) {
+        if (!this.#eventHandler.has(event)) {
+            return
+        }
+
+        const handlers = this.#eventHandler.get(event) || []
+        for (const handler of handlers) {
+            handler(args)
+        }
+    }
+
+    #addEventHandler (event: string, handler: Function) {
+        if (!this.#eventHandler.has(event)) {
+            this.#eventHandler.set(event, [])
+        }
+
+        const handlers = this.#eventHandler.get(event)
+        handlers?.push(handler)
+    }
+
     #handleBeforeRequestSent(request: local.NetworkBeforeRequestSentParameters) {
         /**
          * don't do anything if:
@@ -113,7 +131,7 @@ export default class WebDriverInterception {
             })
         }
 
-        this.#emitter.emit('request', request)
+        this.#emit('request', request)
         const hasRequestOverwrites = this.#requestOverwrites.length > 0
         if (hasRequestOverwrites) {
             const { overwrite, abort } = this.#requestOverwrites[0].once
@@ -121,18 +139,18 @@ export default class WebDriverInterception {
                 : this.#requestOverwrites[0]
 
             if (abort) {
-                this.#emitter.emit('fail', request.request.request)
+                this.#emit('fail', request.request.request)
                 return this.#browser.networkFailRequest({ request: request.request.request })
             }
 
-            this.#emitter.emit('overwrite', request)
+            this.#emit('overwrite', request)
             return this.#browser.networkContinueRequest({
                 request: request.request.request,
                 ...(overwrite ? parseOverwrite(overwrite, request) : {})
             })
         }
 
-        this.#emitter.emit('continue', request.request.request)
+        this.#emit('continue', request.request.request)
         return this.#browser.networkContinueRequest({
             request: request.request.request
         })
@@ -152,7 +170,7 @@ export default class WebDriverInterception {
          * continue mock if not matching filter
          */
         if (!this.#matchesFilterOptions(request)) {
-            this.#emitter.emit('continue', request.request.request)
+            this.#emit('continue', request.request.request)
             return this.#browser.networkProvideResponse({
                 request: request.request.request
             }).catch(this.#handleNetworkProvideResponseError)
@@ -170,7 +188,7 @@ export default class WebDriverInterception {
             this.#respondOverwrites.length === 0 ||
             !this.#respondOverwrites[0].overwrite
         ) {
-            this.#emitter.emit('continue', request.request.request)
+            this.#emit('continue', request.request.request)
             return this.#browser.networkProvideResponse({
                 request: request.request.request
             }).catch(this.#handleNetworkProvideResponseError)
@@ -184,17 +202,21 @@ export default class WebDriverInterception {
          * continue request (possibly with overwrites)
          */
         if (overwrite) {
-            this.#emitter.emit('overwrite', request)
+            this.#emit('overwrite', request)
+            const responseData = parseOverwrite(overwrite, request)
+            if (responseData.body) {
+                this.#responseBodies.set(request.request.request, responseData.body)
+            }
             return this.#browser.networkProvideResponse({
                 request: request.request.request,
-                ...parseOverwrite(overwrite, request)
+                ...responseData,
             }).catch(this.#handleNetworkProvideResponseError)
         }
 
         /**
          * continue request as is
          */
-        this.#emitter.emit('continue', request.request.request)
+        this.#emit('continue', request.request.request)
         return this.#browser.networkProvideResponse({
             request: request.request.request
         }).catch(this.#handleNetworkProvideResponseError)
@@ -213,8 +235,43 @@ export default class WebDriverInterception {
         throw err
     }
 
+    /**
+     * Get the raw binary data for a mock response by request ID
+     * @param {string} requestId  The ID of the request to retrieve the binary response for
+     * @returns {Buffer | null}   The binary data as a Buffer, or null if no matching binary response is found
+     */
+    getBinaryResponse(requestId: string): Buffer | null {
+        const body = this.#responseBodies.get(requestId)
+        if (body?.type !== 'base64') {
+            return null
+        }
+        if (/[^A-Za-z0-9+/=\s]/.test(body.value)) {
+            log.warn(`Invalid base64 data for request ${requestId}`)
+            return null
+        }
+        return Buffer.from(body.value, 'base64')
+    }
+
+    /**
+     * Simulate a responseStarted event for testing purposes
+     * @param request NetworkResponseCompletedParameters to simulate
+     */
+    public simulateResponseStarted(request: local.NetworkResponseCompletedParameters): void {
+        try {
+            this.#handleResponseStarted(request)
+        } catch (e) {
+            console.log('DEBUG: Error in simulateResponseStarted:', e)
+            throw e
+        }
+    }
+
+    public debugResponseBodies(): Map<string, remote.NetworkBytesValue> {
+        return this.#responseBodies
+    }
+
     #isRequestMatching<T extends local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters> (request: T) {
-        return request.isBlocked && this.#pattern && this.#pattern.test(request.request.url)
+        const matches = this.#pattern && this.#pattern.test(request.request.url)
+        return request.isBlocked && matches
     }
 
     #matchesFilterOptions<T extends local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters> (request: T) {
@@ -292,6 +349,7 @@ export default class WebDriverInterception {
      */
     clear() {
         this.#calls = []
+        this.#responseBodies.clear()
         return this
     }
 
@@ -318,7 +376,7 @@ export default class WebDriverInterception {
         const handle = await this.#browser.getWindowHandle()
 
         log.trace(`Restoring mock for ${handle}`)
-        SESSION_MOCKS[handle].delete(this as any)
+        SESSION_MOCKS[handle].delete(this as WebDriverInterception)
 
         if (this.#mockId) {
             await this.#browser.networkRemoveIntercept({ intercept: this.#mockId })
@@ -355,11 +413,9 @@ export default class WebDriverInterception {
      */
     respond(payload: RespondBody, params: Omit<RespondWithOptions, 'body'> = {}, once?: boolean) {
         this.#ensureNotRestored()
-        const body = typeof payload === 'string'
-            ? payload
-            : globalThis.Buffer && globalThis.Buffer.isBuffer(payload)
-                ? payload.toString('base64')
-                : JSON.stringify(payload)
+        const body = Buffer.isBuffer(payload)
+            ? { type: 'base64', value: payload.toString('base64') }
+            : { type: 'string', value: typeof payload === 'string' ? payload : JSON.stringify(payload) }
         const overwrite: RespondWithOptions = { body, ...params }
         this.#respondOverwrites = this.#setOverwrite(this.#respondOverwrites, { overwrite, once })
         return this
@@ -414,8 +470,9 @@ export default class WebDriverInterception {
     on(event: 'continue', callback: (requestId: string) => void): WebDriverInterception
     on(event: 'fail', callback: (requestId: string) => void): WebDriverInterception
     on(event: 'overwrite', callback: (response: local.NetworkResponseCompletedParameters) => void): WebDriverInterception
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     on(event: string, callback: (...args: any[]) => void): WebDriverInterception {
-        this.#emitter.on(event, callback)
+        this.#addEventHandler(event, callback)
         return this
     }
 
@@ -443,7 +500,7 @@ export default class WebDriverInterception {
 
         /* istanbul ignore next */
         const fn = async () => this.calls && (await this.calls).length > 0
-        const timer = new Timer(interval, timeout, fn, true) as any as Promise<boolean>
+        const timer = new Timer(interval, timeout, fn, true) as unknown as Promise<boolean>
 
         return this.#browser.call(() => timer.catch((e) => {
             if (e.message === 'timeout') {

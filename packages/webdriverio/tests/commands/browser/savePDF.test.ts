@@ -1,10 +1,11 @@
-import type { SpyInstance } from 'vitest'
-import { expect, describe, beforeEach, afterEach, it, vi } from 'vitest'
+import { expect, describe, beforeEach, afterEach, it, vi, type MockInstance } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 
 import { remote } from '../../../src/index.js'
-import * as utils from '../../../src/utils/index.js'
+import * as utils from '../../../src/node/utils.js'
+
+import '../../../src/node.js'
 
 vi.mock('fs')
 vi.mock('fetch')
@@ -12,9 +13,9 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 
 describe('savePDF', () => {
     let browser: WebdriverIO.Browser
-    let getAbsoluteFilepathSpy: SpyInstance
-    let assertDirectoryExistsSpy: SpyInstance
-    let writeFileSyncSpy: SpyInstance
+    let getAbsoluteFilepathSpy: MockInstance
+    let assertDirectoryExistsSpy: MockInstance
+    let writeFileSyncSpy: MockInstance
 
     beforeEach(async () => {
         browser = await remote({

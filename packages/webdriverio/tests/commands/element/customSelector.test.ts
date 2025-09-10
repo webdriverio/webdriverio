@@ -29,7 +29,7 @@ describe('custom$', () => {
         // @ts-ignore mock feature
         browser.addLocatorStrategy('test', (selector: string, parent: string) => (
             { 'element-6066-11e4-a52e-4f735466cecf': `${selector}-${parent}` }
-        ) as any as HTMLElement)
+        ) as unknown as HTMLElement)
 
         const elem = await browser.$('.foo')
         const custom = await elem.custom$('test', '.test')
@@ -51,7 +51,7 @@ describe('custom$', () => {
         browser.addLocatorStrategy('test', () => [
             { 'element-6066-11e4-a52e-4f735466cecf': 'some elem' },
             { 'element-6066-11e4-a52e-4f735466cecf': 'some other elem' }
-        ] as any as HTMLElement[])
+        ] as unknown as HTMLElement[])
 
         const elem = await browser.$('.foo')
         const custom = await elem.custom$('test', '.test')
@@ -62,7 +62,7 @@ describe('custom$', () => {
         browser.addLocatorStrategy('test', () => [
             { 'element-6066-11e4-a52e-4f735466cecf': 'some elem' },
             { 'element-6066-11e4-a52e-4f735466cecf': 'some other elem' }
-        ] as any as HTMLElement[])
+        ] as unknown as HTMLElement[])
 
         const elem = await browser.custom$('test', '.test')
         const custom = await elem.custom$('test', '.test')

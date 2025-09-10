@@ -35,7 +35,7 @@ exports[`dragAndDrop > should allow drag and drop to 0 coordinates 1`] = `
         "type": "pointerUp",
       },
     ],
-    "id": "action4",
+    "id": "action5",
     "parameters": {
       "pointerType": "mouse",
     },
@@ -127,7 +127,7 @@ exports[`dragAndDrop > should do a dragAndDrop for mobile 1`] = `
         "type": "pointerUp",
       },
     ],
-    "id": "action2",
+    "id": "action3",
     "parameters": {
       "pointerType": "touch",
     },
@@ -171,7 +171,7 @@ exports[`dragAndDrop > should do a dragAndDrop with coordinates 1`] = `
         "type": "pointerUp",
       },
     ],
-    "id": "action3",
+    "id": "action4",
     "parameters": {
       "pointerType": "mouse",
     },
@@ -179,3 +179,5 @@ exports[`dragAndDrop > should do a dragAndDrop with coordinates 1`] = `
   },
 ]
 `;
+
+exports[`dragAndDrop > should resolve target element 1`] = `undefined`;

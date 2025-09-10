@@ -46,8 +46,9 @@ describe('SpecReporter', () => {
             expect(reporter['_suiteIndents']).toEqual({})
             expect(reporter['_stateCounts']).toEqual({
                 passed: 0,
-                skipped: 0,
                 failed: 0,
+                skipped: 0,
+                pending: 0,
                 retried: 0
             })
         })
@@ -259,7 +260,7 @@ describe('SpecReporter', () => {
             it('should print link to Sauce Labs job details page if run with Sauce Connect (jsonwp)', () => {
                 const runner = getRunnerConfig({
                     capabilities: {
-                        tunnelIdentifier: 'foobar',
+                        tunnelName: 'foobar',
                         ...defaultCaps
                     },
                     sessionId: fakeSessionId
@@ -340,6 +341,16 @@ describe('SpecReporter', () => {
             printReporter.printReport(getRunnerConfig())
 
             expect(printReporter.write.mock.calls.length).toBe(0)
+        })
+
+        it('should print a report even if session could not be created', () => {
+            printReporter['_suiteUids'] = []
+            printReporter.suites = {}
+            const runner = getRunnerConfig()
+            runner.error = 'No tests found'
+
+            printReporter.printReport(runner)
+            expect(printReporter.write.mock.calls).toMatchSnapshot()
         })
     })
 

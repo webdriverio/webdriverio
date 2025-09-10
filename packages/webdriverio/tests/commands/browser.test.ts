@@ -3,24 +3,28 @@ import path from 'node:path'
 import { test, expect } from 'vitest'
 import { getPrototype } from '../../src/utils/index.js'
 
-const scope = 'browser'
-const dir = path.resolve(__dirname, '../..', 'src', 'commands', scope)
-const files = fs
-    .readdirSync(dir)
-    .map(f => path.basename(f, path.extname(f)))
+const IGNORED_COMMANDS = ['addCommand', 'overwriteCommand']
+const browserScope = 'browser'
+const scopes = ['mobile'].concat(browserScope)
+const baseDir = path.resolve(__dirname, '../..', 'src', 'commands')
+const files = scopes.flatMap(scope => {
+    const dir = path.join(baseDir, scope)
+    return fs
+        .readdirSync(dir)
+        .map(f => path.basename(f, path.extname(f)))
+        .filter(f => !IGNORED_COMMANDS.includes(f))
+})
 
-test(scope + ' commands list and strategies', () => {
-    const prototype = Object.keys(getPrototype(scope))
+test(browserScope + ' commands list and strategies', () => {
+    const browserPrototype = Object.keys(getPrototype(browserScope))
+    const combinedPrototype = [
+        ...new Set([...browserPrototype, ...files])
+    ]
     const expected = [
         'puppeteer', ...files, 'strategies',
         // Normally the flags are not "returned" because they are added in a different step
         'isNativeContext', 'mobileContext'
     ]
-    /**
-     * ignored commands that are just there for documentation purposes
-     */
-    const ignored = ['addCommand', 'overwriteCommand']
-    expect(prototype.sort()).toEqual(
-        expected.filter((cmd) => !ignored.includes(cmd)).sort()
-    )
+
+    expect(combinedPrototype.sort()).toEqual(expected.sort())
 })

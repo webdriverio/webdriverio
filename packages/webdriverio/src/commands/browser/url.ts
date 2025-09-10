@@ -1,6 +1,6 @@
 import { validateUrl } from '../../utils/index.js'
-import { getNetworkManager } from '../../networkManager.js'
-import { getContextManager } from '../../context.js'
+import { getNetworkManager } from '../../session/networkManager.js'
+import { getContextManager } from '../../session/context.js'
 import type { InitScript } from './addInitScript.js'
 
 type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
@@ -12,12 +12,51 @@ const DEFAULT_WAIT_STATE = 'complete'
  *
  * The `url` command loads an URL in the browser. If a baseUrl is specified in the config,
  * it will be prepended to the url parameter using node's url.resolve() method. Calling
- * `browser.url('...')` with the same url as last time will trigger a page reload.
+ * `browser.url('...')` with the same url as last time will trigger a page reload. However,
+ * if the url contains a hash, the browser will not trigger a new navigation and the user
+ * has to [refresh](/docs/api/webdriver#refresh) the page to trigger one.
  *
  * The command returns an `WebdriverIO.Request` object that contains information about the
- * request and response data of the page load.
+ * request and response data of the page load:
+ *
+ * ```ts
+ * interface WebdriverIO.Request {
+ *   id?: string
+ *   url: string
+ *   timestamp: number
+ *   navigation?: string
+ *   redirectChain?: string[],
+ *   headers: Record<string, string>
+ *   cookies?: NetworkCookie[]
+ *   \/**
+ *    * Error message if request failed
+ *    *\/
+ *   error?: string
+ *   response?: {
+ *       fromCache: boolean
+ *       headers: Record<string, string>
+ *       mimeType: string
+ *       status: number
+ *   },
+ *   /**
+ *    * List of all requests that were made due to the main request.
+ *    * Note: the list may be incomplete and does not contain request that were
+ *    * made after the command has finished.
+ *    *
+ *    * The property will be undefined if the request is not a document request
+ *    * that was initiated by the browser.
+ *    *\/
+ *   children?: Request[]
+ * }
+ * ```
  *
  * The command supports the following options:
+ *
+ * :::note
+ *
+ * These features unfortunately won't be available to you if your remote environment doesn't support WebDriver Bidi. You can check if Bidi is support in your session by looking into the `browser.isBidi` property.
+ *
+ * :::
  *
  * ### wait
  * The desired state the requested resource should be in before finishing the command.
@@ -54,6 +93,8 @@ const DEFAULT_WAIT_STATE = 'complete'
     const request = await browser.url('https://webdriver.io');
     // log url
     console.log(request.url); // outputs: "https://webdriver.io"
+    console.log(request.response?.status); // outputs: 200
+    console.log(request.response?.headers); // outputs: { 'content-type': 'text/html; charset=UTF-8' }
 
     :baseUrlResolutions.js
     // With a base URL of http://example.com/site, the following url parameters resolve as such:
@@ -99,8 +140,15 @@ const DEFAULT_WAIT_STATE = 'complete'
     await expect($('.battery-remaining')).toHaveText('01:00)
  * </example>
  *
- * @param {String=} url  the URL to navigate to
+ * @param {string=} url  the URL to navigate to
  * @param {UrlOptions=} options  navigation options
+ * @param {'none'|'interactive'|'networkIdle'|'complete'} [options.wait]  The desired state the requested resource should be in before finishing the command. Default: 'complete'
+ * @param {number=} options.timeout  If set to a number, the command will wait for the specified amount of milliseconds for the page to load
+ * all responses before returning. Default: 5000
+ * @param {Function=} options.onBeforeLoad  A function that is being called before your page has loaded all of its resources. It allows you to easily
+ * mock the environment, e.g. overwrite Web APIs that your application uses.
+ * @param {`{user: string, pass: string}`=} options.auth  basic authentication credentials
+ * @param {`Record<string, string>`=} options.headers  headers to be sent with the request
  * @returns {WebdriverIO.Request} a request object of the page load with information about the request and response data
  *
  * @see  https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get
@@ -121,7 +169,7 @@ export async function url (
         path = (new URL(path, this.options.baseUrl)).href
     }
 
-    if (this.isBidi) {
+    if (this.isBidi && path.startsWith('http')) {
         let resetPreloadScript: InitScript | undefined
         const contextManager = getContextManager(this)
         const context = await contextManager.getCurrentContext()
@@ -134,7 +182,7 @@ export async function url (
                 throw new Error(`Option "onBeforeLoad" must be a function, but received: ${typeof options.onBeforeLoad}`)
             }
 
-            resetPreloadScript = await this.addInitScript(options.onBeforeLoad)
+            resetPreloadScript = await this.addInitScript(options.onBeforeLoad as (() => void))
         }
 
         if (options.auth) {
@@ -172,6 +220,21 @@ export async function url (
             context,
             url: path,
             wait
+        }).catch((err) => {
+            /**
+             * It seems that WebDriver Bidi runs into issue with concurrent navigation.
+             * @see https://github.com/w3c/webdriver-bidi/issues/878
+             */
+            if (
+                // Chrome error message
+                err.message.includes('navigation canceled by concurrent navigation') ||
+                // Firefox error message
+                err.message.includes('failed with error: unknown error')
+            ) {
+                return this.navigateTo(validateUrl(path))
+            }
+
+            throw err
         })
 
         if (mock) {
@@ -197,6 +260,10 @@ export async function url (
             await resetPreloadScript.remove()
         }
 
+        if (!navigation) {
+            return
+        }
+
         /**
          * wait until we have a request object
          */
@@ -207,6 +274,7 @@ export async function url (
              */
             {
                 interval: 1,
+                timeoutMsg: `Navigation to '${path}' timed out as no request payload was received`
             }
         )
         return request
@@ -262,5 +330,5 @@ interface UrlCommandOptions {
      * from the Node.js context. Furthermore changes to the environment only apply for this specific page load.
      * Checkout `browser.addPreloadScript` for a more versatile way to mock the environment.
      */
-    onBeforeLoad?: () => any
+    onBeforeLoad?: () => unknown
 }
