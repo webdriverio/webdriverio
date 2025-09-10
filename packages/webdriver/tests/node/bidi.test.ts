@@ -221,7 +221,7 @@ describe('Bidi Node.js implementation', () => {
 
     it('should terminate unsuccessful candidate sockets', async () => {
         proxyUrlValueFn.mockReturnValue('http://127.0.0.1:8888')
-        noProxyValueFn.mockReturnValue(['foo', '127.0.0.1', 'foo2', 'foo3'])
+        noProxyValueFn.mockReturnValue(['foo', '127.0.0.1'])
         vi.mocked(dns).lookup.mockImplementationOnce(vi.fn().mockResolvedValueOnce([{ address: '127.0.0.1' }, { address: '::1' }, { address: '::2' }, { address: '::3' }]))
 
         const wsPromise = createBidiConnection('ws://foo/bar')
