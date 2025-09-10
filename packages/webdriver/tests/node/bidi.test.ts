@@ -1,7 +1,7 @@
 import path from 'node:path'
 import dns from 'node:dns/promises'
 // @ts-expect-error mock feature
-import { instances, setThrowError, clearInstances, type ClientOptions } from 'ws'
+import ws, { instances, setThrowError, clearInstances, type ClientOptions } from 'ws'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import logger from '@wdio/logger'
@@ -217,6 +217,30 @@ describe('Bidi Node.js implementation', () => {
         setTimeout(() => instances[2].once.mock.calls[1][1](new Error('loo')), 200) // error callback
         await expect(wsPromise).resolves.toBeUndefined()
         expect(log.error).toBeCalledWith('Could not connect to Bidi protocol\n  - bar\n  - loo\n  - foo')
+    })
+
+    it('should terminate unsuccessful candidate sockets', async () => {
+        proxyUrlValueFn.mockReturnValue('http://127.0.0.1:8888')
+        noProxyValueFn.mockReturnValue(['foo', '127.0.0.1', 'foo2', 'foo3'])
+        vi.mocked(dns).lookup.mockImplementationOnce(vi.fn().mockResolvedValueOnce([{ address: '127.0.0.1' }, { address: '::1' }, { address: '::2' }, { address: '::3' }]))
+
+        const wsPromise = createBidiConnection('ws://foo/bar')
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        expect(instances.length).toBe(5)
+
+        instances[0].readyState = ws.CONNECTING
+        instances[1].once.mock.calls[0][1]() // success callback
+        instances[2].readyState = ws.OPEN
+        instances[3].readyState = ws.CLOSING
+        instances[4].readyState = ws.CLOSED
+
+        await wsPromise
+        expect(instances[0].terminate).toHaveBeenCalled()
+        expect(instances[1].terminate).not.toHaveBeenCalled()
+        expect(instances[2].terminate).toHaveBeenCalled()
+        expect(instances[3].terminate).toHaveBeenCalled()
+        expect(instances[4].terminate).toHaveBeenCalled()
+        expect(log.error).not.toHaveBeenCalled()
     })
 
     it('createBidiConnection times out', async () => {
