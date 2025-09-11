@@ -138,9 +138,17 @@ export abstract class WebDriverRequest {
                 ...(dispatcher ? { dispatcher } : {})
             })
 
+            const rawBody = await response.text()
+            let body
+            try {
+                body = rawBody ? JSON.parse(rawBody) : {}
+            } catch {
+                body = rawBody
+            }
+
             return {
                 statusCode: response.status,
-                body: await response.json() ?? {},
+                body,
             } satisfies Options.RequestLibResponse
         } catch (err) {
             if (!(err instanceof Error)) {
