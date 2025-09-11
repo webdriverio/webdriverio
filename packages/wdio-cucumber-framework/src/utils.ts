@@ -222,7 +222,7 @@ export function generateSkipTagsFromCapabilities(capabilities: Capabilities.Reso
                 .find((filter: WebdriverIO.Capabilities) => Object.keys(filter)
                     .every((key: keyof WebdriverIO.Capabilities) => match((capabilities as Record<string, string>)[key], filter[key] as RegExp)))
             if (isSkip) {
-                generatedTags.push(`(not ${tag.replace(/[(){}^$*+?.|\\]/g, '\\$&')})`)
+                generatedTags.push(`(not ${tag.replace(/[()\\]/g, '\\$&')})`)
             }
         }
     })
