@@ -38,7 +38,7 @@ export const shouldProcessEventForTesthub = (eventType: string): boolean => {
 
 export const handleErrorForObservability = (error: Errors | null): void => {
     process.env[BROWSERSTACK_OBSERVABILITY] = 'false'
-    logBuildError(error, 'observability')
+    logBuildError(error, 'Test Reporting and Analytics')
 }
 
 export const handleErrorForAccessibility = (error: Errors | null): void => {

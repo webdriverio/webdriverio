@@ -83,7 +83,43 @@ describe('CrashReporter', () => {
             })
         })
 
-        it('should delete user key from testObservabilityOptions', () => {
+        it('should delete user key from testReportingOptions and legacy testObservabilityOptions', () => {
+            const userConfig = {
+                'framework': 'some framework',
+                'user': 'some user',
+                'key': 'key',
+                capabilities: {},
+                services: [
+                    ['browserstack', {
+                        testObservabilityOptions: {
+                            user: 'username',
+                            key: 'access-key',
+                        },
+                        testReportingOptions: {
+                            user: 'username',
+                            key: 'access-key',
+                        },
+                    }]
+                ]
+            }
+
+            // @ts-ignore
+            const filteredConfig = CrashReporter.filterPII(userConfig)
+            expect(filteredConfig).toEqual({
+                'framework': 'some framework',
+                capabilities: {},
+                services: [
+                    ['browserstack', {
+                        testObservabilityOptions: {
+                        },
+                        testReportingOptions: {
+                        },
+                    }]
+                ]
+            })
+        })
+
+        it('should delete user key from legacy testObservabilityOptions only', () => {
             const userConfig = {
                 'framework': 'some framework',
                 'user': 'some user',

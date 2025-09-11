@@ -258,6 +258,14 @@ describe('wrapCommand', () => {
             .$$('bar')
             .map((el: any) => el.getTagName())
         ).toEqual(['Yayy0', 'Yayy1', 'Yayy2'])
+
+        expect(await commandA.call(scope(0))
+            .$('foo')
+            .$$('bar')
+            .reduce(async (acc: string, el: any) => {
+                return await el.getTagName() + '_' + acc
+            }, '')
+        ).toEqual('Yayy2_Yayy1_Yayy0_')
     })
 
     it('can access element properties', async () => {

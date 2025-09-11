@@ -28,8 +28,8 @@ export const config = {
     key: process.env.BROWSERSTACK_ACCESS_KEY,
     services: [
         ['browserstack', {
-            testObservability: true,
-            testObservabilityOptions: {
+            testReporting: true,
+            testReportingOptions: {
                 projectName: "Your project name goes here",
                 buildName: "The static build job name goes here e.g. Nightly regression"
             },
@@ -44,15 +44,15 @@ export const config = {
 
 In order to authorize to the BrowserStack service your config needs to contain a [`user`](https://webdriver.io/docs/options#user) and [`key`](https://webdriver.io/docs/options#key) option.
 
-### testObservability
+### testReporting
 
 Test Observability is an advanced test reporting tool that gives insights to improve your automation tests and helps you debug faster. It’s enabled by default by setting the `testObservability`​ flag as `true` for all users of browserstack-service. You can disable this by setting the `testObservability`​ flag to `false`.
 
-Once your tests finish running, you can visit [Test Observability](https://observability.browserstack.com/) to debug your builds with additional insights like Unique Error Analysis, Automatic Flaky Test Detection, and more.
+Once your tests finish running, you can visit [Test Reporting and Analytics](https://automation.browserstack.com/) to debug your builds with additional insights like Unique Error Analysis, Automatic Flaky Test Detection, and more.
 
 You can use Test Observability even if you don’t run your tests on the BrowserStack infrastructure. Even if you run your tests on a CI, a local machine, or even on other cloud service providers, Test Observability can still generate intelligent test reports and advanced analytics on your tests.
 
-If you want to use Test Observability without running your tests on BrowserStack infrastructure, you can set your config as follows:
+If you want to use Test Reporting and Analytics without running your tests on BrowserStack infrastructure, you can set your config as follows:
 
 
 ```js
@@ -61,8 +61,8 @@ export const config = {
     // ...
     services: [
         ['browserstack', {
-            testObservability: true,
-            testObservabilityOptions: {
+            testReporting: true,
+            testReportingOptions: {
                 user: process.env.BROWSERSTACK_USERNAME,
                 key: process.env.BROWSERSTACK_ACCESS_KEY,
                 projectName: "Your project name goes here",
@@ -74,7 +74,7 @@ export const config = {
 };
 ```
 
-You can explore all the features of Test Observability in [this sandbox](https://observability-demo.browserstack.com/) or read more about it [here](https://www.browserstack.com/docs/test-observability/overview/what-is-test-observability).
+You can explore all the features of Test Reporting and Analytics in [this sandbox](https://automation.browserstack.com/) or read more about it [here](https://www.browserstack.com/docs/test-reporting-and-analytics/overview/what-is-test-observability).
 
 ### browserstackLocal
 Set this to true to enable routing connections from BrowserStack cloud through your computer.

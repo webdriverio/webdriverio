@@ -254,6 +254,31 @@ describe('WebdriverIO module interface', () => {
             expect(vi.mocked(WebDriver.attachToSession).mock.calls[0][0]).toMatchSnapshot()
         })
 
+        it('should apply attach parameters with priority to Driver.attachToSession', async () => {
+
+            let capturedParams
+            const actualDetectBackend = await vi.importActual('../src/utils/detectBackend') as { default: typeof detectBackend }
+            vi.mocked(detectBackend).mockImplementation(actualDetectBackend.default)
+
+            const originalMockImplementation = vi.mocked(WebDriver.attachToSession).getMockImplementation()
+
+            vi.mocked(WebDriver.attachToSession).mockImplementation((params, modifier, prototype, commandWrapper) => {
+                capturedParams = params
+                return originalMockImplementation!(params, modifier, prototype, commandWrapper)
+            })
+
+            await attach({
+                sessionId: 'test-session-id',
+                port: 1234,
+                path: '/wd/hub',
+            })
+
+            expect(capturedParams).toMatchObject({
+                port: 1234,
+                path: '/wd/hub',
+            })
+        })
+
         it('should have defined locatorStrategy', async () => {
             const browser = {
                 sessionId: 'foobar',
