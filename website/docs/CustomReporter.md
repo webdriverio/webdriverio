@@ -33,9 +33,11 @@ To use this reporter, all you need to do is assign it to the `reporter` property
 Your `wdio.conf.js` file should look like this:
 
 ```js
+// @ts-check
+import { defineConfig } from '@wdio/config'
 import CustomReporter from './reporter/my.custom.reporter'
 
-export const config = {
+export const config = defineConfig({
     // ...
     reporters: [
         /**
@@ -52,7 +54,7 @@ export const config = {
         }]
     ],
     // ...
-}
+})
 ```
 
 You can also publish the reporter to NPM so everyone can use it. Name the package like other reporters `wdio-<reportername>-reporter`, and tag it with keywords like `wdio` or `wdio-reporter`.
@@ -174,13 +176,15 @@ To make reporter easier to consume and discover by the WebdriverIO community, pl
 
 Following the recommended naming pattern allows services to be added by name:
 
-```js
+```ts
 // Add wdio-custom-reporter
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     reporter: ['custom'],
     // ...
-}
+})
 ```
 
 ### Add Published Service to WDIO CLI and Docs
