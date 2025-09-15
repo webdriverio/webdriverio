@@ -1,5 +1,6 @@
 /// <reference path="../../@types/bstack-service-types.d.ts" />
 import BaseModule from './baseModule.js'
+import { BrowserstackCLI } from '../index.js';
 import { BStackLogger } from '../cliLogger.js'
 import TestFramework from '../frameworks/testFramework.js'
 import AutomationFramework from '../frameworks/automationFramework.js'
@@ -9,7 +10,7 @@ import { TestFrameworkState } from '../states/testFrameworkState.js'
 import { AutomationFrameworkState } from '../states/automationFrameworkState.js'
 import { HookState } from '../states/hookState.js'
 import accessibilityScripts from '../../scripts/accessibility-scripts.js'
-import { _getParamsForAppAccessibility, formatString, getAppA11yResults, getAppA11yResultsSummary, shouldScanTestForAccessibility, validateCapsWithA11y, validateCapsWithAppA11y, validateCapsWithNonBstackA11y } from '../../util.js'
+import { _getParamsForAppAccessibility, formatString, getAppA11yResults, getAppA11yResultsSummary, shouldScanTestForAccessibility, validateCapsWithA11y, validateCapsWithAppA11y, validateCapsWithNonBstackA11y, isBrowserstackSession } from '../../util.js'
 import { AutomationFrameworkConstants } from '../frameworks/constants/automationFrameworkConstants.js'
 import util from 'node:util'
 import type { Accessibility } from '@browserstack/wdio-browserstack-service'
@@ -25,12 +26,14 @@ export default class AccessibilityModule extends BaseModule {
     name: string
     scriptInstance: typeof accessibilityScripts
     accessibility: boolean = false
+    autoScanning: boolean = true
     isAppAccessibility: boolean
     isNonBstackA11y: boolean
     accessibilityConfig: Accessibility
     static MODULE_NAME = 'AccessibilityModule'
-    accessibilityMap: Map<number, boolean>
-    LOG_DISABLED_SHOWN: Map<number, boolean>
+    accessibilityMap: Map<any, boolean>
+    LOG_DISABLED_SHOWN: Map<any, boolean>
+    testMetadata: Record<string, any> = {}
 
     constructor(accessibilityConfig: Accessibility, isNonBstackA11y: boolean) {
         super()
@@ -39,7 +42,9 @@ export default class AccessibilityModule extends BaseModule {
         AutomationFramework.registerObserver(AutomationFrameworkState.CREATE, HookState.POST, this.onBeforeExecute.bind(this))
         TestFramework.registerObserver(TestFrameworkState.TEST, HookState.PRE, this.onBeforeTest.bind(this))
         TestFramework.registerObserver(TestFrameworkState.TEST, HookState.POST, this.onAfterTest.bind(this))
-        this.accessibility = true
+        this.accessibility = Boolean(accessibilityConfig)
+        const accessibilityOptions = (BrowserstackCLI.getInstance().options as any)?.accessibilityOptions
+        this.autoScanning = accessibilityOptions?.autoScanning ?? true;
         this.scriptInstance = accessibilityScripts
         this.accessibilityMap = new Map()
         this.LOG_DISABLED_SHOWN = new Map()
@@ -50,6 +55,8 @@ export default class AccessibilityModule extends BaseModule {
     async onBeforeExecute() {
         try {
             const autoInstance: AutomationFrameworkInstance = AutomationFramework.getTrackedInstance()
+            const testInstance: TestFrameworkInstance = TestFramework.getTrackedInstance()
+
 
             if (!autoInstance) {
                 this.logger.debug('No tracked instances found!')
@@ -105,6 +112,15 @@ export default class AccessibilityModule extends BaseModule {
             (browser as any).performScan = async () => {
                 return await this.performScanCli(browser)
             }
+
+            (browser as any).startA11yScanning = async () => {
+                this.logger.warn(`Accessibility scanning cannot be started from outside the test`)
+            }
+
+            (browser as any).stopA11yScanning = async () => {
+                this.logger.warn(`Accessibility scanning cannot be stopped from outside the test`)
+            }
+
 
             if (!this.accessibility) {
                 this.logger.info('Accessibility automation is disabled for this session.')
@@ -178,18 +194,51 @@ export default class AccessibilityModule extends BaseModule {
 
             const sessionId = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID)
             const accessibilityOptions = this.config.accessibilityOptions
-            const shouldScanTest = shouldScanTestForAccessibility(suiteTitle, test.title, accessibilityOptions as { [key: string]: any } | undefined) && this.accessibility
-
+            const shouldScanTest = this.autoScanning && shouldScanTestForAccessibility(suiteTitle, test.title, accessibilityOptions as { [key: string]: any } | undefined) && this.accessibility
+            
+            this.accessibilityMap.set(sessionId, shouldScanTest)
             // Create test metadata similar to accessibility-handler
-            const testIdentifier = testInstance.getContext().getId()
-            const testMetadata = {
+            const testIdentifier = String(testInstance.getContext().getId())
+            this.testMetadata[testIdentifier] = {
                 scanTestForAccessibility: shouldScanTest,
                 accessibilityScanStarted: shouldScanTest
             }
 
+            const browser = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser
+
+            (browser as any).startA11yScanning = async () => {
+                this.accessibilityMap.set(sessionId, true)
+                this.testMetadata[testIdentifier] = {
+                    scanTestForAccessibility : true,
+                    accessibilityScanStarted : true
+                }
+                TestFramework.setState(testInstance, `accessibility_metadata_${testIdentifier}`, this.testMetadata[testIdentifier])
+                await this._setAnnotation('Accessibility scanning has started')
+            }
+
+            (browser as any).stopA11yScanning = async () => {
+                this.accessibilityMap.set(sessionId, false)
+                await this._setAnnotation('Accessibility scanning has stopped')
+            }
+
+            (browser as any).performScan = async () => {
+                const results = await this.performScanCli(browser)
+                if(results){
+                    const testIdentifier = String(testInstance.getContext().getId())
+                    this.testMetadata[testIdentifier] = {
+                    scanTestForAccessibility : true,
+                    accessibilityScanStarted : true
+                }
+                TestFramework.setState(testInstance, `accessibility_metadata_${testIdentifier}`, this.testMetadata[testIdentifier])
+                await this._setAnnotation('Accessibility scanning was triggered manually')
+
+                }
+                return results
+            }
+
             // Store test metadata in test instance
-            TestFramework.setState(testInstance, `accessibility_metadata_${testIdentifier}`, testMetadata)
-            this.accessibilityMap.set(sessionId, shouldScanTest)
+            TestFramework.setState(testInstance, `accessibility_metadata_${testIdentifier}`, this.testMetadata[testIdentifier])
+           
 
             // Log if accessibility scan is enabled for this test
             if (shouldScanTest) {
@@ -219,7 +268,7 @@ export default class AccessibilityModule extends BaseModule {
             }
 
             // Get test metadata that was stored in onBeforeTest
-            const testIdentifier = testInstance.getContext().getId()
+            const testIdentifier = String(testInstance.getContext().getId())
             const testMetadata = testInstance.getData(`accessibility_metadata_${testIdentifier}`)
 
             if (!testMetadata) {
@@ -335,14 +384,16 @@ export default class AccessibilityModule extends BaseModule {
 
     private async sendTestStopEvent(browser: WebdriverIO.Browser, dataForExtension: any) {
         try {
+            const autoInstance: AutomationFrameworkInstance = AutomationFramework.getTrackedInstance()
+            const sessionId = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID)
             if (!this.accessibility) {
                 this.logger.debug('Not an Accessibility Automation session.')
                 return
             }
-
-            this.logger.debug('Performing scan before saving results')
-            await this.performScanCli(browser)
-
+            if (sessionId && this.accessibilityMap.get(sessionId)) {
+                this.logger.debug('Performing scan before saving results')
+                await this.performScanCli(browser, 'afterTest')
+            }
             if (this.isAppAccessibility) {
                 return
             }
@@ -410,6 +461,21 @@ export default class AccessibilityModule extends BaseModule {
         }
         this.logger.error(`Failed to fetch driver execute params: ${response.error || 'Unknown error'}`)
         return {}
+    }
+
+    public async _setAnnotation(message: string) {
+        const autoInstance: AutomationFrameworkInstance = AutomationFramework.getTrackedInstance()
+        const browser = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser
+        
+        if (this.accessibility && isBrowserstackSession(browser)) {
+            await (browser as WebdriverIO.Browser).execute(`browserstack_executor: ${JSON.stringify({
+                action: 'annotate',
+                arguments: {
+                    data: message,
+                    level: 'info'
+                }
+            })}`)
+        }
     }
 
 }
