@@ -720,6 +720,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
             const pre = this._options.sessionNamePrependTopLevelSuiteTitle ? `${suiteTitle} - ` : ''
             const post = !this._options.sessionNameOmitTestTitle ? ` - ${test.title}` : ''
             name = `${pre}${test.parent}${post}`
+        } else if (test && test.fullName) {
+        // Jasmine - use fullName directly
+        name = test.fullName
         }
 
         if (!BrowserstackCLI.getInstance().isRunning()) {
