@@ -108,21 +108,21 @@ export default class AccessibilityModule extends BaseModule {
 
             //patching performScan
             (browser as any).performScan = async () => {
-                 if (!this.accessibility){
+                if (!this.accessibility){
                     return
                 }
                 return await this.performScanCli(browser)
             }
 
             (browser as any).startA11yScanning = async () => {
-                 if (!this.accessibility){
+                if (!this.accessibility){
                     return
                 }
                 this.logger.warn('Accessibility scanning cannot be started from outside the test')
             }
 
             (browser as any).stopA11yScanning = async () => {
-                 if (!this.accessibility){
+                if (!this.accessibility){
                     return
                 }
                 this.logger.warn('Accessibility scanning cannot be stopped from outside the test')
@@ -272,7 +272,7 @@ export default class AccessibilityModule extends BaseModule {
         this.logger.debug('Accessibility after test hook. Before sending test stop event')
 
         try {
-        
+
             const autoInstance: AutomationFrameworkInstance = AutomationFramework.getTrackedInstance()
             const testInstance: TestFrameworkInstance = TestFramework.getTrackedInstance()
             const sessionId = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID)
