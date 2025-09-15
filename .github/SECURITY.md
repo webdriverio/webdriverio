@@ -10,6 +10,12 @@ __DO NOT report security vulnerabilities through public GitHub issues.__
 
 Please contact us [security@webdriver.io](mailto:security@webdriver.io) with a description of the vulnerability and steps to reproduce it. You should receive a response within 48 hours. If for some reason you do not, please follow up via the same email to ensure we received your original message.
 
+## Escalation
+
+If you do not receive an acknowledgement of your report within 6 business days, or if you cannot find a private security contact for the project, you may escalate to the OpenJS Foundation CNA at `security@lists.openjsf.org`.
+
+If the project acknowledges your report but does not provide any further response or engagement within 14 days, escalation is also appropriate.
+
 ## WebdriverIO Security Threat Model
 
 ### Introduction
