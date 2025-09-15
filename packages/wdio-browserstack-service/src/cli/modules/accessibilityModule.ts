@@ -108,14 +108,23 @@ export default class AccessibilityModule extends BaseModule {
 
             //patching performScan
             (browser as any).performScan = async () => {
+                 if (!this.accessibility){
+                    return
+                }
                 return await this.performScanCli(browser)
             }
 
             (browser as any).startA11yScanning = async () => {
+                 if (!this.accessibility){
+                    return
+                }
                 this.logger.warn('Accessibility scanning cannot be started from outside the test')
             }
 
             (browser as any).stopA11yScanning = async () => {
+                 if (!this.accessibility){
+                    return
+                }
                 this.logger.warn('Accessibility scanning cannot be stopped from outside the test')
             }
 
@@ -182,6 +191,7 @@ export default class AccessibilityModule extends BaseModule {
 
     async onBeforeTest(args: any) {
         try {
+
             this.logger.debug('Accessibility before test hook. Starting accessibility scan for this test case.')
             const suiteTitle = args.suiteTitle || ''
             const test = args.test || {}
@@ -204,6 +214,9 @@ export default class AccessibilityModule extends BaseModule {
             const browser = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser
 
             (browser as any).startA11yScanning = async () => {
+                if (!this.accessibility){
+                    return
+                }
                 this.accessibilityMap.set(sessionId, true)
                 this.testMetadata[testIdentifier] = {
                     scanTestForAccessibility : true,
@@ -214,11 +227,17 @@ export default class AccessibilityModule extends BaseModule {
             }
 
             (browser as any).stopA11yScanning = async () => {
+                if (!this.accessibility){
+                    return
+                }
                 this.accessibilityMap.set(sessionId, false)
                 await this._setAnnotation('Accessibility scanning has stopped')
             }
 
             (browser as any).performScan = async () => {
+                if (!this.accessibility){
+                    return
+                }
                 const results = await this.performScanCli(browser)
                 if (results){
                     const testIdentifier = String(testInstance.getContext().getId())
@@ -253,7 +272,7 @@ export default class AccessibilityModule extends BaseModule {
         this.logger.debug('Accessibility after test hook. Before sending test stop event')
 
         try {
-
+        
             const autoInstance: AutomationFrameworkInstance = AutomationFramework.getTrackedInstance()
             const testInstance: TestFrameworkInstance = TestFramework.getTrackedInstance()
             const sessionId = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID)
