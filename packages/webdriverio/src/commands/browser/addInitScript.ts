@@ -119,14 +119,21 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
         return closure()(${serializedParameters.length ? `${serializedParameters.join(', ')}, emit` : 'emit'})
     }`
     const channel = btoa(fn.toString())
+    const serializationOptions: local.ScriptSerializationOptions = {
+        maxDomDepth: 10,
+        maxObjectDepth: 10,
+        includeShadowTree: 'all'
+    }
+    console.log('add that scriopt', context)
     const result = await this.scriptAddPreloadScript({
         functionDeclaration: fn,
         arguments: [{
             type: 'channel',
-            value: { channel }
+            value: { channel, serializationOptions }
         }],
         contexts: [context]
     })
+    console.log('!!!!')
 
     await this.sessionSubscribe({
         events: ['script.message']
