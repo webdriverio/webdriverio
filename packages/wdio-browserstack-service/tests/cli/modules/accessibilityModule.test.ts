@@ -84,7 +84,7 @@ import { AutomationFrameworkState } from '../../../src/cli/states/automationFram
 import { HookState } from '../../../src/cli/states/hookState.js'
 import { TestFrameworkState } from '../../../src/cli/states/testFrameworkState.js'
 import { BrowserstackCLI } from '../../../src/cli/index.js'
-import { shouldScanTestForAccessibility, validateCapsWithA11y } from '../../../src/util.js'
+import { shouldScanTestForAccessibility, validateCapsWithA11y, validateCapsWithAppA11y } from '../../../src/util.js'
 
 describe('AccessibilityModule', () => {
     let accessibilityModule: AccessibilityModule
@@ -241,7 +241,8 @@ describe('AccessibilityModule', () => {
             accessibilityModule.isAppAccessibility = true
             // Mock validation to return true so accessibility stays enabled
             vi.mocked(validateCapsWithA11y).mockReturnValue(true)
-
+            vi.mocked(validateCapsWithAppA11y).mockReturnValue(true)
+            
             await accessibilityModule.onBeforeExecute()
 
             await mockBrowser.startA11yScanning()
@@ -256,6 +257,7 @@ describe('AccessibilityModule', () => {
             accessibilityModule.isAppAccessibility = true
             // Mock validation to return true so accessibility stays enabled
             vi.mocked(validateCapsWithA11y).mockReturnValue(true)
+            vi.mocked(validateCapsWithAppA11y).mockReturnValue(true)
 
             await accessibilityModule.onBeforeExecute()
 
