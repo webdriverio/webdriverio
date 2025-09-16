@@ -722,7 +722,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             name = `${pre}${test.parent}${post}`
         } else if (this._config.framework === 'jasmine') {
             // Jasmine
-            name = (this._caps as any)?.['bstack:options']?.sessionName;
+            name = (this._caps as any)?.['bstack:options']?.sessionName
         }
 
         if (!BrowserstackCLI.getInstance().isRunning()) {
