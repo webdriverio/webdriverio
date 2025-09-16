@@ -238,6 +238,7 @@ describe('AccessibilityModule', () => {
             const loggerWarnSpy = vi.spyOn(accessibilityModule.logger, 'warn')
             // Enable accessibility for this test
             accessibilityModule.accessibility = true
+            accessibilityModule.isAppAccessibility = true
             // Mock validation to return true so accessibility stays enabled
             vi.mocked(validateCapsWithA11y).mockReturnValue(true)
 
@@ -252,6 +253,7 @@ describe('AccessibilityModule', () => {
             const loggerWarnSpy = vi.spyOn(accessibilityModule.logger, 'warn')
             // Enable accessibility for this test
             accessibilityModule.accessibility = true
+            accessibilityModule.isAppAccessibility = true
             // Mock validation to return true so accessibility stays enabled
             vi.mocked(validateCapsWithA11y).mockReturnValue(true)
 
