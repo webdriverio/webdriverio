@@ -715,14 +715,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 suiteTitle,
                 test?.title
             )
-        } else if (test && !test.fullName) {
+        } else if (test && !test.fullName && this._config.framework !== 'jasmine') {
             // Mocha
             const pre = this._options.sessionNamePrependTopLevelSuiteTitle ? `${suiteTitle} - ` : ''
             const post = !this._options.sessionNameOmitTestTitle ? ` - ${test.title}` : ''
             name = `${pre}${test.parent}${post}`
-        } else if (test && test.fullName) {
-        // Jasmine - use fullName directly
-        name = test.fullName
+        } else if (this._config.framework === 'jasmine') {
+            // Jasmine
+            name = (this._caps as any)?.['bstack:options']?.sessionName;
         }
 
         if (!BrowserstackCLI.getInstance().isRunning()) {
