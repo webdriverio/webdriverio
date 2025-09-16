@@ -242,7 +242,7 @@ describe('AccessibilityModule', () => {
             // Mock validation to return true so accessibility stays enabled
             vi.mocked(validateCapsWithA11y).mockReturnValue(true)
             vi.mocked(validateCapsWithAppA11y).mockReturnValue(true)
-            
+
             await accessibilityModule.onBeforeExecute()
 
             await mockBrowser.startA11yScanning()
