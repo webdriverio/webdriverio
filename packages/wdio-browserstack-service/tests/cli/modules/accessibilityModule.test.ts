@@ -197,7 +197,7 @@ describe('AccessibilityModule', () => {
 
     describe('onBeforeExecute', () => {
         it('should patch browser methods when automation instance exists', async () => {
-             vi.mocked(AutomationFramework.getState).mockImplementation((instance, key) => {
+            vi.mocked(AutomationFramework.getState).mockImplementation((instance, key) => {
                 if (key.includes('CAPABILITIES')) {
                     return { browserName: 'chrome' }
                 }
