@@ -188,8 +188,25 @@ describe('AccessibilityModule', () => {
         })
     })
 
+    describe('getModuleName', () => {
+        it('should return the correct module name', () => {
+            expect(accessibilityModule.getModuleName()).toBe('BaseModule') // AccessibilityModule doesn't override getModuleName
+            expect(AccessibilityModule.MODULE_NAME).toBe('AccessibilityModule')
+        })
+    })
+
     describe('onBeforeExecute', () => {
         it('should patch browser methods when automation instance exists', async () => {
+             vi.mocked(AutomationFramework.getState).mockImplementation((instance, key) => {
+                if (key.includes('CAPABILITIES')) {
+                    return { browserName: 'chrome' }
+                }
+                if (key.includes('INPUT_CAPABILITIES')) {
+                    return {}
+                }
+                return 12345
+            })
+
             await accessibilityModule.onBeforeExecute()
 
             expect(mockBrowser.getAccessibilityResultsSummary).toBeDefined()
