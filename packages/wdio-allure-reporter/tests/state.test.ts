@@ -90,13 +90,16 @@ describe('state', () => {
 
     describe('with current file', () => {
         it('returns package label', () => {
-            expect(true).toBe(true)
+            state.pushRuntimeMessage({ type: 'allure:hook:start', data: { name: '"before each" hook', type: 'before', start: Date.now() } })
+            expect(state.hasPendingHook).toBe(true)
+            state.pushRuntimeMessage({ type: 'allure:hook:end', data: { status: 'passed', stop: Date.now() } as any })
+            expect(state.hasPendingHook).toBe(false)
         })
     })
 
     describe('without current file', () => {
         it('returns undefined instead of package label', () => {
-            expect(true).toBe(true)
+            expect(state.hasPendingHook).toBe(false)
         })
     })
 })
