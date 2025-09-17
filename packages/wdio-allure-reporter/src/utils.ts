@@ -282,7 +282,7 @@ export function isEmptyObject(value: unknown): boolean {
 export const toPackageLabel = (p?: string) => {
     if (!p) {return ''}
     const fsPath = fromUrlish(p)
-    const noPos = fsPath.split(':')[0]        // отрезать позицию, если есть
+    const noPos = fsPath.split(':')[0]
     const rel = relNoSlash(noPos)
     return rel.replace(/\//g, '.')
 }
