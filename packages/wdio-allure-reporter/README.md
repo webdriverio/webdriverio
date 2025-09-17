@@ -67,7 +67,6 @@ ALLURE_TESTPLAN_PATH=/path/to/your/testplan.json
 export const config = {
     reporters: [['allure', {
         outputDir: 'allure-results',
-        enforceTestPlan: true, // Skip tests not in the plan
     }]],
 }
 ```
@@ -150,7 +149,6 @@ export const config = {
         outputDir: 'allure-results',
         disableWebdriverStepsReporting: true,
         disableWebdriverScreenshotsReporting: true,
-        enforceTestPlan: false, // Skip tests not in test plan
         addConsoleLogs: true, // Attach console logs to reports
         reportedEnvironmentVars: {
             'NODE_VERSION': process.version,
@@ -185,8 +183,6 @@ export const config = {
 - `addConsoleLogs` - optional parameter (`false` by default), set to true in order to attach console logs from step to the reporter.
 
 - `reportedEnvironmentVars` (**type:** `Record<string, string>`) - Set this option to display the environment variables in the report. Note that setting this, does not modify the actual environment variables.
-
-- `enforceTestPlan` - optional parameter (`false` by default), when set to true, only tests defined in the test plan will be executed. Tests not in the plan will be skipped.
 
 ## Supported Allure API
 

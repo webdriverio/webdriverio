@@ -1,4 +1,5 @@
 import type { ReporterRuntime } from 'allure-js-commons/sdk/reporter'
+import type { RuntimeMessage } from 'allure-js-commons/sdk'
 import type {
     WDIOHookEndMessage,
     WDIOHookStartMessage,
@@ -10,19 +11,38 @@ import type {
 } from './types.js'
 import { findLast, findLastIndex, last } from './utils.js'
 import type { Status as AllureStatus } from 'allure-js-commons'
+import { Stage as AllureStage } from 'allure-js-commons'
 
 export class AllureReportState {
     private _scopesStack: string[] = []
     private _executablesStack: string[] = []
     private _fixturesStack: string[] = []
     private _currentTestUuid?: string
+    private _currentTestName?: string
     messages: WDIORuntimeMessage[] = []
+    private _pendingHookMessages: WDIORuntimeMessage[] = []
+    private _isCapturingPendingHook: boolean = false
 
-    constructor(private allureRuntime: ReporterRuntime) {}
+    constructor(private allureRuntime: ReporterRuntime) {
+    }
+
+    private _isRuntimeMessage(message: WDIORuntimeMessage): message is RuntimeMessage {
+        const wdioSpecificTypes = [
+            'allure:suite:start',
+            'allure:suite:end',
+            'allure:test:start',
+            'allure:test:end',
+            'allure:test:info',
+            'allure:hook:start',
+            'allure:hook:end'
+        ]
+        return !wdioSpecificTypes.includes(message.type)
+    }
 
     private _openSteps = 0
 
     private _openHookSteps = new Map<string, number>()
+    private _hookMeta = new Map<string, { name: string; type: 'before' | 'after' }>()
 
     private _incHookSteps = (uuid: string) =>
         this._openHookSteps.set(uuid, (this._openHookSteps.get(uuid) ?? 0) + 1)
@@ -30,7 +50,10 @@ export class AllureReportState {
     private _decHookSteps = (uuid: string) =>
         this._openHookSteps.set(uuid, Math.max(0, (this._openHookSteps.get(uuid) ?? 0) - 1))
 
-    private async _closeOpenedHookSteps(uuid: string, status: AllureStatus, stop?: number, statusDetails?: { message?: string; trace?: string }): Promise<void> {
+    private async _closeOpenedHookSteps(uuid: string, status: AllureStatus, stop?: number, statusDetails?: {
+        message?: string;
+        trace?: string
+    }): Promise<void> {
         let n = this._openHookSteps.get(uuid) ?? 0
         while (n > 0) {
             this.allureRuntime.applyRuntimeMessages(uuid, [{
@@ -41,8 +64,14 @@ export class AllureReportState {
         }
         this._openHookSteps.set(uuid, 0)
     }
-    private async _closeOpenedSteps(status: AllureStatus, stop?: number, statusDetails?: { message?: string; trace?: string }): Promise<void> {
-        if (!this._currentTestUuid) {return}
+
+    private async _closeOpenedSteps(status: AllureStatus, stop?: number, statusDetails?: {
+        message?: string;
+        trace?: string
+    }): Promise<void> {
+        if (!this._currentTestUuid) {
+            return
+        }
         while (this._openSteps > 0) {
             this.allureRuntime.applyRuntimeMessages(this._currentTestUuid, [{
                 type: 'step_stop',
@@ -97,7 +126,9 @@ export class AllureReportState {
     }
 
     private async _writeLastTest(): Promise<void> {
-        if (!this._currentTestUuid) {return}
+        if (!this._currentTestUuid) {
+            return
+        }
         await this._closeScope()
         await this.allureRuntime.writeTest(this._currentTestUuid)
         this._currentTestUuid = undefined
@@ -134,35 +165,47 @@ export class AllureReportState {
 
         this._executablesStack.push(testUuid)
         this._currentTestUuid = testUuid
+        this._currentTestName = name
         this._openSteps = 0
+
+        if (this._pendingHookMessages.length > 0) {
+            await this._attachPendingHookToCurrentTest('before', name, '')
+            await this._attachPendingHookToCurrentTest('before', name, 'each')
+        }
     }
 
     private _addTestInfo(message: WDIOTestInfoMessage): void {
         const { fullName } = message.data
         const testUuid = last(this._executablesStack)
-        if (!testUuid) {return}
+        if (!testUuid) {
+            return
+        }
         this.allureRuntime.updateTest(testUuid, (r) => {
             r.fullName = fullName
         })
     }
 
-    private async _endTest(message: WDIOTestEndMessage ): Promise<void> {
+    private async _endTest(message: WDIOTestEndMessage): Promise<void> {
         const { status, stage, stop, duration, statusDetails } = message.data
         const testUuid = this._executablesStack.pop()
 
-        if (!testUuid) {return}
+        if (!testUuid) {
+            return
+        }
 
         await this._closeOpenedSteps(status, stop, statusDetails)
 
         this.allureRuntime.updateTest(testUuid, r => {
             r.status = status
-            if (stage) {r.stage = stage}
-            if (statusDetails) {r.statusDetails = statusDetails}
+            if (stage) {
+                r.stage = stage
+            }
+            if (statusDetails) {
+                r.statusDetails = statusDetails
+            }
         })
         this.allureRuntime.stopTest(testUuid, { stop, duration })
 
-        await this._writeLastTest()
-        this._currentTestUuid = undefined
     }
 
     private async _startHook(message: WDIOHookStartMessage): Promise<void> {
@@ -172,35 +215,57 @@ export class AllureReportState {
             await this._writeLastTest()
         }
 
-        const hookScopeUuid = this.allureRuntime.startScope()
-        this._scopesStack.push(hookScopeUuid)
+        if (!this._currentTestUuid) {
+            this._pendingHookMessages.push(message)
+            this._isCapturingPendingHook = true
+            return
+        }
 
-        const hookUuid = this.allureRuntime.startFixture(hookScopeUuid, type, { name, start })
-        if (hookUuid) {
-            this._fixturesStack.push(hookUuid)
-            this._openHookSteps.set(hookUuid, 0)
+        const testScopeUuid = this._scopesStack[this._scopesStack.length - 1]
+        if (testScopeUuid) {
+            const hookUuid = this.allureRuntime.startFixture(testScopeUuid, type, { name, start })
+            if (hookUuid) {
+                this._fixturesStack.push(hookUuid)
+                this._openHookSteps.set(hookUuid, 0)
+                this._hookMeta.set(hookUuid, { name, type })
+            }
         }
     }
 
     private async _endHook(message: WDIOHookEndMessage): Promise<void> {
         const { status, statusDetails, duration, stop } = message.data
+
+        if (!this._currentTestUuid) {
+            this._pendingHookMessages.push(message)
+            this._isCapturingPendingHook = false
+            return
+        }
+
         const hookUuid = this._fixturesStack.pop()
-        if (!hookUuid) {return}
+        if (!hookUuid) {
+            return
+        }
 
         await this._closeOpenedHookSteps(hookUuid, status, stop, statusDetails)
 
         this.allureRuntime.updateFixture(hookUuid, r => {
             r.status = status
-            if (statusDetails) {r.statusDetails = statusDetails}
+            if (statusDetails) {
+                r.statusDetails = statusDetails
+            }
         })
 
         this.allureRuntime.stopFixture(hookUuid, { stop, duration })
 
-        await this._closeOpenedSteps(status, stop, statusDetails)
-
-        const hookScopeUuid = this._scopesStack.pop()
-        if (hookScopeUuid) {
-            await this.allureRuntime.writeScope(hookScopeUuid)
+        const meta = this._hookMeta.get(hookUuid)
+        const testUuid = this._currentTestUuid
+        if (meta && testUuid) {
+            this.allureRuntime.updateTest(testUuid, (r) => {
+                const result = r as unknown as { fixtures?: Array<{ name: string; type: 'before' | 'after'; status: AllureStatus; stage: typeof AllureStage.FINISHED }> }
+                const fixtures = Array.isArray(result.fixtures) ? result.fixtures : []
+                fixtures.push({ name: meta.name, type: meta.type, status, stage: AllureStage.FINISHED })
+                result.fixtures = fixtures
+            })
         }
     }
 
@@ -232,13 +297,27 @@ export class AllureReportState {
 
             case 'allure:test:end':
                 await this._endTest(message)
+                if (this._pendingHookMessages.length > 0) {
+                    await this._attachPendingHookToCurrentTest('after', this._currentTestName ?? 'unknown test', 'each')
+                    await this._attachPendingHookToCurrentTest('after', this._currentTestName ?? 'unknown test', '')
+                }
                 continue
 
             case 'allure:hook:start':
+                if (!this._currentTestUuid) {
+                    this._pendingHookMessages.push(message)
+                    this._isCapturingPendingHook = true
+                    continue
+                }
                 await this._startHook(message)
                 continue
 
             case 'allure:hook:end':
+                if (!this._currentTestUuid) {
+                    this._pendingHookMessages.push(message)
+                    this._isCapturingPendingHook = false
+                    continue
+                }
                 await this._endHook(message)
                 continue
 
@@ -248,17 +327,33 @@ export class AllureReportState {
 
             const hookUuid = this._fixturesStack.at(-1)
             const target = hookUuid ?? this._currentTestUuid
-            if (!target) {continue}
+
+            if (!target) {
+                if (this._isCapturingPendingHook) {
+                    this._pendingHookMessages.push(message)
+                }
+                continue
+            }
 
             if (message.type === 'step_start') {
-                if (hookUuid) {this._incHookSteps(hookUuid)} else {this._openSteps++}
+                if (hookUuid) {
+                    this._incHookSteps(hookUuid)
+                } else {
+                    this._openSteps++
+                }
             }
 
             if (message.type === 'step_stop') {
-                if (hookUuid) {this._decHookSteps(hookUuid)} else {this._openSteps = Math.max(0, this._openSteps - 1)}
+                if (hookUuid) {
+                    this._decHookSteps(hookUuid)
+                } else {
+                    this._openSteps = Math.max(0, this._openSteps - 1)
+                }
             }
 
-            this.allureRuntime.applyRuntimeMessages(target, [message])
+            if (this._isRuntimeMessage(message)) {
+                this.allureRuntime.applyRuntimeMessages(target, [message])
+            }
         }
 
         if (this._currentTestUuid) {
@@ -267,5 +362,55 @@ export class AllureReportState {
         while (this._scopesStack.length > 0) {
             await this._closeScope()
         }
+    }
+
+    private async _attachPendingHookToCurrentTest(kind: 'before' | 'after', testName: string, scope: 'each' | '' = 'each'): Promise<void> {
+        if (!this._currentTestUuid) {
+            return
+        }
+        const startIdx = this._pendingHookMessages.findIndex((m) =>
+            m.type === 'allure:hook:start' && m.data.type === kind && typeof m.data.name === 'string' && (scope === 'each' ? /each/i.test(m.data.name) : /all/i.test(m.data.name))
+        )
+        if (startIdx === -1) {
+            return
+        }
+
+        const endIdx = this._pendingHookMessages.findIndex((m, idx) => idx > startIdx && m.type === 'allure:hook:end')
+        if (endIdx === -1) {
+            return
+        }
+
+        const startMsg = this._pendingHookMessages[startIdx] as WDIOHookStartMessage
+        const endMsg = this._pendingHookMessages[endIdx] as WDIOHookEndMessage
+
+        await this._startHook({
+            type: 'allure:hook:start',
+            data: {
+                name: String(startMsg.data.name || ''),
+                type: kind,
+                start: startMsg.data.start
+            }
+        })
+
+        const currentHookUuid = this._fixturesStack.at(-1)
+
+        if (currentHookUuid) {
+            for (let i = startIdx + 1; i < endIdx; i++) {
+                const msg = this._pendingHookMessages[i]
+                if (msg.type === 'step_start') {
+                    this._incHookSteps(currentHookUuid)
+                }
+                if (msg.type === 'step_stop') {
+                    this._decHookSteps(currentHookUuid)
+                }
+                if (this._isRuntimeMessage(msg)) {
+                    this.allureRuntime.applyRuntimeMessages(currentHookUuid, [msg])
+                }
+            }
+        }
+
+        await this._endHook(endMsg)
+
+        this._pendingHookMessages.splice(startIdx, (endIdx - startIdx) + 1)
     }
 }

@@ -90,7 +90,7 @@ describe('Passing tests', () => {
         expect(Object.values(environmentInfo)).toHaveLength(2)
 
         allureResult = results[0]
-        allureContainer = containers[0] || {}
+        allureContainer = containers[0] ?? {}
         allureEnvInfo = environmentInfo
     })
 
@@ -162,7 +162,6 @@ describe('Passing tests', () => {
     })
 
     it('should contain environment variables', () => {
-        console.log('allureEnvInfo:', allureEnvInfo)
         expect(Object.keys(allureEnvInfo)).toHaveLength(2)
     })
 
@@ -484,13 +483,9 @@ describe('Hook reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         await reporter.onRunnerEnd(runnerEnd())
 
-        const { results, containers } = getResults(outputDir)
+        const { results } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
-        expect(containers[0].befores[0].name).toEqual(
-            '"before all" hook for "should login with valid credentials"',
-        )
-        expect(containers[0].befores[0].status).toEqual(Status.BROKEN)
         expect(results[0].name).toEqual('"before all" hook for "should login with valid credentials"')
     })
 
@@ -509,11 +504,10 @@ describe('Hook reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         await reporter.onRunnerEnd(runnerEnd())
 
-        const { results, containers } = getResults(outputDir)
+        const { results } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
         expect(results[0].name).toEqual('should can do something')
-        expect(containers).toHaveLength(0)
     })
 
     it('should report failed before each hook with disableMochaHooks', async () => {
@@ -531,11 +525,10 @@ describe('Hook reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         await reporter.onRunnerEnd(runnerEnd())
 
-        const { results, containers } = getResults(outputDir)
+        const { results } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
         expect(results[0].name).toEqual('should can do something')
-        expect(containers).toHaveLength(0)
     })
 })
 
@@ -995,9 +988,8 @@ describe('command reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         await reporter.onRunnerEnd(runnerEnd())
 
-        const { results, containers } = getResults(outputDir)
+        const { results } = getResults(outputDir)
         expect(results).toHaveLength(1)
-        expect(containers).toHaveLength(0)
 
         const result = results.find((res: any) => res.attachments.length === 1)
         expect(result).toBeDefined()

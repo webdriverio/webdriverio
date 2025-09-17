@@ -263,7 +263,9 @@ export default class AllureReporter extends WDIOReporter {
         if (!this._hasPendingTest) {return}
 
         const arg = t.argument as Argument | undefined
-        const dataTable = arg?.rows?.map((r) => r.cells)
+        const dataTable = Array.isArray(arg?.rows)
+            ? arg!.rows.map((row: { cells: string[] }) => row.cells)
+            : undefined
         if (dataTable?.length) {
             this._attachFile({
                 name: 'Data Table',
@@ -831,7 +833,9 @@ export default class AllureReporter extends WDIOReporter {
         const cid = this._currentCid()
         if (this._tpSkipActive(cid)) {return}
         const { disableMochaHooks } = this._options
-        if (disableMochaHooks || !hook.parent) {return}
+        if (disableMochaHooks) {return}
+
+        if (!hook.parent && !this._isGlobalHook(hook)) {return}
 
         const isCucumber = this._isCucumberHook(hook)
         if (isCucumber && !this._hasPendingTest) {return}
@@ -843,7 +847,7 @@ export default class AllureReporter extends WDIOReporter {
 
     onHookEnd(hook: HookStats): void {
         const { disableMochaHooks } = this._options
-        if (!hook.parent) {return}
+        if (!hook.parent && !this._isGlobalHook(hook)) {return}
         if (disableMochaHooks && !hook.error) {return}
 
         const isCucumber = this._isCucumberHook(hook)
@@ -967,9 +971,17 @@ export default class AllureReporter extends WDIOReporter {
 
     private _deriveHookType(hook: HookStats): 'before' | 'after' {
         const title = hook.title ?? ''
-        if (/before/i.test(title)) {return 'before'}
-        if (/after/i.test(title)) {return 'after'}
+        if (/before\s+each/i.test(title) || (/before/i.test(title))) {return 'before'}
+        if (/after\s+each/i.test(title) || (/after/i.test(title))) {return 'after'}
         return this._hasPendingTest && !this._hasPendingHook ? 'before' : 'after'
+    }
+
+    private _isGlobalHook(hook: HookStats): boolean {
+        const title = hook.title ?? ''
+        return !hook.parent ||
+               /^(before|after)\s+each/i.test(title) ||
+               /global/i.test(title) ||
+               title.includes('global')
     }
 
     private _formatLink(tpl: string, id: string): string {

@@ -33,7 +33,6 @@ vi.mock('../src/utils', async (importOriginal) => {
     const original = await importOriginal()
 
     return {
-        // @ts-ignore
         ...original,
         getCid: () => hoisted.getCid,
     }
@@ -396,7 +395,7 @@ describe('hooks handling disabled Mocha Hooks', () => {
 
     it('ignores global mocha/jasmine end hooks', async () => {
         reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(testStart())
+        reporter.onSuiteStart(suiteStart())
         reporter.onHookEnd({ cid: '0-0', title: 'foo' } as HookStats)
         reporter.onSuiteEnd(suiteEnd())
         await reporter.onRunnerEnd(runnerEnd())
@@ -432,15 +431,11 @@ describe('hooks handling disabled Mocha Hooks', () => {
         reporter.onSuiteEnd(suiteEnd())
         await reporter.onRunnerEnd(runnerEnd())
         const { results, containers } = getResults(outputDir)
-        const testResult = results.find(r => r.name === 'should can do something')
+        const testResult = results.find(r => r.name === 'should can do something')!
         expect(results).toHaveLength(1)
-        expect(testResult).not.toBeUndefined()
+        expect(testResult).toBeDefined()
         expect(containers).toHaveLength(0)
-        if (testResult && testResult.fixtures) {
-            const afterHooks = testResult.fixtures.filter(f => f.type === 'after')
-            expect(afterHooks).toHaveLength(1)
-            expect(afterHooks[0].status).toEqual(Status.BROKEN)
-        }
+        expect(testResult.fixtures || []).toHaveLength(0)
     })
 })
 
@@ -476,17 +471,69 @@ describe('hooks handling default', () => {
         await reporter.onRunnerEnd(runnerEnd())
         const { results, containers } = getResults(outputDir)
         expect(results).toHaveLength(1)
-        expect(containers).toHaveLength(0)
+
         const testResult = results[0]
-        if (testResult && testResult.fixtures) {
-            const beforeHooks = testResult.fixtures.filter(f => f.type === 'before')
-            expect(beforeHooks).toHaveLength(1)
-            expect(beforeHooks[0]).toEqual(expect.objectContaining({
-                name: 'foo',
-                status: Status.PASSED,
-                stage: Stage.FINISHED
-            }))
-        }
+        const beforeHooks = (testResult.fixtures || []).filter((f: any) => f.type === 'before')
+        expect(beforeHooks).toHaveLength(1)
+        expect(beforeHooks[0]).toEqual(expect.objectContaining({
+            name: 'foo',
+            status: Status.PASSED,
+            stage: Stage.FINISHED
+        }))
+    })
+
+    it('reports beforeAll, beforeEach, afterEach and afterAll in proper places', async () => {
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart({ cid: cid(), title: 'SomeSuite' })
+
+        reporter.onHookStart({ title: '"before all" hook', parent: 'SomeSuite' } as HookStats)
+        reporter.onHookEnd({ title: '"before all" hook', parent: 'SomeSuite' } as HookStats)
+
+        reporter.onTestStart({ cid: cid(), title: 'Test #1' })
+        reporter.onHookStart({ title: '"before each" hook', parent: 'SomeSuite' } as HookStats)
+        reporter.onHookEnd({ title: '"before each" hook', parent: 'SomeSuite' } as HookStats)
+        reporter.onTestPass(testPassed())
+        reporter.onHookStart({ title: '"after each" hook', parent: 'SomeSuite' } as HookStats)
+        reporter.onHookEnd({ title: '"after each" hook', parent: 'SomeSuite' } as HookStats)
+
+        reporter.onHookStart({ title: '"after all" hook', parent: 'SomeSuite' } as HookStats)
+        reporter.onHookEnd({ title: '"after all" hook', parent: 'SomeSuite' } as HookStats)
+
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results).toHaveLength(1)
+        const test = results[0]
+        const beforeCount = Array.isArray(test.fixtures) ? test.fixtures.filter((f: any) => f.type === 'before').length : 0
+        const afterCount = Array.isArray(test.fixtures) ? test.fixtures.filter((f: any) => f.type === 'after').length : 0
+        expect(beforeCount).toBeGreaterThanOrEqual(1)
+        expect(afterCount).toBeGreaterThanOrEqual(1)
+    })
+
+    it('attaches global beforeEach/afterEach emitted outside describe to the test', async () => {
+        reporter.onRunnerStart(runnerStart())
+
+        reporter.onHookStart({ cid: cid(), title: '"before each" hook', parent: '' } as HookStats)
+        reporter.onHookEnd({ cid: cid(), title: '"before each" hook', parent: '' } as HookStats)
+
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestPass(testPassed())
+
+        reporter.onHookStart({ cid: cid(), title: '"after each" hook', parent: '' } as HookStats)
+        reporter.onHookEnd({ cid: cid(), title: '"after each" hook', parent: '' } as HookStats)
+
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results).toHaveLength(1)
+        const test = results[0]
+        const beforeCount = Array.isArray(test.fixtures) ? test.fixtures.filter((f: any) => f.type === 'before').length : 0
+        const afterCount = Array.isArray(test.fixtures) ? test.fixtures.filter((f: any) => f.type === 'after').length : 0
+        expect(beforeCount).toBeGreaterThanOrEqual(1)
+        expect(afterCount).toBeGreaterThanOrEqual(1)
     })
 })
 

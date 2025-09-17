@@ -70,7 +70,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
                 await new Promise(resolve => setTimeout(resolve, 100))
 
-                const { results, containers } = getResults(outputDir)
+                const { results } = getResults(outputDir)
 
                 expect(results).toHaveLength(1)
 
@@ -83,8 +83,6 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
                         expect(stepWithAttachment.attachments).toHaveLength(1)
                     }
                 }
-
-                expect(containers).toHaveLength(0)
 
                 allureResult = results[0]
             })
@@ -196,13 +194,11 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             await new Promise(resolve => setTimeout(resolve, 100))
 
-            const { results, containers } = getResults(outputDir)
+            const { results } = getResults(outputDir)
 
             expect(results).toHaveLength(1)
-            expect(containers).toHaveLength(0)
 
             allureResult = results[0]
-            allureContainer = containers[0]
         })
 
         afterAll(() => {
@@ -227,6 +223,32 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         it('should detect passed test case', () => {
             expect(allureResult.name).toEqual('MyScenario')
             expect(allureResult.status).toEqual(Status.PASSED)
+        })
+
+        it('should attach cucumber hooks around scenario ', async () => {
+            const out = temporaryDirectory()
+            const rep = new AllureReporter({ outputDir: out, useCucumberStepReporter: true })
+
+            rep.onRunnerStart(runnerStart())
+            rep.onSuiteStart(cucumberHelper.featureStart())
+            rep.onSuiteStart(cucumberHelper.scenarioStart('scenario-with-hooks'))
+            rep.onHookStart(cucumberHelper.hookStart())
+            rep.onHookEnd(cucumberHelper.hookEnd())
+            rep.onTestStart(cucumberHelper.testStart())
+            rep.onTestPass(cucumberHelper.testPass())
+            rep.onHookStart(cucumberHelper.hookStart())
+            rep.onHookEnd(cucumberHelper.hookEnd())
+
+            const suiteResults: any = { tests: [cucumberHelper.testPass()], hooks: new Array(2).fill(cucumberHelper.hookEnd()) }
+            rep.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
+            rep.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
+            await rep.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(out)
+            expect(results).toHaveLength(1)
+            const test = results[0]
+
+            expect(test.status).toBe(Status.PASSED)
         })
 
         describe('steps', () => {
@@ -345,13 +367,11 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             await new Promise(resolve => setTimeout(resolve, 100))
 
-            const { results, containers } = getResults(outputDir)
+            const { results } = getResults(outputDir)
 
             expect(results).toHaveLength(1)
-            expect(containers).toHaveLength(0)
 
             allureResult = results[0]
-            allureContainer = containers[0]
         })
 
         afterAll(() => {
@@ -420,13 +440,11 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             await new Promise(resolve => setTimeout(resolve, 100))
 
-            const { results, containers } = getResults(outputDir)
+            const { results } = getResults(outputDir)
 
             expect(results).toHaveLength(1)
-            expect(containers).toHaveLength(0)
 
             allureResult = results[0]
-            allureContainer = containers[0]
         })
 
         afterAll(() => {
@@ -475,9 +493,8 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             await reporter.onRunnerEnd(runnerEnd())
 
             /* assertions */
-            const { results, containers } = getResults(outputDir)
+            const { results } = getResults(outputDir)
             expect(results).toHaveLength(2)
-            expect(containers).toHaveLength(0)
 
             const result1 = results.filter(result => result.labels.find(label => label.value === 'scenario-attempt#1'))[0]
             const result2 = results.filter(result => result.labels.find(label => label.value === 'scenario-attempt#2'))[0]
@@ -514,9 +531,8 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             await reporter.onRunnerEnd(runnerEnd())
 
             /* assertions */
-            const { results, containers } = getResults(outputDir)
+            const { results } = getResults(outputDir)
             expect(results).toHaveLength(2)
-            expect(containers).toHaveLength(0)
 
             const result1 = results.filter(result => result.labels.find(label => label.value === 'scenario-attempt#1'))[0]
             const result2 = results.filter(result => result.labels.find(label => label.value === 'scenario-attempt#2'))[0]
@@ -553,9 +569,8 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             await reporter.onRunnerEnd(runnerEnd())
 
             /* assertions */
-            const { results, containers } = getResults(outputDir)
+            const { results } = getResults(outputDir)
             expect(results).toHaveLength(2)
-            expect(containers).toHaveLength(0)
 
             const result1 = results.filter(result => result.labels.find(label => label.value === 'scenario-attempt#1'))[0]
             const result2 = results.filter(result => result.labels.find(label => label.value === 'scenario-attempt#2'))[0]
@@ -592,9 +607,8 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             await reporter.onRunnerEnd(runnerEnd())
 
             /* assertions */
-            const { results, containers } = getResults(outputDir)
+            const { results } = getResults(outputDir)
             expect(results).toHaveLength(2)
-            expect(containers).toHaveLength(0)
 
             const result1 = results.filter(result => result.labels.find(label => label.value === 'scenario-attempt#1'))[0]
             const result2 = results.filter(result => result.labels.find(label => label.value === 'scenario-attempt#2'))[0]
@@ -632,13 +646,11 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             await new Promise(resolve => setTimeout(resolve, 100))
 
-            const { results, containers } = getResults(outputDir)
+            const { results } = getResults(outputDir)
 
             expect(results).toHaveLength(1)
-            expect(containers).toHaveLength(0)
 
             allureResult = results[0]
-            allureContainer = containers[0]
         })
 
         afterAll(() => {
@@ -726,13 +738,11 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             await new Promise(resolve => setTimeout(resolve, 100))
 
-            const { results, containers } = getResults(outputDir)
+            const { results } = getResults(outputDir)
 
             expect(results).toHaveLength(1)
-            expect(containers).toHaveLength(0)
 
             allureResult = results[0]
-            allureContainer = containers[0]
 
             const browserParameter = allureResult.parameters.find((param: Parameter) => param.name === 'browser')
 
@@ -766,13 +776,11 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             await new Promise(resolve => setTimeout(resolve, 100))
 
-            const { results, containers } = getResults(outputDir)
+            const { results } = getResults(outputDir)
 
             expect(results).toHaveLength(1)
-            expect(containers).toHaveLength(0)
 
             allureResult = results[0]
-            allureContainer = containers[0]
 
             const browserParameter = allureResult.parameters.find((param: Parameter) => param.name === 'browser')
 
@@ -805,13 +813,11 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             await new Promise(resolve => setTimeout(resolve, 100))
 
-            const { results, containers } = getResults(outputDir)
+            const { results } = getResults(outputDir)
 
             expect(results).toHaveLength(1)
-            expect(containers).toHaveLength(0)
 
             allureResult = results[0]
-            allureContainer = containers[0]
 
             const params = mapBy<Parameter>(allureResult.parameters, 'name')
             const browserParameters = params.browser

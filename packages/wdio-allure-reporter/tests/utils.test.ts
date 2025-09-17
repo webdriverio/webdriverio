@@ -1,21 +1,20 @@
-import { describe, it, expect, afterEach, beforeAll, vi } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { CommandArgs } from '@wdio/type'
 import process from 'node:process'
 import { Status } from 'allure-js-commons'
 import CompoundError from '../src/compoundError.js'
 import {
-    getTestStatus,
-    isEmpty,
-    isEachTypeHooks,
-    getErrorFromFailedTest,
-    isAllTypeHooks,
-    getLinkByTemplate,
+    convertSuiteTagsToLabels,
     findLast,
+    getErrorFromFailedTest,
+    getLinkByTemplate,
+    getTestStatus,
+    isAllTypeHooks,
+    isBeforeEachTypeHook,
+    isEachTypeHooks,
+    isEmpty,
     isScreenshotCommand,
-    getSuiteLabels,
-    isBeforeEachTypeHook, convertSuiteTagsToLabels,
 } from '../src/utils.js'
-import { suiteStart } from './__fixtures__/suite.js'
 import { linkPlaceholder } from '../src/constants.js'
 
 describe('utils', () => {
