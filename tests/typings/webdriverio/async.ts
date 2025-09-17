@@ -308,12 +308,19 @@ async function bar() {
     const elcResult = await $('foo').$('bar').elementCustomCommand(4)
     expectType<number>(elcResult)
 
+    // Element promise
+    expectType<Promise<WebdriverIO.Element>>(browser.$('foo'))
+
     // $$
     const elems = await $$('').getElements()
     const el4 = elems[0]
     const el5 = await el4.$('')
     expectType<string>(await el4.getAttribute('class'))
     expectType<void|unknown>(await el5.scrollIntoView(false))
+
+    // Element[] promise
+    expectType<Promise<WebdriverIO.Element[]>>(browser.$$('foo'))
+    expectType<number>((await browser.$$('foo')).length)
 
     // async iterator
     const iteratorResult = await $$('').map((el) => el.getText())
@@ -460,6 +467,8 @@ async function bar() {
         await browser.$('foo').$('bar').$$('loo').selector)
     expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser>(
         await browser.$('foo').$('bar').$$('loo').parent)
+    expectType<Promise<number>>(
+        browser.$('foo').$('bar').$$('loo').length)
 
     // promise chain API
     expectType<string>(
