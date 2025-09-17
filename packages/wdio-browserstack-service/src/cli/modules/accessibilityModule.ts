@@ -108,21 +108,21 @@ export default class AccessibilityModule extends BaseModule {
 
             //patching performScan
             (browser as any).performScan = async () => {
-                if (!this.accessibility || !this.isAppAccessibility){
+                if (!this.accessibility && !this.isAppAccessibility){
                     return
                 }
                 return await this.performScanCli(browser)
             }
 
             (browser as any).startA11yScanning = async () => {
-                if (!this.accessibility || !this.isAppAccessibility){
+                if (!this.accessibility && !this.isAppAccessibility){
                     return
                 }
                 this.logger.warn('Accessibility scanning cannot be started from outside the test')
             }
 
             (browser as any).stopA11yScanning = async () => {
-                if (!this.accessibility || !this.isAppAccessibility){
+                if (!this.accessibility && !this.isAppAccessibility){
                     return
                 }
                 this.logger.warn('Accessibility scanning cannot be stopped from outside the test')
