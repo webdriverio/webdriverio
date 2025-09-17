@@ -74,36 +74,30 @@ function isRecord(v: unknown): v is Record<string, unknown> {
     return typeof v === 'object' && v !== null
 }
 
-function getString(obj: unknown, key: string): string | undefined {
+/**
+ * Safely read a string field from an unknown object.
+ * Returns the field value if it exists and is a string; otherwise returns undefined.
+ */
+function getStringField(obj: unknown, key: string): string | undefined {
     if (!isRecord(obj)) {return undefined}
     const v = obj[key]
     return typeof v === 'string' ? v : undefined
 }
 
 function getType(obj: unknown): string | undefined {
-    if (!isRecord(obj)) {return undefined}
-    const v = obj['type']
-    return typeof v === 'string' ? v : undefined
+    return getStringField(obj, 'type')
 }
 
 function getKeyword(obj: unknown): string | undefined {
-    if (!isRecord(obj)) {return undefined}
-    const v = obj['keyword']
-    return typeof v === 'string' ? v : undefined
+    return getStringField(obj, 'keyword')
 }
 
 function getParentType(obj: unknown): string | undefined {
-    if (!isRecord(obj)) {return undefined}
-    const p = obj['parent']
-    if (!isRecord(p)) {return undefined}
-    const t = p['type']
-    return typeof t === 'string' ? t : undefined
+    return getStringField(obj, 'parent') ?? getStringField(obj, 'type')
 }
 
 function getTitle(obj: unknown): string | undefined {
-    if (!isRecord(obj)) {return undefined}
-    const v = obj['title']
-    return typeof v === 'string' ? v : undefined
+    return getStringField(obj, 'title')
 }
 
 function isFeatureFilePath(file?: string): boolean {
@@ -340,8 +334,8 @@ export default class AllureReporter extends WDIOReporter {
         if (!this._isMultiremote) {
             const capsUnknown: unknown = this._capabilities
 
-            const browserName = getString(capsUnknown, 'browserName')
-            const device = getString(capsUnknown, 'device')
+            const browserName = getStringField(capsUnknown, 'browserName')
+            const device = getStringField(capsUnknown, 'device')
 
             const desired: Record<string, unknown> | undefined = ((): Record<string, unknown> | undefined => {
                 const maybe = (capsUnknown as Record<string, unknown>)?.['desired']
@@ -349,26 +343,26 @@ export default class AllureReporter extends WDIOReporter {
             })()
 
             const deviceName =
-                getString(desired, 'deviceName') ||
-                getString(desired, 'appium:deviceName') ||
-                getString(capsUnknown, 'deviceName') ||
-                getString(capsUnknown, 'appium:deviceName')
+                getStringField(desired, 'deviceName') ||
+                getStringField(desired, 'appium:deviceName') ||
+                getStringField(capsUnknown, 'deviceName') ||
+                getStringField(capsUnknown, 'appium:deviceName')
 
             let targetName = device || browserName || deviceName || cid
-            const desiredPlatformVersion = getString(desired, 'appium:platformVersion')
+            const desiredPlatformVersion = getStringField(desired, 'appium:platformVersion')
             if (desired && deviceName && desiredPlatformVersion) {
                 targetName = `${device || deviceName} ${desiredPlatformVersion}`
             }
 
             const browserstackVersion =
-                getString(capsUnknown, 'os_version') ||
-                getString(capsUnknown, 'osVersion')
+                getStringField(capsUnknown, 'os_version') ||
+                getStringField(capsUnknown, 'osVersion')
 
             const version =
                 browserstackVersion ||
-                getString(capsUnknown, 'browserVersion') ||
-                getString(capsUnknown, 'version') ||
-                getString(capsUnknown, 'appium:platformVersion') ||
+                getStringField(capsUnknown, 'browserVersion') ||
+                getStringField(capsUnknown, 'version') ||
+                getStringField(capsUnknown, 'appium:platformVersion') ||
                 ''
 
             const paramName = (deviceName || device) ? 'device' : 'browser'

@@ -1,3 +1,4 @@
+import type { StepContext } from 'allure-js-commons'
 import {
     allureId,
     attachment as allureAttachment,
@@ -35,7 +36,6 @@ import { events } from '../constants.js'
 
 // @ts-ignore
 const tellReporter = (event: string, msg: never = {}) => {
-
     process.emit(event as never, msg)
 }
 
@@ -198,7 +198,7 @@ export async function addDescription (descriptionText: string, descriptionType?:
  * @name addAttachment
  * @param {string} name         - attachment file name
  * @param {*} content           - attachment content
- * @param {string=} type - attachment mime type
+ * @param {string=} type        - attachment mime type
  */
 export async function addAttachment (name: string, content: string | Buffer | object, type: string) {
     if (content instanceof Buffer) {
@@ -297,23 +297,24 @@ export async function addStep (
 }
 
 /**
+/**
  * Starts allure step execution with any content
  * Can be used to generate any hierarchy of steps
  * @example
  * ```js
- * await step("foo", async () => {
- *   await step("bar", async () => {
- *     await step("baz", async () => {
+ * await step("foo", async (context) => {
+ *   await step("bar", async (context) => {
+ *     await step("baz", async (context) => {
  *       // ...
  *     })
  *   })
  * })
  * ```
  * @param {string} name - the step name
- * @param {() => Promise<any>} body - the step content function
+ * @param {(context: StepContext) => T | Promise<T>} body - the step content function
  */
-export async function step(name: string, body: () => Promise<never>) {
-    await allureStep(name, body)
+export async function step<T = void>(name: string, body: (context: StepContext) => T | Promise<T>): Promise<T> {
+    return allureStep(name, body)
 }
 
 export default {
