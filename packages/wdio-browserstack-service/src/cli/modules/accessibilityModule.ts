@@ -407,7 +407,7 @@ export default class AccessibilityModule extends BaseModule {
             }
             if (sessionId && this.accessibilityMap.get(sessionId)) {
                 this.logger.debug('Performing scan before saving results')
-                await this.performScanCli(browser, 'afterTest')
+                await this.performScanCli(browser)
             }
             if (this.isAppAccessibility) {
                 return
