@@ -214,7 +214,7 @@ export default class AccessibilityModule extends BaseModule {
             const browser = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser
 
             (browser as any).startA11yScanning = async () => {
-                if (!this.accessibility || !this.isAppAccessibility){
+                if (!this.accessibility && !this.isAppAccessibility){
                     return
                 }
                 this.accessibilityMap.set(sessionId, true)
@@ -227,7 +227,7 @@ export default class AccessibilityModule extends BaseModule {
             }
 
             (browser as any).stopA11yScanning = async () => {
-                if (!this.accessibility || !this.isAppAccessibility){
+                if (!this.accessibility && !this.isAppAccessibility){
                     return
                 }
                 this.accessibilityMap.set(sessionId, false)
@@ -235,7 +235,7 @@ export default class AccessibilityModule extends BaseModule {
             }
 
             (browser as any).performScan = async () => {
-                if (!this.accessibility || !this.isAppAccessibility){
+                if (!this.accessibility && !this.isAppAccessibility){
                     return
                 }
                 const results = await this.performScanCli(browser)
