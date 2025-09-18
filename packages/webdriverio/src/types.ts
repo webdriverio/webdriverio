@@ -69,6 +69,7 @@ interface ChainablePromiseBaseElement {
     getElement(): Promise<WebdriverIO.Element>
 }
 export interface ChainablePromiseElement extends
+    Promise<WebdriverIO.Element>,
     ChainablePromiseBaseElement,
     AsyncElementProto,
     Omit<WebdriverIO.Element, keyof ChainablePromiseBaseElement | keyof AsyncElementProto> {}
@@ -95,7 +96,9 @@ interface AsyncIterators<T> {
     entries(): AsyncIterableIterator<[number, WebdriverIO.Element]>;
 }
 
-export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Element> {
+export interface ChainablePromiseArray extends
+    Promise<WebdriverIO.Element[]>,
+    AsyncIterators<WebdriverIO.Element> {
     [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.Element>
     [Symbol.iterator](): IterableIterator<WebdriverIO.Element>
 
