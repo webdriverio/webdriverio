@@ -46,6 +46,7 @@ export const BSTACK_SERVICE_VERSION = bstackServiceVersion
 export const NOT_ALLOWED_KEYS_IN_CAPS = ['includeTagsInTestingScope', 'excludeTagsInTestingScope']
 
 export const LOGS_FILE = 'logs/bstack-wdio-service.log'
+export const CLI_DEBUG_LOGS_FILE = 'log/sdk-cli-debug.log'
 export const UPLOAD_LOGS_ADDRESS = 'https://upload-observability.browserstack.com'
 export const UPLOAD_LOGS_ENDPOINT = 'client-logs/upload'
 
@@ -134,3 +135,4 @@ export const WDIO_NAMING_PREFIX = 'WebdriverIO-'
 // API Endpoint constants
 export const UPDATED_CLI_ENDPOINT = 'sdk/v1/update_cli'
 
+export const PERF_METRICS_WAIT_TIME = 2000
