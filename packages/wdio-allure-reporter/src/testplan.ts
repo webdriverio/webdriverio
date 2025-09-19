@@ -1,175 +1,11 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { LabelName } from 'allure-js-commons'
+import { parseTestPlan as parseTestPlanCommons, includedInTestPlan as includedInTestPlanCommons } from 'allure-js-commons/sdk/reporter'
+import type { TestPlanV1, TestPlanV1Test } from 'allure-js-commons/sdk'
 import type { AddTestInfoEventArgs } from './types.js'
 import type { WDIORuntimeMessage } from './types.js'
 import { fileURLToPath } from 'node:url'
-
-export type TestPlan = {
-    version: string
-    tests: Array<{ id: string | number; selector?: string }>
-}
-
-export type LoadedTestPlan = {
-    path: string
-    bySelector: Map<string, string>
-    byId: Set<string>
-}
-
-type LooseArgs = { file?: string; fullTitle?: string; fullName?: string }
-type MatchableArgs = LooseArgs | AddTestInfoEventArgs
-
-const toPosix = (p: string): string => {
-    try { if (p.startsWith('file:')) {p = fileURLToPath(p)} } catch { /* empty */ }
-    const abs = path.isAbsolute(p) ? p : path.resolve(p)
-    return abs.replace(/\\/g, '/')
-}
-
-const relPosix = (p: string): string => {
-    let abs = toPosix(p)
-    const cwd = process.cwd().replace(/\\/g, '/')
-    if (abs.startsWith(cwd)) {abs = abs.slice(cwd.length)}
-    if (!abs.startsWith('/')) {abs = '/' + abs}
-    return abs
-}
-const normalize = (s: string): string =>
-    s.replace(/^file:(\/\/)?/i, '').replace(/\\/g, '/').replace(/\/{2,}/g, '/')
-
-const normalizeFullTitle = (fullTitle?: string): string | undefined => {
-    if (!fullTitle) {return undefined}
-    const hash = fullTitle.indexOf('#')
-    if (hash < 0) {return normalize(fullTitle)}
-    const left = fullTitle.slice(0, hash)
-    const right = fullTitle.slice(hash + 1)
-    return `${relPosix(left)}#${right}`
-}
-
-const isAddTestInfo = (a: unknown): a is AddTestInfoEventArgs =>
-    !!a && typeof (a as { file?: unknown }).file === 'string' && Array.isArray((a as { testPath?: unknown }).testPath)
-
-const toLoose = (a: MatchableArgs): LooseArgs =>
-    isAddTestInfo(a) ? { file: a.file, fullTitle: a.testPath.join(' ') } : a
-
-const selectorVariants = (file?: string, fullTitle?: string): string[] => {
-    if (!file || !fullTitle) {return []}
-    const abs = toPosix(file)
-    const rel = relPosix(file)
-
-    const ft = normalizeFullTitle(fullTitle)!.split('#').slice(1).join('#') || fullTitle
-    const primary = `${rel}#${ft}`
-    const altAbs = `${abs}#${ft}`
-    const altBase = `${path.basename(abs)}#${ft}`
-
-    return [
-        primary,
-        normalize(primary),
-        altAbs,
-        normalize(altAbs),
-        altBase,
-        normalize(altBase),
-    ]
-}
-
-const primaryCandidates = (fullName?: string, fullTitle?: string): string[] => {
-    const out: string[] = []
-    if (fullName) {
-        const f = normalizeFullTitle(fullName)!
-        out.push(f, normalize(f))
-    }
-    if (fullTitle) {
-        const f = normalizeFullTitle(fullTitle)!
-        out.push(f, normalize(f))
-    }
-    return out
-}
-
-const heuristicMatch = (plan: LoadedTestPlan, fullTitle?: string): string | undefined => {
-    if (!fullTitle) {return undefined}
-    const ft = normalize(fullTitle)
-    for (const [sel, id] of plan.bySelector.entries()) {
-        if (sel.includes('#')) {continue}
-        const s = normalize(sel)
-        if (ft === s || ft.endsWith(' ' + s) || ft.startsWith(s + ' ')) {return id}
-    }
-    return undefined
-}
-
-export function loadTestPlan(): LoadedTestPlan | null {
-    const candidates = [
-        process.env.ALLURE_TESTPLAN_PATH ?? '',
-        `${process.cwd()}/.allure/testplan.json`,
-        `${process.cwd()}/testplan.json`,
-    ].filter(Boolean)
-
-    for (const p of candidates) {
-        try {
-            const raw = JSON.parse(fs.readFileSync(p, 'utf8')) as TestPlan
-            const bySelector = new Map<string, string>()
-            const byId = new Set<string>()
-            for (const t of raw.tests ?? []) {
-                const sel = String(t.selector ?? '').trim()
-                if (!sel) {continue}
-                const id = String(t.id)
-                bySelector.set(sel, id)
-                bySelector.set(normalize(sel), id)
-                byId.add(id)
-            }
-            return { path: p, bySelector, byId }
-        } catch {
-            /* ignore broken candidate and continue */
-        }
-    }
-    return null
-}
-
-export function matchInPlan(plan: LoadedTestPlan | null, args: MatchableArgs): string | undefined {
-    if (!plan) {return undefined}
-
-    if (isAddTestInfo(args)) {
-        const fileRel = relPosix(args.file)
-        const ft = args.testPath.join(' ')
-        const primary = `${fileRel}#${ft}`
-
-        const hitPrimary = plan.bySelector.get(primary) ?? plan.bySelector.get(normalize(primary))
-        if (hitPrimary) {return hitPrimary}
-
-        const fallbackAbs = `${toPosix(args.file)}#${ft}`
-        const hitAbs = plan.bySelector.get(fallbackAbs) ?? plan.bySelector.get(normalize(fallbackAbs))
-        if (hitAbs) {return hitAbs}
-
-        const fallbackBase = `${path.basename(args.file)}#${ft}`
-        const hitBase = plan.bySelector.get(fallbackBase) ?? plan.bySelector.get(normalize(fallbackBase))
-        if (hitBase) {return hitBase}
-
-        return heuristicMatch(plan, ft)
-    }
-
-    const { file, fullTitle, fullName } = toLoose(args)
-
-    for (const k of [...selectorVariants(file, fullTitle), ...primaryCandidates(fullName, fullTitle)]) {
-        const hit = plan.bySelector.get(k)
-        if (hit) {return hit}
-    }
-
-    return heuristicMatch(plan, fullTitle)
-}
-
-export function isInTestPlan(plan: LoadedTestPlan | null, args: MatchableArgs): boolean {
-    return Boolean(matchInPlan(plan, args))
-}
-
-export function applyTestPlanLabel(
-    plan: LoadedTestPlan | null,
-    push: (m: WDIORuntimeMessage) => void,
-    args: MatchableArgs
-): void {
-    const id = matchInPlan(plan, args)
-    if (!id) {return}
-    push({
-        type: 'metadata',
-        data: { labels: [{ name: LabelName.ALLURE_ID, value: String(id) }] },
-    })
-}
 
 type MochaContext = unknown
 type MochaSuite = unknown
@@ -205,6 +41,137 @@ type BDD = {
     specify?: MochaTestFunction
 }
 
+export type LoadedTestPlan = {
+    path: string
+    raw: TestPlanV1
+    bySelector: Map<string, string>
+    byId: Set<string>
+}
+
+type LooseArgs = { file?: string; fullTitle?: string; fullName?: string }
+
+type MatchableArgs = LooseArgs | AddTestInfoEventArgs
+
+const toPosixPath = (p: string): string => {
+    try { if (p.startsWith('file:')) { p = fileURLToPath(p) } } catch { /* ignore */ }
+    const abs = path.isAbsolute(p) ? p : path.resolve(p)
+    return abs.replace(/\\/g, '/')
+}
+
+const toRelPosixPath = (p: string): string => {
+    let abs = toPosixPath(p)
+    const cwd = process.cwd().replace(/\\/g, '/')
+    if (abs.startsWith(cwd)) { abs = abs.slice(cwd.length) }
+    if (!abs.startsWith('/')) { abs = '/' + abs }
+    return abs
+}
+
+const normalizeSelector = (s: string): string => s.replace(/^file:(\/\/)?/i, '').replace(/\\/g, '/').replace(/\/{2,}/g, '/')
+
+export function loadTestPlan(): LoadedTestPlan | null {
+    let base = parseTestPlanCommons()
+    let usedPath = (process.env.ALLURE_TESTPLAN_PATH || '').trim()
+    if (!base) {
+        const candidates = [
+            `${process.cwd()}/.allure/testplan.json`,
+            `${process.cwd()}/testplan.json`,
+        ]
+        for (const p of candidates) {
+            try {
+                const raw = JSON.parse(fs.readFileSync(p, 'utf8')) as TestPlanV1
+                if ((raw.tests || []).length) { base = raw; usedPath = p; break }
+            } catch { /* ignore */ }
+        }
+        if (!base) {
+            console.log('[allure-testplan] no testplan found in env or default locations')
+            return null
+        }
+    }
+
+    const expanded: TestPlanV1Test[] = []
+    for (const t of base.tests || []) {
+        const rawSelector = String(t.selector ?? '').trim()
+        if (!rawSelector) { continue }
+        expanded.push(t)
+
+        const hash = rawSelector.indexOf('#')
+        if (hash >= 0) {
+            const filePart = rawSelector.slice(0, hash)
+            const titlePart = rawSelector.slice(hash + 1)
+            const titleWithSpaces = titlePart.replace(/\./g, ' ').replace(/\s{2,}/g, ' ').trim()
+            const fileNoLead = normalizeSelector(filePart).replace(/^\/+/, '')
+            const fileWithLead = '/' + fileNoLead
+            const fileBase = path.basename(fileNoLead)
+            expanded.push({ ...t, selector: titlePart })
+            expanded.push({ ...t, selector: titleWithSpaces })
+            expanded.push({ ...t, selector: `${fileNoLead}#${titleWithSpaces}` })
+            expanded.push({ ...t, selector: `${fileWithLead}#${titleWithSpaces}` })
+            expanded.push({ ...t, selector: `${fileBase}#${titleWithSpaces}` })
+        }
+    }
+
+    const normalizedPlan: TestPlanV1 = { version: base.version, tests: expanded }
+    const bySelector = new Map<string, string>()
+    const byId = new Set<string>()
+    for (const t of normalizedPlan.tests || []) {
+        const s = String(t.selector ?? '').trim()
+        if (!s) { continue }
+        const id = String(t.id)
+        bySelector.set(s, id)
+        bySelector.set(normalizeSelector(s), id)
+        if (t.id !== undefined) { byId.add(String(t.id)) }
+    }
+    const sample = (normalizedPlan.tests || []).slice(0, 5).map((t) => t.selector).filter(Boolean)
+    console.log('[allure-testplan] loaded', usedPath || '(env)', 'tests:', (normalizedPlan.tests || []).length, 'sample:', sample)
+    return { path: process.env.ALLURE_TESTPLAN_PATH || '', raw: normalizedPlan, bySelector, byId }
+}
+
+export function applyTestPlanLabel(
+    plan: LoadedTestPlan | null,
+    push: (m: WDIORuntimeMessage) => void,
+    args: MatchableArgs
+): void {
+    if (!plan) { return }
+    const loose = ((): LooseArgs => {
+        if ((args as AddTestInfoEventArgs)?.file && Array.isArray((args as AddTestInfoEventArgs)?.testPath)) {
+            const a = args as AddTestInfoEventArgs
+            return { file: a.file, fullTitle: a.testPath.map(String).join(' ') }
+        }
+        return args as LooseArgs
+    })()
+    const { file, fullTitle, fullName } = loose
+    const base = fullName || fullTitle || ''
+    const suiteDotTitle = (() => {
+        if (!base) { return base }
+        const parts = base.split(' ')
+        if (parts.length < 2) { return base }
+        const last = parts.pop()!
+        const suite = parts.join(' ')
+        return suite ? `${suite}.${last}` : last
+    })()
+
+    const candidates = [
+        base,
+        suiteDotTitle,
+        file ? `${toRelPosixPath(file)}#${base}` : '',
+        file ? `${toRelPosixPath(file)}#${suiteDotTitle}` : '',
+        file ? `${toPosixPath(file)}#${base}` : '',
+        file ? `${toPosixPath(file)}#${suiteDotTitle}` : '',
+        file ? `${path.basename(file)}#${base}` : '',
+        file ? `${path.basename(file)}#${suiteDotTitle}` : '',
+    ].filter(Boolean) as string[]
+
+    for (const c of candidates) {
+        if (includedInTestPlanCommons(plan.raw, { fullName: c })) {
+            const id = plan.bySelector.get(c) || plan.bySelector.get(normalizeSelector(c)) || 'selector-match'
+            if (id && id !== 'selector-match') {
+                push({ type: 'metadata', data: { labels: [{ name: LabelName.ALLURE_ID, value: String(id) }] } })
+            }
+            return
+        }
+    }
+}
+
 const kWrapped = Symbol('allure_mocha_wrapped')
 
 export function installBddTestPlanFilter(plan: LoadedTestPlan): void {
@@ -212,9 +179,23 @@ export function installBddTestPlanFilter(plan: LoadedTestPlan): void {
     const suiteStack: string[] = []
 
     const decide = (title: string): boolean => {
-        const prefix = suiteStack.length ? suiteStack.join(' ') + ' ' : ''
-        const fullTitle = `${prefix}${title}`
-        return isInTestPlan(plan, { fullTitle })
+        const suites = [...suiteStack]
+        const fullSuite = suites.join(' ')
+        const leafSuite = suites[suites.length - 1] || ''
+        const candidates = [
+            suites.length ? `${fullSuite} ${title}` : title,
+            suites.length ? `${fullSuite}.${title}` : title,
+            leafSuite ? `${leafSuite} ${title}` : title,
+            leafSuite ? `${leafSuite}.${title}` : title,
+        ]
+        for (const t of candidates) {
+            if (plan.bySelector.has(t) || includedInTestPlanCommons(plan.raw, { fullName: t })) { return true }
+        }
+        const suffixes = candidates.map((t) => `#${t}`)
+        for (const key of plan.bySelector.keys()) {
+            if (suffixes.some((s) => key.endsWith(s))) { return true }
+        }
+        return false
     }
 
     const wrapSuite = (original: MochaSuiteFunction): MochaSuiteFunction => {
@@ -235,7 +216,10 @@ export function installBddTestPlanFilter(plan: LoadedTestPlan): void {
     const wrapIt = (original: MochaTestFunction): MochaTestFunction => {
         if ((original as unknown as Record<symbol, unknown>)[kWrapped]) {return original}
         const wrapped = ((title: string, fn?: MochaFunc | MochaAsyncFunc) => {
-            if (!decide(title)) {return undefined as unknown as MochaTest}
+            const allow = decide(title)
+
+            console.log('tp-it', title, allow)
+            if (!allow) {return undefined as unknown as MochaTest}
             return original(title, fn as MochaFunc)
         }) as MochaTestFunction
         wrapped.only = ((title: string, fn?: MochaFunc | MochaAsyncFunc) => {

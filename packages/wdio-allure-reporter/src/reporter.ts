@@ -28,6 +28,7 @@ import type { RuntimeMessage } from 'allure-js-commons/sdk'
 import { getMessageAndTraceFromError } from 'allure-js-commons/sdk'
 import { FileSystemWriter, getEnvironmentLabels, getSuiteLabels, ReporterRuntime } from 'allure-js-commons/sdk/reporter'
 import { setGlobalTestRuntime } from 'allure-js-commons/sdk/runtime'
+import { includedInTestPlan as includedInTestPlanCommons } from 'allure-js-commons/sdk/reporter'
 
 import { WdioTestRuntime } from './WdioTestRuntime.js'
 import { AllureReportState } from './state.js'
@@ -54,7 +55,6 @@ import {
     installBddTestPlanFilter,
     type LoadedTestPlan,
     loadTestPlan,
-    matchInPlan,
 } from './testplan.js'
 
 import * as AllureApi from './common/api.js'
@@ -173,9 +173,7 @@ export default class AllureReporter extends WDIOReporter {
         this._options = options
 
         this._testPlan = loadTestPlan()
-        if (this._testPlan) {
-            installBddTestPlanFilter(this._testPlan)
-        }
+        if (this._testPlan) { installBddTestPlanFilter(this._testPlan) }
 
         this._registerListeners()
 
@@ -406,7 +404,7 @@ export default class AllureReporter extends WDIOReporter {
                 const ft = Array.isArray(testPath) ? testPath.map(String).join(' ') : ''
                 const fullName = `${relNoSlash(file)}#${ft}`
 
-                this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName } })
+                this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName, fullTitle: ft } })
                 applyTestPlanLabel(this._testPlan, (m) => this._pushRuntimeMessage(m), {
                     file,
                     testPath,
@@ -507,7 +505,7 @@ export default class AllureReporter extends WDIOReporter {
             this._emitHistoryIdsFrom(fullTitleForHash)
 
             const fullName = toFullName(this._pkgByCid.get(cid)!, fullTitleForHash)
-            this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName } })
+            this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName, fullTitle: fullTitleForHash } })
 
             applyTestPlanLabel(this._testPlan, (m) => this._pushRuntimeMessage(m), {
                 fullTitle: fullTitleForHash,
@@ -953,8 +951,17 @@ export default class AllureReporter extends WDIOReporter {
         const filePath = (this._pkgByCid.get(cid) || '').replace(/\\/g, '/')
         if (!filePath) {return false}
         const fullTitle = this._mochaFullTitle(cid, scenarioTitle)
-        const id = matchInPlan(this._testPlan, { file: filePath, fullTitle })
-        return !id
+        const fullNameDot = (() => {
+            const parts = fullTitle.split(' ')
+            if (parts.length < 2) { return fullTitle }
+            const last = parts.pop()!
+            const suite = parts.join(' ')
+            return suite ? `${suite}.${last}` : last
+        })()
+        return !includedInTestPlanCommons(this._testPlan.raw, { fullName: `${filePath}#${fullNameDot}` }) &&
+               !includedInTestPlanCommons(this._testPlan.raw, { fullName: `${filePath}#${fullTitle}` }) &&
+               !includedInTestPlanCommons(this._testPlan.raw, { fullName: fullNameDot }) &&
+               !includedInTestPlanCommons(this._testPlan.raw, { fullName: fullTitle })
     }
 
     private _mochaFullTitle(cid: string, leaf: string): string {
