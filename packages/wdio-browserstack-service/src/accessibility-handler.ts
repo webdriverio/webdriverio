@@ -172,6 +172,10 @@ class _AccessibilityHandler {
         }
 
         (this._browser as WebdriverIO.Browser).startA11yScanning = async () => {
+            if (this._testIdentifier === null){
+                BStackLogger.warn('Accessibility scanning cannot be started from outside the test')
+                return
+            }
             AccessibilityHandler._a11yScanSessionMap[sessionId] = true
             this._testMetadata[this._testIdentifier as string] = {
                 scanTestForAccessibility : true,
@@ -181,6 +185,10 @@ class _AccessibilityHandler {
         }
 
         (this._browser as WebdriverIO.Browser).stopA11yScanning = async () => {
+            if (this._testIdentifier === null){
+                BStackLogger.warn('Accessibility scanning cannot be stopped from outside the test')
+                return
+            }
             AccessibilityHandler._a11yScanSessionMap[sessionId] = false
             await this._setAnnotation('Accessibility scanning has stopped')
         }
