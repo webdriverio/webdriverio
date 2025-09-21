@@ -19,17 +19,23 @@ A function that is being executed when the command is called. The `this` scope i
 
 Type: `Function`
 
-### Target Scope
+### Options
+
+Object with configuration options modifying the custom command behavior
+
+#### Target Scope
 
 Flag to decide whether to attach the command to the browser or element scope. If set to `true` the command will be an element command.
 
+Option Name: `attachToElement`
 Type: `Boolean`<br />
 Default: `false`
 
-### Disable implicitWait
+#### Disable implicitWait
 
 Flag to decide whether to implicitly wait for the element to exist before calling the custom command.
 
+Option Name: `disableElementImplicitWait`
 Type: `Boolean`<br />
 Default: `false`
 
@@ -55,7 +61,7 @@ browser.addCommand("waitAndClick", async function () {
     // `this` is return value of $(selector)
     await this.waitForDisplayed()
     await this.click()
-}, true)
+}, { attachToElement: true })
 ```
 
 By default, element custom commands wait for the element to exist before calling the custom command. Even though most of the time this is desired, if not, it can be disabled with `disableImplicitWait`:
@@ -65,7 +71,7 @@ browser.addCommand("waitAndClick", async function () {
     // `this` is return value of $(selector)
     await this.waitForExists()
     await this.click()
-}, true /* element scope flag */, undefined, undefined, true /* disable implicit wait flag */)
+}, { attachToElement: true, disableElementImplicitWait: true })
 ```
 
 
@@ -92,7 +98,7 @@ const elem = await $('body')
 console.log(typeof browser.myCustomBrowserCommand) // outputs "function"
 console.log(typeof elem.myCustomBrowserCommand()) // outputs "undefined"
 
-browser.addCommand("myCustomElementCommand", () => { return 1 }, true)
+browser.addCommand("myCustomElementCommand", () => { return 1 }, { attachToElement: true })
 const elem2 = await $('body')
 console.log(typeof browser.myCustomElementCommand) // outputs "undefined"
 console.log(await elem2.myCustomElementCommand('foobar')) // outputs "1"
@@ -107,7 +113,7 @@ __Note:__ If you need to chain a custom command, the command should end with `$`
 
 ```js
 browser.addCommand("user$", (locator) => { return ele })
-browser.addCommand("user$", (locator) => { return ele }, true)
+browser.addCommand("user$", (locator) => { return ele }, { attachToElement: true })
 await browser.user$('foo').user$('bar').click()
 ```
 
@@ -343,7 +349,7 @@ browser.overwriteCommand(
             el.click()
         }, this)
     },
-    true, // don't forget to pass `true` as 3rd argument
+    { attachToElement: true }, // Don't forget to attach it to the element
 )
 
 // then use it as before
