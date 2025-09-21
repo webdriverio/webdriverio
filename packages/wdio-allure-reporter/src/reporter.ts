@@ -1,3 +1,4 @@
+import { encode } from 'html-entities'
 import { stringify } from 'csv-stringify/sync'
 import type {
     SuiteStats, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
@@ -216,12 +217,14 @@ export default class AllureReporter extends WDIOReporter {
         currentSpec.status = status
 
         if (error) {
-            currentSpec.detailsMessage = error.message
-            currentSpec.detailsTrace = error.stack
+            const encodedMessage = encode(error.message)
+            const encodedStack = encode(error.stack)
+            currentSpec.detailsMessage = encodedMessage
+            currentSpec.detailsTrace = encodedStack
 
             // if some step or sub step fails the current test will fails.
             if (this._state.currentTest) {
-                this._state.currentTest.statusDetails = { message: error.message, trace: error.stack }
+                this._state.currentTest.statusDetails = { message: encodedMessage, trace: encodedStack }
             }
         }
 
