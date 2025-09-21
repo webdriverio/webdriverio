@@ -33,7 +33,10 @@ describe('main suite 1', () => {
         await browser.url('https://guinea-pig.webdriver.io/')
         browser.addCommand('myElementCustomCommand', async function () {
             return 'myElementCommandResult'
-        }, true, undefined, undefined, true)
+        }, {
+            attachToElement: true,
+            disableElementImplicitWait: true
+        })
 
         // @ts-expect-error
         const result = await $('nonExistingElement').myElementCustomCommand()
