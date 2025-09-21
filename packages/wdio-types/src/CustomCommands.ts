@@ -1,3 +1,4 @@
+
 export type Instances = WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
 export type CustomCommandOptions<IsElement extends boolean = false> = {

@@ -7,7 +7,7 @@ import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
 import { expect, setOptions, getConfig, matchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
-import type { CustomCommandOptions, Instances, Selector } from 'webdriverio'
+import type { AddCommandFunction, CustomCommandOptions, Instances, Selector } from 'webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
 
 import BrowserFramework from './browser.js'
@@ -329,7 +329,7 @@ export default class Runner extends EventEmitter {
              * get all custom or overwritten commands users tried to register before the
              * test started, e.g. after all imports
              */
-            const customStubCommands: [string, (...args: any[]) => any, boolean, Record<string, any>?, Record<string, Instances>?][] = (this._browser as any | undefined)?.customCommands || []
+            const customStubCommands: [string, AddCommandFunction<boolean>, boolean, Record<string, unknown>?, Record<string, Instances>?][] = (this._browser as any | undefined)?.customCommands || []
             const overwrittenCommands: [any, (...args: any[]) => any, boolean][] = (this._browser as any | undefined)?.overwrittenCommands || []
 
             this._browser = await initializeInstance(config, caps, this._isMultiremote)
@@ -349,10 +349,9 @@ export default class Runner extends EventEmitter {
              */
             for (const params of customStubCommands) {
                 const [name, func, attachToElement, proto, instances] = params
-                const options: CustomCommandOptions<any> = { attachToElement, proto, instances }
+                const options = { attachToElement, proto, instances } satisfies CustomCommandOptions<boolean>
 
-                // Explicitly cast to use the new signature
-                ;(this._browser.addCommand as (name: string, func: any, options?: CustomCommandOptions<any>) => void)(name, func, options)
+                (this._browser as WebdriverIO.Browser).addCommand(name, func, options)
             }
             for (const params of overwrittenCommands) {
                 this._browser.overwriteCommand(...params)

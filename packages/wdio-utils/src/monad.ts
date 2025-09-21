@@ -116,7 +116,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
             client = modifier(client, options)
         }
 
-        client.addCommand = function (name: string, func: Function, attachToElementOrOptions = false, proto: Record<string, unknown>, instances?: Record<string, CustomCommands.Instances>) {
+        client.addCommand = function (name: string, func: Function | Promise<unknown>, attachToElementOrOptions = false, proto: Record<string, unknown>, instances?: Record<string, CustomCommands.Instances>) {
             const { attachToElement, disableElementImplicitWait, proto: _proto, instances: _instances }: CustomCommands.CustomCommandOptions<boolean> = (typeof attachToElementOrOptions === 'object' && attachToElementOrOptions !== null)
                 ? attachToElementOrOptions
                 : { attachToElement: attachToElementOrOptions, proto, instances } satisfies CustomCommands.CustomCommandOptions<boolean>

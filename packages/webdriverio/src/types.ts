@@ -219,6 +219,7 @@ export type CustomLocatorReturnValue = HTMLElement | HTMLElement[] | NodeListOf<
 
 export type Instances = CustomCommands.Instances
 export type CustomCommandOptions<IsElement extends boolean> = CustomCommands.CustomCommandOptions<IsElement>
+export type AddCommandFunction<IsElement extends boolean, T = any, Instance = WebdriverIO.Browser> = IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn
 
 export interface CustomInstanceCommands<T> {
 

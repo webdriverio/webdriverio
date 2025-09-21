@@ -92,13 +92,9 @@ async function bar() {
     // element
     browser.addCommand('getClass', async function () {
         return this.getAttribute('class').catch()
-    }, true)
+    }, { attachToElement: true })
 
     // browser
-    browser.addCommand('sleep', async function (ms: number) {
-        return this.pause(ms).catch()
-    }, false)
-
     browser.addCommand('sleep', async function (ms: number) {
         return this.pause(ms).catch()
     })
