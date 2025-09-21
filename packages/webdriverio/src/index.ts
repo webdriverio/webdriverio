@@ -16,7 +16,7 @@ import { getPrototype, addLocatorStrategyHandler, isStub } from './utils/index.j
 import { registerSessionManager } from './session/index.js'
 import { environment } from './environment.js'
 
-import type { AttachOptions } from './types.js'
+import type { AttachOptions, CustomCommandOptions } from './types.js'
 import type * as elementCommands from './commands/element.js'
 import { IMPLICIT_WAIT_EXCLUSION_LIST } from './middlewares.js'
 
@@ -173,17 +173,23 @@ export const multiremote = async function (
      */
     if (!isStub(automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
-        driver.addCommand = (name: string, fn, attachToElement, _proto, _instance, disableElementImplicitWait) => {
+        driver.addCommand = function(name: string, fn: any, attachToElementOrOptions?: boolean | CustomCommandOptions<boolean>): void {
+            const options: CustomCommandOptions<boolean> = (typeof attachToElementOrOptions === 'object' && attachToElementOrOptions !== null)
+                ? attachToElementOrOptions
+                : { attachToElement: attachToElementOrOptions } satisfies CustomCommandOptions<boolean>
+
             driver.instances.forEach(instanceName =>
-                driver.getInstance(instanceName).addCommand(name, fn, attachToElement, undefined, undefined, disableElementImplicitWait)
+                driver.getInstance(instanceName).addCommand(name, fn, options)
             )
 
             return origAddCommand(
                 name,
                 fn,
-                attachToElement,
-                Object.getPrototypeOf(multibrowser.baseInstance),
-                multibrowser.instances
+                {
+                    attachToElement: options.attachToElement,
+                    proto: Object.getPrototypeOf(multibrowser.baseInstance),
+                    instances: multibrowser.instances
+                }
             )
         }
 

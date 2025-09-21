@@ -155,9 +155,9 @@ export default class DevToolsService implements Services.ServiceInstance {
             this._command.push(cmd)
         }
 
-        this._browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
-        this._browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
-        this._browser.addCommand('checkPWA', this._checkPWA.bind(this))
+        ;(this._browser.addCommand as (name: string, func: Function) => void)('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
+        ;(this._browser.addCommand as (name: string, func: Function) => void)('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
+        ;(this._browser.addCommand as (name: string, func: Function) => void)('checkPWA', this._checkPWA.bind(this))
     }
 }
 

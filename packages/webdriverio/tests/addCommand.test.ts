@@ -374,10 +374,10 @@ describe('addCommand', () => {
             browser.addCommand(
                 'noImplicitWait',
                 () => {return 'noImplicitWait'},
-                true,
-                undefined,
-                undefined,
-                disableElementImplicitWait
+                {
+                    attachToElement: true,
+                    disableElementImplicitWait
+                }
             )
 
             const element = await browser.$('.someRandomElement')
@@ -392,13 +392,13 @@ describe('addCommand', () => {
     describe('multiremote', () => {
         test('should allow to register custom commands to multiremote instance', async () => {
             const browser = await multiremote(multiremoteConfig)
-
             expect(typeof browser.myCustomCommand).toBe('undefined')
+
             browser.addCommand('myCustomCommand', async function (this: WebdriverIO.Browser, param: any) {
                 const commandResult = await this.execute(() => 'foobar')
                 return { param, commandResult }
             })
-
+            console.log('browser', browser)
             expect(typeof browser.myCustomCommand).toBe('function')
             expect(typeof browser.getInstance('browserA').myCustomCommand).toBe('function')
             expect(typeof browser.getInstance('browserB').myCustomCommand).toBe('function')
