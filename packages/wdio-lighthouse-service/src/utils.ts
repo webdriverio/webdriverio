@@ -20,9 +20,9 @@ const CUSTOM_COMMANDS = [
 
 export function setUnsupportedCommand (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
     for (const command of CUSTOM_COMMANDS) {
-        ;(browser.addCommand as (name: string, func: Function) => void) (command, /* istanbul ignore next */() => {
+        (browser as WebdriverIO.Browser).addCommand(command, /* istanbul ignore next */() => {
             throw new Error(UNSUPPORTED_ERROR_MESSAGE)
-        })
+        }, {})
     }
 }
 

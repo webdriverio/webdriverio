@@ -459,10 +459,10 @@ describe('addCommand', () => {
             browser.addCommand(
                 'noImplicitWait',
                 () => {return 'noImplicitWait'},
-                true,
-                undefined,
-                undefined,
-                disableElementImplicitWait
+                {
+                    attachToElement: true,
+                    disableElementImplicitWait
+                }
             )
 
             const element = await browser.$('.someRandomElement')

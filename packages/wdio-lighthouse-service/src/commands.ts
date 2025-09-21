@@ -76,9 +76,10 @@ export default class CommandHandler {
          */
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && !fnName.startsWith('_'))
-        commands.forEach(fnName => (_browser.addCommand as (name: string, func: Function) => void)(
+        commands.forEach(fnName => (_browser as WebdriverIO.Browser /** casting help targeting the non deprecated overload function */).addCommand(
             fnName,
-            this[fnName as keyof CommandHandler].bind(this)
+            this[fnName as keyof CommandHandler].bind(this),
+            {} // Use the non-deprecated overload with options
         ))
 
         this._devtoolsGatherer = new DevtoolsGatherer()

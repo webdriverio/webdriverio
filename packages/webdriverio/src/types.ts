@@ -235,7 +235,7 @@ export interface CustomInstanceCommands<T> {
     ): void;
 
     /**
-     * add command to `browser` or `element` scope
+     * add command to `browser` or to an `element` when using options.attachToElement to true
      */
     addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
         name: string,
