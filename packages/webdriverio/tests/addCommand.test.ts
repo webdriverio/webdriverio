@@ -398,7 +398,6 @@ describe('addCommand', () => {
                 const commandResult = await this.execute(() => 'foobar')
                 return { param, commandResult }
             })
-            console.log('browser', browser)
             expect(typeof browser.myCustomCommand).toBe('function')
             expect(typeof browser.getInstance('browserA').myCustomCommand).toBe('function')
             expect(typeof browser.getInstance('browserB').myCustomCommand).toBe('function')
