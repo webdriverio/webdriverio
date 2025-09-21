@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { MESSAGE_TYPES, type Workers } from '@wdio/types'
+import { type CustomCommands, MESSAGE_TYPES, type Workers } from '@wdio/types'
 import _mitt from 'mitt'
 
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
@@ -59,7 +59,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
     /**
      * WebDriver monad
      */
-    function unit(this: void, sessionId: string, commandWrapper?: Function) {
+    function unit(this: void, sessionId: string, commandWrapper?: Function, elementCmdImplicitWaitExclusionList?: string[]) {
         /**
          * capabilities attached to the instance prototype not being shown if
          * logging the instance
@@ -116,16 +116,24 @@ export default function WebDriver(options: object, modifier?: Function, properti
             client = modifier(client, options)
         }
 
-        client.addCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, unknown>, instances?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+        client.addCommand = function (name: string, func: Function | Promise<unknown>, attachToElementOrOptions = false, proto: Record<string, unknown>, instances?: Record<string, CustomCommands.Instances>) {
+            const { attachToElement, disableElementImplicitWait, proto: _proto, instances: _instances }: CustomCommands.CustomCommandOptions<boolean> = (typeof attachToElementOrOptions === 'object' && attachToElementOrOptions !== null)
+                ? attachToElementOrOptions
+                : { attachToElement: attachToElementOrOptions, proto, instances } satisfies CustomCommands.CustomCommandOptions<boolean>
+
             const customCommand = typeof commandWrapper === 'function'
                 ? commandWrapper(name, func)
                 : func
             if (attachToElement) {
+                if (disableElementImplicitWait && elementCmdImplicitWaitExclusionList && !elementCmdImplicitWaitExclusionList.includes(name)) {
+                    elementCmdImplicitWaitExclusionList.push(name)
+                }
+
                 /**
                  * add command to every multiremote instance
                  */
-                if (instances) {
-                    Object.values(instances).forEach(instance => {
+                if (_instances) {
+                    Object.values(_instances).forEach((instance: { __propertiesObject__: Record<string, unknown> }) => {
                         instance.__propertiesObject__[name] = {
                             value: customCommand
                         }
@@ -134,7 +142,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
 
                 this.__propertiesObject__[name] = { value: customCommand }
             } else {
-                unit.lift(name, customCommand, proto)
+                unit.lift(name, customCommand, _proto)
             }
 
             /**

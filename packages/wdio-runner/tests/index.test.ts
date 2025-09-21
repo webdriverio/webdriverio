@@ -430,12 +430,25 @@ describe('wdio-runner', () => {
 
         it('transfers custom commands from old instance to new one', async () => {
             const runner = new WDIORunner()
+            const myCustomFunction = () => {}
+            const attachToElement = true
+
             runner['_browser'] = {
-                customCommands: [[1, 2, 3]],
+                customCommands: [['myCustomCommandName', myCustomFunction, attachToElement]],
+            } as any
+            const browser = await runner['_startSession']({} as any, {} as any)
+
+            expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction, { attachToElement })
+        })
+
+        it('transfers overwritten commands from old instance to new one', async () => {
+            const runner = new WDIORunner()
+
+            runner['_browser'] = {
                 overwrittenCommands: [[3, 2, 1]]
             } as any
             const browser = await runner['_startSession']({} as any, {} as any)
-            expect(browser?.addCommand).toBeCalledWith(1, 2, 3)
+
             expect(browser?.overwriteCommand).toBeCalledWith(3, 2, 1)
         })
     })

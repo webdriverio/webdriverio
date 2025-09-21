@@ -16,8 +16,9 @@ import { getPrototype, addLocatorStrategyHandler, isStub } from './utils/index.j
 import { registerSessionManager } from './session/index.js'
 import { environment } from './environment.js'
 
-import type { AttachOptions } from './types.js'
+import type { AttachOptions, CustomCommandOptions } from './types.js'
 import type * as elementCommands from './commands/element.js'
+import { IMPLICIT_WAIT_EXCLUSION_LIST } from './middlewares.js'
 
 export * from './types.js'
 export const Key = KeyConstant
@@ -63,7 +64,7 @@ export const remote = async function(
 
     const { Driver, options } = await getProtocolDriver({ ...params, ...config })
     const prototype = getPrototype('browser')
-    const instance = await Driver.newSession(options, modifier, prototype, wrapCommand) as WebdriverIO.Browser
+    const instance = await Driver.newSession(options, modifier, prototype, wrapCommand, IMPLICIT_WAIT_EXCLUSION_LIST) as WebdriverIO.Browser
 
     /**
      * we need to overwrite the original addCommand and overwriteCommand
@@ -172,17 +173,23 @@ export const multiremote = async function (
      */
     if (!isStub(automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
-        driver.addCommand = (name: string, fn, attachToElement) => {
+        driver.addCommand = function(name: string, fn: any, attachToElementOrOptions?: boolean | CustomCommandOptions<boolean>): void {
+            const options: CustomCommandOptions<boolean> = (typeof attachToElementOrOptions === 'object' && attachToElementOrOptions !== null)
+                ? attachToElementOrOptions
+                : { attachToElement: attachToElementOrOptions } satisfies CustomCommandOptions<boolean>
+
             driver.instances.forEach(instanceName =>
-                driver.getInstance(instanceName).addCommand(name, fn, attachToElement)
+                driver.getInstance(instanceName).addCommand(name, fn, options)
             )
 
             return origAddCommand(
                 name,
                 fn,
-                attachToElement,
-                Object.getPrototypeOf(multibrowser.baseInstance),
-                multibrowser.instances
+                {
+                    attachToElement: options.attachToElement,
+                    proto: Object.getPrototypeOf(multibrowser.baseInstance),
+                    instances: multibrowser.instances
+                }
             )
         }
 

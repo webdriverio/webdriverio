@@ -29,6 +29,21 @@ describe('main suite 1', () => {
         expect(inputValue).toBe('mySecretPassword')
     })
 
+    it('should support custom element command on non-existing elements', async () => {
+        await browser.url('https://guinea-pig.webdriver.io/')
+        browser.addCommand('myElementCustomCommand', async function () {
+            return 'myElementCommandResult'
+        }, {
+            attachToElement: true,
+            disableElementImplicitWait: true
+        })
+
+        // @ts-expect-error
+        const result = await $('nonExistingElement').myElementCustomCommand()
+
+        expect(result).toBe('myElementCommandResult')
+    })
+
     it.skip('should allow to check for PWA', async () => {
         await browser.url('https://webdriver.io')
         // eslint-disable-next-line wdio/no-pause
