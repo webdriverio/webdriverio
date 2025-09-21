@@ -224,7 +224,7 @@ export type AddCommandFunction<IsElement extends boolean, T = any, Instance = We
 export interface CustomInstanceCommands<T> {
 
     /**
-     * @deprecated use the below overload with options object instead
+     * @deprecated use option object as 3rd parameter
      * add command to `browser` or `element` scope
      */
     addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
