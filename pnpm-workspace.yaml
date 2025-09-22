@@ -11,3 +11,6 @@ packages:
   - 'examples/cloudservices/**'
   - 'examples/bidi/**'
   - 'examples/appium/**'
+
+onlyBuiltDependencies:
+- sharp
