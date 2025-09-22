@@ -13,6 +13,7 @@ import { generateEventDocs } from './eventDocs.js'
 import { copyContributingDocs } from './copyContributingDocs.js'
 import { downloadAwesomeResources } from './downloadAwesomeResources.js'
 import { downloadDocsTranslations } from './downloadDocsTranslations.js'
+import { rebuildSharp } from './rebuildSharp.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -35,6 +36,8 @@ function writeSidebars(sidebars: unknown) {
  * NOTE: all generate docs functions mutate `sidebars` object!
  */
 try {
+    print('Rebuild Sharp Native Binaries')
+    rebuildSharp()
     print('Generate Protocol Docs')
     generateProtocolDocs(sidebars)
     print('Generate WebdriverIO Docs')
