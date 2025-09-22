@@ -18,7 +18,8 @@ Feature: Example feature
         Then  I should fail once but pass on the second run
 
     @skip(browserName="chrome")
-    @skip(browserName=["firefox","safari"])
+    @skip(browserName=["firefox","safari",/^i.+explorer$/])
+    @skip(browserName="edge";platformName=/(windows\s?[0-9]{2,}|linux|mac.*)/i)
     Scenario: Skipped... should never be executed
         Then  this test should fail
 

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { EventEmitter } from 'node:events'
 import type { remote, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, EventMap } from 'webdriver'
-import type { Capabilities, Options, ThenArg } from '@wdio/types'
+import type { Capabilities, Options, ThenArg, CustomCommands } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 
@@ -217,10 +217,14 @@ type OverwriteCommandFn<
 
 export type CustomLocatorReturnValue = HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>
 
-type Instances = WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+export type Instances = CustomCommands.Instances
+export type CustomCommandOptions<IsElement extends boolean> = CustomCommands.CustomCommandOptions<IsElement>
+export type AddCommandFunction<IsElement extends boolean, T = any, Instance = WebdriverIO.Browser> = IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn
 
 export interface CustomInstanceCommands<T> {
+
     /**
+     * @deprecated use option object as 3rd parameter
      * add command to `browser` or `element` scope
      */
     addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
@@ -228,7 +232,16 @@ export interface CustomInstanceCommands<T> {
         func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
         attachToElement?: IsElement,
         proto?: Record<string, any>,
-        instances?: Record<string, Instances>
+        instances?: Record<string, Instances>,
+    ): void;
+
+    /**
+     * add command to `browser` or to an `element` when using options.attachToElement to true
+     */
+    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
+        name: string,
+        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
+        options?: CustomCommands.CustomCommandOptions<IsElement>
     ): void;
 
     /**

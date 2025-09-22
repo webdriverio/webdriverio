@@ -486,12 +486,17 @@ const cucumberFileOption = async () => {
  * Cucumber @skip() tag
  */
 const cucumberSkipTag = async () => {
-    for (const browserName of ['chrome', 'firefox']) {
+    for (const capability of [
+        { browserName: 'chrome' },
+        { browserName: 'firefox' },
+        { browserName: 'edge', platformName: 'windows 10' },
+        { browserName: 'edge', platformName: 'MacOS' }
+    ]) {
         const { skippedSpecs } = await launch(
-            'cucumberTestrunner',
+            'cucumberSkipTag',
             path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
             {
-                capabilities: [{ browserName }],
+                capabilities: [capability],
                 specs: [
                     path.resolve(__dirname, 'cucumber', 'test.feature'),
                     path.resolve(__dirname, 'cucumber', 'test-skipped.feature')
