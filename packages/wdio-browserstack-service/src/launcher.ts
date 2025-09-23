@@ -8,9 +8,6 @@ import { SevereServiceError } from 'webdriverio'
 
 import * as BrowserstackLocalLauncher from 'browserstack-local'
 
-import { getProductMap } from './testHub/utils.js'
-import TestOpsConfig from './testOps/testOpsConfig.js'
-
 import type { Capabilities, Services, Options } from '@wdio/types'
 
 import { startPercy, stopPercy, getBestPlatformForPercySnapshot } from './Percy/PercyHelper.js'
@@ -43,19 +40,24 @@ import {
     validateCapsWithNonBstackA11y,
     mergeChromeOptions
 } from './util.js'
+import { getProductMap } from './testHub/utils.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
 import { PercyLogger } from './Percy/PercyLogger.js'
+import { FileStream } from './fileStream.js'
 import type Percy from './Percy/Percy.js'
+import { sendStart, sendFinish } from './instrumentation/funnelInstrumentation.js'
 import BrowserStackConfig from './config.js'
 import { setupExitHandlers } from './exitHandler.js'
-import { sendFinish, sendStart } from './instrumentation/funnelInstrumentation.js'
 import AiHandler from './ai-handler.js'
+import TestOpsConfig from './testOps/testOpsConfig.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 import { BrowserstackCLI } from './cli/index.js'
 import { CLIUtils } from './cli/cliUtils.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
+import util from 'node:util'
+import APIUtils from './cli/apiUtils.js'
 import { _fetch as fetch } from './fetchWrapper.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
@@ -71,35 +73,30 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _buildIdentifier?: string
     private _accessibilityAutomation?: boolean | null = null
     private _percy?: Percy
-    private _percyBestPlatformCaps?: WebdriverIO.Capabilities
+    private _percyBestPlatformCaps?: Capabilities.DesiredCapabilities
     private readonly browserStackConfig: BrowserStackConfig
 
     constructor (
         private _options: BrowserstackConfig & BrowserstackOptions,
-        capabilities: Capabilities.TestrunnerCapabilities,
+        capabilities: Capabilities.RemoteCapability,
         private _config: Options.Testrunner
     ) {
         BStackLogger.clearLogFile()
         PercyLogger.clearLogFile()
         setupExitHandlers()
         // added to maintain backward compatibility with webdriverIO v5
-        if (!this._config) {
-            this._config = _options
-        }
+        this._config || (this._config = _options)
+
         this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config)
         if (Array.isArray(capabilities)) {
             capabilities
-                .flatMap((c) => {
-                    if ('alwaysMatch' in c) {
-                        return c.alwaysMatch as WebdriverIO.Capabilities
-                    }
-
+                .flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
                     if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
-                        return Object.values(c).map((o) => o.capabilities) as WebdriverIO.Capabilities[]
+                        return Object.values(c).map((o: Options.WebdriverIO) => o.capabilities)
                     }
-                    return c as WebdriverIO.Capabilities
+                    return c as (Capabilities.DesiredCapabilities)
                 })
-                .forEach((capability: WebdriverIO.Capabilities) => {
+                .forEach((capability: Capabilities.DesiredCapabilities) => {
                     if (!capability['bstack:options']) {
                         // Skipping adding of service version if session is not of browserstack
                         if (isBStackSession(this._config)) {
@@ -118,7 +115,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
                         // Need this details for sending data to Observability
                         this._buildIdentifier = capability['browserstack.buildIdentifier']?.toString()
-                        // @ts-expect-error ToDo: fix invalid cap
                         this._buildName = capability.build?.toString()
                     } else {
                         capability['bstack:options'].wdioService = BSTACK_SERVICE_VERSION
@@ -135,7 +131,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     }
                 })
         } else if (typeof capabilities === 'object') {
-            Object.entries(capabilities as Capabilities.RequestedMultiremoteCapabilities).forEach(([, caps]) => {
+            Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
                 if (!(caps.capabilities as WebdriverIO.Capabilities)['bstack:options']) {
                     if (isBStackSession(this._config)) {
                         const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
@@ -187,6 +183,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         ) {
             this._config.specs = process.env[RERUN_TESTS_ENV].split(',')
         }
+
         try {
             CrashReporter.setConfigDetails(this._config, capabilities, this._options)
         } catch (error: unknown) {
@@ -209,7 +206,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_PRE_TEST)
-    async onPrepare (config: Options.Testrunner, capabilities: Capabilities.TestrunnerCapabilities | WebdriverIO.Capabilities) {
+    async onPrepare (config: Options.Testrunner, capabilities: Capabilities.RemoteCapabilities) {
         // Send Funnel start request
         await sendStart(this.browserStackConfig)
 
@@ -278,7 +275,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 }
 
                 BStackLogger.info(`Using app: ${app.app}`)
-                this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'app', app.app)
+                this._updateCaps(capabilities, 'app', app.app)
             }
         }
 
@@ -287,17 +284,17 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         */
         if (this._options.buildIdentifier) {
             this._buildIdentifier = this._options.buildIdentifier
-            this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'buildIdentifier', this._buildIdentifier)
+            this._updateCaps(capabilities, 'buildIdentifier', this._buildIdentifier)
         }
 
         /**
          * evaluate buildIdentifier in case unique execution identifiers are present
          * e.g., ${BUILD_NUMBER} and ${DATE_TIME}
         */
-        this._handleBuildIdentifier(capabilities as Capabilities.TestrunnerCapabilities)
+        this._handleBuildIdentifier(capabilities)
 
         // remove accessibilityOptions from the capabilities if present
-        this._updateObjectTypeCaps(capabilities as Capabilities.TestrunnerCapabilities, 'accessibilityOptions')
+        this._updateObjectTypeCaps(capabilities, 'accessibilityOptions')
 
         const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
 
@@ -312,64 +309,64 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 bstackServiceVersion: BSTACK_SERVICE_VERSION,
                 buildIdentifier: this._buildIdentifier
             }, this.browserStackConfig, this._accessibilityAutomation)
-        }
 
-        //added checks for Accessibility running on non-bstack infra
-        if (isAccessibilityAutomationSession(this._accessibilityAutomation) && (process.env.BROWSERSTACK_TURBOSCALE || !shouldAddServiceVersion(this._config, this._options.testObservability))){
-            const overrideOptions: Partial<Capabilities.ChromeOptions> = accessibilityScripts.ChromeExtension
-            this._updateObjectTypeCaps(capabilities, 'goog:chromeOptions', overrideOptions)
-        }
+            //added checks for Accessibility running on non-bstack infra
+            if (isAccessibilityAutomationSession(this._accessibilityAutomation) && (process.env.BROWSERSTACK_TURBOSCALE || !shouldAddServiceVersion(this._config, this._options.testObservability))){
+                const overrideOptions: Partial<Capabilities.ChromeOptions> = accessibilityScripts.ChromeExtension
+                this._updateObjectTypeCaps(capabilities, 'goog:chromeOptions', overrideOptions)
+            }
 
-        if (buildStartResponse?.accessibility) {
-            if (this._accessibilityAutomation === null) {
-                this.browserStackConfig.accessibility = buildStartResponse.accessibility.success as boolean
-                this._accessibilityAutomation = buildStartResponse.accessibility.success as boolean
-                this._options.accessibility = buildStartResponse.accessibility.success as boolean
-                if (buildStartResponse.accessibility.success === true) {
-                    this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'accessibility', 'true')
+            if (buildStartResponse?.accessibility) {
+                if (this._accessibilityAutomation === null) {
+                    this.browserStackConfig.accessibility = buildStartResponse.accessibility.success as boolean
+                    this._accessibilityAutomation = buildStartResponse.accessibility.success as boolean
+                    this._options.accessibility = buildStartResponse.accessibility.success as boolean
+                    if (buildStartResponse.accessibility.success === true) {
+                        this._updateCaps(capabilities, 'accessibility', 'true')
+                    }
+                }
+            }
+
+            this.browserStackConfig.accessibility = this._accessibilityAutomation as boolean
+
+            if (this._accessibilityAutomation && this._options.accessibilityOptions) {
+                const filteredOpts = Object.keys(this._options.accessibilityOptions)
+                    .filter(key => !NOT_ALLOWED_KEYS_IN_CAPS.includes(key))
+                    .reduce((opts, key) => {
+                        return {
+                            ...opts,
+                            [key]: this._options.accessibilityOptions?.[key]
+                        }
+                    }, {})
+
+                this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', filteredOpts)
+            } else if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
+                this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', {})
+            }
+
+            if (shouldSetupPercy) {
+                try {
+                    const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
+                    this._percyBestPlatformCaps = bestPlatformPercyCaps
+                    process.env[BROWSERSTACK_PERCY] = 'false'
+                    await this.setupPercy(this._options, this._config, {
+                        projectName: this._projectName
+                    })
+                    this._updateBrowserStackPercyConfig()
+                } catch (err) {
+                    PercyLogger.error(`Error while setting up Percy ${err}`)
                 }
             }
         }
 
-        this.browserStackConfig.accessibility = this._accessibilityAutomation as boolean
-
-        if (this._accessibilityAutomation && this._options.accessibilityOptions) {
-            const filteredOpts = Object.keys(this._options.accessibilityOptions)
-                .filter(key => !NOT_ALLOWED_KEYS_IN_CAPS.includes(key))
-                .reduce((opts, key) => {
-                    return {
-                        ...opts,
-                        [key]: this._options.accessibilityOptions?.[key]
-                    }
-                }, {})
-
-            this._updateObjectTypeCaps(capabilities as Capabilities.TestrunnerCapabilities, 'accessibilityOptions', filteredOpts)
-        } else if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
-            this._updateObjectTypeCaps(capabilities as Capabilities.TestrunnerCapabilities, 'accessibilityOptions', {})
-        }
-
-        if (shouldSetupPercy) {
-            try {
-                const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities as Capabilities.TestrunnerCapabilities)
-                this._percyBestPlatformCaps = bestPlatformPercyCaps as WebdriverIO.Capabilities
-                process.env[BROWSERSTACK_PERCY] = 'false'
-                await this.setupPercy(this._options, this._config, {
-                    projectName: this._projectName
-                })
-                this._updateBrowserStackPercyConfig()
-            } catch (err) {
-                PercyLogger.error(`Error while setting up Percy ${err}`)
-            }
-        }
-
-        this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'testhubBuildUuid')
-        this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'buildProductMap')
+        // send testhub build uuid and product map instrumentation
+        this._updateCaps(capabilities, 'testhubBuildUuid')
+        this._updateCaps(capabilities, 'buildProductMap')
 
         // local binary will be handled by CLI
         if (BrowserstackCLI.getInstance().isRunning()) {
             return
         }
-
         if (!this._options.browserstackLocal) {
             return BStackLogger.info('browserstackLocal is not enabled - skipping...')
         }
@@ -381,9 +378,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         this.browserstackLocal = new BrowserstackLocalLauncher.Local()
 
-        this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'local')
+        this._updateCaps(capabilities, 'local')
         if (opts.localIdentifier) {
-            this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'localIdentifier', opts.localIdentifier)
+            this._updateCaps(capabilities, 'localIdentifier', opts.localIdentifier)
         }
 
         /**
@@ -409,8 +406,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             })]
         ).then(function (result) {
             clearTimeout(timer)
-            performance.mark('tbTunnelEnd')
             PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.LOCAL_START)
+            performance.mark('tbTunnelEnd')
             performance.measure('bootTime', 'tbTunnelStart', 'tbTunnelEnd')
             return Promise.resolve(result)
         }, function (err) {
@@ -420,34 +417,50 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         })
     }
 
-    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP)
     async onComplete () {
-        BStackLogger.debug('Inside OnComplete hook..')
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP)
 
-        BStackLogger.debug('Sending stop launch event')
-        await (BrowserstackCLI.getInstance().isRunning() ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
-        if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
-            console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
-        }
-        this.browserStackConfig.testObservability.buildStopped = true
-
-        await PerformanceTester.stopAndGenerate('performance-launcher.html')
-        if (process.env[PERF_MEASUREMENT_ENV]) {
-            PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
-
-            if (!process.env.START_TIME) {
-                return
-            }
-            const duration = (new Date()).getTime() - (new Date(process.env.START_TIME)).getTime()
-            BStackLogger.info(`Total duration is ${duration / 1000} s`)
-        }
-
-        BStackLogger.info(`BrowserStack service run ended for id: ${this.browserStackConfig?.sdkRunID} testhub id: ${TestOpsConfig.getInstance()?.buildHashedId}`)
-        await sendFinish(this.browserStackConfig)
         try {
-            await this._uploadServiceLogs()
+            BStackLogger.debug('Inside OnComplete hook..')
+
+            BStackLogger.debug('Sending stop launch event')
+
+            try {
+                await (BrowserstackCLI.getInstance().isRunning() ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
+            } catch (err) {
+                BStackLogger.error(`Error while stoping CLI ${err}`)
+            }
+            if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
+                console.log(`\nVisit https://automation.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
+            }
+            this.browserStackConfig.testObservability.buildStopped = true
+
+            if (process.env[PERF_MEASUREMENT_ENV]) {
+                PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
+
+                if (!process.env.START_TIME) {
+                    PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP)
+                    await PerformanceTester.stopAndGenerate('performance-launcher.html')
+                    return
+                }
+                const duration = (new Date()).getTime() - (new Date(process.env.START_TIME)).getTime()
+                BStackLogger.info(`Total duration is ${duration / 1000} s`)
+            }
+
+            BStackLogger.info(`BrowserStack service run ended for id: ${this.browserStackConfig?.sdkRunID} testhub id: ${TestOpsConfig.getInstance()?.buildHashedId}`)
+            await sendFinish(this.browserStackConfig)
+            try {
+                await this._uploadServiceLogs()
+            } catch (error) {
+                BStackLogger.debug(`Failed to upload BrowserStack WDIO Service logs ${error}`)
+            }
+
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP)
+            await PerformanceTester.stopAndGenerate('performance-launcher.html')
         } catch (error) {
-            BStackLogger.debug(`Failed to upload BrowserStack WDIO Service logs ${error}`)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP, false, util.format(error))
+            await PerformanceTester.stopAndGenerate('performance-launcher.html')
+            BStackLogger.error(`Error in onComplete hook: ${error}`)
         }
 
         BStackLogger.clearLogger()
@@ -461,7 +474,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (BrowserstackCLI.getInstance().isRunning()) {
             return
         }
-
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
         }
@@ -489,8 +501,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 )
             })]
         ).then(function (result) {
-            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.LOCAL_STOP)
             clearTimeout(timer)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.LOCAL_STOP)
             return Promise.resolve(result)
         }, function (err) {
             PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.LOCAL_STOP, false, err)
@@ -500,14 +512,13 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     async setupPercy(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
-
         if (this._percy?.isRunning()) {
             process.env[BROWSERSTACK_PERCY] = 'true'
             return
         }
         try {
             this._percy = await startPercy(options, config, bsConfig)
-            if (!this._percy || (typeof this._percy === 'object' && Object.keys(this._percy).length === 0)) {
+            if (!this._percy) {
                 throw new Error('Could not start percy, check percy logs for info.')
             }
             PercyLogger.info('Percy started successfully')
@@ -515,9 +526,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             let signal = 0
             const handler = async () => {
                 signal++
-                if (signal === 1) {
-                    await this.stopPercy()
-                }
+                signal === 1 && await this.stopPercy()
             }
             process.on('beforeExit', handler)
             process.on('SIGINT', handler)
@@ -602,40 +611,37 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
     async _uploadServiceLogs() {
         const clientBuildUuid = this._getClientBuildUuid()
-        const response = await uploadLogs(getBrowserStackUser(this._config), getBrowserStackKey(this._config), clientBuildUuid)
-        if (response) {
-            BStackLogger.info(`Upload response: ${JSON.stringify(response, null, 2)}`)
+
+        await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_AUTO_CAPTURE, async () => {
+            const response = await uploadLogs(getBrowserStackUser(this._config), getBrowserStackKey(this._config), clientBuildUuid)
             BStackLogger.logToFile(`Response - ${format(response)}`, 'debug')
-        }
+        })()
     }
 
-    _updateObjectTypeCaps(capabilities?: Capabilities.TestrunnerCapabilities | WebdriverIO.Capabilities, capType?: string, value?: { [key: string]: unknown }) {
+    _updateObjectTypeCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?: { [key: string]: any }) {
         try {
             if (Array.isArray(capabilities)) {
                 capabilities
-                    .flatMap((c) => {
-                        if ('alwaysMatch' in c) {
-                            return c.alwaysMatch as WebdriverIO.Capabilities
-                        }
-
+                    .flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
                         if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
-                            return Object.values(c).map((o) => o.capabilities) as WebdriverIO.Capabilities[]
+                            return Object.values(c).map((o: Options.WebdriverIO) => o.capabilities)
                         }
-                        return c as WebdriverIO.Capabilities
+                        return c as (Capabilities.DesiredCapabilities)
                     })
-                    .forEach((capability: WebdriverIO.Capabilities) => {
-                        if (
-                            validateCapsWithNonBstackA11y(capability.browserName, capability.browserVersion) &&
-                            capType === 'goog:chromeOptions' && value
-                        ) {
-                            const chromeOptions =  capability['goog:chromeOptions'] as unknown as Capabilities.ChromeOptions
-                            if (chromeOptions){
-                                const finalChromeOptions = mergeChromeOptions(chromeOptions, value)
-                                capability['goog:chromeOptions'] = finalChromeOptions
-                            } else {
-                                capability['goog:chromeOptions'] = value
+                    .forEach((capability: Capabilities.DesiredCapabilities) => {
+
+                        if (validateCapsWithNonBstackA11y(capability.browserName, capability.browserVersion )){
+                            if (capType === 'goog:chromeOptions' && value) {
+
+                                const chromeOptions =  capability['goog:chromeOptions'] as unknown as Capabilities.ChromeOptions
+                                if (chromeOptions){
+                                    const finalChromeOptions = mergeChromeOptions(chromeOptions, value)
+                                    capability['goog:chromeOptions'] = finalChromeOptions
+                                } else {
+                                    capability['goog:chromeOptions'] = value
+                                }
+                                return
                             }
-                            return
                         }
                         if (!capability['bstack:options']) {
                             const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
@@ -646,7 +652,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             } else if (capType === 'accessibilityOptions') {
                                 if (value) {
                                     const accessibilityOpts = { ...value }
-                                    // @ts-expect-error fix invalid cap
                                     if (capability?.accessibility) {
                                         accessibilityOpts.authToken = process.env.BSTACK_A11Y_JWT
                                         accessibilityOpts.scannerVersion = process.env.BSTACK_A11Y_SCANNER_VERSION
@@ -670,22 +675,21 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         }
                     })
             } else if (typeof capabilities === 'object') {
-                Object.entries(capabilities as Capabilities.RequestedMultiremoteCapabilities).forEach(([, caps]) => {
-                    if (
-                        validateCapsWithNonBstackA11y(
-                            (caps.capabilities as WebdriverIO.Capabilities).browserName,
-                            (caps.capabilities as WebdriverIO.Capabilities).browserVersion
-                        ) &&
-                        capType === 'goog:chromeOptions' && value
-                    ) {
-                        const chromeOptions = (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] as unknown as Capabilities.ChromeOptions
-                        if (chromeOptions) {
-                            const finalChromeOptions = mergeChromeOptions(chromeOptions, value);
-                            (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] = finalChromeOptions
-                        } else {
-                            (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] = value
+                Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
+                    if (validateCapsWithNonBstackA11y(
+                        (caps.capabilities as WebdriverIO.Capabilities).browserName,
+                        (caps.capabilities as WebdriverIO.Capabilities).browserVersion
+                    )) {
+                        if (capType === 'goog:chromeOptions' && value) {
+                            const chromeOptions = (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] as unknown as Capabilities.ChromeOptions
+                            if (chromeOptions) {
+                                const finalChromeOptions = mergeChromeOptions(chromeOptions, value);
+                                (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] = finalChromeOptions
+                            } else {
+                                (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] = value
+                            }
+                            return
                         }
-                        return
                     }
                     if (!(caps.capabilities as WebdriverIO.Capabilities)['bstack:options']) {
                         const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
@@ -724,20 +728,16 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
-    _updateCaps(capabilities?: Capabilities.TestrunnerCapabilities, capType?: string, value?: string) {
+    _updateCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?: string) {
         if (Array.isArray(capabilities)) {
             capabilities
-                .flatMap((c) => {
-                    if ('alwaysMatch' in c) {
-                        return c.alwaysMatch as WebdriverIO.Capabilities
-                    }
-
+                .flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
                     if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
-                        return Object.values(c).map((o) => o.capabilities) as WebdriverIO.Capabilities[]
+                        return Object.values(c).map((o: Options.WebdriverIO) => o.capabilities)
                     }
-                    return c as WebdriverIO.Capabilities
+                    return c as (Capabilities.DesiredCapabilities)
                 })
-                .forEach((capability: WebdriverIO.Capabilities) => {
+                .forEach((capability: Capabilities.DesiredCapabilities) => {
                     if (!capability['bstack:options']) {
                         const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
                         if (extensionCaps.length) {
@@ -747,9 +747,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                                 capability['appium:app'] = value
                             } else if (capType === 'buildIdentifier' && value) {
                                 capability['bstack:options'] = { buildIdentifier: value }
-                            } else if (capType === 'testhubBuildUuid') {
+                            } else if (capType === 'testhubBuildUuid' && TestOpsConfig.getInstance().buildHashedId) {
                                 capability['bstack:options'] = { testhubBuildUuid: TestOpsConfig.getInstance().buildHashedId }
-                            } else if (capType === 'buildProductMap') {
+                            } else if (capType === 'buildProductMap' && getProductMap(this.browserStackConfig)) {
                                 capability['bstack:options'] = { buildProductMap: getProductMap(this.browserStackConfig) }
                             } else if (capType === 'accessibility') {
                                 capability['bstack:options'] = { accessibility: getBooleanValueFromString(value) }
@@ -757,7 +757,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         } else if (capType === 'local'){
                             capability['browserstack.local'] = true
                         } else if (capType === 'app') {
-                            // @ts-expect-error fix invalid cap
                             capability.app = value
                         } else if (capType === 'buildIdentifier') {
                             if (value) {
@@ -795,7 +794,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     }
                 })
         } else if (typeof capabilities === 'object') {
-            Object.entries(capabilities as Capabilities.RequestedMultiremoteCapabilities).forEach(([, caps]) => {
+            Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
                 if (!(caps.capabilities as WebdriverIO.Capabilities)['bstack:options']) {
                     const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
@@ -856,7 +855,23 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
-    _handleBuildIdentifier(capabilities?: Capabilities.TestrunnerCapabilities) {
+    _updateBrowserStackPercyConfig() {
+        const { percyAutoEnabled = false, percyCaptureMode, buildId, percy } = this._percy || {}
+
+        // Setting to browserStackConfig for populating data in funnel instrumentaion
+        this.browserStackConfig.percyCaptureMode = percyCaptureMode
+        this.browserStackConfig.percyBuildId = buildId
+        this.browserStackConfig.isPercyAutoEnabled = percyAutoEnabled
+
+        // To handle stop percy build
+        this._options.percy = percy
+
+        // To pass data to workers
+        process.env.BROWSERSTACK_PERCY = String(percy)
+        process.env.BROWSERSTACK_PERCY_CAPTURE_MODE = percyCaptureMode
+    }
+
+    _handleBuildIdentifier(capabilities?: Capabilities.RemoteCapabilities) {
         if (!this._buildIdentifier) {
             return
         }
@@ -895,22 +910,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 this._updateCaps(capabilities, 'buildIdentifier', this._buildIdentifier)
             }
         }
-    }
-
-    _updateBrowserStackPercyConfig() {
-        const { percyAutoEnabled = false, percyCaptureMode, buildId, percy } = this._percy || {}
-
-        // Setting to browserStackConfig for populating data in funnel instrumentaion
-        this.browserStackConfig.percyCaptureMode = percyCaptureMode
-        this.browserStackConfig.percyBuildId = buildId
-        this.browserStackConfig.isPercyAutoEnabled = percyAutoEnabled
-
-        // To handle stop percy build
-        this._options.percy = percy
-
-        // To pass data to workers
-        process.env.BROWSERSTACK_PERCY = String(percy)
-        process.env.BROWSERSTACK_PERCY_CAPTURE_MODE = percyCaptureMode
     }
 
     /**
