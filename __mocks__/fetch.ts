@@ -488,6 +488,35 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     }
 
     /**
+     * simulate failing response with HTML
+     */
+    if (uri.pathname === '/failing-html') {
+        ++requestMock.retryCnt
+
+        /**
+         * success this request if you retry 3 times
+         */
+        if (requestMock.retryCnt > 3) {
+            const response = { value: 'caught-html' }
+
+            return Response.json(response, {
+                status: 200,
+                headers: { foo: 'bar' }
+            })
+        }
+
+        return new Response('<html>\n' +
+            '<head><title>504 Gateway Time-out</title></head>\n' +
+            '<body>\n' +
+            '<center><h1>504 Gateway Time-out</h1></center>\n' +
+            '</body>\n' +
+            '</html>', {
+            status: 504,
+            headers: { 'Content-Type': 'text/html' }
+        })
+    }
+
+    /**
      * overwrite if manual response is set
      */
     let statusCode = 200
