@@ -135,7 +135,7 @@ export interface BrowserstackConfig {
      */
     sessionNameFormat?: (
         config: Options.Testrunner,
-        capabilities: Capabilities.ResolvedTestrunnerCapabilities,
+        capabilities: Capabilities.RemoteCapability,
         suiteTitle: string,
         testTitle?: string
     ) => string
