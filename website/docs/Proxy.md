@@ -31,7 +31,7 @@ For more advanced proxy configurations or if you need programmatic control, you 
 
 #### Install undici
 
-```bash npm2yarn
+```sh
 npm install undici --save-dev
 ```
 
@@ -40,14 +40,16 @@ npm install undici --save-dev
 Add the following require statement to the top of your config file.
 
 ```js title="wdio.conf.js"
-import { setGlobalDispatcher, ProxyAgent } from 'undici';
+// @ts-check
+import { setGlobalDispatcher, ProxyAgent } from 'undici'
+import { defineConfig } from '@wdio/config'
 
 const dispatcher = new ProxyAgent({ uri: new URL(process.env.https_proxy || 'http://my.corp.proxy.com:9090').toString() });
 setGlobalDispatcher(dispatcher);
 
-export const config = {
+export const config = defineConfig({
     // ...
-}
+})
 ```
 
 Additional information about configuring the proxy can be located [here](https://github.com/nodejs/undici/blob/main/docs/docs/api/ProxyAgent.md).
@@ -74,22 +76,25 @@ In order to tunnel the connection between the browser and the internet, you can 
 The `proxy` parameters can be applied via the standard capabilities the following way:
 
 ```js title="wdio.conf.js"
-export const config = {
+// @ts-check
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     capabilities: [{
         browserName: 'chrome',
         // ...
         proxy: {
-            proxyType: "manual",
-            httpProxy: "corporate.proxy:8080",
-            socksUsername: "codeceptjs",
-            socksPassword: "secret",
-            noProxy: "127.0.0.1,localhost"
+            proxyType: 'manual',
+            httpProxy: 'corporate.proxy:8080',
+            socksUsername: 'codeceptjs',
+            socksPassword: 'secret',
+            noProxy: '127.0.0.1,localhost'
         },
         // ...
     }],
     // ...
-}
+})
 ```
 
 For more information, see the [WebDriver specification](https://w3c.github.io/webdriver/#proxy).
