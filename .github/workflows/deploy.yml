@@ -26,3 +26,10 @@ jobs:
           DISTRIBUTION_ID: ${{ secrets.DISTRIBUTION_ID }}
           DISTRIBUTION_ID_V6: ${{ secrets.DISTRIBUTION_ID_V6 }}
           DISTRIBUTION_ID_V7: ${{ secrets.DISTRIBUTION_ID_V7 }}
+
+      - name: Upload Capabilities.md
+        uses: actions/upload-artifact@v4
+        with:
+          name: capabilities-fa
+          path: website/i18n/fa/docusaurus-plugin-content-docs/current/Capabilities.md
+          retention-days: 1
