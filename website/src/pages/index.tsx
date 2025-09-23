@@ -296,7 +296,7 @@ function Home() {
                                 {'WebdriverIO not only runs automation based on the WebDriver protocol, it also leverages ' +
                                     'native browser APIs to enable integrations to popular developer tools such as ' +
                                     '{devtoolsLink} or {lighthouseLink}. With the {devtoolsServiceLink} plugin you have access to ' +
-                                    'commands for validating if you app is a valid PWA application as well as to commands for ' +
+                                    'commands for validating if your app is a valid PWA application as well as to commands for ' +
                                     'capturing frontend performance metrics such as `speedIndex` and others.'}
                             </Translate>
                         </p>
