@@ -138,6 +138,43 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
     })
 
+    describe('Cucumber testplan skip via reporter', () => {
+        it('skips scenario when selector matches feature#scenario', async () => {
+            const outputDir = temporaryDirectory()
+            const prevPlan = process.env.ALLURE_TESTPLAN_PATH
+            try {
+                const planPath = path.join(outputDir, 'testplan.json')
+                const plan = {
+                    version: '1.0',
+                    tests: [
+                        { selector: 'foo/bar.feature#MyFeature MyScenario' }
+                    ]
+                }
+                await (await import('node:fs')).promises.writeFile(planPath, JSON.stringify(plan), 'utf8')
+                process.env.ALLURE_TESTPLAN_PATH = planPath
+
+                const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
+                reporter.onRunnerStart(runnerStart())
+                reporter.onSuiteStart(cucumberHelper.featureStart('MyFeature'))
+                reporter.onSuiteStart(cucumberHelper.scenarioStart('MyScenario'))
+
+                const suiteResults: any = { tests: [], hooks: [] }
+                reporter.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
+                reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
+                await reporter.onRunnerEnd(runnerEnd())
+
+                const { results } = getResults(outputDir)
+                expect(results).toHaveLength(1)
+                const res = results[0]
+                expect(res.status).toBe(Status.SKIPPED)
+                expect([undefined, Stage.PENDING]).toContain(res.stage)
+            } finally {
+                process.env.ALLURE_TESTPLAN_PATH = prevPlan
+                clean(outputDir)
+            }
+        })
+    })
+
     describe('Passing tests', () => {
         outputDir = temporaryDirectory()
 

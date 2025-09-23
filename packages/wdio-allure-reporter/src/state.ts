@@ -168,7 +168,7 @@ export class AllureReportState {
         this._currentTestName = name
         this._openSteps = 0
 
-        if (this._pendingHookMessages.length > 0) {
+        if (this._pendingHookMessages.length > 0 && !this.currentFeature) {
             await this._attachPendingHookToCurrentTest('before', name, '')
             await this._attachPendingHookToCurrentTest('before', name, 'each')
         }
@@ -297,7 +297,7 @@ export class AllureReportState {
 
             case 'allure:test:end':
                 await this._endTest(message)
-                if (this._pendingHookMessages.length > 0) {
+                if (this._pendingHookMessages.length > 0 && !this.currentFeature) {
                     await this._attachPendingHookToCurrentTest('after', this._currentTestName ?? 'unknown test', 'each')
                     await this._attachPendingHookToCurrentTest('after', this._currentTestName ?? 'unknown test', '')
                 }

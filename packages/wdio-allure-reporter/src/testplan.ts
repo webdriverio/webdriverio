@@ -1,8 +1,7 @@
-import fs from 'node:fs'
 import path from 'node:path'
-import { LabelName } from 'allure-js-commons'
-import { parseTestPlan as parseTestPlanCommons, includedInTestPlan as includedInTestPlanCommons } from 'allure-js-commons/sdk/reporter'
-import type { TestPlanV1, TestPlanV1Test } from 'allure-js-commons/sdk'
+//
+import { includedInTestPlan, parseTestPlan } from 'allure-js-commons/sdk/reporter'
+import type { TestPlanV1 } from 'allure-js-commons/sdk'
 import type { AddTestInfoEventArgs } from './types.js'
 import type { WDIORuntimeMessage } from './types.js'
 import { fileURLToPath } from 'node:url'
@@ -41,13 +40,6 @@ type BDD = {
     specify?: MochaTestFunction
 }
 
-export type LoadedTestPlan = {
-    path: string
-    raw: TestPlanV1
-    bySelector: Map<string, string>
-    byId: Set<string>
-}
-
 type LooseArgs = { file?: string; fullTitle?: string; fullName?: string }
 
 type MatchableArgs = LooseArgs | AddTestInfoEventArgs
@@ -66,68 +58,8 @@ const toRelPosixPath = (p: string): string => {
     return abs
 }
 
-const normalizeSelector = (s: string): string => s.replace(/^file:(\/\/)?/i, '').replace(/\\/g, '/').replace(/\/{2,}/g, '/')
-
-export function loadTestPlan(): LoadedTestPlan | null {
-    let base = parseTestPlanCommons()
-    let usedPath = (process.env.ALLURE_TESTPLAN_PATH || '').trim()
-    if (!base) {
-        const candidates = [
-            `${process.cwd()}/.allure/testplan.json`,
-            `${process.cwd()}/testplan.json`,
-        ]
-        for (const p of candidates) {
-            try {
-                const raw = JSON.parse(fs.readFileSync(p, 'utf8')) as TestPlanV1
-                if ((raw.tests || []).length) { base = raw; usedPath = p; break }
-            } catch { /* ignore */ }
-        }
-        if (!base) {
-            console.log('[allure-testplan] no testplan found in env or default locations')
-            return null
-        }
-    }
-
-    const expanded: TestPlanV1Test[] = []
-    for (const t of base.tests || []) {
-        const rawSelector = String(t.selector ?? '').trim()
-        if (!rawSelector) { continue }
-        expanded.push(t)
-
-        const hash = rawSelector.indexOf('#')
-        if (hash >= 0) {
-            const filePart = rawSelector.slice(0, hash)
-            const titlePart = rawSelector.slice(hash + 1)
-            const titleWithSpaces = titlePart.replace(/\./g, ' ').replace(/\s{2,}/g, ' ').trim()
-            const fileNoLead = normalizeSelector(filePart).replace(/^\/+/, '')
-            const fileWithLead = '/' + fileNoLead
-            const fileBase = path.basename(fileNoLead)
-            expanded.push({ ...t, selector: titlePart })
-            expanded.push({ ...t, selector: titleWithSpaces })
-            expanded.push({ ...t, selector: `${fileNoLead}#${titleWithSpaces}` })
-            expanded.push({ ...t, selector: `${fileWithLead}#${titleWithSpaces}` })
-            expanded.push({ ...t, selector: `${fileBase}#${titleWithSpaces}` })
-        }
-    }
-
-    const normalizedPlan: TestPlanV1 = { version: base.version, tests: expanded }
-    const bySelector = new Map<string, string>()
-    const byId = new Set<string>()
-    for (const t of normalizedPlan.tests || []) {
-        const s = String(t.selector ?? '').trim()
-        if (!s) { continue }
-        const id = String(t.id)
-        bySelector.set(s, id)
-        bySelector.set(normalizeSelector(s), id)
-        if (t.id !== undefined) { byId.add(String(t.id)) }
-    }
-    const sample = (normalizedPlan.tests || []).slice(0, 5).map((t) => t.selector).filter(Boolean)
-    console.log('[allure-testplan] loaded', usedPath || '(env)', 'tests:', (normalizedPlan.tests || []).length, 'sample:', sample)
-    return { path: process.env.ALLURE_TESTPLAN_PATH || '', raw: normalizedPlan, bySelector, byId }
-}
-
 export function applyTestPlanLabel(
-    plan: LoadedTestPlan | null,
+    plan: TestPlanV1 | undefined,
     push: (m: WDIORuntimeMessage) => void,
     args: MatchableArgs
 ): void {
@@ -162,38 +94,66 @@ export function applyTestPlanLabel(
     ].filter(Boolean) as string[]
 
     for (const c of candidates) {
-        if (includedInTestPlanCommons(plan.raw, { fullName: c })) {
-            const id = plan.bySelector.get(c) || plan.bySelector.get(normalizeSelector(c)) || 'selector-match'
-            if (id && id !== 'selector-match') {
-                push({ type: 'metadata', data: { labels: [{ name: LabelName.ALLURE_ID, value: String(id) }] } })
-            }
-            return
-        }
+        if (includedInTestPlan(plan, { fullName: c })) { return }
     }
 }
 
 const kWrapped = Symbol('allure_mocha_wrapped')
 
-export function installBddTestPlanFilter(plan: LoadedTestPlan): void {
-    const g = globalThis as unknown as BDD
+export function installBddTestPlanFilter(plan: TestPlanV1): void {
+    const globalBdd = globalThis as unknown as BDD
     const suiteStack: string[] = []
 
     const decide = (title: string): boolean => {
         const suites = [...suiteStack]
-        const fullSuite = suites.join(' ')
+        const fullSuiteTitle = suites.join(' ')
         const leafSuite = suites[suites.length - 1] || ''
-        const candidates = [
-            suites.length ? `${fullSuite} ${title}` : title,
-            suites.length ? `${fullSuite}.${title}` : title,
+        const titleCandidates = [
+            suites.length ? `${fullSuiteTitle} ${title}` : title,
+            suites.length ? `${fullSuiteTitle}.${title}` : title,
             leafSuite ? `${leafSuite} ${title}` : title,
             leafSuite ? `${leafSuite}.${title}` : title,
         ]
-        for (const t of candidates) {
-            if (plan.bySelector.has(t) || includedInTestPlanCommons(plan.raw, { fullName: t })) { return true }
+
+        const detectCurrentFile = (): string | undefined => {
+            const st = String((new Error()).stack || '')
+            const lines = st.split('\n').map((l) => l.trim())
+            const cwd = process.cwd().replace(/\\/g, '/')
+            for (const ln of lines) {
+                const m = ln.match(/(?:\(|\s)(file:\/\/[^):]+|[A-Za-z]:[^):]+|\/[^^):]+):\d+:\d+\)?$/)
+                let p = (m?.[1] || '').trim()
+                if (!p) {continue}
+                p = p.split('?')[0]
+                p = toPosixPath(p)
+                if (!/\.(?:m?js|c?ts)$/i.test(p)) { continue }
+                if (p.includes('node_modules')) { continue }
+                if (p.includes('wdio-allure-reporter')) { continue }
+                if (!p.startsWith(cwd) && !p.startsWith('/test/')) { continue }
+                return p
+            }
+            return undefined
         }
-        const suffixes = candidates.map((t) => `#${t}`)
-        for (const key of plan.bySelector.keys()) {
-            if (suffixes.some((s) => key.endsWith(s))) { return true }
+
+        const file = detectCurrentFile()
+        const fileVariants: string[] = []
+        if (file) {
+            const absolutePath = toPosixPath(file)
+            const relativeWithSlash = toRelPosixPath(file)
+            const relativeNoSlash = relativeWithSlash.startsWith('/') ? relativeWithSlash.slice(1) : relativeWithSlash
+            const baseName = path.basename(absolutePath)
+            fileVariants.push(absolutePath, relativeWithSlash, relativeNoSlash, baseName)
+        }
+
+        const withFiles: string[] = []
+        for (const candidateTitle of titleCandidates) {
+            withFiles.push(candidateTitle)
+            for (const variant of fileVariants) {
+                withFiles.push(`${variant}#${candidateTitle}`)
+            }
+        }
+        const candidates = withFiles
+        for (const t of candidates) {
+            if (includedInTestPlan(plan, { fullName: t })) { return true }
         }
         return false
     }
@@ -217,8 +177,6 @@ export function installBddTestPlanFilter(plan: LoadedTestPlan): void {
         if ((original as unknown as Record<symbol, unknown>)[kWrapped]) {return original}
         const wrapped = ((title: string, fn?: MochaFunc | MochaAsyncFunc) => {
             const allow = decide(title)
-
-            console.log('tp-it', title, allow)
             if (!allow) {return undefined as unknown as MochaTest}
             return original(title, fn as MochaFunc)
         }) as MochaTestFunction
@@ -234,21 +192,21 @@ export function installBddTestPlanFilter(plan: LoadedTestPlan): void {
     }
 
     const install = <K extends keyof BDD>(name: K, kind: 'suite' | 'test') => {
-        const current = g[name]
+        const current = globalBdd[name]
         const apply = kind === 'suite' ? wrapSuite : wrapIt
 
         if (typeof current === 'function') {
-            ;(g as Record<string, unknown>)[name as string] = apply(current as never)
+            ;(globalBdd as Record<string, unknown>)[name as string] = apply(current as never)
             return
         }
 
-        Object.defineProperty(g, name, {
+        Object.defineProperty(globalBdd, name, {
             configurable: true,
             enumerable: true,
             get() { return undefined },
             set(v: unknown) {
                 const wrapped = typeof v === 'function' ? apply(v as never) : v
-                Object.defineProperty(g, name, {
+                Object.defineProperty(globalBdd, name, {
                     value: wrapped,
                     writable: true,
                     configurable: true,
@@ -263,3 +221,13 @@ export function installBddTestPlanFilter(plan: LoadedTestPlan): void {
     install('it',       'test')
     install('specify',  'test')
 }
+
+function autoInstallMochaFilter(): void {
+    const envPlan = process.env.ALLURE_TESTPLAN_PATH
+    const isMocha = String(process.env.WDIO_FRAMEWORK || '').toLowerCase().includes('mocha')
+    if (!envPlan || envPlan === 'undefined' || envPlan === 'null' || !isMocha) { return }
+    const plan = parseTestPlan()
+    if (plan) { installBddTestPlanFilter(plan) }
+}
+
+autoInstallMochaFilter()

@@ -1,15 +1,11 @@
 import path from 'node:path'
-import fs from 'node:fs'
 import { ContentType } from 'allure-js-commons'
 import { temporaryDirectory } from 'tempy'
-import { clean, getResults } from './helpers/wdio-allure-helper.js'
+import { clean } from './helpers/wdio-allure-helper.js'
 import { events } from '../src/constants.js'
 import AllureReporter from '../src/reporter.js'
 import { getCid } from '../src/utils.js'
-import { loadTestPlan, matchInPlan, applyTestPlanLabel } from '../src/testplan.js'
-import type { WDIORuntimeMessage } from '../src/types.js'
-import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest'
-import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 

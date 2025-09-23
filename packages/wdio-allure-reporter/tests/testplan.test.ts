@@ -3,32 +3,21 @@ import { temporaryDirectory } from 'tempy'
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { loadTestPlan, installBddTestPlanFilter, type LoadedTestPlan } from '../src/testplan.js'
-import { includedInTestPlan as includedInTestPlanCommons } from 'allure-js-commons/sdk/reporter'
+import { installBddTestPlanFilter } from '../src/testplan.js'
 
 describe('testplan filtering for Mocha BDD', () => {
     it('filters by file#suite.test and registers only matched test', () => {
-        const fullTitle = 'My Login application 2-1 should login with valid credentials 2-1'
-
         const dir = temporaryDirectory()
         const planPath = path.join(dir, 'testplan.json')
         const testPlanJson = {
             version: '1.0',
             tests: [
-                // only file#suite.test selector form (dot separator)
-                { id: '1', selector: 'test/specs/test.e2e.js#My Login application 2-1.should login with valid credentials 2-1' },
+                { id: '1', selector: 'My Login application 2-1.should login with valid credentials 2-1' },
             ],
         }
         fs.writeFileSync(planPath, JSON.stringify(testPlanJson), 'utf8')
 
-        const prevPlanPath = process.env.ALLURE_TESTPLAN_PATH
-        process.env.ALLURE_TESTPLAN_PATH = planPath
-        const plan = loadTestPlan() as LoadedTestPlan
-        // sanity: augmented selectors should include dot-form title without file
-        expect((plan as any).bySelector.has('My Login application 2-1.should login with valid credentials 2-1')).toBe(true)
-        expect(includedInTestPlanCommons((plan as any).raw, { fullName: 'My Login application 2-1.should login with valid credentials 2-1' })).toBe(true)
-        console.log('selectors:', Array.from((plan as any).bySelector.keys()))
-        process.env.ALLURE_TESTPLAN_PATH = prevPlanPath
+        const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'))
 
         const calls: string[] = []
 

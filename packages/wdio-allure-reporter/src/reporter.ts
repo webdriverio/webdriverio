@@ -1,5 +1,6 @@
 import process from 'node:process'
 import { createHash } from 'node:crypto'
+import path from 'node:path'
 import { stringify } from 'csv-stringify/sync'
 
 import type {
@@ -26,9 +27,8 @@ import {
 } from 'allure-js-commons'
 import type { RuntimeMessage } from 'allure-js-commons/sdk'
 import { getMessageAndTraceFromError } from 'allure-js-commons/sdk'
-import { FileSystemWriter, getEnvironmentLabels, getSuiteLabels, ReporterRuntime } from 'allure-js-commons/sdk/reporter'
+import { FileSystemWriter, getEnvironmentLabels, getSuiteLabels, ReporterRuntime,  includedInTestPlan, parseTestPlan } from 'allure-js-commons/sdk/reporter'
 import { setGlobalTestRuntime } from 'allure-js-commons/sdk/runtime'
-import { includedInTestPlan as includedInTestPlanCommons } from 'allure-js-commons/sdk/reporter'
 
 import { WdioTestRuntime } from './WdioTestRuntime.js'
 import { AllureReportState } from './state.js'
@@ -53,9 +53,8 @@ import { DEFAULT_CID, events } from './constants.js'
 import {
     applyTestPlanLabel,
     installBddTestPlanFilter,
-    type LoadedTestPlan,
-    loadTestPlan,
 } from './testplan.js'
+import type { TestPlanV1 } from 'allure-js-commons/sdk'
 
 import * as AllureApi from './common/api.js'
 
@@ -120,7 +119,7 @@ export default class AllureReporter extends WDIOReporter {
     private _isFlushing = false
     private _cid?: string
 
-    private _testPlan: LoadedTestPlan | null
+    private _testPlan: TestPlanV1 | undefined
     private _suiteStartedDepthByCid = new Map<string, number>()
     private _currentLeafTitleByCid = new Map<string, string>()
     private _tpSkipByCid = new Map<string, boolean>()
@@ -172,8 +171,17 @@ export default class AllureReporter extends WDIOReporter {
         this._capabilities = {}
         this._options = options
 
-        this._testPlan = loadTestPlan()
-        if (this._testPlan) { installBddTestPlanFilter(this._testPlan) }
+        {
+            const envPlan = process.env.ALLURE_TESTPLAN_PATH
+            if (envPlan && envPlan !== 'undefined' && envPlan !== 'null') {
+                try {
+                    this._testPlan = parseTestPlan()
+                } catch {
+                    this._testPlan = undefined
+                }
+            }
+            if (this._testPlan) { installBddTestPlanFilter(this._testPlan) }
+        }
 
         this._registerListeners()
 
@@ -486,6 +494,10 @@ export default class AllureReporter extends WDIOReporter {
             this._cukeScenarioActiveByCid.delete(cid)
             this._suiteStack(cid).push(suite.title)
             this._startSuite({ name: suite.title, feature: true })
+            const featureFile = (suite as unknown as MaybeFile).file
+            if (isFeatureFilePath(featureFile)) {
+                this._pkgByCid.set(cid, absPosix(featureFile!))
+            }
             break
         }
         case 'scenario': {
@@ -532,6 +544,16 @@ export default class AllureReporter extends WDIOReporter {
 
             if (mustSkip) {
                 this._tpSkipByCid.set(cid, true)
+                this._pushRuntimeMessage({
+                    type: 'attachment_content',
+                    data: {
+                        name: 'allure-skip',
+                        content: Buffer.from('allure-skip').toString('base64'),
+                        contentType: 'application/vnd.allure.skipcucumber+json',
+                        encoding: 'base64'
+                    }
+                })
+                this._pushRuntimeMessage({ type: 'metadata', data: { labels: [{ name: 'ALLURE_TESTPLAN_SKIP', value: 'true' }] } })
                 this._attachLogs()
                 this._endTest({ status: AllureStatusEnum.SKIPPED, stage: AllureStage.PENDING, stop: Date.now() })
                 return
@@ -579,15 +601,15 @@ export default class AllureReporter extends WDIOReporter {
 
         this._cukeScenarioActiveByCid.delete(cid)
 
-        suite.hooks = suite.hooks!.map((h) => {
+        suite.hooks = suite.hooks!.map((h: HookStats) => {
             h.state = h.state || AllureStatusEnum.PASSED
             return h
         })
 
         const suiteChildren = [...suite.tests!, ...suite.hooks]
         const isSkipped =
-            suite.tests.every((t) => [AllureStatusEnum.SKIPPED].includes(t.state as AllureStatus)) &&
-            suite.hooks.every((h) => [AllureStatusEnum.PASSED, AllureStatusEnum.SKIPPED].includes(h.state as AllureStatus))
+            suite.tests.every((t: TestStats) => [AllureStatusEnum.SKIPPED].includes(t.state as AllureStatus)) &&
+            suite.hooks.every((h: HookStats) => [AllureStatusEnum.PASSED, AllureStatusEnum.SKIPPED].includes(h.state as AllureStatus))
 
         if (isSkipped) {
             this._attachLogs()
@@ -784,7 +806,7 @@ export default class AllureReporter extends WDIOReporter {
 
     onAfterCommand(command: AfterCommandArgs): void {
         const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
-        const allow = this._hasPendingTest || this._hasPendingHook
+        const allow = (this._hasPendingTest || this._hasPendingHook) && !this._tpSkipActive(this._currentCid())
         const resUnknown: unknown = (command as unknown as MaybeResult).result
         const resObj = isObject(resUnknown) ? (resUnknown as Record<string, unknown>) : undefined
         const errVal = resObj?.error
@@ -800,8 +822,6 @@ export default class AllureReporter extends WDIOReporter {
                 this._attachScreenshot({ name: 'Screenshot', content: Buffer.from(val, 'base64') })
             }
         }
-
-        if (disableWebdriverStepsReporting || this._isMultiremote || !allow) {return}
 
         if (disableWebdriverStepsReporting || this._isMultiremote || !allow) {return}
 
@@ -830,20 +850,37 @@ export default class AllureReporter extends WDIOReporter {
         if (!hook.parent && !this._isGlobalHook(hook)) {return}
 
         const isCucumber = this._isCucumberHook(hook)
-        if (isCucumber && !this._hasPendingTest) {return}
-
         const hookType = this._deriveHookType(hook)
+
+        if (isCucumber && hookType === 'before' && this._decideCucumberSkipForHook(hook)) {
+            this._tpSkipByCid.set(cid, true)
+            return
+        }
+
+        if (isCucumber) {return}
+        if (this._cukeScenarioActiveByCid.get(cid)) {return}
         const start = AllureReporter.getTimeOrNow(hook.start)
         this._startHook({ name: hook.title ?? 'Hook', type: hookType, start })
     }
 
     onHookEnd(hook: HookStats): void {
+        const cid = this._currentCid()
+        if (this._tpSkipActive(cid)) {return}
         const { disableMochaHooks } = this._options
         if (!hook.parent && !this._isGlobalHook(hook)) {return}
         if (disableMochaHooks && !hook.error) {return}
 
         const isCucumber = this._isCucumberHook(hook)
+
+        if (this._cukeScenarioActiveByCid.get(cid) && !isCucumber) {return}
+
+        if (isCucumber && !hook.error) {return}
+
         if (isCucumber && !this._hasPendingTest && !hook.error) {return}
+
+        if (isCucumber && this._tpActive() && !this._hasPendingTest && hook.error) {
+            if (this._tpSkipActive(cid) || this._decideCucumberSkipForHook(hook)) { return }
+        }
 
         const hookType = this._deriveHookType(hook)
 
@@ -902,6 +939,7 @@ export default class AllureReporter extends WDIOReporter {
         const current = this.allureStatesByCid.get(this._currentCid())
         return Boolean(current?.hasPendingTest)
     }
+
     private get _hasPendingHook(): boolean {
         const current = this.allureStatesByCid.get(this._currentCid())
         return Boolean(current?.hasPendingHook)
@@ -942,6 +980,14 @@ export default class AllureReporter extends WDIOReporter {
         return this._isCucumberSuiteLike(h.parent as unknown as SuiteStats | undefined)
     }
 
+    private _decideCucumberSkipForHook(hook: HookStats): boolean {
+        if (!this._tpActive()) { return false }
+        const parent = hook.parent as unknown as { title?: string } | undefined
+        const scenarioTitle = parent?.title ? String(parent.title) : undefined
+        if (!scenarioTitle) { return false }
+        return this._decideCucumberSkip(this._currentCid(), scenarioTitle)
+    }
+
     private _tpSkipActive(cid: string): boolean {
         return Boolean(this._tpSkipByCid.get(cid))
     }
@@ -958,10 +1004,24 @@ export default class AllureReporter extends WDIOReporter {
             const suite = parts.join(' ')
             return suite ? `${suite}.${last}` : last
         })()
-        return !includedInTestPlanCommons(this._testPlan.raw, { fullName: `${filePath}#${fullNameDot}` }) &&
-               !includedInTestPlanCommons(this._testPlan.raw, { fullName: `${filePath}#${fullTitle}` }) &&
-               !includedInTestPlanCommons(this._testPlan.raw, { fullName: fullNameDot }) &&
-               !includedInTestPlanCommons(this._testPlan.raw, { fullName: fullTitle })
+        const abs = filePath
+        const relNo = relNoSlash(abs)
+        const rel = relNo ? `/${relNo}` : ''
+        const base = path.basename(abs)
+        const fileVariants = [abs, rel, relNo, base].filter(Boolean) as string[]
+
+        const nameVariants = [fullNameDot, fullTitle]
+        const candidates: string[] = []
+        for (const n of nameVariants) {
+            candidates.push(n)
+            for (const f of fileVariants) {
+                candidates.push(`${f}#${n}`)
+            }
+        }
+        for (const c of candidates) {
+            if (includedInTestPlan(this._testPlan, { fullName: c })) { return false }
+        }
+        return true
     }
 
     private _mochaFullTitle(cid: string, leaf: string): string {
