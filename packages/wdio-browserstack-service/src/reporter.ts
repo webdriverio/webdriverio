@@ -291,7 +291,6 @@ class _TestReporter extends WDIOReporter {
                 platform: this._capabilities?.platformName,
                 platform_version: getPlatformVersion(this._capabilities, this._userCaps as WebdriverIO.Capabilities)
             }
-            BStackLogger.debug(`Test integrations data to be sent to TestOps: ${JSON.stringify(testData.integrations)}`)
         }
 
         if (eventType === 'TestRunFinished' || eventType === 'HookRunFinished') {
