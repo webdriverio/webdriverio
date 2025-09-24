@@ -467,7 +467,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         if (this._options.forcedStop) {
-            return process.kill(this.browserstackLocal.pid as number)
+            const pid = this.browserstackLocal.pid as number
+            process.kill(pid)
+            return pid
         }
 
         let timer: NodeJS.Timeout
