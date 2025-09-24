@@ -54,8 +54,8 @@ export default class TestHubModule extends BaseModule {
 
     onBeforeTest(args: Record<string, unknown>) {
         this.logger.debug('onBeforeTest: Called after test hook from cli configured module!!!')
-        const autoInstace = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
-        const instances = [autoInstace]
+        const autoInstance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
+        const instances = [autoInstance]
         args.autoInstance = instances
         this.sendTestSessionEvent(args)
     }
