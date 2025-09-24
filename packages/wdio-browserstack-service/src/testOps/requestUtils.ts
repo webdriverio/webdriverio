@@ -9,7 +9,6 @@ import { BStackLogger } from '../bstackLogger.js'
 import { DEFAULT_REQUEST_CONFIG, getLogTag } from '../util.js'
 import fetchWrap from '../fetchWrapper.js'
 import { format } from 'node:util'
-import APIUtils from '../cli/apiUtils.js'
 
 export async function uploadEventData (eventData: UploadType | Array<UploadType>, eventUrl: string = DATA_EVENT_ENDPOINT) {
     let logTag: string = 'BATCH_UPLOAD'
@@ -31,7 +30,7 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
     }
 
     try {
-        const url = `${APIUtils.DATA_ENDPOINT}/${eventUrl}`
+        const url = `${DATA_ENDPOINT}/${eventUrl}`
         const data = await fetchWrap(url, {
             method: 'POST',
             headers: {
