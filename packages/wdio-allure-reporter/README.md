@@ -53,23 +53,14 @@ The selector matching is flexible and supports:
 - **Partial matches** - substring of test title
 - **File-specific matches** - include file path for precise targeting
 
-#### Environment Variable
+#### Testplan
 
-You can also specify the test plan path via environment variable:
+The test plan support can be enabled by providing ALLURE_TESTPLAN_PATH environment variable – the reporter automatically loads the test plan file and run tests which match the selectors.
 
 ```bash
 ALLURE_TESTPLAN_PATH=/path/to/your/testplan.json
 ```
 
-#### Reporter Options
-
-```js
-export const config = {
-    reporters: [['allure', {
-        outputDir: 'allure-results',
-    }]],
-}
-```
 
 #### Usage Examples
 
