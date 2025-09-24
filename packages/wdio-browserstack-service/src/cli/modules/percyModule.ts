@@ -10,18 +10,23 @@ import type { Capabilities } from '@wdio/types'
 import { TestFrameworkConstants } from '../frameworks/constants/testFrameworkConstants.js'
 import type TestFrameworkInstance from '../instances/testFrameworkInstance.js'
 
+interface PercyConfig {
+    percyCaptureMode?: string;
+    [key: string]: unknown;
+}
+
 export default class PercyModule extends BaseModule {
 
     logger = BStackLogger
     private browser?: WebdriverIO.Browser | undefined
     static readonly MODULE_NAME = 'PercyModule'
     private percyHandler: PercyHandler | undefined
-    private percyConfig: unknown
+    private percyConfig: PercyConfig
     private isAppAutomate: boolean
     /**
      * Create a new PercyModule
      */
-    constructor(percyConfig: unknown) {
+    constructor(percyConfig: PercyConfig) {
         super()
         this.percyConfig = percyConfig
         this.isAppAutomate = false
@@ -42,13 +47,13 @@ export default class PercyModule extends BaseModule {
             this.logger.error('PercyModule: Browser instance is not defined in onAfterCreate')
             return
         }
-        if (!this.percyConfig || !(this.percyConfig as any).percyCaptureMode) {
+        if (!this.percyConfig || !this.percyConfig.percyCaptureMode) {
             this.logger.warn('PercyModule: Percy capture mode is not defined in the configuration, skipping Percy initialization')
             return
         }
         this.isAppAutomate = this.isAppAutomate || 'app' in this.config
         this.percyHandler = new PercyHandler(
-            (this.percyConfig as any).percyCaptureMode,
+            this.percyConfig.percyCaptureMode,
             this.browser,
             {} as Capabilities.ResolvedTestrunnerCapabilities,
             this.isAppAutomate,
@@ -86,7 +91,7 @@ export default class PercyModule extends BaseModule {
                 this.logger.warn('PercyModule: Percy handler is not initialized, skipping post execute actions')
                 return
             }
-            if ((this.percyConfig as any).percyCaptureMode === 'testcase') {
+            if (this.percyConfig.percyCaptureMode === 'testcase') {
                 await this.percyHandler.percyAutoCapture('testcase', null)
             }
             await this.percyHandler.teardown()

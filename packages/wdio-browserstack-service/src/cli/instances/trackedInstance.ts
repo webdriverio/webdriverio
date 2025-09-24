@@ -4,7 +4,7 @@ import { threadId } from 'node:worker_threads'
 
 export default class TrackedInstance {
     #context: TrackedContext
-    #data: Map<string, any>
+    #data: Map<string, unknown>
 
     /**
    * create TrackedInstance
@@ -44,13 +44,13 @@ export default class TrackedInstance {
    * @param {*} key
    * @param {*} value
    */
-    updateMultipleEntries(entries: Record<string, any>) {
+    updateMultipleEntries(entries: Record<string, unknown>) {
         Object.keys(entries).forEach(key => {
             this.#data.set(key, entries[key])
         })
     }
 
-    updateData(key: string, value: any) {
+    updateData(key: string, value: unknown) {
         this.#data.set(key, value)
     }
 

@@ -8,7 +8,7 @@ export default class BaseModule {
     binSessionId: string|null
     platformIndex: number
     config: Record<string, unknown>
-    client: any
+    client: unknown
     /**
      * Create a new BaseModule
      */
