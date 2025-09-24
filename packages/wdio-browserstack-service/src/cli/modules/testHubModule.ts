@@ -188,6 +188,7 @@ export default class TestHubModule extends BaseModule {
                     ? 'browserstack'
                     : 'unknown_grid'
 
+                // eslint-disable-next-line camelcase
                 const automationSession: AutomationSession = {
                     provider: sessionProvider,
                     ref: autoInstance.getRef(),

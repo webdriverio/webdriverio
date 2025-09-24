@@ -54,7 +54,7 @@ export class GrpcClient {
 
     binSessionId: string|undefined
     listenAddress: string|undefined
-    channel: grpcChannel|null = null
+    channel: any|null = null
     client: SDKClient | null = null
     logger = BStackLogger
 
@@ -401,7 +401,7 @@ export class GrpcClient {
                 threadId: executionContext?.threadId,
                 hash: executionContext?.hash
             })
-
+            // eslint-disable-next-line camelcase
             const logEntries: LogEntry[] = []
             for (const log of logs) {
                 // eslint-disable-next-line camelcase
