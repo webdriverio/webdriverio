@@ -9,6 +9,7 @@ import PercyHandler from '../../Percy/Percy-Handler.js'
 import type { Capabilities } from '@wdio/types'
 import { TestFrameworkConstants } from '../frameworks/constants/testFrameworkConstants.js'
 import type TestFrameworkInstance from '../instances/testFrameworkInstance.js'
+import type { BrowserstackConfig } from '../../types.js'
 
 export default class PercyModule extends BaseModule {
 
@@ -16,14 +17,14 @@ export default class PercyModule extends BaseModule {
     private browser?: WebdriverIO.Browser | undefined
     static readonly MODULE_NAME = 'PercyModule'
     private percyHandler: PercyHandler | undefined
-    private percyConfig: unknown
+    private percyConfig: BrowserstackConfig | null
     private isAppAutomate: boolean
     /**
      * Create a new PercyModule
      */
     constructor(percyConfig: unknown) {
         super()
-        this.percyConfig = percyConfig
+        this.percyConfig = (percyConfig && typeof percyConfig === 'object') ? percyConfig as BrowserstackConfig : null
         this.isAppAutomate = false
         this.logger.info('PercyModule: Initializing Percy Module')
         AutomationFramework.registerObserver(AutomationFrameworkState.CREATE, HookState.POST, this.onAfterCreate.bind(this))
@@ -42,13 +43,13 @@ export default class PercyModule extends BaseModule {
             this.logger.error('PercyModule: Browser instance is not defined in onAfterCreate')
             return
         }
-        if (!this.percyConfig || !(this.percyConfig as any).percyCaptureMode) {
+        if (!this.percyConfig || !this.percyConfig.percyCaptureMode) {
             this.logger.warn('PercyModule: Percy capture mode is not defined in the configuration, skipping Percy initialization')
             return
         }
         this.isAppAutomate = this.isAppAutomate || 'app' in this.config
         this.percyHandler = new PercyHandler(
-            (this.percyConfig as any).percyCaptureMode,
+            this.percyConfig.percyCaptureMode,
             this.browser,
             {} as Capabilities.ResolvedTestrunnerCapabilities,
             this.isAppAutomate,
@@ -86,7 +87,7 @@ export default class PercyModule extends BaseModule {
                 this.logger.warn('PercyModule: Percy handler is not initialized, skipping post execute actions')
                 return
             }
-            if ((this.percyConfig as any).percyCaptureMode === 'testcase') {
+            if (this.percyConfig?.percyCaptureMode === 'testcase') {
                 await this.percyHandler.percyAutoCapture('testcase', null)
             }
             await this.percyHandler.teardown()

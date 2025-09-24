@@ -10,6 +10,7 @@ import {
     isTrue
 } from './util.js'
 import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction } from './types.js'
+import { isString } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
@@ -220,6 +221,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                         this._options
                     )
                     if (BrowserstackCLI.getInstance().isRunning()) {
+                        BStackLogger.info(`CLI is running, tracking insights event for before: ${sessionId}`)
                         await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.POST, { browser: this._browser, hubUrl: this._config.hostname })
                         this._insightsHandler.setGitConfigPath()
                         return
@@ -341,17 +343,17 @@ export default class BrowserstackService implements Services.ServiceInstance {
             }
         }
 
-        await this._setSessionName(suiteTitle, test)
-
         if (BrowserstackCLI.getInstance().isRunning()) {
             await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.INIT_TEST, HookState.PRE, { test })
             const uuid = TestFramework.getState(TestFramework.getTrackedInstance(), TestFrameworkConstants.KEY_TEST_UUID)
-            this._insightsHandler?.setTestData(test, uuid)
+            const uuidString = isString(uuid) ? uuid : ''
+            this._insightsHandler?.setTestData(test, uuidString)
             await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.PRE, { test, suiteTitle })
             return
         }
 
         await this._setAnnotation(`Test: ${test.fullName ?? test.title}`)
+        await this._setSessionName(suiteTitle, test)
         await this._accessibilityHandler?.beforeTest(suiteTitle, test)
         await this._insightsHandler?.beforeTest(test)
     }
@@ -376,7 +378,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         await this._accessibilityHandler?.afterTest(this._suiteTitle, test)
         await this._insightsHandler?.afterTest(test, results)
-        await this._percyHandler?.afterTest()
+        if (!BrowserstackCLI.getInstance().isRunning()) {
+            await this._percyHandler?.afterTest()
+        }
     }
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'after' })
@@ -757,6 +761,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._fullTitle = name
             await this._updateJob({ name })
         }
+
+        return name
     }
 
     private _setAnnotation(data: string) {
