@@ -4,6 +4,7 @@ import { BStackLogger as logger } from '../cliLogger.js'
 import type TrackedContext from '../instances/trackedContext.js'
 import TrackedInstance from '../instances/trackedInstance.js'
 import type TestFrameworkInstance from '../instances/testFrameworkInstance.js'
+import type { TrackedData } from '../../types.js'
 
 export default class TestFramework {
     static instances = new Map()
@@ -130,7 +131,7 @@ export default class TestFramework {
    * @param {*} value - The value
    * @returns
    */
-    static setState(instance: TrackedInstance, key: string, value: unknown) {
+    static setState(instance: TrackedInstance, key: string, value: TrackedData) {
         instance.getAllData().set(key, value)
     }
 
