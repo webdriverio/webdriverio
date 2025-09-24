@@ -134,3 +134,6 @@ export const WDIO_NAMING_PREFIX = 'WebdriverIO-'
 // API Endpoint constants
 export const UPDATED_CLI_ENDPOINT = 'sdk/v1/update_cli'
 
+export const CLI_DEBUG_LOGS_FILE = 'log/sdk-cli-debug.log'
+
+export const PERF_METRICS_WAIT_TIME = 2000
