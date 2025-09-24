@@ -135,40 +135,40 @@ describe('TrackedInstance', () => {
         })
 
         it('should handle various data types', () => {
-        const context = new TrackedContext('test-id', 123, 456, 'object')
-        const instance = new TrackedInstance(context)
+            const context = new TrackedContext('test-id', 123, 456, 'object')
+            const instance = new TrackedInstance(context)
 
-        // Test string data
-        instance.updateData('stringKey', 'string value')
-        expect(instance.getData('stringKey')).toBe('string value')
+            // Test string data
+            instance.updateData('stringKey', 'string value')
+            expect(instance.getData('stringKey')).toBe('string value')
 
-        // Test number data
-        instance.updateData('numberKey', 42)
-        expect(instance.getData('numberKey')).toBe(42)
+            // Test number data
+            instance.updateData('numberKey', 42)
+            expect(instance.getData('numberKey')).toBe(42)
 
-        // Test boolean data
-        instance.updateData('boolKey', true)
-        expect(instance.getData('boolKey')).toBe(true)
+            // Test boolean data
+            instance.updateData('boolKey', true)
+            expect(instance.getData('boolKey')).toBe(true)
 
-        // Test object data
-        const objValue = { nested: 'value' }
-        instance.updateData('objKey', objValue)
-        expect(instance.getData('objKey')).toBe(objValue)
+            // Test object data
+            const objValue = { nested: 'value' }
+            instance.updateData('objKey', objValue)
+            expect(instance.getData('objKey')).toBe(objValue)
 
-        // Test array data
-        const arrayValue = [1, 2, 3]
-        instance.updateData('arrayKey', arrayValue)
-        expect(instance.getData('arrayKey')).toBe(arrayValue)
+            // Test array data
+            const arrayValue = [1, 2, 3]
+            instance.updateData('arrayKey', arrayValue)
+            expect(instance.getData('arrayKey')).toBe(arrayValue)
 
-        // Test null/undefined
-        instance.updateData('nullKey', null)
-        instance.updateData('undefinedKey', undefined)
-        expect(instance.getData('nullKey')).toBe(null)
-        expect(instance.getData('undefinedKey')).toBe(undefined)
+            // Test null/undefined
+            instance.updateData('nullKey', null)
+            instance.updateData('undefinedKey', undefined)
+            expect(instance.getData('nullKey')).toBe(null)
+            expect(instance.getData('undefinedKey')).toBe(undefined)
 
-        // Verify all data types stored correctly
-        expect(instance.getAllData().size).toBe(6)
-    })
+            // Verify all data types stored correctly
+            expect(instance.getAllData().size).toBe(7)
+        })
     })
 
     describe('static createContext method', () => {

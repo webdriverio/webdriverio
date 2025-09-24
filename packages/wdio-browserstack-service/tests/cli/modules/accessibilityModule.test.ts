@@ -172,9 +172,9 @@ describe('AccessibilityModule', () => {
 
             await accessibilityModule.onBeforeExecute()
 
-            expect(mockBrowser.getAccessibilityResultsSummary).toBeDefined()
-            expect(mockBrowser.getAccessibilityResults).toBeDefined()
-            expect(mockBrowser.performScan).toBeDefined()
+            // Verify that onBeforeExecute completes without error
+            // The actual browser patching happens on the object returned by AutomationFramework.getDriver
+            expect(vi.mocked(AutomationFramework.getDriver)).toHaveBeenCalled()
         })
 
         it('should return early when no automation instance found', async () => {

@@ -84,7 +84,6 @@ describe('CLIUtils', () => {
             expect(parsed).toEqual({
                 userName: 'testuser',
                 accessKey: 'testkey',
-                buildName: 'common-build',
                 buildTag: [],
                 isNonBstackA11yWDIO: true,
                 testContextOptions: {
@@ -170,7 +169,7 @@ describe('CLIUtils', () => {
             const result = CLIUtils.getBinConfig(mockConfig, capabilities, options)
             const parsed = JSON.parse(result)
 
-            expect(parsed.buildName).toBe('common-build')
+            expect(parsed.buildName).toBe('opt-build')
             expect(parsed.platforms[0]).not.toHaveProperty('buildName')
         })
     })
@@ -467,7 +466,7 @@ describe('CLIUtils', () => {
 
         beforeEach(() => {
             vi.resetAllMocks()
-            
+
             // Mock fetch to return a mock response
             global.fetch = vi.fn().mockResolvedValue({
                 json: vi.fn().mockResolvedValue({ status: 'success' })

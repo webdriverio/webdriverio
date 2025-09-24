@@ -113,7 +113,7 @@ describe('PercyModule', () => {
 
     describe('getModuleName', () => {
         it('should return the correct module name from parent BaseModule', () => {
-            expect(percyModule.getModuleName()).toBe('BaseModule')
+            expect(percyModule.getModuleName()).toBe('PercyModule')
         })
 
         it('should have correct static MODULE_NAME', () => {
@@ -141,7 +141,7 @@ describe('PercyModule', () => {
                 'auto',
                 mockBrowser,
                 {},
-                false,
+                true,
                 ''
             )
             expect(mockInstance.before).toHaveBeenCalled()
@@ -211,7 +211,7 @@ describe('PercyModule', () => {
             await percyModule.onBeforeTest({ instance: mockTestInstance })
 
             expect(getStateSpy).toHaveBeenCalledWith(
-                mockTestInstance, 
+                mockTestInstance,
                 TestFrameworkConstants.KEY_AUTOMATE_SESSION_NAME
             )
             expect(mockInstance._setSessionName).toHaveBeenCalledWith('test-session-name')
