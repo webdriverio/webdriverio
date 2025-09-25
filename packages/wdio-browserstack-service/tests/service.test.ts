@@ -41,7 +41,7 @@ vi.mock('../src/performance-testing/index.js', () => ({
         calculateTimes: vi.fn(),
         Measure: vi.fn().mockImplementation(() => (_target: any, _propertyKey: string, descriptor: PropertyDescriptor) => {
             // Return the original method unchanged
-            return descriptor;
+            return descriptor
         })
     }
 }))
@@ -89,7 +89,7 @@ beforeEach(() => {
     // Clear any performance measurement env variables that might cause hanging
     delete process.env.PERF_MEASUREMENT_ENV
     delete process.env.ENABLE_CDP
-    
+
     vi.mocked(log.info).mockClear()
     vi.mocked(fetch).mockClear()
     vi.mocked(fetch).mockReturnValue(Promise.resolve(Response.json({ automation_session: {
@@ -852,7 +852,7 @@ describe('afterTest', () => {
     it('should increment failure reasons on fails', async () => {
         // Mock _updateJob to avoid async timing issues
         const updateJobSpy = vi.spyOn(service, '_updateJob' as any).mockResolvedValue(undefined)
-        
+
         service.before(service['_config'] as any, [], browser)
         // service['_fullTitle'] = ''  // Comment this out to see if it's the issue
         service.beforeSuite({ title: 'foo' } as any)
@@ -889,7 +889,7 @@ describe('afterTest', () => {
     it('should not increment failure reasons on passes', async () => {
         // Mock _updateJob to avoid async timing issues
         const updateJobSpy = vi.spyOn(service, '_updateJob' as any).mockResolvedValue(undefined)
-        
+
         service.before(service['_config'] as any, [], browser)
         service.beforeSuite({ title: 'foo' } as any)
         await service.beforeTest({ title: 'foo', parent: 'bar' } as any)
@@ -1006,7 +1006,7 @@ describe('after', () => {
         BrowserstackService.prototype.after = vi.fn(async function (this: any, result: number) {
             // Execute core session status logic that tests expect
             const { preferScenarioName, setSessionName, setSessionStatus } = this._options
-            
+
             // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
             // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
             if (preferScenarioName && this._scenariosThatRan.length === 1){
@@ -1078,7 +1078,7 @@ describe('after', () => {
 
     it('should call _update when session has no errors (exit code 0)', { timeout: 10000 }, async () => {
         const updateSpy = vi.spyOn(service, '_update')
-        
+
         await service.before(service['_config'] as any, [], browser)
 
         service['_failReasons'] = []
