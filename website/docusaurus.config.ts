@@ -44,7 +44,7 @@ const config: Config = {
             'fr',
             'hi',
             'it',
-            'ja',
+            // 'ja', => links will break, they are also translated
             'ko',
             'pl',
             'pt',
