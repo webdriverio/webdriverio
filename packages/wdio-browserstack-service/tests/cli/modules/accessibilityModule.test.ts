@@ -1,20 +1,20 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 
 vi.mock('../../../src/cli/frameworks/testFramework.js', () => ({
-    default: {
-        registerObserver: vi.fn(),
-        getTrackedInstance: vi.fn(),
-        getState: vi.fn(),
-        setState: vi.fn()
+    default: class MockTestFramework {
+        static registerObserver = vi.fn()
+        static getTrackedInstance = vi.fn()
+        static getState = vi.fn()
+        static setState = vi.fn()
     }
 }))
 
 vi.mock('../../../src/cli/frameworks/automationFramework.js', () => ({
-    default: {
-        registerObserver: vi.fn(),
-        getTrackedInstance: vi.fn(),
-        getDriver: vi.fn(),
-        getState: vi.fn()
+    default: class MockAutomationFramework {
+        static registerObserver = vi.fn()
+        static getTrackedInstance = vi.fn()
+        static getDriver = vi.fn()
+        static getState = vi.fn()
     }
 }))
 
@@ -35,7 +35,8 @@ vi.mock('../../../src/util.js', () => ({
     getAppA11yResults: vi.fn().mockResolvedValue([]),
     getAppA11yResultsSummary: vi.fn().mockResolvedValue({}),
     _getParamsForAppAccessibility: vi.fn().mockReturnValue('{}'),
-    formatString: vi.fn().mockReturnValue('formatted-script')
+    formatString: vi.fn().mockReturnValue('formatted-script'),
+    o11yClassErrorHandler: vi.fn().mockImplementation((cls) => cls)
 }))
 
 vi.mock('../../../src/cli/grpcClient.js', () => ({

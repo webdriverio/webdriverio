@@ -302,8 +302,7 @@ export const processTestObservabilityResponse = (response: LaunchResponse) => {
     }
 }
 
-
-interface DataElement {
+interface _DataElement {
     [key: string]: unknown
 }
 

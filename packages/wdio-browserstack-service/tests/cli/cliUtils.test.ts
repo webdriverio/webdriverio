@@ -156,21 +156,28 @@ describe('CLIUtils', () => {
         })
 
         it('prioritizes options over capability values', () => {
-            const capabilities = [{
+            const capabilities = {
                 browserName: 'chrome',
+                browserVersion: '91.0',
                 'bstack:options': {
-                    buildName: 'cap-build'
+                    buildName: 'cap-build',
+                    projectName: 'cap-project'
                 }
-            }]
-            const options = {
-                buildName: 'opt-build'
             }
-
+            const options = {
+                testObservabilityOptions: {
+                    buildName: 'opt-build',
+                    projectName: 'opt-project'
+                }
+            } as any
             const result = CLIUtils.getBinConfig(mockConfig, capabilities, options)
             const parsed = JSON.parse(result)
 
             expect(parsed.buildName).toBe('opt-build')
-            expect(parsed.platforms[0]).not.toHaveProperty('buildName')
+            expect(parsed.projectName).toBe('opt-project')
+            // Platform capabilities retain their original values from bstack:options
+            expect(parsed.platforms[0].buildName).toBe('cap-build')
+            expect(parsed.platforms[0].projectName).toBe('cap-project')
         })
     })
 

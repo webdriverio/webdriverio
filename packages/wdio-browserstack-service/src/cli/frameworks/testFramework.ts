@@ -6,6 +6,11 @@ import TrackedInstance from '../instances/trackedInstance.js'
 import type TestFrameworkInstance from '../instances/testFrameworkInstance.js'
 import type { TrackedData } from '../../types.js'
 
+type State = {
+    value: number
+    toString(): string
+}
+
 export default class TestFramework {
     static instances = new Map()
     testFrameworks: Array<string> = []
