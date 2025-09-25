@@ -346,6 +346,52 @@ describe('webdriver request', () => {
             expect(vi.mocked(error).mock.calls).toHaveLength(0)
         })
 
+        it('should retry requests with html response but still fail', async () => {
+            const onRetry = vi.fn()
+            const onResponse = vi.fn()
+            const onPerformance = vi.fn()
+            const req = new WebFetchRequest('POST', webdriverPath, {}, undefined, false, {
+                onResponse, onPerformance, onRetry
+            })
+
+            const url = new URL('/failing-html', baseUrl)
+            const opts = {}
+            await expect(req['_request'](url, opts, undefined, 2)).rejects.toEqual(expect.objectContaining({
+                message: expect.stringContaining('<title>504 Gateway Time-out</title>')
+            }))
+            expect(onRetry).toHaveBeenNthCalledWith(1, expect.anything())
+            expect(onPerformance).toHaveBeenNthCalledWith(1, expect.objectContaining({ success: false }))
+            expect(onRetry).toHaveBeenNthCalledWith(2, expect.anything())
+            expect(onPerformance).toHaveBeenNthCalledWith(2, expect.objectContaining({ success: false }))
+            expect(onResponse).toHaveBeenNthCalledWith(1, expect.anything())
+            expect(onPerformance).toHaveBeenNthCalledWith(3, expect.objectContaining({ success: false }))
+            expect(vi.mocked(warn).mock.calls).toHaveLength(2)
+            expect(vi.mocked(error).mock.calls).toHaveLength(1)
+        })
+
+        it('should retry request with html response and eventually respond', async () => {
+            const onRetry = vi.fn()
+            const onResponse = vi.fn()
+            const onPerformance = vi.fn()
+            const req = new WebFetchRequest('POST', webdriverPath, {}, undefined, false, {
+                onResponse, onPerformance, onRetry
+            })
+
+            const url = new URL('/failing-html', baseUrl)
+            const opts = Object.assign({ body: { foo: 'bar' } })
+            expect(await req['_request'](url, opts, undefined, 3)).toEqual({ value: 'caught-html' })
+            expect(onRetry).toHaveBeenNthCalledWith(1, expect.anything())
+            expect(onPerformance).toHaveBeenNthCalledWith(1, expect.objectContaining({ success: false }))
+            expect(onRetry).toHaveBeenNthCalledWith(2, expect.anything())
+            expect(onPerformance).toHaveBeenNthCalledWith(2, expect.objectContaining({ success: false }))
+            expect(onRetry).toHaveBeenNthCalledWith(3, expect.anything())
+            expect(onPerformance).toHaveBeenNthCalledWith(3, expect.objectContaining({ success: false }))
+            expect(onResponse).toHaveBeenNthCalledWith(1, expect.anything())
+            expect(onPerformance).toHaveBeenNthCalledWith(4, expect.objectContaining({ success: true }))
+            expect(vi.mocked(warn).mock.calls).toHaveLength(3)
+            expect(vi.mocked(error).mock.calls).toHaveLength(0)
+        })
+
         it('should manage hub commands', async () => {
             const req = new WebFetchRequest('POST', '/grid/api/hub', {}, undefined, true)
             expect(await req.makeRequest({
