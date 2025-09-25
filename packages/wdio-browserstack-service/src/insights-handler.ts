@@ -921,6 +921,9 @@ class _InsightsHandler {
         const caps = (this._browser as WebdriverIO.Browser)?.capabilities as WebdriverIO.Capabilities
         const sessionId = (this._browser as WebdriverIO.Browser)?.sessionId
 
+        BStackLogger.debug(`Driver capabilities used for integration object: ${JSON.stringify(caps)}`)
+        BStackLogger.debug(`User capabilities used for integration object: ${JSON.stringify(this._userCaps)}`)
+
         return {
             capabilities: caps,
             session_id: sessionId,
