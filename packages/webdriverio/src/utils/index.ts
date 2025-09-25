@@ -276,7 +276,7 @@ export function elementPromiseHandler <T extends object>(handle: string, shadowR
     }
 }
 
-export function transformClassicToBidiSelector (using: string, value: string): remote.BrowsingContextCssLocator | remote.BrowsingContextXPathLocator | remote.BrowsingContextInnerTextLocator {
+export function transformClassicToBidiSelector ( using: string, value: string): remote.BrowsingContextLocator {
     if (using === 'css selector' || using === 'tag name') {
         return { type: 'css', value }
     }
@@ -291,6 +291,15 @@ export function transformClassicToBidiSelector (using: string, value: string): r
 
     if (using === 'partial link text') {
         return { type: 'innerText', value, matchType: 'partial' }
+    }
+
+    if (using === 'aria') {
+        return {
+            type: 'accessibility',
+            value: {
+                name: value,
+            },
+        }
     }
 
     throw new Error(`Can't transform classic selector ${using} to Bidi selector`)

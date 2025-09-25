@@ -551,7 +551,7 @@ describe('selector strategies helper', () => {
 
     it('should be able to fetch element by aria label', () => {
         const element = findStrategy('aria/foobar')
-        expect(element.using).toBe('xpath')
-        expect(element.value).toMatchSnapshot()
+        expect(element.using).toBe('aria')
+        expect(element.value).toBe('foobar')
     })
 })
