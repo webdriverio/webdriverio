@@ -217,7 +217,9 @@ export default class AccessibilityModule extends BaseModule {
             const accessibilityOptions = this.config.accessibilityOptions
             const shouldScanTest = this.autoScanning && shouldScanTestForAccessibility(suiteTitle, test.title || '', accessibilityOptions as Record<string, string> | undefined) && this.accessibility
 
-            this.accessibilityMap.set(sessionId, shouldScanTest)
+            if (isNumber(sessionId)) {
+                this.accessibilityMap.set(sessionId, shouldScanTest)
+            }
 
             // Create test metadata similar to accessibility-handler
             const testIdentifier = String(testInstance.getContext().getId())
@@ -232,7 +234,9 @@ export default class AccessibilityModule extends BaseModule {
                 if (!this.accessibility && !this.isAppAccessibility){
                     return
                 }
-                this.accessibilityMap.set(sessionId, true)
+                if (isNumber(sessionId)) {
+                    this.accessibilityMap.set(sessionId, true)
+                }
                 this.testMetadata[testIdentifier] = {
                     scanTestForAccessibility : true,
                     accessibilityScanStarted : true
@@ -245,7 +249,9 @@ export default class AccessibilityModule extends BaseModule {
                 if (!this.accessibility && !this.isAppAccessibility){
                     return
                 }
-                this.accessibilityMap.set(sessionId, false)
+                if (isNumber(sessionId)) {
+                    this.accessibilityMap.set(sessionId, false)
+                }
                 await this._setAnnotation('Accessibility scanning has stopped')
             }
 
@@ -423,7 +429,7 @@ export default class AccessibilityModule extends BaseModule {
                 return
             }
 
-            if (sessionId && this.accessibilityMap.get(sessionId)) {
+            if (isNumber(sessionId) && this.accessibilityMap.get(sessionId)) {
                 this.logger.debug('Performing scan before saving results')
                 await this.performScanCli(browser)
             }
