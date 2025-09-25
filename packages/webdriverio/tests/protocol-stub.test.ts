@@ -19,11 +19,12 @@ describe('newSession', () => {
                 foo: 'bar'
             }
         })
-        expect(Object.keys(session)).toHaveLength(21)
+        expect(Object.keys(session)).toHaveLength(22)
         expect(session.isAndroid).toBe(false)
         expect(session.isChrome).toBe(false)
         expect(session.isChromium).toBe(false)
         expect(session.isFirefox).toBe(false)
+        expect(session.isSafari).toBe(false)
         expect(session.isIOS).toBe(true)
         expect(session.isMobile).toBe(true)
         expect(session.isSauce).toBe(false)
