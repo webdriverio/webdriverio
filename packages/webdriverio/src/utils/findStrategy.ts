@@ -126,7 +126,6 @@ export const findStrategy = function (
     isMobile?: boolean,
     isSafari?: boolean
 ) {
-    console.log({ isSafari })
     const stringSelector = selector as string
     let using: string = DEFAULT_STRATEGY
     let value = selector as string

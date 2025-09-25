@@ -339,6 +339,7 @@ export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabi
     return {
         isChrome: isChrome(capabilities),
         isFirefox: isFirefox(capabilities),
+        isSafari: isSafari(capabilities),
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
