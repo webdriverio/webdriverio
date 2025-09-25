@@ -95,6 +95,20 @@ function isFirefox(capabilities?: WebdriverIO.Capabilities) {
     )
 }
 
+/**
+ * check if session is run by Safaridriver
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if run by Safaridriver
+ */
+function isSafari(capabilities?: WebdriverIO.Capabilities) {
+    if (!capabilities) {
+        return false
+    }
+    return (
+        capabilities.browserName?.toLowerCase() === 'safari'
+    )
+}
+
 // Some drivers (e.g. Appium for Windows) return capabilities with flattened,
 // non-namespaced keys like `automationName` instead of `appium:automationName`.
 // We extend the base type here to safely support those runtime shapes.
@@ -353,6 +367,7 @@ export function sessionEnvironmentDetector({
         isW3C: isW3C(capabilities),
         isChrome: isChrome(capabilities),
         isFirefox: isFirefox(capabilities),
+        isSafari: isSafari(capabilities),
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
