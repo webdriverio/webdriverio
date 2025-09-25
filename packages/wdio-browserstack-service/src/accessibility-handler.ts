@@ -67,7 +67,8 @@ import {
     isTrue,
     validateCapsWithAppA11y,
     getAppA11yResults,
-    isFalse
+    isFalse,
+    setBrowserstackAnnotation
 } from './util.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
@@ -470,15 +471,7 @@ class _AccessibilityHandler {
     }
 
     private async _setAnnotation(message: string) {
-        if (this._accessibility && isBrowserstackSession(this._browser)) {
-            await (this._browser as WebdriverIO.Browser).execute(`browserstack_executor: ${JSON.stringify({
-                action: 'annotate',
-                arguments: {
-                    data: message,
-                    level: 'info'
-                }
-            })}`)
-        }
+        await setBrowserstackAnnotation(this._browser as WebdriverIO.Browser, message, Boolean(this._accessibility))
     }
 }
 

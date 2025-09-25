@@ -10,7 +10,7 @@ import { TestFrameworkState } from '../states/testFrameworkState.js'
 import { AutomationFrameworkState } from '../states/automationFrameworkState.js'
 import { HookState } from '../states/hookState.js'
 import accessibilityScripts from '../../scripts/accessibility-scripts.js'
-import { _getParamsForAppAccessibility, formatString, getAppA11yResults, getAppA11yResultsSummary, shouldScanTestForAccessibility, validateCapsWithA11y, validateCapsWithAppA11y, validateCapsWithNonBstackA11y, isBrowserstackSession } from '../../util.js'
+import { _getParamsForAppAccessibility, formatString, getAppA11yResults, getAppA11yResultsSummary, shouldScanTestForAccessibility, validateCapsWithA11y, validateCapsWithAppA11y, validateCapsWithNonBstackA11y, isBrowserstackSession, setBrowserstackAnnotation } from '../../util.js'
 import { AutomationFrameworkConstants } from '../frameworks/constants/automationFrameworkConstants.js'
 import util from 'node:util'
 import type { Accessibility } from '@browserstack/wdio-browserstack-service'
@@ -482,15 +482,7 @@ export default class AccessibilityModule extends BaseModule {
         const autoInstance: AutomationFrameworkInstance = AutomationFramework.getTrackedInstance()
         const browser = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser
 
-        if (this.accessibility && isBrowserstackSession(browser)) {
-            await (browser as WebdriverIO.Browser).execute(`browserstack_executor: ${JSON.stringify({
-                action: 'annotate',
-                arguments: {
-                    data: message,
-                    level: 'info'
-                }
-            })}`)
-        }
+        await setBrowserstackAnnotation(browser, message, this.accessibility)
     }
 
 }
