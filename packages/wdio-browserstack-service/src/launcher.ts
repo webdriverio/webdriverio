@@ -112,6 +112,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config)
+        BStackLogger.debug(`_options data: ${JSON.stringify(_options)}`)
+        BStackLogger.debug(`webdriver capabilities data: ${JSON.stringify(capabilities)}`)
+        BStackLogger.debug(`_config data: ${JSON.stringify(_config)}`)
         if (Array.isArray(capabilities)) {
             capabilities
                 .flatMap((c) => {
