@@ -1,17 +1,42 @@
-import type { StepBodyFunction } from 'allure-js-commons'
-import { Status, AllureCommandStepExecutable } from 'allure-js-commons'
+import type { StepContext } from 'allure-js-commons'
+import {
+    allureId,
+    attachment as allureAttachment,
+    ContentType,
+    description,
+    descriptionHtml,
+    epic,
+    feature,
+    historyId,
+    issue,
+    label,
+    link,
+    owner,
+    parameter,
+    parentSuite,
+    severity,
+    Status,
+    step as allureStep,
+    story,
+    subSuite,
+    suite,
+    tag,
+    testCaseId,
+    tms
+} from 'allure-js-commons'
 import { events } from '../constants.js'
 
+// @ts-ignore
 /**
  * Call reporter
  * @param {string} event  - event name
  * @param {object} msg - event payload
  * @private
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const tellReporter = (event: string, msg: any = {}) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    process.emit(event as any, msg)
+
+// @ts-ignore
+const tellReporter = (event: string, msg: never = {}) => {
+    process.emit(event as never, msg)
 }
 
 /**
@@ -21,7 +46,7 @@ const tellReporter = (event: string, msg: any = {}) => {
  * @param {string} value - label value
  */
 export function addLabel (name: string, value: string) {
-    tellReporter(events.addLabel, { name, value })
+    label(name, value)
 }
 
 /**
@@ -31,8 +56,8 @@ export function addLabel (name: string, value: string) {
  * @param {string} [name] - link name
  * @param {string} [type] - link type
  */
-export function addLink(url: string, name?: string, type?: string) {
-    tellReporter(events.addLink, { url, name, type })
+export async function addLink(url: string, name?: string, type?: string) {
+    await link(url, name, type)
 }
 
 /**
@@ -40,8 +65,8 @@ export function addLink(url: string, name?: string, type?: string) {
  * @name addAllureId
  * @param {string} id - inner allure test ops id
  */
-export function addAllureId(id: string) {
-    tellReporter(events.addAllureId, { id })
+export async function addAllureId(id: string) {
+    await allureId(id)
 }
 
 /**
@@ -49,26 +74,26 @@ export function addAllureId(id: string) {
  * @name addFeature
  * @param {(string)} featureName - feature name or an array of names
  */
-export function addFeature (featureName: string) {
-    tellReporter(events.addFeature, { featureName })
+export async function addFeature (featureName: string) {
+    await feature(featureName)
 }
 
 /**
  * Assign severity to test
  * @name addSeverity
- * @param {string} severity - severity value
+ * @param {string} value - severity value
  */
-export function addSeverity (severity: string) {
-    tellReporter(events.addSeverity, { severity })
+export async function addSeverity (value: string) {
+    await severity(value)
 }
 
 /**
  * Assign issue id to test
  * @name addIssue
- * @param {string} issue - issue id value
+ * @param {string} id - issue id value
  */
-export function addIssue (issue: string) {
-    tellReporter(events.addIssue, { issue })
+export async function addIssue (id: string) {
+    await issue(id)
 }
 
 /**
@@ -76,8 +101,8 @@ export function addIssue (issue: string) {
  * @name addTestId
  * @param {string} testId - test id value
  */
-export function addTestId (testId: string) {
-    tellReporter(events.addTestId, { testId })
+export async function addTestId (testId: string) {
+    await tms(testId)
 }
 
 /**
@@ -85,8 +110,8 @@ export function addTestId (testId: string) {
  * @name addStory
  * @param {string} storyName - story name for test
  */
-export function addStory (storyName: string) {
-    tellReporter(events.addStory, { storyName })
+export async function addStory (storyName: string) {
+    await story(storyName)
 }
 
 /**
@@ -94,8 +119,8 @@ export function addStory (storyName: string) {
  * @name addSuite
  * @param {string} suiteName - story name for test
  */
-export function addSuite(suiteName: string) {
-    tellReporter(events.addSuite, { suiteName })
+export async function addSuite(suiteName: string) {
+    await suite(suiteName)
 }
 
 /**
@@ -103,8 +128,8 @@ export function addSuite(suiteName: string) {
  * @name addParentSuite
  * @param {string} suiteName - suite name
  */
-export function addParentSuite(suiteName: string) {
-    tellReporter(events.addParentSuite, { suiteName })
+export async function addParentSuite(suiteName: string) {
+    await parentSuite(suiteName)
 }
 
 /**
@@ -112,8 +137,8 @@ export function addParentSuite(suiteName: string) {
  * @name addSubSuite
  * @param {string} suiteName - sub-suite name
  */
-export function addSubSuite(suiteName: string) {
-    tellReporter(events.addSubSuite, { suiteName })
+export async function addSubSuite(suiteName: string) {
+    await subSuite(suiteName)
 }
 
 /**
@@ -121,26 +146,26 @@ export function addSubSuite(suiteName: string) {
  * @name addEpic
  * @param {string} epicName - the epic name
  */
-export function addEpic(epicName: string) {
-    tellReporter(events.addEpic, { epicName })
+export async function addEpic(epicName: string) {
+    await epic(epicName)
 }
 
 /**
  * Assign owner label to test
  * @name addOwner
- * @param {string} owner - the owner name
+ * @param {string} ownerName - the owner name
  */
-export function addOwner(owner: string) {
-    tellReporter(events.addOwner, { owner })
+export async function addOwner(ownerName: string) {
+    await owner(ownerName)
 }
 
 /**
  * Assign tag label to test
  * @name addTag
- * @param {string} tag - the tag name
+ * @param {string} tagName - the tag name
  */
-export function addTag(tag: string) {
-    tellReporter(events.addTag, { tag })
+export async function addTag(tagName: string) {
+    await tag(tagName)
 }
 
 /**
@@ -149,18 +174,23 @@ export function addTag(tag: string) {
  * @deprecated addEnvironment is deprecated. Use reportedEnvironmentVars in config instead.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function addEnvironment (name: string, value: string) {
+export async function addEnvironment (name: string, value: string) {
     console.warn('⚠️ addEnvironment is deprecated and has no longer any functionality. Use reportedEnvironmentVars in wdio config instead. Read more in https://webdriver.io/docs/allure-reporter.')
 }
 
 /**
  * Assign test description to test
  * @name addDescription
- * @param {string} description - description for test
+ * @param {string} descriptionText - description for test
  * @param {string} descriptionType - description type 'text'\'html'\'markdown'
  */
-export function addDescription (description: string, descriptionType: string) {
-    tellReporter(events.addDescription, { description, descriptionType })
+export async function addDescription (descriptionText: string, descriptionType?: string) {
+    if (descriptionType === 'html') {
+        await descriptionHtml(descriptionText)
+        return
+    }
+
+    await description(descriptionText)
 }
 
 /**
@@ -168,62 +198,17 @@ export function addDescription (description: string, descriptionType: string) {
  * @name addAttachment
  * @param {string} name         - attachment file name
  * @param {*} content           - attachment content
- * @param {string=} mimeType    - attachment mime type
+ * @param {string=} type        - attachment mime type
  */
-export function addAttachment (name: string, content: string | Buffer | object, type: string) {
-    if (!type) {
-        type = content instanceof Buffer ? 'image/png' : typeof content === 'string' ? 'text/plain' : 'application/json'
-    }
-    tellReporter(events.addAttachment, { name, content, type })
-}
-
-/**
- * Start allure step
- * @name startStep
- * @param {string} title - step name in report
- */
-export function startStep (title: string) {
-    tellReporter(events.startStep, title)
-}
-
-/**
- * End current allure step
- * @name endStep
- * @param {StepStatus} [status='passed'] - step status
- */
-export function endStep (status: Status = Status.PASSED) {
-    if (!Object.values(Status).includes(status)) {
-        throw new Error(`Step status must be ${Object.values(Status).join(' or ')}. You tried to set "${status}"`)
-    }
-    tellReporter(events.endStep, status)
-}
-
-/**
- * Create allure step
- * @name addStep
- * @param {string} title - step name in report
- * @param {object} [attachmentObject={}] - attachment for step
- * @param {string} attachmentObject.content - attachment content
- * @param {string} [attachmentObject.name='attachment'] - attachment name
- * @param {string} [attachmentObject.type='text/plain'] - attachment type
- * @param {string} [status='passed'] - step status
- */
-export function addStep (
-    title: string,
-    {
-        content,
-        name = 'attachment',
-        type = 'text/plain'
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }: any = {},
-    status: Status = Status.PASSED
-) {
-    if (!Object.values(Status).includes(status)) {
-        throw new Error(`Step status must be ${Object.values(Status).join(' or ')}. You tried to set "${status}"`)
+export async function addAttachment (name: string, content: string | Buffer | object, type: string) {
+    if (content instanceof Buffer) {
+        await allureAttachment(name, content, type)
+        return
     }
 
-    const step = content ? { title, attachment: { content, name, type }, status } : { title, status }
-    tellReporter(events.addStep, { step })
+    const contentString = typeof content === 'string' ? content : JSON.stringify(content)
+
+    await allureAttachment(name, contentString, type)
 }
 
 /**
@@ -232,19 +217,104 @@ export function addStep (
  * @param {string} name - argument name
  * @param {string} value - argument value
  */
-export function addArgument (name: string, value: string) {
-    tellReporter(events.addArgument, { name, value })
+export async function addArgument (name: string, value: string) {
+    await parameter(name, value)
 }
 
 /**
+ * Add history id to the test, which won't be re-calculated in the end
+ * @name addHistoryId
+ * @param {string} id - history id
+ */
+export async function addHistoryId (id: string) {
+    await historyId(id)
+}
+
+/**
+ * Add test case id to the test, which won't be re-calculated in the end
+ * @name addTestCaseId
+ * @param {string} id - test case id
+ */
+export async function addTestCaseId (id: string) {
+    await testCaseId(id)
+}
+
+/**
+ * Start allure step
+ * @name startStep
+ * @param {string} title - step name in report
+ */
+export async function startStep (title: string) {
+    // @ts-ignore
+    tellReporter(events.startStep, title)
+}
+
+/**
+ * End current allure step
+ * @name endStep
+ * @param {status} [status='passed'] - step status
+ */
+export async function endStep (status: Status = Status.PASSED) {
+    if (!Object.values(Status).includes(status)) {
+        throw new Error(`Step status must be ${Object.values(Status).join(' or ')}. You tried to set "${status}"`)
+    }
+    // @ts-ignore
+    tellReporter(events.endStep, status)
+}
+
+/**
+ * Create allure step
+ * @name addStep
+ * @param {string} title - step name in report
+ * @param {object} [attachment={}] - attachment for step
+ * @param {string} attachment.content - attachment content
+ * @param {string} [attachment.name='attachment'] - attachment name
+ * @param {string} [attachment.type='text/plain'] - attachment type
+ * @param {string} [status='passed'] - step status
+ */
+export async function addStep (
+    title: string,
+    attachment: { content: string, name?: string, type?: ContentType } | undefined = undefined,
+    status: Status = Status.PASSED
+) {
+    if (!Object.values(Status).includes(status)) {
+        throw new Error(`Step status must be ${Object.values(Status).join(' or ')}. You tried to set "${status}"`)
+    }
+
+    // @ts-ignore
+    tellReporter(events.startStep, title)
+
+    if (attachment?.content) {
+        await allureAttachment(
+            attachment.name || 'Attachment',
+            Buffer.from(attachment.content, 'utf8'),
+            attachment.type || ContentType.TEXT,
+        )
+    }
+
+    // @ts-ignore
+    tellReporter(events.endStep, status)
+}
+
+/**
+/**
  * Starts allure step execution with any content
  * Can be used to generate any hierarchy of steps
+ * @example
+ * ```js
+ * await step("foo", async (context) => {
+ *   await step("bar", async (context) => {
+ *     await step("baz", async (context) => {
+ *       // ...
+ *     })
+ *   })
+ * })
+ * ```
  * @param {string} name - the step name
- * @param {StepBodyFunction} body - the step content function
+ * @param {(context: StepContext) => T | Promise<T>} body - the step content function
  */
-export async function step(name: string, body: StepBodyFunction) {
-    const runningStep = new AllureCommandStepExecutable(name)
-    await runningStep.run(body, async (message) => tellReporter(events.addAllureStep, message))
+export async function step<T = void>(name: string, body: (context: StepContext) => T | Promise<T>): Promise<T> {
+    return allureStep(name, body)
 }
 
 export default {

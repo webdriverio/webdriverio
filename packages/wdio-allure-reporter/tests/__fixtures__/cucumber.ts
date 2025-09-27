@@ -146,6 +146,8 @@ const test = () => ({
     cid: '0-0',
     title: 'I do something',
     fullTitle: 'MyFeature: MyScenario: I do something',
+    file: ['foo', 'bar.feature'].join(sep),
+    parent: 'MyScenario2',
     output: [],
     argument: undefined,
     state: 'pending'
@@ -158,7 +160,9 @@ const test2 = () => ({
     uid: 'I check something4',
     cid: '0-0',
     title: 'I check something',
-    fullTitle: 'MyFeature: MyScenario: I do something',
+    fullTitle: 'MyFeature: MyScenario: I check something',
+    file: ['foo', 'bar.feature'].join(sep),
+    parent: 'MyScenario2',
     output: [],
     argument: undefined,
     state: 'pending'
@@ -171,7 +175,9 @@ const test3 = () => ({
     uid: 'I check something4',
     cid: '0-0',
     title: 'I check something',
-    fullTitle: 'MyFeature: MyScenario: I do something',
+    fullTitle: 'MyFeature: MyScenario: I check something',
+    file: ['foo', 'bar.feature'].join(sep),
+    parent: 'MyScenario2',
     output: [],
     argument: { rows: [{ cells: [] }] },
     state: 'passed'
