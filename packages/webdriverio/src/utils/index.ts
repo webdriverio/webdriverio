@@ -325,7 +325,7 @@ export async function findDeepElement(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isSafari)
+    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isBidi)
     const locator = transformClassicToBidiSelector(using, value)
 
     /**
@@ -391,7 +391,7 @@ export async function findDeepElements(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isSafari)
+    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isBidi)
     const locator = transformClassicToBidiSelector(using, value)
 
     /**
@@ -500,7 +500,7 @@ export async function findElement(
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
-        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isSafari)
+        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isBidi)
         return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
             ? this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value) as unknown as ElementReference
@@ -584,7 +584,7 @@ export async function findElements(
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
-        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isSafari)
+        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isBidi)
         return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
             ? this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value) as unknown as ElementReference[]
