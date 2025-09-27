@@ -29,6 +29,11 @@
       "import": "./build/mergeResults.js",
       "require": "./build/mergeResults.cjs"
     },
+    "./build/mergeResults": {
+      "source": "./src/mergeResults.ts",
+      "import": "./build/mergeResults.js",
+      "require": "./build/mergeResults.cjs"
+    },
     ".": {
       "import": "./build/index.js",
       "types": "./build/index.d.ts"
