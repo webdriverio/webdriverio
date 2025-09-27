@@ -352,10 +352,10 @@ export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabi
 }
 
 /**
- * returns information about the environment when the session is created
- * @param  {Object}  capabilities           caps of session response
- * @param  {Object}  requestedCapabilities
- * @return {Object}                         object with environment flags
+ * Returns information about the environment when the session is created
+ * @param options
+ * @param options.capabilities - caps of session response
+ * @param options.requestedCapabilities
  */
 export function sessionEnvironmentDetector({
     capabilities,
