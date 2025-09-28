@@ -28,10 +28,10 @@
         <img alt="Support Channel" src="https://img.shields.io/discord/1097401827202445382?color=%234FB898&label=Join%20us%20on%20Discord">
     </a>
     <a href="https://github.com/webdriverio/webdriverio/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc">
-        <img alt="Issue Resolution time" src="http://isitmaintained.com/badge/resolution/webdriverio/webdriverio.svg">
+        <img alt="Issue Resolution time" src="https://isitmaintained.com/badge/resolution/webdriverio/webdriverio.svg">
     </a>
     <a href="https://github.com/webdriverio/webdriverio/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc">
-        <img alt="Open issues" src="http://isitmaintained.com/badge/open/webdriverio/webdriverio.svg">
+        <img alt="Open issues" src="https://isitmaintained.com/badge/open/webdriverio/webdriverio.svg">
     </a>
 </p>
 
@@ -48,7 +48,7 @@
 
 ***
 
-WebdriverIO is a test automation framework, for e2e as well as unit and component testing in the browser, that allows you to run tests based on the [WebDriver](https://w3c.github.io/webdriver/webdriver-spec.html) and [WebDriver BiDi](https://github.com/w3c/webdriver-bidi) as well as [Appium](http://appium.io/) automation technology. It provides support for your favorite BDD/TDD test framework and will run your tests locally or in the cloud using Sauce Labs, BrowserStack, TestingBot or LambdaTest.
+WebdriverIO is a test automation framework, for e2e as well as unit and component testing in the browser, that allows you to run tests based on the [WebDriver](https://w3c.github.io/webdriver/webdriver-spec.html) and [WebDriver BiDi](https://github.com/w3c/webdriver-bidi) as well as [Appium](https://appium.io/) automation technology. It provides support for your favorite BDD/TDD test framework and will run your tests locally or in the cloud using Sauce Labs, BrowserStack, TestingBot or LambdaTest.
 
 ## :woman_technologist: :man_technologist: Contributing
 Do you like WebdriverIO and want to help make it better? Awesome! Have a look into our [Contributor Documentation](CONTRIBUTING.md) to get started and find out what contributions can be and how to make them.
@@ -215,6 +215,6 @@ Show the world you're using webdriver.io → [![tested with webdriverio](https:/
 ## :clap:  Supporters
 [![Stargazers repo roster for WebdriverIO](https://reporoster.com/stars/webdriverio/webdriverio)](https://github.com/webdriverio/webdriverio/stargazers)
 [![Forkers repo roster for WebdriverIO](https://reporoster.com/forks/webdriverio/webdriverio)](https://github.com/webdriverio/webdriverio/network/members)
-<p align="center"><a href="https://github.com/webdriverio/webdriverio#nastyox"><img src="http://randojs.com/images/barsSmall.gif" alt="Animated footer bars" width="100%"/></a></p>
+<p align="center"><a href="https://github.com/webdriverio/webdriverio#nastyox"><img src="https://randojs.com/images/barsSmall.gif" alt="Animated footer bars" width="100%"/></a></p>
 <br/>
-<p align="center"><a href="https://github.com/webdriverio/webdriverio#"><img src="http://randojs.com/images/backToTopButton.png" alt="Back to top" height="29"/></a></p>
+<p align="center"><a href="https://github.com/webdriverio/webdriverio#"><img src="https://randojs.com/images/backToTopButton.png" alt="Back to top" height="29"/></a></p>
