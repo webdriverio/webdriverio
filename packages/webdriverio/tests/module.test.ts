@@ -163,6 +163,7 @@ describe('WebdriverIO module interface', () => {
                 isChrome: true,
                 isChromium: true,
                 isFirefox: false,
+                isSafari: false,
                 isIOS: false,
                 isMobile: false,
                 isSauce: false,

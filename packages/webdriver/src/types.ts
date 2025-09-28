@@ -19,6 +19,7 @@ export interface SessionFlags {
     isW3C: boolean
     isChromium: boolean
     isFirefox: boolean
+    isSafari: boolean
     isAndroid: boolean
     isMobile: boolean
     isNativeContext: boolean

@@ -276,7 +276,7 @@ export function elementPromiseHandler <T extends object>(handle: string, shadowR
     }
 }
 
-export function transformClassicToBidiSelector (using: string, value: string): remote.BrowsingContextCssLocator | remote.BrowsingContextXPathLocator | remote.BrowsingContextInnerTextLocator {
+export function transformClassicToBidiSelector ( using: string, value: string): remote.BrowsingContextLocator {
     if (using === 'css selector' || using === 'tag name') {
         return { type: 'css', value }
     }
@@ -291,6 +291,15 @@ export function transformClassicToBidiSelector (using: string, value: string): r
 
     if (using === 'partial link text') {
         return { type: 'innerText', value, matchType: 'partial' }
+    }
+
+    if (using === 'aria') {
+        return {
+            type: 'accessibility',
+            value: {
+                name: value,
+            },
+        }
     }
 
     throw new Error(`Can't transform classic selector ${using} to Bidi selector`)
@@ -316,7 +325,7 @@ export async function findDeepElement(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isBidi)
     const locator = transformClassicToBidiSelector(using, value)
 
     /**
@@ -382,7 +391,7 @@ export async function findDeepElements(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isBidi)
     const locator = transformClassicToBidiSelector(using, value)
 
     /**
@@ -491,7 +500,7 @@ export async function findElement(
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
-        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isBidi)
         return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
             ? this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value) as unknown as ElementReference
@@ -575,7 +584,7 @@ export async function findElements(
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
-        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isBidi)
         return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
             ? this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value) as unknown as ElementReference[]
