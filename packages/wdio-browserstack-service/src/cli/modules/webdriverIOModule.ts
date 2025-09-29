@@ -75,9 +75,7 @@ export default class WebdriverIOModule extends BaseModule {
                 this.logger.warn('onDriverCreated: Missing instance or driver')
                 return
             }
-            // Cast hubUrl to TrackedData - it should be a string
-            const hubUrl = typeof args.hubUrl === 'string' ? args.hubUrl as string : null
-            AutomationFramework.setState(instance, AutomationFrameworkConstants.KEY_HUB_URL, hubUrl)
+            AutomationFramework.setState(instance, AutomationFrameworkConstants.KEY_HUB_URL, args.hubUrl)
 
             // Get session ID from driver
             let sessionId: string | null = null

@@ -12,7 +12,6 @@ import { BStackLogger as logger } from '../cliLogger.js'
 import type { Frameworks } from '@wdio/types'
 import { getGitMetaData, getMochaTestHierarchy, getUniqueIdentifier, isUndefined, removeAnsiColors } from '../../util.js'
 import { TEST_ANALYTICS_ID } from '../../constants.js'
-import type { TrackedData } from '../../types.js'
 
 export default class WdioMochaTestFramework extends TestFramework {
     static KEY_HOOK_LAST_STARTED = 'test_hook_last_started'
@@ -55,7 +54,7 @@ export default class WdioMochaTestFramework extends TestFramework {
                 const test = args.test as Frameworks.Test
                 const testData = await this.getTestData(instance, test)
                 logger.info(`trackEvent: instanceData=${JSON.stringify(Object.fromEntries(instance.getAllData()))}`)
-                instance.updateMultipleEntries(testData as Record<string, TrackedData>)
+                instance.updateMultipleEntries(testData)
             }
 
             if (testFrameworkState === TestFrameworkState.TEST) {
@@ -150,13 +149,12 @@ export default class WdioMochaTestFramework extends TestFramework {
 
     async getTestData(instance: TestFrameworkInstance, test: Frameworks.Test) {
         const framework = TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_FRAMEWORK_NAME)
-        const frameworkName = typeof framework === 'string' ? framework : undefined
-        const fullTitle = getUniqueIdentifier(test, frameworkName)
+        const fullTitle = getUniqueIdentifier(test, framework)
         const gitConfig = await getGitMetaData()
         const filename = test.file // || this._suiteFile
 
         const testData: Record<string, unknown> = {
-            [TestFrameworkConstants.KEY_TEST_ID]: getUniqueIdentifier(test, frameworkName),
+            [TestFrameworkConstants.KEY_TEST_ID]: getUniqueIdentifier(test, framework),
             [TestFrameworkConstants.KEY_TEST_NAME]: test.title || test.description,
             [TestFrameworkConstants.KEY_TEST_CODE]: test.body || '',
             [TestFrameworkConstants.KEY_TEST_FILE_PATH]: (gitConfig?.root && filename) ? path.relative(gitConfig.root, filename) : undefined,
@@ -368,7 +366,7 @@ export default class WdioMochaTestFramework extends TestFramework {
             }
         }
 
-        instance.updateMultipleEntries(updates as Record<string, TrackedData>)
+        instance.updateMultipleEntries(updates)
         logger.info(`trackHookEvents: hook state=${key}.${hookState}, hooks started=${JSON.stringify(hooksStarted)}, hooks finished=${JSON.stringify(hooksFinished)}`)
     }
 }

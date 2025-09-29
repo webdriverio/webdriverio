@@ -114,13 +114,17 @@ export class CLIUtils {
                 Object.keys(capability)
                     .filter((key) => (key !== 'bstack:options'))
                     .forEach((key) => {
-                        platform[key] = capability[key]
+                        if (binconfig[key] === undefined) {
+                            platform[key] = capability[key]
+                        }
                     })
 
                 if (capability['bstack:options']) {
                     Object.keys(capability['bstack:options'] as Record<string, unknown>)
                         .forEach((key) => {
-                            platform[key] = (capability['bstack:options'] as Record<string, unknown>)[key]
+                            if (binconfig[key] === undefined) {
+                                platform[key] = (capability['bstack:options'] as Record<string, unknown>)[key]
+                            }
                         })
                 }
                 (binconfig.platforms as Array<unknown>).push(platform)

@@ -5,7 +5,6 @@ import TrackedInstance from '../instances/trackedInstance.js'
 import type AutomationFrameworkInstance from '../instances/automationFrameworkInstance.js'
 import type TrackedContext from '../instances/trackedContext.js'
 import { AutomationFrameworkConstants } from './constants/automationFrameworkConstants.js'
-import type { TrackedData } from '../../types.js'
 
 /**
  * AutomationFramework - Automation Framework abstract class
@@ -105,7 +104,7 @@ export default class AutomationFramework {
    * @param {*} value - The value
    * @returns
    */
-    static setState(instance: AutomationFrameworkInstance, key: string, value: TrackedData) {
+    static setState(instance: AutomationFrameworkInstance, key: string, value: unknown) {
         instance.getAllData().set(key, value)
     }
 
@@ -120,8 +119,7 @@ export default class AutomationFramework {
     }
 
     static isAutomationSession(instance: AutomationFrameworkInstance): boolean {
-        const value = AutomationFramework.getState(instance, AutomationFrameworkConstants.KEY_IS_BROWSERSTACK_HUB)
-        return Boolean(value)
+        return AutomationFramework.getState(instance, AutomationFrameworkConstants.KEY_IS_BROWSERSTACK_HUB)
     }
 
     /**
@@ -129,7 +127,7 @@ export default class AutomationFramework {
      * @param {AutomationFrameworkInstance} instance - The automation framework instance
      * @param {*} driver - The driver object
      */
-    static setDriver(instance: AutomationFrameworkInstance, driver: TrackedData): void {
+    static setDriver(instance: AutomationFrameworkInstance, driver: unknown): void {
         if (this.isAutomationSession(instance)) {
             AutomationFramework.setState(instance, AutomationFramework.KEY_AUTOMATION_SESSIONS, driver)
         } else {

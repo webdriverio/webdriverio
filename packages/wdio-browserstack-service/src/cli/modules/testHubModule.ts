@@ -15,7 +15,6 @@ import WdioMochaTestFramework from '../frameworks/wdioMochaTestFramework.js'
 import type AutomationFrameworkInstance from '../instances/automationFrameworkInstance.js'
 import AutomationFramework from '../frameworks/automationFramework.js'
 import { AutomationFrameworkConstants } from '../frameworks/constants/automationFrameworkConstants.js'
-import { isString } from '../../types.js'
 
 /**
  * TestHub Module for BrowserStack
@@ -104,22 +103,16 @@ export default class TestHubModule extends BaseModule {
             const instance = testArgs.instance as TestFrameworkInstance
             const trackedContext = instance.getContext()
             const testData = instance.getAllData()
-            const testFrameworkNameData = testData.get(TestFrameworkConstants.KEY_TEST_FRAMEWORK_NAME)
-            const testFrameworkVersionData = testData.get(TestFrameworkConstants.KEY_TEST_FRAMEWORK_VERSION)
-            const startedAtData = testData.get(TestFrameworkConstants.KEY_TEST_STARTED_AT)
-            const endedAtData = testData.get(TestFrameworkConstants.KEY_TEST_ENDED_AT)
-
-            const testFrameworkName = isString(testFrameworkNameData) ? testFrameworkNameData : ''
-            const testFrameworkVersion = isString(testFrameworkVersionData) ? testFrameworkVersionData : ''
-            const startedAt = isString(startedAtData) ? startedAtData : ''
-            const endedAt = isString(endedAtData) ? endedAtData : ''
+            const testFrameworkName = testData.get(TestFrameworkConstants.KEY_TEST_FRAMEWORK_NAME) || ''
+            const testFrameworkVersion = testData.get(TestFrameworkConstants.KEY_TEST_FRAMEWORK_VERSION) || ''
+            const startedAt = testData.get(TestFrameworkConstants.KEY_TEST_STARTED_AT) || ''
+            const endedAt = testData.get(TestFrameworkConstants.KEY_TEST_ENDED_AT) || ''
             const testFrameworkState = instance.getCurrentTestState().toString().split('.')[1]
             const testHookState = instance.getCurrentHookState().toString().split('.')[1]
 
             this.logger.debug(`sendTestFrameworkEvent for testState: ${testFrameworkState} hookState: ${testHookState}`)
             const platformIndex = process.env.WDIO_WORKER_ID ? parseInt(process.env.WDIO_WORKER_ID.split('-')[0]) : 0
-            const uuidData = TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_UUID)
-            const uuid = isString(uuidData) ? uuidData : instance.getRef().toString()
+            const uuid = TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_UUID) || instance.getRef()
             const eventJson = Buffer.from(JSON.stringify(Object.fromEntries(testData)))
             const executionContext = { hash: trackedContext.getId(), threadId: trackedContext.getThreadId().toString(), processId: trackedContext.getProcessId().toString() }
             const payload: Omit<TestFrameworkEventRequest, 'binSessionId'> = {
@@ -168,7 +161,7 @@ export default class TestHubModule extends BaseModule {
                 testFrameworkVersion: testFWVersion,
                 testFrameworkState: testState.toString(),
                 testHookState: hookState.toString(),
-                testUuid: TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_UUID)?.toString() || '',
+                testUuid: TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_UUID).toString(),
                 executionContext,
                 automationSessions: [],
                 platformIndex: process.env.WDIO_WORKER_ID ? parseInt(process.env.WDIO_WORKER_ID.split('-')[0]) : 0,
@@ -202,7 +195,7 @@ export default class TestHubModule extends BaseModule {
                     frameworkSessionId: AutomationFramework.getState(
                         autoInstance,
                         AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID,
-                    )?.toString() || '',
+                    ).toString(),
                     frameworkName: autoInstance.frameworkName,
                     frameworkVersion: autoInstance.frameworkVersion
                 }
@@ -228,11 +221,8 @@ export default class TestHubModule extends BaseModule {
             const instance = testArgs.instance as TestFrameworkInstance
             const trackedContext = instance.getContext()
             const testData = instance.getAllData()
-            const testFrameworkNameData = testData.get(TestFrameworkConstants.KEY_TEST_FRAMEWORK_NAME)
-            const testFrameworkVersionData = testData.get(TestFrameworkConstants.KEY_TEST_FRAMEWORK_VERSION)
-
-            const testFrameworkName = isString(testFrameworkNameData) ? testFrameworkNameData : ''
-            const testFrameworkVersion = isString(testFrameworkVersionData) ? testFrameworkVersionData : ''
+            const testFrameworkName = testData.get(TestFrameworkConstants.KEY_TEST_FRAMEWORK_NAME) || ''
+            const testFrameworkVersion = testData.get(TestFrameworkConstants.KEY_TEST_FRAMEWORK_VERSION) || ''
             const testFrameworkState = instance.getCurrentTestState().toString().split('.')[1]
             const testHookState = instance.getCurrentHookState().toString().split('.')[1]
 
@@ -245,16 +235,12 @@ export default class TestHubModule extends BaseModule {
                 executionContext
             }
             for (const logEntry of logEntries) {
-                const hookId = logEntry[TestFrameworkConstants.KEY_HOOK_ID]
-                const testUuidData = TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_UUID)
-                const uuid = (typeof hookId === 'string' && hookId) ? hookId : (isString(testUuidData) ? testUuidData : '')
-
                 // eslint-disable-next-line camelcase
                 const logData: LogCreatedEventRequest_LogEntry = {
                     testFrameworkName,
                     testFrameworkVersion,
                     testFrameworkState,
-                    uuid,
+                    uuid: logEntry[TestFrameworkConstants.KEY_HOOK_ID] || TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_UUID),
                     kind: logEntry.kind as string,
                     message: logEntry.message as Uint8Array,
                     timestamp: logEntry.timestamp as string,

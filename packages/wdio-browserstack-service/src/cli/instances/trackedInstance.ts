@@ -1,11 +1,10 @@
 import TrackedContext from './trackedContext.js'
 import crypto from 'node:crypto'
 import { threadId } from 'node:worker_threads'
-import type { TrackedData } from '../../types.js'
 
 export default class TrackedInstance {
     #context: TrackedContext
-    #data: Map<string, TrackedData>
+    #data: Map<string, any>
 
     /**
    * create TrackedInstance
@@ -45,13 +44,13 @@ export default class TrackedInstance {
    * @param {*} key
    * @param {*} value
    */
-    updateMultipleEntries(entries: Record<string, TrackedData>) {
+    updateMultipleEntries(entries: Record<string, any>) {
         Object.keys(entries).forEach(key => {
             this.#data.set(key, entries[key])
         })
     }
 
-    updateData(key: string, value: TrackedData) {
+    updateData(key: string, value: any) {
         this.#data.set(key, value)
     }
 

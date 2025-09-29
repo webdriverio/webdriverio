@@ -3,23 +3,6 @@ import type { Options as BSOptions } from 'browserstack-local'
 
 export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<unknown>
 
-// Union type for all possible data types stored in TrackedInstance
-export type TrackedData = string | number | boolean | WebdriverIO.Capabilities | WebdriverIO.Browser | Map<string, unknown> | Array<unknown> | Record<string, unknown> | null | undefined
-
-// Type guard functions for TrackedData
-export const isString = (value: TrackedData): value is string => typeof value === 'string'
-export const isNumber = (value: TrackedData): value is number => typeof value === 'number'
-export const isBoolean = (value: TrackedData): value is boolean => typeof value === 'boolean'
-export const isCapabilities = (value: TrackedData): value is WebdriverIO.Capabilities =>
-    value !== null && value !== undefined && typeof value === 'object' && !Array.isArray(value) &&
-    !(value instanceof Map) && ('browserName' in value || 'platformName' in value || 'browserVersion' in value)
-export const isBrowser = (value: TrackedData): value is WebdriverIO.Browser =>
-    value !== null && value !== undefined && typeof value === 'object' && 'sessionId' in value && 'capabilities' in value
-export const isMap = (value: TrackedData): value is Map<string, unknown> => value instanceof Map
-export const isArray = (value: TrackedData): value is Array<unknown> => Array.isArray(value)
-export const isRecord = (value: TrackedData): value is Record<string, unknown> =>
-    value !== null && value !== undefined && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Map)
-export const isDefined = (value: TrackedData): value is NonNullable<TrackedData> => value !== null && value !== undefined
 
 export type AppConfig = {
     id?: string,

@@ -14,7 +14,6 @@ import * as PERFORMANCE_SDK_EVENTS from '../../instrumentation/performance/const
 import APIUtils from '../apiUtils.js'
 import { AutomationFrameworkState } from '../states/automationFrameworkState.js'
 import { _fetch as fetch } from '../../fetchWrapper.js'
-import { isCapabilities, isString } from '../../types.js'
 
 import util from 'node:util'
 
@@ -71,14 +70,12 @@ export default class AutomateModule extends BaseModule {
         let name = suiteTitle
         if (testContextOptions.sessionNameFormat) {
             const caps = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_CAPABILITIES)
-            if (isCapabilities(caps)) {
-                name = testContextOptions.sessionNameFormat(
-                    this.browserStackConfig,
-                    caps,
-                    suiteTitle,
-                    testTitle
-                )
-            }
+            name = testContextOptions.sessionNameFormat(
+                this.browserStackConfig,
+                caps,
+                suiteTitle,
+                testTitle
+            )
         } else if (test && !test.fullName) {
             // Mocha
             const pre = testContextOptions.sessionNamePrependTopLevelSuiteTitle ? `${suiteTitle} - ` : ''
@@ -86,17 +83,15 @@ export default class AutomateModule extends BaseModule {
             name = `${pre}${test.parent}${post}`
         }
 
-        if (isString(sessionId)) {
-            const existingSession = this.sessionMap.get(sessionId)
-            if (!existingSession) {
-                this.sessionMap.set(sessionId, {
-                    lastTestName: name,
-                    testResults: new Map()
-                })
-            } else {
-                existingSession.lastTestName = name
-                this.sessionMap.set(sessionId, existingSession)
-            }
+        const existingSession = this.sessionMap.get(sessionId)
+        if (!existingSession) {
+            this.sessionMap.set(sessionId, {
+                lastTestName: name,
+                testResults: new Map()
+            })
+        } else {
+            existingSession.lastTestName = name
+            this.sessionMap.set(sessionId, existingSession)
         }
 
         TestFramework.setState(instace, TestFrameworkConstants.KEY_AUTOMATE_SESSION_NAME, name)
@@ -131,14 +126,12 @@ export default class AutomateModule extends BaseModule {
         let name = suiteTitle
         if (testContextOptions.sessionNameFormat) {
             const caps = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_CAPABILITIES)
-            if (isCapabilities(caps)) {
-                name = testContextOptions.sessionNameFormat(
-                    this.browserStackConfig,
-                    caps,
-                    suiteTitle,
-                    testTitle
-                )
-            }
+            name = testContextOptions.sessionNameFormat(
+                this.browserStackConfig,
+                caps,
+                suiteTitle,
+                testTitle
+            )
         } else if (test && !test.fullName) {
             // Mocha
             const pre = testContextOptions.sessionNamePrependTopLevelSuiteTitle ? `${suiteTitle} - ` : ''
@@ -146,18 +139,16 @@ export default class AutomateModule extends BaseModule {
             name = `${pre}${test.parent}${post}`
         }
 
-        if (isString(sessionId)) {
-            const sessionData = this.sessionMap.get(sessionId)
-            if (sessionData) {
-                const testResult: TestResult = {
-                    testName: name,
-                    status: status,
-                    reason: reason
-                }
-
-                sessionData.testResults.set(name, testResult)
-                this.sessionMap.set(sessionId, sessionData)
+        const sessionData = this.sessionMap.get(sessionId)
+        if (sessionData) {
+            const testResult: TestResult = {
+                testName: name,
+                status: status,
+                reason: reason
             }
+
+            sessionData.testResults.set(name, testResult)
+            this.sessionMap.set(sessionId, sessionData)
         }
 
         TestFramework.setState(instace, TestFrameworkConstants.KEY_AUTOMATE_SESSION_STATUS, status)
