@@ -20,22 +20,24 @@ These docs leave out Safari web extensions as their support for it is way behind
 Loading a web extension in Chrome can be done through providing a `base64` encoded string of the `crx` file or by providing a path to the web extension folder. The easiest is just to do the latter by defining your Chrome capabilities as following:
 
 ```js wdio.conf.js
+// @ts-check
 import path from 'node:path'
 import url from 'node:url'
+import { defineConfig } from '@wdio/config'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
-export const config = {
+export const config = defineConfig({
     // ...
     capabilities: [{
-        browserName,
+        browserName: 'chrome',
         'goog:chromeOptions': {
             // given your wdio.conf.js is in the root directory and your compiled
             // web extension files are located in the `./dist` folder
             args: [`--load-extension=${path.join(__dirname, '..', '..', 'dist')}`]
         }
     }]
-}
+})
 ```
 
 :::info
@@ -47,22 +49,25 @@ If you automate a different browser than Chrome, e.g. Brave, Edge or Opera, chan
 If you compile your extension as `.crx` file using e.g. the [crx](https://www.npmjs.com/package/crx) NPM package, you can also inject the bundled extension via:
 
 ```js wdio.conf.js
+// @ts-check
+import fs from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
+import { defineConfig } from '@wdio/config'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const extPath = path.join(__dirname, `web-extension-chrome.crx`)
-const chromeExtension = (await fs.readFile(extPath)).toString('base64')
+const extPath = path.join(__dirname, 'web-extension-chrome.crx')
+const chromeExtension = fs.readFileSync(extPath).toString('base64')
 
-export const config = {
+export const config = defineConfig({
     // ...
     capabilities: [{
-        browserName,
+        browserName: 'chrome',
         'goog:chromeOptions': {
             extensions: [chromeExtension]
         }
     }]
-}
+})
 ```
 
 ### Firefox
@@ -70,22 +75,25 @@ export const config = {
 To create a Firefox profile that includes extensions you can use the [Firefox Profile Service](/docs/firefox-profile-service) to set up your session accordingly. However you might run into issues where your local developed extension can't be loaded due to signing issues. In this case you can also load an extension in the `before` hook via the [`installAddOn`](/docs/api/gecko#installaddon) command, e.g.:
 
 ```js wdio.conf.js
+// @ts-check
+import fs from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
+import { defineConfig } from '@wdio/config'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const extensionPath = path.resolve(__dirname, `web-extension.xpi`)
+const extensionPath = path.resolve(__dirname, 'web-extension.xpi')
 
-export const config = {
+export const config = defineConfig({
     // ...
     before: async (capabilities) => {
-        const browserName = (capabilities as WebdriverIO.Capabilities).browserName
+        const browserName = capabilities.browserName
         if (browserName === 'firefox') {
-            const extension = await fs.readFile(extensionPath)
+            const extension = fs.readFileSync(extensionPath)
             await browser.installAddOn(extension.toString('base64'), true)
         }
     }
-}
+})
 ```
 
 In order to generate an `.xpi` file, it is recommended to use the [`web-ext`](https://www.npmjs.com/package/web-ext) NPM package. You can bundle your extension using the following example command:
@@ -136,17 +144,19 @@ declare global {
 
 In your `wdio.conf.js` you can import this file and register the custom command in your `before` hook, e.g.:
 
-```ts wdio.conf.ts
+```js wdio.conf.js
+// @ts-check
 import { browser } from '@wdio/globals'
+import { defineConfig } from '@wdio/config'
 
 import { openExtensionPopup } from './support/customCommands'
 
-export const config: WebdriverIO.Config = {
-  // ...
-  before: () => {
-    browser.addCommand('openExtensionPopup', openExtensionPopup)
-  }
-}
+export const config = defineConfig({
+    // ...
+    before: () => {
+        browser.addCommand('openExtensionPopup', openExtensionPopup)
+    }
+})
 ```
 
 Now, in your test, you can access the popup page via:
