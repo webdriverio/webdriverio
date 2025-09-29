@@ -2,7 +2,8 @@ import url from 'node:url'
 import path from 'node:path'
 import util, { promisify } from 'node:util'
 import fs from 'node:fs/promises'
-import { execSync,  } from 'node:child_process'
+import type { SpawnOptions } from 'node:child_process'
+import { execSync, } from 'node:child_process'
 import readDir from 'recursive-readdir'
 
 import { $ } from 'execa'
@@ -13,11 +14,18 @@ import { EjsHelpers } from './templates/EjsHelpers.js'
 import inquirer from 'inquirer'
 
 import ejs from 'ejs'
-import type { SpawnOptions } from 'node:child_process'
 
 import spawn from 'cross-spawn'
 
-import { COMMUNITY_PACKAGES_WITH_TS_SUPPORT, DEPENDENCIES_INSTALLATION_MESSAGE, pkg, SUPPORTED_PACKAGE_MANAGERS, QUESTIONNAIRE, TESTING_LIBRARY_PACKAGES, usesSerenity } from './constants.js'
+import {
+    COMMUNITY_PACKAGES_WITH_TS_SUPPORT,
+    DEPENDENCIES_INSTALLATION_MESSAGE,
+    pkg,
+    QUESTIONNAIRE,
+    SUPPORTED_PACKAGE_MANAGERS,
+    TESTING_LIBRARY_PACKAGES,
+    usesSerenity
+} from './constants.js'
 import type { ParsedAnswers, ProjectProps, Questionnair, SupportedPackage } from './types.js'
 import chalk from 'chalk'
 import { getInstallCommand, installPackages } from './install.js'
@@ -290,17 +298,17 @@ export async function createPackageJSON(parsedAnswers: ParsedAnswers) {
  */
 export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     /**
-     * don't create a `tsconfig.json` if user doesn't want to use TypeScript
+     * don't create a `tsconfig.wdio.json` if user doesn't want to use TypeScript
      */
     if (!parsedAnswers.isUsingTypeScript) {
         return
     }
 
     /**
-     * don't set up TypeScript if a `tsconfig.json` already exists but ensure we install `tsx`
+     * don't set up TypeScript if a `tsconfig.wdio.json` already exists but ensure we install `tsx`
      * as it is a requirement for running tests with TypeScript
      */
-    if (parsedAnswers.hasRootTSConfig) {
+    if (parsedAnswers.hasRootTSWdioConfig) {
         return
     }
 
@@ -698,8 +706,7 @@ export async function detectCompiler(answers: Questionnair) {
     }
 
     const root = await getProjectRoot(answers)
-    const hasRootTSConfig = await fs.access(path.resolve(root, 'tsconfig.json')).then(() => true, () => false)
-    return hasRootTSConfig
+    return await fs.access(path.resolve(root, 'tsconfig.json')).then(() => true, () => false)
 }
 
 const VERSION_REGEXP = /(\d+)\.(\d+)\.(\d+)-(alpha|beta|)\.(\d+)\+(.+)/g
