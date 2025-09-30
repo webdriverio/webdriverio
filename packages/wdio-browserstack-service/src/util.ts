@@ -1034,6 +1034,28 @@ export function isBrowserstackSession(browser?: WebdriverIO.Browser | WebdriverI
     return browser && getCloudProvider(browser).toLowerCase() === 'browserstack'
 }
 
+/**
+ * Sets a BrowserStack annotation with the provided message
+ * @param browser - The WebDriver browser instance
+ * @param message - The annotation message to set
+ * @param isAccessibilityEnabled - Whether accessibility is enabled for the session
+ */
+export async function setBrowserstackAnnotation(
+    browser: WebdriverIO.Browser,
+    message: string,
+    isAccessibilityEnabled: boolean
+): Promise<void> {
+    if (isAccessibilityEnabled && isBrowserstackSession(browser)) {
+        await browser.execute(`browserstack_executor: ${JSON.stringify({
+            action: 'annotate',
+            arguments: {
+                data: message,
+                level: 'info'
+            }
+        })}`)
+    }
+}
+
 export function getScenarioExamples(world: ITestCaseHookParameter) {
     const scenario = world.pickle
 
