@@ -3,7 +3,6 @@ import type { Options as BSOptions } from 'browserstack-local'
 
 export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<unknown>
 
-
 export type AppConfig = {
     id?: string,
     path?: string,

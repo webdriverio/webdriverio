@@ -42,13 +42,13 @@ export default class PercyModule extends BaseModule {
             this.logger.error('PercyModule: Browser instance is not defined in onAfterCreate')
             return
         }
-        if (!this.percyConfig || !(this.percyConfig as any).percyCaptureMode) {
+        if (!this.percyConfig || !(this.percyConfig as Record<string, unknown>).percyCaptureMode) {
             this.logger.warn('PercyModule: Percy capture mode is not defined in the configuration, skipping Percy initialization')
             return
         }
         this.isAppAutomate = this.isAppAutomate || 'app' in this.config
         this.percyHandler = new PercyHandler(
-            (this.percyConfig as any).percyCaptureMode,
+            (this.percyConfig as Record<string, unknown>).percyCaptureMode as string,
             this.browser,
             {} as Capabilities.ResolvedTestrunnerCapabilities,
             this.isAppAutomate,
@@ -86,7 +86,7 @@ export default class PercyModule extends BaseModule {
                 this.logger.warn('PercyModule: Percy handler is not initialized, skipping post execute actions')
                 return
             }
-            if ((this.percyConfig as any).percyCaptureMode === 'testcase') {
+            if ((this.percyConfig as Record<string, unknown>).percyCaptureMode === 'testcase') {
                 await this.percyHandler.percyAutoCapture('testcase', null)
             }
             await this.percyHandler.teardown()
