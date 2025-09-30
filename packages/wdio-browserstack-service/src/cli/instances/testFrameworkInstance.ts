@@ -4,11 +4,6 @@ import { TestFrameworkState } from '../states/testFrameworkState.js'
 import TrackedInstance from './trackedInstance.js'
 import type TrackedContext from './trackedContext.js'
 
-type State = {
-    value: number
-    toString(): string
-}
-
 const now = new Date()
 
 export default class TestFrameworkInstance extends TrackedInstance {

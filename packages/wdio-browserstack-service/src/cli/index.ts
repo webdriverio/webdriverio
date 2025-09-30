@@ -25,43 +25,6 @@ import type { BrowserstackConfig, BrowserstackOptions, LaunchResponse } from '..
 import PercyModule from './modules/percyModule.js'
 import APIUtils from './apiUtils.js'
 
-interface GRRUrls {
-    automate: {
-        hub: string
-        cdp: string
-        api: string
-        upload: string
-    }
-    appAutomate: {
-        hub: string
-        cdp: string
-        api: string
-        upload: string
-    }
-    percy: {
-        api: string
-    }
-    turboScale: {
-        api: string
-    }
-    accessibility: {
-        api: string
-    }
-    appAccessibility: {
-        api: string
-    }
-    observability: {
-        api: string
-        upload: string
-    }
-    configServer: {
-        api: string
-    }
-    edsInstrumentation: {
-        api: string
-    }
-}
-
 /**
  * BrowserstackCLI - Singleton class for managing CLI operations
  *

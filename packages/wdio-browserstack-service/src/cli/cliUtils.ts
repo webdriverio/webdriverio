@@ -33,11 +33,6 @@ import type { BrowserstackConfig, BrowserstackOptions, TestObservabilityOptions 
 import { TestFrameworkConstants } from './frameworks/constants/testFrameworkConstants.js'
 import APIUtils from './apiUtils.js'
 
-type State = {
-    value: number
-    toString(): string
-}
-
 export class CLIUtils {
     static automationFrameworkDetail = {}
     static testFrameworkDetail = {}
