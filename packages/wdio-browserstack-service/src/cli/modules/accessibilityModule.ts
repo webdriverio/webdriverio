@@ -9,8 +9,9 @@ import type TestFrameworkInstance from '../instances/testFrameworkInstance.js'
 import { TestFrameworkState } from '../states/testFrameworkState.js'
 import { AutomationFrameworkState } from '../states/automationFrameworkState.js'
 import { HookState } from '../states/hookState.js'
+import type { Command } from '../../scripts/accessibility-scripts.js'
 import accessibilityScripts from '../../scripts/accessibility-scripts.js'
-import { _getParamsForAppAccessibility, formatString, getAppA11yResults, getAppA11yResultsSummary, shouldScanTestForAccessibility, validateCapsWithA11y, validateCapsWithAppA11y, validateCapsWithNonBstackA11y, isBrowserstackSession } from '../../util.js'
+import { _getParamsForAppAccessibility, formatString, getAppA11yResults, getAppA11yResultsSummary, shouldScanTestForAccessibility, validateCapsWithA11y, validateCapsWithAppA11y, isBrowserstackSession } from '../../util.js'
 import { AutomationFrameworkConstants } from '../frameworks/constants/automationFrameworkConstants.js'
 import util from 'node:util'
 import type { Accessibility } from '@browserstack/wdio-browserstack-service'
@@ -151,7 +152,7 @@ export default class AccessibilityModule extends BaseModule {
         }
     }
 
-    private async commandWrapper(command: any, originFunction: Function, ...args: any[]) {
+    private async commandWrapper(command: Command, originFunction: Function, ...args: unknown[]) {
         try {
             const autoInstance: AutomationFrameworkInstance = AutomationFramework.getTrackedInstance()
             const sessionId = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID)
@@ -162,7 +163,7 @@ export default class AccessibilityModule extends BaseModule {
                 // Perform accessibility scan before command if script is available
                 if (
                     !command.name.includes('execute') ||
-                    !this.shouldPatchExecuteScript(args.length ? args[0] : null)
+                    !this.shouldPatchExecuteScript(args.length ? args[0] as string : null)
                 ) {
                     try {
                         await this.performScanCli(browser, command.name)
