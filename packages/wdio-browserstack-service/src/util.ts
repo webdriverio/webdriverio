@@ -856,7 +856,7 @@ export function getCiInfo () {
     if (env.AZURE_HTTP_USER_AGENT && env.TF_BUILD) {
         return {
             name: 'Azure CI',
-            build_url: `${env.SYSTEM_TEAMFOUNDATIONSERVERURI}${env.SYSTEM_TEAMPROJECT}/_build/results?buildId=${env.BUILD_BUILDID}`,
+            build_url: `${env.SYSTEM_TEAMFOUNDATIONSERVERURI}${env.SYSTEM_TEAMPROJECTID}`,
             job_name: env.BUILD_BUILDID,
             build_number: env.BUILD_BUILDID
         }
@@ -1214,7 +1214,7 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
         })
         BStackLogger.debug(`[${kind}] Success response: ${JSON.stringify(await response.json())}`)
     } catch (error) {
-        BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)
+        BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST REPORTING AND ANALYTICS : ${error}`)
         throw new Error('Exception in request ' + error)
     }
 }

@@ -40,11 +40,11 @@ const config: Config = {
             'ar',
             'de',
             'es',
-            'fa',
+            // 'fa', => 3 backticks are added on line 5 which breaks the markdown parser
             'fr',
             'hi',
             'it',
-            'ja',
+            // 'ja', => links will break, they are also translated
             'ko',
             'pl',
             'pt',

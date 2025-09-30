@@ -96,6 +96,35 @@ export function testFailedWithAssertionErrorFromExpectWebdriverIO() {
     return Object.assign(testState(), { errors, error, state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
 }
 
+export function testFailedWithHtmlEntities() {
+    const errors =
+    [
+        {
+            // Example is borrowed from testing-library
+            message: `Found multiple elements with the role "list" and name \`/.*/\`·
+Here are the matching elements:·
+Ignored nodes: comments, script, style
+<ul
+  class="some class"
+>`,
+            name: 'Error',
+            stack: '<span>some more html</span>'
+        }
+    ]
+    const error =
+        {
+            message: `Found multiple elements with the role "list" and name \`/.*/\`·
+Here are the matching elements:·
+Ignored nodes: comments, script, style
+<ul
+  class="some class"
+>`,
+            name: 'Error',
+            stack: '<span>some more</span> html'
+        }
+    return Object.assign(testState(), { errors, error, state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
+}
+
 export function testPending() {
     return Object.assign(testState(), { state: 'pending', end: '2018-05-14T15:17:21.631Z', _duration: 0 })
 }
@@ -140,6 +169,22 @@ export function hookFailed(): WDIOReporter.Hook {
         stack: 'Error: element ("body") still existing after 100ms',
         type: 'Error',
     }
+    return Object.assign(allHookState(), { error, errors: [error], state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
+}
+
+export function hookFailedWithHtmlEntities(): WDIOReporter.Hook {
+    const error =
+        {
+            message: `Found multiple elements with the role "list" and name \`/.*/\`·
+Here are the matching elements:·
+Ignored nodes: comments, script, style
+<ul
+  class="some class"
+>`,
+            name: 'Error',
+            stack: '<span>some more</span> html'
+        }
+
     return Object.assign(allHookState(), { error, errors: [error], state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
 }
 

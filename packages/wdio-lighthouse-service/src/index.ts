@@ -155,9 +155,11 @@ export default class DevToolsService implements Services.ServiceInstance {
             this._command.push(cmd)
         }
 
-        this._browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
-        this._browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
-        this._browser.addCommand('checkPWA', this._checkPWA.bind(this))
+        // Casting help targeting the non deprecated overload function */
+        const browser = this._browser as WebdriverIO.Browser
+        browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this), {})
+        browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this), {})
+        browser.addCommand('checkPWA', this._checkPWA.bind(this), {})
     }
 }
 

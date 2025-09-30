@@ -638,6 +638,11 @@ describe('onComplete', () => {
     it('should reject with an error, if local.stop throws an error', () => {
         const service = new BrowserstackLauncher({} as any, [{ browserName: '' }] as any, {} as any)
         service.browserstackLocal = new Local()
+
+        // Ensure isRunning returns true for this instance
+        const BrowserstackLocalIsRunningSpy = vi.spyOn(service.browserstackLocal, 'isRunning')
+        BrowserstackLocalIsRunningSpy.mockImplementationOnce(() => true)
+
         const BrowserstackLocalStopSpy = vi.spyOn(service.browserstackLocal, 'stop')
         BrowserstackLocalStopSpy.mockImplementationOnce((cb) => cb(error))
         return expect(service.onComplete()).rejects.toThrow(error)

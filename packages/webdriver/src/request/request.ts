@@ -138,10 +138,7 @@ export abstract class WebDriverRequest {
                 ...(dispatcher ? { dispatcher } : {})
             })
 
-            return {
-                statusCode: response.status,
-                body: await response.json() ?? {},
-            } satisfies Options.RequestLibResponse
+            return await this.parseResponse(response)
         } catch (err) {
             if (!(err instanceof Error)) {
                 throw new WebDriverRequestError(
@@ -152,6 +149,23 @@ export abstract class WebDriverRequest {
             }
 
             throw new WebDriverRequestError(err, url, opts)
+        }
+    }
+
+    private async parseResponse (response: Response): Promise<Options.RequestLibResponse> {
+        const rawBody = await response.text()
+        try {
+            return {
+                statusCode: response.status,
+                body: rawBody ? JSON.parse(rawBody) : {},
+            } satisfies Options.RequestLibResponse
+        } catch {
+            throw new Error(`Could not parse response body: "${rawBody}"`, {
+                cause: {
+                    statusCode: response.status,
+                    body: rawBody
+                }
+            })
         }
     }
 

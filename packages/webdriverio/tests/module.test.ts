@@ -171,6 +171,25 @@ describe('WebdriverIO module interface', () => {
                 isMacApp: false,
             })
         })
+
+        it('should use the element disable implicitWait exclusion list', async () => {
+            await remote({
+                automationProtocol: 'webdriver',
+                capabilities: { browserName: 'chrome' }
+            })
+
+            expect(WebDriver.newSession).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.any(Function),
+                expect.any(Object),
+                expect.any(Function),
+                expect.arrayContaining([
+                    'getElement',
+                    'getElements',
+                    'emit',
+                ])
+            )
+        })
     })
 
     describe('multiremote', () => {
@@ -254,6 +273,31 @@ describe('WebdriverIO module interface', () => {
             expect(vi.mocked(WebDriver.attachToSession).mock.calls[0][0]).toMatchSnapshot()
         })
 
+        it('should apply attach parameters with priority to Driver.attachToSession', async () => {
+
+            let capturedParams
+            const actualDetectBackend = await vi.importActual('../src/utils/detectBackend') as { default: typeof detectBackend }
+            vi.mocked(detectBackend).mockImplementation(actualDetectBackend.default)
+
+            const originalMockImplementation = vi.mocked(WebDriver.attachToSession).getMockImplementation()
+
+            vi.mocked(WebDriver.attachToSession).mockImplementation((params, modifier, prototype, commandWrapper) => {
+                capturedParams = params
+                return originalMockImplementation!(params, modifier, prototype, commandWrapper)
+            })
+
+            await attach({
+                sessionId: 'test-session-id',
+                port: 1234,
+                path: '/wd/hub',
+            })
+
+            expect(capturedParams).toMatchObject({
+                port: 1234,
+                path: '/wd/hub',
+            })
+        })
+
         it('should have defined locatorStrategy', async () => {
             const browser = {
                 sessionId: 'foobar',
@@ -268,6 +312,37 @@ describe('WebdriverIO module interface', () => {
             const newBrowser = await attach(browser)
             expect(newBrowser).toHaveProperty('addLocatorStrategy')
         })
+    })
+
+    it('should use the element disable implicitWait exclusion list', async () => {
+        await multiremote({
+            browserA: {
+                // @ts-ignore mock feature
+                test_multiremote: true,
+                automationProtocol: 'webdriver',
+                capabilities: { browserName: 'chrome' }
+            },
+            browserB: {
+                // @ts-ignore mock feature
+                test_multiremote: true,
+                automationProtocol: 'webdriver',
+                capabilities: { browserName: 'firefox' }
+            }
+        })
+
+        expect(WebDriver.newSession).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.any(Function),
+            expect.any(Object),
+            expect.any(Function),
+            expect.arrayContaining([
+                'getElement',
+                'getElements',
+                'emit',
+            ])
+
+        )
+        expect(WebDriver.newSession).toHaveBeenCalledTimes(2)
     })
 
     afterEach(() => {

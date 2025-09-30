@@ -104,7 +104,7 @@ class _InsightsHandler {
             await (this._browser as WebdriverIO.Browser).executeScript(`browserstack_executor: ${JSON.stringify({
                 action: 'annotate',
                 arguments: {
-                    data: `ObservabilitySync:${Date.now()}`,
+                    data: `TestReportingSync:${Date.now()}`,
                     level: 'debug'
                 }
             })}`, [])
@@ -536,7 +536,7 @@ class _InsightsHandler {
                 this.listener.logCreated([stdLog])
             }
         } catch (error) {
-            BStackLogger.debug(`Exception in uploading log data to Observability with error : ${error}`)
+            BStackLogger.debug(`Exception in uploading log data to Test Reporting and Analytics with error : ${error}`)
         }
     }
 
@@ -929,6 +929,9 @@ class _InsightsHandler {
     private getIntegrationsObject () {
         const caps = (this._browser as WebdriverIO.Browser)?.capabilities as WebdriverIO.Capabilities
         const sessionId = (this._browser as WebdriverIO.Browser)?.sessionId
+
+        BStackLogger.debug(`Driver capabilities used for integration object: ${JSON.stringify(caps)}`)
+        BStackLogger.debug(`User capabilities used for integration object: ${JSON.stringify(this._userCaps)}`)
 
         return {
             capabilities: caps,

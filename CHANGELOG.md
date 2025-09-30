@@ -23,6 +23,65 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.20.0 (2025-09-27)
+
+#### :rocket: New Feature
+* `wdio-allure-reporter`
+  * [#14719](https://github.com/webdriverio/webdriverio/pull/14719) Update wdio-allure-reporter for Allure 3 ([@todti](https://github.com/todti))
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#14760](https://github.com/webdriverio/webdriverio/pull/14760) fix(webdriver): Fix no retrying requests when unexpected token on responses occurs (like on HTML responses) ([@Nyaran](https://github.com/Nyaran))
+* `wdio-cucumber-framework`
+  * [#14763](https://github.com/webdriverio/webdriverio/pull/14763) feat(cucumber): Fix skipping tests with skip tag using complex regular expressions ([@Nyaran](https://github.com/Nyaran))
+* `wdio-allure-reporter`
+  * [#14723](https://github.com/webdriverio/webdriverio/pull/14723) fix(@wdio/allure-reporter): Encode HTML entities ([@sventschui](https://github.com/sventschui))
+* `webdriverio`
+  * [#14714](https://github.com/webdriverio/webdriverio/pull/14714) fix(attach-params): user options should override detectBackend ([@NaamuKim](https://github.com/NaamuKim))
+* `wdio-utils`
+  * [#14750](https://github.com/webdriverio/webdriverio/pull/14750) feat(utils): Fix reduce function to use the initial value parameter ([@Nyaran](https://github.com/Nyaran))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#14783](https://github.com/webdriverio/webdriverio/pull/14783) Exhaustive logging for better capability flow debug ([@pranay-v29](https://github.com/pranay-v29))
+  * [#14781](https://github.com/webdriverio/webdriverio/pull/14781) SDK-4104 Updated the build url format for azure pipelines ([@pranay-v29](https://github.com/pranay-v29))
+* `wdio-cli`, `wdio-config`
+  * [#14664](https://github.com/webdriverio/webdriverio/pull/14664) tsConfigPath in wdio.conf ([@sh41](https://github.com/sh41))
+* `webdriverio`
+  * [#14744](https://github.com/webdriverio/webdriverio/pull/14744) fix: polish waitForClickable ([@wswebcreation](https://github.com/wswebcreation))
+  * [#14745](https://github.com/webdriverio/webdriverio/pull/14745) fix: polish isStable commands ([@wswebcreation](https://github.com/wswebcreation))
+* `wdio-browserstack-service`, `wdio-local-runner`
+  * [#14734](https://github.com/webdriverio/webdriverio/pull/14734)  Support added for change in product name:- Observability -> Test Reporting and Analytics v9 ([@Tanmay-Bstack](https://github.com/Tanmay-Bstack))
+
+#### :memo: Documentation
+* Other
+  * [#14786](https://github.com/webdriverio/webdriverio/pull/14786) Updated refs due to changes in the example-recipes repo ([@fpereira1](https://github.com/fpereira1))
+  * [#14787](https://github.com/webdriverio/webdriverio/pull/14787) Update docs on selector to warn that aria/ selectors can be slow ([@fpereira1](https://github.com/fpereira1))
+  * [#14776](https://github.com/webdriverio/webdriverio/pull/14776) corrected typo in the index page ([@alphabetkrish](https://github.com/alphabetkrish))
+* `wdio-junit-reporter`
+  * [#14735](https://github.com/webdriverio/webdriverio/pull/14735) docs(@wdio/junit-reporter): update readme ([@eglitise](https://github.com/eglitise))
+
+#### :house: Internal
+* [#14748](https://github.com/webdriverio/webdriverio/pull/14748) chore(.nvmrc) upgrade node version to fix continuous release ([@NaamuKim](https://github.com/NaamuKim))
+
+#### Committers: 15
+- Alex ([@todti](https://github.com/todti))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Edgars Eglītis ([@eglitise](https://github.com/eglitise))
+- Erkan Erol ([@erkanerol](https://github.com/erkanerol))
+- Filype ([@fpereira1](https://github.com/fpereira1))
+- Luis Zurro ([@Nyaran](https://github.com/Nyaran))
+- Luke ([@NaamuKim](https://github.com/NaamuKim))
+- Nathan Zhao ([@phantomwolf](https://github.com/phantomwolf))
+- Pranay Varma ([@pranay-v29](https://github.com/pranay-v29))
+- Steve Hall ([@sh41](https://github.com/sh41))
+- Sven ([@sventschui](https://github.com/sventschui))
+- Ulises Gascón ([@UlisesGascon](https://github.com/UlisesGascon))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@Tanmay-Bstack](https://github.com/Tanmay-Bstack)
+- [@alphabetkrish](https://github.com/alphabetkrish)
+
+
 ## v9.19.2 (2025-08-24)
 
 #### :bug: Bug Fix

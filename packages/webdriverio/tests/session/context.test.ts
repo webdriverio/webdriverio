@@ -75,4 +75,29 @@ describe('ContextManager', () => {
         )
         expect(browser.switchToWindow).not.toHaveBeenCalled()
     })
+
+    it('should cache the current window handle on getWindowHandle command', () => {
+        expect(getContextManager(browser).getCurrentWindowHandle()).toBeUndefined()
+        const resultHandlers = getListeners().result
+        const handler = resultHandlers![0]
+        handler({ command: 'getWindowHandle', result: { value: 'current-window-handle' } })
+        expect(getContextManager(browser).getCurrentWindowHandle()).toBe('current-window-handle')
+    })
+
+    it('should cache the current window handle on switchToWindow command success', () => {
+        expect(getContextManager(browser).getCurrentWindowHandle()).toBeUndefined()
+        const resultHandlers = getListeners().result
+        const handler = resultHandlers![0]
+        handler({ command: 'switchToWindow', result: { value: null }, body: { handle: 'current-window-handle' } })
+        expect(getContextManager(browser).getCurrentWindowHandle()).toBe('current-window-handle')
+    })
+
+    it('should not cache the current window handle on switchToWindow command failure', () => {
+        expect(getContextManager(browser).getCurrentWindowHandle()).toBeUndefined()
+        const resultHandlers = getListeners().result
+        const handler = resultHandlers![0]
+        const error = new Error('no such window')
+        handler({ command: 'switchToWindow', result: { error } })
+        expect(getContextManager(browser).getCurrentWindowHandle()).toBeUndefined()
+    })
 })

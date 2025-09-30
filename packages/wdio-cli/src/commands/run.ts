@@ -9,6 +9,7 @@ import { coerceOptsFor,  } from '../utils.js'
 import { CLI_EPILOGUE } from '../constants.js'
 import type { RunCommandArguments } from '../types.js'
 import { config } from 'create-wdio/config/cli'
+import { ConfigParser } from '@wdio/config/node'
 
 export const command = 'run <configPath>'
 
@@ -205,6 +206,7 @@ export async function handler(argv: RunCommandArguments) {
     const localTSConfigPath = (
         tsConfigPathFromEnvVar ||
         tsConfigPathFromParams ||
+        await tsConfigPathFromConfigFile(confAccess, params) ||
         tsConfigPathRelativeToWdioConfig
     )
     const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
@@ -236,4 +238,14 @@ export async function handler(argv: RunCommandArguments) {
      * configuration suite or specs.
      */
     launchWithStdin(confAccess, params)
+}
+
+async function tsConfigPathFromConfigFile(wdioConfPath: string, params: Partial<RunCommandArguments>): Promise<string | void> {
+    const configParser = new ConfigParser(wdioConfPath, params)
+    await configParser.initialize()
+    const { tsConfigPath } = configParser.getConfig()
+    if (tsConfigPath ) {
+        return tsConfigPath
+    }
+    return
 }
