@@ -302,14 +302,14 @@ export const processTestObservabilityResponse = (response: LaunchResponse) => {
     }
 }
 
-interface _DataElement {
+interface DataElement {
     [key: string]: unknown
 }
 
 export const jsonifyAccessibilityArray = (
-    dataArray: Array<Record<string, unknown>>,
-    keyName: string,
-    valueName: string
+    dataArray: DataElement[],
+    keyName: keyof DataElement,
+    valueName: keyof DataElement
 ): Record<string, unknown> => {
     const result: Record<string, unknown> = {}
     dataArray.forEach((element: Record<string, unknown>) => {

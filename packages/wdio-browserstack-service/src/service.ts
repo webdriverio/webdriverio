@@ -376,9 +376,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         await this._accessibilityHandler?.afterTest(this._suiteTitle, test)
         await this._insightsHandler?.afterTest(test, results)
-        if (!BrowserstackCLI.getInstance().isRunning()) {
-            await this._percyHandler?.afterTest()
-        }
+        await this._percyHandler?.afterTest()
     }
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'after' })
