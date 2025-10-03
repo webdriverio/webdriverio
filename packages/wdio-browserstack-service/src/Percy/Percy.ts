@@ -15,6 +15,7 @@ import type { Options } from '@wdio/types'
 import { BROWSERSTACK_TESTHUB_UUID } from '../constants.js'
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
+import APIUtils from '../cli/apiUtils.js'
 
 const logDir = 'logs'
 
@@ -146,7 +147,7 @@ class Percy {
                     Authorization: `Basic ${Buffer.from(`${getBrowserStackUser(this.#config)}:${getBrowserStackKey(this.#config)}`).toString('base64')}`,
                 },
             }
-            const response = await nodeRequest('GET', query, requestInit, 'https://api.browserstack.com')
+            const response = await nodeRequest('GET', query, requestInit, APIUtils.BROWSERSTACK_PERCY_API_URL)
             if (!this.#options.percy && response.success) {
                 this.percyAutoEnabled = response.success
             }
