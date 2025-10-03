@@ -1,5 +1,4 @@
 import { defineConfig } from 'vitest/config'
-import path from 'node:path'
 
 export default defineConfig({
     test: {
@@ -36,11 +35,6 @@ export default defineConfig({
         },
         setupFiles: [
             '__mocks__/fetch.ts'
-        ],
-        alias: {
-            '@wdio/logger': path.join(process.cwd(), '__mocks__', '@wdio', 'logger.ts'),
-            '@wdio/reporter': path.join(process.cwd(), '__mocks__', '@wdio', 'reporter.ts'),
-            'webdriverio': path.join(process.cwd(), '__mocks__', 'webdriverio.ts')
-        }
+        ]
     }
 })
