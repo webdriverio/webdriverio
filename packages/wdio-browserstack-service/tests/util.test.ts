@@ -70,6 +70,16 @@ vi.mock('git-repo-info')
 vi.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
+// Mock testHub utilities
+vi.mock('../src/testHub/utils.js', () => ({
+    handleErrorForObservability: vi.fn(),
+    handleErrorForAccessibility: vi.fn(),
+    logBuildError: vi.fn(),
+    getProductMapForBuildStartCall: vi.fn(),
+    getProductMap: vi.fn(),
+    shouldProcessEventForTesthub: vi.fn()
+}))
+
 vi.mock('fs', () => ({
     default: {
         createReadStream: vi.fn().mockImplementation(() => {return { pipe: vi.fn().mockReturnThis() }}),
@@ -82,6 +92,32 @@ vi.mock('fs', () => ({
 }))
 
 vi.mock('./fileStream')
+
+// Mock AccessibilityScripts completely to avoid readonly property issues
+vi.mock('./scripts/accessibility-scripts', () => ({
+    default: {
+        checkAndGetInstance: vi.fn(() => ({
+            performScan: null,
+            getResults: null,  
+            getResultsSummary: null,
+            saveTestResults: null,
+            commandsToWrap: null,
+            ChromeExtension: {},
+            browserstackFolderPath: '',
+            commandsPath: '',
+            update: vi.fn(),
+            store: vi.fn(),
+            readFromExistingFile: vi.fn(),
+            getWritableDir: vi.fn(() => '/tmp')
+        })),
+        update: vi.fn(),
+        store: vi.fn(),
+        performScan: null,
+        getResults: null,
+        getResultsSummary: null,
+        saveTestResults: null
+    }
+}))
 
 vi.mock('fs', async (importOriginal) => {
     const actual = await importOriginal()
@@ -1344,7 +1380,11 @@ describe('uploadLogs', function () {
         expect(fetch).toHaveBeenCalled()
     })
     afterAll(async () => {
-        await fs.unlink(tempLogFile)
+        try {
+            await fs.unlink(tempLogFile)
+        } catch (err) {
+            // Ignore if file doesn't exist
+        }
         vi.mocked(fetch).mockClear()
         vi.restoreAllMocks()
     })
@@ -2030,7 +2070,11 @@ describe('uploadLogs', function () {
         expect(fetch).toHaveBeenCalled()
     })
     afterAll(async () => {
-        await fs.unlink(tempLogFile)
+        try {
+            await fs.unlink(tempLogFile)
+        } catch (err) {
+            // Ignore if file doesn't exist
+        }
         vi.mocked(fetch).mockClear()
         vi.restoreAllMocks()
     })
