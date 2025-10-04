@@ -41,8 +41,7 @@
     "@wdio/utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",
     "glob": "^10.2.2",
-    "import-meta-resolve": "^4.0.0",
-    "jiti": "^2.5.1"
+    "import-meta-resolve": "^4.0.0"
   },
   "publishConfig": {
     "access": "public"
