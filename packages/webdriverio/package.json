@@ -96,7 +96,7 @@
     "lodash.clonedeep": "^4.5.0",
     "lodash.zip": "^4.2.0",
     "minimatch": "9.0.0",
-    "puppeteer-core": "^20.9.0",
+    "puppeteer-core": "^24.23.0",
     "query-selector-shadow-dom": "^1.0.1",
     "resq": "^1.11.0",
     "rgb2hex": "0.2.5",
