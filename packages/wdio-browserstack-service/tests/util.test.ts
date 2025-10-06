@@ -98,7 +98,7 @@ vi.mock('./scripts/accessibility-scripts', () => ({
     default: {
         checkAndGetInstance: vi.fn(() => ({
             performScan: null,
-            getResults: null,  
+            getResults: null,
             getResultsSummary: null,
             saveTestResults: null,
             commandsToWrap: null,
