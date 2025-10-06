@@ -70,6 +70,16 @@ vi.mock('git-repo-info')
 vi.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
+// Mock testHub utilities
+vi.mock('../src/testHub/utils.js', () => ({
+    handleErrorForObservability: vi.fn(),
+    handleErrorForAccessibility: vi.fn(),
+    logBuildError: vi.fn(),
+    getProductMapForBuildStartCall: vi.fn(),
+    getProductMap: vi.fn(),
+    shouldProcessEventForTesthub: vi.fn()
+}))
+
 vi.mock('fs', () => ({
     default: {
         createReadStream: vi.fn().mockImplementation(() => {return { pipe: vi.fn().mockReturnThis() }}),
@@ -82,6 +92,32 @@ vi.mock('fs', () => ({
 }))
 
 vi.mock('./fileStream')
+
+// Mock AccessibilityScripts completely to avoid readonly property issues
+vi.mock('./scripts/accessibility-scripts', () => ({
+    default: {
+        checkAndGetInstance: vi.fn(() => ({
+            performScan: null,
+            getResults: null,
+            getResultsSummary: null,
+            saveTestResults: null,
+            commandsToWrap: null,
+            ChromeExtension: {},
+            browserstackFolderPath: '',
+            commandsPath: '',
+            update: vi.fn(),
+            store: vi.fn(),
+            readFromExistingFile: vi.fn(),
+            getWritableDir: vi.fn(() => '/tmp')
+        })),
+        update: vi.fn(),
+        store: vi.fn(),
+        performScan: null,
+        getResults: null,
+        getResultsSummary: null,
+        saveTestResults: null
+    }
+}))
 
 vi.mock('fs', async (importOriginal) => {
     const actual = await importOriginal()
@@ -703,7 +739,7 @@ describe('stopBuildUpstream', () => {
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
         process.env[BROWSERSTACK_TESTHUB_JWT] = 'jwt'
 
-        vi.mocked(fetch).mockReturnValue(Promise.resolve(Response.json({})))
+        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({})))
 
         const result: any = await stopBuildUpstream()
         expect(vi.mocked(fetch).mock.calls[0][1]?.method).toEqual('PUT')
@@ -714,7 +750,7 @@ describe('stopBuildUpstream', () => {
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
         process.env[BROWSERSTACK_TESTHUB_JWT] = 'jwt'
 
-        vi.mocked(fetch).mockReturnValue(Promise.reject(Response.json({})))
+        vi.mocked(fetch).mockReturnValueOnce(Promise.reject(Response.json({})))
 
         const result: any = await stopBuildUpstream()
         expect(vi.mocked(fetch).mock.calls[0][1]?.method).toEqual('PUT')
@@ -1329,7 +1365,7 @@ describe('uploadLogs', function () {
         await fs.writeFile(tempLogFile, 'mock log content')
         bstackLogger.BStackLogger.logFilePath = tempLogFile
         vi.mocked(fetch).mockClear()
-        vi.mocked(fetch).mockReturnValue(Promise.resolve(Response.json({ status: 'success', message: 'Logs uploaded Successfully' })))
+        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ status: 'success', message: 'Logs uploaded Successfully' })))
     })
     it('should return if user is undefined', async function () {
         await uploadLogs(undefined, 'some_key', 'some_uuid')
@@ -1346,8 +1382,8 @@ describe('uploadLogs', function () {
     afterAll(async () => {
         try {
             await fs.unlink(tempLogFile)
-        } catch (error) {
-            // Ignore error if file doesn't exist
+        } catch (err) {
+            // Ignore if file doesn't exist
         }
         vi.mocked(fetch).mockClear()
         vi.restoreAllMocks()
@@ -2009,6 +2045,38 @@ describe('frameworkSupportsHook', function () {
 
     it('should return false for any other framework', function () {
         expect(frameworkSupportsHook('before', 'jasmine')).toBe(false)
+    })
+})
+
+describe('uploadLogs', function () {
+    let tempLogFile: string
+    beforeAll(async () => {
+        tempLogFile = path.join(os.tmpdir(), 'test-logs.txt')
+        await fs.writeFile(tempLogFile, 'mock log content')
+        bstackLogger.BStackLogger.logFilePath = tempLogFile
+        vi.mocked(fetch).mockClear()
+        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ status: 'success', message: 'Logs uploaded Successfully' })))
+    })
+    it('should return if user is undefined', async function () {
+        await uploadLogs(undefined, 'some_key', 'some_uuid')
+        expect(fetch).not.toHaveBeenCalled()
+    })
+    it('should return if key is undefined', async function () {
+        await uploadLogs('some_user', undefined, 'some_uuid')
+        expect(fetch).not.toHaveBeenCalled()
+    })
+    it('should upload the logs', async function () {
+        await uploadLogs('some_user', 'some_key', 'some_uuid')
+        expect(fetch).toHaveBeenCalled()
+    })
+    afterAll(async () => {
+        try {
+            await fs.unlink(tempLogFile)
+        } catch (err) {
+            // Ignore if file doesn't exist
+        }
+        vi.mocked(fetch).mockClear()
+        vi.restoreAllMocks()
     })
 })
 
