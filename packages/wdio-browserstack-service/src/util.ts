@@ -1,4 +1,4 @@
-import { hostname, platform, type, version, arch } from 'node:os'
+import { hostname, platform, type, version, arch, tmpdir } from 'node:os'
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import zlib from 'node:zlib'
@@ -1361,7 +1361,7 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
             return
         }
 
-        const tmpDir = '/tmp'
+        const tmpDir = tmpdir()
         const tarPath = path.join(tmpDir, 'logs.tar')
         const tarGzPath = path.join(tmpDir, 'logs.tar.gz')
 
