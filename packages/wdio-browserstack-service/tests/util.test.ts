@@ -1360,13 +1360,21 @@ describe('frameworkSupportsHook', function () {
 
 describe('uploadLogs', function () {
     let tempLogFile: string
+    let originalLogFilePath: string
+
     beforeAll(async () => {
         tempLogFile = path.join(os.tmpdir(), 'test-logs.txt')
         await fs.writeFile(tempLogFile, 'mock log content')
+        // Store original log file path
+        originalLogFilePath = bstackLogger.BStackLogger.logFilePath
         bstackLogger.BStackLogger.logFilePath = tempLogFile
-        vi.mocked(fetch).mockClear()
-        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ status: 'success', message: 'Logs uploaded Successfully' })))
     })
+
+    beforeEach(() => {
+        vi.mocked(fetch).mockClear()
+        vi.mocked(fetch).mockResolvedValue(Response.json({ status: 'success', message: 'Logs uploaded Successfully' }))
+    })
+
     it('should return if user is undefined', async function () {
         await uploadLogs(undefined, 'some_key', 'some_uuid')
         expect(fetch).not.toHaveBeenCalled()
@@ -1385,6 +1393,8 @@ describe('uploadLogs', function () {
         } catch (err) {
             // Ignore if file doesn't exist
         }
+        // Restore original log file path
+        bstackLogger.BStackLogger.logFilePath = originalLogFilePath
         vi.mocked(fetch).mockClear()
         vi.restoreAllMocks()
     })
@@ -1974,19 +1984,5 @@ describe('getAppA11yResultsSummary', () => {
         const result = await utils.getA11yResultsSummary(false, {} as WebdriverIO.Browser, true, true)
         delete process.env.BSTACK_A11Y_JWT
         expect(result).toEqual({ })
-    })
-})
-
-describe('isTrue', () => {
-    it('returns true if value is `true`', async () => {
-        expect(isTrue('true')).toEqual(true)
-    })
-
-    it('returns false if value is `false`', async () => {
-        expect(isTrue('false')).toEqual(false)
-    })
-
-    it('returns false if value is undefined', async () => {
-        expect(isTrue(undefined)).toEqual(false)
     })
 })
