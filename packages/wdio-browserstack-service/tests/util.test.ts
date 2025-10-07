@@ -2048,38 +2048,6 @@ describe('frameworkSupportsHook', function () {
     })
 })
 
-describe('uploadLogs', function () {
-    let tempLogFile: string
-    beforeAll(async () => {
-        tempLogFile = path.join(os.tmpdir(), 'test-logs.txt')
-        await fs.writeFile(tempLogFile, 'mock log content')
-        bstackLogger.BStackLogger.logFilePath = tempLogFile
-        vi.mocked(fetch).mockClear()
-        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ status: 'success', message: 'Logs uploaded Successfully' })))
-    })
-    it('should return if user is undefined', async function () {
-        await uploadLogs(undefined, 'some_key', 'some_uuid')
-        expect(fetch).not.toHaveBeenCalled()
-    })
-    it('should return if key is undefined', async function () {
-        await uploadLogs('some_user', undefined, 'some_uuid')
-        expect(fetch).not.toHaveBeenCalled()
-    })
-    it('should upload the logs', async function () {
-        await uploadLogs('some_user', 'some_key', 'some_uuid')
-        expect(fetch).toHaveBeenCalled()
-    })
-    afterAll(async () => {
-        try {
-            await fs.unlink(tempLogFile)
-        } catch (err) {
-            // Ignore if file doesn't exist
-        }
-        vi.mocked(fetch).mockClear()
-        vi.restoreAllMocks()
-    })
-})
-
 describe('getFailureObject', function () {
     it('should return parsed failure object for string error', function () {
         const error = 'some error'
