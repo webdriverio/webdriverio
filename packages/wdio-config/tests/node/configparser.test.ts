@@ -196,22 +196,22 @@ describe('ConfigParser', () => {
 
         it('should throw if config file does not exist (absolute path)', async () => {
             const configParser = await ConfigParserForTest()
-            expect(() => configParser['addConfigFile'](path.resolve(__dirname, 'foobar.conf.ts'))).rejects.toThrow()
+            await expect(() => configParser['addConfigFile'](path.resolve(__dirname, 'foobar.conf.ts'))).rejects.toThrow()
         })
 
         it('should throw if config file does not exist (relative path)', async () => {
             const configParser = await ConfigParserForTest()
-            expect(() => configParser['addConfigFile']('foobar.conf.ts')).rejects.toThrow()
+            await expect(() => configParser['addConfigFile']('foobar.conf.ts')).rejects.toThrow()
         })
 
         it('should throw if config file is not a config file (absolute path)', async () => {
             const configParser = await ConfigParserForTest()
-            expect(() => configParser['addConfigFile'](path.resolve(FIXTURES_PATH, 'test-a.feature'))).rejects.toThrow()
+            await expect(() => configParser['addConfigFile'](path.resolve(FIXTURES_PATH, 'test-a.feature'))).rejects.toThrow()
         })
 
         it('should throw if config file is not a config file (relative path)', async () => {
             const configParser = await ConfigParserForTest()
-            expect(() => configParser['addConfigFile']('test-a.feature')).rejects.toThrow()
+            await expect(() => configParser['addConfigFile']('test-a.feature')).rejects.toThrow()
         })
     })
 
