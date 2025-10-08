@@ -22,9 +22,12 @@ export const config: WebdriverIO.Config = {
     capabilities: [{
         browserName: 'chrome',
         browserVersion: 'stable',
-        // 'goog:chromeOptions': {
-        //     args: ['headless', 'disable-gpu']
-        // }
+        'goog:chromeOptions': {
+            args: [
+                'disable-infobars'
+                // 'headless', 'disable-gpu'
+            ]
+        }
     }],
     bail: 1,
     services: ['lighthouse'],
