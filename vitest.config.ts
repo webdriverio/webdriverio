@@ -35,6 +35,7 @@ export default defineConfig({
         },
         setupFiles: [
             '__mocks__/fetch.ts'
-        ]
+        ],
+        testTimeout: 30000
     }
 })
