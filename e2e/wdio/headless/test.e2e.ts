@@ -169,7 +169,7 @@ describe('main suite 1', () => {
             { xOffset: 25, yOffset: 25 },
         ]
 
-        before(async () => {
+        beforeEach(async () => {
             await browser.url('https://guinea-pig.webdriver.io/pointer.html')
             await browser.$('#parent').waitForExist()
         })
