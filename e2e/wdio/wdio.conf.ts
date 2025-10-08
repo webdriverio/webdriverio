@@ -1,5 +1,6 @@
 import url from 'node:url'
 import path from 'node:path'
+import os from 'node:os'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -41,5 +42,6 @@ export const config: WebdriverIO.Config = {
     mochaOpts: {
         ui: 'bdd',
         timeout: 60000
-    }
+    },
+    maxInstances: os.cpus().length - 1
 }
