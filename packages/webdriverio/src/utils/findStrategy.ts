@@ -166,7 +166,7 @@ export const findStrategy = function (
         break
     case 'aria': {
         const label = stringSelector.slice(ARIA_SELECTOR.length)
-        if (isBidi) {
+        if (!isBidi) {
             const conditions = [
                 // aria label is recevied by other element with aria-labelledBy
                 // https://www.w3.org/TR/accname-1.1/#step2B
