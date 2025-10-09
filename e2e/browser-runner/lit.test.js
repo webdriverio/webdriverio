@@ -583,6 +583,7 @@ describe('Lit Component testing', () => {
                     html`<div><div><div>Find me</div></div></div>`,
                     document.body
                 )
+                console.log('browser.isBidi', browser.isBidi)
                 expect(await $('aria/Find me').getHTML(false)).toBe('Find me')
             })
 
