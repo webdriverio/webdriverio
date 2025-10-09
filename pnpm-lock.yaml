@@ -565,8 +565,8 @@ importers:
         specifier: workspace:*
         version: link:../wdio-types
       allure-js-commons:
-        specifier: ^2.5.0
-        version: 2.15.1
+        specifier: ^3.3.2
+        version: 3.3.3
       csv-stringify:
         specifier: ^6.0.4
         version: 6.5.2
@@ -6365,8 +6365,13 @@ packages:
   alien-signals@1.0.13:
     resolution: {integrity: sha512-OGj9yyTnJEttvzhTUWuscOvtqxq5vrhF7vL9oS0xJ2mK0ItPYP1/y+vCFebfxoEyAz0++1AIwJ5CMr+Fk3nDmg==}
 
-  allure-js-commons@2.15.1:
-    resolution: {integrity: sha512-5V/VINplbu0APnfSZOkYpKOzucO36Q2EtTD1kqjWjl7n6tj7Hh+IHCZsH3Vpk/LXRDfj9RuXugBBvwYKV5YMJw==}
+  allure-js-commons@3.3.3:
+    resolution: {integrity: sha512-MLkPWrVtrt/2TdAvaExNSM8yTuY/lEo+MSLoM2DOUUsWzbzki8XIxHoX+mSdkatZAJargsU9JeO/dL5kQyR5IQ==}
+    peerDependencies:
+      allure-playwright: 3.3.3
+    peerDependenciesMeta:
+      allure-playwright:
+        optional: true
 
   ansi-align@3.0.1:
     resolution: {integrity: sha512-IOfwwBF5iczOjp/WeY4YxyjqAFMQoZufdQWDd19SEExbVLNXqvpzSJ/M7Za4/sCPmQ0+GRquoA7bGcINcxew6w==}
@@ -11862,10 +11867,6 @@ packages:
     resolution: {integrity: sha512-vGrhOavPSTz4QVNuBNdcNXePNdNMaO1xj9yBeH1ScQPjk/rhg9sSlCXPhMkFuaNNW/syTvYqsnbIJxMBfRbbag==}
     engines: {node: '>= 8'}
 
-  properties@1.2.1:
-    resolution: {integrity: sha512-qYNxyMj1JeW54i/EWEFsM1cVwxJbtgPp8+0Wg9XjNaK6VE/c4oRi6PNu5p7w1mNXEIQIjV5Wwn8v8Gz82/QzdQ==}
-    engines: {node: '>=0.10'}
-
   property-expr@2.0.6:
     resolution: {integrity: sha512-SVtmxhRE/CGkn3eZY1T6pC8Nln6Fr/lu1mKSgRud0eC73whjGfoAogbn78LkD8aFL0zz3bAFerKSnOl7NlErBA==}
 
@@ -12890,10 +12891,6 @@ packages:
   stringify-object@3.3.0:
     resolution: {integrity: sha512-rHqiFh1elqCQ9WPLIC8I0Q/g/wj5J1eMkyoiD6eoQApWHP0FtlK7rqnhmabL5VUY9JQCcqwwvlOaSuutekgyrw==}
     engines: {node: '>=4'}
-
-  strip-ansi@5.2.0:
-    resolution: {integrity: sha512-DuRs1gKbBqsMKIZlrffwlug8MHkcnpjs5VPmL1PAh+mA30U0DTotfDZ0d2UUsXpPmPmMMJ6W773MaA3J+lbiWA==}
-    engines: {node: '>=6'}
 
   strip-ansi@6.0.1:
     resolution: {integrity: sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==}
@@ -20354,11 +20351,9 @@ snapshots:
 
   alien-signals@1.0.13: {}
 
-  allure-js-commons@2.15.1:
+  allure-js-commons@3.3.3:
     dependencies:
       md5: 2.3.0
-      properties: 1.2.1
-      strip-ansi: 5.2.0
 
   ansi-align@3.0.1:
     dependencies:
@@ -27058,8 +27053,6 @@ snapshots:
 
   propagate@2.0.1: {}
 
-  properties@1.2.1: {}
-
   property-expr@2.0.6: {}
 
   property-information@6.5.0: {}
@@ -28351,10 +28344,6 @@ snapshots:
       get-own-enumerable-property-symbols: 3.0.2
       is-obj: 1.0.1
       is-regexp: 1.0.0
-
-  strip-ansi@5.2.0:
-    dependencies:
-      ansi-regex: 4.1.1
 
   strip-ansi@6.0.1:
     dependencies:
