@@ -48,7 +48,7 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
         // you can also specifying the mock even more by filtering resources
         // by request or response headers, status code, postData, e.g. mock only responses with specific
         // header set and statusCode
-        const strictMock = await browser.mock('**', {
+        const strictMock = await browser.mock('*', {
             // mock all json responses
             statusCode: 200,
             requestHeaders: { 'Content-Type': 'application/json' },
