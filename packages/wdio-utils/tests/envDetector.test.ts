@@ -145,6 +145,16 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isFirefox).toBe(false)
     })
 
+    it('isSafari', () => {
+        const requestedCapabilities = { browserName: '' }
+        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isSafari).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isSafari).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isSafari).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isSafari).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: safariCaps, requestedCapabilities }).isSafari).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isSafari).toBe(false)
+    })
+
     it('isBidi', () => {
         const requestedCapabilities = { browserName: '' }
         const requestedAppiumCapabilities = {
@@ -570,8 +580,9 @@ describe('sessionEnvironmentDetector', () => {
             appWaitActivity: 'com.example.gui.LauncherActivity'
         }
         const requestedCapabilities = { browserName: '' }
-        const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        const { isMobile, isIOS, isAndroid, isSafari } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(true)
+        expect(isSafari).toEqual(false)
         expect(isIOS).toEqual(false)
         expect(isAndroid).toEqual(true)
     })

@@ -554,4 +554,10 @@ describe('selector strategies helper', () => {
         expect(element.using).toBe('xpath')
         expect(element.value).toMatchSnapshot()
     })
+
+    it('should be able to fetch element by aria label in Bidi', () => {
+        const element = findStrategy('aria/foobar', null, null, true)
+        expect(element.using).toBe('aria')
+        expect(element.value).toBe('foobar')
+    })
 })

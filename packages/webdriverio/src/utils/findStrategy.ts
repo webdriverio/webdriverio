@@ -120,7 +120,12 @@ const defineStrategy = function (selector: SelectorStrategy) {
         return 'role'
     }
 }
-export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolean, isMobile?: boolean) {
+export const findStrategy = function (
+    selector: SelectorStrategy,
+    isW3C?: boolean,
+    isMobile?: boolean,
+    isBidi?: boolean
+) {
     const stringSelector = selector as string
     let using: string = DEFAULT_STRATEGY
     let value = selector as string
@@ -161,44 +166,49 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         break
     case 'aria': {
         const label = stringSelector.slice(ARIA_SELECTOR.length)
-        const conditions = [
-            // aria label is recevied by other element with aria-labelledBy
-            // https://www.w3.org/TR/accname-1.1/#step2B
-            `.//*[@aria-labelledby=(//*[normalize-space(text()) = "${label}"]/@id)]`,
-            // aria label is recevied by other element with aria-labelledBy
-            // https://www.w3.org/TR/accname-1.1/#step2B
-            `.//*[@aria-describedby=(//*[normalize-space(text()) = "${label}"]/@id)]`,
-            // element has direct aria label
-            // https://www.w3.org/TR/accname-1.1/#step2C
-            `.//*[@aria-label = "${label}"]`,
-            // input and textarea with a label
-            // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//input[@id = (//label[normalize-space() = "${label}"]/@for)]`,
-            `.//textarea[@id = (//label[normalize-space() = "${label}"]/@for)]`,
-            // input and textarea with a label as parent
-            // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//input[ancestor::label[normalize-space(text()) = "${label}"]]`,
-            `.//textarea[ancestor::label[normalize-space(text()) = "${label}"]]`,
-            // aria label is received by a placeholder
-            // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//input[@placeholder="${label}"]`,
-            `.//textarea[@placeholder="${label}"]`,
-            // aria label is received by a aria-placeholder
-            // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//input[@aria-placeholder="${label}"]`,
-            `.//textarea[@aria-placeholder="${label}"]`,
-            // aria label is received by a title
-            // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//*[not(self::label)][@title="${label}"]`,
-            // images with an alt tag
-            // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//img[@alt="${label}"]`,
-            // aria label is received from element text content
-            // https://www.w3.org/TR/accname-1.1/#step2G
-            `.//*[not(self::label)][normalize-space(text()) = "${label}"]`
-        ]
-        using = 'xpath'
-        value = conditions.join(' | ')
+        if (!isBidi) {
+            const conditions = [
+                // aria label is recevied by other element with aria-labelledBy
+                // https://www.w3.org/TR/accname-1.1/#step2B
+                `.//*[@aria-labelledby=(//*[normalize-space(text()) = "${label}"]/@id)]`,
+                // aria label is recevied by other element with aria-labelledBy
+                // https://www.w3.org/TR/accname-1.1/#step2B
+                `.//*[@aria-describedby=(//*[normalize-space(text()) = "${label}"]/@id)]`,
+                // element has direct aria label
+                // https://www.w3.org/TR/accname-1.1/#step2C
+                `.//*[@aria-label = "${label}"]`,
+                // input and textarea with a label
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                `.//input[@id = (//label[normalize-space() = "${label}"]/@for)]`,
+                `.//textarea[@id = (//label[normalize-space() = "${label}"]/@for)]`,
+                // input and textarea with a label as parent
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                `.//input[ancestor::label[normalize-space(text()) = "${label}"]]`,
+                `.//textarea[ancestor::label[normalize-space(text()) = "${label}"]]`,
+                // aria label is received by a placeholder
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                `.//input[@placeholder="${label}"]`,
+                `.//textarea[@placeholder="${label}"]`,
+                // aria label is received by a aria-placeholder
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                `.//input[@aria-placeholder="${label}"]`,
+                `.//textarea[@aria-placeholder="${label}"]`,
+                // aria label is received by a title
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                `.//*[not(self::label)][@title="${label}"]`,
+                // images with an alt tag
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                `.//img[@alt="${label}"]`,
+                // aria label is received from element text content
+                // https://www.w3.org/TR/accname-1.1/#step2G
+                `.//*[not(self::label)][normalize-space(text()) = "${label}"]`
+            ]
+            using = 'xpath'
+            value = conditions.join(' | ')
+        } else {
+            using = 'aria'
+            value = label
+        }
         break
     }
     case '-android uiautomator': {
