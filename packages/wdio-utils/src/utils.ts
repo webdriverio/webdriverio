@@ -53,7 +53,7 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
             const element = this
             return userDefinedCommand.apply(element, [
                 function origCommandFunction (this: WebdriverIO.Browser, ..._args: unknown[]) {
-                    const context = this || element // respect explicite context binding, use element as default
+                    const context = this || element // respect explicit context binding, use element as default
                     // eslint-disable-next-line prefer-rest-params
                     return origCommand.apply(context, arguments)
                 },
