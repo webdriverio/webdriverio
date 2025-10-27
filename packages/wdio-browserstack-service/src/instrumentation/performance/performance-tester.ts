@@ -9,7 +9,8 @@ import path from 'node:path'
 import { arch, hostname, platform, type, version } from 'node:os'
 
 import { BStackLogger } from '../../bstackLogger.js'
-import { EDS_URL, PERF_MEASUREMENT_ENV } from '../../constants.js'
+import { PERF_MEASUREMENT_ENV, PERF_METRICS_WAIT_TIME } from '../../constants.js'
+import APIUtils from '../../cli/apiUtils.js'
 import fetchWrap from '../../fetchWrapper.js'
 import type { CsvWriter } from 'csv-writer/src/lib/csv-writer.js'
 import type { ObjectMap } from 'csv-writer/src/lib/lang/object.js'
@@ -99,6 +100,8 @@ export default class PerformanceTester {
             return
         }
 
+        await PerformanceTester.sleep(PERF_METRICS_WAIT_TIME) // Wait to ensure all pending measurements are processed by the observer
+
         try {
             const eventsJson = JSON.stringify(this._measuredEvents)
             // remove enclosing array and add a trailing comma so that we
@@ -114,7 +117,7 @@ export default class PerformanceTester {
             return
         }
 
-        await PerformanceTester.sleep(2000) // Wait to 2s just to finish any running callbacks for timerify
+        await PerformanceTester.sleep(PERF_METRICS_WAIT_TIME) // Wait to 2s just to finish any running callbacks for timerify
 
         this.started = false
 
@@ -302,7 +305,7 @@ export default class PerformanceTester {
                     event_json: { measures: measures, sdkRunId: process.env.SDK_RUN_ID }
                 }
             }
-            const result = await fetchWrap(`${EDS_URL}/send_sdk_events`, {
+            const result = await fetchWrap(`${APIUtils.EDS_URL}/send_sdk_events`, {
                 method: 'POST',
                 headers: {
                     'content-type': 'application/json'
