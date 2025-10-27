@@ -42,7 +42,7 @@ declare var wdio: {
      * @param args The arguments to pass to the command
      * @returns The result of the command
      */
-    execute: <CommandName>(command: CommandName, ...args: any[]) => ReturnType<WebdriverIO.Browser[CommandName]>
+    execute: <CommandName>(command: CommandName, ...args: any[]) => ReturnType<(WebdriverIO.Browser & WebdriverIO.Element)[CommandName]>
     /**
      * This command is available when running WebdriverIO tests using `@wdio/browser-runner`.
      * It allows you to execute a command in Node.js land if desired.
@@ -51,5 +51,5 @@ declare var wdio: {
      * @param args The arguments to pass to the command
      * @returns The result of the command
      */
-    executeWithScope: <CommandName>(commandName: CommandName, scope: string, ...args: any[]) => ReturnType<WebdriverIO.Browser[CommandName]>
+    executeWithScope: <CommandName>(commandName: CommandName, scope: string, ...args: any[]) => ReturnType<(WebdriverIO.Browser & WebdriverIO.Element)[CommandName]>
 }
