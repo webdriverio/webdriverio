@@ -3,7 +3,7 @@ import { browser } from '@wdio/globals'
 describe('network mocking', () => {
     it('marks a request as mocked even without overwrites', async () => {
         const baseUrl = 'https://guinea-pig.webdriver.io/'
-        const mock = await browser.mock(`${baseUrl}components/hammerjs/hammer.js`, {
+        const mock = await browser.mock(`${baseUrl}css/bootstrap.css`, {
             method: 'get',
             statusCode: 200,
         })
