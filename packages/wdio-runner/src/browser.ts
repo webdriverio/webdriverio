@@ -14,7 +14,6 @@ import type { TestFramework, WorkerResponseMessage } from './types.js'
 
 const log = logger('@wdio/runner')
 const sep = '\n  - '
-const ERROR_CHECK_INTERVAL = 500
 const DEFAULT_TIMEOUT = 60 * 1000
 
 type WDIOErrorEvent = Partial<Pick<ErrorEvent, 'filename' | 'message' | 'error'>> & { hasViteError?: boolean }
@@ -131,6 +130,9 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          */
         if (!this._config.sessionId) {
             await browser.url(`/?cid=${this._cid}&spec=${(new URL(spec)).pathname}`)
+            // The above triggers the addInitScript if any was provided.
+            // We check for initial errors right after it runs.
+            this.#checkForTestError()
         }
         // await browser.debug()
 
@@ -150,16 +152,8 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             () => this.#onTestTimeout(`Timed out after ${timeout / 1000}s waiting for test results`),
             timeout)
 
-        /**
-         * run checks for errors here to avoid breakage in communication with the browser
-         */
-        const errorInterval = setInterval(
-            this.#checkForTestError.bind(this),
-            ERROR_CHECK_INTERVAL)
-
         const state: TestState = await testStatePromise
         clearTimeout(testTimeout)
-        clearInterval(errorInterval)
 
         /**
          * capture coverage if enabled
