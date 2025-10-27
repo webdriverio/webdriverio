@@ -75,7 +75,7 @@ const SHADOW_ID_ATTR = `[${SHADOW_ID_ATTR_NAME}]`
 export async function getHTML(
     this: WebdriverIO.Element,
     options: GetHTMLOptions = {}
-) {
+): Promise<string> {
     const browser = getBrowserObject(this)
 
     /**
