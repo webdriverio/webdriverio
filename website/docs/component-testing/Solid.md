@@ -11,13 +11,15 @@ To setup WebdriverIO within your SolidJS project, follow the [instructions](/doc
 
 ```js
 // wdio.conf.js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     runner: ['browser', {
         preset: 'solid'
     }],
     // ...
-}
+})
 ```
 
 :::info

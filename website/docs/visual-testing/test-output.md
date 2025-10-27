@@ -14,12 +14,10 @@ title: Test Output
 This can be set on the [Service Options](./service-options#enablelayouttesting) as well as on the [Method](./method-options) level.
 
 ```js
-// wdio.conf.(js|ts)
-export const config = {
-    // ...
-    // =====
-    // Setup
-    // =====
+// @ts-check
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     services: [
         [
             'visual',
@@ -29,7 +27,7 @@ export const config = {
         ]
     ]
     // ...
-}
+})
 ```
 
 The image output for the [Service Options](./service-options#enablelayouttesting) is equal to the [Method](./method-options), see below.

@@ -7,7 +7,9 @@ Service options are the options that can be set when the service is instantiated
 
 ```js
 // wdio.conf.(js|ts)
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     // =====
     // Setup
@@ -21,7 +23,7 @@ export const config = {
         ],
     ],
     // ...
-};
+});
 ```
 
 ## Default Options

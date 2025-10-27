@@ -17,7 +17,9 @@ If you run your own WebDriver grid, you may (for example) have more capacity for
 
 ```js
 // wdio.conf.js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     // set maxInstance for all browser
     maxInstances: 10,
@@ -31,7 +33,7 @@ export const config = {
         browserName: 'chrome'
     }],
     // ...
-}
+})
 ```
 
 ## Inherit From Main Config File
@@ -45,10 +47,11 @@ Then create another config file for each environment, and supplement the the mai
 ```js
 // wdio.dev.config.js
 import { deepmerge } from 'deepmerge-ts'
+import { defineConfig } from '@wdio/config'
 import wdioConf from './wdio.conf.js'
 
 // have main config file as default but overwrite environment specific information
-export const config = deepmerge(wdioConf.config, {
+export const config = deepmerge(wdioConf.config, defineConfig({
     capabilities: [
         // more caps defined here
         // ...
@@ -58,7 +61,7 @@ export const config = deepmerge(wdioConf.config, {
     user: process.env.SAUCE_USERNAME,
     key: process.env.SAUCE_ACCESS_KEY,
     services: ['sauce']
-}, { clone: false })
+}), { clone: false })
 
 // add an additional reporter
 config.reporters.push('allure')
@@ -70,9 +73,10 @@ You can group test specs in suites and run single specific suites instead of all
 
 First, define your suites in your WDIO config:
 
-```js
-// wdio.conf.js
-export const config = {
+```ts
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // define all tests
     specs: ['./test/specs/**/*.spec.js'],
     // ...
@@ -87,7 +91,7 @@ export const config = {
         ]
     },
     // ...
-}
+})
 ```
 
 Now, if you want to only run a single suite, you can pass the suite name as a CLI argument:
@@ -313,28 +317,28 @@ but then, you will have different capabilities for your Android and iOS devices,
 
 If you require both of these capabilities in your config file, then the Android device will only run the tests under the "android" namespace, and the iOS tests will run only tests under the "ios" namespace!
 
-```js
-//wdio.conf.js
-export const config = {
-    "specs": [
-        "tests/general/**/*.js"
+```ts
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    'specs': [
+        'tests/general/**/*.js'
     ],
-    "capabilities": [
+    'capabilities': [
         {
-            platformName: "Android",
-            specs: ["tests/android/**/*.js"],
+            platformName: 'Android',
+            specs: ['tests/android/**/*.js'],
             //...
         },
         {
-            platformName: "iOS",
-            specs: ["tests/ios/**/*.js"],
+            platformName: 'iOS',
+            specs: ['tests/ios/**/*.js'],
             //...
         },
         {
-            platformName: "Chrome",
+            platformName: 'Chrome',
             //config level specs will be used
         }
     ]
-}
+})
 ```
-

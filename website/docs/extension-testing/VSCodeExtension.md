@@ -24,11 +24,12 @@ An installation wizard will guide you through the process. Ensure you select _"V
 
 ## Example Configuration
 
-To use the service you need to add `vscode` to your list of services, optionally followed by a configuration object. This will make WebdriverIO download given VSCode binaries and appropiate Chromedriver version:
+To use the service you need to add `vscode` to your list of services, optionally followed by a configuration object. This will make WebdriverIO download given VSCode binaries and appropriate Chromedriver version:
 
-```js
-// wdio.conf.ts
-export const config = {
+```ts
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     outputDir: 'trace',
     // ...
     capabilities: [{
@@ -37,7 +38,7 @@ export const config = {
         'wdio:vscodeOptions': {
             extensionPath: __dirname,
             userSettings: {
-                "editor.fontSize": 14
+                'editor.fontSize': 14
             }
         }
     }],
@@ -48,14 +49,15 @@ export const config = {
      * services: [['vscode', { cachePath: __dirname }]]
      */
     // ...
-};
+})
 ```
 
 If you define `wdio:vscodeOptions` with any other `browserName` but `vscode`, e.g. `chrome`, the service will serve the extension as web extension. If you test on Chrome no additional driver service is required, e.g.:
 
-```js
-// wdio.conf.ts
-export const config = {
+```ts
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     outputDir: 'trace',
     // ...
     capabilities: [{
@@ -66,7 +68,7 @@ export const config = {
     }],
     services: ['vscode'],
     // ...
-};
+})
 ```
 
 _Note:_ when testing web extensions you can only choose between `stable` or `insiders` as `browserVersion`.

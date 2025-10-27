@@ -12,7 +12,7 @@ import { generateElectronDocs } from './electronDocs.js'
 import { generateEventDocs } from './eventDocs.js'
 import { copyContributingDocs } from './copyContributingDocs.js'
 import { downloadAwesomeResources } from './downloadAwesomeResources.js'
-import { downloadDocsTranslations } from './downloadDocsTranslations.js'
+// import { downloadDocsTranslations } from './downloadDocsTranslations.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -51,7 +51,7 @@ try {
     print('Copy over Awesome Resources')
     await downloadAwesomeResources()
     print('Download docs translations')
-    await downloadDocsTranslations()
+    // await downloadDocsTranslations()
 
     writeSidebars(sidebars)
 
