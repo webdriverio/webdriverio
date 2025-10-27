@@ -260,6 +260,11 @@ export const config = {
     // Your TSConfig is automatically detected from the current working directory
     // but you can specify a custom path here or by setting the TSX_TSCONFIG_PATH env var
     // See the `tsx` docs: https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path
+    //
+    // Note: This setting will be overriden by the TSX_TSCONFIG_PATH env var and/or the cli --tsConfigPath argument if they are specified.
+    // This setting will be ignored if node is unable to parse your wdio.conf.ts file without help from tsx, e.g. if you have path
+    // aliases setup in tsconfig.json and you use those path aliases inside your wdio.config.ts file.
+    // Only use this if you are using a .js config file or your .ts config file is valid JavaScript.
     tsConfigPath: 'path/to/tsconfig.json',
     //
     // =====

@@ -165,7 +165,7 @@ describe('click test', () => {
         const elem = await browser.$('#foo')
 
         // @ts-expect-error invalid param
-        expect(elem.click([])).rejects.toThrow('Options must be an object')
+        await expect(elem.click([])).rejects.toThrow('Options must be an object')
     })
 
     it('should throw an error if no valid coordinates are passed', async () => {
@@ -178,7 +178,7 @@ describe('click test', () => {
         const elem = await browser.$('#foo')
 
         // @ts-expect-error invalid param
-        expect(elem.click({ x: 'not-supported' })).rejects.toThrow('Coordinates must be integers')
+        await expect(elem.click({ x: 'not-supported' })).rejects.toThrow('Coordinates must be integers')
     })
 
     it('should throw an error if no valid button type is passed', async () => {
@@ -191,7 +191,7 @@ describe('click test', () => {
         const elem = await browser.$('#foo')
 
         // @ts-expect-error invalid param
-        expect(elem.click({ button: 'not-supported' })).rejects.toThrow('Button type not supported.')
+        await expect(elem.click({ button: 'not-supported' })).rejects.toThrow('Button type not supported.')
     })
 
     it('should not call releaseAction when skipRelease is true', async () => {

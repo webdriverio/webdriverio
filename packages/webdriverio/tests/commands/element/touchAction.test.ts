@@ -163,18 +163,18 @@ describe('touchAction element test', () => {
             }))
         })
 
-        it('should throw an error if "release" has invalid params', () => {
-            expect(elem.touchAction({ action: 'release', ms: 123 }))
+        it('should throw an error if "release" has invalid params', async () => {
+            await expect(elem.touchAction({ action: 'release', ms: 123 }))
                 .rejects.toThrow('action "release" doesn\'t accept any options ("ms" found)')
         })
 
-        it('should throw an error if "wait" has invalid params', () => {
-            expect(elem.touchAction({ action: 'wait', x: 123 }))
+        it('should throw an error if "wait" has invalid params', async () => {
+            await expect(elem.touchAction({ action: 'wait', x: 123 }))
                 .rejects.toThrow('action "wait" doesn\'t accept x or y options')
         })
 
-        it('should throw error if other actions contains something different than x or y', () => {
-            expect(elem.touchAction({ action: 'press', ms: 123 }))
+        it('should throw error if other actions contains something different than x or y', async () => {
+            await expect(elem.touchAction({ action: 'press', ms: 123 }))
                 .rejects.toThrow('action "press" doesn\'t accept "ms" as option')
         })
 
