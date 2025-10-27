@@ -43,7 +43,7 @@ declare global {
          * @param args The arguments to pass to the command
          * @returns The result of the command
          */
-        execute: <CommandName extends keyof BrowserElement>(command: CommandName, ...args: any[]) => ReturnType<BrowserElement[CommandName]>
+        execute: <CommandName extends keyof BrowserElement>(command: CommandName, ...args: unknown[]) => ReturnType<BrowserElement[CommandName]>
         /**
         * This command is available when running WebdriverIO tests using `@wdio/browser-runner`.
         * It allows you to execute a command in Node.js land if desired.
@@ -52,7 +52,7 @@ declare global {
         * @param args The arguments to pass to the command
         * @returns The result of the command
         */
-        executeWithScope: <CommandName extends keyof BrowserElement>(commandName: CommandName, scope: string, ...args: any[]) => ReturnType<BrowserElement[CommandName]>
+        executeWithScope: <CommandName extends keyof BrowserElement>(commandName: CommandName, scope: string, ...args: unknown[]) => ReturnType<BrowserElement[CommandName]>
     }
 }
 
