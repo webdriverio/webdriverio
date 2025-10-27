@@ -1,6 +1,7 @@
 import fs from 'node:fs'
+import path from 'node:path'
 
-import { getAbsoluteFilepath, assertDirectoryExists } from './utils.js'
+import { assertDirectoryExists } from './utils.js'
 
 type PDFPrintOptions = {
     orientation?: string,
@@ -31,7 +32,7 @@ export async function savePDF (
         throw new Error('savePDF expects a filepath of type string and ".pdf" file ending')
     }
 
-    const absoluteFilepath = getAbsoluteFilepath(filepath)
+    const absoluteFilepath = path.resolve(filepath)
     await assertDirectoryExists(absoluteFilepath)
 
     const pdf = await this.printPage(options?.orientation, options?.scale, options?.background,
