@@ -9,7 +9,7 @@
   {
     "packageName": "wdio-video-reporter",
     "title": "Video",
-    "githubUrl": "https://github.com/presidenten/wdio-video-reporter",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-video-reporter",
     "npmUrl": "https://www.npmjs.com/package/wdio-video-reporter"
   },
   {
@@ -29,8 +29,8 @@
   {
     "packageName": "wdio-cucumberjs-json-reporter",
     "title": "CucumberJS JSON",
-    "githubUrl": "https://github.com/wswebcreation/wdio-cucumberjs-json-reporter",
-    "npmUrl": "https://nodei.co/npm/wdio-cucumberjs-json-reporter"
+    "githubUrl": "https://github.com/webdriverio-community/wdio-cucumberjs-json-reporter",
+    "npmUrl": "https://www.npmjs.com/package/wdio-cucumberjs-json-reporter"
   },
   {
     "packageName": "wdio-delta-reporter-service",
