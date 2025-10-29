@@ -310,8 +310,7 @@ export default class AccessibilityModule extends BaseModule {
             async () => {
                 try {
                     // Fetch central auth accessibility configuration
-                    const centralAuthConfig = await this.fetchCentralAuthA11yConfig("scan")
-                    
+                    const centralAuthConfig = await this.fetchCentralAuthA11yConfig('scan')
                     if (!this.accessibility) {
                         this.logger.debug('Not an Accessibility Automation session.')
                         return
@@ -319,10 +318,10 @@ export default class AccessibilityModule extends BaseModule {
                     if (this.isAppAccessibility) {
                         // Get app accessibility params and merge with central auth config
                         const appAccessibilityParams = _getParamsForAppAccessibility(commandName)
-                        
+
                         // Merge with central auth config
                         const mergedParams: Record<string, any> = { ...appAccessibilityParams, ...centralAuthConfig }
-                        
+
                         // Use centralAuthToken with centralAuthHeader if available
                         if (centralAuthConfig.centralAuthToken && centralAuthConfig.centralAuthHeader) {
                             mergedParams.centralAuthHeader = centralAuthConfig.centralAuthHeader
@@ -330,7 +329,6 @@ export default class AccessibilityModule extends BaseModule {
                             // Remove centralAuthToken from mergedParams after use
                             delete mergedParams.centralAuthToken
                         }
-                        
                         const results: unknown = await (browser as WebdriverIO.Browser).execute(
                             formatString(this.scriptInstance.performScan, JSON.stringify(mergedParams)) as string,
                             {}
@@ -434,7 +432,7 @@ export default class AccessibilityModule extends BaseModule {
     /**
      * Fetch central auth accessibility configuration for the given script name.
      * Returns cached config if already fetched, otherwise loads and caches it.
-     * 
+     *
      * @param scriptName - Name of the script to fetch config for
      * @returns Configuration object, empty object if error occurs
      */
