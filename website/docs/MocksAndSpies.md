@@ -187,3 +187,5 @@ expect(mock.calls.length).toBe(1)
 // assert response
 expect(mock.calls[0].body).toEqual({ success: true })
 ```
+
+If you need to wait until a matching request has responded, use `mock.waitForResponse(options)`. See the API reference: [waitForResponse](/docs/api/mock/waitForResponse).
