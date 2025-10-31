@@ -48,4 +48,15 @@ describe('waitForExists', () => {
         })
         expect(vi.mocked(elem.waitUntil).mock.calls).toMatchSnapshot()
     })
+
+    it('should maintain elementId for shadow element', async () => {
+        const elem = await browser.$('#foo')
+        const shadowElem = await elem.shadow$('#bar')
+        const isExistingSpy = vi.spyOn(shadowElem, 'isExisting').mockResolvedValue(true)
+
+        expect(shadowElem.elementId).toBe('some-shadow-sub-elem-321')
+        await shadowElem.waitForExist({ timeout })
+        expect(shadowElem.elementId).toBe('some-shadow-sub-elem-321')
+        expect(isExistingSpy).toHaveBeenCalledTimes(1)
+    })
 })
