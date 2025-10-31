@@ -322,12 +322,10 @@ export default class AccessibilityModule extends BaseModule {
                         // Merge with central auth config
                         const mergedParams: Record<string, any> = { ...appAccessibilityParams, ...centralAuthConfig }
 
-                        // Use centralAuthToken with centralAuthHeader if available
-                        if (centralAuthConfig.centralAuthToken && centralAuthConfig.centralAuthHeader) {
-                            mergedParams.centralAuthHeader = centralAuthConfig.centralAuthHeader
-                            mergedParams.centralAuthToken = centralAuthConfig.centralAuthToken
-                            // Remove centralAuthToken from mergedParams after use
-                            delete mergedParams.centralAuthToken
+                        // Use centralAuthToken if available
+                        if (centralAuthConfig.centralAuthToken) {
+                            // Set the auth header with the token value
+                            mergedParams.centralAuthHeader = centralAuthConfig.centralAuthToken
                         }
                         const results: unknown = await (browser as WebdriverIO.Browser).execute(
                             formatString(this.scriptInstance.performScan, JSON.stringify(mergedParams)) as string,
