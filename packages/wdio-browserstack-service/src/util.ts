@@ -23,7 +23,7 @@ import PerformanceTester from './instrumentation/performance/performance-tester.
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 import { logBuildError, handleErrorForObservability, handleErrorForAccessibility, getProductMapForBuildStartCall } from './testHub/utils.js'
 import type BrowserStackConfig from './config.js'
-
+import { OrchestrationUtils } from './testorchestration/testorcherstrationutils.js'
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig, TOStopData } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import {
@@ -406,7 +406,8 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
             }
         },
         product_map: getProductMapForBuildStartCall(bStackConfig, accessibilityAutomation),
-        config: {}
+        config: {},
+        test_orchestration: OrchestrationUtils.getInstance(config)?.getBuildStartData() || {}
     }
 
     if (accessibilityAutomation && (isTurboScale(options) || data.browserstackAutomation === false)){

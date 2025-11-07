@@ -63,6 +63,7 @@ import { CLIUtils } from './cli/cliUtils.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
 import util from 'node:util'
 import APIUtils from './cli/apiUtils.js'
+// import OrchestrationUtils from './testorchestration/testorcherstrationutils.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -218,6 +219,54 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         // // Send Funnel start request
         await sendStart(this.browserStackConfig)
 
+        // Convert glob patterns in specs to resolved relative paths
+        if (config.specs && Array.isArray(config.specs)) {
+            try {
+                // Import glob for expanding file patterns
+                const glob = (await import('glob')).sync
+                const path = await import('node:path')
+
+                // Use ConfigParser.getFilePaths equivalent logic to expand specs
+                const expandedSpecs: string[] = []
+                for (const specPattern of config.specs) {
+                    if (typeof specPattern === 'string') {
+                        if (specPattern.startsWith('file://')) {
+                            expandedSpecs.push(specPattern)
+                            continue
+                        }
+
+                        // Expand glob pattern to relative paths
+                        const pattern = specPattern.replace(/\\/g, '/')
+                        const rootDir = config.rootDir || process.cwd()
+                        const filenames = glob(pattern, {
+                            cwd: rootDir,
+                            matchBase: true
+                        }) || []
+
+                        // Ensure relative paths
+                        filenames
+                            .forEach((filename: string) => {
+                                // Ensure the filename is always relative to rootDir
+                                let relativePath = filename
+                                if (path.isAbsolute(filename)) {
+                                    relativePath = path.relative(rootDir, filename)
+                                }
+                                // Normalize path separators for consistency
+                                relativePath = relativePath.replace(/\\/g, '/')
+                                expandedSpecs.push(relativePath)
+                            })
+                    }
+                }
+
+                if (expandedSpecs.length > 0) {
+                    BStackLogger.info(`Expanded specs from glob patterns to ${expandedSpecs.length} files`)
+                    config.specs = expandedSpecs
+                }
+            } catch (error) {
+                BStackLogger.error(`Failed to expand spec patterns: ${error}`)
+            }
+        }
+
         try {
             if (CLIUtils.checkCLISupportedFrameworks(config.framework)) {
                 CLIUtils.setFrameworkDetail(WDIO_NAMING_PREFIX + config.framework, 'WebdriverIO') // TODO: make this constant
@@ -370,6 +419,30 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         // send testhub build uuid and product map instrumentation
         this._updateCaps(capabilities, 'testhubBuildUuid')
         this._updateCaps(capabilities, 'buildProductMap')
+
+        // Apply test orchestration if enabled
+        try {
+            // Import dynamically to avoid circular dependencies
+            const { applyOrchestrationIfEnabled } = await import('./testorchestration/apply-orchestration.js')
+
+            if (config.specs && config.specs.length > 0 && this._options.testObservability) {
+                BStackLogger.info('Applying test orchestration')
+                // Ensure we're passing string[] to applyOrchestrationIfEnabled
+                const specs = (config.specs as string[]).filter(spec => typeof spec === 'string')
+                console.log('Specs before orchestration:', specs)
+
+                const orderedSpecs = await applyOrchestrationIfEnabled(specs, this._options)
+                console.log('Specs after orchestration:', orderedSpecs)
+                // Update the specs array with the ordered specs
+                if (orderedSpecs && orderedSpecs.length > 0) {
+                    // Clear the specs array and add the ordered specs
+                    config.specs = orderedSpecs
+                    BStackLogger.info('Test specs updated with orchestrated order')
+                }
+            }
+        } catch (error) {
+            BStackLogger.error(`Error applying test orchestration: ${error}`)
+        }
 
         // local binary will be handled by CLI
         if (BrowserstackCLI.getInstance().isRunning()) {
