@@ -143,7 +143,6 @@ async function getPropertyCSSValue(
     }
 
     return await getComputedStyleProperty(this, cssProperty)
-
 }
 
 function getShorthandProperties(cssProperty: string) {
@@ -210,9 +209,9 @@ async function getComputedStyleProperty (
     cssProperty: string
 ): Promise<string> {
     const browser = getBrowserObject(elem)
-    const cssValue = browser.execute(
+    const cssValue = await browser.execute(
         (elem: Element, cssProperty: string) => {
-            if (!elem || !elem.isConnected) {
+            if (!elem) {
                 return ''
             }
 
