@@ -22,13 +22,14 @@ class WebDriver {
     /**
      * allows user to attach to existing sessions
      */
-    static async attachToSession (
+    static attachToSession (
         options?: any,
-        modifier?: () => any,
+        modifier?: (...args: any[]) => any,
         userPrototype = {},
-        commandWrapper?: () => any
-    ): Promise<any> {
-        const WebDriver = (await esmModule).WebDriver
+        commandWrapper?: (...args: any[]) => any
+    ): any {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const WebDriver = require('./node.js').WebDriver
         return WebDriver.attachToSession(options, modifier, userPrototype, commandWrapper)
     }
 

@@ -159,7 +159,7 @@ export default class WebDriver {
     }
 
     /**
-     * Changes The instance session id and browser capabilities for the new session
+     * Changes the instance session id and browser capabilities for the new session
      * directly into the passed in browser object
      *
      * @param   {object} instance  the object we get from a new browser session.
