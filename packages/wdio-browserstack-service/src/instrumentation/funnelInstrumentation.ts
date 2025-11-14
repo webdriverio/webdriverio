@@ -5,13 +5,14 @@ import fs from 'node:fs'
 import UsageStats, { type UsageStat } from '../testOps/usageStats.js'
 import { BStackLogger } from '../bstackLogger.js'
 import type BrowserStackConfig from '../config.js'
-import { BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
+import { BSTACK_SERVICE_VERSION, WDIO_NAMING_PREFIX } from '../constants.js'
 import { getDataFromWorkers } from '../data-store.js'
 import { getProductMap } from '../testHub/utils.js'
 import fetchWrap from '../fetchWrapper.js'
 import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
 import type { FunnelData, EventProperties } from '../types.js'
 import TestOpsConfig from '../testOps/testOpsConfig.js'
+import APIUtils from '../cli/apiUtils.js'
 
 async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig) {
     if (!config.userName || !config.accessKey) {
@@ -66,7 +67,7 @@ export async function fireFunnelRequest(data: FunnelData): Promise<void> {
     BStackLogger.debug('Sending SDK event with data ' + util.inspect(data, { depth: 6 }))
 
     const encodedAuth = Buffer.from(`${userName}:${accessKey}`, 'utf8').toString('base64')
-    const response = await fetchWrap(FUNNEL_INSTRUMENTATION_URL, {
+    const response = await fetchWrap(APIUtils.FUNNEL_INSTRUMENTATION_URL, {
         method: 'POST',
         headers: {
             'content-type': 'application/json',
@@ -140,7 +141,7 @@ function buildEventData(eventType: string, config: BrowserStackConfig) {
         userName: config.userName,
         accessKey: config.accessKey,
         event_type: eventType,
-        detectedFramework: 'WebdriverIO-' + config.framework,
+        detectedFramework: WDIO_NAMING_PREFIX + config.framework,
         event_properties: eventProperties
     } as unknown as FunnelData
 
@@ -157,7 +158,7 @@ function getLanguageFramework(framework?: string) {
 }
 
 function getReferrer(framework?: string) {
-    const fullName = framework ? 'WebdriverIO-' + framework : 'WebdriverIO'
+    const fullName = framework ? WDIO_NAMING_PREFIX + framework : 'WebdriverIO'
     return `${fullName}/${BSTACK_SERVICE_VERSION}`
 }
 
