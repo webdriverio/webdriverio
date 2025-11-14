@@ -174,7 +174,8 @@ export class CLIUtils {
             sdk_language: this.getSdkLanguage(),
         }
         if (!isNullOrEmpty(existingCliPath)) {
-            queryParams.cli_version = await this.runShellCommand(`${existingCliPath} version`)
+            const nullDevice = platform() === 'win32' ? 'NUL' : '/dev/null'
+            queryParams.cli_version = await this.runShellCommand(`${existingCliPath} version 2>${nullDevice}`)
         }
         const response = await this.requestToUpdateCLI(queryParams, config)
         if (nestedKeyValue(response, ['updated_cli_version'])) {
