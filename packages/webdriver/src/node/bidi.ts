@@ -120,12 +120,7 @@ export async function connectWebsocket(candidateUrls: string[], options?: Client
 
     const socketsToCleanup = wsInfo ? websockets.filter((_, index) => wsInfo.index !== index) : websockets
     for (const socket of socketsToCleanup) {
-        socket.removeAllListeners()
-        if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CLOSING) {
-            socket.terminate()
-        } else {
-            socket.once('open', () => socket.terminate())
-        }
+        socket.terminate()
     }
 
     if (wsInfo?.isConnected) {

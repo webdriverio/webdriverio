@@ -42,18 +42,57 @@ describe('wrapCommand', () => {
         expect(afterHook).toBeCalledTimes(3)
         expect(afterHook).toBeCalledWith('someCommand', [123, 'barfoo'], undefined, error)
     })
+
+    it('should work with single function hooks (not arrays)', async () => {
+        const commandFn = vi.fn().mockReturnValue(Promise.resolve({ success: true, data: 'test' }))
+        const beforeHook = vi.fn()
+        const afterHook = vi.fn()
+        const scope: any = {
+            options: {
+                beforeCommand: beforeHook, // single function, not array
+                afterCommand: afterHook    // single function, not array
+            }
+        }
+        const res = await wrapCommand('getData', commandFn).call(scope, 'param1', 'param2')
+        expect(res).toEqual({ success: true, data: 'test' })
+        expect(commandFn).toBeCalledTimes(1)
+        expect(commandFn).toBeCalledWith('param1', 'param2')
+
+        expect(beforeHook).toBeCalledTimes(1)
+        expect(beforeHook).toBeCalledWith('getData', ['param1', 'param2'])
+
+        expect(afterHook).toBeCalledTimes(1)
+        expect(afterHook).toBeCalledWith('getData', ['param1', 'param2'], { success: true, data: 'test' }, undefined)
+    })
+
+    it('should pass actual command result to afterCommand hook, not 0/1', async () => {
+        const commandResult = { title: 'Test Page', url: 'https://example.com' }
+        const commandFn = vi.fn().mockReturnValue(Promise.resolve(commandResult))
+        const afterHook = vi.fn()
+        const scope: any = {
+            options: {
+                beforeCommand: [],
+                afterCommand: afterHook
+            }
+        }
+        await wrapCommand('getTitle', commandFn).call(scope)
+
+        expect(afterHook).toBeCalledTimes(1)
+        const callArgs = afterHook.mock.calls[0]
+        expect(callArgs[2]).toEqual(commandResult) // result should be the actual command result
+    })
 })
 
 describe('executeAsync', () => {
     it('should trigger a timeout exception if the function finishes within the specified timeframe', async () => {
         const fn = () => new Promise((resolve) => setTimeout(resolve, 300))
-        const result = await executeAsync(fn, { attempts: 1, limit: 1 }, [], 200).catch((err) => err.message)
+        const result = await executeAsync.call({}, fn, { attempts: 1, limit: 1 }, [], 200).catch((err) => err.message)
         expect(result).toEqual('Timeout')
     })
 
     it('should not trigger a timeout exception if the function finishes within the specified timeframe', async () => {
         const fn = () => new Promise((resolve) => setTimeout(() => resolve(true), 100))
-        const result = await executeAsync(fn, { attempts: 1, limit: 1 }, [], 300)
+        const result = await executeAsync.call({}, fn, { attempts: 1, limit: 1 }, [], 300)
         expect(result).toBe(true)
     })
 
@@ -66,14 +105,14 @@ describe('executeAsync', () => {
             }
             return Promise.resolve('Success')
         }
-        const result = await executeAsync(retryFunction, { attempts: 1, limit: 3 }, [], 300)
+        const result = await executeAsync.call({}, retryFunction, { attempts: 1, limit: 3 }, [], 300)
         expect(attempts).to.equal(3)
         expect(result).to.equal('Success')
     })
 
     it('should handle errors during execution', async () => {
         const fn = () => Promise.reject(new Error('Execution Error'))
-        const result = await executeAsync(fn, { attempts: 1, limit: 1 }, [], 200).catch((err) => err.message)
+        const result = await executeAsync.call({}, fn, { attempts: 1, limit: 1 }, [], 200).catch((err) => err.message)
         expect(result).toEqual('Execution Error')
     })
 })
