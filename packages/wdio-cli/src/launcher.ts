@@ -257,9 +257,10 @@ class Launcher {
         }
 
         /**
-         * avoid retries in watch mode
+         * Avoid retries in watch mode. Otherwise, initialize with -1 which is "unknown". It will be updated when the
+         * worker ends (this allows the value to be read from the config after the beforeSession hook has run).
          */
-        const specFileRetries = this._isWatchMode ? 0 : config.specFileRetries
+        const specFileRetries = this._isWatchMode ? 0 : -1
 
         /**
          * schedule test runs
