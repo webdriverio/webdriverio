@@ -181,7 +181,7 @@ export interface HookFunctionExtension {
      * @param uri      path to feature file
      * @param feature  Cucumber feature object
      */
-    beforeFeature?(uri: string, feature: Feature): void;
+    beforeFeature?(uri: string, feature: Feature): void | Promise<void>;
 
     /**
      *
@@ -189,7 +189,7 @@ export interface HookFunctionExtension {
      * @param world     world object containing information on pickle and test step
      * @param context   Cucumber World object
      */
-    beforeScenario?(world: ITestCaseHookParameter, context: World): void;
+    beforeScenario?(world: ITestCaseHookParameter, context: World): void | Promise<void>;
 
     /**
      *
@@ -198,7 +198,7 @@ export interface HookFunctionExtension {
      * @param scenario scenario data
      * @param context  Cucumber World object
      */
-    beforeStep?(step: PickleStep, scenario: Pickle, context: World): void;
+    beforeStep?(step: PickleStep, scenario: Pickle, context: World): void | Promise<void>;
 
     /**
      *
@@ -211,7 +211,7 @@ export interface HookFunctionExtension {
      * @param result.duration duration of scenario in milliseconds
      * @param context         Cucumber World object
      */
-    afterStep?(step: PickleStep, scenario: Pickle, result: Frameworks.PickleResult, context: World): void;
+    afterStep?(step: PickleStep, scenario: Pickle, result: Frameworks.PickleResult, context: World): void | Promise<void>;
 
     /**
      *
@@ -223,7 +223,7 @@ export interface HookFunctionExtension {
      * @param result.duration   duration of scenario in milliseconds
      * @param context           Cucumber World object
      */
-    afterScenario?(world: ITestCaseHookParameter, result: Frameworks.PickleResult, context: World): void;
+    afterScenario?(world: ITestCaseHookParameter, result: Frameworks.PickleResult, context: World): void | Promise<void>;
 
     /**
      *
@@ -231,7 +231,7 @@ export interface HookFunctionExtension {
      * @param uri      path to feature file
      * @param feature  Cucumber feature object
      */
-    afterFeature?(uri: string, feature: Feature): void;
+    afterFeature?(uri: string, feature: Feature): void | Promise<void>;
 }
 
 export interface StepDefinitionOptions {
