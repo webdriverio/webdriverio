@@ -73,6 +73,14 @@ exports[`getCapabilities > should return driver with capabilities for ios 2`] = 
 }
 `;
 
+exports[`getCapabilities > should return driver with capabilities for multiremote config 1`] = `
+{
+  "capabilities": {
+    "browserName": "chrome",
+  },
+}
+`;
+
 exports[`getCapabilities > should through capability not found 1`] = `[Error: No capability found in given config file with the provided capability indexed/named property: 5. Please check the capability in your wdio config file.]`;
 
 exports[`getCapabilities > should throw capability not provided 1`] = `[Error: Please provide index/named property of capability to use from the capabilities array/object in wdio config file]`;
