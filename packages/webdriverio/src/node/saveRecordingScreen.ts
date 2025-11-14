@@ -1,6 +1,7 @@
 import fs from 'node:fs'
+import path from 'node:path'
 
-import { getAbsoluteFilepath, assertDirectoryExists } from './utils.js'
+import { assertDirectoryExists } from './utils.js'
 
 /**
  * Command implementation of the `saveRecordingScreen` command.
@@ -16,7 +17,7 @@ export async function saveRecordingScreen (
         throw new Error('saveRecordingScreen expects a filepath')
     }
 
-    const absoluteFilepath = getAbsoluteFilepath(filepath)
+    const absoluteFilepath = path.resolve(filepath)
     await assertDirectoryExists(absoluteFilepath)
 
     const videoBuffer = await this.stopRecordingScreen()
