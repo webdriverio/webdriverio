@@ -120,7 +120,7 @@ async function getShorthandPropertyCSSValue(
     }
 
     const cssValues = await Promise.all(
-        properties.map((prop) => this.getElementCSSValue(this.elementId, prop))
+        properties.map((prop) => getComputedStyleProperty(this, prop))
     )
 
     return mergeEqualSymmetricalValue(cssValues)
@@ -141,7 +141,8 @@ async function getPropertyCSSValue(
             }
         )
     }
-    return await this.getElementCSSValue(this.elementId, cssProperty)
+
+    return await getComputedStyleProperty(this, cssProperty)
 }
 
 function getShorthandProperties(cssProperty: string) {
@@ -188,6 +189,35 @@ async function getPseudoElementCSSValue (
         (elem: Element, pseudoElement: string, cssProperty: string) => (window.getComputedStyle(elem, pseudoElement))[cssProperty as unknown as number],
         elem as unknown as Element,
         pseudoElement,
+        cssProperty
+    )
+
+    return cssValue
+}
+
+/**
+ * Get a computed CSS property value using browser.execute.
+ * This method replaced the protocol-based getElementCSSValue method to avoid
+ * stale element references in WebDriver Bidi mode.
+ *
+ * @param elem - The element to get the CSS property from
+ * @param cssProperty - The CSS property name to retrieve
+ * @returns The computed CSS property value as a string
+ */
+async function getComputedStyleProperty (
+    elem: WebdriverIO.Element,
+    cssProperty: string
+): Promise<string> {
+    const browser = getBrowserObject(elem)
+    const cssValue = await browser.execute(
+        (elem: Element, cssProperty: string) => {
+            if (!elem) {
+                return ''
+            }
+
+            return window.getComputedStyle(elem)[cssProperty as unknown as number]
+        },
+        elem as unknown as Element,
         cssProperty
     )
 
