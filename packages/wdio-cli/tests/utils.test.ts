@@ -312,6 +312,25 @@ describe('getCapabilities', () => {
             .toMatchSnapshot()
         expect(autoCompileMock).toBeCalledTimes(1)
     })
+
+    it('should return driver with capabilities for multiremote config', async () => {
+        const getCapabilitiesMock = vi.spyOn(ConfigParser.prototype, 'getCapabilities')
+        getCapabilitiesMock.mockReturnValue({
+            myChromeBrowser: {
+                capabilities: {
+                    browserName: 'chrome'
+                }
+            },
+            myFirefoxBrowser: {
+                capabilities: {
+                    browserName: 'firefox'
+                }
+            }
+        } as WebdriverIO.Capabilities)
+
+        expect(await getCapabilities({ option: '/path/to/config.js', capabilities: 'myChromeBrowser' } as any))
+            .toMatchSnapshot()
+    })
 })
 
 afterEach(() => {

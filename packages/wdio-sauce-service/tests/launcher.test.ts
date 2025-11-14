@@ -485,7 +485,7 @@ test('startTunnel fail three and throws error', async ()=> {
         .mockRejectedValueOnce(new Error('ENOENT'))
         .mockRejectedValueOnce(new Error('ENOENT'))
 
-    expect(async () => {
+    await expect(async () => {
         await service.startTunnel({})
     }).rejects.toThrowError('ENOENT')
 

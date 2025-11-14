@@ -651,7 +651,7 @@ Parameters:
 
 - `commandName` (`string`): command name
 - `args` (`*`): arguments that command would receive
-- `result` (`number`): 0 - command success, 1 - command error
+- `result` (`*`): result of the command
 - `error` (`Error`): error object if any
 
 ### afterTest

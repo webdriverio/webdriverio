@@ -1,5 +1,6 @@
 import url from 'node:url'
 import path from 'node:path'
+import os from 'node:os'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -21,9 +22,12 @@ export const config: WebdriverIO.Config = {
     capabilities: [{
         browserName: 'chrome',
         browserVersion: 'stable',
-        // 'goog:chromeOptions': {
-        //     args: ['headless', 'disable-gpu']
-        // }
+        'goog:chromeOptions': {
+            args: [
+                'disable-infobars'
+                // 'headless', 'disable-gpu'
+            ]
+        }
     }],
     bail: 1,
     services: ['lighthouse'],
@@ -41,5 +45,6 @@ export const config: WebdriverIO.Config = {
     mochaOpts: {
         ui: 'bdd',
         timeout: 60000
-    }
+    },
+    maxInstances: os.cpus().length - 1
 }
