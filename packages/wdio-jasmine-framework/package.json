@@ -42,7 +42,7 @@
     "jasmine": "^5.0.0"
   },
   "devDependencies": {
-    "@types/jasmine": "5.1.8",
+    "@types/jasmine": "5.1.12",
     "expect-webdriverio": "^5.3.4"
   },
   "peerDependencies": {
