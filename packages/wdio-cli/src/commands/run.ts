@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 import type { Argv } from 'yargs'
 
@@ -10,6 +11,9 @@ import { CLI_EPILOGUE } from '../constants.js'
 import type { RunCommandArguments } from '../types.js'
 import { config } from 'create-wdio/config/cli'
 import { ConfigParser } from '@wdio/config/node'
+import logger from '@wdio/logger'
+
+const log = logger('@wdio/cli:run')
 
 export const command = 'run <configPath>'
 
@@ -241,11 +245,26 @@ export async function handler(argv: RunCommandArguments) {
 }
 
 async function tsConfigPathFromConfigFile(wdioConfPath: string, params: Partial<RunCommandArguments>): Promise<string | void> {
-    const configParser = new ConfigParser(wdioConfPath, params)
-    await configParser.initialize()
-    const { tsConfigPath } = configParser.getConfig()
-    if (tsConfigPath ) {
-        return tsConfigPath
+    try {
+        const configParser = new ConfigParser(cacheBustFilePath(wdioConfPath), params)
+        await configParser.initialize()
+        const { tsConfigPath } = configParser.getConfig()
+        if (tsConfigPath) {
+            return tsConfigPath
+        }
+    } catch {
+        log.debug(`Unable to parse config file. If tsConfigPath is set in ${wdioConfPath}, it will be ignored.`)
+        return
     }
     return
+}
+
+/**
+ * Generates a cross-platform cache-busting URL for module imports.
+ */
+function cacheBustFilePath(filePath: string) {
+    const absolutePath = path.resolve(filePath)
+    const fileUrl = pathToFileURL(absolutePath)
+    fileUrl.search = `v=${Date.now()}&log_errors=false`
+    return fileUrl.href
 }

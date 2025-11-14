@@ -164,7 +164,9 @@ export default class ConfigParser {
              */
             delete this._config.watch
         } catch (e: unknown) {
-            log.error(`Failed loading configuration file: ${filePath}:`, (e as Error).message)
+            if (!filename.endsWith('&log_errors=false')) {
+                log.error(`Failed loading configuration file: ${filePath}:`, (e as Error).message)
+            }
             throw e
         }
     }
@@ -559,4 +561,3 @@ function isValidRegex(expression: string) {
         return false
     }
 }
-
