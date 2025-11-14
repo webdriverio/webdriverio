@@ -31,7 +31,7 @@ describe('zoom test', () => {
         })
         // @ts-expect-error
         elem = await browser.$('#foo')
-        expect(elem.zoom()).rejects.toThrow('The zoom command is only available for mobile platforms.')
+        await expect(elem.zoom()).rejects.toThrow('The zoom command is only available for mobile platforms.')
     })
 
     it('should execute a zoom for iOS with the correct values', async () => {
