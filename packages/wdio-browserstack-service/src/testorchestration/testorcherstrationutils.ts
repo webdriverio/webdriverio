@@ -478,8 +478,13 @@ export class OrchestrationUtils {
             }
 
             const multiRepoSource = testOrchestrationOptions.runSmartSelection?.source || []
-            const prDetails = getGitMetadataForAiSelection(multiRepoSource)
-
+            let prDetails: any[] = []
+            const isGithubAppApproach = Array.isArray(multiRepoSource) && multiRepoSource.length > 0 && multiRepoSource.every(src => src && typeof src === 'object' && !Array.isArray(src))
+            if (!testOrchestrationOptions.runSmartSelection?.enabled || isGithubAppApproach) {
+                this.logger.info('[collectBuildData] Smart selection is not enabled or using GitHub App approach. Skipping PR details collection.')
+                prDetails = getGitMetadataForAiSelection(multiRepoSource)
+            }
+            this.logger.info(`PR Details for AI Selection in data collection: ${JSON.stringify(prDetails)}`)
             const payload = {
                 projectName: testObservabilityOptions.projectName || '',
                 buildName: testObservabilityOptions.buildName || path.basename(process.cwd()),

@@ -43,7 +43,8 @@ import {
     validateCapsWithNonBstackA11y,
     mergeChromeOptions,
     normalizeTestReportingConfig,
-    normalizeTestReportingEnvVariables
+    normalizeTestReportingEnvVariables,
+    getGitMetaData
 } from './util.js'
 import { getProductMap } from './testHub/utils.js'
 import CrashReporter from './crash-reporter.js'
@@ -63,6 +64,7 @@ import { CLIUtils } from './cli/cliUtils.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
 import util from 'node:util'
 import APIUtils from './cli/apiUtils.js'
+import { OrchestrationUtils } from './testorchestration/testorcherstrationutils.js'
 // import OrchestrationUtils from './testorchestration/testorcherstrationutils.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
@@ -226,8 +228,14 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 const glob = (await import('glob')).sync
                 const path = await import('node:path')
 
+                // Get git root to calculate relative paths from project root
+                const gitConfig = await getGitMetaData()
+                const projectRoot = gitConfig?.root || process.cwd()
+
                 // Use ConfigParser.getFilePaths equivalent logic to expand specs
                 const expandedSpecs: string[] = []
+                const cwd = process.cwd()
+
                 for (const specPattern of config.specs) {
                     if (typeof specPattern === 'string') {
                         if (specPattern.startsWith('file://')) {
@@ -235,25 +243,23 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             continue
                         }
 
-                        // Expand glob pattern to relative paths
+                        // Expand glob pattern relative to CWD (where command was run)
                         const pattern = specPattern.replace(/\\/g, '/')
-                        const rootDir = config.rootDir || process.cwd()
                         const filenames = glob(pattern, {
-                            cwd: rootDir,
-                            matchBase: true
+                            cwd: cwd,
+                            absolute: true
                         }) || []
 
-                        // Ensure relative paths
+                        // Convert absolute paths to relative paths from project root for passing to orchestration
                         filenames
                             .forEach((filename: string) => {
-                                // Ensure the filename is always relative to rootDir
-                                let relativePath = filename
-                                if (path.isAbsolute(filename)) {
-                                    relativePath = path.relative(rootDir, filename)
+                                // Calculate relative path from project root
+                                const relativePath = path.relative(projectRoot, filename)
+                                if (relativePath) {
+                                    // Normalize path separators for consistency
+                                    const normalizedPath = relativePath.replace(/\\/g, '/')
+                                    expandedSpecs.push(normalizedPath)
                                 }
-                                // Normalize path separators for consistency
-                                relativePath = relativePath.replace(/\\/g, '/')
-                                expandedSpecs.push(relativePath)
                             })
                     }
                 }
@@ -444,6 +450,35 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             BStackLogger.error(`Error applying test orchestration: ${error}`)
         }
 
+        // Convert specs back from project-root-relative to CWD-relative paths
+        // This ensures ConfigParser can find the files correctly
+        if (config.specs && Array.isArray(config.specs)) {
+            try {
+                const path = await import('node:path')
+                const gitConfig = await getGitMetaData()
+                const projectRoot = gitConfig?.root || process.cwd()
+                const cwd = process.cwd()
+
+                // Convert specs from project-root-relative back to CWD-relative
+                const cwdRelativeSpecs: (string | string[])[] = []
+                for (const spec of config.specs) {
+                    if (typeof spec === 'string' && !spec.startsWith('file://')) {
+                        // Convert from project-root-relative to absolute, then to CWD-relative
+                        const absolutePath = path.resolve(projectRoot, spec)
+                        const cwdRelativePath = path.relative(cwd, absolutePath)
+                        cwdRelativeSpecs.push(cwdRelativePath)
+                    } else {
+                        cwdRelativeSpecs.push(spec)
+                    }
+                }
+
+                config.specs = cwdRelativeSpecs
+                console.log('Specs converted to CWD-relative:', cwdRelativeSpecs)
+            } catch (error) {
+                BStackLogger.error(`Failed to convert specs to CWD-relative paths: ${error}`)
+            }
+        }
+
         // local binary will be handled by CLI
         if (BrowserstackCLI.getInstance().isRunning()) {
             return
@@ -503,6 +538,17 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         try {
             BStackLogger.debug('Inside OnComplete hook..')
+
+            // Collect build data if orchestration is enabled
+            try {
+                const inst = OrchestrationUtils.getInstance(this._config)
+                if (inst) {
+                    BStackLogger.info('Collecting build data...')
+                    await inst.collectBuildData(this._config)
+                }
+            } catch (error) {
+                BStackLogger.debug(`Error collecting build data: ${error}`)
+            }
 
             BStackLogger.debug('Sending stop launch event')
 
