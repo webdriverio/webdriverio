@@ -225,7 +225,7 @@ function Home() {
                                         </Link>
                                     ),
                                     videoAuthor: (
-                                        <Link to="https://twitter.com/ailuj876">
+                                        <Link to="https://x.com/ailuj876">
                                             Julia Pottinger
                                         </Link>
                                     ),

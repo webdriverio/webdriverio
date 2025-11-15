@@ -1,6 +1,6 @@
 wdio:
     name: WebdriverIO Team
-    url: https://twitter.com/webdriverio
+    url: https://x.com/webdriverio
     image_url: https://avatars.githubusercontent.com/u/6512473?s=400&u=69d781679fe5cda99067d8193890ad5cb7450e4a&v=4
     socials:
         github: webdriverio
@@ -8,7 +8,7 @@ wdio:
 
 bromann:
     name: Christian Bromann
-    url: http://twitter.com/bromann
+    url: http://x.com/bromann
     image_url: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
     socials:
         x: bromann
@@ -61,7 +61,7 @@ barry:
 
 ross:
     name: Ross Addinall
-    url: http://twitter.com/rossaddinall
+    url: http://x.com/rossaddinall
     image_url: https://s.gravatar.com/avatar/340d9dcc2c732de725ea9d94bdfcfe82?s=80
     socials:
         x: rossaddinall
