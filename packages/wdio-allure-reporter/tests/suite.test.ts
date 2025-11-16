@@ -7,7 +7,7 @@ import { Status, LinkType, Stage } from 'allure-js-commons'
 import { temporaryDirectory } from 'tempy'
 
 import AllureReporter from '../src/reporter.js'
-import { DescriptionType, TYPE } from '../src/types.js'
+import { DescriptionType } from '../src/types.js'
 
 /**
  * this is not a real package and only used to utilize helper
