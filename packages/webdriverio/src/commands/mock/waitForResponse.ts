@@ -21,5 +21,3 @@
  * @param {String=}          options.timeoutMsg      custom timeout error message
  */
 // actual implementation is located in packages/webdriverio/src/utils/interception
-
-
