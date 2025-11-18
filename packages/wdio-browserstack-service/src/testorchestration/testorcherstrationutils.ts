@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import type { Logger } from '@wdio/logger'
 import logger from '@wdio/logger'
 
-import { getHostInfo, getGitMetadataForAiSelection } from './helpers.js'
+import { getHostInfo } from './helpers.js'
 import { RequestUtils } from './request-utils.js'
 
 const log = logger('wdio-browserstack-service:TestOrchestrationUtils')
@@ -250,17 +250,17 @@ export class OrchestrationUtils {
 
             // Log the configuration for debugging
             this.logger.debug(`Setting runSmartSelection: enabled=${this.runSmartSelection}, mode=${this.smartSelectionMode}`)
-
+            if (this.runSmartSelection) {
             // Normalize source to always be a list of paths
-            if (source === null) {
-                this.smartSelectionSource = null
-            } else if (Array.isArray(source)) {
-                this.smartSelectionSource = source
-            } else if (typeof source === 'string' && source.endsWith('.json')) {
-                this.smartSelectionSource = this._loadSourceFromFile(source) || []
+                if (source === null) {
+                    this.smartSelectionSource = null
+                } else if (Array.isArray(source)) {
+                    this.smartSelectionSource = source
+                } else if (typeof source === 'string' && source.endsWith('.json')) {
+                    this.smartSelectionSource = this._loadSourceFromFile(source) || []
+                }
+                this._setTestOrdering()
             }
-
-            this._setTestOrdering()
         } catch (e) {
             this.logger.error(`[_setRunSmartSelection] ${e}`)
         }
@@ -456,7 +456,6 @@ export class OrchestrationUtils {
 
             // Extract testObservabilityOptions from the complex config structure
             let testObservabilityOptions: Record<string, any> = {}
-            let testOrchestrationOptions: Record<string, any> = {}
 
             try {
                 // Check if config has services array
@@ -466,7 +465,6 @@ export class OrchestrationUtils {
                         if (Array.isArray(service) && service[0] === 'browserstack' && service[1]) {
                             // Extract testObservabilityOptions from the browserstack service config
                             testObservabilityOptions = service[1].testObservabilityOptions || {}
-                            testOrchestrationOptions = service[1].testOrchestrationOptions || {}
                             break
                         }
                     }
@@ -477,27 +475,14 @@ export class OrchestrationUtils {
                 this.logger.error(`[collectBuildData] Error extracting testObservabilityOptions: ${e}`)
             }
 
-            const multiRepoSource = testOrchestrationOptions.runSmartSelection?.source || []
-            let prDetails: any[] = []
-            const isGithubAppApproach = Array.isArray(multiRepoSource) && multiRepoSource.length > 0 && multiRepoSource.every(src => src && typeof src === 'object' && !Array.isArray(src))
-            if (!testOrchestrationOptions.runSmartSelection?.enabled || isGithubAppApproach) {
-                this.logger.info('[collectBuildData] Smart selection is not enabled or using GitHub App approach. Skipping PR details collection.')
-                prDetails = getGitMetadataForAiSelection(multiRepoSource)
-            }
-            this.logger.info(`PR Details for AI Selection in data collection: ${JSON.stringify(prDetails)}`)
             const payload = {
                 projectName: testObservabilityOptions.projectName || '',
                 buildName: testObservabilityOptions.buildName || path.basename(process.cwd()),
                 buildRunIdentifier: process.env.BROWSERSTACK_BUILD_RUN_IDENTIFIER || '',
-                nodeIndex: parseInt(process.env.BROWSERSTACK_NODE_INDEX || '0', 10),
-                totalNodes: parseInt(process.env.BROWSERSTACK_TOTAL_NODE_COUNT || '1', 10),
-                hostInfo: getHostInfo(),
-                prDetails
+                nodeIndex: parseInt(process.env.BROWSERSTACK_NODE_INDEX || '0'),
+                totalNodes: parseInt(process.env.BROWSERSTACK_TOTAL_NODE_COUNT || '1'),
+                hostInfo: getHostInfo()
             }
-
-            // console.log('Build data payload:', JSON.stringify(payload, null, 2))
-
-            // this.logger.debug(`[collectBuildData] Sending build data payload: ${JSON.stringify(payload)}`)
 
             const response = await RequestUtils.postCollectBuildData(endpoint, payload)
 

@@ -43,7 +43,7 @@ export class TestOrchestrationHandler {
         this.config = config
         this.logger = logger
         this.testOrderingServerHandler = new TestOrderingServer(this.config, logger)
-        this.orchestrationUtils = new OrchestrationUtils(config)
+        this.orchestrationUtils = OrchestrationUtils.getInstance(config)
         this.orderingInstrumentationData = {}
         this.testOrderingApplied = false
         this.isTestOrderingEnabled = config.testOrchestration?.enabled || false
