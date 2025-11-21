@@ -59,10 +59,10 @@ const log = logger('webdriverio')
  * @type utility
  *
  */
-export async function scrollIntoView (
+export async function scrollIntoView(
     this: WebdriverIO.Element,
     options: CustomScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
-): Promise<void|unknown> {
+): Promise<void | unknown> {
     const browser = getBrowserObject(this)
 
     /**
@@ -88,13 +88,9 @@ export async function scrollIntoView (
          */
         const elemRect = await browser.getElementRect(this.elementId)
         const viewport = await browser.getWindowSize()
-        let [scrollX, scrollY] = await browser.execute(() => [
+        const [currentScrollX, currentScrollY] = await browser.execute(() => [
             window.scrollX, window.scrollY
         ])
-
-        // handle elements outside of the viewport
-        scrollX = elemRect.x <= viewport.width ? elemRect.x : viewport.width / 2
-        scrollY = elemRect.y <= viewport.height ? elemRect.y : viewport.height / 2
 
         const deltaByOption = {
             start: { y: elemRect.y - elemRect.height, x: elemRect.x - elemRect.width },
@@ -126,12 +122,91 @@ export async function scrollIntoView (
         }
 
         // take into account the current scroll position
-        deltaX = Math.round(deltaX - scrollX)
-        deltaY = Math.round(deltaY - scrollY)
+        deltaX = Math.round(deltaX - currentScrollX)
+        deltaY = Math.round(deltaY - currentScrollY)
 
-        await browser.action('wheel')
-            .scroll({ duration: 0, x: deltaX, y: deltaY, origin: this })
-            .perform()
+        const hasFloat = [
+            viewport.height, viewport.width,
+            elemRect.x, elemRect.y, elemRect.height, elemRect.width
+        ].some((v) => !Number.isInteger(v))
+        const isOutside = (elemRect.x > viewport.width) || (elemRect.y > viewport.height)
+
+        if (!hasFloat && !isOutside) {
+            const mapY = {
+                start: -elemRect.height,
+                center: -Math.round((viewport.height - elemRect.height) / 2),
+                end: -(viewport.height - elemRect.height)
+            } as const
+            const mapX = {
+                start: -elemRect.width,
+                center: -Math.round((viewport.width - elemRect.width) / 2),
+                end: -(viewport.width - elemRect.width)
+            } as const
+
+            let x = mapX.end
+            let y = mapY.start
+
+            if (options && typeof options === 'object') {
+                const { block, inline } = options
+                if (block && block !== 'nearest') {
+                    y = mapY[block]
+                }
+                if (inline && inline !== 'nearest') {
+                    x = mapX[inline]
+                }
+            }
+
+            await browser.action('wheel')
+                .scroll({ duration: 0, deltaX: 0, deltaY: 0, x, y, origin: this })
+                .perform()
+        } else {
+            await browser.action('wheel')
+                .scroll({ duration: 0, deltaX, deltaY, origin: this })
+                .perform()
+        }
+        const browserName = String((browser.capabilities as WebdriverIO.Capabilities)?.browserName || '').toLowerCase()
+        if (browserName.includes('firefox')) {
+            const isInViewport = await browser.execute(
+                (elem: HTMLElement) => {
+                    const rect = elem.getBoundingClientRect()
+                    const vh = window.innerHeight || document.documentElement.clientHeight
+                    const vw = window.innerWidth || document.documentElement.clientWidth
+                    if (rect.width <= 0 || rect.height <= 0) { return false }
+                    if (rect.bottom <= 0 || rect.right <= 0 || rect.top >= vh || rect.left >= vw) { return false }
+
+                    let parent: HTMLElement | null = elem.parentElement
+                    while (parent && parent !== document.body) {
+                        const style = window.getComputedStyle(parent)
+                        const overflowX = style.overflowX
+                        const overflowY = style.overflowY
+                        if (style.overflow !== 'visible' || overflowX !== 'visible' || overflowY !== 'visible') {
+                            const pr = parent.getBoundingClientRect()
+                            if (rect.right <= pr.left || rect.left >= pr.right || rect.bottom <= pr.top || rect.top >= pr.bottom) {
+                                return false
+                            }
+                        }
+                        parent = parent.parentElement
+                    }
+                    return true
+                },
+                {
+                    [ELEMENT_KEY]: this.elementId,
+                    ELEMENT: this.elementId,
+                } as unknown as HTMLElement
+            )
+
+            if (!isInViewport) {
+                if (options && typeof options === 'object') {
+                    const { block, inline } = options
+                    await scrollIntoViewWeb.call(this, {
+                        block: block || 'center',
+                        inline: inline || 'center'
+                    })
+                } else {
+                    await scrollIntoViewWeb.call(this, { block: 'center', inline: 'center' })
+                }
+            }
+        }
     } catch (err) {
         log.warn(
             `Failed to execute "scrollIntoView" using WebDriver Actions API: ${(err as Error).message}!\n` +
@@ -159,7 +234,7 @@ async function mobileScrollUntilVisible({
     maxScrolls,
     percent,
     scrollableElement,
-}: MobileScrollUntilVisibleOptions): Promise<{ hasScrolled: boolean; isVisible: boolean;  }> {
+}: MobileScrollUntilVisibleOptions): Promise<{ hasScrolled: boolean; isVisible: boolean; }> {
     let isVisible = false
     let hasScrolled = false
     let scrolls = 0
@@ -171,7 +246,7 @@ async function mobileScrollUntilVisible({
             isVisible = false
         }
 
-        if (isVisible) {break}
+        if (isVisible) { break }
 
         await browser.swipe({
             direction,
@@ -234,7 +309,7 @@ await elem.scrollIntoView({
         `)
 }
 
-function scrollIntoViewWeb (
+function scrollIntoViewWeb(
     this: WebdriverIO.Element,
     options: ScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
 ) {

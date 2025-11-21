@@ -75,9 +75,33 @@ describe('scrollIntoView test', () => {
                 ({ x: 15.34, y: 20.23, height: 30.2344, width: 50.543 }))
             await elem.scrollIntoView({ block: 'center', inline: 'center' })
             const optionsCenter = vi.mocked(fetch).mock.calls.slice(-2, -1)[0][1] as any
-            expect(JSON.parse(optionsCenter.body).actions[0].actions[0].deltaX).toBe(0)
-            expect(JSON.parse(optionsCenter.body).actions[0].actions[0].deltaY).toBe(0)
-            expect(JSON.parse(optionsCenter.body).actions[0].actions[0].y).toBe(-385)
+            expect(JSON.parse(optionsCenter.body).actions[0].actions[0].deltaX).toBe(-275)
+            expect(JSON.parse(optionsCenter.body).actions[0].actions[0].deltaY).toBe(-385)
+            expect(JSON.parse(optionsCenter.body).actions[0].actions[0].x).toBe(0)
+            expect(JSON.parse(optionsCenter.body).actions[0].actions[0].y).toBe(0)
+        })
+
+        it('correctly passes deltaX and deltaY for horizontal scroll', async () => {
+            vi.spyOn(browser, 'getWindowSize').mockResolvedValue({ height: 100, width: 100 })
+            vi.spyOn(browser, 'getElementRect').mockResolvedValue(
+                ({ x: 200, y: 50, height: 10, width: 10 }))
+
+            // Default options: block: 'start', inline: 'nearest'
+            await elem.scrollIntoView()
+
+            const options = vi.mocked(fetch).mock.calls.slice(-2, -1)[0][1] as any
+            const action = JSON.parse(options.body).actions[0].actions[0]
+
+            // Verify deltas are passed and x/y are 0
+            // See calculation logic in thought process for expected values:
+            // scrollX (local) = 50 (viewport/2 because x > viewport)
+            // scrollY (local) = 50 (elem.y because y <= viewport)
+            // deltaX (nearest) = 110 (end) - 50 = 60
+            // deltaY (start) = 40 - 50 = -10
+            expect(action.deltaX).toBe(60)
+            expect(action.deltaY).toBe(-10)
+            expect(action.x).toBe(0)
+            expect(action.y).toBe(0)
         })
 
     })
@@ -94,7 +118,7 @@ describe('scrollIntoView test', () => {
             // @ts-expect-error
             elem = await browser.$('#foo')
             // @ts-expect-error mock feature
-            elem.elementId = { scrollIntoView: 'mockFunction'  }
+            elem.elementId = { scrollIntoView: 'mockFunction' }
         })
 
         beforeEach(() => {

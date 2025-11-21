@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { ELEMENT_KEY } from 'webdriver'
 
 import { getBrowserObject } from '@wdio/utils'
 import { buttonValue } from '../../utils/actions/index.js'
@@ -176,6 +177,48 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
     }
 
     const browser = getBrowserObject(element) as WebdriverIO.Browser
+    const browserName = String((browser.capabilities as WebdriverIO.Capabilities)?.browserName || '').toLowerCase()
+    if (browserName.includes('firefox')) {
+        try {
+            const isInViewport = await browser.execute(
+                (elem: HTMLElement) => {
+                    const rect = elem.getBoundingClientRect()
+                    const vh = window.innerHeight || document.documentElement.clientHeight
+                    const vw = window.innerWidth || document.documentElement.clientWidth
+                    if (rect.width <= 0 || rect.height <= 0) {
+                        return false
+                    }
+                    if (rect.bottom <= 0 || rect.right <= 0 || rect.top >= vh || rect.left >= vw) {
+                        return false
+                    }
+
+                    let parent: HTMLElement | null = elem.parentElement
+                    while (parent && parent !== document.body) {
+                        const style = window.getComputedStyle(parent)
+                        const overflowX = style.overflowX
+                        const overflowY = style.overflowY
+                        if (style.overflow !== 'visible' || overflowX !== 'visible' || overflowY !== 'visible') {
+                            const pr = parent.getBoundingClientRect()
+                            if (rect.right <= pr.left || rect.left >= pr.right || rect.bottom <= pr.top || rect.top >= pr.bottom) {
+                                return false
+                            }
+                        }
+                        parent = parent.parentElement
+                    }
+                    return true
+                },
+                {
+                    [ELEMENT_KEY]: element.elementId,
+                    ELEMENT: element.elementId,
+                } as unknown as HTMLElement
+            )
+            if (!isInViewport) {
+                await element.scrollIntoView({ block: 'center', inline: 'center' })
+            }
+        } catch {
+            // ignore errors during visibility check
+        }
+    }
     if (x || y) {
         const { width, height } = await browser.getElementRect(element.elementId)
         if ((x && x < (-Math.floor(width / 2))) || (x && x > Math.floor(width / 2))) {
