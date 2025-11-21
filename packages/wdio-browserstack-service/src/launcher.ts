@@ -460,13 +460,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     const specs = (config.specs as string[]).filter(spec => typeof spec === 'string')
                     console.log(`Specs before orchestration: ${specs}`)
 
-                    const buildDetails = {
-                        projectName: this._options.testObservabilityOptions?.projectName,
-                        buildName: this._options.testObservabilityOptions?.buildName,
-                        buildIdentifier: this._options.buildIdentifier
-                    }
-
-                    const orderedSpecs = await applyOrchestrationIfEnabled(specs, this._options, buildDetails)
+                    const orderedSpecs = await applyOrchestrationIfEnabled(specs, this._options)
                     console.log(`Specs after orchestration before conversion: ${orderedSpecs}`)
 
                     // Use ordered specs if available, otherwise use original specs

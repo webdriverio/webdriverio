@@ -84,6 +84,50 @@ export class OrchestrationUtils {
             runSmartSelectionOpts.mode || 'relevantFirst',
             runSmartSelectionOpts.source || null
         )
+        // Extract build details from capabilities
+        this._extractBuildDetails(config)
+    }
+
+    /**
+     * Extract build details from capabilities
+     */
+    private _extractBuildDetails(config: Record<string, any>): void {
+        try {
+            const capabilities = config.capabilities
+
+            if (Array.isArray(capabilities)) {
+                capabilities.forEach((capability: any) => {
+                    if (!capability['bstack:options']) {
+                        // Extract from legacy format
+                        this.buildIdentifier = capability['browserstack.buildIdentifier']?.toString()
+                        this.buildName = capability.build?.toString()
+                    } else {
+                        // Extract from bstack:options format
+                        this.buildName = capability['bstack:options'].buildName
+                        this.projectName = capability['bstack:options'].projectName
+                        this.buildIdentifier = capability['bstack:options'].buildIdentifier
+                    }
+                })
+            } else if (typeof capabilities === 'object' && capabilities) {
+                // Handle multiremote capabilities
+                Object.entries(capabilities).forEach(([, caps]: [string, any]) => {
+                    if (caps.capabilities) {
+                        if (!caps.capabilities['bstack:options']) {
+                            this.buildIdentifier = caps.capabilities['browserstack.buildIdentifier']
+                        } else {
+                            const bstackOptions = caps.capabilities['bstack:options']
+                            this.buildName = bstackOptions.buildName
+                            this.projectName = bstackOptions.projectName
+                            this.buildIdentifier = bstackOptions.buildIdentifier
+                        }
+                    }
+                })
+            }
+
+            BStackLogger.debug(`[_extractBuildDetails] Extracted - projectName: ${this.projectName}, buildName: ${this.buildName}, buildIdentifier: ${this.buildIdentifier}`)
+        } catch (e) {
+            BStackLogger.error(`[_extractBuildDetails] ${e}`)
+        }
     }
 
     /**
