@@ -2,7 +2,7 @@ import url from 'node:url'
 import path from 'node:path'
 import util, { promisify } from 'node:util'
 import fs from 'node:fs/promises'
-import { execSync,  } from 'node:child_process'
+import { execSync, } from 'node:child_process'
 import readDir from 'recursive-readdir'
 
 import { $ } from 'execa'
@@ -36,7 +36,7 @@ const TEMPLATE_ROOT_DIR = process.env.WDIO_UNIT_TESTS
     ? path.join(__dirname, 'templates', 'exampleFiles')
     : path.join(__dirname, '..', 'templates', 'exampleFiles')
 
-export function runProgram (command: string, args: string[], options: SpawnOptions) {
+export function runProgram(command: string, args: string[], options: SpawnOptions) {
     const child = spawn(command, args, { stdio: 'inherit', ...options })
     return new Promise<void>((resolve, rejects) => {
         let error: Error
@@ -63,7 +63,7 @@ export async function getPackageVersion() {
     return 'unknown'
 }
 
-function printAndExit (error?: string, signal?: NodeJS.Signals | null) {
+function printAndExit(error?: string, signal?: NodeJS.Signals | null) {
     if (signal === 'SIGINT') {
         console.log('\n\nGoodbye 👋')
     } else {
@@ -222,7 +222,7 @@ export function getPathForFileGeneration(answers: Questionnair, projectRootDir: 
  * @param projectRootDir The root directory of the project.
  * @returns filePath
  */
-function generatePathFromAnswer(answers:string, projectRootDir:string):string {
+function generatePathFromAnswer(answers: string, projectRootDir: string): string {
     return path.resolve(
         projectRootDir, path.dirname(answers) === '.' ? path.resolve(answers) : path.dirname(answers))
 }
@@ -233,7 +233,7 @@ function generatePathFromAnswer(answers:string, projectRootDir:string):string {
  * @param projectProps project properties received via `getProjectProps`
  * @returns project root path
  */
-export async function getProjectRoot (parsedAnswers?: Questionnair) {
+export async function getProjectRoot(parsedAnswers?: Questionnair) {
     if (parsedAnswers?.createPackageJSON && parsedAnswers.projectRoot) {
         return parsedAnswers.projectRoot
     }
@@ -470,6 +470,17 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
     }
 
     /**
+     * add TypeScript dependencies
+     */
+    if (parsedAnswers.isUsingTypeScript) {
+        parsedAnswers.packagesToInstall.push(
+            '@types/node',
+            '@wdio/globals',
+            'expect-webdriverio'
+        )
+    }
+
+    /**
      * add Appium mobile drivers if desired
      */
     if (parsedAnswers.purpose === 'macos') {
@@ -506,7 +517,7 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
     }
 }
 
-function getPreset (parsedAnswers: ParsedAnswers) {
+function getPreset(parsedAnswers: ParsedAnswers) {
     const isUsingFramework = typeof parsedAnswers.preset === 'string'
     return isUsingFramework ? (parsedAnswers.preset || 'lit') : ''
 }
@@ -560,13 +571,13 @@ export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
     const pathToWdioConfig = `./${path.join('.', parsedAnswers.wdioConfigPath.replace(rootDir, ''))}`
 
     const wdioScripts = {
-        'wdio': `wdio run ${ pathToWdioConfig }`,
+        'wdio': `wdio run ${pathToWdioConfig}`,
     }
 
     const serenityScripts = {
         'serenity': 'failsafe serenity:clean wdio serenity:report',
         'serenity:clean': 'rimraf target',
-        'wdio': `wdio run ${ pathToWdioConfig }`,
+        'wdio': `wdio run ${pathToWdioConfig}`,
         'serenity:report': 'serenity-bdd run',
     }
 
@@ -574,10 +585,10 @@ export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
 
     for (const [script, command] of Object.entries(scripts)) {
 
-        const args = ['pkg', 'set', `scripts.${ script }=${ command }`]
+        const args = ['pkg', 'set', `scripts.${script}=${command}`]
 
         try {
-            console.log(`Adding ${chalk.bold(`"${ script }"`)} script to package.json`)
+            console.log(`Adding ${chalk.bold(`"${script}"`)} script to package.json`)
             await runProgram(NPM_COMMAND, args, { cwd: parsedAnswers.projectRootDir })
         } catch (err) {
             const [preArgs, scriptPath] = args.join(' ').split('=')
@@ -744,9 +755,9 @@ export async function generateTestFiles(answers: ParsedAnswers) {
 /* c8 ignore start */
 async function generateSerenityExamples(answers: ParsedAnswers): Promise<void> {
     const templateDirectories = Object.entries({
-        [answers.projectRootDir]:           path.join(TEMPLATE_ROOT_DIR, 'serenity-js', 'common', 'config'),
-        [answers.destSpecRootPath]:         path.join(TEMPLATE_ROOT_DIR, 'serenity-js', answers.serenityAdapter as string),
-        [answers.destSerenityLibRootPath]:  path.join(TEMPLATE_ROOT_DIR, 'serenity-js', 'common', 'serenity'),
+        [answers.projectRootDir]: path.join(TEMPLATE_ROOT_DIR, 'serenity-js', 'common', 'config'),
+        [answers.destSpecRootPath]: path.join(TEMPLATE_ROOT_DIR, 'serenity-js', answers.serenityAdapter as string),
+        [answers.destSerenityLibRootPath]: path.join(TEMPLATE_ROOT_DIR, 'serenity-js', 'common', 'serenity'),
     })
 
     await Promise.all(templateDirectories.map(async ([destinationRootDir, templateRootDir]) => {
