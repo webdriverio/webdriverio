@@ -1,5 +1,6 @@
 import { performance } from 'node:perf_hooks'
 import { TestOrchestrationHandler } from './testorcherstrationhandler.js'
+import { OrchestrationUtils } from './testorcherstrationutils.js'
 import { BStackLogger } from '../bstackLogger.js'
 /**
  * Applies test orchestration to the WebdriverIO test run
@@ -7,13 +8,23 @@ import { BStackLogger } from '../bstackLogger.js'
  */
 export async function applyOrchestrationIfEnabled(
     specs: string[],
-    config: Record<string, any>
+    config: Record<string, any>,
+    buildDetails?: { projectName?: string, buildName?: string, buildIdentifier?: string }
 ): Promise<string[]> {
     // Initialize orchestration handler
     const orchestrationHandler = TestOrchestrationHandler.getInstance(config)
     if (!orchestrationHandler) {
         BStackLogger.debug('Orchestration handler is not initialized. Skipping orchestration.')
         return specs
+    }
+
+    // Set build details if provided
+    if (buildDetails) {
+        const orchestrationUtils = OrchestrationUtils.getInstance(config)
+        if (orchestrationUtils) {
+            orchestrationUtils.setBuildDetails(buildDetails.projectName, buildDetails.buildName, buildDetails.buildIdentifier)
+            BStackLogger.debug(`Set build details in applyOrchestrationIfEnabled - projectName: ${buildDetails.projectName}, buildName: ${buildDetails.buildName}, buildIdentifier: ${buildDetails.buildIdentifier}`)
+        }
     }
 
     // Check if runSmartSelection is enabled in config

@@ -479,7 +479,7 @@ export class GrpcClient {
      * @param {string} orchestrationMetadata - Additional metadata for orchestration
      * @returns {Promise<string[]|null>} Array of ordered test files or null if failed
      */
-    async testOrchestrationSession(testFiles: string[], orchestrationStrategy: string, orchestrationMetadata: string = '{}'): Promise<string[] | null> {
+    async testOrchestrationSession(testFiles: string[], orchestrationStrategy: string, orchestrationMetadata: string): Promise<string[] | null> {
 
         try {
             if (!this.client) {
