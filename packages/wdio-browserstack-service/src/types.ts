@@ -60,7 +60,7 @@ export interface TestReportingOptions {
 export interface RunSmartSelectionOptions {
     enabled?: boolean,
     mode?: string,
-    source?: string
+    source?: string | string[]
 }
 
 export interface TestOrchestrationOptions {

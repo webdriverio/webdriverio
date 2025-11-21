@@ -7,14 +7,6 @@ import APIUtils from '../cli/apiUtils.js'
  */
 export class RequestUtils {
     /**
-     * Makes a request to the collect build data endpoint
-     */
-    static async postCollectBuildData(reqEndpoint: string, data: any) {
-        BStackLogger.debug('Processing Request for postCollectBuildData')
-        return RequestUtils.makeOrchestrationRequest('POST', reqEndpoint, { data })
-    }
-
-    /**
      * Makes a request to the test orchestration split tests endpoint
      */
     static async testOrchestrationSplitTests(reqEndpoint: string, data: any) {

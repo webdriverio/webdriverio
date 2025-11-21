@@ -479,8 +479,7 @@ export class GrpcClient {
      * @param {string} orchestrationMetadata - Additional metadata for orchestration
      * @returns {Promise<string[]|null>} Array of ordered test files or null if failed
      */
-    async testOrchestrationSession(testFiles: string[], orchestrationStrategy: string, orchestrationMetadata: Record<string, any> = {}): Promise<string[] | null> {
-        this.logger.info('Sending TestOrchestration request')
+    async testOrchestrationSession(testFiles: string[], orchestrationStrategy: string, orchestrationMetadata: string = '{}'): Promise<string[] | null> {
 
         try {
             if (!this.client) {
@@ -498,7 +497,7 @@ export class GrpcClient {
                 binSessionId: this.binSessionId,
                 orchestrationStrategy: orchestrationStrategy,
                 testFiles: testFiles,
-                orchestrationMetadata: JSON.stringify(orchestrationMetadata)
+                orchestrationMetadata: orchestrationMetadata
             }
 
             const testOrchestrationPromise = promisify(this.client!.testOrchestration).bind(this.client!) as (arg0: TestOrchestrationRequest) => Promise<TestOrchestrationResponse>
@@ -508,7 +507,6 @@ export class GrpcClient {
                 this.logger.debug(`test-orchestration-session=${JSON.stringify(response)}`)
 
                 if (response.success) {
-                    this.logger.info('Test orchestration was successful: ' + JSON.stringify(response.orderedTestFiles))
                     return Array.from(response.orderedTestFiles || [])
                 }
 

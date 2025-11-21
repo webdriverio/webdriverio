@@ -1,16 +1,15 @@
 import path from 'node:path'
-import type { Logger } from '@wdio/logger'
 
-import { getHostInfo, getGitMetadataForAiSelection } from './helpers.js'
+import { getHostInfo, getGitMetadataForAISelection } from './helpers.js'
 import { RequestUtils } from './request-utils.js'
 import APIUtils from '../cli/apiUtils.js'
+import { BStackLogger } from '../bstackLogger.js'
 
 /**
  * Handles test ordering orchestration with the BrowserStack server.
  */
 export class TestOrderingServer {
     private config: Record<string, any>
-    private logger: Logger
     private ORDERING_ENDPOINT: string
     private requestData: Record<string, any> | null
     private defaultTimeout: number
@@ -19,11 +18,9 @@ export class TestOrderingServer {
 
     /**
      * @param config Test orchestration config
-     * @param logger Logger instance
      */
-    constructor(config: Record<string, any>, logger: Logger) {
+    constructor(config: Record<string, any>) {
         this.config = config
-        this.logger = logger
         this.ORDERING_ENDPOINT = 'testorchestration/api/v1/split-tests'
         this.requestData = null
         this.defaultTimeout = 60
@@ -34,22 +31,23 @@ export class TestOrderingServer {
     /**
      * Initiates the split tests request and stores the response data for polling.
      */
-    async splitTests(testFiles: string[], orchestrationStrategy: string, orchestrationMetadata: Record<string, any> = {}) {
-        this.logger.debug(`[splitTests] Initiating split tests with strategy: ${orchestrationStrategy}`)
+    async splitTests(testFiles: string[], orchestrationStrategy: string, orchestrationMetadata: string = '{}') {
+        BStackLogger.debug(`[splitTests] Initiating split tests with strategy: ${orchestrationStrategy}`)
         try {
             let prDetails: any[] = []
-            const source = orchestrationMetadata.run_smart_selection?.source
+            const parsedMetadata = JSON.parse(orchestrationMetadata)
+            const source = parsedMetadata.run_smart_selection?.source
             const isGithubAppApproach = Array.isArray(source) && source.length > 0 && source.every(src => src && typeof src === 'object' && !Array.isArray(src))
-            if (orchestrationMetadata.run_smart_selection?.enabled && !isGithubAppApproach) {
-                const multiRepoSource = orchestrationMetadata.run_smart_selection?.source || []
-                prDetails = getGitMetadataForAiSelection(multiRepoSource)
+            if (parsedMetadata.run_smart_selection?.enabled && !isGithubAppApproach) {
+                const multiRepoSource = parsedMetadata.run_smart_selection?.source || []
+                prDetails = getGitMetadataForAISelection(multiRepoSource)
             }
-            this.logger.info(`PR Details for AI Selection: ${JSON.stringify(prDetails)}`)
+            BStackLogger.info(`PR Details for AI Selection: ${JSON.stringify(prDetails)}`)
 
             const payload = {
                 tests: testFiles.map(f => ({ filePath: f })),
                 orchestrationStrategy,
-                orchestrationMetadata,
+                orchestrationMetadata: parsedMetadata,
                 nodeIndex: parseInt(process.env.BROWSERSTACK_NODE_INDEX || '0'),
                 totalNodes: parseInt(process.env.BROWSERSTACK_TOTAL_NODE_COUNT || '1'),
                 projectName: this.config.testObservabilityOptions.projectName || '',
@@ -59,17 +57,15 @@ export class TestOrderingServer {
                 prDetails
             }
 
-            // console.log('Split tests payload:', JSON.stringify(payload, null, 2))
-
             const response = await RequestUtils.testOrchestrationSplitTests(this.ORDERING_ENDPOINT, payload)
             if (response) {
                 this.requestData = this._processSplitTestsResponse(response)
-                this.logger.debug(`[splitTests] Split tests response: ${JSON.stringify(this.requestData)}`)
+                BStackLogger.debug(`[splitTests] Split tests response: ${JSON.stringify(this.requestData)}`)
             } else {
-                this.logger.error('[splitTests] Failed to get split tests response.')
+                BStackLogger.error('[splitTests] Failed to get split tests response.')
             }
         } catch (e) {
-            this.logger.error(`[splitTests] Exception in sending test files:: ${e}`)
+            BStackLogger.error(`[splitTests] Exception in sending test files:: ${e}`)
         }
     }
 
@@ -107,9 +103,8 @@ export class TestOrderingServer {
             response.timeoutUrl === undefined ||
             response.resultUrl === undefined
         ) {
-            this.logger.debug('[process_split_tests_response] Received null value(s) for some attributes in split tests API response')
+            BStackLogger.debug('[process_split_tests_response] Received null value(s) for some attributes in split tests API response')
         }
-        // console.log('responsedata from testordering', responseData)
         return responseData
     }
 
@@ -118,7 +113,7 @@ export class TestOrderingServer {
      */
     async getOrderedTestFiles() {
         if (!this.requestData) {
-            this.logger.error('[getOrderedTestFiles] No request data available to fetch ordered test files.')
+            BStackLogger.error('[getOrderedTestFiles] No request data available to fetch ordered test files.')
             return null
         }
 
@@ -146,12 +141,12 @@ export class TestOrderingServer {
                     break
                 }
                 await new Promise(resolve => setTimeout(resolve, timeoutInterval * 1000))
-                this.logger.debug(`[getOrderedTestFiles] Fetching ordered tests from result URL after waiting for ${timeoutInterval} seconds.`)
+                BStackLogger.debug(`[getOrderedTestFiles] Fetching ordered tests from result URL after waiting for ${timeoutInterval} seconds.`)
             }
 
             // If still not available, try timeoutUrl
             if (timeoutUrl && !testFilesJsonList) {
-                this.logger.debug('[getOrderedTestFiles] Fetching ordered tests from timeout URL')
+                BStackLogger.debug('[getOrderedTestFiles] Fetching ordered tests from timeout URL')
                 const response = await RequestUtils.getTestOrchestrationOrderedTests(timeoutUrl)
                 if (response && response.tests) {
                     testFilesJsonList = response.tests
@@ -172,10 +167,10 @@ export class TestOrderingServer {
                 return null
             }
 
-            this.logger.debug(`[getOrderedTestFiles] Ordered test files received: ${JSON.stringify(testFiles)}`)
+            BStackLogger.debug(`[getOrderedTestFiles] Ordered test files received: ${JSON.stringify(testFiles)}`)
             return testFiles
         } catch (e) {
-            this.logger.error(`[getOrderedTestFiles] Exception in fetching ordered test files: ${e}`)
+            BStackLogger.error(`[getOrderedTestFiles] Exception in fetching ordered test files: ${e}`)
             return null
         }
     }

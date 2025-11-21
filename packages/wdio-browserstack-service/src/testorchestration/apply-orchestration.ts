@@ -1,9 +1,5 @@
-import logger from '@wdio/logger'
 import { performance } from 'node:perf_hooks'
-
 import { TestOrchestrationHandler } from './testorcherstrationhandler.js'
-
-const log = logger('wdio-browserstack-service:apply-orchestration')
 import { BStackLogger } from '../bstackLogger.js'
 /**
  * Applies test orchestration to the WebdriverIO test run
@@ -14,7 +10,7 @@ export async function applyOrchestrationIfEnabled(
     config: Record<string, any>
 ): Promise<string[]> {
     // Initialize orchestration handler
-    const orchestrationHandler = TestOrchestrationHandler.getInstance(config, log)
+    const orchestrationHandler = TestOrchestrationHandler.getInstance(config)
     if (!orchestrationHandler) {
         BStackLogger.debug('Orchestration handler is not initialized. Skipping orchestration.')
         return specs

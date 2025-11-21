@@ -63,8 +63,6 @@ import { CLIUtils } from './cli/cliUtils.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
 import util from 'node:util'
 import APIUtils from './cli/apiUtils.js'
-import { OrchestrationUtils } from './testorchestration/testorcherstrationutils.js'
-// import OrchestrationUtils from './testorchestration/testorcherstrationutils.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -542,17 +540,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         try {
             BStackLogger.debug('Inside OnComplete hook..')
-
-            // Collect build data if orchestration is enabled
-            try {
-                const inst = OrchestrationUtils.getInstance(this._config)
-                if (inst) {
-                    BStackLogger.info('Collecting build data...')
-                    await inst.collectBuildData(this._config)
-                }
-            } catch (error) {
-                BStackLogger.debug(`Error collecting build data: ${error}`)
-            }
 
             BStackLogger.debug('Sending stop launch event')
 

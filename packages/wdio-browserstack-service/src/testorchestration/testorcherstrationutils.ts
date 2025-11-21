@@ -1,16 +1,6 @@
-import path from 'node:path'
 import fs from 'node:fs'
-import { tmpdir } from 'node:os'
 
-import type { Logger } from '@wdio/logger'
-import logger from '@wdio/logger'
-
-import { getHostInfo } from './helpers.js'
-import { RequestUtils } from './request-utils.js'
-
-const log = logger('wdio-browserstack-service:TestOrchestrationUtils')
-
-const TEST_ORDERING_SUPPORTED_FRAMEWORKS = ['mocha', 'jasmine', 'cucumber']
+import { BStackLogger } from '../bstackLogger.js'
 
 const RUN_SMART_SELECTION = 'runSmartSelection'
 
@@ -58,7 +48,6 @@ export class OrchestrationUtils {
     private smartSelectionMode: string
     private testOrdering: TestOrdering
     private smartSelectionSource: string[] | Array<Record<string, any>> | null
-    private logger: Logger
     private projectName?: string
     private buildName?: string
     private buildIdentifier?: string
@@ -67,7 +56,6 @@ export class OrchestrationUtils {
      * @param config Configuration object
      */
     constructor(config: Record<string, any>) {
-        this.logger = log
         this.runSmartSelection = false
         this.smartSelectionMode = 'relevantFirst'
         this.testOrdering = new TestOrdering()
@@ -82,7 +70,7 @@ export class OrchestrationUtils {
             for (const service of config.services) {
                 if (Array.isArray(service) && service[0] === 'browserstack' && service[1] && service[1].testOrchestrationOptions) {
                     testOrchOptions = service[1].testOrchestrationOptions
-                    this.logger.debug('[constructor] Found testOrchestrationOptions in browserstack service config')
+                    BStackLogger.debug('[constructor] Found testOrchestrationOptions in browserstack service config')
                     break
                 }
             }
@@ -137,9 +125,9 @@ export class OrchestrationUtils {
                 })
             }
 
-            this.logger.debug(`[_extractBuildDetails] Extracted - projectName: ${this.projectName}, buildName: ${this.buildName}, buildIdentifier: ${this.buildIdentifier}`)
+            BStackLogger.debug(`[_extractBuildDetails] Extracted - projectName: ${this.projectName}, buildName: ${this.buildName}, buildIdentifier: ${this.buildIdentifier}`)
         } catch (e) {
-            this.logger.error(`[_extractBuildDetails] ${e}`)
+            BStackLogger.error(`[_extractBuildDetails] ${e}`)
         }
     }
 
@@ -167,25 +155,6 @@ export class OrchestrationUtils {
         })
 
         return result
-    }
-
-    /**
-     * Check if the abort build file exists
-     */
-    static checkAbortBuildFileExists(): boolean {
-        const buildUuid = process.env.BROWSERSTACK_TESTHUB_UUID
-        const filePath = path.join(tmpdir(), `abort_build_${buildUuid}`)
-        return fs.existsSync(filePath)
-    }
-
-    /**
-     * Write failure to file
-     */
-    static writeFailureToFile(testName: string): void {
-        const buildUuid = process.env.BROWSERSTACK_TESTHUB_UUID
-        const failedTestsFile = path.join(tmpdir(), `failed_tests_${buildUuid}.txt`)
-
-        fs.appendFileSync(failedTestsFile, `${testName}\n`)
     }
 
     /**
@@ -237,7 +206,7 @@ export class OrchestrationUtils {
         this.projectName = projectName
         this.buildName = buildName
         this.buildIdentifier = buildIdentifier
-        this.logger.debug(`[setBuildDetails] Set - projectName: ${this.projectName}, buildName: ${this.buildName}, buildIdentifier: ${this.buildIdentifier}`)
+        BStackLogger.debug(`[setBuildDetails] Set - projectName: ${this.projectName}, buildName: ${this.buildName}, buildIdentifier: ${this.buildIdentifier}`)
     }
 
     /**
@@ -246,10 +215,17 @@ export class OrchestrationUtils {
     private _setRunSmartSelection(enabled: boolean, mode: string, source: string[] | string | null = null): void {
         try {
             this.runSmartSelection = Boolean(enabled)
+
+            // Mode validation
+            const validModes = ['relevantFirst', 'relevantOnly']
+            if (!validModes.includes(mode)) {
+                BStackLogger.warn(`Invalid smart selection mode '${mode}' provided. Defaulting to 'relevantFirst'.`)
+                mode = 'relevantFirst'
+            }
             this.smartSelectionMode = mode
 
             // Log the configuration for debugging
-            this.logger.debug(`Setting runSmartSelection: enabled=${this.runSmartSelection}, mode=${this.smartSelectionMode}`)
+            BStackLogger.debug(`Setting runSmartSelection: enabled=${this.runSmartSelection}, mode=${this.smartSelectionMode}`)
             if (this.runSmartSelection) {
             // Normalize source to always be a list of paths
                 if (source === null) {
@@ -262,7 +238,7 @@ export class OrchestrationUtils {
                 this._setTestOrdering()
             }
         } catch (e) {
-            this.logger.error(`[_setRunSmartSelection] ${e}`)
+            BStackLogger.error(`[_setRunSmartSelection] ${e}`)
         }
     }
 
@@ -274,7 +250,7 @@ export class OrchestrationUtils {
      */
     private _loadSourceFromFile(filePath: string): Array<Record<string, any>> {
         if (!fs.existsSync(filePath)) {
-            this.logger.error(`Source file '${filePath}' does not exist.`)
+            BStackLogger.error(`Source file '${filePath}' does not exist.`)
             return []
         }
 
@@ -283,7 +259,7 @@ export class OrchestrationUtils {
             const fileContent = fs.readFileSync(filePath, 'utf8')
             data = JSON.parse(fileContent)
         } catch (error: any) {
-            this.logger.error(`Error parsing JSON from source file '${filePath}': ${error.message}`)
+            BStackLogger.error(`Error parsing JSON from source file '${filePath}': ${error.message}`)
             return []
         }
 
@@ -308,16 +284,14 @@ export class OrchestrationUtils {
                             return acc
                         }, {})
             } catch (error: any) {
-                this.logger.error(`Error parsing feature branch mappings: ${error.message}`)
+                BStackLogger.error(`Error parsing feature branch mappings: ${error.message}`)
             }
 
-            this.logger.debug(`Feature branch mappings from env: ${JSON.stringify(envMap)}`)
+            BStackLogger.debug(`Feature branch mappings from env: ${JSON.stringify(envMap)}`)
             return envMap
         }
 
-        if (featureBranchEnvMap === null) {
-            featureBranchEnvMap = loadFeatureBranchMaps()
-        }
+        featureBranchEnvMap = loadFeatureBranchMaps()
 
         const getFeatureBranch = (name: string, repoInfo: Record<string, any>): string | null => {
             // 1. Check in environment variable map
@@ -343,19 +317,19 @@ export class OrchestrationUtils {
                 const typedRepoInfo = repoInfo as Record<string, any>
 
                 if (!typedRepoInfo.url) {
-                    this.logger.warn(`Repository URL is missing for source '${name}': ${JSON.stringify(repoInfo)}`)
+                    BStackLogger.warn(`Repository URL is missing for source '${name}': ${JSON.stringify(repoInfo)}`)
                     continue
                 }
 
                 // Validate name
                 if (!namePattern.test(name)) {
-                    this.logger.warn(`Invalid source identifier format for '${name}': ${JSON.stringify(repoInfo)}`)
+                    BStackLogger.warn(`Invalid source identifier format for '${name}': ${JSON.stringify(repoInfo)}`)
                     continue
                 }
 
                 // Validate length
                 if (name.length > 30 || name.length < 1) {
-                    this.logger.warn(`Source identifier '${name}' must have a length between 1 and 30 characters.`)
+                    BStackLogger.warn(`Source identifier '${name}' must have a length between 1 and 30 characters.`)
                     continue
                 }
 
@@ -364,12 +338,12 @@ export class OrchestrationUtils {
                 repoInfoCopy.featureBranch = getFeatureBranch(name, typedRepoInfo)
 
                 if (!repoInfoCopy.featureBranch || repoInfoCopy.featureBranch === '') {
-                    this.logger.warn(`Feature branch not specified for source '${name}': ${JSON.stringify(repoInfo)}`)
+                    BStackLogger.warn(`Feature branch not specified for source '${name}': ${JSON.stringify(repoInfo)}`)
                     continue
                 }
 
                 if (repoInfoCopy.baseBranch && repoInfoCopy.baseBranch === repoInfoCopy.featureBranch) {
-                    this.logger.warn(`Feature branch and base branch cannot be the same for source '${name}': ${JSON.stringify(repoInfo)}`)
+                    BStackLogger.warn(`Feature branch and base branch cannot be the same for source '${name}': ${JSON.stringify(repoInfo)}`)
                     continue
                 }
 
@@ -437,66 +411,6 @@ export class OrchestrationUtils {
         }
 
         return testOrchestrationData
-    }
-
-    /**
-     * Collects build data by making a call to the collect-build-data endpoint
-     */
-    async collectBuildData(config: Record<string, any>): Promise<Record<string, any> | null> {
-        // Return early if smart selection is not enabled or applicable
-        if (!(TEST_ORDERING_SUPPORTED_FRAMEWORKS.includes(config.framework) && this.getRunSmartSelection())) {
-            return null
-        }
-
-        const buildUuid = process.env.BROWSERSTACK_TESTHUB_UUID
-        this.logger.debug(`[collectBuildData] Collecting build data for build UUID: ${buildUuid}`)
-
-        try {
-            const endpoint = `testorchestration/api/v1/builds/${buildUuid}/collect-build-data`
-
-            // Extract testObservabilityOptions from the complex config structure
-            let testObservabilityOptions: Record<string, any> = {}
-
-            try {
-                // Check if config has services array
-                if (config.services && Array.isArray(config.services)) {
-                    // Look for browserstack service configuration
-                    for (const service of config.services) {
-                        if (Array.isArray(service) && service[0] === 'browserstack' && service[1]) {
-                            // Extract testObservabilityOptions from the browserstack service config
-                            testObservabilityOptions = service[1].testObservabilityOptions || {}
-                            break
-                        }
-                    }
-                }
-
-                this.logger.debug(`[collectBuildData] Found testObservabilityOptions: ${JSON.stringify(testObservabilityOptions)}`)
-            } catch (e) {
-                this.logger.error(`[collectBuildData] Error extracting testObservabilityOptions: ${e}`)
-            }
-
-            const payload = {
-                projectName: testObservabilityOptions.projectName || '',
-                buildName: testObservabilityOptions.buildName || path.basename(process.cwd()),
-                buildRunIdentifier: process.env.BROWSERSTACK_BUILD_RUN_IDENTIFIER || '',
-                nodeIndex: parseInt(process.env.BROWSERSTACK_NODE_INDEX || '0'),
-                totalNodes: parseInt(process.env.BROWSERSTACK_TOTAL_NODE_COUNT || '1'),
-                hostInfo: getHostInfo()
-            }
-
-            const response = await RequestUtils.postCollectBuildData(endpoint, payload)
-
-            if (response) {
-                this.logger.debug(`[collectBuildData] Build data collection response: ${JSON.stringify(response)}`)
-                return response
-            }
-            this.logger.error(`[collectBuildData] Failed to collect build data for build UUID: ${buildUuid}`)
-            return null
-
-        } catch (e) {
-            this.logger.error(`[collectBuildData] Exception in collecting build data for build UUID ${buildUuid}: ${e}`)
-            return null
-        }
     }
 }
 

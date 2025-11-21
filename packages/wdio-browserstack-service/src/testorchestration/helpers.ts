@@ -282,7 +282,7 @@ function getChangedFilesFromCommits(commitHashes: string[]): string[] {
  * Get Git metadata for AI selection
  * @param multiRepoSource Array of repository paths for multi-repo setup
  */
-export function getGitMetadataForAiSelection(folders: string[] = []): any[] {
+export function getGitMetadataForAISelection(folders: string[] = []): any[] {
     if (!folders || folders.length === 0) {
         folders = [process.cwd()]
     }

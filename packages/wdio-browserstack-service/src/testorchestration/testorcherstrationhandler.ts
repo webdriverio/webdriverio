@@ -1,13 +1,8 @@
-import type { Logger } from '@wdio/logger'
-
 import { TestOrderingServer } from './test-ordering-server.js'
 import { OrchestrationUtils } from './testorcherstrationutils.js'
 import { GrpcClient } from '../cli/grpcClient.js'
 import { BrowserstackCLI } from '../cli/index.js'
-
-// Constants
-const TEST_ORDERING_SUPPORTED_FRAMEWORKS = ['mocha', 'jasmine', 'cucumber']
-const O11Y_SUPPORTED_FRAMEWORKS = ['mocha', 'jasmine', 'cucumber']
+import { BStackLogger } from '../bstackLogger.js'
 
 /**
  * Checks if a value is true
@@ -28,7 +23,6 @@ function isTrue(value: any): boolean {
 export class TestOrchestrationHandler {
     private static _instance: TestOrchestrationHandler | null = null
     private config: Record<string, any>
-    private logger: Logger
     private testOrderingServerHandler: TestOrderingServer
     private orchestrationUtils: OrchestrationUtils | null
     private orderingInstrumentationData: Record<string, any>
@@ -37,12 +31,10 @@ export class TestOrchestrationHandler {
 
     /**
      * @param config Service configuration
-     * @param logger Logger instance
      */
-    constructor(config: Record<string, any>, logger: Logger) {
+    constructor(config: Record<string, any>) {
         this.config = config
-        this.logger = logger
-        this.testOrderingServerHandler = new TestOrderingServer(this.config, logger)
+        this.testOrderingServerHandler = new TestOrderingServer(this.config)
         this.orchestrationUtils = OrchestrationUtils.getInstance(config)
         this.orderingInstrumentationData = {}
         this.testOrderingApplied = false
@@ -52,9 +44,9 @@ export class TestOrchestrationHandler {
     /**
      * Get or create an instance of TestOrchestrationHandler
      */
-    static getInstance(config: Record<string, any>, logger: Logger): TestOrchestrationHandler {
+    static getInstance(config: Record<string, any>): TestOrchestrationHandler {
         if (TestOrchestrationHandler._instance === null && config !== null) {
-            TestOrchestrationHandler._instance = new TestOrchestrationHandler(config, logger)
+            TestOrchestrationHandler._instance = new TestOrchestrationHandler(config)
         }
         return TestOrchestrationHandler._instance as TestOrchestrationHandler
     }
@@ -68,28 +60,14 @@ export class TestOrchestrationHandler {
      * - buildName is None
      */
     testOrderingEnabled(): boolean {
-        return this.isTestOrderingEnabled && this.isFrameworkVersionSupportedForTestOrdering()
-    }
-
-    /**
-     * Checks if the framework version is supported for test ordering
-     */
-    isFrameworkVersionSupportedForTestOrdering(): boolean {
-        return TEST_ORDERING_SUPPORTED_FRAMEWORKS.includes(this.config.framework)
+        return this.isTestOrderingEnabled
     }
 
     /**
      * Checks if observability is enabled
      */
     private _isObservabilityEnabled(): boolean {
-        let defaultVal = false
-        for (const fw of O11Y_SUPPORTED_FRAMEWORKS) {
-            if ((this.config.framework || '').includes(fw)) {
-                defaultVal = true
-                break
-            }
-        }
-        return isTrue(this.config.testObservability !== undefined ? this.config.testObservability : defaultVal)
+        return isTrue(this.config.testObservability)
     }
 
     /**
@@ -112,11 +90,11 @@ export class TestOrchestrationHandler {
         }
 
         if (this.config.projectName === undefined || this.config.buildName === undefined) {
-            this.logger.info("Test Reordering can't work as buildName or projectName is null. Please set a non-null value.")
+            BStackLogger.info("Test Reordering can't work as buildName or projectName is null. Please set a non-null value.")
         }
 
         if (!this._isObservabilityEnabled()) {
-            this.logger.info("Test Reordering can't work as testReporting is disabled. Please enable it from browserstack.yml file.")
+            BStackLogger.info("Test Reordering can't work as testReporting is disabled. Please enable it from browserstack.yml file.")
         }
     }
 
@@ -141,7 +119,7 @@ export class TestOrchestrationHandler {
     async reorderTestFiles(testFiles: string[]): Promise<string[] | null> {
         try {
             if (!testFiles || testFiles.length === 0) {
-                this.logger.debug('[reorderTestFiles] No test files provided for ordering.')
+                BStackLogger.debug('[reorderTestFiles] No test files provided for ordering.')
                 return null
             }
 
@@ -153,18 +131,18 @@ export class TestOrchestrationHandler {
             }
 
             if (orchestrationStrategy === null) {
-                this.logger.error('Orchestration strategy is None. Cannot proceed with test orchestration session.')
+                BStackLogger.error('Orchestration strategy is None. Cannot proceed with test orchestration session.')
                 return null
             }
 
-            this.logger.info(`Reordering test files with orchestration strategy: ${orchestrationStrategy}`)
+            BStackLogger.info(`Reordering test files with orchestration strategy: ${orchestrationStrategy}`)
             let orderedTestFiles = []
             if (BrowserstackCLI.getInstance().isRunning()) {
-                this.logger.info('Using CLI flow for test files orchestration.')
-                orderedTestFiles = await GrpcClient.getInstance().testOrchestrationSession(testFiles, orchestrationStrategy, orchestrationMetadata)|| []
+                BStackLogger.info('Using CLI flow for test files orchestration.')
+                orderedTestFiles = await GrpcClient.getInstance().testOrchestrationSession(testFiles, orchestrationStrategy, JSON.stringify(orchestrationMetadata))|| []
             } else {
-                this.logger.info('Using SDK flow for test files orchestration.')
-                await this.testOrderingServerHandler.splitTests(testFiles, orchestrationStrategy, orchestrationMetadata)
+                BStackLogger.info('Using SDK flow for test files orchestration.')
+                await this.testOrderingServerHandler.splitTests(testFiles, orchestrationStrategy, JSON.stringify(orchestrationMetadata))
                 orderedTestFiles = await this.testOrderingServerHandler.getOrderedTestFiles() || []
             }
 
@@ -176,7 +154,7 @@ export class TestOrchestrationHandler {
 
             return orderedTestFiles
         } catch (e) {
-            this.logger.debug(`[reorderTestFiles] Error in ordering test classes: ${e}`)
+            BStackLogger.debug(`[reorderTestFiles] Error in ordering test classes: ${e}`)
         }
         return null
     }
