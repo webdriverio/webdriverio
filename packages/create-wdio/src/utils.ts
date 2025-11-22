@@ -2,7 +2,7 @@ import url from 'node:url'
 import path from 'node:path'
 import util, { promisify } from 'node:util'
 import fs from 'node:fs/promises'
-import { execSync, } from 'node:child_process'
+import { execSync } from 'node:child_process'
 import readDir from 'recursive-readdir'
 
 import { $ } from 'execa'
