@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Fetch PR metadata
         id: metadata
-        uses: dependabot/fetch-metadata@08eff52f33f11b29792d242ed87062144883395c # v2.4.0
+        uses: dependabot/fetch-metadata@08eff52bf64351f401fb50d4972fa95b9f2c2d1b # v2.4.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
