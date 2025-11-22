@@ -890,6 +890,10 @@ describe('Appium launcher', () => {
             vi.mocked(spawn).mockReturnValue({
                 stdout: { ...stdoutListener },
                 stderr: { ...stderrListener },
+                on: vi.fn(),
+                once: vi.fn(),
+                off: vi.fn(),
+                kill: vi.fn()
             } as unknown as cp.ChildProcess)
 
             const mockLogError = vi.spyOn(log, 'error')
@@ -910,6 +914,10 @@ describe('Appium launcher', () => {
             vi.mocked(spawn).mockReturnValue({
                 stdout: { ...stdoutListener },
                 stderr: { ...stderrListener },
+                on: vi.fn(),
+                once: vi.fn(),
+                off: vi.fn(),
+                kill: vi.fn()
             } as unknown as cp.ChildProcess)
 
             const mockLogError = vi.spyOn(log, 'error')
