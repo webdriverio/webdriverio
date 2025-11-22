@@ -72,6 +72,10 @@ class MockProcess implements Partial<ChildProcessByStdio<null, Readable, Readabl
         on: vi.fn(),
         off: vi.fn()
     } as unknown as Readable
+    on = vi.fn()
+    once = vi.fn()
+    off = vi.fn()
+    emit = vi.fn()
 }
 
 class MockFailingProcess extends MockProcess {
