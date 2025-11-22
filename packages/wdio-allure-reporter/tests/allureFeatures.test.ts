@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Label, Link, Parameter } from 'allure-js-commons'
 import {
     attachment,

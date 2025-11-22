@@ -1,6 +1,5 @@
 import path from 'node:path'
 import { describe, it, vi, expect, beforeAll, afterAll } from 'vitest'
-import { WebSocket as ws } from 'ws'
 
 import '../src/node.js'
 import { BidiCore, parseBidiCommand } from '../src/bidi/core.js'
