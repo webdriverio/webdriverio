@@ -65,7 +65,10 @@ export async function waitForExist (
      * calling `waitForExist`.
      */
     if (!reverse && isExisting && typeof this.selector === 'string') {
-        this.elementId = await this.parent.$(this.selector).elementId
+        const element = this.isShadowElement
+            ? this.parent.shadow$(this.selector)
+            : this.parent.$(this.selector)
+        this.elementId = await element.elementId
         this[ELEMENT_KEY] = this.elementId
         delete this.error
     }
