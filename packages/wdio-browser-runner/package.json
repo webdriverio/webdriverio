@@ -122,7 +122,7 @@
     "@types/istanbul-lib-source-maps": "^4.0.4",
     "@types/istanbul-reports": "^3.0.4",
     "esbuild": "^0.25.0",
-    "geckodriver": "^5.0.0",
+    "geckodriver": "^6.1.0",
     "mocha": "^10.7.3",
     "webdriverio": "workspace:*"
   },
