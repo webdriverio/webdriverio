@@ -258,14 +258,37 @@ export default class AppiumLauncher implements Services.ServiceInstance {
              * only capture first error to print it in case Appium failed to start.
              */
             const onErrorMessage = (data: Buffer) => {
+                const message = data.toString()
+
+                const isDebuggerMessage = message.includes('Debugger attached') || message.includes('Debugger listening on')
+
+                if (isDebuggerMessage) {
+                    return
+                }
+
+                appiumProcess.stderr.off('data', onErrorMessage)
+
+                error = message || 'Appium exited without unknown error message'
+
                 /**
-                 * filter 'Debugger attached' message as it is not an error
+                 * Check if the message is a warning (not an actual error)
+                 * Warnings should be logged but not cause the service to fail
                  */
-                error = data.toString() || 'Appium exited without unknown error message'
-                if (!data.toString().includes('Debugger attached')) {
+                const isWarning = message.trim().startsWith('WARN')
+
+                if (isWarning) {
+                    log.warn(error)
+                } else {
                     log.error(error)
                 }
-                rejectOnce(new Error(error))
+
+                /**
+                 * Don't reject on warnings - this is the fix for issue #14770
+                 * Continue to reject on all other stderr output for backward compatibility
+                 */
+                if (!isWarning) {
+                    rejectOnce(new Error(error))
+                }
             }
 
             const onStdout = (data: Buffer) => {
@@ -282,7 +305,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             }
 
             appiumProcess.stdout.on('data', onStdout)
-            appiumProcess.stderr.once('data', onErrorMessage)
+            appiumProcess.stderr.on('data', onErrorMessage)
             appiumProcess.once('exit', (exitCode: number) => {
                 if (this._isShuttingDown) {
                     return
@@ -302,7 +325,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     }
 
     private async _redirectLogStream(logPath: string) {
-        if (!this._process){
+        if (!this._process) {
             throw Error('No Appium process to redirect log stream')
         }
         const logFile = getFilePath(logPath, DEFAULT_LOG_FILENAME)
@@ -316,7 +339,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         this._process.stderr.pipe(logStream)
     }
 
-    private static async _getAppiumCommand (command = 'appium') {
+    private static async _getAppiumCommand(command = 'appium') {
         try {
             const entryPath = await resolve(command, import.meta.url)
             return url.fileURLToPath(entryPath)
