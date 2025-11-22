@@ -763,7 +763,7 @@ describe('Lit Component testing', () => {
                 await expect(elem2).toHaveValue('Hello World! 2')
             })
 
-            it('aria label is recevied by other element with aria-labelledBy', async () => {
+            it('aria label is received by other element with aria-labelledBy', async () => {
                 // https://www.w3.org/TR/accname-1.1/#step2B
                 render(
                     html`
@@ -776,7 +776,7 @@ describe('Lit Component testing', () => {
                 await expect(elem).toHaveText('Click Me!')
             })
 
-            it('aria label is recevied by other element with aria-describedby', async () => {
+            it('aria label is received by other element with aria-describedby', async () => {
                 // https://www.w3.org/TR/accname-1.1/#step2B
                 render(
                     html`
