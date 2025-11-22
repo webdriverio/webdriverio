@@ -908,6 +908,30 @@ describe('Appium launcher', () => {
             expect(mockLogError).not.toHaveBeenCalled()
         })
 
+        test('should filter out "For help, see: ..." message as an error', async () => {
+            const stdoutListener = { on: vi.fn(), off: vi.fn(), once: vi.fn() }
+            const stderrListener = { on: vi.fn(), off: vi.fn(), once: vi.fn() }
+            vi.mocked(spawn).mockReturnValue({
+                stdout: { ...stdoutListener },
+                stderr: { ...stderrListener },
+                on: vi.fn(),
+                once: vi.fn(),
+                off: vi.fn(),
+                kill: vi.fn()
+            } as unknown as cp.ChildProcess)
+
+            const mockLogError = vi.spyOn(log, 'error')
+            const launcher = new AppiumLauncher({}, [], {} as any)
+
+            launcher['_startAppium']('node', [], 2000)
+
+            const errorHandler = stderrListener.on.mock.calls
+                .find((call: string[]) => call[0] === 'data')?.[1]
+
+            errorHandler(Buffer.from('For help, see: https://nodejs.org/en/docs/inspector'))
+            expect(mockLogError).not.toHaveBeenCalled()
+        })
+
         test('should not fail when Appium outputs WARN messages to stderr', async () => {
             const stdoutListener = { on: vi.fn(), off: vi.fn(), once: vi.fn() }
             const stderrListener = { on: vi.fn(), off: vi.fn(), once: vi.fn() }

@@ -260,7 +260,9 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             const onErrorMessage = (data: Buffer) => {
                 const message = data.toString()
 
-                const isDebuggerMessage = message.includes('Debugger attached') || message.includes('Debugger listening on')
+                const isDebuggerMessage = message.includes('Debugger attached') ||
+                    message.includes('Debugger listening on') ||
+                    message.includes('For help, see: https://nodejs.org/en/docs/inspector')
 
                 if (isDebuggerMessage) {
                     return
