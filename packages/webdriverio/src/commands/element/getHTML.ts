@@ -63,11 +63,11 @@ const SHADOW_ID_ATTR = `[${SHADOW_ID_ATTR_NAME}]`
  *
  * @alias element.getHTML
  * @param {GetHTMLOptions} options                    command options
- * @param {Boolean=}       options.includeSelectorTag if true it includes the selector element tag (default: `true`)
- * @param {Boolean=}       options.pierceShadowRoot   if true it includes content of the shadow roots of all web components in the DOM (default: `true`)
- * @param {Boolean=}       options.removeCommentNodes if true it removes all comment nodes from the HTML, e.g. `<!--?lit$206212805$--><!--?lit$206212805$-->` (default: `true`)
- * @param {Boolean=}       options.prettify           if true, the html output will be prettified (default: `true`)
- * @return {String}  the HTML of the specified element
+ * @param {boolean=}       options.includeSelectorTag if true it includes the selector element tag (default: `true`)
+ * @param {boolean=}       options.pierceShadowRoot   if true it includes content of the shadow roots of all web components in the DOM (default: `true`)
+ * @param {boolean=}       options.removeCommentNodes if true it removes all comment nodes from the HTML, e.g. `<!--?lit$206212805$--><!--?lit$206212805$-->` (default: `true`)
+ * @param {boolean=}       options.prettify           if true, the html output will be prettified (default: `true`)
+ * @return {Promise<string>}  the HTML of the specified element
  * @uses action/selectorExecute
  * @type property
  *
@@ -75,7 +75,7 @@ const SHADOW_ID_ATTR = `[${SHADOW_ID_ATTR_NAME}]`
 export async function getHTML(
     this: WebdriverIO.Element,
     options: GetHTMLOptions = {}
-) {
+): Promise<string> {
     const browser = getBrowserObject(this)
 
     /**
