@@ -9,7 +9,6 @@ import logger from '@wdio/logger'
 import { listWebsocketCandidateUrls, createBidiConnection } from '../../src/node/bidi.js'
 // @ts-expect-error mock feature
 import { proxyUrlValueFn, noProxyValueFn } from '../../src/environment.js'
-import { environment } from '../../build/environment.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 

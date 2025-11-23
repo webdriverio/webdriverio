@@ -78,7 +78,7 @@ export function parseOverwrite<
 }
 
 export function getPatternParam (pattern: URLPattern, key: keyof Omit<remote.NetworkUrlPatternPattern, 'type'>) {
-    if (key !== 'pathname' && pattern[key] === '*') {
+    if (pattern[key] === '*') {
         return
     }
 

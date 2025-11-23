@@ -6,7 +6,7 @@ import { executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { attach } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
-import { setOptions, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
+import { setOptions, SnapshotService } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
 
