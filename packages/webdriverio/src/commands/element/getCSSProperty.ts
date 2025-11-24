@@ -74,7 +74,7 @@ type PseudoElement = '::before' | '::after'
  * @return {CSSProperty}                 The specified css of the element
  *
  */
-export async function getCSSProperty (
+export async function getCSSProperty(
     this: WebdriverIO.Element,
     cssProperty: string,
     pseudoElement?: PseudoElement,
@@ -179,14 +179,21 @@ function mergeEqualSymmetricalValue(cssValues: string[]) {
     return newCssValues.join(' ')
 }
 
-async function getPseudoElementCSSValue (
+async function getPseudoElementCSSValue(
     elem: WebdriverIO.Element,
     options: Required<Options>
 ): Promise<string> {
     const browser = getBrowserObject(elem)
-    const { cssProperty, pseudoElement }  = options
+    const { cssProperty, pseudoElement } = options
     const cssValue = await browser.execute(
-        (elem: Element, pseudoElement: string, cssProperty: string) => (window.getComputedStyle(elem, pseudoElement))[cssProperty as unknown as number],
+        (elem: Element, pseudoElement: string, cssProperty: string) => {
+            // Check if element is still connected to the DOM
+            // This helps detect stale elements in BiDi mode
+            if (typeof elem.isConnected === 'boolean' && !elem.isConnected) {
+                throw new Error('stale element reference: element is not attached to the page document')
+            }
+            return (window.getComputedStyle(elem, pseudoElement))[cssProperty as unknown as number]
+        },
         elem as unknown as Element,
         pseudoElement,
         cssProperty
@@ -204,7 +211,7 @@ async function getPseudoElementCSSValue (
  * @param cssProperty - The CSS property name to retrieve
  * @returns The computed CSS property value as a string
  */
-async function getComputedStyleProperty (
+async function getComputedStyleProperty(
     elem: WebdriverIO.Element,
     cssProperty: string
 ): Promise<string> {
@@ -213,6 +220,12 @@ async function getComputedStyleProperty (
         (elem: Element, cssProperty: string) => {
             if (!elem) {
                 return ''
+            }
+
+            // Check if element is still connected to the DOM
+            // This helps detect stale elements in BiDi mode
+            if (typeof elem.isConnected === 'boolean' && !elem.isConnected) {
+                throw new Error('stale element reference: element is not attached to the page document')
             }
 
             return window.getComputedStyle(elem)[cssProperty as unknown as number]
