@@ -222,6 +222,7 @@ export class OrchestrationUtils {
                 mode = 'relevantFirst'
             }
             this.smartSelectionMode = mode
+            this.smartSelectionSource = []
 
             // Log the configuration for debugging
             BStackLogger.debug(`Setting runSmartSelection: enabled=${this.runSmartSelection}, mode=${this.smartSelectionMode}`)
@@ -235,9 +236,6 @@ export class OrchestrationUtils {
                 } else if (typeof source === 'string' && source.endsWith('.json')) {
                     this.smartSelectionSource = this._loadSourceFromFile(source) || []
                     BStackLogger.debug(`Smart selection source loaded from file: ${source}`)
-                } else {
-                    this.smartSelectionSource = null
-                    BStackLogger.debug('Invalid source format provided for smart selection; defaulting to null.')
                 }
                 this._setTestOrdering()
             }

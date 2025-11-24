@@ -38,8 +38,8 @@ export class TestOrderingServer {
             const parsedMetadata = JSON.parse(orchestrationMetadata)
             const source = parsedMetadata.run_smart_selection?.source
             const isGithubAppApproach = Array.isArray(source) && source.length > 0 && source.every(src => src && typeof src === 'object' && !Array.isArray(src))
-            if (parsedMetadata.run_smart_selection?.enabled && !isGithubAppApproach && source) {
-                const multiRepoSource = parsedMetadata.run_smart_selection?.source || []
+            if (parsedMetadata.run_smart_selection?.enabled && !isGithubAppApproach) {
+                const multiRepoSource = parsedMetadata.run_smart_selection?.source
                 prDetails = getGitMetadataForAISelection(multiRepoSource)
             }
             BStackLogger.info(`PR Details for AI Selection: ${JSON.stringify(prDetails)}`)
