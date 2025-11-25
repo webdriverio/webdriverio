@@ -77,6 +77,10 @@ describe('Passing tests', () => {
         reporter.addDescription({ description: 'functions', descriptionType: DescriptionType.HTML })
         reporter.addAttachment({ name: 'My attachment', content: '99thoughtz', type: 'text/plain' })
         reporter.addArgument({ name: 'os', value: 'osx' })
+        reporter.addArgument({ name: 'p1', value: 'p1', mode: 'default' })
+        reporter.addArgument({ name: 'p2', value: 'p2', mode: 'masked' })
+        reporter.addArgument({ name: 'p3', value: 'p3', mode: 'hidden' })
+        reporter.addArgument({ name: 'p4', value: 'p4', excluded: true })
         reporter.startStep('bar')
         reporter.endStep(Status.PASSED)
         reporter.addStep(step)
@@ -186,11 +190,23 @@ describe('Passing tests', () => {
     })
 
     it('should add additional argument', () => {
-        const params = mapBy<Parameter>(allureResult.parameters, 'name')
-        const osParams = params.os
+        const allureParams = allureResult.parameters
 
-        expect(osParams).toHaveLength(1)
-        expect(osParams[0].value).toEqual('osx')
+        expect(allureParams).toHaveLength(6)
+        expect(allureParams[0].name).toEqual('browser')
+        expect(allureParams[1].value).toEqual('osx')
+
+        expect(allureParams[2].value).toEqual('p1')
+        expect(allureParams[2].mode).toEqual('default')
+
+        expect(allureParams[3].value).toEqual('p2')
+        expect(allureParams[3].mode).toEqual('masked')
+
+        expect(allureParams[4].value).toEqual('p3')
+        expect(allureParams[4].mode).toEqual('hidden')
+
+        expect(allureParams[5].value).toEqual('p4')
+        expect(allureParams[5].excluded).toEqual(true)
     })
 
     it('should have testCaseId equal to historyId', () => {

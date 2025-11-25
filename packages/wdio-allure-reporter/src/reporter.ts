@@ -686,11 +686,11 @@ export default class AllureReporter extends WDIOReporter {
         const uuid = (test as MaybeUid).uid
         const ft = (test as TestStats).fullTitle || this._mochaFullTitle(cid, test.title)
         this._startTest({ name: test.title, start, uuid })
-        if (ft) {this._emitHistoryIdsFrom(ft)}
-        if (fullTitle) {this._emitHistoryIdsFrom(fullTitle)}
+        const testCaseTitle = ft || fullTitle
+        if (testCaseTitle) {this._emitHistoryIdsFrom(testCaseTitle)}
 
-        const fname = toFullName(this._pkgByCid.get(cid)!, fullTitle || test.title)
-        this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName: fname } })
+        const fullName = toFullName(this._pkgByCid.get(cid)!, fullTitle || test.title)
+        this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName: fullName } })
 
         const suitePath = [...this._suiteStack(cid)]
         const pkg = isFeatureFilePath(this._pkgByCid.get(cid)) ? toPackageLabelCucumber(this._pkgByCid.get(cid) || '') : toPackageLabel(this._pkgByCid.get(cid) || '')
@@ -778,8 +778,8 @@ export default class AllureReporter extends WDIOReporter {
         const start = AllureReporter.getTimeOrNow(test.start)
         this._startTest({ name: test.title, start })
         if (test.fullTitle) {this._emitHistoryIdsFrom(test.fullTitle)}
-        const fname = toFullName(this._pkgByCid.get(this._currentCid())!, test.fullTitle || test.title)
-        this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName: fname } })
+        const fullName = toFullName(this._pkgByCid.get(this._currentCid())!, test.fullTitle || test.title)
+        this._pushRuntimeMessage({ type: 'allure:test:info', data: {  fullName } })
         this._attachLogs()
         this._skipTest()
     }
@@ -1145,8 +1145,13 @@ export default class AllureReporter extends WDIOReporter {
         this._attachFile({ name, content: buf, contentType: toCt(type) })
     }
 
-    public addArgument({ name, value }: { name: string; value: string }): void {
-        this._pushRuntimeMessage({ type: 'metadata', data: { parameters: [{ name, value }] } })
+    public addArgument({ name, value, mode, excluded }: {
+        name: string;
+        value: string;
+        mode?: 'masked' | 'hidden' | 'default'
+        excluded?:boolean
+    }): void {
+        this._pushRuntimeMessage({ type: 'metadata', data: { parameters: [{ name, value, mode, excluded }] } })
     }
 
     public startStep(title: string): void {
