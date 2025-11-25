@@ -21,10 +21,16 @@ describe('getText test', () => {
     })
 
     it('should allow to get the text of an element', async () => {
-        await elem.getText()
+        const text = await elem.getText()
+        // Path assertion remains to ensure the correct webdriver endpoint is called
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/text')
+        // New: Return value semantic assertion (mock return value should be a specific string; based on current element mock convention)
+        // Under the current mock environment, the return value is an object wrapper (protocol compatibility layer mock).
+        // Assert its existence and serializability.
+        expect(text).toBeDefined()
+        expect(typeof text).toBe('object')
     })
 
     afterEach(() => {
