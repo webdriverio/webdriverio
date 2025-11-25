@@ -1,0 +1,45 @@
+{
+  "name": "@wdio/trace-viewer",
+  "version": "9.0.0",
+  "description": "Trace viewer for WebdriverIO (inspired by Playwright trace viewer)",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./build/reporter.js"
+    }
+  },
+  "main": "./build/reporter.js",
+  "types": "./build/reporter.d.ts",
+  "files": [
+    "build",
+    "template",
+    "bin"
+  ],
+  "bin": {
+    "wdio-show-report": "./bin/show-report.js"
+  },
+  "scripts": {
+    "clean": "rm -rf ./build",
+    "build:ts": "tsc",
+    "fix:imports": "sh ./scripts/fix-lit-imports.sh",
+    "build:copy": "cp template/index.html build/index.html && cp -r public/assets build/",
+    "build": "npm run clean && npm run build:ts && npm run fix:imports && npm run build:copy"
+  },
+  "dependencies": {
+    "@wdio/reporter": "workspace:*",
+    "lit": "^3.1.0",
+    "open": "^10.1.2",
+    "serve-handler": "^6.1.6",
+    "serve-static": "^2.2.0"
+  },
+  "devDependencies": {
+    "@types/serve-static": "^1.15.8",
+    "esbuild": "^0.20.0",
+    "npm-run-all": "^4.1.5",
+    "vite": "^7.0.2",
+    "@types/serve-handler": "^6.1.0"
+  },
+  "wdio": {
+    "type": "reporter"
+  }
+}
