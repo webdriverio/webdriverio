@@ -52,9 +52,6 @@ import {
     _getParamsForAppAccessibility,
     performA11yScan,
     getAppA11yResults,
-    getAppA11yResultsSummary,
-    mergeDeep,
-    mergeChromeOptions
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
 import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY } from '../src/constants.js'

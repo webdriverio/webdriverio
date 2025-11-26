@@ -23,6 +23,41 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.20.1 (2025-11-18)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`, `wdio-cli`, `wdio-config`, `wdio-sauce-service`, `wdio-shared-store-service`, `webdriverio`
+  * [#14802](https://github.com/webdriverio/webdriverio/pull/14802) 🐛⏪️ revert: "tsConfigPath in wdio.conf (#14664)" ([@sh41](https://github.com/sh41))
+* `webdriverio`
+  * [#14843](https://github.com/webdriverio/webdriverio/pull/14843) Add semicolon to fix browser.execute on Perfecto ([@nheiser](https://github.com/nheiser))
+* `webdriver`
+  * [#14756](https://github.com/webdriverio/webdriverio/pull/14756) fix(webdriver): invoke terminate on all unsuccessful websocket candidates ([@pokdeep](https://github.com/pokdeep))
+* `wdio-webdriver-mock-service`, `webdriverio`
+  * [#14853](https://github.com/webdriverio/webdriverio/pull/14853) Fix: Prevent stale CSS property reads in WebDriver Bidi mode ([@ivanovicu](https://github.com/ivanovicu))
+* `wdio-cli`
+  * [#14846](https://github.com/webdriverio/webdriverio/pull/14846) fix `wdio repl` when run with multiremote capabilities ([@zhirzh](https://github.com/zhirzh))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#14834](https://github.com/webdriverio/webdriverio/pull/14834) docs: add page for waitForResponse mock method ([@icholy](https://github.com/icholy))
+* Other
+  * [#14825](https://github.com/webdriverio/webdriverio/pull/14825) fix: update React logo and alt text for accessibility ([@ritwickrajmakhal](https://github.com/ritwickrajmakhal))
+  * [#14821](https://github.com/webdriverio/webdriverio/pull/14821) Fix 3rd-party reporters links ([@gavvvr](https://github.com/gavvvr))
+  * [#14790](https://github.com/webdriverio/webdriverio/pull/14790) README update to use https ([@fpereira1](https://github.com/fpereira1))
+
+#### Committers: 10
+- Filype ([@fpereira1](https://github.com/fpereira1))
+- Ilia Choly ([@icholy](https://github.com/icholy))
+- Kirill Gavrilov ([@gavvvr](https://github.com/gavvvr))
+- Pokdeep Sandhu ([@pokdeep](https://github.com/pokdeep))
+- RITWICK RAJ MAKHAL ([@ritwickrajmakhal](https://github.com/ritwickrajmakhal))
+- Shirsh Zibbu ([@zhirzh](https://github.com/zhirzh))
+- Steve Hall ([@sh41](https://github.com/sh41))
+- Uros Ivanovic ([@ivanovicu](https://github.com/ivanovicu))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+- [@nheiser](https://github.com/nheiser)
+
+
 ## v9.20.0 (2025-09-27)
 
 #### :rocket: New Feature

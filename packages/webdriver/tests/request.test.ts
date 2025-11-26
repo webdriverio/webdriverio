@@ -80,7 +80,7 @@ describe('webdriver request', () => {
         const req = new WebFetchRequest('POST', '/foo/bar', { foo: 'bar' })
         const transformRequest = vi.fn().mockImplementation((requestOptions) => ({
             ...requestOptions,
-            body: { foo: 'baz' }
+            body: JSON.stringify({ foo: 'baz' })
         }))
 
         await req.makeRequest({
@@ -93,7 +93,7 @@ describe('webdriver request', () => {
         }, 'some_id')
         expect(vi.mocked(fetch)).toHaveBeenCalledWith(
             expect.any(Object),
-            expect.objectContaining({ body: JSON.stringify( { foo: 'baz' }) })
+            expect.objectContaining({ body: JSON.stringify({ foo: 'baz' }) })
         )
     })
 
@@ -116,7 +116,7 @@ describe('webdriver request', () => {
         }, 'foobar-123')
 
         expect(transformResponse.mock.calls[0][0]).toHaveProperty('body')
-        expect(transformResponse.mock.calls[0][1].body).toEqual({ foo: 'requestBody' })
+        expect(transformResponse.mock.calls[0][1].body).toEqual(JSON.stringify({ foo: 'requestBody' }))
         await expect(responseBody).toEqual({ value: { foo: 'transformedResponse' } })
         vi.mocked(fetch).mockClear()
     })
@@ -170,7 +170,7 @@ describe('webdriver request', () => {
                 logLevel: 'warn'
             })
             expect((requestOptions.headers as unknown as Map<string, string>).get('Authorization')).toEqual('Basic ' + btoa(user + ':' + key))
-            expect(requestOptions.body).toEqual({ some: 'body' })
+            expect(requestOptions.body).toEqual(JSON.stringify({ some: 'body' }))
         })
 
         it('sets request body to "undefined" when request object is empty and DELETE is used', async () => {
@@ -200,7 +200,7 @@ describe('webdriver request', () => {
                 path: '/',
                 logLevel: 'warn'
             })
-            expect(requestOptions.body).toEqual({})
+            expect(requestOptions.body).toEqual('{}')
         })
 
         it('should add the Content-Length header when a request object has a body', async () => {
@@ -332,7 +332,7 @@ describe('webdriver request', () => {
             })
 
             const url = new URL('/failing', baseUrl)
-            const opts = Object.assign({ body: { foo: 'bar' } })
+            const opts = Object.assign({ body: JSON.stringify({ foo: 'bar' }) })
             expect(await req['_request'](url, opts, undefined, 3)).toEqual({ value: 'caught' })
             expect(onRetry).toHaveBeenNthCalledWith(1, expect.anything())
             expect(onPerformance).toHaveBeenNthCalledWith(1, expect.objectContaining({ success: false }))
@@ -378,7 +378,7 @@ describe('webdriver request', () => {
             })
 
             const url = new URL('/failing-html', baseUrl)
-            const opts = Object.assign({ body: { foo: 'bar' } })
+            const opts = Object.assign({ body: JSON.stringify({ foo: 'bar' }) })
             expect(await req['_request'](url, opts, undefined, 3)).toEqual({ value: 'caught-html' })
             expect(onRetry).toHaveBeenNthCalledWith(1, expect.anything())
             expect(onPerformance).toHaveBeenNthCalledWith(1, expect.objectContaining({ success: false }))

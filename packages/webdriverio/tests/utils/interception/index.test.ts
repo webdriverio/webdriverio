@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events'
 import { describe, it, expect, vi } from 'vitest'
-import { type local, type remote } from 'webdriver'
+import { type local } from 'webdriver'
 import WebDriverInterception from '../../../src/utils/interception/index.js'
 import logger from '@wdio/logger'
 

@@ -169,7 +169,7 @@ describe('main suite 1', () => {
             { xOffset: 25, yOffset: 25 },
         ]
 
-        before(async () => {
+        beforeEach(async () => {
             await browser.url('https://guinea-pig.webdriver.io/pointer.html')
             await browser.$('#parent').waitForExist()
         })
@@ -754,12 +754,12 @@ describe('main suite 1', () => {
     })
 
     describe('reloading applications with different strategies', () => {
-        const scenarions = {
+        const scenarios = {
             nothing: ['', '1'],
             query: ['?foo=bar', '1'],
             hash: ['#reloadCounter', '0']
         }
-        for (const [name, [value, expected]] of Object.entries(scenarions)) {
+        for (const [name, [value, expected]] of Object.entries(scenarios)) {
             it(`reloads with ${name}`, async () => {
                 const url = `https://guinea-pig.webdriver.io/reloadCounter.html${value}`
                 await browser.url(url)

@@ -1,6 +1,5 @@
 import path from 'node:path'
 import { describe, it, vi, expect, beforeAll, afterAll } from 'vitest'
-import { WebSocket as ws } from 'ws'
 
 import '../src/node.js'
 import { BidiCore, parseBidiCommand } from '../src/bidi/core.js'
@@ -86,8 +85,8 @@ describe('BidiCore', () => {
         it('sends and waits for result', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()
-            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => {}]
-            cb.call(this as  any)
+            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => { }]
+            cb.call(this as any)
 
             vi.mocked(handler.socket?.on)?.mockClear()
             const promise = handler.send({ method: 'session.new', params: {} })
@@ -102,8 +101,8 @@ describe('BidiCore', () => {
         it('has a proper error stack that contains the line where the command is called', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()
-            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => {}]
-            cb.call(this as  any)
+            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => { }]
+            cb.call(this as any)
 
             const promise = handler.send({ method: 'session.new', params: {} })
             setTimeout(
@@ -117,7 +116,7 @@ describe('BidiCore', () => {
 
             const error = await promise.catch((err) => err)
             const errorMessage = 'WebDriver Bidi command "session.new" failed with error: foobar - I am an error!'
-            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:108:').slice(1))
+            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:107:').slice(1))
             expect(error.stack).toContain(errorMessage)
             expect(error.message).toBe(errorMessage)
         })
@@ -150,8 +149,8 @@ describe('BidiCore', () => {
         it('can send without getting an result', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()
-            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => {}]
-            cb.call(this as  any)
+            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => { }]
+            cb.call(this as any)
 
             expect(handler.sendAsync({ method: 'session.new', params: {} }))
                 .toEqual(1)

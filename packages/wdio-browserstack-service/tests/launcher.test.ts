@@ -615,13 +615,14 @@ describe('onPrepare', () => {
 })
 
 describe('onComplete', () => {
-    it('should do nothing if browserstack local is turned on, but not running', () => {
+    it('should do nothing if browserstack local is turned on, but not running', async () => {
         const service = new BrowserstackLauncher({} as any, [{}] as any, {} as any)
         service.browserstackLocal = new Local()
         const BrowserstackLocalIsRunningSpy = vi.spyOn(service.browserstackLocal, 'isRunning')
         BrowserstackLocalIsRunningSpy.mockImplementationOnce(() => false)
-        service.onComplete()
+        await service.onComplete()
         expect(service.browserstackLocal.stop).not.toHaveBeenCalled()
+        expect(BrowserstackLocalIsRunningSpy).toHaveBeenCalledOnce()
     })
 
     it('should kill the process if forcedStop is true', async () => {
