@@ -1149,7 +1149,7 @@ export default class AllureReporter extends WDIOReporter {
         name: string;
         value: string;
         mode?: 'masked' | 'hidden' | 'default'
-        excluded?:boolean
+        excluded?: boolean
     }): void {
         this._pushRuntimeMessage({ type: 'metadata', data: { parameters: [{ name, value, mode, excluded }] } })
     }
