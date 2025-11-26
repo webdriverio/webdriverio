@@ -225,5 +225,11 @@
     "title": "Obsidian Plugin Testing",
     "githubUrl": "https://github.com/jesse-r-s-hines/wdio-obsidian-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-obsidian-service"
+  },
+  {
+    "packageName": "wdio-camera-service",
+    "title": "Camera Service",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-camera-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-camera-service"
   }
 ]
