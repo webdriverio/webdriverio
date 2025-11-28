@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 
 import { BStackLogger } from '../bstackLogger.js'
+import { isValidEnabledValue } from '../util.js'
 
 const RUN_SMART_SELECTION = 'runSmartSelection'
 
@@ -211,22 +212,22 @@ export class OrchestrationUtils {
     /**
      * Set run smart selection
      */
-    private _setRunSmartSelection(enabled: boolean, mode: string, source: string[] | string | null = null): void {
+    private _setRunSmartSelection(enabled: boolean | string, mode: string, source: string[] | string | null = null): void {
         try {
-            this.runSmartSelection = Boolean(enabled)
-
-            // Mode validation
-            const validModes = ['relevantFirst', 'relevantOnly']
-            if (!validModes.includes(mode)) {
-                BStackLogger.warn(`Invalid smart selection mode '${mode}' provided. Defaulting to 'relevantFirst'.`)
-                mode = 'relevantFirst'
-            }
+            // Properly validate enabled value - only accept true boolean or string "true"
+            this.runSmartSelection = isValidEnabledValue(enabled)
             this.smartSelectionMode = mode
             this.smartSelectionSource = []
 
             // Log the configuration for debugging
             BStackLogger.debug(`Setting runSmartSelection: enabled=${this.runSmartSelection}, mode=${this.smartSelectionMode}`)
             if (this.runSmartSelection) {
+                // Mode validation - only when smart selection is enabled
+                const validModes = ['relevantFirst', 'relevantOnly']
+                if (!validModes.includes(this.smartSelectionMode)) {
+                    BStackLogger.warn(`Invalid smart selection mode '${this.smartSelectionMode}' provided. Defaulting to 'relevantFirst'.`)
+                    this.smartSelectionMode = 'relevantFirst'
+                }
                 if (source === null) {
                     this.smartSelectionSource = null
                     BStackLogger.debug('No source provided for smart selection; defaulting to null.')

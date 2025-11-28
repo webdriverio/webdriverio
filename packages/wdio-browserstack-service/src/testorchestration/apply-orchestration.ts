@@ -1,6 +1,7 @@
 import { performance } from 'node:perf_hooks'
 import { TestOrchestrationHandler } from './testorcherstrationhandler.js'
 import { BStackLogger } from '../bstackLogger.js'
+import { isValidEnabledValue } from '../util.js'
 /**
  * Applies test orchestration to the WebdriverIO test run
  * This function is the main entry point for the orchestration integration
@@ -17,7 +18,7 @@ export async function applyOrchestrationIfEnabled(
     }
 
     // Check if runSmartSelection is enabled in config
-    const runSmartSelectionEnabled = Boolean(config?.testOrchestrationOptions?.runSmartSelection?.enabled)
+    const runSmartSelectionEnabled = isValidEnabledValue(config?.testOrchestrationOptions?.runSmartSelection?.enabled)
     if (!runSmartSelectionEnabled) {
         BStackLogger.info('runSmartSelection is not enabled in config. Skipping orchestration.')
         return specs

@@ -43,7 +43,8 @@ import {
     validateCapsWithNonBstackA11y,
     mergeChromeOptions,
     normalizeTestReportingConfig,
-    normalizeTestReportingEnvVariables
+    normalizeTestReportingEnvVariables,
+    isValidEnabledValue
 } from './util.js'
 import { getProductMap } from './testHub/utils.js'
 import CrashReporter from './crash-reporter.js'
@@ -219,7 +220,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         await sendStart(this.browserStackConfig)
 
         // Convert glob patterns in specs to resolved relative paths
-        if (config.specs && Array.isArray(config.specs) && this._options.testOrchestrationOptions?.runSmartSelection?.enabled) {
+        if (config.specs && Array.isArray(config.specs) && isValidEnabledValue(this._options.testOrchestrationOptions?.runSmartSelection?.enabled)) {
             try {
                 // Import glob for expanding file patterns
                 const glob = (await import('glob')).sync
@@ -429,7 +430,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         this._updateCaps(capabilities, 'testhubBuildUuid')
         this._updateCaps(capabilities, 'buildProductMap')
 
-        if (this._options.testOrchestrationOptions?.runSmartSelection?.enabled){
+        if (isValidEnabledValue(this._options.testOrchestrationOptions?.runSmartSelection?.enabled)){
         // Helper function to convert specs from cwd-relative to rootDir-relative
             const convertToRootDirRelative = (specs: string[]): string[] => {
                 const rootDir = config.rootDir || process.cwd()
@@ -453,7 +454,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             // Import dynamically to avoid circular dependencies
                 const { applyOrchestrationIfEnabled } = await import('./testorchestration/apply-orchestration.js')
 
-                if (config.specs && config.specs.length > 0 && this._options.testObservability) {
+                if (config.specs && config.specs.length > 0 && this._options.testObservability && isValidEnabledValue(this._options.testOrchestrationOptions?.runSmartSelection?.enabled)) {
                     BStackLogger.info('Applying test orchestration')
 
                     // Ensure we're passing string[] to applyOrchestrationIfEnabled

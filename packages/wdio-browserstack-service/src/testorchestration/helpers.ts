@@ -1,4 +1,5 @@
 import os from 'node:os'
+import path from 'node:path'
 import { execSync } from 'node:child_process'
 import logger from '@wdio/logger'
 
@@ -290,9 +291,14 @@ export function getGitMetadataForAISelection(folders: string[] = []): any[] {
         folders = [process.cwd()]
     }
 
+    // Deduplicate folders to avoid calculating PR diff multiple times for the same source
+    // Normalize paths using path.resolve to handle relative paths, trailing slashes, etc.
+    const uniqueFolders = [...new Set(folders.map(f => path.resolve(f)))]
+    log.debug(`Processing ${uniqueFolders.length} unique folders out of ${folders.length} total`)
+
     const results: any[] = []
 
-    for (const folder of folders) {
+    for (const folder of uniqueFolders) {
         const originalDir = process.cwd()
         try {
             // Initialize the result structure

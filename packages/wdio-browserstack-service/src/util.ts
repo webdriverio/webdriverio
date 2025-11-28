@@ -1682,6 +1682,23 @@ export function getBooleanValueFromString(value: string | undefined): boolean {
     return ['true'].includes(value.trim().toLowerCase())
 }
 
+/**
+ * Validate boolean value from mixed types (boolean or string)
+ * Only accepts true boolean or string "true" (case insensitive)
+ */
+export function isValidEnabledValue(value: boolean | string | undefined): boolean {
+    if (value === undefined || value === null) {
+        return false
+    }
+    if (typeof value === 'boolean') {
+        return value === true
+    }
+    if (typeof value === 'string') {
+        return getBooleanValueFromString(value)
+    }
+    return false
+}
+
 export function mergeDeep(target: Record<string, any>, ...sources: any[]): Record<string, any> {
     if (!sources.length) {return target}
     const source = sources.shift()
