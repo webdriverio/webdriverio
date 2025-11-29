@@ -113,3 +113,4 @@ class AccessibilityScripts {
 }
 
 export default AccessibilityScripts.checkAndGetInstance()
+export { Command }

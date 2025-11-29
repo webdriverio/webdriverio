@@ -167,6 +167,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'electron', value: 'wdio-electron-service$--$electron' },
         { name: 'appium', value: '@wdio/appium-service$--$appium' },
         // external
+        { name: 'camera', value: 'wdio-camera-service$--$camera' },
         { name: 'eslinter-service', value: 'wdio-eslinter-service$--$eslinter' },
         { name: 'lambdatest', value: 'wdio-lambdatest-service$--$lambdatest' },
         { name: 'tvlabs', value: '@tvlabs/wdio-service$--$tvlabs' },

@@ -4,7 +4,7 @@
  * <example>
     :waitForResponse.js
     it('should wait for a matching response', async () => {
-        const mock = await browser.mock('**/api/**')
+        const mock = await browser.mock('**' + '/users/list')
 
         // trigger action that issues the request
         await $('#load').click()
@@ -21,5 +21,3 @@
  * @param {String=}          options.timeoutMsg      custom timeout error message
  */
 // actual implementation is located in packages/webdriverio/src/utils/interception
-
-

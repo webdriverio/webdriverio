@@ -24,7 +24,7 @@ export interface ScrollParams {
      */
     origin?: WebdriverIO.Element | ChainablePromiseElement
     /**
-     * duration ratio be the ratio of time delta and duration
+     * duration of the scroll action in milliseconds
      */
     duration: number
 }

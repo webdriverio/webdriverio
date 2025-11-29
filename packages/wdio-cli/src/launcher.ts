@@ -2,7 +2,7 @@ import exitHook from 'async-exit-hook'
 import { resolve } from 'import-meta-resolve'
 
 import logger from '@wdio/logger'
-import { validateConfig } from '@wdio/config'
+import { validateConfig, DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
 import { initializePlugin, initializeLauncherService, sleep, enableFileLogging } from '@wdio/utils'
 import { setupDriver, setupBrowser } from '@wdio/utils/node'
@@ -168,7 +168,7 @@ class Launcher {
     /**
      * initialize launcher by loading `tsx` if needed
      */
-    async initialize () {
+    async initialize() {
         /**
          * only initialize once
          */
@@ -214,7 +214,7 @@ class Launcher {
      * a user can use plugin service, e.g. shared store service is still
      * available running hooks in this order
      */
-    async #runOnCompleteHook (
+    async #runOnCompleteHook(
         config: Required<WebdriverIO.Config>,
         caps: Capabilities.TestrunnerCapabilities,
         exitCode: number
@@ -286,7 +286,7 @@ class Launcher {
                  */
                 const availableInstances = this.isParallelMultiremote ? config.maxInstances || 1 : config.runner === 'browser'
                     ? 1
-                    : (capabilities as WebdriverIO.Capabilities)['wdio:maxInstances'] || config.maxInstancesPerCapability
+                    : (capabilities as WebdriverIO.Capabilities)['wdio:maxInstances'] || config.maxInstancesPerCapability || DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE
 
                 this._schedule.push({
                     cid: cid++,

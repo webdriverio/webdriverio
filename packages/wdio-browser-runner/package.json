@@ -1,6 +1,6 @@
 {
   "name": "@wdio/browser-runner",
-  "version": "9.20.0",
+  "version": "9.20.1",
   "description": "A WebdriverIO runner to run unit tests tests in the browser.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browser-runner",
@@ -122,7 +122,7 @@
     "@types/istanbul-lib-source-maps": "^4.0.4",
     "@types/istanbul-reports": "^3.0.4",
     "esbuild": "^0.25.0",
-    "geckodriver": "^5.0.0",
+    "geckodriver": "^6.1.0",
     "mocha": "^10.7.3",
     "webdriverio": "workspace:*"
   },
