@@ -402,12 +402,12 @@ describe('wdio-junit-reporter', () => {
         const test1 = suite.tests[0]
         const test2 = suite.tests[1]
         reporter.onTestStart(test1)
-        reporter['_appendConsoleLog']('0 - line 0', 'utf-8', () => {})
-        reporter['_appendConsoleLog']('0 - line 1', 'utf-8', () => {})
+        reporter['_appendConsoleLog']('0 - line 0', 'utf-8', () => { })
+        reporter['_appendConsoleLog']('0 - line 1', 'utf-8', () => { })
         reporter.onTestPass(test1)
         reporter.onTestStart(test2)
-        reporter['_appendConsoleLog']('1 - line 0', 'utf-8', () => {})
-        reporter['_appendConsoleLog']('1 - line 1', 'utf-8', () => {})
+        reporter['_appendConsoleLog']('1 - line 0', 'utf-8', () => { })
+        reporter['_appendConsoleLog']('1 - line 1', 'utf-8', () => { })
         reporter.onTestPass(suite.tests[0])
         expect(reporter['_getStandardOutput'](test1).toString()).toContain('0 - line 1')
         expect(reporter['_getStandardOutput'](test2).toString()).toContain('1 - line 1')
@@ -432,4 +432,19 @@ describe('wdio-junit-reporter', () => {
         const output = reporter['_buildJunitXml'](mochaRunnerLog).toString()
         expect(output).toContain('<property name="0-prop1" value="0-value"/>')
     })
+
+    it('should report 0 tests when no tests are executed (issue #14720)', () => {
+        reporter.suites = suiteEmpty as any
+        const output = reporter['_buildJunitXml'](mochaRunnerLog as any)
+
+        // Verify that the report shows 0 tests, not 1
+        expect(output).toContain('tests="0"')
+        expect(output).toContain('skipped="0"')
+        expect(output).toContain('failures="0"')
+        expect(output).toContain('errors="0"')
+
+        // Verify that no test case is added
+        expect(output).not.toContain('<testcase')
+    })
+
 })

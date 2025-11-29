@@ -321,15 +321,7 @@ class JunitReporter extends WDIOReporter {
         const suiteKeys = Object.keys(this.suites)
 
         if (suiteKeys.length === 0) {
-            /**
-             * Because this function gets called twice for Cucumber, this conditional is to ensure that
-             * Cucumber and Mocha generate the same Junit report for empty suites. Otherwise, Cucumber reporter
-             * would generate two <testsuite>.
-             */
-            if (!isCucumberFrameworkRunner || (isCucumberFrameworkRunner && type === 'feature')) {
-                const testCase = builder.testSuite().testCase().className('').name('')
-                return this.runnerStat?.error ? testCase.failure(this.runnerStat.error) : testCase.skipped()
-            }
+            return builder
         }
 
         for (const suiteKey of Object.keys(this.suites)) {
