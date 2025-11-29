@@ -19,7 +19,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 
 describe('saveScreenshot', () => {
     let browser: WebdriverIO.Browser
-    let getAbsoluteFilepathSpy: MockInstance
+    let pathResolveSpy: MockInstance
     let assertDirectoryExistsSpy: MockInstance
     let writeFileSpy: MockInstance
 
@@ -30,13 +30,13 @@ describe('saveScreenshot', () => {
                 browserName: 'foobar'
             }
         })
-        getAbsoluteFilepathSpy = vi.spyOn(utils, 'getAbsoluteFilepath')
+        pathResolveSpy = vi.spyOn(path, 'resolve')
         assertDirectoryExistsSpy = vi.spyOn(utils, 'assertDirectoryExists')
         writeFileSpy = vi.spyOn(fs, 'writeFile')
     })
 
     afterEach(() => {
-        getAbsoluteFilepathSpy.mockClear()
+        pathResolveSpy.mockClear()
         assertDirectoryExistsSpy.mockClear()
         writeFileSpy.mockClear()
     })
@@ -45,12 +45,12 @@ describe('saveScreenshot', () => {
         const screenshot = await browser.saveScreenshot('./packages/bar.png')
 
         // get path
-        expect(getAbsoluteFilepathSpy).toHaveBeenCalledTimes(1)
-        expect(getAbsoluteFilepathSpy).toHaveBeenCalledWith('./packages/bar.png')
+        expect(pathResolveSpy).toHaveBeenCalledTimes(1)
+        expect(pathResolveSpy).toHaveBeenCalledWith('./packages/bar.png')
 
         // assert directory
         expect(assertDirectoryExistsSpy).toHaveBeenCalledTimes(1)
-        expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value)
+        expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(pathResolveSpy.mock.results[0].value)
 
         // request
         expect(vi.mocked(fetch).mock.calls[1][1]!.method).toBe('GET')
@@ -61,7 +61,7 @@ describe('saveScreenshot', () => {
 
         // write to file
         expect(writeFileSpy).toHaveBeenCalledTimes(1)
-        expect(writeFileSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value, expect.any(Buffer))
+        expect(writeFileSpy).toHaveBeenCalledWith(pathResolveSpy.mock.results[0].value, expect.any(Buffer))
     })
 
     it('should fail if no filename provided', async () => {
