@@ -46,6 +46,7 @@ export const BSTACK_SERVICE_VERSION = bstackServiceVersion
 export const NOT_ALLOWED_KEYS_IN_CAPS = ['includeTagsInTestingScope', 'excludeTagsInTestingScope']
 
 export const LOGS_FILE = 'logs/bstack-wdio-service.log'
+export const CLI_DEBUG_LOGS_FILE = 'log/sdk-cli-debug.log'
 export const UPLOAD_LOGS_ADDRESS = 'https://upload-observability.browserstack.com'
 export const UPLOAD_LOGS_ENDPOINT = 'client-logs/upload'
 
@@ -134,3 +135,10 @@ export const MAX_GIT_META_DATA_SIZE_IN_BYTES = 64 * 1024
 */
 export const GIT_META_DATA_TRUNCATED = '...[TRUNCATED]'
 
+// CLI related constants
+export const CLI_STOP_TIMEOUT = 5000 // 5 seconds
+export const WDIO_NAMING_PREFIX = 'WebdriverIO-'
+export const PERF_METRICS_WAIT_TIME = 2000
+
+// API Endpoint constants
+export const UPDATED_CLI_ENDPOINT = 'sdk/v1/update_cli'

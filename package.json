@@ -112,7 +112,7 @@
     "image-size": "^2.0.2",
     "inquirer": "^12.6.3",
     "jsdom": "^26.1.0",
-    "lerna": "8.2.3",
+    "lerna": "^9.0.3",
     "lerna-changelog": "^2.2.0",
     "mime-types": "^3.0.1",
     "npm-run-all2": "^8.0.4",

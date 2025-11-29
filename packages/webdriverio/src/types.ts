@@ -230,9 +230,41 @@ export interface CustomInstanceCommands<T> {
     addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
         name: string,
         func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
-        attachToElement?: IsElement,
+        attachToElement: IsElement,
         proto?: Record<string, any>,
         instances?: Record<string, Instances>,
+    ): void;
+
+    /**
+     * @deprecated use option object as 3rd parameter
+     * add command to `browser` or `element` scope
+     */
+    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
+        name: string,
+        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
+        attachToElement: IsElement,
+        proto: Record<string, any>,
+        instances?: Record<string, Instances>,
+    ): void;
+
+    /**
+     * @deprecated use option object as 3rd parameter
+     * add command to `browser` or `element` scope
+     */
+    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
+        name: string,
+        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
+        attachToElement: IsElement,
+        proto: Record<string, any>,
+        instances: Record<string, Instances>,
+    ): void;
+
+    /**
+     * add command to `browser`
+     */
+    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
+        name: string,
+        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
     ): void;
 
     /**

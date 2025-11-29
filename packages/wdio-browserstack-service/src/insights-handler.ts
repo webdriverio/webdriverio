@@ -38,6 +38,9 @@ import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
 import Listener from './testOps/listener.js'
 import { TESTOPS_SCREENSHOT_ENV } from './constants.js'
+import { BrowserstackCLI } from './cli/index.js'
+import { TestFrameworkState } from './cli/states/testFrameworkState.js'
+import { HookState } from './cli/states/hookState.js'
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
@@ -520,6 +523,10 @@ class _InsightsHandler {
 
     appendTestItemLog = async (stdLog: StdLog) => {
         try {
+            if (BrowserstackCLI.getInstance().isRunning()) {
+                await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.LOG, HookState.POST, { logEntry: stdLog })
+                return
+            }
             if (this._currentHook.uuid && !this._currentHook.finished && (this._framework === 'mocha' || this._framework === 'cucumber')) {
                 stdLog.hook_run_uuid = this._currentHook.uuid
             } else if (InsightsHandler.currentTest.uuid && (this._framework === 'mocha' || this._framework === 'cucumber')) {
@@ -888,6 +895,7 @@ class _InsightsHandler {
     }
 
     public async flushCBTDataQueue() {
+        BStackLogger.debug(`Flushing CBT Data Queue ${this.currentTestId}`)
         if (isUndefined(this.currentTestId)) {return}
         this.cbtQueue.forEach(cbtData => {
             cbtData.uuid = this.currentTestId!
@@ -908,6 +916,7 @@ class _InsightsHandler {
             uuid: '',
             integrations: integrationsData
         }
+        BStackLogger.debug(`Sending CBT Data ${this.currentTestId} ${JSON.stringify(cbtData)}`)
 
         if (this.currentTestId !== undefined) {
             cbtData.uuid = this.currentTestId
@@ -940,6 +949,27 @@ class _InsightsHandler {
             return getUniqueIdentifierForCucumber(test)
         }
         return getUniqueIdentifier(test, this._framework)
+    }
+
+    public async setGitConfigPath() {
+        const gitMeta = await getGitMetaData()
+        if (gitMeta) {
+            this._gitConfigPath = gitMeta.root
+        }
+    }
+
+    public setTestData (test: Frameworks.Test, uuid: string) {
+        InsightsHandler.currentTest = {
+            test, uuid
+        }
+        if (this._framework !== 'mocha') {
+            return
+        }
+        const fullTitle = getUniqueIdentifier(test, this._framework)
+        this._tests[fullTitle] = {
+            uuid,
+            startedAt: (new Date()).toISOString()
+        }
     }
 }
 

@@ -20,11 +20,7 @@ on:
 
 env:
   NPM_TOKEN: ${{secrets.NPM_TOKEN}}
-  # disable provenance check as it stopped working with Lerna:
-  #   > lerna ERR! E422 Error verifying sigstore provenance bundle: Failed to validate the provenance
-  #   > subject against the package name, version and tarball integrity. Please try re-publishing with
-  #   > the latest stable version of npm
-  # NPM_CONFIG_PROVENANCE: true
+  NPM_CONFIG_PROVENANCE: true
 
 jobs:
   authorize:

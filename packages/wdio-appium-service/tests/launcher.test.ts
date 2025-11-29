@@ -72,6 +72,10 @@ class MockProcess implements Partial<ChildProcessByStdio<null, Readable, Readabl
         on: vi.fn(),
         off: vi.fn()
     } as unknown as Readable
+    on = vi.fn()
+    once = vi.fn()
+    off = vi.fn()
+    emit = vi.fn()
 }
 
 class MockFailingProcess extends MockProcess {
@@ -136,8 +140,7 @@ class MockProcess2 implements Partial<ChildProcessByStdio<null, Readable, Readab
 class MockCustomFailingProcess extends MockFailingProcess {
     stderr = {
         pipe: vi.fn(),
-        once: vi.fn().mockImplementation((event, cb) => cb(new Error('Uups'))),
-        on: vi.fn(),
+        on: vi.fn().mockImplementation((event, cb) => cb(new Error('Uups'))),
         off: vi.fn()
     } as unknown as Readable
 }
@@ -886,22 +889,80 @@ describe('Appium launcher', () => {
         })
 
         test('should filter out "Debugger attached" message as an error', async () => {
-            const eventListener = { on: vi.fn(), off: vi.fn(), once: vi.fn() }
+            const stdoutListener = { on: vi.fn(), off: vi.fn(), once: vi.fn() }
+            const stderrListener = { on: vi.fn(), off: vi.fn(), once: vi.fn() }
             vi.mocked(spawn).mockReturnValue({
-                ...eventListener,
-                stdout: { ...eventListener },
-                stderr: { ...eventListener },
+                stdout: { ...stdoutListener },
+                stderr: { ...stderrListener },
+                on: vi.fn(),
+                once: vi.fn(),
+                off: vi.fn(),
+                kill: vi.fn()
             } as unknown as cp.ChildProcess)
 
             const mockLogError = vi.spyOn(log, 'error')
             const launcher = new AppiumLauncher({}, [], {} as any)
 
-            const processPromise = launcher['_startAppium']('node', [], 2000)
+            launcher['_startAppium']('node', [], 2000)
 
-            const errorHandler = vi.mocked(spawn).mock.results[0].value.stderr.on.mock.calls
+            const errorHandler = stderrListener.on.mock.calls
                 .find((call: string[]) => call[0] === 'data')?.[1]
 
             errorHandler(Buffer.from('Debugger attached'))
+            expect(mockLogError).not.toHaveBeenCalled()
+        })
+
+        test('should filter out "For help, see: ..." message as an error', async () => {
+            const stdoutListener = { on: vi.fn(), off: vi.fn(), once: vi.fn() }
+            const stderrListener = { on: vi.fn(), off: vi.fn(), once: vi.fn() }
+            vi.mocked(spawn).mockReturnValue({
+                stdout: { ...stdoutListener },
+                stderr: { ...stderrListener },
+                on: vi.fn(),
+                once: vi.fn(),
+                off: vi.fn(),
+                kill: vi.fn()
+            } as unknown as cp.ChildProcess)
+
+            const mockLogError = vi.spyOn(log, 'error')
+            const launcher = new AppiumLauncher({}, [], {} as any)
+
+            launcher['_startAppium']('node', [], 2000)
+
+            const errorHandler = stderrListener.on.mock.calls
+                .find((call: string[]) => call[0] === 'data')?.[1]
+
+            errorHandler(Buffer.from('For help, see: https://nodejs.org/en/docs/inspector'))
+            expect(mockLogError).not.toHaveBeenCalled()
+        })
+
+        test('should not fail when Appium outputs WARN messages to stderr', async () => {
+            const stdoutListener = { on: vi.fn(), off: vi.fn(), once: vi.fn() }
+            const stderrListener = { on: vi.fn(), off: vi.fn(), once: vi.fn() }
+            vi.mocked(spawn).mockReturnValue({
+                stdout: { ...stdoutListener },
+                stderr: { ...stderrListener },
+                on: vi.fn(),
+                once: vi.fn(),
+                off: vi.fn(),
+                kill: vi.fn()
+            } as unknown as cp.ChildProcess)
+
+            const mockLogError = vi.spyOn(log, 'error')
+            const mockLogWarn = vi.spyOn(log, 'warn')
+            const launcher = new AppiumLauncher({}, [], {} as any)
+
+            launcher['_startAppium']('node', [], 2000)
+
+            // Get the stderr handler
+            const stderrHandler = stderrListener.on.mock.calls
+                .find((call: string[]) => call[0] === 'data')?.[1]
+
+            // Simulate a warning message from Appium (e.g., driver version mismatch)
+            stderrHandler(Buffer.from('WARN Driver version mismatch'))
+
+            // The warning should be logged as a warning but not cause an error or rejection
+            expect(mockLogWarn).toHaveBeenCalled()
             expect(mockLogError).not.toHaveBeenCalled()
         })
     })

@@ -190,6 +190,18 @@ class JunitReporter extends WDIOReporter {
                 const output = this._getStandardOutput(step)
                 stepsOutput += output ? stepEmoji + ' ' + step.title : stepEmoji + ' ' + step.title + '\n' + output
             }
+
+            // Add properties for each step (Cucumber steps are tests in the scenario)
+            for (const stepKey of Object.keys(scenario.tests)) {
+                if (stepKey === 'undefined') {
+                    continue
+                }
+                const step = scenario.tests[stepKey as any]
+                for (const propName of Object.keys(this._testToAdditionalInformation[step.uid]?.properties ?? {})) {
+                    testCase.property(propName, this._testToAdditionalInformation[step.uid].properties[propName])
+                }
+            }
+
             testCase.standardOutput(`\n${stepsOutput}\n`)
         }
         return builder

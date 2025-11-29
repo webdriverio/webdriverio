@@ -1,9 +1,10 @@
 import type { Capabilities, Options } from '@wdio/types'
 
-import { BSTACK_SERVICE_VERSION, DATA_ENDPOINT, BROWSERSTACK_TESTHUB_UUID } from './constants.js'
+import { BSTACK_SERVICE_VERSION, BROWSERSTACK_TESTHUB_UUID, WDIO_NAMING_PREFIX } from './constants.js'
 import type { BrowserstackConfig, CredentialsForCrashReportUpload, UserConfigforReporting } from './types.js'
 import { DEFAULT_REQUEST_CONFIG, getObservabilityKey, getObservabilityUser } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
+import APIUtils from './cli/apiUtils.js'
 
 import { _fetch as fetch } from './fetchWrapper.js'
 
@@ -64,7 +65,7 @@ export default class CrashReporter {
         const data = {
             hashed_id: process.env[BROWSERSTACK_TESTHUB_UUID],
             observability_version: {
-                frameworkName: 'WebdriverIO-' + (this.userConfigForReporting.framework || 'null'),
+                frameworkName: WDIO_NAMING_PREFIX + (this.userConfigForReporting.framework || 'null'),
                 sdkVersion: BSTACK_SERVICE_VERSION
             },
             exception: {
@@ -73,7 +74,7 @@ export default class CrashReporter {
             },
             config: this.userConfigForReporting
         }
-        const url = `${DATA_ENDPOINT}/api/v1/analytics`
+        const url = `${APIUtils.DATA_ENDPOINT}/api/v1/analytics`
 
         const encodedAuth = Buffer.from(`${this.credentialsForCrashReportUpload.username}:${this.credentialsForCrashReportUpload.password}`, 'utf8').toString('base64')
         const headers: Record<string, string> = {

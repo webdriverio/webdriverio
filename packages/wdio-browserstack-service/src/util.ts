@@ -1,4 +1,4 @@
-import { hostname, platform, type, version, arch } from 'node:os'
+import { hostname, platform, type, version, arch, tmpdir } from 'node:os'
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import zlib from 'node:zlib'
@@ -25,8 +25,6 @@ import type { UserConfig, UploadType, BrowserstackConfig, BrowserstackOptions, L
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import {
     BROWSER_DESCRIPTION,
-    DATA_ENDPOINT,
-    UPLOAD_LOGS_ADDRESS,
     UPLOAD_LOGS_ENDPOINT,
     consoleHolder,
     TESTOPS_BUILD_COMPLETED_ENV,
@@ -39,14 +37,19 @@ import {
     RERUN_ENV,
     MAX_GIT_META_DATA_SIZE_IN_BYTES,
     GIT_META_DATA_TRUNCATED,
-    APP_ALLY_ENDPOINT,
     APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
-    APP_ALLY_ISSUES_ENDPOINT
+    APP_ALLY_ISSUES_ENDPOINT,
+    CLI_DEBUG_LOGS_FILE,
+    WDIO_NAMING_PREFIX
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
 import UsageStats from './testOps/usageStats.js'
 import TestOpsConfig from './testOps/testOpsConfig.js'
+import type { StartBinSessionResponse } from '@browserstack/wdio-browserstack-service'
+import APIUtils from './cli/apiUtils.js'
+import tar from 'tar'
+import { fileFromPath } from 'formdata-node/file-from-path'
 
 import AccessibilityScripts from './scripts/accessibility-scripts.js'
 
@@ -309,13 +312,13 @@ export const jsonifyAccessibilityArray = (
     valueName: keyof DataElement
 ): Record<string, unknown> => {
     const result: Record<string, unknown> = {}
-    dataArray.forEach((element: Record<string, string>) => {
-        result[element[keyName]] = element[valueName]
+    dataArray.forEach((element: Record<string, unknown>) => {
+        result[element[keyName] as string] = element[valueName]
     })
     return result
 }
 
-export const  processAccessibilityResponse = (response: LaunchResponse, options: BrowserstackConfig & Options.Testrunner) => {
+export const processAccessibilityResponse = (response: LaunchResponse | StartBinSessionResponse, options: BrowserstackConfig & Options.Testrunner) => {
     if (!response.accessibility) {
         if (options.accessibility === true) {
             handleErrorForAccessibility(null)
@@ -328,11 +331,11 @@ export const  processAccessibilityResponse = (response: LaunchResponse, options:
     }
 
     if (response.accessibility.options) {
-        const { accessibilityToken, pollingTimeout, scannerVersion } = jsonifyAccessibilityArray(response.accessibility.options.capabilities, 'name', 'value')
-        const result = jsonifyAccessibilityArray(response.accessibility.options.capabilities, 'name', 'value')
+        const { accessibilityToken, pollingTimeout, scannerVersion } = jsonifyAccessibilityArray(response.accessibility.options.capabilities as Array<Record<string, unknown>>, 'name', 'value')
+        const result = jsonifyAccessibilityArray(response.accessibility.options.capabilities as Array<Record<string, unknown>>, 'name', 'value')
         const scriptsJson = {
-            'scripts': jsonifyAccessibilityArray(response.accessibility.options.scripts, 'name', 'command'),
-            'commands': response.accessibility.options.commandsToWrap.commands,
+            'scripts': jsonifyAccessibilityArray(response.accessibility.options.scripts as Array<Record<string, unknown>>, 'name', 'command'),
+            'commands': response.accessibility.options.commandsToWrap?.commands ?? [],
             'nonBStackInfraA11yChromeOptions': result['goog:chromeOptions']
         }
         if (scannerVersion) {
@@ -388,7 +391,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         },
         browserstackAutomation: shouldAddServiceVersion(config, options.testObservability),
         framework_details: {
-            frameworkName: 'WebdriverIO-' + config.framework,
+            frameworkName: WDIO_NAMING_PREFIX + config.framework,
             frameworkVersion: bsConfig.bstackServiceVersion,
             sdkVersion: bsConfig.bstackServiceVersion,
             language: 'ECMAScript',
@@ -416,7 +419,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
     data.config = CrashReporter.userConfigForReporting
 
     try {
-        const url = `${DATA_ENDPOINT}/api/v2/builds`
+        const url = `${APIUtils.DATA_ENDPOINT}/api/v2/builds`
         const encodedAuth = Buffer.from(`${getObservabilityUser(options, config)}:${getObservabilityKey(options, config)}`, 'utf8').toString('base64')
         const headers: Record<string, string> = {
             ...DEFAULT_REQUEST_CONFIG.headers,
@@ -632,7 +635,7 @@ export const getAppA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SD
     }
 
     try {
-        const apiUrl = `${APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_ENDPOINT}`
+        const apiUrl = `${APIUtils.APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_ENDPOINT}`
         const apiRespone = await getAppA11yResultResponse(apiUrl, isAppAutomate, browser, isBrowserStackSession, isAccessibility, sessionId)
         const result = apiRespone?.data?.data?.issues
         BStackLogger.debug(`Polling Result: ${JSON.stringify(result)}`)
@@ -655,7 +658,7 @@ export const getAppA11yResultsSummary = PerformanceTester.measureWrapper(PERFORM
     }
 
     try {
-        const apiUrl = `${APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_SUMMARY_ENDPOINT}`
+        const apiUrl = `${APIUtils.APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_SUMMARY_ENDPOINT}`
         const apiRespone = await getAppA11yResultResponse(apiUrl, isAppAutomate, browser, isBrowserStackSession, isAccessibility, sessionId)
         const result = apiRespone?.data?.data?.summary
         BStackLogger.debug(`Polling Result: ${JSON.stringify(result)}`)
@@ -723,7 +726,7 @@ export const stopBuildUpstream = PerformanceTester.measureWrapper(PERFORMANCE_SD
     }
 
     try {
-        const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]}/stop`
+        const url = `${APIUtils.DATA_ENDPOINT}/api/v1/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]}/stop`
         const response = await fetch(url, {
             method: 'PUT',
             headers: {
@@ -1200,7 +1203,7 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
     }
 
     try {
-        const url = `${DATA_ENDPOINT}/${eventUrl}`
+        const url = `${APIUtils.DATA_ENDPOINT}/${eventUrl}`
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -1352,43 +1355,83 @@ export function getFailureObject(error: string|Error) {
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export async function uploadLogs(user: string | undefined, key: string | undefined, clientBuildUuid: string) {
-    if (!user || !key) {
-        BStackLogger.debug('Uploading logs failed due to no credentials')
-        return
-    }
-
     try {
-        const fileContent = await fs.promises.readFile(BStackLogger.logFilePath)
-        const uploadAddress = UPLOAD_LOGS_ADDRESS
-        const compressed = await new Promise<Buffer>((resolve, reject) => {
-            zlib.gzip(fileContent, { level: 1 }, (err, result) => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(result)
-                }
-            })
+        if (!user || !key) {
+            BStackLogger.debug('Uploading logs failed due to no credentials')
+            return
+        }
+
+        const tmpDir = tmpdir()
+        const tarPath = path.join(tmpDir, 'logs.tar')
+        const tarGzPath = path.join(tmpDir, 'logs.tar.gz')
+
+        const filesToArchive = [
+            BStackLogger.logFilePath,
+            CLI_DEBUG_LOGS_FILE,
+        ].filter(f => fs.existsSync(f))
+
+        const copiedFileNames = []
+        for (const f of filesToArchive) {
+            const dest = path.join(tmpDir, path.basename(f))
+            fs.copyFileSync(f, dest)
+            copiedFileNames.push(path.basename(f))
+        }
+
+        await tar.create(
+            {
+                file: tarPath,
+                cwd: tmpDir,
+                portable: true,
+                noDirRecurse: true
+            },
+            copiedFileNames
+        )
+
+        await new Promise<void>((resolve, reject) => {
+            const source = fs.createReadStream(tarPath)
+            const dest = fs.createWriteStream(tarGzPath)
+            const gzip = zlib.createGzip({ level: 1 })
+
+            source.pipe(gzip).pipe(dest)
+            dest.on('finish', resolve)
+            dest.on('error', reject)
         })
+
         const formData = new FormData()
-        formData.append('data', new Blob([compressed]), 'logs.gz')
+        const file = await fileFromPath(tarGzPath)
+        formData.append('data', file, 'logs.tar.gz')
         formData.append('clientBuildUuid', clientBuildUuid)
 
+        const auth = Buffer.from(`${user}:${key}`).toString('base64')
         const requestOptions: RequestInit = {
-            method: 'POST',
-            body: formData as unknown as BodyInit,
+            body: formData as BodyInit,
             headers: {
-                'Authorization': getBasicAuthHeader(user, key)
+                'Authorization': `Basic ${auth}`
             }
-        } satisfies RequestInit
+        }
 
         const response = await nodeRequest(
-            'POST', UPLOAD_LOGS_ENDPOINT, requestOptions, uploadAddress
+            'POST', UPLOAD_LOGS_ENDPOINT, requestOptions, APIUtils.UPLOAD_LOGS_ADDRESS
         )
+
+        fs.unlinkSync(tarPath)
+        fs.unlinkSync(tarGzPath)
+        for (const f of copiedFileNames) {
+            const filePath = path.join(tmpDir, f)
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath)
+            }
+        }
+
+        // Delete the SDK CLI log file after upload
+        if (fs.existsSync(CLI_DEBUG_LOGS_FILE)) {
+            fs.unlinkSync(CLI_DEBUG_LOGS_FILE)
+        }
 
         return response
     } catch (error) {
-        BStackLogger.debug(`Error in uploading logs: ${error}`)
-        throw error
+        BStackLogger.error(`Error while uploading logs: ${getErrorString(error)}`)
+        return null
     }
 }
 
@@ -1709,5 +1752,90 @@ export function mergeChromeOptions(base: Capabilities.ChromeOptions, override: P
         merged.prefs = mergeDeep({ ...(base.prefs || {}) }, override.prefs)
     }
     return merged
+}
+
+export function isNullOrEmpty(string: any): boolean {
+    return !string || string.trim() === ''
+}
+
+export function isHash(entity: any) {
+    return Boolean(entity && typeof(entity) === 'object' && !Array.isArray(entity))
+}
+
+export function nestedKeyValue(hash: any, keys: Array<string>) {
+    return keys.reduce((hash, key) => (isHash(hash) ? hash[key] : undefined), hash)
+}
+
+export function removeDir(dir: string) {
+    const list = fs.readdirSync(dir)
+    for (let i = 0; i < list.length; i++) {
+        const filename = path.join(dir, list[i])
+        const stat = fs.statSync(filename)
+
+        if (filename === '.' || filename === '..') {
+            // pass these files
+        } else if (stat.isDirectory()) {
+            // rmdir recursively
+            removeDir(filename)
+        } else {
+            // rm filename
+            fs.unlinkSync(filename)
+        }
+    }
+    fs.rmdirSync(dir)
+}
+
+export function createDir(dir: string) {
+    if (fs.existsSync(dir)){
+        removeDir(dir)
+    }
+    fs.mkdirSync(dir, { recursive: true })
+}
+
+export function isWritable(dirPath: string): boolean {
+    try {
+        fs.accessSync(dirPath, fs.constants.W_OK)
+        return true
+    } catch {
+        return false
+    }
+}
+
+export function setReadWriteAccess(dirPath: string) {
+    try {
+        fs.chmodSync(dirPath, 0o666)
+        BStackLogger.debug(`Directory ${dirPath} is now read/write accessible.`)
+    } catch (err: any) {
+        BStackLogger.error(`Failed to set directory access: ${err.stack}`)
+    }
+}
+
+export function getMochaTestHierarchy(test: Frameworks.Test) {
+    const value: string[] = []
+    if (test.ctx && test.ctx.test) {
+        // If we already have the parent object, utilize it else get from context
+        let parent = typeof test.parent === 'object' ? test.parent : test.ctx.test.parent
+        while (parent && parent.title !== '') {
+            value.push(parent.title)
+            parent = parent.parent
+        }
+    } else if (test.description && test.fullName) {
+        // for Jasmine
+        value.push(test.description)
+        value.push(test.fullName.replace(new RegExp(' ' + test.description + '$'), ''))
+    }
+    return value.reverse()
+}
+
+export const performO11ySync = async (browser: WebdriverIO.Browser) => {
+    if (isBrowserstackSession(browser)) {
+        await browser.execute(`browserstack_executor: ${JSON.stringify({
+            action: 'annotate',
+            arguments: {
+                data: `ObservabilitySync:${Date.now()}`,
+                level: 'debug'
+            }
+        })}`)
+    }
 }
 

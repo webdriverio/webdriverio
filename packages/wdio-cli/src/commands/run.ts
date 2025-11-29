@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
 
 import type { Argv } from 'yargs'
 
@@ -246,7 +245,7 @@ export async function handler(argv: RunCommandArguments) {
 
 async function tsConfigPathFromConfigFile(wdioConfPath: string, params: Partial<RunCommandArguments>): Promise<string | void> {
     try {
-        const configParser = new ConfigParser(cacheBustFilePath(wdioConfPath), params)
+        const configParser = new ConfigParser(wdioConfPath, params)
         await configParser.initialize()
         const { tsConfigPath } = configParser.getConfig()
         if (tsConfigPath) {
@@ -259,12 +258,3 @@ async function tsConfigPathFromConfigFile(wdioConfPath: string, params: Partial<
     return
 }
 
-/**
- * Generates a cross-platform cache-busting URL for module imports.
- */
-function cacheBustFilePath(filePath: string) {
-    const absolutePath = path.resolve(filePath)
-    const fileUrl = pathToFileURL(absolutePath)
-    fileUrl.search = `v=${Date.now()}&log_errors=false`
-    return fileUrl.href
-}
