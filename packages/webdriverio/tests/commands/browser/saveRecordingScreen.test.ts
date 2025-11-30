@@ -7,6 +7,11 @@ import * as utils from '../../../src/node/utils.js'
 import '../../../src/node.js'
 
 vi.mock('fs')
+vi.mock('fs/promises', () => ({
+    default: {
+        access: vi.fn().mockResolvedValue({})
+    }
+}))
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
