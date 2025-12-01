@@ -23,6 +23,63 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.21.0 (2025-11-29)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#14796](https://github.com/webdriverio/webdriverio/pull/14796) [v9] Implement BrowserStack CLI support in browserstack service ([@Pritishchugh22](https://github.com/Pritishchugh22))
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#14856](https://github.com/webdriverio/webdriverio/pull/14856) fix(@wdio/cucumber-framework): fix HookFunctionExtension hook return types ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#14793](https://github.com/webdriverio/webdriverio/pull/14793) fix(webdriverio): get absolute paths using native `path.resolve` ([@macarie](https://github.com/macarie))
+  * [#14886](https://github.com/webdriverio/webdriverio/pull/14886) fix: detect stale elements in BiDi mode for getCSSProperty (#14885) ([@mccmrunal](https://github.com/mccmrunal))
+  * [#14832](https://github.com/webdriverio/webdriverio/pull/14832) fix(webdriverio): fix getHTML return-type ([@gavvvr](https://github.com/gavvvr))
+  * [#14817](https://github.com/webdriverio/webdriverio/pull/14817) fix(webdriverio): Fix request mock with hostname only not working ([@Dziurdzikowski](https://github.com/Dziurdzikowski))
+  * [#14836](https://github.com/webdriverio/webdriverio/pull/14836) fix: update waitForExist function to maintain elementIds for shadow e… ([@b-kirby](https://github.com/b-kirby))
+  * [#14872](https://github.com/webdriverio/webdriverio/pull/14872) fix(webdriverio): correct withinViewport check logic for isDisplayed … ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-junit-reporter`
+  * [#14881](https://github.com/webdriverio/webdriverio/pull/14881) fix(wdio-junit-reporter): add property support for Cucumber tests ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-cli`, `wdio-config`, `webdriver`
+  * [#14880](https://github.com/webdriverio/webdriverio/pull/14880) fix(wdio-cli): respect maxInstancesPerCapability for dynamic capabili… ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-appium-service`
+  * [#14877](https://github.com/webdriverio/webdriverio/pull/14877) fix(appium-service): ignore warnings and debugger messages in launcher ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-allure-reporter`, `wdio-browserstack-service`, `wdio-config`, `wdio-runner`, `webdriver`, `webdriverio`
+  * [#14862](https://github.com/webdriverio/webdriverio/pull/14862) refactor: remove unused import ([@noritaka1166](https://github.com/noritaka1166))
+* `webdriver`
+  * [#14799](https://github.com/webdriverio/webdriverio/pull/14799) fix(webdriver): pass all options to fetch ([@omjadas](https://github.com/omjadas))
+* `create-wdio`
+  * [#14875](https://github.com/webdriverio/webdriverio/pull/14875) fix(create-wdio): add missing ts dependencies ([@mccmrunal](https://github.com/mccmrunal))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#14888](https://github.com/webdriverio/webdriverio/pull/14888) allure-reporter: add mode and excluded properties for parameters ([@todti](https://github.com/todti))
+* `wdio-browser-runner`, `wdio-utils`, `webdriver`
+  * [#14879](https://github.com/webdriverio/webdriverio/pull/14879) fix(@wdio/utils): update driver packages for @wdio/utils ([@mccmrunal](https://github.com/mccmrunal))
+
+#### :memo: Documentation
+* [#14889](https://github.com/webdriverio/webdriverio/pull/14889) docs(wdio-camera-service): Add `wdio-camera-service` to 3rd-party services list ([@Winify](https://github.com/Winify))
+* [#14813](https://github.com/webdriverio/webdriverio/pull/14813) Replacing of Twitter with 𝕏 ([@fpereira1](https://github.com/fpereira1))
+
+#### :house: Internal
+* [#14861](https://github.com/webdriverio/webdriverio/pull/14861) chore: fix typos in e2e ([@noritaka1166](https://github.com/noritaka1166))
+
+#### Committers: 12
+- Adi Dziurdzikowski ([@Dziurdzikowski](https://github.com/Dziurdzikowski))
+- Alex ([@todti](https://github.com/todti))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Filype ([@fpereira1](https://github.com/fpereira1))
+- Kirill Gavrilov ([@gavvvr](https://github.com/gavvvr))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Noritaka Kobayashi ([@noritaka1166](https://github.com/noritaka1166))
+- Pritish Chugh ([@Pritishchugh22](https://github.com/Pritishchugh22))
+- Raul Macarie ([@macarie](https://github.com/macarie))
+- Vince Graics ([@Winify](https://github.com/Winify))
+- [@b-kirby](https://github.com/b-kirby)
+- [@omjadas](https://github.com/omjadas)
+
+
 ## v9.20.1 (2025-11-18)
 
 #### :bug: Bug Fix
