@@ -1,12 +1,11 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
 
 import type { Argv } from 'yargs'
 
 import Launcher from '../launcher.js'
 import Watcher from '../watcher.js'
-import { coerceOptsFor,  } from '../utils.js'
+import { coerceOptsFor, } from '../utils.js'
 import { CLI_EPILOGUE } from '../constants.js'
 import type { RunCommandArguments } from '../types.js'
 import { config } from 'create-wdio/config/cli'
@@ -207,6 +206,18 @@ export async function handler(argv: RunCommandArguments) {
     )
     const tsConfigPathFromParams = params.tsConfigPath && path.resolve(process.cwd(), params.tsConfigPath)
     const tsConfigPathRelativeToWdioConfig = path.join(path.dirname(confAccess), 'tsconfig.json')
+
+    /**
+     * Load tsx before attempting to read the config file if it's TypeScript.
+     * This prevents "Unknown file extension" errors when calling tsConfigPathFromConfigFile.
+     */
+    const TS_FILE_EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']
+    if (TS_FILE_EXTENSIONS.some((ext) => confAccess.endsWith(ext))) {
+        const { resolve } = await import('import-meta-resolve')
+        const tsxPath = resolve('tsx', import.meta.url)
+        await import(tsxPath)
+    }
+
     const localTSConfigPath = (
         tsConfigPathFromEnvVar ||
         tsConfigPathFromParams ||
@@ -246,7 +257,7 @@ export async function handler(argv: RunCommandArguments) {
 
 async function tsConfigPathFromConfigFile(wdioConfPath: string, params: Partial<RunCommandArguments>): Promise<string | void> {
     try {
-        const configParser = new ConfigParser(cacheBustFilePath(wdioConfPath), params)
+        const configParser = new ConfigParser(wdioConfPath, params)
         await configParser.initialize()
         const { tsConfigPath } = configParser.getConfig()
         if (tsConfigPath) {
@@ -257,14 +268,4 @@ async function tsConfigPathFromConfigFile(wdioConfPath: string, params: Partial<
         return
     }
     return
-}
-
-/**
- * Generates a cross-platform cache-busting URL for module imports.
- */
-function cacheBustFilePath(filePath: string) {
-    const absolutePath = path.resolve(filePath)
-    const fileUrl = pathToFileURL(absolutePath)
-    fileUrl.search = `v=${Date.now()}&log_errors=false`
-    return fileUrl.href
 }
