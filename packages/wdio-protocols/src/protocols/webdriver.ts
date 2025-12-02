@@ -1717,7 +1717,14 @@ export default {
                         description: 'id of authenticator',
                     }
                 ],
-                parameters: [],
+                parameters: [
+                    {
+                        name: 'isUserVerified',
+                        type: 'boolean',
+                        description: 'Whether to always succeed in user verification',
+                        required: true,
+                    },
+                ],
             },
         },
 }
