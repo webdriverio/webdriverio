@@ -213,10 +213,9 @@ export default function isElementDisplayed (element: Element): boolean {
     if (
         !isElementInsideShadowRoot(element) &&
         (
-            // IE doesn't support document.contains, therefor check before using
             typeof document.contains === 'function'
                 ? !document.contains(element)
-                : !document.body.contains(element)
+                : !document.body.contains(element) // IE doesn't support document.contains, therefor check before using
         )
     ) {
         return false
@@ -245,9 +244,9 @@ export default function isElementDisplayed (element: Element): boolean {
             return false
         }
         break
-        // case 'MAP':
+    case 'MAP':
         // FIXME: Selenium has special handling for <map> elements. We don't do anything now.
-
+        break
     default:
         break
     }
