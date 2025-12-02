@@ -14,7 +14,7 @@ exports[`scroll > desktop > should be able to scroll 1`] = `
           "y": 0,
         },
       ],
-      "id": "action1",
+      "id": "wheel1",
       "parameters": {},
       "type": "wheel",
     },
