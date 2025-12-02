@@ -1518,14 +1518,14 @@ export default {
                     type: 'string',
                     description:
                         "Valid values: 'ctap1/u2f', 'ctap2', 'ctap2_1'.",
-                    required: false,
+                    required: true,
                 },
                 {
                     name: 'transport',
                     type: 'string',
                     description:
                         "Valid values: 'usb', 'nfc', 'ble' or 'internal'.",
-                    required: false,
+                    required: true,
                 },
                 {
                     name: 'hasResidentKey',
@@ -1548,19 +1548,19 @@ export default {
                 {
                     name: 'isUserVerified',
                     type: 'boolean',
-                    description: 'Valid values: An array containing extension identifiers.',
+                    description: 'Valid values: true, false.',
                     required: false,
                 },
                 {
                     name: 'extensions',
                     type: 'string[]',
-                    description: 'Valid values: Up to 3 User Verification Method entries.',
+                    description: 'An array of extension identifiers',
                     required: false,
                 },
                 {
                     name: 'uvm',
                     type: 'object[]',
-                    description: '',
+                    description: 'Valid values: Up to 3 User Verification Method entries.',
                     required: false,
                 },
             ],
