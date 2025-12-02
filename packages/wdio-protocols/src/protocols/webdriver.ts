@@ -75,20 +75,20 @@ export default {
             parameters: [
                 {
                     name: 'implicit',
-                    type: 'number',
+                    type: '(number|null)',
                     description:
                         'integer in ms for session implicit wait timeout',
                     required: false,
                 },
                 {
                     name: 'pageLoad',
-                    type: 'number',
+                    type: '(number|null)',
                     description: 'integer in ms for session page load timeout',
                     required: false,
                 },
                 {
                     name: 'script',
-                    type: 'number',
+                    type: '(number|null)',
                     description: 'integer in ms for session script timeout',
                     required: false,
                 },
