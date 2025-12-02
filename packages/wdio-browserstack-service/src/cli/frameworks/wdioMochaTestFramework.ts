@@ -157,8 +157,8 @@ export default class WdioMochaTestFramework extends TestFramework {
             [TestFrameworkConstants.KEY_TEST_ID]: getUniqueIdentifier(test, framework),
             [TestFrameworkConstants.KEY_TEST_NAME]: test.title || test.description,
             [TestFrameworkConstants.KEY_TEST_CODE]: test.body || '',
-            [TestFrameworkConstants.KEY_TEST_FILE_PATH]: (gitConfig?.root && filename) ? path.relative(gitConfig.root, filename) : undefined,
-            [TestFrameworkConstants.KEY_TEST_LOCATION]: filename ? path.relative(process.cwd(), filename) : undefined,
+            [TestFrameworkConstants.KEY_TEST_FILE_PATH]: filename ? path.relative(process.cwd(), filename) : undefined,
+            [TestFrameworkConstants.KEY_TEST_LOCATION]: (gitConfig?.root && filename) ? path.relative(gitConfig.root, filename) : undefined,
             [TestFrameworkConstants.KEY_TEST_SCOPE]: fullTitle,
             [TestFrameworkConstants.KEY_TEST_SCOPES]: getMochaTestHierarchy(test),
         }
