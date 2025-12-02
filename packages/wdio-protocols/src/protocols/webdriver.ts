@@ -1632,14 +1632,14 @@ export default {
                     type: 'string',
                     description:
                         'The userHandle associated to the credential encoded using Base64url Encoding. This property may not be defined.',
-                    required: true,
+                    required: false,
                 },
                 {
                     name: 'signCount',
-                    type: 'number',
+                    type: '(number|null)',
                     description:
                         'The initial value for a signature counter associated to the public key credential source.',
-                    required: true,
+                    required: false,
                 },
                 {
                     name: 'largeBlob',
