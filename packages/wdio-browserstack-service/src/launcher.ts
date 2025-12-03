@@ -43,7 +43,8 @@ import {
     isValidCapsForHealing,
     getBooleanValueFromString,
     validateCapsWithNonBstackA11y,
-    mergeChromeOptions
+    mergeChromeOptions,
+    isValidEnabledValue
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -244,6 +245,64 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         // Send Funnel start request
         await sendStart(this.browserStackConfig)
 
+        // Convert glob patterns in specs to resolved relative paths
+        if (config.specs && Array.isArray(config.specs) && isValidEnabledValue(this._options.testOrchestrationOptions?.runSmartSelection?.enabled)) {
+            try {
+                // Import glob for expanding file patterns
+                const glob = (await import('glob')).sync
+                const path = await import('node:path')
+
+                // Use ConfigParser.getFilePaths equivalent logic to expand specs
+                const expandedSpecs: string[] = []
+                for (const specPattern of config.specs) {
+                    if (typeof specPattern === 'string') {
+                        if (specPattern.startsWith('file://')) {
+                            expandedSpecs.push(specPattern)
+                            continue
+                        }
+
+                        // Expand glob pattern to relative paths
+                        const pattern = specPattern.replace(/\\/g, '/')
+                        // Use config.rootDir which is set to the config file's directory
+                        const rootDir = config.rootDir || process.cwd()
+                        // Get current working directory for final relative path calculation
+                        const cwd = process.cwd()
+
+                        const filenames = glob(pattern, {
+                            cwd: rootDir,
+                            matchBase: true
+                        }) || []
+
+                        // Convert paths to be relative to the current working directory (where command is run)
+                        filenames
+                            .forEach((filename: string) => {
+                                let absolutePath = filename
+
+                                // If filename is not absolute, resolve it relative to rootDir (config file's directory)
+                                if (!path.isAbsolute(filename)) {
+                                    absolutePath = path.resolve(rootDir, filename)
+                                }
+
+                                // Make path relative to current working directory
+                                let relativePath = path.relative(cwd, absolutePath)
+
+                                // Normalize path separators for consistency (Windows compatibility)
+                                relativePath = relativePath.replace(/\\/g, '/')
+
+                                expandedSpecs.push(relativePath)
+                            })
+                    }
+                }
+
+                if (expandedSpecs.length > 0) {
+                    BStackLogger.info(`Expanded specs from glob patterns to ${expandedSpecs.length} files`)
+                    config.specs = expandedSpecs
+                }
+            } catch (error) {
+                BStackLogger.error(`Failed to expand spec patterns: ${error}`)
+            }
+        }
+
         try {
             if (CLIUtils.checkCLISupportedFrameworks(config.framework)) {
                 CLIUtils.setFrameworkDetail(WDIO_NAMING_PREFIX + config.framework, 'WebdriverIO')
@@ -395,6 +454,58 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'testhubBuildUuid')
         this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'buildProductMap')
+
+        if (isValidEnabledValue(this._options.testOrchestrationOptions?.runSmartSelection?.enabled)){
+        // Helper function to convert specs from cwd-relative to rootDir-relative
+            const convertToRootDirRelative = (specs: string[]): string[] => {
+                const rootDir = config.rootDir || process.cwd()
+                const cwd = process.cwd()
+
+                return specs.map((spec: string) => {
+                    if (typeof spec !== 'string') {
+                        return spec
+                    }
+                    // Convert from cwd-relative to absolute
+                    const absolutePath = path.isAbsolute(spec) ? spec : path.resolve(cwd, spec)
+                    // Then make it relative to rootDir (config file's directory)
+                    const relativePath = path.relative(rootDir, absolutePath)
+                    // Normalize path separators
+                    return relativePath.replace(/\\/g, '/')
+                })
+            }
+
+            // Apply test orchestration if enabled
+            try {
+            // Import dynamically to avoid circular dependencies
+                const { applyOrchestrationIfEnabled } = await import('./testorchestration/apply-orchestration.js')
+
+                if (config.specs && config.specs.length > 0 && this._options.testObservability && isValidEnabledValue(this._options.testOrchestrationOptions?.runSmartSelection?.enabled)) {
+                    BStackLogger.info('Applying test orchestration')
+
+                    // Ensure we're passing string[] to applyOrchestrationIfEnabled
+                    const specs = (config.specs as string[]).filter(spec => typeof spec === 'string')
+                    console.log(`Specs before orchestration: ${specs}`)
+
+                    const orderedSpecs = await applyOrchestrationIfEnabled(specs, this._options)
+                    console.log(`Specs after orchestration before conversion: ${orderedSpecs}`)
+
+                    // Use ordered specs if available, otherwise use original specs
+                    const specsToConvert = orderedSpecs && orderedSpecs.length > 0 ? orderedSpecs : specs
+                    config.specs = convertToRootDirRelative(specsToConvert)
+
+                    console.log(`Specs after orchestration: ${config.specs}`)
+                    BStackLogger.info('Test specs updated with orchestrated order')
+                }
+            } catch (error) {
+                BStackLogger.error(`Error applying test orchestration: ${error}`)
+                // On error, we still need to convert specs from cwd-relative to rootDir-relative
+                if (config.specs && config.specs.length > 0) {
+                    const specs = (config.specs as string[]).filter(spec => typeof spec === 'string')
+                    config.specs = convertToRootDirRelative(specs)
+                    BStackLogger.debug(`Specs converted back to rootDir-relative after error: ${config.specs}`)
+                }
+            }
+        }
 
         // local binary will be handled by CLI
         if (BrowserstackCLI.getInstance().isRunning()) {

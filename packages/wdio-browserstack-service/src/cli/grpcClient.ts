@@ -36,7 +36,9 @@ import type {
     TestSessionEventResponse,
     LogCreatedEventResponse,
     DriverInitResponse,
-    FetchDriverExecuteParamsEventResponse
+    FetchDriverExecuteParamsEventResponse,
+    TestOrchestrationRequest,
+    TestOrchestrationResponse
 } from '@browserstack/wdio-browserstack-service'
 
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
@@ -50,15 +52,15 @@ import { BStackLogger } from './cliLogger.js'
  * throughout the application lifecycle.
  */
 export class GrpcClient {
-    static #instance: GrpcClient|null = null
+    static #instance: GrpcClient | null = null
 
-    binSessionId: string|undefined
-    listenAddress: string|undefined
-    channel: grpcChannel|null = null
+    binSessionId: string | undefined
+    listenAddress: string | undefined
+    channel: grpcChannel | null = null
     client: SDKClient | null = null
     logger = BStackLogger
 
-    constructor() {}
+    constructor() { }
 
     /**
      * Get the singleton instance of GrpcClient
@@ -197,7 +199,7 @@ export class GrpcClient {
 
             const connectBinSessionPromise = promisify(this.client!.connectBinSession).bind(this.client!) as (arg0: ConnectBinSessionRequest) => Promise<ConnectBinSessionResponse>
             try {
-                const response =  await connectBinSessionPromise(request)
+                const response = await connectBinSessionPromise(request)
                 this.logger.info('ConnectBinSession successful')
                 PerformanceTester.end(PerformanceEvents.SDK_CONNECT_BIN_SESSION)
                 return response
@@ -467,6 +469,53 @@ export class GrpcClient {
         } catch (error) {
             this.logger.error(`Error in fetchDriverExecuteParamsEvent: ${util.format(error)}`)
             throw error
+        }
+    }
+
+    /**
+     * Request ordered test files from the BrowserStack CLI via gRPC
+     */
+    async testOrchestrationSession(testFiles: string[], orchestrationStrategy: string, orchestrationMetadata: string): Promise<string[] | null> {
+
+        try {
+            if (!this.client) {
+                this.logger.error('gRPC client is not initialized. Cannot perform test orchestration.')
+                return null
+            }
+
+            if (!this.binSessionId) {
+                this.logger.error('binSessionId is not available. Cannot perform test orchestration.')
+                return null
+            }
+
+            // Create TestOrchestrationRequest
+            const request: TestOrchestrationRequest = {
+                binSessionId: this.binSessionId,
+                orchestrationStrategy: orchestrationStrategy,
+                testFiles: testFiles,
+                orchestrationMetadata: orchestrationMetadata
+            }
+
+            const testOrchestrationPromise = promisify(this.client!.testOrchestration).bind(this.client!) as (arg0: TestOrchestrationRequest) => Promise<TestOrchestrationResponse>
+
+            try {
+                const response = await testOrchestrationPromise(request)
+                this.logger.debug(`test-orchestration-session=${JSON.stringify(response)}`)
+
+                if (response.success) {
+                    return Array.from(response.orderedTestFiles || [])
+                }
+
+                this.logger.warn('Test orchestration was not successful')
+                return null
+            } catch (error: unknown) {
+                const errorMessage = util.format(error)
+                this.logger.error(`TestOrchestration error: ${errorMessage}`)
+                throw error
+            }
+        } catch (error) {
+            this.logger.error(`Error in testOrchestrationSession: ${util.format(error)}`)
+            return null
         }
     }
 
