@@ -4,6 +4,7 @@ import type { Options } from '@wdio/types'
 
 import { BStackLogger } from '../bstackLogger.js'
 import { isValidEnabledValue } from '../util.js'
+import { SMART_SELECTION_MODE_RELEVANT_FIRST, SMART_SELECTION_MODE_RELEVANT_ONLY } from '../constants.js'
 
 const RUN_SMART_SELECTION = 'runSmartSelection'
 
@@ -92,7 +93,7 @@ export class OrchestrationUtils {
      */
     constructor(config: OrchestrationConfig) {
         this.runSmartSelection = false
-        this.smartSelectionMode = 'relevantFirst'
+        this.smartSelectionMode = SMART_SELECTION_MODE_RELEVANT_FIRST
         this.testOrdering = new TestOrdering()
         this.smartSelectionSource = null // Store source paths if provided
 
@@ -127,7 +128,7 @@ export class OrchestrationUtils {
 
         this._setRunSmartSelection(
             runSmartSelectionOpts.enabled ?? false,
-            runSmartSelectionOpts.mode || 'relevantFirst',
+            runSmartSelectionOpts.mode || SMART_SELECTION_MODE_RELEVANT_FIRST,
             runSmartSelectionOpts.source ?? null
         )
         // Extract build details from capabilities
@@ -288,10 +289,10 @@ export class OrchestrationUtils {
             BStackLogger.debug(`Setting runSmartSelection: enabled=${this.runSmartSelection}, mode=${this.smartSelectionMode}`)
             if (this.runSmartSelection) {
                 // Mode validation - only when smart selection is enabled
-                const validModes = ['relevantFirst', 'relevantOnly']
+                const validModes = [SMART_SELECTION_MODE_RELEVANT_FIRST, SMART_SELECTION_MODE_RELEVANT_ONLY]
                 if (!validModes.includes(this.smartSelectionMode)) {
-                    BStackLogger.warn(`Invalid smart selection mode '${this.smartSelectionMode}' provided. Defaulting to 'relevantFirst'.`)
-                    this.smartSelectionMode = 'relevantFirst'
+                    BStackLogger.warn(`Invalid smart selection mode '${this.smartSelectionMode}' provided. Defaulting to '${SMART_SELECTION_MODE_RELEVANT_FIRST}'.`)
+                    this.smartSelectionMode = SMART_SELECTION_MODE_RELEVANT_FIRST
                 }
                 if (source === null) {
                     this.smartSelectionSource = null
