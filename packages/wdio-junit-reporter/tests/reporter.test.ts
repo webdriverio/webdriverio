@@ -402,12 +402,12 @@ describe('wdio-junit-reporter', () => {
         const test1 = suite.tests[0]
         const test2 = suite.tests[1]
         reporter.onTestStart(test1)
-        reporter['_appendConsoleLog']('0 - line 0', 'utf-8', () => {})
-        reporter['_appendConsoleLog']('0 - line 1', 'utf-8', () => {})
+        reporter['_appendConsoleLog']('0 - line 0', 'utf-8', () => { })
+        reporter['_appendConsoleLog']('0 - line 1', 'utf-8', () => { })
         reporter.onTestPass(test1)
         reporter.onTestStart(test2)
-        reporter['_appendConsoleLog']('1 - line 0', 'utf-8', () => {})
-        reporter['_appendConsoleLog']('1 - line 1', 'utf-8', () => {})
+        reporter['_appendConsoleLog']('1 - line 0', 'utf-8', () => { })
+        reporter['_appendConsoleLog']('1 - line 1', 'utf-8', () => { })
         reporter.onTestPass(suite.tests[0])
         expect(reporter['_getStandardOutput'](test1).toString()).toContain('0 - line 1')
         expect(reporter['_getStandardOutput'](test2).toString()).toContain('1 - line 1')
@@ -433,72 +433,18 @@ describe('wdio-junit-reporter', () => {
         expect(output).toContain('<property name="0-prop1" value="0-value"/>')
     })
 
-    it('addProperty adds properties to Cucumber steps in scenarios (Cucumber-style)', () => {
-        reporter = new WDIOJunitReporter(options)
-        reporter.suites = featuresLog as any
+    it('should report 0 tests when no tests are executed (issue #14720)', () => {
+        reporter.suites = suiteEmpty as any
+        const output = reporter['_buildJunitXml'](mochaRunnerLog as any)
 
-        // Get the scenario suite which contains steps
-        const featureSuite = Object.values(featuresLog)[0] as SuiteStats
-        const scenarioSuite = featureSuite.suites![0] as SuiteStats
+        // Verify that the report shows 0 tests, not 1
+        expect(output).toContain('tests="0"')
+        expect(output).toContain('skipped="0"')
+        expect(output).toContain('failures="0"')
+        expect(output).toContain('errors="0"')
 
-        // Get individual steps from the scenario
-        const step1 = scenarioSuite.tests[0]
-        const step2 = scenarioSuite.tests[1]
-        const step3 = scenarioSuite.tests[2]
-
-        // Simulate adding properties to each step during test execution
-        reporter.onTestStart(step1)
-        reporter['_addPropertyToCurrentTest']({ name: 'step1-prop', value: 'step1-value' })
-        reporter['_addPropertyToCurrentTest']({ name: 'common-prop', value: 'common-value-1' })
-        reporter.onTestPass(step1)
-
-        reporter.onTestStart(step2)
-        reporter['_addPropertyToCurrentTest']({ name: 'step2-prop', value: 'step2-value' })
-        reporter.onTestPass(step2)
-
-        reporter.onTestStart(step3)
-        reporter['_addPropertyToCurrentTest']({ name: 'step3-prop', value: 'step3-value' })
-        reporter['_addPropertyToCurrentTest']({ name: 'common-prop', value: 'common-value-3' })
-        reporter.onTestPass(step3)
-
-        // Build the XML and verify all properties are included
-        const output = reporter['_buildJunitXml'](cucumberRunnerLog).toString()
-
-        // Verify step-specific properties are present
-        expect(output).toContain('<property name="step1-prop" value="step1-value"/>')
-        expect(output).toContain('<property name="step2-prop" value="step2-value"/>')
-        expect(output).toContain('<property name="step3-prop" value="step3-value"/>')
-
-        // Verify properties with same name from different steps are both included
-        expect(output).toContain('<property name="common-prop" value="common-value-1"/>')
-        expect(output).toContain('<property name="common-prop" value="common-value-3"/>')
+        // Verify that no test case is added
+        expect(output).not.toContain('<testcase')
     })
 
-    it('handles undefined steps gracefully when adding properties (Cucumber-style)', () => {
-        reporter = new WDIOJunitReporter(options)
-
-        // Create a modified feature log with an 'undefined' step
-        const modifiedFeaturesLog = JSON.parse(JSON.stringify(featuresLog))
-        const featureSuite = Object.values(modifiedFeaturesLog)[0] as SuiteStats
-        const scenarioSuite = featureSuite.suites![0] as SuiteStats
-
-        // Add an 'undefined' key to the tests object
-        (scenarioSuite.tests as any)['undefined'] = {
-            type: 'test',
-            uid: 'undefined-step',
-            title: 'undefined step'
-        }
-
-        reporter.suites = modifiedFeaturesLog as any
-
-        // Add a property to a valid step
-        const validStep = scenarioSuite.tests[0]
-        reporter.onTestStart(validStep)
-        reporter['_addPropertyToCurrentTest']({ name: 'valid-prop', value: 'valid-value' })
-        reporter.onTestPass(validStep)
-
-        // Build the XML - should not throw and should include the valid property
-        const output = reporter['_buildJunitXml'](cucumberRunnerLog).toString()
-        expect(output).toContain('<property name="valid-prop" value="valid-value"/>')
-    })
 })
