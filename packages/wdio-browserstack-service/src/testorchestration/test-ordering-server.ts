@@ -88,7 +88,7 @@ export class TestOrderingServer {
                 const multiRepoSource = parsedMetadata.run_smart_selection?.source
                 prDetails = getGitMetadataForAISelection(multiRepoSource)
             }
-            BStackLogger.info(`PR Details for AI Selection: ${JSON.stringify(prDetails)}`)
+            BStackLogger.debug(`PR Details for AI Selection: ${JSON.stringify(prDetails)}`)
 
             const payload: SplitTestsPayload = {
                 tests: testFiles.map(f => ({ filePath: f })),
@@ -102,6 +102,7 @@ export class TestOrderingServer {
                 hostInfo: getHostInfo(),
                 prDetails
             }
+            BStackLogger.info(`[splitTests] Split tests payload: ${JSON.stringify(payload)}`)
 
             const response = await RequestUtils.testOrchestrationSplitTests(this.ORDERING_ENDPOINT, payload)
             if (isSplitTestsResponse(response)) {
