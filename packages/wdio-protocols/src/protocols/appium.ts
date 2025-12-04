@@ -14,7 +14,7 @@ export default {
         GET: {
             command: 'getSession',
             description: 'Retrieve the capabilities of the current session.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#getsession',
             deprecated: 'Use `getAppiumSessionCapabilities` instead',
             parameters: [],
             returns: {
@@ -27,7 +27,7 @@ export default {
     '/session/:sessionId/context': {
         GET: {
             command: 'getAppiumContext',
-            ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts',
+            ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#getcurrentcontext',
             parameters: [],
             returns: {
                 type: 'Context',
@@ -38,7 +38,7 @@ export default {
         },
         POST: {
             command: 'switchAppiumContext',
-            ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts',
+            ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#setcontext',
             parameters: [
                 {
                     name: 'name',
@@ -52,7 +52,7 @@ export default {
     '/session/:sessionId/contexts': {
         GET: {
             command: 'getAppiumContexts',
-            ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts',
+            ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#getcontexts',
             parameters: [],
             returns: {
                 type: 'Context[]',
@@ -66,7 +66,7 @@ export default {
         GET: {
             command: 'getAppiumCommands',
             description: 'Retrieve the endpoints and BiDi commands supported in the current session.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/lib/protocol/routes.js',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#listcommands',
             parameters: [],
             returns: {
                 type: 'Object',
@@ -80,7 +80,7 @@ export default {
         GET: {
             command: 'getAppiumExtensions',
             description: 'Retrieve the extension commands supported in the current session.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/lib/protocol/routes.js',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#listextensions',
             parameters: [],
             returns: {
                 type: 'Object',
@@ -94,7 +94,7 @@ export default {
         GET: {
             command: 'getAppiumSessionCapabilities',
             description: 'Retrieve the capabilities of the current session.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/lib/protocol/routes.js',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getappiumsessioncapabilities',
             parameters: [],
             returns: {
                 type: 'Object',
@@ -414,7 +414,7 @@ export default {
         POST: {
             command: 'rotateDevice',
             description: 'Rotate the device in three dimensions.',
-            ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#device-rotation',
+            ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#setrotation',
             parameters: [
                 {
                     name: 'x',
@@ -614,7 +614,7 @@ export default {
                 {
                     name: 'options',
                     type: 'object',
-                    description: 'driver-specific termination options',
+                    description: 'Driver-specific termination options',
                     required: false,
                 },
             ],
@@ -703,7 +703,7 @@ export default {
         POST: {
             command: 'hideKeyboard',
             description: 'Hide soft keyboard.',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/keys/hide-keyboard/',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#hidekeyboard',
             parameters: [
                 {
                     name: 'strategy',
@@ -749,7 +749,7 @@ export default {
         GET: {
             command: 'isKeyboardShown',
             description: 'Whether or not the soft keyboard is shown.',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/keys/is-keyboard-shown/',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#iskeyboardshown',
             parameters: [],
             returns: {
                 type: 'boolean',
@@ -774,7 +774,7 @@ export default {
         POST: {
             command: 'pushFile',
             description: 'Place a file onto the device in a particular place.',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/files/push-file/',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#pushfile',
             parameters: [
                 {
                     name: 'path',
@@ -807,7 +807,7 @@ export default {
         POST: {
             command: 'pullFile',
             description: "Retrieve a file from the device's file system.",
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/files/pull-file/',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#pullfile',
             parameters: [
                 {
                     name: 'path',
@@ -839,7 +839,7 @@ export default {
         POST: {
             command: 'pullFolder',
             description: "Retrieve a folder from the device's file system.",
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/files/pull-folder/',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#pullfolder',
             parameters: [
                 {
                     name: 'path',
@@ -848,6 +848,11 @@ export default {
                     required: true,
                 },
             ],
+            returns: {
+                type: 'string',
+                name: 'response',
+                description: 'Zip file of the folder contents in base64',
+            },
             support: {
                 ios: {
                     XCUITest: '9.3+',
@@ -1318,8 +1323,8 @@ export default {
     '/session/:sessionId/appium/settings': {
         GET: {
             command: 'getSettings',
-            description: 'Retrieve the current settings on the device.',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/session/settings/get-settings/',
+            description: 'Retrieve the current session settings.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getsettings',
             parameters: [],
             returns: {
                 type: 'object',
@@ -1342,8 +1347,8 @@ export default {
         },
         POST: {
             command: 'updateSettings',
-            description: 'Update the current setting on the device.',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/session/settings/update-settings/',
+            description: 'Update the session settings.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#updatesettings',
             parameters: [
                 {
                     name: 'settings',
@@ -1724,8 +1729,8 @@ export default {
         POST: {
             command: 'executeDriverScript',
             description:
-                'This command enables you to specify a WebdriverIO script as a string and transmit it to the Appium server for local execution on the server itself. This approach helps minimize potential latency associated with each command. ***To utilize this command with Appium 2.0, you must have the [`execute-driver-plugin`](https://github.com/appium/appium/tree/master/packages/execute-driver-plugin) plugin installed.***',
-            ref: 'https://github.com/appium/appium/blob/master/docs/en/commands/session/execute-driver.md',
+                'Execute a script in a child process. This approach helps minimize potential latency associated with each command. ***Using this command in Appium 2 or later requires installing the [`execute-driver`](https://github.com/appium/appium/tree/master/packages/execute-driver-plugin) plugin.***',
+            ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#executedriverscript',
             parameters: [
                 {
                     name: 'script',
@@ -1761,7 +1766,7 @@ export default {
         POST: {
             command: 'getEvents',
             description: 'Get events logged in the current session.',
-            ref: 'https://github.com/appium/appium/blob/master/docs/en/commands/session/events/get-events.md',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getlogevents',
             parameters: [
                 {
                     name: 'type',
@@ -1790,7 +1795,7 @@ export default {
         POST: {
             command: 'logEvent',
             description: 'Log a custom event.',
-            ref: 'https://github.com/appium/appium/blob/master/docs/en/commands/session/events/log-event.md',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#logcustomevent',
             parameters: [
                 {
                     name: 'vendor',
@@ -1819,37 +1824,34 @@ export default {
         POST: {
             command: 'compareImages',
             description:
-                'This feature conducts image comparisons utilizing the capabilities of the OpenCV framework. Please note that for this functionality to work, both the OpenCV framework and the opencv4nodejs module must be installed on the machine where the Appium server is operational. ***Furthermore, you\'ll need to have the [`images-plugin`](https://github.com/appium/appium/tree/master/packages/images-plugin) plugin installed to use this feature with Appium 2.0.***',
-            ref: 'https://github.com/appium/appium/blob/master/packages/images-plugin/docs/image-comparison.md',
+                'Compare two images using the specified mode of comparison. ***Using this command in Appium 2 or later requires installing the [`images`](https://github.com/appium/appium/tree/master/packages/images-plugin) plugin.***',
+            ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#compareimages',
             parameters: [
                 {
                     name: 'mode',
                     type: 'string',
                     description:
-                        "One of possible comparison modes: 'matchFeatures', 'getSimilarity', 'matchTemplate'. 'matchFeatures' is by default.",
+                        "One of possible comparison modes: 'matchFeatures', 'getSimilarity', 'matchTemplate'.",
                     required: true,
-                    default: 'matchFeatures',
                 },
                 {
                     name: 'firstImage',
                     type: 'string',
-                    description:
-                        'An image data. All image formats, that OpenCV library itself accepts, are supported.',
+                    description: 'Base64-encoded image file.',
                     required: true,
                 },
                 {
                     name: 'secondImage',
                     type: 'string',
-                    description:
-                        'An image data. All image formats, that OpenCV library itself accepts, are supported.',
+                    description: 'Base64-encoded image file.',
                     required: true,
                 },
                 {
                     name: 'options',
                     type: 'object',
                     description:
-                        'The content of this dictionary depends on the actual `mode` value. See the documentation on `appium-support` module for more details. ',
-                    required: true,
+                        'The supported values of this property depend on the `mode` value. See Appium documentation for more details.',
+                    required: false,
                     default: {},
                 },
             ],
@@ -1857,7 +1859,7 @@ export default {
                 type: 'object',
                 name: 'result',
                 description:
-                    'The content of the resulting dictionary depends on the actual `mode` and `options` values. See the documentation on `appium-support` module for more details.',
+                    'The content of the resulting dictionary depends on the `mode` and `options` values. See Appium documentation for more details.',
             },
         },
     },
@@ -1942,8 +1944,8 @@ export default {
     '/session/:sessionId/ime/available_engines': {
         GET: {
             command: 'availableIMEEngines',
-            description: 'List all available engines on the machine. To use an engine, it has to be present in this list.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            description: 'List all available IME engines on the device. To use an engine, it has to be present in this list.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#availableimeengines',
             parameters: [],
             returns: {
                 type: 'String[]',
@@ -1961,7 +1963,7 @@ export default {
         GET: {
             command: 'getActiveIMEEngine',
             description: 'Get the name of the active IME engine. The name string is platform specific.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#getactiveimeengine',
             parameters: [],
             returns: {
                 type: 'String',
@@ -1979,7 +1981,7 @@ export default {
         GET: {
             command: 'isIMEActivated',
             description: 'Indicates whether IME input is active at the moment',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#isimeactivated',
             parameters: [],
             returns: {
                 type: 'Boolean',
@@ -1998,7 +2000,7 @@ export default {
         POST: {
             command: 'deactivateIMEEngine',
             description: 'De-activates the currently-active IME engine.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#deactivateimeengine',
             parameters: [],
             support: {
                 android: {
@@ -2010,8 +2012,8 @@ export default {
     '/session/:sessionId/ime/activate': {
         POST: {
             command: 'activateIMEEngine',
-            description: 'Make an engines that is available',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            description: 'Activates an IME engine.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#activateimeengine',
             parameters: [
                 {
                     name: 'engine',
@@ -2302,7 +2304,7 @@ export default {
         GET: {
             command: 'getOrientation',
             description: 'Get the current device orientation.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#getorientation',
             parameters: [],
             returns: {
                 type: 'String',
@@ -2322,7 +2324,7 @@ export default {
         POST: {
             command: 'setOrientation',
             description: 'Set the device orientation',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#setorientation',
             parameters: [
                 {
                     name: 'orientation',
@@ -2346,7 +2348,7 @@ export default {
         GET: {
             command: 'getGeoLocation',
             description: 'Get the current geo location.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#getgeolocation',
             parameters: [],
             returns: {
                 type: 'Object',
@@ -2357,7 +2359,7 @@ export default {
         POST: {
             command: 'setGeoLocation',
             description: 'Set the current geo location.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#setgeolocation',
             parameters: [
                 {
                     name: 'location',
