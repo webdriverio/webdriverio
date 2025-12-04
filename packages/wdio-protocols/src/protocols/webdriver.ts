@@ -1639,7 +1639,7 @@ export default {
                     type: '(number|null)',
                     description:
                         'The initial value for a signature counter associated to the public key credential source.',
-                    required: true,
+                    required: false,
                 },
                 {
                     name: 'largeBlob',
