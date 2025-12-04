@@ -496,8 +496,14 @@ export default {
                 {
                     name: 'appPath',
                     type: 'string',
-                    description: 'path to application .apk file',
+                    description: 'Path to application .apk file',
                     required: true,
+                },
+                {
+                    name: 'options',
+                    type: 'object',
+                    description: 'Driver-specific installation options',
+                    required: false,
                 },
             ],
             support: {
@@ -514,15 +520,26 @@ export default {
     '/session/:sessionId/appium/device/activate_app': {
         POST: {
             command: 'activateApp',
-            description: 'Activate the given app onto the device',
+            description: 'Activate the given app on the device',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/activate-app/',
             parameters: [
                 {
                     name: 'appId',
                     type: 'string',
-                    description:
-                        'App ID (package ID for Android, bundle ID for iOS)',
-                    required: true,
+                    description: 'App package ID (required for Android)',
+                    required: false,
+                },
+                {
+                    name: 'bundleId',
+                    type: 'string',
+                    description: 'Bundle ID (required for iOS)',
+                    required: false,
+                },
+                {
+                    name: 'options',
+                    type: 'object',
+                    description: 'Driver-specific launch options',
+                    required: false,
                 },
             ],
             support: {
@@ -544,11 +561,27 @@ export default {
                 {
                     name: 'appId',
                     type: 'string',
-                    description:
-                        'App ID (package ID for Android, bundle ID for iOS)',
-                    required: true,
+                    description: 'App package ID (required for Android)',
+                    required: false,
+                },
+                {
+                    name: 'bundleId',
+                    type: 'string',
+                    description: 'Bundle ID (required for iOS)',
+                    required: false,
+                },
+                {
+                    name: 'options',
+                    type: 'object',
+                    description: 'Driver-specific uninstall options',
+                    required: false,
                 },
             ],
+            returns: {
+                type: 'boolean',
+                name: 'didRemovalSucceed',
+                description: 'Return true if uninstall was successful, false if not',
+            },
             support: {
                 ios: {
                     XCUITest: '9.3+',
@@ -569,15 +602,19 @@ export default {
                 {
                     name: 'appId',
                     type: 'string',
-                    description:
-                        'App ID (package ID for Android, bundle ID for iOS)',
-                    required: true,
+                    description: 'App package ID (required for Android)',
+                    required: false,
+                },
+                {
+                    name: 'bundleId',
+                    type: 'string',
+                    description: 'Bundle ID (required for iOS)',
+                    required: false,
                 },
                 {
                     name: 'options',
                     type: 'object',
-                    description:
-                        'Command options. E.g. "timeout": (Only Android) Timeout to retry terminate the app (see more in Appium docs)',
+                    description: 'driver-specific termination options',
                     required: false,
                 },
             ],
@@ -601,9 +638,14 @@ export default {
                 {
                     name: 'appId',
                     type: 'string',
-                    description:
-                        'App ID (package ID for Android, bundle ID for iOS)',
-                    required: true,
+                    description: 'App package ID (required for Android)',
+                    required: false,
+                },
+                {
+                    name: 'bundleId',
+                    type: 'string',
+                    description: 'Bundle ID (required for iOS)',
+                    required: false,
                 },
             ],
             returns: {
@@ -631,16 +673,21 @@ export default {
                 {
                     name: 'appId',
                     type: 'string',
-                    description:
-                        'App ID (package ID for Android, bundle ID for iOS)',
-                    required: true,
+                    description: 'App package ID (required for Android)',
+                    required: false,
+                },
+                {
+                    name: 'bundleId',
+                    type: 'string',
+                    description: 'Bundle ID (required for iOS)',
+                    required: false,
                 },
             ],
             returns: {
                 type: 'number',
                 name: 'appStatus',
                 description:
-                    '0 is not installed. 1 is not running. 2 is running in background or suspended. 3 is running in background. 4 is running in foreground',
+                    '0 is not installed. 1 is not running. 2 is running in background suspended. 3 is running in background. 4 is running in foreground',
             },
             support: {
                 ios: {
