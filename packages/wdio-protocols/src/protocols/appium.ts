@@ -1177,7 +1177,7 @@ export default {
                     name: 'seconds',
                     type: '(number|null)',
                     description:
-                        "timeout to restore app, if 'null' app won't be restored",
+                        'Timeout after which to restore the app. A value of -1 disables the timeout',
                     required: true,
                     default: 'null',
                 },
