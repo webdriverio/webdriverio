@@ -1760,15 +1760,14 @@ export default {
     '/session/:sessionId/appium/events': {
         POST: {
             command: 'getEvents',
-            description: 'Get events stored in appium server.',
+            description: 'Get events logged in the current session.',
             ref: 'https://github.com/appium/appium/blob/master/docs/en/commands/session/events/get-events.md',
             parameters: [
                 {
                     name: 'type',
-                    type: 'string[]',
-                    description:
-                        'Get events which are filtered with the type if the type is provided.',
-                    required: true,
+                    type: '(string|string[])',
+                    description: 'One or more event types to filter the returned events',
+                    required: false,
                 },
             ],
             returns: {
@@ -1790,21 +1789,19 @@ export default {
     '/session/:sessionId/appium/log_event': {
         POST: {
             command: 'logEvent',
-            description: 'Store a custom event.',
+            description: 'Log a custom event.',
             ref: 'https://github.com/appium/appium/blob/master/docs/en/commands/session/events/log-event.md',
             parameters: [
                 {
                     name: 'vendor',
                     type: 'string',
-                    description:
-                        'The name of vendor. It will be `vendor` in `vendor:event`.',
+                    description: 'Name of the namespace (vendor) used to prefix the event',
                     required: true,
                 },
                 {
                     name: 'event',
                     type: 'string',
-                    description:
-                        'The name of event. It will be `event` in `vendor:event`.',
+                    description: 'Name of the event',
                     required: true,
                 },
             ],
