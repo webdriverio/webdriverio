@@ -208,6 +208,11 @@
         },
         {
           "type": "doc",
+          "id": "visual-testing/integrate-with-smartui",
+          "label": "SmartUI"
+        },
+        {
+          "type": "doc",
           "id": "visual-testing/argos",
           "label": "Argos"
         },
