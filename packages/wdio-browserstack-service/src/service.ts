@@ -7,7 +7,8 @@ import {
     getParentSuiteName,
     isBrowserstackSession,
     patchConsoleLogs,
-    isTrue
+    isTrue,
+    isMultiRemoteCaps
 } from './util.js'
 import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
@@ -130,7 +131,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         // CLI integration for beforeSession
         try {
-            if (CLIUtils.checkCLISupportedFrameworks(this._config.framework)) {
+            // Detect if multi-remote and disable CLI for those sessions
+            const isMultiremote = isMultiRemoteCaps(capabilities as Capabilities.TestrunnerCapabilities)
+
+            if (CLIUtils.checkCLISupportedFrameworks(this._config.framework) && !isMultiremote) {
                 // Connect to Browserstack CLI from worker
                 await BrowserstackCLI.getInstance().bootstrap(this._options, this._config)
 

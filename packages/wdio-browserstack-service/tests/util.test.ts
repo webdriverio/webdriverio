@@ -52,6 +52,7 @@ import {
     _getParamsForAppAccessibility,
     performA11yScan,
     getAppA11yResults,
+    isMultiRemoteCaps,
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
 import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY } from '../src/constants.js'
@@ -276,6 +277,91 @@ describe('isBrowserstackCapability', () => {
     })
 })
 
+describe('isMultiRemoteCaps', () => {
+    it('should return true for regular multiremote capabilities (object)', () => {
+        const multiremoteCaps = {
+            browserA: {
+                capabilities: {
+                    browserName: 'chrome'
+                }
+            },
+            browserB: {
+                capabilities: {
+                    browserName: 'firefox'
+                }
+            }
+        }
+        expect(isMultiRemoteCaps(multiremoteCaps as any)).toBe(true)
+    })
+
+    it('should return true for parallel multiremote capabilities (array with nested structure)', () => {
+        const parallelMultiremoteCaps = [
+            {
+                browserA: {
+                    capabilities: {
+                        browserName: 'chrome'
+                    }
+                },
+                browserB: {
+                    capabilities: {
+                        browserName: 'firefox'
+                    }
+                }
+            }
+        ]
+        expect(isMultiRemoteCaps(parallelMultiremoteCaps as any)).toBe(true)
+    })
+
+    it('should return false for regular capabilities array', () => {
+        const regularCaps = [
+            {
+                browserName: 'chrome',
+                'bstack:options': {
+                    os: 'Windows'
+                }
+            }
+        ]
+        expect(isMultiRemoteCaps(regularCaps as any)).toBe(false)
+    })
+
+    it('should return true for empty array', () => {
+        // Empty array is technically multiremote (vacuous truth - every() returns true for empty arrays)
+        expect(isMultiRemoteCaps([] as any)).toBe(true)
+    })
+
+    it('should return false for array with mixed structure', () => {
+        const mixedCaps = [
+            {
+                browserA: {
+                    capabilities: {
+                        browserName: 'chrome'
+                    }
+                }
+            },
+            {
+                browserName: 'firefox' // This is not multiremote structure
+            }
+        ]
+        expect(isMultiRemoteCaps(mixedCaps as any)).toBe(false)
+    })
+
+    it('should return false for array with empty objects', () => {
+        const emptyCaps = [{}]
+        expect(isMultiRemoteCaps(emptyCaps as any)).toBe(false)
+    })
+
+    it('should handle array with objects containing non-capabilities properties', () => {
+        const invalidCaps = [
+            {
+                browserA: {
+                    somethingElse: 'value' // Missing capabilities property
+                }
+            }
+        ]
+        expect(isMultiRemoteCaps(invalidCaps as any)).toBe(false)
+    })
+})
+
 describe('getParentSuiteName', () => {
     it('should return the parent suite name', () => {
         expect(getParentSuiteName('foo bar', 'foo')).toBe('foo')
@@ -458,6 +544,16 @@ describe('getCloudProvider', () => {
     })
     it('return Browserstack if test being run on browserstack', () => {
         expect(getCloudProvider({ options: { hostname: 'hub.browserstack.com' } })).toEqual('browserstack')
+    })
+    it('return Browserstack if test being run on browserstack with multiremote', () => {
+        const browser = {
+            isMultiremote: true,
+            instances: ['browserA'],
+            browserA: {
+                options: { hostname: 'hub.browserstack.com' }
+            }
+        } as unknown as WebdriverIO.MultiRemoteBrowser
+        expect(getCloudProvider(browser)).toEqual('browserstack')
     })
 })
 
