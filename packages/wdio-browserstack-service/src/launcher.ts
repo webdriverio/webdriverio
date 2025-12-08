@@ -222,6 +222,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         try {
             // Detect if multi-remote and disable CLI for those sessions
             const isMultiremote = isMultiRemoteCaps(capabilities as Capabilities.RemoteCapabilities)
+            process.env.BROWSERSTACK_IS_MULTIREMOTE = String(isMultiremote)
 
             if (CLIUtils.checkCLISupportedFrameworks(config.framework) && !isMultiremote) {
                 CLIUtils.setFrameworkDetail(WDIO_NAMING_PREFIX + config.framework, 'WebdriverIO') // TODO: make this constant
