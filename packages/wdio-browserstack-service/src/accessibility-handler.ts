@@ -92,12 +92,12 @@ class _AccessibilityHandler {
     private _sessionId: string | null = null
     private listener = Listener.getInstance()
 
-    constructor (
+    constructor(
         private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
         _capabilities: Capabilities.ResolvedTestrunnerCapabilities,
-        _options : BrowserstackConfig & BrowserstackOptions,
+        _options: BrowserstackConfig & BrowserstackOptions,
         private isAppAutomate: boolean,
-        _config : Options.Testrunner,
+        _config: Options.Testrunner,
         private _framework?: string,
         _accessibilityAutomation?: boolean | string,
         _turboscale?: boolean | string,
@@ -120,7 +120,7 @@ class _AccessibilityHandler {
         this._accessibilityOptions = _accessibilityOpts
         this._autoScanning = !isFalse(this._accessibilityOptions?.autoScanning)
         this._options = _options
-        this._config= _config
+        this._config = _config
         this._turboscale = isTrue(_turboscale)
     }
 
@@ -148,7 +148,7 @@ class _AccessibilityHandler {
                 return (caps as WebdriverIO.Capabilities)['goog:chromeOptions']
             } else {
                 const bstackOptions = (caps as WebdriverIO.Capabilities)['bstack:options']
-                if ( bstackOptions && bstackOptions?.[capType as keyof Capabilities.BrowserStackCapabilities]) {
+                if (bstackOptions && bstackOptions?.[capType as keyof Capabilities.BrowserStackCapabilities]) {
                     return bstackOptions?.[capType as keyof Capabilities.BrowserStackCapabilities]
                 } else if ((caps as WebdriverIO.Capabilities)[legacyCapType as keyof WebdriverIO.Capabilities]) {
                     return (caps as WebdriverIO.Capabilities)[legacyCapType as keyof WebdriverIO.Capabilities]
@@ -157,7 +157,7 @@ class _AccessibilityHandler {
         }
     }
 
-    async before (sessionId: string) {
+    async before(sessionId: string) {
         this._sessionId = sessionId
         this._accessibility = isTrue(this._getCapabilityValue(this._caps, 'accessibility', 'browserstack.accessibility'))
 
@@ -172,7 +172,7 @@ class _AccessibilityHandler {
                 this._platformA11yMeta.browser_name as string,
                 this._platformA11yMeta?.browser_version as string
             )
-        ){
+        ) {
             this._accessibility = true
         } else {
             if (isAccessibilityAutomationSession(this._accessibility) && !this.isAppAutomate) {
@@ -213,8 +213,8 @@ class _AccessibilityHandler {
             const results = await performA11yScan(this.isAppAutomate, (this._browser as WebdriverIO.Browser), isBrowserstackSession(this._browser), this._accessibility)
             if (results) {
                 this._testMetadata[this._testIdentifier as string] = {
-                    scanTestForAccessibility : true,
-                    accessibilityScanStarted : true
+                    scanTestForAccessibility: true,
+                    accessibilityScanStarted: true
                 }
             }
             await this._setAnnotation('Accessibility scanning was triggered manually')
@@ -222,20 +222,20 @@ class _AccessibilityHandler {
         }
 
         browserWithA11y.startA11yScanning = async () => {
-            if (this._testIdentifier === null){
+            if (this._testIdentifier === null) {
                 BStackLogger.warn('Accessibility scanning cannot be started from outside the test')
                 return
             }
             AccessibilityHandler._a11yScanSessionMap[sessionId] = true
             this._testMetadata[this._testIdentifier as string] = {
-                scanTestForAccessibility : true,
-                accessibilityScanStarted : true
+                scanTestForAccessibility: true,
+                accessibilityScanStarted: true
             }
             await this._setAnnotation('Accessibility scanning has started')
         }
 
         browserWithA11y.stopA11yScanning = async () => {
-            if (this._testIdentifier === null){
+            if (this._testIdentifier === null) {
                 BStackLogger.warn('Accessibility scanning cannot be stopped from outside the test')
                 return
             }
@@ -264,7 +264,7 @@ class _AccessibilityHandler {
             })
     }
 
-    async beforeTest (suiteTitle: string | undefined, test: Frameworks.Test) {
+    async beforeTest(suiteTitle: string | undefined, test: Frameworks.Test) {
         try {
             if (
                 this._framework !== 'mocha' ||
@@ -289,8 +289,8 @@ class _AccessibilityHandler {
             Listener.setTestRunAccessibilityVar(this._accessibility && shouldScanTest)
 
             this._testMetadata[testIdentifier] = {
-                scanTestForAccessibility : shouldScanTest,
-                accessibilityScanStarted : true
+                scanTestForAccessibility: shouldScanTest,
+                accessibilityScanStarted: true
             }
 
             this._testMetadata[testIdentifier].accessibilityScanStarted = shouldScanTest
@@ -303,7 +303,7 @@ class _AccessibilityHandler {
         }
     }
 
-    async afterTest (suiteTitle: string | undefined, test: Frameworks.Test) {
+    async afterTest(suiteTitle: string | undefined, test: Frameworks.Test) {
         BStackLogger.debug('Accessibility after test hook. Before sending test stop event')
         if (
             this._framework !== 'mocha' ||
@@ -342,7 +342,7 @@ class _AccessibilityHandler {
     /**
       * Cucumber Only
     */
-    async beforeScenario (world: ITestCaseHookParameter) {
+    async beforeScenario(world: ITestCaseHookParameter) {
         const pickleData = world.pickle
         const gherkinDocument = world.gherkinDocument
         const featureData = gherkinDocument.feature
@@ -358,8 +358,8 @@ class _AccessibilityHandler {
             // @ts-expect-error fix type
             const shouldScanScenario = this._autoScanning && shouldScanTestForAccessibility(featureData?.name, pickleData.name, this._accessibilityOptions, world, true)
             this._testMetadata[uniqueId] = {
-                scanTestForAccessibility : shouldScanScenario,
-                accessibilityScanStarted : true
+                scanTestForAccessibility: shouldScanScenario,
+                accessibilityScanStarted: true
             }
 
             this._testMetadata[uniqueId].accessibilityScanStarted = shouldScanScenario
@@ -379,7 +379,7 @@ class _AccessibilityHandler {
         }
     }
 
-    async afterScenario (world: ITestCaseHookParameter) {
+    async afterScenario(world: ITestCaseHookParameter) {
         BStackLogger.debug('Accessibility after scenario hook. Before sending test stop event')
         if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
             return
@@ -404,7 +404,7 @@ class _AccessibilityHandler {
                     'thJwtToken': process.env.BROWSERSTACK_TESTHUB_JWT
                 }
 
-                await this.sendTestStopEvent(( this._browser as WebdriverIO.Browser), dataForExtension)
+                await this.sendTestStopEvent((this._browser as WebdriverIO.Browser), dataForExtension)
 
                 BStackLogger.info('Accessibility testing for this test case has ended.')
             }
@@ -417,13 +417,13 @@ class _AccessibilityHandler {
      * private methods
      */
 
-    private async commandWrapper (command: CommandInfo, prevImpl: Function, origFunction: Function, ...args: unknown[]) {
+    private async commandWrapper(command: CommandInfo, prevImpl: Function, origFunction: Function, ...args: unknown[]) {
         if (
             this._sessionId && AccessibilityHandler._a11yScanSessionMap[this._sessionId] &&
-                (
-                    !command.name.includes('execute') ||
-                    !AccessibilityHandler.shouldPatchExecuteScript(args.length ? args[0] as string : null)
-                )
+            (
+                !command.name.includes('execute') ||
+                !AccessibilityHandler.shouldPatchExecuteScript(args.length ? args[0] as string : null)
+            )
         ) {
             BStackLogger.debug(`Performing scan for ${command.class} ${command.name}`)
             await performA11yScan(this.isAppAutomate, this._browser, true, true, command.name)
@@ -454,7 +454,7 @@ class _AccessibilityHandler {
 
     }
 
-    private getIdentifier (test: Frameworks.Test | ITestCaseHookParameter) {
+    private getIdentifier(test: Frameworks.Test | ITestCaseHookParameter) {
         if ('pickle' in test) {
             return getUniqueIdentifierForCucumber(test)
         }
@@ -471,8 +471,8 @@ class _AccessibilityHandler {
     private async checkIfPageOpened(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, testIdentifier: string, shouldScanTest?: boolean) {
         let pageOpen = false
         this._testMetadata[testIdentifier] = {
-            scanTestForAccessibility : shouldScanTest,
-            accessibilityScanStarted : true
+            scanTestForAccessibility: shouldScanTest,
+            accessibilityScanStarted: true
         }
 
         try {
@@ -499,13 +499,19 @@ class _AccessibilityHandler {
 
     private async _setAnnotation(message: string) {
         if (this._accessibility && isBrowserstackSession(this._browser)) {
-            await (this._browser as WebdriverIO.Browser).executeScript(`browserstack_executor: ${JSON.stringify({
+            await (this._browser as WebdriverIO.Browser).execute((data: { action: string; arguments: Record<string, unknown> }) => {
+                // @ts-expect-error - BrowserStack injects this global function
+                if (typeof window.browserstack_executor === 'function') {
+                    // @ts-expect-error - BrowserStack injects this global function
+                    window.browserstack_executor(data)
+                }
+            }, {
                 action: 'annotate',
                 arguments: {
                     data: message,
                     level: 'info'
                 }
-            })}`, [])
+            })
         }
     }
 }
