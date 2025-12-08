@@ -43,7 +43,8 @@ import {
     validateCapsWithNonBstackA11y,
     mergeChromeOptions,
     normalizeTestReportingConfig,
-    normalizeTestReportingEnvVariables
+    normalizeTestReportingEnvVariables,
+    isMultiRemoteCaps
 } from './util.js'
 import { getProductMap } from './testHub/utils.js'
 import CrashReporter from './crash-reporter.js'
@@ -219,7 +220,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         await sendStart(this.browserStackConfig)
 
         try {
-            if (CLIUtils.checkCLISupportedFrameworks(config.framework)) {
+            // Detect if multi-remote and disable CLI for those sessions
+            const isMultiremote = isMultiRemoteCaps(capabilities as Capabilities.RemoteCapabilities)
+
+            if (CLIUtils.checkCLISupportedFrameworks(config.framework) && !isMultiremote) {
                 CLIUtils.setFrameworkDetail(WDIO_NAMING_PREFIX + config.framework, 'WebdriverIO') // TODO: make this constant
                 const binconfig = CLIUtils.getBinConfig(config, capabilities, this._options, this._buildTag)
                 await BrowserstackCLI.getInstance().bootstrap(this._options, config, binconfig)
