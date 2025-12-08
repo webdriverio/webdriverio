@@ -1868,10 +1868,15 @@ export function isMultiRemoteCaps(capabilities: Capabilities.TestrunnerCapabilit
         return true
     }
 
+    // Empty array is not multiremote
+    if (capabilities.length === 0) {
+        return false
+    }
+
     // Parallel multiremote is an array with nested capabilities structure
     return capabilities.every(cap =>
         Object.values(cap).length > 0 &&
-        Object.values(cap).every(c => typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities)
+        Object.values(cap).every(c => c !== null && typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities)
     )
 }
 

@@ -325,8 +325,7 @@ describe('isMultiRemoteCaps', () => {
     })
 
     it('should return true for empty array', () => {
-        // Empty array is technically multiremote (vacuous truth - every() returns true for empty arrays)
-        expect(isMultiRemoteCaps([] as any)).toBe(true)
+        expect(isMultiRemoteCaps([] as any)).toBe(false)
     })
 
     it('should return false for array with mixed structure', () => {
@@ -359,6 +358,15 @@ describe('isMultiRemoteCaps', () => {
             }
         ]
         expect(isMultiRemoteCaps(invalidCaps as any)).toBe(false)
+    })
+
+    it('should return false for array with null values in nested structure', () => {
+        const capsWithNull = [
+            {
+                browserA: null
+            }
+        ]
+        expect(isMultiRemoteCaps(capsWithNull as any)).toBe(false)
     })
 })
 
