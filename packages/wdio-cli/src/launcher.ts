@@ -74,6 +74,7 @@ class Launcher {
 
         const capabilities = this.configParser.getCapabilities()
         this.isParallelMultiremote = Array.isArray(capabilities) &&
+            capabilities.length > 0 &&
             capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities))
         this.isMultiremote = this.isParallelMultiremote || !Array.isArray(capabilities)
         validateConfig(TESTRUNNER_DEFAULTS, { ...config, capabilities })
