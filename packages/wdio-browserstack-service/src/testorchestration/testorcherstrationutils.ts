@@ -385,8 +385,21 @@ export class OrchestrationUtils {
 
                 const typedRepoInfo = repoInfo as SmartSelectionRepoInfo
 
-                if (!typedRepoInfo.url) {
-                    BStackLogger.warn(`Repository URL is missing for source '${name}': ${JSON.stringify(repoInfo)}`)
+                // Validate that url is a string and is present
+                if (!typedRepoInfo.url || typeof typedRepoInfo.url !== 'string') {
+                    BStackLogger.warn(`Repository URL is missing or invalid for source '${name}': ${JSON.stringify(repoInfo)}`)
+                    continue
+                }
+
+                // Validate that baseBranch, if provided, is a string
+                if (typedRepoInfo.baseBranch !== undefined && typeof typedRepoInfo.baseBranch !== 'string') {
+                    BStackLogger.warn(`Base branch must be a string for source '${name}': ${JSON.stringify(repoInfo)}`)
+                    continue
+                }
+
+                // Validate that featureBranch, if provided, is a string
+                if (typedRepoInfo.featureBranch !== undefined && typeof typedRepoInfo.featureBranch !== 'string') {
+                    BStackLogger.warn(`Feature branch must be a string for source '${name}': ${JSON.stringify(repoInfo)}`)
                     continue
                 }
 
@@ -402,22 +415,31 @@ export class OrchestrationUtils {
                     continue
                 }
 
-                const repoInfoCopy = { ...typedRepoInfo }
-                repoInfoCopy.name = name
+                // Only consider url, baseBranch, and featureBranch - ignore all other keys
                 const featureBranch = getFeatureBranch(name, typedRepoInfo)
-                repoInfoCopy.featureBranch = featureBranch ?? undefined
 
-                if (!repoInfoCopy.featureBranch || repoInfoCopy.featureBranch === '') {
+                const filteredRepoInfo: SmartSelectionRepoInfo = {
+                    name,
+                    url: typedRepoInfo.url,
+                    featureBranch: featureBranch ?? undefined
+                }
+
+                // Only add baseBranch if it's provided
+                if (typedRepoInfo.baseBranch) {
+                    filteredRepoInfo.baseBranch = typedRepoInfo.baseBranch
+                }
+
+                if (!filteredRepoInfo.featureBranch || filteredRepoInfo.featureBranch === '') {
                     BStackLogger.warn(`Feature branch not specified for source '${name}': ${JSON.stringify(repoInfo)}`)
                     continue
                 }
 
-                if (repoInfoCopy.baseBranch && repoInfoCopy.baseBranch === repoInfoCopy.featureBranch) {
+                if (filteredRepoInfo.baseBranch && filteredRepoInfo.baseBranch === filteredRepoInfo.featureBranch) {
                     BStackLogger.warn(`Feature branch and base branch cannot be the same for source '${name}': ${JSON.stringify(repoInfo)}`)
                     continue
                 }
 
-                formattedData.push(repoInfoCopy)
+                formattedData.push(filteredRepoInfo)
             }
 
             return formattedData
