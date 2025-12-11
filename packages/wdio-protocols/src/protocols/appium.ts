@@ -14,7 +14,7 @@ export default {
         GET: {
             command: 'getSession',
             description: 'Retrieve the capabilities of the current session.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#getsession',
             deprecated: 'Use `getAppiumSessionCapabilities` instead',
             parameters: [],
             returns: {
@@ -27,7 +27,7 @@ export default {
     '/session/:sessionId/context': {
         GET: {
             command: 'getAppiumContext',
-            ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts',
+            ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#getcurrentcontext',
             parameters: [],
             returns: {
                 type: 'Context',
@@ -38,7 +38,7 @@ export default {
         },
         POST: {
             command: 'switchAppiumContext',
-            ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts',
+            ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#setcontext',
             parameters: [
                 {
                     name: 'name',
@@ -52,7 +52,7 @@ export default {
     '/session/:sessionId/contexts': {
         GET: {
             command: 'getAppiumContexts',
-            ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts',
+            ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#getcontexts',
             parameters: [],
             returns: {
                 type: 'Context[]',
@@ -66,7 +66,7 @@ export default {
         GET: {
             command: 'getAppiumCommands',
             description: 'Retrieve the endpoints and BiDi commands supported in the current session.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/lib/protocol/routes.js',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#listcommands',
             parameters: [],
             returns: {
                 type: 'Object',
@@ -80,7 +80,7 @@ export default {
         GET: {
             command: 'getAppiumExtensions',
             description: 'Retrieve the extension commands supported in the current session.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/lib/protocol/routes.js',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#listextensions',
             parameters: [],
             returns: {
                 type: 'Object',
@@ -94,7 +94,7 @@ export default {
         GET: {
             command: 'getAppiumSessionCapabilities',
             description: 'Retrieve the capabilities of the current session.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/lib/protocol/routes.js',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getappiumsessioncapabilities',
             parameters: [],
             returns: {
                 type: 'Object',
@@ -108,6 +108,7 @@ export default {
             command: 'shake',
             description: 'Perform a shake action on the device.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/interactions/shake/',
+            deprecated: 'Use `driver.execute(\'mobile: shake\')` instead',
             parameters: [],
             support: {
                 ios: {
@@ -122,6 +123,7 @@ export default {
             command: 'lock',
             description: 'Lock the device.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/interactions/lock/',
+            deprecated: 'Use `driver.execute(\'mobile: lock\', { ... })` instead',
             parameters: [
                 {
                     name: 'seconds',
@@ -148,6 +150,7 @@ export default {
             command: 'unlock',
             description: 'Unlock the device.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/interactions/unlock/',
+            deprecated: 'Use `driver.execute(\'mobile: unlock\')` instead',
             parameters: [],
             support: {
                 android: {
@@ -164,6 +167,7 @@ export default {
             command: 'isLocked',
             description: 'Check whether the device is locked or not.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/interactions/is-locked/',
+            deprecated: 'Use `driver.execute(\'mobile: isLocked\')` instead',
             parameters: [],
             returns: {
                 type: 'boolean',
@@ -266,6 +270,7 @@ export default {
             description:
                 'Returns the information types of the system state which is supported to read as like cpu, memory, network traffic, and battery.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/performance-data/performance-data-types/',
+            deprecated: 'Use `driver.execute(\'mobile: getPerformanceDataTypes\')` instead',
             parameters: [],
             returns: {
                 type: 'string[]',
@@ -286,6 +291,7 @@ export default {
             description:
                 'Returns the information of the system state which is supported to read as like cpu, memory, network traffic, and battery.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/performance-data/get-performance-data/',
+            deprecated: 'Use `driver.execute(\'mobile: getPerformanceData\', { ... })` instead',
             parameters: [
                 {
                     name: 'packageName',
@@ -325,6 +331,7 @@ export default {
             command: 'pressKeyCode',
             description: 'Press a particular key on the device.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/keys/press-keycode/',
+            deprecated: 'Use `driver.execute(\'mobile: pressKey\', { ... })` instead',
             parameters: [
                 {
                     name: 'keycode',
@@ -357,6 +364,7 @@ export default {
             command: 'longPressKeyCode',
             description: 'Press and hold a particular key code on the device.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/keys/long-press-keycode/',
+            deprecated: 'Use `driver.execute(\'mobile: pressKey\', { ... })` instead',
             parameters: [
                 {
                     name: 'keycode',
@@ -389,6 +397,7 @@ export default {
             command: 'sendKeyEvent',
             description: 'Send a key code to the device.',
             ref: 'https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints',
+            deprecated: 'Use `driver.execute(\'mobile: pressKey\', { ... })` instead',
             parameters: [
                 {
                     name: 'keycode',
@@ -414,7 +423,7 @@ export default {
         POST: {
             command: 'rotateDevice',
             description: 'Rotate the device in three dimensions.',
-            ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#device-rotation',
+            ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#setrotation',
             parameters: [
                 {
                     name: 'x',
@@ -456,6 +465,7 @@ export default {
             command: 'getCurrentActivity',
             description: 'Get the name of the current Android activity.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/activity/current-activity/',
+            deprecated: 'Use `driver.execute(\'mobile: getCurrentActivity\')` instead',
             parameters: [],
             returns: {
                 type: 'string',
@@ -474,6 +484,7 @@ export default {
             command: 'getCurrentPackage',
             description: 'Get the name of the current Android package.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/activity/current-package/',
+            deprecated: 'Use `driver.execute(\'mobile: getCurrentPackage\')` instead',
             parameters: [],
             returns: {
                 type: 'string',
@@ -491,13 +502,19 @@ export default {
         POST: {
             command: 'installApp',
             description: 'Install the given app onto the device.',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/install-app/',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#installapp',
             parameters: [
                 {
                     name: 'appPath',
                     type: 'string',
-                    description: 'path to application .apk file',
+                    description: 'Path to application .apk file',
                     required: true,
+                },
+                {
+                    name: 'options',
+                    type: 'object',
+                    description: 'Driver-specific installation options',
+                    required: false,
                 },
             ],
             support: {
@@ -514,15 +531,26 @@ export default {
     '/session/:sessionId/appium/device/activate_app': {
         POST: {
             command: 'activateApp',
-            description: 'Activate the given app onto the device',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/activate-app/',
+            description: 'Activate the given app on the device',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#activateapp',
             parameters: [
                 {
                     name: 'appId',
                     type: 'string',
-                    description:
-                        'App ID (package ID for Android, bundle ID for iOS)',
-                    required: true,
+                    description: 'App package ID (required for Android)',
+                    required: false,
+                },
+                {
+                    name: 'bundleId',
+                    type: 'string',
+                    description: 'Bundle ID (required for iOS)',
+                    required: false,
+                },
+                {
+                    name: 'options',
+                    type: 'object',
+                    description: 'Driver-specific launch options',
+                    required: false,
                 },
             ],
             support: {
@@ -539,16 +567,32 @@ export default {
         POST: {
             command: 'removeApp',
             description: 'Remove an app from the device.',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/remove-app/',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#removeapp',
             parameters: [
                 {
                     name: 'appId',
                     type: 'string',
-                    description:
-                        'App ID (package ID for Android, bundle ID for iOS)',
-                    required: true,
+                    description: 'App package ID (required for Android)',
+                    required: false,
+                },
+                {
+                    name: 'bundleId',
+                    type: 'string',
+                    description: 'Bundle ID (required for iOS)',
+                    required: false,
+                },
+                {
+                    name: 'options',
+                    type: 'object',
+                    description: 'Driver-specific uninstall options',
+                    required: false,
                 },
             ],
+            returns: {
+                type: 'boolean',
+                name: 'didRemovalSucceed',
+                description: 'Return true if uninstall was successful, false if not',
+            },
             support: {
                 ios: {
                     XCUITest: '9.3+',
@@ -564,20 +608,24 @@ export default {
         POST: {
             command: 'terminateApp',
             description: 'Terminate the given app on the device',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/terminate-app/',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#terminateapp',
             parameters: [
                 {
                     name: 'appId',
                     type: 'string',
-                    description:
-                        'App ID (package ID for Android, bundle ID for iOS)',
-                    required: true,
+                    description: 'App package ID (required for Android)',
+                    required: false,
+                },
+                {
+                    name: 'bundleId',
+                    type: 'string',
+                    description: 'Bundle ID (required for iOS)',
+                    required: false,
                 },
                 {
                     name: 'options',
                     type: 'object',
-                    description:
-                        'Command options. E.g. "timeout": (Only Android) Timeout to retry terminate the app (see more in Appium docs)',
+                    description: 'Driver-specific termination options',
                     required: false,
                 },
             ],
@@ -594,16 +642,20 @@ export default {
     '/session/:sessionId/appium/device/app_installed': {
         POST: {
             command: 'isAppInstalled',
-            description:
-                'Check whether the specified app is installed on the device.',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/is-app-installed/',
+            description: 'Check whether the specified app is installed on the device.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#isappinstalled',
             parameters: [
                 {
                     name: 'appId',
                     type: 'string',
-                    description:
-                        'App ID (package ID for Android, bundle ID for iOS)',
-                    required: true,
+                    description: 'App package ID (required for Android)',
+                    required: false,
+                },
+                {
+                    name: 'bundleId',
+                    type: 'string',
+                    description: 'Bundle ID (required for iOS)',
+                    required: false,
                 },
             ],
             returns: {
@@ -626,21 +678,26 @@ export default {
         POST: {
             command: 'queryAppState',
             description: 'Get the given app status on the device',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/app-state/',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#queryappstate',
             parameters: [
                 {
                     name: 'appId',
                     type: 'string',
-                    description:
-                        'App ID (package ID for Android, bundle ID for iOS)',
-                    required: true,
+                    description: 'App package ID (required for Android)',
+                    required: false,
+                },
+                {
+                    name: 'bundleId',
+                    type: 'string',
+                    description: 'Bundle ID (required for iOS)',
+                    required: false,
                 },
             ],
             returns: {
                 type: 'number',
                 name: 'appStatus',
                 description:
-                    '0 is not installed. 1 is not running. 2 is running in background or suspended. 3 is running in background. 4 is running in foreground',
+                    '0 is not installed. 1 is not running. 2 is running in background suspended. 3 is running in background. 4 is running in foreground',
             },
             support: {
                 ios: {
@@ -656,7 +713,7 @@ export default {
         POST: {
             command: 'hideKeyboard',
             description: 'Hide soft keyboard.',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/keys/hide-keyboard/',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#hidekeyboard',
             parameters: [
                 {
                     name: 'strategy',
@@ -702,7 +759,7 @@ export default {
         GET: {
             command: 'isKeyboardShown',
             description: 'Whether or not the soft keyboard is shown.',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/keys/is-keyboard-shown/',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#iskeyboardshown',
             parameters: [],
             returns: {
                 type: 'boolean',
@@ -727,7 +784,7 @@ export default {
         POST: {
             command: 'pushFile',
             description: 'Place a file onto the device in a particular place.',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/files/push-file/',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#pushfile',
             parameters: [
                 {
                     name: 'path',
@@ -760,7 +817,7 @@ export default {
         POST: {
             command: 'pullFile',
             description: "Retrieve a file from the device's file system.",
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/files/pull-file/',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#pullfile',
             parameters: [
                 {
                     name: 'path',
@@ -792,7 +849,7 @@ export default {
         POST: {
             command: 'pullFolder',
             description: "Retrieve a folder from the device's file system.",
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/files/pull-folder/',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#pullfolder',
             parameters: [
                 {
                     name: 'path',
@@ -801,6 +858,11 @@ export default {
                     required: true,
                 },
             ],
+            returns: {
+                type: 'string',
+                name: 'response',
+                description: 'Zip file of the folder contents in base64',
+            },
             support: {
                 ios: {
                     XCUITest: '9.3+',
@@ -820,6 +882,7 @@ export default {
             command: 'toggleAirplaneMode',
             description: 'Toggle airplane mode on device.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/toggle-airplane-mode/',
+            deprecated: 'Use `driver.execute(\'mobile: setConnectivity\', { ... })` instead',
             parameters: [],
             support: {
                 android: {
@@ -833,6 +896,7 @@ export default {
             command: 'toggleData',
             description: 'Switch the state of data service.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/toggle-data/',
+            deprecated: 'Use `driver.execute(\'mobile: setConnectivity\', { ... })` instead',
             parameters: [],
             support: {
                 android: {
@@ -846,6 +910,7 @@ export default {
             command: 'toggleWiFi',
             description: 'Switch the state of the wifi service.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/toggle-wifi/',
+            deprecated: 'Use `driver.execute(\'mobile: setConnectivity\', { ... })` instead',
             parameters: [],
             support: {
                 android: {
@@ -859,6 +924,7 @@ export default {
             command: 'toggleLocationServices',
             description: 'Switch the state of the location service.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/toggle-location-services/',
+            deprecated: 'Use `driver.execute(\'mobile: toggleGps\')` instead',
             parameters: [],
             support: {
                 android: {
@@ -872,6 +938,7 @@ export default {
             command: 'toggleNetworkSpeed',
             description: 'Set network speed (Emulator only)',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/network-speed/',
+            deprecated: 'Use `driver.execute(\'mobile: networkSpeed\', { ... })` instead',
             parameters: [
                 {
                     name: 'netspeed',
@@ -891,8 +958,9 @@ export default {
     '/session/:sessionId/appium/device/open_notifications': {
         POST: {
             command: 'openNotifications',
-            description: 'Open Android notifications (Emulator only).',
+            description: 'Open Android notifications.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/system/open-notifications/',
+            deprecated: 'Use `driver.execute(\'mobile: openNotifications\')` or `driver.execute(\'mobile: statusBar\', { ... })` instead',
             parameters: [],
             support: {
                 android: {
@@ -907,6 +975,7 @@ export default {
             description:
                 'Start an Android activity by providing package name and activity name.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/activity/start-activity/',
+            deprecated: 'Use `driver.execute(\'mobile: startActivity\', { ... })` instead',
             parameters: [
                 {
                     name: 'appPackage',
@@ -983,6 +1052,7 @@ export default {
             description:
                 'Retrieve visibility and bounds information of the status and navigation bars.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/system/system-bars/',
+            deprecated: 'Use `driver.execute(\'mobile: getSystemBars\')` instead',
             parameters: [],
             returns: {
                 type: 'object[]',
@@ -1024,6 +1094,7 @@ export default {
             command: 'getDisplayDensity',
             description: 'Get display density from device.',
             ref: 'https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints',
+            deprecated: 'Use `driver.execute(\'mobile: getDisplayDensity\')` instead',
             parameters: [],
             returns: {
                 type: '*',
@@ -1042,6 +1113,7 @@ export default {
             description:
                 'Simulate a [touch id](https://support.apple.com/en-ca/ht201371) event (iOS Simulator only). To enable this feature, the `allowTouchIdEnroll` desired capability must be set to true and the Simulator must be [enrolled](https://support.apple.com/en-ca/ht201371). When you set allowTouchIdEnroll to true, it will set the Simulator to be enrolled by default. The enrollment state can be [toggled](https://appium.github.io/appium.io/docs/en/commands/device/simulator/toggle-touch-id-enrollment/index.html). This call will only work if Appium process or its parent application (e.g. Terminal.app or Appium.app) has access to Mac OS accessibility in System Preferences > Security & Privacy > Privacy > Accessibility list.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/simulator/touch-id/',
+            deprecated: 'Use `driver.execute(\'mobile: sendBiometricMatch\', { ... })` instead',
             parameters: [
                 {
                     name: 'match',
@@ -1064,6 +1136,7 @@ export default {
             description:
                 "Toggle the simulator being [enrolled](https://support.apple.com/en-ca/ht201371) to accept touchId (iOS Simulator only). To enable this feature, the `allowTouchIdEnroll` desired capability must be set to true. When `allowTouchIdEnroll` is set to true the Simulator will be enrolled by default, and the 'Toggle Touch ID Enrollment' changes the enrollment state. This call will only work if the Appium process or its parent application (e.g., Terminal.app or Appium.app) has access to Mac OS accessibility in System Preferences > Security & Privacy > Privacy > Accessibility list.",
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/simulator/toggle-touch-id-enrollment/',
+            deprecated: 'Use `driver.execute(\'mobile: enrollBiometric\', { ... })` instead',
             parameters: [
                 {
                     name: 'enabled',
@@ -1087,7 +1160,7 @@ export default {
             description:
                 'Launch an app on device.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/launch-app/',
-            deprecated: 'For iOS, utilize `driver.execute(\'mobile: launchApp\', { ... })`, and for Android, make use of `driver.execute(\'mobile: activateApp\', { ... })`.',
+            deprecated: 'Use `driver.execute(\'mobile: launchApp\', { ... })` (iOS) or `driver.execute(\'mobile: activateApp\', { ... })` (Android) instead',
             parameters: [],
             support: {
                 ios: {
@@ -1130,7 +1203,7 @@ export default {
                     name: 'seconds',
                     type: '(number|null)',
                     description:
-                        "timeout to restore app, if 'null' app won't be restored",
+                        'Timeout after which to restore the app. A value of -1 disables the timeout',
                     required: true,
                     default: 'null',
                 },
@@ -1151,6 +1224,7 @@ export default {
             command: 'endCoverage',
             description: 'Get test coverage data.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/end-test-coverage/',
+            deprecated: 'Use `driver.execute(\'mobile: shell\', { ... })` instead',
             parameters: [
                 {
                     name: 'intent',
@@ -1177,6 +1251,7 @@ export default {
             command: 'getStrings',
             description: 'Get app strings.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/get-app-strings/',
+            deprecated: 'Use `driver.execute(\'mobile: getAppStrings\', { ... })` instead',
             parameters: [
                 {
                     name: 'language',
@@ -1212,6 +1287,7 @@ export default {
         POST: {
             command: 'setValueImmediate',
             ref: 'https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints',
+            deprecated: 'Use `driver.addValue(...)` or `driver.setValue(...)` instead',
             variables: [
                 {
                     name: 'elementId',
@@ -1242,6 +1318,7 @@ export default {
             command: 'replaceValue',
             description: 'Replace the value to element directly.',
             ref: 'https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints',
+            deprecated: 'Use `driver.addValue(...)` or `driver.setValue(...)` instead',
             variables: [
                 {
                     name: 'elementId',
@@ -1271,8 +1348,8 @@ export default {
     '/session/:sessionId/appium/settings': {
         GET: {
             command: 'getSettings',
-            description: 'Retrieve the current settings on the device.',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/session/settings/get-settings/',
+            description: 'Retrieve the current session settings.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getsettings',
             parameters: [],
             returns: {
                 type: 'object',
@@ -1295,8 +1372,8 @@ export default {
         },
         POST: {
             command: 'updateSettings',
-            description: 'Update the current setting on the device.',
-            ref: 'https://appium.github.io/appium.io/docs/en/commands/session/settings/update-settings/',
+            description: 'Update the session settings.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#updatesettings',
             parameters: [
                 {
                     name: 'settings',
@@ -1325,6 +1402,7 @@ export default {
             description:
                 'Callback url for asynchronous execution of JavaScript.',
             ref: 'https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints',
+            deprecated: 'Use `driver.executeAsyncScript(...)` instead',
             parameters: [
                 {
                     name: 'response',
@@ -1346,6 +1424,7 @@ export default {
             command: 'gsmCall',
             description: 'Make GSM call (Emulator only).',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/gsm-call/',
+            deprecated: 'Use `driver.execute(\'mobile: gsmCall\', { ... })` instead',
             parameters: [
                 {
                     name: 'phoneNumber',
@@ -1373,6 +1452,7 @@ export default {
             command: 'gsmSignal',
             description: 'Set GSM signal strength (Emulator only).',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/gsm-signal/',
+            deprecated: 'Use `driver.execute(\'mobile: gsmSignal\', { ... })` instead',
             parameters: [
                 {
                     name: 'signalStrength',
@@ -1400,6 +1480,7 @@ export default {
             command: 'powerCapacity',
             description: 'Set the battery percentage (Emulator only).',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/emulator/power_capacity/',
+            deprecated: 'Use `driver.execute(\'mobile: powerCapacity\', { ... })` instead',
             parameters: [
                 {
                     name: 'percent',
@@ -1421,6 +1502,7 @@ export default {
             description:
                 'Set the state of the battery charger to connected or not (Emulator only).',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/emulator/power_ac/',
+            deprecated: 'Use `driver.execute(\'mobile: powerAC\', { ... })` instead',
             parameters: [
                 {
                     name: 'state',
@@ -1441,6 +1523,7 @@ export default {
             command: 'gsmVoice',
             description: 'Set GSM voice state (Emulator only).',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/gsm-voice/',
+            deprecated: 'Use `driver.execute(\'mobile: gsmVoice\', { ... })` instead',
             parameters: [
                 {
                     name: 'state',
@@ -1462,6 +1545,7 @@ export default {
             command: 'sendSms',
             description: 'Simulate an SMS message (Emulator only).',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/send-sms/',
+            deprecated: 'Use `driver.execute(\'mobile: sendSms\', { ... })` instead',
             parameters: [
                 {
                     name: 'phoneNumber',
@@ -1489,6 +1573,7 @@ export default {
             description:
                 'Authenticate users by using their finger print scans on supported emulators.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/authentication/finger-print/',
+            deprecated: 'Use `driver.execute(\'mobile: fingerPrint\', { ... })` instead',
             parameters: [
                 {
                     name: 'fingerprintId',
@@ -1510,6 +1595,7 @@ export default {
             command: 'setClipboard',
             description: 'Set the content of the system clipboard',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/clipboard/set-clipboard/',
+            deprecated: 'Use `driver.execute(\'mobile: setClipboard\', { ... })` instead',
             parameters: [
                 {
                     name: 'content',
@@ -1551,6 +1637,7 @@ export default {
             command: 'getClipboard',
             description: 'Get the content of the system clipboard',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/clipboard/get-clipboard/',
+            deprecated: 'Use `driver.execute(\'mobile: getClipboard\', { ... })` instead',
             parameters: [
                 {
                     name: 'contentType',
@@ -1582,6 +1669,7 @@ export default {
             description:
                 "This functionality is only available from within a native context. 'Touch Perform' works similarly to the other singular touch interactions, except that this allows you to chain together more than one touch action as one command. This is useful because Appium commands are sent over the network and there's latency between commands. This latency can make certain touch interactions impossible because some interactions need to be performed in one sequence. Vertical, for example, requires pressing down, moving to a different y coordinate, and then releasing. For it to work, there can't be a delay between the interactions.",
             ref: 'https://appium.github.io/appium.io/docs/en/commands/interactions/touch/touch-perform/',
+            deprecated: 'Use `driver.performActions(...)` instead',
             parameters: [
                 {
                     name: 'actions',
@@ -1650,6 +1738,7 @@ export default {
             description:
                 'This functionality is only available from within a native context. Perform a multi touch action sequence.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/interactions/touch/multi-touch-perform/',
+            deprecated: 'Use `driver.performActions(...)` instead',
             parameters: [
                 {
                     name: 'actions',
@@ -1677,8 +1766,8 @@ export default {
         POST: {
             command: 'executeDriverScript',
             description:
-                'This command enables you to specify a WebdriverIO script as a string and transmit it to the Appium server for local execution on the server itself. This approach helps minimize potential latency associated with each command. ***To utilize this command with Appium 2.0, you must have the [`execute-driver-plugin`](https://github.com/appium/appium/tree/master/packages/execute-driver-plugin) plugin installed.***',
-            ref: 'https://github.com/appium/appium/blob/master/docs/en/commands/session/execute-driver.md',
+                'Execute a script in a child process. This approach helps minimize potential latency associated with each command. ***Using this command in Appium 2 or later requires installing the [`execute-driver`](https://github.com/appium/appium/tree/master/packages/execute-driver-plugin) plugin.***',
+            ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#executedriverscript',
             parameters: [
                 {
                     name: 'script',
@@ -1713,15 +1802,14 @@ export default {
     '/session/:sessionId/appium/events': {
         POST: {
             command: 'getEvents',
-            description: 'Get events stored in appium server.',
-            ref: 'https://github.com/appium/appium/blob/master/docs/en/commands/session/events/get-events.md',
+            description: 'Get events logged in the current session.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getlogevents',
             parameters: [
                 {
                     name: 'type',
-                    type: 'string[]',
-                    description:
-                        'Get events which are filtered with the type if the type is provided.',
-                    required: true,
+                    type: '(string|string[])',
+                    description: 'One or more event types to filter the returned events',
+                    required: false,
                 },
             ],
             returns: {
@@ -1743,21 +1831,19 @@ export default {
     '/session/:sessionId/appium/log_event': {
         POST: {
             command: 'logEvent',
-            description: 'Store a custom event.',
-            ref: 'https://github.com/appium/appium/blob/master/docs/en/commands/session/events/log-event.md',
+            description: 'Log a custom event.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#logcustomevent',
             parameters: [
                 {
                     name: 'vendor',
                     type: 'string',
-                    description:
-                        'The name of vendor. It will be `vendor` in `vendor:event`.',
+                    description: 'Name of the namespace (vendor) used to prefix the event',
                     required: true,
                 },
                 {
                     name: 'event',
                     type: 'string',
-                    description:
-                        'The name of event. It will be `event` in `vendor:event`.',
+                    description: 'Name of the event',
                     required: true,
                 },
             ],
@@ -1775,37 +1861,34 @@ export default {
         POST: {
             command: 'compareImages',
             description:
-                'This feature conducts image comparisons utilizing the capabilities of the OpenCV framework. Please note that for this functionality to work, both the OpenCV framework and the opencv4nodejs module must be installed on the machine where the Appium server is operational. ***Furthermore, you\'ll need to have the [`images-plugin`](https://github.com/appium/appium/tree/master/packages/images-plugin) plugin installed to use this feature with Appium 2.0.***',
-            ref: 'https://github.com/appium/appium/blob/master/packages/images-plugin/docs/image-comparison.md',
+                'Compare two images using the specified mode of comparison. ***Using this command in Appium 2 or later requires installing the [`images`](https://github.com/appium/appium/tree/master/packages/images-plugin) plugin.***',
+            ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#compareimages',
             parameters: [
                 {
                     name: 'mode',
                     type: 'string',
                     description:
-                        "One of possible comparison modes: 'matchFeatures', 'getSimilarity', 'matchTemplate'. 'matchFeatures' is by default.",
+                        "One of possible comparison modes: 'matchFeatures', 'getSimilarity', 'matchTemplate'.",
                     required: true,
-                    default: 'matchFeatures',
                 },
                 {
                     name: 'firstImage',
                     type: 'string',
-                    description:
-                        'An image data. All image formats, that OpenCV library itself accepts, are supported.',
+                    description: 'Base64-encoded image file.',
                     required: true,
                 },
                 {
                     name: 'secondImage',
                     type: 'string',
-                    description:
-                        'An image data. All image formats, that OpenCV library itself accepts, are supported.',
+                    description: 'Base64-encoded image file.',
                     required: true,
                 },
                 {
                     name: 'options',
                     type: 'object',
                     description:
-                        'The content of this dictionary depends on the actual `mode` value. See the documentation on `appium-support` module for more details. ',
-                    required: true,
+                        'The supported values of this property depend on the `mode` value. See Appium documentation for more details.',
+                    required: false,
                     default: {},
                 },
             ],
@@ -1813,7 +1896,7 @@ export default {
                 type: 'object',
                 name: 'result',
                 description:
-                    'The content of the resulting dictionary depends on the actual `mode` and `options` values. See the documentation on `appium-support` module for more details.',
+                    'The content of the resulting dictionary depends on the `mode` and `options` values. See Appium documentation for more details.',
             },
         },
     },
@@ -1823,6 +1906,7 @@ export default {
             description:
                 'Set the amount of time the driver should wait when searching for elements. When searching for a single element, the driver should poll the page until an element is found or the timeout expires, whichever occurs first. When searching for multiple elements, the driver should poll the page until at least one element is found or the timeout expires, at which point it should return an empty list. If this command is never sent, the driver should default to an implicit wait of 0ms.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            deprecated: 'Use `driver.setTimeouts(...)` instead',
             parameters: [
                 {
                     name: 'ms',
@@ -1848,6 +1932,7 @@ export default {
             description:
                 "Determine an element's location on the screen once it has been scrolled into view.<br /><br />__Note:__ This is considered an internal command and should only be used to determine an element's location for correctly generating native events.",
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            deprecated: 'Use `driver.getElementRect(...)` or `element.getLocation()` instead',
             variables: [
                 {
                     name: 'elementId',
@@ -1876,6 +1961,7 @@ export default {
             command: 'sendKeys',
             description: 'Send a sequence of key strokes to the active element',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            deprecated: 'Use `driver.performActions(...)` with `keyUp` and `keyDown` actions instead',
             parameters: [
                 {
                     name: 'value',
@@ -1898,8 +1984,8 @@ export default {
     '/session/:sessionId/ime/available_engines': {
         GET: {
             command: 'availableIMEEngines',
-            description: 'List all available engines on the machine. To use an engine, it has to be present in this list.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            description: 'List all available IME engines on the device. To use an engine, it has to be present in this list.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#availableimeengines',
             parameters: [],
             returns: {
                 type: 'String[]',
@@ -1917,7 +2003,7 @@ export default {
         GET: {
             command: 'getActiveIMEEngine',
             description: 'Get the name of the active IME engine. The name string is platform specific.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#getactiveimeengine',
             parameters: [],
             returns: {
                 type: 'String',
@@ -1935,7 +2021,7 @@ export default {
         GET: {
             command: 'isIMEActivated',
             description: 'Indicates whether IME input is active at the moment',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#isimeactivated',
             parameters: [],
             returns: {
                 type: 'Boolean',
@@ -1954,7 +2040,7 @@ export default {
         POST: {
             command: 'deactivateIMEEngine',
             description: 'De-activates the currently-active IME engine.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#deactivateimeengine',
             parameters: [],
             support: {
                 android: {
@@ -1966,8 +2052,8 @@ export default {
     '/session/:sessionId/ime/activate': {
         POST: {
             command: 'activateIMEEngine',
-            description: 'Make an engines that is available',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            description: 'Activates an IME engine.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#activateimeengine',
             parameters: [
                 {
                     name: 'engine',
@@ -1989,6 +2075,7 @@ export default {
             description:
                 'Set the amount of time, in milliseconds, that asynchronous scripts executed by `/session/:sessionId/execute_async` are permitted to run before they are aborted and a `Timeout` error is returned to the client.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            deprecated: 'Use `driver.setTimeouts(...)` instead',
             parameters: [
                 {
                     name: 'ms',
@@ -2010,6 +2097,7 @@ export default {
             command: 'submit',
             description: 'Submit a form element.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            deprecated: 'Please explicitly find and click the submit element',
             variables: [
                 {
                     name: 'elementId',
@@ -2030,6 +2118,7 @@ export default {
             description:
                 "Determine an element's size in pixels. The size will be returned as a JSON object with `width` and `height` properties.",
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            deprecated: 'Use `driver.getElementRect(...)` or `element.getSize()` instead',
             variables: [
                 {
                     name: 'elementId',
@@ -2058,6 +2147,7 @@ export default {
             description:
                 "Determine an element's location on the page. The point `(0, 0)` refers to the upper-left corner of the page. The element's coordinates are returned as a JSON object with `x` and `y` properties.",
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            deprecated: 'Use `driver.getElementRect(...)` or `element.getLocation()` instead',
             variables: [
                 {
                     name: 'elementId',
@@ -2086,6 +2176,7 @@ export default {
             command: 'touchClick',
             description: 'Single tap on the touch enabled device.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            deprecated: 'Use `driver.performActions(...)` with `pointerDown` and `pointerUp` actions instead',
             parameters: [
                 {
                     name: 'element',
@@ -2109,6 +2200,7 @@ export default {
             command: 'touchDown',
             description: 'Finger down on the screen.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            deprecated: 'Use `driver.performActions(...)` with a `pointerDown` action instead',
             parameters: [
                 {
                     name: 'x',
@@ -2135,6 +2227,7 @@ export default {
             command: 'touchUp',
             description: 'Finger up on the screen.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            deprecated: 'Use `driver.performActions(...)` with a `pointerUp` action instead',
             parameters: [
                 {
                     name: 'x',
@@ -2161,6 +2254,7 @@ export default {
             command: 'touchMove',
             description: 'Finger move on the screen.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            deprecated: 'Use `driver.performActions(...)` with a `pointerMove` action instead',
             parameters: [
                 {
                     name: 'x',
@@ -2188,6 +2282,7 @@ export default {
             description:
                 'Long press on the touch screen using finger motion events.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            deprecated: 'Use `driver.performActions(...)` with `pointerDown`, `pause` and `pointerUp` actions instead',
             parameters: [
                 {
                     name: 'element',
@@ -2209,6 +2304,7 @@ export default {
             description:
                 'Flick on the touch screen using finger motion events. This flick command starts at a particular screen location.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            deprecated: 'Use `driver.performActions(...)` with `pointerDown`, `pointerMove` and `pointerUp` actions instead',
             parameters: [
                 {
                     name: 'xoffset',
@@ -2258,7 +2354,7 @@ export default {
         GET: {
             command: 'getOrientation',
             description: 'Get the current device orientation.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#getorientation',
             parameters: [],
             returns: {
                 type: 'String',
@@ -2278,7 +2374,7 @@ export default {
         POST: {
             command: 'setOrientation',
             description: 'Set the device orientation',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#setorientation',
             parameters: [
                 {
                     name: 'orientation',
@@ -2302,7 +2398,7 @@ export default {
         GET: {
             command: 'getGeoLocation',
             description: 'Get the current geo location.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#getgeolocation',
             parameters: [],
             returns: {
                 type: 'Object',
@@ -2313,7 +2409,7 @@ export default {
         POST: {
             command: 'setGeoLocation',
             description: 'Set the current geo location.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#setgeolocation',
             parameters: [
                 {
                     name: 'location',
