@@ -70,7 +70,7 @@ class _InsightsHandler {
         this._options = _options
 
         this._platformMeta = {
-            browserName: caps.browserName,
+            browserName: caps?.browserName,
             browserVersion: caps?.browserVersion,
             platformName: caps?.platformName,
             caps: caps,
