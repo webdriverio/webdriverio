@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import cp, { type ChildProcess } from 'node:child_process'
 
@@ -26,10 +27,10 @@ export type ChromedriverParameters = (
 )
 declare global {
     namespace WebdriverIO {
-        interface ChromedriverOptions extends ChromedriverParameters {}
-        interface GeckodriverOptions extends Omit<GeckodriverParameters, 'port'> {}
-        interface EdgedriverOptions extends Omit<EdgedriverParameters, 'port'> {}
-        interface SafaridriverOptions extends Omit<SafaridriverParameters, 'port'> {}
+        interface ChromedriverOptions extends ChromedriverParameters { }
+        interface GeckodriverOptions extends Omit<GeckodriverParameters, 'port'> { }
+        interface EdgedriverOptions extends Omit<EdgedriverParameters, 'port'> { }
+        interface SafaridriverOptions extends Omit<SafaridriverParameters, 'port'> { }
     }
 }
 
@@ -37,7 +38,7 @@ const log = logger('@wdio/utils')
 const DRIVER_WAIT_TIMEOUT = 10 * 1000 // 10s
 const DRIVER_RETRY_INTERVAL = 100
 
-export async function startWebDriver (options: Capabilities.RemoteConfig) {
+export async function startWebDriver(options: Capabilities.RemoteConfig) {
     /**
      * in case we are running unit tests, just return
      */
@@ -90,6 +91,26 @@ export async function startWebDriver (options: Capabilities.RemoteConfig) {
             prefs,
             caps['goog:chromeOptions'] || {}
         )
+
+        /**
+         * Add unique user data directory for each worker to prevent
+         * "user data directory is already in use" errors on Windows
+         * when multiple workers start Chrome simultaneously
+         */
+        if (process.platform === 'win32' && process.env.WDIO_WORKER_ID) {
+            const existingArgs = caps['goog:chromeOptions']?.args || []
+            const hasUserDataDir = existingArgs.some(arg =>
+                typeof arg === 'string' && arg.includes('user-data-dir'))
+
+            if (!hasUserDataDir) {
+                const userDataDir = path.join(
+                    options.outputDir || os.tmpdir(),
+                    `wdio-chrome-${process.env.WDIO_WORKER_ID}-${Date.now()}`
+                )
+                caps['goog:chromeOptions'].args = [...existingArgs, `--user-data-dir=${userDataDir}`]
+            }
+        }
+
         chromedriverOptions.allowedOrigins = chromedriverOptions.allowedOrigins || ['*']
         chromedriverOptions.allowedIps = chromedriverOptions.allowedIps || ['0.0.0.0']
         const driverParams = parseParams({ port, ...chromedriverOptions })

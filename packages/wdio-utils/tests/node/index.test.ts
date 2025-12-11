@@ -1,6 +1,7 @@
 import fsp from 'node:fs/promises'
 import cp from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
@@ -29,12 +30,18 @@ vi.mock('node:fs', () => ({
     }
 }))
 
-vi.mock('node:os', async (origMod) => ({
-    default: {
-        ...(await origMod<any>()),
-        platform: vi.fn().mockReturnValue('linux')
+vi.mock('node:os', async (origMod) => {
+    const actual = await origMod<any>()
+    const platformMock = vi.fn().mockReturnValue('linux')
+
+    return {
+        default: {
+            ...actual,
+            platform: platformMock,
+            __setPlatform: (val: string) => platformMock.mockReturnValue(val)
+        }
     }
-}))
+})
 
 vi.mock('node:child_process', () => ({
     default: {
@@ -417,5 +424,61 @@ describe('startWebDriver', () => {
                 `the following browser names: ${Object.values(SUPPORTED_BROWSERNAMES).flat(Infinity)}`
             )
         )
+    })
+    it('should add a unique user-data-dir on Windows for Chrome workers', async () => {
+        // Change the mocked OS to Windows
+        // @ts-ignore
+        os.__setPlatform('win32')
+
+        const originalPlatform = process.platform
+        Object.defineProperty(process, 'platform', {
+            value: 'win32',
+            writable: true,
+            configurable: true
+        })
+
+        // Simulate WDIO worker env
+        process.env.WDIO_WORKER_ID = '0-1'
+
+        // Reset mocks
+        vi.mocked(fsp.mkdir).mockClear()
+        vi.mocked(cp.spawn).mockClear()
+
+        const options: any = {
+            capabilities: {
+                browserName: 'chrome',
+                'wdio:chromedriverOptions': { foo: 'bar' }
+            }
+        }
+
+        const result = await startWebDriver(options)
+
+        expect(Boolean(result?.stdout)).toBe(true)
+
+        // startWebDriver does not create the directory, it just passes the path to Chrome
+        expect(fsp.mkdir).not.toBeCalled()
+
+        expect(cp.spawn).toBeCalledTimes(1)
+
+        // Check that the user-data-dir was added to the chromeOptions args
+        const chromeArgs = options.capabilities['goog:chromeOptions'].args
+        const userDataArg = chromeArgs.find((a: string) =>
+            a.startsWith('--user-data-dir=')
+        )
+
+        expect(userDataArg).toBeDefined()
+        expect(userDataArg).toContain('wdio-chrome-')
+        expect(userDataArg).toContain('0-1')
+
+        delete process.env.WDIO_WORKER_ID
+        // @ts-ignore
+        // @ts-ignore
+        os.__setPlatform('linux')
+        Object.defineProperty(process, 'platform', {
+            value: originalPlatform,
+            writable: true,
+            configurable: true
+        })
+        vi.restoreAllMocks()
     })
 })
