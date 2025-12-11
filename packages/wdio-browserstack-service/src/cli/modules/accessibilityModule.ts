@@ -104,21 +104,21 @@ export default class AccessibilityModule extends BaseModule {
 
             //patching performScan
             (browser as WebdriverIO.Browser).performScan = async () => {
-                if (!this.accessibility && !this.isAppAccessibility){
+                if (!this.accessibility && !this.isAppAccessibility) {
                     return
                 }
                 return await this.performScanCli(browser)
             }
 
             (browser as WebdriverIO.Browser).startA11yScanning = async () => {
-                if (!this.accessibility && !this.isAppAccessibility){
+                if (!this.accessibility && !this.isAppAccessibility) {
                     return
                 }
                 this.logger.warn('Accessibility scanning cannot be started from outside the test')
             }
 
             (browser as WebdriverIO.Browser).stopA11yScanning = async () => {
-                if (!this.accessibility && !this.isAppAccessibility){
+                if (!this.accessibility && !this.isAppAccessibility) {
                     return
                 }
                 this.logger.warn('Accessibility scanning cannot be stopped from outside the test')
@@ -211,20 +211,20 @@ export default class AccessibilityModule extends BaseModule {
             const browser = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser
 
             (browser as WebdriverIO.Browser).startA11yScanning = async () => {
-                if (!this.accessibility && !this.isAppAccessibility){
+                if (!this.accessibility && !this.isAppAccessibility) {
                     return
                 }
                 this.accessibilityMap.set(sessionId, true)
                 this.testMetadata[testIdentifier] = {
-                    scanTestForAccessibility : true,
-                    accessibilityScanStarted : true
+                    scanTestForAccessibility: true,
+                    accessibilityScanStarted: true
                 }
                 TestFramework.setState(testInstance, `accessibility_metadata_${testIdentifier}`, this.testMetadata[testIdentifier])
                 await this._setAnnotation('Accessibility scanning has started')
             }
 
             (browser as WebdriverIO.Browser).stopA11yScanning = async () => {
-                if (!this.accessibility && !this.isAppAccessibility){
+                if (!this.accessibility && !this.isAppAccessibility) {
                     return
                 }
                 this.accessibilityMap.set(sessionId, false)
@@ -232,15 +232,15 @@ export default class AccessibilityModule extends BaseModule {
             }
 
             (browser as WebdriverIO.Browser).performScan = async () => {
-                if (!this.accessibility && !this.isAppAccessibility){
+                if (!this.accessibility && !this.isAppAccessibility) {
                     return
                 }
                 const results = await this.performScanCli(browser)
-                if (results){
+                if (results) {
                     const testIdentifier = String(testInstance.getContext().getId())
                     this.testMetadata[testIdentifier] = {
-                        scanTestForAccessibility : true,
-                        accessibilityScanStarted : true
+                        scanTestForAccessibility: true,
+                        accessibilityScanStarted: true
                     }
                     TestFramework.setState(testInstance, `accessibility_metadata_${testIdentifier}`, this.testMetadata[testIdentifier])
                     await this._setAnnotation('Accessibility scanning was triggered manually')
@@ -482,13 +482,19 @@ export default class AccessibilityModule extends BaseModule {
         const browser = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser
 
         if (this.accessibility && isBrowserstackSession(browser)) {
-            await (browser as WebdriverIO.Browser).execute(`browserstack_executor: ${JSON.stringify({
+            await (browser as WebdriverIO.Browser).execute((data: { action: string; arguments: Record<string, unknown> }) => {
+                // @ts-expect-error - BrowserStack injects this global function
+                if (typeof window.browserstack_executor === 'function') {
+                    // @ts-expect-error - BrowserStack injects this global function
+                    window.browserstack_executor(data)
+                }
+            }, {
                 action: 'annotate',
                 arguments: {
                     data: message,
                     level: 'info'
                 }
-            })}`)
+            })
         }
     }
 
