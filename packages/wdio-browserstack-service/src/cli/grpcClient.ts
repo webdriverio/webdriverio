@@ -510,7 +510,7 @@ export class GrpcClient {
                 return null
             } catch (error: unknown) {
                 const errorMessage = util.format(error)
-                this.logger.error(`TestOrchestration error: ${errorMessage}`)
+                this.logger.error(`TestOrchestration request error: ${errorMessage}`)
                 throw error
             }
         } catch (error) {
