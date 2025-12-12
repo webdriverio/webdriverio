@@ -25,25 +25,20 @@ export async function applyOrchestrationIfEnabled(
         return specs
     }
 
-    // Check if orchestration is enabled
-    let testOrderingApplied = false
     orchestrationHandler.addToOrderingInstrumentationData('enabled', orchestrationHandler.testOrderingEnabled())
 
     const startTime = performance.now()
 
-    // if (orchestrationHandler.testOrderingEnabled()) {
     BStackLogger.info('Test orchestration is enabled. Attempting to reorder test files.')
 
     // Get the test files from the specs - pass them as received
     const testFiles = specs
-    testOrderingApplied = true
     BStackLogger.info(`Test files to be reordered: ${testFiles.join(', ')}`)
 
     // Reorder the test files
     const orderedFiles = await orchestrationHandler.reorderTestFiles(testFiles)
 
     if (orderedFiles && orderedFiles.length > 0) {
-        orchestrationHandler.setTestOrderingApplied(testOrderingApplied)
         BStackLogger.info(`Tests reordered using orchestration: ${orderedFiles.join(', ')}`)
 
         // Return the ordered files as the new specs

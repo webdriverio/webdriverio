@@ -110,21 +110,6 @@ export class TestOrchestrationHandler {
     }
 
     /**
-     * Checks if test ordering is applied
-     */
-    isTestOrderingApplied(): boolean {
-        return this.testOrderingApplied
-    }
-
-    /**
-     * Sets whether test ordering is applied
-     */
-    setTestOrderingApplied(orderingApplied: boolean): void {
-        this.testOrderingApplied = orderingApplied
-        this.addToOrderingInstrumentationData('applied', orderingApplied)
-    }
-
-    /**
      * Reorders test files based on the orchestration strategy
      */
     async reorderTestFiles(testFiles: string[]): Promise<string[] | null> {
