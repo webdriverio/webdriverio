@@ -52,18 +52,6 @@ export class TestOrchestrationHandler {
     }
 
     /**
-     * Checks if test ordering is enabled
-     * Do not apply test ordering when:
-     * - O11y is not enabled
-     * - Ordering is not enabled
-     * - projectName is None
-     * - buildName is None
-     */
-    testOrderingEnabled(): boolean {
-        return this.isTestOrderingEnabled
-    }
-
-    /**
      * Checks if observability is enabled
      */
     private _isObservabilityEnabled(): boolean {
@@ -71,24 +59,9 @@ export class TestOrchestrationHandler {
     }
 
     /**
-     * Checks if test ordering checks should be logged
-     */
-    shouldLogTestOrderingChecks(): boolean {
-        return (
-            !this.testOrderingEnabled() &&
-            this.orchestrationUtils !== null &&
-            this.orchestrationUtils.testOrderingEnabled()
-        )
-    }
-
-    /**
      * Logs test ordering checks
      */
     logTestOrderingChecks(): void {
-        if (!this.shouldLogTestOrderingChecks()) {
-            return
-        }
-
         if (this.config.projectName === undefined || this.config.buildName === undefined) {
             BStackLogger.info("Test Reordering can't work as buildName or projectName is null. Please set a non-null value.")
         }
