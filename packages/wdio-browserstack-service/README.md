@@ -357,3 +357,5 @@ For a detailed list of BrowserStack WebdriverIO services, see the BrowserStack d
 ----
 
 For more information on WebdriverIO see the [homepage](https://webdriver.io).
+
+======
