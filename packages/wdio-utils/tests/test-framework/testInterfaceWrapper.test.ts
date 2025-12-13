@@ -29,7 +29,8 @@ describe('runHook', () => {
             { afterFn: 'afterFn', afterFnArgs },
             'cid',
             0,
-            'bound spy'
+            'bound spy',
+            0
         )
         expect(hookFunction.mock.calls[0][0].toString()).toBe('hookFn')
     })
@@ -46,6 +47,8 @@ describe('runSpec', () => {
             { beforeFn: 'beforeFn', beforeFnArgs },
             { afterFn: 'afterFn', afterFnArgs },
             'cid',
+            0,
+            undefined,
             0
         )
         expect(testFunction.mock.calls[0][0].toString()).toBe('test title')
@@ -63,6 +66,8 @@ describe('wrapTestFunction', () => {
             { beforeFn: 'beforeFn', beforeFnArgs: expect.any(Function) },
             { afterFn: 'afterFn', afterFnArgs: expect.any(Function) },
             'cid',
+            0,
+            undefined,
             0
         )
     })
@@ -78,7 +83,8 @@ describe('wrapTestFunction', () => {
             { afterFn: 'afterFn', afterFnArgs: expect.any(Function) },
             'cid',
             4,
-            'spy'
+            'spy',
+            123
         )
         expect(hookFunction).toBeCalledWith(expect.any(Function), 123)
     })
@@ -111,7 +117,9 @@ describe('wrapGlobalTestMethod', () => {
             { beforeFn: 'beforeFn', beforeFnArgs: expect.any(Function) },
             { afterFn: 'afterFn', afterFnArgs: expect.any(Function) },
             'cid',
-            3
+            3,
+            undefined,
+            321
         )
 
         expect(testFunction).toBeCalledWith(
@@ -136,7 +144,8 @@ describe('wrapGlobalTestMethod', () => {
             { afterFn: 'afterFn', afterFnArgs: expect.any(Function) },
             'cid',
             0,
-            'spy'
+            'spy',
+            0
         )
     })
 })

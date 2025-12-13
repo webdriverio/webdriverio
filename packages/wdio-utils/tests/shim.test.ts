@@ -96,6 +96,13 @@ describe('executeAsync', () => {
         expect(result).toBe(true)
     })
 
+    it('should respect runnable timeout when provided by the framework', async () => {
+        const scope = { _runnable: { _timeout: 500 } }
+        const fn = () => new Promise((resolve) => setTimeout(() => resolve('ok'), 200))
+        const result = await executeAsync.call(scope as any, fn, { attempts: 1, limit: 1 }, [], 50)
+        expect(result).toBe('ok')
+    })
+
     it('should retry', async () => {
         let attempts = 0
         const retryFunction = () => {
