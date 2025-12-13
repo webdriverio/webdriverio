@@ -25,12 +25,20 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "bin": {
+    "appium-service": "./bin/appium-service.js"
+  },
   "type": "module",
   "types": "./build/index.d.ts",
   "exports": {
     ".": {
       "import": "./build/index.js",
       "types": "./build/index.d.ts"
+    },
+    "./cli": {
+      "import": "./build/cli.js",
+      "importSource": "./src/cli.ts",
+      "types": "./build/cli.d.ts"
     }
   },
   "typeScriptVersion": "3.8.3",
