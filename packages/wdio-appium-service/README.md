@@ -111,6 +111,65 @@ export const config = {
 ```
 **Note:** The utilization of aliases is discouraged and unsupported. Instead, please use the full property name in lower camel case.
 
+## CLI Command
+
+This package includes a CLI command to quickly start the Appium server and open the Appium Inspector in your browser. This makes it easier to work with Appium when using WebdriverIO.
+
+### Usage
+
+```sh
+npx start-appium-inspector [options]
+```
+
+The command will:
+- Automatically start the Appium server for you
+- Open the [Appium Inspector](https://inspector.appiumpro.com/) in your default browser
+- Handle cleanup when you press `Ctrl+C`
+
+### Prerequisites
+
+Make sure you have Appium installed with the drivers you need:
+
+```sh
+# Install Appium globally
+npm install -g appium
+
+# Install drivers (examples)
+appium driver install uiautomator2  # For Android
+appium driver install xcuitest      # For iOS
+```
+
+Or install Appium locally in your project:
+
+```sh
+npm install --save-dev appium
+```
+
+### Examples
+
+Start with default port (4723):
+```sh
+npx start-appium-inspector
+```
+
+Start with a custom port:
+```sh
+npx start-appium-inspector --port=8080
+```
+
+Pass additional Appium server arguments:
+```sh
+npx start-appium-inspector --port=4723 --base-path=/wd/hub --relaxed-security
+```
+
+The command accepts all standard Appium server arguments. For a complete list of available arguments, see the [Appium documentation](https://appium.io/docs/en/latest/cli/args/).
+
+### Appium Inspector
+
+The CLI automatically opens the [Appium Inspector](https://inspector.appiumpro.com/) web application, which provides a GUI interface for inspecting and interacting with your mobile apps. For more information about the Appium Inspector, visit the [Appium Inspector GitHub repository](https://github.com/appium/appium-inspector).
+
+**Note:** The Appium Inspector requires CORS to be enabled on the Appium server. The CLI automatically adds the `--allow-cors` flag to ensure compatibility.
+
 ----
 
 For more information on WebdriverIO see the [homepage](https://webdriver.io).
