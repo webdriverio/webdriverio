@@ -181,6 +181,6 @@ export async function openBrowser(url: string): Promise<void> {
         execSync(command, { stdio: 'ignore' })
         console.log('✅ Opened Appium Inspector in your default browser.')
     } catch {
-        console.log('⚠️ Automatically starting the default browser didn\'t work, please open your favorite browser and paste the url \'https://inspector.appiumpro.com/\' in there')
+        console.log(`⚠️ Automatically starting the default browser didn't work, please open your favorite browser and paste the url '${url}' in there`)
     }
 }

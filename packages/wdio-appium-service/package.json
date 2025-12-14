@@ -26,7 +26,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "bin": {
-    "appium-service": "./bin/appium-service.js"
+    "start-appium-inspector": "./bin/start-appium-inspector.js"
   },
   "type": "module",
   "types": "./build/index.d.ts",

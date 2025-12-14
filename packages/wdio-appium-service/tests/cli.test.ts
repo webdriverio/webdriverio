@@ -35,7 +35,7 @@ describe('cli run', () => {
         originalOn = process.on
         originalStdinResume = process.stdin.resume
 
-        process.argv = ['node', 'appium-service.js']
+        process.argv = ['node', 'start-appium-inspector.js']
         process.exit = vi.fn() as any
         process.on = vi.fn() as any
         process.stdin.resume = vi.fn() as any
