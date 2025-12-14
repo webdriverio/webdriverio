@@ -64,7 +64,7 @@ export async function startAppiumForCli(
     const appiumProcess: ChildProcessByStdio<null, Readable, Readable> = spawn(command, appiumArgs, {
         stdio: ['ignore', 'pipe', 'pipe']
     })
-    // just for validate the first error
+    // just to validate the first error
     let errorCaptured = false
     // to set a timeout for the promise
     let timeoutId: NodeJS.Timeout
