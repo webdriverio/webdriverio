@@ -1,4 +1,4 @@
-import { determineAppiumCliCommand, extractPortFromCliArgs, startAppiumForCli } from './cli-utils.js'
+import { determineAppiumCliCommand, extractPortFromCliArgs, openBrowser, startAppiumForCli } from './cli-utils.js'
 import treeKill from 'tree-kill'
 import { promisify } from 'node:util'
 
@@ -28,6 +28,8 @@ export async function run() {
     console.log('ℹ️  Press Ctrl+C to stop Appium server and exit\n\n')
 
     const appiumProcess = await startAppiumForCli(command, serverArgs)
+
+    await openBrowser('https://inspector.appiumpro.com/')
 
     let isCleaningUp = false
     const cleanup = async () => {

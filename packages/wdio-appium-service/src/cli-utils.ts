@@ -9,6 +9,7 @@ const APPIUM_START_TIMEOUT = 30 * 1000
 
 export function extractPortFromCliArgs(args: string[]): number {
     const port = args.find((arg) => arg.startsWith('--port='))
+
     return port ? parseInt(port.split('=')[1]) : 4723
 }
 
@@ -160,4 +161,26 @@ export async function startAppiumForCli(
             rejectOnce(new Error(errorMessage))
         })
     })
+}
+
+export async function openBrowser(url: string): Promise<void> {
+    console.log('🌐 Opening Appium Inspector in your default browser...')
+
+    let command: string
+    const platform = os.platform()
+
+    if (platform === 'win32') {
+        command = `start "" "${url}"`
+    } else if (platform === 'darwin') {
+        command = `open "${url}"`
+    } else {
+        command = `xdg-open "${url}"`
+    }
+
+    try {
+        execSync(command, { stdio: 'ignore' })
+        console.log('✅ Opened Appium Inspector in your default browser.')
+    } catch {
+        console.log('⚠️ Automatically starting the default browser didn\'t work, please open your favorite browser and paste the url \'https://inspector.appiumpro.com/\' in there')
+    }
 }
