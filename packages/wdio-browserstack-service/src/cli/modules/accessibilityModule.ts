@@ -31,9 +31,11 @@ export default class AccessibilityModule extends BaseModule {
     isNonBstackA11y: boolean
     accessibilityConfig: Accessibility
     static MODULE_NAME = 'AccessibilityModule'
-    accessibilityMap: Map<any, boolean>
-    LOG_DISABLED_SHOWN: Map<any, boolean>
+    accessibilityMap: Map<number, boolean>
+    LOG_DISABLED_SHOWN: Map<number, boolean>
     testMetadata: Record<string, any> = {}
+    centralAuthA11yConfig: Record<string, unknown> = {}
+    centralAuthConfigFetched: boolean = false
 
     constructor(accessibilityConfig: Accessibility, isNonBstackA11y: boolean) {
         super()
@@ -309,7 +311,7 @@ export default class AccessibilityModule extends BaseModule {
                         'thBuildUuid': process.env.BROWSERSTACK_TESTHUB_UUID,
                         'thJwtToken': process.env.BROWSERSTACK_TESTHUB_JWT
                     }
-                    const driverExecuteParams = await this.getDriverExecuteParams()
+                    const driverExecuteParams = await this.getDriverExecuteParams('saveResults')
                     dataForExtension = { ...dataForExtension, ...driverExecuteParams }
 
                     // final scan and saving the results
@@ -371,13 +373,26 @@ export default class AccessibilityModule extends BaseModule {
             PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.PERFORM_SCAN,
             async () => {
                 try {
+                    // Fetch central auth accessibility configuration
+                    const centralAuthConfig = await this.fetchCentralAuthA11yConfig('scan')
                     if (!this.accessibility) {
                         this.logger.debug('Not an Accessibility Automation session.')
                         return
                     }
                     if (this.isAppAccessibility) {
+                        // Get app accessibility params and merge with central auth config
+                        const appAccessibilityParams = _getParamsForAppAccessibility(commandName)
+
+                        // Merge with central auth config
+                        const mergedParams: Record<string, any> = { ...appAccessibilityParams, ...centralAuthConfig }
+
+                        // Use centralAuthToken if available
+                        if (centralAuthConfig.centralAuthToken) {
+                            // Set the auth header with the token value
+                            mergedParams.centralAuthHeader = centralAuthConfig.centralAuthToken
+                        }
                         const results: unknown = await (browser as WebdriverIO.Browser).execute(
-                            formatString(this.scriptInstance.performScan, JSON.stringify(_getParamsForAppAccessibility(commandName))) as string,
+                            formatString(this.scriptInstance.performScan, JSON.stringify(mergedParams)) as string,
                             {}
                         )
                         BStackLogger.debug(util.format(results as string))
@@ -465,10 +480,10 @@ export default class AccessibilityModule extends BaseModule {
         )()
     }
 
-    async getDriverExecuteParams() {
+    async getDriverExecuteParams(scriptName: string) {
         const payload: Omit<FetchDriverExecuteParamsEventRequest, 'binSessionId'> = {
             product: 'accessibility',
-            scriptName: 'saveResults'
+            scriptName: scriptName
         }
         const response: FetchDriverExecuteParamsEventResponse = await GrpcClient.getInstance().fetchDriverExecuteParamsEvent(payload)
         if (response.success) {
@@ -483,6 +498,27 @@ export default class AccessibilityModule extends BaseModule {
         const browser = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser
 
         await setBrowserstackAnnotation(browser, message, this.accessibility)
+    }
+
+    /**
+     * Fetch central auth accessibility configuration for the given script name.
+     * Returns cached config if already fetched, otherwise loads and caches it.
+     *
+     * @param scriptName - Name of the script to fetch config for
+     * @returns Configuration object, empty object if error occurs
+     */
+    async fetchCentralAuthA11yConfig(scriptName: string): Promise<Record<string, unknown>> {
+        try {
+            if (this.centralAuthConfigFetched) {
+                return this.centralAuthA11yConfig
+            }
+            this.centralAuthA11yConfig = await this.getDriverExecuteParams(scriptName)
+            this.centralAuthConfigFetched = true
+            return this.centralAuthA11yConfig
+        } catch (error) {
+            this.logger.error(`fetchCentralAuthA11yConfig: Failed to fetch driver execute params for ${scriptName}: ${util.format(error)}`)
+            return {}
+        }
     }
 
 }
