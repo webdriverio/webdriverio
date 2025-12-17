@@ -1,13 +1,14 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { spawn, execSync } from 'node:child_process'
+import { spawn, execSync, exec } from 'node:child_process'
 import os from 'node:os'
 import url from 'node:url'
 import { resolve as resolveModule } from 'import-meta-resolve'
-import { extractPortFromCliArgs, determineAppiumCliCommand, openBrowser, startAppiumForCli } from '../src/cli-utils.js'
+import { extractPortFromCliArgs, determineAppiumCliCommand, openBrowser, startAppiumForCli, checkInspectorPluginInstalled } from '../src/cli-utils.js'
 
 vi.mock('node:child_process', () => ({
     spawn: vi.fn(),
-    execSync: vi.fn()
+    execSync: vi.fn(),
+    exec: vi.fn()
 }))
 
 vi.mock('import-meta-resolve', () => ({
@@ -21,15 +22,17 @@ vi.mock('node:os', () => ({
 }))
 
 describe('extractPortFromCliArgs', () => {
-    it('should extract port from --port= argument', () => {
+    it('should extract valid port from --port= argument', () => {
         const args = ['--port=4725', '--log-timestamp']
         const port = extractPortFromCliArgs(args)
+
         expect(port).toBe(4725)
     })
 
     it('should return default port 4723 when no port argument is provided', () => {
         const args = ['--log-timestamp', '--allow-cors']
         const port = extractPortFromCliArgs(args)
+
         expect(port).toBe(4723)
     })
 
@@ -37,6 +40,83 @@ describe('extractPortFromCliArgs', () => {
         const args: string[] = []
         const port = extractPortFromCliArgs(args)
         expect(port).toBe(4723)
+    })
+
+    it('should accept minimum valid port (1)', () => {
+        const args = ['--port=1']
+        const port = extractPortFromCliArgs(args)
+
+        expect(port).toBe(1)
+    })
+
+    it('should accept maximum valid port (65535)', () => {
+        const args = ['--port=65535']
+        const port = extractPortFromCliArgs(args)
+
+        expect(port).toBe(65535)
+    })
+
+    it('should return default port 4723 when port is 0', () => {
+        const args = ['--port=0']
+        const port = extractPortFromCliArgs(args)
+
+        expect(port).toBe(4723)
+    })
+
+    it('should return default port 4723 when port is negative', () => {
+        const args = ['--port=-1']
+        const port = extractPortFromCliArgs(args)
+
+        expect(port).toBe(4723)
+    })
+
+    it('should return default port 4723 when port exceeds maximum (65536)', () => {
+        const args = ['--port=65536']
+        const port = extractPortFromCliArgs(args)
+
+        expect(port).toBe(4723)
+    })
+
+    it('should return default port 4723 when port is not an integer', () => {
+        const args = ['--port=4723.5']
+        const port = extractPortFromCliArgs(args)
+
+        expect(port).toBe(4723)
+    })
+
+    it('should return default port 4723 when port value is non-numeric', () => {
+        const args = ['--port=abc']
+        const port = extractPortFromCliArgs(args)
+
+        expect(port).toBe(4723)
+    })
+
+    it('should return default port 4723 when port value is empty string', () => {
+        const args = ['--port=']
+        const port = extractPortFromCliArgs(args)
+
+        expect(port).toBe(4723)
+    })
+
+    it('should return default port 4723 when port value is NaN', () => {
+        const args = ['--port=NaN']
+        const port = extractPortFromCliArgs(args)
+
+        expect(port).toBe(4723)
+    })
+
+    it('should handle port with whitespace and return default', () => {
+        const args = ['--port= 4723 ']
+        const port = extractPortFromCliArgs(args)
+
+        expect(port).toBe(4723)
+    })
+
+    it('should use first port argument if multiple port arguments exist', () => {
+        const args = ['--port=8080', '--port=4723']
+        const port = extractPortFromCliArgs(args)
+
+        expect(port).toBe(8080)
     })
 })
 
@@ -348,5 +428,180 @@ describe('startAppiumForCli', () => {
 
         expect(process.stdout.write).toHaveBeenCalledWith('Some Appium output')
         await promise
+    })
+})
+
+describe('checkInspectorPluginInstalled', () => {
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
+
+    it('should not throw when inspector plugin is installed', async () => {
+        const mockOutput = `✔ Listing available plugins
+- inspector@2025.11.1 [installed (npm)]
+- execute-driver [not installed]
+- images [not installed]`
+
+        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
+            return {} as any
+        })
+
+        await expect(checkInspectorPluginInstalled('/path/to/appium')).resolves.not.toThrow()
+
+        expect(exec).toHaveBeenCalledWith(
+            '/path/to/appium plugin list',
+            expect.objectContaining({ encoding: 'utf-8' }),
+            expect.any(Function)
+        )
+    })
+
+    it('should handle actual Appium output format with status line', async () => {
+        const mockOutput = `- Listing available plugins
+✔ Listing available plugins
+- inspector@2025.11.1 [installed (npm)]
+- execute-driver [not installed]
+- images [not installed]
+- relaxed-caps [not installed]
+- storage [not installed]
+- universal-xml [not installed]`
+
+        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
+            return {} as any
+        })
+
+        await expect(checkInspectorPluginInstalled('/path/to/appium')).resolves.not.toThrow()
+    })
+
+    it('should use stderr when stdout is empty', async () => {
+        const mockOutput = `✔ Listing available plugins
+- inspector@2025.11.1 [installed (npm)]
+- execute-driver [not installed]`
+
+        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
+            return {} as any
+        })
+
+        await expect(checkInspectorPluginInstalled('/path/to/appium')).resolves.not.toThrow()
+    })
+
+    it('should throw error when both stdout and stderr are empty', async () => {
+        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+            setImmediate(() => callback(null, { stdout: '', stderr: '' }))
+            return {} as any
+        })
+
+        await expect(checkInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
+            'Appium plugin list command produced no output'
+        )
+    })
+
+    it('should throw error when inspector plugin is not installed', async () => {
+        const mockOutput = `✔ Listing available plugins
+- execute-driver [not installed]
+- images [not installed]
+- inspector [not installed]
+- relaxed-caps [not installed]`
+
+        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
+
+            return {} as any
+        })
+
+        await expect(checkInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
+            'Appium Inspector plugin is not installed'
+        )
+    })
+
+    it('should throw error when inspector plugin is not found in output', async () => {
+        const mockOutput = `✔ Listing available plugins
+- execute-driver [not installed]
+- images [not installed]
+- relaxed-caps [not installed]`
+
+        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
+
+            return {} as any
+        })
+
+        await expect(checkInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
+            'Could not find inspector plugin in Appium plugin list'
+        )
+    })
+
+    it('should throw error when installation status could not be determined', async () => {
+        const mockOutput = `✔ Listing available plugins
+- inspector [unknown status]
+- execute-driver [not installed]`
+
+        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
+
+            return {} as any
+        })
+
+        await expect(checkInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
+            'Appium Inspector plugin installation status could not be determined'
+        )
+    })
+
+    it('should throw error when exec fails', async () => {
+        const mockError = new Error('Command failed')
+        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+            setImmediate(() => callback(mockError, { stdout: '', stderr: '' }))
+
+            return {} as any
+        })
+
+        await expect(checkInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
+            'Failed to check Appium Inspector plugin installation'
+        )
+    })
+
+    it('should include documentation URL in error messages', async () => {
+        const mockOutput = `✔ Listing available plugins
+- inspector [not installed]`
+
+        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
+
+            return {} as any
+        })
+
+        await expect(checkInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
+            'https://appium.github.io/appium-inspector/latest/quickstart/installation/#appium-plugin'
+        )
+    })
+
+    it('should handle different installed formats', async () => {
+        const mockOutput = `✔ Listing available plugins
+- inspector@2025.7.1 [installed (npm)]
+- execute-driver [not installed]`
+
+        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
+
+            return {} as any
+        })
+
+        await expect(checkInspectorPluginInstalled('/path/to/appium')).resolves.not.toThrow()
+    })
+
+    it('should handle inspector plugin with different version formats', async () => {
+        const mockOutput = `✔ Listing available plugins
+- inspector@1.2.3 [installed (npm)]
+- execute-driver [not installed]`
+
+        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
+
+            return {} as any
+        })
+
+        await expect(checkInspectorPluginInstalled('/path/to/appium')).resolves.not.toThrow()
     })
 })

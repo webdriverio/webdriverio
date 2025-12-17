@@ -1,16 +1,29 @@
 import { resolve } from 'node:path'
 import url from 'node:url'
 import { resolve as resolveModule } from 'import-meta-resolve'
-import { execSync, spawn, type ChildProcessByStdio } from 'node:child_process'
+import { execSync, spawn, exec, type ChildProcessByStdio } from 'node:child_process'
 import { type Readable } from 'node:stream'
 import os from 'node:os'
+import { promisify } from 'node:util'
 
 const APPIUM_START_TIMEOUT = 30 * 1000
 
 export function extractPortFromCliArgs(args: string[]): number {
-    const port = args.find((arg) => arg.startsWith('--port='))
+    const portArg = args.find((arg) => arg.startsWith('--port='))
+    if (portArg) {
+        const portValue = portArg.split('=')[1]
+        const port = Number(portValue)
 
-    return port ? parseInt(port.split('=')[1]) : 4723
+        if (
+            Number.isInteger(port) &&
+            port >= 1 &&
+            port <= 65535
+        ) {
+            return port
+        }
+    }
+
+    return 4723
 }
 
 export async function determineAppiumCliCommand(command = 'appium'): Promise<string> {
@@ -45,6 +58,56 @@ export async function determineAppiumCliCommand(command = 'appium'): Promise<str
             (err as Error).stack
         )
         throw new Error(errorMessage)
+    }
+}
+
+export async function checkInspectorPluginInstalled(appiumCommandPath: string): Promise<void> {
+    const INSPECTOR_PLUGIN_DOCS_URL = 'https://appium.github.io/appium-inspector/latest/quickstart/installation/#appium-plugin'
+    const helpMessage = `Please check this link for more information: ${INSPECTOR_PLUGIN_DOCS_URL}`
+
+    try {
+        // When installed: "- inspector@2025.11.1 [installed (npm)]"
+        // When not installed: "- inspector [not installed]"
+        const { stdout, stderr } = await promisify(exec)(`${appiumCommandPath} plugin list`, {
+            encoding: 'utf-8'
+        })
+
+        // Appium outputs plugin list to stderr, not stdout
+        const output = stderr || stdout
+        if (!output || output.trim().length === 0) {
+            throw new Error(
+                `Appium plugin list command produced no output. ${helpMessage}`
+            )
+        }
+
+        const lines = output.split('\n')
+        const inspectorLine = lines.find(line => /^-.*inspector/i.test(line.trim()))
+
+        if (!inspectorLine) {
+            throw new Error(
+                `Could not find inspector plugin in Appium plugin list. ${helpMessage}`
+            )
+        }
+
+        if (inspectorLine.includes('[not installed]')) {
+            throw new Error(
+                `Appium Inspector plugin is not installed. ${helpMessage}`
+            )
+        }
+
+        // Plugin is installed if line contains [installed
+        if (!inspectorLine.includes('[installed')) {
+            throw new Error(
+                `Appium Inspector plugin installation status could not be determined. ${helpMessage}`
+            )
+        }
+    } catch (err) {
+        if (err instanceof Error && !err.message.includes('Inspector plugin')) {
+            throw new Error(
+                `Failed to check Appium Inspector plugin installation: ${err.message}. ${helpMessage}`
+            )
+        }
+        throw err
     }
 }
 
@@ -111,7 +174,7 @@ export async function startAppiumForCli(
             }
 
             if (!errorCaptured) {
-                error = message || 'Appium exited without unknown error message'
+                error = message || 'Appium exited without error message'
 
                 /**
                  * Check if the message is a warning (not an actual error)
