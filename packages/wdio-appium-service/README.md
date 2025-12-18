@@ -153,6 +153,9 @@ Install the Appium Inspector plugin:
 ```sh
 # Add it as a local dependency
 npm install --D appium-inspector-plugin
+
+# Add it globally, depending on how you installed it before
+appium plugin install inspector
 ```
 
 For more information about installing and using the Appium Inspector plugin, see the [Appium Inspector documentation](https://appium.github.io/appium-inspector/latest/quickstart/installation/#appium-plugin).

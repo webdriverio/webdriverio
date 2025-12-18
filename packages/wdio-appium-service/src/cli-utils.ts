@@ -66,9 +66,8 @@ export async function checkInspectorPluginInstalled(appiumCommandPath: string): 
     const helpMessage = `Please check this link for more information: ${INSPECTOR_PLUGIN_DOCS_URL}`
 
     try {
-        // When installed: "- inspector@2025.11.1 [installed (npm)]"
-        // When not installed: "- inspector [not installed]"
-        const { stdout, stderr } = await promisify(exec)(`${appiumCommandPath} plugin list`, {
+        // Using --installed flag returns only installed plugins
+        const { stdout, stderr } = await promisify(exec)(`${appiumCommandPath} plugin list --installed`, {
             encoding: 'utf-8'
         })
 
@@ -76,7 +75,7 @@ export async function checkInspectorPluginInstalled(appiumCommandPath: string): 
         const output = stderr || stdout
         if (!output || output.trim().length === 0) {
             throw new Error(
-                `Appium plugin list command produced no output. ${helpMessage}`
+                `Appium Inspector plugin is not installed. ${helpMessage}`
             )
         }
 
@@ -85,20 +84,7 @@ export async function checkInspectorPluginInstalled(appiumCommandPath: string): 
 
         if (!inspectorLine) {
             throw new Error(
-                `Could not find inspector plugin in Appium plugin list. ${helpMessage}`
-            )
-        }
-
-        if (inspectorLine.includes('[not installed]')) {
-            throw new Error(
                 `Appium Inspector plugin is not installed. ${helpMessage}`
-            )
-        }
-
-        // Plugin is installed if line contains [installed
-        if (!inspectorLine.includes('[installed')) {
-            throw new Error(
-                `Appium Inspector plugin installation status could not be determined. ${helpMessage}`
             )
         }
     } catch (err) {

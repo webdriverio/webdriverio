@@ -437,10 +437,8 @@ describe('checkInspectorPluginInstalled', () => {
     })
 
     it('should not throw when inspector plugin is installed', async () => {
-        const mockOutput = `✔ Listing available plugins
-- inspector@2025.11.1 [installed (npm)]
-- execute-driver [not installed]
-- images [not installed]`
+        const mockOutput = `✔ Listing installed plugins
+- inspector@2025.11.1 [installed (npm)]`
 
         vi.mocked(exec).mockImplementation((command, options, callback: any) => {
             setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
@@ -450,41 +448,10 @@ describe('checkInspectorPluginInstalled', () => {
         await expect(checkInspectorPluginInstalled('/path/to/appium')).resolves.not.toThrow()
 
         expect(exec).toHaveBeenCalledWith(
-            '/path/to/appium plugin list',
+            '/path/to/appium plugin list --installed',
             expect.objectContaining({ encoding: 'utf-8' }),
             expect.any(Function)
         )
-    })
-
-    it('should handle actual Appium output format with status line', async () => {
-        const mockOutput = `- Listing available plugins
-✔ Listing available plugins
-- inspector@2025.11.1 [installed (npm)]
-- execute-driver [not installed]
-- images [not installed]
-- relaxed-caps [not installed]
-- storage [not installed]
-- universal-xml [not installed]`
-
-        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
-            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
-            return {} as any
-        })
-
-        await expect(checkInspectorPluginInstalled('/path/to/appium')).resolves.not.toThrow()
-    })
-
-    it('should use stderr when stdout is empty', async () => {
-        const mockOutput = `✔ Listing available plugins
-- inspector@2025.11.1 [installed (npm)]
-- execute-driver [not installed]`
-
-        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
-            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
-            return {} as any
-        })
-
-        await expect(checkInspectorPluginInstalled('/path/to/appium')).resolves.not.toThrow()
     })
 
     it('should throw error when both stdout and stderr are empty', async () => {
@@ -494,16 +461,13 @@ describe('checkInspectorPluginInstalled', () => {
         })
 
         await expect(checkInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
-            'Appium plugin list command produced no output'
+            'Appium Inspector plugin is not installed'
         )
     })
 
     it('should throw error when inspector plugin is not installed', async () => {
-        const mockOutput = `✔ Listing available plugins
-- execute-driver [not installed]
-- images [not installed]
-- inspector [not installed]
-- relaxed-caps [not installed]`
+        const mockOutput = `✔ Listing installed plugins
+- execute-driver [installed (npm)]`
 
         vi.mocked(exec).mockImplementation((command, options, callback: any) => {
             setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
@@ -513,39 +477,6 @@ describe('checkInspectorPluginInstalled', () => {
 
         await expect(checkInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
             'Appium Inspector plugin is not installed'
-        )
-    })
-
-    it('should throw error when inspector plugin is not found in output', async () => {
-        const mockOutput = `✔ Listing available plugins
-- execute-driver [not installed]
-- images [not installed]
-- relaxed-caps [not installed]`
-
-        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
-            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
-
-            return {} as any
-        })
-
-        await expect(checkInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
-            'Could not find inspector plugin in Appium plugin list'
-        )
-    })
-
-    it('should throw error when installation status could not be determined', async () => {
-        const mockOutput = `✔ Listing available plugins
-- inspector [unknown status]
-- execute-driver [not installed]`
-
-        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
-            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
-
-            return {} as any
-        })
-
-        await expect(checkInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
-            'Appium Inspector plugin installation status could not be determined'
         )
     })
 
@@ -563,8 +494,8 @@ describe('checkInspectorPluginInstalled', () => {
     })
 
     it('should include documentation URL in error messages', async () => {
-        const mockOutput = `✔ Listing available plugins
-- inspector [not installed]`
+        const mockOutput = `✔ Listing installed plugins
+- execute-driver [installed (npm)]`
 
         vi.mocked(exec).mockImplementation((command, options, callback: any) => {
             setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
@@ -578,23 +509,8 @@ describe('checkInspectorPluginInstalled', () => {
     })
 
     it('should handle different installed formats', async () => {
-        const mockOutput = `✔ Listing available plugins
-- inspector@2025.7.1 [installed (npm)]
-- execute-driver [not installed]`
-
-        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
-            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
-
-            return {} as any
-        })
-
-        await expect(checkInspectorPluginInstalled('/path/to/appium')).resolves.not.toThrow()
-    })
-
-    it('should handle inspector plugin with different version formats', async () => {
-        const mockOutput = `✔ Listing available plugins
-- inspector@1.2.3 [installed (npm)]
-- execute-driver [not installed]`
+        const mockOutput = `✔ Listing installed plugins
+- inspector@2025.7.1 [installed (npm)]`
 
         vi.mocked(exec).mockImplementation((command, options, callback: any) => {
             setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
