@@ -61,7 +61,6 @@ export default class Runner extends EventEmitter {
         }
 
         this._config = this._configParser.getConfig()
-        this._specFileRetryAttempts = (this._config.specFileRetries || 0) - (retries || 0)
 
         logger.setLogLevelsConfig(this._config.logLevels, this._config.logLevel)
         if (this._config.maskingPatterns) {
@@ -124,6 +123,7 @@ export default class Runner extends EventEmitter {
 
         const beforeSessionParams: BeforeSessionArgs = [this._config, this._caps, this._specs, this._cid]
         await executeHooksWithArgs('beforeSession', this._config.beforeSession, beforeSessionParams)
+        this._specFileRetryAttempts = (this._config.specFileRetries || 0) - (retries || 0)
 
         this._reporter = new BaseReporter(this._config, this._cid, { ...this._caps })
         await this._reporter.initReporters()
@@ -200,6 +200,7 @@ export default class Runner extends EventEmitter {
         process.send!(<SessionStartedMessage>{
             origin: 'worker',
             name: 'sessionStarted',
+            specFileRetries: this._specFileRetryAttempts,
             content: {
                 automationProtocol, sessionId, isW3C, protocol, hostname, port, path, queryParams, isMultiremote, instances,
                 capabilities: browser.capabilities,
