@@ -23,7 +23,7 @@ import PerformanceTester from './instrumentation/performance/performance-tester.
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 import { logBuildError, handleErrorForObservability, handleErrorForAccessibility, getProductMapForBuildStartCall } from './testHub/utils.js'
 import type BrowserStackConfig from './config.js'
-
+import { OrchestrationUtils } from './testorchestration/testorcherstrationutils.js'
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig, TOStopData } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import {
@@ -406,7 +406,8 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
             }
         },
         product_map: getProductMapForBuildStartCall(bStackConfig, accessibilityAutomation),
-        config: {}
+        config: {},
+        test_orchestration: OrchestrationUtils.getInstance(config)?.getBuildStartData() || {}
     }
 
     if (accessibilityAutomation && (isTurboScale(options) || data.browserstackAutomation === false)){
@@ -1701,6 +1702,23 @@ export function getBooleanValueFromString(value: string | undefined): boolean {
         return false
     }
     return ['true'].includes(value.trim().toLowerCase())
+}
+
+/**
+ * Validate boolean value from mixed types (boolean or string)
+ * Only accepts true boolean or string "true" (case insensitive)
+ */
+export function isValidEnabledValue(value: boolean | string | undefined): boolean {
+    if (value === undefined || value === null) {
+        return false
+    }
+    if (typeof value === 'boolean') {
+        return value === true
+    }
+    if (typeof value === 'string') {
+        return getBooleanValueFromString(value)
+    }
+    return false
 }
 
 export function mergeDeep(target: Record<string, any>, ...sources: any[]): Record<string, any> {
