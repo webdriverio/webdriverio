@@ -22,101 +22,34 @@ vi.mock('node:os', () => ({
 }))
 
 describe('extractPortFromCliArgs', () => {
-    it('should extract valid port from --port= argument', () => {
-        const args = ['--port=4725', '--log-timestamp']
-        const port = extractPortFromCliArgs(args)
-
-        expect(port).toBe(4725)
+    it('should extract valid port from both --port= and --port formats', () => {
+        expect(extractPortFromCliArgs(['--port=4725'])).toBe(4725)
+        expect(extractPortFromCliArgs(['--port', '4725'])).toBe(4725)
     })
 
     it('should return default port 4723 when no port argument is provided', () => {
-        const args = ['--log-timestamp', '--allow-cors']
-        const port = extractPortFromCliArgs(args)
-
-        expect(port).toBe(4723)
+        expect(extractPortFromCliArgs(['--log-timestamp'])).toBe(4723)
+        expect(extractPortFromCliArgs([])).toBe(4723)
     })
 
-    it('should return default port 4723 when args array is empty', () => {
-        const args: string[] = []
-        const port = extractPortFromCliArgs(args)
-        expect(port).toBe(4723)
+    it('should throw error when --port is provided without value', () => {
+        expect(() => extractPortFromCliArgs(['--port', '--log-timestamp'])).toThrow('Missing port value after --port flag')
     })
 
-    it('should accept minimum valid port (1)', () => {
-        const args = ['--port=1']
-        const port = extractPortFromCliArgs(args)
-
-        expect(port).toBe(1)
+    it('should accept valid port range (1-65535)', () => {
+        expect(extractPortFromCliArgs(['--port=1'])).toBe(1)
+        expect(extractPortFromCliArgs(['--port=65535'])).toBe(65535)
     })
 
-    it('should accept maximum valid port (65535)', () => {
-        const args = ['--port=65535']
-        const port = extractPortFromCliArgs(args)
-
-        expect(port).toBe(65535)
-    })
-
-    it('should return default port 4723 when port is 0', () => {
-        const args = ['--port=0']
-        const port = extractPortFromCliArgs(args)
-
-        expect(port).toBe(4723)
-    })
-
-    it('should return default port 4723 when port is negative', () => {
-        const args = ['--port=-1']
-        const port = extractPortFromCliArgs(args)
-
-        expect(port).toBe(4723)
-    })
-
-    it('should return default port 4723 when port exceeds maximum (65536)', () => {
-        const args = ['--port=65536']
-        const port = extractPortFromCliArgs(args)
-
-        expect(port).toBe(4723)
-    })
-
-    it('should return default port 4723 when port is not an integer', () => {
-        const args = ['--port=4723.5']
-        const port = extractPortFromCliArgs(args)
-
-        expect(port).toBe(4723)
-    })
-
-    it('should return default port 4723 when port value is non-numeric', () => {
-        const args = ['--port=abc']
-        const port = extractPortFromCliArgs(args)
-
-        expect(port).toBe(4723)
-    })
-
-    it('should return default port 4723 when port value is empty string', () => {
-        const args = ['--port=']
-        const port = extractPortFromCliArgs(args)
-
-        expect(port).toBe(4723)
-    })
-
-    it('should return default port 4723 when port value is NaN', () => {
-        const args = ['--port=NaN']
-        const port = extractPortFromCliArgs(args)
-
-        expect(port).toBe(4723)
-    })
-
-    it('should handle port with whitespace and return default', () => {
-        const args = ['--port= 4723 ']
-        const port = extractPortFromCliArgs(args)
-
-        expect(port).toBe(4723)
+    it('should return default port for invalid port values', () => {
+        const invalidPorts = ['0', '-1', '65536', '4723.5', 'abc', '', 'NaN']
+        invalidPorts.forEach(invalidPort => {
+            expect(extractPortFromCliArgs([`--port=${invalidPort}`])).toBe(4723)
+        })
     })
 
     it('should use first port argument if multiple port arguments exist', () => {
-        const args = ['--port=8080', '--port=4723']
-        const port = extractPortFromCliArgs(args)
-
-        expect(port).toBe(8080)
+        expect(extractPortFromCliArgs(['--port=8080', '--port=4723'])).toBe(8080)
     })
 })
 
@@ -167,12 +100,24 @@ describe('determineAppiumCliCommand', () => {
 
         await expect(determineAppiumCliCommand()).rejects.toThrow(/Appium is not installed|npm install -g appium/)
     })
+
+    it('should throw error when execSync fails and all resolution methods fail', async () => {
+        vi.mocked(resolveModule)
+            .mockRejectedValueOnce(new Error('Not found locally'))
+            .mockRejectedValueOnce(new Error('Not found in package'))
+        vi.mocked(execSync).mockImplementation(() => {
+            throw new Error('npm config failed')
+        })
+
+        await expect(determineAppiumCliCommand()).rejects.toThrow(/Appium is not installed|npm install -g appium/)
+    })
 })
 
 describe('openBrowser', () => {
     beforeEach(() => {
         vi.clearAllMocks()
         vi.spyOn(console, 'log').mockImplementation(() => {})
+        vi.spyOn(console, 'warn').mockImplementation(() => {})
     })
 
     afterEach(() => {
@@ -224,7 +169,7 @@ describe('openBrowser', () => {
         await openBrowser(inspectorUrl)
 
         expect(console.log).toHaveBeenCalledWith(openingBrowserMessage)
-        expect(console.log).toHaveBeenCalledWith(browserOpeningFailedMessage)
+        expect(console.warn).toHaveBeenCalledWith(browserOpeningFailedMessage)
     })
 })
 

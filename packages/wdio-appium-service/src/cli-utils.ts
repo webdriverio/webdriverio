@@ -8,57 +8,80 @@ import { promisify } from 'node:util'
 
 const APPIUM_START_TIMEOUT = 30 * 1000
 
-export function extractPortFromCliArgs(args: string[]): number {
-    const portArg = args.find((arg) => arg.startsWith('--port='))
-    if (portArg) {
-        const portValue = portArg.split('=')[1]
-        const port = Number(portValue)
+function extractPortFromArgs(args: string[]): number | null {
+    const portArgIndex = args.findIndex((arg) => arg.startsWith('--port'))
 
-        if (
-            Number.isInteger(port) &&
-            port >= 1 &&
-            port <= 65535
-        ) {
-            return port
-        }
+    if (portArgIndex === -1) {
+        return null
     }
 
-    return 4723
+    const portArg = args[portArgIndex]
+    let portValue: string
+
+    if (portArg.includes('=')) {
+        // Format: --port=5555
+        portValue = portArg.split('=')[1]
+    } else {
+        // Format: --port 5555
+        const nextArg = args[portArgIndex + 1]
+        if (!nextArg || nextArg.startsWith('--')) {
+            throw new Error('Missing port value after --port flag.')
+        }
+        portValue = nextArg
+    }
+
+    const port = Number(portValue)
+    if (Number.isInteger(port) && port >= 1 && port <= 65535) {
+        return port
+    }
+
+    return null
+}
+
+export function extractPortFromCliArgs(args: string[]): number {
+    return extractPortFromArgs(args) ?? 4723
+}
+
+async function tryResolveModule(command: string, from: string): Promise<string | null> {
+    try {
+        const entryPath = await resolveModule(command, from)
+
+        return url.fileURLToPath(entryPath)
+    } catch {
+        return null
+    }
 }
 
 export async function determineAppiumCliCommand(command = 'appium'): Promise<string> {
-    try {
-        const localNodeModules = resolve(process.cwd(), 'node_modules')
-        try {
-            const entryPath = await resolveModule(command, url.pathToFileURL(localNodeModules).toString())
+    const localNodeModules = resolve(process.cwd(), 'node_modules')
+    const localPath = await tryResolveModule(command, url.pathToFileURL(localNodeModules).toString())
 
-            return url.fileURLToPath(entryPath)
-        } catch {
-            try {
-                const entryPath = await resolveModule(command, import.meta.url)
-
-                return url.fileURLToPath(entryPath)
-            } catch {
-                try {
-                    const npmPrefix = execSync('npm config get prefix', { encoding: 'utf-8' }).trim()
-                    const globalNodeModules = resolve(npmPrefix, 'lib', 'node_modules')
-                    const entryPath = await resolveModule(command, url.pathToFileURL(globalNodeModules).toString())
-
-                    return url.fileURLToPath(entryPath)
-                } catch {
-                    throw new Error('Cannot find package \'appium\'')
-                }
-            }
-        }
-    } catch (err) {
-        const errorMessage = (
-            'Appium is not installed. Please install it globally via `npm install -g appium`\n' +
-            'or locally in your project via `npm i --save-dev appium`. Do not forget to also\n' +
-            'install the drivers for your platform.\n\n' +
-            (err as Error).stack
-        )
-        throw new Error(errorMessage)
+    if (localPath) {
+        return localPath
     }
+
+    const packagePath = await tryResolveModule(command, import.meta.url)
+
+    if (packagePath) {
+        return packagePath
+    }
+
+    try {
+        const npmPrefix = execSync('npm config get prefix', { encoding: 'utf-8' }).trim()
+        const globalNodeModules = resolve(npmPrefix, 'lib', 'node_modules')
+        const globalPath = await tryResolveModule(command, url.pathToFileURL(globalNodeModules).toString())
+        if (globalPath) {
+            return globalPath
+        }
+    } catch {
+        // npm config get prefix failed, continue to throw error below
+    }
+
+    throw new Error(
+        'Appium is not installed. Please install it globally via `npm install -g appium`\n' +
+        'or locally in your project via `npm i --save-dev appium`. Do not forget to also\n' +
+        'install the drivers for your platform.'
+    )
 }
 
 export async function checkInspectorPluginInstalled(appiumCommandPath: string): Promise<void> {
@@ -230,6 +253,6 @@ export async function openBrowser(url: string): Promise<void> {
         execSync(command, { stdio: 'ignore' })
         console.log('✅ Opened Appium Inspector in your default browser.')
     } catch {
-        console.log(`⚠️ Automatically starting the default browser didn't work, please open your favorite browser and paste the url '${url}' in there`)
+        console.warn(`⚠️ Automatically starting the default browser didn't work, please open your favorite browser and paste the url '${url}' in there`)
     }
 }
