@@ -63,7 +63,7 @@ describe('determineAppiumCliCommand', () => {
         vi.mocked(resolveModule).mockResolvedValueOnce(mockPath)
 
         const result = await determineAppiumCliCommand()
-        expect(result).toBe('/project/node_modules/appium/index.js')
+        expect(result).toBe(url.fileURLToPath(mockPath))
         expect(resolveModule).toHaveBeenCalled()
     })
 
@@ -74,7 +74,7 @@ describe('determineAppiumCliCommand', () => {
             .mockResolvedValueOnce(mockPath)
 
         const result = await determineAppiumCliCommand()
-        expect(result).toBe('/global/appium/index.js')
+        expect(result).toBe(url.fileURLToPath(mockPath))
         expect(resolveModule).toHaveBeenCalledTimes(2)
     })
 
@@ -87,7 +87,7 @@ describe('determineAppiumCliCommand', () => {
         vi.mocked(resolveModule).mockResolvedValueOnce(mockPath)
 
         const result = await determineAppiumCliCommand()
-        expect(result).toBe('/usr/lib/node_modules/appium/index.js')
+        expect(result).toBe(url.fileURLToPath(mockPath))
         expect(execSync).toHaveBeenCalledWith('npm config get prefix', { encoding: 'utf-8' })
     })
 
