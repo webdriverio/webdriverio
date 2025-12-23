@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.48.0 (2025-11-29)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#14844](https://github.com/webdriverio/webdriverio/pull/14844) Adding extra key for app accessibility feature to use centralHeader for authentication ([@pri-gadhiya](https://github.com/pri-gadhiya))
+
+#### Committers: 1
+- Priyanka Gadhiya ([@pri-gadhiya](https://github.com/pri-gadhiya))
+
+
 ## v8.47.0 (2025-09-09)
 
 #### :rocket: New Feature

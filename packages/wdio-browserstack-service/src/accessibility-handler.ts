@@ -67,7 +67,8 @@ import {
     isTrue,
     validateCapsWithAppA11y,
     getAppA11yResults,
-    isFalse
+    isFalse,
+    setBrowserstackAnnotation
 } from './util.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
@@ -212,6 +213,10 @@ class _AccessibilityHandler {
         }
 
         browserWithA11y.startA11yScanning = async () => {
+            if (this._testIdentifier === null){
+                BStackLogger.warn('Accessibility scanning cannot be started from outside the test')
+                return
+            }
             AccessibilityHandler._a11yScanSessionMap[sessionId] = true
             this._testMetadata[this._testIdentifier as string] = {
                 scanTestForAccessibility : true,
@@ -221,6 +226,10 @@ class _AccessibilityHandler {
         }
 
         browserWithA11y.stopA11yScanning = async () => {
+            if (this._testIdentifier === null){
+                BStackLogger.warn('Accessibility scanning cannot be stopped from outside the test')
+                return
+            }
             AccessibilityHandler._a11yScanSessionMap[sessionId] = false
             await this._setAnnotation('Accessibility scanning has stopped')
         }
@@ -462,15 +471,7 @@ class _AccessibilityHandler {
     }
 
     private async _setAnnotation(message: string) {
-        if (this._accessibility && isBrowserstackSession(this._browser)) {
-            await (this._browser as WebdriverIO.Browser).execute(`browserstack_executor: ${JSON.stringify({
-                action: 'annotate',
-                arguments: {
-                    data: message,
-                    level: 'info'
-                }
-            })}`)
-        }
+        await setBrowserstackAnnotation(this._browser as WebdriverIO.Browser, message, Boolean(this._accessibility))
     }
 }
 
