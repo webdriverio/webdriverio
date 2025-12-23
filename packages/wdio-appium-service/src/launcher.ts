@@ -164,7 +164,9 @@ export default class AppiumLauncher implements Services.ServiceInstance {
          * start Appium
          */
         const command = await this._getCommand(this._options.command)
-        this._process = await this._startAppium(command, this._appiumCliArgs)
+
+        const timeout = this._options.appiumStartTimeout ?? APPIUM_START_TIMEOUT
+        this._process = await this._startAppium(command, this._appiumCliArgs, timeout)
 
         if (this._logPath) {
             this._redirectLogStream(this._logPath)
