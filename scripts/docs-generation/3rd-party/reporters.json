@@ -69,5 +69,12 @@
     "title": "JSON HTML Reporter",
     "githubUrl": "https://github.com/aswinchembath/wdio-json-html-reporter",
     "npmUrl": "https://www.npmjs.com/package/wdio-json-html-reporter"
+  },
+  {
+    "packageName": "@testplanit/wdio-reporter",
+    "title": "TestPlanIt Reporter",
+    "githubUrl": "https://github.com/TestPlanIt/testplanit",
+    "npmUrl": "https://www.npmjs.com/package/@testplanit/wdio-reporter",
+    "location": "packages/wdio-testplanit-reporter/README.md"
   }
 ]
