@@ -404,13 +404,15 @@ async function getCurrentContexts({
             packageName,
         })
         // 3. Check if there is a webview that belongs to the app we are testing
-        const androidContext = parsedContexts.find((context) => context.packageName === packageName)
+        const matchingContexts = parsedContexts.filter((context) => context.packageName === packageName)
         // 4. There are cases that no packageName is returned, so we need to check for that
-        isPackageNameMissing = !androidContext?.packageName
+        isPackageNameMissing = matchingContexts.length === 0
         // 5. There are also cases that the androidWebviewData is not returned, so we need to check for that
-        const isAndroidWebviewDataMissing = androidContext && !('androidWebviewData' in androidContext)
+        const hasAndroidWebviewData = matchingContexts.some((context) => Boolean(context.androidWebviewData))
+        const isAndroidWebviewDataMissing = matchingContexts.length > 0 && !hasAndroidWebviewData
         // 6. There are also cases that the androidWebviewData is returned, but the empty property is not returned, so we need to check for that
-        const isAndroidWebviewDataEmpty = androidContext && androidContext.androidWebviewData?.empty
+        const hasNonEmptyAndroidWebviewData = matchingContexts.some((context) => context.androidWebviewData && !context.androidWebviewData.empty)
+        const isAndroidWebviewDataEmpty = matchingContexts.length > 0 && hasAndroidWebviewData && !hasNonEmptyAndroidWebviewData
 
         // If the current app is Chrome we can't wait for the webview to contain pages by checking the androidWebviewData because it will always be empty
         if (packageName === CHROME_PACKAGE_NAME) {
