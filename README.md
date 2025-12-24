@@ -120,6 +120,7 @@ __Did you build a WebdriverIO service or reporter?__ That's awesome! Please add 
 - [@wdio/sauce-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service) - A WebdriverIO service that provides a better integration into Sauce Labs
 - [@wdio/shared-store-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-shared-store-service) - A WebdriverIO service to exchange data across processes
 - [@wdio/testingbot-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) - A WebdriverIO service that provides a better integration into TestingBot
+- [@wdio/devtools-service](https://github.com/webdriverio/devtools/tree/main) - A WebdriverIO service that provides browser devtools for debugging, visualizing, and controlling test executions in real-time with live browser preview, test rerun capabilities, and comprehensive execution insights
 
 ### Runner
 
