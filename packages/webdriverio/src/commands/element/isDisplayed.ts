@@ -144,10 +144,19 @@ export async function isDisplayed (
             }
             return result
         }),
-        /**
-         * don't fail if element is not existing
-         */
-        this.getCSSProperty('display').catch(() => ({ value: '' }))
+        browser.execute(function (elem) {
+            try {
+                const style = window.getComputedStyle(elem)
+
+                return { value: style?.display ?? '' }
+            } catch {
+                if (typeof elem.isConnected === 'boolean' && !elem.isConnected) {
+                    throw new Error('stale element reference: element is not attached to the page document')
+                }
+
+                return { value: '' }
+            }
+        }, this as unknown as HTMLElement)
     ])
 
     /**
