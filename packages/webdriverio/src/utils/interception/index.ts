@@ -39,7 +39,7 @@ export default class WebDriverInterception {
     #calls: local.NetworkResponseCompletedParameters[] = []
     #responseBodies = new Map<string, remote.NetworkBytesValue>()
 
-    constructor (
+    constructor(
         pattern: URLPattern,
         mockId: string,
         filterOptions: MockFilterOptions,
@@ -92,7 +92,7 @@ export default class WebDriverInterception {
         return new WebDriverInterception(pattern, interception.intercept, filterOptions, browser)
     }
 
-    #emit (event: string, args: unknown) {
+    #emit(event: string, args: unknown) {
         if (!this.#eventHandler.has(event)) {
             return
         }
@@ -103,7 +103,7 @@ export default class WebDriverInterception {
         }
     }
 
-    #addEventHandler (event: string, handler: Function) {
+    #addEventHandler(event: string, handler: Function) {
         if (!this.#eventHandler.has(event)) {
             this.#eventHandler.set(event, [])
         }
@@ -119,6 +119,15 @@ export default class WebDriverInterception {
          * - request is not matching the pattern, e.g. a different mock is responsible for this request
          */
         if (!this.#isRequestMatching(request)) {
+            /**
+             * if request is not matching pattern but blocked by this mock (due to catch-all),
+             * we need to continue the request
+             */
+            if (request.intercepts?.includes(this.#mockId)) {
+                return this.#browser.networkContinueRequest({
+                    request: request.request.request
+                })
+            }
             return
         }
 
@@ -163,6 +172,15 @@ export default class WebDriverInterception {
          * - request is not matching the pattern, e.g. a different mock is responsible for this request
          */
         if (!this.#isRequestMatching(request)) {
+            /**
+             * if request is not matching pattern but blocked by this mock (due to catch-all),
+             * we need to continue the request
+             */
+            if (request.intercepts?.includes(this.#mockId)) {
+                return this.#browser.networkProvideResponse({
+                    request: request.request.request
+                }).catch(this.#handleNetworkProvideResponseError)
+            }
             return
         }
 
@@ -269,12 +287,12 @@ export default class WebDriverInterception {
         return this.#responseBodies
     }
 
-    #isRequestMatching<T extends local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters> (request: T) {
+    #isRequestMatching<T extends local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters>(request: T) {
         const matches = this.#pattern && this.#pattern.test(request.request.url)
         return request.isBlocked && matches
     }
 
-    #matchesFilterOptions<T extends local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters> (request: T) {
+    #matchesFilterOptions<T extends local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters>(request: T) {
         let isRequestMatching = true
 
         if (isRequestMatching && this.#filterOptions.method) {
@@ -482,7 +500,7 @@ export default class WebDriverInterception {
         }
     }
 
-    waitForResponse ({
+    waitForResponse({
         timeout = this.#browser.options.waitforTimeout,
         interval = this.#browser.options.waitforInterval,
         timeoutMsg,

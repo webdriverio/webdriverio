@@ -73,7 +73,8 @@ export const runHook = function (
             },
             cid,
             repeatTest,
-            origFn.name
+            origFn.name,
+            timeout
         )
     }
     /**
@@ -137,7 +138,9 @@ export const runSpec = function (
                 afterFnArgs
             },
             cid,
-            repeatTest
+            repeatTest,
+            undefined,
+            timeout
         )
     }
     /**

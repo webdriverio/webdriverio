@@ -86,7 +86,6 @@ This can only be done when the device name **CAN** automatically be determined a
 -   iPad Pro (12.9-inch) 3rd Generation: `ipadpro129`
 -   iPad Pro (12.9-inch) 4th Generation: `ipadpro129`
 -   iPad Pro (12.9-inch) 5th Generation: `ipadpro129`
-
 :::
 
 ### `autoSaveBaseline`
@@ -97,6 +96,20 @@ This can only be done when the device name **CAN** automatically be determined a
 -   **Supported Application Contexts:** Web, Hybrid App (Webview), Native App
 
 If no baseline image is found during the comparison the image is automatically copied to the baseline folder.
+
+### `alwaysSaveActualImage`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `true`
+-   **Supported Application Contexts:** All
+
+When setting this option to `false` it will:
+
+- not save the actual image when there is **no** difference
+- not store the jsonreport file when `createJsonReportFiles` is set to `true`. It will also show a warning in the logs that `createJsonReportFiles` is disabled
+
+This should create a better performance because no files are writting to the system and should make sure that there's not a lot of noise in the `actual` folder.
 
 ### `baselineFolder`
 

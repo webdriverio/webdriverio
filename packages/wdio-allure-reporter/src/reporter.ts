@@ -27,7 +27,7 @@ import {
 } from 'allure-js-commons'
 import type { RuntimeMessage } from 'allure-js-commons/sdk'
 import { getMessageAndTraceFromError } from 'allure-js-commons/sdk'
-import { FileSystemWriter, getEnvironmentLabels, getSuiteLabels, ReporterRuntime,  includedInTestPlan, parseTestPlan } from 'allure-js-commons/sdk/reporter'
+import { FileSystemWriter, getEnvironmentLabels, getSuiteLabels, ReporterRuntime, includedInTestPlan, parseTestPlan } from 'allure-js-commons/sdk/reporter'
 import { setGlobalTestRuntime } from 'allure-js-commons/sdk/runtime'
 
 import { WdioTestRuntime } from './WdioTestRuntime.js'
@@ -78,7 +78,7 @@ function isRecord(v: unknown): v is Record<string, unknown> {
  * Returns the field value if it exists and is a string; otherwise returns undefined.
  */
 function getStringField(obj: unknown, key: string): string | undefined {
-    if (!isRecord(obj)) {return undefined}
+    if (!isRecord(obj)) { return undefined }
     const v = obj[key]
     return typeof v === 'string' ? v : undefined
 }
@@ -104,7 +104,7 @@ function isFeatureFilePath(file?: string): boolean {
 }
 
 function hasCucumberKeywordInTitle(title?: string): boolean {
-    if (!title) {return false}
+    if (!title) { return false }
     return /^(Given|When|Then|And|But)\b/.test(title)
 }
 
@@ -235,7 +235,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _attachLogs(): void {
-        if (!this._consoleOutput) {return}
+        if (!this._consoleOutput) { return }
         this._attachFile({
             name: 'Console Logs',
             content: Buffer.from(`.........Console Logs.........\n\n${this._consoleOutput}`, 'utf8'),
@@ -260,7 +260,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _handleCucumberStepStart(t: TestStats): void {
-        if (!this._hasPendingTest) {return}
+        if (!this._hasPendingTest) { return }
 
         const arg = t.argument as Argument | undefined
         const dataTable = Array.isArray(arg?.rows)
@@ -330,7 +330,8 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _emitHistoryIdsFrom(fullTitleForHash: string): void {
-        const legacy = this._md5(fullTitleForHash)
+        const cid = this._currentCid()
+        const legacy = this._md5(`${fullTitleForHash}#${cid}`)
         this._pushRuntimeMessage({ type: 'metadata', data: { historyId: legacy, testCaseId: legacy } })
     }
 
@@ -440,19 +441,19 @@ export default class AllureReporter extends WDIOReporter {
         })
 
         process.on(events.startStep, (name: string) => {
-            if (this._tpSkipActive(this._currentCid())) {return}
+            if (this._tpSkipActive(this._currentCid())) { return }
             this._pushRuntimeMessage({ type: 'step_start', data: { name, start: Date.now() } })
         })
         process.on(
             events.endStep,
             (arg: AllureStatus | { status: AllureStatus; statusDetails?: StatusDetails }) => {
-                if (this._tpSkipActive(this._currentCid())) {return}
+                if (this._tpSkipActive(this._currentCid())) { return }
                 const payload = typeof arg === 'string' ? { status: arg } : arg
                 this._pushRuntimeMessage({ type: 'step_stop', data: { ...payload, stop: Date.now() } })
             },
         )
         process.on(events.runtimeMessage, (payload: RuntimeMessage) => {
-            if (this._tpSkipActive(this._currentCid())) {return}
+            if (this._tpSkipActive(this._currentCid())) { return }
             this._pushRuntimeMessage(payload as WDIORuntimeMessage)
         })
     }
@@ -687,7 +688,7 @@ export default class AllureReporter extends WDIOReporter {
         const ft = (test as TestStats).fullTitle || this._mochaFullTitle(cid, test.title)
         this._startTest({ name: test.title, start, uuid })
         const testCaseTitle = ft || fullTitle
-        if (testCaseTitle) {this._emitHistoryIdsFrom(testCaseTitle)}
+        if (testCaseTitle) { this._emitHistoryIdsFrom(testCaseTitle) }
 
         const fullName = toFullName(this._pkgByCid.get(cid)!, fullTitle || test.title)
         this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName: fullName } })
@@ -743,7 +744,7 @@ export default class AllureReporter extends WDIOReporter {
         }
         if (!this._hasPendingTest) {
             const t = test as TestStats
-            if (!t.fullTitle) {t.fullTitle = this._mochaFullTitle(this._currentCid(), t.title)}
+            if (!t.fullTitle) { t.fullTitle = this._mochaFullTitle(this._currentCid(), t.title) }
             this.onTestStart(test)
         }
         this._attachLogs()
@@ -777,9 +778,9 @@ export default class AllureReporter extends WDIOReporter {
         }
         const start = AllureReporter.getTimeOrNow(test.start)
         this._startTest({ name: test.title, start })
-        if (test.fullTitle) {this._emitHistoryIdsFrom(test.fullTitle)}
+        if (test.fullTitle) { this._emitHistoryIdsFrom(test.fullTitle) }
         const fullName = toFullName(this._pkgByCid.get(this._currentCid())!, test.fullTitle || test.title)
-        this._pushRuntimeMessage({ type: 'allure:test:info', data: {  fullName } })
+        this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName } })
         this._attachLogs()
         this._skipTest()
     }
@@ -787,10 +788,10 @@ export default class AllureReporter extends WDIOReporter {
     onBeforeCommand(command: BeforeCommandArgs): void {
         const cid = this._currentCid()
         const allow = (this._hasPendingTest || this._hasPendingHook) && !this._tpSkipActive(cid)
-        if (!allow) {return}
+        if (!allow) { return }
 
         const { disableWebdriverStepsReporting } = this._options
-        if (disableWebdriverStepsReporting || this._isMultiremote) {return}
+        if (disableWebdriverStepsReporting || this._isMultiremote) { return }
 
         const { method, endpoint } = command
         const named = typeof command.command === 'string' && command.command.length > 0
@@ -823,7 +824,7 @@ export default class AllureReporter extends WDIOReporter {
             }
         }
 
-        if (disableWebdriverStepsReporting || this._isMultiremote || !allow) {return}
+        if (disableWebdriverStepsReporting || this._isMultiremote || !allow) { return }
 
         const commandResult = resObj && 'value' in resObj ? resObj['value'] : resUnknown
 
@@ -835,7 +836,7 @@ export default class AllureReporter extends WDIOReporter {
             })
         } else if (!isShot) {
             const hasData = commandResult !== undefined && commandResult !== null && !(isObject(commandResult) && isEmptyObject(commandResult))
-            if (hasData) {this._attachJSON({ name: 'Response', json: commandResult })}
+            if (hasData) { this._attachJSON({ name: 'Response', json: commandResult }) }
         }
 
         this._endStep({ status: AllureStatusEnum.PASSED, stop: Date.now() })
@@ -843,11 +844,11 @@ export default class AllureReporter extends WDIOReporter {
 
     onHookStart(hook: HookStats): void {
         const cid = this._currentCid()
-        if (this._tpSkipActive(cid)) {return}
+        if (this._tpSkipActive(cid)) { return }
         const { disableMochaHooks } = this._options
-        if (disableMochaHooks) {return}
+        if (disableMochaHooks) { return }
 
-        if (!hook.parent && !this._isGlobalHook(hook)) {return}
+        if (!hook.parent && !this._isGlobalHook(hook)) { return }
 
         const isCucumber = this._isCucumberHook(hook)
         const hookType = this._deriveHookType(hook)
@@ -857,26 +858,26 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        if (isCucumber) {return}
-        if (this._cukeScenarioActiveByCid.get(cid)) {return}
+        if (isCucumber) { return }
+        if (this._cukeScenarioActiveByCid.get(cid)) { return }
         const start = AllureReporter.getTimeOrNow(hook.start)
         this._startHook({ name: hook.title ?? 'Hook', type: hookType, start })
     }
 
     onHookEnd(hook: HookStats): void {
         const cid = this._currentCid()
-        if (this._tpSkipActive(cid)) {return}
+        if (this._tpSkipActive(cid)) { return }
         const { disableMochaHooks } = this._options
-        if (!hook.parent && !this._isGlobalHook(hook)) {return}
-        if (disableMochaHooks && !hook.error) {return}
+        if (!hook.parent && !this._isGlobalHook(hook)) { return }
+        if (disableMochaHooks && !hook.error) { return }
 
         const isCucumber = this._isCucumberHook(hook)
 
-        if (this._cukeScenarioActiveByCid.get(cid) && !isCucumber) {return}
+        if (this._cukeScenarioActiveByCid.get(cid) && !isCucumber) { return }
 
-        if (isCucumber && !hook.error) {return}
+        if (isCucumber && !hook.error) { return }
 
-        if (isCucumber && !this._hasPendingTest && !hook.error) {return}
+        if (isCucumber && !this._hasPendingTest && !hook.error) { return }
 
         if (isCucumber && this._tpActive() && !this._hasPendingTest && hook.error) {
             if (this._tpSkipActive(cid) || this._decideCucumberSkipForHook(hook)) { return }
@@ -950,7 +951,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _ensureSuitesStarted(cid: string): void {
-        if (!this._tpActive()) {return}
+        if (!this._tpActive()) { return }
         const stack = this._suiteStack(cid)
         const started = this._suiteStartedDepthByCid.get(cid) ?? 0
         for (let i = started; i < stack.length; i++) {
@@ -993,9 +994,9 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _decideCucumberSkip(cid: string, scenarioTitle: string): boolean {
-        if (!this._testPlan) {return false}
+        if (!this._testPlan) { return false }
         const filePath = (this._pkgByCid.get(cid) || '').replace(/\\/g, '/')
-        if (!filePath) {return false}
+        if (!filePath) { return false }
         const fullTitle = this._mochaFullTitle(cid, scenarioTitle)
         const fullNameDot = (() => {
             const parts = fullTitle.split(' ')
@@ -1026,23 +1027,23 @@ export default class AllureReporter extends WDIOReporter {
 
     private _mochaFullTitle(cid: string, leaf: string): string {
         const parts = [...this._suiteStack(cid)]
-        if (leaf) {parts.push(leaf)}
+        if (leaf) { parts.push(leaf) }
         return parts.map((s) => String(s).trim()).filter(Boolean).join(' ')
     }
 
     private _deriveHookType(hook: HookStats): 'before' | 'after' {
         const title = hook.title ?? ''
-        if (/before\s+each/i.test(title) || (/before/i.test(title))) {return 'before'}
-        if (/after\s+each/i.test(title) || (/after/i.test(title))) {return 'after'}
+        if (/before\s+each/i.test(title) || (/before/i.test(title))) { return 'before' }
+        if (/after\s+each/i.test(title) || (/after/i.test(title))) { return 'after' }
         return this._hasPendingTest && !this._hasPendingHook ? 'before' : 'after'
     }
 
     private _isGlobalHook(hook: HookStats): boolean {
         const title = hook.title ?? ''
         return !hook.parent ||
-               /^(before|after)\s+each/i.test(title) ||
-               /global/i.test(title) ||
-               title.includes('global')
+            /^(before|after)\s+each/i.test(title) ||
+            /global/i.test(title) ||
+            title.includes('global')
     }
 
     private _formatLink(tpl: string, id: string): string {
@@ -1127,13 +1128,13 @@ export default class AllureReporter extends WDIOReporter {
         const { name, content, type } = args
         const toCt = (t?: string): ContentType => {
             const s = (t || 'text/plain').toLowerCase()
-            if (s.includes('json')) {return AllureContentType.JSON}
-            if (s.includes('png')) {return AllureContentType.PNG}
-            if (s.includes('jpeg') || s.includes('jpg')) {return AllureContentType.JPEG}
-            if (s.includes('html')) {return AllureContentType.HTML}
-            if (s.includes('csv')) {return AllureContentType.CSV}
-            if (s.includes('xml')) {return AllureContentType.XML}
-            if (s.includes('svg')) {return AllureContentType.SVG}
+            if (s.includes('json')) { return AllureContentType.JSON }
+            if (s.includes('png')) { return AllureContentType.PNG }
+            if (s.includes('jpeg') || s.includes('jpg')) { return AllureContentType.JPEG }
+            if (s.includes('html')) { return AllureContentType.HTML }
+            if (s.includes('csv')) { return AllureContentType.CSV }
+            if (s.includes('xml')) { return AllureContentType.XML }
+            if (s.includes('svg')) { return AllureContentType.SVG }
             return AllureContentType.TEXT
         }
         const buf =
