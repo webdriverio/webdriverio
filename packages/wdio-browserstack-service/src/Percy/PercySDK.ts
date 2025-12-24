@@ -2,18 +2,25 @@ import InsightsHandler from '../insights-handler.js'
 import TestReporter from '../reporter.js'
 import { PercyLogger } from './PercyLogger.js'
 import { isUndefined } from '../util.js'
+import { createRequire } from 'node:module'
 
-const tryRequire = async function (pkg: string, fallback: unknown) {
+const require = createRequire(import.meta.url)
+
+const tryRequire = function (pkg: string, fallback: unknown) {
     try {
-        return (await import(pkg)).default
+        const mod = require(pkg)
+        if (mod && typeof mod === 'object' && 'default' in mod) {
+            return (mod as { default: unknown }).default
+        }
+        return mod
     } catch {
         return fallback
     }
 }
 
-const percySnapshot = await tryRequire('@percy/selenium-webdriver', null)
+const percySnapshot = tryRequire('@percy/selenium-webdriver', null)
 
-const percyAppScreenshot = await tryRequire('@percy/appium-app', {})
+const percyAppScreenshot = tryRequire('@percy/appium-app', {})
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 let snapshotHandler = (...args: unknown[]) => {

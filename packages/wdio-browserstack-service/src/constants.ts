@@ -83,6 +83,10 @@ export const TCG_INFO = {
     tcgUrl: TCG_URL,
 }
 
+// Smart Selection Mode Constants
+export const SMART_SELECTION_MODE_RELEVANT_FIRST = 'relevantFirst'
+export const SMART_SELECTION_MODE_RELEVANT_ONLY = 'relevantOnly'
+
 // Env variables - Define all the env variable constants over here
 
 // To store the JWT token returned the session launch
