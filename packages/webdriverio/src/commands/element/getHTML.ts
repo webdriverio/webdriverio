@@ -67,7 +67,7 @@ const SHADOW_ID_ATTR = `[${SHADOW_ID_ATTR_NAME}]`
  * @param {boolean=}       options.pierceShadowRoot   if true it includes content of the shadow roots of all web components in the DOM (default: `true`)
  * @param {boolean=}       options.removeCommentNodes if true it removes all comment nodes from the HTML, e.g. `<!--?lit$206212805$--><!--?lit$206212805$-->` (default: `true`)
  * @param {boolean=}       options.prettify           if true, the html output will be prettified (default: `true`)
- * @return {Promise<string>}  the HTML of the specified element
+ * @return {Promise}  the HTML of the specified element (as a string)
  * @uses action/selectorExecute
  * @type property
  *

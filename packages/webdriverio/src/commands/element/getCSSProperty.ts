@@ -120,7 +120,7 @@ async function getShorthandPropertyCSSValue(
     }
 
     const cssValues = await Promise.all(
-        properties.map((prop) => getComputedStyleProperty(this, prop))
+        properties.map((prop) => this.getElementCSSValue(this.elementId, prop))
     )
 
     return mergeEqualSymmetricalValue(cssValues)
@@ -142,7 +142,7 @@ async function getPropertyCSSValue(
         )
     }
 
-    return await getComputedStyleProperty(this, cssProperty)
+    return await this.getElementCSSValue(this.elementId, cssProperty)
 }
 
 function getShorthandProperties(cssProperty: string) {
@@ -196,41 +196,6 @@ async function getPseudoElementCSSValue(
         },
         elem as unknown as Element,
         pseudoElement,
-        cssProperty
-    )
-
-    return cssValue
-}
-
-/**
- * Get a computed CSS property value using browser.execute.
- * This method replaced the protocol-based getElementCSSValue method to avoid
- * stale element references in WebDriver Bidi mode.
- *
- * @param elem - The element to get the CSS property from
- * @param cssProperty - The CSS property name to retrieve
- * @returns The computed CSS property value as a string
- */
-async function getComputedStyleProperty(
-    elem: WebdriverIO.Element,
-    cssProperty: string
-): Promise<string> {
-    const browser = getBrowserObject(elem)
-    const cssValue = await browser.execute(
-        (elem: Element, cssProperty: string) => {
-            if (!elem) {
-                return ''
-            }
-
-            // Check if element is still connected to the DOM
-            // This helps detect stale elements in BiDi mode
-            if (typeof elem.isConnected === 'boolean' && !elem.isConnected) {
-                throw new Error('stale element reference: element is not attached to the page document')
-            }
-
-            return window.getComputedStyle(elem)[cssProperty as unknown as number]
-        },
-        elem as unknown as Element,
         cssProperty
     )
 

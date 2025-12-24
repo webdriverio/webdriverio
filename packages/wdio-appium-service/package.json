@@ -1,6 +1,6 @@
 {
   "name": "@wdio/appium-service",
-  "version": "9.21.0",
+  "version": "9.22.0",
   "description": "A WebdriverIO service to start & stop Appium Server",
   "author": "Morten Bjerg Gregersen <morten@mogee.dk>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-appium-service",
@@ -25,12 +25,20 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "bin": {
+    "start-appium-inspector": "./bin/start-appium-inspector.js"
+  },
   "type": "module",
   "types": "./build/index.d.ts",
   "exports": {
     ".": {
       "import": "./build/index.js",
       "types": "./build/index.d.ts"
+    },
+    "./cli": {
+      "import": "./build/cli.js",
+      "importSource": "./src/cli.ts",
+      "types": "./build/cli.d.ts"
     }
   },
   "typeScriptVersion": "3.8.3",

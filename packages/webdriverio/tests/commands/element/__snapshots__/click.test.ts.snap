@@ -26,7 +26,7 @@ exports[`click test > should allow to left click on an element by passing a butt
       "type": "pointerUp",
     },
   ],
-  "id": "action1",
+  "id": "pointer1",
   "parameters": {
     "pointerType": "mouse",
   },
@@ -60,7 +60,7 @@ exports[`click test > should allow to left click on an element by passing a butt
       "type": "pointerUp",
     },
   ],
-  "id": "action2",
+  "id": "pointer2",
   "parameters": {
     "pointerType": "mouse",
   },
@@ -95,7 +95,7 @@ exports[`click test > should allow to left click on an element with an offset wi
         "type": "pointerUp",
       },
     ],
-    "id": "action7",
+    "id": "pointer7",
     "parameters": {
       "pointerType": "mouse",
     },
@@ -130,7 +130,7 @@ exports[`click test > should allow to middle click on an element 1`] = `
       "type": "pointerUp",
     },
   ],
-  "id": "action5",
+  "id": "pointer5",
   "parameters": {
     "pointerType": "mouse",
   },
@@ -164,7 +164,7 @@ exports[`click test > should allow to middle click on an element 2`] = `
       "type": "pointerUp",
     },
   ],
-  "id": "action6",
+  "id": "pointer6",
   "parameters": {
     "pointerType": "mouse",
   },
@@ -198,7 +198,7 @@ exports[`click test > should allow to right click on an element 1`] = `
       "type": "pointerUp",
     },
   ],
-  "id": "action3",
+  "id": "pointer3",
   "parameters": {
     "pointerType": "mouse",
   },
@@ -232,7 +232,7 @@ exports[`click test > should allow to right click on an element 2`] = `
       "type": "pointerUp",
     },
   ],
-  "id": "action4",
+  "id": "pointer4",
   "parameters": {
     "pointerType": "mouse",
   },
@@ -273,7 +273,7 @@ exports[`click test > should to send a duration to execute a longPress on a mobi
       "type": "pointerUp",
     },
   ],
-  "id": "action9",
+  "id": "pointer9",
   "parameters": {
     "pointerType": "touch",
   },
