@@ -437,14 +437,17 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = suiteEmpty as any
         const output = reporter['_buildJunitXml'](mochaRunnerLog as any)
 
-        // Verify that the report shows 0 tests, not 1
-        expect(output).toContain('tests="0"')
-        expect(output).toContain('skipped="0"')
+        // Verify that the report shows a placeholder skipped test
+        // This provides visibility to CI/CD tools that tests were filtered/skipped
+        // rather than appearing as if nothing existed at all
+        expect(output).toContain('tests="1"')
+        expect(output).toContain('skipped="1"')
         expect(output).toContain('failures="0"')
         expect(output).toContain('errors="0"')
 
-        // Verify that no test case is added
-        expect(output).not.toContain('<testcase')
+        // Verify that a placeholder test case is added
+        expect(output).toContain('<testcase')
+        expect(output).toContain('<skipped')
     })
 
 })
