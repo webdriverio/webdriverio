@@ -37,7 +37,7 @@ export const SevereServiceError = SevereServiceErrorImport
  * @return browser object with sessionId
  * @see <a href="https://webdriver.io/docs/typescript">Typescript setup</a>
  */
-export const remote = async function(
+export const remote = async function (
     params: Capabilities.WebdriverIOConfig,
     remoteModifier?: (client: WebDriverTypes.Client, options: Capabilities.WebdriverIOConfig) => WebDriverTypes.Client
 ): Promise<WebdriverIO.Browser> {
@@ -86,6 +86,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
     const params: Capabilities.WebdriverIOConfig & { requestedCapabilities: Capabilities.RequestedStandaloneCapabilities } = {
         automationProtocol: 'webdriver',
         ...detectBackend(attachOptions.options),
+        ...attachOptions.options,
         ...attachOptions,
         capabilities: attachOptions.capabilities || {},
         requestedCapabilities: attachOptions.requestedCapabilities || {}
@@ -173,7 +174,7 @@ export const multiremote = async function (
      */
     if (!isStub(automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
-        driver.addCommand = function(name: string, fn: any, attachToElementOrOptions?: boolean | CustomCommandOptions<boolean>): void {
+        driver.addCommand = function (name: string, fn: any, attachToElementOrOptions?: boolean | CustomCommandOptions<boolean>): void {
             const options: CustomCommandOptions<boolean> = (typeof attachToElementOrOptions === 'object' && attachToElementOrOptions !== null)
                 ? attachToElementOrOptions
                 : { attachToElement: attachToElementOrOptions } satisfies CustomCommandOptions<boolean>
