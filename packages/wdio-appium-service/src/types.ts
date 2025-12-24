@@ -139,6 +139,12 @@ export interface AppiumServiceConfig {
      * @default {}
      */
     args?: AppiumServerArguments
+
+    /**
+     * Timeout in milliseconds for Appium to start successfully.
+     * @default 30000
+     */
+    appiumStartTimeout?: number
 }
 
 export type ArgValue = string | number | boolean | null | object
