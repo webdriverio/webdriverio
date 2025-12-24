@@ -25,7 +25,7 @@
     "@wdio/static-server-service": "workspace:*",
     "@wdio/sumologic-reporter": "workspace:*",
     "@wdio/testingbot-service": "workspace:*",
-    "expect-webdriverio": "^5.6.0",
+    "expect-webdriverio": "^5.6.1",
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*"
   }
