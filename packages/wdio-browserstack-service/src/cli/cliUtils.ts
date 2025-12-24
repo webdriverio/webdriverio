@@ -321,7 +321,7 @@ export class CLIUtils {
         PerformanceTester.start(PerformanceEvents.SDK_CLI_DOWNLOAD)
         logger.debug(`Downloading SDK binary from: ${binDownloadUrl}`)
         try {
-            const zipFilePath = path.join(cliDir, 'downloaded_file.zip')
+            const zipFilePath = path.join(cliDir, `downloaded_file_${process.pid}.zip`)
             const downloadedFileStream = fs.createWriteStream(zipFilePath)
             return new Promise<string|null>((resolve, reject) => {
                 const binaryName = null
