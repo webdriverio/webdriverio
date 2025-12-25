@@ -106,7 +106,7 @@ class _AccessibilityHandler {
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
 
         this._platformA11yMeta = {
-            browser_name: caps.browserName,
+            browser_name: caps?.browserName,
             // @ts-expect-error invalid caps property
             browser_version: caps?.browserVersion || (caps as WebdriverIO.Capabilities)?.version || 'latest',
             platform_name: caps?.platformName,
