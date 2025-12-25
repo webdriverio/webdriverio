@@ -182,7 +182,6 @@ async function switchToContext(
     const contexts = await browser.getContexts(getContextsOptions) as AppiumDetailedCrossPlatformContexts
 
     // 2. Find the matching context
-    // Use provided appIdentifier if available, otherwise get from active app
     let identifier: string
     if (options.appIdentifier) {
         identifier = options.appIdentifier
