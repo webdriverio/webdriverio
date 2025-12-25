@@ -1023,7 +1023,15 @@ export function getUniqueIdentifierForCucumber(world: ITestCaseHookParameter): s
 }
 
 export function getCloudProvider(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser): string {
-    if (browser.options && browser.options.hostname && browser.options.hostname.includes('browserstack')) {
+    if (browser && 'instances' in browser) {
+        // Loop through all instances
+        for (const instanceName of browser.instances) {
+            const instance = (browser as any)[instanceName] as WebdriverIO.Browser
+            if (instance.options && instance.options.hostname && instance.options.hostname.includes('browserstack')) {
+                return 'browserstack'
+            }
+        }
+    } else if (browser.options && browser.options.hostname && browser.options.hostname.includes('browserstack')) { // Single browser instance
         return 'browserstack'
     }
     return 'unknown_grid'
@@ -1843,5 +1851,38 @@ export const performO11ySync = async (browser: WebdriverIO.Browser) => {
             }
         })
     }
+}
+
+/**
+ * Checks if the capabilities represent a multiremote configuration
+ * @param capabilities - The capabilities to check
+ * @returns true if capabilities represent any multiremote configuration (regular or parallel)
+ *
+ * @example
+ * Regular multiremote (object):
+ * { browserA: { capabilities: {...} }, browserB: { capabilities: {...} } }
+ *
+ * Parallel multiremote (array with nested structure):
+ * [{ browserA: { capabilities: {...} }, browserB: { capabilities: {...} } }]
+ *
+ * Regular capabilities (array):
+ * [{ browserName: 'chrome', ... }]
+ */
+export function isMultiRemoteCaps(capabilities: Capabilities.TestrunnerCapabilities): boolean {
+    // Regular multiremote is an object (not array)
+    if (!Array.isArray(capabilities)) {
+        return true
+    }
+
+    // Empty array is not multiremote
+    if (capabilities.length === 0) {
+        return false
+    }
+
+    // Parallel multiremote is an array with nested capabilities structure
+    return capabilities.every(cap =>
+        Object.values(cap).length > 0 &&
+        Object.values(cap).every(c => c !== null && typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities)
+    )
 }
 
