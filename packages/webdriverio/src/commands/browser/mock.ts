@@ -43,8 +43,6 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
     it('should mock network resources', async () => {
         // via static string
         const userListMock = await browser.mock('**' + '/users/list')
-        // or as regular expression
-        const userListMock = await browser.mock(/https:\/\/(domainA|domainB)\.com\/.+/)
         // you can also specifying the mock even more by filtering resources
         // by request or response headers, status code, postData, e.g. mock only responses with specific
         // header set and statusCode
