@@ -510,4 +510,20 @@ describe('getContexts test', () => {
             expect(emptyContext.packageName).toBe('com.ismobile.android.blaandroid')
         }
     })
+
+    it('should pass waitForWebviewMs parameter to mobile: getContexts when provided', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                platformName: 'iOS',
+            } as any
+        })
+        const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(iOSContexts)
+        await browser.getContexts({ returnDetailedContexts: true, waitForWebviewMs: 3000 })
+
+        expect(executeSpy).toHaveBeenCalledTimes(1)
+        expect(executeSpy).toHaveBeenCalledWith('mobile: getContexts', { waitForWebviewMs: 3000 })
+    })
 })
