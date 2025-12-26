@@ -19,6 +19,26 @@ import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig, CommandRun
 const log = logger('webdriver')
 const deepmerge = deepmergeCustom({ mergeArrays: false })
 
+function deepEqual(a: unknown, b: unknown): boolean {
+    if (a === b) {
+        return true
+    }
+    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
+        return false
+    }
+    const keysA = Object.keys(a)
+    const keysB = Object.keys(b)
+    if (keysA.length !== keysB.length) {
+        return false
+    }
+    for (const key of keysA) {
+        if (!keysB.includes(key) || !deepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key])) {
+            return false
+        }
+    }
+    return true
+}
+
 const BROWSER_DRIVER_ERRORS = [
     'unknown command: wd/hub/session', // chromedriver
     'HTTP method not allowed', // geckodriver
@@ -79,6 +99,45 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
     }
 
     validateCapabilities(capabilities.alwaysMatch)
+
+    /**
+     * remove overlapping keys in firstMatch that are already defined in alwaysMatch
+     * to avoid errors in Selenium Grid
+     */
+    const keysToNormalize = Object.keys(capabilities.alwaysMatch)
+    if (capabilities.firstMatch) {
+        for (const key of keysToNormalize) {
+            const alwaysVal = (capabilities.alwaysMatch as Record<string, unknown>)[key]
+            const hasConflict = capabilities.firstMatch.some((match) =>
+                (key in match) && !deepEqual((match as Record<string, unknown>)[key], alwaysVal)
+            )
+
+            if (hasConflict) {
+                /**
+                  * The key is defined in alwaysMatch but overridden in at least one firstMatch.
+                  * We must remove it from alwaysMatch and ensure it is present in all firstMatch entries,
+                  * preserving the specific overrides.
+                  */
+                delete (capabilities.alwaysMatch as Record<string, unknown>)[key]
+                capabilities.firstMatch.forEach((match) => {
+                    if (!(key in match)) {
+                        (match as Record<string, unknown>)[key] = alwaysVal
+                    }
+                })
+            } else {
+                /**
+                  * No conflict: the key is either missing in firstMatch or identical to alwaysMatch.
+                  * Safely remove it from firstMatch to avoid overlap errors.
+                  */
+                capabilities.firstMatch.forEach((match) => {
+                    if (key in match) {
+                        delete (match as Record<string, unknown>)[key]
+                    }
+                })
+            }
+        }
+    }
+
     const sessionRequest = new environment.value.Request(
         'POST',
         '/session',
