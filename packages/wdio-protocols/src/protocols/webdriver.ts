@@ -75,20 +75,20 @@ export default {
             parameters: [
                 {
                     name: 'implicit',
-                    type: 'number',
+                    type: '(number|null)',
                     description:
                         'integer in ms for session implicit wait timeout',
                     required: false,
                 },
                 {
                     name: 'pageLoad',
-                    type: 'number',
+                    type: '(number|null)',
                     description: 'integer in ms for session page load timeout',
                     required: false,
                 },
                 {
                     name: 'script',
-                    type: 'number',
+                    type: '(number|null)',
                     description: 'integer in ms for session script timeout',
                     required: false,
                 },
@@ -1518,14 +1518,14 @@ export default {
                     type: 'string',
                     description:
                         "Valid values: 'ctap1/u2f', 'ctap2', 'ctap2_1'.",
-                    required: false,
+                    required: true,
                 },
                 {
                     name: 'transport',
                     type: 'string',
                     description:
                         "Valid values: 'usb', 'nfc', 'ble' or 'internal'.",
-                    required: false,
+                    required: true,
                 },
                 {
                     name: 'hasResidentKey',
@@ -1548,19 +1548,19 @@ export default {
                 {
                     name: 'isUserVerified',
                     type: 'boolean',
-                    description: 'Valid values: An array containing extension identifiers.',
+                    description: 'Valid values: true, false.',
                     required: false,
                 },
                 {
                     name: 'extensions',
                     type: 'string[]',
-                    description: 'Valid values: Up to 3 User Verification Method entries.',
+                    description: 'An array of extension identifiers',
                     required: false,
                 },
                 {
                     name: 'uvm',
                     type: 'object[]',
-                    description: '',
+                    description: 'Valid values: Up to 3 User Verification Method entries.',
                     required: false,
                 },
             ],
@@ -1632,14 +1632,14 @@ export default {
                     type: 'string',
                     description:
                         'The userHandle associated to the credential encoded using Base64url Encoding. This property may not be defined.',
-                    required: true,
+                    required: false,
                 },
                 {
                     name: 'signCount',
-                    type: 'number',
+                    type: '(number|null)',
                     description:
                         'The initial value for a signature counter associated to the public key credential source.',
-                    required: true,
+                    required: false,
                 },
                 {
                     name: 'largeBlob',
@@ -1717,7 +1717,14 @@ export default {
                         description: 'id of authenticator',
                     }
                 ],
-                parameters: [],
+                parameters: [
+                    {
+                        name: 'isUserVerified',
+                        type: 'boolean',
+                        description: 'Whether to always succeed in user verification',
+                        required: true,
+                    },
+                ],
             },
         },
 }
