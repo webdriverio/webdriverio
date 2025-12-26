@@ -145,6 +145,13 @@ export interface AppiumServiceConfig {
      * @default 30000
      */
     appiumStartTimeout?: number
+
+    /**
+     * Enable selector performance tracking to measure element finding times.
+     * When enabled, tracks all element-finding commands and stores timing data in JSON format.
+     * @default false
+     */
+    trackSelectorPerformance?: boolean
 }
 
 export type ArgValue = string | number | boolean | null | object
