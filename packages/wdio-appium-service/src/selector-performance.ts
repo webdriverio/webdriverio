@@ -10,6 +10,7 @@ import {
     buildTestContext,
     type TestContext
 } from './selector-performance-utils.js'
+import { convertXPathToOptimizedSelector } from './xpath-utils.js'
 
 interface SelectorPerformanceData {
     testFile: string
@@ -185,6 +186,21 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             this._storePerformanceData(timing, duration, testContext)
 
             console.log(`[Selector Performance] ${timing.commandName}('${formattedSelector}') took ${duration.toFixed(2)}ms`)
+
+            const conversionResult = convertXPathToOptimizedSelector(timing.selector)
+            if (conversionResult) {
+                if (conversionResult.selector) {
+                    // Use appropriate quote style based on selector type:
+                    // - Class chain uses backticks with double quotes inside, so use single quotes for outer string
+                    // - Predicate string uses single quotes inside, so use double quotes for outer string
+                    // - Accessibility ID has no quotes, so either works (use double for consistency)
+                    const quoteStyle = conversionResult.selector.startsWith('-ios class chain:') ? "'" : '"'
+                    console.log(`[Potential Optimized Selector] ${timing.commandName}(${quoteStyle}${conversionResult.selector}${quoteStyle})`)
+                }
+                if (conversionResult.warning) {
+                    console.warn(`[Selector Performance Warning] ${conversionResult.warning}`)
+                }
+            }
 
             this._commandTimings.delete(timingId)
         }
