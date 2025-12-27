@@ -12,8 +12,9 @@ import * as elementCommands from '../commands/element.js'
 import elementContains from '../scripts/elementContains.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
-import { DEEP_SELECTOR, Key } from '../constants.js'
+import { DEEP_SELECTOR, ACCESSIBILITY_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
+import { findAccessibilityElement, findAccessibilityElements, parseAccessibilitySelectorString } from './accessibilityLocator.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
@@ -461,6 +462,24 @@ export async function findElement(
     }
 
     /**
+     * Handle accessibility/ selector (three-tier strategy)
+     * Parse directly without going through findStrategy to avoid non-standard using='accessibility'
+     */
+    if (typeof selector === 'string' && selector.startsWith(ACCESSIBILITY_SELECTOR)) {
+        const accessibilitySelector = parseAccessibilitySelectorString(selector)
+        if (accessibilitySelector) {
+            /* eslint-disable @typescript-eslint/no-explicit-any */
+            const options = {
+                strict: (browserObject.options as any)?.accessibilityStrict ?? false,
+                candidateCap: (browserObject.options as any)?.accessibilityCandidateCap ?? 1000,
+                includeHidden: (browserObject.options as any)?.accessibilityIncludeHidden ?? false
+            }
+            /* eslint-enable @typescript-eslint/no-explicit-any */
+            return findAccessibilityElement.call(this, accessibilitySelector, options)
+        }
+    }
+
+    /**
      * check if shadow DOM integration is used
      */
     if (typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
@@ -559,6 +578,23 @@ export async function findElements(
         )
         const elemArray = Array.isArray(elems) ? elems : [elems]
         return elemArray.filter((elem) => elem && getElementFromResponse(elem))
+    }
+
+    /**
+     * Handle accessibility/ selector (three-tier strategy) for $$
+     * Uses findAccessibilityElements to return ALL matching elements
+     */
+    if (typeof selector === 'string' && selector.startsWith(ACCESSIBILITY_SELECTOR)) {
+        const accessibilitySelector = parseAccessibilitySelectorString(selector)
+        if (accessibilitySelector) {
+            /* eslint-disable @typescript-eslint/no-explicit-any */
+            const options = {
+                candidateCap: (browserObject.options as any)?.accessibilityCandidateCap ?? 1000,
+                includeHidden: (browserObject.options as any)?.accessibilityIncludeHidden ?? false
+            }
+            /* eslint-enable @typescript-eslint/no-explicit-any */
+            return findAccessibilityElements.call(this, accessibilitySelector, options)
+        }
     }
 
     /**
