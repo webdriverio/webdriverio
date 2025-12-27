@@ -3,6 +3,8 @@
  * Supports conversion to: Accessibility ID, iOS Predicate String, and iOS Class Chain.
  */
 
+import { getHighResTime } from './selector-performance-utils.js'
+
 /**
  * Result of XPath conversion attempt
  */
@@ -22,13 +24,32 @@ interface XPathCondition {
 }
 
 /**
+ * Options for XPath conversion
+ */
+export interface XPathConversionOptions {
+    /**
+     * Browser instance for dynamic page source analysis
+     */
+    browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    /**
+     * Whether to use page source analysis for more accurate suggestions
+     */
+    usePageSource?: boolean
+}
+
+/**
  * Converts an XPath selector to an optimized alternative selector.
  * Priority: Accessibility ID > Predicate String > Class Chain
  *
  * @param xpath - The XPath selector to convert
- * @returns Conversion result with selector and optional warning, or null if conversion isn't possible
+ * @param options - Conversion options including browser instance and element ID for dynamic analysis
+ * @returns Conversion result with selector and optional warning, or null if conversion isn't possible.
+ *          Returns a Promise when usePageSource is enabled, otherwise returns synchronously.
  */
-export function convertXPathToOptimizedSelector(xpath: string): XPathConversionResult | null {
+export function convertXPathToOptimizedSelector(
+    xpath: string,
+    options?: XPathConversionOptions
+): XPathConversionResult | null | Promise<XPathConversionResult | null> {
     if (!xpath || typeof xpath !== 'string') {
         return null
     }
@@ -41,6 +62,21 @@ export function convertXPathToOptimizedSelector(xpath: string): XPathConversionR
         }
     }
 
+    // Try static conversion first (fast path)
+    const staticResult = convertXPathToOptimizedSelectorStatic(xpath)
+
+    // If usePageSource is enabled and we have browser, try dynamic analysis
+    if (options?.usePageSource && options?.browser) {
+        return convertXPathToOptimizedSelectorDynamic(xpath, options.browser, staticResult)
+    }
+
+    return staticResult
+}
+
+/**
+ * Static XPath conversion (pattern-based, no page source analysis)
+ */
+function convertXPathToOptimizedSelectorStatic(xpath: string): XPathConversionResult | null {
     const isComplex = isComplexXPath(xpath)
 
     if (!isComplex) {
@@ -65,6 +101,412 @@ export function convertXPathToOptimizedSelector(xpath: string): XPathConversionR
     return {
         selector: null,
         warning: 'XPath could not be converted to an optimized selector. Consider using accessibility identifiers or simpler XPath patterns.'
+    }
+}
+
+/**
+ * Dynamic XPath conversion using page source analysis.
+ * Analyzes the actual element from page source to find optimal selectors.
+ *
+ * @param xpath - The original XPath selector
+ * @param browser - Browser instance to get page source
+ * @param staticResult - Result from static conversion (used as fallback)
+ * @returns Conversion result with selector and optional warning
+ */
+async function convertXPathToOptimizedSelectorDynamic(
+    xpath: string,
+    browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    staticResult: XPathConversionResult | null
+): Promise<XPathConversionResult | null> {
+    try {
+        const startTime = getHighResTime()
+        console.log('[Selector Performance] Collecting page source for dynamic analysis...')
+        const pageSource = await browser.getPageSource()
+        const duration = getHighResTime() - startTime
+        console.log(`[Selector Performance] Page source collected in ${duration.toFixed(2)}ms`)
+
+        if (!pageSource || typeof pageSource !== 'string') {
+            return staticResult
+        }
+
+        // Parse XML to extract element data
+        const elementData = parseElementFromPageSource(pageSource)
+
+        if (!elementData) {
+            return staticResult
+        }
+
+        // Build optimal selector based on actual element attributes
+        // Priority: Accessibility ID > Predicate String > Class Chain
+        // Ensure selector is unique by testing against page source XML (no extra protocol calls)
+        const dynamicResult = buildSelectorFromElementData(elementData, pageSource)
+
+        // Return dynamic result if it's better than static, otherwise return static
+        if (dynamicResult && dynamicResult.selector) {
+            return dynamicResult
+        }
+
+        return staticResult
+    } catch {
+        // If dynamic analysis fails, fall back to static result
+        return staticResult
+    }
+}
+
+/**
+ * Parses page source XML to extract element data.
+ * Note: Element IDs from WebDriver are not present in the page source XML,
+ * so we use a heuristic approach to find elements with useful attributes.
+ */
+function parseElementFromPageSource(pageSource: string): ElementData | null {
+    // For iOS/Android, the page source is XML with elements like:
+    // <XCUIElementTypeButton name="Login" label="Login" ...>
+    // Since element IDs are not in the XML, we extract the first element with useful attributes
+    return parseElementFromPageSourceRegex(pageSource)
+}
+
+/**
+ * Regex-based parsing for page source to extract element data.
+ * Finds the first element with useful attributes (name, label, etc.)
+ */
+function parseElementFromPageSourceRegex(pageSource: string): ElementData | null {
+    // This is a simplified approach - try to find the element
+    // In practice, we might need to use the element's position or other context
+    // For now, we'll extract what we can from the page source
+
+    // Try to find elements with common iOS attributes
+    const elementPattern = /<(\w+)([^>]*)>/g
+    const attributes: Record<string, string> = {}
+    let elementType: string | null = null
+
+    // Simple extraction - find first matching element with attributes
+    let match: RegExpExecArray | null
+    while ((match = elementPattern.exec(pageSource)) !== null) {
+        const tagName = match[1]
+        const attrs = match[2]
+
+        // Extract attributes
+        const attrMatches = attrs.matchAll(/(\w+)="([^"]*)"/g)
+        const elementAttrs: Record<string, string> = {}
+        for (const attrMatch of attrMatches) {
+            elementAttrs[attrMatch[1]] = attrMatch[2]
+        }
+
+        // If this element has name or label, it might be our target
+        if (elementAttrs.name || elementAttrs.label) {
+            elementType = tagName
+            Object.assign(attributes, elementAttrs)
+            break
+        }
+    }
+
+    if (!elementType) {
+        return null
+    }
+
+    return {
+        type: elementType,
+        attributes
+    }
+}
+
+/**
+ * Element data extracted from page source
+ */
+interface ElementData {
+    type: string
+    attributes: Record<string, string>
+}
+
+/**
+ * Tests if a selector matches exactly one element by parsing the page source XML.
+ * This avoids making additional protocol calls and is much faster.
+ *
+ * @param selector - The selector to test (accessibility ID, predicate string, or class chain)
+ * @param pageSource - The page source XML to search in
+ * @returns True if exactly one element matches the selector
+ */
+function isSelectorUniqueInPageSource(selector: string, pageSource: string): boolean {
+    try {
+        if (selector.startsWith('~')) {
+            // Accessibility ID: count elements with matching name or label
+            const value = selector.substring(1)
+            const namePattern = new RegExp(`<\\w+[^>]*\\s+name="${value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*>`, 'gi')
+            const labelPattern = new RegExp(`<\\w+[^>]*\\s+label="${value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*>`, 'gi')
+            const nameMatches = pageSource.match(namePattern) || []
+            const labelMatches = pageSource.match(labelPattern) || []
+            // Combine and deduplicate (an element might have both name and label)
+            const allMatches = new Set([...nameMatches, ...labelMatches])
+            return allMatches.size === 1
+        } else if (selector.startsWith('-ios predicate string:')) {
+            // Predicate string: parse conditions and count matching elements
+            const predicateString = selector.substring('-ios predicate string:'.length)
+            return countMatchingElementsByPredicate(predicateString, pageSource) === 1
+        } else if (selector.startsWith('-ios class chain:')) {
+            // Class chain: parse chain and count matching elements
+            const chainString = selector.substring('-ios class chain:'.length)
+            return countMatchingElementsByClassChain(chainString, pageSource) === 1
+        }
+        return false
+    } catch {
+        // If parsing fails, consider it not unique
+        return false
+    }
+}
+
+/**
+ * Counts elements matching a predicate string by parsing page source XML
+ */
+function countMatchingElementsByPredicate(predicateString: string, pageSource: string): number {
+    // Parse predicate conditions (e.g., "type == 'XCUIElementTypeButton' AND name == 'Login'")
+    const conditions: Array<{ attr: string, op: string, value: string }> = []
+
+    // Extract type condition
+    const typeMatch = predicateString.match(/type\s*==\s*'([^']+)'/)
+    const elementType = typeMatch ? typeMatch[1] : null
+
+    // Extract attribute conditions
+    const attrPattern = /(\w+)\s*==\s*'([^']+)'/g
+    let attrMatch: RegExpExecArray | null
+    while ((attrMatch = attrPattern.exec(predicateString)) !== null) {
+        if (attrMatch[1] !== 'type') {
+            conditions.push({ attr: attrMatch[1], op: '==', value: attrMatch[2] })
+        }
+    }
+
+    // Find all elements matching the type
+    const elementPattern = elementType
+        ? new RegExp(`<${elementType.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^>]*)>`, 'gi')
+        : /<(\w+)([^>]*)>/gi
+
+    let match: RegExpExecArray | null
+    let count = 0
+
+    while ((match = elementPattern.exec(pageSource)) !== null) {
+        const attrs = match[1] || match[2] || ''
+
+        // Check if element matches all conditions
+        let matches = true
+
+        // Check type (if specified)
+        if (elementType && !match[0].includes(`<${elementType}`)) {
+            matches = false
+        }
+
+        // Check attribute conditions
+        for (const condition of conditions) {
+            const attrPattern = new RegExp(`${condition.attr}="([^"]*)"`, 'i')
+            const attrMatch = attrs.match(attrPattern)
+            if (!attrMatch || attrMatch[1] !== condition.value) {
+                matches = false
+                break
+            }
+        }
+
+        if (matches) {
+            count++
+        }
+    }
+
+    return count
+}
+
+/**
+ * Counts elements matching a class chain by parsing page source XML
+ */
+function countMatchingElementsByClassChain(chainString: string, pageSource: string): number {
+    // Parse class chain (e.g., "**/XCUIElementTypeButton[`name == "Login"`]")
+    const typeMatch = chainString.match(/^\*\*\/(\w+)/)
+    const elementType = typeMatch ? typeMatch[1] : null
+
+    if (!elementType) {
+        return 0
+    }
+
+    // Extract predicate conditions from backticks
+    const predicateMatch = chainString.match(/\[`([^`]+)`\]/)
+    const conditions: Array<{ attr: string, op: string, value: string }> = []
+
+    if (predicateMatch) {
+        const predicateContent = predicateMatch[1]
+        const attrPattern = /(\w+)\s*==\s*"([^"]+)"/g
+        let attrMatch: RegExpExecArray | null
+        while ((attrMatch = attrPattern.exec(predicateContent)) !== null) {
+            conditions.push({ attr: attrMatch[1], op: '==', value: attrMatch[2] })
+        }
+    }
+
+    // Find all elements matching the type
+    const elementPattern = new RegExp(`<${elementType.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^>]*)>`, 'gi')
+
+    let match: RegExpExecArray | null
+    let count = 0
+
+    while ((match = elementPattern.exec(pageSource)) !== null) {
+        const attrs = match[1] || ''
+
+        // Check if element matches all conditions
+        let matches = true
+
+        for (const condition of conditions) {
+            const attrPattern = new RegExp(`${condition.attr}="([^"]*)"`, 'i')
+            const attrMatch = attrs.match(attrPattern)
+            if (!attrMatch || attrMatch[1] !== condition.value) {
+                matches = false
+                break
+            }
+        }
+
+        if (matches) {
+            count++
+        }
+    }
+
+    return count
+}
+
+/**
+ * Builds optimal selector from element data, ensuring uniqueness.
+ * Priority: Accessibility ID > Predicate String > Class Chain
+ * Progressively adds attributes until selector is unique.
+ *
+ * @param elementData - Element data extracted from page source
+ * @param pageSource - The page source XML to test selector uniqueness against
+ * @returns Conversion result with unique selector, or warning if not unique
+ */
+function buildSelectorFromElementData(
+    elementData: ElementData,
+    pageSource: string
+): XPathConversionResult | null {
+    const { type, attributes } = elementData
+
+    // Priority order of attributes to use for making selectors unique
+    const attributePriority = ['name', 'label', 'value', 'enabled', 'visible', 'accessible', 'hittable']
+
+    // 1. Try Accessibility ID (highest priority)
+    const name = attributes.name || attributes.label
+    if (name) {
+        const accessibilitySelector = `~${name}`
+        const isUnique = isSelectorUniqueInPageSource(accessibilitySelector, pageSource)
+        if (isUnique) {
+            return {
+                selector: accessibilitySelector
+            }
+        }
+        // If not unique, continue to predicate string with more attributes
+    }
+
+    // 2. Try Predicate String - build progressively more specific selectors
+    if (type) {
+        const predicateResult = buildUniquePredicateString(type, attributes, attributePriority, pageSource)
+        if (predicateResult) {
+            return predicateResult
+        }
+    }
+
+    // 3. Try Class Chain - build progressively more specific selectors
+    if (type) {
+        const classChainResult = buildUniqueClassChain(type, attributes, attributePriority, pageSource)
+        if (classChainResult) {
+            return classChainResult
+        }
+    }
+
+    // If we couldn't make any selector unique, return warning
+    return {
+        selector: null,
+        warning: 'Could not generate a unique selector from element data. Multiple elements may match the suggested selector.'
+    }
+}
+
+/**
+ * Builds a unique predicate string by progressively adding attributes
+ */
+function buildUniquePredicateString(
+    type: string,
+    attributes: Record<string, string>,
+    attributePriority: string[],
+    pageSource: string
+): XPathConversionResult | null {
+    const predicateParts: string[] = [`type == '${type}'`]
+
+    // Try adding attributes one by one until we get a unique selector
+    for (const attr of attributePriority) {
+        if (attributes[attr] !== undefined) {
+            const value = attributes[attr]
+            if (typeof value === 'string' && value.length > 0) {
+                predicateParts.push(`${attr} == '${value}'`)
+                const selector = `-ios predicate string:${predicateParts.join(' AND ')}`
+                const isUnique = isSelectorUniqueInPageSource(selector, pageSource)
+                if (isUnique) {
+                    return {
+                        selector
+                    }
+                }
+            }
+        }
+    }
+
+    // If we've added all attributes and it's still not unique, return the most specific one
+    if (predicateParts.length > 1) {
+        return {
+            selector: `-ios predicate string:${predicateParts.join(' AND ')}`,
+            warning: 'Selector may match multiple elements. Consider adding more specific attributes.'
+        }
+    }
+
+    return null
+}
+
+/**
+ * Builds a unique class chain by progressively adding attributes
+ */
+function buildUniqueClassChain(
+    type: string,
+    attributes: Record<string, string>,
+    attributePriority: string[],
+    pageSource: string
+): XPathConversionResult | null {
+    const chain = `**/${type}`
+    const predicateParts: string[] = []
+
+    // Try adding attributes one by one until we get a unique selector
+    for (const attr of attributePriority) {
+        if (attributes[attr] !== undefined) {
+            const value = attributes[attr]
+            if (typeof value === 'string' && value.length > 0) {
+                predicateParts.push(`${attr} == "${value}"`)
+                const selector = `-ios class chain:${chain}[\`${predicateParts.join(' AND ')}\`]`
+                const isUnique = isSelectorUniqueInPageSource(selector, pageSource)
+                if (isUnique) {
+                    return {
+                        selector
+                    }
+                }
+            }
+        }
+    }
+
+    // If we've added all attributes and it's still not unique, return the most specific one
+    if (predicateParts.length > 0) {
+        return {
+            selector: `-ios class chain:${chain}[\`${predicateParts.join(' AND ')}\`]`,
+            warning: 'Selector may match multiple elements. Consider adding more specific attributes.'
+        }
+    }
+
+    // Try without predicates first
+    const basicSelector = `-ios class chain:${chain}`
+    const isUnique = isSelectorUniqueInPageSource(basicSelector, pageSource)
+    if (isUnique) {
+        return {
+            selector: basicSelector
+        }
+    }
+
+    return {
+        selector: basicSelector,
+        warning: 'Selector may match multiple elements. Consider adding more specific attributes.'
     }
 }
 

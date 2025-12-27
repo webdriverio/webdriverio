@@ -35,6 +35,8 @@ interface CommandTiming {
 
 export default class SelectorPerformanceService implements Services.ServiceInstance {
     private _enabled: boolean = false
+    private _usePageSource: boolean = false
+    private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     private _data: SelectorPerformanceData[] = []
     private _currentTest?: Frameworks.Test
     private _currentTestFile?: string
@@ -55,7 +57,22 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
         private _capabilities: Capabilities.TestrunnerCapabilities,
         private _config?: Options.Testrunner
     ) {
-        this._enabled = _options.trackSelectorPerformance === true
+        const trackConfig = _options.trackSelectorPerformance
+        if (typeof trackConfig === 'object') {
+            this._enabled = trackConfig.enabled === true
+            this._usePageSource = trackConfig.usePageSource === true
+        } else {
+            this._enabled = trackConfig === true
+            this._usePageSource = false
+        }
+    }
+
+    async before(
+        _capabilities: never,
+        _specs: never,
+        browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    ) {
+        this._browser = browser
     }
 
     async beforeTest(test: Frameworks.Test) {
@@ -187,7 +204,19 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
 
             console.log(`[Selector Performance] ${timing.commandName}('${formattedSelector}') took ${duration.toFixed(2)}ms`)
 
-            const conversionResult = convertXPathToOptimizedSelector(timing.selector)
+            // Convert XPath to optimized selector (async if usePageSource is enabled)
+            const conversionResultPromise = this._usePageSource && this._browser
+                ? convertXPathToOptimizedSelector(timing.selector, {
+                    browser: this._browser,
+                    usePageSource: true
+                })
+                : Promise.resolve(convertXPathToOptimizedSelector(timing.selector, {
+                    usePageSource: false
+                }))
+
+            // Handle both sync and async results
+            const conversionResult = await conversionResultPromise
+
             if (conversionResult) {
                 if (conversionResult.selector) {
                     // Use appropriate quote style based on selector type:
