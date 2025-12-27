@@ -151,7 +151,20 @@ export interface AppiumServiceConfig {
      * When enabled, tracks all element-finding commands and stores timing data in JSON format.
      * @default false
      */
-    trackSelectorPerformance?: boolean
+    trackSelectorPerformance?: boolean | {
+        /**
+         * Enable selector performance tracking
+         * @default false
+         */
+        enabled?: boolean
+        /**
+         * Use page source analysis for more accurate selector suggestions.
+         * When enabled, analyzes the actual element from page source to find optimal selectors.
+         * This provides better suggestions but has performance overhead.
+         * @default false
+         */
+        usePageSource?: boolean
+    }
 }
 
 export type ArgValue = string | number | boolean | null | object
