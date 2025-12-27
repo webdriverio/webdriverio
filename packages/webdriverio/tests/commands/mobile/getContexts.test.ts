@@ -434,4 +434,96 @@ describe('getContexts test', () => {
         expect(executeSpy).toHaveBeenCalledTimes(1)
         expect(currentPackageSpy).toHaveBeenCalledTimes(1)
     })
+
+    it('should handle multiple webview pages with same package when first is empty (issue #14755)', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                platformName: 'Android',
+            } as any
+        })
+
+        const espressoLikeContexts = [
+            {
+                proc: '@webview_devtools_remote_6858',
+                webview: 'WEBVIEW_6858',
+                info: {
+                    'Android-Package': 'com.ismobile.android.blaandroid',
+                    Browser: 'Chrome/124.0.6367.219',
+                    'Protocol-Version': '1.3',
+                    'User-Agent': 'Mozilla/5.0 (Linux; Android 15; sdk_gphone64_arm64 Build/AE3A.240806.043; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.219 Mobile Safari/537.36',
+                    'V8-Version': '12.4.254.16',
+                    'WebKit-Version': '537.36 (@7741f71cbce3b7dfe3eb5890976d2596364b0733)',
+                    webSocketDebuggerUrl: 'ws://127.0.0.1:10900/devtools/browser'
+                },
+                pages: [
+                    {
+                        description: '{"attached":false,"empty":true,"height":0,"never_attached":true,"screenX":0,"screenY":0,"visible":true,"width":0}',
+                        devtoolsFrontendUrl: 'https://chrome-devtools-frontend.appspot.com/serve_internal_file/@7741f71cbce3b7dfe3eb5890976d2596364b0733/inspector.html?ws=127.0.0.1:10900/devtools/page/B4EF628032DA04BF5D2854F1B8CA7A37',
+                        id: 'B4EF628032DA04BF5D2854F1B8CA7A37',
+                        title: 'about:blank',
+                        type: 'page',
+                        url: 'about:blank',
+                        webSocketDebuggerUrl: 'ws://127.0.0.1:10900/devtools/page/B4EF628032DA04BF5D2854F1B8CA7A37'
+                    },
+                    {
+                        description: '{"attached":true,"empty":false,"height":1984,"never_attached":false,"screenX":0,"screenY":290,"visible":true,"width":1080}',
+                        devtoolsFrontendUrl: 'https://chrome-devtools-frontend.appspot.com/serve_internal_file/@7741f71cbce3b7dfe3eb5890976d2596364b0733/inspector.html?ws=127.0.0.1:10900/devtools/page/B6745CF76C090CEC213E4A2A2B21D228',
+                        faviconUrl: 'http://127.0.0.1:14532/images/icons/bla.ico',
+                        id: 'B6745CF76C090CEC213E4A2A2B21D228',
+                        title: 'Översikt',
+                        type: 'page',
+                        url: 'http://127.0.0.1:14532/Micro?sub=showsummary',
+                        webSocketDebuggerUrl: 'ws://127.0.0.1:10900/devtools/page/B6745CF76C090CEC213E4A2A2B21D228'
+                    }
+                ],
+                webviewName: 'WEBVIEW_com.ismobile.android.blaandroid'
+            }
+        ]
+
+        vi.spyOn(browser, 'execute').mockResolvedValue(espressoLikeContexts as any)
+        vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.ismobile.android.blaandroid')
+
+        const contexts = await browser.getContexts({
+            androidWebviewConnectTimeout: 50,
+            androidWebviewConnectionRetryTime: 1,
+            isAndroidWebviewVisible: false,
+            returnAndroidDescriptionData: true,
+            returnDetailedContexts: true,
+        }) as any
+
+        expect(contexts.some((c: any) => c.id === 'NATIVE_APP')).toBe(true)
+
+        const validContext = contexts.find((c: any) => c.url === 'http://127.0.0.1:14532/Micro?sub=showsummary')
+        expect(validContext).toBeDefined()
+        expect(validContext).toMatchObject({
+            id: 'WEBVIEW_com.ismobile.android.blaandroid',
+            title: 'Översikt',
+            packageName: 'com.ismobile.android.blaandroid',
+            webviewPageId: 'B6745CF76C090CEC213E4A2A2B21D228'
+        })
+
+        const emptyContext = contexts.find((c: any) => c.url === 'about:blank')
+        if (emptyContext) {
+            expect(emptyContext.packageName).toBe('com.ismobile.android.blaandroid')
+        }
+    })
+
+    it('should pass waitForWebviewMs parameter to mobile: getContexts when provided', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                platformName: 'iOS',
+            } as any
+        })
+        const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(iOSContexts)
+        await browser.getContexts({ returnDetailedContexts: true, waitForWebviewMs: 3000 })
+
+        expect(executeSpy).toHaveBeenCalledTimes(1)
+        expect(executeSpy).toHaveBeenCalledWith('mobile: getContexts', { waitForWebviewMs: 3000 })
+    })
 })

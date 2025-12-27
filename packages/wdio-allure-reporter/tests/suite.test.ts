@@ -49,7 +49,7 @@ describe('Passing tests', () => {
             outputDir,
             issueLinkTemplate: 'https://example.org/issues/{}',
             tmsLinkTemplate: 'https://example.org/tests/{}',
-            reportedEnvironmentVars:{
+            reportedEnvironmentVars: {
                 jenkins: '1.2.3',
                 OS: 'Mocked'
             }
@@ -251,7 +251,7 @@ describe('Failed tests', () => {
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.FAILED)
         expect(results[0].parameters).toHaveLength(1)
-        expect(results[0].historyId).toEqual('195dd4bd8fdce339d6d2264e50de9e6f')
+        expect(results[0].historyId).toEqual('9fd3aec777150aff9e56ec3dcdb64975')
         expect(browserParameter!.value).toEqual('default')
     })
 
@@ -279,7 +279,7 @@ describe('Failed tests', () => {
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.FAILED)
         expect(results[0].parameters).toHaveLength(1)
-        expect(results[0].historyId).toEqual('195dd4bd8fdce339d6d2264e50de9e6f')
+        expect(results[0].historyId).toEqual('9fd3aec777150aff9e56ec3dcdb64975')
         expect(browserParameter!.value).toEqual('default')
     })
 
@@ -297,7 +297,7 @@ describe('Failed tests', () => {
         expect(results).toHaveLength(1)
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.FAILED)
-        expect(results[0].historyId).toEqual('195dd4bd8fdce339d6d2264e50de9e6f')
+        expect(results[0].historyId).toEqual('9fd3aec777150aff9e56ec3dcdb64975')
     })
 
     it('should detect failed test case with multiple errors', async () => {
@@ -416,7 +416,7 @@ describe('Pending tests', () => {
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.SKIPPED)
         expect(results[0].stage).toEqual(Stage.PENDING)
-        expect(results[0].historyId).toEqual('195dd4bd8fdce339d6d2264e50de9e6f')
+        expect(results[0].historyId).toEqual('9fd3aec777150aff9e56ec3dcdb64975')
     })
 
     it('should detect not started pending test case', async () => {
@@ -436,7 +436,7 @@ describe('Pending tests', () => {
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.SKIPPED)
         expect(results[0].stage).toEqual(Stage.PENDING)
-        expect(results[0].historyId).toEqual('195dd4bd8fdce339d6d2264e50de9e6f')
+        expect(results[0].historyId).toEqual('9fd3aec777150aff9e56ec3dcdb64975')
     })
 
     it('should detect not started pending test case after completed test', async () => {
@@ -471,6 +471,89 @@ describe('Pending tests', () => {
         expect(passedResult.stage).toEqual(Stage.FINISHED)
         expect(skippedResult.name).toEqual('should can do something')
         expect(skippedResult.stage).toEqual(Stage.PENDING)
+    })
+})
+
+describe('Multi-capability parallel execution', () => {
+    let outputDir: any
+
+    beforeEach(() => {
+        outputDir = temporaryDirectory()
+    })
+
+    afterEach(() => {
+        clean(outputDir)
+    })
+
+    it('should generate distinct historyIds for same test across different capabilities (fixes #14792)', async () => {
+        // Simulate two parallel reporters running the same test with different cids
+        const reporter1 = new AllureReporter({ outputDir })
+        const reporter2 = new AllureReporter({ outputDir })
+
+        const runner1 = { ...runnerStart(), cid: '0-0' }
+        const runner2 = { ...runnerStart(), cid: '0-1' }
+
+        const test = testStart() // Same test with same UID
+
+        // Worker 1 (capability 1)
+        reporter1.onRunnerStart(runner1)
+        reporter1.onSuiteStart(suiteStart())
+        reporter1.onTestStart(test)
+        reporter1.onTestPass(testPassed())
+        reporter1.onSuiteEnd(suiteEnd())
+        await reporter1.onRunnerEnd(runnerEnd())
+
+        // Worker 2 (capability 2)
+        reporter2.onRunnerStart(runner2)
+        reporter2.onSuiteStart(suiteStart())
+        reporter2.onTestStart(test)
+        reporter2.onTestPass(testPassed())
+        reporter2.onSuiteEnd(suiteEnd())
+        await reporter2.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        // Verify we have 2 distinct result files (not 1 overwritten file)
+        expect(results).toHaveLength(2)
+
+        // Verify both results have unique UUIDs
+        const uuids = results.map((r: any) => r.uuid)
+        expect(new Set(uuids).size).toBe(2)
+
+        // Verify both results have unique historyIds (this is what prevents overwrites)
+        const historyIds = results.map((r: any) => r.historyId)
+        expect(new Set(historyIds).size).toBe(2)
+
+        // Verify the historyIds are different (the bug was they were the same)
+        expect(historyIds[0]).not.toEqual(historyIds[1])
+
+        // Both should be the same test name
+        expect(results[0].name).toEqual(results[1].name)
+        expect(results[0].name).toEqual('should can do something')
+    })
+
+    it('should include cid in historyId calculation', async () => {
+        const reporter = new AllureReporter({ outputDir })
+
+        const runner = { ...runnerStart(), cid: '0-0' }
+
+        reporter.onRunnerStart(runner)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestPass(testPassed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+
+        // The historyId should be the md5 hash of "fullTitle#cid"
+        // This ensures different capabilities get different hashes
+        expect(results[0].historyId).toEqual('9fd3aec777150aff9e56ec3dcdb64975')
+
+        // This is the new hash format: md5('My awesome feature should can do something#0-0')
+        // Old format was: md5('My awesome feature should can do something') = '195dd4bd8fdce339d6d2264e50de9e6f'
     })
 })
 
@@ -736,11 +819,13 @@ describe('command reporting', () => {
         const customCommandAfterArgs = {
             sessionId,
             command: 'customCommand',
-            result: { value: {
-                foo: 'bar',
-                bar: 1,
-                baz: true
-            } }
+            result: {
+                value: {
+                    foo: 'bar',
+                    bar: 1,
+                    baz: true
+                }
+            }
         } satisfies AfterCommandArgs
 
         const allureOptions = {

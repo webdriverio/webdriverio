@@ -57,10 +57,18 @@ export class DialogManager extends SessionManager {
      */
     async #handleUserPrompt(log: local.BrowsingContextUserPromptOpenedParameters) {
         if (this.#autoHandleDialog) {
-            return this.#browser.browsingContextHandleUserPrompt({
-                accept: false,
-                context: log.context
-            })
+            try {
+                return await this.#browser.browsingContextHandleUserPrompt({
+                    accept: false,
+                    context: log.context
+                })
+            } catch (err) {
+                // ignore error if dialog is already closed
+                if (err instanceof Error && err.message.includes('no such alert')) {
+                    return
+                }
+                throw err
+            }
         }
 
         const dialog = new Dialog(log, this.#browser)

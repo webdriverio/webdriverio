@@ -35,7 +35,7 @@ const log = logger('webdriver')
  * - **Simplified Switching**: If you know the `title` or `url` of the desired webview, this method eliminates the need for
  *   additional calls to `getContexts` or combining multiple methods like `switchContext({id})` and `getTitle()`.
  * - **Automatic Context Matching**: Finds the best match for a context based on:
- *   - Platform-specific identifiers (`bundleId` for iOS, `packageName` for Android).
+ *   - Platform-specific identifiers (`bundleId` for iOS, `packageName` for Android). By default, uses the active app identifier, but you can provide a custom `appIdentifier` to search in a specific app (useful for overlays or non-active apps).
  *   - Exact or partial matches for `title` or `url` (supports both strings and regular expressions).
  *   - Android-specific checks to ensure webviews are attached and visible.
  * - **Fine-Grained Control**: Custom retry intervals and timeouts (Android-only) allow you to handle delays in webview initialization.
@@ -105,8 +105,25 @@ const log = logger('webdriver')
     })
  * </example>
  *
+ * <example>
+ *    :app.identifier.test.js
+ *    it('should switch to a webview by providing a specific app identifier (bundleId for iOS or packageName for Android)', async () => {
+ *        // For Android, provide the packageName to search in a specific app (useful for overlays or non-active apps)
+ *        await driver.switchContext({
+ *            appIdentifier: 'com.otherApp',
+ *            title: 'Other Apps',
+ *        })
+ *        // For iOS, provide the bundleId to search in a specific app
+ *        await driver.switchContext({
+ *            appIdentifier: 'com.apple.mobilesafari',
+ *            url: /.*apple.com/,
+ *        })
+ *    })
+ * </example>
+ *
  * @param {string|SwitchContextOptions} context                                     The name of the context to switch to. An object with more context options can be provided.
  * @param {SwitchContextOptions}        options                                     switchContext command options
+ * @param {string=}                     options.appIdentifier                       The app identifier to search in. For iOS, this should be the `bundleId`. For Android, this should be the `packageName`. If not provided, the method will use the active app identifier. This is useful when you need to search for webviews in overlays or non-active apps that are not recognized as the "active" app.
  * @param {string|RegExp=}              options.title                               The title of the page to switch to. This will be the content of the title-tag of a webviewpage. You can use a string that needs to fully match or or a regular expression.<br /><strong>IMPORTANT:</strong> When you use options then or the `title` or the `url` property is required.
  * @param {string|RegExp=}              options.url                                 The url of the page to switch to. This will be the `url` of a webviewpage. You can use a string that needs to fully match or or a regular expression.<br /><strong>IMPORTANT:</strong> When you use options then or the `title` or the `url` property is required.
  * @param {number=}                     options.androidWebviewConnectionRetryTime   The time in milliseconds to wait between each retry to connect to the webview. Default is `500` ms (optional). <br /><strong>ANDROID-ONLY</strong> and will only be used when a `title` or `url` is provided.
@@ -165,8 +182,13 @@ async function switchToContext(
     const contexts = await browser.getContexts(getContextsOptions) as AppiumDetailedCrossPlatformContexts
 
     // 2. Find the matching context
-    // @ts-expect-error
-    const identifier = browser.isIOS ? (await browser.execute('mobile: activeAppInfo'))?.bundleId : await browser.getCurrentPackage()
+    let identifier: string
+    if (options.appIdentifier) {
+        identifier = options.appIdentifier
+    } else {
+        // @ts-expect-error
+        identifier = browser.isIOS ? (await browser.execute('mobile: activeAppInfo'))?.bundleId : await browser.getCurrentPackage()
+    }
     const { matchingContext, reasons } = findMatchingContext({ browser, contexts, identifier, ...(options?.title && { title: options.title }), ...(options?.url && { url: options.url }) })
 
     if (!matchingContext) {

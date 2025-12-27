@@ -653,6 +653,7 @@ export type GetContextsOptions = {
     isAndroidWebviewVisible?: boolean;
     returnAndroidDescriptionData?: boolean;
     returnDetailedContexts?: boolean;
+    waitForWebviewMs?: number;
 }
 
 export type ActiveAppInfo = {

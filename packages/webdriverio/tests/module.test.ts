@@ -312,6 +312,32 @@ describe('WebdriverIO module interface', () => {
             const newBrowser = await attach(browser)
             expect(newBrowser).toHaveProperty('addLocatorStrategy')
         })
+
+        it('should apply waitforTimeout and waitforInterval from options (issue #14715)', async () => {
+            let capturedParams: any
+            const actualDetectBackend = await vi.importActual('../src/utils/detectBackend') as { default: typeof detectBackend }
+            vi.mocked(detectBackend).mockImplementation(actualDetectBackend.default)
+
+            const originalMockImplementation = vi.mocked(WebDriver.attachToSession).getMockImplementation()
+
+            vi.mocked(WebDriver.attachToSession).mockImplementation((params, modifier, prototype, commandWrapper) => {
+                capturedParams = params
+                return originalMockImplementation!(params, modifier, prototype, commandWrapper)
+            })
+
+            await attach({
+                sessionId: 'test-session-id',
+                options: {
+                    waitforTimeout: 5000,
+                    waitforInterval: 500,
+                }
+            })
+
+            expect(capturedParams).toMatchObject({
+                waitforTimeout: 5000,
+                waitforInterval: 500,
+            })
+        })
     })
 
     it('should use the element disable implicitWait exclusion list', async () => {
