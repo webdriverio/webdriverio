@@ -186,6 +186,39 @@ export function isXPathSelector(selector: unknown): selector is string {
 }
 
 /**
+ * Checks if the browser is in native context.
+ * MSPO only works in native context, not in webview context.
+ *
+ * @param browser - The browser instance to check
+ * @returns True if in native context, false otherwise
+ */
+export function isNativeContext(browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser): boolean {
+    if (!browser) {
+        return false
+    }
+
+    try {
+        // isNativeContext is a getter property on the browser object
+        const browserWithNativeContext = browser as WebdriverIO.Browser & {
+            isNativeContext?: boolean
+        }
+
+        // For MultiRemote, we need to check each browser instance
+        if ('instances' in browser && Array.isArray(browser.instances)) {
+            // MultiRemote case - check if any instance is in native context
+            // For now, we'll check the first instance or return false
+            // This could be enhanced to check all instances
+            return false
+        }
+
+        return browserWithNativeContext.isNativeContext === true
+    } catch {
+        // If checking context fails, assume not native (fail safe)
+        return false
+    }
+}
+
+/**
  * Parses an optimized selector string into WebDriver using/value format
  */
 export function parseOptimizedSelector(optimizedSelector: string): { using: string, value: string } | null {

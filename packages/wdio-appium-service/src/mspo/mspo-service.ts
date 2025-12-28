@@ -12,7 +12,8 @@ import {
     findOptimizedSelector,
     findMostRecentUnmatchedUserCommand,
     findMatchingInternalCommandTiming,
-    storePerformanceData
+    storePerformanceData,
+    isNativeContext
 } from './utils.js'
 import { overwriteUserCommands } from './overwrite.js'
 
@@ -54,10 +55,6 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
         }
     }
 
-    /**
-     * @TODO: This service should only work when in native context, so we should read that from the browser object by
-     * using the `isNativeContext` method.
-     */
     async before(
         _capabilities: never,
         _specs: never,
@@ -111,6 +108,10 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
 
     async beforeCommand(commandName: string, args: unknown[]) {
         if (!this._enabled) {
+            return
+        }
+
+        if (!isNativeContext(this._browser)) {
             return
         }
 
@@ -170,6 +171,10 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
 
     async afterCommand(commandName: string, args: unknown[], _result: unknown, _error?: Error) {
         if (!this._enabled) {
+            return
+        }
+
+        if (!isNativeContext(this._browser)) {
             return
         }
 
