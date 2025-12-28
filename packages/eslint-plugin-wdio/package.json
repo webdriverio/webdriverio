@@ -36,7 +36,22 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "devDependencies": {
-    "@types/estree": "^1.0.1",
-    "eslint": "^9.0.0"
+    "@types/estree": "^1.0.8",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "eslint": "^9.39.2",
+    "typescript-eslint": "^8.54.0"
+  },
+  "peerDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "eslint": "^9.39.2",
+    "typescript-eslint": "^8.54.0"
+  },
+  "peerDependenciesMeta": {
+    "@typescript-eslint/eslint-plugin": {
+      "optional": true
+    },
+    "typescript-eslint": {
+      "optional": true
+    }
   }
 }
