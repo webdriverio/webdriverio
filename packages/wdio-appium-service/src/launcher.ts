@@ -17,6 +17,7 @@ import { isAppiumCapability } from '@wdio/utils'
 
 import { getFilePath, formatCliArgs } from './utils.js'
 import type { AppiumServerArguments, AppiumServiceConfig } from './types.js'
+import { aggregateSelectorPerformanceData } from './mspo/aggregator.js'
 import treeKill from 'tree-kill'
 
 const log = logger('@wdio/appium-service')
@@ -221,131 +222,10 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             }
         }
 
-        // Aggregate selector performance data from all workers
+        // Aggregate Mobile selector performance data from all workers
         if (this._options.trackSelectorPerformance) {
-            this._aggregateSelectorPerformanceData()
+            aggregateSelectorPerformanceData(this._capabilities)
         }
-    }
-
-    private _aggregateSelectorPerformanceData() {
-        const workersDataDir = path.join(process.cwd(), 'logs', 'selector-performance')
-
-        // Generate unique filename with device name and timestamp
-        const deviceName = this._getDeviceName()
-        const timestamp = Date.now()
-        const sanitizedDeviceName = deviceName.replace(/[^a-zA-Z0-9-_]/g, '_').toLowerCase() || 'unknown'
-        const finalJsonPath = path.join(process.cwd(), `selector-performance-${sanitizedDeviceName}-${timestamp}.json`)
-
-        try {
-            if (!fs.existsSync(workersDataDir)) {
-                return
-            }
-
-            // Read all worker data files
-            const files = fs.readdirSync(workersDataDir)
-            const workerDataFiles = files.filter(file => file.startsWith('worker-data-') && file.endsWith('.json'))
-
-            if (workerDataFiles.length === 0) {
-                return
-            }
-
-            // Aggregate all worker data
-            const allData: Array<{
-                testFile: string
-                suiteName: string
-                testName: string
-                lineNumber?: number
-                selector: string
-                selectorType: string
-                duration: number
-                timestamp: number
-            }> = []
-
-            workerDataFiles.forEach((file) => {
-                const filePath = path.join(workersDataDir, file)
-                try {
-                    const content = fs.readFileSync(filePath, 'utf8')
-                    const workerData = JSON.parse(content)
-                    if (Array.isArray(workerData)) {
-                        allData.push(...workerData)
-                    }
-                } catch (err) {
-                    log.warn(`Failed to read worker data file ${file}:`, err)
-                }
-            })
-
-            // Write aggregated data to final JSON file
-            fs.writeFileSync(finalJsonPath, JSON.stringify(allData, null, 2))
-
-            // Generate summary
-            const totalSelectors = allData.length
-
-            if (totalSelectors === 0) {
-                console.log('\n📊 Selector Performance Summary:')
-                console.log('   No element-finding commands were tracked.')
-                console.log(`   💡 JSON file written to: ${finalJsonPath}`)
-            } else {
-                const slowSelectors = allData.filter(d => d.duration > 100) // Consider >100ms as slow
-                const avgDuration = allData.reduce((sum, d) => sum + d.duration, 0) / totalSelectors || 0
-
-                console.log('\n📊 Selector Performance Summary:')
-                console.log(`   Total element finds: ${totalSelectors}`)
-                console.log(`   Average duration: ${avgDuration.toFixed(2)}ms`)
-                if (slowSelectors.length > 0) {
-                    console.log(`   ⚠️  Found ${slowSelectors.length} selectors that may be slow (>100ms)`)
-                    console.log(`   💡 A detailed report can be generated from: ${finalJsonPath}`)
-                } else {
-                    console.log('   ✅ All selectors performed well')
-                    console.log(`   💡 JSON file written to: ${finalJsonPath}`)
-                }
-            }
-
-            // Clean up worker data directory
-            try {
-                fs.rmSync(workersDataDir, { recursive: true, force: true })
-            } catch (err) {
-                log.warn('Failed to clean up worker data directory:', err)
-            }
-        } catch (err) {
-            console.error('Failed to aggregate selector performance data:', err)
-            if (err instanceof Error) {
-                console.error('Error details:', err.message)
-            }
-        }
-    }
-
-    /**
-     * Extract device name from capabilities
-     * Supports W3C format (appium:deviceName), legacy format (deviceName), and multiremote
-     */
-    private _getDeviceName(): string {
-        if (!this._capabilities) {
-            return 'unknown'
-        }
-
-        // Handle multiremote capabilities
-        if (!Array.isArray(this._capabilities) && typeof this._capabilities === 'object') {
-            const firstCap = Object.values(this._capabilities)[0]
-            if (firstCap && typeof firstCap === 'object' && 'capabilities' in firstCap) {
-                const caps = (firstCap.capabilities as Capabilities.W3CCapabilities).alwaysMatch || firstCap.capabilities as Capabilities.W3CCapabilities
-                // @ts-expect-error outdated JSONWP capabilities
-                return (caps['appium:deviceName'] || caps.deviceName || 'unknown') as string
-            }
-        }
-
-        // Handle array of capabilities - use first one
-        if (Array.isArray(this._capabilities) && this._capabilities.length > 0) {
-            const cap = this._capabilities[0] as Capabilities.W3CCapabilities
-            const w3cCap = cap.alwaysMatch || cap
-            // @ts-expect-error outdated JSONWP capabilities
-            return (w3cCap['appium:deviceName'] || w3cCap.deviceName || 'unknown') as string
-        }
-
-        // Handle single capability object
-        const cap = this._capabilities as unknown as Capabilities.W3CCapabilities
-        const w3cCap = cap.alwaysMatch || cap
-        // @ts-expect-error outdated JSONWP capabilities
-        return (w3cCap['appium:deviceName'] || w3cCap.deviceName || 'unknown') as string
     }
     private _startAppium(command: string, args: Array<string>, timeout = APPIUM_START_TIMEOUT) {
         log.info(`Will spawn Appium process: ${command} ${args.join(' ')}`)

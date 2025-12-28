@@ -1,42 +1,27 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import type { Services, Frameworks, Capabilities, Options } from '@wdio/types'
-import type { AppiumServiceConfig } from './types.js'
+import type { AppiumServiceConfig } from '../types.js'
+import type { SelectorPerformanceData, CommandTiming } from './types.js'
 import {
     extractTestFile,
     extractSelectorFromArgs,
     formatSelectorForDisplay,
     getHighResTime,
     buildTestContext,
-    type TestContext
-} from './selector-performance-utils.js'
-import { convertXPathToOptimizedSelector } from './xpath-utils.js'
-
-interface SelectorPerformanceData {
-    testFile: string
-    suiteName: string
-    testName: string
-    lineNumber?: number
-    selector: string
-    selectorType: string
-    duration: number
-    timestamp: number
-}
-
-interface CommandTiming {
-    startTime: number
-    commandName: string
-    selector: string
-    formattedSelector: string
-    selectorType?: string
-    timingId: string
-    isUserCommand: boolean
-}
+    findOptimizedSelector,
+    findMostRecentUnmatchedUserCommand,
+    findMatchingInternalCommandTiming,
+    storePerformanceData
+} from './utils.js'
+import { overwriteUserCommands } from './overwrite.js'
 
 export default class SelectorPerformanceService implements Services.ServiceInstance {
     private _enabled: boolean = false
     private _usePageSource: boolean = false
+    private _replaceWithOptimized: boolean = false
     private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    private _isReplacingSelectorRef: { value: boolean } = { value: false }
     private _data: SelectorPerformanceData[] = []
     private _currentTest?: Frameworks.Test
     private _currentTestFile?: string
@@ -61,18 +46,36 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
         if (typeof trackConfig === 'object') {
             this._enabled = trackConfig.enabled === true
             this._usePageSource = trackConfig.usePageSource === true
+            this._replaceWithOptimized = trackConfig.replaceWithOptimizedSelector === true
         } else {
             this._enabled = trackConfig === true
             this._usePageSource = false
+            this._replaceWithOptimized = false
         }
     }
 
+    /**
+     * @TODO: This service should only work when in native context, so we should read that from the browser object by
+     * using the `isNativeContext` method.
+     */
     async before(
         _capabilities: never,
         _specs: never,
         browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {
         this._browser = browser
+
+        // Overwrite all user commands to replace XPath with optimized selectors if enabled
+        if (this._enabled && this._replaceWithOptimized) {
+            overwriteUserCommands(browser, {
+                usePageSource: this._usePageSource,
+                browser: this._browser,
+                currentTest: this._currentTest,
+                currentTestFile: this._currentTestFile,
+                dataStore: this._data,
+                isReplacingSelector: this._isReplacingSelectorRef
+            })
+        }
     }
 
     async beforeTest(test: Frameworks.Test) {
@@ -146,7 +149,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
 
             // Find the most recent user command that would have triggered this findElement
             const formattedSelector = formatSelectorForDisplay(value)
-            const matchingUserCommand = this._findMostRecentUnmatchedUserCommand()
+            const matchingUserCommand = findMostRecentUnmatchedUserCommand(this._commandTimings)
 
             if (matchingUserCommand) {
                 const [, userTiming] = matchingUserCommand
@@ -185,7 +188,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             }
 
             const formattedSelector = formatSelectorForDisplay(value)
-            const matchingTiming = this._findMatchingInternalCommandTiming(formattedSelector, using)
+            const matchingTiming = findMatchingInternalCommandTiming(this._commandTimings, formattedSelector, using)
 
             if (!matchingTiming) {
                 return
@@ -200,34 +203,29 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             }
 
             const testContext = buildTestContext(this._currentTest, this._currentTestFile)
-            this._storePerformanceData(timing, duration, testContext)
+            // Always store performance data, even when replaceWithOptimizedSelector is enabled
+            storePerformanceData(this._data, timing, duration, testContext)
 
-            console.log(`[Selector Performance] ${timing.commandName}('${formattedSelector}') took ${duration.toFixed(2)}ms`)
+            // When replaceWithOptimizedSelector is enabled, the overwrite commands handle all logging
+            // Skip logging here to avoid duplicates, but still store the data
+            if (!this._replaceWithOptimized) {
+                console.log(`[Selector Performance] ${timing.commandName}('${formattedSelector}') took ${duration.toFixed(2)}ms`)
 
-            // Convert XPath to optimized selector (async if usePageSource is enabled)
-            const conversionResultPromise = this._usePageSource && this._browser
-                ? convertXPathToOptimizedSelector(timing.selector, {
+                // Find optimized selector using helper method (without page source logging for this flow)
+                const conversionResult = await findOptimizedSelector(timing.selector, {
+                    usePageSource: this._usePageSource,
                     browser: this._browser,
-                    usePageSource: true
+                    logPageSource: false
                 })
-                : Promise.resolve(convertXPathToOptimizedSelector(timing.selector, {
-                    usePageSource: false
-                }))
 
-            // Handle both sync and async results
-            const conversionResult = await conversionResultPromise
-
-            if (conversionResult) {
-                if (conversionResult.selector) {
-                    // Use appropriate quote style based on selector type:
-                    // - Class chain uses backticks with double quotes inside, so use single quotes for outer string
-                    // - Predicate string uses single quotes inside, so use double quotes for outer string
-                    // - Accessibility ID has no quotes, so either works (use double for consistency)
-                    const quoteStyle = conversionResult.selector.startsWith('-ios class chain:') ? "'" : '"'
-                    console.log(`[Potential Optimized Selector] ${timing.commandName}(${quoteStyle}${conversionResult.selector}${quoteStyle})`)
-                }
-                if (conversionResult.warning) {
-                    console.warn(`[Selector Performance Warning] ${conversionResult.warning}`)
+                if (conversionResult) {
+                    if (conversionResult.selector) {
+                        const quoteStyle = conversionResult.selector.startsWith('-ios class chain:') ? "'" : '"'
+                        console.log(`[Potential Optimized Selector] ${timing.commandName}(${quoteStyle}${conversionResult.selector}${quoteStyle})`)
+                    }
+                    if (conversionResult.warning) {
+                        console.warn(`[Selector Performance Warning] ${conversionResult.warning}`)
+                    }
                 }
             }
 
@@ -244,53 +242,10 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
         const workerDataPath = path.join(workersDataDir, `worker-data-${process.pid}.json`)
 
         try {
-            // Ensure directory exists
             fs.mkdirSync(workersDataDir, { recursive: true })
-            // Write worker data
             fs.writeFileSync(workerDataPath, JSON.stringify(this._data, null, 2))
         } catch (err) {
             console.error('Failed to write worker selector performance data:', err)
         }
     }
-
-    /**
-     * Finds the most recent user command that hasn't been matched with an internal command yet
-     */
-    private _findMostRecentUnmatchedUserCommand(): [string, CommandTiming] | undefined {
-        return Array.from(this._commandTimings.entries())
-            .filter(([_id, timing]) => timing.isUserCommand && !timing.selectorType)
-            .sort(([_idA, a], [_idB, b]) => b.startTime - a.startTime)[0]
-    }
-
-    /**
-     * Finds the matching internal command timing entry for a given formatted selector and selector type
-     */
-    private _findMatchingInternalCommandTiming(formattedSelector: string, selectorType: string): [string, CommandTiming] | undefined {
-        return Array.from(this._commandTimings.entries())
-            .filter(([_id, timing]) =>
-                !timing.isUserCommand &&
-                timing.formattedSelector === formattedSelector &&
-                timing.selectorType === selectorType
-            )
-            .sort(([_idA, a], [_idB, b]) => b.startTime - a.startTime)[0]
-    }
-
-    /**
-     * Stores performance data for a selector operation
-     */
-    private _storePerformanceData(timing: CommandTiming, duration: number, testContext: TestContext): void {
-        const data: SelectorPerformanceData = {
-            testFile: testContext.testFile || 'unknown',
-            suiteName: testContext.suiteName,
-            testName: testContext.testName,
-            lineNumber: testContext.lineNumber,
-            selector: timing.selector,
-            selectorType: timing.selectorType!,
-            duration,
-            timestamp: Date.now()
-        }
-
-        this._data.push(data)
-    }
 }
-
