@@ -1,5 +1,5 @@
 import type { OptimizationOptions } from './types.js'
-import { isXPathSelector } from './utils.js'
+import { isXPathSelector, isNativeContext } from './utils.js'
 import { optimizeSingleSelector, optimizeMultipleSelectors } from './optimizer.js'
 
 /**
@@ -28,6 +28,11 @@ export function overwriteUserCommands(
                 return originalFunc.call(browser, selector)
             }
 
+            // Only process in native context
+            if (!isNativeContext(browser)) {
+                return originalFunc.call(browser, selector)
+            }
+
             // Only process string selectors that are XPath
             if (!isXPathSelector(selector)) {
                 return originalFunc.call(browser, selector)
@@ -45,6 +50,11 @@ export function overwriteUserCommands(
         ) => {
             // Skip if we're already in the process of replacing (to avoid recursion)
             if (options.isReplacingSelector.value) {
+                return originalFunc.call(browser, selector)
+            }
+
+            // Only process in native context
+            if (!isNativeContext(browser)) {
                 return originalFunc.call(browser, selector)
             }
 
