@@ -3,8 +3,6 @@
  * Supports conversion to: Accessibility ID, iOS Predicate String, and iOS Class Chain.
  */
 
-import { getHighResTime } from './selector-performance-utils.js'
-
 /**
  * Result of XPath conversion attempt
  */
@@ -119,18 +117,18 @@ async function convertXPathToOptimizedSelectorDynamic(
     staticResult: XPathConversionResult | null
 ): Promise<XPathConversionResult | null> {
     try {
-        const startTime = getHighResTime()
-        console.log('[Selector Performance] Collecting page source for dynamic analysis...')
-        const pageSource = await browser.getPageSource()
-        const duration = getHighResTime() - startTime
-        console.log(`[Selector Performance] Page source collected in ${duration.toFixed(2)}ms`)
+        // Page source collection logging is handled by the caller
+        const browserWithPageSource = browser as WebdriverIO.Browser & {
+            getPageSource: () => Promise<string>
+        }
+        const pageSource = await browserWithPageSource.getPageSource()
 
         if (!pageSource || typeof pageSource !== 'string') {
             return staticResult
         }
 
-        // Parse XML to extract element data
-        const elementData = parseElementFromPageSource(pageSource)
+        // Parse XML to extract element data based on the original XPath
+        const elementData = parseElementFromPageSource(pageSource, xpath)
 
         if (!elementData) {
             return staticResult
@@ -154,60 +152,156 @@ async function convertXPathToOptimizedSelectorDynamic(
 }
 
 /**
- * Parses page source XML to extract element data.
- * Note: Element IDs from WebDriver are not present in the page source XML,
- * so we use a heuristic approach to find elements with useful attributes.
+ * Parses page source XML to extract element data based on the original XPath.
+ * Finds the specific element that matches the XPath criteria.
+ *
+ * @param pageSource - The page source XML
+ * @param xpath - The original XPath selector used to find the element
+ * @returns Element data if found, null otherwise
  */
-function parseElementFromPageSource(pageSource: string): ElementData | null {
-    // For iOS/Android, the page source is XML with elements like:
-    // <XCUIElementTypeButton name="Login" label="Login" ...>
-    // Since element IDs are not in the XML, we extract the first element with useful attributes
-    return parseElementFromPageSourceRegex(pageSource)
-}
+function parseElementFromPageSource(pageSource: string, xpath: string): ElementData | null {
+    // Extract criteria from XPath to find the matching element in page source
+    // Example: //*[@name="Home"] -> find element with name="Home"
+    // Example: //XCUIElementTypeButton[@name="Login"] -> find XCUIElementTypeButton with name="Login"
 
-/**
- * Regex-based parsing for page source to extract element data.
- * Finds the first element with useful attributes (name, label, etc.)
- */
-function parseElementFromPageSourceRegex(pageSource: string): ElementData | null {
-    // This is a simplified approach - try to find the element
-    // In practice, we might need to use the element's position or other context
-    // For now, we'll extract what we can from the page source
+    // Extract element type from XPath (e.g., XCUIElementTypeButton)
+    const elementTypeMatch = xpath.match(/\/\/XCUIElementType(\w+)/)
+    const expectedElementType = elementTypeMatch ? `XCUIElementType${elementTypeMatch[1]}` : null
 
-    // Try to find elements with common iOS attributes
+    // Extract attribute conditions from XPath (e.g., @name="Home", @label="Login")
+    // Group OR conditions by attribute (e.g., @name="Allow" or @name="OK" -> { name: ["Allow", "OK"] })
+    const attributeConditions: Record<string, string[]> = {}
+    const orConditions: Record<string, string[]> = {}
+
+    // First, extract OR conditions (e.g., @name="Allow" or @name="OK")
+    const orPattern = /@(\w+)\s*=\s*["']([^"']+)["']\s+or\s+@(\w+)\s*=\s*["']([^"']+)["']/gi
+    let orMatch: RegExpExecArray | null
+    while ((orMatch = orPattern.exec(xpath)) !== null) {
+        if (orMatch[1] === orMatch[3]) {
+            // Same attribute with OR values
+            if (!orConditions[orMatch[1]]) {
+                orConditions[orMatch[1]] = []
+            }
+            if (!orConditions[orMatch[1]].includes(orMatch[2])) {
+                orConditions[orMatch[1]].push(orMatch[2])
+            }
+            if (!orConditions[orMatch[1]].includes(orMatch[4])) {
+                orConditions[orMatch[1]].push(orMatch[4])
+            }
+        }
+    }
+
+    // Then, extract regular conditions (excluding those already in OR conditions)
+    const attrPattern = /@(\w+)\s*=\s*["']([^"']+)["']/g
+    let attrMatch: RegExpExecArray | null
+    while ((attrMatch = attrPattern.exec(xpath)) !== null) {
+        // Skip if this attribute is part of an OR condition
+        if (!orConditions[attrMatch[1]]) {
+            if (!attributeConditions[attrMatch[1]]) {
+                attributeConditions[attrMatch[1]] = []
+            }
+            if (!attributeConditions[attrMatch[1]].includes(attrMatch[2])) {
+                attributeConditions[attrMatch[1]].push(attrMatch[2])
+            }
+        }
+    }
+
+    // Find matching element in page source
     const elementPattern = /<(\w+)([^>]*)>/g
-    const attributes: Record<string, string> = {}
-    let elementType: string | null = null
-
-    // Simple extraction - find first matching element with attributes
     let match: RegExpExecArray | null
+
     while ((match = elementPattern.exec(pageSource)) !== null) {
         const tagName = match[1]
         const attrs = match[2]
 
-        // Extract attributes
+        // Check if element type matches (if specified in XPath)
+        if (expectedElementType && tagName !== expectedElementType) {
+            continue
+        }
+
+        // Extract all attributes from this element
         const attrMatches = attrs.matchAll(/(\w+)="([^"]*)"/g)
         const elementAttrs: Record<string, string> = {}
         for (const attrMatch of attrMatches) {
             elementAttrs[attrMatch[1]] = attrMatch[2]
         }
 
-        // If this element has name or label, it might be our target
-        if (elementAttrs.name || elementAttrs.label) {
-            elementType = tagName
-            Object.assign(attributes, elementAttrs)
-            break
+        // Check if element matches all attribute conditions from XPath
+        let matchesAllConditions = true
+
+        // Check regular conditions (AND logic - all must match)
+        for (const [attr, values] of Object.entries(attributeConditions)) {
+            const elementValue = elementAttrs[attr]
+            if (!elementValue || !values.includes(elementValue)) {
+                matchesAllConditions = false
+                break
+            }
+        }
+
+        // Check OR conditions (OR logic - at least one must match)
+        if (matchesAllConditions) {
+            for (const [attr, values] of Object.entries(orConditions)) {
+                const elementValue = elementAttrs[attr]
+                if (!elementValue || !values.includes(elementValue)) {
+                    matchesAllConditions = false
+                    break
+                }
+            }
+        }
+
+        // If no specific conditions, but XPath has wildcard, accept any element with name/label
+        // This handles cases like //*[@name="Home"] where we want any element with name="Home"
+        if (Object.keys(attributeConditions).length === 0 && Object.keys(orConditions).length === 0) {
+            if (!elementAttrs.name && !elementAttrs.label) {
+                matchesAllConditions = false
+            }
+        }
+
+        if (matchesAllConditions) {
+            return {
+                type: tagName,
+                attributes: elementAttrs
+            }
         }
     }
 
-    if (!elementType) {
-        return null
+    // If no exact match found, try to find element by the first attribute condition
+    // This handles cases where the XPath might be more complex but we can still find a match
+    const allConditions = { ...attributeConditions, ...orConditions }
+    if (Object.keys(allConditions).length > 0) {
+        const firstAttr = Object.keys(allConditions)[0]
+        const firstValues = allConditions[firstAttr]
+        const elementPattern2 = /<(\w+)([^>]*)>/g
+        let match2: RegExpExecArray | null
+
+        while ((match2 = elementPattern2.exec(pageSource)) !== null) {
+            const tagName = match2[1]
+            const attrs = match2[2]
+
+            // Check element type if specified
+            if (expectedElementType && tagName !== expectedElementType) {
+                continue
+            }
+
+            // Extract attributes
+            const attrMatches = attrs.matchAll(/(\w+)="([^"]*)"/g)
+            const elementAttrs: Record<string, string> = {}
+            for (const attrMatch of attrMatches) {
+                elementAttrs[attrMatch[1]] = attrMatch[2]
+            }
+
+            // Check if this element matches the first condition
+            const elementValue = elementAttrs[firstAttr]
+            if (elementValue && firstValues.includes(elementValue)) {
+                return {
+                    type: tagName,
+                    attributes: elementAttrs
+                }
+            }
+        }
     }
 
-    return {
-        type: elementType,
-        attributes
-    }
+    return null
 }
 
 /**

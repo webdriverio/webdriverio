@@ -164,6 +164,13 @@ export interface AppiumServiceConfig {
          * @default false
          */
         usePageSource?: boolean
+        /**
+         * Replace XPath selectors with optimized alternatives automatically.
+         * When enabled, tests optimized selectors and uses them if they work, falling back to original if not.
+         * This adds overhead as it requires testing the optimized selector, but provides real performance improvements.
+         * @default false
+         */
+        replaceWithOptimizedSelector?: boolean
     }
 }
 
