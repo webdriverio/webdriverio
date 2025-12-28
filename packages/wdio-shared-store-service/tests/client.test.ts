@@ -21,7 +21,7 @@ vi.spyOn(global, 'fetch').mockImplementation((URL: string | URL | globalThis.Req
 })
 
 const port = 3000
-const baseUrl = `http://localhost:${port}`
+const baseUrl = `http://127.0.0.1:${port}`
 const headers = {
     'Content-Type': 'application/json'
 }
