@@ -176,6 +176,9 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
          */
         if (payload.name === 'sessionStarted') {
             this.isSetupResolver(true)
+            if (this.retries === -1 && payload.specFileRetries) {
+                this.retries = payload.specFileRetries - 1
+            }
             if (payload.content.isMultiremote) {
                 Object.assign(this, payload.content)
             } else {
