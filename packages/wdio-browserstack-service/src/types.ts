@@ -57,16 +57,6 @@ export interface TestReportingOptions {
     key?: string
 }
 
-export interface RunSmartSelectionOptions {
-    enabled?: boolean,
-    mode?: string,
-    source?: string | string[]
-}
-
-export interface TestOrchestrationOptions {
-    runSmartSelection?: RunSmartSelectionOptions
-}
-
 export interface BrowserstackOptions extends Options.Testrunner {
     selfHeal?: boolean;
 }
@@ -213,11 +203,6 @@ export interface BrowserstackConfig {
      * @default false
     */
     ipWhiteListing?: boolean;
-    /**
-     * Set the Test Orchestration related config options under this key.
-     * For e.g. runSmartSelection configurations, etc.
-     */
-    testOrchestrationOptions?: TestOrchestrationOptions;
 }
 
 /**
