@@ -133,7 +133,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config.key = config.key
 
         try {
-            if (CLIUtils.checkCLISupportedFrameworks(this._config.framework)) {
+            // Detect if multi-remote and disable CLI for those sessions
+            if (CLIUtils.checkCLISupportedFrameworks(this._config.framework) && process.env.BROWSERSTACK_IS_MULTIREMOTE !== 'true') {
                 // Connect to Browserstack CLI from worker
                 await BrowserstackCLI.getInstance().bootstrap(this._options, this._config)
 
