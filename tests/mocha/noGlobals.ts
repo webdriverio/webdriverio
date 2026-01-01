@@ -14,7 +14,6 @@ describe('global usage', () => {
         expect(await browser.getTitle()).toBe('Mock Page Title')
     })
 
-    // enable once support is available in https://github.com/webdriverio/expect-webdriverio/issues/829
     it('supports non globals using expect-webdriverio', async () => {
         await expect(browser).toHaveTitle('Mock Page Title')
     })
