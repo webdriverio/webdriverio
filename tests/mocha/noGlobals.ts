@@ -7,6 +7,7 @@ describe('global usage', () => {
         expect(typeof global.$$).toBe('undefined')
         expect(typeof global.driver).toBe('undefined')
         expect(typeof global.multiremotebrowser).toBe('undefined')
+        expect(typeof global.multiRemoteBrowser).toBe('undefined')
     })
 
     it('can use browser global', async () => {
@@ -14,8 +15,7 @@ describe('global usage', () => {
     })
 
     // enable once support is available in https://github.com/webdriverio/expect-webdriverio/issues/829
-    // @ts-expect-error it thinks it uses Jasmine
-    it.skip('supports non globals using expect-webdriverio', async () => {
+    it('supports non globals using expect-webdriverio', async () => {
         await expect(browser).toHaveTitle('Mock Page Title')
     })
 
