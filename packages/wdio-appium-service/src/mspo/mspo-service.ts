@@ -14,7 +14,9 @@ import {
     findMatchingInternalCommandTiming,
     storePerformanceData,
     isNativeContext,
-    isElementFindCommand
+    isElementFindCommand,
+    isSilentLogLevel,
+    INDENT_LEVEL_1
 } from './utils.js'
 import { overwriteUserCommands } from './overwrite.js'
 
@@ -71,7 +73,8 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
                 currentTest: this._currentTest,
                 currentTestFile: this._currentTestFile,
                 dataStore: this._data,
-                isReplacingSelector: this._isReplacingSelectorRef
+                isReplacingSelector: this._isReplacingSelectorRef,
+                isSilentLogLevel: isSilentLogLevel(this._config)
             })
         }
     }
@@ -240,7 +243,8 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
 
         // Track element actions (any command that is NOT an element find command)
         // Element find commands ($, $$, etc.) return elements, they don't act on them
-        if (!isElementFindCommand(commandName)) {
+        // Only log element actions when not in silent mode
+        if (!isElementFindCommand(commandName) && !isSilentLogLevel(this._config)) {
             // Try to get selector from element ID in args (first arg is usually element ID)
             let elementSelector: string | undefined
             if (args && args.length > 0) {
@@ -264,9 +268,9 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
 
             if (elementSelector) {
                 const formattedSelector = formatSelectorForDisplay(elementSelector)
-                console.log(`🎯 [Mobile Selector Performance: Element Action] ${commandName}() on element: ${formattedSelector}`)
+                console.log(`${INDENT_LEVEL_1}🎯 [Mobile Selector Performance: Element Action] ${commandName}() on element: ${formattedSelector}`)
             } else {
-                console.log(`🎯 [Mobile Selector Performance: Element Action] ${commandName}()`)
+                console.log(`${INDENT_LEVEL_1}🎯 [Mobile Selector Performance: Element Action] ${commandName}()`)
             }
         }
     }
