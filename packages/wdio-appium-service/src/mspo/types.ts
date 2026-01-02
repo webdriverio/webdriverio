@@ -52,5 +52,6 @@ export interface OptimizationOptions {
     currentTestFile?: string
     dataStore: SelectorPerformanceData[]
     isReplacingSelector: { value: boolean }
+    isSilentLogLevel?: boolean
 }
 
