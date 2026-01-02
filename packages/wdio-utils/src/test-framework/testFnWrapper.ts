@@ -89,6 +89,7 @@ export const testFrameworkFnWrapper = async function (
     let result
     let error
     let skip = false
+    let autoSkipError: unknown
 
     const testStart = Date.now()
     try {
@@ -116,6 +117,7 @@ export const testFrameworkFnWrapper = async function (
             error = err
         } else {
             skip = true
+            autoSkipError = _err
         }
     }
     const duration = Date.now() - testStart
@@ -137,6 +139,9 @@ export const testFrameworkFnWrapper = async function (
 
     if (error && !error.matcherName) {
         throw error
+    }
+    if (skip && autoSkipError) {
+        throw autoSkipError
     }
     return result
 }
