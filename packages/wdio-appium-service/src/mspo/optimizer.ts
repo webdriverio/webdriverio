@@ -10,8 +10,7 @@ import {
     createOptimizedSelectorData,
     INDENT_LEVEL_1,
     INDENT_LEVEL_2,
-    INDENT_LEVEL_5,
-    INDENT_DEBUG
+    LOG_PREFIX
 } from './utils.js'
 
 /**
@@ -27,17 +26,17 @@ export async function optimizeSingleSelector(
     const isSilent = options.isSilentLogLevel === true
 
     // Step 1: Log the selector we're researching (always log)
-    console.log(`🔍 [Mobile Selector Performance: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')`)
+    console.log(`\n\n🔍 [${LOG_PREFIX}: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')`)
 
     // Step 2: Test the current XPath selector first
     if (!isSilent) {
-        console.log(`${INDENT_LEVEL_2}[Mobile Selector Performance: Step 1] Testing current selector: ${commandName}('${formatSelectorForDisplay(selector)}')`)
+        console.log(`${INDENT_LEVEL_1}⏳ [${LOG_PREFIX}: Step 1] Testing current selector: ${commandName}('${formatSelectorForDisplay(selector)}')`)
     }
     const originalStartTime = getHighResTime()
     const originalElement = await originalFunc.call(browser, selector)
     const originalDuration = getHighResTime() - originalStartTime
     if (!isSilent) {
-        console.log(`${INDENT_LEVEL_2}[Mobile Selector Performance: Step 1] ${commandName}('${formatSelectorForDisplay(selector)}') took ${originalDuration.toFixed(2)}ms`)
+        console.log(`${INDENT_LEVEL_1}✅ [${LOG_PREFIX}: Step 1] ${commandName}('${formatSelectorForDisplay(selector)}') took ${originalDuration.toFixed(2)}ms`)
     }
 
     // Step 3: Find optimized selector
@@ -49,7 +48,7 @@ export async function optimizeSingleSelector(
 
     if (!conversionResult || !conversionResult.selector) {
         if (conversionResult?.warning) {
-            console.warn(`⚠️ [Mobile Selector Performance: Warning] ${conversionResult.warning}`)
+            console.warn(`⚠️ [${LOG_PREFIX}: Warning] ${conversionResult.warning}`)
         }
         return originalElement
     }
@@ -58,37 +57,37 @@ export async function optimizeSingleSelector(
 
     // Step 4: Log the potential optimized selector
     if (!isSilent) {
-        console.log(`${INDENT_LEVEL_1}💡 [Mobile Selector Performance: Step 3] Search for a better selector`)
+        console.log(`${INDENT_LEVEL_1}💡 [${LOG_PREFIX}: Step 3] Search for a better selector`)
     }
     const quoteStyle = optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
-    console.log(`${INDENT_LEVEL_1}✨ [Mobile Selector Performance: Outcome] Potential Optimized Selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
+    console.log(`${INDENT_LEVEL_1}✨ [${LOG_PREFIX}: Outcome] Potential Optimized Selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
 
     // Step 5: Test the optimized selector
     const parsed = parseOptimizedSelector(optimizedSelector)
     if (!parsed) {
-        console.warn(`⚠️ [Mobile Selector Performance: Warning] Unknown optimized selector type: ${optimizedSelector}. Using original XPath`)
+        console.warn(`⚠️ [${LOG_PREFIX}: Warning] Unknown optimized selector type: ${optimizedSelector}. Using original XPath`)
         return originalElement
     }
 
     // Log detailed debugging steps for non-accessibility ID selectors (only if not silent)
     const isAccessibilityId = parsed.using === 'accessibility id'
     if (!isAccessibilityId && !isSilent) {
-        console.log(`  🔬 [Mobile Selector Performance: Debug] Selector type: ${parsed.using}`)
-        console.log(`  🔬 [Mobile Selector Performance: Debug] Selector value: "${parsed.value}"`)
-        console.log('  🔬 [Mobile Selector Performance: Debug] Starting verification process...')
+        console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Selector type: ${parsed.using}`)
+        console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Selector value: "${parsed.value}"`)
+        console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Starting verification process...`)
     }
 
     if (!isSilent) {
-        console.log(`[Mobile Selector Performance: Step 4] Testing optimized selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
+        console.log(`${INDENT_LEVEL_1}⏳ [${LOG_PREFIX}: Step 4] Testing optimized selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
     }
     const testResult = await testOptimizedSelector(browser, parsed.using, parsed.value, false, !isAccessibilityId && !isSilent)
 
     if (!testResult || testResult.elementRefs.length === 0) {
-        const warningMsg = `❌ [Mobile Selector Performance: Warning] Optimized selector '${optimizedSelector}' did not find element, using original XPath`
+        const warningMsg = `❌ [${LOG_PREFIX}: Warning] Optimized selector '${optimizedSelector}' did not find element, using original XPath`
         if (isSilent) {
             // In silent mode, show research selector and outcome first, then warning
-            console.log(`🔍 [Mobile Selector Performance: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')`)
-            console.log(`✨ [Mobile Selector Performance: Outcome] Potential Optimized Selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
+            console.log(`\n\n🔍 [${LOG_PREFIX}: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')`)
+            console.log(`✨ [${LOG_PREFIX}: Outcome] Potential Optimized Selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
             console.warn(warningMsg)
         } else {
             console.warn(warningMsg)
@@ -97,7 +96,7 @@ export async function optimizeSingleSelector(
     }
 
     if (!isSilent) {
-        console.log(`${INDENT_LEVEL_5}[Mobile Selector Performance: Step 4] Optimized selector found element in ${testResult.duration.toFixed(2)}ms`)
+        console.log(`${INDENT_LEVEL_1}✅ [${LOG_PREFIX}: Step 4] Optimized selector found element in ${testResult.duration.toFixed(2)}ms`)
     }
 
     // Step 6: Compare and conclude
@@ -115,7 +114,7 @@ export async function optimizeSingleSelector(
     )
     options.dataStore.push(optimizedData)
 
-    logOptimizationConclusion(timeDifference, improvementPercent)
+    logOptimizationConclusion(timeDifference, improvementPercent, selector, optimizedSelector)
 
     // Create new element by calling original function with optimized selector
     options.isReplacingSelector.value = true
@@ -140,17 +139,17 @@ export async function optimizeMultipleSelectors(
     const isSilent = options.isSilentLogLevel === true
 
     // Step 1: Log the selector we're researching (always log)
-    console.log(`🔍 [Mobile Selector Performance: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')`)
+    console.log(`\n\n🔍 [${LOG_PREFIX}: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')`)
 
     // Step 2: Test the current XPath selector first
     if (!isSilent) {
-        console.log(`${INDENT_LEVEL_2}[Mobile Selector Performance: Step 1] Testing current selector: ${commandName}('${formatSelectorForDisplay(selector)}')`)
+        console.log(`${INDENT_LEVEL_1}⏳ [${LOG_PREFIX}: Step 1] Testing current selector: ${commandName}('${formatSelectorForDisplay(selector)}')`)
     }
     const originalStartTime = getHighResTime()
     const originalElements = await originalFunc.call(browser, selector)
     const originalDuration = getHighResTime() - originalStartTime
     if (!isSilent) {
-        console.log(`${INDENT_LEVEL_2}[Mobile Selector Performance: Step 1] ${commandName}('${formatSelectorForDisplay(selector)}') took ${originalDuration.toFixed(2)}ms`)
+        console.log(`${INDENT_LEVEL_1}✅ [${LOG_PREFIX}: Step 1] ${commandName}('${formatSelectorForDisplay(selector)}') took ${originalDuration.toFixed(2)}ms`)
     }
 
     // Step 3: Find optimized selector
@@ -162,7 +161,7 @@ export async function optimizeMultipleSelectors(
 
     if (!conversionResult || !conversionResult.selector) {
         if (conversionResult?.warning) {
-            console.warn(`⚠️ [Mobile Selector Performance: Warning] ${conversionResult.warning}`)
+            console.warn(`⚠️ [${LOG_PREFIX}: Warning] ${conversionResult.warning}`)
         }
         return originalElements
     }
@@ -171,37 +170,37 @@ export async function optimizeMultipleSelectors(
 
     // Step 4: Log the potential optimized selector
     if (!isSilent) {
-        console.log(`${INDENT_LEVEL_1}💡 [Mobile Selector Performance: Step 3] Search for a better selector`)
+        console.log(`${INDENT_LEVEL_1}💡 [${LOG_PREFIX}: Step 3] Search for a better selector`)
     }
     const quoteStyle = optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
-    console.log(`${INDENT_LEVEL_1}✨ [Mobile Selector Performance: Outcome] Potential Optimized Selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
+    console.log(`${INDENT_LEVEL_1}✨ [${LOG_PREFIX}: Outcome] Potential Optimized Selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
 
     // Step 5: Test the optimized selector
     const parsed = parseOptimizedSelector(optimizedSelector)
     if (!parsed) {
-        console.warn(`⚠️ [Mobile Selector Performance: Warning] Unknown optimized selector type: ${optimizedSelector}. Using original XPath`)
+        console.warn(`⚠️ [${LOG_PREFIX}: Warning] Unknown optimized selector type: ${optimizedSelector}. Using original XPath`)
         return originalElements
     }
 
     // Log detailed debugging steps for non-accessibility ID selectors (only if not silent)
     const isAccessibilityId = parsed.using === 'accessibility id'
     if (!isAccessibilityId && !isSilent) {
-        console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Selector type: ${parsed.using}`)
-        console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Selector value: "${parsed.value}"`)
-        console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Starting verification process...`)
+        console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Selector type: ${parsed.using}`)
+        console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Selector value: "${parsed.value}"`)
+        console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Starting verification process...`)
     }
 
     if (!isSilent) {
-        console.log(`${INDENT_LEVEL_5}[Mobile Selector Performance: Step 4] Testing optimized selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
+        console.log(`${INDENT_LEVEL_1}⏳ [${LOG_PREFIX}: Step 4] Testing optimized selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
     }
     const testResult = await testOptimizedSelector(browser, parsed.using, parsed.value, true, !isAccessibilityId && !isSilent)
 
     if (!testResult || testResult.elementRefs.length === 0) {
-        const warningMsg = `❌ [Mobile Selector Performance: Warning] Optimized selector '${optimizedSelector}' did not find elements, using original XPath`
+        const warningMsg = `❌ [${LOG_PREFIX}: Warning] Optimized selector '${optimizedSelector}' did not find elements, using original XPath`
         if (isSilent) {
             // In silent mode, show research selector and outcome first, then warning
-            console.log(`🔍 [Mobile Selector Performance: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')`)
-            console.log(`✨ [Mobile Selector Performance: Outcome] Potential Optimized Selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
+            console.log(`\n\n🔍 [${LOG_PREFIX}: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')`)
+            console.log(`✨ [${LOG_PREFIX}: Outcome] Potential Optimized Selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
             console.warn(warningMsg)
         } else {
             console.warn(warningMsg)
@@ -210,7 +209,7 @@ export async function optimizeMultipleSelectors(
     }
 
     if (!isSilent) {
-        console.log(`${INDENT_LEVEL_5}[Mobile Selector Performance: Step 4] Optimized selector found ${testResult.elementRefs.length} element(s) in ${testResult.duration.toFixed(2)}ms`)
+        console.log(`${INDENT_LEVEL_1}✅ [${LOG_PREFIX}: Step 4] Optimized selector found ${testResult.elementRefs.length} element(s) in ${testResult.duration.toFixed(2)}ms`)
     }
 
     // Step 6: Compare and conclude
@@ -228,7 +227,7 @@ export async function optimizeMultipleSelectors(
     )
     options.dataStore.push(optimizedData)
 
-    logOptimizationConclusion(timeDifference, improvementPercent)
+    logOptimizationConclusion(timeDifference, improvementPercent, selector, optimizedSelector)
 
     // Create new elements by calling original function with optimized selector
     options.isReplacingSelector.value = true
