@@ -58,8 +58,16 @@ export async function optimizeSingleSelector(
         return originalElement
     }
 
+    // Log detailed debugging steps for non-accessibility ID selectors
+    const isAccessibilityId = parsed.using === 'accessibility id'
+    if (!isAccessibilityId) {
+        console.log(`🔬 [Mobile Selector Performance: Debug] Selector type: ${parsed.using}`)
+        console.log(`🔬 [Mobile Selector Performance: Debug] Selector value: "${parsed.value}"`)
+        console.log('🔬 [Mobile Selector Performance: Debug] Starting verification process...')
+    }
+
     console.log(`[Mobile Selector Performance: Step 4] Testing optimized selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
-    const testResult = await testOptimizedSelector(browser, parsed.using, parsed.value, false)
+    const testResult = await testOptimizedSelector(browser, parsed.using, parsed.value, false, !isAccessibilityId)
 
     if (!testResult || testResult.elementRefs.length === 0) {
         console.warn(`❌ [Mobile Selector Performance: Warning] Optimized selector '${optimizedSelector}' did not find element, using original XPath`)
@@ -143,8 +151,16 @@ export async function optimizeMultipleSelectors(
         return originalElements
     }
 
+    // Log detailed debugging steps for non-accessibility ID selectors
+    const isAccessibilityId = parsed.using === 'accessibility id'
+    if (!isAccessibilityId) {
+        console.log(`🔬 [Mobile Selector Performance: Debug] Selector type: ${parsed.using}`)
+        console.log(`🔬 [Mobile Selector Performance: Debug] Selector value: "${parsed.value}"`)
+        console.log('🔬 [Mobile Selector Performance: Debug] Starting verification process...')
+    }
+
     console.log(`[Mobile Selector Performance: Step 4] Testing optimized selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
-    const testResult = await testOptimizedSelector(browser, parsed.using, parsed.value, true)
+    const testResult = await testOptimizedSelector(browser, parsed.using, parsed.value, true, !isAccessibilityId)
 
     if (!testResult || testResult.elementRefs.length === 0) {
         console.warn(`❌ [Mobile Selector Performance: Warning] Optimized selector '${optimizedSelector}' did not find elements, using original XPath`)
