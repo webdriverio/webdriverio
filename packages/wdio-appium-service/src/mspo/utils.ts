@@ -104,24 +104,21 @@ export function extractLineNumber(testFile?: string): number | undefined {
 }
 
 /**
- * Checks if a command is an element action (click, getText, waitForDisplayed, etc.)
+ * Checks if a command is an element find command ($, $$, custom$, etc.)
+ * These commands return elements and should NOT be tracked as element actions.
+ * Based on WebdriverIO source: packages/webdriverio/src/commands/element/
+ * - $, $$, custom$, custom$$, shadow$, shadow$$ are marked as @type utility
+ * - getElement, getElements, nextElement, previousElement, parentElement are also @type utility
  */
-export function isElementAction(commandName: string): boolean {
-    console.log('commandName action', commandName)
-    const elementActions = [
-        'click', 'doubleClick', 'touchAction',
-        'getText', 'getAttribute', 'getProperty', 'getValue', 'getCSSProperty',
-        'waitForDisplayed', 'waitForEnabled', 'waitForExist', 'waitForClickable',
-        'waitForIsShown', 'waitForIsShownWithTimeout',
-        'setValue', 'addValue', 'clearValue',
-        'isDisplayed', 'isEnabled', 'isExisting', 'isClickable',
-        'scrollIntoView', 'dragAndDrop',
-        'moveTo', 'moveToObject',
-        'selectByIndex', 'selectByVisibleText', 'selectByAttribute',
-        'getLocation', 'getSize', 'getRect',
-        'takeScreenshot', 'saveScreenshot'
+export function isElementFindCommand(commandName: string): boolean {
+    const elementFindCommands = [
+        '$', '$$',
+        'custom$', 'custom$$',
+        'shadow$', 'shadow$$',
+        'getElement', 'getElements',
+        'nextElement', 'previousElement', 'parentElement'
     ]
-    return elementActions.includes(commandName)
+    return elementFindCommands.includes(commandName)
 }
 
 /**

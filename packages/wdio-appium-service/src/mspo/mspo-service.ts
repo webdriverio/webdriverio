@@ -14,7 +14,7 @@ import {
     findMatchingInternalCommandTiming,
     storePerformanceData,
     isNativeContext,
-    isElementAction
+    isElementFindCommand
 } from './utils.js'
 import { overwriteUserCommands } from './overwrite.js'
 
@@ -238,8 +238,9 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             this._commandTimings.delete(timingId)
         }
 
-        // Track element actions (click, getText, waitForDisplayed, etc.)
-        if (isElementAction(commandName)) {
+        // Track element actions (any command that is NOT an element find command)
+        // Element find commands ($, $$, etc.) return elements, they don't act on them
+        if (!isElementFindCommand(commandName)) {
             // Try to get selector from element ID in args (first arg is usually element ID)
             let elementSelector: string | undefined
             if (args && args.length > 0) {
