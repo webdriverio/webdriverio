@@ -514,7 +514,10 @@ function buildSelectorFromElementData(
 }
 
 /**
- * Builds a unique predicate string by progressively adding attributes
+ * Builds a unique predicate string by progressively adding attributes.
+ * Tries simpler selectors first, only adding more attributes if needed.
+ * Skips redundant attributes (e.g., if name == label, only include one).
+ * Prefers meaningful attributes (name, label) over boolean attributes (enabled, visible, accessible).
  */
 function buildUniquePredicateString(
     type: string,
@@ -522,26 +525,73 @@ function buildUniquePredicateString(
     attributePriority: string[],
     pageSource: string
 ): XPathConversionResult | null {
+    // Start with just the type
     const predicateParts: string[] = [`type == '${type}'`]
 
-    // Try adding attributes one by one until we get a unique selector
-    for (const attr of attributePriority) {
+    // First, try with just the type to see if it's unique
+    let selector = `-ios predicate string:${predicateParts.join(' AND ')}`
+    let isUnique = isSelectorUniqueInPageSource(selector, pageSource)
+    if (isUnique) {
+        return { selector }
+    }
+
+    // Define attribute categories
+    const meaningfulAttrs = ['name', 'label', 'value']
+    const booleanAttrs = ['enabled', 'visible', 'accessible', 'hittable']
+
+    // Check if name and label are the same - if so, only use name (skip label)
+    const name = attributes.name
+    const label = attributes.label
+    const nameEqualsLabel = name && label && name === label
+
+    // Try adding meaningful attributes first (name, label, value)
+    // Skip label if it equals name to avoid redundancy
+    for (const attr of meaningfulAttrs) {
+        // Skip label if it's the same as name
+        if (attr === 'label' && nameEqualsLabel) {
+            continue
+        }
+
         if (attributes[attr] !== undefined) {
             const value = attributes[attr]
             if (typeof value === 'string' && value.length > 0) {
                 predicateParts.push(`${attr} == '${value}'`)
-                const selector = `-ios predicate string:${predicateParts.join(' AND ')}`
-                const isUnique = isSelectorUniqueInPageSource(selector, pageSource)
+                selector = `-ios predicate string:${predicateParts.join(' AND ')}`
+                isUnique = isSelectorUniqueInPageSource(selector, pageSource)
                 if (isUnique) {
-                    return {
-                        selector
-                    }
+                    return { selector }
                 }
             }
         }
     }
 
-    // If we've added all attributes and it's still not unique, return the most specific one
+    // If we still don't have uniqueness, try adding boolean attributes (but only if they're 'true')
+    // These are less reliable for uniqueness but might help in edge cases
+    for (const attr of booleanAttrs) {
+        if (attributes[attr] === 'true') {
+            predicateParts.push(`${attr} == 'true'`)
+            selector = `-ios predicate string:${predicateParts.join(' AND ')}`
+            isUnique = isSelectorUniqueInPageSource(selector, pageSource)
+            if (isUnique) {
+                return { selector }
+            }
+        }
+    }
+
+    // If we've added all attributes and it's still not unique, return the most specific one we have
+    // Prefer the version with meaningful attributes only (without boolean attributes if possible)
+    const meaningfulOnlyParts = predicateParts.filter(part => {
+        const attr = part.split(' == ')[0]
+        return !booleanAttrs.includes(attr)
+    })
+
+    if (meaningfulOnlyParts.length > 1) {
+        return {
+            selector: `-ios predicate string:${meaningfulOnlyParts.join(' AND ')}`,
+            warning: 'Selector may match multiple elements. Consider adding more specific attributes.'
+        }
+    }
+
     if (predicateParts.length > 1) {
         return {
             selector: `-ios predicate string:${predicateParts.join(' AND ')}`,
