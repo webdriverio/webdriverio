@@ -3,13 +3,12 @@ import type { XPathConversionResult } from './xpath-utils.js'
 import { convertXPathToOptimizedSelector } from './xpath-utils.js'
 import type { TestContext, CommandTiming, SelectorPerformanceData } from './types.js'
 
-// Indentation constants for hierarchical logging
+export const LOG_PREFIX = 'Mobile Selector Performance'
 export const INDENT_LEVEL_1 = '  '
 export const INDENT_LEVEL_2 = '      '
 export const INDENT_LEVEL_3 = '    '
 export const INDENT_LEVEL_4 = '          '
 export const INDENT_LEVEL_5 = '        '
-export const INDENT_DEBUG = '  '
 
 /**
  * Checks if the log level is silent
@@ -406,10 +405,10 @@ export async function testOptimizedSelector(
 ): Promise<{ elementRefs: Array<{ [key: string]: string }>, duration: number } | null> {
     try {
         if (debug) {
-            console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 1: Preparing to call findElement${isMultiple ? 's' : ''}()`)
-            console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 1.1: Using strategy: "${using}"`)
-            console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 1.2: Selector value: "${value}"`)
-            console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 1.3: Multiple elements: ${isMultiple}`)
+            console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 1: Preparing to call findElement${isMultiple ? 's' : ''}()`)
+            console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 1.1: Using strategy: "${using}"`)
+            console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 1.2: Selector value: "${value}"`)
+            console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 1.3: Multiple elements: ${isMultiple}`)
         }
 
         const startTime = getHighResTime()
@@ -419,7 +418,7 @@ export async function testOptimizedSelector(
         }
 
         if (debug) {
-            console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 2: Executing findElement${isMultiple ? 's' : ''}(${JSON.stringify(using)}, ${JSON.stringify(value)})`)
+            console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 2: Executing findElement${isMultiple ? 's' : ''}(${JSON.stringify(using)}, ${JSON.stringify(value)})`)
         }
 
         let elementRefs: Array<{ [key: string]: string }> = []
@@ -431,14 +430,14 @@ export async function testOptimizedSelector(
             elementRefs = Array.isArray(result) ? result : []
 
             if (debug) {
-                console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 3: findElements() completed`)
-                console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 3.1: Found ${elementRefs.length} element(s)`)
+                console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 3: findElements() completed`)
+                console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 3.1: Found ${elementRefs.length} element(s)`)
                 if (elementRefs.length > 0) {
-                    console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 3.2: Element reference(s): ${JSON.stringify(elementRefs)}`)
+                    console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 3.2: Element reference(s): ${JSON.stringify(elementRefs)}`)
                 } else {
-                    console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 3.2: No elements found - selector may not match any elements`)
+                    console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 3.2: No elements found - selector may not match any elements`)
                 }
-                console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 3.3: Execution time: ${duration.toFixed(2)}ms`)
+                console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 3.3: Execution time: ${duration.toFixed(2)}ms`)
             }
         } else {
             const result = await browserWithProtocol.findElement(using, value)
@@ -451,41 +450,41 @@ export async function testOptimizedSelector(
             elementRefs = isValidElement ? [result as { [key: string]: string }] : []
 
             if (debug) {
-                console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 3: findElement() completed`)
+                console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 3: findElement() completed`)
                 if (isError) {
-                    console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 3.1: Element NOT found - error returned`)
+                    console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 3.1: Element NOT found - error returned`)
                     const errorMsg = (result as { error?: string, message?: string }).message || (result as { error?: string }).error || 'Unknown error'
-                    console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 3.2: Error details: ${errorMsg}`)
+                    console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 3.2: Error details: ${errorMsg}`)
                 } else if (isValidElement) {
-                    console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 3.1: Element found successfully`)
-                    console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 3.2: Element reference: ${JSON.stringify(result)}`)
+                    console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 3.1: Element found successfully`)
+                    console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 3.2: Element reference: ${JSON.stringify(result)}`)
                 } else {
-                    console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 3.1: No element found - selector may not match any element`)
+                    console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 3.1: No element found - selector may not match any element`)
                 }
-                console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 3.3: Execution time: ${duration.toFixed(2)}ms`)
+                console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 3.3: Execution time: ${duration.toFixed(2)}ms`)
             }
         }
 
         if (debug) {
             if (elementRefs.length > 0) {
-                console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 4: Verification successful - selector is valid and found element(s)`)
+                console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 4: Verification successful - selector is valid and found element(s)`)
             }
             if (elementRefs.length === 0) {
-                console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 4: Verification failed - selector did not find any element(s)`)
-                console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 5: Collecting fresh page source to investigate...`)
-                console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 5.0: Searching for elements matching: ${using}="${value}"`)
+                console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 4: Verification failed - selector did not find any element(s)`)
+                console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 5: Collecting fresh page source to investigate...`)
+                console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 5.0: Searching for elements matching: ${using}="${value}"`)
 
                 // Collect fresh page source and extract matching elements
                 const matchingElements = await extractMatchingElementsFromPageSource(browser, using, value)
 
                 if (matchingElements.length > 0) {
-                    console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 5.1: Found ${matchingElements.length} matching element(s) in fresh page source:`)
+                    console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 5.1: Found ${matchingElements.length} matching element(s) in fresh page source:`)
                     matchingElements.forEach((element, index) => {
                         // Truncate long element strings for readability
                         const truncated = element.length > 200 ? element.substring(0, 200) + '...' : element
-                        console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 5.1.${index + 1}: ${truncated}`)
+                        console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 5.1.${index + 1}: ${truncated}`)
                     })
-                    console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 5.2: Retrying selector with fresh page source state...`)
+                    console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 5.2: Retrying selector with fresh page source state...`)
 
                     // Retry once with fresh state
                     const retryStartTime = getHighResTime()
@@ -496,10 +495,10 @@ export async function testOptimizedSelector(
                             const retryElementRefs = Array.isArray(retryResult) ? retryResult : []
 
                             if (retryElementRefs.length > 0) {
-                                console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 5.3: Retry successful! Found ${retryElementRefs.length} element(s) in ${retryDuration.toFixed(2)}ms`)
+                                console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 5.3: Retry successful! Found ${retryElementRefs.length} element(s) in ${retryDuration.toFixed(2)}ms`)
                                 return { elementRefs: retryElementRefs, duration: retryDuration }
                             }
-                            console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 5.3: Retry failed - still no elements found (${retryDuration.toFixed(2)}ms)`)
+                            console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 5.3: Retry failed - still no elements found (${retryDuration.toFixed(2)}ms)`)
                         } else {
                             const retryResult = await browserWithProtocol.findElement(using, value)
                             const retryDuration = getHighResTime() - retryStartTime
@@ -509,20 +508,20 @@ export async function testOptimizedSelector(
                             const retryElementRefs = isValidElement ? [retryResult as { [key: string]: string }] : []
 
                             if (retryElementRefs.length > 0) {
-                                console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 5.3: Retry successful! Found element in ${retryDuration.toFixed(2)}ms`)
+                                console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 5.3: Retry successful! Found element in ${retryDuration.toFixed(2)}ms`)
                                 return { elementRefs: retryElementRefs, duration: retryDuration }
                             }
                             const errorMsg = isError
                                 ? ((retryResult as { error?: string, message?: string }).message || (retryResult as { error?: string }).error || 'Unknown error')
                                 : 'No element found'
-                            console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 5.3: Retry failed - ${errorMsg} (${retryDuration.toFixed(2)}ms)`)
+                            console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 5.3: Retry failed - ${errorMsg} (${retryDuration.toFixed(2)}ms)`)
                         }
                     } catch (retryError) {
                         const retryDuration = getHighResTime() - retryStartTime
-                        console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 5.3: Retry threw error: ${retryError instanceof Error ? retryError.message : String(retryError)} (${retryDuration.toFixed(2)}ms)`)
+                        console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 5.3: Retry threw error: ${retryError instanceof Error ? retryError.message : String(retryError)} (${retryDuration.toFixed(2)}ms)`)
                     }
                 } else {
-                    console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 5.1: No matching elements found in fresh page source - element may have disappeared`)
+                    console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 5.1: No matching elements found in fresh page source - element may have disappeared`)
                 }
             }
         }
@@ -530,9 +529,9 @@ export async function testOptimizedSelector(
         return { elementRefs, duration }
     } catch (error) {
         if (debug) {
-            console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 3: findElement${isMultiple ? 's' : ''}() threw an error`)
-            console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 3.1: Error: ${error instanceof Error ? error.message : String(error)}`)
-            console.log(`${INDENT_DEBUG}🔬 [Mobile Selector Performance: Debug] Step 4: Verification failed - selector execution error`)
+            console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 3: findElement${isMultiple ? 's' : ''}() threw an error`)
+            console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 3.1: Error: ${error instanceof Error ? error.message : String(error)}`)
+            console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Step 4: Verification failed - selector execution error`)
         }
         return null
     }
@@ -551,7 +550,7 @@ export async function findOptimizedSelector(
 ): Promise<XPathConversionResult | null> {
     if (options.usePageSource && options.browser) {
         if (options.logPageSource !== false) {
-            console.log(`${INDENT_LEVEL_1}⏳ [Mobile Selector Performance: Step 2] Collecting page source for dynamic analysis...`)
+            console.log(`${INDENT_LEVEL_1}⏳ [${LOG_PREFIX}: Step 2] Collecting page source for dynamic analysis...`)
         }
         const pageSourceStartTime = getHighResTime()
         const result = await convertXPathToOptimizedSelector(xpath, {
@@ -560,7 +559,7 @@ export async function findOptimizedSelector(
         })
         if (options.logPageSource !== false) {
             const pageSourceDuration = getHighResTime() - pageSourceStartTime
-            console.log(`${INDENT_LEVEL_4}[Mobile Selector Performance: Step 2] Page source collected in ${pageSourceDuration.toFixed(2)}ms`)
+            console.log(`${INDENT_LEVEL_1}✅ [${LOG_PREFIX}: Step 2] Page source collected in ${pageSourceDuration.toFixed(2)}ms`)
         }
         return result
     }
@@ -576,14 +575,23 @@ export async function findOptimizedSelector(
  */
 export function logOptimizationConclusion(
     timeDifference: number,
-    improvementPercent: number
+    improvementPercent: number,
+    originalSelector: string,
+    optimizedSelector: string
 ): void {
+    const formattedOriginal = formatSelectorForDisplay(originalSelector)
+    const formattedOptimized = formatSelectorForDisplay(optimizedSelector)
+    const quoteStyle = optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
+
     if (timeDifference > 0) {
-        console.log(`🚀 [Mobile Selector Performance: Conclusion] Optimized selector is ${timeDifference.toFixed(2)}ms faster than XPath (${improvementPercent.toFixed(1)}% improvement)`)
+        console.log(`🚀 [${LOG_PREFIX}: Conclusion] Optimized selector is ${timeDifference.toFixed(2)}ms faster than XPath (${improvementPercent.toFixed(1)}% improvement)`)
+        console.log(`${INDENT_LEVEL_1}💡 [${LOG_PREFIX}: Advice] Consider using the optimized selector ${quoteStyle}${formattedOptimized}${quoteStyle} for better performance.`)
     } else if (timeDifference < 0) {
-        console.log(`⚠️ [Mobile Selector Performance: Conclusion] Optimized selector is ${Math.abs(timeDifference).toFixed(2)}ms slower than XPath`)
+        console.log(`⚠️ [${LOG_PREFIX}: Conclusion] Optimized selector is ${Math.abs(timeDifference).toFixed(2)}ms slower than XPath`)
+        console.log(`${INDENT_LEVEL_1}💡 [${LOG_PREFIX}: Advice] There is no improvement in performance, consider using the original selector '${formattedOriginal}' if performance is critical. If performance is not critical, you can use the optimized selector ${quoteStyle}${formattedOptimized}${quoteStyle} for better stability.`)
     } else {
-        console.log('📊 [Mobile Selector Performance: Conclusion] Optimized selector has the same performance as XPath')
+        console.log('📊 [${LOG_PREFIX}: Conclusion] Optimized selector has the same performance as XPath')
+        console.log(`${INDENT_LEVEL_1}💡 [${LOG_PREFIX}: Advice] There is no improvement in performance, consider using the original selector '${formattedOriginal}' if performance is critical. If performance is not critical, you can use the optimized selector ${quoteStyle}${formattedOptimized}${quoteStyle} for better stability.`)
     }
 }
 

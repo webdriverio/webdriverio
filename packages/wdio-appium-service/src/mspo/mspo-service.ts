@@ -14,9 +14,7 @@ import {
     findMatchingInternalCommandTiming,
     storePerformanceData,
     isNativeContext,
-    isElementFindCommand,
-    isSilentLogLevel,
-    INDENT_LEVEL_1
+    isSilentLogLevel
 } from './utils.js'
 import { overwriteUserCommands } from './overwrite.js'
 
@@ -239,39 +237,6 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             }
 
             this._commandTimings.delete(timingId)
-        }
-
-        // Track element actions (any command that is NOT an element find command)
-        // Element find commands ($, $$, etc.) return elements, they don't act on them
-        // Only log element actions when not in silent mode
-        if (!isElementFindCommand(commandName) && !isSilentLogLevel(this._config)) {
-            // Try to get selector from element ID in args (first arg is usually element ID)
-            let elementSelector: string | undefined
-            if (args && args.length > 0) {
-                // For element commands, the first arg is usually the element ID
-                // We can try to find the element in our tracked elements
-                const elementId = args[0] as string
-                // Look for this element in recent command timings
-                for (const [, timing] of this._commandTimings) {
-                    if (timing.selector && elementId.includes(timing.selector.substring(0, 10))) {
-                        elementSelector = timing.selector
-                        break
-                    }
-                }
-            }
-
-            // Also try to get selector from result if it's an element
-            if (!elementSelector && _result && typeof _result === 'object') {
-                const element = _result as WebdriverIO.Element & { selector?: string }
-                elementSelector = element.selector
-            }
-
-            if (elementSelector) {
-                const formattedSelector = formatSelectorForDisplay(elementSelector)
-                console.log(`${INDENT_LEVEL_1}🎯 [Mobile Selector Performance: Element Action] ${commandName}() on element: ${formattedSelector}`)
-            } else {
-                console.log(`${INDENT_LEVEL_1}🎯 [Mobile Selector Performance: Element Action] ${commandName}()`)
-            }
         }
     }
 
