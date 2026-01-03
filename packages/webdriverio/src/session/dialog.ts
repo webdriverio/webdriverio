@@ -16,6 +16,8 @@ export class DialogManager extends SessionManager {
     #initialize: Promise<boolean>
     #autoHandleDialog = true
 
+    #handleUserPromptListener = this.#handleUserPrompt.bind(this)
+
     constructor(browser: WebdriverIO.Browser) {
         super(browser, DialogManager.name)
         this.#browser = browser
@@ -38,12 +40,12 @@ export class DialogManager extends SessionManager {
         this.#browser.on('_dialogListenerRegistered', () => this.#switchListenerFlag(false))
         // @ts-ignore this is a private event
         this.#browser.on('_dialogListenerRemoved', () => this.#switchListenerFlag(true))
-        this.#browser.on('browsingContext.userPromptOpened', this.#handleUserPrompt.bind(this))
+        this.#browser.on('browsingContext.userPromptOpened', this.#handleUserPromptListener)
     }
 
     removeListeners(): void {
         super.removeListeners()
-        this.#browser.off('browsingContext.userPromptOpened', this.#handleUserPrompt.bind(this))
+        this.#browser.off('browsingContext.userPromptOpened', this.#handleUserPromptListener)
         this.#browser.removeAllListeners('_dialogListenerRegistered')
         this.#browser.removeAllListeners('_dialogListenerRemoved')
     }
