@@ -25,11 +25,9 @@ export async function optimizeSingleSelector(
 ): Promise<WebdriverIO.Element> {
     const isSilent = options.isSilentLogLevel === true
 
-    // Step 1: Log the selector we're researching (always log)
-    console.log(`\n\n🔍 [${LOG_PREFIX}: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')`)
-
-    // Step 2: Test the current XPath selector first
+    // Step 1: Test the current XPath selector first
     if (!isSilent) {
+        console.log(`\n\n🔍 [${LOG_PREFIX}: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')`)
         console.log(`${INDENT_LEVEL_1}⏳ [${LOG_PREFIX}: Step 1] Testing current selector: ${commandName}('${formatSelectorForDisplay(selector)}')`)
     }
     const originalStartTime = getHighResTime()
@@ -56,11 +54,11 @@ export async function optimizeSingleSelector(
     const optimizedSelector = conversionResult.selector
 
     // Step 4: Log the potential optimized selector
+    const quoteStyle = optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
     if (!isSilent) {
         console.log(`${INDENT_LEVEL_1}💡 [${LOG_PREFIX}: Step 3] Search for a better selector`)
+        console.log(`${INDENT_LEVEL_1}✨ [${LOG_PREFIX}: Outcome] Potential Optimized Selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
     }
-    const quoteStyle = optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
-    console.log(`${INDENT_LEVEL_1}✨ [${LOG_PREFIX}: Outcome] Potential Optimized Selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
 
     // Step 5: Test the optimized selector
     const parsed = parseOptimizedSelector(optimizedSelector)
@@ -83,14 +81,8 @@ export async function optimizeSingleSelector(
     const testResult = await testOptimizedSelector(browser, parsed.using, parsed.value, false, !isAccessibilityId && !isSilent)
 
     if (!testResult || testResult.elementRefs.length === 0) {
-        const warningMsg = `❌ [${LOG_PREFIX}: Warning] Optimized selector '${optimizedSelector}' did not find element, using original XPath`
-        if (isSilent) {
-            // In silent mode, show research selector and outcome first, then warning
-            console.log(`\n\n🔍 [${LOG_PREFIX}: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')`)
-            console.log(`✨ [${LOG_PREFIX}: Outcome] Potential Optimized Selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
-            console.warn(warningMsg)
-        } else {
-            console.warn(warningMsg)
+        if (!isSilent) {
+            console.warn(`❌ [${LOG_PREFIX}: Warning] Optimized selector '${optimizedSelector}' did not find element, using original XPath`)
         }
         return originalElement
     }
@@ -114,7 +106,10 @@ export async function optimizeSingleSelector(
     )
     options.dataStore.push(optimizedData)
 
-    logOptimizationConclusion(timeDifference, improvementPercent, selector, optimizedSelector)
+    // Only log conclusion if not in silent mode
+    if (!isSilent) {
+        logOptimizationConclusion(timeDifference, improvementPercent, selector, optimizedSelector)
+    }
 
     // Create new element by calling original function with optimized selector
     options.isReplacingSelector.value = true
@@ -138,11 +133,9 @@ export async function optimizeMultipleSelectors(
 ): Promise<WebdriverIO.Element[]> {
     const isSilent = options.isSilentLogLevel === true
 
-    // Step 1: Log the selector we're researching (always log)
-    console.log(`\n\n🔍 [${LOG_PREFIX}: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')`)
-
-    // Step 2: Test the current XPath selector first
+    // Step 1: Test the current XPath selector first
     if (!isSilent) {
+        console.log(`\n\n🔍 [${LOG_PREFIX}: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')`)
         console.log(`${INDENT_LEVEL_1}⏳ [${LOG_PREFIX}: Step 1] Testing current selector: ${commandName}('${formatSelectorForDisplay(selector)}')`)
     }
     const originalStartTime = getHighResTime()
@@ -169,11 +162,11 @@ export async function optimizeMultipleSelectors(
     const optimizedSelector = conversionResult.selector
 
     // Step 4: Log the potential optimized selector
+    const quoteStyle = optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
     if (!isSilent) {
         console.log(`${INDENT_LEVEL_1}💡 [${LOG_PREFIX}: Step 3] Search for a better selector`)
+        console.log(`${INDENT_LEVEL_1}✨ [${LOG_PREFIX}: Outcome] Potential Optimized Selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
     }
-    const quoteStyle = optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
-    console.log(`${INDENT_LEVEL_1}✨ [${LOG_PREFIX}: Outcome] Potential Optimized Selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
 
     // Step 5: Test the optimized selector
     const parsed = parseOptimizedSelector(optimizedSelector)
@@ -196,14 +189,8 @@ export async function optimizeMultipleSelectors(
     const testResult = await testOptimizedSelector(browser, parsed.using, parsed.value, true, !isAccessibilityId && !isSilent)
 
     if (!testResult || testResult.elementRefs.length === 0) {
-        const warningMsg = `❌ [${LOG_PREFIX}: Warning] Optimized selector '${optimizedSelector}' did not find elements, using original XPath`
-        if (isSilent) {
-            // In silent mode, show research selector and outcome first, then warning
-            console.log(`\n\n🔍 [${LOG_PREFIX}: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')`)
-            console.log(`✨ [${LOG_PREFIX}: Outcome] Potential Optimized Selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
-            console.warn(warningMsg)
-        } else {
-            console.warn(warningMsg)
+        if (!isSilent) {
+            console.warn(`❌ [${LOG_PREFIX}: Warning] Optimized selector '${optimizedSelector}' did not find elements, using original XPath`)
         }
         return originalElements
     }
@@ -227,7 +214,10 @@ export async function optimizeMultipleSelectors(
     )
     options.dataStore.push(optimizedData)
 
-    logOptimizationConclusion(timeDifference, improvementPercent, selector, optimizedSelector)
+    // Only log conclusion if not in silent mode
+    if (!isSilent) {
+        logOptimizationConclusion(timeDifference, improvementPercent, selector, optimizedSelector)
+    }
 
     // Create new elements by calling original function with optimized selector
     options.isReplacingSelector.value = true

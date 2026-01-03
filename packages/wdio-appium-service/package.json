@@ -45,6 +45,7 @@
   "dependencies": {
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",
+    "@wdio/reporter": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "change-case": "^5.4.3",
