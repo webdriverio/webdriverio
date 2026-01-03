@@ -17,33 +17,40 @@ export const config: WebdriverIO.MultiremoteConfig = {
                 capabilities: {
                     browserName: 'chrome',
                     browserVersion: 'stable',
-                    'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
+                    // 'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
                 }
             },
             browserB: {
                 capabilities: {
-                    browserName: 'chrome',
+                    browserName: 'firefox',
                     browserVersion: 'stable',
-                    'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
+                    // 'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
+                }
+            },
+            browserC: {
+                capabilities: {
+                    browserName: 'chromium',
+                    browserVersion: 'latest',
+                    // 'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
                 }
             },
         },
-        {
-            browserA: {
-                capabilities: {
-                    browserName: 'chrome',
-                    browserVersion: 'stable',
-                    'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
-                }
-            },
-            browserB: {
-                capabilities: {
-                    browserName: 'chrome',
-                    browserVersion: 'stable',
-                    'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
-                }
-            },
-        }
+        // {
+        //     browserA: {
+        //         capabilities: {
+        //             browserName: 'chrome',
+        //             browserVersion: 'stable',
+        //             'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
+        //         }
+        //     },
+        //     browserB: {
+        //         capabilities: {
+        //             browserName: 'chrome',
+        //             browserVersion: 'stable',
+        //             'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
+        //         }
+        //     },
+        // }
     ],
 
     /**

@@ -37,6 +37,24 @@ export default class MultiRemote {
             value: (browserName: string) => this.instances[browserName]
         }
 
+        propertiesObject.select = {
+            value: (instanceNames: string | string[]) => {
+                const names = Array.isArray(instanceNames) ? instanceNames : [instanceNames]
+                const selectedInstances: Record<string, WebdriverIO.Browser> = {}
+                names.forEach((name) => {
+                    if (this.instances[name]) {
+                        selectedInstances[name] = this.instances[name]
+                    }
+                })
+
+                const newMultiRemote = new MultiRemote()
+                newMultiRemote.instances = selectedInstances
+                return newMultiRemote.modifier(wrapperClient)
+            },
+            configurable: true,
+            writable: true
+        }
+
         for (const commandName of wrapperClient.commandList) {
             propertiesObject[commandName] = {
                 value: this.commandWrapper(commandName),
@@ -96,11 +114,51 @@ export default class MultiRemote {
 
             client.instances = Object.keys(instances)
             client.isMultiremote = true
-            client.selector = Array.isArray(result) && result[0]
-                ? result[0].selector
+            const res = result
+            client.selector = Array.isArray(res) && res[0]
+                ? res[0].selector
                 : null
-            // @ts-expect-error ToDo(Christian): remove eventually
+            // @ts-ignore
             delete client.sessionId
+
+            // @ts-ignore
+            client.select = function (instanceNames: string[]) {
+                const selectedInstances: Record<string, WebdriverIO.Browser> = {}
+                const selectedResults: unknown[] = []
+
+                instanceNames.forEach((name) => {
+                    if (client.instances.includes(name)) {
+                        selectedInstances[name] = scope.instances[name]
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        selectedResults.push((client as any)[name])
+                    }
+                })
+
+                return MultiRemote.elementWrapper(selectedInstances, selectedResults, propertiesObject, scope)
+            }
+
+            // @ts-ignore
+            client.filter = async function (predicate: (elem: WebdriverIO.Element, name: string) => Promise<boolean> | boolean) {
+                const selectedInstances: Record<string, WebdriverIO.Browser> = {}
+                const selectedResults: unknown[] = []
+
+                const results = await Promise.all(client.instances.map(async (name) => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const elem = (client as any)[name]
+                    const result = await predicate(elem, name)
+                    return result ? { name, elem } : null
+                }))
+
+                results.forEach((res) => {
+                    if (res) {
+                        selectedInstances[res.name] = scope.instances[res.name]
+                        selectedResults.push(res.elem)
+                    }
+                })
+
+                return MultiRemote.elementWrapper(selectedInstances, selectedResults, propertiesObject, scope)
+            }
+
             return client
         }, prototype)
 
@@ -124,7 +182,7 @@ export default class MultiRemote {
             }
         }
 
-        return wrapCommand(commandName, async function (this: WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement, ...args: unknown[]) {
+        const func = async function (this: WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement, ...args: unknown[]) {
             const mElem = this as WebdriverIO.MultiRemoteElement
             const scope = (this as WebdriverIO.MultiRemoteElement).selector
                 ? Object.entries(mElem.instances.reduce((ins, instanceName) => (
@@ -151,7 +209,11 @@ export default class MultiRemote {
             }
 
             return result
-        })
+        }
+
+        // @ts-ignore
+        func.isMultiremote = true
+        return wrapCommand(commandName, func)
     }
 }
 
