@@ -14,5 +14,8 @@
 
     // Showing todo comments
     "gruntfuggly.todo-tree",
+
+    // Testing
+    "vitest.explorer"
   ]
 }

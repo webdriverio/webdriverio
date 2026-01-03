@@ -648,14 +648,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
             return action(this._browser.sessionId)
         }
 
-        const multiremotebrowser = this._browser as unknown as WebdriverIO.MultiRemoteBrowser
-        return Promise.all(multiremotebrowser.instances
+        const multiRemoteBrowser = this._browser as unknown as WebdriverIO.MultiRemoteBrowser
+        return Promise.all(multiRemoteBrowser.instances
             .filter((browserName: string) => {
-                const cap = getBrowserCapabilities(multiremotebrowser, this._caps, browserName)
+                const cap = getBrowserCapabilities(multiRemoteBrowser, this._caps, browserName)
                 return isBrowserstackCapability(cap)
             })
             .map((browserName: string) => (
-                action(multiremotebrowser.getInstance(browserName).sessionId, browserName)
+                action(multiRemoteBrowser.getInstance(browserName).sessionId, browserName)
             ))
         )
     }
