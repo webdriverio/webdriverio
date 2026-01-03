@@ -97,7 +97,7 @@ describe('testFnWrapper', () => {
         }])
     })
 
-    it('should not throw on error on skip test', async () => {
+    it('should throw on error on skip test', async () => {
         const args = buildArgs((mode: string, repeatTest: boolean, arg: any) => {
             throw new Error('sync skip; aborting execution')
         }, undefined, () => ['beforeFnArgs'], () => ['afterFnArgs'])
@@ -110,7 +110,38 @@ describe('testFnWrapper', () => {
             error = err
         }
 
-        expect(error).toBe(undefined)
+        expect(error).toBeDefined()
+        expect((error as Error).message).toBe('sync skip; aborting execution')
+        expect(executeHooksWithArgs).toBeCalledTimes(2)
+        expect(executeHooksWithArgs).toBeCalledWith('beforeFoo', 'beforeFn', ['beforeFnArgs'])
+        expect(executeHooksWithArgs).toBeCalledWith('afterFoo', 'afterFn', ['afterFnArgs', {
+            duration: expect.any(Number),
+            error: undefined,
+            result: undefined,
+            passed: false,
+            retries: {
+                limit: 0,
+                attempts: 0
+            },
+            skipped: true,
+        }])
+    })
+
+    it('should throw on error on pending test (Jasmine)', async () => {
+        const pendingError = new Error('=> marked Pending: because')
+        const args = buildArgs((mode: string, repeatTest: boolean, arg: any) => {
+            throw pendingError
+        }, undefined, () => ['beforeFnArgs'], () => ['afterFnArgs'])
+
+        let error
+        try {
+            // @ts-expect-error
+            await testFnWrapper(...args)
+        } catch (err) {
+            error = err
+        }
+
+        expect(error).toBe(pendingError)
         expect(executeHooksWithArgs).toBeCalledTimes(2)
         expect(executeHooksWithArgs).toBeCalledWith('beforeFoo', 'beforeFn', ['beforeFnArgs'])
         expect(executeHooksWithArgs).toBeCalledWith('afterFoo', 'afterFn', ['afterFnArgs', {
