@@ -17,7 +17,7 @@ import {
     isReporterRegistered,
     determineReportDirectory
 } from './utils.js'
-import { findTestContextForTimestamp } from './mspo-store.js'
+import { getCurrentTestFile, getCurrentSuiteName, getCurrentTestName } from './mspo-store.js'
 import MobileSelectorPerformanceReporter from './mspo-reporter.js'
 import { overwriteUserCommands } from './overwrite.js'
 
@@ -73,27 +73,27 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             }
         }
 
-        if (this._enabled) {
-            this._registerMspReporter()
-        }
     }
 
-    private _registerMspReporter(): void {
-        if (!this._config) {
-            return
-        }
-
-        if (!this._config.reporters) {
-            this._config.reporters = []
-        }
-
-        const isAlreadyRegistered = isReporterRegistered(this._config.reporters, 'MobileSelectorPerformanceReporter')
-
-        if (!isAlreadyRegistered) {
-            const reporterOptions = {
-                reportDirectory: this._reportDirectory
+    async beforeSession(
+        config: Options.Testrunner,
+        _capabilities: never,
+        _specs: never
+    ) {
+        if (this._enabled && config) {
+            if (!config.reporters) {
+                config.reporters = []
             }
-            this._config.reporters.push([MobileSelectorPerformanceReporter as unknown as Reporters.ReporterClass, reporterOptions])
+
+            const isAlreadyRegistered = isReporterRegistered(config.reporters, 'MobileSelectorPerformanceReporter')
+
+            if (!isAlreadyRegistered) {
+                const reporterOptions = {
+                    reportDirectory: this._reportDirectory
+                }
+                const reporterEntry: Reporters.ReporterEntry = [MobileSelectorPerformanceReporter as unknown as Reporters.ReporterClass, reporterOptions]
+                config.reporters.push(reporterEntry)
+            }
         }
     }
 
@@ -217,16 +217,10 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
                 return
             }
 
-            // Get context from reporter store using current timestamp (matches reporter's Date.now() timestamps)
-            const storeContext = findTestContextForTimestamp(Date.now())
-            const testContext: { testFile: string; suiteName: string; testName: string } = storeContext ? {
-                testFile: storeContext.testFile || 'unknown',
-                suiteName: storeContext.suiteName || 'unknown',
-                testName: storeContext.testName || 'unknown'
-            } : {
-                testFile: 'unknown',
-                suiteName: 'unknown',
-                testName: 'unknown'
+            const testContext: { testFile: string; suiteName: string; testName: string } = {
+                testFile: getCurrentTestFile() || 'unknown',
+                suiteName: getCurrentSuiteName() || 'unknown',
+                testName: getCurrentTestName() || 'unknown'
             }
 
             storePerformanceData(this._data, timing, duration, testContext)
