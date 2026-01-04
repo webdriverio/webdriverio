@@ -93,22 +93,6 @@ export function getCurrentTestName(): string | undefined {
 }
 
 /**
- * Get current context (most recent suite/test info)
- */
-export function getCurrentContext(): TestContextInfo | undefined {
-    if (!currentTestFile) {
-        return undefined
-    }
-
-    return {
-        testFile: currentTestFile,
-        suiteName: currentSuiteName,
-        testName: currentTestName,
-        timestamp: Date.now()
-    }
-}
-
-/**
  * Clear the store (useful for cleanup)
  */
 export function clearStore(): void {

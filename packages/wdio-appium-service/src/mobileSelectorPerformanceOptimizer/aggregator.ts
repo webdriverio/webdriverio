@@ -1,29 +1,63 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { SevereServiceError } from 'webdriverio'
 import type { Capabilities } from '@wdio/types'
 import type { SelectorPerformanceData } from './types.js'
-import { formatSelectorForDisplay } from './utils.js'
+import {
+    formatSelectorForDisplay,
+    REPORT_INDENT_SUMMARY,
+    REPORT_INDENT_FILE,
+    REPORT_INDENT_SUITE,
+    REPORT_INDENT_TEST,
+    REPORT_INDENT_SELECTOR,
+    REPORT_INDENT_SHARED,
+    REPORT_INDENT_SHARED_DETAIL,
+    REPORT_INDENT_WHY_CHANGE,
+    REPORT_INDENT_DOCS
+} from './utils.js'
 
 /**
  * Aggregates selector performance data from all worker files and generates a report
+ * @param capabilities - The capabilities for this runner instance
+ * @param maxLineLength - Maximum line length for report output
+ * @param writeFn - Optional function to write output (uses console.log if not provided)
+ * @param reportDirectory - Report directory path (determined and validated in service constructor)
  */
-export function aggregateSelectorPerformanceData(
-    capabilities: Capabilities.TestrunnerCapabilities
-): void {
+export async function aggregateSelectorPerformanceData(
+    capabilities: Capabilities.TestrunnerCapabilities | Capabilities.ResolvedTestrunnerCapabilities,
+    maxLineLength: number,
+    writeFn?: (message: string) => void,
+    reportDirectory?: string
+): Promise<void> {
+    const write = writeFn || ((message: string) => process.stdout.write(message))
+    const writeWarn = writeFn || console.warn
+    const writeError = writeFn || console.error
     const workersDataDir = path.join(process.cwd(), 'logs', 'selector-performance')
+
+    if (!reportDirectory) {
+        throw new SevereServiceError(
+            'Mobile Selector Performance Optimizer: Report directory was not determined. ' +
+            'This should have been validated during service initialization.'
+        )
+    }
+
+    // Ensure report directory exists
+    if (!fs.existsSync(reportDirectory)) {
+        fs.mkdirSync(reportDirectory, { recursive: true })
+    }
 
     // Generate unique filename with device name and timestamp
     const deviceName = getDeviceName(capabilities)
-    const timestamp = Date.now()
     const sanitizedDeviceName = deviceName.replace(/[^a-zA-Z0-9-_]/g, '_').toLowerCase() || 'unknown'
-    const finalJsonPath = path.join(process.cwd(), `selector-performance-${sanitizedDeviceName}-${timestamp}.json`)
+    const timestamp = Date.now()
+    const finalJsonPath = path.join(reportDirectory, `mobile-selector-performance-optimizer-report-${sanitizedDeviceName}-${timestamp}.json`)
 
     try {
         if (!fs.existsSync(workersDataDir)) {
             return
         }
 
-        // Read all worker data files
+        // Read all worker data files (all workers have finished by the time onComplete runs)
         const files = fs.readdirSync(workersDataDir)
         const workerDataFiles = files.filter(file => file.startsWith('worker-data-') && file.endsWith('.json'))
 
@@ -43,7 +77,7 @@ export function aggregateSelectorPerformanceData(
                     allData.push(...workerData)
                 }
             } catch (err) {
-                console.warn(`Failed to read worker data file ${file}:`, err)
+                writeWarn(`Failed to read worker data file ${file}:`, err)
             }
         })
 
@@ -57,9 +91,9 @@ export function aggregateSelectorPerformanceData(
         const totalSelectors = allData.length
 
         if (totalSelectors === 0) {
-            console.log('\n📊 Selector Performance Summary:')
-            console.log('   No element-finding commands were tracked.')
-            console.log(`   💡 JSON file written to: ${finalJsonPath}`)
+            write('\n📊 Selector Performance Summary:\n')
+            write(`${REPORT_INDENT_SUMMARY}No element-finding commands were tracked.\n`)
+            write(`${REPORT_INDENT_SUMMARY}💡 JSON file written to: ${finalJsonPath}\n`)
         } else {
             const avgDuration = allData.reduce((sum, d) => sum + d.duration, 0) / totalSelectors || 0
 
@@ -68,17 +102,17 @@ export function aggregateSelectorPerformanceData(
 
             // Show optimization insights if we have optimized selectors
             if (optimizedSelectors.length > 0) {
-                generateGroupedSummaryReport(optimizedSelectors)
+                generateGroupedSummaryReport(optimizedSelectors, deviceName, write, maxLineLength)
             } else {
                 // Only show basic summary if no optimizations found
-                console.log('\n📊 Selector Performance Summary:')
-                console.log(`   Total element finds: ${totalSelectors}`)
-                console.log(`   Average duration: ${avgDuration.toFixed(2)}ms`)
+                write('\n📊 Selector Performance Summary:\n')
+                write(`${REPORT_INDENT_SUMMARY}Total element finds: ${totalSelectors}\n`)
+                write(`${REPORT_INDENT_SUMMARY}Average duration: ${avgDuration.toFixed(2)}ms\n`)
             }
 
             if (optimizedSelectors.length === 0) {
-                console.log('\n   ✅ All selectors performed well')
-                console.log(`   💡 JSON file written to: ${finalJsonPath}`)
+                write(`\n${REPORT_INDENT_SUMMARY}✅ All selectors performed well\n`)
+                write(`${REPORT_INDENT_SUMMARY}💡 JSON file written to: ${finalJsonPath}\n`)
             }
         }
 
@@ -86,12 +120,12 @@ export function aggregateSelectorPerformanceData(
         try {
             fs.rmSync(workersDataDir, { recursive: true, force: true })
         } catch (err) {
-            console.warn('Failed to clean up worker data directory:', err)
+            writeWarn('Failed to clean up worker data directory:', err)
         }
     } catch (err) {
-        console.error('Failed to aggregate selector performance data:', err)
+        writeError('Failed to aggregate selector performance data:', err)
         if (err instanceof Error) {
-            console.error('Error details:', err.message)
+            writeError('Error details:', err.message)
         }
     }
 }
@@ -269,41 +303,186 @@ function groupDataBySpecFile(allData: SelectorPerformanceData[]): Record<string,
 /**
  * Extract device name from capabilities
  */
-export function getDeviceName(capabilities: Capabilities.TestrunnerCapabilities): string {
+export function getDeviceName(capabilities: Capabilities.TestrunnerCapabilities | Capabilities.ResolvedTestrunnerCapabilities): string {
     if (!capabilities) {
         return 'unknown'
     }
 
-    // Handle multiremote capabilities
+    // Helper to extract deviceName from a capabilities object
+    const extractDeviceName = (caps: WebdriverIO.Capabilities | Capabilities.W3CCapabilities): string | undefined => {
+        if (!caps || typeof caps !== 'object') {
+            return undefined
+        }
+
+        const capsRecord = caps as Record<string, unknown>
+
+        // Try appium:deviceName first (W3C format)
+        const appiumDeviceName = capsRecord['appium:deviceName']
+        if (appiumDeviceName && typeof appiumDeviceName === 'string') {
+            return appiumDeviceName
+        }
+
+        // Try deviceName directly (legacy format or resolved capabilities)
+        const deviceName = capsRecord['deviceName']
+        if (deviceName && typeof deviceName === 'string') {
+            return deviceName
+        }
+
+        // Try W3C format with alwaysMatch
+        const w3cCap = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
+        if (w3cCap && typeof w3cCap === 'object') {
+            const w3cRecord = w3cCap as Record<string, unknown>
+            const w3cAppiumDeviceName = w3cRecord['appium:deviceName']
+            if (w3cAppiumDeviceName && typeof w3cAppiumDeviceName === 'string') {
+                return w3cAppiumDeviceName
+            }
+            const w3cDeviceName = w3cRecord['deviceName']
+            if (w3cDeviceName && typeof w3cDeviceName === 'string') {
+                return w3cDeviceName
+            }
+        }
+
+        return undefined
+    }
+
     if (!Array.isArray(capabilities) && typeof capabilities === 'object') {
-        const firstCap = Object.values(capabilities)[0]
-        if (firstCap && typeof firstCap === 'object' && 'capabilities' in firstCap) {
-            const caps = (firstCap.capabilities as Capabilities.W3CCapabilities).alwaysMatch || firstCap.capabilities as Capabilities.W3CCapabilities
-            return (caps['appium:deviceName'] || 'unknown') as string
+        const entries = Object.entries(capabilities)
+        if (entries.length > 0) {
+            const [, firstCap] = entries[0]
+            if (firstCap && typeof firstCap === 'object') {
+                if ('capabilities' in firstCap) {
+                    const nestedCaps = (firstCap as { capabilities: Capabilities.W3CCapabilities }).capabilities
+                    const deviceName = extractDeviceName(nestedCaps)
+                    if (deviceName) {
+                        return deviceName
+                    }
+                }
+                const deviceName = extractDeviceName(firstCap as WebdriverIO.Capabilities)
+                if (deviceName) {
+                    return deviceName
+                }
+            }
         }
     }
 
-    // Handle array of capabilities - use first one
     if (Array.isArray(capabilities) && capabilities.length > 0) {
-        const cap = capabilities[0] as Capabilities.W3CCapabilities
-        const w3cCap = cap.alwaysMatch || cap
-        return (w3cCap['appium:deviceName'] || 'unknown') as string
+        const deviceName = extractDeviceName(capabilities[0])
+        if (deviceName) {
+            return deviceName
+        }
     }
 
-    // Handle single capability object
-    const cap = capabilities as unknown as Capabilities.W3CCapabilities
-    const w3cCap = cap.alwaysMatch || cap
-    return (w3cCap['appium:deviceName'] || 'unknown') as string
+    const deviceName = extractDeviceName(capabilities as unknown as WebdriverIO.Capabilities)
+    if (deviceName) {
+        return deviceName
+    }
+
+    return 'unknown'
 }
 
 /**
- * Generates a grouped summary report of selector optimizations
+ * Wraps a long line to fit within maxLineLength, breaking at word boundaries when possible
  */
-function generateGroupedSummaryReport(optimizedSelectors: SelectorPerformanceData[]): void {
-    // Calculate overall stats
-    const totalTimeSaved = optimizedSelectors.reduce((sum, d) => sum + (d.improvementMs || 0), 0)
-    const avgImprovement = optimizedSelectors.reduce((sum, d) => sum + (d.improvementPercent || 0), 0) / optimizedSelectors.length
+function wrapLine(line: string, maxLineLength: number, indent: string = ''): string[] {
+    if (line.length <= maxLineLength) {
+        return [line]
+    }
+
+    // Detect prefix pattern (e.g., "   1. ", "            • ", "   → ")
+    // to calculate proper continuation indent that aligns with content after the marker
+    const prefixMatch = line.match(/^(\s*)(\d+\.|•|→)\s+/)
+    let continuationIndent = indent
+
+    if (prefixMatch) {
+        // Found a numbered/bulleted prefix - calculate continuation indent
+        // to align with content after the marker (e.g., after "1. " or "• ")
+        const leadingSpaces = prefixMatch[1]
+        const prefixMarker = prefixMatch[2]
+        // Continuation should align with content, so: leading spaces + marker + space
+        // This makes continuation align with where content starts after the marker
+        continuationIndent = leadingSpaces + ' '.repeat(prefixMarker.length + 1)
+    } else if (!indent) {
+        // Try to detect leading whitespace and preserve it
+        const leadingWhitespaceMatch = line.match(/^(\s+)/)
+        if (leadingWhitespaceMatch) {
+            continuationIndent = leadingWhitespaceMatch[1]
+        }
+    }
+
+    const lines: string[] = []
+    let remaining = line
+    let isFirstLine = true
+
+    while (true) {
+        const effectiveMaxLength = isFirstLine ? maxLineLength : maxLineLength - continuationIndent.length
+
+        if (remaining.length <= effectiveMaxLength) {
+            if (remaining.length > 0) {
+                if (isFirstLine) {
+                    lines.push(remaining)
+                } else {
+                    lines.push(continuationIndent + remaining)
+                }
+            }
+            break
+        }
+
+        let breakPoint = effectiveMaxLength
+        const searchStart = Math.max(0, effectiveMaxLength - 20) // Look back up to 20 chars
+        const spaceIndex = remaining.lastIndexOf(' ', effectiveMaxLength)
+        const commaIndex = remaining.lastIndexOf(',', effectiveMaxLength)
+        const arrowIndex = remaining.lastIndexOf('→', effectiveMaxLength)
+
+        // Prefer breaking at arrow, then comma, then space
+        if (arrowIndex > searchStart) {
+            breakPoint = arrowIndex + 1
+        } else if (commaIndex > searchStart) {
+            breakPoint = commaIndex + 1
+        } else if (spaceIndex > searchStart) {
+            breakPoint = spaceIndex + 1
+        }
+
+        // For first line, preserve the original line up to breakPoint (don't trim prefix)
+        // For continuation lines, use the calculated continuation indent
+        if (isFirstLine) {
+            // Ensure we preserve the full prefix on the first line
+            const firstLinePart = remaining.substring(0, breakPoint)
+            lines.push(firstLinePart)
+        } else {
+            lines.push(continuationIndent + remaining.substring(0, breakPoint).trim())
+        }
+        remaining = remaining.substring(breakPoint).trim()
+        isFirstLine = false
+    }
+
+    return lines
+}
+
+function generateGroupedSummaryReport(
+    optimizedSelectors: SelectorPerformanceData[],
+    deviceName: string,
+    write: (message: string) => void,
+    maxLineLength: number
+): void {
+    // 1. Separate positive and negative improvements
+    const positiveOptimizations = optimizedSelectors.filter(
+        d => d.improvementMs !== undefined && d.improvementMs > 0 && (d.improvementPercent || 0) > 0
+    )
+    const negativeOptimizations = optimizedSelectors.filter(
+        d => d.improvementMs !== undefined && (d.improvementMs <= 0 || (d.improvementPercent || 0) <= 0)
+    )
+
+    if (positiveOptimizations.length === 0 && negativeOptimizations.length === 0) {
+        write('📊 Mobile Selector Performance: Summary Report\n')
+        write(`${REPORT_INDENT_SUMMARY}No optimizations found.\n`)
+        return
+    }
+
+    // Calculate overall stats (only for positive optimizations)
+    const totalTimeSaved = positiveOptimizations.reduce((sum, d) => sum + (d.improvementMs || 0), 0)
+    const avgImprovement = positiveOptimizations.reduce((sum, d) => sum + (d.improvementPercent || 0), 0) / positiveOptimizations.length
     const totalTimeSavedSeconds = (totalTimeSaved / 1000).toFixed(2)
+    const totalSelectorsAnalyzed = optimizedSelectors.length
 
     // Group by test file -> suite name -> test name -> selector
     interface GroupedOptimization {
@@ -314,7 +493,8 @@ function generateGroupedSummaryReport(optimizedSelectors: SelectorPerformanceDat
         optimizedSelector: string
         improvementPercent: number
         improvementMs: number
-        timestamp: number // For sorting by execution order
+        timestamp: number
+        isNegative?: boolean
     }
 
     // First pass: Build maps to help infer unknown values
@@ -335,11 +515,15 @@ function generateGroupedSummaryReport(optimizedSelectors: SelectorPerformanceDat
         }
     }
 
+    // Process both positive and negative optimizations
+    const allProcessedSelectors = [...positiveOptimizations, ...negativeOptimizations]
+
     // Second pass: Infer and update unknown values
-    const processedSelectors = optimizedSelectors.map(data => {
+    const processedSelectors = allProcessedSelectors.map(data => {
         let testFile = data.testFile || 'unknown'
         let suiteName = data.suiteName || 'unknown'
         const testName = data.testName || 'unknown'
+        const isNegative = (data.improvementMs || 0) <= 0 || (data.improvementPercent || 0) <= 0
 
         // Infer test file if unknown
         if (testFile === 'unknown' && suiteName !== 'unknown' && testName !== 'unknown') {
@@ -359,7 +543,7 @@ function generateGroupedSummaryReport(optimizedSelectors: SelectorPerformanceDat
             }
         }
 
-        return { ...data, testFile, suiteName }
+        return { ...data, testFile, suiteName, isNegative }
     })
 
     const groupedByFile = new Map<string, Map<string, Map<string, GroupedOptimization[]>>>()
@@ -370,6 +554,7 @@ function generateGroupedSummaryReport(optimizedSelectors: SelectorPerformanceDat
             continue
         }
 
+        const isNegative = (data as SelectorPerformanceData & { isNegative?: boolean }).isNegative || false
         const testFile = data.testFile || 'unknown'
         const suiteName = data.suiteName || 'unknown'
         const testName = data.testName || 'unknown'
@@ -411,7 +596,8 @@ function generateGroupedSummaryReport(optimizedSelectors: SelectorPerformanceDat
                 optimizedSelector: data.optimizedSelector,
                 improvementPercent: data.improvementPercent || 0,
                 improvementMs: data.improvementMs,
-                timestamp: data.timestamp // Store timestamp for sorting
+                timestamp: data.timestamp,
+                isNegative: isNegative
             })
         } else {
             // Update existing entry if we have a better suite name or more recent data
@@ -512,50 +698,186 @@ function generateGroupedSummaryReport(optimizedSelectors: SelectorPerformanceDat
         }
     }
 
-    // Print summary header
-    console.log('\n📊 Mobile Selector Performance: Summary Report')
-    console.log(`   Total optimizations found: ${optimizedSelectors.length}`)
-    console.log(`   Average improvement: ${avgImprovement.toFixed(1)}% faster`)
-    console.log(`   Total time saved: ${totalTimeSaved.toFixed(2)}ms per test run`)
-    console.log('\n📋 All Actions Required - Grouped by Test')
+    // Group optimizations by improvement ranges (6. Group by improvement ranges)
+    const highImpact: GroupedOptimization[] = [] // >50%
+    const mediumImpact: GroupedOptimization[] = [] // 20-50%
+    const lowImpact: GroupedOptimization[] = [] // 10-20%
+    const minorImpact: GroupedOptimization[] = [] // <10%
+    const allOptimizations: GroupedOptimization[] = []
+
+    for (const [, suiteMap] of sortedFiles) {
+        for (const [, testMap] of suiteMap.entries()) {
+            for (const [, optimizations] of testMap.entries()) {
+                allOptimizations.push(...optimizations)
+            }
+        }
+    }
+
+    for (const opt of allOptimizations) {
+        if (opt.improvementPercent >= 50) {
+            highImpact.push(opt)
+        } else if (opt.improvementPercent >= 20) {
+            mediumImpact.push(opt)
+        } else if (opt.improvementPercent >= 10) {
+            lowImpact.push(opt)
+        } else {
+            minorImpact.push(opt)
+        }
+    }
+
+    // 3. Top 10 optimizations summary (sorted by time saved, deduplicated by original selector)
+    // Group by original selector and keep only the best one (highest improvementMs)
+    const topOptimizationsMap = new Map<string, GroupedOptimization>()
+    for (const opt of allOptimizations) {
+        const existing = topOptimizationsMap.get(opt.originalSelector)
+        if (!existing || (opt.improvementMs || 0) > (existing.improvementMs || 0)) {
+            topOptimizationsMap.set(opt.originalSelector, opt)
+        }
+    }
+    const topOptimizations = Array.from(topOptimizationsMap.values())
+        .sort((a, b) => (b.improvementMs || 0) - (a.improvementMs || 0))
+        .slice(0, 10)
+
+    // 7. Quick Wins: Shared selectors with high improvements
+    const quickWins = Array.from(selectorUsageCount.entries())
+        .filter(([_, usage]) => usage.count > 1)
+        .map(([selector, usage]) => {
+            const example = allOptimizations.find(o => o.originalSelector === selector)
+            return example ? { selector, usage, optimization: example } : null
+        })
+        .filter((item): item is { selector: string; usage: { count: number; testFiles: Set<string> }; optimization: GroupedOptimization } => item !== null)
+        .filter(item => item.optimization.improvementPercent >= 20 && item.optimization.optimizedSelector.startsWith('~'))
+        .sort((a, b) => (b.optimization.improvementMs || 0) - (a.optimization.improvementMs || 0))
+        .slice(0, 10)
+
+    write('\n "Mobile Selector Performance Optimizer" Reporter:\n')
+    write('\n')
+    write('═══════════════════════════════════════════════════════════════════════════════\n')
+    write('📊 Mobile Selector Performance: Summary Report\n')
+    write('═══════════════════════════════════════════════════════════════════════════════\n')
+    if (deviceName && deviceName !== 'unknown') {
+        write(`${REPORT_INDENT_SUMMARY}Device: ${deviceName}\n`)
+    }
+    write(`${REPORT_INDENT_SUMMARY}Total selectors analyzed: ${totalSelectorsAnalyzed}\n`)
+    write(`${REPORT_INDENT_SUMMARY}Positive optimizations found: ${positiveOptimizations.length}\n`)
+    write(`${REPORT_INDENT_SUMMARY}Average improvement: ${avgImprovement.toFixed(1)}% faster\n`)
+    write(`${REPORT_INDENT_SUMMARY}Total time saved: ${totalTimeSaved.toFixed(2)}ms (${totalTimeSavedSeconds}s) per test run\n`)
+    const impactBreakdownLine = `${REPORT_INDENT_SUMMARY}Impact breakdown: ${highImpact.length} high (>50%), ${mediumImpact.length} medium (20-50%), ${lowImpact.length} low (10-20%), ${minorImpact.length} minor (<10%)`
+    const wrappedImpactBreakdown = wrapLine(impactBreakdownLine, maxLineLength, '')
+    for (const wrappedLine of wrappedImpactBreakdown) {
+        write(`${wrappedLine}\n`)
+    }
+    write('\n')
+
+    // 3. Top 10 Optimizations Summary
+    if (topOptimizations.length > 0) {
+        write('🏆 Top 10 Most Impactful Optimizations\n')
+        write('───────────────────────────────────────────────────────────────────────────\n')
+        for (let i = 0; i < topOptimizations.length; i++) {
+            const opt = topOptimizations[i]
+            const formattedOriginal = formatSelectorForDisplay(opt.originalSelector)
+            const formattedOptimized = formatSelectorForDisplay(opt.optimizedSelector)
+            const quoteStyle = opt.optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
+            const isShared = selectorUsageCount.get(opt.originalSelector)!.count > 1
+            const sharedMarker = isShared ? ' ⚠️ (shared)' : ''
+            const line = `${REPORT_INDENT_SUMMARY}${i + 1}. $('${formattedOriginal}') → $(${quoteStyle}${formattedOptimized}${quoteStyle}) (${opt.improvementPercent.toFixed(1)}% faster, ${opt.improvementMs.toFixed(2)}ms saved)${sharedMarker}`
+            const wrapped = wrapLine(line, maxLineLength, REPORT_INDENT_SUMMARY)
+            for (const wrappedLine of wrapped) {
+                write(`${wrappedLine}\n`)
+            }
+        }
+        write('\n')
+    }
+
+    // 7. Quick Wins Section
+    if (quickWins.length > 0) {
+        write('⚡ Quick Wins (Shared Selectors with High Impact)\n')
+        write('───────────────────────────────────────────────────────────────────────────\n')
+        write(`${REPORT_INDENT_SUMMARY}These selectors appear in multiple tests and have high improvement. Fix once, benefit everywhere!\n`)
+        for (const { selector, usage, optimization } of quickWins) {
+            const formattedOriginal = formatSelectorForDisplay(selector)
+            const formattedOptimized = formatSelectorForDisplay(optimization.optimizedSelector)
+            const quoteStyle = optimization.optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
+            const line1 = `${REPORT_INDENT_SUMMARY}• $('${formattedOriginal}') → $(${quoteStyle}${formattedOptimized}${quoteStyle}) (${optimization.improvementPercent.toFixed(1)}% faster, appears in ${usage.count} test(s))`
+            const wrapped1 = wrapLine(line1, maxLineLength, REPORT_INDENT_SUMMARY + '  ')
+            for (const wrappedLine of wrapped1) {
+                write(`${wrappedLine}\n`)
+            }
+            write(`${REPORT_INDENT_SUMMARY}  → Search in: page-objects/**/*.ts or helpers/**/*.ts\n`)
+        }
+        write('\n')
+    }
+
+    write('📋 All Actions Required - Grouped by Test\n')
+    write('───────────────────────────────────────────────────────────────────────────\n')
 
     // Print grouped optimizations
     for (const [testFile, suiteMap] of sortedFiles) {
         const displayFile = testFile === 'unknown' ? 'Unknown Test File (likely in hooks or shared code)' : testFile
-        console.log(`\n   📁 ${displayFile}`)
+        write(`${REPORT_INDENT_FILE}📁 ${displayFile}\n`)
 
         for (const [suiteName, testMap] of suiteMap.entries()) {
             const displaySuiteName = suiteName === 'unknown' ? 'Unknown Suite' : suiteName
-            console.log(`\n      📦 Suite: "${displaySuiteName}"`)
+            write(`${REPORT_INDENT_SUITE}📦 Suite: "${displaySuiteName}"\n`)
 
             for (const [testName, optimizations] of testMap.entries()) {
                 const displayTestName = testName === 'unknown' ? 'Unknown Test (likely in hooks)' : testName
-                console.log(`\n         🧪 Test: "${displayTestName}"`)
+                write(`${REPORT_INDENT_TEST}🧪 Test: "${displayTestName}"\n`)
 
-                for (const opt of optimizations) {
+                // 4. Filter by improvement threshold - group minor improvements separately
+                const significantOptimizations = optimizations.filter(opt => opt.improvementPercent >= 10)
+                const minorOptimizations = optimizations.filter(opt => opt.improvementPercent < 10)
+
+                for (const opt of significantOptimizations) {
                     const isShared = selectorUsageCount.get(opt.originalSelector)!.count > 1
                     const sharedMarker = isShared ? ' ⚠️ (also in other test(s))' : ''
                     const formattedOriginal = formatSelectorForDisplay(opt.originalSelector)
                     const formattedOptimized = formatSelectorForDisplay(opt.optimizedSelector)
                     const quoteStyle = opt.optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
 
-                    console.log(`            • Replace: $('${formattedOriginal}') → $(${quoteStyle}${formattedOptimized}${quoteStyle}) (${opt.improvementPercent.toFixed(1)}% faster)${sharedMarker}`)
+                    if (opt.isNegative) {
+                        // Show negative improvements with warning
+                        const slowdownPercent = Math.abs(opt.improvementPercent)
+                        const line = `${REPORT_INDENT_SELECTOR}⚠️  Replace: $('${formattedOriginal}') → $(${quoteStyle}${formattedOptimized}${quoteStyle}) (${slowdownPercent.toFixed(1)}% slower)${sharedMarker}`
+                        const wrapped = wrapLine(line, maxLineLength, REPORT_INDENT_SELECTOR)
+                        for (const wrappedLine of wrapped) {
+                            write(`${wrappedLine}\n`)
+                        }
+                        const noteLine = `${REPORT_INDENT_SELECTOR}   Note: While slower, this selector is more maintainable and less brittle than XPath`
+                        const wrappedNote = wrapLine(noteLine, maxLineLength, REPORT_INDENT_SELECTOR)
+                        for (const wrappedLine of wrappedNote) {
+                            write(`${wrappedLine}\n`)
+                        }
+                    } else {
+                        const line = `${REPORT_INDENT_SELECTOR}• Replace: $('${formattedOriginal}') → $(${quoteStyle}${formattedOptimized}${quoteStyle}) (${opt.improvementPercent.toFixed(1)}% faster)${sharedMarker}`
+                        const wrapped = wrapLine(line, maxLineLength, REPORT_INDENT_SELECTOR)
+                        for (const wrappedLine of wrapped) {
+                            write(`${wrappedLine}\n`)
+                        }
+                    }
+                }
+
+                // Show minor optimizations collapsed
+                if (minorOptimizations.length > 0) {
+                    write(`${REPORT_INDENT_SELECTOR}• ${minorOptimizations.length} minor optimization(s) (<10% improvement) - see detailed report\n`)
                 }
             }
         }
     }
 
-    // Print shared selectors section
+    // 2. Print shared selectors section (aggregated across all spec files)
     const sharedSelectors = Array.from(selectorUsageCount.entries())
         .filter(([_, usage]) => usage.count > 1)
 
     if (sharedSelectors.length > 0) {
-        console.log('\n   ⚠️  [Shared Selectors Detected]')
-        console.log('      The following selectors appear in multiple tests and are likely in Page Objects:')
+        write('\n')
+        write('⚠️  [Shared Selectors Detected]\n')
+        write('───────────────────────────────────────────────────────────────────────────\n')
+        write(`${REPORT_INDENT_SHARED}The following selectors appear in multiple tests and are likely in Page Objects:\n`)
 
         for (const [selector, usage] of sharedSelectors) {
-            const example = optimizedSelectors.find(d => d.selector === selector)
-            if (!example || !example.optimizedSelector) {
+            const example = allOptimizations.find(o => o.originalSelector === selector)
+            if (!example) {
                 continue
             }
 
@@ -563,15 +885,23 @@ function generateGroupedSummaryReport(optimizedSelectors: SelectorPerformanceDat
             const formattedOptimized = formatSelectorForDisplay(example.optimizedSelector)
             const quoteStyle = example.optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
 
-            console.log(`      • $('${formattedOriginal}') - appears in ${usage.count} test(s)`)
-            console.log('         → Search in: page-objects/**/*.ts or helpers/**/*.ts')
-            console.log(`         → Replace with: $(${quoteStyle}${formattedOptimized}${quoteStyle})`)
+            const line1 = `${REPORT_INDENT_SHARED}• $('${formattedOriginal}') - appears in ${usage.count} test(s) across ${usage.testFiles.size} file(s)`
+            const wrapped1 = wrapLine(line1, maxLineLength, REPORT_INDENT_SHARED + '  ')
+            for (const wrappedLine of wrapped1) {
+                write(`${wrappedLine}\n`)
+            }
+            write(`${REPORT_INDENT_SHARED_DETAIL}→ Search in: page-objects/**/*.ts or helpers/**/*.ts\n`)
+            const line2 = `${REPORT_INDENT_SHARED_DETAIL}→ Replace with: $(${quoteStyle}${formattedOptimized}${quoteStyle})`
+            const wrapped2 = wrapLine(line2, maxLineLength, REPORT_INDENT_SHARED_DETAIL + '  ')
+            for (const wrappedLine of wrapped2) {
+                write(`${wrappedLine}\n`)
+            }
         }
     }
 
     // Analyze which selector types were used
     const selectorTypes = new Set<string>()
-    for (const data of optimizedSelectors) {
+    for (const data of positiveOptimizations) {
         if (data.optimizedSelector) {
             if (data.optimizedSelector.startsWith('-ios predicate string:')) {
                 selectorTypes.add('predicate string')
@@ -611,15 +941,18 @@ function generateGroupedSummaryReport(optimizedSelectors: SelectorPerformanceDat
         docLinks.push('Class Chain: https://webdriver.io/docs/selectors#ios-class-chain')
     }
 
-    // Print "Why Change?" section
-    console.log('\n   💡 [Why Change?]')
-    console.log(`      • Average ${avgImprovement.toFixed(1)}% performance improvement (total of ${totalTimeSavedSeconds} seconds faster per run of this suite)`)
-    console.log(`      • ${benefitsText}`)
+    // Print "Why Change?" section with improved formatting
+    write('\n')
+    write('💡 [Why Change?]\n')
+    write('───────────────────────────────────────────────────────────────────────────\n')
+    write(`${REPORT_INDENT_WHY_CHANGE}• Average ${avgImprovement.toFixed(1)}% performance improvement (total of ${totalTimeSavedSeconds} seconds faster per run of this suite)\n`)
+    write(`${REPORT_INDENT_WHY_CHANGE}• ${benefitsText}\n`)
     if (docLinks.length > 0) {
-        console.log('      • Documentation:')
+        write(`${REPORT_INDENT_WHY_CHANGE}• Documentation:\n`)
         for (const link of docLinks) {
-            console.log(`        - ${link}`)
+            write(`${REPORT_INDENT_DOCS}- ${link}\n`)
         }
     }
+    write('═══════════════════════════════════════════════════════════════════════════════\n')
 }
 

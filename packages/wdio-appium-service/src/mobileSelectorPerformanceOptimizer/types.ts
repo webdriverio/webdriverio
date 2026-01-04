@@ -1,5 +1,3 @@
-import type { Frameworks } from '@wdio/types'
-
 /**
  * Performance data for a selector operation
  */
@@ -48,8 +46,6 @@ export interface TestContext {
 export interface OptimizationOptions {
     usePageSource: boolean
     browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-    currentTest?: Frameworks.Test
-    currentTestFile?: string
     dataStore: SelectorPerformanceData[]
     isReplacingSelector: { value: boolean }
     isSilentLogLevel?: boolean

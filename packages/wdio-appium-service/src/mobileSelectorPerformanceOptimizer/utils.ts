@@ -1,7 +1,10 @@
-import type { Frameworks, Options } from '@wdio/types'
+import path from 'node:path'
+import { SevereServiceError } from 'webdriverio'
+import type { Frameworks, Options, Reporters } from '@wdio/types'
 import type { XPathConversionResult } from './xpath-utils.js'
 import { convertXPathToOptimizedSelector } from './xpath-utils.js'
 import type { TestContext, CommandTiming, SelectorPerformanceData } from './types.js'
+import type { AppiumServiceConfig } from '../types.js'
 
 export const LOG_PREFIX = 'Mobile Selector Performance'
 export const INDENT_LEVEL_1 = '  '
@@ -10,10 +13,30 @@ export const INDENT_LEVEL_3 = '    '
 export const INDENT_LEVEL_4 = '          '
 export const INDENT_LEVEL_5 = '        '
 
+// Report formatting constants
+export const REPORT_INDENT_SUMMARY = '   '
+export const REPORT_INDENT_FILE = '   '
+export const REPORT_INDENT_SUITE = '      '
+export const REPORT_INDENT_TEST = '         '
+export const REPORT_INDENT_SELECTOR = '            '
+export const REPORT_INDENT_SHARED = '      '
+export const REPORT_INDENT_SHARED_DETAIL = '         '
+export const REPORT_INDENT_WHY_CHANGE = '      '
+export const REPORT_INDENT_DOCS = '        '
+
 /**
  * Checks if the log level is silent
+ * Checks both the environment variable (which has priority in WebdriverIO) and the config
  */
 export function isSilentLogLevel(config?: Options.Testrunner): boolean {
+    const envLogLevel = process.env.WDIO_LOG_LEVEL
+    if (envLogLevel === 'silent') {
+        return true
+    }
+    if (envLogLevel) {
+        return false
+    }
+
     if (!config) {
         return false
     }
@@ -673,5 +696,66 @@ export function storePerformanceData(
     }
 
     dataStore.push(data)
+}
+
+/**
+ * Checks if a reporter with the given name is already registered in the config
+ */
+export function isReporterRegistered(reporters: Reporters.ReporterEntry[], reporterName: string): boolean {
+    return reporters.some((reporter) => {
+        if (Array.isArray(reporter)) {
+            const reporterClass = reporter[0]
+            if (typeof reporterClass === 'function') {
+                return reporterClass.name === reporterName
+            }
+            return false
+        }
+        if (typeof reporter === 'function') {
+            return reporter.name === reporterName
+        }
+        return false
+    })
+}
+
+/**
+ * Determines the report directory path using the fallback chain:
+ * 1. reportPath from trackSelectorPerformance service options
+ * 2. config.outputDir
+ * 3. appiumServiceOptions.logPath
+ * 4. appiumServiceOptions.args.log (directory from log file path)
+ * 5. Throws error if none are set
+ */
+export function determineReportDirectory(
+    reportPath?: string,
+    config?: Options.Testrunner,
+    appiumServiceOptions?: AppiumServiceConfig
+): string {
+    let reportDir: string | undefined
+
+    if (reportPath) {
+        reportDir = path.isAbsolute(reportPath) ? reportPath : path.join(process.cwd(), reportPath)
+    } else if (config?.outputDir) {
+        reportDir = path.isAbsolute(config.outputDir) ? config.outputDir : path.join(process.cwd(), config.outputDir)
+    } else if (appiumServiceOptions?.logPath) {
+        reportDir = path.isAbsolute(appiumServiceOptions.logPath)
+            ? appiumServiceOptions.logPath
+            : path.join(process.cwd(), appiumServiceOptions.logPath)
+    } else if (appiumServiceOptions?.args?.log) {
+        const logPath = appiumServiceOptions.args.log
+        reportDir = path.isAbsolute(logPath) ? path.dirname(logPath) : path.join(process.cwd(), path.dirname(logPath))
+    }
+
+    if (!reportDir) {
+        throw new SevereServiceError(
+            'Mobile Selector Performance Optimizer: JSON report cannot be created. ' +
+            'Please provide one of the following:\n' +
+            '  1. reportPath in trackSelectorPerformance service options\n' +
+            '  2. outputDir in WebdriverIO config\n' +
+            '  3. logPath in Appium service options\n' +
+            '  4. log in Appium service args'
+        )
+    }
+
+    return reportDir
 }
 
