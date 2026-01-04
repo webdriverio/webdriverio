@@ -11,7 +11,7 @@ import {
     INDENT_LEVEL_2,
     LOG_PREFIX
 } from './utils.js'
-import { findTestContextForTimestamp } from './mspo-store.js'
+import { getCurrentTestFile, getCurrentSuiteName, getCurrentTestName } from './mspo-store.js'
 
 /**
  * Main optimization flow for a single element selector
@@ -94,17 +94,10 @@ export async function optimizeSingleSelector(
     // Step 6: Compare and conclude
     const timeDifference = originalDuration - testResult.duration
     const improvementPercent = originalDuration > 0 ? (timeDifference / originalDuration) * 100 : 0
-
-    // Store optimized selector performance data - get context from reporter store using current timestamp
-    const storeContext = findTestContextForTimestamp(Date.now())
-    const testContext = storeContext ? {
-        testFile: storeContext.testFile || 'unknown',
-        suiteName: storeContext.suiteName || 'unknown',
-        testName: storeContext.testName || 'unknown'
-    } : {
-        testFile: 'unknown',
-        suiteName: 'unknown',
-        testName: 'unknown'
+    const testContext = {
+        testFile: getCurrentTestFile() || 'unknown',
+        suiteName: getCurrentSuiteName() || 'unknown',
+        testName: getCurrentTestName() || 'unknown'
     }
     const optimizedData = createOptimizedSelectorData(
         testContext,
@@ -115,12 +108,10 @@ export async function optimizeSingleSelector(
     )
     options.dataStore.push(optimizedData)
 
-    // Only log conclusion if not in silent mode
     if (!isSilent) {
         logOptimizationConclusion(timeDifference, improvementPercent, selector, optimizedSelector)
     }
 
-    // Create new element by calling original function with optimized selector
     options.isReplacingSelector.value = true
     try {
         const optimizedElement = await originalFunc.call(browser, optimizedSelector)
@@ -211,17 +202,10 @@ export async function optimizeMultipleSelectors(
     // Step 6: Compare and conclude
     const timeDifference = originalDuration - testResult.duration
     const improvementPercent = originalDuration > 0 ? (timeDifference / originalDuration) * 100 : 0
-
-    // Store optimized selector performance data - get context from reporter store using current timestamp
-    const storeContext = findTestContextForTimestamp(Date.now())
-    const testContext = storeContext ? {
-        testFile: storeContext.testFile || 'unknown',
-        suiteName: storeContext.suiteName || 'unknown',
-        testName: storeContext.testName || 'unknown'
-    } : {
-        testFile: 'unknown',
-        suiteName: 'unknown',
-        testName: 'unknown'
+    const testContext = {
+        testFile: getCurrentTestFile() || 'unknown',
+        suiteName: getCurrentSuiteName() || 'unknown',
+        testName: getCurrentTestName() || 'unknown'
     }
     const optimizedData = createOptimizedSelectorData(
         testContext,
@@ -232,12 +216,10 @@ export async function optimizeMultipleSelectors(
     )
     options.dataStore.push(optimizedData)
 
-    // Only log conclusion if not in silent mode
     if (!isSilent) {
         logOptimizationConclusion(timeDifference, improvementPercent, selector, optimizedSelector)
     }
 
-    // Create new elements by calling original function with optimized selector
     options.isReplacingSelector.value = true
     try {
         const optimizedElements = await originalFunc.call(browser, optimizedSelector)
