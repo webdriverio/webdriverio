@@ -1,24 +1,24 @@
-/**
- * Lightweight reporter to collect test context information (suite name, test name, test file)
- * and store it in a shared store that the MSPO service can access.
- *
- * This reporter uses the same logic as spec-reporter to handle Mocha, Jasmine, and Cucumber frameworks.
- * It only collects context data and doesn't output anything.
- */
-
 import WDIOReporter, { type SuiteStats, type TestStats } from '@wdio/reporter'
 import {
     storeTestContext,
     setCurrentSuiteName,
     setCurrentTestFile,
     setCurrentTestName,
-    getCurrentContext
+    getCurrentTestFile,
+    getCurrentSuiteName,
+    getCurrentTestName
 } from './mspo-store.js'
 
+interface MobileSelectorPerformanceReporterOptions extends Record<string, unknown> {
+    reportDirectory?: string
+}
+
 export default class MobileSelectorPerformanceReporter extends WDIOReporter {
-    constructor(options: Record<string, unknown>) {
-        // Don't write to stdout, we're just collecting data
-        super({ ...options, stdout: false })
+    private _reportDirectory?: string
+
+    constructor(options: MobileSelectorPerformanceReporterOptions) {
+        super({ ...options, stdout: true })
+        this._reportDirectory = options.reportDirectory
     }
 
     /**
@@ -63,9 +63,15 @@ export default class MobileSelectorPerformanceReporter extends WDIOReporter {
             setCurrentTestFile(testFile)
         }
 
-        const context = getCurrentContext()
-        if (context) {
-            storeTestContext(context)
+        // Store context after updating the store
+        const currentTestFile = getCurrentTestFile()
+        if (currentTestFile) {
+            storeTestContext({
+                testFile: currentTestFile,
+                suiteName: getCurrentSuiteName(),
+                testName: getCurrentTestName(),
+                timestamp: Date.now()
+            })
         }
     }
 
@@ -75,9 +81,14 @@ export default class MobileSelectorPerformanceReporter extends WDIOReporter {
             setCurrentTestName(testName)
         }
 
-        const context = getCurrentContext()
-        if (context) {
-            storeTestContext(context)
+        const testFile = getCurrentTestFile()
+        if (testFile) {
+            storeTestContext({
+                testFile,
+                suiteName: getCurrentSuiteName(),
+                testName: getCurrentTestName(),
+                timestamp: Date.now()
+            })
         }
     }
 
@@ -87,9 +98,14 @@ export default class MobileSelectorPerformanceReporter extends WDIOReporter {
             setCurrentTestName(testName)
         }
 
-        const context = getCurrentContext()
-        if (context) {
-            storeTestContext(context)
+        const testFile = getCurrentTestFile()
+        if (testFile) {
+            storeTestContext({
+                testFile,
+                suiteName: getCurrentSuiteName(),
+                testName: getCurrentTestName(),
+                timestamp: Date.now()
+            })
         }
     }
 
@@ -99,9 +115,14 @@ export default class MobileSelectorPerformanceReporter extends WDIOReporter {
             setCurrentTestName(testName)
         }
 
-        const context = getCurrentContext()
-        if (context) {
-            storeTestContext(context)
+        const testFile = getCurrentTestFile()
+        if (testFile) {
+            storeTestContext({
+                testFile,
+                suiteName: getCurrentSuiteName(),
+                testName: getCurrentTestName(),
+                timestamp: Date.now()
+            })
         }
     }
 
@@ -111,9 +132,14 @@ export default class MobileSelectorPerformanceReporter extends WDIOReporter {
             setCurrentTestName(testName)
         }
 
-        const context = getCurrentContext()
-        if (context) {
-            storeTestContext(context)
+        const testFile = getCurrentTestFile()
+        if (testFile) {
+            storeTestContext({
+                testFile,
+                suiteName: getCurrentSuiteName(),
+                testName: getCurrentTestName(),
+                timestamp: Date.now()
+            })
         }
     }
 
@@ -123,9 +149,14 @@ export default class MobileSelectorPerformanceReporter extends WDIOReporter {
             setCurrentTestName(testName)
         }
 
-        const context = getCurrentContext()
-        if (context) {
-            storeTestContext(context)
+        const testFile = getCurrentTestFile()
+        if (testFile) {
+            storeTestContext({
+                testFile,
+                suiteName: getCurrentSuiteName(),
+                testName: getCurrentTestName(),
+                timestamp: Date.now()
+            })
         }
     }
 }

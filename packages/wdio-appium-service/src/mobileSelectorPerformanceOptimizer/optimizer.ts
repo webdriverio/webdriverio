@@ -2,7 +2,6 @@ import type { OptimizationOptions } from './types.js'
 import {
     formatSelectorForDisplay,
     getHighResTime,
-    buildTestContext,
     parseOptimizedSelector,
     testOptimizedSelector,
     findOptimizedSelector,
@@ -12,6 +11,7 @@ import {
     INDENT_LEVEL_2,
     LOG_PREFIX
 } from './utils.js'
+import { findTestContextForTimestamp } from './mspo-store.js'
 
 /**
  * Main optimization flow for a single element selector
@@ -95,8 +95,17 @@ export async function optimizeSingleSelector(
     const timeDifference = originalDuration - testResult.duration
     const improvementPercent = originalDuration > 0 ? (timeDifference / originalDuration) * 100 : 0
 
-    // Store optimized selector performance data
-    const testContext = buildTestContext(options.currentTest, options.currentTestFile)
+    // Store optimized selector performance data - get context from reporter store using current timestamp
+    const storeContext = findTestContextForTimestamp(Date.now())
+    const testContext = storeContext ? {
+        testFile: storeContext.testFile || 'unknown',
+        suiteName: storeContext.suiteName || 'unknown',
+        testName: storeContext.testName || 'unknown'
+    } : {
+        testFile: 'unknown',
+        suiteName: 'unknown',
+        testName: 'unknown'
+    }
     const optimizedData = createOptimizedSelectorData(
         testContext,
         selector,
@@ -203,8 +212,17 @@ export async function optimizeMultipleSelectors(
     const timeDifference = originalDuration - testResult.duration
     const improvementPercent = originalDuration > 0 ? (timeDifference / originalDuration) * 100 : 0
 
-    // Store optimized selector performance data
-    const testContext = buildTestContext(options.currentTest, options.currentTestFile)
+    // Store optimized selector performance data - get context from reporter store using current timestamp
+    const storeContext = findTestContextForTimestamp(Date.now())
+    const testContext = storeContext ? {
+        testFile: storeContext.testFile || 'unknown',
+        suiteName: storeContext.suiteName || 'unknown',
+        testName: storeContext.testName || 'unknown'
+    } : {
+        testFile: 'unknown',
+        suiteName: 'unknown',
+        testName: 'unknown'
+    }
     const optimizedData = createOptimizedSelectorData(
         testContext,
         selector,

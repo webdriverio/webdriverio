@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 
 import AppiumLauncher from './launcher.js'
-import SelectorPerformanceService from './mspo/mspo-service.js'
+import SelectorPerformanceService from './mobileSelectorPerformanceOptimizer/mspo-service.js'
 
 export default class AppiumService extends SelectorPerformanceService {}
 export const launcher = AppiumLauncher

@@ -171,6 +171,24 @@ export interface AppiumServiceConfig {
          * @default false
          */
         replaceWithOptimizedSelector?: boolean
+        /**
+         * Enable the MobileSelectorPerformanceReporter to automatically collect test context information.
+         * This reporter is required for accurate test file, suite name, and test name tracking.
+         * @default false
+         */
+        enableReporter?: boolean
+        /**
+         * Path where the JSON report file should be saved.
+         * If not provided, falls back to config.outputDir, then appium service logPath.
+         * If none are set, an error will be thrown.
+         */
+        reportPath?: string
+        /**
+         * Maximum line length for terminal report output.
+         * Lines longer than this will be wrapped at word boundaries.
+         * @default 100
+         */
+        maxLineLength?: number
     }
 }
 
