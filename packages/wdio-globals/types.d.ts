@@ -2,7 +2,11 @@ type ExpectType = import('expect-webdriverio').Expect
 
 declare module NodeJS {
     interface Global {
+        /**
+         * @deprecated Use `multiRemoteBrowser` instead.
+         */
         multiremotebrowser: WebdriverIO.MultiRemoteBrowser
+        multiRemoteBrowser: WebdriverIO.MultiRemoteBrowser
         browser: WebdriverIO.Browser
         driver: WebdriverIO.Browser
         expect: ExpectType
@@ -11,7 +15,11 @@ declare module NodeJS {
 
 declare function $(...args: Parameters<WebdriverIO.Browser['$']>): ReturnType<WebdriverIO.Browser['$']>
 declare function $$(...args: Parameters<WebdriverIO.Browser['$$']>): ReturnType<WebdriverIO.Browser['$$']>
+/**
+ * @deprecated Use `multiRemoteBrowser` instead.
+ */
 declare var multiremotebrowser: WebdriverIO.MultiRemoteBrowser
+declare var multiRemoteBrowser: WebdriverIO.MultiRemoteBrowser
 declare var browser: WebdriverIO.Browser
 declare var driver: WebdriverIO.Browser
 declare var expect: ExpectType

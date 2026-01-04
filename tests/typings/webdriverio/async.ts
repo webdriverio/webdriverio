@@ -46,7 +46,7 @@ async function bar() {
     const location = await mElem.getLocation('x')
     expectType<number[]>(location)
 
-    const url = await multiremotebrowser.getUrl()
+    const url = await multiRemoteBrowser.getUrl()
     expectType<string[]>(url)
 
     multiremote({

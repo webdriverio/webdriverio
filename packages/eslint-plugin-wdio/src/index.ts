@@ -9,6 +9,7 @@ const sharedGlobals = {
     driver: false,
     expect: false,
     multiremotebrowser: false,
+    multiRemoteBrowser: false,
 } as const
 
 const sharedConfig = {

@@ -23,6 +23,41 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.23.0 (2026-01-03)
+
+#### :rocket: New Feature
+* `eslint-plugin-wdio`, `wdio-browserstack-service`, `wdio-globals`, `wdio-runner`, `webdriverio`
+  * [#14975](https://github.com/webdriverio/webdriverio/pull/14975) fix: Rename `multiremotebrowser` to `multiRemoteBrowser` to follow camelCasing Rules ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`
+  * [#14976](https://github.com/webdriverio/webdriverio/pull/14976) fix(wdio-jasmine-framework): restore hook data for Jasmine 5.10+ ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-utils`
+  * [#14977](https://github.com/webdriverio/webdriverio/pull/14977) fix(wdio-utils): rethrow pending/skip errors for Jasmine (#14688) ([@mccmrunal](https://github.com/mccmrunal))
+* `webdriverio`
+  * [#14979](https://github.com/webdriverio/webdriverio/pull/14979) fix(webdriverio): respect element index in waitForExist (#14418) ([@mccmrunal](https://github.com/mccmrunal))
+  * [#14957](https://github.com/webdriverio/webdriverio/pull/14957) fix(webdriverio): handle 'no such alert' error when dialog closes ([@mccmrunal](https://github.com/mccmrunal))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#14958](https://github.com/webdriverio/webdriverio/pull/14958) feat: enhance `getContext(s)|switchContext` ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :memo: Documentation
+* `wdio-utils`
+  * [#14978](https://github.com/webdriverio/webdriverio/pull/14978) docu: fix wdio/utils description ([@mauriciolauffer](https://github.com/mauriciolauffer))
+
+#### :house: Internal
+* `wdio-appium-service`
+  * [#14956](https://github.com/webdriverio/webdriverio/pull/14956) chore: UTs genering errors on main ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### Committers: 5
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Mauricio Lauffer ([@mauriciolauffer](https://github.com/mauriciolauffer))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v9.22.0 (2025-12-24)
 
 #### :rocket: New Feature

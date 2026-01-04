@@ -98,6 +98,18 @@ class JasmineAdapter {
 
         // @ts-ignore only way to hack timeout into jasmine
         jasmine.DEFAULT_TIMEOUT_INTERVAL = this._jasmineOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL
+        const origSpecStarted = this._reporter.specStarted.bind(this._reporter)
+        this._reporter.specStarted = (test: jasmine.SpecResult) => {
+            self._lastTest = test
+            // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
+            self._lastTest.start = new Date().getTime()
+            // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
+            self._lastTest.file = test.filename
+            globalThis._wdioDynamicJasmineResultErrorList = test.failedExpectations
+            globalThis._jasmineTestResult = test
+            return origSpecStarted(test)
+        }
+
         jasmineEnv.addReporter(this._reporter)
 
         /**
@@ -198,15 +210,17 @@ class JasmineAdapter {
             beforeAllMock.apply(this, args)
         }
         const executeMock = jasmine.Spec.prototype.execute
-        jasmine.Spec.prototype.execute = function (...args: unknown[]) {
-            self._lastTest = this.result
-            // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
-            self._lastTest.start = new Date().getTime()
-            // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
-            self._lastTest.file = this.result.filename
-            globalThis._wdioDynamicJasmineResultErrorList = this.result.failedExpectations
-            globalThis._jasmineTestResult = this.result
-            executeMock.apply(this, args)
+        if (typeof executeMock === 'function') {
+            jasmine.Spec.prototype.execute = function (...args: unknown[]) {
+                self._lastTest = this.result
+                // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
+                self._lastTest.start = new Date().getTime()
+                // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
+                self._lastTest.file = this.result.filename
+                globalThis._wdioDynamicJasmineResultErrorList = this.result.failedExpectations
+                globalThis._jasmineTestResult = this.result
+                executeMock.apply(this, args)
+            }
         }
 
         return this
