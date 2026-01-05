@@ -1,5 +1,5 @@
 import type { OptimizationOptions } from './types.js'
-import { isXPathSelector, isNativeContext } from './utils.js'
+import { isXPathSelector, isNativeContext, SINGLE_ELEMENT_COMMANDS, MULTIPLE_ELEMENT_COMMANDS } from './utils.js'
 import { optimizeSingleSelector, optimizeMultipleSelectors } from './optimizer.js'
 
 /**
@@ -18,23 +18,13 @@ export function overwriteUserCommands(
     }
 
     // Overwrite single element commands: $ and custom$
-    for (const commandName of ['$', 'custom$']) {
+    for (const commandName of SINGLE_ELEMENT_COMMANDS) {
         browserWithOverwrite.overwriteCommand(commandName, async (
             originalFunc: (selector: unknown) => Promise<WebdriverIO.Element>,
             selector: unknown
         ) => {
-            // Skip if we're already in the process of replacing (to avoid recursion)
-            if (options.isReplacingSelector.value) {
-                return originalFunc.call(browser, selector)
-            }
-
-            // Only process in native context
-            if (!isNativeContext(browser)) {
-                return originalFunc.call(browser, selector)
-            }
-
-            // Only process string selectors that are XPath
-            if (!isXPathSelector(selector)) {
+            // Skip if already replacing, not in native context, or not an XPath selector
+            if (options.isReplacingSelector.value || !isNativeContext(browser) || !isXPathSelector(selector)) {
                 return originalFunc.call(browser, selector)
             }
 
@@ -43,23 +33,13 @@ export function overwriteUserCommands(
     }
 
     // Overwrite multiple element commands: $$ and custom$$
-    for (const commandName of ['$$', 'custom$$']) {
+    for (const commandName of MULTIPLE_ELEMENT_COMMANDS) {
         browserWithOverwrite.overwriteCommand(commandName, async (
             originalFunc: (selector: unknown) => Promise<WebdriverIO.Element[]>,
             selector: unknown
         ) => {
-            // Skip if we're already in the process of replacing (to avoid recursion)
-            if (options.isReplacingSelector.value) {
-                return originalFunc.call(browser, selector)
-            }
-
-            // Only process in native context
-            if (!isNativeContext(browser)) {
-                return originalFunc.call(browser, selector)
-            }
-
-            // Only process string selectors that are XPath
-            if (!isXPathSelector(selector)) {
+            // Skip if already replacing, not in native context, or not an XPath selector
+            if (options.isReplacingSelector.value || !isNativeContext(browser) || !isXPathSelector(selector)) {
                 return originalFunc.call(browser, selector)
             }
 

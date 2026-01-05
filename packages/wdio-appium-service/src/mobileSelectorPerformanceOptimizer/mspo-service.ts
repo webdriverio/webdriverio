@@ -16,7 +16,8 @@ import {
     isNativeContext,
     isSilentLogLevel,
     isReporterRegistered,
-    determineReportDirectory
+    determineReportDirectory,
+    USER_COMMANDS
 } from './utils.js'
 import { getCurrentTestFile, getCurrentSuiteName, getCurrentTestName, getPerformanceData } from './mspo-store.js'
 import MobileSelectorPerformanceReporter from './mspo-reporter.js'
@@ -36,12 +37,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
     private _isReplacingSelectorRef: { value: boolean } = { value: false }
     private _commandTimings: Map<string, CommandTiming> = new Map()
     // User commands to track
-    private _userCommands = new Set([
-        '$',
-        '$$',
-        'custom$',
-        'custom$$'
-    ])
+    private _userCommands = new Set<string>(USER_COMMANDS)
     // Internal commands to not track
     private _internalCommands = new Set([
         'findElement',
