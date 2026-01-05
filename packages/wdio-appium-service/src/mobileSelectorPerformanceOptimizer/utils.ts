@@ -14,6 +14,11 @@ export const INDENT_LEVEL_3 = '    '
 export const INDENT_LEVEL_4 = '          '
 export const INDENT_LEVEL_5 = '        '
 
+// User commands that find elements
+export const SINGLE_ELEMENT_COMMANDS = ['$', 'custom$'] as const
+export const MULTIPLE_ELEMENT_COMMANDS = ['$$', 'custom$$'] as const
+export const USER_COMMANDS = [...SINGLE_ELEMENT_COMMANDS, ...MULTIPLE_ELEMENT_COMMANDS] as const
+
 // Report formatting constants
 export const REPORT_INDENT_SUMMARY = '   '
 export const REPORT_INDENT_FILE = '   '

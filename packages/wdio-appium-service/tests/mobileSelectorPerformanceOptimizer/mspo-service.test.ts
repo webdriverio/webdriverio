@@ -28,19 +28,23 @@ vi.mock('node:path', () => ({
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-vi.mock('../../src/mobileSelectorPerformanceOptimizer/utils.js', () => ({
-    extractSelectorFromArgs: vi.fn(),
-    formatSelectorForDisplay: vi.fn(),
-    getHighResTime: vi.fn(),
-    findOptimizedSelector: vi.fn(),
-    findMostRecentUnmatchedUserCommand: vi.fn(),
-    findMatchingInternalCommandTiming: vi.fn(),
-    storePerformanceData: vi.fn(),
-    isNativeContext: vi.fn(),
-    isSilentLogLevel: vi.fn().mockReturnValue(false),
-    isReporterRegistered: vi.fn().mockReturnValue(false),
-    determineReportDirectory: vi.fn().mockReturnValue('/test/report/dir')
-}))
+vi.mock('../../src/mobileSelectorPerformanceOptimizer/utils.js', async () => {
+    const actual = await vi.importActual('../../src/mobileSelectorPerformanceOptimizer/utils.js')
+    return {
+        ...actual,
+        extractSelectorFromArgs: vi.fn(),
+        formatSelectorForDisplay: vi.fn(),
+        getHighResTime: vi.fn(),
+        findOptimizedSelector: vi.fn(),
+        findMostRecentUnmatchedUserCommand: vi.fn(),
+        findMatchingInternalCommandTiming: vi.fn(),
+        storePerformanceData: vi.fn(),
+        isNativeContext: vi.fn(),
+        isSilentLogLevel: vi.fn().mockReturnValue(false),
+        isReporterRegistered: vi.fn().mockReturnValue(false),
+        determineReportDirectory: vi.fn().mockReturnValue('/test/report/dir')
+    }
+})
 
 vi.mock('../../src/mobileSelectorPerformanceOptimizer/mspo-store.js', () => ({
     getCurrentTestFile: vi.fn().mockReturnValue('test-file.ts'),
@@ -190,7 +194,7 @@ describe('SelectorPerformanceService', () => {
             expect(config.reporters).toBeDefined()
             expect(config.reporters!).toHaveLength(1)
             expect(config.reporters![0]).toHaveLength(2)
-            expect(config.reporters![0][1]).toEqual({ reportDirectory: service['_reportDirectory'] })
+            expect((config.reporters![0] as [string, any])[1]).toEqual({ reportDirectory: service['_reportDirectory'] })
         })
 
         test('should not register reporter when already registered', async () => {
