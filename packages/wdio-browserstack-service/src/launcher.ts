@@ -44,7 +44,8 @@ import {
     getBooleanValueFromString,
     validateCapsWithNonBstackA11y,
     mergeChromeOptions,
-    isValidEnabledValue
+    isValidEnabledValue,
+    isMultiRemoteCaps
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -118,7 +119,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config)
         BStackLogger.debug(`_options data: ${JSON.stringify(_options)}`)
         BStackLogger.debug(`webdriver capabilities data: ${JSON.stringify(capabilities)}`)
-        BStackLogger.debug(`_config data: ${JSON.stringify(_config)}`)
+        const configCopy = JSON.parse(JSON.stringify(_config))
+        CrashReporter.recursivelyRedactKeysFromObject(configCopy, ['user', 'key', 'accesskey', 'password'])
+        BStackLogger.debug(`_config data: ${JSON.stringify(configCopy)}`)
         if (Array.isArray(capabilities)) {
             capabilities
                 .flatMap((c) => {
@@ -304,7 +307,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         try {
-            if (CLIUtils.checkCLISupportedFrameworks(config.framework)) {
+            // Detect if multi-remote and disable CLI for those sessions
+            const isMultiremote = isMultiRemoteCaps(capabilities as Capabilities.TestrunnerCapabilities)
+            process.env.BROWSERSTACK_IS_MULTIREMOTE = String(isMultiremote)
+
+            if (CLIUtils.checkCLISupportedFrameworks(config.framework) && !isMultiremote) {
                 CLIUtils.setFrameworkDetail(WDIO_NAMING_PREFIX + config.framework, 'WebdriverIO')
                 const binconfig = CLIUtils.getBinConfig(config, capabilities, this._options, this._buildTag)
                 await BrowserstackCLI.getInstance().bootstrap(this._options, config, binconfig)

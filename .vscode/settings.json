@@ -50,4 +50,8 @@
     "webdriver",
     "webdriverio"
   ],
+
+  // Fix conflict between ESLint and Prettier.
+  "prettier.enable": false,
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint"
 }

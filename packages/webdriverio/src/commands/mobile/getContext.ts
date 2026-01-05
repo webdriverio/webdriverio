@@ -1,7 +1,6 @@
 import logger from '@wdio/logger'
 import type { Context, DetailedContext } from '@wdio/protocols'
-
-import type { AppiumDetailedCrossPlatformContexts } from '../../types.js'
+import type { AppiumDetailedCrossPlatformContexts, GetContextsOptions } from '../../types.js'
 
 const log = logger('webdriver')
 
@@ -99,10 +98,23 @@ const log = logger('webdriver')
     })
  * </example>
  *
+ * <example>
+ *    :wait.for.webview.test.js
+ *    it('should wait for webview to become available before retrieving context', async () => {
+ *        // For Android
+ *        await driver.getContext({
+ *            returnDetailedContext: true,
+ *            // Wait for webview to become available at the Appium level before WebdriverIO's retry logic
+ *            waitForWebviewMs: 3000,  // Wait 3 seconds for webview to become available
+ *        })
+ *    })
+ * </example>
+ *
  * @param {GetContextsOptions=} options                                     The `getContext` options (optional)
  * @param {boolean=}            options.returnDetailedContext               By default, we only return the context name based on the default Appium `context` API, which is only a string. If you want to get back detailed context information, set this to `true`. Default is `false` (optional).
  * @param {number=}             options.androidWebviewConnectionRetryTime   The time in milliseconds to wait between each retry to connect to the webview. Default is `500` ms (optional). <br /><strong>ANDROID-ONLY</strong>
  * @param {number=}             options.androidWebviewConnectTimeout        The maximum amount of time in milliseconds to wait for a web view page to be detected. Default is `5000` ms (optional). <br /><strong>ANDROID-ONLY</strong>
+ * @param {number=}             options.waitForWebviewMs                    The time in milliseconds to wait for webviews to become available before returning contexts. This parameter is passed directly to the Appium `mobile: getContexts` command. Default is `0` ms (optional). <br /><strong>ANDROID-ONLY</strong> <br />This is useful when you know that a webview is loading but needs additional time to become available. This option works at the Appium level, before WebdriverIO's retry logic (`androidWebviewConnectionRetryTime` and `androidWebviewConnectTimeout`) is applied.
  * @skipUsage
  */
 export async function getContext(
@@ -111,6 +123,7 @@ export async function getContext(
         returnDetailedContext?: boolean,
         androidWebviewConnectionRetryTime?: number,
         androidWebviewConnectTimeout?: number,
+        waitForWebviewMs?: number,
     }
 ): Promise<string | DetailedContext> {
     const browser = this
@@ -133,10 +146,10 @@ export async function getContext(
 async function getDetailedContext(
     browser: WebdriverIO.Browser,
     currentAppiumContext: string,
-    options?: { androidWebviewConnectionRetryTime?: number, androidWebviewConnectTimeout?: number },
+    options?: Pick<GetContextsOptions, 'androidWebviewConnectionRetryTime' | 'androidWebviewConnectTimeout' | 'waitForWebviewMs'>,
 ): Promise<string | DetailedContext> {
     const detailedContexts = await browser.getContexts({
-        ...{ options },
+        ...options,
         // Defaults
         returnDetailedContexts: true,           // We want to get back the detailed context information
         isAndroidWebviewVisible: true,          // We only want to get back the visible webviews

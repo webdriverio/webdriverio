@@ -710,6 +710,45 @@ describe('Appium launcher', () => {
             await launcher.onPrepare()
             expect(launcher['_startAppium']).toHaveBeenCalledTimes(1)
         })
+
+        test('should use custom appiumStartTimeout when provided', async () => {
+            const options = {
+                logPath: './',
+                command: 'test/path',
+                args: { address: 'bar' },
+                appiumStartTimeout: 60000
+            }
+            const capabilities = [{ 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            const startAppiumSpy = vi.spyOn(launcher as any, '_startAppium')
+
+            await launcher.onPrepare()
+
+            expect(startAppiumSpy).toHaveBeenCalledWith(
+                'test/path',
+                expect.any(Array),
+                60000
+            )
+        })
+
+        test('should use default timeout when appiumStartTimeout is not provided', async () => {
+            const options = {
+                logPath: './',
+                command: 'test/path',
+                args: { address: 'bar' }
+            }
+            const capabilities = [{ 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            const startAppiumSpy = vi.spyOn(launcher as any, '_startAppium')
+
+            await launcher.onPrepare()
+
+            expect(startAppiumSpy).toHaveBeenCalledWith(
+                'test/path',
+                expect.any(Array),
+                30000 // Default APPIUM_START_TIMEOUT
+            )
+        })
     })
 
     describe('onComplete', () => {
@@ -903,13 +942,18 @@ describe('Appium launcher', () => {
             const mockLogError = vi.spyOn(log, 'error')
             const launcher = new AppiumLauncher({}, [], {} as any)
 
-            launcher['_startAppium']('node', [], 2000)
+            const promise = launcher['_startAppium']('node', [], 2000)
 
             const errorHandler = stderrListener.on.mock.calls
                 .find((call: string[]) => call[0] === 'data')?.[1]
 
             errorHandler(Buffer.from('Debugger attached'))
             expect(mockLogError).not.toHaveBeenCalled()
+
+            const stdoutHandler = stdoutListener.on.mock.calls
+                .find((call: string[]) => call[0] === 'data')?.[1]
+            stdoutHandler(Buffer.from('Appium REST http interface listener started'))
+            await promise
         })
 
         test('should filter out "For help, see: ..." message as an error', async () => {
@@ -927,13 +971,18 @@ describe('Appium launcher', () => {
             const mockLogError = vi.spyOn(log, 'error')
             const launcher = new AppiumLauncher({}, [], {} as any)
 
-            launcher['_startAppium']('node', [], 2000)
+            const promise = launcher['_startAppium']('node', [], 2000)
 
             const errorHandler = stderrListener.on.mock.calls
                 .find((call: string[]) => call[0] === 'data')?.[1]
 
             errorHandler(Buffer.from('For help, see: https://nodejs.org/en/docs/inspector'))
             expect(mockLogError).not.toHaveBeenCalled()
+
+            const stdoutHandler = stdoutListener.on.mock.calls
+                .find((call: string[]) => call[0] === 'data')?.[1]
+            stdoutHandler(Buffer.from('Appium REST http interface listener started'))
+            await promise
         })
 
         test('should not fail when Appium outputs WARN messages to stderr', async () => {
@@ -952,7 +1001,7 @@ describe('Appium launcher', () => {
             const mockLogWarn = vi.spyOn(log, 'warn')
             const launcher = new AppiumLauncher({}, [], {} as any)
 
-            launcher['_startAppium']('node', [], 2000)
+            const promise = launcher['_startAppium']('node', [], 2000)
 
             // Get the stderr handler
             const stderrHandler = stderrListener.on.mock.calls
@@ -964,6 +1013,23 @@ describe('Appium launcher', () => {
             // The warning should be logged as a warning but not cause an error or rejection
             expect(mockLogWarn).toHaveBeenCalled()
             expect(mockLogError).not.toHaveBeenCalled()
+
+            const stdoutHandler = stdoutListener.on.mock.calls
+                .find((call: string[]) => call[0] === 'data')?.[1]
+            stdoutHandler(Buffer.from('Appium REST http interface listener started'))
+            await promise
+        })
+
+        test('should respect custom timeout from config', async () => {
+            const origSpawn = await vi.importActual<typeof cp>('node:child_process').then((m) => m.spawn)
+            vi.mocked(spawn).mockImplementationOnce(origSpawn)
+            const launcher = new AppiumLauncher({ appiumStartTimeout: 5000 }, [{ 'appium:deviceName': 'baz' }], {} as any)
+
+            await expect(launcher['_startAppium'](
+                'node',
+                ['-e', '(() => { setTimeout(() => { console.log(JSON.stringify({message: \'Appium REST http interface listener started\'})); }, 3000); })()'],
+                5000
+            )).resolves.toEqual(expect.objectContaining({ spawnargs: expect.arrayContaining(['-e', expect.any(String)]) }))
         })
     })
 

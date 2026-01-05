@@ -59,7 +59,7 @@ export function parseOverwrite<
         const statusCodeOverwrite = typeof overwrite.statusCode === 'function'
             ? overwrite.statusCode(request as local.NetworkResponseCompletedParameters)
             : overwrite.statusCode
-        ;(result as RespondWithOptions).statusCode = statusCodeOverwrite
+            ; (result as RespondWithOptions).statusCode = statusCodeOverwrite
     }
 
     if ('method' in overwrite) {
@@ -77,8 +77,9 @@ export function parseOverwrite<
     return result
 }
 
-export function getPatternParam (pattern: URLPattern, key: keyof Omit<remote.NetworkUrlPatternPattern, 'type'>) {
-    if (pattern[key] === '*') {
+export function getPatternParam(pattern: URLPattern, key: keyof Omit<remote.NetworkUrlPatternPattern, 'type'>) {
+    const value = pattern[key]
+    if (value === '*' || value.includes('*')) {
         return
     }
 
@@ -86,5 +87,5 @@ export function getPatternParam (pattern: URLPattern, key: keyof Omit<remote.Net
         return pattern.protocol === 'https' ? '443' : '80'
     }
 
-    return pattern[key].replaceAll('*', '\\*')
+    return value
 }

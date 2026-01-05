@@ -23,6 +23,97 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.23.0 (2026-01-03)
+
+#### :rocket: New Feature
+* `eslint-plugin-wdio`, `wdio-browserstack-service`, `wdio-globals`, `wdio-runner`, `webdriverio`
+  * [#14975](https://github.com/webdriverio/webdriverio/pull/14975) fix: Rename `multiremotebrowser` to `multiRemoteBrowser` to follow camelCasing Rules ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`
+  * [#14976](https://github.com/webdriverio/webdriverio/pull/14976) fix(wdio-jasmine-framework): restore hook data for Jasmine 5.10+ ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-utils`
+  * [#14977](https://github.com/webdriverio/webdriverio/pull/14977) fix(wdio-utils): rethrow pending/skip errors for Jasmine (#14688) ([@mccmrunal](https://github.com/mccmrunal))
+* `webdriverio`
+  * [#14979](https://github.com/webdriverio/webdriverio/pull/14979) fix(webdriverio): respect element index in waitForExist (#14418) ([@mccmrunal](https://github.com/mccmrunal))
+  * [#14957](https://github.com/webdriverio/webdriverio/pull/14957) fix(webdriverio): handle 'no such alert' error when dialog closes ([@mccmrunal](https://github.com/mccmrunal))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#14958](https://github.com/webdriverio/webdriverio/pull/14958) feat: enhance `getContext(s)|switchContext` ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :memo: Documentation
+* `wdio-utils`
+  * [#14978](https://github.com/webdriverio/webdriverio/pull/14978) docu: fix wdio/utils description ([@mauriciolauffer](https://github.com/mauriciolauffer))
+
+#### :house: Internal
+* `wdio-appium-service`
+  * [#14956](https://github.com/webdriverio/webdriverio/pull/14956) chore: UTs genering errors on main ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### Committers: 5
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Mauricio Lauffer ([@mauriciolauffer](https://github.com/mauriciolauffer))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
+## v9.22.0 (2025-12-24)
+
+#### :rocket: New Feature
+* `wdio-appium-service`
+  * [#14932](https://github.com/webdriverio/webdriverio/pull/14932) feat:add start appium inspector from the cli ([@wswebcreation](https://github.com/wswebcreation))
+  * [#14939](https://github.com/webdriverio/webdriverio/pull/14939) Adding ability to pass in custom timeout for appium start  ([@samuelfreiberg](https://github.com/samuelfreiberg))
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#14918](https://github.com/webdriverio/webdriverio/pull/14918) fix(wdio-utils): propagate framework timeouts to shim to avoid premat… ([@mccmrunal](https://github.com/mccmrunal))
+  * [#14896](https://github.com/webdriverio/webdriverio/pull/14896) fix: add unique user-data-dir for Chrome workers on Windows (#14729) ([@mccmrunal](https://github.com/mccmrunal))
+* `webdriverio`
+  * [#14901](https://github.com/webdriverio/webdriverio/pull/14901) fix(attach): flatten options to top-level for waitFor commands (#14715) ([@mccmrunal](https://github.com/mccmrunal))
+  * [#14909](https://github.com/webdriverio/webdriverio/pull/14909) fix: use type-specific action IDs to comply with W3C WebDriver spec (… ([@mccmrunal](https://github.com/mccmrunal))
+  * [#14910](https://github.com/webdriverio/webdriverio/pull/14910) Fix isElementDisplayed and isElementClickable on Perfecto Mobile Devices ([@nheiser](https://github.com/nheiser))
+  * [#14933](https://github.com/webdriverio/webdriverio/pull/14933) fix: handle multiple webviews with same package when first is empty (… ([@mccmrunal](https://github.com/mccmrunal))
+  * [#14937](https://github.com/webdriverio/webdriverio/pull/14937) Fix/ getCSSProperty implicit wait on stale element ([@ivanovicu](https://github.com/ivanovicu))
+  * [#14944](https://github.com/webdriverio/webdriverio/pull/14944) fix(webdriverio): fix wildcard support in browser.mock ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-allure-reporter`
+  * [#14907](https://github.com/webdriverio/webdriverio/pull/14907) fix(@wdio/allure-reporter): include cid in historyId for multi-capabi… ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-cli`
+  * [#14904](https://github.com/webdriverio/webdriverio/pull/14904) fixes double config file loading issue and tsx file timing load issue ([@mccmrunal](https://github.com/mccmrunal))
+  * [#14917](https://github.com/webdriverio/webdriverio/pull/14917) fix(cli): correct isParallelMultiremote check for empty capabilities ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-browserstack-service`
+  * [#14923](https://github.com/webdriverio/webdriverio/pull/14923) fix(wdio-browserstack-service): resolve BiDi syntax error (#14922) ([@mccmrunal](https://github.com/mccmrunal))
+  * [#14950](https://github.com/webdriverio/webdriverio/pull/14950) Fix/browserstack cli file contention 14943 ([@mccmrunal](https://github.com/mccmrunal))
+  * [#14931](https://github.com/webdriverio/webdriverio/pull/14931) fix: Logs leaking creds ([@Tanmay-Bstack](https://github.com/Tanmay-Bstack))
+* `wdio-appium-service`
+  * [#14952](https://github.com/webdriverio/webdriverio/pull/14952) fixed test cases for PR #14932 ([@mccmrunal](https://github.com/mccmrunal))
+
+#### :nail_care: Polish
+* `wdio-appium-service`
+  * [#14932](https://github.com/webdriverio/webdriverio/pull/14932) feat:add start appium inspector from the cli ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :memo: Documentation
+* [#14938](https://github.com/webdriverio/webdriverio/pull/14938) docs: add TestPlanIt Reporter to 3rd-party reporters list ([@therealbrad](https://github.com/therealbrad))
+* [#14916](https://github.com/webdriverio/webdriverio/pull/14916) Add smartUI doc ([@harsha509](https://github.com/harsha509))
+
+#### :house: Internal
+* Other
+  * [#14925](https://github.com/webdriverio/webdriverio/pull/14925) chore: update GitHub Actions macOS runner from 13 to 15 ([@mccmrunal](https://github.com/mccmrunal))
+* `webdriverio`
+  * [#14900](https://github.com/webdriverio/webdriverio/pull/14900) added mocking for fs/promises ([@mccmrunal](https://github.com/mccmrunal))
+
+#### Committers: 9
+- Brad DerManouelian ([@therealbrad](https://github.com/therealbrad))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Samuel Freiberg ([@samuelfreiberg](https://github.com/samuelfreiberg))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- Uros Ivanovic ([@ivanovicu](https://github.com/ivanovicu))
+- Vishnu Vardhan ([@vishnuv688](https://github.com/vishnuv688))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@Tanmay-Bstack](https://github.com/Tanmay-Bstack)
+- [@nheiser](https://github.com/nheiser)
+
+
 ## v9.21.0 (2025-11-29)
 
 #### :rocket: New Feature

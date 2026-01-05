@@ -89,7 +89,13 @@ export default class CrashReporter {
         })
 
         if (response.ok) {
-            BStackLogger.debug(`[Crash_Report_Upload] Success response: ${JSON.stringify(await response.json())}`)
+            let body = await response.text()
+            try {
+                body = JSON.stringify(JSON.parse(body))
+            } catch {
+                // Response is not JSON, use text as-is
+            }
+            BStackLogger.debug(`[Crash_Report_Upload] Success response: ${body}`)
         } else {
             BStackLogger.error(`[Crash_Report_Upload] Failed due to ${response.body}`)
         }
