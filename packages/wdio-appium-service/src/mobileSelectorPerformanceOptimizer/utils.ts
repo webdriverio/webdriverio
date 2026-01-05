@@ -5,6 +5,7 @@ import type { XPathConversionResult } from './xpath-utils.js'
 import { convertXPathToOptimizedSelector } from './xpath-utils.js'
 import type { TestContext, CommandTiming, SelectorPerformanceData } from './types.js'
 import type { AppiumServiceConfig } from '../types.js'
+import { addPerformanceData } from './mspo-store.js'
 
 export const LOG_PREFIX = 'Mobile Selector Performance'
 export const INDENT_LEVEL_1 = '  '
@@ -679,7 +680,6 @@ export function findMatchingInternalCommandTiming(
  * Stores performance data for a selector operation
  */
 export function storePerformanceData(
-    dataStore: SelectorPerformanceData[],
     timing: CommandTiming,
     duration: number,
     testContext: TestContext
@@ -695,7 +695,7 @@ export function storePerformanceData(
         timestamp: Date.now()
     }
 
-    dataStore.push(data)
+    addPerformanceData(data)
 }
 
 /**

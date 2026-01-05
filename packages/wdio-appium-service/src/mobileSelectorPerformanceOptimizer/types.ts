@@ -46,7 +46,6 @@ export interface TestContext {
 export interface OptimizationOptions {
     usePageSource: boolean
     browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-    dataStore: SelectorPerformanceData[]
     isReplacingSelector: { value: boolean }
     isSilentLogLevel?: boolean
 }

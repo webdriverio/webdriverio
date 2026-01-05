@@ -11,7 +11,7 @@ import {
     INDENT_LEVEL_2,
     LOG_PREFIX
 } from './utils.js'
-import { getCurrentTestFile, getCurrentSuiteName, getCurrentTestName } from './mspo-store.js'
+import { getCurrentTestFile, getCurrentSuiteName, getCurrentTestName, addPerformanceData } from './mspo-store.js'
 
 /**
  * Main optimization flow for a single element selector
@@ -106,7 +106,7 @@ export async function optimizeSingleSelector(
         optimizedSelector,
         testResult.duration
     )
-    options.dataStore.push(optimizedData)
+    addPerformanceData(optimizedData)
 
     if (!isSilent) {
         logOptimizationConclusion(timeDifference, improvementPercent, selector, optimizedSelector)
@@ -214,7 +214,7 @@ export async function optimizeMultipleSelectors(
         optimizedSelector,
         testResult.duration
     )
-    options.dataStore.push(optimizedData)
+    addPerformanceData(optimizedData)
 
     if (!isSilent) {
         logOptimizationConclusion(timeDifference, improvementPercent, selector, optimizedSelector)
