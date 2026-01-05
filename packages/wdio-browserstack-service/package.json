@@ -50,6 +50,7 @@
     "formdata-node": "5.0.1",
     "git-repo-info": "^2.1.1",
     "gitconfiglocal": "^2.1.0",
+    "glob": "^11.0.0",
     "tar": "^6.1.15",
     "undici": "^6.21.3",
     "uuid": "^11.1.0",
