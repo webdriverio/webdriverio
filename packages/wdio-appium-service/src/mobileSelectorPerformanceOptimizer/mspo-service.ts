@@ -62,9 +62,9 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
                 )
             }
             this._enabled = trackConfig.enabled === true
-            this._usePageSource = trackConfig.usePageSource === true
-            this._replaceWithOptimized = trackConfig.replaceWithOptimizedSelector === true
-            this._enableReporter = trackConfig.enableReporter === true
+            this._usePageSource = trackConfig.usePageSource !== undefined ? trackConfig.usePageSource === true : true
+            this._replaceWithOptimized = trackConfig.replaceWithOptimizedSelector !== undefined ? trackConfig.replaceWithOptimizedSelector === true : true
+            this._enableReporter = trackConfig.enableReporter !== undefined ? trackConfig.enableReporter === true : true
 
             if (this._enabled) {
                 this._reportDirectory = determineReportDirectory(
