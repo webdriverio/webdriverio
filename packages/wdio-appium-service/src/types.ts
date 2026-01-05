@@ -145,6 +145,51 @@ export interface AppiumServiceConfig {
      * @default 30000
      */
     appiumStartTimeout?: number
+
+    /**
+     * Enable selector performance tracking to measure element finding times.
+     * When enabled, tracks all element-finding commands and stores timing data in JSON format.
+     * @default false
+     */
+    trackSelectorPerformance?: boolean | {
+        /**
+         * Enable selector performance tracking
+         * @default false
+         */
+        enabled?: boolean
+        /**
+         * Use page source analysis for more accurate selector suggestions.
+         * When enabled, analyzes the actual element from page source to find optimal selectors.
+         * This provides better suggestions but has performance overhead.
+         * @default true
+         */
+        usePageSource?: boolean
+        /**
+         * Replace XPath selectors with optimized alternatives automatically.
+         * When enabled, tests optimized selectors and uses them if they work, falling back to original if not.
+         * This adds overhead as it requires testing the optimized selector, but provides real performance improvements.
+         * @default true
+         */
+        replaceWithOptimizedSelector?: boolean
+        /**
+         * Enable the MobileSelectorPerformanceReporter to automatically collect test context information.
+         * This reporter is required for accurate test file, suite name, and test name tracking.
+         * @default true
+         */
+        enableReporter?: boolean
+        /**
+         * Path where the JSON report file should be saved.
+         * If not provided, falls back to config.outputDir, then appium service logPath.
+         * If none are set, an error will be thrown.
+         */
+        reportPath?: string
+        /**
+         * Maximum line length for terminal report output.
+         * Lines longer than this will be wrapped at word boundaries.
+         * @default 100
+         */
+        maxLineLength?: number
+    }
 }
 
 export type ArgValue = string | number | boolean | null | object
