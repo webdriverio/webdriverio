@@ -161,20 +161,20 @@ export interface AppiumServiceConfig {
          * Use page source analysis for more accurate selector suggestions.
          * When enabled, analyzes the actual element from page source to find optimal selectors.
          * This provides better suggestions but has performance overhead.
-         * @default false
+         * @default true
          */
         usePageSource?: boolean
         /**
          * Replace XPath selectors with optimized alternatives automatically.
          * When enabled, tests optimized selectors and uses them if they work, falling back to original if not.
          * This adds overhead as it requires testing the optimized selector, but provides real performance improvements.
-         * @default false
+         * @default true
          */
         replaceWithOptimizedSelector?: boolean
         /**
          * Enable the MobileSelectorPerformanceReporter to automatically collect test context information.
          * This reporter is required for accurate test file, suite name, and test name tracking.
-         * @default false
+         * @default true
          */
         enableReporter?: boolean
         /**

@@ -1,9 +1,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { SevereServiceError } from 'webdriverio'
+import logger from '@wdio/logger'
 import type { Services, Options, Reporters } from '@wdio/types'
 import type { AppiumServiceConfig } from '../types.js'
-import type { SelectorPerformanceData, CommandTiming } from './types.js'
+import type { CommandTiming } from './types.js'
 import {
     extractSelectorFromArgs,
     formatSelectorForDisplay,
@@ -17,21 +18,22 @@ import {
     isReporterRegistered,
     determineReportDirectory
 } from './utils.js'
-import { getCurrentTestFile, getCurrentSuiteName, getCurrentTestName } from './mspo-store.js'
+import { getCurrentTestFile, getCurrentSuiteName, getCurrentTestName, getPerformanceData } from './mspo-store.js'
 import MobileSelectorPerformanceReporter from './mspo-reporter.js'
 import { overwriteUserCommands } from './overwrite.js'
+
+const log = logger('@wdio/appium-service')
 
 export default class SelectorPerformanceService implements Services.ServiceInstance {
     // Service configuration
     private _enabled: boolean = false
-    private _usePageSource: boolean = false
-    private _replaceWithOptimized: boolean = false
-    private _enableReporter: boolean = false
+    private _usePageSource: boolean = true
+    private _replaceWithOptimized: boolean = true
+    private _enableReporter: boolean = true
     private _reportDirectory?: string
     // Some internal consts
     private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     private _isReplacingSelectorRef: { value: boolean } = { value: false }
-    private _data: SelectorPerformanceData[] = []
     private _commandTimings: Map<string, CommandTiming> = new Map()
     // User commands to track
     private _userCommands = new Set([
@@ -104,12 +106,26 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
     ) {
         this._browser = browser
 
+        if (this._enabled) {
+            log.info('🧪 Mobile Selector Performance Optimizer (BETA)')
+            log.info('   → All feedback is welcome!')
+            log.info('   → Currently optimized for iOS (shows the most significant performance and stability gains)')
+
+            if (this._browser.isAndroid) {
+                log.info('⚠️  Mobile Selector Performance Optimizer is disabled for Android')
+                log.info('   → Android support coming in a future release')
+                this._enabled = false
+                return
+            }
+
+            log.info('✅ Mobile Selector Performance Optimizer enabled for iOS')
+        }
+
         // Overwrite all user commands to replace XPath with optimized selectors if enabled
         if (this._enabled && this._replaceWithOptimized) {
             overwriteUserCommands(browser, {
                 usePageSource: this._usePageSource,
                 browser: this._browser,
-                dataStore: this._data,
                 isReplacingSelector: this._isReplacingSelectorRef,
                 isSilentLogLevel: isSilentLogLevel(this._config)
             })
@@ -122,6 +138,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
         }
 
         if (!isNativeContext(this._browser)) {
+            log.info('⚠️  Mobile Selector Performance Optimizer is disabled for non-native context')
             return
         }
 
@@ -185,6 +202,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
         }
 
         if (!isNativeContext(this._browser)) {
+            log.info('⚠️  Mobile Selector Performance Optimizer is disabled for non-native context')
             return
         }
 
@@ -223,7 +241,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
                 testName: getCurrentTestName() || 'unknown'
             }
 
-            storePerformanceData(this._data, timing, duration, testContext)
+            storePerformanceData(timing, duration, testContext)
 
             if (!this._replaceWithOptimized) {
                 console.log(`[Selector Performance] ${timing.commandName}('${formattedSelector}') took ${duration.toFixed(2)}ms`)
@@ -255,14 +273,21 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             return
         }
 
-        const workersDataDir = path.join(process.cwd(), 'logs', 'selector-performance')
+        if (!this._reportDirectory) {
+            log.warn('Report directory not set, cannot write worker selector performance data')
+            return
+        }
+
+        const workersDataDir = path.join(this._reportDirectory, 'selector-performance-worker-data')
         const workerDataPath = path.join(workersDataDir, `worker-data-${process.pid}.json`)
 
         try {
+            const performanceData = getPerformanceData()
             fs.mkdirSync(workersDataDir, { recursive: true })
-            fs.writeFileSync(workerDataPath, JSON.stringify(this._data, null, 2))
+            fs.writeFileSync(workerDataPath, JSON.stringify(performanceData, null, 2))
+            log.debug(`Worker selector performance data written to: ${workerDataPath} (${performanceData.length} entries)`)
         } catch (err) {
-            console.error('Failed to write worker selector performance data:', err)
+            log.error('Failed to write worker selector performance data:', err)
         }
     }
 }
