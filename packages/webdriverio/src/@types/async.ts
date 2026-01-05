@@ -18,7 +18,11 @@ declare global {
 
     namespace NodeJS {
         interface Global {
+            /**
+             * @deprecated use `multiRemoteBrowser` instead
+             */
             multiremotebrowser: WebdriverIO.MultiRemoteBrowser
+            multiRemoteBrowser: WebdriverIO.MultiRemoteBrowser
             browser: WebdriverIO.Browser
             driver: WebdriverIO.Browser
         }
@@ -28,7 +32,11 @@ declare global {
     function $$(...args: Parameters<WebdriverIO.Browser['$$']>): ReturnType<WebdriverIO.Browser['$$']>
     const browser: WebdriverIO.Browser
     const driver: WebdriverIO.Browser
+    /**
+     * @deprecated use `multiRemoteBrowser` instead
+     */
     const multiremotebrowser: WebdriverIO.MultiRemoteBrowser
+    const multiRemoteBrowser: WebdriverIO.MultiRemoteBrowser
 
     /**
     * custom environment primitives for WebdriverIO when running in a browser implemented

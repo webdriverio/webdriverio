@@ -252,6 +252,38 @@ test('get data from execute hook', async () => {
     expect(adapter['_jrunner']!.executeHook).toBeCalledWith('barfoo')
 })
 
+test('should populate last test data even if jasmine Spec.prototype.execute is undefined', async () => {
+    const adapter = adapterFactory()
+    // simulate Jasmine 5.10+ where this private API is no longer available
+    adapter['_jrunner']!.jasmine.Spec.prototype.execute = undefined as any
+
+    await adapter.init()
+    await adapter.run()
+
+    expect(adapter['_lastTest']).toBeUndefined()
+
+    adapter['_reporter'].specStarted({
+        id: 'test1',
+        description: 'test',
+        fullName: 'test',
+        failedExpectations: [],
+        passedExpectations: [],
+        deprecationWarnings: [],
+        pendingReason: '',
+        duration: null,
+        properties: null,
+        debugLogs: null,
+        status: 'passed',
+        filename: '/foo/bar.test.js'
+    } as any)
+
+    expect(adapter['_lastTest']).toBeDefined()
+    // @ts-ignore outdated types
+    expect(adapter['_lastTest'].id).toBe('test1')
+    // @ts-ignore outdated types
+    expect(typeof adapter['_lastTest'].start).toBe('number')
+})
+
 test('customSpecFilter', () => {
     const specMock = {
         getFullName: () => 'my test @smoke',

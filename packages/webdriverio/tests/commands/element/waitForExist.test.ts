@@ -59,4 +59,24 @@ describe('waitForExists', () => {
         expect(shadowElem.elementId).toBe('some-shadow-sub-elem-321')
         expect(isExistingSpy).toHaveBeenCalledTimes(1)
     })
+
+    it('should not swap elementId for indexed elements returned from $$', async () => {
+        const elems = await browser.$$('iframe')
+        const elem = elems[1]
+
+        vi.spyOn(elem, 'isExisting').mockResolvedValue(true)
+        vi.spyOn(elem, 'waitUntil').mockImplementation(async (cond) => cond())
+
+        const $$Spy = vi.spyOn(browser, '$$')
+        const $Spy = vi.spyOn(browser, '$')
+
+        expect(elem.index).toBe(1)
+        expect(elem.elementId).toBe('some-elem-456')
+
+        await elem.waitForExist({ timeout })
+
+        expect(elem.elementId).toBe('some-elem-456')
+        expect($$Spy).toHaveBeenCalledWith('iframe')
+        expect($Spy).not.toHaveBeenCalled()
+    })
 })
