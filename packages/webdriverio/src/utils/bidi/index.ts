@@ -189,7 +189,14 @@ function deserializeValue(result: remote.ScriptLocalValue & { value?: unknown })
         }))
     }
     if (type === RemoteType.Node) {
-        return { [ELEMENT_KEY]: (result as { sharedId: string }).sharedId }
+        const remoteNode = result as unknown as remote.ScriptNodeRemoteValue
+        return {
+            ...remoteNode,
+            /**
+             * add an element key to the node so WebdriverIO can identify the element
+             */
+            [ELEMENT_KEY]: (result as { sharedId: string }).sharedId
+        }
     }
     if (type === RemoteType.Error) {
         return new Error('<unserializable error>')
