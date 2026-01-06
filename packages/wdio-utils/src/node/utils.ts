@@ -340,6 +340,188 @@ export function setupEdgedriver (cacheDir: string, driverVersion?: string) {
     return downloadEdgedriver(driverVersion, cacheDir)
 }
 
+/**
+ * Platform mapping from Node.js platform/arch to Electron naming convention
+ */
+const ELECTRON_PLATFORM_MAP: Record<string, Record<string, string>> = {
+    linux: {
+        x64: 'linux-x64',
+        arm64: 'linux-arm64',
+        arm: 'linux-armv7l'
+    },
+    darwin: {
+        x64: 'darwin-x64',
+        arm64: 'darwin-arm64'
+    },
+    win32: {
+        x64: 'win32-x64',
+        ia32: 'win32-ia32',
+        arm64: 'win32-arm64'
+    }
+}
+
+/**
+ * Get the Electron platform identifier for the current system
+ */
+export function getElectronPlatform(): string {
+    const platform = os.platform()
+    const arch = os.arch()
+
+    const platformMap = ELECTRON_PLATFORM_MAP[platform]
+    if (!platformMap) {
+        throw new Error(`Unsupported platform for Electron ChromeDriver: ${platform}`)
+    }
+
+    const electronPlatform = platformMap[arch]
+    if (!electronPlatform) {
+        throw new Error(`Unsupported architecture for Electron ChromeDriver: ${platform}-${arch}`)
+    }
+
+    return electronPlatform
+}
+
+/**
+ * Download a file from URL to destination, handling redirects
+ */
+async function downloadFileFromUrl(url: string, destPath: string): Promise<void> {
+    const https = await import('node:https')
+    const http = await import('node:http')
+
+    return new Promise((resolve, reject) => {
+        const makeRequest = (currentUrl: string, redirectCount = 0) => {
+            if (redirectCount > 10) {
+                reject(new Error('Too many redirects while downloading Electron ChromeDriver'))
+                return
+            }
+            const protocol = currentUrl.startsWith('https') ? https : http
+
+            protocol.get(currentUrl, (response) => {
+                // Handle redirects (GitHub releases redirect to CDN)
+                if (response.statusCode === 302 || response.statusCode === 301) {
+                    const redirectUrl = response.headers.location
+                    if (redirectUrl) {
+                        makeRequest(redirectUrl, redirectCount + 1)
+                        return
+                    }
+                }
+
+                if (response.statusCode !== 200) {
+                    reject(new Error(`Failed to download Electron ChromeDriver: HTTP ${response.statusCode} from ${currentUrl}`))
+                    return
+                }
+
+                const totalBytes = parseInt(response.headers['content-length'] || '0', 10)
+                let downloadedBytes = 0
+
+                const file = fs.createWriteStream(destPath)
+
+                response.on('data', (chunk: Buffer) => {
+                    downloadedBytes += chunk.length
+                    downloadProgressCallback('Electron ChromeDriver', downloadedBytes, totalBytes)
+                })
+
+                response.pipe(file)
+
+                file.on('finish', () => {
+                    file.close()
+                    log.progress('')
+                    resolve()
+                })
+
+                file.on('error', (err) => {
+                    fs.unlink(destPath, () => {})
+                    reject(err)
+                })
+            }).on('error', (err) => {
+                reject(new Error(`Failed to download Electron ChromeDriver: ${err.message}`))
+            })
+        }
+
+        makeRequest(url)
+    })
+}
+
+/**
+ * Download and setup ChromeDriver from Electron GitHub releases.
+ * This enables E2E testing on platforms not supported by Chrome for Testing,
+ * such as linux-arm64.
+ *
+ * @param cacheDir - Directory to cache downloaded drivers
+ * @param electronVersion - Electron version (e.g., '37.6.0' or 'v37.6.0')
+ * @returns Object containing the path to the ChromeDriver executable
+ */
+export async function setupElectronChromedriver(
+    cacheDir: string,
+    electronVersion: string
+): Promise<{ executablePath: string }> {
+    // Normalize version (remove 'v' prefix if present)
+    const version = electronVersion.replace(/^v/, '')
+    const electronPlatform = getElectronPlatform()
+
+    // Construct paths
+    const chromedriverZipName = `chromedriver-v${version}-${electronPlatform}.zip`
+    const downloadUrl = `https://github.com/electron/electron/releases/download/v${version}/${chromedriverZipName}`
+
+    const electronCacheDir = path.join(cacheDir, 'electron-chromedriver', version, electronPlatform)
+    const executableName = os.platform() === 'win32' ? 'chromedriver.exe' : 'chromedriver'
+    const executablePath = path.join(electronCacheDir, executableName)
+
+    // Check if already cached
+    const hasCachedDriver = await fsp.access(executablePath).then(() => true, () => false)
+    if (hasCachedDriver) {
+        log.info(`Using Electron ChromeDriver v${version} from cache: ${electronCacheDir}`)
+        return { executablePath }
+    }
+
+    // Create cache directory
+    await fsp.mkdir(electronCacheDir, { recursive: true })
+
+    // Download
+    log.info(`Downloading Electron ChromeDriver v${version} for ${electronPlatform}`)
+    const zipPath = path.join(electronCacheDir, chromedriverZipName)
+
+    try {
+        await downloadFileFromUrl(downloadUrl, zipPath)
+    } catch (err) {
+        // Clean up partial download
+        await fsp.unlink(zipPath).catch(() => {})
+        throw new Error(
+            `Failed to download ChromeDriver for Electron v${version} from ${downloadUrl}. ` +
+            'Please verify the Electron version exists and has ChromeDriver builds available. ' +
+            `Original error: ${(err as Error).message}`
+        )
+    }
+
+    // Extract using extract-zip
+    log.info(`Extracting ChromeDriver to ${electronCacheDir}`)
+    try {
+        const { default: extract } = await import('extract-zip')
+        await extract(zipPath, { dir: electronCacheDir })
+    } catch (err) {
+        throw new Error(`Failed to extract Electron ChromeDriver: ${(err as Error).message}`)
+    }
+
+    // Cleanup zip
+    await fsp.unlink(zipPath).catch(() => {})
+
+    // Make executable on Unix
+    if (os.platform() !== 'win32') {
+        await fsp.chmod(executablePath, 0o755)
+    }
+
+    // Verify the executable exists after extraction
+    const driverExists = await fsp.access(executablePath).then(() => true, () => false)
+    if (!driverExists) {
+        throw new Error(
+            `ChromeDriver executable not found at expected path: ${executablePath}. ` +
+            'The archive structure may have changed.'
+        )
+    }
+
+    log.info(`Electron ChromeDriver v${version} ready at ${executablePath}`)
+    return { executablePath }
+}
+
 export function generateDefaultPrefs(caps: WebdriverIO.Capabilities) {
     return caps['goog:chromeOptions']?.debuggerAddress
         ? {}

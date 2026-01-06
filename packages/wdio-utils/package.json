@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@puppeteer/browsers": "^2.2.0",
+    "extract-zip": "^2.0.1",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "decamelize": "^6.0.0",
