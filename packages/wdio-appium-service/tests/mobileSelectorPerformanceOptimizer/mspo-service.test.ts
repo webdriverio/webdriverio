@@ -9,6 +9,7 @@ import SelectorPerformanceService from '../../src/mobileSelectorPerformanceOptim
 import * as utils from '../../src/mobileSelectorPerformanceOptimizer/utils.js'
 import * as store from '../../src/mobileSelectorPerformanceOptimizer/mspo-store.js'
 import * as overwrite from '../../src/mobileSelectorPerformanceOptimizer/overwrite.js'
+import type { AppiumServiceConfig } from '../../src/types.js'
 
 const log = logger('@wdio/appium-service')
 
@@ -426,8 +427,207 @@ describe('SelectorPerformanceService', () => {
     })
 
     describe('beforeCommand', () => {
-        test.skip('should be tested separately', () => {
-            // Skipped as requested
+        let options: AppiumServiceConfig
+        let xpath: string
+        let formattedSelector: string
+
+        beforeEach(() => {
+            options = {
+                trackSelectorPerformance: {
+                    enabled: true
+                }
+            }
+            xpath = '//xpath'
+            formattedSelector = 'formatted selector'
+            vi.mocked(utils.isNativeContext).mockReturnValue(true)
+        })
+
+        test('should do nothing when service is disabled', async () => {
+            const service = new SelectorPerformanceService({}, mockConfig)
+            await service.beforeCommand('$', ['//xpath'])
+
+            expect(vi.mocked(utils.extractSelectorFromArgs)).not.toHaveBeenCalled()
+            expect(service['_commandTimings'].size).toBe(0)
+        })
+
+        test('should log warning and return when not in native context', async () => {
+            vi.mocked(utils.isNativeContext).mockReturnValue(false)
+
+            const options = {
+                trackSelectorPerformance: {
+                    enabled: true
+                }
+            }
+            const service = new SelectorPerformanceService(options, mockConfig)
+            await service.before({} as never, [] as never, mockBrowser)
+            await service.beforeCommand('$', ['//xpath'])
+
+            expect(log.info).toHaveBeenCalledWith('⚠️  Mobile Selector Performance Optimizer is disabled for non-native context')
+            expect(vi.mocked(utils.extractSelectorFromArgs)).not.toHaveBeenCalled()
+        })
+
+        describe('user commands', () => {
+            test('should track user command with valid selector', async () => {
+                vi.mocked(utils.extractSelectorFromArgs).mockReturnValue(xpath)
+                vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
+                vi.mocked(utils.getHighResTime).mockReturnValue(100)
+
+                const service = new SelectorPerformanceService(options, mockConfig)
+                await service.before({} as never, [] as never, mockBrowser)
+                await service.beforeCommand('$', [xpath])
+
+                expect(vi.mocked(utils.extractSelectorFromArgs)).toHaveBeenCalledWith([xpath])
+                expect(vi.mocked(utils.formatSelectorForDisplay)).toHaveBeenCalledWith(xpath)
+                expect(service['_commandTimings'].size).toBe(1)
+                const timing = Array.from(service['_commandTimings'].values())[0]
+                expect(timing.commandName).toBe('$')
+                expect(timing.selector).toBe(xpath)
+                expect(timing.formattedSelector).toBe(formattedSelector)
+                expect(timing.isUserCommand).toBe(true)
+            })
+
+            test('should not track when selector is not extracted', async () => {
+                vi.mocked(utils.extractSelectorFromArgs).mockReturnValue(null)
+
+                const service = new SelectorPerformanceService(options, mockConfig)
+                await service.before({} as never, [] as never, mockBrowser)
+                await service.beforeCommand('$', [])
+
+                expect(service['_commandTimings'].size).toBe(0)
+            })
+
+            test('should not track when selector is not a string', async () => {
+                vi.mocked(utils.extractSelectorFromArgs).mockReturnValue(123 as any)
+
+                const service = new SelectorPerformanceService(options, mockConfig)
+                await service.before({} as never, [] as never, mockBrowser)
+                await service.beforeCommand('$', [123])
+
+                expect(service['_commandTimings'].size).toBe(0)
+            })
+
+            test('should track all user commands', async () => {
+                vi.mocked(utils.extractSelectorFromArgs).mockReturnValue(xpath)
+                vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
+                vi.mocked(utils.getHighResTime).mockReturnValue(100)
+
+                const service = new SelectorPerformanceService(options, mockConfig)
+                await service.before({} as never, [] as never, mockBrowser)
+
+                await service.beforeCommand('$', [xpath])
+                await service.beforeCommand('$$', [xpath])
+                await service.beforeCommand('custom$', [xpath])
+                await service.beforeCommand('custom$$', [xpath])
+
+                expect(service['_commandTimings'].size).toBe(4)
+            })
+
+            test('should not track non-user commands', async () => {
+                const service = new SelectorPerformanceService(options, mockConfig)
+                await service.before({} as never, [] as never, mockBrowser)
+                await service.beforeCommand('click', ['//xpath'])
+
+                expect(vi.mocked(utils.extractSelectorFromArgs)).not.toHaveBeenCalled()
+                expect(service['_commandTimings'].size).toBe(0)
+            })
+        })
+
+        describe('internal commands', () => {
+            test('should return early when args length is less than 2', async () => {
+                const service = new SelectorPerformanceService(options, mockConfig)
+                await service.before({} as never, [] as never, mockBrowser)
+                await service.beforeCommand('findElement', ['xpath'])
+
+                expect(vi.mocked(utils.formatSelectorForDisplay)).not.toHaveBeenCalled()
+            })
+
+            test('should return early when not xpath selector', async () => {
+                const service = new SelectorPerformanceService(options, mockConfig)
+                await service.before({} as never, [] as never, mockBrowser)
+                await service.beforeCommand('findElement', ['accessibility id', 'button'])
+
+                expect(vi.mocked(utils.formatSelectorForDisplay)).not.toHaveBeenCalled()
+                expect(vi.mocked(utils.findMostRecentUnmatchedUserCommand)).not.toHaveBeenCalled()
+            })
+
+            test('should return early when value is not a string', async () => {
+                const service = new SelectorPerformanceService(options, mockConfig)
+                await service.before({} as never, [] as never, mockBrowser)
+                await service.beforeCommand('findElement', ['xpath', 123])
+
+                expect(vi.mocked(utils.formatSelectorForDisplay)).not.toHaveBeenCalled()
+            })
+
+            test('should create timing entry when matching user command found', async () => {
+                vi.mocked(utils.extractSelectorFromArgs).mockReturnValue(xpath)
+                vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
+                vi.mocked(utils.getHighResTime).mockReturnValue(100)
+                vi.mocked(utils.findMostRecentUnmatchedUserCommand).mockReturnValue([
+                    'timing-id',
+                    {
+                        commandName: '$',
+                        selector: xpath,
+                        formattedSelector,
+                        startTime: 50,
+                        timingId: 'timing-id',
+                        isUserCommand: true
+                    }
+                ])
+
+                const service = new SelectorPerformanceService(options, mockConfig)
+                await service.before({} as never, [] as never, mockBrowser)
+
+                // First create a user command timing
+                await service.beforeCommand('$', [xpath])
+
+                // Then the internal command should match it
+                await service.beforeCommand('findElement', ['xpath', xpath])
+
+                expect(vi.mocked(utils.findMostRecentUnmatchedUserCommand)).toHaveBeenCalled()
+                expect(service['_commandTimings'].size).toBe(2)
+
+                const timings = Array.from(service['_commandTimings'].values())
+                const internalTiming = timings.find(t => !t.isUserCommand)
+
+                expect(internalTiming).toBeDefined()
+                expect(internalTiming?.commandName).toBe('$')
+                expect(internalTiming?.selectorType).toBe('xpath')
+            })
+
+            test('should not create timing entry when no matching user command found', async () => {
+                vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
+                vi.mocked(utils.findMostRecentUnmatchedUserCommand).mockReturnValue(undefined)
+
+                const service = new SelectorPerformanceService(options, mockConfig)
+                await service.before({} as never, [] as never, mockBrowser)
+                await service.beforeCommand('findElement', ['xpath', xpath])
+
+                expect(service['_commandTimings'].size).toBe(0)
+            })
+
+            test('should work with findElements command', async () => {
+                vi.mocked(utils.extractSelectorFromArgs).mockReturnValue(xpath)
+                vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
+                vi.mocked(utils.getHighResTime).mockReturnValue(100)
+                vi.mocked(utils.findMostRecentUnmatchedUserCommand).mockReturnValue([
+                    'timing-id',
+                    {
+                        commandName: '$$',
+                        selector: xpath,
+                        formattedSelector,
+                        startTime: 50,
+                        timingId: 'timing-id',
+                        isUserCommand: true
+                    }
+                ])
+
+                const service = new SelectorPerformanceService(options, mockConfig)
+                await service.before({} as never, [] as never, mockBrowser)
+                await service.beforeCommand('$$', [xpath])
+                await service.beforeCommand('findElements', ['xpath', xpath])
+
+                expect(service['_commandTimings'].size).toBe(2)
+            })
         })
     })
 

@@ -181,7 +181,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
                 const timingId = `${commandName}-${Date.now()}-${Math.random()}`
                 this._commandTimings.set(timingId, {
                     startTime: getHighResTime(),
-                    commandName: userTiming.commandName, // Use the user's command name
+                    commandName: userTiming.commandName,
                     selector: value,
                     formattedSelector: formattedSelector,
                     selectorType: using,
