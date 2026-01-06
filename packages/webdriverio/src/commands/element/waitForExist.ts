@@ -1,5 +1,5 @@
 import { ELEMENT_KEY } from 'webdriver'
-import type { WaitForOptions } from '../../types.js'
+import type { WaitForOptions, ChainablePromiseElement } from '../../types.js'
 
 /**
  *
@@ -65,9 +65,19 @@ export async function waitForExist (
      * calling `waitForExist`.
      */
     if (!reverse && isExisting && typeof this.selector === 'string') {
-        const element = this.isShadowElement
-            ? this.parent.shadow$(this.selector)
-            : this.parent.$(this.selector)
+        let element: WebdriverIO.Element | ChainablePromiseElement
+
+        if (this.index !== undefined) {
+            const elements = this.isShadowElement
+                ? await this.parent.shadow$$(this.selector as string)
+                : await this.parent.$$(this.selector as string)
+            element = elements[this.index]
+        } else {
+            element = this.isShadowElement
+                ? this.parent.shadow$(this.selector)
+                : this.parent.$(this.selector)
+        }
+
         this.elementId = await element.elementId
         this[ELEMENT_KEY] = this.elementId
         delete this.error
