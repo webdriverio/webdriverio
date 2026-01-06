@@ -67,6 +67,17 @@ describe('SelectorPerformanceService', () => {
     let mockBrowser: WebdriverIO.Browser
     let mockConfig: Options.Testrunner
 
+    const createDefaultOptions = (): AppiumServiceConfig => ({
+        trackSelectorPerformance: {
+            enabled: true
+        }
+    })
+    const createAndInitializeService = async (options: AppiumServiceConfig = createDefaultOptions()) => {
+        const service = new SelectorPerformanceService(options, mockConfig)
+        await service.before({} as never, [] as never, mockBrowser)
+        return service
+    }
+
     beforeEach(() => {
         vi.clearAllMocks()
 
@@ -114,11 +125,7 @@ describe('SelectorPerformanceService', () => {
         })
 
         test('should initialize with enabled state when enabled is true', () => {
-            const options = {
-                trackSelectorPerformance: {
-                    enabled: true
-                }
-            }
+            const options = createDefaultOptions()
             const service = new SelectorPerformanceService(options, mockConfig)
 
             expect(service['_enabled']).toBe(true)
@@ -147,6 +154,7 @@ describe('SelectorPerformanceService', () => {
 
         test('should call determineReportDirectory when enabled', () => {
             const options = {
+                ...createDefaultOptions(),
                 trackSelectorPerformance: {
                     enabled: true,
                     reportPath: '/custom/path'
@@ -178,11 +186,7 @@ describe('SelectorPerformanceService', () => {
         test('should register reporter when enabled and not already registered', async () => {
             vi.mocked(utils.isReporterRegistered).mockReturnValue(false)
 
-            const options = {
-                trackSelectorPerformance: {
-                    enabled: true
-                }
-            }
+            const options = createDefaultOptions()
             const service = new SelectorPerformanceService(options, mockConfig)
             const config = { reporters: [] } as Options.Testrunner
 
@@ -201,11 +205,7 @@ describe('SelectorPerformanceService', () => {
         test('should not register reporter when already registered', async () => {
             vi.mocked(utils.isReporterRegistered).mockReturnValue(true)
 
-            const options = {
-                trackSelectorPerformance: {
-                    enabled: true
-                }
-            }
+            const options = createDefaultOptions()
             const service = new SelectorPerformanceService(options, mockConfig)
             const config = { reporters: [] } as Options.Testrunner
 
@@ -217,11 +217,7 @@ describe('SelectorPerformanceService', () => {
         test('should initialize reporters array if not present', async () => {
             vi.mocked(utils.isReporterRegistered).mockReturnValue(false)
 
-            const options = {
-                trackSelectorPerformance: {
-                    enabled: true
-                }
-            }
+            const options = createDefaultOptions()
             const service = new SelectorPerformanceService(options, mockConfig)
             const config = {} as Options.Testrunner
 
@@ -241,11 +237,7 @@ describe('SelectorPerformanceService', () => {
         })
 
         test('should log BETA messages and enable for iOS', async () => {
-            const options = {
-                trackSelectorPerformance: {
-                    enabled: true
-                }
-            }
+            const options = createDefaultOptions()
             const service = new SelectorPerformanceService(options, mockConfig)
             mockBrowser.isIOS = true
             mockBrowser.isAndroid = false
@@ -259,11 +251,7 @@ describe('SelectorPerformanceService', () => {
         })
 
         test('should disable service and log warning for Android', async () => {
-            const options = {
-                trackSelectorPerformance: {
-                    enabled: true
-                }
-            }
+            const options = createDefaultOptions()
             const service = new SelectorPerformanceService(options, mockConfig)
             mockBrowser.isIOS = false
             mockBrowser.isAndroid = true
@@ -282,6 +270,7 @@ describe('SelectorPerformanceService', () => {
             vi.mocked(utils.isSilentLogLevel).mockReturnValue(false)
 
             const options = {
+                ...createDefaultOptions(),
                 trackSelectorPerformance: {
                     enabled: true,
                     replaceWithOptimizedSelector: true,
@@ -305,6 +294,7 @@ describe('SelectorPerformanceService', () => {
 
         test('should not call overwriteUserCommands when replaceWithOptimized is false', async () => {
             const options = {
+                ...createDefaultOptions(),
                 trackSelectorPerformance: {
                     enabled: true,
                     replaceWithOptimizedSelector: false
@@ -329,11 +319,7 @@ describe('SelectorPerformanceService', () => {
         })
 
         test('should warn and return when report directory is not set', async () => {
-            const options = {
-                trackSelectorPerformance: {
-                    enabled: true
-                }
-            }
+            const options = createDefaultOptions()
             const service = new SelectorPerformanceService(options, mockConfig)
             service['_reportDirectory'] = undefined
 
@@ -358,11 +344,7 @@ describe('SelectorPerformanceService', () => {
             ]
             vi.mocked(store.getPerformanceData).mockReturnValue(mockData)
 
-            const options = {
-                trackSelectorPerformance: {
-                    enabled: true
-                }
-            }
+            const options = createDefaultOptions()
             const service = new SelectorPerformanceService(options, mockConfig)
             service['_reportDirectory'] = '/test/report/dir'
 
@@ -384,11 +366,7 @@ describe('SelectorPerformanceService', () => {
         test('should handle empty performance data', async () => {
             vi.mocked(store.getPerformanceData).mockReturnValue([])
 
-            const options = {
-                trackSelectorPerformance: {
-                    enabled: true
-                }
-            }
+            const options = createDefaultOptions()
             const service = new SelectorPerformanceService(options, mockConfig)
             service['_reportDirectory'] = '/test/report/dir'
 
@@ -410,11 +388,7 @@ describe('SelectorPerformanceService', () => {
                 throw mockError
             })
 
-            const options = {
-                trackSelectorPerformance: {
-                    enabled: true
-                }
-            }
+            const options = createDefaultOptions()
             const service = new SelectorPerformanceService(options, mockConfig)
             service['_reportDirectory'] = '/test/report/dir'
 
@@ -430,11 +404,7 @@ describe('SelectorPerformanceService', () => {
                 throw mockError
             })
 
-            const options = {
-                trackSelectorPerformance: {
-                    enabled: true
-                }
-            }
+            const options = createDefaultOptions()
             const service = new SelectorPerformanceService(options, mockConfig)
             service['_reportDirectory'] = '/test/report/dir'
 
@@ -471,13 +441,7 @@ describe('SelectorPerformanceService', () => {
         test('should log warning and return when not in native context', async () => {
             vi.mocked(utils.isNativeContext).mockReturnValue(false)
 
-            const options = {
-                trackSelectorPerformance: {
-                    enabled: true
-                }
-            }
-            const service = new SelectorPerformanceService(options, mockConfig)
-            await service.before({} as never, [] as never, mockBrowser)
+            const service = await createAndInitializeService()
             await service.beforeCommand('$', ['//xpath'])
 
             expect(log.info).toHaveBeenCalledWith('⚠️  Mobile Selector Performance Optimizer is disabled for non-native context')
@@ -490,8 +454,7 @@ describe('SelectorPerformanceService', () => {
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
                 vi.mocked(utils.getHighResTime).mockReturnValue(100)
 
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.beforeCommand('$', [xpath])
 
                 expect(vi.mocked(utils.extractSelectorFromArgs)).toHaveBeenCalledWith([xpath])
@@ -507,8 +470,7 @@ describe('SelectorPerformanceService', () => {
             test('should not track when selector is not extracted', async () => {
                 vi.mocked(utils.extractSelectorFromArgs).mockReturnValue(null)
 
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.beforeCommand('$', [])
 
                 expect(service['_commandTimings'].size).toBe(0)
@@ -517,8 +479,7 @@ describe('SelectorPerformanceService', () => {
             test('should not track when selector is not a string', async () => {
                 vi.mocked(utils.extractSelectorFromArgs).mockReturnValue(123 as any)
 
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.beforeCommand('$', [123])
 
                 expect(service['_commandTimings'].size).toBe(0)
@@ -529,8 +490,7 @@ describe('SelectorPerformanceService', () => {
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
                 vi.mocked(utils.getHighResTime).mockReturnValue(100)
 
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
 
                 await service.beforeCommand('$', [xpath])
                 await service.beforeCommand('$$', [xpath])
@@ -541,8 +501,7 @@ describe('SelectorPerformanceService', () => {
             })
 
             test('should not track non-user commands', async () => {
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.beforeCommand('click', ['//xpath'])
 
                 expect(vi.mocked(utils.extractSelectorFromArgs)).not.toHaveBeenCalled()
@@ -592,8 +551,7 @@ describe('SelectorPerformanceService', () => {
                     }
                 ])
 
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
 
                 // First create a user command timing
                 await service.beforeCommand('$', [xpath])
@@ -616,8 +574,7 @@ describe('SelectorPerformanceService', () => {
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
                 vi.mocked(utils.findMostRecentUnmatchedUserCommand).mockReturnValue(undefined)
 
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.beforeCommand('findElement', ['xpath', xpath])
 
                 expect(service['_commandTimings'].size).toBe(0)
@@ -639,8 +596,7 @@ describe('SelectorPerformanceService', () => {
                     }
                 ])
 
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.beforeCommand('$$', [xpath])
                 await service.beforeCommand('findElements', ['xpath', xpath])
 
@@ -653,16 +609,46 @@ describe('SelectorPerformanceService', () => {
         let options: AppiumServiceConfig
         let xpath: string
         let formattedSelector: string
+        let consoleSpy: ReturnType<typeof vi.spyOn>
+        let consoleWarnSpy: ReturnType<typeof vi.spyOn>
+
+        const createMockTiming = (overrides?: Partial<{
+            commandName: string
+            selector: string
+            selectorType?: string
+            startTime: number
+            timingId: string
+        }>) => {
+            const timing: any = {
+                commandName: overrides?.commandName || '$',
+                selector: overrides?.selector !== undefined ? overrides.selector : xpath,
+                formattedSelector,
+                startTime: overrides?.startTime ?? 50,
+                timingId: overrides?.timingId || 'timing-id',
+                isUserCommand: false
+            }
+            if ('selectorType' in (overrides || {})) {
+                if (overrides?.selectorType !== undefined) {
+                    timing.selectorType = overrides.selectorType
+                }
+            } else {
+                timing.selectorType = 'xpath'
+            }
+            return [overrides?.timingId || 'timing-id', timing] as [string, any]
+        }
 
         beforeEach(() => {
-            options = {
-                trackSelectorPerformance: {
-                    enabled: true
-                }
-            }
+            options = createDefaultOptions()
             xpath = '//xpath'
             formattedSelector = 'formatted selector'
             vi.mocked(utils.isNativeContext).mockReturnValue(true)
+            consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+            consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        })
+
+        afterEach(() => {
+            consoleSpy.mockRestore()
+            consoleWarnSpy.mockRestore()
         })
 
         test('should do nothing when service is disabled', async () => {
@@ -676,8 +662,7 @@ describe('SelectorPerformanceService', () => {
         test('should log warning and return when not in native context', async () => {
             vi.mocked(utils.isNativeContext).mockReturnValue(false)
 
-            const service = new SelectorPerformanceService(options, mockConfig)
-            await service.before({} as never, [] as never, mockBrowser)
+            const service = await createAndInitializeService()
             await service.afterCommand('findElement', ['xpath', xpath], {})
 
             expect(log.info).toHaveBeenCalledWith('⚠️  Mobile Selector Performance Optimizer is disabled for non-native context')
@@ -686,8 +671,7 @@ describe('SelectorPerformanceService', () => {
 
         describe('internal commands', () => {
             test('should return early when args length is less than 2', async () => {
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.afterCommand('findElement', ['xpath'], {})
 
                 expect(vi.mocked(utils.formatSelectorForDisplay)).not.toHaveBeenCalled()
@@ -695,8 +679,7 @@ describe('SelectorPerformanceService', () => {
             })
 
             test('should return early when not xpath selector', async () => {
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.afterCommand('findElement', ['accessibility id', 'button'], {})
 
                 expect(vi.mocked(utils.formatSelectorForDisplay)).not.toHaveBeenCalled()
@@ -704,8 +687,7 @@ describe('SelectorPerformanceService', () => {
             })
 
             test('should return early when value is not a string', async () => {
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.afterCommand('findElement', ['xpath', 123], {})
 
                 expect(vi.mocked(utils.formatSelectorForDisplay)).not.toHaveBeenCalled()
@@ -715,8 +697,7 @@ describe('SelectorPerformanceService', () => {
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
                 vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue(undefined)
 
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
                 expect(vi.mocked(utils.findMatchingInternalCommandTiming)).toHaveBeenCalled()
@@ -725,22 +706,10 @@ describe('SelectorPerformanceService', () => {
 
             test('should return early when duration is negative', async () => {
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
-                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue([
-                    'timing-id',
-                    {
-                        commandName: '$',
-                        selector: xpath,
-                        formattedSelector,
-                        selectorType: 'xpath',
-                        startTime: 100,
-                        timingId: 'timing-id',
-                        isUserCommand: false
-                    }
-                ])
+                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue(createMockTiming({ startTime: 100 }))
                 vi.mocked(utils.getHighResTime).mockReturnValue(50) // Negative duration
 
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
                 expect(service['_commandTimings'].size).toBe(0)
@@ -749,22 +718,10 @@ describe('SelectorPerformanceService', () => {
 
             test('should return early when selector is missing', async () => {
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
-                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue([
-                    'timing-id',
-                    {
-                        commandName: '$',
-                        selector: '',
-                        formattedSelector,
-                        selectorType: 'xpath',
-                        startTime: 50,
-                        timingId: 'timing-id',
-                        isUserCommand: false
-                    }
-                ])
+                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue(createMockTiming({ selector: '' }))
                 vi.mocked(utils.getHighResTime).mockReturnValue(100)
 
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
                 expect(service['_commandTimings'].size).toBe(0)
@@ -773,21 +730,13 @@ describe('SelectorPerformanceService', () => {
 
             test('should return early when selectorType is missing', async () => {
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
-                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue([
-                    'timing-id',
-                    {
-                        commandName: '$',
-                        selector: xpath,
-                        formattedSelector,
-                        startTime: 50,
-                        timingId: 'timing-id',
-                        isUserCommand: false
-                    }
-                ])
+                const timingWithoutSelectorType = createMockTiming()
+                // Remove selectorType from the timing object to simulate missing property
+                delete (timingWithoutSelectorType[1] as any).selectorType
+                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue(timingWithoutSelectorType)
                 vi.mocked(utils.getHighResTime).mockReturnValue(100)
 
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
                 expect(service['_commandTimings'].size).toBe(0)
@@ -796,22 +745,10 @@ describe('SelectorPerformanceService', () => {
 
             test('should store performance data when all conditions pass', async () => {
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
-                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue([
-                    'timing-id',
-                    {
-                        commandName: '$',
-                        selector: xpath,
-                        formattedSelector,
-                        selectorType: 'xpath',
-                        startTime: 50,
-                        timingId: 'timing-id',
-                        isUserCommand: false
-                    }
-                ])
+                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue(createMockTiming())
                 vi.mocked(utils.getHighResTime).mockReturnValue(100)
 
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
                 expect(vi.mocked(utils.storePerformanceData)).toHaveBeenCalledWith(
@@ -831,36 +768,22 @@ describe('SelectorPerformanceService', () => {
             })
 
             test('should log and find optimized selector when replaceWithOptimized is false', async () => {
-                const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-                const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
                 const testOptions = {
+                    ...createDefaultOptions(),
                     trackSelectorPerformance: {
                         enabled: true,
                         replaceWithOptimizedSelector: false
                     }
                 }
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
-                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue([
-                    'timing-id',
-                    {
-                        commandName: '$',
-                        selector: xpath,
-                        formattedSelector,
-                        selectorType: 'xpath',
-                        startTime: 50,
-                        timingId: 'timing-id',
-                        isUserCommand: false
-                    }
-                ])
+                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue(createMockTiming())
                 vi.mocked(utils.getHighResTime).mockReturnValue(100)
                 vi.mocked(utils.findOptimizedSelector).mockResolvedValue({
                     selector: '-ios class chain:**/XCUIElementTypeButton',
                     warning: undefined
                 })
 
-                const service = new SelectorPerformanceService(testOptions, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService(testOptions)
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
                 expect(consoleSpy).toHaveBeenCalledWith(
@@ -870,33 +793,18 @@ describe('SelectorPerformanceService', () => {
                 expect(consoleSpy).toHaveBeenCalledWith(
                     expect.stringContaining('[Potential Optimized Selector]')
                 )
-
-                consoleSpy.mockRestore()
-                consoleWarnSpy.mockRestore()
             })
 
             test('should use single quotes for iOS class chain selector', async () => {
-                const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
                 const testOptions = {
+                    ...createDefaultOptions(),
                     trackSelectorPerformance: {
                         enabled: true,
                         replaceWithOptimizedSelector: false
                     }
                 }
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
-                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue([
-                    'timing-id',
-                    {
-                        commandName: '$',
-                        selector: xpath,
-                        formattedSelector,
-                        selectorType: 'xpath',
-                        startTime: 50,
-                        timingId: 'timing-id',
-                        isUserCommand: false
-                    }
-                ])
+                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue(createMockTiming())
                 vi.mocked(utils.getHighResTime).mockReturnValue(100)
                 const iosClassChainSelector = '-ios class chain:**/XCUIElementTypeButton'
                 vi.mocked(utils.findOptimizedSelector).mockResolvedValue({
@@ -904,39 +812,24 @@ describe('SelectorPerformanceService', () => {
                     warning: undefined
                 })
 
-                const service = new SelectorPerformanceService(testOptions, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService(testOptions)
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
                 expect(consoleSpy).toHaveBeenCalledWith(
                     expect.stringContaining(`$('${iosClassChainSelector}')`)
                 )
-
-                consoleSpy.mockRestore()
             })
 
             test('should use double quotes for non-iOS class chain selector', async () => {
-                const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
                 const testOptions = {
+                    ...createDefaultOptions(),
                     trackSelectorPerformance: {
                         enabled: true,
                         replaceWithOptimizedSelector: false
                     }
                 }
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
-                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue([
-                    'timing-id',
-                    {
-                        commandName: '$',
-                        selector: xpath,
-                        formattedSelector,
-                        selectorType: 'xpath',
-                        startTime: 50,
-                        timingId: 'timing-id',
-                        isUserCommand: false
-                    }
-                ])
+                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue(createMockTiming())
                 vi.mocked(utils.getHighResTime).mockReturnValue(100)
                 const accessibilityIdSelector = '~button'
                 vi.mocked(utils.findOptimizedSelector).mockResolvedValue({
@@ -944,109 +837,63 @@ describe('SelectorPerformanceService', () => {
                     warning: undefined
                 })
 
-                const service = new SelectorPerformanceService(testOptions, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService(testOptions)
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
                 expect(consoleSpy).toHaveBeenCalledWith(
                     expect.stringContaining(`$("${accessibilityIdSelector}")`)
                 )
-
-                consoleSpy.mockRestore()
             })
 
             test('should log warning when conversionResult has warning', async () => {
-                const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-                const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
                 const testOptions = {
+                    ...createDefaultOptions(),
                     trackSelectorPerformance: {
                         enabled: true,
                         replaceWithOptimizedSelector: false
                     }
                 }
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
-                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue([
-                    'timing-id',
-                    {
-                        commandName: '$',
-                        selector: xpath,
-                        formattedSelector,
-                        selectorType: 'xpath',
-                        startTime: 50,
-                        timingId: 'timing-id',
-                        isUserCommand: false
-                    }
-                ])
+                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue(createMockTiming())
                 vi.mocked(utils.getHighResTime).mockReturnValue(100)
                 vi.mocked(utils.findOptimizedSelector).mockResolvedValue({
                     selector: '-ios class chain:**/XCUIElementTypeButton',
                     warning: 'Warning message'
                 })
 
-                const service = new SelectorPerformanceService(testOptions, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService(testOptions)
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
                 expect(consoleWarnSpy).toHaveBeenCalledWith(
                     '[Selector Performance Warning] Warning message'
                 )
-
-                consoleSpy.mockRestore()
-                consoleWarnSpy.mockRestore()
             })
 
             test('should not log when replaceWithOptimized is true', async () => {
-                const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
                 const testOptions = {
+                    ...createDefaultOptions(),
                     trackSelectorPerformance: {
                         enabled: true,
                         replaceWithOptimizedSelector: true
                     }
                 }
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
-                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue([
-                    'timing-id',
-                    {
-                        commandName: '$',
-                        selector: xpath,
-                        formattedSelector,
-                        selectorType: 'xpath',
-                        startTime: 50,
-                        timingId: 'timing-id',
-                        isUserCommand: false
-                    }
-                ])
+                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue(createMockTiming())
                 vi.mocked(utils.getHighResTime).mockReturnValue(100)
 
-                const service = new SelectorPerformanceService(testOptions, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService(testOptions)
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
                 expect(consoleSpy).not.toHaveBeenCalled()
                 expect(vi.mocked(utils.findOptimizedSelector)).not.toHaveBeenCalled()
-
-                consoleSpy.mockRestore()
             })
 
             test('should work with findElements command', async () => {
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
-                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue([
-                    'timing-id',
-                    {
-                        commandName: '$$',
-                        selector: xpath,
-                        formattedSelector,
-                        selectorType: 'xpath',
-                        startTime: 50,
-                        timingId: 'timing-id',
-                        isUserCommand: false
-                    }
-                ])
+                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue(createMockTiming({ commandName: '$$' }))
                 vi.mocked(utils.getHighResTime).mockReturnValue(100)
 
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.afterCommand('findElements', ['xpath', xpath], [])
 
                 expect(vi.mocked(utils.storePerformanceData)).toHaveBeenCalled()
