@@ -149,7 +149,8 @@
       "label": "Accessibility Testing",
       "items": [
         "accessibility-testing/axe-core",
-        "accessibility-testing/browserstack"
+        "accessibility-testing/browserstack",
+        "accessibility-testing/lambdatest"
       ]
     },
     {
