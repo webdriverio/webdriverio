@@ -351,6 +351,15 @@ export interface WebdriverIOCapabilities {
     'wdio:edgedriverOptions'?: WebdriverIO.EdgedriverOptions
 
     /**
+     * When set, downloads ChromeDriver from Electron GitHub releases instead of
+     * Chrome for Testing. This enables E2E testing on platforms not supported by
+     * Chrome for Testing, such as linux-arm64.
+     *
+     * @example '37.6.0' or 'v37.6.0'
+     */
+    'wdio:electronVersion'?: string
+
+    /**
     * Maximum number of total parallel running workers (per capability)
     */
     'wdio:maxInstances'?: number

@@ -16,7 +16,7 @@ import type { InstallOptions } from '@puppeteer/browsers'
 
 import type { Capabilities } from '@wdio/types'
 
-import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir, generateDefaultPrefs } from './utils.js'
+import { parseParams, setupPuppeteerBrowser, setupChromedriver, setupElectronChromedriver, getCacheDir, generateDefaultPrefs } from './utils.js'
 import { isChrome, isFirefox, isEdge, isSafari, isAppiumCapability } from '../utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 
@@ -80,10 +80,20 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
          * other drivers do as well
          */
         const chromedriverBinary = chromedriverOptions.binary || process.env.CHROMEDRIVER_PATH
+        /**
+         * Check for Electron version - if set, download ChromeDriver from Electron releases.
+         * This enables testing on platforms not supported by Chrome for Testing (e.g., linux-arm64)
+         */
+        const electronVersion = caps['wdio:electronVersion'] as string | undefined
         const { executablePath: chromeExecuteablePath, browserVersion } = await setupPuppeteerBrowser(cacheDir, caps)
         const { executablePath: chromedriverExcecuteablePath } = chromedriverBinary
             ? { executablePath: chromedriverBinary }
-            : await setupChromedriver(cacheDir, browserVersion)
+            : electronVersion
+                ? await setupElectronChromedriver(cacheDir, electronVersion).catch((err) => {
+                    log.warn(`Failed to download Electron ChromeDriver: ${err.message}. Falling back to Chrome for Testing...`)
+                    return setupChromedriver(cacheDir, browserVersion)
+                })
+                : await setupChromedriver(cacheDir, browserVersion)
 
         const prefs = generateDefaultPrefs(caps)
         caps['goog:chromeOptions'] = deepmerge(
