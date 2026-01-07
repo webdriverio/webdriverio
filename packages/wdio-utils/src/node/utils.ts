@@ -8,7 +8,7 @@ import decamelize from 'decamelize'
 import logger from '@wdio/logger'
 import {
     install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel,
-    computeExecutablePath, type InstallOptions
+    computeExecutablePath, type InstallOptions, FallbackSources
 } from '@puppeteer/browsers'
 import { download as downloadGeckodriver } from 'geckodriver'
 import { download as downloadEdgedriver } from 'edgedriver'
@@ -282,13 +282,29 @@ export function getMajorVersionFromString(fullVersion:string) {
     return prefix && prefix.length > 0 ? prefix[0] : ''
 }
 
-export async function setupChromedriver (cacheDir: string, driverVersion?: string) {
+export async function setupChromedriver (cacheDir: string, driverVersion?: string, capabilities?: WebdriverIO.Capabilities) {
     const platform = detectBrowserPlatform()
     if (!platform) {
         throw new Error('The current platform is not supported.')
     }
-    const version = driverVersion || getBuildIdByChromePath(await locateChromeSafely()) || ChromeReleaseChannel.STABLE
-    const buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
+
+    // Check if we have chromium version from electron service
+    const chromiumVersion = capabilities?.['wdio:chromiumVersion'] as string
+    const hasElectronService = capabilities?.['wdio:electronServiceOptions']
+
+    let buildId: string
+    let fallbackSources
+
+    if (chromiumVersion && hasElectronService) {
+        // Use the chromium version provided by electron service
+        buildId = chromiumVersion
+        fallbackSources = [FallbackSources.ELECTRON]
+        log.info(`Using Electron Chromedriver v${buildId} with fallback sources`)
+    } else {
+        // Use standard Chrome chromedriver logic
+        const version = driverVersion || getBuildIdByChromePath(await locateChromeSafely()) || ChromeReleaseChannel.STABLE
+        buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
+    }
     let executablePath = computeExecutablePath({
         browser: Browser.CHROMEDRIVER,
         buildId,
@@ -304,7 +320,8 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
             platform,
             browser: Browser.CHROMEDRIVER,
             unpack: true,
-            downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
+            downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes),
+            ...(fallbackSources && { fallbackSources })
         }
         let knownBuild = buildId
         if (await canDownload(chromedriverInstallOpts)) {
