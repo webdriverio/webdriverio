@@ -76,7 +76,6 @@ export default class MobileSelectorPerformanceReporter extends WDIOReporter {
 
     /**
      * Extract suite name from suite title, matching spec-reporter logic
-     * Spec reporter uses suite.title directly (see line 393: output.push(`${suiteIndent}${suite.title}`))
      * Only skip root suite which has "(root)" title
      */
     private extractSuiteName(suite: SuiteStats): string | undefined {
@@ -97,29 +96,22 @@ export default class MobileSelectorPerformanceReporter extends WDIOReporter {
     }
 
     onSuiteStart(suite: SuiteStats): void {
-        // Set test file if available (matches spec-reporter: suite.file?.replace(process.cwd(), ''))
         const testFile = this.extractTestFile(suite)
         if (testFile) {
             setCurrentTestFile(testFile)
         }
 
-        // Set suite name - use suite.title directly like spec-reporter does (line 393: suite.title)
-        // Skip root suite which has title '(root)'
         if (suite.title && suite.title !== '(root)' && suite.title !== '{root}') {
             setCurrentSuiteName(suite.title)
         }
     }
 
     onTestStart(test: TestStats): void {
-        // Set test name - use test.title directly like spec-reporter does
         const testName = this.extractTestName(test)
         if (testName) {
             setCurrentTestName(testName)
         }
 
-        // Always refresh suite name and test file from current suite
-        // This ensures context is current even if suite changed or onSuiteStart wasn't called yet
-        // The suite should be in currentSuites array (WDIOReporter base class manages this)
         this.updateContextFromCurrentSuite()
     }
 
@@ -146,13 +138,10 @@ export default class MobileSelectorPerformanceReporter extends WDIOReporter {
     }
 
     onHookStart(): void {
-        // Ensure suite name and test file are set from current suite
-        // Hooks can run before tests, so we need to ensure context is available
         this.updateContextFromCurrentSuite()
     }
 
     onHookEnd(): void {
-        // Same as onHookStart - ensure context is available
         this.updateContextFromCurrentSuite()
     }
 }
