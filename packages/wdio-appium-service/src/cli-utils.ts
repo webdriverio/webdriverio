@@ -42,6 +42,27 @@ export function extractPortFromCliArgs(args: string[]): number {
     return extractPortFromArgs(args) ?? 4723
 }
 
+/**
+ * Removes any existing --port argument from the args array.
+ * Handles both --port=5555 and --port 5555 formats.
+ * @param args - Array of command line arguments
+ */
+export function removePortFromArgs(args: string[]): void {
+    // Iterate backwards to avoid index issues when removing items
+    for (let i = args.length - 1; i >= 0; i--) {
+        if (args[i].startsWith('--port')) {
+            const portArg = args[i]
+            if (portArg.includes('=')) {
+                // Format: --port=5555, remove just this one argument
+                args.splice(i, 1)
+            } else {
+                // Format: --port 5555, remove both --port and the next argument
+                args.splice(i, 2)
+            }
+        }
+    }
+}
+
 async function tryResolveModule(command: string, from: string): Promise<string | null> {
     try {
         const entryPath = await resolveModule(command, from)

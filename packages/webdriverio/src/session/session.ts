@@ -20,10 +20,12 @@ export class SessionManager {
         this.#scope = scope
         const registrationId = `${this.#browser.sessionId}-${this.#scope}`
         if (!listenerRegisteredSession.has(registrationId)) {
-            this.#browser.on('command', this.#onCommand.bind(this))
+            this.#browser.on('command', this.#onCommandListener)
             listenerRegisteredSession.add(registrationId)
         }
     }
+
+    #onCommandListener = this.#onCommand.bind(this)
 
     #onCommand(ev: { command: string }) {
         if (ev.command === 'deleteSession') {
@@ -37,7 +39,7 @@ export class SessionManager {
     }
 
     removeListeners() {
-        this.#browser.off('command', this.#onCommand.bind(this))
+        this.#browser.off('command', this.#onCommandListener)
     }
 
     initialize(): unknown {

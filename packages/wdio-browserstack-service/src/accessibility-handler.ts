@@ -255,7 +255,9 @@ class _AccessibilityHandler {
             .forEach((command) => {
                 const browser = this._browser as WebdriverIO.Browser
                 try {
-                    const prevImpl = browser[command.name as keyof WebdriverIO.Browser].bind(browser)
+                    // element commands aren't on browser; use orig when present, otherwise rely on overwriteCommand's origFunction
+                    const orig = browser[command.name as keyof WebdriverIO.Browser]
+                    const prevImpl = orig ? orig.bind(browser) : undefined
                     // @ts-expect-error fix type
                     browser.overwriteCommand(command.name, this.commandWrapper.bind(this, command, prevImpl), command.class === 'Element')
                 } catch (error) {
@@ -417,7 +419,7 @@ class _AccessibilityHandler {
      * private methods
      */
 
-    private async commandWrapper(command: CommandInfo, prevImpl: Function, origFunction: Function, ...args: unknown[]) {
+    private async commandWrapper(command: CommandInfo, prevImpl: Function | undefined, origFunction: Function, ...args: unknown[]) {
         if (
             this._sessionId && AccessibilityHandler._a11yScanSessionMap[this._sessionId] &&
             (
@@ -428,7 +430,8 @@ class _AccessibilityHandler {
             BStackLogger.debug(`Performing scan for ${command.class} ${command.name}`)
             await performA11yScan(this.isAppAutomate, this._browser, true, true, command.name)
         }
-        return prevImpl(...args)
+        const impl = prevImpl || origFunction
+        return impl(...args)
     }
 
     private async sendTestStopEvent(browser: WebdriverIO.Browser, dataForExtension: TestExtensionData) {

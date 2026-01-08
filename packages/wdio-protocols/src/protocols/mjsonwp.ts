@@ -15,6 +15,7 @@ export default {
         GET: {
             command: 'getNetworkConnection',
             ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#device-modes',
+            deprecated: 'For Appium Android automation, use `driver.execute(\'mobile: getConnectivity\', { ... })` instead',
             parameters: [],
             returns: {
                 type: 'number',
@@ -26,6 +27,7 @@ export default {
         POST: {
             command: 'setNetworkConnection',
             ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#device-modes',
+            deprecated: 'For Appium Android automation, use `driver.execute(\'mobile: setConnectivity\', { ... })` instead',
             parameters: [
                 {
                     name: 'type',
@@ -41,6 +43,7 @@ export default {
         GET: {
             command: 'touchPerform',
             ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#touch-gestures',
+            deprecated: 'For Appium, use `driver.performActions(...)` instead',
             parameters: [
                 {
                     name: 'actions',
@@ -56,6 +59,7 @@ export default {
         GET: {
             command: 'multiTouchPerform',
             ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#touch-gestures',
+            deprecated: 'For Appium, use `driver.performActions(...)` instead',
             parameters: [
                 {
                     name: 'actions',
@@ -77,6 +81,7 @@ export default {
         POST: {
             command: 'receiveAsyncResponse',
             ref: 'https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#mobile-json-wire-protocol-endpoints',
+            deprecated: 'For Appium, use `driver.executeAsyncScript(...)` instead',
             parameters: [
                 {
                     name: 'status',
