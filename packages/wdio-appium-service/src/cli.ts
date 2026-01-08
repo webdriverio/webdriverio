@@ -1,4 +1,11 @@
-import { checkInspectorPluginInstalled, determineAppiumCliCommand, extractPortFromCliArgs, openBrowser, startAppiumForCli } from './cli-utils.js'
+import {
+    checkInspectorPluginInstalled,
+    determineAppiumCliCommand,
+    extractPortFromCliArgs,
+    openBrowser,
+    removePortFromArgs,
+    startAppiumForCli
+} from './cli-utils.js'
 import treeKill from 'tree-kill'
 import { promisify } from 'node:util'
 
@@ -9,7 +16,9 @@ export async function run() {
     const port = extractPortFromCliArgs(args)
     const requiredFlags = ['--log-timestamp', '--use-plugins=inspector', '--allow-cors']
 
-    args.push(`--port=${port}`)
+    removePortFromArgs(args)
+
+    args.unshift(`--port=${port}`)
 
     requiredFlags.forEach(flag => {
         if (!args.includes(flag)) {
