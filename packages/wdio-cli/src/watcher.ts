@@ -7,7 +7,6 @@ import flattenDeep from 'lodash.flattendeep'
 import union from 'lodash.union'
 
 import logger from '@wdio/logger'
-import { FileSystemPathService } from '@wdio/config/node'
 import type { Capabilities, Workers } from '@wdio/types'
 
 import Launcher from './launcher.js'
@@ -20,7 +19,7 @@ export default class Watcher {
     private _launcher: Launcher
     private _specs: Spec[] = []
 
-    constructor (
+    constructor(
         private _configFile: string,
         private _args: Omit<RunCommandArguments, 'configPath'>
     ) {
@@ -28,7 +27,7 @@ export default class Watcher {
         this._launcher = new Launcher(this._configFile, this._args, true)
     }
 
-    async watch () {
+    async watch() {
         await this._launcher.initialize()
         const specs = this._launcher.configParser.getSpecs()
         const capSpecs = this._launcher.isMultiremote
@@ -53,9 +52,13 @@ export default class Watcher {
          */
         const { filesToWatch } = this._launcher.configParser.getConfig()
         if (filesToWatch.length) {
-            const pathService = new FileSystemPathService()
             const rootDir = path.dirname(path.resolve(process.cwd(), this._configFile))
-            const globbedFilesToWatch = filesToWatch.map((file) => pathService.ensureAbsolutePath(file, rootDir))
+            const globbedFilesToWatch = filesToWatch.map((file) => {
+                const absolutePath = path.isAbsolute(file)
+                    ? path.normalize(file)
+                    : path.resolve(rootDir, file)
+                return absolutePath
+            })
             chokidar.watch(globbedFilesToWatch, { ignoreInitial: true })
                 .on('add', this.getFileListener(false))
                 .on('change', this.getFileListener(false))
@@ -87,7 +90,7 @@ export default class Watcher {
      * @param  {Boolean}  [passOnFile=true]  if true pass on file change as parameter
      * @return {Function}                    chokidar event callback
      */
-    getFileListener (passOnFile = true) {
+    getFileListener(passOnFile = true) {
         return (spec: string) => {
             const runSpecs: Spec[] = []
             let singleSpecFound: boolean = false
@@ -95,7 +98,7 @@ export default class Watcher {
                 const value = this._specs[index]
                 if (Array.isArray(value) && value.indexOf(spec) > -1) {
                     runSpecs.push(value)
-                } else if ( !singleSpecFound && spec === value) {
+                } else if (!singleSpecFound && spec === value) {
                     // Only need to run a singleFile once  - so avoid duplicates
                     singleSpecFound = true
                     runSpecs.push(value)
@@ -126,7 +129,7 @@ export default class Watcher {
      * @param  includeBusyWorker don't filter out busy worker (default: false)
      * @return                   Object with workers, e.g. {'0-0': { ... }}
      */
-    getWorkers (predicate?: ValueKeyIteratee<Workers.Worker> | null | undefined, includeBusyWorker?: boolean): Workers.WorkerPool {
+    getWorkers(predicate?: ValueKeyIteratee<Workers.Worker> | null | undefined, includeBusyWorker?: boolean): Workers.WorkerPool {
         if (!this._launcher.runner) {
             throw new Error('Internal Error: no runner initialized, call run() first')
         }
@@ -151,7 +154,7 @@ export default class Watcher {
      * run workers with params
      * @param  params parameters to run the worker with
      */
-    run (params: Partial<RunCommandArguments> = {}) {
+    run(params: Partial<RunCommandArguments> = {}) {
         const workers = this.getWorkers(
             (params.spec
                 ? (worker) => Boolean(worker.specs.find((s) => params.spec?.includes(s)))
@@ -188,7 +191,7 @@ export default class Watcher {
         }
     }
 
-    cleanUp () {
+    cleanUp() {
         this._launcher.interface?.setup()
     }
 }
