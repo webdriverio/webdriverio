@@ -37,32 +37,50 @@ export function formatMessage (params: FrameworkMessage) {
 
     if (params.err) {
         /**
-         * replace "Ensure the done() callback is being called in this test." with a more meaningful message
+         * Detect if this is a skip error from this.skip() in a hook.
+         * When this.skip() is called in Mocha, it throws an error with message
+         * "(sync|async) skip; aborting execution". We should NOT treat this as
+         * a failure, but as a skip/pending state.
+         * @see https://github.com/webdriverio/webdriverio/issues/14649
          */
-        if (params.err && params.err.message && params.err.message.includes(MOCHA_TIMEOUT_MESSAGE)) {
-            const testName = (payload?.parent?.title ? `${payload.parent.title} ${payload.title}` : payload?.title) || 'unknown test'
-            const replacement = (
-                `The execution in the test "${testName}" took too long. Try to reduce the run time or ` +
-                'increase your timeout for test specs (https://webdriver.io/docs/timeouts).'
-            )
-            params.err.message = params.err.message.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
-            params.err.stack = params.err.stack.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
-        }
+        const isSkipError = /^(sync|async) skip; aborting execution$/.test(params.err.message || '')
+        const isHookSkip = isSkipError && mochaAllHooksIfPresent
 
-        message.error = {
-            name: params.err.name,
-            message: params.err.message,
-            stack: params.err.stack,
-            type: params.err.type || params.err.name,
-            expected: params.err.expected,
-            actual: params.err.actual
-        }
-
-        /**
-         * hook failures are emitted as "test:fail"
-         */
-        if (mochaAllHooksIfPresent) {
+        if (isHookSkip) {
+            /**
+             * For skip errors in hooks, don't set error - set pending instead.
+             * This ensures reporters don't mark the hook as failed.
+             */
             message.type = 'hook:end'
+        } else {
+            /**
+             * replace "Ensure the done() callback is being called in this test." with a more meaningful message
+             */
+            if (params.err && params.err.message && params.err.message.includes(MOCHA_TIMEOUT_MESSAGE)) {
+                const testName = (payload?.parent?.title ? `${payload.parent.title} ${payload.title}` : payload?.title) || 'unknown test'
+                const replacement = (
+                    `The execution in the test "${testName}" took too long. Try to reduce the run time or ` +
+                    'increase your timeout for test specs (https://webdriver.io/docs/timeouts).'
+                )
+                params.err.message = params.err.message.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
+                params.err.stack = params.err.stack.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
+            }
+
+            message.error = {
+                name: params.err.name,
+                message: params.err.message,
+                stack: params.err.stack,
+                type: params.err.type || params.err.name,
+                expected: params.err.expected,
+                actual: params.err.actual
+            }
+
+            /**
+             * hook failures are emitted as "test:fail"
+             */
+            if (mochaAllHooksIfPresent) {
+                message.type = 'hook:end'
+            }
         }
     }
 
