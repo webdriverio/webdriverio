@@ -211,11 +211,6 @@ export class BrowserstackCLI {
             env: process.env
         })
 
-        // Check if process started successfully
-        if (!this.process.pid) {
-            throw new Error('failed to start CLI, no PID found')
-        }
-
         // Return a promise that resolves when CLI is ready
         return new Promise<void>((resolve, reject) => {
             const cliOut: Record<string, string> = {}
