@@ -83,7 +83,7 @@ test('should exit process if failing to execute', async () => {
     })
     expect((await instances[0]).errorMe).toHaveBeenCalledTimes(1)
     await sleep()
-    expect(process.exit).toBeCalledWith(1)
+    expect(gracefulExitMock).toBeCalledWith(1)
 
 })
 

@@ -20,6 +20,11 @@ export class NetworkManager extends SessionManager {
     #requests = new Map<Context, WebdriverIO.Request>()
     #lastNetworkId?: string
 
+    #navigationStartedListener = this.#navigationStarted.bind(this)
+    #responseCompletedListener = this.#responseCompleted.bind(this)
+    #beforeRequestSentListener = this.#beforeRequestSent.bind(this)
+    #fetchErrorListener = this.#fetchError.bind(this)
+
     constructor(browser: WebdriverIO.Browser) {
         super(browser, NetworkManager.name)
         this.#browser = browser
@@ -44,20 +49,20 @@ export class NetworkManager extends SessionManager {
                 'network.fetchError'
             ]
         }).then(() => true, () => false)
-        this.#browser.on('browsingContext.navigationStarted', this.#navigationStarted.bind(this))
-        this.#browser.on('browsingContext.fragmentNavigated', this.#navigationStarted.bind(this))
-        this.#browser.on('network.responseCompleted', this.#responseCompleted.bind(this))
-        this.#browser.on('network.beforeRequestSent', this.#beforeRequestSent.bind(this))
-        this.#browser.on('network.fetchError', this.#fetchError.bind(this))
+        this.#browser.on('browsingContext.navigationStarted', this.#navigationStartedListener)
+        this.#browser.on('browsingContext.fragmentNavigated', this.#navigationStartedListener)
+        this.#browser.on('network.responseCompleted', this.#responseCompletedListener)
+        this.#browser.on('network.beforeRequestSent', this.#beforeRequestSentListener)
+        this.#browser.on('network.fetchError', this.#fetchErrorListener)
     }
 
     removeListeners(): void {
         super.removeListeners()
-        this.#browser.off('browsingContext.navigationStarted', this.#navigationStarted.bind(this))
-        this.#browser.off('browsingContext.fragmentNavigated', this.#navigationStarted.bind(this))
-        this.#browser.off('network.responseCompleted', this.#responseCompleted.bind(this))
-        this.#browser.off('network.beforeRequestSent', this.#beforeRequestSent.bind(this))
-        this.#browser.off('network.fetchError', this.#fetchError.bind(this))
+        this.#browser.off('browsingContext.navigationStarted', this.#navigationStartedListener)
+        this.#browser.off('browsingContext.fragmentNavigated', this.#navigationStartedListener)
+        this.#browser.off('network.responseCompleted', this.#responseCompletedListener)
+        this.#browser.off('network.beforeRequestSent', this.#beforeRequestSentListener)
+        this.#browser.off('network.fetchError', this.#fetchErrorListener)
     }
 
     async initialize () {
