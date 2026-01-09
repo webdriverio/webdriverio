@@ -203,11 +203,10 @@ const configs = packages.map(([packageDir, pkg]) => {
                 ...baseConfig,
                 /**
                  * For browser builds, we need to bundle all dependencies
-                 * instead of marking them as external. The browserPolyfills
-                 * plugin handles mocking Node-only modules.
-                 * @see https://github.com/webdriverio/webdriverio/issues/14598
+                 * instead of marking them as external. However we want to keep
+                 * Node.js built-ins external (they are likely polyfilled or not used).
                  */
-                external: [],
+                external: getExternal(pkg).filter((ext) => ext.startsWith('node:')),
                 entryPoints: [path.resolve(absWorkingDir, browserSource)],
                 platform: 'browser',
                 format: 'esm',
