@@ -145,7 +145,7 @@ describe('launcher', () => {
             )
 
             expect(launcher['_schedule']).toHaveLength(1)
-            expect(launcher['_schedule'][0].specs[0].retries).toBe(2)
+            expect(launcher['_schedule'][0].specs[0].retries).toBe(-1)
 
             expect(typeof launcher['_resolve']).toBe('function')
             expect(launcher['_runSpecs']).toBeCalledTimes(1)
@@ -164,8 +164,8 @@ describe('launcher', () => {
             )
 
             expect(launcher['_schedule']).toHaveLength(2)
-            expect(launcher['_schedule'][0].specs[0].retries).toBe(2)
-            expect(launcher['_schedule'][1].specs[0].retries).toBe(2)
+            expect(launcher['_schedule'][0].specs[0].retries).toBe(-1)
+            expect(launcher['_schedule'][1].specs[0].retries).toBe(-1)
 
             expect(typeof launcher['_resolve']).toBe('function')
             expect(launcher['_runSpecs']).toBeCalledTimes(1)
@@ -180,7 +180,7 @@ describe('launcher', () => {
             )
 
             expect(launcher['_schedule']).toHaveLength(1)
-            expect(launcher['_schedule'][0].specs[0].retries).toBe(2)
+            expect(launcher['_schedule'][0].specs[0].retries).toBe(-1)
 
             expect(typeof launcher['_resolve']).toBe('function')
             expect(launcher['_runSpecs']).toBeCalledTimes(1)
@@ -195,7 +195,7 @@ describe('launcher', () => {
             )
 
             expect(launcher['_schedule']).toHaveLength(1)
-            expect(launcher['_schedule'][0].specs[0].retries).toBe(2)
+            expect(launcher['_schedule'][0].specs[0].retries).toBe(-1)
 
             expect(typeof launcher['_resolve']).toBe('function')
             expect(launcher['_runSpecs']).toBeCalledTimes(1)
@@ -221,7 +221,7 @@ describe('launcher', () => {
             )
 
             expect(launcher['_schedule']).toHaveLength(1)
-            expect(launcher['_schedule'][0].specs[0].retries).toBe(3)
+            expect(launcher['_schedule'][0].specs[0].retries).toBe(-1)
             expect(launcher['_schedule'][0].availableInstances).toBe(4)
 
             expect(launcher['_runSpecs']).toBeCalledTimes(1)
