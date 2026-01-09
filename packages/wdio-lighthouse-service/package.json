@@ -1,6 +1,6 @@
 {
   "name": "@wdio/lighthouse-service",
-  "version": "9.22.0",
+  "version": "9.23.0",
   "description": "A WebdriverIO service that allows you to run Chrome DevTools commands in your tests",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-lighthouse-service",
@@ -46,7 +46,7 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "babel-plugin-istanbul": "^7.0.0",
-    "devtools-protocol": "^0.0.1548823",
+    "devtools-protocol": "^0.0.1566079",
     "istanbul-lib-coverage": "^3.2.0",
     "istanbul-lib-report": "^3.0.0",
     "istanbul-reports": "^3.1.4",

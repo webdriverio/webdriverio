@@ -43,6 +43,7 @@ export interface WorkerEvent {
 
 export interface WorkerMessage {
     name: string
+    specFileRetries?: number
     content: {
         sessionId?: string
         isMultiremote?: boolean

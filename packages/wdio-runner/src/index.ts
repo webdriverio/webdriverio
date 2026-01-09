@@ -61,7 +61,6 @@ export default class Runner extends EventEmitter {
         }
 
         this._config = this._configParser.getConfig()
-        this._specFileRetryAttempts = (this._config.specFileRetries || 0) - (retries || 0)
 
         logger.setLogLevelsConfig(this._config.logLevels, this._config.logLevel)
         if (this._config.maskingPatterns) {
@@ -124,6 +123,7 @@ export default class Runner extends EventEmitter {
 
         const beforeSessionParams: BeforeSessionArgs = [this._config, this._caps, this._specs, this._cid]
         await executeHooksWithArgs('beforeSession', this._config.beforeSession, beforeSessionParams)
+        this._specFileRetryAttempts = (this._config.specFileRetries || 0) - (retries || 0)
 
         this._reporter = new BaseReporter(this._config, this._cid, { ...this._caps })
         await this._reporter.initReporters()
@@ -200,6 +200,7 @@ export default class Runner extends EventEmitter {
         process.send!(<SessionStartedMessage>{
             origin: 'worker',
             name: 'sessionStarted',
+            specFileRetries: this._specFileRetryAttempts,
             content: {
                 automationProtocol, sessionId, isW3C, protocol, hostname, port, path, queryParams, isMultiremote, instances,
                 capabilities: browser.capabilities,
@@ -383,6 +384,7 @@ export default class Runner extends EventEmitter {
              */
             if (this._isMultiremote) {
                 _setGlobal('multiremotebrowser', this._browser, config.injectGlobals)
+                _setGlobal('multiRemoteBrowser', this._browser, config.injectGlobals)
             }
         } catch (error: any) {
             log.error(error)
@@ -440,15 +442,15 @@ export default class Runner extends EventEmitter {
         /**
          * make sure instance(s) exist and have `sessionId`
          */
-        const multiremoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
+        const multiRemoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
         const browser = this._browser as WebdriverIO.Browser
         const hasSessionId = Boolean(this._browser) && (this._isMultiremote
             /**
              * every multiremote instance should exist and should have `sessionId`
              */
-            ? !multiremoteBrowser.instances.some((browserName: string) => (
-                multiremoteBrowser.getInstance(browserName) &&
-                !multiremoteBrowser.getInstance(browserName).sessionId)
+            ? !multiRemoteBrowser.instances.some((browserName: string) => (
+                multiRemoteBrowser.getInstance(browserName) &&
+                !multiRemoteBrowser.getInstance(browserName).sessionId)
             )
 
             /**
@@ -480,9 +482,9 @@ export default class Runner extends EventEmitter {
          */
         const capabilities = (this._browser?.capabilities as WebdriverIO.Capabilities) || ({} as Capabilities.RequestedMultiremoteCapabilities)
         if (this._isMultiremote) {
-            const multiremoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
-            multiremoteBrowser.instances.forEach((browserName: string) => {
-                (capabilities as Capabilities.RequestedMultiremoteCapabilities)[browserName] = multiremoteBrowser.getInstance(browserName).capabilities as any
+            const multiRemoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
+            multiRemoteBrowser.instances.forEach((browserName: string) => {
+                (capabilities as Capabilities.RequestedMultiremoteCapabilities)[browserName] = multiRemoteBrowser.getInstance(browserName).capabilities as any
             })
         }
 
@@ -497,9 +499,9 @@ export default class Runner extends EventEmitter {
          * delete session(s)
          */
         if (this._isMultiremote) {
-            multiremoteBrowser.instances.forEach((browserName: string) => {
+            multiRemoteBrowser.instances.forEach((browserName: string) => {
                 // @ts-ignore sessionId is usually required
-                delete multiremoteBrowser.getInstance(browserName).sessionId
+                delete multiRemoteBrowser.getInstance(browserName).sessionId
             })
         } else if (browser) {
             browser.sessionId = undefined as unknown as string

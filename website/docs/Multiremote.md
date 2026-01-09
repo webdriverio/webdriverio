@@ -252,6 +252,6 @@ declare namespace WebdriverIO {
 Now you can access the drivers directly via, e.g.:
 
 ```ts
-multiremotebrowser.myAppiumDriver.$$(...)
-multiremotebrowser.myChromeDriver.$(...)
+multiRemoteBrowser.myAppiumDriver.$$(...)
+multiRemoteBrowser.myChromeDriver.$(...)
 ```

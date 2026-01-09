@@ -105,4 +105,4 @@ export default class BStackCleanup {
     }
 }
 
-await BStackCleanup.startCleanup()
+void BStackCleanup.startCleanup()
