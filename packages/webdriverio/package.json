@@ -48,7 +48,8 @@
   "exports": {
     ".": {
       "types": "./build/index.d.ts",
-      "browser": "./build/index.js",
+      "browserSource": "./src/browser.ts",
+      "browser": "./build/browser.js",
       "importSource": "./src/node.ts",
       "import": "./build/node.js",
       "requireSource": "./src/index.cts",
