@@ -110,7 +110,7 @@ export default class SauceService implements Services.ServiceInstance {
         /**
          * in jasmine we get Jasmine__TopLevel__Suite as title since service using test
          * framework hooks in order to execute async functions.
-         * This tweak allows us to set the real suite name for jasmine jobs.
+         * This  tweak allows us to set the real suite name for jasmine jobs.
          */
         /* istanbul ignore if */
         /* istanbul ignore if */
