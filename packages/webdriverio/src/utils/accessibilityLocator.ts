@@ -27,6 +27,17 @@ export interface AccessibilitySelector {
     role?: string
 }
 
+/**
+ * BiDi node information for typing accessibility results
+ */
+interface BiDiNodeInfo {
+    sharedId?: string
+    value?: {
+        attributes?: Record<string, string>
+        localName?: string
+    }
+}
+
 export interface AccessibilityOptions {
     strict?: boolean | 'warn'
     candidateCap?: number
@@ -38,7 +49,11 @@ export interface AccessibilityOptions {
  */
 export function parseAccessibilitySelector(value: string): AccessibilitySelector {
     try {
-        return JSON.parse(value) as AccessibilitySelector
+        const parsed = JSON.parse(value)
+        if (!parsed || typeof parsed !== 'object' || !parsed.name) {
+            return { name: value }
+        }
+        return parsed as AccessibilitySelector
     } catch {
         // Fallback for simple name-only format
         return { name: value }
@@ -46,7 +61,7 @@ export function parseAccessibilitySelector(value: string): AccessibilitySelector
 }
 
 /**
- * Main accessibility element lookup with three-tier fallback
+ * Main accessibility element lookup with two-tier fallback
  */
 export async function findAccessibilityElement(
     this: WebdriverIO.Browser | WebdriverIO.Element,
@@ -71,7 +86,7 @@ export async function findAccessibilityElement(
                 return result
             }
         } catch (err) {
-            log.debug(`Tier 1 (BiDi) failed: ${err}, falling back to Tier 2/3`)
+            log.debug(`Tier 1 (BiDi) failed: ${err}, falling back to Tier 2`)
         }
     }
 
@@ -85,7 +100,7 @@ export async function findAccessibilityElement(
         )
         return result
     } catch (err) {
-        log.warn(`Tier 3 (In-Page) failed: ${err}`)
+        log.warn(`Tier 2 (In-Page) failed: ${err}`)
         return new Error(`Couldn't find element with accessibility selector "${JSON.stringify(selector)}"`)
     }
 }
@@ -123,12 +138,11 @@ async function findAccessibilityElementBidi(
 
         // Strict mode check
         if (strict && result.nodes.length > 1) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const descriptors = result.nodes.slice(0, 3).map((n: any) =>
+            const descriptors = result.nodes.slice(0, 3).map((n: BiDiNodeInfo) =>
                 n.value?.attributes?.id || n.value?.localName || 'element'
             )
             const error = new StrictSelectorError(
-                `accessibility/${selector.name}${selector.role ? `[role=${selector.role}]` : ''}`,
+                `a11y/${selector.name}${selector.role ? `[role=${selector.role}]` : ''}`,
                 result.nodes.length,
                 descriptors
             )
@@ -156,7 +170,7 @@ async function findAccessibilityElementBidi(
 }
 
 /**
- * Tier 3: In-page accessibility lookup using injected script
+ * Tier 2: In-page accessibility lookup using injected script
  */
 async function findAccessibilityElementInPage(
     this: WebdriverIO.Browser | WebdriverIO.Element,
@@ -202,7 +216,7 @@ async function findAccessibilityElementInPage(
     // Strict mode check
     if (strict && result.elements.length > 1) {
         const error = new StrictSelectorError(
-            `accessibility/${selector.name}${selector.role ? `[role=${selector.role}]` : ''}`,
+            `a11y/${selector.name}${selector.role ? `[role=${selector.role}]` : ''}`,
             result.elements.length,
             result.descriptors || []
         )
@@ -219,7 +233,7 @@ async function findAccessibilityElementInPage(
 
 /**
  * Find all accessibility elements (for $$ command)
- * Uses Tier 3 (in-page) only since BiDi/CDP would need different handling for multi-element
+ * Uses Tier 2 (in-page) only since BiDi/CDP would need different handling for multi-element
  */
 export async function findAccessibilityElements(
     this: WebdriverIO.Browser | WebdriverIO.Element,
@@ -273,7 +287,7 @@ export async function findAccessibilityElements(
  * This avoids the architectural issue of non-standard using='accessibility' leaking
  */
 export function parseAccessibilitySelectorString(selector: string): AccessibilitySelector | null {
-    const ACCESSIBILITY_PREFIX = 'accessibility/'
+    const ACCESSIBILITY_PREFIX = 'a11y/'
     if (!selector.startsWith(ACCESSIBILITY_PREFIX)) {
         return null
     }

@@ -4,17 +4,17 @@ import { StrictSelectorError } from '../src/errors/StrictSelectorError.js'
 
 describe('parseAccessibilitySelectorString', () => {
     it('should parse accessibility selector with name only', () => {
-        const result = parseAccessibilitySelectorString('accessibility/Submit')
+        const result = parseAccessibilitySelectorString('a11y/Submit')
         expect(result).toEqual({ name: 'Submit' })
     })
 
     it('should parse accessibility selector with name and role', () => {
-        const result = parseAccessibilitySelectorString('accessibility/Submit[role=button]')
+        const result = parseAccessibilitySelectorString('a11y/Submit[role=button]')
         expect(result).toEqual({ name: 'Submit', role: 'button' })
     })
 
     it('should handle accessibility selector with spaces in name', () => {
-        const result = parseAccessibilitySelectorString('accessibility/Click here to continue')
+        const result = parseAccessibilitySelectorString('a11y/Click here to continue')
         expect(result).toEqual({ name: 'Click here to continue' })
     })
 
@@ -25,17 +25,17 @@ describe('parseAccessibilitySelectorString', () => {
     })
 
     it('should handle role with special characters', () => {
-        const result = parseAccessibilitySelectorString('accessibility/Login[role=menuitem]')
+        const result = parseAccessibilitySelectorString('a11y/Login[role=menuitem]')
         expect(result).toEqual({ name: 'Login', role: 'menuitem' })
     })
 
     it('should handle name with brackets that are not role', () => {
-        const result = parseAccessibilitySelectorString('accessibility/Item (1)')
+        const result = parseAccessibilitySelectorString('a11y/Item (1)')
         expect(result).toEqual({ name: 'Item (1)' })
     })
 
     it('should handle empty name after prefix', () => {
-        const result = parseAccessibilitySelectorString('accessibility/')
+        const result = parseAccessibilitySelectorString('a11y/')
         expect(result).toEqual({ name: '' })
     })
 })
@@ -59,9 +59,9 @@ describe('parseAccessibilitySelector (JSON parsing)', () => {
 
 describe('StrictSelectorError', () => {
     it('should create error with correct message', () => {
-        const error = new StrictSelectorError('accessibility/Submit', 3, ['button#a', 'button#b', 'button#c'])
+        const error = new StrictSelectorError('a11y/Submit', 3, ['button#a', 'button#b', 'button#c'])
         expect(error.name).toBe('StrictSelectorError')
-        expect(error.selector).toBe('accessibility/Submit')
+        expect(error.selector).toBe('a11y/Submit')
         expect(error.count).toBe(3)
         expect(error.descriptors).toEqual(['button#a', 'button#b', 'button#c'])
         expect(error.message).toContain('Strict mode violation')
@@ -69,7 +69,7 @@ describe('StrictSelectorError', () => {
     })
 
     it('should include up to 3 descriptors in message', () => {
-        const error = new StrictSelectorError('accessibility/Item', 5, ['desc1', 'desc2', 'desc3', 'desc4', 'desc5'])
+        const error = new StrictSelectorError('a11y/Item', 5, ['desc1', 'desc2', 'desc3', 'desc4', 'desc5'])
         expect(error.message).toContain('desc1, desc2, desc3')
         expect(error.message).not.toContain('desc4')
         expect(error.message).not.toContain('desc5')
@@ -95,7 +95,7 @@ describe('Regression: Existing selectors still work', () => {
         expect(result.value).toContain('aria-label')
     })
 
-    it('accessibility/ prefix should not affect regular CSS selectors', async () => {
+    it('a11y/ prefix should not affect regular CSS selectors', async () => {
         const { findStrategy } = await import('../src/utils/findStrategy.js')
         // Regular CSS that happens to contain "accessibility"
         const result = findStrategy('.accessibility-button')
@@ -103,7 +103,7 @@ describe('Regression: Existing selectors still work', () => {
         expect(result.value).toBe('.accessibility-button')
     })
 
-    it('accessibility/ prefix should not affect ID selectors', async () => {
+    it('a11y/ prefix should not affect ID selectors', async () => {
         const { findStrategy } = await import('../src/utils/findStrategy.js')
         const result = findStrategy('#accessibility-panel')
         expect(result.using).toBe('css selector')

@@ -45,7 +45,7 @@ function computeAccessibleName(el: HTMLElement): string {
         const input = el as HTMLInputElement
         // Check for label[for]
         if (input.id) {
-            const label = document.querySelector(`label[for="${input.id}"]`)
+            const label = document.querySelector(`label[for="${CSS.escape(input.id)}"]`)
             if (label) {return label.textContent?.trim() || ''}
         }
         // Check for ancestor label
@@ -214,7 +214,7 @@ function generateCandidates(root: HTMLElement | Document, role?: string): HTMLEl
 
     // If role is specified, prioritize elements with that role
     if (role) {
-        selectors.unshift(`[role="${role}"]`)
+        selectors.unshift(`[role="${CSS.escape(role)}"]`)
     }
 
     // Use a Set to avoid duplicates

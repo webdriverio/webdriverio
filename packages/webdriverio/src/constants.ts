@@ -90,7 +90,7 @@ export const DRIVER_DEFAULT_ENDPOINT = {
 export const FF_REMOTE_DEBUG_ARG = '-remote-debugging-port'
 export const DEEP_SELECTOR = '>>>'
 export const ARIA_SELECTOR = 'aria/'
-export const ACCESSIBILITY_SELECTOR = 'accessibility/'
+export const ACCESSIBILITY_SELECTOR = 'a11y/'
 
 export const ERROR_REASON = [
     'Failed', 'Aborted', 'TimedOut', 'AccessDenied', 'ConnectionClosed',
