@@ -3,6 +3,10 @@
  * Supports conversion to: Accessibility ID, iOS Predicate String, and iOS Class Chain.
  */
 
+import logger from '@wdio/logger'
+
+const log = logger('@wdio/appium-service')
+
 /**
  * Result of XPath conversion attempt
  */
@@ -145,8 +149,9 @@ async function convertXPathToOptimizedSelectorDynamic(
         }
 
         return staticResult
-    } catch {
+    } catch (error) {
         // If dynamic analysis fails, fall back to static result
+        log.debug(`Dynamic XPath analysis failed, falling back to static conversion: ${error instanceof Error ? error.message : String(error)}`)
         return staticResult
     }
 }
@@ -342,8 +347,9 @@ function isSelectorUniqueInPageSource(selector: string, pageSource: string): boo
             return countMatchingElementsByClassChain(chainString, pageSource) === 1
         }
         return false
-    } catch {
+    } catch (error) {
         // If parsing fails, consider it not unique
+        log.debug(`Selector uniqueness check failed: ${error instanceof Error ? error.message : String(error)}`)
         return false
     }
 }

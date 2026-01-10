@@ -410,6 +410,48 @@ export const config = {
 }
 ```
 
+### Console Output and Logging
+
+The Mobile Selector Performance Optimizer uses two types of output:
+
+1. **Console output** (`console.log`): Detailed step-by-step optimization information is printed to the console based on the configuration:
+
+   **When `replaceWithOptimizedSelector: false` (tracking mode):**
+   - Console logs are **always** printed, regardless of log level
+   - Shows performance timing for each selector
+   - Displays potential optimized selector suggestions
+   - Outputs warnings if any issues occur during optimization
+
+   **When `replaceWithOptimizedSelector: true` (validation mode):**
+   - Console logs are printed **only when `logLevel` is NOT `silent`**
+   - Shows detailed optimization steps:
+     - Research steps for each selector
+     - Performance timing measurements (original vs optimized)
+     - Testing of optimized selectors
+     - Comparison and improvement metrics
+   - Debug logs are shown for non-accessibility ID selectors (when not silent)
+   - **Warnings are always shown** regardless of log level
+
+2. **Logger output** (`@wdio/logger`): Standard log messages (info, warn, error, debug) that respect your WebdriverIO log level configuration. These include:
+   - Feature initialization messages
+   - Platform warnings (Android, MultiRemote)
+   - Error messages
+   - Debug information (when log level is set to `debug`)
+
+To reduce console output when using `replaceWithOptimizedSelector: true`, you can set the WebdriverIO log level to `silent`:
+
+```js
+export const config = {
+    // ...
+    logLevel: 'silent',  // Silences step-by-step console output during optimization validation
+    // ...
+}
+```
+
+**Note:**
+- When `logLevel` is `silent` and `replaceWithOptimizedSelector: true`, detailed optimization steps will not be printed, but warnings and the final report will still be generated.
+- When `replaceWithOptimizedSelector: false`, console logs are always printed regardless of log level, as this is the tracking-only mode.
+
 ### How It Works
 
 #### During Test Execution
@@ -605,8 +647,9 @@ The report is saved as a JSON file in the specified `reportPath` (or default loc
 
 - ✅ **iOS**: Fully supported and optimized
 - ⚠️ **Android**: Currently disabled (support coming in a future release)
+- ⚠️ **MultiRemote**: Not supported yet (feature is automatically disabled for MultiRemote sessions)
 
-When running on Android, the service will log a message indicating it's disabled and skip optimization.
+When running on Android or with MultiRemote, the service will log a warning message indicating it's disabled and skip optimization.
 
 ----
 

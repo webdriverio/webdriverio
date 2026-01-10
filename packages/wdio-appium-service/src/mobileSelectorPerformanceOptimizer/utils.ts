@@ -1,11 +1,14 @@
 import path from 'node:path'
 import { SevereServiceError } from 'webdriverio'
+import logger from '@wdio/logger'
 import type { Frameworks, Options, Reporters } from '@wdio/types'
 import type { XPathConversionResult } from './xpath-utils.js'
 import { convertXPathToOptimizedSelector } from './xpath-utils.js'
 import type { TestContext, CommandTiming, SelectorPerformanceData } from './types.js'
 import type { AppiumServiceConfig } from '../types.js'
 import { addPerformanceData } from './mspo-store.js'
+
+const log = logger('@wdio/appium-service')
 
 export const LOG_PREFIX = 'Mobile Selector Performance'
 export const INDENT_LEVEL_1 = '  '
@@ -237,17 +240,46 @@ export function buildTestContext(test?: Frameworks.Test, testFile?: string): Tes
 }
 
 /**
- * Checks if a selector is an XPath selector
+ * Checks if a selector is an XPath selector.
+ * Uses pattern matching to distinguish XPath from CSS selectors.
+ *
+ * XPath patterns detected:
+ * - Absolute path: /html, //div, //*
+ * - Relative path: ./div, ../parent
+ * - Descendant any: asterisk followed by slash, e.g. asterisk/child
+ * - Grouped expressions: (//div)[1] - must contain XPath-like content
+ *
+ * Not XPath (CSS selectors):
+ * - Pseudo-selectors starting with (: e.g., (:has(...))
+ * - Class selectors: .class
+ * - ID selectors: #id
+ * - Tag selectors: div, button
  */
 export function isXPathSelector(selector: unknown): selector is string {
     if (typeof selector !== 'string') {
         return false
     }
-    return selector.startsWith('/') ||
-           selector.startsWith('(') ||
-           selector.startsWith('../') ||
-           selector.startsWith('./') ||
-           selector.startsWith('*/')
+
+    // Check for clear XPath patterns
+    if (selector.startsWith('/') ||      // Absolute or descendant path: /html, //div
+        selector.startsWith('../') ||    // Parent path
+        selector.startsWith('./') ||     // Current context path
+        selector.startsWith('*/')) {     // Descendant any type
+        return true
+    }
+
+    // Check for grouped XPath expressions: (//...) or (/...) but not CSS pseudo-selectors like (:has)
+    if (selector.startsWith('(')) {
+        // Must contain XPath-like content (/ after opening paren or within)
+        // CSS pseudo-selectors start with (: like (:has, (:is, etc.
+        if (selector.startsWith('(:')) {
+            return false
+        }
+        // Check if it looks like grouped XPath: (//...), (/...), or contains XPath operators
+        return selector.includes('/') || selector.includes('@')
+    }
+
+    return false
 }
 
 /**
@@ -270,9 +302,8 @@ export function isNativeContext(browser?: WebdriverIO.Browser | WebdriverIO.Mult
 
         // For MultiRemote, we need to check each browser instance
         if ('instances' in browser && Array.isArray(browser.instances)) {
-            // MultiRemote case - check if any instance is in native context
-            // For now, we'll check the first instance or return false
-            // This could be enhanced to check all instances
+            // MultiRemote is not supported yet - log warning and disable
+            log.warn('Mobile Selector Performance Optimizer does not support MultiRemote sessions yet. Feature disabled for this session.')
             return false
         }
 
@@ -619,7 +650,7 @@ export function logOptimizationConclusion(
         console.log(`⚠️ [${LOG_PREFIX}: Conclusion] Optimized selector is ${Math.abs(timeDifference).toFixed(2)}ms slower than XPath`)
         console.log(`${INDENT_LEVEL_1}💡 [${LOG_PREFIX}: Advice] There is no improvement in performance, consider using the original selector '${formattedOriginal}' if performance is critical. If performance is not critical, you can use the optimized selector ${quoteStyle}${formattedOptimized}${quoteStyle} for better stability.`)
     } else {
-        console.log('📊 [${LOG_PREFIX}: Conclusion] Optimized selector has the same performance as XPath')
+        console.log(`📊 [${LOG_PREFIX}: Conclusion] Optimized selector has the same performance as XPath`)
         console.log(`${INDENT_LEVEL_1}💡 [${LOG_PREFIX}: Advice] There is no improvement in performance, consider using the original selector '${formattedOriginal}' if performance is critical. If performance is not critical, you can use the optimized selector ${quoteStyle}${formattedOptimized}${quoteStyle} for better stability.`)
     }
 }
