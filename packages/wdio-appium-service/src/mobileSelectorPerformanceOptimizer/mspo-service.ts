@@ -54,7 +54,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             if (typeof trackConfig !== 'object' || Array.isArray(trackConfig)) {
                 throw new SevereServiceError(
                     'trackSelectorPerformance must be an object. ' +
-                    'Expected format: { enabled: boolean, usePageSource?: boolean, replaceWithOptimizedSelector?: boolean }'
+                    'Expected format: { enabled: boolean, usePageSource?: boolean, replaceWithOptimizedSelector?: boolean, enableReporter?: boolean, reportPath?: string, maxLineLength?: number }'
                 )
             }
             this._enabled = trackConfig.enabled === true
@@ -62,7 +62,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             this._replaceWithOptimized = trackConfig.replaceWithOptimizedSelector !== undefined ? trackConfig.replaceWithOptimizedSelector === true : true
             this._enableReporter = trackConfig.enableReporter !== undefined ? trackConfig.enableReporter === true : true
 
-            if (this._enabled) {
+            if (this._enabled && this._enableReporter) {
                 this._reportDirectory = determineReportDirectory(
                     trackConfig.reportPath,
                     this._config,
@@ -78,7 +78,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
         _capabilities: never,
         _specs: never
     ) {
-        if (this._enabled && config) {
+        if (this._enabled && this._enableReporter && config) {
             if (!config.reporters) {
                 config.reporters = []
             }
@@ -265,7 +265,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
     }
 
     async afterSession() {
-        if (!this._enabled) {
+        if (!this._enabled || !this._enableReporter) {
             return
         }
 
