@@ -149,9 +149,8 @@ export interface AppiumServiceConfig {
     /**
      * Enable selector performance tracking to measure element finding times.
      * When enabled, tracks all element-finding commands and stores timing data in JSON format.
-     * @default false
      */
-    trackSelectorPerformance?: boolean | {
+    trackSelectorPerformance?: {
         /**
          * Enable selector performance tracking
          * @default false

@@ -114,7 +114,7 @@ describe('SelectorPerformanceService', () => {
 
         test('should throw error when trackSelectorPerformance is not an object', () => {
             const expectedError = 'trackSelectorPerformance must be an object. ' +
-                'Expected format: { enabled: boolean, usePageSource?: boolean, replaceWithOptimizedSelector?: boolean }'
+                'Expected format: { enabled: boolean, usePageSource?: boolean, replaceWithOptimizedSelector?: boolean, enableReporter?: boolean, reportPath?: string, maxLineLength?: number }'
 
             expect(() => {
                 new SelectorPerformanceService({ trackSelectorPerformance: 'invalid' as any }, mockConfig)
@@ -152,11 +152,12 @@ describe('SelectorPerformanceService', () => {
             expect(service['_enableReporter']).toBe(false)
         })
 
-        test('should call determineReportDirectory when enabled', () => {
+        test('should call determineReportDirectory when enabled and enableReporter is true', () => {
             const options = {
                 ...createDefaultOptions(),
                 trackSelectorPerformance: {
                     enabled: true,
+                    enableReporter: true,
                     reportPath: '/custom/path'
                 }
             }
@@ -168,6 +169,19 @@ describe('SelectorPerformanceService', () => {
             const options = {
                 trackSelectorPerformance: {
                     enabled: false
+                }
+            }
+            new SelectorPerformanceService(options, mockConfig)
+            expect(vi.mocked(utils.determineReportDirectory)).not.toHaveBeenCalled()
+        })
+
+        test('should not call determineReportDirectory when enableReporter is false', () => {
+            const options = {
+                ...createDefaultOptions(),
+                trackSelectorPerformance: {
+                    enabled: true,
+                    enableReporter: false,
+                    reportPath: '/custom/path'
                 }
             }
             new SelectorPerformanceService(options, mockConfig)
@@ -211,6 +225,23 @@ describe('SelectorPerformanceService', () => {
 
             await service.beforeSession(config, {} as never, [] as never)
 
+            expect(config.reporters).toHaveLength(0)
+        })
+
+        test('should not register reporter when enableReporter is false', async () => {
+            const options = {
+                ...createDefaultOptions(),
+                trackSelectorPerformance: {
+                    enabled: true,
+                    enableReporter: false
+                }
+            }
+            const service = new SelectorPerformanceService(options, mockConfig)
+            const config = { reporters: [] } as Options.Testrunner
+
+            await service.beforeSession(config, {} as never, [] as never)
+
+            expect(vi.mocked(utils.isReporterRegistered)).not.toHaveBeenCalled()
             expect(config.reporters).toHaveLength(0)
         })
 
@@ -313,6 +344,20 @@ describe('SelectorPerformanceService', () => {
     describe('afterSession', () => {
         test('should do nothing when service is disabled', async () => {
             const service = new SelectorPerformanceService({}, mockConfig)
+            await service.afterSession()
+            expect(fs.mkdirSync).not.toHaveBeenCalled()
+            expect(fs.writeFileSync).not.toHaveBeenCalled()
+        })
+
+        test('should do nothing when enableReporter is false', async () => {
+            const options = {
+                ...createDefaultOptions(),
+                trackSelectorPerformance: {
+                    enabled: true,
+                    enableReporter: false
+                }
+            }
+            const service = new SelectorPerformanceService(options, mockConfig)
             await service.afterSession()
             expect(fs.mkdirSync).not.toHaveBeenCalled()
             expect(fs.writeFileSync).not.toHaveBeenCalled()
