@@ -235,6 +235,30 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     }
 
     /**
+     * Forcefully kill the worker process.
+     * This is used when a worker doesn't respond to graceful shutdown
+     * (e.g., when a test times out with pending async operations).
+     *
+     * @param signal - The signal to send (default: 'SIGTERM', use 'SIGKILL' for force kill)
+     */
+    kill(signal: NodeJS.Signals = 'SIGTERM'): void {
+        if (!this.childProcess) {
+            log.debug(`Worker ${this.cid} has no child process to kill`)
+            return
+        }
+
+        log.info(`Killing worker ${this.cid} with ${signal}`)
+        try {
+            this.childProcess.kill(signal)
+        } catch (err) {
+            log.warn(`Failed to kill worker ${this.cid}:`, err)
+        }
+        delete this.childProcess
+        this.isBusy = false
+        this.isKilled = true
+    }
+
+    /**
      * sends message to sub process to execute functions in wdio-runner
      * @param  command  method to run in wdio-runner
      * @param  args     arguments for functions to call
