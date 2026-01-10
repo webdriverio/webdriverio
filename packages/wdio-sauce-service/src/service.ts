@@ -113,8 +113,10 @@ export default class SauceService implements Services.ServiceInstance {
          * This tweak allows us to set the real suite name for jasmine jobs.
          */
         /* istanbul ignore if */
-        if (this._suiteTitle === 'Jasmine__TopLevel__Suite') {
-            this._suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.description || '') - 1)
+        /* istanbul ignore if */
+        if (this._suiteTitle === 'Jasmine__TopLevel__Suite' && test.fullName) {
+            const descriptionIndex = test.fullName.indexOf(test.description || '')
+            this._suiteTitle = descriptionIndex > 0 ? test.fullName.slice(0, descriptionIndex - 1) : test.title || this._suiteTitle
         }
 
         if (this._browser && !this._isJobNameSet) {
