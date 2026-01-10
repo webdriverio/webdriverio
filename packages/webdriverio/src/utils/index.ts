@@ -452,10 +452,10 @@ export async function findElement(
      * do a deep lookup if
      * - we are using Bidi
      * - have a string selector
-     * - that is not a deep selector
+     * - that is not a deep selector or accessibility selector
      * - and we are not in an iframe (because it is currently not supported to locate nodes in an iframe via Bidi)
      */
-    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR) && !shadowRootManager.isWithinFrame()) {
+    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR) && !selector.startsWith(ACCESSIBILITY_SELECTOR) && !shadowRootManager.isWithinFrame()) {
         const notFoundError = new Error(`Couldn't find element with selector "${selector}"`)
         const elem = await findDeepElement.call(this, selector)
         return getElementFromResponse(elem) ? elem : notFoundError
@@ -470,9 +470,9 @@ export async function findElement(
         if (accessibilitySelector) {
             /* eslint-disable @typescript-eslint/no-explicit-any */
             const options = {
-                strict: (browserObject.options as any)?.accessibilityStrict ?? false,
-                candidateCap: (browserObject.options as any)?.accessibilityCandidateCap ?? 1000,
-                includeHidden: (browserObject.options as any)?.accessibilityIncludeHidden ?? false
+                a11yStrict: (browserObject.options as any)?.a11yStrict ?? (browserObject.options as any)?.accessibilityStrict ?? false,
+                a11yCandidateCap: (browserObject.options as any)?.a11yCandidateCap ?? (browserObject.options as any)?.accessibilityCandidateCap ?? 1000,
+                a11yIncludeHidden: (browserObject.options as any)?.a11yIncludeHidden ?? (browserObject.options as any)?.accessibilityIncludeHidden ?? false
             }
             /* eslint-enable @typescript-eslint/no-explicit-any */
             return findAccessibilityElement.call(this, accessibilitySelector, options)
@@ -589,8 +589,8 @@ export async function findElements(
         if (accessibilitySelector) {
             /* eslint-disable @typescript-eslint/no-explicit-any */
             const options = {
-                candidateCap: (browserObject.options as any)?.accessibilityCandidateCap ?? 1000,
-                includeHidden: (browserObject.options as any)?.accessibilityIncludeHidden ?? false
+                a11yCandidateCap: (browserObject.options as any)?.a11yCandidateCap ?? (browserObject.options as any)?.accessibilityCandidateCap ?? 1000,
+                a11yIncludeHidden: (browserObject.options as any)?.a11yIncludeHidden ?? (browserObject.options as any)?.accessibilityIncludeHidden ?? false
             }
             /* eslint-enable @typescript-eslint/no-explicit-any */
             return findAccessibilityElements.call(this, accessibilitySelector, options)

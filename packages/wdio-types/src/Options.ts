@@ -183,17 +183,30 @@ export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'before
      * multiple elements match the selector. Set to 'warn' to log a warning instead.
      * @default false
      */
-    accessibilityStrict?: false | 'warn' | true
+    a11yStrict?: false | 'warn' | true
     /**
      * Maximum number of candidates to process in Tier 3 (in-page) accessibility lookup.
      * If exceeded, a hint is logged to refine the selector.
      * @default 1000
      */
-    accessibilityCandidateCap?: number
+    a11yCandidateCap?: number
     /**
      * Include hidden elements (aria-hidden, display:none, etc.) in accessibility lookups.
      * Useful for offscreen-but-accessible elements.
      * @default false
+     */
+    a11yIncludeHidden?: boolean
+
+    /**
+     * @deprecated Use `a11yStrict` instead
+     */
+    accessibilityStrict?: false | 'warn' | true
+    /**
+     * @deprecated Use `a11yCandidateCap` instead
+     */
+    accessibilityCandidateCap?: number
+    /**
+     * @deprecated Use `a11yIncludeHidden` instead
      */
     accessibilityIncludeHidden?: boolean
 }

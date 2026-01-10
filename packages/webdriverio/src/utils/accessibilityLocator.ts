@@ -1,16 +1,15 @@
 /**
  * Accessibility Locator for computed accessibility selectors
  *
- * Strategy:
- * - Tier 1 (BiDi): Uses browsingContext.locateNodes with accessibility locator (preferred)
- * - Tier 2 (In-Page): Falls back to injected script with candidate generation + verification
+ * Uses in-page script execution (via BiDi `script.callFunction` or WebDriver Classic execute)
+ * to find elements by computed accessible name and/or role.
  *
  * Strictness:
  * - Default: false (returns first match, like document.querySelector)
  * - 'warn': Logs warning if multiple matches, returns first
  * - true: Throws StrictSelectorError if multiple matches (aligns with Playwright/Cypress)
  *
- * Note: In v10, the default will flip to `true` for stricter element selection.
+ * Note: BiDi does not yet support accessibility locators natively, so we use script execution.
  */
 import logger from '@wdio/logger'
 import { ELEMENT_KEY } from 'webdriver'
@@ -18,7 +17,6 @@ import type { ElementReference } from '@wdio/protocols'
 
 import { StrictSelectorError } from '../errors/StrictSelectorError.js'
 import computeAccessibilityScript from '../scripts/computeAccessibility.js'
-import { getContextManager } from '../session/context.js'
 
 const log = logger('webdriverio')
 
@@ -26,21 +24,15 @@ export interface AccessibilitySelector {
     name: string
     role?: string
 }
-
-/**
- * BiDi node information for typing accessibility results
- */
-interface BiDiNodeInfo {
-    sharedId?: string
-    value?: {
-        attributes?: Record<string, string>
-        localName?: string
-    }
-}
-
 export interface AccessibilityOptions {
+    a11yStrict?: boolean | 'warn'
+    a11yCandidateCap?: number
+    a11yIncludeHidden?: boolean
+    /** @deprecated Use check `a11yStrict` instead */
     strict?: boolean | 'warn'
+    /** @deprecated Use check `a11yCandidateCap` instead */
     candidateCap?: number
+    /** @deprecated Use check `a11yIncludeHidden` instead */
     includeHidden?: boolean
 }
 
@@ -61,36 +53,40 @@ export function parseAccessibilitySelector(value: string): AccessibilitySelector
 }
 
 /**
- * Main accessibility element lookup with two-tier fallback
+ * Main accessibility element lookup using in-page script execution
+ *
+ * Note: BiDi does not yet support accessibility locators natively.
+ * We use `browser.execute` which internally uses BiDi's `script.callFunction`.
  */
 export async function findAccessibilityElement(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: AccessibilitySelector,
     options: AccessibilityOptions = {}
 ): Promise<ElementReference | Error> {
-    const {
-        strict = false,
-        candidateCap = 1000,
-        includeHidden = false
+    let {
+        a11yStrict: strict = false,
+        a11yCandidateCap: candidateCap = 1000,
+        a11yIncludeHidden: includeHidden = false
     } = options
+
+    if (options.strict !== undefined) {
+        log.warn('The "strict" option is deprecated, please use "a11yStrict" instead')
+        if (options.a11yStrict === undefined) { strict = options.strict }
+    }
+    if (options.candidateCap !== undefined) {
+        log.warn('The "candidateCap" option is deprecated, please use "a11yCandidateCap" instead')
+        if (options.a11yCandidateCap === undefined) { candidateCap = options.candidateCap }
+    }
+    if (options.includeHidden !== undefined) {
+        log.warn('The "includeHidden" option is deprecated, please use "a11yIncludeHidden" instead')
+        if (options.a11yIncludeHidden === undefined) { includeHidden = options.includeHidden }
+    }
 
     const browser = 'sessionId' in this && !('elementId' in this)
         ? this as WebdriverIO.Browser
         : (this as WebdriverIO.Element).parent as WebdriverIO.Browser
 
-    // Tier 1: Try BiDi if available
-    if (browser.isBidi) {
-        try {
-            const result = await findAccessibilityElementBidi.call(this, browser, selector, strict)
-            if (result) {
-                return result
-            }
-        } catch (err) {
-            log.debug(`Tier 1 (BiDi) failed: ${err}, falling back to Tier 2`)
-        }
-    }
-
-    // Tier 2: In-page fallback (when BiDi is not available or fails)
+    // Use in-page script execution (BiDi-compatible via script.callFunction)
     try {
         const result = await findAccessibilityElementInPage.call(
             this,
@@ -100,77 +96,20 @@ export async function findAccessibilityElement(
         )
         return result
     } catch (err) {
-        log.warn(`Tier 2 (In-Page) failed: ${err}`)
+        if (err instanceof StrictSelectorError) {
+            throw err
+        }
+        log.warn(`Accessibility lookup failed: ${err}`)
         return new Error(`Couldn't find element with accessibility selector "${JSON.stringify(selector)}"`)
     }
 }
 
 /**
- * Tier 1: BiDi-based accessibility lookup
- */
-async function findAccessibilityElementBidi(
-    this: WebdriverIO.Browser | WebdriverIO.Element,
-    browser: WebdriverIO.Browser,
-    selector: AccessibilitySelector,
-    strict: boolean | 'warn'
-): Promise<ElementReference | null> {
-    // Get the current browsing context using context manager (not window handle)
-    const contextManager = getContextManager(browser)
-    const context = await contextManager.getCurrentContext()
-
-    try {
-        // Attempt to use accessibility locator with maxNodeCount: 2 for strict mode
-        const locator = {
-            type: 'accessibility' as const,
-            value: selector
-        }
-
-        const result = await browser.browsingContextLocateNodes({
-            context,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            locator: locator as any, // Type assertion needed as accessibility may not be in types yet
-            maxNodeCount: strict ? 2 : 1
-        })
-
-        if (!result.nodes || result.nodes.length === 0) {
-            return null
-        }
-
-        // Strict mode check
-        if (strict && result.nodes.length > 1) {
-            const descriptors = result.nodes.slice(0, 3).map((n: BiDiNodeInfo) =>
-                n.value?.attributes?.id || n.value?.localName || 'element'
-            )
-            const error = new StrictSelectorError(
-                `a11y/${selector.name}${selector.role ? `[role=${selector.role}]` : ''}`,
-                result.nodes.length,
-                descriptors
-            )
-            if (strict === 'warn') {
-                log.warn(error.message)
-            } else {
-                throw error
-            }
-        }
-
-        const node = result.nodes[0]
-        if (node.sharedId) {
-            return { [ELEMENT_KEY]: node.sharedId }
-        }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-        // If accessibility locator is not supported, this will fail
-        if (err instanceof StrictSelectorError) {
-            throw err
-        }
-        log.debug(`BiDi accessibility locator not supported: ${err.message}`)
-    }
-
-    return null
-}
-
-/**
- * Tier 2: In-page accessibility lookup using injected script
+ * Single-tier accessibility lookup using in-page script
+ *
+ * Note: Unlike standard locators (css, xpath), BiDi does not yet support
+ * accessibility locators natively. We use `browser.execute` which internally
+ * uses BiDi's `script.callFunction` for script execution.
  */
 async function findAccessibilityElementInPage(
     this: WebdriverIO.Browser | WebdriverIO.Element,
@@ -185,9 +124,9 @@ async function findAccessibilityElementInPage(
         ? { [ELEMENT_KEY]: (this as WebdriverIO.Element).elementId }
         : null
 
-    // Execute in-page script
+    // Execute in-page script using browser.execute (BiDi-compatible)
     // Note: When the script returns HTMLElements, WebDriver automatically serializes them
-    // to ElementReferences. We use `any` here because the types don't match the runtime behavior.
+    // to ElementReferences. We use `any` here because the types don't reflect runtime behavior.
     /* eslint-disable @typescript-eslint/no-explicit-any */
     const result = await browser.execute(
         computeAccessibilityScript as any,
@@ -218,7 +157,7 @@ async function findAccessibilityElementInPage(
         const error = new StrictSelectorError(
             `a11y/${selector.name}${selector.role ? `[role=${selector.role}]` : ''}`,
             result.elements.length,
-            result.descriptors || []
+            result.descriptors.slice(0, 3)
         )
         if (strict === 'warn') {
             log.warn(error.message)
@@ -227,8 +166,15 @@ async function findAccessibilityElementInPage(
         }
     }
 
-    // WebDriver serializes HTMLElements to ElementReferences automatically
-    return result.elements[0] as ElementReference
+    // Return the first matched element
+    // browser.execute returns HTMLElements which are auto-serialized to ElementReferences
+    const element = result.elements[0]
+    if (element && typeof element === 'object' && ELEMENT_KEY in element) {
+        return element as ElementReference
+    }
+
+    // Fallback: wrap in proper reference format if needed
+    return new Error(`Element found but could not be serialized: ${JSON.stringify(selector)}`)
 }
 
 /**
@@ -240,10 +186,19 @@ export async function findAccessibilityElements(
     selector: AccessibilitySelector,
     options: AccessibilityOptions = {}
 ): Promise<ElementReference[]> {
-    const {
-        candidateCap = 1000,
-        includeHidden = false
+    let {
+        a11yCandidateCap: candidateCap = 1000,
+        a11yIncludeHidden: includeHidden = false
     } = options
+
+    if (options.candidateCap !== undefined) {
+        log.warn('The "candidateCap" option is deprecated, please use "a11yCandidateCap" instead')
+        if (options.a11yCandidateCap === undefined) { candidateCap = options.candidateCap }
+    }
+    if (options.includeHidden !== undefined) {
+        log.warn('The "includeHidden" option is deprecated, please use "a11yIncludeHidden" instead')
+        if (options.a11yIncludeHidden === undefined) { includeHidden = options.includeHidden }
+    }
 
     const browser = 'sessionId' in this && !('elementId' in this)
         ? this as WebdriverIO.Browser
