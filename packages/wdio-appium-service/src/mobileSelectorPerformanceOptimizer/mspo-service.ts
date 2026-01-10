@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { SevereServiceError } from 'webdriverio'
@@ -145,7 +146,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             }
 
             const formattedSelector = formatSelectorForDisplay(selector)
-            const timingId = `${commandName}-${Date.now()}-${Math.random()}`
+            const timingId = crypto.randomUUID()
 
             this._commandTimings.set(timingId, {
                 startTime: getHighResTime(),
@@ -178,7 +179,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             if (matchingUserCommand) {
                 const [, userTiming] = matchingUserCommand
                 userTiming.selectorType = using
-                const timingId = `${commandName}-${Date.now()}-${Math.random()}`
+                const timingId = crypto.randomUUID()
                 this._commandTimings.set(timingId, {
                     startTime: getHighResTime(),
                     commandName: userTiming.commandName,

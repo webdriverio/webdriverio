@@ -18,6 +18,87 @@ import {
 } from './utils.js'
 
 /**
+ * Inference maps for resolving unknown test context fields.
+ * Built from data entries that have known values.
+ */
+interface InferenceMaps {
+    /** Maps "suiteName::testName" to testFile */
+    testFileInference: Map<string, string>
+    /** Maps "testFile::testName" to suiteName */
+    suiteNameInference: Map<string, string>
+}
+
+/**
+ * Builds inference maps from performance data entries that have known context values.
+ * These maps allow resolving unknown testFile or suiteName fields later.
+ *
+ * @param data - Array of selector performance data
+ * @returns Inference maps for testFile and suiteName resolution
+ */
+function buildInferenceMaps(data: SelectorPerformanceData[]): InferenceMaps {
+    const testFileInference = new Map<string, string>()
+    const suiteNameInference = new Map<string, string>()
+
+    for (const entry of data) {
+        if (entry.testFile && entry.testFile !== 'unknown' &&
+            entry.suiteName && entry.suiteName !== 'unknown' &&
+            entry.testName) {
+            // Map suiteName+testName -> testFile
+            const key1 = `${entry.suiteName}::${entry.testName}`
+            if (!testFileInference.has(key1)) {
+                testFileInference.set(key1, entry.testFile)
+            }
+            // Map testFile+testName -> suiteName
+            const key2 = `${entry.testFile}::${entry.testName}`
+            if (!suiteNameInference.has(key2)) {
+                suiteNameInference.set(key2, entry.suiteName)
+            }
+        }
+    }
+
+    return { testFileInference, suiteNameInference }
+}
+
+/**
+ * Applies inference maps to resolve unknown testFile or suiteName fields.
+ *
+ * @param testFile - Original test file (may be 'unknown')
+ * @param suiteName - Original suite name (may be 'unknown')
+ * @param testName - Test name
+ * @param inferenceMaps - Maps for resolving unknown fields
+ * @returns Tuple of [resolvedTestFile, resolvedSuiteName]
+ */
+function applyInference(
+    testFile: string,
+    suiteName: string,
+    testName: string,
+    inferenceMaps: InferenceMaps
+): [string, string] {
+    let resolvedTestFile = testFile
+    let resolvedSuiteName = suiteName
+
+    // Infer testFile from suiteName + testName
+    if (resolvedTestFile === 'unknown' && resolvedSuiteName !== 'unknown' && testName !== 'unknown') {
+        const key = `${resolvedSuiteName}::${testName}`
+        const inferred = inferenceMaps.testFileInference.get(key)
+        if (inferred) {
+            resolvedTestFile = inferred
+        }
+    }
+
+    // Infer suiteName from testFile + testName
+    if (resolvedSuiteName === 'unknown' && resolvedTestFile !== 'unknown' && testName !== 'unknown') {
+        const key = `${resolvedTestFile}::${testName}`
+        const inferred = inferenceMaps.suiteNameInference.get(key)
+        if (inferred) {
+            resolvedSuiteName = inferred
+        }
+    }
+
+    return [resolvedTestFile, resolvedSuiteName]
+}
+
+/**
  * Aggregates selector performance data from all worker files and generates a report
  * @param capabilities - The capabilities for this runner instance
  * @param maxLineLength - Maximum line length for report output
@@ -128,43 +209,16 @@ export async function aggregateSelectorPerformanceData(
  * Matches the structure of the terminal report
  */
 function groupDataBySpecFile(allData: SelectorPerformanceData[]): Record<string, Record<string, Record<string, SelectorPerformanceData[]>>> {
-    const testFileInference = new Map<string, string>()
-    const suiteNameInference = new Map<string, string>()
-
-    for (const data of allData) {
-        if (data.testFile && data.testFile !== 'unknown' && data.suiteName && data.suiteName !== 'unknown' && data.testName) {
-            const key1 = `${data.suiteName}::${data.testName}`
-            if (!testFileInference.has(key1)) {
-                testFileInference.set(key1, data.testFile)
-            }
-            const key2 = `${data.testFile}::${data.testName}`
-            if (!suiteNameInference.has(key2)) {
-                suiteNameInference.set(key2, data.suiteName)
-            }
-        }
-    }
+    const inferenceMaps = buildInferenceMaps(allData)
 
     const processedData = allData.map(data => {
-        let testFile = data.testFile || 'unknown'
-        let suiteName = data.suiteName || 'unknown'
         const testName = data.testName || 'unknown'
-
-        if (testFile === 'unknown' && suiteName !== 'unknown' && testName !== 'unknown') {
-            const key = `${suiteName}::${testName}`
-            const inferred = testFileInference.get(key)
-            if (inferred) {
-                testFile = inferred
-            }
-        }
-
-        if (suiteName === 'unknown' && testFile !== 'unknown' && testName !== 'unknown') {
-            const key = `${testFile}::${testName}`
-            const inferred = suiteNameInference.get(key)
-            if (inferred) {
-                suiteName = inferred
-            }
-        }
-
+        const [testFile, suiteName] = applyInference(
+            data.testFile || 'unknown',
+            data.suiteName || 'unknown',
+            testName,
+            inferenceMaps
+        )
         return { ...data, testFile, suiteName }
     })
 
@@ -178,7 +232,7 @@ function groupDataBySpecFile(allData: SelectorPerformanceData[]): Record<string,
         // If we have an "unknown" suite but there's a known suite for this test file + test name, use that
         if (suiteName === 'unknown' && specFile !== 'unknown' && testName !== 'unknown') {
             const key = `${specFile}::${testName}`
-            const inferred = suiteNameInference.get(key)
+            const inferred = inferenceMaps.suiteNameInference.get(key)
             if (inferred) {
                 suiteName = inferred
             }
@@ -212,7 +266,7 @@ function groupDataBySpecFile(allData: SelectorPerformanceData[]): Record<string,
 
                 for (const testName of testNames) {
                     const key = `${specFile}::${testName}`
-                    const knownSuiteName = suiteNameInference.get(key)
+                    const knownSuiteName = inferenceMaps.suiteNameInference.get(key)
 
                     if (knownSuiteName && suites[knownSuiteName]) {
                         if (!suites[knownSuiteName][testName]) {
@@ -460,45 +514,19 @@ function generateGroupedSummaryReport(
         isNegative?: boolean
     }
 
-    const testFileInference = new Map<string, string>()
-    const suiteNameInference = new Map<string, string>()
-    for (const data of optimizedSelectors) {
-        if (data.testFile && data.testFile !== 'unknown' && data.suiteName && data.suiteName !== 'unknown' && data.testName) {
-            const key1 = `${data.suiteName}::${data.testName}`
-            if (!testFileInference.has(key1)) {
-                testFileInference.set(key1, data.testFile)
-            }
-            const key2 = `${data.testFile}::${data.testName}`
-            if (!suiteNameInference.has(key2)) {
-                suiteNameInference.set(key2, data.suiteName)
-            }
-        }
-    }
+    const inferenceMaps = buildInferenceMaps(optimizedSelectors)
 
     const allProcessedSelectors = [...positiveOptimizations, ...negativeOptimizations]
 
     const processedSelectors = allProcessedSelectors.map(data => {
-        let testFile = data.testFile || 'unknown'
-        let suiteName = data.suiteName || 'unknown'
         const testName = data.testName || 'unknown'
         const isNegative = (data.improvementMs || 0) <= 0 || (data.improvementPercent || 0) <= 0
-
-        if (testFile === 'unknown' && suiteName !== 'unknown' && testName !== 'unknown') {
-            const key = `${suiteName}::${testName}`
-            const inferred = testFileInference.get(key)
-            if (inferred) {
-                testFile = inferred
-            }
-        }
-
-        if (suiteName === 'unknown' && testFile !== 'unknown' && testName !== 'unknown') {
-            const key = `${testFile}::${testName}`
-            const inferred = suiteNameInference.get(key)
-            if (inferred) {
-                suiteName = inferred
-            }
-        }
-
+        const [testFile, suiteName] = applyInference(
+            data.testFile || 'unknown',
+            data.suiteName || 'unknown',
+            testName,
+            inferenceMaps
+        )
         return { ...data, testFile, suiteName, isNegative }
     })
 
@@ -607,7 +635,7 @@ function generateGroupedSummaryReport(
 
                 for (const testName of testNames) {
                     const key = `${testFile}::${testName}`
-                    const knownSuiteName = suiteNameInference.get(key)
+                    const knownSuiteName = inferenceMaps.suiteNameInference.get(key)
 
                     if (knownSuiteName && suiteMap.has(knownSuiteName)) {
                         const knownSuite = suiteMap.get(knownSuiteName)!
