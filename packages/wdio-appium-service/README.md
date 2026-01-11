@@ -612,94 +612,118 @@ The report is saved as a JSON file in the specified `reportPath` (or default loc
 ═══════════════════════════════════════════════════════════════════════════════
    Device: iPhone 16 Pro
    Total selectors analyzed: 20
-   Positive optimizations found: 20
-   Average improvement: 29.6% faster
-   Total time saved: 1096.03ms (1.10s) per test run
+   Positive optimizations found: 19
+   Average improvement: 31.3% faster
+   Total time saved: 1359.45ms (1.36s) per test run
    Impact breakdown: 1 high (>50%), 15 medium (20-50%), 1 low (10-20%), 1 minor (<10%)
 
 🏆 Top 10 Most Impactful Optimizations
 ───────────────────────────────────────────────────────────────────────────
-   1. $('//*[@name="Home"]') → $("~Home") (7.9% faster, 92.06ms saved) ⚠️ (shared)
-   2. $('//*[@name="OK"]') → $("~OK") (31.4% faster, 46.14ms saved)
-   3. $('//*[@name="Swipe-screen"]') → $("~Swipe-screen") (24.3% faster, 40.36ms saved)
-   4. $('//*[@name="button-biometric"]') → $("~button-biometric") (31.6% faster, 37.02ms saved) ⚠️
+   1. $('//*[@name="Home"]') → $("~Home") (56.0% faster, 60.87ms saved) ⚠️ (shared)
+      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
+   2. $('//*[@name="OK"]') → $("~OK") (29.7% faster, 33.76ms saved)
+   3. $('//*[@name="Swipe-screen"]') → $("~Swipe-screen") (25.0% faster, 32.25ms saved)
+      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/SwipeScreen.ts:2
+   4. $('//*[@name="Drag-drop-screen"]') → $("~Drag-drop-screen") (27.4% faster, 27.04ms saved)
+      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/DragScreen.ts:5
+   5. $('//*[@name="Forms-screen"]') → $("~Forms-screen") (25.7% faster, 25.98ms saved)
+      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/FormsScreen.ts:4
+   6. $('//XCUIElementTypeAlert') → $("-ios predicate string:type == 'XCUIElementTypeAlert'") (20.4% 
+      faster, 22.97ms saved) ⚠️ (shared)
+      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/NativeAlert.ts:8
+   7. $('//*[@name="button-biometric"]') → $("~button-biometric") (26.6% faster, 22.77ms saved) ⚠️ 
       (shared)
-   5. $('//*[@name="Drag-drop-screen"]') → $("~Drag-drop-screen") (29.7% faster, 36.82ms saved)
-   6. $('//*[@name="Login-screen"]') → $("~Login-screen") (27.7% faster, 33.67ms saved) ⚠️ (shared)
-   7. $('//*[@name="Forms-screen"]') → $("~Forms-screen") (24.2% faster, 30.28ms saved)
-   8. $('//*[@name="button-login-container"]') → $("~button-login-container") (28.5% faster,
-      29.26ms saved)
-   9. $('//XCUIElementTypeAlert') → $("-ios predicate string:type == 'XCUIElementTypeAlert'") (17.8%
-      faster, 23.70ms saved) ⚠️ (shared)
-   10. $('//*[@name="Home-screen"]') → $("~Home-screen") (24.9% faster, 20.21ms saved)
+      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:20
+   8. $('//*[@name="Login-screen"]') → $("~Login-screen") (23.4% faster, 21.28ms saved) ⚠️ (shared)
+      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:4
+   9. $('//*[@name="Login"]') → $("~Login") (29.9% faster, 19.65ms saved)
+      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:11
+   10. $('//*[@name="Home-screen"]') → $("~Home-screen") (25.5% faster, 17.60ms saved)
+      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/HomeScreen.ts:5
 
 ⚡ Quick Wins (Shared Selectors with High Impact)
 ───────────────────────────────────────────────────────────────────────────
    These selectors appear in multiple tests and have high improvement. Fix once, benefit everywhere!
-   • $('//*[@name="Home"]') → $("~Home") (51.4% faster, appears in 7 test(s))
-     → Search in: page-objects/**/*.ts or helpers/**/*.ts
-   • $('//*[@name="button-biometric"]') → $("~button-biometric") (31.6% faster, appears in 2
+   • $('//*[@name="Home"]') → $("~Home") (56.0% faster, appears in 7 test(s))
+     📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
+   • $('//*[@name="button-biometric"]') → $("~button-biometric") (26.6% faster, appears in 2 
      test(s))
-     → Search in: page-objects/**/*.ts or helpers/**/*.ts
-   • $('//*[@name="Login-screen"]') → $("~Login-screen") (23.1% faster, appears in 2 test(s))
-     → Search in: page-objects/**/*.ts or helpers/**/*.ts
+     📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:20
+   • $('//*[@name="Login-screen"]') → $("~Login-screen") (22.4% faster, appears in 2 test(s))
+     📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:4
 
 📋 All Actions Required - Grouped by Test
 ───────────────────────────────────────────────────────────────────────────
    📁 tests/specs/app.biometric.login.spec.ts
       📦 Suite: "WebdriverIO and Appium, when interacting with a biometric button,"
          🧪 Test: "should be able to login with a matching touch/faceID/fingerprint"
-            • Replace: $('//*[@name="Home"]') → $("~Home") (51.4% faster) ⚠️ (also in other test(s))
-            • Replace: $('//*[@name="Login"]') → $("~Login") (21.8% faster)
-            • Replace: $('//*[@name="Login-screen"]') → $("~Login-screen") (23.1% faster) ⚠️ (also
+            • Replace: $('//*[@name="Home"]') → $("~Home") (56.0% faster) ⚠️ (also in other test(s))
+               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
+            • Replace: $('//*[@name="Login"]') → $("~Login") (29.9% faster)
+               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:11
+            • Replace: $('//*[@name="Login-screen"]') → $("~Login-screen") (22.4% faster) ⚠️ (also 
               in other test(s))
-            • Replace: $('//*[@name="button-biometric"]') → $("~button-biometric") (31.6% faster) ⚠️
+               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:4
+            • Replace: $('//*[@name="button-biometric"]') → $("~button-biometric") (26.6% faster) ⚠️ 
               (also in other test(s))
-            • Replace: $('//*[@name="button-login-container"]') → $("~button-login-container")
-              (28.5% faster)
-            • Replace: $('//XCUIElementTypeAlert') → $("-ios predicate string:type ==
-              'XCUIElementTypeAlert'") (17.8% faster) ⚠️ (also in other test(s))
-            • Replace: $('//*[@name="OK"]') → $("~OK") (31.4% faster)
+               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:20
+            • Replace: $('//*[@name="button-login-container"]') → $("~button-login-container") 
+              (22.1% faster)
+               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:13
+            • Replace: $('//XCUIElementTypeAlert') → $("-ios predicate string:type == 
+              'XCUIElementTypeAlert'") (20.4% faster) ⚠️ (also in other test(s))
+               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/NativeAlert.ts:8
+            • Replace: $('//*[@name="OK"]') → $("~OK") (29.7% faster)
    📁 tests/specs/app.deep.link.navigation.spec.ts
       📦 Suite: "WebdriverIO and Appium, when navigating by deep link"
          🧪 Test: "should be able to open the webview"
-            • Replace: $('//*[@name="Home"]') → $("~Home") (39.8% faster) ⚠️ (also in other test(s))
+            • Replace: $('//*[@name="Home"]') → $("~Home") (49.2% faster) ⚠️ (also in other test(s))
+               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
          🧪 Test: "should be able to open the login form screen"
-            • Replace: $('//*[@name="Login-screen"]') → $("~Login-screen") (27.7% faster) ⚠️ (also
+            • Replace: $('//*[@name="Login-screen"]') → $("~Login-screen") (23.4% faster) ⚠️ (also 
               in other test(s))
+               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:4
             • 1 minor optimization(s) (<10% improvement) - see detailed report
          🧪 Test: "should be able to open the forms screen"
-            • Replace: $('//*[@name="Home"]') → $("~Home") (22.2% faster) ⚠️ (also in other test(s))
-            • Replace: $('//*[@name="Forms-screen"]') → $("~Forms-screen") (24.2% faster)
+            • Replace: $('//*[@name="Home"]') → $("~Home") (21.3% faster) ⚠️ (also in other test(s))
+               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
+            • Replace: $('//*[@name="Forms-screen"]') → $("~Forms-screen") (25.7% faster)
+               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/FormsScreen.ts:4
          🧪 Test: "should be able to open the swipe screen"
-            • Replace: $('//*[@name="Home"]') → $("~Home") (27.5% faster) ⚠️ (also in other test(s))
-            • Replace: $('//*[@name="Swipe-screen"]') → $("~Swipe-screen") (24.3% faster)
+            • Replace: $('//*[@name="Home"]') → $("~Home") (19.7% faster) ⚠️ (also in other test(s))
+               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
+            • Replace: $('//*[@name="Swipe-screen"]') → $("~Swipe-screen") (25.0% faster)
+               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/SwipeScreen.ts:2
          🧪 Test: "should be able to open the drag and drop screen"
-            • Replace: $('//*[@name="Home"]') → $("~Home") (26.4% faster) ⚠️ (also in other test(s))
-            • Replace: $('//*[@name="Drag-drop-screen"]') → $("~Drag-drop-screen") (29.7% faster)
+            • Replace: $('//*[@name="Home"]') → $("~Home") (24.9% faster) ⚠️ (also in other test(s))
+               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
+            • Replace: $('//*[@name="Drag-drop-screen"]') → $("~Drag-drop-screen") (27.4% faster)
+               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/DragScreen.ts:5
          🧪 Test: "should be able to open the home screen"
-            • Replace: $('//*[@name="Home"]') → $("~Home") (26.3% faster) ⚠️ (also in other test(s))
-            • Replace: $('//*[@name="Home-screen"]') → $("~Home-screen") (24.9% faster)
+            • Replace: $('//*[@name="Home"]') → $("~Home") (27.9% faster) ⚠️ (also in other test(s))
+               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
+            • Replace: $('//*[@name="Home-screen"]') → $("~Home-screen") (25.5% faster)
+               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/HomeScreen.ts:5
 
 ⚠️  [Shared Selectors Detected]
 ───────────────────────────────────────────────────────────────────────────
       The following selectors appear in multiple tests and are likely in Page Objects:
       • $('//*[@name="Home"]') - appears in 7 test(s) across 2 file(s)
-         → Search in: page-objects/**/*.ts or helpers/**/*.ts
+         📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
          → Replace with: $("~Home")
       • $('//*[@name="Login-screen"]') - appears in 2 test(s) across 2 file(s)
-         → Search in: page-objects/**/*.ts or helpers/**/*.ts
+         📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:4
          → Replace with: $("~Login-screen")
       • $('//*[@name="button-biometric"]') - appears in 2 test(s) across 1 file(s)
-         → Search in: page-objects/**/*.ts or helpers/**/*.ts
+         📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:20
          → Replace with: $("~button-biometric")
       • $('//XCUIElementTypeAlert') - appears in 2 test(s) across 1 file(s)
-         → Search in: page-objects/**/*.ts or helpers/**/*.ts
+         📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/NativeAlert.ts:8
          → Replace with: $("-ios predicate string:type == 'XCUIElementTypeAlert'")
 
 💡 [Why Change?]
 ───────────────────────────────────────────────────────────────────────────
-      • Average 29.6% performance improvement (total of 1.10 seconds faster per run of this suite)
+      • Average 31.3% performance improvement (total of 1.36 seconds faster per run of this suite)
       • More stable: uses native iOS accessibility ID, uses iOS predicate strings
       • Documentation:
         - Accessibility ID: https://webdriver.io/docs/selectors#accessibility-id
