@@ -18,6 +18,7 @@ import {
     isSilentLogLevel,
     isReporterRegistered,
     determineReportDirectory,
+    findSelectorLocation,
     USER_COMMANDS
 } from './utils.js'
 import { getCurrentTestFile, getCurrentSuiteName, getCurrentTestName, getPerformanceData } from './mspo-store.js'
@@ -33,6 +34,8 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
     private _replaceWithOptimized: boolean = true
     private _enableReporter: boolean = true
     private _reportDirectory?: string
+    private _pageObjectPaths?: string[]
+    private _provideSelectorLocation: boolean = true
     // Some internal consts
     private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     private _isReplacingSelectorRef: { value: boolean } = { value: false }
@@ -62,6 +65,17 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             this._usePageSource = trackConfig.usePageSource !== undefined ? trackConfig.usePageSource === true : true
             this._replaceWithOptimized = trackConfig.replaceWithOptimizedSelector !== undefined ? trackConfig.replaceWithOptimizedSelector === true : true
             this._enableReporter = trackConfig.enableReporter !== undefined ? trackConfig.enableReporter === true : true
+            this._pageObjectPaths = trackConfig.pageObjectPaths
+
+            if (trackConfig.provideSelectorLocation !== undefined) {
+                this._provideSelectorLocation = trackConfig.provideSelectorLocation === true
+                if (this._provideSelectorLocation && (!this._pageObjectPaths || this._pageObjectPaths.length === 0)) {
+                    log.warn('provideSelectorLocation is enabled but pageObjectPaths is not configured. Selector location tracking will be disabled.')
+                    this._provideSelectorLocation = false
+                }
+            } else {
+                this._provideSelectorLocation = !!(this._pageObjectPaths && this._pageObjectPaths.length > 0)
+            }
 
             if (this._enabled && this._enableReporter) {
                 this._reportDirectory = determineReportDirectory(
@@ -124,7 +138,9 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
                 usePageSource: this._usePageSource,
                 browser: this._browser,
                 isReplacingSelector: this._isReplacingSelectorRef,
-                isSilentLogLevel: isSilentLogLevel(this._config)
+                isSilentLogLevel: isSilentLogLevel(this._config),
+                pageObjectPaths: this._pageObjectPaths,
+                provideSelectorLocation: this._provideSelectorLocation
             })
         }
     }
@@ -148,13 +164,21 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             const formattedSelector = formatSelectorForDisplay(selector)
             const timingId = crypto.randomUUID()
 
+            let lineNumber: number | undefined
+            if (this._provideSelectorLocation) {
+                const testFile = getCurrentTestFile()
+                const locations = findSelectorLocation(testFile, selector, this._pageObjectPaths, true)
+                lineNumber = locations.length > 0 ? locations[0].line : undefined
+            }
+
             this._commandTimings.set(timingId, {
                 startTime: getHighResTime(),
                 commandName,
                 selector: selector,
                 formattedSelector: formattedSelector,
                 timingId,
-                isUserCommand: true
+                isUserCommand: true,
+                lineNumber
             })
             return
         }
@@ -187,7 +211,8 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
                     formattedSelector: formattedSelector,
                     selectorType: using,
                     timingId,
-                    isUserCommand: false
+                    isUserCommand: false,
+                    lineNumber: userTiming.lineNumber
                 })
             }
         }
@@ -232,16 +257,29 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
                 return
             }
 
-            const testContext: { testFile: string; suiteName: string; testName: string } = {
+            const testContext: { testFile: string; suiteName: string; testName: string; lineNumber?: number } = {
                 testFile: getCurrentTestFile() || 'unknown',
                 suiteName: getCurrentSuiteName() || 'unknown',
-                testName: getCurrentTestName() || 'unknown'
+                testName: getCurrentTestName() || 'unknown',
+                lineNumber: timing.lineNumber
             }
 
             storePerformanceData(timing, duration, testContext)
 
             if (!this._replaceWithOptimized) {
-                console.log(`[Selector Performance] ${timing.commandName}('${formattedSelector}') took ${duration.toFixed(2)}ms`)
+                let locationInfo = ''
+                if (this._provideSelectorLocation) {
+                    const locations = findSelectorLocation(testContext.testFile, timing.selector, this._pageObjectPaths, true)
+                    if (locations.length > 0) {
+                        const location = locations[0]
+                        const fileDisplay = location.isPageObject
+                            ? `${location.file} (page object)`
+                            : location.file
+                        locationInfo = ` at ${fileDisplay}:${location.line}`
+                    }
+                }
+
+                console.log(`[Selector Performance] ${timing.commandName}('${formattedSelector}') took ${duration.toFixed(2)}ms${locationInfo}`)
 
                 // Find optimized selector using helper method (without page source logging for this flow)
                 const conversionResult = await findOptimizedSelector(timing.selector, {
@@ -253,10 +291,10 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
                 if (conversionResult) {
                     if (conversionResult.selector) {
                         const quoteStyle = conversionResult.selector.startsWith('-ios class chain:') ? "'" : '"'
-                        console.log(`[Potential Optimized Selector] ${timing.commandName}(${quoteStyle}${conversionResult.selector}${quoteStyle})`)
+                        console.log(`[Potential Optimized Selector] ${timing.commandName}(${quoteStyle}${conversionResult.selector}${quoteStyle})${locationInfo}`)
                     }
                     if (conversionResult.warning) {
-                        console.warn(`[Selector Performance Warning] ${conversionResult.warning}`)
+                        console.warn(`[Selector Performance Warning] ${conversionResult.warning}${locationInfo}`)
                     }
                 }
             }

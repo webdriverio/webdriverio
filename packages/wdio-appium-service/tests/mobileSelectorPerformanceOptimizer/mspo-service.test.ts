@@ -187,6 +187,69 @@ describe('SelectorPerformanceService', () => {
             new SelectorPerformanceService(options, mockConfig)
             expect(vi.mocked(utils.determineReportDirectory)).not.toHaveBeenCalled()
         })
+
+        test('should enable provideSelectorLocation when pageObjectPaths is provided', () => {
+            const options = {
+                trackSelectorPerformance: {
+                    enabled: true,
+                    pageObjectPaths: ['./tests/pageobjects']
+                }
+            }
+            const service = new SelectorPerformanceService(options, mockConfig)
+            expect(service['_pageObjectPaths']).toEqual(['./tests/pageobjects'])
+            expect(service['_provideSelectorLocation']).toBe(true)
+        })
+
+        test('should disable provideSelectorLocation when pageObjectPaths is not provided', () => {
+            const options = {
+                trackSelectorPerformance: {
+                    enabled: true
+                }
+            }
+            const service = new SelectorPerformanceService(options, mockConfig)
+            expect(service['_pageObjectPaths']).toBeUndefined()
+            expect(service['_provideSelectorLocation']).toBe(false)
+        })
+
+        test('should respect explicit provideSelectorLocation=false even when pageObjectPaths is provided', () => {
+            const options = {
+                trackSelectorPerformance: {
+                    enabled: true,
+                    pageObjectPaths: ['./tests/pageobjects'],
+                    provideSelectorLocation: false
+                }
+            }
+            const service = new SelectorPerformanceService(options, mockConfig)
+            expect(service['_pageObjectPaths']).toEqual(['./tests/pageobjects'])
+            expect(service['_provideSelectorLocation']).toBe(false)
+        })
+
+        test('should warn and disable provideSelectorLocation when enabled but pageObjectPaths is not provided', () => {
+            const warnSpy = vi.spyOn(log, 'warn')
+            const options = {
+                trackSelectorPerformance: {
+                    enabled: true,
+                    provideSelectorLocation: true
+                }
+            }
+            const service = new SelectorPerformanceService(options, mockConfig)
+            expect(service['_provideSelectorLocation']).toBe(false)
+            expect(warnSpy).toHaveBeenCalledWith('provideSelectorLocation is enabled but pageObjectPaths is not configured. Selector location tracking will be disabled.')
+        })
+
+        test('should warn and disable provideSelectorLocation when enabled but pageObjectPaths is empty array', () => {
+            const warnSpy = vi.spyOn(log, 'warn')
+            const options = {
+                trackSelectorPerformance: {
+                    enabled: true,
+                    pageObjectPaths: [],
+                    provideSelectorLocation: true
+                }
+            }
+            const service = new SelectorPerformanceService(options, mockConfig)
+            expect(service['_provideSelectorLocation']).toBe(false)
+            expect(warnSpy).toHaveBeenCalledWith('provideSelectorLocation is enabled but pageObjectPaths is not configured. Selector location tracking will be disabled.')
+        })
     })
 
     describe('beforeSession', () => {
@@ -318,9 +381,40 @@ describe('SelectorPerformanceService', () => {
                 usePageSource: true,
                 browser: service['_browser'],
                 isReplacingSelector: service['_isReplacingSelectorRef'],
-                isSilentLogLevel: false
+                isSilentLogLevel: false,
+                pageObjectPaths: undefined,
+                provideSelectorLocation: false
             })
             expect(vi.mocked(utils.isSilentLogLevel)).toHaveBeenCalledWith(mockConfig)
+        })
+
+        test('should pass provideSelectorLocation to overwriteUserCommands when pageObjectPaths is configured', async () => {
+            vi.mocked(utils.isSilentLogLevel).mockReturnValue(false)
+
+            const options = {
+                ...createDefaultOptions(),
+                trackSelectorPerformance: {
+                    enabled: true,
+                    replaceWithOptimizedSelector: true,
+                    usePageSource: true,
+                    pageObjectPaths: ['./tests/pageobjects'],
+                    provideSelectorLocation: true
+                }
+            }
+            const service = new SelectorPerformanceService(options, mockConfig)
+            mockBrowser.isIOS = true
+            mockBrowser.isAndroid = false
+
+            await service.before({} as never, [] as never, mockBrowser)
+
+            expect(vi.mocked(overwrite.overwriteUserCommands)).toHaveBeenCalledWith(mockBrowser, {
+                usePageSource: true,
+                browser: service['_browser'],
+                isReplacingSelector: service['_isReplacingSelectorRef'],
+                isSilentLogLevel: false,
+                pageObjectPaths: ['./tests/pageobjects'],
+                provideSelectorLocation: true
+            })
         })
 
         test('should not call overwriteUserCommands when replaceWithOptimized is false', async () => {
@@ -364,13 +458,14 @@ describe('SelectorPerformanceService', () => {
         })
 
         test('should warn and return when report directory is not set', async () => {
+            const warnSpy = vi.spyOn(log, 'warn')
             const options = createDefaultOptions()
             const service = new SelectorPerformanceService(options, mockConfig)
             service['_reportDirectory'] = undefined
 
             await service.afterSession()
 
-            expect(log.warn).toHaveBeenCalledWith('Report directory not set, cannot write worker selector performance data')
+            expect(warnSpy).toHaveBeenCalledWith('Report directory not set, cannot write worker selector performance data')
             expect(fs.mkdirSync).not.toHaveBeenCalled()
             expect(fs.writeFileSync).not.toHaveBeenCalled()
         })

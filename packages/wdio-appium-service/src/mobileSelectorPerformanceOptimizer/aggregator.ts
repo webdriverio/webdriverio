@@ -512,6 +512,8 @@ function generateGroupedSummaryReport(
         improvementMs: number
         timestamp: number
         isNegative?: boolean
+        lineNumber?: number
+        selectorFile?: string
     }
 
     const inferenceMaps = buildInferenceMaps(optimizedSelectors)
@@ -577,7 +579,9 @@ function generateGroupedSummaryReport(
                 improvementPercent: data.improvementPercent || 0,
                 improvementMs: data.improvementMs,
                 timestamp: data.timestamp,
-                isNegative: isNegative
+                isNegative: isNegative,
+                lineNumber: data.lineNumber,
+                selectorFile: data.selectorFile
             })
         } else {
             if (suiteName !== 'unknown' && existing.suiteName === 'unknown') {
@@ -745,6 +749,10 @@ function generateGroupedSummaryReport(
             for (const wrappedLine of wrapped) {
                 write(`${wrappedLine}\n`)
             }
+            const locationFile = opt.selectorFile || opt.testFile
+            if (opt.lineNumber && locationFile) {
+                write(`${REPORT_INDENT_SUMMARY}   📍 Found at: ${locationFile}:${opt.lineNumber}\n`)
+            }
         }
         write('\n')
     }
@@ -762,7 +770,12 @@ function generateGroupedSummaryReport(
             for (const wrappedLine of wrapped1) {
                 write(`${wrappedLine}\n`)
             }
-            write(`${REPORT_INDENT_SUMMARY}  → Search in: page-objects/**/*.ts or helpers/**/*.ts\n`)
+            const locationFile = optimization.selectorFile || optimization.testFile
+            if (optimization.lineNumber && locationFile) {
+                write(`${REPORT_INDENT_SUMMARY}  📍 Found at: ${locationFile}:${optimization.lineNumber}\n`)
+            } else {
+                write(`${REPORT_INDENT_SUMMARY}  → Selector location not found. Search in: page-objects/**/*.ts or helpers/**/*.ts\n`)
+            }
         }
         write('\n')
     }
@@ -799,6 +812,10 @@ function generateGroupedSummaryReport(
                         for (const wrappedLine of wrapped) {
                             write(`${wrappedLine}\n`)
                         }
+                        const locationFile = opt.selectorFile || opt.testFile
+                        if (opt.lineNumber && locationFile) {
+                            write(`${REPORT_INDENT_SELECTOR}   📍 Found at: ${locationFile}:${opt.lineNumber}\n`)
+                        }
                         const noteLine = `${REPORT_INDENT_SELECTOR}   Note: While slower, this selector is more maintainable and less brittle than XPath`
                         const wrappedNote = wrapLine(noteLine, maxLineLength, REPORT_INDENT_SELECTOR)
                         for (const wrappedLine of wrappedNote) {
@@ -809,6 +826,10 @@ function generateGroupedSummaryReport(
                         const wrapped = wrapLine(line, maxLineLength, REPORT_INDENT_SELECTOR)
                         for (const wrappedLine of wrapped) {
                             write(`${wrappedLine}\n`)
+                        }
+                        const locationFile = opt.selectorFile || opt.testFile
+                        if (opt.lineNumber && locationFile) {
+                            write(`${REPORT_INDENT_SELECTOR}   📍 Found at: ${locationFile}:${opt.lineNumber}\n`)
                         }
                     }
                 }
@@ -844,7 +865,12 @@ function generateGroupedSummaryReport(
             for (const wrappedLine of wrapped1) {
                 write(`${wrappedLine}\n`)
             }
-            write(`${REPORT_INDENT_SHARED_DETAIL}→ Search in: page-objects/**/*.ts or helpers/**/*.ts\n`)
+            const locationFile = example.selectorFile || example.testFile
+            if (example.lineNumber && locationFile) {
+                write(`${REPORT_INDENT_SHARED_DETAIL}📍 Found at: ${locationFile}:${example.lineNumber}\n`)
+            } else {
+                write(`${REPORT_INDENT_SHARED_DETAIL}→ Selector location not found. Search in: page-objects/**/*.ts or helpers/**/*.ts\n`)
+            }
             const line2 = `${REPORT_INDENT_SHARED_DETAIL}→ Replace with: $(${quoteStyle}${formattedOptimized}${quoteStyle})`
             const wrapped2 = wrapLine(line2, maxLineLength, REPORT_INDENT_SHARED_DETAIL + '  ')
             for (const wrappedLine of wrapped2) {

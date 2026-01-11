@@ -6,6 +6,7 @@ export interface SelectorPerformanceData {
     suiteName: string
     testName: string
     lineNumber?: number
+    selectorFile?: string
     selector: string
     selectorType: string
     duration: number
@@ -28,6 +29,7 @@ export interface CommandTiming {
     selectorType?: string
     timingId: string
     isUserCommand: boolean
+    lineNumber?: number
 }
 
 /**
@@ -38,6 +40,7 @@ export interface TestContext {
     suiteName: string
     testName: string
     lineNumber?: number
+    selectorFile?: string
 }
 
 /**
@@ -48,5 +51,7 @@ export interface OptimizationOptions {
     browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     isReplacingSelector: { value: boolean }
     isSilentLogLevel?: boolean
+    pageObjectPaths?: string[]
+    provideSelectorLocation?: boolean
 }
 
