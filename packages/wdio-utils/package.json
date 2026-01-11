@@ -37,12 +37,13 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@puppeteer/browsers": "^2.2.0",
+    "@puppeteer/browsers": "file:../../../puppeteer/packages/browsers",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "decamelize": "^6.0.0",
     "deepmerge-ts": "^7.0.3",
     "edgedriver": "^6.1.2",
+    "electron-to-chromium": "^1.5.70",
     "geckodriver": "^5.0.0",
     "get-port": "^7.0.0",
     "import-meta-resolve": "^4.0.0",
@@ -54,5 +55,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "@types/electron-to-chromium": "^1.5.0"
   }
 }

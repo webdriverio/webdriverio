@@ -82,7 +82,7 @@ export async function startWebDriver (options: Capabilities.RemoteConfig) {
         const { executablePath: chromeExecuteablePath, browserVersion } = await setupPuppeteerBrowser(cacheDir, caps)
         const { executablePath: chromedriverExcecuteablePath } = chromedriverBinary
             ? { executablePath: chromedriverBinary }
-            : await setupChromedriver(cacheDir, browserVersion)
+            : await setupChromedriver(cacheDir, browserVersion, caps)
 
         const prefs = generateDefaultPrefs(caps)
         caps['goog:chromeOptions'] = deepmerge(
