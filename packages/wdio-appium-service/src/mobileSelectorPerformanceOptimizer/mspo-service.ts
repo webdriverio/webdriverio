@@ -167,7 +167,8 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             let lineNumber: number | undefined
             if (this._provideSelectorLocation) {
                 const testFile = getCurrentTestFile()
-                const locations = findSelectorLocation(testFile, selector, this._pageObjectPaths, true)
+                const isSilent = isSilentLogLevel(this._config)
+                const locations = findSelectorLocation(testFile, selector, this._pageObjectPaths, !isSilent)
                 lineNumber = locations.length > 0 ? locations[0].line : undefined
             }
 
@@ -269,7 +270,8 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             if (!this._replaceWithOptimized) {
                 let locationInfo = ''
                 if (this._provideSelectorLocation) {
-                    const locations = findSelectorLocation(testContext.testFile, timing.selector, this._pageObjectPaths, true)
+                    const isSilent = isSilentLogLevel(this._config)
+                    const locations = findSelectorLocation(testContext.testFile, timing.selector, this._pageObjectPaths, !isSilent)
                     if (locations.length > 0) {
                         const location = locations[0]
                         const fileDisplay = location.isPageObject
