@@ -7,12 +7,14 @@ import cp from 'node:child_process'
 import decamelize from 'decamelize'
 import logger from '@wdio/logger'
 import {
-    install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel,
-    computeExecutablePath, type InstallOptions, FallbackSources
+    install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, BrowserPlatform, ChromeReleaseChannel,
+    computeExecutablePath, type InstalledBrowser,
+    type InstallOptions, type BrowserDownloader, type DownloadOptions
 } from '@puppeteer/browsers'
 import { download as downloadGeckodriver } from 'geckodriver'
 import { download as downloadEdgedriver } from 'edgedriver'
 import { locateChrome, locateFirefox, locateApp } from 'locate-app'
+import { chromiumToElectron } from 'electron-to-chromium'
 import type { EdgedriverParameters } from 'edgedriver'
 import type { Options } from '@wdio/types'
 
@@ -132,8 +134,8 @@ export const downloadProgressCallback = (artifact: string, downloadedBytes: numb
  * @param {InstallOptions & { unpack?: true | undefined }} args - An object containing installation options and an optional `unpack` flag.
  * @returns {Promise<void>} A Promise that resolves once the package is installed and clear the progress log.
  */
-const _install = async (args: InstallOptions & { unpack?: true | undefined }, retry = false): Promise<void> => {
-    await install(args).catch((err) => {
+const _install = async (args: InstallOptions & { unpack?: true | undefined }, retry = false): Promise<string> => {
+    const result = await install(args).catch((err) => {
         const error = `Failed downloading ${args.browser} v${args.buildId} using ${JSON.stringify(args)}: ${err.message}, retrying ...`
         if (retry) {
             err.message += '\n' + error.replace(', retrying ...', '')
@@ -143,6 +145,26 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
         return _install(args, true)
     })
     log.progress('')
+    // When unpack=true, install returns InstalledBrowser object, extract the path
+    return typeof result === 'string' ? result : result.path
+}
+
+/**
+ * Installs a package and returns the InstalledBrowser object for custom downloader support.
+ * This variant preserves the custom executable path from custom downloaders.
+ */
+const _installWithBrowser = async (args: InstallOptions & { unpack: true }, retry = false): Promise<InstalledBrowser> => {
+    const result = await install(args).catch((err: Error) => {
+        const error = `Failed downloading ${args.browser} v${args.buildId} using ${JSON.stringify(args)}: ${err.message}, retrying ...`
+        if (retry) {
+            err.message += '\n' + error.replace(', retrying ...', '')
+            throw new Error(err.message)
+        }
+        log.error(error)
+        return _installWithBrowser(args, true)
+    })
+    log.progress('')
+    return result
 }
 
 function locateChromeSafely () {
@@ -282,70 +304,128 @@ export function getMajorVersionFromString(fullVersion:string) {
     return prefix && prefix.length > 0 ? prefix[0] : ''
 }
 
-export async function setupChromedriver (cacheDir: string, driverVersion?: string, capabilities?: WebdriverIO.Capabilities) {
+/**
+ * Extract Electron-related capabilities from WebdriverIO capabilities object.
+ * Handles both direct and W3C capabilities formats.
+ */
+function parseElectronCapabilities(capabilities?: WebdriverIO.Capabilities) {
+    if (!capabilities) {
+        return { chromiumVersion: undefined, electronVersion: undefined }
+    }
+
+    // Type for capabilities with custom properties
+    type CapabilitiesWithCustomProps = Record<string, unknown> & {
+        alwaysMatch?: Record<string, unknown>;
+    }
+
+    // Check direct capabilities
+    const caps = capabilities as CapabilitiesWithCustomProps
+    const chromiumVersion = caps['wdio:chromiumVersion'] as string | undefined
+    const electronVersion = caps['wdio:electronVersion'] as string | undefined
+
+    // Also check for W3C format capabilities
+    const w3cCapabilities = caps.alwaysMatch || caps
+    const w3cChromiumVersion = w3cCapabilities['wdio:chromiumVersion'] as string | undefined
+    const w3cElectronVersion = w3cCapabilities['wdio:electronVersion'] as string | undefined
+
+    // Use the versions found (prefer direct access, fallback to W3C)
+    return {
+        chromiumVersion: chromiumVersion || w3cChromiumVersion,
+        electronVersion: electronVersion || w3cElectronVersion
+    }
+}
+
+/**
+ * Determine the appropriate platform, with ARM Linux override.
+ */
+function resolveChromedriverPlatform(): BrowserPlatform {
     const platform = detectBrowserPlatform()
-    if (!platform) {
+    const actualPlatform = (platform === 'linux' && process.arch === 'arm64') ? BrowserPlatform.LINUX_ARM : platform
+
+    if (actualPlatform !== platform) {
+        log.info(`Overriding platform from ${platform} to ${actualPlatform} for ARM Linux`)
+    }
+
+    if (!actualPlatform) {
         throw new Error('The current platform is not supported.')
     }
 
-    // Check if we have chromium version from electron service
-    const chromiumVersion = capabilities?.['wdio:chromiumVersion'] as string
-    const hasElectronService = capabilities?.['wdio:electronServiceOptions']
+    return actualPlatform
+}
 
+export async function setupChromedriver (cacheDir: string, driverVersion?: string, capabilities?: WebdriverIO.Capabilities) {
+    const platform = resolveChromedriverPlatform()
+    const { chromiumVersion, electronVersion } = parseElectronCapabilities(capabilities)
+
+    // Determine buildId and downloaders based on capabilities
     let buildId: string
-    let fallbackSources
+    let downloaders: BrowserDownloader[] | undefined
 
-    if (chromiumVersion && hasElectronService) {
-        // Use the chromium version provided by electron service
+    if (electronVersion) {
+        // Use Electron downloader with Electron version
+        downloaders = [new ElectronDownloader()]
+        buildId = electronVersion
+        log.info(`Using Electron downloader with Electron v${buildId} (Chromium ${chromiumVersion})`)
+    } else if (chromiumVersion) {
+        // Fallback: use Chromium version with Electron downloader
+        downloaders = [new ElectronDownloader()]
         buildId = chromiumVersion
-        fallbackSources = [FallbackSources.ELECTRON]
-        log.info(`Using Electron Chromedriver v${buildId} with fallback sources`)
+        log.info(`Using Electron downloader with Chromium v${buildId}`)
     } else {
-        // Use standard Chrome chromedriver logic
+        // Use standard Chrome chromedriver logic (no Electron downloader)
         const version = driverVersion || getBuildIdByChromePath(await locateChromeSafely()) || ChromeReleaseChannel.STABLE
         buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
+        log.info(`Using standard Chrome chromedriver logic, resolved buildId=${buildId}`)
     }
-    let executablePath = computeExecutablePath({
-        browser: Browser.CHROMEDRIVER,
+
+    const installOptions = {
+        cacheDir,
         buildId,
         platform,
-        cacheDir
-    })
-    const hasChromedriverInstalled = await fsp.access(executablePath).then(() => true, () => false)
-    if (!hasChromedriverInstalled) {
-        log.info(`Downloading Chromedriver v${buildId}`)
-        const chromedriverInstallOpts: InstallOptions & { unpack?: true } = {
-            cacheDir,
-            buildId,
-            platform,
-            browser: Browser.CHROMEDRIVER,
-            unpack: true,
-            downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes),
-            ...(fallbackSources && { fallbackSources })
-        }
-        let knownBuild = buildId
-        if (await canDownload(chromedriverInstallOpts)) {
-            await _install({ ...chromedriverInstallOpts, buildId })
-            log.info(`Download of Chromedriver v${buildId} was successful`)
-        } else {
-            log.warn(`Chromedriver v${buildId} don't exist, trying to find known good version...`)
-            knownBuild = await resolveBuildId(Browser.CHROMEDRIVER, platform, getMajorVersionFromString(version))
-            if (knownBuild) {
-                await _install({ ...chromedriverInstallOpts, buildId: knownBuild })
-                log.info(`Download of Chromedriver v${knownBuild} was successful`)
+        browser: Browser.CHROMEDRIVER,
+        unpack: true,
+        downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes),
+        downloaders
+    } satisfies InstallOptions & { unpack: true; downloaders?: BrowserDownloader[] }
+
+    let installedBrowser: Awaited<ReturnType<typeof _installWithBrowser>>
+
+    try {
+        installedBrowser = await _installWithBrowser(installOptions)
+        log.info(`Download of Chromedriver v${buildId} was successful`)
+    } catch (error) {
+        // If the primary download failed and we're using Electron, try a fallback version
+        if (chromiumVersion) {
+            log.warn(`Chromedriver v${buildId} download failed, trying latest compatible version...`)
+            const fallbackVersion = getMajorVersionFromString(chromiumVersion)
+            const fallbackBuildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, fallbackVersion)
+
+            if (fallbackBuildId !== buildId) {
+                log.info(`Trying fallback Chromedriver v${fallbackBuildId}`)
+                try {
+                    installedBrowser = await _installWithBrowser({ ...installOptions, buildId: fallbackBuildId })
+                    log.info(`Download of Chromedriver v${fallbackBuildId} was successful`)
+                    buildId = fallbackBuildId
+                } catch (fallbackError) {
+                    log.error(`Fallback Chromedriver download also failed: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`)
+                    throw new Error(`Couldn't download Chromedriver v${buildId} or fallback v${fallbackBuildId}`)
+                }
             } else {
-                throw new Error(`Couldn't download any known good version from Chromedriver major v${getMajorVersionFromString(version)}, requested full version - v${version}`)
+                throw new Error(`Couldn't download Chromedriver v${buildId}`)
             }
+        } else {
+            throw error
         }
-        executablePath = computeExecutablePath({
-            browser: Browser.CHROMEDRIVER,
-            buildId: knownBuild,
-            platform,
-            cacheDir
-        })
-    } else {
-        log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
     }
+
+    // Use the executable path from InstalledBrowser - this automatically uses
+    // custom paths from downloaders that implement resolveExecutablePath()
+    const executablePath = installedBrowser.executablePath
+
+    if (downloaders?.length) {
+        log.info(`Using custom downloader executable path: ${executablePath}`)
+    }
+
     return { executablePath }
 }
 
@@ -361,4 +441,248 @@ export function generateDefaultPrefs(caps: WebdriverIO.Capabilities) {
     return caps['goog:chromeOptions']?.debuggerAddress
         ? {}
         : { prefs: { 'profile.password_manager_leak_detection': false } }
+}
+
+// ============================================================================
+// Electron Downloader Implementation
+// ============================================================================
+
+type ElectronRelease = {
+    chrome: string;
+    version: string;
+}
+
+/**
+ * Cache for Chromium → Electron version mapping.
+ * Fetched from electronjs.org/headers/index.json on first use.
+ */
+let chromiumToElectronCache: Record<string, string> | null = null
+
+/**
+ * Fetches the Electron releases list and builds a Chromium → Electron mapping.
+ * This provides the most up-to-date version information.
+ */
+async function fetchChromiumToElectronMapping(): Promise<Record<string, string>> {
+    if (chromiumToElectronCache) {
+        return chromiumToElectronCache
+    }
+
+    try {
+        log.debug('Fetching Electron releases for Chromium → Electron version mapping...')
+        const response = await fetch('https://electronjs.org/headers/index.json')
+        const releases = (await response.json()) as ElectronRelease[]
+
+        // Build reverse mapping: Chromium version → Electron version
+        const mapping: Record<string, string> = {}
+        for (const { chrome, version } of releases) {
+            mapping[chrome] = version
+        }
+
+        chromiumToElectronCache = mapping
+        log.debug(`Fetched ${Object.keys(mapping).length} Electron release mappings`)
+        return mapping
+    } catch (error) {
+        log.debug('Failed to fetch Electron releases:', error)
+        throw error
+    }
+}
+
+/**
+ * Maps BrowserPlatform to Electron release platform names.
+ */
+function mapPlatformForElectron(platform: BrowserPlatform): string {
+    const platformMap: Record<BrowserPlatform, string> = {
+        [BrowserPlatform.LINUX]: 'linux-x64',
+        [BrowserPlatform.LINUX_ARM]: 'linux-arm64',
+        [BrowserPlatform.MAC]: 'darwin-x64',
+        [BrowserPlatform.MAC_ARM]: 'darwin-arm64',
+        [BrowserPlatform.WIN32]: 'win32-ia32',
+        [BrowserPlatform.WIN64]: 'win32-x64'
+    }
+
+    const mapped = platformMap[platform]
+    if (!mapped) {
+        throw new Error(`Unsupported platform for Electron: ${platform}`)
+    }
+    return mapped
+}
+
+/**
+ * Resolves a version to an Electron version.
+ * Handles both Electron versions (pass-through) and Chromium versions (mapped).
+ *
+ * Attempts to fetch the latest mappings from electronjs.org first,
+ * then falls back to the electron-to-chromium package.
+ */
+async function resolveElectronVersion(buildId: string, versionMapping?: Record<string, string>): Promise<string | null> {
+    // If it looks like an Electron version (e.g., "33.2.1"), return as-is
+    if (/^\d+\.\d+\.\d+$/.test(buildId)) {
+        return buildId
+    }
+
+    // If custom mapping provided, try that first
+    if (versionMapping && buildId in versionMapping) {
+        return versionMapping[buildId]
+    }
+
+    // Try fetching from electronjs.org for most up-to-date mappings
+    try {
+        const mapping = await fetchChromiumToElectronMapping()
+        if (buildId in mapping) {
+            return mapping[buildId]
+        }
+    } catch (error: unknown) {
+        // Fall through to electron-to-chromium package
+        log.debug('Falling back to electron-to-chromium package', (error as Error).message)
+    }
+
+    // Fall back to electron-to-chromium package for offline/cached lookup
+    const electronVersion = chromiumToElectron(buildId)
+
+    // chromiumToElectron returns either:
+    // - a string (for major version queries)
+    // - an array of strings (for full version queries)
+    // - undefined (if no match)
+    if (Array.isArray(electronVersion)) {
+        // Return the first (latest) matching Electron version
+        return electronVersion[0] || null
+    }
+
+    return electronVersion || null
+}
+
+/**
+ * Options for ElectronDownloader.
+ */
+export interface ElectronDownloaderOptions {
+    /**
+     * Only use Electron downloader for specific platforms.
+     * If not specified, Electron releases will be used for all platforms.
+     *
+     * @example
+     * ```typescript
+     * // Only use for ARM64 Linux, let Chrome for Testing handle others
+     * new ElectronDownloader({ platforms: [BrowserPlatform.LINUX_ARM] })
+     * ```
+     */
+    platforms?: BrowserPlatform[];
+
+    /**
+     * Custom base URL for Electron releases.
+     * @default 'https://github.com/electron/electron/releases/download/'
+     */
+    baseUrl?: string;
+
+    /**
+     * Optional custom version mapping from Chromium version to Electron version.
+     * Has the highest priority in the version resolution fallback chain.
+     *
+     * The version resolution order is:
+     * 1. Custom versionMapping (if provided)
+     * 2. Cached electronjs.org mappings (if initializeElectronMappings() was called)
+     * 3. electron-to-chromium package (always available)
+     *
+     * Only provide this if you need to override specific version mappings.
+     *
+     * @example
+     * ```typescript
+     * new ElectronDownloader({
+     *   versionMapping: {
+     *     '131.0.0.0': '34.0.0' // Override for unreleased versions
+     *   }
+     * })
+     * ```
+     */
+    versionMapping?: Record<string, string>;
+}
+
+/**
+ * Browser downloader that uses Electron releases for Chromedriver.
+ *
+ * This is particularly useful for platforms where Chrome for Testing
+ * doesn't provide binaries, such as Linux ARM64.
+ *
+ * **Version Mapping Strategy:**
+ *
+ * The downloader uses a two-tier fallback for Chromium → Electron version mapping:
+ * 1. **electronjs.org releases API** (most up-to-date, fetched on first use and cached)
+ * 2. **electron-to-chromium package** (offline fallback, may be slightly outdated)
+ *
+ * **Supports two modes:**
+ *
+ * 1. **Electron apps**: Pass Electron version directly (e.g., "33.2.1")
+ * 2. **Non-Electron apps**: Pass Chromium version (e.g., "130.0.6723.2"),
+ *    which gets mapped to an Electron version automatically
+ *
+ * @example
+ * ```typescript
+ * // For Electron apps - pass Electron version
+ * const buildId = electronVersion; // "33.2.1"
+ *
+ * // For non-Electron apps - pass Chromium version, restrict to ARM64
+ * const downloaders = [
+ *   new ElectronDownloader({
+ *     platforms: [BrowserPlatform.LINUX_ARM]
+ *   })
+ * ];
+ * await install({
+ *   browser: Browser.CHROMEDRIVER,
+ *   buildId: '130.0.6723.2', // Chromium version
+ *   downloaders
+ * });
+ * // → Fetches mapping from electronjs.org (cached after first fetch)
+ * // → Maps to Electron v33.2.1
+ * // → Downloads chromedriver from Electron v33.2.1 release
+ * ```
+ */
+export class ElectronDownloader implements BrowserDownloader {
+    readonly #platforms?: BrowserPlatform[]
+    readonly #baseUrl: string
+    readonly #versionMapping?: Record<string, string>
+
+    constructor(options: ElectronDownloaderOptions = {}) {
+        this.#platforms = options.platforms
+        this.#baseUrl = options.baseUrl || 'https://github.com/electron/electron/releases/download/'
+        this.#versionMapping = options.versionMapping
+    }
+
+    async supports(options: DownloadOptions): Promise<boolean> {
+        // Only support Chromedriver
+        if (options.browser !== Browser.CHROMEDRIVER) {
+            return false
+        }
+
+        // Check if we handle this platform
+        if (this.#platforms && !this.#platforms.includes(options.platform)) {
+            return false
+        }
+
+        // Check if we can resolve this version to an Electron version
+        const electronVersion = await resolveElectronVersion(options.buildId, this.#versionMapping)
+        return electronVersion !== null
+    }
+
+    async getDownloadUrl(options: DownloadOptions): Promise<URL | null> {
+        // Resolve buildId to Electron version
+        // (pass-through if already Electron version, map if Chromium version)
+        const electronVersion = await resolveElectronVersion(options.buildId, this.#versionMapping)
+        if (!electronVersion) {
+            return null
+        }
+
+        const electronPlatform = mapPlatformForElectron(options.platform)
+        const urlPath = `v${electronVersion}/chromedriver-v${electronVersion}-${electronPlatform}.zip`
+        return new URL(urlPath, this.#baseUrl)
+    }
+
+    getExecutablePath(options: {
+        browser: Browser
+        buildId: string
+        platform: BrowserPlatform
+    }): string {
+        // Electron chromedriver archives may have different structures.
+        // Try the most common path first.
+        const binaryName = options.platform.includes('win') ? 'chromedriver.exe' : 'chromedriver'
+        return binaryName
+    }
 }
