@@ -7,6 +7,8 @@ import {
     findOptimizedSelector,
     logOptimizationConclusion,
     createOptimizedSelectorData,
+    findSelectorLocation,
+    formatSelectorLocations,
     INDENT_LEVEL_1,
     INDENT_LEVEL_2,
     LOG_PREFIX
@@ -41,9 +43,16 @@ async function optimizeSelector<T extends WebdriverIO.Element | WebdriverIO.Elem
     const isSilent = options.isSilentLogLevel === true
     const elementWord = isMultiple ? 'element(s)' : 'element'
 
+    // Search for selector locations in test file and page objects (if enabled)
+    const testFile = getCurrentTestFile()
+    const locations = options.provideSelectorLocation
+        ? findSelectorLocation(testFile, selector, options.pageObjectPaths, false)
+        : []
+    const locationInfo = formatSelectorLocations(locations)
+
     // Step 1: Test the current XPath selector first
     if (!isSilent) {
-        console.log(`\n\n🔍 [${LOG_PREFIX}: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')`)
+        console.log(`\n\n🔍 [${LOG_PREFIX}: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')${locationInfo}`)
         console.log(`${INDENT_LEVEL_1}⏳ [${LOG_PREFIX}: Step 1] Testing current selector: ${commandName}('${formatSelectorForDisplay(selector)}')`)
     }
     const originalStartTime = getHighResTime()
@@ -116,7 +125,9 @@ async function optimizeSelector<T extends WebdriverIO.Element | WebdriverIO.Elem
     const testContext = {
         testFile: getCurrentTestFile() || 'unknown',
         suiteName: getCurrentSuiteName() || 'unknown',
-        testName: getCurrentTestName() || 'unknown'
+        testName: getCurrentTestName() || 'unknown',
+        lineNumber: locations.length > 0 ? locations[0].line : undefined,
+        selectorFile: locations.length > 0 ? locations[0].file : undefined
     }
     const optimizedData = createOptimizedSelectorData(
         testContext,
@@ -128,7 +139,7 @@ async function optimizeSelector<T extends WebdriverIO.Element | WebdriverIO.Elem
     addPerformanceData(optimizedData)
 
     if (!isSilent) {
-        logOptimizationConclusion(timeDifference, improvementPercent, selector, optimizedSelector)
+        logOptimizationConclusion(timeDifference, improvementPercent, selector, optimizedSelector, locationInfo)
     }
 
     // Step 6: Execute with optimized selector
