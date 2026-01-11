@@ -11,7 +11,7 @@ type PDFPrintOptions = {
     left?: number,
     right?: number,
     shrinkToFit?: boolean,
-    pageRanges?: object[]
+    pageRanges?: Array<string | number>
 }
 
 /**

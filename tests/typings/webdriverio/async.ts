@@ -216,7 +216,7 @@ async function bar() {
         left: 5,
         right: 5,
         shrinkToFit: true,
-        pageRanges: [{}]
+        pageRanges: []
     })
 
     await browser.savePDF('./packages/bar.pdf')
