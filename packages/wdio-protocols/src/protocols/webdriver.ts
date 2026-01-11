@@ -333,7 +333,7 @@ export default {
                 },
                 {
                     name: 'pageRanges',
-                    type: 'string[]|number[]',
+                    type: '(string|number)[]',
                     description: 'page ranges. Default `[]`',
                     required: false,
                 },
@@ -1400,23 +1400,32 @@ export default {
             ref: 'https://w3c.github.io/sensors/#create-mock-sensor-command',
             parameters: [
                 {
-                    name: 'mockSensorType',
+                    name: 'type',
                     type: 'string',
                     description:
                         "Type of sensor API to mock, e.g. 'ambient-light'",
                     required: true,
                 },
                 {
+                    name: 'connected',
+                    type: 'boolean',
+                    description:
+                        'A flag indicating whether the mock sensor is connected.',
+                    required: false,
+                },
+                {
                     name: 'maxSamplingFrequency',
                     type: 'number',
                     description:
                         'A double representing frequency in Hz that is used to set maximum supported sampling frequency for the associated mock sensor.',
+                    required: false,
                 },
                 {
                     name: 'minSamplingFrequency',
                     type: 'number',
                     description:
                         'A double representing frequency in Hz that is used to set minimum supported sampling frequency for the associated mock sensor.',
+                    required: false,
                 },
             ],
         },
@@ -1454,23 +1463,10 @@ export default {
             ],
             parameters: [
                 {
-                    name: 'mockSensorType',
-                    type: 'string',
-                    description:
-                        "Type of sensor API to mock, e.g. 'ambient-light'",
+                    name: 'reading',
+                    type: 'object',
+                    description: 'A JSON Object with the new reading.',
                     required: true,
-                },
-                {
-                    name: 'maxSamplingFrequency',
-                    type: 'number',
-                    description:
-                        'A double representing frequency in Hz that is used to set maximum supported sampling frequency for the associated mock sensor.',
-                },
-                {
-                    name: 'minSamplingFrequency',
-                    type: 'number',
-                    description:
-                        'A double representing frequency in Hz that is used to set minimum supported sampling frequency for the associated mock sensor.',
                 },
             ],
         },
@@ -1493,7 +1489,7 @@ export default {
             command: 'setTimeZone',
             description:
                 'Simulates the changing of a time zone for the purposes of testing. __Note:__ this feature has not landed in all browsers yet.',
-            ref: 'https://w3c.github.io/sensors/#create-mock-sensor-command',
+            ref: 'https://w3c.github.io/webdriver-bidi/#command-emulation-setTimezoneOverride',
             parameters: [
                 {
                     name: 'time_zone',
