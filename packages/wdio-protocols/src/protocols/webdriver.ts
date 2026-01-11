@@ -196,6 +196,11 @@ export default {
                 'The Close Window command closes the current top-level browsing context. Once done, if there are no more top-level browsing contexts open, the WebDriver session itself is closed.',
             ref: 'https://w3c.github.io/webdriver/#dfn-close-window',
             parameters: [],
+            returns: {
+                type: 'string[]',
+                name: 'handles',
+                description: 'A list of window handles of active window handles.'
+            },
             exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/api/webdriver/examples.js#L97-L117']
         },
         POST: {
@@ -328,7 +333,7 @@ export default {
                 },
                 {
                     name: 'pageRanges',
-                    type: 'object[]',
+                    type: 'string[]|number[]',
                     description: 'page ranges. Default `[]`',
                     required: false,
                 },
@@ -693,7 +698,7 @@ export default {
             command: 'getElementShadowRoot',
             description:
                 'Get the shadow root object of an element. The result object can be used to fetch elements within this shadow root using e.g. findElementFromShadowRoots or findElementsFromShadowRoots.',
-            ref: 'https://w3c.github.io/webdriver/#dfn-get-active-element',
+            ref: 'https://w3c.github.io/webdriver/#get-element-shadow-root',
             variables: [
                 {
                     name: 'elementId',
@@ -703,7 +708,7 @@ export default {
             ],
             parameters: [],
             returns: {
-                type: 'string',
+                type: 'object',
                 name: 'shadowRoot',
                 description:
                     "A JSON representation of an element shadow root, e.g. `{ 'shadow-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`.",
@@ -720,7 +725,7 @@ export default {
             ref: 'https://w3c.github.io/webdriver/#dfn-get-active-element',
             parameters: [],
             returns: {
-                type: 'string',
+                type: 'object',
                 name: 'element',
                 description:
                     "A JSON representation of an element object, e.g. `{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`.",
@@ -793,7 +798,7 @@ export default {
             ],
             parameters: [],
             returns: {
-                type: 'string',
+                type: '(string|null)',
                 name: 'attribute',
                 description: 'The named attribute of the element.',
             },
@@ -820,7 +825,7 @@ export default {
             ],
             parameters: [],
             returns: {
-                type: 'string',
+                type: '*',
                 name: 'property',
                 description:
                     'The named property of the element, accessed by calling GetOwnProperty on the element object.',
@@ -1268,14 +1273,7 @@ export default {
                         'the id of an element returned in a previous call to Find Element(s)',
                 },
             ],
-            parameters: [
-                {
-                    name: 'scroll',
-                    type: 'boolean',
-                    description: 'scroll into view the element. Default: true',
-                    required: false,
-                },
-            ],
+            parameters: [],
             returns: {
                 type: 'string',
                 name: 'screenshot',
