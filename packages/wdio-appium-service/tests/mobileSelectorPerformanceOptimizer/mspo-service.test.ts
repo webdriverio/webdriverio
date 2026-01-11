@@ -43,7 +43,8 @@ vi.mock('../../src/mobileSelectorPerformanceOptimizer/utils.js', async () => {
         isNativeContext: vi.fn(),
         isSilentLogLevel: vi.fn().mockReturnValue(false),
         isReporterRegistered: vi.fn().mockReturnValue(false),
-        determineReportDirectory: vi.fn().mockReturnValue('/test/report/dir')
+        determineReportDirectory: vi.fn().mockReturnValue('/test/report/dir'),
+        findSelectorLocation: vi.fn().mockReturnValue([])
     }
 })
 
@@ -743,6 +744,84 @@ describe('SelectorPerformanceService', () => {
                 expect(service['_commandTimings'].size).toBe(2)
             })
         })
+
+        describe('provideSelectorLocation in beforeCommand', () => {
+            test('should call findSelectorLocation when provideSelectorLocation is enabled', async () => {
+                const options: AppiumServiceConfig = {
+                    trackSelectorPerformance: {
+                        enabled: true,
+                        pageObjectPaths: ['./tests/pageobjects'],
+                        provideSelectorLocation: true
+                    }
+                }
+                vi.mocked(store.getCurrentTestFile).mockReturnValue('test-file.ts')
+                vi.mocked(utils.extractSelectorFromArgs).mockReturnValue(xpath)
+                vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
+                vi.mocked(utils.getHighResTime).mockReturnValue(100)
+                vi.mocked(utils.findSelectorLocation).mockReturnValue([
+                    { file: 'TabBar.ts', line: 3, isPageObject: true }
+                ])
+
+                const service = await createAndInitializeService(options)
+                await service.beforeCommand('$', [xpath])
+
+                expect(vi.mocked(utils.findSelectorLocation)).toHaveBeenCalledWith(
+                    'test-file.ts',
+                    xpath,
+                    ['./tests/pageobjects'],
+                    true // !isSilent
+                )
+
+                const timing = Array.from(service['_commandTimings'].values())[0]
+                expect(timing.lineNumber).toBe(3)
+            })
+
+            test('should not call findSelectorLocation when provideSelectorLocation is disabled', async () => {
+                const options: AppiumServiceConfig = {
+                    trackSelectorPerformance: {
+                        enabled: true,
+                        provideSelectorLocation: false
+                    }
+                }
+                vi.mocked(utils.extractSelectorFromArgs).mockReturnValue(xpath)
+                vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
+                vi.mocked(utils.getHighResTime).mockReturnValue(100)
+
+                const service = await createAndInitializeService(options)
+                await service.beforeCommand('$', [xpath])
+
+                expect(vi.mocked(utils.findSelectorLocation)).not.toHaveBeenCalled()
+
+                const timing = Array.from(service['_commandTimings'].values())[0]
+                expect(timing.lineNumber).toBeUndefined()
+            })
+
+            test('should pass false to findSelectorLocation when log level is silent', async () => {
+                const options: AppiumServiceConfig = {
+                    trackSelectorPerformance: {
+                        enabled: true,
+                        pageObjectPaths: ['./tests/pageobjects'],
+                        provideSelectorLocation: true
+                    }
+                }
+                vi.mocked(store.getCurrentTestFile).mockReturnValue('test-file.ts')
+                vi.mocked(utils.extractSelectorFromArgs).mockReturnValue(xpath)
+                vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
+                vi.mocked(utils.getHighResTime).mockReturnValue(100)
+                vi.mocked(utils.isSilentLogLevel).mockReturnValue(true)
+                vi.mocked(utils.findSelectorLocation).mockReturnValue([])
+
+                const service = await createAndInitializeService(options)
+                await service.beforeCommand('$', [xpath])
+
+                expect(vi.mocked(utils.findSelectorLocation)).toHaveBeenCalledWith(
+                    'test-file.ts',
+                    xpath,
+                    ['./tests/pageobjects'],
+                    false // !isSilent = false
+                )
+            })
+        })
     })
 
     describe('afterCommand', () => {
@@ -1038,6 +1117,110 @@ describe('SelectorPerformanceService', () => {
 
                 expect(vi.mocked(utils.storePerformanceData)).toHaveBeenCalled()
                 expect(service['_commandTimings'].size).toBe(0)
+            })
+        })
+
+        describe('provideSelectorLocation in afterCommand with replaceWithOptimized=false', () => {
+            beforeEach(() => {
+                vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
+                vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue(createMockTiming())
+                vi.mocked(utils.getHighResTime).mockReturnValue(100)
+                vi.mocked(utils.findOptimizedSelector).mockResolvedValue({ selector: '~button' })
+                consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+            })
+
+            test('should call findSelectorLocation and display location when provideSelectorLocation is enabled', async () => {
+                const testOptions: AppiumServiceConfig = {
+                    trackSelectorPerformance: {
+                        enabled: true,
+                        replaceWithOptimizedSelector: false,
+                        pageObjectPaths: ['./tests/pageobjects'],
+                        provideSelectorLocation: true
+                    }
+                }
+                vi.mocked(store.getCurrentTestFile).mockReturnValue('test-file.ts')
+                vi.mocked(utils.findSelectorLocation).mockReturnValue([
+                    { file: 'TabBar.ts', line: 3, isPageObject: true }
+                ])
+
+                const service = await createAndInitializeService(testOptions)
+                await service.afterCommand('findElement', ['xpath', xpath], {})
+
+                expect(vi.mocked(utils.findSelectorLocation)).toHaveBeenCalledWith(
+                    'test-file.ts',
+                    xpath,
+                    ['./tests/pageobjects'],
+                    true // !isSilent
+                )
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    expect.stringContaining(' at TabBar.ts (page object):3')
+                )
+            })
+
+            test('should not call findSelectorLocation when provideSelectorLocation is disabled', async () => {
+                const testOptions: AppiumServiceConfig = {
+                    trackSelectorPerformance: {
+                        enabled: true,
+                        replaceWithOptimizedSelector: false,
+                        provideSelectorLocation: false
+                    }
+                }
+
+                const service = await createAndInitializeService(testOptions)
+                await service.afterCommand('findElement', ['xpath', xpath], {})
+
+                expect(vi.mocked(utils.findSelectorLocation)).not.toHaveBeenCalled()
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    expect.not.stringContaining(' at ')
+                )
+            })
+
+            test('should pass false to findSelectorLocation when log level is silent', async () => {
+                const testOptions: AppiumServiceConfig = {
+                    trackSelectorPerformance: {
+                        enabled: true,
+                        replaceWithOptimizedSelector: false,
+                        pageObjectPaths: ['./tests/pageobjects'],
+                        provideSelectorLocation: true
+                    }
+                }
+                vi.mocked(store.getCurrentTestFile).mockReturnValue('test-file.ts')
+                vi.mocked(utils.isSilentLogLevel).mockReturnValue(true)
+                vi.mocked(utils.findSelectorLocation).mockReturnValue([])
+
+                const service = await createAndInitializeService(testOptions)
+                await service.afterCommand('findElement', ['xpath', xpath], {})
+
+                expect(vi.mocked(utils.findSelectorLocation)).toHaveBeenCalledWith(
+                    'test-file.ts',
+                    xpath,
+                    ['./tests/pageobjects'],
+                    false // !isSilent = false
+                )
+            })
+
+            test('should handle non-page-object file location correctly', async () => {
+                const testOptions: AppiumServiceConfig = {
+                    trackSelectorPerformance: {
+                        enabled: true,
+                        replaceWithOptimizedSelector: false,
+                        pageObjectPaths: ['./tests/pageobjects'],
+                        provideSelectorLocation: true
+                    }
+                }
+                vi.mocked(utils.findSelectorLocation).mockReturnValue([
+                    { file: 'test-file.ts', line: 10, isPageObject: false }
+                ])
+
+                const service = await createAndInitializeService(testOptions)
+                await service.afterCommand('findElement', ['xpath', xpath], {})
+
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    expect.stringContaining(' at test-file.ts:10')
+                )
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    expect.not.stringContaining('(page object)')
+                )
             })
         })
     })
