@@ -6,7 +6,7 @@ import type { Options, Reporters } from '@wdio/types'
 import logger from '@wdio/logger'
 
 import SelectorPerformanceService from '../../src/mobileSelectorPerformanceOptimizer/mspo-service.js'
-import * as utils from '../../src/mobileSelectorPerformanceOptimizer/utils.js'
+import * as utils from '../../src/mobileSelectorPerformanceOptimizer/utils/index.js'
 import * as store from '../../src/mobileSelectorPerformanceOptimizer/mspo-store.js'
 import * as overwrite from '../../src/mobileSelectorPerformanceOptimizer/overwrite.js'
 import type { AppiumServiceConfig } from '../../src/types.js'
@@ -29,8 +29,8 @@ vi.mock('node:path', () => ({
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-vi.mock('../../src/mobileSelectorPerformanceOptimizer/utils.js', async () => {
-    const actual = await vi.importActual('../../src/mobileSelectorPerformanceOptimizer/utils.js')
+vi.mock('../../src/mobileSelectorPerformanceOptimizer/utils/index.js', async () => {
+    const actual = await vi.importActual('../../src/mobileSelectorPerformanceOptimizer/utils/index.js')
     return {
         ...actual,
         extractSelectorFromArgs: vi.fn(),
