@@ -1,11 +1,11 @@
 import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
 
 import { overwriteUserCommands } from '../../src/mobileSelectorPerformanceOptimizer/overwrite.js'
-import * as utils from '../../src/mobileSelectorPerformanceOptimizer/utils.js'
+import * as utils from '../../src/mobileSelectorPerformanceOptimizer/utils/index.js'
 import * as optimizer from '../../src/mobileSelectorPerformanceOptimizer/optimizer.js'
 
-vi.mock('../../src/mobileSelectorPerformanceOptimizer/utils.js', async () => {
-    const actual = await vi.importActual('../../src/mobileSelectorPerformanceOptimizer/utils.js')
+vi.mock('../../src/mobileSelectorPerformanceOptimizer/utils/index.js', async () => {
+    const actual = await vi.importActual('../../src/mobileSelectorPerformanceOptimizer/utils/index.js')
     return {
         ...actual,
         isXPathSelector: vi.fn(),
