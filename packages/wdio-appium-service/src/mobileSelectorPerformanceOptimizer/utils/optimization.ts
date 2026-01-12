@@ -10,11 +10,11 @@ export async function findOptimizedSelector(
     xpath: string,
     options: {
         usePageSource: boolean
-        browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+        browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
         logPageSource?: boolean
     }
 ): Promise<XPathConversionResult | null> {
-    if (options.usePageSource && options.browser) {
+    if (options.usePageSource) {
         if (options.logPageSource !== false) {
             console.log(`${INDENT_LEVEL_1}⏳ [${LOG_PREFIX}: Step 2] Collecting page source for dynamic analysis...`)
         }

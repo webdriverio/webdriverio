@@ -12,9 +12,7 @@ export function isNativeContext(browser?: WebdriverIO.Browser | WebdriverIO.Mult
     }
 
     try {
-        const browserWithNativeContext = browser as WebdriverIO.Browser & {
-            isNativeContext?: boolean
-        }
+        const browserWithNativeContext = browser as WebdriverIO.Browser
 
         if ('instances' in browser && Array.isArray(browser.instances)) {
             log.warn('Mobile Selector Performance Optimizer does not support MultiRemote sessions yet. Feature disabled for this session.')
