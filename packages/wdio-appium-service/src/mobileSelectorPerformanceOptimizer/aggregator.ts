@@ -15,7 +15,7 @@ import {
     REPORT_INDENT_SHARED_DETAIL,
     REPORT_INDENT_WHY_CHANGE,
     REPORT_INDENT_DOCS
-} from './utils.js'
+} from './utils/index.js'
 
 /**
  * Inference maps for resolving unknown test context fields.

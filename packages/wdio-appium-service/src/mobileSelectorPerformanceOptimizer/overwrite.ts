@@ -1,5 +1,5 @@
 import type { OptimizationOptions } from './types.js'
-import { isXPathSelector, isNativeContext, SINGLE_ELEMENT_COMMANDS, MULTIPLE_ELEMENT_COMMANDS } from './utils.js'
+import { isXPathSelector, isNativeContext, SINGLE_ELEMENT_COMMANDS, MULTIPLE_ELEMENT_COMMANDS } from './utils/index.js'
 import { optimizeSingleSelector, optimizeMultipleSelectors } from './optimizer.js'
 
 /**

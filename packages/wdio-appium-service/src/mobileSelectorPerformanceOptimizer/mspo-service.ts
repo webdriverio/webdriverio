@@ -20,7 +20,7 @@ import {
     determineReportDirectory,
     findSelectorLocation,
     USER_COMMANDS
-} from './utils.js'
+} from './utils/index.js'
 import { getCurrentTestFile, getCurrentSuiteName, getCurrentTestName, getPerformanceData } from './mspo-store.js'
 import MobileSelectorPerformanceReporter from './mspo-reporter.js'
 import { overwriteUserCommands } from './overwrite.js'

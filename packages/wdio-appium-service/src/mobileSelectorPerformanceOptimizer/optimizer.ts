@@ -12,7 +12,7 @@ import {
     INDENT_LEVEL_1,
     INDENT_LEVEL_2,
     LOG_PREFIX
-} from './utils.js'
+} from './utils/index.js'
 import { getCurrentTestFile, getCurrentSuiteName, getCurrentTestName, addPerformanceData } from './mspo-store.js'
 
 /**
