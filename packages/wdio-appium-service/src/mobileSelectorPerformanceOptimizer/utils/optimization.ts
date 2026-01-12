@@ -1,5 +1,5 @@
-import type { XPathConversionResult } from '../xpath-utils.js'
-import { convertXPathToOptimizedSelector } from '../xpath-utils.js'
+import type { XPathConversionResult } from './xpath-types.js'
+import { convertXPathToOptimizedSelector } from './xpath-converter.js'
 import { getHighResTime } from './timing.js'
 import { INDENT_LEVEL_1, LOG_PREFIX } from './constants.js'
 

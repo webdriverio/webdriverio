@@ -1,8 +1,8 @@
 import { describe, expect, test, vi, beforeEach } from 'vitest'
 import { findOptimizedSelector } from '../../../src/mobileSelectorPerformanceOptimizer/utils/optimization.js'
-import * as xpathUtils from '../../../src/mobileSelectorPerformanceOptimizer/xpath-utils.js'
+import * as xpathConverter from '../../../src/mobileSelectorPerformanceOptimizer/utils/xpath-converter.js'
 
-vi.mock('../../../src/mobileSelectorPerformanceOptimizer/xpath-utils.js', () => ({
+vi.mock('../../../src/mobileSelectorPerformanceOptimizer/utils/xpath-converter.js', () => ({
     convertXPathToOptimizedSelector: vi.fn()
 }))
 
@@ -18,7 +18,7 @@ describe('optimization utils', () => {
             const xpath = '//button[@id="test"]'
             const mockResult = { selector: '~test', strategy: 'accessibility id' }
 
-            vi.mocked(xpathUtils.convertXPathToOptimizedSelector).mockReturnValue(mockResult as any)
+            vi.mocked(xpathConverter.convertXPathToOptimizedSelector).mockReturnValue(mockResult as any)
 
             const result = await findOptimizedSelector(xpath, {
                 usePageSource: false,
@@ -26,7 +26,7 @@ describe('optimization utils', () => {
             })
 
             expect(result).toEqual(mockResult)
-            expect(xpathUtils.convertXPathToOptimizedSelector).toHaveBeenCalledWith(xpath, {
+            expect(xpathConverter.convertXPathToOptimizedSelector).toHaveBeenCalledWith(xpath, {
                 usePageSource: false
             })
         })
@@ -35,7 +35,7 @@ describe('optimization utils', () => {
             const xpath = '//button[@id="test"]'
             const mockResult = { selector: '~test', strategy: 'accessibility id' }
 
-            vi.mocked(xpathUtils.convertXPathToOptimizedSelector).mockResolvedValue(mockResult as any)
+            vi.mocked(xpathConverter.convertXPathToOptimizedSelector).mockResolvedValue(mockResult as any)
 
             const result = await findOptimizedSelector(xpath, {
                 usePageSource: true,
@@ -43,7 +43,7 @@ describe('optimization utils', () => {
             })
 
             expect(result).toEqual(mockResult)
-            expect(xpathUtils.convertXPathToOptimizedSelector).toHaveBeenCalledWith(xpath, {
+            expect(xpathConverter.convertXPathToOptimizedSelector).toHaveBeenCalledWith(xpath, {
                 browser: mockBrowser,
                 usePageSource: true
             })
@@ -54,7 +54,7 @@ describe('optimization utils', () => {
             const xpath = '//button[@id="test"]'
             const mockResult = { selector: '~test', strategy: 'accessibility id' }
 
-            vi.mocked(xpathUtils.convertXPathToOptimizedSelector).mockResolvedValue(mockResult as any)
+            vi.mocked(xpathConverter.convertXPathToOptimizedSelector).mockResolvedValue(mockResult as any)
 
             await findOptimizedSelector(xpath, {
                 usePageSource: true,
@@ -76,7 +76,7 @@ describe('optimization utils', () => {
             const xpath = '//button[@id="test"]'
             const mockResult = { selector: '~test', strategy: 'accessibility id' }
 
-            vi.mocked(xpathUtils.convertXPathToOptimizedSelector).mockResolvedValue(mockResult as any)
+            vi.mocked(xpathConverter.convertXPathToOptimizedSelector).mockResolvedValue(mockResult as any)
 
             await findOptimizedSelector(xpath, {
                 usePageSource: true,
@@ -93,7 +93,7 @@ describe('optimization utils', () => {
             const xpath = '//button[@id="test"]'
             const mockResult = { selector: '~test', strategy: 'accessibility id' }
 
-            vi.mocked(xpathUtils.convertXPathToOptimizedSelector).mockReturnValue(mockResult as any)
+            vi.mocked(xpathConverter.convertXPathToOptimizedSelector).mockReturnValue(mockResult as any)
 
             const result = await findOptimizedSelector(xpath, {
                 usePageSource: false,
@@ -107,7 +107,7 @@ describe('optimization utils', () => {
             const xpath = '//button[@id="test"]'
             const mockResult = { selector: '~test', strategy: 'accessibility id' }
 
-            vi.mocked(xpathUtils.convertXPathToOptimizedSelector).mockResolvedValue(mockResult as any)
+            vi.mocked(xpathConverter.convertXPathToOptimizedSelector).mockResolvedValue(mockResult as any)
 
             const result = await findOptimizedSelector(xpath, {
                 usePageSource: false,
@@ -120,7 +120,7 @@ describe('optimization utils', () => {
         test('should return null when convertXPathToOptimizedSelector returns null', async () => {
             const xpath = '//button[@invalid]'
 
-            vi.mocked(xpathUtils.convertXPathToOptimizedSelector).mockReturnValue(null as any)
+            vi.mocked(xpathConverter.convertXPathToOptimizedSelector).mockReturnValue(null as any)
 
             const result = await findOptimizedSelector(xpath, {
                 usePageSource: false,
