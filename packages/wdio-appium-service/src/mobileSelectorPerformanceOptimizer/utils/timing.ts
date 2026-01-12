@@ -1,10 +1,8 @@
 /**
  * Gets high-resolution time in milliseconds.
+ * Uses performance.now() which is available in Node.js v18+ (WebdriverIO's minimum requirement)
+ * and provides microsecond precision.
  */
 export function getHighResTime(): number {
-    if (typeof process !== 'undefined' && process.hrtime) {
-        const [seconds, nanoseconds] = process.hrtime()
-        return seconds * 1000 + nanoseconds / 1000000
-    }
-    return Date.now()
+    return performance.now()
 }

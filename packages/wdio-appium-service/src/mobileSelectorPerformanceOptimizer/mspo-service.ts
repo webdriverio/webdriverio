@@ -136,7 +136,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
         if (this._enabled && this._replaceWithOptimized) {
             overwriteUserCommands(browser, {
                 usePageSource: this._usePageSource,
-                browser: this._browser,
+                browser: browser,
                 isReplacingSelector: this._isReplacingSelectorRef,
                 isSilentLogLevel: isSilentLogLevel(this._config),
                 pageObjectPaths: this._pageObjectPaths,
@@ -286,7 +286,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
                 // Find optimized selector using helper method (without page source logging for this flow)
                 const conversionResult = await findOptimizedSelector(timing.selector, {
                     usePageSource: this._usePageSource,
-                    browser: this._browser,
+                    browser: this._browser!,
                     logPageSource: false
                 })
 
