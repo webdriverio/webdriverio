@@ -19,6 +19,7 @@
         "setuptypes",
         "automationProtocols",
         "multiremote",
+        "browser-build",
         "autowait"
       ]
     },

@@ -29,33 +29,33 @@ const POLYFILLED_BUILTINS: Record<string, string> = {
     `,
     'buffer': `
         // Buffer polyfill - implementation for WebdriverIO needs
-        class BufferPolyfill {
+        class BufferPolyfill extends Uint8Array {
             static from(data, encoding) {
                 if (typeof data === 'string') {
                     if (encoding === 'base64') {
-                        // Decode base64 string
                         const binary = atob(data);
                         const bytes = new Uint8Array(binary.length);
                         for (let i = 0; i < binary.length; i++) {
                             bytes[i] = binary.charCodeAt(i);
                         }
-                        return bytes;
+                        return new BufferPolyfill(bytes.buffer, bytes.byteOffset, bytes.byteLength);
                     }
                     if (encoding === 'hex') {
-                        // Decode hex string
                         const bytes = new Uint8Array(data.length / 2);
                         for (let i = 0; i < bytes.length; i++) {
                             bytes[i] = parseInt(data.substring(i * 2, i * 2 + 2), 16);
                         }
-                        return bytes;
+                        return new BufferPolyfill(bytes.buffer, bytes.byteOffset, bytes.byteLength);
                     }
                     // Default: UTF-8 encoding
-                    return new TextEncoder().encode(data);
+                    const bytes = new TextEncoder().encode(data);
+                    return new BufferPolyfill(bytes.buffer, bytes.byteOffset, bytes.byteLength);
                 }
-                return new Uint8Array(data);
+                const bytes = new Uint8Array(data);
+                return new BufferPolyfill(bytes.buffer, bytes.byteOffset, bytes.byteLength);
             }
             static alloc(size) {
-                return new Uint8Array(size);
+                return new BufferPolyfill(size);
             }
             static isBuffer(obj) {
                 return obj instanceof Uint8Array;
@@ -68,18 +68,28 @@ const POLYFILLED_BUILTINS: Record<string, string> = {
                     result.set(arr, offset);
                     offset += arr.length;
                 }
-                return result;
+                return new BufferPolyfill(result.buffer, result.byteOffset, result.byteLength);
             }
             static toString(buf, encoding) {
                 if (encoding === 'base64') {
-                    // Use loop to avoid stack overflow on large buffers
                     let binary = '';
                     for (let i = 0; i < buf.length; i++) {
                         binary += String.fromCharCode(buf[i]);
                     }
                     return btoa(binary);
                 }
+                if (encoding === 'hex') {
+                    let hex = '';
+                    for (let i = 0; i < buf.length; i++) {
+                        const b = buf[i];
+                        hex += (b < 16 ? '0' : '') + b.toString(16);
+                    }
+                    return hex;
+                }
                 return new TextDecoder().decode(buf);
+            }
+            toString(encoding) {
+                return BufferPolyfill.toString(this, encoding);
             }
         }
         export const Buffer = BufferPolyfill;
