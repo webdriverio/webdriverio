@@ -1,5 +1,8 @@
+import logger from '@wdio/logger'
 import type { SelectorLocation } from './selector-location.js'
-import { INDENT_LEVEL_1, INDENT_LEVEL_2, LOG_PREFIX } from './constants.js'
+import { LOG_PREFIX } from './constants.js'
+
+const log = logger('@wdio/appium-service')
 
 /**
  * Formats a selector for display/logging purposes (truncates long selectors).
@@ -35,7 +38,7 @@ export function formatSelectorLocations(locations: SelectorLocation[]): string {
         return `${fileDisplay}:${loc.line}`
     })
 
-    return ` at multiple locations:\n${INDENT_LEVEL_2}   - ${locationStrings.join(`\n${INDENT_LEVEL_2}   - `)}\n${INDENT_LEVEL_2}   Note: The selector was found in ${locations.length} files. Please verify which one is correct.`
+    return ` at multiple locations: ${locationStrings.join(', ')}. Note: The selector was found in ${locations.length} files. Please verify which one is correct.`
 }
 
 /**
@@ -53,13 +56,13 @@ export function logOptimizationConclusion(
     const quoteStyle = optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
 
     if (timeDifference > 0) {
-        console.log(`🚀 [${LOG_PREFIX}: Conclusion] Optimized selector is ${timeDifference.toFixed(2)}ms faster than XPath (${improvementPercent.toFixed(1)}% improvement)`)
-        console.log(`${INDENT_LEVEL_1}💡 [${LOG_PREFIX}: Advice] Consider using the optimized selector ${quoteStyle}${formattedOptimized}${quoteStyle} for better performance${locationInfo ? locationInfo : ''}.`)
+        log.info(`[${LOG_PREFIX}: Conclusion] Optimized selector is ${timeDifference.toFixed(2)}ms faster than XPath (${improvementPercent.toFixed(1)}% improvement)`)
+        log.info(`[${LOG_PREFIX}: Advice] Consider using the optimized selector ${quoteStyle}${formattedOptimized}${quoteStyle} for better performance${locationInfo ? locationInfo : ''}.`)
     } else if (timeDifference < 0) {
-        console.log(`⚠️ [${LOG_PREFIX}: Conclusion] Optimized selector is ${Math.abs(timeDifference).toFixed(2)}ms slower than XPath`)
-        console.log(`${INDENT_LEVEL_1}💡 [${LOG_PREFIX}: Advice] There is no improvement in performance, consider using the original selector '${formattedOriginal}' if performance is critical. If performance is not critical, you can use the optimized selector ${quoteStyle}${formattedOptimized}${quoteStyle} for better stability${locationInfo ? locationInfo : ''}.`)
+        log.info(`[${LOG_PREFIX}: Conclusion] Optimized selector is ${Math.abs(timeDifference).toFixed(2)}ms slower than XPath`)
+        log.info(`[${LOG_PREFIX}: Advice] There is no improvement in performance, consider using the original selector '${formattedOriginal}' if performance is critical. If performance is not critical, you can use the optimized selector ${quoteStyle}${formattedOptimized}${quoteStyle} for better stability${locationInfo ? locationInfo : ''}.`)
     } else {
-        console.log(`📊 [${LOG_PREFIX}: Conclusion] Optimized selector has the same performance as XPath`)
-        console.log(`${INDENT_LEVEL_1}💡 [${LOG_PREFIX}: Advice] There is no improvement in performance, consider using the original selector '${formattedOriginal}' if performance is critical. If performance is not critical, you can use the optimized selector ${quoteStyle}${formattedOptimized}${quoteStyle} for better stability${locationInfo ? locationInfo : ''}.`)
+        log.info(`[${LOG_PREFIX}: Conclusion] Optimized selector has the same performance as XPath`)
+        log.info(`[${LOG_PREFIX}: Advice] There is no improvement in performance, consider using the original selector '${formattedOriginal}' if performance is critical. If performance is not critical, you can use the optimized selector ${quoteStyle}${formattedOptimized}${quoteStyle} for better stability${locationInfo ? locationInfo : ''}.`)
     }
 }

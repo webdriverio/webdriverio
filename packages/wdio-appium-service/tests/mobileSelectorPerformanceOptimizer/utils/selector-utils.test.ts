@@ -109,6 +109,12 @@ describe('selector-utils', () => {
             expect(isXPathSelector('(:is(.class))')).toBe(false)
         })
 
+        test('should return false for selector starting with ( but not containing / or @', () => {
+            expect(isXPathSelector('(some text)')).toBe(false)
+            expect(isXPathSelector('(button)')).toBe(false)
+            expect(isXPathSelector('(div.class)')).toBe(false)
+        })
+
         test('should return false for CSS selectors', () => {
             expect(isXPathSelector('.class')).toBe(false)
             expect(isXPathSelector('#id')).toBe(false)

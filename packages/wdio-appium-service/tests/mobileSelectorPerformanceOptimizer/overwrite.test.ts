@@ -24,7 +24,6 @@ describe('overwriteUserCommands', () => {
         usePageSource: boolean
         browser?: WebdriverIO.Browser
         isReplacingSelector: { value: boolean }
-        isSilentLogLevel?: boolean
     }
     let mockOverwriteCommand: ReturnType<typeof vi.fn>
 
@@ -40,8 +39,7 @@ describe('overwriteUserCommands', () => {
         mockOptions = {
             usePageSource: true,
             browser: mockBrowser,
-            isReplacingSelector: { value: false },
-            isSilentLogLevel: false
+            isReplacingSelector: { value: false }
         }
 
         vi.mocked(utils.isNativeContext).mockReturnValue(true)

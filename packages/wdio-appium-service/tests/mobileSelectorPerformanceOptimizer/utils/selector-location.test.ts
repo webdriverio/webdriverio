@@ -1,6 +1,7 @@
-import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
+import { describe, expect, test, vi, beforeEach } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
+import logger from '@wdio/logger'
 import { findSelectorLocation } from '../../../src/mobileSelectorPerformanceOptimizer/utils/selector-location.js'
 
 vi.mock('node:fs', () => ({
@@ -15,6 +16,10 @@ vi.mock('node:fs', () => ({
     statSync: vi.fn(),
     readdirSync: vi.fn()
 }))
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+const log = logger('@wdio/appium-service')
 
 describe('selector-location utils', () => {
     beforeEach(() => {
@@ -152,33 +157,29 @@ describe('selector-location utils', () => {
             expect(result).toEqual([])
         })
 
-        test('should handle logging when enabled', () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+        test('should log debug info when searching for selector', () => {
             const testFile = '/project/test/spec.ts'
             const selector = '//button'
 
             vi.mocked(fs.existsSync).mockReturnValue(true)
             vi.mocked(fs.readFileSync).mockReturnValue(`$('${selector}')`)
 
-            findSelectorLocation(testFile, selector, [], true)
+            findSelectorLocation(testFile, selector, [])
 
-            expect(consoleLogSpy).toHaveBeenCalled()
-
-            consoleLogSpy.mockRestore()
+            expect(log.debug).toHaveBeenCalledWith(
+                expect.stringContaining('[Selector Location] Searching for XPath selector')
+            )
         })
 
-        test('should skip logging for non-XPath with logging enabled', () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+        test('should log debug info for non-XPath selector', () => {
             const testFile = '/project/test/spec.ts'
             const selector = '.button'
 
-            findSelectorLocation(testFile, selector, [], true)
+            findSelectorLocation(testFile, selector, [])
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
-                expect.stringContaining('Skipping non-XPath selector')
+            expect(log.debug).toHaveBeenCalledWith(
+                expect.stringContaining('[Selector Location] Skipping non-XPath selector')
             )
-
-            consoleLogSpy.mockRestore()
         })
 
         test('should handle multiple matches in same file', () => {
@@ -230,20 +231,15 @@ describe('selector-location utils', () => {
             expect(result).toBeDefined()
         })
 
-        test('should log when no testFile or selector provided with logging enabled', () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+        test('should log debug when no testFile or selector provided', () => {
+            findSelectorLocation(undefined, '//button', [])
 
-            findSelectorLocation(undefined, '//button', [], true)
-
-            expect(consoleLogSpy).toHaveBeenCalledWith(
-                expect.stringContaining('No test file or selector provided')
+            expect(log.debug).toHaveBeenCalledWith(
+                expect.stringContaining('[Selector Location] No test file or selector provided')
             )
-
-            consoleLogSpy.mockRestore()
         })
 
-        test('should log configured page object paths when provided with logging enabled', () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+        test('should log debug for configured page object paths when provided', () => {
             const testFile = '/project/test/spec.ts'
             const selector = '//button'
             const pageObjectPaths = ['/project/pageobjects']
@@ -253,65 +249,88 @@ describe('selector-location utils', () => {
             vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true, isFile: () => false } as fs.Stats)
             vi.mocked(fs.readdirSync).mockReturnValue([])
 
-            findSelectorLocation(testFile, selector, pageObjectPaths, true)
+            findSelectorLocation(testFile, selector, pageObjectPaths)
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
-                expect.stringContaining('Using configured page object paths')
+            expect(log.debug).toHaveBeenCalledWith(
+                expect.stringContaining('[Selector Location] Using configured page object paths')
             )
-
-            consoleLogSpy.mockRestore()
         })
 
-        test('should log when no page object files found with logging enabled', () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+        test('should log debug when no page object files found', () => {
             const testFile = '/project/test/spec.ts'
             const selector = '//button'
 
             vi.mocked(fs.existsSync).mockImplementation((p) => p === testFile)
             vi.mocked(fs.readFileSync).mockReturnValue('')
 
-            findSelectorLocation(testFile, selector, [], true)
+            findSelectorLocation(testFile, selector, [])
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
-                expect.stringContaining('No page object files found')
+            expect(log.debug).toHaveBeenCalledWith(
+                expect.stringContaining('[Selector Location] No page object files found')
             )
-
-            consoleLogSpy.mockRestore()
         })
 
-        test('should log when selector not found with logging enabled', () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+        test('should handle error in findFilesInDirectory gracefully', () => {
             const testFile = '/project/test/spec.ts'
             const selector = '//button'
+            const pageObjectPath = '/project/pageobjects'
 
-            vi.mocked(fs.existsSync).mockImplementation((p) => p === testFile)
-            vi.mocked(fs.readFileSync).mockReturnValue('no selector here')
-
-            findSelectorLocation(testFile, selector, [], true)
-
-            expect(consoleLogSpy).toHaveBeenCalledWith(
-                expect.stringContaining('Selector not found')
-            )
-
-            consoleLogSpy.mockRestore()
-        })
-
-        test('should log error with logging enabled when error occurs', () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-            const testFile = '/project/test/spec.ts'
-            const selector = '//button'
-
-            vi.mocked(fs.existsSync).mockImplementation(() => {
-                throw new Error('Filesystem error')
+            vi.mocked(fs.existsSync).mockReturnValue(true)
+            vi.mocked(fs.readFileSync).mockReturnValue('test content')
+            vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true, isFile: () => false } as fs.Stats)
+            vi.mocked(fs.readdirSync).mockImplementation(() => {
+                throw new Error('Permission denied')
             })
 
-            findSelectorLocation(testFile, selector, [], true)
+            const result = findSelectorLocation(testFile, selector, [pageObjectPath])
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
-                expect.stringContaining('Error: Filesystem error')
-            )
+            expect(result).toBeDefined()
+        })
 
-            consoleLogSpy.mockRestore()
+        test('should handle relative page object paths', () => {
+            const testFile = '/project/test/spec.ts'
+            const selector = '//button'
+            const pageObjectPath = './pageobjects' // relative path
+
+            vi.mocked(fs.existsSync).mockReturnValue(true)
+            vi.mocked(fs.readFileSync).mockReturnValue('test content')
+            vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true, isFile: () => false } as fs.Stats)
+            vi.mocked(fs.readdirSync).mockReturnValue([])
+
+            findSelectorLocation(testFile, selector, [pageObjectPath])
+
+            // Should resolve relative path
+            expect(fs.statSync).toHaveBeenCalled()
+        })
+
+        test('should handle page object path as file instead of directory', () => {
+            const testFile = '/project/test/spec.ts'
+            const selector = '//button'
+            const pageObjectFile = '/project/pageobjects.ts'
+
+            vi.mocked(fs.existsSync).mockReturnValue(true)
+            vi.mocked(fs.readFileSync).mockReturnValue('test content')
+            vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => false, isFile: () => true } as fs.Stats)
+
+            const result = findSelectorLocation(testFile, selector, [pageObjectFile])
+
+            expect(result).toBeDefined()
+        })
+
+        test('should handle error in findPageObjectFilesFromConfig gracefully', () => {
+            const testFile = '/project/test/spec.ts'
+            const selector = '//button'
+            const pageObjectPath = '/nonexistent/path'
+
+            vi.mocked(fs.existsSync).mockReturnValue(true)
+            vi.mocked(fs.readFileSync).mockReturnValue('test content')
+            vi.mocked(fs.statSync).mockImplementation(() => {
+                throw new Error('Path does not exist')
+            })
+
+            const result = findSelectorLocation(testFile, selector, [pageObjectPath])
+
+            expect(result).toBeDefined()
         })
     })
 })

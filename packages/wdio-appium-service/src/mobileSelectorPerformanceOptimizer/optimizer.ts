@@ -1,3 +1,4 @@
+import logger from '@wdio/logger'
 import type { OptimizationOptions } from './types.js'
 import {
     formatSelectorForDisplay,
@@ -9,11 +10,11 @@ import {
     createOptimizedSelectorData,
     findSelectorLocation,
     formatSelectorLocations,
-    INDENT_LEVEL_1,
-    INDENT_LEVEL_2,
     LOG_PREFIX
 } from './utils/index.js'
 import { getCurrentTestFile, getCurrentSuiteName, getCurrentTestName, addPerformanceData } from './mspo-store.js'
+
+const log = logger('@wdio/appium-service')
 
 /**
  * Core optimization flow shared between single and multiple element selectors.
@@ -40,38 +41,32 @@ async function optimizeSelector<T extends WebdriverIO.Element | WebdriverIO.Elem
     options: OptimizationOptions,
     isMultiple: boolean
 ): Promise<T> {
-    const isSilent = options.isSilentLogLevel === true
     const elementWord = isMultiple ? 'element(s)' : 'element'
 
     // Search for selector locations in test file and page objects (if enabled)
     const testFile = getCurrentTestFile()
     const locations = options.provideSelectorLocation
-        ? findSelectorLocation(testFile, selector, options.pageObjectPaths, false)
+        ? findSelectorLocation(testFile, selector, options.pageObjectPaths)
         : []
     const locationInfo = formatSelectorLocations(locations)
 
     // Step 1: Test the current XPath selector first
-    if (!isSilent) {
-        console.log(`\n\n🔍 [${LOG_PREFIX}: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')${locationInfo}`)
-        console.log(`${INDENT_LEVEL_1}⏳ [${LOG_PREFIX}: Step 1] Testing current selector: ${commandName}('${formatSelectorForDisplay(selector)}')`)
-    }
+    log.info(`[${LOG_PREFIX}: Research Selector] ${commandName}('${formatSelectorForDisplay(selector)}')${locationInfo}`)
+    log.info(`[${LOG_PREFIX}: Step 1] Testing current selector: ${commandName}('${formatSelectorForDisplay(selector)}')`)
     const originalStartTime = getHighResTime()
     const originalResult = await originalFunc.call(browser, selector)
     const originalDuration = getHighResTime() - originalStartTime
-    if (!isSilent) {
-        console.log(`${INDENT_LEVEL_1}✅ [${LOG_PREFIX}: Step 1] ${commandName}('${formatSelectorForDisplay(selector)}') took ${originalDuration.toFixed(2)}ms`)
-    }
+    log.info(`[${LOG_PREFIX}: Step 1] ${commandName}('${formatSelectorForDisplay(selector)}') took ${originalDuration.toFixed(2)}ms`)
 
     // Step 2: Find optimized selector
     const conversionResult = await findOptimizedSelector(selector, {
         usePageSource: options.usePageSource,
-        browser: options.browser,
-        logPageSource: !isSilent
+        browser: options.browser
     })
 
     if (!conversionResult || !conversionResult.selector) {
         if (conversionResult?.warning) {
-            console.warn(`⚠️ [${LOG_PREFIX}: Warning] ${conversionResult.warning}`)
+            log.warn(`[${LOG_PREFIX}: Warning] ${conversionResult.warning}`)
         }
         return originalResult
     }
@@ -80,44 +75,36 @@ async function optimizeSelector<T extends WebdriverIO.Element | WebdriverIO.Elem
 
     // Step 3: Log the potential optimized selector
     const quoteStyle = optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
-    if (!isSilent) {
-        console.log(`${INDENT_LEVEL_1}💡 [${LOG_PREFIX}: Step 3] Search for a better selector`)
-        console.log(`${INDENT_LEVEL_1}✨ [${LOG_PREFIX}: Outcome] Potential Optimized Selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
-    }
+    log.info(`[${LOG_PREFIX}: Step 3] Search for a better selector`)
+    log.info(`[${LOG_PREFIX}: Outcome] Potential Optimized Selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
 
     // Step 4: Test the optimized selector
     const parsed = parseOptimizedSelector(optimizedSelector)
     if (!parsed) {
-        console.warn(`⚠️ [${LOG_PREFIX}: Warning] Unknown optimized selector type: ${optimizedSelector}. Using original XPath`)
+        log.warn(`[${LOG_PREFIX}: Warning] Unknown optimized selector type: ${optimizedSelector}. Using original XPath`)
         return originalResult
     }
 
-    // Log detailed debugging steps for non-accessibility ID selectors (only if not silent)
+    // Log detailed debugging steps for non-accessibility ID selectors
     const isAccessibilityId = parsed.using === 'accessibility id'
-    if (!isAccessibilityId && !isSilent) {
-        console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Selector type: ${parsed.using}`)
-        console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Selector value: "${parsed.value}"`)
-        console.log(`${INDENT_LEVEL_2}🔬 [${LOG_PREFIX}: Debug] Starting verification process...`)
+    if (!isAccessibilityId) {
+        log.debug(`[${LOG_PREFIX}: Debug] Selector type: ${parsed.using}`)
+        log.debug(`[${LOG_PREFIX}: Debug] Selector value: "${parsed.value}"`)
+        log.debug(`[${LOG_PREFIX}: Debug] Starting verification process...`)
     }
 
-    if (!isSilent) {
-        console.log(`${INDENT_LEVEL_1}⏳ [${LOG_PREFIX}: Step 4] Testing optimized selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
-    }
-    const testResult = await testOptimizedSelector(browser, parsed.using, parsed.value, isMultiple, !isAccessibilityId && !isSilent)
+    log.info(`[${LOG_PREFIX}: Step 4] Testing optimized selector: ${commandName}(${quoteStyle}${optimizedSelector}${quoteStyle})`)
+    const testResult = await testOptimizedSelector(browser, parsed.using, parsed.value, isMultiple, !isAccessibilityId)
 
     if (!testResult || testResult.elementRefs.length === 0) {
-        if (!isSilent) {
-            console.warn(`❌ [${LOG_PREFIX}: Warning] Optimized selector '${optimizedSelector}' did not find ${elementWord}, using original XPath`)
-        }
+        log.warn(`[${LOG_PREFIX}: Warning] Optimized selector '${optimizedSelector}' did not find ${elementWord}, using original XPath`)
         return originalResult
     }
 
-    if (!isSilent) {
-        const foundMessage = isMultiple
-            ? `Optimized selector found ${testResult.elementRefs.length} element(s) in ${testResult.duration.toFixed(2)}ms`
-            : `Optimized selector found element in ${testResult.duration.toFixed(2)}ms`
-        console.log(`${INDENT_LEVEL_1}✅ [${LOG_PREFIX}: Step 4] ${foundMessage}`)
-    }
+    const foundMessage = isMultiple
+        ? `Optimized selector found ${testResult.elementRefs.length} element(s) in ${testResult.duration.toFixed(2)}ms`
+        : `Optimized selector found element in ${testResult.duration.toFixed(2)}ms`
+    log.info(`[${LOG_PREFIX}: Step 4] ${foundMessage}`)
 
     // Step 5: Compare and conclude
     const timeDifference = originalDuration - testResult.duration
@@ -138,9 +125,7 @@ async function optimizeSelector<T extends WebdriverIO.Element | WebdriverIO.Elem
     )
     addPerformanceData(optimizedData)
 
-    if (!isSilent) {
-        logOptimizationConclusion(timeDifference, improvementPercent, selector, optimizedSelector, locationInfo)
-    }
+    logOptimizationConclusion(timeDifference, improvementPercent, selector, optimizedSelector, locationInfo)
 
     // Step 6: Execute with optimized selector
     options.isReplacingSelector.value = true
@@ -176,4 +161,3 @@ export async function optimizeMultipleSelectors(
 ): Promise<WebdriverIO.Element[]> {
     return optimizeSelector(commandName, selector, originalFunc, browser, options, true)
 }
-

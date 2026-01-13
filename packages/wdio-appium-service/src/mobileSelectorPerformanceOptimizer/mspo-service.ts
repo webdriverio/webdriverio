@@ -15,7 +15,6 @@ import {
     findMatchingInternalCommandTiming,
     storePerformanceData,
     isNativeContext,
-    isSilentLogLevel,
     isReporterRegistered,
     determineReportDirectory,
     findSelectorLocation,
@@ -118,18 +117,18 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
         this._browser = browser
 
         if (this._enabled) {
-            log.info('🧪 Mobile Selector Performance Optimizer (BETA)')
+            log.info('Mobile Selector Performance Optimizer (BETA)')
             log.info('   → All feedback is welcome!')
             log.info('   → Currently optimized for iOS (shows the most significant performance and stability gains)')
 
             if (this._browser.isAndroid) {
-                log.info('⚠️  Mobile Selector Performance Optimizer is disabled for Android')
+                log.info('Mobile Selector Performance Optimizer is disabled for Android')
                 log.info('   → Android support coming in a future release')
                 this._enabled = false
                 return
             }
 
-            log.info('✅ Mobile Selector Performance Optimizer enabled for iOS')
+            log.info('Mobile Selector Performance Optimizer enabled for iOS')
         }
 
         // Overwrite all user commands to replace XPath with optimized selectors if enabled
@@ -138,7 +137,6 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
                 usePageSource: this._usePageSource,
                 browser: browser,
                 isReplacingSelector: this._isReplacingSelectorRef,
-                isSilentLogLevel: isSilentLogLevel(this._config),
                 pageObjectPaths: this._pageObjectPaths,
                 provideSelectorLocation: this._provideSelectorLocation
             })
@@ -151,7 +149,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
         }
 
         if (!isNativeContext(this._browser)) {
-            log.info('⚠️  Mobile Selector Performance Optimizer is disabled for non-native context')
+            log.info('Mobile Selector Performance Optimizer is disabled for non-native context')
             return
         }
 
@@ -167,8 +165,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             let lineNumber: number | undefined
             if (this._provideSelectorLocation) {
                 const testFile = getCurrentTestFile()
-                const isSilent = isSilentLogLevel(this._config)
-                const locations = findSelectorLocation(testFile, selector, this._pageObjectPaths, !isSilent)
+                const locations = findSelectorLocation(testFile, selector, this._pageObjectPaths)
                 lineNumber = locations.length > 0 ? locations[0].line : undefined
             }
 
@@ -225,7 +222,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
         }
 
         if (!isNativeContext(this._browser)) {
-            log.info('⚠️  Mobile Selector Performance Optimizer is disabled for non-native context')
+            log.info('Mobile Selector Performance Optimizer is disabled for non-native context')
             return
         }
 
@@ -270,8 +267,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             if (!this._replaceWithOptimized) {
                 let locationInfo = ''
                 if (this._provideSelectorLocation) {
-                    const isSilent = isSilentLogLevel(this._config)
-                    const locations = findSelectorLocation(testContext.testFile, timing.selector, this._pageObjectPaths, !isSilent)
+                    const locations = findSelectorLocation(testContext.testFile, timing.selector, this._pageObjectPaths)
                     if (locations.length > 0) {
                         const location = locations[0]
                         const fileDisplay = location.isPageObject
@@ -281,22 +277,20 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
                     }
                 }
 
-                console.log(`[Selector Performance] ${timing.commandName}('${formattedSelector}') took ${duration.toFixed(2)}ms${locationInfo}`)
+                log.info(`[Selector Performance] ${timing.commandName}('${formattedSelector}') took ${duration.toFixed(2)}ms${locationInfo}`)
 
-                // Find optimized selector using helper method (without page source logging for this flow)
                 const conversionResult = await findOptimizedSelector(timing.selector, {
                     usePageSource: this._usePageSource,
-                    browser: this._browser!,
-                    logPageSource: false
+                    browser: this._browser!
                 })
 
                 if (conversionResult) {
                     if (conversionResult.selector) {
                         const quoteStyle = conversionResult.selector.startsWith('-ios class chain:') ? "'" : '"'
-                        console.log(`[Potential Optimized Selector] ${timing.commandName}(${quoteStyle}${conversionResult.selector}${quoteStyle})${locationInfo}`)
+                        log.info(`[Potential Optimized Selector] ${timing.commandName}(${quoteStyle}${conversionResult.selector}${quoteStyle})${locationInfo}`)
                     }
                     if (conversionResult.warning) {
-                        console.warn(`[Selector Performance Warning] ${conversionResult.warning}${locationInfo}`)
+                        log.warn(`[Selector Performance Warning] ${conversionResult.warning}${locationInfo}`)
                     }
                 }
             }

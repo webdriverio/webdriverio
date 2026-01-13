@@ -1,10 +1,16 @@
-import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
+import path from 'node:path'
+import { describe, expect, test, vi, beforeEach } from 'vitest'
+import logger from '@wdio/logger'
 import {
     formatSelectorForDisplay,
     formatSelectorLocations,
     logOptimizationConclusion
 } from '../../../src/mobileSelectorPerformanceOptimizer/utils/formatting.js'
 import type { SelectorLocation } from '../../../src/mobileSelectorPerformanceOptimizer/utils/selector-location.js'
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+const log = logger('@wdio/appium-service')
 
 describe('formatting utils', () => {
     describe('formatSelectorForDisplay', () => {
@@ -69,14 +75,8 @@ describe('formatting utils', () => {
     })
 
     describe('logOptimizationConclusion', () => {
-        let consoleLogSpy: ReturnType<typeof vi.spyOn>
-
         beforeEach(() => {
-            consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-        })
-
-        afterEach(() => {
-            consoleLogSpy.mockRestore()
+            vi.clearAllMocks()
         })
 
         test('should log positive improvement', () => {
@@ -87,13 +87,13 @@ describe('formatting utils', () => {
                 '~myButton'
             )
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
+            expect(log.info).toHaveBeenCalledWith(
                 expect.stringContaining('50.00ms faster')
             )
-            expect(consoleLogSpy).toHaveBeenCalledWith(
+            expect(log.info).toHaveBeenCalledWith(
                 expect.stringContaining('25.0% improvement')
             )
-            expect(consoleLogSpy).toHaveBeenCalledWith(
+            expect(log.info).toHaveBeenCalledWith(
                 expect.stringContaining('Consider using the optimized selector')
             )
         })
@@ -106,10 +106,10 @@ describe('formatting utils', () => {
                 '~myButton'
             )
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
+            expect(log.info).toHaveBeenCalledWith(
                 expect.stringContaining('20.00ms slower')
             )
-            expect(consoleLogSpy).toHaveBeenCalledWith(
+            expect(log.info).toHaveBeenCalledWith(
                 expect.stringContaining('no improvement')
             )
         })
@@ -122,8 +122,42 @@ describe('formatting utils', () => {
                 '~myButton'
             )
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
+            expect(log.info).toHaveBeenCalledWith(
                 expect.stringContaining('same performance')
+            )
+        })
+
+        test('should log same performance with location info', () => {
+            logOptimizationConclusion(
+                0,
+                0,
+                '//button',
+                '~myButton',
+                ' at test/spec.ts:42'
+            )
+
+            expect(log.info).toHaveBeenCalledWith(
+                expect.stringContaining('same performance')
+            )
+            expect(log.info).toHaveBeenCalledWith(
+                expect.stringContaining('at test/spec.ts:42')
+            )
+        })
+
+        test('should log negative improvement with location info', () => {
+            logOptimizationConclusion(
+                -20,
+                -10,
+                '//button',
+                '~myButton',
+                ' at test/spec.ts:42'
+            )
+
+            expect(log.info).toHaveBeenCalledWith(
+                expect.stringContaining('20.00ms slower')
+            )
+            expect(log.info).toHaveBeenCalledWith(
+                expect.stringContaining('at test/spec.ts:42')
             )
         })
 
@@ -135,7 +169,7 @@ describe('formatting utils', () => {
                 '-ios class chain:**/XCUIElementTypeButton'
             )
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
+            expect(log.info).toHaveBeenCalledWith(
                 expect.stringContaining("'-ios class chain:")
             )
         })
@@ -148,7 +182,7 @@ describe('formatting utils', () => {
                 '~myButton'
             )
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
+            expect(log.info).toHaveBeenCalledWith(
                 expect.stringContaining('"~myButton"')
             )
         })
@@ -162,7 +196,7 @@ describe('formatting utils', () => {
                 ' at test/spec.ts:42'
             )
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
+            expect(log.info).toHaveBeenCalledWith(
                 expect.stringContaining('at test/spec.ts:42')
             )
         })
