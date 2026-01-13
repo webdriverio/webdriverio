@@ -476,47 +476,39 @@ export const config = {
 }
 ```
 
-### Console Output and Logging
+### Logging
 
-The Mobile Selector Performance Optimizer uses two types of output:
+The Mobile Selector Performance Optimizer logs via `@wdio/logger` with the namespace `@wdio/appium-service:selector-optimizer`. This means that all output respects WebdriverIO `logLevel` and per-logger overrides.
 
-1. **Console output** (`console.log`): Detailed step-by-step optimization information is printed to the console based on the configuration:
+**Log Level Hierarchy** (from most verbose to silent):
+- `trace` → Most verbose, includes all log messages
+- `debug` → Includes debug, info, warn, and error messages
+- `info` → Includes info, warn, and error messages (default)
+- `warn` → Includes only warn and error messages
+- `error` → Includes only error messages
+- `silent` → No log output
 
-   **When `replaceWithOptimizedSelector: false` (tracking mode):**
-   - Console logs are **always** printed, regardless of log level
-   - Shows performance timing for each selector
-   - Displays potential optimized selector suggestions
-   - Outputs warnings if any issues occur during optimization
+When you set a log level, all levels at or above that level will be shown. For example, setting `logLevel: 'info'` will show `info`, `warn`, and `error` messages, but not `debug` or `trace` messages.
 
-   **When `replaceWithOptimizedSelector: true` (validation mode):**
-   - Console logs are printed **only when `logLevel` is NOT `silent`**
-   - Shows detailed optimization steps:
-     - Research steps for each selector
-     - Performance timing measurements (original vs optimized)
-     - Testing of optimized selectors
-     - Comparison and improvement metrics
-   - Debug logs are shown for non-accessibility ID selectors (when not silent)
-   - **Warnings are always shown** regardless of log level
+Behavior by mode:
+- **`replaceWithOptimizedSelector: true` (validation mode):**
+  - `info` logs cover research steps, timing, testing of optimized selectors, and comparisons.
+  - `debug` logs add detailed selector testing steps (enable by setting logger level to `debug`).
+  - Warnings are always emitted at `warn`.
 
-2. **Logger output** (`@wdio/logger`): Standard log messages (info, warn, error, debug) that respect your WebdriverIO log level configuration. These include:
-   - Feature initialization messages
-   - Platform warnings (Android, MultiRemote)
-   - Error messages
-   - Debug information (when log level is set to `debug`)
+- **`replaceWithOptimizedSelector: false` (tracking-only mode):**
+  - `info` logs cover tracking and suggested optimizations.
+  - `debug` adds detailed selector analysis when enabled.
 
-To reduce console output when using `replaceWithOptimizedSelector: true`, you can set the WebdriverIO log level to `silent`:
+To silence the optimizer logs entirely, set:
 
 ```js
 export const config = {
     // ...
-    logLevel: 'silent',  // Silences step-by-step console output during optimization validation
+    logLevel: 'silent', // silences all @wdio/logger output, including the optimizer
     // ...
 }
 ```
-
-**Note:**
-- When `logLevel` is `silent` and `replaceWithOptimizedSelector: true`, detailed optimization steps will not be printed, but warnings and the final report will still be generated.
-- When `replaceWithOptimizedSelector: false`, console logs are always printed regardless of log level, as this is the tracking-only mode.
 
 ### How It Works
 
@@ -628,10 +620,10 @@ The report is saved as a JSON file in the specified `reportPath` (or default loc
       📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/DragScreen.ts:5
    5. $('//*[@name="Forms-screen"]') → $("~Forms-screen") (25.7% faster, 25.98ms saved)
       📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/FormsScreen.ts:4
-   6. $('//XCUIElementTypeAlert') → $("-ios predicate string:type == 'XCUIElementTypeAlert'") (20.4% 
+   6. $('//XCUIElementTypeAlert') → $("-ios predicate string:type == 'XCUIElementTypeAlert'") (20.4%
       faster, 22.97ms saved) ⚠️ (shared)
       📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/NativeAlert.ts:8
-   7. $('//*[@name="button-biometric"]') → $("~button-biometric") (26.6% faster, 22.77ms saved) ⚠️ 
+   7. $('//*[@name="button-biometric"]') → $("~button-biometric") (26.6% faster, 22.77ms saved) ⚠️
       (shared)
       📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:20
    8. $('//*[@name="Login-screen"]') → $("~Login-screen") (23.4% faster, 21.28ms saved) ⚠️ (shared)
@@ -646,7 +638,7 @@ The report is saved as a JSON file in the specified `reportPath` (or default loc
    These selectors appear in multiple tests and have high improvement. Fix once, benefit everywhere!
    • $('//*[@name="Home"]') → $("~Home") (56.0% faster, appears in 7 test(s))
      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
-   • $('//*[@name="button-biometric"]') → $("~button-biometric") (26.6% faster, appears in 2 
+   • $('//*[@name="button-biometric"]') → $("~button-biometric") (26.6% faster, appears in 2
      test(s))
      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:20
    • $('//*[@name="Login-screen"]') → $("~Login-screen") (22.4% faster, appears in 2 test(s))
@@ -661,16 +653,16 @@ The report is saved as a JSON file in the specified `reportPath` (or default loc
                📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
             • Replace: $('//*[@name="Login"]') → $("~Login") (29.9% faster)
                📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:11
-            • Replace: $('//*[@name="Login-screen"]') → $("~Login-screen") (22.4% faster) ⚠️ (also 
+            • Replace: $('//*[@name="Login-screen"]') → $("~Login-screen") (22.4% faster) ⚠️ (also
               in other test(s))
                📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:4
-            • Replace: $('//*[@name="button-biometric"]') → $("~button-biometric") (26.6% faster) ⚠️ 
+            • Replace: $('//*[@name="button-biometric"]') → $("~button-biometric") (26.6% faster) ⚠️
               (also in other test(s))
                📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:20
-            • Replace: $('//*[@name="button-login-container"]') → $("~button-login-container") 
+            • Replace: $('//*[@name="button-login-container"]') → $("~button-login-container")
               (22.1% faster)
                📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:13
-            • Replace: $('//XCUIElementTypeAlert') → $("-ios predicate string:type == 
+            • Replace: $('//XCUIElementTypeAlert') → $("-ios predicate string:type ==
               'XCUIElementTypeAlert'") (20.4% faster) ⚠️ (also in other test(s))
                📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/NativeAlert.ts:8
             • Replace: $('//*[@name="OK"]') → $("~OK") (29.7% faster)
@@ -680,7 +672,7 @@ The report is saved as a JSON file in the specified `reportPath` (or default loc
             • Replace: $('//*[@name="Home"]') → $("~Home") (49.2% faster) ⚠️ (also in other test(s))
                📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
          🧪 Test: "should be able to open the login form screen"
-            • Replace: $('//*[@name="Login-screen"]') → $("~Login-screen") (23.4% faster) ⚠️ (also 
+            • Replace: $('//*[@name="Login-screen"]') → $("~Login-screen") (23.4% faster) ⚠️ (also
               in other test(s))
                📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:4
             • 1 minor optimization(s) (<10% improvement) - see detailed report
