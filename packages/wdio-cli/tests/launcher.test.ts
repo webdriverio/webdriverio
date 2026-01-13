@@ -21,12 +21,18 @@ vi.mock('@wdio/config/node', () => import(path.join(process.cwd(), '__mocks__', 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../src/interface', () => ({
     default: class {
+        totalWorkerCnt: number
+        hasAnsiSupport = true
         emit = vi.fn()
         on = vi.fn()
         sigintTrigger = vi.fn()
         onMessage = vi.fn()
         logHookError = vi.fn()
         finalise = vi.fn()
+
+        constructor (_config: WebdriverIO.Config, totalWorkerCnt: number) {
+            this.totalWorkerCnt = totalWorkerCnt
+        }
     }
 }))
 
@@ -50,6 +56,38 @@ describe('launcher', () => {
 
     it('should have default for the argv parameter', () => {
         expect(launcher['_args']).toEqual({})
+    })
+
+    it('should calculate total worker count after onPrepare added specs', async () => {
+        const localLauncher = new Launcher('./') as any
+        const onPrepare = vi.fn((config: any) => {
+            config.specs.push('./dynamic.test.js')
+        })
+        const config: any = {
+            runnerEnv: {},
+            shard: { current: 1, total: 1 },
+            runner: 'local',
+            outputDir: './tempDir',
+            maxInstances: 1,
+            specs: [],
+            onPrepare: [onPrepare],
+            onComplete: [],
+            onWorkerStart: [],
+            onWorkerEnd: []
+        }
+
+        localLauncher.configParser.getConfig = vi.fn().mockReturnValue(config)
+        localLauncher.configParser.getCapabilities = vi.fn().mockReturnValue([{ browserName: 'chrome' }])
+        const getSpecs = vi.fn().mockImplementation(() => config.specs)
+        localLauncher.configParser.getSpecs = getSpecs
+
+        localLauncher._runMode = vi.fn().mockResolvedValue(0)
+        await localLauncher.run()
+
+        expect(onPrepare).toHaveBeenCalledTimes(1)
+        expect(getSpecs).toHaveBeenCalledTimes(1)
+        expect(onPrepare.mock.invocationCallOrder[0]).toBeLessThan(getSpecs.mock.invocationCallOrder[0])
+        expect(localLauncher.interface.totalWorkerCnt).toBe(1)
     })
 
     describe('capabilities', () => {
