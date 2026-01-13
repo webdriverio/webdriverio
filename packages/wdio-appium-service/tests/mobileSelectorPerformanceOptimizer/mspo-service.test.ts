@@ -11,7 +11,7 @@ import * as store from '../../src/mobileSelectorPerformanceOptimizer/mspo-store.
 import * as overwrite from '../../src/mobileSelectorPerformanceOptimizer/overwrite.js'
 import type { AppiumServiceConfig } from '../../src/types.js'
 
-const log = logger('@wdio/appium-service')
+const log = logger('@wdio/appium-service:selector-optimizer')
 
 // Mock all dependencies
 vi.mock('node:fs', () => ({

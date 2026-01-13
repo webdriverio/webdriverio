@@ -24,7 +24,7 @@ import { getCurrentTestFile, getCurrentSuiteName, getCurrentTestName, getPerform
 import MobileSelectorPerformanceReporter from './mspo-reporter.js'
 import { overwriteUserCommands } from './overwrite.js'
 
-const log = logger('@wdio/appium-service')
+const log = logger('@wdio/appium-service:selector-optimizer')
 
 export default class SelectorPerformanceService implements Services.ServiceInstance {
     // Service configuration

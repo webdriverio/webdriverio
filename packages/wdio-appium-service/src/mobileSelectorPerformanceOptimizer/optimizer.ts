@@ -14,7 +14,7 @@ import {
 } from './utils/index.js'
 import { getCurrentTestFile, getCurrentSuiteName, getCurrentTestName, addPerformanceData } from './mspo-store.js'
 
-const log = logger('@wdio/appium-service')
+const log = logger('@wdio/appium-service:selector-optimizer')
 
 /**
  * Core optimization flow shared between single and multiple element selectors.

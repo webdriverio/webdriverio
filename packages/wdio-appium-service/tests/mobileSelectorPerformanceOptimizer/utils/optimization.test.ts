@@ -10,7 +10,7 @@ vi.mock('../../../src/mobileSelectorPerformanceOptimizer/utils/xpath-converter.j
     convertXPathToOptimizedSelector: vi.fn()
 }))
 
-const log = logger('@wdio/appium-service')
+const log = logger('@wdio/appium-service:selector-optimizer')
 
 describe('optimization utils', () => {
     beforeEach(() => {
