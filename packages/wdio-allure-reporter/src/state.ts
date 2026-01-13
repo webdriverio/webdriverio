@@ -129,7 +129,7 @@ export class AllureReportState {
         if (!this._currentTestUuid) {
             return
         }
-        await this._closeScope()
+        // await this._closeScope()
         await this.allureRuntime.writeTest(this._currentTestUuid)
         this._currentTestUuid = undefined
     }
@@ -160,7 +160,7 @@ export class AllureReportState {
                 name,
                 start,
             },
-            this._scopesStack,
+            [...this._scopesStack],
         )
 
         this._executablesStack.push(testUuid)
@@ -194,6 +194,7 @@ export class AllureReportState {
         }
 
         await this._closeOpenedSteps(status, stop, statusDetails)
+        await this._closeScope()
 
         this.allureRuntime.updateTest(testUuid, r => {
             r.status = status
