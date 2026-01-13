@@ -1,5 +1,11 @@
+import path from 'node:path'
 import { describe, expect, test, vi, beforeEach } from 'vitest'
+import logger from '@wdio/logger'
 import { testOptimizedSelector } from '../../../src/mobileSelectorPerformanceOptimizer/utils/selector-testing.js'
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+const log = logger('@wdio/appium-service')
 
 describe('selector-testing utils', () => {
     beforeEach(() => {
@@ -37,48 +43,49 @@ describe('selector-testing utils', () => {
             expect(mockBrowser.findElements).toHaveBeenCalledWith('accessibility id', 'test')
         })
 
-        test('should handle element not found', async () => {
-            const mockBrowser = {
-                findElement: vi.fn().mockResolvedValue({ error: 'no such element' })
-            } as any
+        test('should handle element not found scenarios', async () => {
+            const testCases = [
+                {
+                    isMultiple: false,
+                    mockBrowser: { findElement: vi.fn().mockResolvedValue({ error: 'no such element' }) },
+                    description: 'error response'
+                },
+                {
+                    isMultiple: true,
+                    mockBrowser: { findElements: vi.fn().mockResolvedValue([]) },
+                    description: 'empty array'
+                }
+            ]
 
-            const result = await testOptimizedSelector(mockBrowser, 'accessibility id', 'nonexistent', false)
+            for (const testCase of testCases) {
+                const result = await testOptimizedSelector(
+                    testCase.mockBrowser as any,
+                    'accessibility id',
+                    'test',
+                    testCase.isMultiple
+                )
 
-            expect(result).toBeDefined()
-            expect(result?.elementRefs).toEqual([])
-            expect(result?.duration).toBeGreaterThanOrEqual(0)
+                expect(result).toBeDefined()
+                expect(result?.elementRefs).toEqual([])
+                expect(result?.duration).toBeGreaterThanOrEqual(0)
+            }
         })
 
-        test('should handle empty elements array', async () => {
-            const mockBrowser = {
-                findElements: vi.fn().mockResolvedValue([])
-            } as any
+        test('should handle findElement/findElements errors', async () => {
+            const testCases = [
+                { isMultiple: false, method: 'findElement' },
+                { isMultiple: true, method: 'findElements' }
+            ]
 
-            const result = await testOptimizedSelector(mockBrowser, 'accessibility id', 'test', true)
+            for (const testCase of testCases) {
+                const mockBrowser = {
+                    [testCase.method]: vi.fn().mockRejectedValue(new Error('Connection error'))
+                } as any
 
-            expect(result).toBeDefined()
-            expect(result?.elementRefs).toEqual([])
-            expect(result?.duration).toBeGreaterThanOrEqual(0)
-        })
+                const result = await testOptimizedSelector(mockBrowser, 'accessibility id', 'test', testCase.isMultiple)
 
-        test('should handle findElement error', async () => {
-            const mockBrowser = {
-                findElement: vi.fn().mockRejectedValue(new Error('Connection error'))
-            } as any
-
-            const result = await testOptimizedSelector(mockBrowser, 'accessibility id', 'test', false)
-
-            expect(result).toBeNull()
-        })
-
-        test('should handle findElements error', async () => {
-            const mockBrowser = {
-                findElements: vi.fn().mockRejectedValue(new Error('Connection error'))
-            } as any
-
-            const result = await testOptimizedSelector(mockBrowser, 'accessibility id', 'test', true)
-
-            expect(result).toBeNull()
+                expect(result).toBeNull()
+            }
         })
 
         test('should handle element-6066-11e4-a52e-4f735466cecf format', async () => {
@@ -94,36 +101,29 @@ describe('selector-testing utils', () => {
         })
 
         test('should log debug info when debug is true', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
             const mockBrowser = {
                 findElement: vi.fn().mockResolvedValue({ ELEMENT: 'element-123' })
             } as any
 
             await testOptimizedSelector(mockBrowser, 'accessibility id', 'test', false, true)
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Debug'))
-            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Preparing to call findElement'))
-            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Element found successfully'))
-
-            consoleLogSpy.mockRestore()
+            expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Debug'))
+            expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Preparing to call findElement'))
+            expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Element found successfully'))
         })
 
         test('should log debug info for multiple elements when debug is true', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
             const mockBrowser = {
                 findElements: vi.fn().mockResolvedValue([{ ELEMENT: 'element-1' }])
             } as any
 
             await testOptimizedSelector(mockBrowser, 'accessibility id', 'test', true, true)
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Preparing to call findElements'))
-            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Found 1 element(s)'))
-
-            consoleLogSpy.mockRestore()
+            expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Preparing to call findElements'))
+            expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Found 1 element(s)'))
         })
 
         test('should log debug info when element not found', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
             const mockBrowser = {
                 findElement: vi.fn().mockResolvedValue({ error: 'no such element', message: 'Element not found' }),
                 getPageSource: vi.fn().mockResolvedValue('<root></root>')
@@ -131,24 +131,19 @@ describe('selector-testing utils', () => {
 
             await testOptimizedSelector(mockBrowser, 'accessibility id', 'test', false, true)
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Element NOT found'))
-            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Verification failed'))
-
-            consoleLogSpy.mockRestore()
+            expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Element NOT found'))
+            expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Verification failed'))
         })
 
         test('should log error details when findElement throws', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
             const mockBrowser = {
                 findElement: vi.fn().mockRejectedValue(new Error('Connection timeout'))
             } as any
 
             await testOptimizedSelector(mockBrowser, 'accessibility id', 'test', false, true)
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('threw an error'))
-            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Connection timeout'))
-
-            consoleLogSpy.mockRestore()
+            expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('threw an error'))
+            expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Connection timeout'))
         })
 
         test('should handle non-array result from findElements', async () => {
@@ -163,7 +158,6 @@ describe('selector-testing utils', () => {
         })
 
         test('should retry finding element when page source shows matching elements', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
             const mockBrowser = {
                 findElement: vi.fn()
                     .mockResolvedValueOnce({ error: 'no such element' })
@@ -181,14 +175,11 @@ describe('selector-testing utils', () => {
                 true
             )
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Retry successful'))
+            expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Retry successful'))
             expect(result?.elementRefs).toHaveLength(1)
-
-            consoleLogSpy.mockRestore()
         })
 
         test('should handle retry when no matching elements in page source', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
             const mockBrowser = {
                 findElement: vi.fn().mockResolvedValue({ error: 'no such element' }),
                 getPageSource: vi.fn().mockResolvedValue('<root></root>')
@@ -196,15 +187,12 @@ describe('selector-testing utils', () => {
 
             await testOptimizedSelector(mockBrowser, 'accessibility id', 'test', false, true)
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
+            expect(log.debug).toHaveBeenCalledWith(
                 expect.stringContaining('No matching elements found in fresh page source')
             )
-
-            consoleLogSpy.mockRestore()
         })
 
         test('should handle iOS class chain selectors in page source', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
             const mockBrowser = {
                 findElement: vi.fn()
                     .mockResolvedValueOnce({ error: 'no such element' })
@@ -222,13 +210,10 @@ describe('selector-testing utils', () => {
                 true
             )
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Found'))
-
-            consoleLogSpy.mockRestore()
+            expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Found'))
         })
 
         test('should handle retry failure for single element', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
             const mockBrowser = {
                 findElement: vi.fn().mockResolvedValue({ error: 'no such element' }),
                 getPageSource: vi.fn().mockResolvedValue(
@@ -244,14 +229,11 @@ describe('selector-testing utils', () => {
                 true
             )
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Retry failed'))
+            expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Retry failed'))
             expect(result?.elementRefs).toEqual([])
-
-            consoleLogSpy.mockRestore()
         })
 
         test('should handle retry for multiple elements', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
             const mockBrowser = {
                 findElements: vi.fn()
                     .mockResolvedValueOnce([])
@@ -269,14 +251,11 @@ describe('selector-testing utils', () => {
                 true
             )
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Retry successful'))
+            expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Retry successful'))
             expect(result?.elementRefs).toHaveLength(1)
-
-            consoleLogSpy.mockRestore()
         })
 
         test('should handle retry error during retry attempt', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
             const mockBrowser = {
                 findElement: vi.fn()
                     .mockResolvedValueOnce({ error: 'no such element' })
@@ -294,14 +273,11 @@ describe('selector-testing utils', () => {
                 true
             )
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Retry threw error'))
-            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Connection lost'))
-
-            consoleLogSpy.mockRestore()
+            expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Retry threw error'))
+            expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Connection lost'))
         })
 
         test('should handle getPageSource error gracefully', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
             const mockBrowser = {
                 findElement: vi.fn().mockResolvedValue({ error: 'no such element' }),
                 getPageSource: vi.fn().mockRejectedValue(new Error('Failed to get page source'))
@@ -310,12 +286,9 @@ describe('selector-testing utils', () => {
             const result = await testOptimizedSelector(mockBrowser, 'accessibility id', 'test', false, true)
 
             expect(result?.elementRefs).toEqual([])
-
-            consoleLogSpy.mockRestore()
         })
 
         test('should handle invalid page source format', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
             const mockBrowser = {
                 findElement: vi.fn().mockResolvedValue({ error: 'no such element' }),
                 getPageSource: vi.fn().mockResolvedValue(null as any)
@@ -329,15 +302,12 @@ describe('selector-testing utils', () => {
                 true
             )
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
+            expect(log.debug).toHaveBeenCalledWith(
                 expect.stringContaining('No matching elements found')
             )
-
-            consoleLogSpy.mockRestore()
         })
 
         test('should log when element not found (not error response) with debug', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
             const mockBrowser = {
                 findElement: vi.fn().mockResolvedValue({ someOtherKey: 'value' }),
                 getPageSource: vi.fn().mockResolvedValue('<root></root>')
@@ -345,15 +315,12 @@ describe('selector-testing utils', () => {
 
             await testOptimizedSelector(mockBrowser, 'accessibility id', 'test', false, true)
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
+            expect(log.debug).toHaveBeenCalledWith(
                 expect.stringContaining('No element found - selector may not match any element')
             )
-
-            consoleLogSpy.mockRestore()
         })
 
         test('should handle retry failure for multiple elements', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
             const mockBrowser = {
                 findElements: vi.fn().mockResolvedValue([]),
                 getPageSource: vi.fn().mockResolvedValue(
@@ -369,15 +336,12 @@ describe('selector-testing utils', () => {
                 true
             )
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
+            expect(log.debug).toHaveBeenCalledWith(
                 expect.stringContaining('Retry failed - still no elements found')
             )
-
-            consoleLogSpy.mockRestore()
         })
 
         test('should log retry failure with error message for single element', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
             const mockBrowser = {
                 findElement: vi.fn()
                     .mockResolvedValueOnce({ someOtherKey: 'value' })
@@ -395,11 +359,294 @@ describe('selector-testing utils', () => {
                 true
             )
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
+            expect(log.debug).toHaveBeenCalledWith(
                 expect.stringContaining('Retry failed - No element found')
             )
+        })
 
-            consoleLogSpy.mockRestore()
+        test('should return empty array when elementType is null for predicate string', async () => {
+            const mockBrowser = {
+                findElement: vi.fn().mockResolvedValue({ error: 'no such element' }),
+                getPageSource: vi.fn().mockResolvedValue('<root></root>')
+            } as any
+
+            const result = await testOptimizedSelector(
+                mockBrowser,
+                '-ios predicate string',
+                'invalid predicate without type',
+                false,
+                true
+            )
+
+            expect(result?.elementRefs).toEqual([])
+        })
+
+        test('should handle attribute mismatches and missing attributes in page source', async () => {
+            const testCases = [
+                {
+                    using: '-ios predicate string',
+                    value: "type == 'XCUIElementTypeButton' AND name == 'test'",
+                    pageSource: '<XCUIElementTypeButton name="different"></XCUIElementTypeButton>',
+                    description: 'attribute mismatch in predicate string'
+                },
+                {
+                    using: '-ios class chain',
+                    value: '**/XCUIElementTypeButton[`name == "test"`]',
+                    pageSource: '<XCUIElementTypeButton name="different"></XCUIElementTypeButton>',
+                    description: 'attribute mismatch in class chain'
+                },
+                {
+                    using: '-ios predicate string',
+                    value: "type == 'XCUIElementTypeButton' AND name == 'test'",
+                    pageSource: '<XCUIElementTypeButton></XCUIElementTypeButton>',
+                    description: 'missing attribute in predicate string'
+                }
+            ]
+
+            for (const testCase of testCases) {
+                const mockBrowser = {
+                    findElement: vi.fn().mockResolvedValue({ error: 'no such element' }),
+                    getPageSource: vi.fn().mockResolvedValue(testCase.pageSource)
+                } as any
+
+                const result = await testOptimizedSelector(
+                    mockBrowser,
+                    testCase.using,
+                    testCase.value,
+                    false,
+                    true
+                )
+
+                expect(result?.elementRefs).toEqual([])
+            }
+        })
+
+        test('should handle class chain without type match', async () => {
+            const mockBrowser = {
+                findElement: vi.fn().mockResolvedValue({ error: 'no such element' }),
+                getPageSource: vi.fn().mockResolvedValue('<root></root>')
+            } as any
+
+            const result = await testOptimizedSelector(
+                mockBrowser,
+                '-ios class chain',
+                'invalid-class-chain',
+                false,
+                true
+            )
+
+            expect(result?.elementRefs).toEqual([])
+        })
+
+        test('should handle class chain without predicate', async () => {
+            const mockBrowser = {
+                findElement: vi.fn()
+                    .mockResolvedValueOnce({ error: 'no such element' })
+                    .mockResolvedValueOnce({ ELEMENT: 'element-found' }),
+                getPageSource: vi.fn().mockResolvedValue(
+                    '<XCUIElementTypeButton></XCUIElementTypeButton>'
+                )
+            } as any
+
+            const result = await testOptimizedSelector(
+                mockBrowser,
+                '-ios class chain',
+                '**/XCUIElementTypeButton',
+                false,
+                true
+            )
+
+            expect(result?.elementRefs).toHaveLength(1)
+        })
+
+        test('should handle class chain with empty attributes', async () => {
+            const mockBrowser = {
+                findElement: vi.fn().mockResolvedValue({ error: 'no such element' }),
+                getPageSource: vi.fn().mockResolvedValue(
+                    '<XCUIElementTypeButton></XCUIElementTypeButton>'
+                )
+            } as any
+
+            const result = await testOptimizedSelector(
+                mockBrowser,
+                '-ios class chain',
+                '**/XCUIElementTypeButton[`name == "test"`]',
+                false,
+                true
+            )
+
+            expect(result?.elementRefs).toEqual([])
+        })
+
+        test('should handle error messages with different formats', async () => {
+            const testCases = [
+                {
+                    error: { error: 'no such element', message: 'Custom error message' },
+                    expectedMessage: 'Custom error message',
+                    description: 'error with message property'
+                },
+                {
+                    error: { error: 'Element not found' },
+                    expectedMessage: 'Element not found',
+                    description: 'error with only error property'
+                }
+            ]
+
+            for (const testCase of testCases) {
+                vi.clearAllMocks()
+                const mockBrowser = {
+                    findElement: vi.fn().mockResolvedValue(testCase.error),
+                    getPageSource: vi.fn().mockResolvedValue('<root></root>')
+                } as any
+
+                await testOptimizedSelector(mockBrowser, 'accessibility id', 'test', false, true)
+
+                expect(log.debug).toHaveBeenCalledWith(
+                    expect.stringContaining(testCase.expectedMessage)
+                )
+            }
+        })
+
+        test('should handle long element strings in page source (truncation)', async () => {
+            const longElement = '<XCUIElementTypeButton' + ' name="test"'.repeat(50) + '></XCUIElementTypeButton>'
+            const mockBrowser = {
+                findElement: vi.fn().mockResolvedValue({ error: 'no such element' }),
+                getPageSource: vi.fn().mockResolvedValue(longElement)
+            } as any
+
+            await testOptimizedSelector(
+                mockBrowser,
+                '-ios predicate string',
+                "type == 'XCUIElementTypeButton' AND name == 'test'",
+                false,
+                true
+            )
+
+            expect(log.debug).toHaveBeenCalledWith(
+                expect.stringContaining('...')
+            )
+        })
+
+        test('should handle non-array retry result for findElements', async () => {
+            const mockBrowser = {
+                findElements: vi.fn()
+                    .mockResolvedValueOnce([])
+                    .mockResolvedValueOnce(null as any),
+                getPageSource: vi.fn().mockResolvedValue(
+                    '<XCUIElementTypeButton name="test"></XCUIElementTypeButton>'
+                )
+            } as any
+
+            const result = await testOptimizedSelector(
+                mockBrowser,
+                '-ios predicate string',
+                "type == 'XCUIElementTypeButton' AND name == 'test'",
+                true,
+                true
+            )
+
+            expect(result?.elementRefs).toEqual([])
+        })
+
+        test('should handle retry error with message property', async () => {
+            const mockBrowser = {
+                findElement: vi.fn()
+                    .mockResolvedValueOnce({ error: 'no such element' })
+                    .mockResolvedValueOnce({ error: 'Timeout', message: 'Connection timeout' }),
+                getPageSource: vi.fn().mockResolvedValue(
+                    '<XCUIElementTypeButton name="test"></XCUIElementTypeButton>'
+                )
+            } as any
+
+            await testOptimizedSelector(
+                mockBrowser,
+                '-ios predicate string',
+                "type == 'XCUIElementTypeButton' AND name == 'test'",
+                false,
+                true
+            )
+
+            expect(log.debug).toHaveBeenCalledWith(
+                expect.stringContaining('Connection timeout')
+            )
+        })
+
+        test('should handle retry error with only error property', async () => {
+            const mockBrowser = {
+                findElement: vi.fn()
+                    .mockResolvedValueOnce({ error: 'no such element' })
+                    .mockResolvedValueOnce({ error: 'Element not found' }),
+                getPageSource: vi.fn().mockResolvedValue(
+                    '<XCUIElementTypeButton name="test"></XCUIElementTypeButton>'
+                )
+            } as any
+
+            await testOptimizedSelector(
+                mockBrowser,
+                '-ios predicate string',
+                "type == 'XCUIElementTypeButton' AND name == 'test'",
+                false,
+                true
+            )
+
+            expect(log.debug).toHaveBeenCalledWith(
+                expect.stringContaining('Element not found')
+            )
+        })
+
+        test('should handle retry error that is not an Error instance', async () => {
+            const mockBrowser = {
+                findElement: vi.fn()
+                    .mockResolvedValueOnce({ error: 'no such element' })
+                    .mockRejectedValueOnce('String error'),
+                getPageSource: vi.fn().mockResolvedValue(
+                    '<XCUIElementTypeButton name="test"></XCUIElementTypeButton>'
+                )
+            } as any
+
+            await testOptimizedSelector(
+                mockBrowser,
+                '-ios predicate string',
+                "type == 'XCUIElementTypeButton' AND name == 'test'",
+                false,
+                true
+            )
+
+            expect(log.debug).toHaveBeenCalledWith(
+                expect.stringContaining('String error')
+            )
+        })
+
+        test('should handle catch block errors with different types', async () => {
+            const testCases = [
+                {
+                    error: new Error('Network error'),
+                    expectedMessage: 'Network error',
+                    description: 'Error instance'
+                },
+                {
+                    error: 'String error',
+                    expectedMessage: 'String error',
+                    description: 'non-Error instance'
+                }
+            ]
+
+            for (const testCase of testCases) {
+                vi.clearAllMocks()
+                const mockBrowser = {
+                    findElement: vi.fn().mockRejectedValue(testCase.error)
+                } as any
+
+                const result = await testOptimizedSelector(mockBrowser, 'accessibility id', 'test', false, true)
+
+                expect(result).toBeNull()
+                expect(log.debug).toHaveBeenCalledWith(
+                    expect.stringContaining('threw an error')
+                )
+                expect(log.debug).toHaveBeenCalledWith(
+                    expect.stringContaining(testCase.expectedMessage)
+                )
+            }
         })
     })
 })

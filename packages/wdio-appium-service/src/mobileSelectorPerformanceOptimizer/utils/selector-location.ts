@@ -1,7 +1,9 @@
 import path from 'node:path'
 import fs from 'node:fs'
+import logger from '@wdio/logger'
 import { isXPathSelector } from './selector-utils.js'
-import { INDENT_LEVEL_2 } from './constants.js'
+
+const log = logger('@wdio/appium-service')
 
 export interface SelectorLocation {
     file: string
@@ -169,36 +171,27 @@ function findPageObjectFilesFromConfig(pageObjectPaths: string[]): string[] {
 export function findSelectorLocation(
     testFile: string | undefined,
     selector: string,
-    pageObjectPaths?: string[],
-    enableLogging: boolean = false
+    pageObjectPaths?: string[]
 ): SelectorLocation[] {
     if (!testFile || !selector) {
-        if (enableLogging) {
-            console.log(`${INDENT_LEVEL_2}🔍 [Selector Location] No test file or selector provided`)
-        }
+        log.debug('[Selector Location] No test file or selector provided')
         return []
     }
 
     if (!isXPathSelector(selector)) {
-        if (enableLogging) {
-            console.log(`${INDENT_LEVEL_2}🔍 [Selector Location] Skipping non-XPath selector: ${selector}`)
-        }
+        log.debug(`[Selector Location] Skipping non-XPath selector: ${selector}`)
         return []
     }
 
     try {
         const locations: SelectorLocation[] = []
 
-        if (enableLogging) {
-            console.log(`${INDENT_LEVEL_2}🔍 [Selector Location] Searching for XPath selector: ${selector}`)
-            console.log(`${INDENT_LEVEL_2}   Starting with test file: ${testFile}`)
-        }
+        log.debug(`[Selector Location] Searching for XPath selector: ${selector}`)
+        log.debug(`[Selector Location] Starting with test file: ${testFile}`)
 
         const testFileLine = findSelectorInFile(testFile, selector)
         if (testFileLine) {
-            if (enableLogging) {
-                console.log(`${INDENT_LEVEL_2}✅ [Selector Location] Found in test file at line ${testFileLine}`)
-            }
+            log.debug(`[Selector Location] Found in test file at line ${testFileLine}`)
             locations.push({
                 file: testFile,
                 line: testFileLine,
@@ -206,37 +199,28 @@ export function findSelectorLocation(
             })
         }
 
-        if (enableLogging) {
-            console.log(`${INDENT_LEVEL_2}   Searching page objects...`)
-        }
+        log.debug('[Selector Location] Searching page objects...')
 
         const pageObjectFiles = pageObjectPaths && pageObjectPaths.length > 0
             ? findPageObjectFilesFromConfig(pageObjectPaths)
             : findPotentialPageObjects(testFile)
 
-        if (enableLogging) {
-            if (pageObjectPaths && pageObjectPaths.length > 0) {
-                console.log(`${INDENT_LEVEL_2}   Using configured page object paths:`)
-                pageObjectPaths.forEach(p => {
-                    console.log(`${INDENT_LEVEL_2}     - ${p}`)
-                })
-            }
-            if (pageObjectFiles.length > 0) {
-                console.log(`${INDENT_LEVEL_2}   Found ${pageObjectFiles.length} page object file(s) to search:`)
-                pageObjectFiles.forEach(file => {
-                    console.log(`${INDENT_LEVEL_2}     - ${file}`)
-                })
-            } else {
-                console.log(`${INDENT_LEVEL_2}   No page object files found`)
-            }
+        if (pageObjectPaths && pageObjectPaths.length > 0) {
+            log.debug('[Selector Location] Using configured page object paths:')
+            pageObjectPaths.forEach(p => {
+                log.debug(`[Selector Location]   - ${p}`)
+            })
+        }
+        if (pageObjectFiles.length > 0) {
+            log.debug(`[Selector Location] Found ${pageObjectFiles.length} page object file(s) to search`)
+        } else {
+            log.debug('[Selector Location] No page object files found')
         }
 
         for (const pageObjectFile of pageObjectFiles) {
             const pageObjectLine = findSelectorInFile(pageObjectFile, selector)
             if (pageObjectLine) {
-                if (enableLogging) {
-                    console.log(`${INDENT_LEVEL_2}✅ [Selector Location] Found in page object at ${pageObjectFile}:${pageObjectLine}`)
-                }
+                log.debug(`[Selector Location] Found in page object at ${pageObjectFile}:${pageObjectLine}`)
                 locations.push({
                     file: pageObjectFile,
                     line: pageObjectLine,
@@ -245,19 +229,15 @@ export function findSelectorLocation(
             }
         }
 
-        if (enableLogging) {
-            if (locations.length === 0) {
-                console.log(`${INDENT_LEVEL_2}⚠️  [Selector Location] Selector not found in test file or page objects`)
-            } else {
-                console.log(`${INDENT_LEVEL_2}✅ [Selector Location] Found ${locations.length} location(s)`)
-            }
+        if (locations.length === 0) {
+            log.debug('[Selector Location] Selector not found in test file or page objects')
+        } else {
+            log.debug(`[Selector Location] Found ${locations.length} location(s)`)
         }
 
         return locations
     } catch (error) {
-        if (enableLogging) {
-            console.log(`${INDENT_LEVEL_2}❌ [Selector Location] Error: ${error instanceof Error ? error.message : String(error)}`)
-        }
+        log.debug(`[Selector Location] Error: ${error instanceof Error ? error.message : String(error)}`)
         return []
     }
 }

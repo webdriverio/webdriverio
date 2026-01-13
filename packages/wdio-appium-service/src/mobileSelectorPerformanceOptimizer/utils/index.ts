@@ -1,5 +1,4 @@
 export * from './constants.js'
-export * from './config.js'
 export * from './test-context.js'
 export * from './selector-location.js'
 export * from './selector-utils.js'

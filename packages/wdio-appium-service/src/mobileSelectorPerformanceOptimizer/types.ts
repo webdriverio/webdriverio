@@ -50,7 +50,6 @@ export interface OptimizationOptions {
     usePageSource: boolean
     browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     isReplacingSelector: { value: boolean }
-    isSilentLogLevel?: boolean
     pageObjectPaths?: string[]
     provideSelectorLocation?: boolean
 }

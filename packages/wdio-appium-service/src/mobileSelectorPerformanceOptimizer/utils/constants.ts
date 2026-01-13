@@ -1,9 +1,4 @@
 export const LOG_PREFIX = 'Mobile Selector Performance'
-export const INDENT_LEVEL_1 = '  '
-export const INDENT_LEVEL_2 = '      '
-export const INDENT_LEVEL_3 = '    '
-export const INDENT_LEVEL_4 = '          '
-export const INDENT_LEVEL_5 = '        '
 
 export const SINGLE_ELEMENT_COMMANDS = ['$', 'custom$'] as const
 export const MULTIPLE_ELEMENT_COMMANDS = ['$$', 'custom$$'] as const

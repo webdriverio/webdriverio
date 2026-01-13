@@ -41,7 +41,6 @@ vi.mock('../../src/mobileSelectorPerformanceOptimizer/utils/index.js', async () 
         findMatchingInternalCommandTiming: vi.fn(),
         storePerformanceData: vi.fn(),
         isNativeContext: vi.fn(),
-        isSilentLogLevel: vi.fn().mockReturnValue(false),
         isReporterRegistered: vi.fn().mockReturnValue(false),
         determineReportDirectory: vi.fn().mockReturnValue('/test/report/dir'),
         findSelectorLocation: vi.fn().mockReturnValue([])
@@ -339,10 +338,10 @@ describe('SelectorPerformanceService', () => {
 
             await service.before({} as never, [] as never, mockBrowser)
 
-            expect(log.info).toHaveBeenCalledWith('🧪 Mobile Selector Performance Optimizer (BETA)')
+            expect(log.info).toHaveBeenCalledWith('Mobile Selector Performance Optimizer (BETA)')
             expect(log.info).toHaveBeenCalledWith('   → All feedback is welcome!')
             expect(log.info).toHaveBeenCalledWith('   → Currently optimized for iOS (shows the most significant performance and stability gains)')
-            expect(log.info).toHaveBeenCalledWith('✅ Mobile Selector Performance Optimizer enabled for iOS')
+            expect(log.info).toHaveBeenCalledWith('Mobile Selector Performance Optimizer enabled for iOS')
         })
 
         test('should disable service and log warning for Android', async () => {
@@ -353,17 +352,15 @@ describe('SelectorPerformanceService', () => {
 
             await service.before({} as never, [] as never, mockBrowser)
 
-            expect(log.info).toHaveBeenCalledWith('🧪 Mobile Selector Performance Optimizer (BETA)')
+            expect(log.info).toHaveBeenCalledWith('Mobile Selector Performance Optimizer (BETA)')
             expect(log.info).toHaveBeenCalledWith('   → All feedback is welcome!')
             expect(log.info).toHaveBeenCalledWith('   → Currently optimized for iOS (shows the most significant performance and stability gains)')
-            expect(log.info).toHaveBeenCalledWith('⚠️  Mobile Selector Performance Optimizer is disabled for Android')
+            expect(log.info).toHaveBeenCalledWith('Mobile Selector Performance Optimizer is disabled for Android')
             expect(log.info).toHaveBeenCalledWith('   → Android support coming in a future release')
             expect(service['_enabled']).toBe(false)
         })
 
         test('should call overwriteUserCommands when enabled and replaceWithOptimized is true', async () => {
-            vi.mocked(utils.isSilentLogLevel).mockReturnValue(false)
-
             const options = {
                 ...createDefaultOptions(),
                 trackSelectorPerformance: {
@@ -382,16 +379,12 @@ describe('SelectorPerformanceService', () => {
                 usePageSource: true,
                 browser: service['_browser'],
                 isReplacingSelector: service['_isReplacingSelectorRef'],
-                isSilentLogLevel: false,
                 pageObjectPaths: undefined,
                 provideSelectorLocation: false
             })
-            expect(vi.mocked(utils.isSilentLogLevel)).toHaveBeenCalledWith(mockConfig)
         })
 
         test('should pass provideSelectorLocation to overwriteUserCommands when pageObjectPaths is configured', async () => {
-            vi.mocked(utils.isSilentLogLevel).mockReturnValue(false)
-
             const options = {
                 ...createDefaultOptions(),
                 trackSelectorPerformance: {
@@ -412,7 +405,6 @@ describe('SelectorPerformanceService', () => {
                 usePageSource: true,
                 browser: service['_browser'],
                 isReplacingSelector: service['_isReplacingSelectorRef'],
-                isSilentLogLevel: false,
                 pageObjectPaths: ['./tests/pageobjects'],
                 provideSelectorLocation: true
             })
@@ -585,7 +577,7 @@ describe('SelectorPerformanceService', () => {
             const service = await createAndInitializeService()
             await service.beforeCommand('$', ['//xpath'])
 
-            expect(log.info).toHaveBeenCalledWith('⚠️  Mobile Selector Performance Optimizer is disabled for non-native context')
+            expect(log.info).toHaveBeenCalledWith('Mobile Selector Performance Optimizer is disabled for non-native context')
             expect(vi.mocked(utils.extractSelectorFromArgs)).not.toHaveBeenCalled()
         })
 
@@ -768,8 +760,7 @@ describe('SelectorPerformanceService', () => {
                 expect(vi.mocked(utils.findSelectorLocation)).toHaveBeenCalledWith(
                     'test-file.ts',
                     xpath,
-                    ['./tests/pageobjects'],
-                    true // !isSilent
+                    ['./tests/pageobjects']
                 )
 
                 const timing = Array.from(service['_commandTimings'].values())[0]
@@ -796,31 +787,6 @@ describe('SelectorPerformanceService', () => {
                 expect(timing.lineNumber).toBeUndefined()
             })
 
-            test('should pass false to findSelectorLocation when log level is silent', async () => {
-                const options: AppiumServiceConfig = {
-                    trackSelectorPerformance: {
-                        enabled: true,
-                        pageObjectPaths: ['./tests/pageobjects'],
-                        provideSelectorLocation: true
-                    }
-                }
-                vi.mocked(store.getCurrentTestFile).mockReturnValue('test-file.ts')
-                vi.mocked(utils.extractSelectorFromArgs).mockReturnValue(xpath)
-                vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
-                vi.mocked(utils.getHighResTime).mockReturnValue(100)
-                vi.mocked(utils.isSilentLogLevel).mockReturnValue(true)
-                vi.mocked(utils.findSelectorLocation).mockReturnValue([])
-
-                const service = await createAndInitializeService(options)
-                await service.beforeCommand('$', [xpath])
-
-                expect(vi.mocked(utils.findSelectorLocation)).toHaveBeenCalledWith(
-                    'test-file.ts',
-                    xpath,
-                    ['./tests/pageobjects'],
-                    false // !isSilent = false
-                )
-            })
         })
     })
 
@@ -828,8 +794,6 @@ describe('SelectorPerformanceService', () => {
         let options: AppiumServiceConfig
         let xpath: string
         let formattedSelector: string
-        let consoleSpy: ReturnType<typeof vi.spyOn>
-        let consoleWarnSpy: ReturnType<typeof vi.spyOn>
 
         const createMockTiming = (overrides?: Partial<{
             commandName: string
@@ -861,13 +825,6 @@ describe('SelectorPerformanceService', () => {
             xpath = '//xpath'
             formattedSelector = 'formatted selector'
             vi.mocked(utils.isNativeContext).mockReturnValue(true)
-            consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-            consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-        })
-
-        afterEach(() => {
-            consoleSpy.mockRestore()
-            consoleWarnSpy.mockRestore()
         })
 
         test('should do nothing when service is disabled', async () => {
@@ -884,7 +841,7 @@ describe('SelectorPerformanceService', () => {
             const service = await createAndInitializeService()
             await service.afterCommand('findElement', ['xpath', xpath], {})
 
-            expect(log.info).toHaveBeenCalledWith('⚠️  Mobile Selector Performance Optimizer is disabled for non-native context')
+            expect(log.info).toHaveBeenCalledWith('Mobile Selector Performance Optimizer is disabled for non-native context')
             expect(vi.mocked(utils.formatSelectorForDisplay)).not.toHaveBeenCalled()
         })
 
@@ -1005,11 +962,11 @@ describe('SelectorPerformanceService', () => {
                 const service = await createAndInitializeService(testOptions)
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
-                expect(consoleSpy).toHaveBeenCalledWith(
+                expect(log.info).toHaveBeenCalledWith(
                     expect.stringContaining(`[Selector Performance] $('${formattedSelector}') took 50.00ms`)
                 )
                 expect(vi.mocked(utils.findOptimizedSelector)).toHaveBeenCalled()
-                expect(consoleSpy).toHaveBeenCalledWith(
+                expect(log.info).toHaveBeenCalledWith(
                     expect.stringContaining('[Potential Optimized Selector]')
                 )
             })
@@ -1034,7 +991,7 @@ describe('SelectorPerformanceService', () => {
                 const service = await createAndInitializeService(testOptions)
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
-                expect(consoleSpy).toHaveBeenCalledWith(
+                expect(log.info).toHaveBeenCalledWith(
                     expect.stringContaining(`$('${iosClassChainSelector}')`)
                 )
             })
@@ -1059,7 +1016,7 @@ describe('SelectorPerformanceService', () => {
                 const service = await createAndInitializeService(testOptions)
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
-                expect(consoleSpy).toHaveBeenCalledWith(
+                expect(log.info).toHaveBeenCalledWith(
                     expect.stringContaining(`$("${accessibilityIdSelector}")`)
                 )
             })
@@ -1080,15 +1037,16 @@ describe('SelectorPerformanceService', () => {
                     warning: 'Warning message'
                 })
 
+                const mockLogWarn = vi.spyOn(log, 'warn')
                 const service = await createAndInitializeService(testOptions)
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
-                expect(consoleWarnSpy).toHaveBeenCalledWith(
+                expect(mockLogWarn).toHaveBeenCalledWith(
                     '[Selector Performance Warning] Warning message'
                 )
             })
 
-            test('should not log when replaceWithOptimized is true', async () => {
+            test('should not call findOptimizedSelector when replaceWithOptimized is true', async () => {
                 const testOptions = {
                     ...createDefaultOptions(),
                     trackSelectorPerformance: {
@@ -1103,7 +1061,6 @@ describe('SelectorPerformanceService', () => {
                 const service = await createAndInitializeService(testOptions)
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
-                expect(consoleSpy).not.toHaveBeenCalled()
                 expect(vi.mocked(utils.findOptimizedSelector)).not.toHaveBeenCalled()
             })
 
@@ -1126,7 +1083,6 @@ describe('SelectorPerformanceService', () => {
                 vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue(createMockTiming())
                 vi.mocked(utils.getHighResTime).mockReturnValue(100)
                 vi.mocked(utils.findOptimizedSelector).mockResolvedValue({ selector: '~button' })
-                consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
             })
 
             test('should call findSelectorLocation and display location when provideSelectorLocation is enabled', async () => {
@@ -1149,10 +1105,9 @@ describe('SelectorPerformanceService', () => {
                 expect(vi.mocked(utils.findSelectorLocation)).toHaveBeenCalledWith(
                     'test-file.ts',
                     xpath,
-                    ['./tests/pageobjects'],
-                    true // !isSilent
+                    ['./tests/pageobjects']
                 )
-                expect(consoleSpy).toHaveBeenCalledWith(
+                expect(log.info).toHaveBeenCalledWith(
                     expect.stringContaining(' at TabBar.ts (page object):3')
                 )
             })
@@ -1170,33 +1125,6 @@ describe('SelectorPerformanceService', () => {
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
                 expect(vi.mocked(utils.findSelectorLocation)).not.toHaveBeenCalled()
-                expect(consoleSpy).toHaveBeenCalledWith(
-                    expect.not.stringContaining(' at ')
-                )
-            })
-
-            test('should pass false to findSelectorLocation when log level is silent', async () => {
-                const testOptions: AppiumServiceConfig = {
-                    trackSelectorPerformance: {
-                        enabled: true,
-                        replaceWithOptimizedSelector: false,
-                        pageObjectPaths: ['./tests/pageobjects'],
-                        provideSelectorLocation: true
-                    }
-                }
-                vi.mocked(store.getCurrentTestFile).mockReturnValue('test-file.ts')
-                vi.mocked(utils.isSilentLogLevel).mockReturnValue(true)
-                vi.mocked(utils.findSelectorLocation).mockReturnValue([])
-
-                const service = await createAndInitializeService(testOptions)
-                await service.afterCommand('findElement', ['xpath', xpath], {})
-
-                expect(vi.mocked(utils.findSelectorLocation)).toHaveBeenCalledWith(
-                    'test-file.ts',
-                    xpath,
-                    ['./tests/pageobjects'],
-                    false // !isSilent = false
-                )
             })
 
             test('should handle non-page-object file location correctly', async () => {
@@ -1215,11 +1143,8 @@ describe('SelectorPerformanceService', () => {
                 const service = await createAndInitializeService(testOptions)
                 await service.afterCommand('findElement', ['xpath', xpath], {})
 
-                expect(consoleSpy).toHaveBeenCalledWith(
+                expect(log.info).toHaveBeenCalledWith(
                     expect.stringContaining(' at test-file.ts:10')
-                )
-                expect(consoleSpy).toHaveBeenCalledWith(
-                    expect.not.stringContaining('(page object)')
                 )
             })
         })

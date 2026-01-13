@@ -82,6 +82,29 @@ describe('test-context utils', () => {
             } as unknown as Frameworks.Test
             expect(extractSuiteName(test)).toBe('unknown')
         })
+
+        test('should handle parent with number title', () => {
+            const test = {
+                parent: { title: 123 }
+            } as unknown as Frameworks.Test
+            expect(extractSuiteName(test)).toBe('unknown')
+        })
+
+        test('should handle fullName that does not end with test title', () => {
+            const test = {
+                title: 'My Test',
+                fullName: 'Test Suite Different Test'
+            } as unknown as Frameworks.Test
+            expect(extractSuiteName(test)).toBe('Test Suite Different Test')
+        })
+
+        test('should handle fullName that matches test title exactly', () => {
+            const test = {
+                title: 'My Test',
+                fullName: 'My Test'
+            } as unknown as Frameworks.Test
+            expect(extractSuiteName(test)).toBe('My Test')
+        })
     })
 
     describe('extractTestName', () => {

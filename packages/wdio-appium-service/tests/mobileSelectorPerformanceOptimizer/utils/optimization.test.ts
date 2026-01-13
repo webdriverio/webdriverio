@@ -1,10 +1,16 @@
+import path from 'node:path'
 import { describe, expect, test, vi, beforeEach } from 'vitest'
+import logger from '@wdio/logger'
 import { findOptimizedSelector } from '../../../src/mobileSelectorPerformanceOptimizer/utils/optimization.js'
 import * as xpathConverter from '../../../src/mobileSelectorPerformanceOptimizer/utils/xpath-converter.js'
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 vi.mock('../../../src/mobileSelectorPerformanceOptimizer/utils/xpath-converter.js', () => ({
     convertXPathToOptimizedSelector: vi.fn()
 }))
+
+const log = logger('@wdio/appium-service')
 
 describe('optimization utils', () => {
     beforeEach(() => {
@@ -49,8 +55,7 @@ describe('optimization utils', () => {
             })
         })
 
-        test('should log page source collection by default', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+        test('should log page source collection when usePageSource is true', async () => {
             const xpath = '//button[@id="test"]'
             const mockResult = { selector: '~test', strategy: 'accessibility id' }
 
@@ -61,32 +66,12 @@ describe('optimization utils', () => {
                 browser: mockBrowser
             })
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
+            expect(log.info).toHaveBeenCalledWith(
                 expect.stringContaining('Collecting page source')
             )
-            expect(consoleLogSpy).toHaveBeenCalledWith(
+            expect(log.info).toHaveBeenCalledWith(
                 expect.stringContaining('Page source collected')
             )
-
-            consoleLogSpy.mockRestore()
-        })
-
-        test('should not log page source when logPageSource is false', async () => {
-            const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-            const xpath = '//button[@id="test"]'
-            const mockResult = { selector: '~test', strategy: 'accessibility id' }
-
-            vi.mocked(xpathConverter.convertXPathToOptimizedSelector).mockResolvedValue(mockResult as any)
-
-            await findOptimizedSelector(xpath, {
-                usePageSource: true,
-                browser: mockBrowser,
-                logPageSource: false
-            })
-
-            expect(consoleLogSpy).not.toHaveBeenCalled()
-
-            consoleLogSpy.mockRestore()
         })
 
         test('should handle synchronous result from convertXPathToOptimizedSelector', async () => {
