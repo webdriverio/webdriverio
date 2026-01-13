@@ -5,7 +5,7 @@ import { testOptimizedSelector } from '../../../src/mobileSelectorPerformanceOpt
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-const log = logger('@wdio/appium-service')
+const log = logger('@wdio/appium-service:selector-optimizer')
 
 describe('selector-testing utils', () => {
     beforeEach(() => {

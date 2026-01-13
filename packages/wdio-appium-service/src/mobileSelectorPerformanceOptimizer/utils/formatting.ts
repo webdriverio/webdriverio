@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 import type { SelectorLocation } from './selector-location.js'
 import { LOG_PREFIX } from './constants.js'
 
-const log = logger('@wdio/appium-service')
+const log = logger('@wdio/appium-service:selector-optimizer')
 
 /**
  * Formats a selector for display/logging purposes (truncates long selectors).

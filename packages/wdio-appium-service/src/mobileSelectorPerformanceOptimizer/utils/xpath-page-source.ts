@@ -6,7 +6,7 @@ import logger from '@wdio/logger'
 
 import type { ElementData, PredicateCondition } from './xpath-types.js'
 
-const log = logger('@wdio/appium-service')
+const log = logger('@wdio/appium-service:selector-optimizer')
 
 /**
  * Parses page source XML to extract element data based on the original XPath.

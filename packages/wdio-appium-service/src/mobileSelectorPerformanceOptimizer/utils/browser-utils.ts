@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 
-const log = logger('@wdio/appium-service')
+const log = logger('@wdio/appium-service:selector-optimizer')
 
 /**
  * Checks if the browser is in native context.

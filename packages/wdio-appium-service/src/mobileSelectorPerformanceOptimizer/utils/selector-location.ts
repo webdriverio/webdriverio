@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import logger from '@wdio/logger'
 import { isXPathSelector } from './selector-utils.js'
 
-const log = logger('@wdio/appium-service')
+const log = logger('@wdio/appium-service:selector-optimizer')
 
 export interface SelectorLocation {
     file: string

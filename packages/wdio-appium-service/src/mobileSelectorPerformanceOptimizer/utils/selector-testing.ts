@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 import { getHighResTime } from './timing.js'
 import { LOG_PREFIX } from './constants.js'
 
-const log = logger('@wdio/appium-service')
+const log = logger('@wdio/appium-service:selector-optimizer')
 
 /**
  * Extracts matching elements from page source for debugging.

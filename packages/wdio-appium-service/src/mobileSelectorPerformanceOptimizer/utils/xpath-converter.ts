@@ -7,7 +7,7 @@ import { convertXPathToClassChain } from './xpath-class-chain.js'
 import { parseElementFromPageSource } from './xpath-page-source.js'
 import { buildSelectorFromElementData } from './xpath-selector-builder.js'
 
-const log = logger('@wdio/appium-service')
+const log = logger('@wdio/appium-service:selector-optimizer')
 
 /**
  * Converts an XPath selector to an optimized alternative selector.

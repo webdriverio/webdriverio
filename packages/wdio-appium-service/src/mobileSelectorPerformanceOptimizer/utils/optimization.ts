@@ -4,7 +4,7 @@ import { convertXPathToOptimizedSelector } from './xpath-converter.js'
 import { getHighResTime } from './timing.js'
 import { LOG_PREFIX } from './constants.js'
 
-const log = logger('@wdio/appium-service')
+const log = logger('@wdio/appium-service:selector-optimizer')
 
 /**
  * Finds an optimized selector for a given XPath.
