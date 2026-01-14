@@ -14,6 +14,7 @@ export const config: WebdriverIO.Config = {
         path.join(__dirname, 'headless', 'reloadSession.e2e.ts'),
         path.join(__dirname, 'headless', 'test.e2e.ts'),
         path.join(__dirname, 'headless', 'mocking.e2e.ts'),
+        path.join(__dirname, 'headless', 'a11yStrict.e2e.ts'),
     ],
 
     /**
@@ -24,8 +25,9 @@ export const config: WebdriverIO.Config = {
         browserVersion: 'stable',
         'goog:chromeOptions': {
             args: [
-                'disable-infobars'
-                // 'headless', 'disable-gpu'
+                '--headless=new',
+                '--no-sandbox',
+                '--disable-dev-shm-usage'
             ]
         }
     }],
