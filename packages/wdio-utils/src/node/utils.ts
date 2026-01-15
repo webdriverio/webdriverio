@@ -9,7 +9,7 @@ import logger from '@wdio/logger'
 import {
     install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, BrowserPlatform, ChromeReleaseChannel,
     computeExecutablePath, type InstalledBrowser,
-    type InstallOptions, type BrowserDownloader, type DownloadOptions
+    type InstallOptions, type BrowserProvider, type DownloadOptions
 } from '@puppeteer/browsers'
 import { download as downloadGeckodriver } from 'geckodriver'
 import { download as downloadEdgedriver } from 'edgedriver'
@@ -357,22 +357,22 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
     const platform = resolveChromedriverPlatform()
     const { chromiumVersion, electronVersion } = parseElectronCapabilities(capabilities)
 
-    // Determine buildId and downloaders based on capabilities
+    // Determine buildId and providers based on capabilities
     let buildId: string
-    let downloaders: BrowserDownloader[] | undefined
+    let providers: BrowserProvider[] | undefined
 
     if (electronVersion) {
-        // Use Electron downloader with Electron version
-        downloaders = [new ElectronDownloader()]
+        // Use Electron provider with Electron version
+        providers = [new ElectronDownloader()]
         buildId = electronVersion
-        log.info(`Using Electron downloader with Electron v${buildId} (Chromium ${chromiumVersion})`)
+        log.info(`Using Electron provider with Electron v${buildId} (Chromium ${chromiumVersion})`)
     } else if (chromiumVersion) {
-        // Fallback: use Chromium version with Electron downloader
-        downloaders = [new ElectronDownloader()]
+        // Fallback: use Chromium version with Electron provider
+        providers = [new ElectronDownloader()]
         buildId = chromiumVersion
-        log.info(`Using Electron downloader with Chromium v${buildId}`)
+        log.info(`Using Electron provider with Chromium v${buildId}`)
     } else {
-        // Use standard Chrome chromedriver logic (no Electron downloader)
+        // Use standard Chrome chromedriver logic (no Electron provider)
         const version = driverVersion || getBuildIdByChromePath(await locateChromeSafely()) || ChromeReleaseChannel.STABLE
         buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
         log.info(`Using standard Chrome chromedriver logic, resolved buildId=${buildId}`)
@@ -385,8 +385,8 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
         browser: Browser.CHROMEDRIVER,
         unpack: true,
         downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes),
-        downloaders
-    } satisfies InstallOptions & { unpack: true; downloaders?: BrowserDownloader[] }
+        providers
+    } satisfies InstallOptions & { unpack: true; providers?: BrowserProvider[] }
 
     let installedBrowser: Awaited<ReturnType<typeof _installWithBrowser>>
 
@@ -419,11 +419,11 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
     }
 
     // Use the executable path from InstalledBrowser - this automatically uses
-    // custom paths from downloaders that implement resolveExecutablePath()
+    // custom paths from providers that implement getExecutablePath()
     const executablePath = installedBrowser.executablePath
 
-    if (downloaders?.length) {
-        log.info(`Using custom downloader executable path: ${executablePath}`)
+    if (providers?.length) {
+        log.info(`Using custom provider executable path: ${executablePath}`)
     }
 
     return { executablePath }
@@ -553,10 +553,13 @@ async function resolveElectronVersion(buildId: string, versionMapping?: Record<s
 
 /**
  * Options for ElectronDownloader.
+ *
+ * ElectronDownloader is a custom browser provider that downloads
+ * Chromedriver from Electron releases instead of Chrome for Testing.
  */
 export interface ElectronDownloaderOptions {
     /**
-     * Only use Electron downloader for specific platforms.
+     * Only use Electron provider for specific platforms.
      * If not specified, Electron releases will be used for all platforms.
      *
      * @example
@@ -597,14 +600,14 @@ export interface ElectronDownloaderOptions {
 }
 
 /**
- * Browser downloader that uses Electron releases for Chromedriver.
+ * Browser provider that uses Electron releases for Chromedriver.
  *
  * This is particularly useful for platforms where Chrome for Testing
  * doesn't provide binaries, such as Linux ARM64.
  *
  * **Version Mapping Strategy:**
  *
- * The downloader uses a two-tier fallback for Chromium → Electron version mapping:
+ * The provider uses a two-tier fallback for Chromium → Electron version mapping:
  * 1. **electronjs.org releases API** (most up-to-date, fetched on first use and cached)
  * 2. **electron-to-chromium package** (offline fallback, may be slightly outdated)
  *
@@ -620,7 +623,7 @@ export interface ElectronDownloaderOptions {
  * const buildId = electronVersion; // "33.2.1"
  *
  * // For non-Electron apps - pass Chromium version, restrict to ARM64
- * const downloaders = [
+ * const providers = [
  *   new ElectronDownloader({
  *     platforms: [BrowserPlatform.LINUX_ARM]
  *   })
@@ -628,14 +631,14 @@ export interface ElectronDownloaderOptions {
  * await install({
  *   browser: Browser.CHROMEDRIVER,
  *   buildId: '130.0.6723.2', // Chromium version
- *   downloaders
+ *   providers
  * });
  * // → Fetches mapping from electronjs.org (cached after first fetch)
  * // → Maps to Electron v33.2.1
  * // → Downloads chromedriver from Electron v33.2.1 release
  * ```
  */
-export class ElectronDownloader implements BrowserDownloader {
+export class ElectronDownloader implements BrowserProvider {
     readonly #platforms?: BrowserPlatform[]
     readonly #baseUrl: string
     readonly #versionMapping?: Record<string, string>
