@@ -76,7 +76,24 @@ describe('waitForExists', () => {
         await elem.waitForExist({ timeout })
 
         expect(elem.elementId).toBe('some-elem-456')
-        expect($$Spy).toHaveBeenCalledWith('iframe')
+        expect($Spy).not.toHaveBeenCalled()
+    })
+
+    it('should not swap elementId for indexed elements returned from $$ when accessed via chainable index', async () => {
+        const $$Spy = vi.spyOn(browser, '$$')
+        const $Spy = vi.spyOn(browser, '$')
+
+        const elem = await browser.$$('iframe')[1]
+
+        vi.spyOn(elem, 'isExisting').mockResolvedValue(true)
+        vi.spyOn(elem, 'waitUntil').mockImplementation(async (cond) => cond())
+
+        expect(elem.index).toBe(1)
+        expect(elem.elementId).toBe('some-elem-456')
+
+        await elem.waitForExist({ timeout })
+
+        expect(elem.elementId).toBe('some-elem-456')
         expect($Spy).not.toHaveBeenCalled()
     })
 })
