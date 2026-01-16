@@ -245,6 +245,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_PRE_TEST)
     async onPrepare (config: Options.Testrunner, capabilities: Capabilities.TestrunnerCapabilities | WebdriverIO.Capabilities) {
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.INIT)
+
         // Send Funnel start request
         await sendStart(this.browserStackConfig)
 
@@ -312,14 +314,19 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             process.env.BROWSERSTACK_IS_MULTIREMOTE = String(isMultiremote)
 
             if (CLIUtils.checkCLISupportedFrameworks(config.framework) && !isMultiremote) {
+                PerformanceTester.start(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.START)
                 CLIUtils.setFrameworkDetail(WDIO_NAMING_PREFIX + config.framework, 'WebdriverIO')
                 const binconfig = CLIUtils.getBinConfig(config, capabilities, this._options, this._buildTag)
                 await BrowserstackCLI.getInstance().bootstrap(this._options, config, binconfig)
                 BStackLogger.debug(`Is CLI running ${BrowserstackCLI.getInstance().isRunning()}`)
+                PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.START)
             }
         } catch (err) {
             BStackLogger.error(`Error while starting CLI ${err}`)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.START, false, util.format(err))
         }
+
+        PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.INIT)
 
         // Setting up healing for those sessions where we don't add the service version capability as it indicates that the session is not being run on BrowserStack
         if (!shouldAddServiceVersion(this._config, this._options.testObservability, capabilities as Capabilities.BrowserStackCapabilities)) {
@@ -571,6 +578,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP)
     async onComplete () {
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP)
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_ON_STOP)
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.STOP)
+
+        try {
+            BStackLogger.debug('Inside OnComplete hook..')
         BStackLogger.debug('Inside OnComplete hook..')
 
         BStackLogger.debug('Sending stop launch event')
@@ -580,6 +593,19 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             console.log(`\nVisit https://automation.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
         }
         this.browserStackConfig.testObservability.buildStopped = true
+            BStackLogger.debug('Sending stop launch event')
+
+            try {
+                await (BrowserstackCLI.getInstance().isRunning() ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
+                PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.STOP)
+            } catch (err) {
+                BStackLogger.error(`Error while stoping CLI ${err}`)
+                PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.STOP, false, util.format(err))
+            }
+            if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
+                console.log(`\nVisit https://automation.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
+            }
+            this.browserStackConfig.testObservability.buildStopped = true
 
         await PerformanceTester.stopAndGenerate('performance-launcher.html')
         if (process.env[PERF_MEASUREMENT_ENV]) {
@@ -592,12 +618,25 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             BStackLogger.info(`Total duration is ${duration / 1000} s`)
         }
 
-        BStackLogger.info(`BrowserStack service run ended for id: ${this.browserStackConfig?.sdkRunID} testhub id: ${TestOpsConfig.getInstance()?.buildHashedId}`)
-        await sendFinish(this.browserStackConfig)
-        try {
-            await this._uploadServiceLogs()
+            BStackLogger.info(`BrowserStack service run ended for id: ${this.browserStackConfig?.sdkRunID} testhub id: ${TestOpsConfig.getInstance()?.buildHashedId}`)
+            await sendFinish(this.browserStackConfig)
+            try {
+                PerformanceTester.start(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_SEND_LOGS)
+                await this._uploadServiceLogs()
+                PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_SEND_LOGS)
+            } catch (error) {
+                BStackLogger.debug(`Failed to upload BrowserStack WDIO Service logs ${error}`)
+                PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_SEND_LOGS, false, util.format(error))
+            }
+
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_ON_STOP)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP)
+            await PerformanceTester.stopAndGenerate('performance-launcher.html')
         } catch (error) {
-            BStackLogger.debug(`Failed to upload BrowserStack WDIO Service logs ${error}`)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_ON_STOP, false, util.format(error))
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP, false, util.format(error))
+            await PerformanceTester.stopAndGenerate('performance-launcher.html')
+            BStackLogger.error(`Error in onComplete hook: ${error}`)
         }
 
         BStackLogger.clearLogger()
@@ -754,6 +793,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
     async _uploadServiceLogs() {
         const clientBuildUuid = this._getClientBuildUuid()
+        await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS, async () => {
+
         const response = await uploadLogs(getBrowserStackUser(this._config), getBrowserStackKey(this._config), clientBuildUuid)
         if (response) {
             BStackLogger.info(`Upload response: ${JSON.stringify(response, null, 2)}`)
