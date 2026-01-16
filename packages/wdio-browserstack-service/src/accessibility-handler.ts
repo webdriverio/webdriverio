@@ -157,6 +157,8 @@ class _AccessibilityHandler {
     }
 
     async before (sessionId: string) {
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.CONFIG_EVENTS.ACCESSIBILITY)
+
         this._sessionId = sessionId
         this._accessibility = isTrue(this._getCapabilityValue(this._caps, 'accessibility', 'browserstack.accessibility'))
 
@@ -247,6 +249,8 @@ class _AccessibilityHandler {
                 const browser = this._browser as WebdriverIO.Browser
                 browser.overwriteCommand(command.name, this.commandWrapper.bind(this, command), command.class === 'Element')
             })
+
+        PerformanceTester.end(PERFORMANCE_SDK_EVENTS.CONFIG_EVENTS.ACCESSIBILITY)
     }
 
     async beforeTest (suiteTitle: string | undefined, test: Frameworks.Test) {
