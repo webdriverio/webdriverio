@@ -66,8 +66,8 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "devDependencies": {
-    "@sinonjs/fake-timers": "^14.0.0",
-    "@types/archiver": "^6.0.2",
+    "@sinonjs/fake-timers": "^15.1.0",
+    "@types/archiver": "^7.0.0",
     "@types/aria-query": "^5.0.4",
     "@types/lodash.clonedeep": "^4.5.9",
     "@types/lodash.zip": "^4.2.9",
@@ -76,7 +76,7 @@
   },
   "dependencies": {
     "@types/node": "^20.11.30",
-    "@types/sinonjs__fake-timers": "^8.1.5",
+    "@types/sinonjs__fake-timers": "^15.0.1",
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/protocols": "workspace:*",
@@ -89,7 +89,7 @@
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
     "grapheme-splitter": "^1.0.4",
-    "htmlfy": "^0.8.1",
+    "htmlfy": "^1.0.1",
     "is-plain-obj": "^4.1.0",
     "jszip": "^3.10.1",
     "lodash.clonedeep": "^4.5.0",
@@ -97,7 +97,7 @@
     "query-selector-shadow-dom": "^1.0.1",
     "resq": "^1.11.0",
     "rgb2hex": "0.2.5",
-    "serialize-error": "^12.0.0",
+    "serialize-error": "^13.0.0",
     "urlpattern-polyfill": "^10.0.0",
     "webdriver": "workspace:*"
   },
