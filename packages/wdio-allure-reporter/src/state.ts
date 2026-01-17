@@ -129,7 +129,6 @@ export class AllureReportState {
         if (!this._currentTestUuid) {
             return
         }
-        // await this._closeScope()
         await this.allureRuntime.writeTest(this._currentTestUuid)
         this._currentTestUuid = undefined
     }
