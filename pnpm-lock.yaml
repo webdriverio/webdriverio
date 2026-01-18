@@ -787,8 +787,8 @@ importers:
         specifier: ^11.0.0
         version: 11.1.0
       tar:
-        specifier: ^6.1.15
-        version: 6.2.1
+        specifier: ^7.5.3
+        version: 7.5.3
       undici:
         specifier: ^6.21.3
         version: 6.23.0
@@ -6249,8 +6249,8 @@ packages:
   '@types/node@20.19.27':
     resolution: {integrity: sha512-N2clP5pJhB2YnZJ3PIHFk5RkygRX5WO/5f0WC08tp0wd+sv0rsJk3MqWn3CbNmT2J505a5336jaQj4ph1AdMug==}
 
-  '@types/node@20.19.29':
-    resolution: {integrity: sha512-YrT9ArrGaHForBaCNwFjoqJWmn8G1Pr7+BH/vwyLHciA9qT/wSiuOhxGCT50JA5xLvFBd6PIiGkE3afxcPE1nw==}
+  '@types/node@20.19.30':
+    resolution: {integrity: sha512-WJtwWJu7UdlvzEAUm484QNg5eAoq5QR08KDNx7g45Usrs2NtOPiX8ugDqmKdXkyL03rBqU5dYNYVQetEpBHq2g==}
 
   '@types/node@22.19.3':
     resolution: {integrity: sha512-1N9SBnWYOJTrNZCdh/yJE+t910Y128BoyY+zBLWhL3r0TYzlTmFdXrPwHL9DyFZmlEXNQQolTZh3KHV31QDhyA==}
@@ -13803,8 +13803,8 @@ packages:
     resolution: {integrity: sha512-DZ4yORTwrbTj/7MZYq2w+/ZFdI6OZ/f9SFHR+71gIVUZhOQPHzVCLpvRnPgyaMpfWxxk/4ONva3GQSyNIKRv6A==}
     engines: {node: '>=10'}
 
-  tar@7.5.2:
-    resolution: {integrity: sha512-7NyxrTE4Anh8km8iEy7o0QYPs+0JKBTj5ZaqHg6B39erLg0qYXN3BijtShwbsNSvQ+LN75+KV+C4QR/f6Gwnpg==}
+  tar@7.5.3:
+    resolution: {integrity: sha512-ENg5JUHUm2rDD7IvKNFGzyElLXNjachNLp6RaGf4+JOgxXHkqA+gq81ZAMCUmtMtqBsoU62lcp6S27g1LCYGGQ==}
     engines: {node: '>=18'}
 
   temp-dir@1.0.0:
@@ -16861,7 +16861,7 @@ snapshots:
       '@cucumber/ci-environment': 10.0.1
       '@cucumber/cucumber-expressions': 17.1.0
       '@cucumber/gherkin': 28.0.0
-      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@26.0.1))(@cucumber/messages@24.1.0)
+      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)
       '@cucumber/gherkin-utils': 9.0.0
       '@cucumber/html-formatter': 21.6.0(@cucumber/messages@24.1.0)
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -16901,7 +16901,7 @@ snapshots:
       yaml: 2.8.0
       yup: 1.2.0
 
-  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@26.0.1))(@cucumber/messages@24.1.0)':
+  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)':
     dependencies:
       '@cucumber/gherkin': 28.0.0
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -20695,7 +20695,7 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
-  '@types/node@20.19.29':
+  '@types/node@20.19.30':
     dependencies:
       undici-types: 6.21.0
 
@@ -21318,7 +21318,7 @@ snapshots:
 
   '@wdio/repl@9.16.2':
     dependencies:
-      '@types/node': 20.19.29
+      '@types/node': 20.19.30
 
   '@wdio/reporter@9.16.2':
     dependencies:
@@ -21354,7 +21354,7 @@ snapshots:
 
   '@wdio/types@9.20.0':
     dependencies:
-      '@types/node': 20.19.29
+      '@types/node': 20.19.30
 
   '@wdio/utils@9.16.2':
     dependencies:
@@ -22122,7 +22122,7 @@ snapshots:
       minipass-pipeline: 1.2.4
       p-map: 7.0.4
       ssri: 12.0.0
-      tar: 7.5.2
+      tar: 7.5.3
       unique-filename: 4.0.0
 
   cacache@20.0.3:
@@ -27283,7 +27283,7 @@ snapshots:
       nopt: 8.1.0
       proc-log: 5.0.0
       semver: 7.7.3
-      tar: 7.5.2
+      tar: 7.5.3
       tinyglobby: 0.2.15
       which: 5.0.0
     transitivePeerDependencies:
@@ -27753,7 +27753,7 @@ snapshots:
       promise-retry: 2.0.1
       sigstore: 4.0.0
       ssri: 12.0.0
-      tar: 7.5.2
+      tar: 7.5.3
     transitivePeerDependencies:
       - supports-color
 
@@ -27775,7 +27775,7 @@ snapshots:
       promise-retry: 2.0.1
       sigstore: 4.0.0
       ssri: 13.0.0
-      tar: 7.5.2
+      tar: 7.5.3
     transitivePeerDependencies:
       - supports-color
 
@@ -30124,7 +30124,7 @@ snapshots:
       mkdirp: 1.0.4
       yallist: 4.0.0
 
-  tar@7.5.2:
+  tar@7.5.3:
     dependencies:
       '@isaacs/fs-minipass': 4.0.1
       chownr: 3.0.0
@@ -30991,7 +30991,7 @@ snapshots:
 
   webdriver@9.23.0:
     dependencies:
-      '@types/node': 20.19.29
+      '@types/node': 20.19.30
       '@types/ws': 8.18.1
       '@wdio/config': 9.23.0
       '@wdio/logger': 9.18.0
@@ -31047,7 +31047,7 @@ snapshots:
 
   webdriverio@9.23.0(puppeteer-core@24.34.0):
     dependencies:
-      '@types/node': 20.19.29
+      '@types/node': 20.19.30
       '@types/sinonjs__fake-timers': 8.1.5
       '@wdio/config': 9.23.0
       '@wdio/logger': 9.18.0

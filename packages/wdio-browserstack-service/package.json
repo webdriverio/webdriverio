@@ -51,7 +51,7 @@
     "git-repo-info": "^2.1.1",
     "gitconfiglocal": "^2.1.0",
     "glob": "^11.0.0",
-    "tar": "^6.1.15",
+    "tar": "^7.5.3",
     "undici": "^6.21.3",
     "uuid": "^11.1.0",
     "webdriverio": "workspace:*",
