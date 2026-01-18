@@ -1,6 +1,6 @@
 {
   "name": "@wdio/static-server-service",
-  "version": "9.20.0",
+  "version": "9.23.1",
   "description": "A WebdriverIO service that can serve your static websites",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-static-server-service",
