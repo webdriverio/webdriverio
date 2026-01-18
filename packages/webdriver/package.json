@@ -1,6 +1,6 @@
 {
   "name": "webdriver",
-  "version": "9.23.1",
+  "version": "9.23.2",
   "description": "A Node.js bindings implementation for the W3C WebDriver and Mobile JSONWire Protocol",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/webdriver",
