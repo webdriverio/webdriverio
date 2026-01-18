@@ -3,10 +3,6 @@ import { getElementRect } from '../../utils/index.js'
 
 export type Location = Pick<RectReturn, 'x' | 'y'>
 
-export function getLocation (this: WebdriverIO.Element): Promise<Location>
-export function getLocation (this: WebdriverIO.Element, prop: keyof Location): Promise<number>
-export function getLocation (this: WebdriverIO.Element, prop?: keyof Location): Promise<Location & number>
-
 /**
  *
  * Determine an element’s location on the page. The point (0, 0) refers to
@@ -34,6 +30,8 @@ export function getLocation (this: WebdriverIO.Element, prop?: keyof Location): 
  * @uses protocol/elementIdLocation
  * @type property
  */
+export function getLocation (this: WebdriverIO.Element): Promise<Location>
+export function getLocation (this: WebdriverIO.Element, prop: keyof Location): Promise<number>
 export async function getLocation (
     this: WebdriverIO.Element,
     prop?: keyof Location
