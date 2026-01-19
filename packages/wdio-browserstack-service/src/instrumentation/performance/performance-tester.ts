@@ -43,10 +43,6 @@ export default class PerformanceTester {
     static jsonReportDirPath = path.join(process.cwd(), 'logs', this.jsonReportDirName)
     static jsonReportFileName = `${this.jsonReportDirPath}/performance-report-${PerformanceTester.getProcessId()}.json`
 
-    // SDK only writes SDK-specific events to event_sdk.json
-    // Binary handles writing event_cli.json and event_requests.json based on clientWorkerId from gRPC
-    //static sdkEventsFileName = '/Users/aakashhotchandani/Documents/SDKStories/Performance/browserstack-binary/event_sdk.json'
-
     static startMonitoring(csvName: string = 'performance-report.csv') {
 
         // Create performance-report dir if not exists already
@@ -64,7 +60,6 @@ export default class PerformanceTester {
                         if (typeof finalEntry.startTime === 'number' && typeof performance.timeOrigin === 'number') {
                             const originalStartTime = finalEntry.startTime
                             finalEntry.startTime = performance.timeOrigin + finalEntry.startTime
-                            BStackLogger.debug(`Timestamp conversion for ${entry.name}: ${originalStartTime} -> ${finalEntry.startTime} (timeOrigin: ${performance.timeOrigin})`)
                         }
                     } catch (e) {
                         BStackLogger.debug(`Error converting startTime to epoch: ${util.format(e)}`)
@@ -345,16 +340,6 @@ export default class PerformanceTester {
 
     static sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
-    /**
-     * Upload SDK events to EDS and write to event_sdk.json for binary to read.
-     *
-     * Architecture:
-     * - SDK tracks all events with clientWorkerId
-     * - SDK writes only event_sdk.json (SDK events filtered by SDK_EVENTS_LIST)
-     * - SDK sends clientWorkerId via gRPC to binary
-     * - Binary reads event_sdk.json and writes event_cli.json + event_requests.json
-     * - SDK uploads SDK events to EDS for analytics
-     */
     static async uploadEventsData() {
         // Track overall key metrics operation
         this.start(EVENTS.SDK_SEND_KEY_METRICS)
@@ -414,10 +399,6 @@ export default class PerformanceTester {
                 .join('')
                 .replace(',', 'T')
 
-
-            // Write SDK events to event_sdk.json for binary to read
-            //await this.prepareAndWriteEventFiles(measures)
-
             this.end(EVENTS.SDK_KEY_METRICS_PREPARATION, true)
             const payload = {
                 event_type: 'sdk_events',
@@ -465,60 +446,6 @@ export default class PerformanceTester {
             }
         } catch (er) {
             BStackLogger.debug(`[Performance Upload] Failed to delete temporary files: ${util.format(er)}`)
-        }
-    }
-
-    /**
-     * Write only SDK-specific events to event_sdk.json.
-     * SDK events are those that match SDK_EVENTS_LIST.
-     *
-     * The binary handles writing:
-     * - event_cli.json (all non-request events including SDK events)
-     * - event_requests.json (HTTP request events)
-     *
-     * The binary receives clientWorkerId via gRPC and uses it to categorize
-     * and write events to the appropriate files.
-     */
-    private static async prepareAndWriteEventFiles(measures: any[]) {
-        try {
-
-            const sdkMeasures = measures.filter((entry) => this.isSDKEvent(entry.name))
-
-            if (sdkMeasures.length === 0) {
-                BStackLogger.debug('[prepareAndWriteEventFiles] No SDK events to write')
-                return
-            }
-
-            BStackLogger.debug(`[prepareAndWriteEventFiles] Filtered ${sdkMeasures.length} SDK events before deduplication`)
-
-            // const sdkEventProperties = {
-            //     measures: sdkMeasures.map(entry => {
-            //         // Clean up null detail fields
-            //         const entryAny = entry as any
-            //         if (entryAny.detail === null) {
-            //             delete entryAny.detail
-            //         }
-            //         return entryAny
-            //     })
-            // }
-
-            // Ensure directory exists
-            // const dir = path.dirname(this.sdkEventsFileName)
-            // if (!fs.existsSync(dir)) {
-            //     await fsPromise.mkdir(dir, { recursive: true })
-            // }
-
-            // Write SDK events to event_sdk.json
-            // await fsPromise.writeFile(
-            //     this.sdkEventsFileName,
-            //     JSON.stringify(sdkEventProperties, null, 2),
-            //     'utf-8'
-            // )
-
-            // BStackLogger.debug(`[prepareAndWriteEventFiles] Wrote ${deduplicatedSdkMeasures.length} SDK events to ${this.sdkEventsFileName}`)
-            // BStackLogger.debug(`[prepareAndWriteEventFiles] SDK events written: ${deduplicatedSdkMeasures.map(m => m.name).join(', ')}`)
-        } catch (error) {
-            BStackLogger.debug(`[prepareAndWriteEventFiles] Error writing SDK event file: ${util.format(error)}`)
         }
     }
 
