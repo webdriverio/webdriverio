@@ -48,11 +48,13 @@
     "@wdio/reporter": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
+    "@xmldom/xmldom": "^0.9.5",
     "change-case": "^5.4.3",
     "get-port": "^7.0.0",
     "import-meta-resolve": "^4.0.0",
     "tree-kill": "^1.2.2",
-    "webdriverio": "workspace:*"
+    "webdriverio": "workspace:*",
+    "xpath": "^0.0.34"
   },
   "publishConfig": {
     "access": "public"

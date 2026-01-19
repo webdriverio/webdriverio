@@ -68,6 +68,9 @@ async function optimizeSelector<T extends WebdriverIO.Element | WebdriverIO.Elem
         if (conversionResult?.warning) {
             log.warn(`[${LOG_PREFIX}: Warning] ${conversionResult.warning}`)
         }
+        if (conversionResult?.suggestion) {
+            log.info(`[${LOG_PREFIX}: Suggestion] Consider using: ${conversionResult.suggestion}`)
+        }
         return originalResult
     }
 

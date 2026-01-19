@@ -4,6 +4,11 @@
 export interface XPathConversionResult {
     selector: string | null
     warning?: string
+    /**
+     * When an XPath cannot be converted but we found a potential selector via page source analysis,
+     * this field contains that selector as a suggestion (even if it's not unique).
+     */
+    suggestion?: string
 }
 
 /**

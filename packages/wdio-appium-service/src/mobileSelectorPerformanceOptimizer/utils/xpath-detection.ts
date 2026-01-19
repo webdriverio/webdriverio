@@ -38,7 +38,41 @@ export function detectUnmappableXPathFeatures(xpath: string): string[] {
         }
     }
 
+    // Check for XPath union operator (|) outside of brackets and quotes
+    if (containsUnionOperator(xpath)) {
+        unmappableFeatures.push('union operator (|)')
+    }
+
     return unmappableFeatures
+}
+
+/**
+ * Checks if an XPath contains a union operator (|) outside of predicates and quotes.
+ */
+function containsUnionOperator(xpath: string): boolean {
+    let depth = 0
+    let inSingleQuote = false
+    let inDoubleQuote = false
+
+    for (let i = 0; i < xpath.length; i++) {
+        const char = xpath[i]
+
+        if (char === "'" && !inDoubleQuote) {
+            inSingleQuote = !inSingleQuote
+        } else if (char === '"' && !inSingleQuote) {
+            inDoubleQuote = !inDoubleQuote
+        } else if (!inSingleQuote && !inDoubleQuote) {
+            if (char === '[' || char === '(') {
+                depth++
+            } else if (char === ']' || char === ')') {
+                depth--
+            } else if (char === '|' && depth === 0) {
+                return true
+            }
+        }
+    }
+
+    return false
 }
 
 /**

@@ -13,6 +13,7 @@ export const UNMAPPABLE_XPATH_AXES = [
     { pattern: /following::/i, name: 'following axis' },
     { pattern: /preceding::/i, name: 'preceding axis' },
     { pattern: /parent::/i, name: 'parent axis' },
+    { pattern: /\/\.\.(?:\/|$|\[|\))/, name: 'parent axis' },
 ] as const
 
 /**
