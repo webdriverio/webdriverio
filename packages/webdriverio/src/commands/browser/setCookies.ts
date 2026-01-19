@@ -1,4 +1,7 @@
+import logger from '@wdio/logger'
 import type { Cookie } from '@wdio/protocols'
+
+const log = logger('webdriverio')
 
 /**
  *
@@ -75,22 +78,38 @@ export async function setCookies(
     /**
      * only fetch current url of browsing context if not all cookies have a domain set
      */
-    let url = new URL('http://localhost')
-    if (cookieObjsList.some((cookie) => typeof cookie.domain !== 'string')) {
+    let url: URL
+    try {
         url = new URL(await this.getUrl())
+        if (url.origin === 'null') {
+            await Promise.all(cookieObjsList.map(cookieObj => this.addCookie(cookieObj)))
+            return
+        }
+    } catch {
+        await Promise.all(cookieObjsList.map(cookieObj => this.addCookie(cookieObj)))
+        return
     }
 
-    await Promise.all(cookieObjsList.map((cookie) => (
-        this.storageSetCookie({
-            cookie: {
-                ...cookie,
-                domain: cookie.domain || url.hostname,
-                value: {
-                    type: 'string',
-                    value: cookie.value,
+    try {
+        await Promise.all(cookieObjsList.map((cookie) => (
+            this.storageSetCookie({
+                cookie: {
+                    ...cookie,
+                    domain: cookie.domain || url.hostname,
+                    value: {
+                        type: 'string',
+                        value: cookie.value,
+                    }
+                },
+                partition: {
+                    type: 'storageKey',
+                    sourceOrigin: url.origin
                 }
-            }
-        })
-    )))
+            })
+        )))
+    } catch (err) {
+        log.warn(`BiDi setCookies failed, falling back to classic: ${(err as Error).message}`)
+        await Promise.all(cookieObjsList.map(cookieObj => this.addCookie(cookieObj)))
+    }
     return
 }

@@ -96,6 +96,7 @@ describe('deleteCookies', () => {
             })
             storageDeleteCookies =  vi.spyOn(browser, 'storageDeleteCookies')
             storageDeleteCookies.mockImplementation((() => {}) as any)
+            vi.spyOn(browser, 'getUrl').mockResolvedValue('https://webdriver.io')
         })
 
         beforeEach(() => {
@@ -105,26 +106,55 @@ describe('deleteCookies', () => {
         it('should delete all cookies', async () => {
             await browser.deleteCookies()
             expect(storageDeleteCookies).toBeCalledTimes(1)
-            expect(storageDeleteCookies).toBeCalledWith({})
+            expect(storageDeleteCookies).toBeCalledWith({
+                partition: {
+                    type: 'storageKey',
+                    sourceOrigin: 'https://webdriver.io'
+                }
+            })
         })
 
         it('should support passing a string', async () => {
             await browser.deleteCookies('cookie1')
             expect(storageDeleteCookies).toBeCalledTimes(1)
-            expect(storageDeleteCookies).toBeCalledWith({ filter: { name: 'cookie1' } })
+            expect(storageDeleteCookies).toBeCalledWith({
+                filter: { name: 'cookie1' },
+                partition: {
+                    type: 'storageKey',
+                    sourceOrigin: 'https://webdriver.io'
+                }
+            })
         })
 
         it('should support passing an object', async () => {
             await browser.deleteCookies({ domain: 'foobar.com' })
             expect(storageDeleteCookies).toBeCalledTimes(1)
-            expect(storageDeleteCookies).toBeCalledWith({ filter: { domain: 'foobar.com' } })
+            expect(storageDeleteCookies).toBeCalledWith({
+                filter: { domain: 'foobar.com' },
+                partition: {
+                    type: 'storageKey',
+                    sourceOrigin: 'https://webdriver.io'
+                }
+            })
         })
 
         it('should support passing a array with a string', async () => {
             await browser.deleteCookies(['cookie1', 'cookie2'])
             expect(storageDeleteCookies).toBeCalledTimes(2)
-            expect(storageDeleteCookies).toBeCalledWith({ filter: { name: 'cookie1' } })
-            expect(storageDeleteCookies).toBeCalledWith({ filter: { name: 'cookie2' } })
+            expect(storageDeleteCookies).toBeCalledWith({
+                filter: { name: 'cookie1' },
+                partition: {
+                    type: 'storageKey',
+                    sourceOrigin: 'https://webdriver.io'
+                }
+            })
+            expect(storageDeleteCookies).toBeCalledWith({
+                filter: { name: 'cookie2' },
+                partition: {
+                    type: 'storageKey',
+                    sourceOrigin: 'https://webdriver.io'
+                }
+            })
         })
 
         it('should support passing an array of objects', async () => {
@@ -133,8 +163,20 @@ describe('deleteCookies', () => {
                 { domain: 'foobar2.com' }
             ])
             expect(storageDeleteCookies).toBeCalledTimes(2)
-            expect(storageDeleteCookies).toBeCalledWith({ filter: { domain: 'foobar.com' } })
-            expect(storageDeleteCookies).toBeCalledWith({ filter: { domain: 'foobar2.com' } })
+            expect(storageDeleteCookies).toBeCalledWith({
+                filter: { domain: 'foobar.com' },
+                partition: {
+                    type: 'storageKey',
+                    sourceOrigin: 'https://webdriver.io'
+                }
+            })
+            expect(storageDeleteCookies).toBeCalledWith({
+                filter: { domain: 'foobar2.com' },
+                partition: {
+                    type: 'storageKey',
+                    sourceOrigin: 'https://webdriver.io'
+                }
+            })
         })
 
         it('should throw error if invalid arguments are passed', async () => {

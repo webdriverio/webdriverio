@@ -1,4 +1,7 @@
+import logger from '@wdio/logger'
 import type { remote } from 'webdriver'
+
+const log = logger('webdriverio')
 
 /**
  * Delete cookies visible to the current page. By providing a cookie name it
@@ -18,45 +21,69 @@ export async function deleteCookies(
         : Array.isArray(filter) ? filter : [filter]
 
     if (!this.isBidi) {
-        const names = filterArray?.map((f) => {
-            if (typeof f === 'object') {
-                const name = f.name
-                if (!name) {
-                    throw new Error('In WebDriver Classic you can only filter for cookie names')
-                }
-                return name
-            }
+        await deleteCookiesClassic.call(this, getNamesForClassic(filterArray))
+        return
+    }
+
+    let url: URL
+    try {
+        url = new URL(await this.getUrl())
+        if (url.origin === 'null') {
+            await deleteCookiesClassic.call(this, getNamesForClassic(filterArray))
+            return
+        }
+    } catch {
+        await deleteCookiesClassic.call(this, getNamesForClassic(filterArray))
+        return
+    }
+    const partition: remote.StoragePartitionDescriptor = {
+        type: 'storageKey',
+        sourceOrigin: url.origin
+    }
+
+    try {
+        if (!filterArray) {
+            await this.storageDeleteCookies({ partition })
+            return
+        }
+
+        const bidiFilter = filterArray.map((f) => {
             if (typeof f === 'string') {
+                return { name: f } as remote.StorageCookieFilter
+            }
+            if (typeof f === 'object') {
                 return f
             }
 
             throw new Error(`Invalid value for cookie filter, expected 'string' or 'remote.StorageCookieFilter' but found "${typeof f}"`)
         })
-        await deleteCookiesClassic.call(this, names)
-        return
+
+        await Promise.all(bidiFilter.map((filter) => (
+            this.storageDeleteCookies({ filter, partition })
+        )))
+    } catch (err) {
+        log.warn(`BiDi deleteCookies failed, falling back to classic: ${(err as Error).message}`)
+        await deleteCookiesClassic.call(this, getNamesForClassic(filterArray))
     }
 
-    if (!filterArray) {
-        await this.storageDeleteCookies({})
-        return
-    }
+    return
+}
 
-    const bidiFilter = filterArray.map((f) => {
-        if (typeof f === 'string') {
-            return { name: f } as remote.StorageCookieFilter
-        }
+function getNamesForClassic(filterArray?: (string | remote.StorageCookieFilter)[]) {
+    return filterArray?.map((f) => {
         if (typeof f === 'object') {
+            const name = f.name
+            if (!name) {
+                throw new Error('In WebDriver Classic you can only filter for cookie names')
+            }
+            return name
+        }
+        if (typeof f === 'string') {
             return f
         }
 
         throw new Error(`Invalid value for cookie filter, expected 'string' or 'remote.StorageCookieFilter' but found "${typeof f}"`)
     })
-
-    await Promise.all(bidiFilter.map((filter) => (
-        this.storageDeleteCookies({ filter })
-    )))
-
-    return
 }
 
 function deleteCookiesClassic(
