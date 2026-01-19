@@ -291,9 +291,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err ? (err as Error).stack as string : 'unknown error')
                 }
             }
-            
-            
-        if (this._percy && !BrowserstackCLI.getInstance().isRunning()) {
+
+            if (this._percy && !BrowserstackCLI.getInstance().isRunning()) {
                 this._percyHandler = new PercyHandler(
                     this._percyCaptureMode,
                     this._browser,

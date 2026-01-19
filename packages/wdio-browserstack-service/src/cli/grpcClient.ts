@@ -174,8 +174,8 @@ export class GrpcClient {
                 wdioConfig: wdioConfig,
             })
             // Add clientWorkerId and platformIndex to request (proto fields 500 & 501)
-            ;(request as any).clientWorkerId = clientWorkerId
-            ;(request as any).platformIndex = '0' // Default platform index for main process
+            ;(request as unknown as Record<string, unknown>).clientWorkerId = clientWorkerId
+            ;(request as unknown as Record<string, unknown>).platformIndex = '0' // Default platform index for main process
             this.logger.debug(`StartBinSession with clientWorkerId: ${clientWorkerId}, platformIndex: 0`)
 
             const startBinSessionPromise = promisify(this.client!.startBinSession).bind(this.client!) as (arg0: StartBinSessionRequest) => Promise<StartBinSessionResponse>
@@ -214,7 +214,7 @@ export class GrpcClient {
                 binSessionId: this.binSessionId,
             })
             // Add clientWorkerId to request (proto field 500)
-            ;(request as any).clientWorkerId = clientWorkerId
+            ;(request as unknown as Record<string, unknown>).clientWorkerId = clientWorkerId
             this.logger.debug(`ConnectBinSession with clientWorkerId: ${clientWorkerId}`)
 
             const connectBinSessionPromise = promisify(this.client!.connectBinSession).bind(this.client!) as (arg0: ConnectBinSessionRequest) => Promise<ConnectBinSessionResponse>
@@ -259,7 +259,7 @@ export class GrpcClient {
                 binSessionId: this.binSessionId
             })
             // Add clientWorkerId to request (proto field 500)
-            ;(request as any).clientWorkerId = clientWorkerId
+            ;(request as unknown as Record<string, unknown>).clientWorkerId = clientWorkerId
             this.logger.debug(`StopBinSession with clientWorkerId: ${clientWorkerId}`)
 
             // Get response from gRPC call
@@ -321,7 +321,7 @@ export class GrpcClient {
                 executionContext: executionContextBuilder,
             })
             // Add clientWorkerId to request (proto field 500) - already computed above
-            ;(request as any).clientWorkerId = workerId
+            ;(request as unknown as Record<string, unknown>).clientWorkerId = workerId
 
             const testSessionEventPromise = promisify(this.client!.testSessionEvent).bind(this.client!) as (arg0: TestSessionEventRequest) => Promise<TestSessionEventResponse>
             try {
@@ -381,7 +381,7 @@ export class GrpcClient {
                 executionContext: executionContextBuilder,
             })
             // Add clientWorkerId to request (proto field 500) - already computed above
-            ;(request as any).clientWorkerId = workerId
+            ;(request as unknown as Record<string, unknown>).clientWorkerId = workerId
 
             const testFrameworkEventPromise = promisify(this.client!.testFrameworkEvent).bind(this.client!) as (arg0: TestFrameworkEventRequest) => Promise<TestFrameworkEventResponse>
             try {
@@ -429,7 +429,7 @@ export class GrpcClient {
                 userInputParams: userInputParams,
             });
             // Add clientWorkerId to request (proto field 500)
-            (request as any).clientWorkerId = clientWorkerId
+            (request as unknown as Record<string, unknown>).clientWorkerId = clientWorkerId
             this.logger.debug(`DriverInitEvent with clientWorkerId: ${clientWorkerId}`)
 
             const driverInitEventPromise = promisify(this.client!.driverInit).bind(this.client!) as (arg0: DriverInitRequest) => Promise<DriverInitResponse>
@@ -487,7 +487,7 @@ export class GrpcClient {
                 executionContext: executionContextBuilder,
             })
             // Add clientWorkerId to request (proto field 500)
-            ;(request as any).clientWorkerId = clientWorkerId
+            ;(request as unknown as Record<string, unknown>).clientWorkerId = clientWorkerId
             this.logger.debug(`LogCreatedEvent with clientWorkerId: ${clientWorkerId}`)
 
             const logCreatedEventPromise = promisify(this.client!.logCreatedEvent).bind(this.client!) as (arg0: LogCreatedEventRequest) => Promise<LogCreatedEventResponse>
@@ -517,7 +517,7 @@ export class GrpcClient {
                 this.logger.info('No gRPC client not initialized.')
             }
             const { product, scriptName } = data
-            const platformIndex = (data as any).platformIndex || '0' // Extract platformIndex if provided
+            const platformIndex = (data as Record<string, unknown>).platformIndex as string || '0' // Extract platformIndex if provided
             const clientWorkerId = CLIUtils.getClientWorkerId()
             const request = FetchDriverExecuteParamsEventRequestConstructor.create({
                 binSessionId: this.binSessionId,
@@ -525,8 +525,8 @@ export class GrpcClient {
                 scriptName: scriptName,
             })
             // Add clientWorkerId and platformIndex to request (proto fields 500 & 501)
-            ;(request as any).clientWorkerId = clientWorkerId
-            ;(request as any).platformIndex = platformIndex
+            ;(request as unknown as Record<string, unknown>).clientWorkerId = clientWorkerId
+            ;(request as unknown as Record<string, unknown>).platformIndex = platformIndex
             this.logger.debug(`FetchDriverExecuteParamsEvent with clientWorkerId: ${clientWorkerId}, platformIndex: ${platformIndex}`)
 
             const fetchDriverExecuteParamsEventPromise = promisify(this.client!.fetchDriverExecuteParamsEvent).bind(this.client!) as (arg0: FetchDriverExecuteParamsEventRequest) => Promise<FetchDriverExecuteParamsEventResponse>

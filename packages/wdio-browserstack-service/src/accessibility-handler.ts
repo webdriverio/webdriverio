@@ -264,7 +264,7 @@ class _AccessibilityHandler {
                     BStackLogger.debug(`Exception in overwrite command ${command.name} - ${error}`)
                 }
             })
-            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.CONFIG_EVENTS.ACCESSIBILITY)
+        PerformanceTester.end(PERFORMANCE_SDK_EVENTS.CONFIG_EVENTS.ACCESSIBILITY)
 
     }
 
