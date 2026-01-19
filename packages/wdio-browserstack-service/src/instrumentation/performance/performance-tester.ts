@@ -14,7 +14,7 @@ import { BStackLogger } from '../../bstackLogger.js'
 import { PERF_MEASUREMENT_ENV } from '../../constants.js'
 import APIUtils from '../../cli/apiUtils.js'
 import { CLIUtils } from '../../cli/cliUtils.js'
-import { SDK_EVENTS_LIST, EVENTS } from './constants.js'
+import { EVENTS } from './constants.js'
 
 type PerformanceDetails = {
     success?: true,
@@ -446,21 +446,5 @@ export default class PerformanceTester {
         } catch (er) {
             BStackLogger.debug(`[Performance Upload] Failed to delete temporary files: ${util.format(er)}`)
         }
-    }
-
-    /**
- * Check if an event name matches any pattern in SDK_EVENTS_LIST.
- * Supports exact matching and prefix matching (for events with unique suffixes).
- *
- * @param eventName - The event name to check
- * @returns true if the event should be included in SDK events
- */
-    private static isSDKEvent(eventName: string): boolean {
-    // First try exact match (fast path for most events)
-        if (SDK_EVENTS_LIST.includes(eventName)) {
-            return true
-        }
-
-        return SDK_EVENTS_LIST.some(sdkEvent => eventName.startsWith(`${sdkEvent}-`))
     }
 }
