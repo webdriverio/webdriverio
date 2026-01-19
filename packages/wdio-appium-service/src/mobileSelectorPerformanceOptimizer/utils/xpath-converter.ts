@@ -6,12 +6,17 @@ import { convertXPathToAccessibilityId, convertXPathToPredicateString } from './
 import { convertXPathToClassChain } from './xpath-class-chain.js'
 import { parseElementFromPageSource } from './xpath-page-source.js'
 import { buildSelectorFromElementData } from './xpath-selector-builder.js'
+import { findElementByXPathWithFallback } from './xpath-page-source-executor.js'
 
 const log = logger('@wdio/appium-service:selector-optimizer')
 
 /**
  * Converts an XPath selector to an optimized alternative selector.
  * Priority: Accessibility ID > Predicate String > Class Chain
+ *
+ * For unmappable XPath features (sibling axes, parent traversal, etc.), when usePageSource
+ * is enabled, the function will execute the XPath against the page source to find the element
+ * and build an optimized selector from its attributes.
  *
  * @param xpath - The XPath selector to convert
  * @param options - Conversion options including browser instance for dynamic analysis
@@ -27,10 +32,17 @@ export function convertXPathToOptimizedSelector(
     }
 
     const unmappableFeatures = detectUnmappableXPathFeatures(xpath)
+    const unmappableWarning = `XPath contains unmappable features: ${unmappableFeatures.join(', ')}. Cannot convert to optimized selector.`
+
     if (unmappableFeatures.length > 0) {
+        // If usePageSource is enabled and we have browser, try page source fallback for unmappable XPaths
+        if (options?.usePageSource && options?.browser) {
+            return convertUnmappableXPathWithPageSource(xpath, options.browser, unmappableFeatures)
+        }
+
         return {
             selector: null,
-            warning: `XPath contains unmappable features: ${unmappableFeatures.join(', ')}. Cannot convert to optimized selector.`
+            warning: unmappableWarning
         }
     }
 
@@ -118,5 +130,75 @@ async function convertXPathToOptimizedSelectorDynamic(
     } catch (error) {
         log.debug(`Dynamic XPath analysis failed, falling back to static conversion: ${error instanceof Error ? error.message : String(error)}`)
         return staticResult
+    }
+}
+
+/**
+ * Attempts to convert an unmappable XPath by executing it against the page source.
+ * This is used for XPaths with features like sibling axes or parent traversal that
+ * cannot be directly converted to iOS class chain or predicate string.
+ *
+ * @param xpath - The original XPath selector with unmappable features
+ * @param browser - Browser instance to get page source
+ * @param unmappableFeatures - List of detected unmappable features for error messages
+ * @returns Conversion result with selector, warning, and optional suggestion
+ */
+async function convertUnmappableXPathWithPageSource(
+    xpath: string,
+    browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    unmappableFeatures: string[]
+): Promise<XPathConversionResult> {
+    const unmappableWarning = `XPath contains unmappable features: ${unmappableFeatures.join(', ')}. Cannot convert to optimized selector.`
+
+    try {
+        const browserWithPageSource = browser as WebdriverIO.Browser & {
+            getPageSource: () => Promise<string>
+        }
+        const pageSource = await browserWithPageSource.getPageSource()
+
+        if (!pageSource || typeof pageSource !== 'string') {
+            return {
+                selector: null,
+                warning: unmappableWarning
+            }
+        }
+
+        const result = findElementByXPathWithFallback(xpath, pageSource)
+
+        if (!result) {
+            return {
+                selector: null,
+                warning: `${unmappableWarning} Element not found in page source.`
+            }
+        }
+
+        const { element, matchCount } = result
+
+        const selectorResult = buildSelectorFromElementData(element, pageSource)
+
+        if (!selectorResult || !selectorResult.selector) {
+            return {
+                selector: null,
+                warning: `${unmappableWarning} Could not build selector from element attributes.`
+            }
+        }
+
+        if (matchCount > 1) {
+            return {
+                selector: null,
+                warning: `XPath matched ${matchCount} elements. The suggested selector may not be unique. You can use this selector but be aware it may match multiple elements.`,
+                suggestion: selectorResult.selector
+            }
+        }
+
+        return {
+            selector: selectorResult.selector
+        }
+    } catch (error) {
+        log.debug(`Unmappable XPath page source fallback failed: ${error instanceof Error ? error.message : String(error)}`)
+        return {
+            selector: null,
+            warning: unmappableWarning
+        }
     }
 }

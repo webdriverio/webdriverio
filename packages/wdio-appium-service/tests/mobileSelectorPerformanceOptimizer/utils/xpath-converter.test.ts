@@ -5,6 +5,7 @@ import * as xpathPredicate from '../../../src/mobileSelectorPerformanceOptimizer
 import * as xpathClassChain from '../../../src/mobileSelectorPerformanceOptimizer/utils/xpath-class-chain.js'
 import * as xpathPageSource from '../../../src/mobileSelectorPerformanceOptimizer/utils/xpath-page-source.js'
 import * as xpathSelectorBuilder from '../../../src/mobileSelectorPerformanceOptimizer/utils/xpath-selector-builder.js'
+import * as xpathPageSourceExecutor from '../../../src/mobileSelectorPerformanceOptimizer/utils/xpath-page-source-executor.js'
 
 vi.mock('@wdio/logger', () => ({
     default: vi.fn(() => ({
@@ -32,6 +33,10 @@ vi.mock('../../../src/mobileSelectorPerformanceOptimizer/utils/xpath-page-source
 
 vi.mock('../../../src/mobileSelectorPerformanceOptimizer/utils/xpath-selector-builder.js', () => ({
     buildSelectorFromElementData: vi.fn()
+}))
+
+vi.mock('../../../src/mobileSelectorPerformanceOptimizer/utils/xpath-page-source-executor.js', () => ({
+    findElementByXPathWithFallback: vi.fn()
 }))
 
 describe('xpath-converter', () => {
@@ -258,6 +263,144 @@ describe('xpath-converter', () => {
                 })
 
                 expect(result).toEqual({ selector: '~Submit' })
+            })
+        })
+
+        describe('unmappable XPath fallback with page source', () => {
+            const mockBrowser = {
+                getPageSource: vi.fn().mockResolvedValue(`<?xml version="1.0" encoding="UTF-8"?>
+<XCUIElementTypeApplication>
+  <XCUIElementTypeStaticText name="Label1"></XCUIElementTypeStaticText>
+  <XCUIElementTypeButton name="Button1" label="Click Me"></XCUIElementTypeButton>
+</XCUIElementTypeApplication>`)
+            } as any
+
+            test('should try page source fallback for unmappable XPath when usePageSource is enabled', async () => {
+                vi.mocked(xpathDetection.detectUnmappableXPathFeatures).mockReturnValue(['following-sibling axis'])
+                vi.mocked(xpathPageSourceExecutor.findElementByXPathWithFallback).mockReturnValue({
+                    element: {
+                        type: 'XCUIElementTypeButton',
+                        attributes: { name: 'Button1', label: 'Click Me' }
+                    },
+                    matchCount: 1
+                })
+                vi.mocked(xpathSelectorBuilder.buildSelectorFromElementData).mockReturnValue({
+                    selector: '~Button1'
+                })
+
+                const result = await convertXPathToOptimizedSelector(
+                    '//XCUIElementTypeStaticText[@name="Label1"]/following-sibling::XCUIElementTypeButton',
+                    { usePageSource: true, browser: mockBrowser }
+                )
+
+                expect(mockBrowser.getPageSource).toHaveBeenCalled()
+                expect(xpathPageSourceExecutor.findElementByXPathWithFallback).toHaveBeenCalled()
+                expect(result).toEqual({ selector: '~Button1' })
+            })
+
+            test('should return warning with suggestion when element found but not unique', async () => {
+                vi.mocked(xpathDetection.detectUnmappableXPathFeatures).mockReturnValue(['following-sibling axis'])
+                vi.mocked(xpathPageSourceExecutor.findElementByXPathWithFallback).mockReturnValue({
+                    element: {
+                        type: 'XCUIElementTypeButton',
+                        attributes: { name: 'Button1', label: 'Click Me' }
+                    },
+                    matchCount: 2
+                })
+                vi.mocked(xpathSelectorBuilder.buildSelectorFromElementData).mockReturnValue({
+                    selector: '~Button1',
+                    warning: 'Selector may match multiple elements.'
+                })
+
+                const result = await convertXPathToOptimizedSelector(
+                    '//XCUIElementTypeStaticText[@name="Label1"]/following-sibling::XCUIElementTypeButton',
+                    { usePageSource: true, browser: mockBrowser }
+                )
+
+                expect(result).toEqual({
+                    selector: null,
+                    warning: expect.stringContaining('XPath matched 2 elements'),
+                    suggestion: '~Button1'
+                })
+            })
+
+            test('should return warning when no element found via page source execution', async () => {
+                vi.mocked(xpathDetection.detectUnmappableXPathFeatures).mockReturnValue(['parent axis'])
+                vi.mocked(xpathPageSourceExecutor.findElementByXPathWithFallback).mockReturnValue(null)
+
+                const result = await convertXPathToOptimizedSelector(
+                    '//XCUIElementTypeButton[@name="Test"]/parent::XCUIElementTypeCell',
+                    { usePageSource: true, browser: mockBrowser }
+                )
+
+                expect(result).toEqual({
+                    selector: null,
+                    warning: expect.stringContaining('XPath contains unmappable features: parent axis')
+                })
+            })
+
+            test('should return standard warning for unmappable XPath when usePageSource is false', () => {
+                vi.mocked(xpathDetection.detectUnmappableXPathFeatures).mockReturnValue(['following-sibling axis'])
+
+                const result = convertXPathToOptimizedSelector(
+                    '//XCUIElementTypeStaticText[@name="Label1"]/following-sibling::XCUIElementTypeButton',
+                    { usePageSource: false, browser: mockBrowser }
+                )
+
+                expect(result).toEqual({
+                    selector: null,
+                    warning: 'XPath contains unmappable features: following-sibling axis. Cannot convert to optimized selector.'
+                })
+            })
+
+            test('should return standard warning for unmappable XPath when browser not provided', () => {
+                vi.mocked(xpathDetection.detectUnmappableXPathFeatures).mockReturnValue(['following-sibling axis'])
+
+                const result = convertXPathToOptimizedSelector(
+                    '//XCUIElementTypeStaticText[@name="Label1"]/following-sibling::XCUIElementTypeButton',
+                    { usePageSource: true }
+                )
+
+                expect(result).toEqual({
+                    selector: null,
+                    warning: 'XPath contains unmappable features: following-sibling axis. Cannot convert to optimized selector.'
+                })
+            })
+
+            test('should handle page source execution errors gracefully', async () => {
+                vi.mocked(xpathDetection.detectUnmappableXPathFeatures).mockReturnValue(['following-sibling axis'])
+                mockBrowser.getPageSource.mockRejectedValueOnce(new Error('Network error'))
+
+                const result = await convertXPathToOptimizedSelector(
+                    '//XCUIElementTypeStaticText[@name="Label1"]/following-sibling::XCUIElementTypeButton',
+                    { usePageSource: true, browser: mockBrowser }
+                )
+
+                expect(result).toEqual({
+                    selector: null,
+                    warning: 'XPath contains unmappable features: following-sibling axis. Cannot convert to optimized selector.'
+                })
+            })
+
+            test('should return unique selector when match count is 1', async () => {
+                vi.mocked(xpathDetection.detectUnmappableXPathFeatures).mockReturnValue(['preceding-sibling axis'])
+                vi.mocked(xpathPageSourceExecutor.findElementByXPathWithFallback).mockReturnValue({
+                    element: {
+                        type: 'XCUIElementTypeStaticText',
+                        attributes: { name: 'Label1', value: 'First Label' }
+                    },
+                    matchCount: 1
+                })
+                vi.mocked(xpathSelectorBuilder.buildSelectorFromElementData).mockReturnValue({
+                    selector: '~Label1'
+                })
+
+                const result = await convertXPathToOptimizedSelector(
+                    '//XCUIElementTypeButton[@name="Button1"]/preceding-sibling::XCUIElementTypeStaticText',
+                    { usePageSource: true, browser: mockBrowser }
+                )
+
+                expect(result).toEqual({ selector: '~Label1' })
             })
         })
     })

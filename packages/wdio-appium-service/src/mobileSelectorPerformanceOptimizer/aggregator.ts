@@ -739,8 +739,8 @@ function generateGroupedSummaryReport(
         write('───────────────────────────────────────────────────────────────────────────\n')
         for (let i = 0; i < topOptimizations.length; i++) {
             const opt = topOptimizations[i]
-            const formattedOriginal = formatSelectorForDisplay(opt.originalSelector)
-            const formattedOptimized = formatSelectorForDisplay(opt.optimizedSelector)
+            const formattedOriginal = formatSelectorForDisplay(opt.originalSelector, Infinity)
+            const formattedOptimized = formatSelectorForDisplay(opt.optimizedSelector, Infinity)
             const quoteStyle = opt.optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
             const isShared = selectorUsageCount.get(opt.originalSelector)!.count > 1
             const sharedMarker = isShared ? ' ⚠️ (shared)' : ''
@@ -762,8 +762,8 @@ function generateGroupedSummaryReport(
         write('───────────────────────────────────────────────────────────────────────────\n')
         write(`${REPORT_INDENT_SUMMARY}These selectors appear in multiple tests and have high improvement. Fix once, benefit everywhere!\n`)
         for (const { selector, usage, optimization } of quickWins) {
-            const formattedOriginal = formatSelectorForDisplay(selector)
-            const formattedOptimized = formatSelectorForDisplay(optimization.optimizedSelector)
+            const formattedOriginal = formatSelectorForDisplay(selector, Infinity)
+            const formattedOptimized = formatSelectorForDisplay(optimization.optimizedSelector, Infinity)
             const quoteStyle = optimization.optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
             const line1 = `${REPORT_INDENT_SUMMARY}• $('${formattedOriginal}') → $(${quoteStyle}${formattedOptimized}${quoteStyle}) (${optimization.improvementPercent.toFixed(1)}% faster, appears in ${usage.count} test(s))`
             const wrapped1 = wrapLine(line1, maxLineLength, REPORT_INDENT_SUMMARY + '  ')
@@ -801,8 +801,8 @@ function generateGroupedSummaryReport(
                 for (const opt of significantOptimizations) {
                     const isShared = selectorUsageCount.get(opt.originalSelector)!.count > 1
                     const sharedMarker = isShared ? ' ⚠️ (also in other test(s))' : ''
-                    const formattedOriginal = formatSelectorForDisplay(opt.originalSelector)
-                    const formattedOptimized = formatSelectorForDisplay(opt.optimizedSelector)
+                    const formattedOriginal = formatSelectorForDisplay(opt.originalSelector, Infinity)
+                    const formattedOptimized = formatSelectorForDisplay(opt.optimizedSelector, Infinity)
                     const quoteStyle = opt.optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
 
                     if (opt.isNegative) {
@@ -856,10 +856,9 @@ function generateGroupedSummaryReport(
                 continue
             }
 
-            const formattedOriginal = formatSelectorForDisplay(selector)
-            const formattedOptimized = formatSelectorForDisplay(example.optimizedSelector)
+            const formattedOriginal = formatSelectorForDisplay(selector, Infinity)
+            const formattedOptimized = formatSelectorForDisplay(example.optimizedSelector, Infinity)
             const quoteStyle = example.optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
-
             const line1 = `${REPORT_INDENT_SHARED}• $('${formattedOriginal}') - appears in ${usage.count} test(s) across ${usage.testFiles.size} file(s)`
             const wrapped1 = wrapLine(line1, maxLineLength, REPORT_INDENT_SHARED + '  ')
             for (const wrappedLine of wrapped1) {

@@ -1,6 +1,77 @@
-import type { XPathConversionResult } from './xpath-types.js'
-import { extractXPathConditions, groupOrConditions } from './xpath-conditions.js'
-import { extractElementTypeFromXPath, isWildcardXPath } from './xpath-detection.js'
+import type { XPathConversionResult, XPathCondition } from './xpath-types.js'
+import type { XPathSegment } from './xpath-parser.js'
+import { parseXPathToSegments } from './xpath-parser.js'
+import { convertConditionToPredicate } from './xpath-conditions.js'
+
+/**
+ * Converts a single XPathCondition to class chain predicate syntax.
+ */
+function conditionToClassChainPredicate(condition: XPathCondition): string {
+    return convertConditionToPredicate(condition, 'double')
+}
+
+/**
+ * Groups conditions and converts them to class chain predicate string.
+ * Handles OR conditions by grouping them together.
+ */
+function conditionsToClassChainPredicate(conditions: XPathCondition[]): string {
+    if (conditions.length === 0) {
+        return ''
+    }
+
+    const result: string[] = []
+    const orGroups: { [key: string]: string[] } = {}
+    const regularConditions: string[] = []
+
+    for (const condition of conditions) {
+        const predicate = conditionToClassChainPredicate(condition)
+        if (condition.logicalOp === 'OR') {
+            if (!orGroups[condition.attribute]) {
+                orGroups[condition.attribute] = []
+            }
+            orGroups[condition.attribute].push(predicate)
+        } else {
+            regularConditions.push(predicate)
+        }
+    }
+
+    // Add grouped OR conditions
+    for (const [, values] of Object.entries(orGroups)) {
+        if (values.length > 1) {
+            result.push(`(${values.join(' OR ')})`)
+        } else {
+            result.push(values[0])
+        }
+    }
+
+    // Add regular conditions
+    result.push(...regularConditions)
+
+    return result.join(' AND ')
+}
+
+/**
+ * Converts a single XPathSegment to class chain syntax.
+ */
+function segmentToClassChain(segment: XPathSegment): string {
+    let chain = ''
+
+    chain += segment.axis === '//' ? '**/' : '/'
+    chain += segment.element
+
+    if (segment.conditions.length > 0) {
+        const predicateStr = conditionsToClassChainPredicate(segment.conditions)
+        if (predicateStr) {
+            chain += `[\`${predicateStr}\`]`
+        }
+    }
+
+    if (segment.index !== undefined && segment.index > 0) {
+        chain += `[${segment.index}]`
+    }
+
+    return chain
+}
 
 /**
  * Attempts to convert XPath to iOS Class Chain.
@@ -10,39 +81,42 @@ import { extractElementTypeFromXPath, isWildcardXPath } from './xpath-detection.
  * @returns Conversion result with class chain selector, or null if not applicable
  */
 export function convertXPathToClassChain(xpath: string): XPathConversionResult | null {
-    const elementType = extractElementTypeFromXPath(xpath)
-    const isWildcard = isWildcardXPath(xpath)
-    const conditions = extractXPathConditions(xpath)
+    const segments = parseXPathToSegments(xpath)
 
-    let chain = '**/'
+    if (segments && segments.length > 0) {
+        const chainParts: string[] = []
 
-    if (elementType) {
-        chain += elementType
-    } else if (isWildcard) {
-        chain += '*'
-    } else {
-        return null
-    }
+        for (let i = 0; i < segments.length; i++) {
+            const segment = segments[i]
+            const segmentChain = segmentToClassChain(segment)
 
-    if (conditions.length > 0) {
-        const predicateParts = groupOrConditions(conditions, 'double')
-        if (predicateParts.length > 0) {
-            chain += `[\`${predicateParts.join(' AND ')}\`]`
+            if (i === 0) {
+                chainParts.push(segmentChain)
+            } else if (segmentChain.startsWith('**/')) {
+                chainParts.push(segmentChain)
+            } else if (segmentChain.startsWith('/')) {
+                chainParts.push(segmentChain.slice(1))
+            }
+        }
+
+        let finalChain = ''
+        for (let i = 0; i < chainParts.length; i++) {
+            if (i === 0) {
+                finalChain = chainParts[i]
+            } else {
+                const part = chainParts[i]
+                finalChain += '/' + part
+            }
+        }
+
+        if (/\[last\(\)\]$/i.test(xpath)) {
+            finalChain += '[last()]'
+        }
+
+        return {
+            selector: `-ios class chain:${finalChain}`
         }
     }
 
-    // Handle position index (e.g., [1], [2])
-    const positionMatch = xpath.match(/\[(\d+)\]$/)
-    if (positionMatch) {
-        const index = parseInt(positionMatch[1], 10)
-        if (index > 0) {
-            chain += `[${index}]`
-        }
-    } else if (/\[last\(\)\]/i.test(xpath)) {
-        chain += '[last()]'
-    }
-
-    return {
-        selector: `-ios class chain:${chain}`
-    }
+    return null
 }
