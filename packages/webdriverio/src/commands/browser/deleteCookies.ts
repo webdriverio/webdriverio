@@ -42,6 +42,18 @@ export async function deleteCookies(
     }
 
     try {
+        const { cookies } = await this.storageGetCookies({ partition })
+        if (cookies.length === 0 && !this.isMobile) {
+            await deleteCookiesClassic.call(this, getNamesForClassic(filterArray))
+            return
+        }
+    } catch (err) {
+        log.warn(`BiDi deleteCookies check failed, falling back to classic: ${(err as Error).message}`)
+        await deleteCookiesClassic.call(this, getNamesForClassic(filterArray))
+        return
+    }
+
+    try {
         if (!filterArray) {
             await this.storageDeleteCookies({ partition })
             return

@@ -86,6 +86,7 @@ describe('deleteCookies', () => {
 
     describe('bidi', () => {
         let storageDeleteCookies: MockInstance
+        let storageGetCookies: MockInstance
 
         beforeAll(async () => {
             browser = await remote({
@@ -96,11 +97,14 @@ describe('deleteCookies', () => {
             })
             storageDeleteCookies =  vi.spyOn(browser, 'storageDeleteCookies')
             storageDeleteCookies.mockImplementation((() => {}) as any)
+            storageGetCookies = vi.spyOn(browser, 'storageGetCookies')
+            storageGetCookies.mockReturnValue(Promise.resolve({ cookies: [{ name: 'foo', value: 'bar' }] }) as any)
             vi.spyOn(browser, 'getUrl').mockResolvedValue('https://webdriver.io')
         })
 
         beforeEach(() => {
             storageDeleteCookies.mockClear()
+            storageGetCookies.mockClear()
         })
 
         it('should delete all cookies', async () => {
@@ -184,6 +188,17 @@ describe('deleteCookies', () => {
             await expect(browser.deleteCookies([2]))
                 .rejects
                 .toEqual(new Error('Invalid value for cookie filter, expected \'string\' or \'remote.StorageCookieFilter\' but found "number"'))
+        })
+
+        it('should fallback to classic if storageGetCookies returns empty', async () => {
+            storageGetCookies.mockReturnValue(Promise.resolve({ cookies: [] }))
+            const deleteAllCookies = vi.spyOn(browser, 'deleteAllCookies')
+            deleteAllCookies.mockResolvedValue(null as any)
+
+            await browser.deleteCookies()
+
+            expect(deleteAllCookies).toBeCalledTimes(1)
+            expect(storageDeleteCookies).toBeCalledTimes(0)
         })
     })
 })
