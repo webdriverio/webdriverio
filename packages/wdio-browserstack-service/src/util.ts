@@ -136,13 +136,13 @@ export function getBrowserCapabilities(browser: WebdriverIO.Browser | WebdriverI
 export function isBrowserstackCapability(cap?: WebdriverIO.Capabilities) {
     return Boolean(
         cap &&
-        cap['bstack:options'] &&
-        // return false if the only cap in bstack:options is wdioService,
-        // as that is added by the service and not present in user passed caps
-        !(
-            Object.keys(cap['bstack:options']).length === 1 &&
-            cap['bstack:options'].wdioService
-        )
+            cap['bstack:options'] &&
+            // return false if the only cap in bstack:options is wdioService,
+            // as that is added by the service and not present in user passed caps
+            !(
+                Object.keys(cap['bstack:options']).length === 1 &&
+                cap['bstack:options'].wdioService
+            )
     )
 }
 
@@ -219,7 +219,7 @@ export async function nodeRequest(requestType: string, apiEndpoint: string, opti
         clearTimeout(timeoutId)
 
         return await response.json()
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         BStackLogger.debug(`Error in firing request ${apiUrl}/${apiEndpoint}: ${format(error)}`)
         const isLogUpload = apiEndpoint === UPLOAD_LOGS_ENDPOINT
@@ -269,7 +269,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
             // In order to preserve this context, need to define like this
             Object.defineProperty(prototype, methodName, {
                 writable: true,
-                value: function (...args: unknown[]) {
+                value: function(...args: unknown[]) {
                     try {
                         const result = (process.env[PERF_MEASUREMENT_ENV] ? performance.timerify(method) : method).call(this, ...args)
                         if (result instanceof Promise) {
@@ -406,7 +406,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         test_orchestration: OrchestrationUtils.getInstance(config)?.getBuildStartData() || {}
     }
 
-    if (accessibilityAutomation && (isTurboScale(options) || data.browserstackAutomation === false)) {
+    if (accessibilityAutomation && (isTurboScale(options) || data.browserstackAutomation === false)){
         data.accessibility.settings ??= {}
         data.accessibility.settings['includeEncodedExtension'] = true
     }
@@ -484,7 +484,7 @@ export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: st
             return false
         }
         const browserVersion = platformMeta?.browser_version
-        if (!isUndefined(browserVersion) && !(browserVersion === 'latest' || parseFloat(browserVersion + '') > 94)) {
+        if ( !isUndefined(browserVersion) && !(browserVersion === 'latest' || parseFloat(browserVersion + '') > 94)) {
             BStackLogger.warn('Accessibility Automation will run only on Chrome browser version greater than 94.')
             return false
         }
@@ -500,7 +500,7 @@ export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: st
     return false
 }
 
-export const validateCapsWithNonBstackA11y = (browserName?: string | undefined, browserVersion?: string | undefined) => {
+export const validateCapsWithNonBstackA11y = (browserName?: string | undefined, browserVersion?:string | undefined )  => {
 
     if (browserName?.toLowerCase() !== 'chrome') {
         BStackLogger.warn('Accessibility Automation will run only on Chrome browsers.')
@@ -514,14 +514,14 @@ export const validateCapsWithNonBstackA11y = (browserName?: string | undefined, 
 
 }
 
-export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, testTitle: string, accessibilityOptions?: { [key: string]: string; }, world?: { [key: string]: unknown; }, isCucumber?: boolean) => {
+export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, testTitle: string, accessibilityOptions?: { [key: string]: string; }, world?: { [key: string]: unknown; }, isCucumber?: boolean ) => {
     try {
         const includeTags = Array.isArray(accessibilityOptions?.includeTagsInTestingScope) ? accessibilityOptions?.includeTagsInTestingScope : []
         const excludeTags = Array.isArray(accessibilityOptions?.excludeTagsInTestingScope) ? accessibilityOptions?.excludeTagsInTestingScope : []
 
         if (isCucumber) {
             const tagsList: string[] = []
-                ; (world?.pickle as { tags: { name: string }[] })?.tags.map((tag: { [key: string]: string; }) => tagsList.push(tag.name))
+            ;(world?.pickle as { tags: { name: string }[] })?.tags.map((tag: { [key: string]: string; }) => tagsList.push(tag.name))
             const excluded = excludeTags?.some((exclude) => tagsList.includes(exclude))
             const included = includeTags?.length === 0 || includeTags?.some((include) => tagsList.includes(include))
 
@@ -566,7 +566,7 @@ export const formatString = (template: (string | null), ...values: (string | nul
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const _getParamsForAppAccessibility = (commandName?: string): { thTestRunUuid: any, thBuildUuid: any, thJwtToken: any, authHeader: any, scanTimestamp: number, method: string | undefined } => {
+export const _getParamsForAppAccessibility = ( commandName?: string ): { thTestRunUuid: any, thBuildUuid: any, thJwtToken: any, authHeader: any, scanTimestamp: number, method: string | undefined  } => {
     return {
         'thTestRunUuid': process.env.TEST_ANALYTICS_ID,
         'thBuildUuid': process.env.BROWSERSTACK_TESTHUB_UUID,
@@ -578,7 +578,7 @@ export const _getParamsForAppAccessibility = (commandName?: string): { thTestRun
 }
 
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-export const performA11yScan = async (isAppAutomate: boolean, browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, commandName?: string): Promise<{ [key: string]: any; } | undefined> => {
+export const performA11yScan = async (isAppAutomate: boolean, browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, commandName?: string) : Promise<{ [key: string]: any; } | undefined> => {
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
         BStackLogger.warn('Not an Accessibility Automation session, cannot perform Accessibility scan.')
@@ -589,11 +589,11 @@ export const performA11yScan = async (isAppAutomate: boolean, browser: Webdriver
         if (isAppAccessibilityAutomationSession(isAccessibility, isAppAutomate)) {
             const results: unknown = await (browser as WebdriverIO.Browser).execute(formatString(AccessibilityScripts.performScan, JSON.stringify(_getParamsForAppAccessibility(commandName))) as string, {})
             BStackLogger.debug(util.format(results as string))
-            return (results as { [key: string]: any; } | undefined)
+            return ( results as { [key: string]: any; } | undefined )
         }
         if (AccessibilityScripts.performScan) {
             const results = await executeAccessibilityScript(browser, AccessibilityScripts.performScan, { method: commandName || '' })
-            return (results as { [key: string]: unknown; } | undefined)
+            return ( results as { [key: string]: unknown; } | undefined )
         }
         BStackLogger.error('AccessibilityScripts.performScan is null')
         return
@@ -603,7 +603,7 @@ export const performA11yScan = async (isAppAutomate: boolean, browser: Webdriver
     }
 }
 
-export const getA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string): Promise<Array<{ [key: string]: any; }>> => {
+export const getA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: any; }>> => {
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
         BStackLogger.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results.')
@@ -626,7 +626,7 @@ export const getA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_E
     }
 })
 
-export const getAppA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null): Promise<Array<{ [key: string]: any; }>> => {
+export const getAppA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<Array<{ [key: string]: any; }>> => {
     if (!isBrowserStackSession) {
         return [] // since we are running only on Automate as of now
     }
@@ -642,14 +642,14 @@ export const getAppA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SD
         const result = apiRespone?.data?.data?.issues
         BStackLogger.debug(`Polling Result: ${JSON.stringify(result)}`)
         return result
-    } catch (error: any) {
+    } catch (error: any)  {
         BStackLogger.error('No accessibility summary was found.')
         BStackLogger.debug(`getAppA11yResults Failed. Error: ${error}`)
         return []
     }
 })
 
-export const getAppA11yResultsSummary = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS_SUMMARY, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null): Promise<{ [key: string]: any; }> => {
+export const getAppA11yResultsSummary = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS_SUMMARY, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<{ [key: string]: any; }> => {
     if (!isBrowserStackSession) {
         return {} // since we are running only on Automate as of now
     }
@@ -671,7 +671,7 @@ export const getAppA11yResultsSummary = PerformanceTester.measureWrapper(PERFORM
     }
 })
 
-const getAppA11yResultResponse = async (apiUrl: string, isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null): Promise<PollingResult> => {
+const getAppA11yResultResponse = async (apiUrl: string, isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<PollingResult> => {
     BStackLogger.debug('Performing scan before getting results summary')
     await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
     const upperTimeLimit = process.env.BSTACK_A11Y_POLLING_TIMEOUT ? Date.now() + parseInt(process.env.BSTACK_A11Y_POLLING_TIMEOUT) * 1000 : Date.now() + 30000
@@ -682,7 +682,7 @@ const getAppA11yResultResponse = async (apiUrl: string, isAppAutomate: boolean, 
     return apiRespone
 }
 
-export const getA11yResultsSummary = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS_SUMMARY, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string): Promise<{ [key: string]: any; }> => {
+export const getA11yResultsSummary = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS_SUMMARY, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<{ [key: string]: any; }> => {
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
         BStackLogger.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results summary.')
@@ -753,7 +753,7 @@ export const stopBuildUpstream = PerformanceTester.measureWrapper(PERFORMANCE_SD
     }
 }))
 
-export function getCiInfo() {
+export function getCiInfo () {
     const env = process.env
     // Jenkins
     if ((typeof env.JENKINS_URL === 'string' && env.JENKINS_URL.length > 0) || (typeof env.JENKINS_HOME === 'string' && env.JENKINS_HOME.length > 0)) {
@@ -975,15 +975,15 @@ export function getCiInfo() {
     return null
 }
 
-export async function getGitMetaData() {
+export async function getGitMetaData () {
     const info: GitRepoInfo = gitRepoInfo()
     if (!info.commonGitDir) {
         return
     }
     const { remote } = await pGitconfig(info.commonGitDir)
-    const remotes = remote ? Object.keys(remote).map(remoteName => ({ name: remoteName, url: remote[remoteName].url })) : []
+    const remotes = remote ? Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName].url })) : []
 
-    let gitMetaData: GitMetaData = {
+    let gitMetaData : GitMetaData = {
         name: 'git',
         sha: info.sha,
         short_sha: info.abbreviatedSha,
@@ -1113,7 +1113,7 @@ export function getHierarchy(fullTitle?: string) {
     return fullTitle.split('.').slice(0, -1)
 }
 
-export function getHookType(hookName: string): string {
+export function getHookType (hookName: string): string {
     if (hookName.startsWith('"before each"')) {
         return 'BEFORE_EACH'
     } else if (hookName.startsWith('"before all"')) {
@@ -1126,7 +1126,7 @@ export function getHookType(hookName: string): string {
     return 'unknown'
 }
 
-export function isScreenshotCommand(args: BeforeCommandArgs | AfterCommandArgs) {
+export function isScreenshotCommand (args: BeforeCommandArgs | AfterCommandArgs) {
     return args.endpoint && args.endpoint.includes('/screenshot')
 }
 
@@ -1141,7 +1141,7 @@ export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrun
     // this is a utility function to check if the basic session or multi remote session is running on Browserstack, mainly by checking the hostname parameter in the given config
     // In case hostname is not present anywhere in the config, it returns true by default as hostname is not a mandatory parameter in the config
 
-    const isBrowserstack = (str: string): boolean => {
+    const isBrowserstack = (str: string ): boolean => {
         return str === 'browserstack.com' || str.endsWith('.browserstack.com')
     }
 
@@ -1202,7 +1202,7 @@ export function shouldAddServiceVersion(config: Options.Testrunner, testObservab
     return true
 }
 
-export async function batchAndPostEvents(eventUrl: string, kind: string, data: UploadType[]) {
+export async function batchAndPostEvents (eventUrl: string, kind: string, data: UploadType[]) {
     if (!process.env[TESTOPS_BUILD_COMPLETED_ENV]) {
         throw new Error('Build not completed yet')
     }
@@ -1350,7 +1350,7 @@ export const patchConsoleLogs = o11yErrorHandler(() => {
     })
 })
 
-export function getFailureObject(error: string | Error) {
+export function getFailureObject(error: string|Error) {
     const stack = (error as Error).stack
     const message = typeof error === 'string' ? error : error.message
     const backtrace = stack ? removeAnsiColors(stack.toString()) : ''
@@ -1507,7 +1507,7 @@ export const getErrorString = (err: unknown) => {
         return undefined
     }
     if (typeof err === 'string') {
-        return err // works, `e` narrowed to string
+        return  err // works, `e` narrowed to string
     } else if (err instanceof Error) {
         return err.message // works, `e` narrowed to Error
     }
@@ -1549,7 +1549,7 @@ export function checkAndTruncateVCSInfo(gitMetaData: GitMetaData): GitMetaData {
         const truncateSize = gitMetaDataSizeInBytes - MAX_GIT_META_DATA_SIZE_IN_BYTES
         const truncatedCommitMessage = truncateString(gitMetaData.commit_message, truncateSize)
         gitMetaData.commit_message = truncatedCommitMessage
-        BStackLogger.info(`The commit has been truncated. Size of commit after truncation is ${getSizeOfJsonObjectInBytes(gitMetaData) / 1024} KB`)
+        BStackLogger.info(`The commit has been truncated. Size of commit after truncation is ${ getSizeOfJsonObjectInBytes(gitMetaData) / 1024 } KB`)
     }
 
     return gitMetaData
@@ -1737,7 +1737,7 @@ export function isValidEnabledValue(value: boolean | string | undefined): boolea
 }
 
 export function mergeDeep(target: Record<string, any>, ...sources: any[]): Record<string, any> {
-    if (!sources.length) { return target }
+    if (!sources.length) {return target}
     const source = sources.shift()
 
     if (isObject(target) && isObject(source)) {
@@ -1786,7 +1786,7 @@ export function isNullOrEmpty(string: any): boolean {
 }
 
 export function isHash(entity: any) {
-    return Boolean(entity && typeof (entity) === 'object' && !Array.isArray(entity))
+    return Boolean(entity && typeof(entity) === 'object' && !Array.isArray(entity))
 }
 
 export function nestedKeyValue(hash: any, keys: Array<string>) {
@@ -1813,7 +1813,7 @@ export function removeDir(dir: string) {
 }
 
 export function createDir(dir: string) {
-    if (fs.existsSync(dir)) {
+    if (fs.existsSync(dir)){
         removeDir(dir)
     }
     fs.mkdirSync(dir, { recursive: true })
@@ -1856,19 +1856,13 @@ export function getMochaTestHierarchy(test: Frameworks.Test) {
 
 export const performO11ySync = async (browser: WebdriverIO.Browser) => {
     if (isBrowserstackSession(browser)) {
-        await browser.execute((data: { action: string; arguments: Record<string, unknown> }) => {
-            // @ts-expect-error - BrowserStack injects this global function
-            if (typeof window.browserstack_executor === 'function') {
-                // @ts-expect-error - BrowserStack injects this global function
-                window.browserstack_executor(data)
-            }
-        }, {
+        await browser.execute(`browserstack_executor: ${JSON.stringify({
             action: 'annotate',
             arguments: {
                 data: `ObservabilitySync:${Date.now()}`,
                 level: 'debug'
             }
-        })
+        })}`)
     }
 }
 

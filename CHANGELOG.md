@@ -23,6 +23,67 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.23.1 (2026-01-18)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#14914](https://github.com/webdriverio/webdriverio/pull/14914) fix(protocols): update WebDriver & Appium protocols ([@eglitise](https://github.com/eglitise))
+
+#### :rocket: New Feature
+* `wdio-config`
+  * [#14915](https://github.com/webdriverio/webdriverio/pull/14915) feat(config): allow --exclude to exclude suites by name ([@mccmrunal](https://github.com/mccmrunal))
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#15010](https://github.com/webdriverio/webdriverio/pull/15010) fix(wdio-browser-runner): prioritize @tailwindcss/postcss for Tailwin… ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-cli`
+  * [#15012](https://github.com/webdriverio/webdriverio/pull/15012) fix(wdio-cli): ensure dynamic specs added in onPrepare are correctly … ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-allure-reporter`, `wdio-jasmine-framework`
+  * [#15013](https://github.com/webdriverio/webdriverio/pull/15013) fix(jasmine,allure): preserve nested describe structure (#13953) ([@mccmrunal](https://github.com/mccmrunal))
+* `webdriver`
+  * [#14951](https://github.com/webdriverio/webdriverio/pull/14951) fix(webdriver): normalize overlapping W3C capabilities (webdriverio#14946) ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-utils`
+  * [#15011](https://github.com/webdriverio/webdriverio/pull/15011) Fix/retry timeout propagation ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-local-runner`
+  * [#14997](https://github.com/webdriverio/webdriverio/pull/14997) fix(local-runner): force kill stuck workers after shutdown timeout ([@mccmrunal](https://github.com/mccmrunal))
+  * [#14971](https://github.com/webdriverio/webdriverio/pull/14971) fix(wdio-local-runner): use gracefulExit to avoid synchronous termina… ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-jasmine-framework`, `wdio-sauce-service`
+  * [#15001](https://github.com/webdriverio/webdriverio/pull/15001) fix(jasmine-framework): move @types/jasmine to dependencies ([@mccmrunal](https://github.com/mccmrunal))
+* `webdriverio`
+  * [#15019](https://github.com/webdriverio/webdriverio/pull/15019) fix(webdriverio): prevent waitForExist from swapping valid indexed el… ([@mccmrunal](https://github.com/mccmrunal))
+  * [#15018](https://github.com/webdriverio/webdriverio/pull/15018) fix(webdriverio): handle 'no such frame' error in BiDi navigation ([@mccmrunal](https://github.com/mccmrunal))
+  * [#14912](https://github.com/webdriverio/webdriverio/pull/14912) fix: relative XPath chaining in BiDi mode ([@mccmrunal](https://github.com/mccmrunal))
+  * [#14972](https://github.com/webdriverio/webdriverio/pull/14972) fix(session): eliminate memory leak in session managers ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-cli`, `wdio-local-runner`, `wdio-runner`, `wdio-types`
+  * [#14859](https://github.com/webdriverio/webdriverio/pull/14859) fix: Allow specFileRetries to be overriden in the beforeSession hook ([@bgrozev](https://github.com/bgrozev))
+* `wdio-cli`, `webdriverio`
+  * [#14913](https://github.com/webdriverio/webdriverio/pull/14913) Fix/watcher files to watch 14685 ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-appium-service`
+  * [#14961](https://github.com/webdriverio/webdriverio/pull/14961) fix: remove double ports for `start-appium-inspector` ([@wswebcreation](https://github.com/wswebcreation))
+* `wdio-junit-reporter`
+  * [#14965](https://github.com/webdriverio/webdriverio/pull/14965) fix(junit-reporter): do not report skipped test when no tests are exe… ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-shared-store-service`
+  * [#14966](https://github.com/webdriverio/webdriverio/pull/14966) fix(shared-store): use 127.0.0.1 instead of localhost (#14761) ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-mocha-framework`
+  * [#14982](https://github.com/webdriverio/webdriverio/pull/14982) fix(mocha): don't report this.skip() in hooks as failure (#14649) ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-browserstack-service`
+  * [#14985](https://github.com/webdriverio/webdriverio/pull/14985) Prevent undefined binds when chaining element command overwrites ([@anish353](https://github.com/anish353))
+
+#### :memo: Documentation
+* [#14963](https://github.com/webdriverio/webdriverio/pull/14963) docs: add documentation on LT accessibility ([@harsha509](https://github.com/harsha509))
+
+#### Committers: 9
+- Aditya Hirapara ([@AdityaHirapara](https://github.com/AdityaHirapara))
+- Anish Kumar Sinha ([@anish353](https://github.com/anish353))
+- Edgars Eglītis ([@eglitise](https://github.com/eglitise))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Rounak Bhatia ([@rounak610](https://github.com/rounak610))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@bgrozev](https://github.com/bgrozev)
+- [@vipin-bs](https://github.com/vipin-bs)
+
+
 ## v9.23.0 (2026-01-03)
 
 #### :rocket: New Feature

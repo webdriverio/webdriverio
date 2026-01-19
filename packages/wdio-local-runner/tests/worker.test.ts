@@ -110,6 +110,61 @@ describe('handleExit', () => {
     })
 })
 
+describe('kill', () => {
+    it('should kill child process with given signal and clean up', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const childProcess = { kill: vi.fn() }
+        worker.childProcess = childProcess as unknown as ChildProcess
+        worker.isBusy = true
+
+        worker.kill('SIGTERM')
+
+        expect(childProcess.kill).toHaveBeenCalledWith('SIGTERM')
+        expect(worker.childProcess).toBe(undefined)
+        expect(worker.isKilled).toBe(true)
+        expect(worker.isBusy).toBe(false)
+    })
+
+    it('should use SIGTERM as default signal', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const childProcess = { kill: vi.fn() }
+        worker.childProcess = childProcess as unknown as ChildProcess
+
+        worker.kill()
+
+        expect(childProcess.kill).toHaveBeenCalledWith('SIGTERM')
+    })
+
+    it('should kill with SIGKILL when specified', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const childProcess = { kill: vi.fn() }
+        worker.childProcess = childProcess as unknown as ChildProcess
+
+        worker.kill('SIGKILL')
+
+        expect(childProcess.kill).toHaveBeenCalledWith('SIGKILL')
+        expect(worker.isKilled).toBe(true)
+    })
+
+    it('should handle missing child process gracefully', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        worker.childProcess = undefined
+
+        expect(() => worker.kill('SIGTERM')).not.toThrow()
+        expect(worker.isKilled).toBe(false)
+    })
+
+    it('should handle kill errors gracefully', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const childProcess = { kill: vi.fn().mockImplementation(() => { throw new Error('Kill failed') }) }
+        worker.childProcess = childProcess as unknown as ChildProcess
+
+        expect(() => worker.kill('SIGTERM')).not.toThrow()
+        expect(worker.isKilled).toBe(true)
+        expect(worker.isBusy).toBe(false)
+    })
+})
+
 describe('postMessage', () => {
     it('should log if the cid is busy and exit', async () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
