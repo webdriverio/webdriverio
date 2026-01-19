@@ -12,7 +12,7 @@ import { BStackLogger } from '../../bstackLogger.js'
 import { PERF_MEASUREMENT_ENV } from '../../constants.js'
 import APIUtils from '../../cli/apiUtils.js'
 import { CLIUtils } from '../../cli/cliUtils.js'
-import { SDK_EVENTS_LIST, EVENTS } from './constants.js'
+import { EVENTS } from './constants.js'
 import fetchWrap from '../../fetchWrapper.js'
 import type { CsvWriter } from 'csv-writer/src/lib/csv-writer.js'
 import type { ObjectMap } from 'csv-writer/src/lib/lang/object.js'
@@ -33,7 +33,7 @@ export default class PerformanceTester {
     static _observer: PerformanceObserver
     static _csvWriter: CsvWriter<ObjectMap<{}>>
     private static _events: PerformanceEntry[] = []
-    private static _measuredEvents: PerformanceEntry[] = []
+    private static _measuredEvents: Array<PerformanceEntry | Record<string, unknown>> = []
     private static _hasStoppedGeneration = false
     private static _stopGenerateCallCount = 0
     static started = false
@@ -45,10 +45,6 @@ export default class PerformanceTester {
     static jsonReportDirPath = path.join(process.cwd(), 'logs', this.jsonReportDirName)
     static jsonReportFileName = `${this.jsonReportDirPath}/performance-report-${PerformanceTester.getProcessId()}.json`
 
-    // SDK only writes SDK-specific events to event_sdk.json
-    // Binary handles writing event_cli.json and event_requests.json based on clientWorkerId from gRPC
-    //static sdkEventsFileName = '/Users/aakashhotchandani/Documents/SDKStories/Performance/browserstack-binary/event_sdk.json'
-
     static startMonitoring(csvName: string = 'performance-report.csv') {
 
         // Create performance-report dir if not exists already
@@ -59,8 +55,7 @@ export default class PerformanceTester {
             list.getEntries()
                 .filter((entry) => entry.entryType === 'measure')
                 .forEach(entry => {
-                    let finalEntry: any = entry
-                    finalEntry = entry.toJSON()
+                    let finalEntry: Record<string, unknown> = entry.toJSON() as Record<string, unknown>
 
                     try {
                         if (typeof finalEntry.startTime === 'number' && typeof performance.timeOrigin === 'number') {
@@ -368,7 +363,7 @@ export default class PerformanceTester {
             this.start(EVENTS.SDK_KEY_METRICS_PREPARATION)
 
             // Collect all measures from performance report files and in-memory events
-            let measures: any[] = []
+            let measures: Record<string, unknown>[] = []
             if (await fsPromise.access(this.jsonReportDirPath).then(() => true).catch(() => false)) {
                 const files = (await fsPromise.readdir(this.jsonReportDirPath)).map(file => path.resolve(this.jsonReportDirPath, file))
                 measures = (await Promise.all(files.map((file) => fsPromise.readFile(file, 'utf-8')))).map(el => `[${el.slice(0, -1)}]`).map(el => JSON.parse(el)).flat()
@@ -377,9 +372,17 @@ export default class PerformanceTester {
 
             if (this._measuredEvents.length > 0) {
                 BStackLogger.debug(`[Performance Upload] Adding ${this._measuredEvents.length} in-memory events`)
-                measures = measures.concat(this._measuredEvents)
+                measures = measures.concat(
+                    this._measuredEvents.map(e => {
+                        // Convert PerformanceEntry to plain object if it has toJSON
+                        if (typeof (e as PerformanceEntry).toJSON === 'function') {
+                            return (e as PerformanceEntry).toJSON() as Record<string, unknown>
+                        }
+                        return e as Record<string, unknown>
+                    })
+                )
             }
-            const ensureEpochTimes = (arr: any[]) => {
+            const ensureEpochTimes = (arr: Record<string, unknown>[]) => {
                 const now = Date.now()
                 const cutoff = 1e12 // ~year 2001, ms epoch
                 const timeOrigin = (
@@ -414,10 +417,6 @@ export default class PerformanceTester {
                 .map(({ type, value }) => type === 'timeZoneName' ? 'Z' : value)
                 .join('')
                 .replace(',', 'T')
-
-
-            // Write SDK events to event_sdk.json for binary to read
-            //await this.prepareAndWriteEventFiles(measures)
 
             this.end(EVENTS.SDK_KEY_METRICS_PREPARATION, true)
             const payload = {
@@ -469,75 +468,5 @@ export default class PerformanceTester {
         } catch (er) {
             BStackLogger.debug(`[Performance Upload] Failed to delete temporary files: ${util.format(er)}`)
         }
-    }
-
-    /**
-     * Write only SDK-specific events to event_sdk.json.
-     * SDK events are those that match SDK_EVENTS_LIST.
-     *
-     * The binary handles writing:
-     * - event_cli.json (all non-request events including SDK events)
-     * - event_requests.json (HTTP request events)
-     *
-     * The binary receives clientWorkerId via gRPC and uses it to categorize
-     * and write events to the appropriate files.
-     */
-    private static async prepareAndWriteEventFiles(measures: any[]) {
-        try {
-
-            const sdkMeasures = measures.filter((entry) => this.isSDKEvent(entry.name))
-
-            if (sdkMeasures.length === 0) {
-                BStackLogger.debug('[prepareAndWriteEventFiles] No SDK events to write')
-                return
-            }
-
-            BStackLogger.debug(`[prepareAndWriteEventFiles] Filtered ${sdkMeasures.length} SDK events before deduplication`)
-
-            // const sdkEventProperties = {
-            //     measures: sdkMeasures.map(entry => {
-            //         // Clean up null detail fields
-            //         const entryAny = entry as any
-            //         if (entryAny.detail === null) {
-            //             delete entryAny.detail
-            //         }
-            //         return entryAny
-            //     })
-            // }
-
-            // Ensure directory exists
-            // const dir = path.dirname(this.sdkEventsFileName)
-            // if (!fs.existsSync(dir)) {
-            //     await fsPromise.mkdir(dir, { recursive: true })
-            // }
-
-            // Write SDK events to event_sdk.json
-            // await fsPromise.writeFile(
-            //     this.sdkEventsFileName,
-            //     JSON.stringify(sdkEventProperties, null, 2),
-            //     'utf-8'
-            // )
-
-            // BStackLogger.debug(`[prepareAndWriteEventFiles] Wrote ${deduplicatedSdkMeasures.length} SDK events to ${this.sdkEventsFileName}`)
-            // BStackLogger.debug(`[prepareAndWriteEventFiles] SDK events written: ${deduplicatedSdkMeasures.map(m => m.name).join(', ')}`)
-        } catch (error) {
-            BStackLogger.debug(`[prepareAndWriteEventFiles] Error writing SDK event file: ${util.format(error)}`)
-        }
-    }
-
-    /**
- * Check if an event name matches any pattern in SDK_EVENTS_LIST.
- * Supports exact matching and prefix matching (for events with unique suffixes).
- *
- * @param eventName - The event name to check
- * @returns true if the event should be included in SDK events
- */
-    private static isSDKEvent(eventName: string): boolean {
-    // First try exact match (fast path for most events)
-        if (SDK_EVENTS_LIST.includes(eventName)) {
-            return true
-        }
-
-        return SDK_EVENTS_LIST.some(sdkEvent => eventName.startsWith(`${sdkEvent}-`))
     }
 }
