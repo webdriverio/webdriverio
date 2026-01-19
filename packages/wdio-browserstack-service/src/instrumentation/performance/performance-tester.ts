@@ -58,7 +58,6 @@ export default class PerformanceTester {
 
                     try {
                         if (typeof finalEntry.startTime === 'number' && typeof performance.timeOrigin === 'number') {
-                            const originalStartTime = finalEntry.startTime
                             finalEntry.startTime = performance.timeOrigin + finalEntry.startTime
                         }
                     } catch (e) {
