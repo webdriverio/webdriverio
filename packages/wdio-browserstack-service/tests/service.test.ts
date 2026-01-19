@@ -1045,8 +1045,8 @@ describe('after', () => {
 
             // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
             // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
-            if (preferScenarioName && this._scenariosThatRan.length === 1){
-                this._fullTitle = this._scenariosThatRan.pop()
+            if (preferScenarioName && this._scenariosRanCount === 1 && this._lastScenarioName){
+                this._fullTitle = this._lastScenarioName
             }
 
             if (setSessionStatus) {
@@ -1400,7 +1400,7 @@ describe('after', () => {
                             ...browser,
                             executeScript: browser.execute
                         } as WebdriverIO.Browser
-                        service.before({}, [], browserWithExecuteScript)
+                        await service.before({}, [], browserWithExecuteScript)
 
                         const updateSpy = vi.spyOn(service, '_update')
 
@@ -1419,7 +1419,7 @@ describe('after', () => {
                         ...browser,
                         executeScript: browser.execute
                     } as WebdriverIO.Browser
-                    service.before({}, [], browserWithExecuteScript)
+                    await service.before({}, [], browserWithExecuteScript)
 
                     const updateSpy = vi.spyOn(service, '_update')
 

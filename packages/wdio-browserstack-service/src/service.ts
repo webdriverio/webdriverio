@@ -47,6 +47,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _hookFailReasons: string[] = []
     private _pureTestFailReasons: string[] = []
     private _scenariosThatRan: string[] = []
+    private _lastScenarioName?: string  // Track last scenario for preferScenarioName feature
+    private _scenariosRanCount: number = 0  // Count of non-skipped scenarios
     private _failureStatuses: string[] = ['failed', 'ambiguous', 'undefined', 'unknown']
     private _browser?: WebdriverIO.Browser
     private _suiteTitle?: string
@@ -202,6 +204,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         this._scenariosThatRan = []
+        this._scenariosRanCount = 0
+        this._lastScenarioName = undefined
         PerformanceTester.scenarioThatRan = this._scenariosThatRan
 
         if (this._browser) {
@@ -409,18 +413,19 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'after' })
     async after (result: number) {
-        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.HOOK_EVENTS.AFTER)
-        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.QUIT)
-
         try {
+            PerformanceTester.start(PERFORMANCE_SDK_EVENTS.HOOK_EVENTS.AFTER)
+            PerformanceTester.start(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.QUIT)
+
+            const { preferScenarioName, setSessionName, setSessionStatus } = this._options
+            // For Cucumber: If only 1 Scenario ran and preferScenarioName is enabled,
+            // use the scenario name instead of the feature name
+            if (preferScenarioName && this._scenariosRanCount === 1 && this._lastScenarioName) {
+                this._fullTitle = this._lastScenarioName
+            }
+
             if (BrowserstackCLI.getInstance().isRunning()) {
                 await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.EXECUTE, HookState.POST, {})
-            }
-            const { preferScenarioName, setSessionName, setSessionStatus } = this._options
-            // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
-            // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
-            if (preferScenarioName && this._scenariosThatRan.length === 1){
-                this._fullTitle = this._scenariosThatRan.pop()
             }
 
             // if (setSessionStatus) {
@@ -572,7 +577,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._specsRan = true
         const status = world.result?.status.toLowerCase()
         if (status !== 'skipped') {
-            this._scenariosThatRan.push(world.pickle.name || 'unknown pickle name')
+            const scenarioName = world.pickle.name || 'unknown pickle name'
+            this._scenariosThatRan.push(scenarioName)
+            this._lastScenarioName = scenarioName
+            this._scenariosRanCount++
         }
 
         if (status && this._failureStatuses.includes(status)) {
@@ -662,6 +670,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         this._scenariosThatRan = []
+        this._scenariosRanCount = 0
+        this._lastScenarioName = undefined
         delete this._fullTitle
         delete this._suiteFile
         this._failReasons = []
