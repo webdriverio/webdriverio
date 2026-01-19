@@ -1394,7 +1394,7 @@ describe('after', () => {
                     /*, 5, 4, 0*/
                 ].map(({ status, body }) =>
                     it(`should call _update /w status failed and name of Scenario when single "${status}" Scenario ran`, async () => {
-                        service = new BrowserstackService({ testObservability: false, preferScenarioName : true } as any, [] as any,
+                        service = new BrowserstackService({ testObservability: false, preferScenarioName : true, setSessionName: true, setSessionStatus: true } as any, [] as any,
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                         const browserWithExecuteScript = {
                             ...browser,
@@ -1413,7 +1413,7 @@ describe('after', () => {
                 )
 
                 it('should call _update /w status passed and name of Scenario when single "passed" Scenario ran', async () => {
-                    service = new BrowserstackService({ testObservability: false, preferScenarioName : true } as any, [] as any,
+                    service = new BrowserstackService({ testObservability: false, preferScenarioName : true, setSessionName: true, setSessionStatus: true } as any, [] as any,
                         { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                     const browserWithExecuteScript = {
                         ...browser,
