@@ -341,16 +341,6 @@ export default class PerformanceTester {
 
     static sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
-    /**
-     * Upload SDK events to EDS and write to event_sdk.json for binary to read.
-     *
-     * Architecture:
-     * - SDK tracks all events with clientWorkerId
-     * - SDK writes only event_sdk.json (SDK events filtered by SDK_EVENTS_LIST)
-     * - SDK sends clientWorkerId via gRPC to binary
-     * - Binary reads event_sdk.json and writes event_cli.json + event_requests.json
-     * - SDK uploads SDK events to EDS for analytics
-     */
     static async uploadEventsData() {
         // Track overall key metrics operation
         this.start(EVENTS.SDK_SEND_KEY_METRICS)
