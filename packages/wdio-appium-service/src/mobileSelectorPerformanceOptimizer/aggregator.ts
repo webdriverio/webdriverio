@@ -99,19 +99,48 @@ function applyInference(
 }
 
 /**
+ * Report options for controlling output formats
+ */
+export interface ReportOptions {
+    /**
+     * Enable CLI report output to terminal
+     * @default false
+     */
+    enableCliReport?: boolean
+    /**
+     * Enable markdown report file generation
+     * @default false
+     */
+    enableMarkdownReport?: boolean
+}
+
+/**
  * Aggregates selector performance data from all worker files and generates a report
  * @param capabilities - The capabilities for this runner instance
  * @param maxLineLength - Maximum line length for report output
  * @param writeFn - Optional function to write output (uses console.log if not provided)
  * @param reportDirectory - Report directory path (determined and validated in service constructor)
+ * @param options - Report options for controlling output formats
  */
 export async function aggregateSelectorPerformanceData(
     capabilities: Capabilities.TestrunnerCapabilities | Capabilities.ResolvedTestrunnerCapabilities,
     maxLineLength: number,
     writeFn?: (message: string) => void,
-    reportDirectory?: string
+    reportDirectory?: string,
+    options?: ReportOptions
 ): Promise<void> {
-    const write = writeFn || ((message: string) => process.stdout.write(message))
+    const enableCliReport = options?.enableCliReport === true
+    const enableMarkdownReport = options?.enableMarkdownReport === true
+    const markdownLines: string[] = []
+    const cliWrite = writeFn || ((message: string) => process.stdout.write(message))
+    const write = (message: string) => {
+        if (enableCliReport) {
+            cliWrite(message)
+        }
+        if (enableMarkdownReport) {
+            markdownLines.push(message)
+        }
+    }
     const writeError = writeFn || console.error
 
     if (!reportDirectory) {
@@ -121,7 +150,6 @@ export async function aggregateSelectorPerformanceData(
         )
     }
 
-    // Ensure report directory exists
     if (!fs.existsSync(reportDirectory)) {
         fs.mkdirSync(reportDirectory, { recursive: true })
     }
@@ -195,6 +223,31 @@ export async function aggregateSelectorPerformanceData(
                 write(`\n${REPORT_INDENT_SUMMARY}✅ All selectors performed well\n`)
                 write(`${REPORT_INDENT_SUMMARY}💡 JSON file written to: ${finalJsonPath}\n`)
             }
+        }
+
+        if (enableMarkdownReport && markdownLines.length > 0) {
+            const markdownPath = path.join(reportDirectory, `mobile-selector-performance-optimizer-report-${sanitizedDeviceName}-${timestamp}.md`)
+            fs.writeFileSync(markdownPath, markdownLines.join(''))
+        }
+
+        if (!enableCliReport && !enableMarkdownReport) {
+            const message = `
+───────────────────────────────────────────────────────────────────────────────
+📊 Mobile Selector Performance Optimizer
+───────────────────────────────────────────────────────────────────────────────
+   📁 JSON report written to: ${finalJsonPath}
+
+   💡 To get actionable optimization advice in your terminal or as a file,
+      enable one of these options in your config:
+
+      trackSelectorPerformance: {
+          enabled: true,
+          enableCliReport: true,      // Show report in terminal
+          enableMarkdownReport: true  // Save report as markdown file
+      }
+───────────────────────────────────────────────────────────────────────────────
+`
+            console.log(message)
         }
     } catch (err) {
         writeError('Failed to aggregate selector performance data:', err)

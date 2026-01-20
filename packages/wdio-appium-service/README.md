@@ -309,19 +309,15 @@ export const config = {
 }
 ```
 
-#### enableReporter
+#### enableCliReport
 
-Enable the MobileSelectorPerformanceReporter to automatically collect test context information (test file, suite name, test name). This reporter is required for accurate test context tracking in the performance report.
+Enable or disable the CLI report output to the terminal. When enabled, a formatted performance report is printed to the terminal after test execution.
 
-**Important:** When `enableReporter` is `false`:
-- No JSON report file is generated
-- The `reportPath` and `maxLineLength` options are ignored
-- Test context information (test file, suite name, test name) will not be collected
-- Performance data is still tracked and can be used during test execution, but no report is generated at the end
+**Note:** The JSON report is always generated when `enabled: true`. This option only controls whether the report is also printed to the terminal.
 
 Type: `boolean`
 
-Default: `true`
+Default: `false`
 
 Example:
 ```js
@@ -331,7 +327,31 @@ export const config = {
         ['appium', {
             trackSelectorPerformance: {
                 enabled: true,
-                enableReporter: true
+                enableCliReport: true  // Enable terminal output
+            }
+        }]
+    ],
+    // ...
+}
+```
+
+#### enableMarkdownReport
+
+Enable markdown report file generation. When enabled, a markdown file with the same content as the CLI report is written to the logs folder (the same directory as the JSON report).
+
+Type: `boolean`
+
+Default: `false`
+
+Example:
+```js
+export const config = {
+    // ...
+    services: [
+        ['appium', {
+            trackSelectorPerformance: {
+                enabled: true,
+                enableMarkdownReport: true  // Generate a markdown report file
             }
         }]
     ],
@@ -341,9 +361,7 @@ export const config = {
 
 #### reportPath
 
-Path where the performance report JSON file should be saved. If not provided, falls back to `config.outputDir`, then `appium` service `logPath`. If none are set, an error will be thrown.
-
-**Note:** This option is only used when `enableReporter` is `true`. When `enableReporter` is `false`, this option is ignored and no report file is created.
+Path where the performance report files (JSON, and optionally markdown) should be saved. If not provided, falls back to `config.outputDir`, then `appium` service `logPath`. If none are set, an error will be thrown.
 
 Type: `string`
 
@@ -365,9 +383,7 @@ export const config = {
 
 #### maxLineLength
 
-Maximum line length for terminal report output. Lines longer than this will be wrapped at word boundaries.
-
-**Note:** This option is only used when `enableReporter` is `true`. When `enableReporter` is `false`, this option is ignored and no report is generated.
+Maximum line length for terminal and markdown report output. Lines longer than this will be wrapped at word boundaries.
 
 Type: `number`
 
@@ -464,7 +480,8 @@ export const config = {
                 enabled: true,
                 usePageSource: true,
                 replaceWithOptimizedSelector: true,
-                enableReporter: true,
+                enableCliReport: true,
+                enableMarkdownReport: true,
                 reportPath: './reports/selector-performance',
                 maxLineLength: 100,
                 pageObjectPaths: ['./tests/pageobjects', './tests/helpers'],
@@ -545,7 +562,8 @@ services: [
             enabled: true,
             usePageSource: true, // Enabled by default, this is for demo purpose
             replaceWithOptimizedSelector: true, // Enabled by default, this is for demo purpose
-            enableReporter: true // Enabled by default, this is for demo purpose
+            enableCliReport: true, // Enable CLI report output to terminal
+            enableMarkdownReport: true // Enable markdown report file generation
         }
     }]
 ]

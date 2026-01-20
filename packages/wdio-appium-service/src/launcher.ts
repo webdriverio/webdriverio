@@ -193,11 +193,6 @@ export default class AppiumLauncher implements Services.ServiceInstance {
 
         const trackConfig = this._options.trackSelectorPerformance
         if (trackConfig && typeof trackConfig === 'object' && !Array.isArray(trackConfig) && trackConfig.enabled === true) {
-            // Default enableReporter to true if not explicitly set (matches service behavior)
-            const enableReporter = trackConfig.enableReporter !== undefined ? trackConfig.enableReporter === true : true
-            if (!enableReporter) {
-                return
-            }
             try {
                 const reportDirectory = determineReportDirectory(
                     trackConfig.reportPath,
@@ -205,11 +200,14 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                     this._options
                 )
                 const maxLineLength = trackConfig.maxLineLength || 100
+                const enableCliReport = trackConfig.enableCliReport === true
+                const enableMarkdownReport = trackConfig.enableMarkdownReport === true
                 await aggregateSelectorPerformanceData(
                     capabilities,
                     maxLineLength,
                     undefined,
-                    reportDirectory
+                    reportDirectory,
+                    { enableCliReport, enableMarkdownReport }
                 )
             } catch (err) {
                 log.error('Failed to aggregate selector performance data:', err)
