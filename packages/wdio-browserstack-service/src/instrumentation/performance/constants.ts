@@ -169,39 +169,3 @@ export const DISPATCHER_EVENTS = {
     ENQUEUE_TEST: EVENTS.SDK_CLI_ENQUEUE_TEST_EVENT
 }
 
-/**
- * List of SDK events that should be written to event_sdk.json file.
- * These events track SDK-level performance metrics separately from other events.
- * Now includes ALL events from all event constant objects for complete tracking.
- */
-export const SDK_EVENTS_LIST = [
-    // All core EVENTS
-    ...Object.values(EVENTS),
-    // All TestHub events
-    ...Object.values(TESTHUB_EVENTS),
-    // All Automate events
-    ...Object.values(AUTOMATE_EVENTS),
-    // All A11y events
-    ...Object.values(A11Y_EVENTS),
-    // All Percy events
-    ...Object.values(PERCY_EVENTS),
-    // All O11y events
-    ...Object.values(O11Y_EVENTS),
-    // All Hook events
-    ...Object.values(HOOK_EVENTS),
-    // All TurboScale events
-    ...Object.values(TURBOSCALE_EVENTS),
-    // All App Automate events
-    ...Object.values(APP_AUTOMATE_EVENTS),
-    // All Driver events
-    ...Object.values(DRIVER_EVENT),
-    // All Framework events
-    ...Object.values(FRAMEWORK_EVENTS),
-    // All Config events
-    ...Object.values(CONFIG_EVENTS),
-    // All AI events
-    ...Object.values(AI_EVENTS),
-    // All Dispatcher events
-    ...Object.values(DISPATCHER_EVENTS)
-]
-
