@@ -114,7 +114,7 @@ describe('SelectorPerformanceService', () => {
 
         test('should throw error when trackSelectorPerformance is not an object', () => {
             const expectedError = 'trackSelectorPerformance must be an object. ' +
-                'Expected format: { enabled: boolean, usePageSource?: boolean, replaceWithOptimizedSelector?: boolean, enableReporter?: boolean, reportPath?: string, maxLineLength?: number }'
+                'Expected format: { enabled: boolean, usePageSource?: boolean, replaceWithOptimizedSelector?: boolean, enableCliReport?: boolean, enableMarkdownReport?: boolean, reportPath?: string, maxLineLength?: number }'
 
             expect(() => {
                 new SelectorPerformanceService({ trackSelectorPerformance: 'invalid' as any }, mockConfig)
@@ -129,10 +129,11 @@ describe('SelectorPerformanceService', () => {
             const service = new SelectorPerformanceService(options, mockConfig)
 
             expect(service['_enabled']).toBe(true)
-            // Defaults to true when not explicitly set
+            // Defaults
             expect(service['_usePageSource']).toBe(true)
             expect(service['_replaceWithOptimized']).toBe(true)
-            expect(service['_enableReporter']).toBe(true)
+            expect(service['_enableCliReport']).toBe(false)
+            expect(service['_enableMarkdownReport']).toBe(false)
         })
 
         test('should initialize with custom options', () => {
@@ -141,7 +142,7 @@ describe('SelectorPerformanceService', () => {
                     enabled: true,
                     usePageSource: false,
                     replaceWithOptimizedSelector: false,
-                    enableReporter: false,
+                    enableCliReport: false,
                 }
             }
             const service = new SelectorPerformanceService(options, mockConfig)
@@ -149,15 +150,40 @@ describe('SelectorPerformanceService', () => {
             expect(service['_enabled']).toBe(true)
             expect(service['_usePageSource']).toBe(false)
             expect(service['_replaceWithOptimized']).toBe(false)
-            expect(service['_enableReporter']).toBe(false)
+            expect(service['_enableCliReport']).toBe(false)
         })
 
-        test('should call determineReportDirectory when enabled and enableReporter is true', () => {
+        test('should initialize enableCliReport to false by default', () => {
+            const options = createDefaultOptions()
+            const service = new SelectorPerformanceService(options, mockConfig)
+
+            expect(service['_enableCliReport']).toBe(false)
+        })
+
+        test('should initialize enableMarkdownReport to false by default', () => {
+            const options = createDefaultOptions()
+            const service = new SelectorPerformanceService(options, mockConfig)
+
+            expect(service['_enableMarkdownReport']).toBe(false)
+        })
+
+        test('should enable markdown report when enableMarkdownReport is true', () => {
+            const options = {
+                trackSelectorPerformance: {
+                    enabled: true,
+                    enableMarkdownReport: true
+                }
+            }
+            const service = new SelectorPerformanceService(options, mockConfig)
+
+            expect(service['_enableMarkdownReport']).toBe(true)
+        })
+
+        test('should call determineReportDirectory when enabled', () => {
             const options = {
                 ...createDefaultOptions(),
                 trackSelectorPerformance: {
                     enabled: true,
-                    enableReporter: true,
                     reportPath: '/custom/path'
                 }
             }
@@ -175,17 +201,17 @@ describe('SelectorPerformanceService', () => {
             expect(vi.mocked(utils.determineReportDirectory)).not.toHaveBeenCalled()
         })
 
-        test('should not call determineReportDirectory when enableReporter is false', () => {
+        test('should always call determineReportDirectory when enabled is true (enableReporter removed)', () => {
+            // enableReporter has been removed - JSON is always written when enabled=true
             const options = {
                 ...createDefaultOptions(),
                 trackSelectorPerformance: {
                     enabled: true,
-                    enableReporter: false,
                     reportPath: '/custom/path'
                 }
             }
             new SelectorPerformanceService(options, mockConfig)
-            expect(vi.mocked(utils.determineReportDirectory)).not.toHaveBeenCalled()
+            expect(vi.mocked(utils.determineReportDirectory)).toHaveBeenCalledWith('/custom/path', mockConfig, options)
         })
 
         test('should enable provideSelectorLocation when pageObjectPaths is provided', () => {
@@ -291,21 +317,19 @@ describe('SelectorPerformanceService', () => {
             expect(config.reporters).toHaveLength(0)
         })
 
-        test('should not register reporter when enableReporter is false', async () => {
-            const options = {
-                ...createDefaultOptions(),
-                trackSelectorPerformance: {
-                    enabled: true,
-                    enableReporter: false
-                }
-            }
+        test('should always register reporter when enabled is true (enableReporter removed)', async () => {
+            // enableReporter has been removed - reporter is always registered when enabled=true
+            // to collect test context information for the JSON report
+            vi.mocked(utils.isReporterRegistered).mockReturnValue(false)
+
+            const options = createDefaultOptions()
             const service = new SelectorPerformanceService(options, mockConfig)
             const config = { reporters: [] } as Options.Testrunner
 
             await service.beforeSession(config, {} as never, [] as never)
 
-            expect(vi.mocked(utils.isReporterRegistered)).not.toHaveBeenCalled()
-            expect(config.reporters).toHaveLength(0)
+            expect(vi.mocked(utils.isReporterRegistered)).toHaveBeenCalled()
+            expect(config.reporters).toHaveLength(1)
         })
 
         test('should initialize reporters array if not present', async () => {
@@ -436,18 +460,18 @@ describe('SelectorPerformanceService', () => {
             expect(fs.writeFileSync).not.toHaveBeenCalled()
         })
 
-        test('should do nothing when enableReporter is false', async () => {
-            const options = {
-                ...createDefaultOptions(),
-                trackSelectorPerformance: {
-                    enabled: true,
-                    enableReporter: false
-                }
-            }
+        test('should always write worker data when enabled is true (enableReporter removed)', async () => {
+            // enableReporter has been removed - JSON is always written when enabled=true
+            vi.mocked(store.getPerformanceData).mockReturnValue([])
+
+            const options = createDefaultOptions()
             const service = new SelectorPerformanceService(options, mockConfig)
+            service['_reportDirectory'] = '/test/report/dir'
+
             await service.afterSession()
-            expect(fs.mkdirSync).not.toHaveBeenCalled()
-            expect(fs.writeFileSync).not.toHaveBeenCalled()
+
+            expect(fs.mkdirSync).toHaveBeenCalled()
+            expect(fs.writeFileSync).toHaveBeenCalled()
         })
 
         test('should warn and return when report directory is not set', async () => {

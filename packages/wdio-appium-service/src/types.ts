@@ -171,11 +171,17 @@ export interface AppiumServiceConfig {
          */
         replaceWithOptimizedSelector?: boolean
         /**
-         * Enable the MobileSelectorPerformanceReporter to automatically collect test context information.
-         * This reporter is required for accurate test file, suite name, and test name tracking.
-         * @default true
+         * Enable the CLI report output to the terminal.
+         * When enabled, a formatted performance report is printed to the terminal after test execution.
+         * @default false
          */
-        enableReporter?: boolean
+        enableCliReport?: boolean
+        /**
+         * Enable markdown report generation.
+         * When enabled, a markdown file with the same content as the CLI report is written to the logs folder.
+         * @default false
+         */
+        enableMarkdownReport?: boolean
         /**
          * Path where the JSON report file should be saved.
          * If not provided, falls back to config.outputDir, then appium service logPath.

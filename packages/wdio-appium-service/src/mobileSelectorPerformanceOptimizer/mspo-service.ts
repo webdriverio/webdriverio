@@ -31,7 +31,8 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
     private _enabled: boolean = false
     private _usePageSource: boolean = true
     private _replaceWithOptimized: boolean = true
-    private _enableReporter: boolean = true
+    private _enableCliReport: boolean = false
+    private _enableMarkdownReport: boolean = false
     private _reportDirectory?: string
     private _pageObjectPaths?: string[]
     private _provideSelectorLocation: boolean = true
@@ -57,13 +58,14 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             if (typeof trackConfig !== 'object' || Array.isArray(trackConfig)) {
                 throw new SevereServiceError(
                     'trackSelectorPerformance must be an object. ' +
-                    'Expected format: { enabled: boolean, usePageSource?: boolean, replaceWithOptimizedSelector?: boolean, enableReporter?: boolean, reportPath?: string, maxLineLength?: number }'
+                    'Expected format: { enabled: boolean, usePageSource?: boolean, replaceWithOptimizedSelector?: boolean, enableCliReport?: boolean, enableMarkdownReport?: boolean, reportPath?: string, maxLineLength?: number }'
                 )
             }
             this._enabled = trackConfig.enabled === true
             this._usePageSource = trackConfig.usePageSource !== undefined ? trackConfig.usePageSource === true : true
             this._replaceWithOptimized = trackConfig.replaceWithOptimizedSelector !== undefined ? trackConfig.replaceWithOptimizedSelector === true : true
-            this._enableReporter = trackConfig.enableReporter !== undefined ? trackConfig.enableReporter === true : true
+            this._enableCliReport = trackConfig.enableCliReport === true
+            this._enableMarkdownReport = trackConfig.enableMarkdownReport === true
             this._pageObjectPaths = trackConfig.pageObjectPaths
 
             if (trackConfig.provideSelectorLocation !== undefined) {
@@ -76,7 +78,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
                 this._provideSelectorLocation = !!(this._pageObjectPaths && this._pageObjectPaths.length > 0)
             }
 
-            if (this._enabled && this._enableReporter) {
+            if (this._enabled) {
                 this._reportDirectory = determineReportDirectory(
                     trackConfig.reportPath,
                     this._config,
@@ -92,7 +94,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
         _capabilities: never,
         _specs: never
     ) {
-        if (this._enabled && this._enableReporter && config) {
+        if (this._enabled && config) {
             if (!config.reporters) {
                 config.reporters = []
             }
@@ -300,7 +302,8 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
     }
 
     async afterSession() {
-        if (!this._enabled || !this._enableReporter) {
+        // Always write worker data when enabled - JSON report is always generated
+        if (!this._enabled) {
             return
         }
 
