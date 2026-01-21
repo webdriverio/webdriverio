@@ -584,7 +584,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         try {
             BStackLogger.debug('Inside OnComplete hook..')
-            BStackLogger.debug('Inside OnComplete hook..')
 
             BStackLogger.debug('Sending stop launch event')
             await (BrowserstackCLI.getInstance().isRunning() ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
