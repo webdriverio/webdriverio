@@ -436,11 +436,9 @@ export default class PerformanceTester {
 
             BStackLogger.debug(`[Performance Upload] Successfully uploaded to EDS: ${util.format(await result.text())}`)
 
-            this.end(EVENTS.SDK_KEY_METRICS_UPLOAD, true)
             this.end(EVENTS.SDK_SEND_KEY_METRICS, true)
         } catch (er) {
             BStackLogger.debug(`[Performance Upload] Failed to upload events: ${util.format(er)}`)
-            this.end(EVENTS.SDK_KEY_METRICS_UPLOAD, false, er)
             this.end(EVENTS.SDK_KEY_METRICS_PREPARATION, false, er)
             this.end(EVENTS.SDK_SEND_KEY_METRICS, false, er)
         }
