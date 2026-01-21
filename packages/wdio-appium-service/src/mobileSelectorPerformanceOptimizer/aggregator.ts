@@ -4,6 +4,7 @@ import { SevereServiceError } from 'webdriverio'
 import type { Capabilities } from '@wdio/types'
 import type { SelectorPerformanceData } from './types.js'
 import { getPerformanceData } from './mspo-store.js'
+import { generateMarkdownReport } from './markdown-formatter.js'
 import {
     formatSelectorForDisplay,
     REPORT_INDENT_SUMMARY,
@@ -202,15 +203,14 @@ export async function aggregateSelectorPerformanceData(
         fs.writeFileSync(finalJsonPath, JSON.stringify(groupedData, null, 2))
 
         const totalSelectors = allData.length
+        const avgDuration = totalSelectors > 0 ? allData.reduce((sum, d) => sum + d.duration, 0) / totalSelectors : 0
+        const optimizedSelectors = allData.filter(d => d.optimizedSelector && d.improvementMs !== undefined)
 
         if (totalSelectors === 0) {
             write('\n📊 Selector Performance Summary:\n')
             write(`${REPORT_INDENT_SUMMARY}No element-finding commands were tracked.\n`)
             write(`${REPORT_INDENT_SUMMARY}💡 JSON file written to: ${finalJsonPath}\n`)
         } else {
-            const avgDuration = allData.reduce((sum, d) => sum + d.duration, 0) / totalSelectors || 0
-            const optimizedSelectors = allData.filter(d => d.optimizedSelector && d.improvementMs !== undefined)
-
             if (optimizedSelectors.length > 0) {
                 generateGroupedSummaryReport(optimizedSelectors, deviceName, write, maxLineLength)
             } else {
@@ -225,9 +225,20 @@ export async function aggregateSelectorPerformanceData(
             }
         }
 
-        if (enableMarkdownReport && markdownLines.length > 0) {
+        if (enableMarkdownReport) {
             const markdownPath = path.join(reportDirectory, `mobile-selector-performance-optimizer-report-${sanitizedDeviceName}-${timestamp}.md`)
-            fs.writeFileSync(markdownPath, markdownLines.join(''))
+            const markdownContent = generateMarkdownReport(optimizedSelectors, deviceName, maxLineLength)
+            fs.writeFileSync(markdownPath, markdownContent)
+
+            // Log markdown report location
+            const message = `
+───────────────────────────────────────────────────────────────────────────────
+📝 Mobile Selector Performance Optimizer - Markdown Report
+───────────────────────────────────────────────────────────────────────────────
+   📁 Markdown report written to: ${markdownPath}
+───────────────────────────────────────────────────────────────────────────────
+`
+            console.log(message)
         }
 
         if (!enableCliReport && !enableMarkdownReport) {
