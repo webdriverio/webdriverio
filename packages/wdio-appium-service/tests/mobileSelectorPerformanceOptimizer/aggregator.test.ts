@@ -1,5 +1,4 @@
 import fs from 'node:fs'
-import path from 'node:path'
 import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
 import type { Capabilities } from '@wdio/types'
 
@@ -160,10 +159,9 @@ describe('aggregateSelectorPerformanceData', () => {
                 { enableMarkdownReport: false }
             )
 
-            // Should NOT have written markdown file
-            const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls
-            const markdownCalls = writeFileCalls.filter((call: [string, string]) =>
-                call[0].endsWith('.md')
+            const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls as any[]
+            const markdownCalls = writeFileCalls.filter((call) =>
+                String(call[0]).endsWith('.md')
             )
             expect(markdownCalls).toHaveLength(0)
         })
@@ -192,10 +190,9 @@ describe('aggregateSelectorPerformanceData', () => {
                 { enableMarkdownReport: true }
             )
 
-            // Should have written markdown file to the report directory (logs folder)
-            const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls
-            const markdownCalls = writeFileCalls.filter((call: [string, string]) =>
-                call[0].endsWith('.md')
+            const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls as any[]
+            const markdownCalls = writeFileCalls.filter((call) =>
+                String(call[0]).endsWith('.md')
             )
             expect(markdownCalls).toHaveLength(1)
             expect(markdownCalls[0][0]).toContain('/test/report/dir')
@@ -226,16 +223,14 @@ describe('aggregateSelectorPerformanceData', () => {
                 { enableMarkdownReport: true, enableCliReport: true }
             )
 
-            // Get the markdown content
-            const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls
-            const markdownCall = writeFileCalls.find((call: [string, string]) =>
-                call[0].endsWith('.md')
+            const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls as any[]
+            const markdownCall = writeFileCalls.find((call) =>
+                String(call[0]).endsWith('.md')
             )
             expect(markdownCall).toBeDefined()
 
             const markdownContent = markdownCall![1]
 
-            // Should contain key sections from the CLI report
             expect(markdownContent).toContain('Mobile Selector Performance')
             expect(markdownContent).toContain('Summary')
         })
@@ -264,12 +259,81 @@ describe('aggregateSelectorPerformanceData', () => {
                 { enableMarkdownReport: true, enableCliReport: false }
             )
 
-            // Should have written markdown file even though CLI is disabled
-            const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls
-            const markdownCalls = writeFileCalls.filter((call: [string, string]) =>
-                call[0].endsWith('.md')
+            const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls as any[]
+            const markdownCalls = writeFileCalls.filter((call) =>
+                String(call[0]).endsWith('.md')
             )
             expect(markdownCalls).toHaveLength(1)
+        })
+
+        test('should log markdown report location to console when enableMarkdownReport is true', async () => {
+            const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+            const mockData = [{
+                testFile: 'test.ts',
+                suiteName: 'Suite',
+                testName: 'Test',
+                selector: '//xpath',
+                selectorType: 'xpath',
+                duration: 100,
+                timestamp: Date.now(),
+                optimizedSelector: '~button',
+                optimizedDuration: 50,
+                improvementMs: 50,
+                improvementPercent: 50
+            }]
+            vi.mocked(store.getPerformanceData).mockReturnValue(mockData)
+
+            await aggregateSelectorPerformanceData(
+                mockCapabilities,
+                100,
+                writeFnMock,
+                '/test/report/dir',
+                { enableMarkdownReport: true, enableCliReport: false }
+            )
+
+            expect(consoleSpy).toHaveBeenCalled()
+            const loggedMessage = consoleSpy.mock.calls.map(call => call[0]).join('')
+            expect(loggedMessage).toContain('Markdown report written to')
+            expect(loggedMessage).toContain('.md')
+
+            consoleSpy.mockRestore()
+        })
+
+        test('markdown report should use proper markdown formatting with headers and bold', async () => {
+            const mockData = [{
+                testFile: 'test.ts',
+                suiteName: 'Suite',
+                testName: 'Test',
+                selector: '//xpath',
+                selectorType: 'xpath',
+                duration: 100,
+                timestamp: Date.now(),
+                optimizedSelector: '~button',
+                optimizedDuration: 50,
+                improvementMs: 50,
+                improvementPercent: 50
+            }]
+            vi.mocked(store.getPerformanceData).mockReturnValue(mockData)
+
+            await aggregateSelectorPerformanceData(
+                mockCapabilities,
+                100,
+                writeFnMock,
+                '/test/report/dir',
+                { enableMarkdownReport: true, enableCliReport: false }
+            )
+
+            const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls as any[]
+            const markdownCall = writeFileCalls.find((call) =>
+                String(call[0]).endsWith('.md')
+            )
+            expect(markdownCall).toBeDefined()
+
+            const markdownContent = markdownCall![1] as string
+
+            expect(markdownContent).toContain('# ')  // H1 header
+            expect(markdownContent).toContain('## ') // H2 header
+            expect(markdownContent).toContain('**')  // Bold text
         })
     })
 
@@ -294,10 +358,9 @@ describe('aggregateSelectorPerformanceData', () => {
                 { enableCliReport: false, enableMarkdownReport: false }
             )
 
-            // JSON should always be written
-            const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls
-            const jsonCalls = writeFileCalls.filter((call: [string, string]) =>
-                call[0].endsWith('.json')
+            const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls as any[]
+            const jsonCalls = writeFileCalls.filter((call) =>
+                String(call[0]).endsWith('.json')
             )
             expect(jsonCalls).toHaveLength(1)
         })
