@@ -227,7 +227,7 @@ export async function aggregateSelectorPerformanceData(
 
         if (enableMarkdownReport) {
             const markdownPath = path.join(reportDirectory, `mobile-selector-performance-optimizer-report-${sanitizedDeviceName}-${timestamp}.md`)
-            const markdownContent = generateMarkdownReport(optimizedSelectors, deviceName, maxLineLength)
+            const markdownContent = generateMarkdownReport(optimizedSelectors, deviceName)
             fs.writeFileSync(markdownPath, markdownContent)
 
             // Log markdown report location
