@@ -37,6 +37,12 @@ import type {
 import { TestFrameworkConstants } from './frameworks/constants/testFrameworkConstants.js'
 import APIUtils from './apiUtils.js'
 
+const CLI_LOCK_TIMEOUT_MS = 5 * 60 * 1000
+const CLI_LOCK_POLL_MS = 1000
+const CLI_DOWNLOAD_TIMEOUT_MS = 5 * 60 * 1000
+const CLI_DOWNLOAD_TMP_PREFIX = 'downloaded_file_'
+const CLI_DOWNLOAD_TMP_SUFFIX = '.zip'
+
 export class CLIUtils {
     static automationFrameworkDetail = {}
     static testFrameworkDetail = {}
@@ -448,8 +454,8 @@ export class CLIUtils {
         }
 
         const acquireLock = async (
-            timeoutMs = 300000,
-            pollMs = 1000,
+            timeoutMs = CLI_LOCK_TIMEOUT_MS,
+            pollMs = CLI_LOCK_POLL_MS,
         ): Promise<(() => void) | { alreadyExists: string }> => {
             const start = Date.now()
             while (true) {
@@ -458,7 +464,8 @@ export class CLIUtils {
                     try {
                         fs.writeFileSync(fd, `${process.pid}\n${Date.now()}\n`)
                     } catch {
-                        // ignore write errors; lock still holds with fd
+                        // intentionally ignore write errors; the open fd still holds
+                        // the exclusive lock and will be closed in cleanup
                     }
                     return () => {
                         try {
@@ -517,6 +524,41 @@ export class CLIUtils {
             }
         }
 
+        const cleanupTemporaryDownloads = (maxAgeMs = CLI_LOCK_TIMEOUT_MS) => {
+            try {
+                const now = Date.now()
+                for (const entry of fs.readdirSync(cliDir)) {
+                    if (
+                        !entry.startsWith(CLI_DOWNLOAD_TMP_PREFIX) ||
+                        !entry.endsWith(CLI_DOWNLOAD_TMP_SUFFIX)
+                    ) {
+                        continue
+                    }
+                    const filePath = path.join(cliDir, entry)
+                    let stats: fs.Stats
+                    try {
+                        stats = fs.statSync(filePath)
+                    } catch {
+                        continue
+                    }
+                    if (now - stats.mtimeMs < maxAgeMs) {
+                        continue
+                    }
+                    try {
+                        fs.unlinkSync(filePath)
+                    } catch (err) {
+                        logger.debug(
+                            `Failed to delete temp CLI zip file ${filePath}: ${util.format(err)}`,
+                        )
+                    }
+                }
+            } catch (err) {
+                logger.debug(
+                    `Failed to scan temp CLI downloads in ${cliDir}: ${util.format(err)}`,
+                )
+            }
+        }
+
         PerformanceTester.start(PerformanceEvents.SDK_CLI_DOWNLOAD)
         logger.debug(`Downloading SDK binary from: ${binDownloadUrl}`)
 
@@ -542,12 +584,12 @@ export class CLIUtils {
             const lockResult = await acquireLock()
 
             // Check if binary already exists (another process downloaded it)
-            if (lockResult && 'alreadyExists' in lockResult) {
+            if (typeof lockResult !== 'function') {
                 endDownload()
                 return lockResult.alreadyExists
             }
 
-            releaseLock = lockResult as () => void
+            releaseLock = lockResult
 
             // Re-check after acquiring lock
             const existingBinary = CLIUtils.getExistingCliPath(cliDir)
@@ -564,9 +606,11 @@ export class CLIUtils {
                 return existingBinary
             }
 
+            cleanupTemporaryDownloads()
+
             const zipFilePath = path.join(
                 cliDir,
-                `downloaded_file_${process.pid}_${Date.now()}.zip`,
+                `${CLI_DOWNLOAD_TMP_PREFIX}${process.pid}_${Date.now()}${CLI_DOWNLOAD_TMP_SUFFIX}`,
             )
             const downloadedFileStream = fs.createWriteStream(zipFilePath)
 
@@ -577,7 +621,7 @@ export class CLIUtils {
                     const abortController = new AbortController()
                     const timeout = setTimeout(
                         () => abortController.abort(),
-                        300000,
+                        CLI_DOWNLOAD_TIMEOUT_MS,
                     )
                     let response: Response
                     try {
@@ -593,7 +637,7 @@ export class CLIUtils {
 
                     downloadedFileStream.on('error', function (err: Error) {
                         logger.error(
-                            'Got Error while downloading cli binary file' + err,
+                            `Got Error while downloading cli binary file: ${err}`,
                         )
                         endDownload(false, util.format(err))
                         releaseLock?.()
