@@ -36,8 +36,7 @@ function groupByTestFile(data: SelectorPerformanceData[]): Map<string, Map<strin
  */
 export function generateMarkdownReport(
     optimizedSelectors: SelectorPerformanceData[],
-    deviceName: string,
-    maxLineLength: number
+    deviceName: string
 ): string {
     const lines: string[] = []
 
@@ -101,8 +100,8 @@ export function generateMarkdownReport(
     lines.push('|---|----------|-----------|-------------|------------|')
 
     sortedByImpact.forEach((entry, index) => {
-        const original = formatSelectorForDisplay(entry.selector, maxLineLength)
-        const optimized = entry.optimizedSelector ? formatSelectorForDisplay(entry.optimizedSelector, maxLineLength) : 'N/A'
+        const original = formatSelectorForDisplay(entry.selector, Infinity)
+        const optimized = entry.optimizedSelector ? formatSelectorForDisplay(entry.optimizedSelector, Infinity) : 'N/A'
         const improvement = `${(entry.improvementPercent || 0).toFixed(1)}%`
         const timeSaved = `${(entry.improvementMs || 0).toFixed(2)}ms`
         lines.push(`| ${index + 1} | \`${original}\` | \`${optimized}\` | ${improvement} | ${timeSaved} |`)
@@ -129,8 +128,8 @@ export function generateMarkdownReport(
                 lines.push('')
 
                 for (const entry of entries) {
-                    const original = formatSelectorForDisplay(entry.selector, maxLineLength)
-                    const optimized = entry.optimizedSelector ? formatSelectorForDisplay(entry.optimizedSelector, maxLineLength) : 'N/A'
+                    const original = formatSelectorForDisplay(entry.selector, Infinity)
+                    const optimized = entry.optimizedSelector ? formatSelectorForDisplay(entry.optimizedSelector, Infinity) : 'N/A'
                     const improvement = `${(entry.improvementPercent || 0).toFixed(1)}%`
 
                     lines.push(`- **Replace:** \`${original}\` → \`${optimized}\` *(${improvement} faster)*`)
