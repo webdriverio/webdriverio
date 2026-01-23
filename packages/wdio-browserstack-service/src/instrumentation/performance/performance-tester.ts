@@ -11,14 +11,17 @@ import { arch, hostname, platform, type, version } from 'node:os'
 import got from 'got'
 
 import { BStackLogger } from '../../bstackLogger.js'
-import { PERF_MEASUREMENT_ENV, PERF_METRICS_WAIT_TIME } from '../../constants.js'
+import { PERF_MEASUREMENT_ENV } from '../../constants.js'
 import APIUtils from '../../cli/apiUtils.js'
+import { CLIUtils } from '../../cli/cliUtils.js'
+import { EVENTS } from './constants.js'
 
 type PerformanceDetails = {
     success?: true,
     failure?: string,
     testName?: string,
     worker?: string | number,
+    clientWorkerId?: string,
     command?: string,
     hookType?: string,
     platform?: string | number
@@ -29,6 +32,8 @@ export default class PerformanceTester {
     static _csvWriter: any
     private static _events: PerformanceEntry[] = []
     private static _measuredEvents: PerformanceEntry[] = []
+    private static _hasStoppedGeneration = false
+    private static _stopGenerateCallCount = 0
     static started = false
     static details: {[key: string]: PerformanceDetails} = {}
     static eventsMap: {[key: string]: number} = {}
@@ -39,6 +44,7 @@ export default class PerformanceTester {
     static jsonReportFileName = `${this.jsonReportDirPath}/performance-report-${PerformanceTester.getProcessId()}.json`
 
     static startMonitoring(csvName: string = 'performance-report.csv') {
+
         // Create performance-report dir if not exists already
         if (!fs.existsSync(this.jsonReportDirPath)) {
             fs.mkdirSync(this.jsonReportDirPath, { recursive: true })
@@ -47,8 +53,17 @@ export default class PerformanceTester {
             list.getEntries()
                 .filter((entry) => entry.entryType === 'measure')
                 .forEach(entry => {
-                    let finalEntry = entry
+                    let finalEntry: any = entry
                     finalEntry = entry.toJSON()
+
+                    try {
+                        if (typeof finalEntry.startTime === 'number' && typeof performance.timeOrigin === 'number') {
+                            finalEntry.startTime = performance.timeOrigin + finalEntry.startTime
+                        }
+                    } catch (e) {
+                        BStackLogger.debug(`Error converting startTime to epoch: ${util.format(e)}`)
+                    }
+
                     if (this.details[entry.name]) {
                         finalEntry = Object.assign(finalEntry, this.details[entry.name])
                     }
@@ -97,9 +112,6 @@ export default class PerformanceTester {
         if (!this.started) {
             return
         }
-
-        await PerformanceTester.sleep(PERF_METRICS_WAIT_TIME) // Wait to ensure all pending measurements are processed by the observer
-
         try {
             const eventsJson = JSON.stringify(this._measuredEvents)
             // remove enclosing array and add a trailing comma so that we
@@ -115,10 +127,9 @@ export default class PerformanceTester {
             return
         }
 
-        await PerformanceTester.sleep(PERF_METRICS_WAIT_TIME) // Wait to 2s just to finish any running callbacks for timerify
-
         this.started = false
 
+        // Generate CSV and HTML reports using directly collected events
         this.generateCSV(this._events)
 
         const content = this.generateReport(this._events)
@@ -205,26 +216,90 @@ export default class PerformanceTester {
             return fn.apply(thisArg, args)
         }
 
-        PerformanceTester.start(label)
-        this.details && (this.details[label] = details)
+        // Generate unique mark names for this specific call to avoid timing conflicts
+        const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(7)}`
+        const startMark = `${label}-start-${uniqueId}`
+        const endMark = `${label}-end-${uniqueId}`
+
+        // Create the start mark with unique ID
+        performance.mark(startMark)
+
+        // Store details with measurement context
+        const detailsWithContext = {
+            ...details,
+            measurementId: uniqueId
+        }
+
         try {
             const returnVal = fn.apply(thisArg, args)
+
             if (returnVal instanceof Promise) {
                 return new Promise((resolve, reject) => {
                     returnVal
                         .then(v => {
-                            PerformanceTester.end(label)
+                            // Use specific marks for this call
+                            performance.mark(endMark)
+                            performance.measure(label, startMark, endMark)
+
+                            this.details[label] = Object.assign({
+                                success: true,
+                                failure: undefined
+                            }, Object.assign(Object.assign({
+                                clientWorkerId: PerformanceTester.getClientWorkerId(),
+                                worker: PerformanceTester.getProcessId(),
+                                platform: PerformanceTester.browser?.sessionId,
+                                testName: PerformanceTester.scenarioThatRan?.pop()
+                            }, detailsWithContext), this.details[label] || {}))
+
                             resolve(v)
                         }).catch(e => {
-                            PerformanceTester.end(label, false, util.format(e))
+                            performance.mark(endMark)
+                            performance.measure(label, startMark, endMark)
+
+                            this.details[label] = Object.assign({
+                                success: false,
+                                failure: util.format(e)
+                            }, Object.assign(Object.assign({
+                                clientWorkerId: PerformanceTester.getClientWorkerId(),
+                                worker: PerformanceTester.getProcessId(),
+                                platform: PerformanceTester.browser?.sessionId,
+                                testName: PerformanceTester.scenarioThatRan?.pop()
+                            }, detailsWithContext), this.details[label] || {}))
+
                             reject(e)
                         })
                 })
             }
-            PerformanceTester.end(label)
+
+            // Synchronous execution
+            performance.mark(endMark)
+            performance.measure(label, startMark, endMark)
+
+            this.details[label] = Object.assign({
+                success: true,
+                failure: undefined
+            }, Object.assign(Object.assign({
+                clientWorkerId: PerformanceTester.getClientWorkerId(),
+                worker: PerformanceTester.getProcessId(),
+                platform: PerformanceTester.browser?.sessionId,
+                testName: PerformanceTester.scenarioThatRan?.pop()
+            }, detailsWithContext), this.details[label] || {}))
+
             return returnVal
         } catch (er) {
-            PerformanceTester.end(label, false, util.format(er))
+            performance.mark(endMark)
+            performance.measure(label, startMark, endMark)
+
+            this.details[label] = Object.assign({
+                success: false,
+                failure: util.format(er)
+            }, Object.assign(Object.assign({
+                clientWorkerId: PerformanceTester.getClientWorkerId(),
+                worker: PerformanceTester.getProcessId(),
+                platform: PerformanceTester.browser?.sessionId,
+                testName: PerformanceTester.scenarioThatRan?.pop()
+            }, detailsWithContext), this.details[label] || {}))
+
             throw er
         }
     }
@@ -240,10 +315,22 @@ export default class PerformanceTester {
         performance.mark(event + '-end')
         performance.measure(event, event + '-start', event + '-end')
         this.details[event] = Object.assign({ success, failure: util.format(failure) }, Object.assign(Object.assign({
+            clientWorkerId: PerformanceTester.getClientWorkerId(),
             worker: PerformanceTester.getProcessId(),
             platform: PerformanceTester.browser?.sessionId,
             testName: PerformanceTester.scenarioThatRan?.pop()
         }, details), this.details[event] || {}))
+    }
+
+    /**
+     * Get client worker ID in format "threadId-processId".
+     * This method provides a consistent identifier across the SDK for tracking
+     * worker-specific events and performance metrics.
+     *
+     * @returns Worker ID string in format "threadId-processId"
+     */
+    static getClientWorkerId(): string {
+        return CLIUtils.getClientWorkerId()
     }
 
     static getProcessId() {
@@ -253,17 +340,44 @@ export default class PerformanceTester {
     static sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
     static async uploadEventsData() {
+        // Track overall key metrics operation
+        this.start(EVENTS.SDK_SEND_KEY_METRICS)
+
         try {
-            let measures = []
+            const workerId = `${process.pid}`
+            BStackLogger.debug(`[Performance Upload] Starting upload for worker ${workerId}`)
+
+            // Track preparation phase (collection and deduplication)
+            this.start(EVENTS.SDK_KEY_METRICS_PREPARATION)
+
+            // Collect all measures from performance report files and in-memory events
+            let measures: any[] = []
             if (await fsPromise.access(this.jsonReportDirPath).then(() => true).catch(() => false)) {
                 const files = (await fsPromise.readdir(this.jsonReportDirPath)).map(file => path.resolve(this.jsonReportDirPath, file))
                 measures = (await Promise.all(files.map((file) => fsPromise.readFile(file, 'utf-8')))).map(el => `[${el.slice(0, -1)}]`).map(el => JSON.parse(el)).flat()
             }
+            BStackLogger.debug(`[Performance Upload] Total events from files: ${measures.length}`)
 
             if (this._measuredEvents.length > 0) {
+                BStackLogger.debug(`[Performance Upload] Adding ${this._measuredEvents.length} in-memory events`)
                 measures = measures.concat(this._measuredEvents)
             }
-
+            const ensureEpochTimes = (arr: any[]) => {
+                const now = Date.now()
+                const cutoff = 1e12 // ~year 2001, ms epoch
+                const timeOrigin = (
+                    typeof performance !== 'undefined' && typeof performance.timeOrigin === 'number'
+                )
+                    ? performance.timeOrigin
+                    : (now - process.uptime() * 1000)
+                return arr.map(entry => {
+                    if (typeof entry.startTime === 'number' && entry.startTime < cutoff) {
+                        entry.startTime = timeOrigin + entry.startTime
+                    }
+                    return entry
+                })
+            }
+            measures = ensureEpochTimes(measures)
             const date = new Date()
             // yyyy-MM-dd'T'HH:mm:ss.SSSSSS Z
             const options: Intl.DateTimeFormatOptions = {
@@ -277,7 +391,6 @@ export default class PerformanceTester {
                 fractionalSecondDigits: 3, // To include microseconds
                 hour12: false
             }
-
             // Format the date and replace the default separator for time zone
             const formattedDate = new Intl.DateTimeFormat('en-GB', options)
                 .formatToParts(date)
@@ -285,6 +398,7 @@ export default class PerformanceTester {
                 .join('')
                 .replace(',', 'T')
 
+            this.end(EVENTS.SDK_KEY_METRICS_PREPARATION, true)
             const payload = {
                 event_type: 'sdk_events',
                 data: {
@@ -308,9 +422,15 @@ export default class PerformanceTester {
                 }, json: payload
             })
 
-            BStackLogger.debug(`Successfully uploaded performance events ${util.format(result.body)}`)
+            BStackLogger.debug(`[Performance Upload] Successfully uploaded to EDS: ${util.format(result.body)}`)
+
+            this.end(EVENTS.SDK_KEY_METRICS_UPLOAD, true)
+            this.end(EVENTS.SDK_SEND_KEY_METRICS, true)
         } catch (er) {
-            BStackLogger.debug(`Failed to upload performance events ${util.format(er)}`)
+            BStackLogger.debug(`[Performance Upload] Failed to upload events: ${util.format(er)}`)
+            this.end(EVENTS.SDK_KEY_METRICS_UPLOAD, false, er)
+            this.end(EVENTS.SDK_KEY_METRICS_PREPARATION, false, er)
+            this.end(EVENTS.SDK_SEND_KEY_METRICS, false, er)
         }
 
         try {
@@ -320,10 +440,11 @@ export default class PerformanceTester {
                 for (const file of files) {
                     await fsPromise.unlink(path.join(this.jsonReportDirPath, file))
                 }
+
+                BStackLogger.debug(`[Performance Upload] Cleaned up ${files.length} temporary report files`)
             }
         } catch (er) {
-            BStackLogger.debug(`Failed to delete performance related files ${util.format(er)}`)
+            BStackLogger.debug(`[Performance Upload] Failed to delete temporary files: ${util.format(er)}`)
         }
-
     }
 }

@@ -24,7 +24,44 @@ export const EVENTS = {
     SDK_CLI_ON_CONNECT: 'sdk:cli:on-connect',
     SDK_CLI_ON_STOP: 'sdk:cli:on-stop',
     SDK_START_BIN_SESSION: 'sdk:startBinSession',
-    SDK_CONNECT_BIN_SESSION: 'sdk:connectBinSession'
+    SDK_CONNECT_BIN_SESSION: 'sdk:connectBinSession',
+    // New events from Python SDK
+    SDK_DRIVER_INIT: 'sdk:driverInit',
+    SDK_FIND_NEAREST_HUB: 'sdk:findNearestHub',
+    SDK_AUTOMATION_FRAMEWORK_INIT: 'sdk:automationFrameworkInit',
+    SDK_AUTOMATION_FRAMEWORK_START: 'sdk:automationFrameworkStart',
+    SDK_AUTOMATION_FRAMEWORK_STOP: 'sdk:automationFrameworkStop',
+    SDK_ACCESSIBILITY_CONFIG: 'sdk:accessibilityConfig',
+    SDK_OBSERVABILITY_CONFIG: 'sdk:observabilityConfig',
+    SDK_AI_SELF_HEAL_STEP: 'sdk:aiSelfHealStep',
+    SDK_AI_SELF_HEAL_GET_RESULT: 'sdk:aiSelfHealGetResult',
+    SDK_TEST_FRAMEWORK_EVENT: 'sdk:testFrameworkEvent',
+    SDK_TEST_SESSION_EVENT: 'sdk:testSessionEvent',
+    SDK_CLI_LOG_CREATED_EVENT: 'sdk:cli:logCreatedEvent',
+    SDK_CLI_ENQUEUE_TEST_EVENT: 'sdk:cli:enqueueTestEvent',
+    SDK_ON_STOP: 'sdk:onStop',
+    SDK_SEND_LOGS: 'sdk:sendlogs',
+    // Funnel Events
+    SDK_FUNNEL_TEST_ATTEMPTED: 'sdk:funnel:test-attempted',
+    SDK_FUNNEL_TEST_SUCCESSFUL: 'sdk:funnel:test-successful',
+    // Log Upload Events
+    SDK_UPLOAD_LOGS: 'sdk:upload-logs',
+    // Key Metrics Events
+    SDK_SEND_KEY_METRICS: 'sdk:send-key-metrics',
+    SDK_KEY_METRICS_PREPARATION: 'sdk:key-metrics:preparation',
+    SDK_KEY_METRICS_UPLOAD: 'sdk:key-metrics:upload',
+    // CLI Binary Events
+    SDK_CLI_DOWNLOAD_BINARY: 'sdk:cli:download-binary',
+    SDK_CLI_BINARY_VERIFICATION: 'sdk:cli:binary-verification',
+    // Cleanup & Shutdown Events (tracking gap between driver:quit and funnel:test-successful)
+    SDK_LISTENER_WORKER_END: 'sdk:listener:worker-end',
+    SDK_PERCY_TEARDOWN: 'sdk:percy:teardown',
+    SDK_WORKER_SAVE_DATA: 'sdk:worker:save-data',
+    SDK_PERFORMANCE_REPORT_GEN: 'sdk:performance:report-generation',
+    SDK_PERFORMANCE_JSON_WRITE: 'sdk:performance:json-write',
+    SDK_PERFORMANCE_HTML_GEN: 'sdk:performance:html-generation',
+    // Device Allocation Event (tracking gap between beforeSession and before hooks)
+    SDK_DEVICE_ALLOCATION: 'sdk:device-allocation'
 }
 
 export const TESTHUB_EVENTS = {
@@ -91,5 +128,43 @@ export const DRIVER_EVENT = {
     QUIT: `${EVENTS.SDK_DRIVER}:quit`,
     GET: `${EVENTS.SDK_DRIVER}:get`,
     PRE_EXECUTE: `${EVENTS.SDK_DRIVER}:pre-execute`,
-    POST_EXECUTE: `${EVENTS.SDK_DRIVER}:post-execute`
+    POST_EXECUTE: `${EVENTS.SDK_DRIVER}:post-execute`,
+    INIT: EVENTS.SDK_DRIVER_INIT,
+    PRE_INITIALIZE: EVENTS.SDK_PRE_INITIALIZE,
+    POST_INITIALIZE: EVENTS.SDK_POST_INITIALIZE
+}
+
+/**
+ * Framework lifecycle events for automation framework tracking
+ */
+export const FRAMEWORK_EVENTS = {
+    INIT: EVENTS.SDK_AUTOMATION_FRAMEWORK_INIT,
+    START: EVENTS.SDK_AUTOMATION_FRAMEWORK_START,
+    STOP: EVENTS.SDK_AUTOMATION_FRAMEWORK_STOP
+}
+
+/**
+ * Module configuration events
+ */
+export const CONFIG_EVENTS = {
+    ACCESSIBILITY: EVENTS.SDK_ACCESSIBILITY_CONFIG,
+    OBSERVABILITY: EVENTS.SDK_OBSERVABILITY_CONFIG
+}
+
+/**
+ * AI self-healing events
+ */
+export const AI_EVENTS = {
+    SELF_HEAL_STEP: EVENTS.SDK_AI_SELF_HEAL_STEP,
+    SELF_HEAL_GET_RESULT: EVENTS.SDK_AI_SELF_HEAL_GET_RESULT
+}
+
+/**
+ * Event dispatcher events for test framework and session tracking
+ */
+export const DISPATCHER_EVENTS = {
+    TEST_FRAMEWORK: EVENTS.SDK_TEST_FRAMEWORK_EVENT,
+    TEST_SESSION: EVENTS.SDK_TEST_SESSION_EVENT,
+    LOG_CREATED: EVENTS.SDK_CLI_LOG_CREATED_EVENT,
+    ENQUEUE_TEST: EVENTS.SDK_CLI_ENQUEUE_TEST_EVENT
 }

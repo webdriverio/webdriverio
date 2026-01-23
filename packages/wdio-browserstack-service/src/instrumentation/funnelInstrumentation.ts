@@ -12,6 +12,8 @@ import { getDataFromWorkers, removeWorkersDataDir } from '../data-store.js'
 import { getProductMap } from '../testHub/utils.js'
 import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
 import APIUtils from '../cli/apiUtils.js'
+import PerformanceTester from './performance/performance-tester.js'
+import { EVENTS } from './performance/constants.js'
 
 async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig) {
     if (!config.userName || !config.accessKey) {
@@ -34,11 +36,28 @@ async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig
 export async function sendStart(config: BrowserStackConfig) {
     // Remove Workers folder if exists
     removeWorkersDataDir()
-    await fireFunnelTestEvent('SDKTestAttempted', config)
+
+    // Track funnel test attempted event
+    PerformanceTester.start(EVENTS.SDK_FUNNEL_TEST_ATTEMPTED)
+    try {
+        await fireFunnelTestEvent('SDKTestAttempted', config)
+        PerformanceTester.end(EVENTS.SDK_FUNNEL_TEST_ATTEMPTED, true)
+    } catch (error) {
+        PerformanceTester.end(EVENTS.SDK_FUNNEL_TEST_ATTEMPTED, false, error)
+        throw error
+    }
 }
 
 export async function sendFinish(config: BrowserStackConfig) {
-    await fireFunnelTestEvent('SDKTestSuccessful', config)
+    // Track funnel test successful event
+    PerformanceTester.start(EVENTS.SDK_FUNNEL_TEST_SUCCESSFUL)
+    try {
+        await fireFunnelTestEvent('SDKTestSuccessful', config)
+        PerformanceTester.end(EVENTS.SDK_FUNNEL_TEST_SUCCESSFUL, true)
+    } catch (error) {
+        PerformanceTester.end(EVENTS.SDK_FUNNEL_TEST_SUCCESSFUL, false, error)
+        throw error
+    }
 }
 
 export function saveFunnelData(eventType: string, config: BrowserStackConfig): string {

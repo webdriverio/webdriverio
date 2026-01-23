@@ -30,6 +30,7 @@ import { shouldProcessEventForTesthub } from './testHub/utils.js'
 import AiHandler from './ai-handler.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
+import { EVENTS } from './instrumentation/performance/constants.js'
 import { BrowserstackCLI } from './cli/index.js'
 import { TestFrameworkState } from './cli/states/testFrameworkState.js'
 import { HookState } from './cli/states/hookState.js'
@@ -118,6 +119,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeSession' })
     async beforeSession (config: Omit<Options.Testrunner, 'capabilities'>, capabilities: WebdriverIO.Capabilities) {
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.INIT)
+
         // if no user and key is specified even though a browserstack service was
         // provided set user and key with values so that the session request
         // will fail
@@ -139,9 +142,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 await BrowserstackCLI.getInstance().bootstrap(this._options, this._config)
 
                 // Get the nearest hub and update it in config
+                PerformanceTester.start(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_FIND_NEAREST_HUB)
                 const hubUrl = BrowserstackCLI.getInstance().getConfig().hubUrl as string
                 if (hubUrl) {
                     this._config.hostname = new URL(hubUrl).hostname
+                    PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_FIND_NEAREST_HUB)
+                } else {
+                    PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_FIND_NEAREST_HUB, false, 'Hub URL not found')
                 }
             }
             if (BrowserstackCLI.getInstance().isRunning()) {
@@ -152,11 +159,26 @@ export default class BrowserstackService implements Services.ServiceInstance {
             }
         } catch (err) {
             BStackLogger.error(`Error while connecting to Browserstack CLI: ${err}`)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.INIT, false, util.format(err))
+            throw err
         }
+
+        PerformanceTester.end(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.INIT)
+
+        // Start tracking device allocation - this measures the gap between beforeSession end and before start
+        // This captures the time WebDriverIO takes to create the remote session with BrowserStack
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_DEVICE_ALLOCATION)
+        BStackLogger.debug('Device allocation tracking started - waiting for WebDriverIO to create remote session')
     }
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'before' })
     async before(caps: Capabilities.RemoteCapability, specs: string[], browser: WebdriverIO.Browser) {
+        // End device allocation tracking - remote session is now created and browser object is available
+        PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_DEVICE_ALLOCATION, true, 'Device allocated and session created')
+        BStackLogger.debug('Device allocation tracking ended - remote session created successfully')
+
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.PRE_INITIALIZE)
+
         // added to maintain backward compatibility with webdriverIO v5
         this._browser = browser ? browser : globalThis.browser
         PerformanceTester.browser = this._browser
@@ -223,6 +245,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     if (BrowserstackCLI.getInstance().isRunning()) {
                         await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.POST, { browser: this._browser, hubUrl: this._config.hostname })
                         this._insightsHandler.setGitConfigPath()
+                        PerformanceTester.end(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.PRE_INITIALIZE)
                         return
                     }
                     await this._insightsHandler.before()
@@ -282,7 +305,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
             }
         }
 
-        return await this._printSessionURL()
+        PerformanceTester.end(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.PRE_INITIALIZE)
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.POST_INITIALIZE)
+
+        const result = await this._printSessionURL()
+
+        PerformanceTester.end(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.POST_INITIALIZE)
+        return result
     }
 
     /**
@@ -382,6 +411,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     async after (result: number) {
         PerformanceTester.start(PERFORMANCE_SDK_EVENTS.HOOK_EVENTS.AFTER)
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.QUIT)
 
         try {
             if (BrowserstackCLI.getInstance().isRunning()) {
@@ -450,13 +480,35 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 }
             })()
 
+            // Track Listener cleanup
+            PerformanceTester.start(EVENTS.SDK_LISTENER_WORKER_END)
             await Listener.getInstance().onWorkerEnd()
-            if (!BrowserstackCLI.getInstance().isRunning()) {
-                await this._percyHandler?.teardown()
-            }
-            this.saveWorkerData()
+            PerformanceTester.end(EVENTS.SDK_LISTENER_WORKER_END, true)
 
+            // Track Percy teardown (only if CLI is not running)
+            if (!BrowserstackCLI.getInstance().isRunning()) {
+                PerformanceTester.start(EVENTS.SDK_PERCY_TEARDOWN)
+                try {
+                    await this._percyHandler?.teardown()
+                    PerformanceTester.end(EVENTS.SDK_PERCY_TEARDOWN, true)
+                } catch (error) {
+                    PerformanceTester.end(EVENTS.SDK_PERCY_TEARDOWN, false, util.format(error))
+                }
+            }
+
+            // Track worker data save
+            PerformanceTester.start(EVENTS.SDK_WORKER_SAVE_DATA)
+            this.saveWorkerData()
+            PerformanceTester.end(EVENTS.SDK_WORKER_SAVE_DATA, true)
+
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.QUIT)
             PerformanceTester.end(PERFORMANCE_SDK_EVENTS.HOOK_EVENTS.AFTER)
+
+            // Give the performance observer time to process the last few events
+            // before disconnecting in stopAndGenerate()
+            // await new Promise(resolve => setTimeout(resolve, 100))
+
+            // Track performance report generation (this is the big operation!)
             await PerformanceTester.stopAndGenerate('performance-service.html')
             if (process.env[PERF_MEASUREMENT_ENV]) {
                 PerformanceTester.calculateTimes([
@@ -477,6 +529,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         } catch (error) {
             BStackLogger.error(`Error in after hook: ${error}`)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.QUIT, false, util.format(error))
             PerformanceTester.end(PERFORMANCE_SDK_EVENTS.HOOK_EVENTS.AFTER, false, util.format(error))
             await PerformanceTester.stopAndGenerate('performance-service.html')
         }
