@@ -41,6 +41,8 @@ import { TESTOPS_SCREENSHOT_ENV } from './constants.js'
 import { BrowserstackCLI } from './cli/index.js'
 import { TestFrameworkState } from './cli/states/testFrameworkState.js'
 import { HookState } from './cli/states/hookState.js'
+import PerformanceTester from './instrumentation/performance/performance-tester.js'
+import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
@@ -99,7 +101,9 @@ class _InsightsHandler {
         this._suiteFile = filename
     }
 
-    async before () {
+    async before() {
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.CONFIG_EVENTS.OBSERVABILITY)
+
         if (isBrowserstackSession(this._browser)) {
             await (this._browser as WebdriverIO.Browser).executeScript(`browserstack_executor: ${JSON.stringify({
                 action: 'annotate',
@@ -114,6 +118,8 @@ class _InsightsHandler {
         if (gitMeta) {
             this._gitConfigPath = gitMeta.root
         }
+
+        PerformanceTester.end(PERFORMANCE_SDK_EVENTS.CONFIG_EVENTS.OBSERVABILITY)
     }
 
     getCucumberHookType(test: CucumberHook|undefined) {
