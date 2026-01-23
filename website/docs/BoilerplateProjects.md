@@ -68,33 +68,6 @@ This boilerplate project has WebdriverIO 9 mobile tests with Cucumber, TypeScrip
       - Centralized device management
       - Easy platform switching
     - Example of Directory Structure for JavaScript / TypeScript. Below is for JS version, TS version has smae structure as well.
-```
-├── src/
-│   ├── features/           # Cucumber feature files
-│   │   ├── sample.feature
-│   │   └── app-to-web.feature
-│   ├── steps/              # Step definitions
-│   │   ├── sample.steps.ts
-│   │   └── app-to-web.steps.ts
-│   ├── pages/              # Page objects
-│   │   ├── BasePage.ts
-│   │   ├── SettingsPage.ts
-│   │   └── WebViewPage.ts
-│   └── utils/              # Utilities
-│       ├── logger.ts       # Winston logger
-│       ├── MobileGestures.ts  # Gesture utilities
-│       └── ContextSwitcher.ts # App/Web context switching
-├── app/
-│   ├── android/            # Android APK files
-│   └── ios/                # iOS IPA files
-├── logs/                   # Test execution logs
-├── allure-results/         # Allure test results
-├── device.config.ts        # Device configurations (Android/iOS)
-├── env.config.ts           # Environment configurations
-├── wdio.conf.ts            # WebdriverIO configuration
-├── tsconfig.json           # TypeScript configuration
-└── package.json            # Dependencies and scripts
-```
 
 ## [amiya-pattnaik/wdio-testgen-from-gherkin-js](https://github.com/amiya-pattnaik/wdio-testgen-from-gherkin-js)
 ## [amiya-pattnaik/wdio-testgen-from-gherkin-ts](https://github.com/amiya-pattnaik/wdio-testgen-from-gherkin-ts)
