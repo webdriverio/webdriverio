@@ -23,7 +23,12 @@ export function isUsingTailwindCSS (rootDir: string) {
  */
 export async function optimizeForTailwindCSS (rootDir: string) {
     const viteConfig: InlineConfig = {}
-    const tailwindcssPath = await resolve('tailwindcss', url.pathToFileURL(path.resolve(rootDir, 'index.js')).href)
+    let tailwindcssPath: string
+    try {
+        tailwindcssPath = await resolve('@tailwindcss/postcss', url.pathToFileURL(path.resolve(rootDir, 'index.js')).href)
+    } catch {
+        tailwindcssPath = await resolve('tailwindcss', url.pathToFileURL(path.resolve(rootDir, 'index.js')).href)
+    }
     const tailwindcss = (await import(tailwindcssPath)).default
     viteConfig.css = {
         postcss: { plugins: [tailwindcss] }

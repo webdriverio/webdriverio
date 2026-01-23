@@ -62,7 +62,7 @@ class _InsightsHandler {
     public currentTestId: string | undefined
     public cbtQueue: Array<CBTData> = []
 
-    constructor(private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, private _framework?: string, _userCaps?: Capabilities.ResolvedTestrunnerCapabilities, _options?: BrowserstackConfig & BrowserstackOptions) {
+    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, private _framework?: string, _userCaps?: Capabilities.ResolvedTestrunnerCapabilities, _options?: BrowserstackConfig & BrowserstackOptions) {
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
         const sessionId = (this._browser as WebdriverIO.Browser).sessionId
 
@@ -99,21 +99,15 @@ class _InsightsHandler {
         this._suiteFile = filename
     }
 
-    async before() {
+    async before () {
         if (isBrowserstackSession(this._browser)) {
-            await (this._browser as WebdriverIO.Browser).execute((data: { action: string; arguments: Record<string, unknown> }) => {
-                // @ts-expect-error - BrowserStack injects this global function
-                if (typeof window.browserstack_executor === 'function') {
-                    // @ts-expect-error - BrowserStack injects this global function
-                    window.browserstack_executor(data)
-                }
-            }, {
+            await (this._browser as WebdriverIO.Browser).executeScript(`browserstack_executor: ${JSON.stringify({
                 action: 'annotate',
                 arguments: {
                     data: `TestReportingSync:${Date.now()}`,
                     level: 'debug'
                 }
-            })
+            })}`, [])
         }
 
         const gitMeta = await getGitMetaData()
@@ -122,7 +116,7 @@ class _InsightsHandler {
         }
     }
 
-    getCucumberHookType(test: CucumberHook | undefined) {
+    getCucumberHookType(test: CucumberHook|undefined) {
         let hookType = null
         if (!test) {
             hookType = this._cucumberData.scenariosStarted ? 'AFTER_ALL' : 'BEFORE_ALL'
@@ -136,7 +130,7 @@ class _InsightsHandler {
         return hookType
     }
 
-    getCucumberHookName(hookType: string | undefined): string {
+    getCucumberHookName(hookType: string|undefined): string {
         switch (hookType) {
         case 'BEFORE_EACH':
         case 'AFTER_EACH':
@@ -148,7 +142,7 @@ class _InsightsHandler {
         return ''
     }
 
-    getCucumberHookUniqueId(hookType: string, hook: CucumberHook | undefined): string | null {
+    getCucumberHookUniqueId(hookType: string, hook: CucumberHook|undefined): string|null {
         switch (hookType) {
         case 'BEFORE_EACH':
         case 'AFTER_EACH':
@@ -204,7 +198,7 @@ class _InsightsHandler {
         this.listener.testFinished(this.getTestRunDataForCucumber(null, 'TestRunSkipped', testMetaData))
     }
 
-    async processCucumberHook(test: CucumberHook | undefined, params: CucumberHookParams, result?: Frameworks.TestResult) {
+    async processCucumberHook(test: CucumberHook|undefined, params: CucumberHookParams, result?: Frameworks.TestResult) {
         const hookType = this.getCucumberHookType(test)
         if (!hookType) {
             return
@@ -251,14 +245,14 @@ class _InsightsHandler {
         }
     }
 
-    async beforeHook(test: Frameworks.Test | CucumberHook | undefined, context: unknown) {
+    async beforeHook (test: Frameworks.Test|CucumberHook|undefined, context: unknown) {
         if (!frameworkSupportsHook('before', this._framework)) {
             return
         }
         const hookUUID = uuidv4()
 
         if (this._framework === 'cucumber') {
-            test = test as CucumberHook | undefined
+            test = test as CucumberHook|undefined
             await this.processCucumberHook(test, { event: 'before', hookUUID })
             return
         }
@@ -275,12 +269,12 @@ class _InsightsHandler {
         this.listener.hookStarted(this.getRunData(test, 'HookRunStarted'))
     }
 
-    async afterHook(test: Frameworks.Test | CucumberHook | undefined, result: Frameworks.TestResult) {
+    async afterHook (test: Frameworks.Test|CucumberHook|undefined, result: Frameworks.TestResult) {
         if (!frameworkSupportsHook('after', this._framework)) {
             return
         }
         if (this._framework === 'cucumber') {
-            await this.processCucumberHook(test as CucumberHook | undefined, { event: 'after' }, result)
+            await this.processCucumberHook(test as CucumberHook|undefined, { event: 'after' }, result)
             return
         }
 
@@ -381,7 +375,7 @@ class _InsightsHandler {
         return testData
     }
 
-    async beforeTest(test: Frameworks.Test) {
+    async beforeTest (test: Frameworks.Test) {
         const uuid = uuidv4()
         InsightsHandler.currentTest = {
             test, uuid
@@ -397,7 +391,7 @@ class _InsightsHandler {
         this.listener.testStarted(this.getRunData(test, 'TestRunStarted'))
     }
 
-    async afterTest(test: Frameworks.Test, result: Frameworks.TestResult) {
+    async afterTest (test: Frameworks.Test, result: Frameworks.TestResult) {
         if (this._framework !== 'mocha') {
             return
         }
@@ -434,7 +428,7 @@ class _InsightsHandler {
         this._cucumberData.uri = uri
     }
 
-    async beforeScenario(world: ITestCaseHookParameter) {
+    async beforeScenario (world: ITestCaseHookParameter) {
         const uuid = uuidv4()
         InsightsHandler.currentTest = {
             uuid
@@ -469,13 +463,13 @@ class _InsightsHandler {
         this.listener.testStarted(this.getTestRunDataForCucumber(world, 'TestRunStarted'))
     }
 
-    async afterScenario(world: ITestCaseHookParameter) {
+    async afterScenario (world: ITestCaseHookParameter) {
         this._cucumberData.scenario = undefined
         this.flushCBTDataQueue()
         this.listener.testFinished(this.getTestRunDataForCucumber(world, 'TestRunFinished'))
     }
 
-    async beforeStep(step: Frameworks.PickleStep, scenario: Pickle) {
+    async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
         this._cucumberData.stepsStarted = true
         this._cucumberData.steps.push(step)
         const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario } as ITestCaseHookParameter)
@@ -495,7 +489,7 @@ class _InsightsHandler {
         this._tests[uniqueId] = testMetaData
     }
 
-    async afterStep(step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
+    async afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
         this._cucumberData.steps.pop()
 
         const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario } as ITestCaseHookParameter)
@@ -546,7 +540,7 @@ class _InsightsHandler {
         }
     }
 
-    async browserCommand(commandType: string, args: BeforeCommandArgs | AfterCommandArgs, test?: Frameworks.Test | ITestCaseHookParameter) {
+    async browserCommand (commandType: string, args: BeforeCommandArgs | AfterCommandArgs, test?: Frameworks.Test | ITestCaseHookParameter) {
         const dataKey = `${args.sessionId}_${args.method}_${args.endpoint}`
         if (commandType === 'client:beforeCommand') {
             this._commands[dataKey] = args
@@ -620,7 +614,7 @@ class _InsightsHandler {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private attachHookData(context: any, hookId: string): void {
+    private attachHookData (context: any, hookId: string): void {
         if (context.currentTest && context.currentTest.parent) {
             const parentTest = `${context.currentTest.parent.title} - ${context.currentTest.title}`
             if (!this._hooks[parentTest]) {
@@ -661,7 +655,7 @@ class _InsightsHandler {
     /*
      * Get hierarchy info
      */
-    private getHierarchy(test: Frameworks.Test) {
+    private getHierarchy (test: Frameworks.Test) {
         const value: string[] = []
         if (test.ctx && test.ctx.test) {
             // If we already have the parent object, utilize it else get from context
@@ -678,7 +672,7 @@ class _InsightsHandler {
         return value.reverse()
     }
 
-    private getRunData(test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
+    private getRunData (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
         const fullTitle = getUniqueIdentifier(test, this._framework)
         const testMetaData = this._tests[fullTitle]
 
@@ -761,7 +755,7 @@ class _InsightsHandler {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private getTestRunId(context: any): string | undefined {
+    private getTestRunId(context: any): string|undefined {
         if (!context) {
             return
         }
@@ -778,7 +772,7 @@ class _InsightsHandler {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private getTestRunIdFromSuite(parent: any): string | undefined {
+    private getTestRunIdFromSuite(parent: any): string|undefined {
         if (!parent) {
             return
         }
@@ -790,7 +784,7 @@ class _InsightsHandler {
         }
 
         for (const suite of parent.suites) {
-            const testRunId: string | undefined = this.getTestRunIdFromSuite(suite)
+            const testRunId: string|undefined = this.getTestRunIdFromSuite(suite)
             if (testRunId) {
                 return testRunId
             }
@@ -798,7 +792,7 @@ class _InsightsHandler {
         return
     }
 
-    private getTestRunDataForCucumber(worldObj: ITestCaseHookParameter | null, eventType: string, testMetaData: TestMeta | null = null) {
+    private getTestRunDataForCucumber (worldObj: ITestCaseHookParameter|null, eventType: string, testMetaData: TestMeta|null = null) {
         const world: ITestCaseHookParameter = worldObj as ITestCaseHookParameter
         const dataHub = testMetaData ? testMetaData : (this._tests[getUniqueIdentifierForCucumber((world as ITestCaseHookParameter))] || {})
         const { feature, scenario, steps, uuid, startedAt, finishedAt } = dataHub
@@ -807,7 +801,7 @@ class _InsightsHandler {
         let fullNameWithExamples: string
         if (!testMetaData) {
             fullNameWithExamples = examples
-                ? world.pickle.name + ' (' + examples.join(', ') + ')'
+                ? world.pickle.name + ' (' + examples.join(', ')  + ')'
                 : world.pickle.name
         } else {
             fullNameWithExamples = scenario?.name || ''
@@ -890,7 +884,7 @@ class _InsightsHandler {
         }
 
         if (world?.pickle) {
-            testData.tags = world.pickle.tags.map(({ name }: { name: string }) => (name))
+            testData.tags = world.pickle.tags.map( ({ name }: { name: string }) => (name) )
         }
 
         if (eventType === 'TestRunSkipped') {
@@ -902,7 +896,7 @@ class _InsightsHandler {
 
     public async flushCBTDataQueue() {
         BStackLogger.debug(`Flushing CBT Data Queue ${this.currentTestId}`)
-        if (isUndefined(this.currentTestId)) { return }
+        if (isUndefined(this.currentTestId)) {return}
         this.cbtQueue.forEach(cbtData => {
             cbtData.uuid = this.currentTestId!
             this.listener.cbtSessionCreated(cbtData)
@@ -932,7 +926,7 @@ class _InsightsHandler {
         }
     }
 
-    private getIntegrationsObject() {
+    private getIntegrationsObject () {
         const caps = (this._browser as WebdriverIO.Browser)?.capabilities as WebdriverIO.Capabilities
         const sessionId = (this._browser as WebdriverIO.Browser)?.sessionId
 
@@ -950,7 +944,7 @@ class _InsightsHandler {
         }
     }
 
-    private getIdentifier(test: Frameworks.Test | ITestCaseHookParameter) {
+    private getIdentifier (test: Frameworks.Test | ITestCaseHookParameter) {
         if ('pickle' in test) {
             return getUniqueIdentifierForCucumber(test)
         }
@@ -964,7 +958,7 @@ class _InsightsHandler {
         }
     }
 
-    public setTestData(test: Frameworks.Test, uuid: string) {
+    public setTestData (test: Frameworks.Test, uuid: string) {
         InsightsHandler.currentTest = {
             test, uuid
         }
