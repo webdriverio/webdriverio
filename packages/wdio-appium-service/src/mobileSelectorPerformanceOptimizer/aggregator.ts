@@ -4,18 +4,13 @@ import { SevereServiceError } from 'webdriverio'
 import type { Capabilities } from '@wdio/types'
 import type { SelectorPerformanceData } from './types.js'
 import { getPerformanceData } from './mspo-store.js'
-import { generateMarkdownReport } from './markdown-formatter.js'
+import { generateMarkdownReport, type RunTimingInfo } from './markdown-formatter.js'
 import {
     formatSelectorForDisplay,
     REPORT_INDENT_SUMMARY,
     REPORT_INDENT_FILE,
     REPORT_INDENT_SUITE,
-    REPORT_INDENT_TEST,
-    REPORT_INDENT_SELECTOR,
-    REPORT_INDENT_SHARED,
-    REPORT_INDENT_SHARED_DETAIL,
-    REPORT_INDENT_WHY_CHANGE,
-    REPORT_INDENT_DOCS
+    REPORT_INDENT_SELECTOR
 } from './utils/index.js'
 
 /**
@@ -206,13 +201,25 @@ export async function aggregateSelectorPerformanceData(
         const avgDuration = totalSelectors > 0 ? allData.reduce((sum, d) => sum + d.duration, 0) / totalSelectors : 0
         const optimizedSelectors = allData.filter(d => d.optimizedSelector && d.improvementMs !== undefined)
 
+        // Calculate timing info from timestamps
+        let timingInfo: RunTimingInfo | undefined
+        if (allData.length > 0) {
+            const timestamps = allData.map(d => d.timestamp).filter(t => t > 0)
+            if (timestamps.length > 0) {
+                const startTime = Math.min(...timestamps)
+                const endTime = Math.max(...timestamps)
+                const totalRunDurationMs = endTime - startTime
+                timingInfo = { startTime, endTime, totalRunDurationMs }
+            }
+        }
+
         if (totalSelectors === 0) {
             write('\n📊 Selector Performance Summary:\n')
             write(`${REPORT_INDENT_SUMMARY}No element-finding commands were tracked.\n`)
             write(`${REPORT_INDENT_SUMMARY}💡 JSON file written to: ${finalJsonPath}\n`)
         } else {
             if (optimizedSelectors.length > 0) {
-                generateGroupedSummaryReport(optimizedSelectors, deviceName, write, maxLineLength)
+                generateGroupedSummaryReport(optimizedSelectors, deviceName, write, maxLineLength, timingInfo)
             } else {
                 write('\n📊 Selector Performance Summary:\n')
                 write(`${REPORT_INDENT_SUMMARY}Total element finds: ${totalSelectors}\n`)
@@ -227,7 +234,8 @@ export async function aggregateSelectorPerformanceData(
 
         if (enableMarkdownReport) {
             const markdownPath = path.join(reportDirectory, `mobile-selector-performance-optimizer-report-${sanitizedDeviceName}-${timestamp}.md`)
-            const markdownContent = generateMarkdownReport(optimizedSelectors, deviceName)
+            const projectRoot = process.cwd()
+            const markdownContent = generateMarkdownReport(optimizedSelectors, deviceName, timingInfo, projectRoot)
             fs.writeFileSync(markdownPath, markdownContent)
 
             // Log markdown report location
@@ -542,456 +550,354 @@ function wrapLine(line: string, maxLineLength: number, indent: string = ''): str
     return lines
 }
 
+/**
+ * Grouped optimization data for CLI reporting
+ */
+interface GroupedOptimization {
+    selector: string
+    optimizedSelector: string
+    improvementMs: number
+    improvementPercent: number
+    lineNumber?: number
+    selectorFile?: string
+    testFile: string
+    usageCount: number
+    duration?: number
+    optimizedDuration?: number
+}
+
+/**
+ * File-based grouping with subtotals for CLI report
+ */
+interface FileGroup {
+    filePath: string
+    optimizations: GroupedOptimization[]
+    totalSavingsMs: number  // Per-use savings sum (for display)
+    totalSavingsWithUsage: number  // True total = sum(improvementMs × usageCount)
+}
+
+/**
+ * Count selector usage across all data entries
+ */
+function countSelectorUsage(data: SelectorPerformanceData[]): Map<string, number> {
+    const counts = new Map<string, number>()
+    for (const entry of data) {
+        const count = counts.get(entry.selector) || 0
+        counts.set(entry.selector, count + 1)
+    }
+    return counts
+}
+
+/**
+ * Deduplicate selectors for CLI report, keeping the one with highest improvement
+ */
+function deduplicateSelectorsForCli(
+    data: SelectorPerformanceData[],
+    usageCounts: Map<string, number>
+): GroupedOptimization[] {
+    const selectorMap = new Map<string, GroupedOptimization>()
+
+    for (const entry of data) {
+        if (!entry.optimizedSelector || entry.improvementMs === undefined) {
+            continue
+        }
+
+        const existing = selectorMap.get(entry.selector)
+        const current: GroupedOptimization = {
+            selector: entry.selector,
+            optimizedSelector: entry.optimizedSelector,
+            improvementMs: entry.improvementMs,
+            improvementPercent: entry.improvementPercent || 0,
+            lineNumber: entry.lineNumber,
+            selectorFile: entry.selectorFile,
+            testFile: entry.testFile,
+            usageCount: usageCounts.get(entry.selector) || 1,
+            duration: entry.duration,
+            optimizedDuration: entry.optimizedDuration
+        }
+
+        if (!existing || Math.abs(current.improvementMs) > Math.abs(existing.improvementMs)) {
+            if (existing && !current.selectorFile && existing.selectorFile) {
+                current.selectorFile = existing.selectorFile
+                current.lineNumber = existing.lineNumber
+            }
+            selectorMap.set(entry.selector, current)
+        } else if (!existing.selectorFile && current.selectorFile) {
+            existing.selectorFile = current.selectorFile
+            existing.lineNumber = current.lineNumber
+        }
+    }
+
+    return Array.from(selectorMap.values())
+}
+
+/**
+ * Group optimizations by source file for CLI report
+ */
+function groupByFileForCli(optimizations: GroupedOptimization[]): {
+    fileGroups: FileGroup[]
+    workspaceWide: GroupedOptimization[]
+} {
+    const fileMap = new Map<string, GroupedOptimization[]>()
+    const workspaceWide: GroupedOptimization[] = []
+
+    for (const opt of optimizations) {
+        const filePath = opt.selectorFile
+        if (filePath && opt.lineNumber) {
+            if (!fileMap.has(filePath)) {
+                fileMap.set(filePath, [])
+            }
+            fileMap.get(filePath)!.push(opt)
+        } else {
+            workspaceWide.push(opt)
+        }
+    }
+
+    const fileGroups: FileGroup[] = []
+    for (const [filePath, opts] of fileMap.entries()) {
+        opts.sort((a, b) => (a.lineNumber || 0) - (b.lineNumber || 0))
+        const totalSavingsMs = opts.reduce((sum, o) => sum + o.improvementMs, 0)
+        const totalSavingsWithUsage = opts.reduce((sum, o) => sum + (o.improvementMs * o.usageCount), 0)
+        fileGroups.push({ filePath, optimizations: opts, totalSavingsMs, totalSavingsWithUsage })
+    }
+
+    // Sort files by total savings with usage (highest first)
+    fileGroups.sort((a, b) => b.totalSavingsWithUsage - a.totalSavingsWithUsage)
+    // Sort workspace-wide by total savings (improvementMs × usageCount)
+    workspaceWide.sort((a, b) => (b.improvementMs * b.usageCount) - (a.improvementMs * a.usageCount))
+
+    return { fileGroups, workspaceWide }
+}
+
 function generateGroupedSummaryReport(
     optimizedSelectors: SelectorPerformanceData[],
     deviceName: string,
     write: (message: string) => void,
-    maxLineLength: number
+    maxLineLength: number,
+    timingInfo?: RunTimingInfo
 ): void {
-    const positiveOptimizations = optimizedSelectors.filter(
-        d => d.improvementMs !== undefined && d.improvementMs > 0 && (d.improvementPercent || 0) > 0
-    )
-    const negativeOptimizations = optimizedSelectors.filter(
-        d => d.improvementMs !== undefined && (d.improvementMs <= 0 || (d.improvementPercent || 0) <= 0)
-    )
+    // Count usage and deduplicate
+    const usageCounts = countSelectorUsage(optimizedSelectors)
+    const deduplicated = deduplicateSelectorsForCli(optimizedSelectors, usageCounts)
+
+    // Separate positive and negative optimizations
+    // Positive: optimized selector is faster (improvementMs > 0 means XPath took longer than native)
+    // Negative: optimized selector is slower (improvementMs < 0 means native took longer than XPath)
+    const positiveOptimizations = deduplicated.filter(o => o.improvementMs > 0)
+    const negativeOptimizations = deduplicated.filter(o => o.improvementMs < 0)
 
     if (positiveOptimizations.length === 0 && negativeOptimizations.length === 0) {
-        write('📊 Mobile Selector Performance: Summary Report\n')
+        write('\n')
+        write('═══════════════════════════════════════════════════════════════════════════════\n')
+        write('📊 Mobile Selector Performance Optimizer\n')
+        write('═══════════════════════════════════════════════════════════════════════════════\n')
         write(`${REPORT_INDENT_SUMMARY}No optimizations found.\n`)
+        write('═══════════════════════════════════════════════════════════════════════════════\n')
         return
     }
 
-    const totalTimeSaved = positiveOptimizations.reduce((sum, d) => sum + (d.improvementMs || 0), 0)
-    const avgImprovement = positiveOptimizations.reduce((sum, d) => sum + (d.improvementPercent || 0), 0) / positiveOptimizations.length
-    const totalTimeSavedSeconds = (totalTimeSaved / 1000).toFixed(2)
-    const totalSelectorsAnalyzed = optimizedSelectors.length
+    // Calculate true total savings (improvementMs × usageCount)
+    const totalSavingsMs = positiveOptimizations.reduce((sum, o) => sum + (o.improvementMs * o.usageCount), 0)
+    const avgImprovement = positiveOptimizations.length > 0
+        ? positiveOptimizations.reduce((sum, o) => sum + o.improvementPercent, 0) / positiveOptimizations.length
+        : 0
 
-    interface GroupedOptimization {
-        testFile: string
-        suiteName: string
-        testName: string
-        originalSelector: string
-        optimizedSelector: string
-        improvementPercent: number
-        improvementMs: number
-        timestamp: number
-        isNegative?: boolean
-        lineNumber?: number
-        selectorFile?: string
-    }
+    // Impact categorization
+    const highImpact = positiveOptimizations.filter(o => o.improvementPercent >= 50)
+    const mediumImpact = positiveOptimizations.filter(o => o.improvementPercent >= 20 && o.improvementPercent < 50)
+    const lowImpact = positiveOptimizations.filter(o => o.improvementPercent >= 10 && o.improvementPercent < 20)
+    const minorImpact = positiveOptimizations.filter(o => o.improvementPercent > 0 && o.improvementPercent < 10)
 
-    const inferenceMaps = buildInferenceMaps(optimizedSelectors)
+    // Group by file
+    const { fileGroups, workspaceWide } = groupByFileForCli(positiveOptimizations)
 
-    const allProcessedSelectors = [...positiveOptimizations, ...negativeOptimizations]
-
-    const processedSelectors = allProcessedSelectors.map(data => {
-        const testName = data.testName || 'unknown'
-        const isNegative = (data.improvementMs || 0) <= 0 || (data.improvementPercent || 0) <= 0
-        const [testFile, suiteName] = applyInference(
-            data.testFile || 'unknown',
-            data.suiteName || 'unknown',
-            testName,
-            inferenceMaps
-        )
-        return { ...data, testFile, suiteName, isNegative }
-    })
-
-    const groupedByFile = new Map<string, Map<string, Map<string, GroupedOptimization[]>>>()
-    const selectorUsageCount = new Map<string, { count: number; testFiles: Set<string> }>()
-
-    for (const data of processedSelectors) {
-        if (!data.optimizedSelector || data.improvementMs === undefined) {
-            continue
-        }
-
-        const isNegative = (data as SelectorPerformanceData & { isNegative?: boolean }).isNegative || false
-        const testFile = data.testFile || 'unknown'
-        const suiteName = data.suiteName || 'unknown'
-        const testName = data.testName || 'unknown'
-        const selectorKey = data.selector
-
-        if (!selectorUsageCount.has(selectorKey)) {
-            selectorUsageCount.set(selectorKey, { count: 0, testFiles: new Set() })
-        }
-        const usage = selectorUsageCount.get(selectorKey)!
-        usage.count++
-        usage.testFiles.add(testFile)
-
-        if (!groupedByFile.has(testFile)) {
-            groupedByFile.set(testFile, new Map())
-        }
-        const fileGroup = groupedByFile.get(testFile)!
-
-        if (!fileGroup.has(suiteName)) {
-            fileGroup.set(suiteName, new Map())
-        }
-        const suiteGroup = fileGroup.get(suiteName)!
-
-        if (!suiteGroup.has(testName)) {
-            suiteGroup.set(testName, [])
-        }
-        const testGroup = suiteGroup.get(testName)!
-
-        const existing = testGroup.find(o => o.originalSelector === data.selector)
-        if (!existing) {
-            testGroup.push({
-                testFile,
-                suiteName,
-                testName,
-                originalSelector: data.selector,
-                optimizedSelector: data.optimizedSelector,
-                improvementPercent: data.improvementPercent || 0,
-                improvementMs: data.improvementMs,
-                timestamp: data.timestamp,
-                isNegative: isNegative,
-                lineNumber: data.lineNumber,
-                selectorFile: data.selectorFile
-            })
-        } else {
-            if (suiteName !== 'unknown' && existing.suiteName === 'unknown') {
-                existing.suiteName = suiteName
-            }
-            if (data.timestamp > existing.timestamp) {
-                existing.timestamp = data.timestamp
-                existing.improvementPercent = data.improvementPercent || 0
-                existing.improvementMs = data.improvementMs
-                if (suiteName !== 'unknown') {
-                    existing.suiteName = suiteName
-                }
-            }
-        }
-    }
-
-    const sortedFiles = Array.from(groupedByFile.entries()).sort(([fileA], [fileB]) => {
-        if (fileA === 'unknown' && fileB !== 'unknown') {
-            return 1
-        }
-        if (fileA !== 'unknown' && fileB === 'unknown') {
-            return -1
-        }
-        return fileA.localeCompare(fileB)
-    })
-
-    for (const [testFile, suiteMap] of sortedFiles) {
-        const sortedSuites = Array.from(suiteMap.entries()).sort(([_suiteA, testMapA], [_suiteB, testMapB]) => {
-            const allTimestampsA = Array.from(testMapA.values()).flatMap((opts: GroupedOptimization[]) => opts.map((o: GroupedOptimization) => o.timestamp))
-            const allTimestampsB = Array.from(testMapB.values()).flatMap((opts: GroupedOptimization[]) => opts.map((o: GroupedOptimization) => o.timestamp))
-            const firstA = allTimestampsA.length > 0 ? Math.min(...allTimestampsA) : 0
-            const firstB = allTimestampsB.length > 0 ? Math.min(...allTimestampsB) : 0
-            return firstA - firstB
-        })
-
-        const sortedSuiteMap = new Map<string, Map<string, GroupedOptimization[]>>()
-        for (const [suiteName, testMap] of sortedSuites) {
-            const sortedTests = Array.from(testMap.entries()).sort(([_nameA, optsA], [_nameB, optsB]) => {
-                const firstA = optsA.length > 0 ? Math.min(...optsA.map((o: GroupedOptimization) => o.timestamp)) : 0
-                const firstB = optsB.length > 0 ? Math.min(...optsB.map((o: GroupedOptimization) => o.timestamp)) : 0
-                return firstA - firstB
-            })
-            sortedSuiteMap.set(suiteName, new Map(sortedTests))
-        }
-        groupedByFile.set(testFile, sortedSuiteMap)
-    }
-
-    for (const [testFile, suiteMap] of groupedByFile.entries()) {
-        const suiteNames = Array.from(suiteMap.keys())
-
-        for (const suiteName of suiteNames) {
-            if (suiteName === 'unknown') {
-                const unknownSuite = suiteMap.get(suiteName)!
-                const testNames = Array.from(unknownSuite.keys())
-
-                for (const testName of testNames) {
-                    const key = `${testFile}::${testName}`
-                    const knownSuiteName = inferenceMaps.suiteNameInference.get(key)
-
-                    if (knownSuiteName && suiteMap.has(knownSuiteName)) {
-                        const knownSuite = suiteMap.get(knownSuiteName)!
-                        if (!knownSuite.has(testName)) {
-                            knownSuite.set(testName, [])
-                        }
-
-                        const unknownTestGroup = unknownSuite.get(testName)!
-                        const knownTestGroup = knownSuite.get(testName)!
-                        for (const opt of unknownTestGroup) {
-                            const existing = knownTestGroup.find(o => o.originalSelector === opt.originalSelector)
-                            if (!existing) {
-                                opt.suiteName = knownSuiteName
-                                knownTestGroup.push(opt)
-                            }
-                        }
-
-                        unknownSuite.delete(testName)
-                    }
-                }
-
-                if (unknownSuite.size === 0) {
-                    suiteMap.delete(suiteName)
-                }
-            }
-        }
-    }
-
-    const highImpact: GroupedOptimization[] = [] // >50%
-    const mediumImpact: GroupedOptimization[] = [] // 20-50%
-    const lowImpact: GroupedOptimization[] = [] // 10-20%
-    const minorImpact: GroupedOptimization[] = [] // <10%
-    const allOptimizations: GroupedOptimization[] = []
-
-    for (const [, suiteMap] of sortedFiles) {
-        for (const [, testMap] of suiteMap.entries()) {
-            for (const [, optimizations] of testMap.entries()) {
-                allOptimizations.push(...optimizations)
-            }
-        }
-    }
-
-    for (const opt of allOptimizations) {
-        if (opt.improvementPercent >= 50) {
-            highImpact.push(opt)
-        } else if (opt.improvementPercent >= 20) {
-            mediumImpact.push(opt)
-        } else if (opt.improvementPercent >= 10) {
-            lowImpact.push(opt)
-        } else {
-            minorImpact.push(opt)
-        }
-    }
-
-    const topOptimizationsMap = new Map<string, GroupedOptimization>()
-    for (const opt of allOptimizations) {
-        const existing = topOptimizationsMap.get(opt.originalSelector)
-        if (!existing || (opt.improvementMs || 0) > (existing.improvementMs || 0)) {
-            topOptimizationsMap.set(opt.originalSelector, opt)
-        }
-    }
-    const topOptimizations = Array.from(topOptimizationsMap.values())
-        .sort((a, b) => (b.improvementMs || 0) - (a.improvementMs || 0))
-        .slice(0, 10)
-    const quickWins = Array.from(selectorUsageCount.entries())
-        .filter(([_, usage]) => usage.count > 1)
-        .map(([selector, usage]) => {
-            const example = allOptimizations.find(o => o.originalSelector === selector)
-            return example ? { selector, usage, optimization: example } : null
-        })
-        .filter((item): item is { selector: string; usage: { count: number; testFiles: Set<string> }; optimization: GroupedOptimization } => item !== null)
-        .filter(item => item.optimization.improvementPercent >= 20 && item.optimization.optimizedSelector.startsWith('~'))
-        .sort((a, b) => (b.optimization.improvementMs || 0) - (a.optimization.improvementMs || 0))
-        .slice(0, 10)
-
-    write('\n "Mobile Selector Performance Optimizer" Reporter:\n')
+    // Header
     write('\n')
     write('═══════════════════════════════════════════════════════════════════════════════\n')
-    write('📊 Mobile Selector Performance: Summary Report\n')
+    write('📊 Mobile Selector Performance Optimizer Report\n')
     write('═══════════════════════════════════════════════════════════════════════════════\n')
+    write('\n')
+
+    // Summary stats
     if (deviceName && deviceName !== 'unknown') {
         write(`${REPORT_INDENT_SUMMARY}Device: ${deviceName}\n`)
     }
-    write(`${REPORT_INDENT_SUMMARY}Total selectors analyzed: ${totalSelectorsAnalyzed}\n`)
-    write(`${REPORT_INDENT_SUMMARY}Positive optimizations found: ${positiveOptimizations.length}\n`)
-    write(`${REPORT_INDENT_SUMMARY}Average improvement: ${avgImprovement.toFixed(1)}% faster\n`)
-    write(`${REPORT_INDENT_SUMMARY}Total time saved: ${totalTimeSaved.toFixed(2)}ms (${totalTimeSavedSeconds}s) per test run\n`)
-    const impactBreakdownLine = `${REPORT_INDENT_SUMMARY}Impact breakdown: ${highImpact.length} high (>50%), ${mediumImpact.length} medium (20-50%), ${lowImpact.length} low (10-20%), ${minorImpact.length} minor (<10%)`
-    const wrappedImpactBreakdown = wrapLine(impactBreakdownLine, maxLineLength, '')
-    for (const wrappedLine of wrappedImpactBreakdown) {
-        write(`${wrappedLine}\n`)
+
+    // Timing information
+    if (timingInfo) {
+        const formatTime = (ts: number) => new Date(ts).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        const formatDuration = (ms: number) => {
+            if (ms < 1000) {
+                return `${ms.toFixed(0)}ms`
+            }
+            const seconds = ms / 1000
+            if (seconds < 60) {
+                return `${seconds.toFixed(2)}s`
+            }
+            const minutes = Math.floor(seconds / 60)
+            const remainingSeconds = seconds % 60
+
+            return `${minutes}m ${remainingSeconds.toFixed(0)}s`
+        }
+        write(`${REPORT_INDENT_SUMMARY}Run Time: ${formatTime(timingInfo.startTime)} → ${formatTime(timingInfo.endTime)} (${formatDuration(timingInfo.totalRunDurationMs)})\n`)
+    }
+
+    const analyzedText = negativeOptimizations.length > 0
+        ? `${deduplicated.length} unique selectors (${positiveOptimizations.length} optimizable, ${negativeOptimizations.length} not recommended)`
+        : `${deduplicated.length} unique selectors (${positiveOptimizations.length} optimizable)`
+    write(`${REPORT_INDENT_SUMMARY}Analyzed: ${analyzedText}\n`)
+
+    // Format total savings
+    const formatSavings = (ms: number) => {
+        if (ms < 1000) {return `${ms.toFixed(0)}ms`}
+        return `${(ms / 1000).toFixed(2)}s`
+    }
+
+    // Total savings with potential improvement percentage
+    let savingsLine = `${REPORT_INDENT_SUMMARY}Total Potential Savings: ${formatSavings(totalSavingsMs)} per test run`
+    if (timingInfo && timingInfo.totalRunDurationMs > 0) {
+        const improvementPercent = (totalSavingsMs / timingInfo.totalRunDurationMs) * 100
+        savingsLine += ` (${improvementPercent.toFixed(1)}% of total run time)`
+    }
+    write(`${savingsLine}\n`)
+    write(`${REPORT_INDENT_SUMMARY}Average Improvement per Selector: ${avgImprovement.toFixed(1)}% faster\n`)
+    write('\n')
+
+    // Executive Summary
+    write('📈 Executive Summary\n')
+    write('───────────────────────────────────────────────────────────────────────────────\n')
+    if (highImpact.length > 0) {
+        write(`${REPORT_INDENT_SUMMARY}🔴 High (>50% gain):      ${String(highImpact.length).padStart(3)} → Fix immediately\n`)
+    }
+    if (mediumImpact.length > 0) {
+        write(`${REPORT_INDENT_SUMMARY}🟠 Medium (20-50% gain):  ${String(mediumImpact.length).padStart(3)} → Recommended\n`)
+    }
+    if (lowImpact.length > 0) {
+        write(`${REPORT_INDENT_SUMMARY}🟡 Low (10-20% gain):     ${String(lowImpact.length).padStart(3)} → Minor optimization\n`)
+    }
+    if (minorImpact.length > 0) {
+        write(`${REPORT_INDENT_SUMMARY}⚪ Minor (<10% gain):     ${String(minorImpact.length).padStart(3)} → Optional\n`)
+    }
+    if (negativeOptimizations.length > 0) {
+        write(`${REPORT_INDENT_SUMMARY}⚠️  Slower in Testing:    ${String(negativeOptimizations.length).padStart(3)} → See warnings below\n`)
     }
     write('\n')
 
-    if (topOptimizations.length > 0) {
-        write('🏆 Top 10 Most Impactful Optimizations\n')
-        write('───────────────────────────────────────────────────────────────────────────\n')
-        for (let i = 0; i < topOptimizations.length; i++) {
-            const opt = topOptimizations[i]
-            const formattedOriginal = formatSelectorForDisplay(opt.originalSelector, Infinity)
-            const formattedOptimized = formatSelectorForDisplay(opt.optimizedSelector, Infinity)
+    // File-Based Fixes
+    if (fileGroups.length > 0) {
+        write('🎯 File-Based Fixes\n')
+        write('───────────────────────────────────────────────────────────────────────────────\n')
+        write(`${REPORT_INDENT_SUMMARY}Update these specific lines for immediate impact:\n`)
+        write('\n')
+
+        for (const group of fileGroups) {
+            write(`${REPORT_INDENT_FILE}📁 ${group.filePath}\n`)
+
+            for (const opt of group.optimizations) {
+                const formattedOriginal = formatSelectorForDisplay(opt.selector, 45)
+                const formattedOptimized = formatSelectorForDisplay(opt.optimizedSelector, 45)
+                const quoteStyle = opt.optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
+                const lineNum = opt.lineNumber ? `L${opt.lineNumber}` : '?'
+                const perUse = `${opt.improvementMs.toFixed(1)}ms/use`
+                const totalSaved = opt.improvementMs * opt.usageCount
+                const totalDisplay = totalSaved >= 1000 ? `${(totalSaved / 1000).toFixed(2)}s` : `${totalSaved.toFixed(1)}ms`
+
+                if (opt.usageCount > 1) {
+                    const line = `${REPORT_INDENT_SELECTOR}${lineNum}: $('${formattedOriginal}') → $(${quoteStyle}${formattedOptimized}${quoteStyle})`
+                    const wrapped = wrapLine(line, maxLineLength, REPORT_INDENT_SELECTOR + '    ')
+                    for (const wrappedLine of wrapped) {
+                        write(`${wrappedLine}\n`)
+                    }
+                    write(`${REPORT_INDENT_SELECTOR}    ⚡ ${perUse} × ${opt.usageCount} uses = ${totalDisplay} total\n`)
+                } else {
+                    const line = `${REPORT_INDENT_SELECTOR}${lineNum}: $('${formattedOriginal}') → $(${quoteStyle}${formattedOptimized}${quoteStyle}) [${opt.improvementMs.toFixed(1)}ms]`
+                    const wrapped = wrapLine(line, maxLineLength, REPORT_INDENT_SELECTOR + '    ')
+                    for (const wrappedLine of wrapped) {
+                        write(`${wrappedLine}\n`)
+                    }
+                }
+            }
+
+            const fileTotalDisplay = group.totalSavingsWithUsage >= 1000
+                ? `${(group.totalSavingsWithUsage / 1000).toFixed(2)}s`
+                : `${group.totalSavingsWithUsage.toFixed(1)}ms`
+            write(`${REPORT_INDENT_SUITE}└─ File total: ${fileTotalDisplay} saved (${group.optimizations.length} selector${group.optimizations.length > 1 ? 's' : ''})\n`)
+            write('\n')
+        }
+    }
+
+    // Workspace-Wide Optimizations
+    if (workspaceWide.length > 0) {
+        write('🔍 Workspace-Wide Optimizations\n')
+        write('───────────────────────────────────────────────────────────────────────────────\n')
+        write(`${REPORT_INDENT_SUMMARY}Source file unknown. Search your IDE (Cmd+Shift+F) for these selectors:\n`)
+        write('\n')
+
+        for (const opt of workspaceWide) {
+            const formattedOriginal = formatSelectorForDisplay(opt.selector, 45)
+            const formattedOptimized = formatSelectorForDisplay(opt.optimizedSelector, 45)
             const quoteStyle = opt.optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
-            const isShared = selectorUsageCount.get(opt.originalSelector)!.count > 1
-            const sharedMarker = isShared ? ' ⚠️ (shared)' : ''
-            const line = `${REPORT_INDENT_SUMMARY}${i + 1}. $('${formattedOriginal}') → $(${quoteStyle}${formattedOptimized}${quoteStyle}) (${opt.improvementPercent.toFixed(1)}% faster, ${opt.improvementMs.toFixed(2)}ms saved)${sharedMarker}`
-            const wrapped = wrapLine(line, maxLineLength, REPORT_INDENT_SUMMARY)
+            const perUse = `${opt.improvementMs.toFixed(1)}ms/use`
+            const totalSaved = opt.improvementMs * opt.usageCount
+            const totalDisplay = totalSaved >= 1000 ? `${(totalSaved / 1000).toFixed(2)}s` : `${totalSaved.toFixed(1)}ms`
+
+            const line = `${REPORT_INDENT_SELECTOR}$('${formattedOriginal}') → $(${quoteStyle}${formattedOptimized}${quoteStyle})`
+            const wrapped = wrapLine(line, maxLineLength, REPORT_INDENT_SELECTOR + '  ')
             for (const wrappedLine of wrapped) {
                 write(`${wrappedLine}\n`)
             }
-            const locationFile = opt.selectorFile || opt.testFile
-            if (opt.lineNumber && locationFile) {
-                write(`${REPORT_INDENT_SUMMARY}   📍 Found at: ${locationFile}:${opt.lineNumber}\n`)
-            }
-        }
-        write('\n')
-    }
-
-    if (quickWins.length > 0) {
-        write('⚡ Quick Wins (Shared Selectors with High Impact)\n')
-        write('───────────────────────────────────────────────────────────────────────────\n')
-        write(`${REPORT_INDENT_SUMMARY}These selectors appear in multiple tests and have high improvement. Fix once, benefit everywhere!\n`)
-        for (const { selector, usage, optimization } of quickWins) {
-            const formattedOriginal = formatSelectorForDisplay(selector, Infinity)
-            const formattedOptimized = formatSelectorForDisplay(optimization.optimizedSelector, Infinity)
-            const quoteStyle = optimization.optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
-            const line1 = `${REPORT_INDENT_SUMMARY}• $('${formattedOriginal}') → $(${quoteStyle}${formattedOptimized}${quoteStyle}) (${optimization.improvementPercent.toFixed(1)}% faster, appears in ${usage.count} test(s))`
-            const wrapped1 = wrapLine(line1, maxLineLength, REPORT_INDENT_SUMMARY + '  ')
-            for (const wrappedLine of wrapped1) {
-                write(`${wrappedLine}\n`)
-            }
-            const locationFile = optimization.selectorFile || optimization.testFile
-            if (optimization.lineNumber && locationFile) {
-                write(`${REPORT_INDENT_SUMMARY}  📍 Found at: ${locationFile}:${optimization.lineNumber}\n`)
+            if (opt.usageCount > 1) {
+                write(`${REPORT_INDENT_SELECTOR}   ⚡ ${perUse} × ${opt.usageCount} uses = ${totalDisplay} total\n`)
             } else {
-                write(`${REPORT_INDENT_SUMMARY}  → Selector location not found. Search in: page-objects/**/*.ts or helpers/**/*.ts\n`)
+                write(`${REPORT_INDENT_SELECTOR}   ⚡ ${totalDisplay}\n`)
             }
         }
         write('\n')
     }
 
-    write('📋 All Actions Required - Grouped by Test\n')
-    write('───────────────────────────────────────────────────────────────────────────\n')
-
-    for (const [testFile, suiteMap] of sortedFiles) {
-        const displayFile = testFile === 'unknown' ? 'Unknown Test File (likely in hooks or shared code)' : testFile
-        write(`${REPORT_INDENT_FILE}📁 ${displayFile}\n`)
-
-        for (const [suiteName, testMap] of suiteMap.entries()) {
-            const displaySuiteName = suiteName === 'unknown' ? 'Unknown Suite' : suiteName
-            write(`${REPORT_INDENT_SUITE}📦 Suite: "${displaySuiteName}"\n`)
-
-            for (const [testName, optimizations] of testMap.entries()) {
-                const displayTestName = testName === 'unknown' ? 'Unknown Test (likely in hooks)' : testName
-                write(`${REPORT_INDENT_TEST}🧪 Test: "${displayTestName}"\n`)
-
-                const significantOptimizations = optimizations.filter(opt => opt.improvementPercent >= 10)
-                const minorOptimizations = optimizations.filter(opt => opt.improvementPercent < 10)
-
-                for (const opt of significantOptimizations) {
-                    const isShared = selectorUsageCount.get(opt.originalSelector)!.count > 1
-                    const sharedMarker = isShared ? ' ⚠️ (also in other test(s))' : ''
-                    const formattedOriginal = formatSelectorForDisplay(opt.originalSelector, Infinity)
-                    const formattedOptimized = formatSelectorForDisplay(opt.optimizedSelector, Infinity)
-                    const quoteStyle = opt.optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
-
-                    if (opt.isNegative) {
-                        const slowdownPercent = Math.abs(opt.improvementPercent)
-                        const line = `${REPORT_INDENT_SELECTOR}⚠️  Replace: $('${formattedOriginal}') → $(${quoteStyle}${formattedOptimized}${quoteStyle}) (${slowdownPercent.toFixed(1)}% slower)${sharedMarker}`
-                        const wrapped = wrapLine(line, maxLineLength, REPORT_INDENT_SELECTOR)
-                        for (const wrappedLine of wrapped) {
-                            write(`${wrappedLine}\n`)
-                        }
-                        const locationFile = opt.selectorFile || opt.testFile
-                        if (opt.lineNumber && locationFile) {
-                            write(`${REPORT_INDENT_SELECTOR}   📍 Found at: ${locationFile}:${opt.lineNumber}\n`)
-                        }
-                        const noteLine = `${REPORT_INDENT_SELECTOR}   Note: While slower, this selector is more maintainable and less brittle than XPath`
-                        const wrappedNote = wrapLine(noteLine, maxLineLength, REPORT_INDENT_SELECTOR)
-                        for (const wrappedLine of wrappedNote) {
-                            write(`${wrappedLine}\n`)
-                        }
-                    } else {
-                        const line = `${REPORT_INDENT_SELECTOR}• Replace: $('${formattedOriginal}') → $(${quoteStyle}${formattedOptimized}${quoteStyle}) (${opt.improvementPercent.toFixed(1)}% faster)${sharedMarker}`
-                        const wrapped = wrapLine(line, maxLineLength, REPORT_INDENT_SELECTOR)
-                        for (const wrappedLine of wrapped) {
-                            write(`${wrappedLine}\n`)
-                        }
-                        const locationFile = opt.selectorFile || opt.testFile
-                        if (opt.lineNumber && locationFile) {
-                            write(`${REPORT_INDENT_SELECTOR}   📍 Found at: ${locationFile}:${opt.lineNumber}\n`)
-                        }
-                    }
-                }
-
-                if (minorOptimizations.length > 0) {
-                    write(`${REPORT_INDENT_SELECTOR}• ${minorOptimizations.length} minor optimization(s) (<10% improvement) - see detailed report\n`)
-                }
-            }
-        }
-    }
-
-    const sharedSelectors = Array.from(selectorUsageCount.entries())
-        .filter(([_, usage]) => usage.count > 1)
-
-    if (sharedSelectors.length > 0) {
+    // Performance Warnings
+    if (negativeOptimizations.length > 0) {
+        write('⚠️  Performance Warnings\n')
+        write('───────────────────────────────────────────────────────────────────────────────\n')
+        write(`${REPORT_INDENT_SUMMARY}Native selectors were SLOWER than XPath for these cases.\n`)
+        write(`${REPORT_INDENT_SUMMARY}This can happen due to app-specific optimizations, element hierarchy,\n`)
+        write(`${REPORT_INDENT_SUMMARY}caching effects, or Appium/driver version differences.\n`)
+        write(`${REPORT_INDENT_SUMMARY}Recommendation: Keep using XPath for these selectors.\n`)
         write('\n')
-        write('⚠️  [Shared Selectors Detected]\n')
-        write('───────────────────────────────────────────────────────────────────────────\n')
-        write(`${REPORT_INDENT_SHARED}The following selectors appear in multiple tests and are likely in Page Objects:\n`)
 
-        for (const [selector, usage] of sharedSelectors) {
-            const example = allOptimizations.find(o => o.originalSelector === selector)
-            if (!example) {
-                continue
-            }
+        for (const opt of negativeOptimizations) {
+            const xpathSelector = formatSelectorForDisplay(opt.selector, 40)
+            const nativeSelector = formatSelectorForDisplay(opt.optimizedSelector, 40)
+            const xpathTime = opt.duration ? `${opt.duration.toFixed(0)}ms` : '?'
+            // improvementMs = xpathDuration - nativeDuration
+            // If improvementMs < 0, nativeDuration > xpathDuration
+            const nativeTime = opt.optimizedDuration
+                ? `${opt.optimizedDuration.toFixed(0)}ms`
+                : (opt.duration ? `${(opt.duration - opt.improvementMs).toFixed(0)}ms` : '?')
+            const slowdownMs = Math.abs(opt.improvementMs).toFixed(0)
+            const slowdownPercent = Math.abs(opt.improvementPercent).toFixed(0)
 
-            const formattedOriginal = formatSelectorForDisplay(selector, Infinity)
-            const formattedOptimized = formatSelectorForDisplay(example.optimizedSelector, Infinity)
-            const quoteStyle = example.optimizedSelector.startsWith('-ios class chain:') ? "'" : '"'
-            const line1 = `${REPORT_INDENT_SHARED}• $('${formattedOriginal}') - appears in ${usage.count} test(s) across ${usage.testFiles.size} file(s)`
-            const wrapped1 = wrapLine(line1, maxLineLength, REPORT_INDENT_SHARED + '  ')
-            for (const wrappedLine of wrapped1) {
-                write(`${wrappedLine}\n`)
+            // Show location if available
+            const location = opt.selectorFile && opt.lineNumber
+                ? `${opt.selectorFile}:${opt.lineNumber}`
+                : (opt.selectorFile ? opt.selectorFile : null)
+            if (location) {
+                write(`${REPORT_INDENT_FILE}📍 ${location}\n`)
             }
-            const locationFile = example.selectorFile || example.testFile
-            if (example.lineNumber && locationFile) {
-                write(`${REPORT_INDENT_SHARED_DETAIL}📍 Found at: ${locationFile}:${example.lineNumber}\n`)
-            } else {
-                write(`${REPORT_INDENT_SHARED_DETAIL}→ Selector location not found. Search in: page-objects/**/*.ts or helpers/**/*.ts\n`)
-            }
-            const line2 = `${REPORT_INDENT_SHARED_DETAIL}→ Replace with: $(${quoteStyle}${formattedOptimized}${quoteStyle})`
-            const wrapped2 = wrapLine(line2, maxLineLength, REPORT_INDENT_SHARED_DETAIL + '  ')
-            for (const wrappedLine of wrapped2) {
-                write(`${wrappedLine}\n`)
-            }
+            write(`${REPORT_INDENT_SELECTOR}XPath:  $('${xpathSelector}') → ${xpathTime}\n`)
+            write(`${REPORT_INDENT_SELECTOR}Native: $('${nativeSelector}') → ${nativeTime}\n`)
+            write(`${REPORT_INDENT_SELECTOR}        ❌ Native was ${slowdownMs}ms slower (${slowdownPercent}%)\n`)
+            write('\n')
         }
     }
 
-    const selectorTypes = new Set<string>()
-    for (const data of positiveOptimizations) {
-        if (data.optimizedSelector) {
-            if (data.optimizedSelector.startsWith('-ios predicate string:')) {
-                selectorTypes.add('predicate string')
-            } else if (data.optimizedSelector.startsWith('-ios class chain:')) {
-                selectorTypes.add('class chain')
-            } else if (data.optimizedSelector.startsWith('~') || !data.optimizedSelector.includes(':')) {
-                selectorTypes.add('accessibility id')
-            }
-        }
-    }
-
-    const benefits: string[] = []
-    if (selectorTypes.has('accessibility id')) {
-        benefits.push('uses native iOS accessibility ID')
-    }
-    if (selectorTypes.has('predicate string')) {
-        benefits.push('uses iOS predicate strings')
-    }
-    if (selectorTypes.has('class chain')) {
-        benefits.push('uses iOS class chains')
-    }
-
-    const benefitsText = benefits.length > 0
-        ? `More stable: ${benefits.join(', ')}`
-        : 'More stable: uses native iOS selectors'
-
-    const docLinks: string[] = []
-    if (selectorTypes.has('accessibility id')) {
-        docLinks.push('Accessibility ID: https://webdriver.io/docs/selectors#accessibility-id')
-    }
-    if (selectorTypes.has('predicate string')) {
-        docLinks.push('Predicate String: https://webdriver.io/docs/selectors#ios-predicate-string')
-    }
-    if (selectorTypes.has('class chain')) {
-        docLinks.push('Class Chain: https://webdriver.io/docs/selectors#ios-class-chain')
-    }
-
-    write('\n')
-    write('💡 [Why Change?]\n')
-    write('───────────────────────────────────────────────────────────────────────────\n')
-    write(`${REPORT_INDENT_WHY_CHANGE}• Average ${avgImprovement.toFixed(1)}% performance improvement (total of ${totalTimeSavedSeconds} seconds faster per run of this suite)\n`)
-    write(`${REPORT_INDENT_WHY_CHANGE}• ${benefitsText}\n`)
-    if (docLinks.length > 0) {
-        write(`${REPORT_INDENT_WHY_CHANGE}• Documentation:\n`)
-        for (const link of docLinks) {
-            write(`${REPORT_INDENT_DOCS}- ${link}\n`)
-        }
-    }
+    // Why Change section (compact)
+    write('💡 Why Change?\n')
+    write('───────────────────────────────────────────────────────────────────────────────\n')
+    write(`${REPORT_INDENT_SUMMARY}• Speed: Native selectors bypass expensive XML tree traversal\n`)
+    write(`${REPORT_INDENT_SUMMARY}• Stability: Less affected by UI hierarchy changes\n`)
+    write(`${REPORT_INDENT_SUMMARY}• Priority: ~accessibilityId > -ios predicate string > -ios class chain > //xpath\n`)
+    write(`${REPORT_INDENT_SUMMARY}• Docs: https://webdriver.io/docs/selectors#mobile-selectors\n`)
     write('═══════════════════════════════════════════════════════════════════════════════\n')
 }
 

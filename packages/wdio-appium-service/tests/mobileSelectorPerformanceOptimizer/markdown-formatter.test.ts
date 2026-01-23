@@ -37,7 +37,7 @@ describe('markdown-formatter', () => {
                 expect(result).toContain('# 📊 Mobile Selector Performance Optimizer Report')
                 expect(result).toContain('**Device:** iPhone 15')
                 expect(result).toContain('## ✅ Summary')
-                expect(result).toContain('No optimization opportunities found. All selectors performed well!')
+                expect(result).toContain('No optimization opportunities found. All selectors are already optimized!')
             })
 
             test('should include device name in header', () => {
@@ -46,10 +46,10 @@ describe('markdown-formatter', () => {
                 expect(result).toContain('**Device:** iPad Pro 12.9')
             })
 
-            test('should include generated timestamp', () => {
+            test('should include generated date', () => {
                 const result = generateMarkdownReport([], 'iPhone 15')
 
-                expect(result).toContain('**Generated:**')
+                expect(result).toContain('**Generated:** 2024-01-15')
             })
         })
 
@@ -63,7 +63,9 @@ describe('markdown-formatter', () => {
                 optimizedSelector: '~Login',
                 duration: 150,
                 improvementMs: 100,
-                improvementPercent: 66.7
+                improvementPercent: 66.7,
+                selectorFile: 'LoginPage.ts',
+                lineNumber: 10
             })]
 
             test('should use H1 header for main title', () => {
@@ -76,38 +78,23 @@ describe('markdown-formatter', () => {
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
                 expect(result).toContain('## 📈 Summary')
-                expect(result).toContain('## 🏆 Top 10 Most Impactful Optimizations')
-                expect(result).toContain('## 📋 All Actions Required - Grouped by Test')
-                expect(result).toContain('## 💡 Why Change?')
+                expect(result).toContain('## 🎯 File-Based Fixes')
+                expect(result).toContain('## 💡 Implementation Guide')
             })
 
-            test('should use H3 headers for subsections', () => {
+            test('should use H3 headers for file groups with clickable links', () => {
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('### Impact Breakdown')
-                expect(result).toContain('### 📚 Documentation')
-                expect(result).toContain('### 📁 test.spec.ts')
+                // File header should be a clickable markdown link
+                expect(result).toContain('### 📁 [`LoginPage.ts`](LoginPage.ts)')
             })
 
-            test('should use H4 headers for suites', () => {
+            test('should use bold text for emphasis in header stats', () => {
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('#### 📦 Suite: "Login Suite"')
-            })
-
-            test('should use H5 headers for tests', () => {
-                const result = generateMarkdownReport(mockData, 'iPhone 15')
-
-                expect(result).toContain('##### 🧪 Test: "should login successfully"')
-            })
-
-            test('should use bold text for emphasis', () => {
-                const result = generateMarkdownReport(mockData, 'iPhone 15')
-
-                // Bold in table values
-                expect(result).toMatch(/\*\*\d+\*\*/)
-                // Bold in "Replace:" text
-                expect(result).toContain('**Replace:**')
+                // Bold in header stats
+                expect(result).toContain('**Total Potential Savings:**')
+                expect(result).toContain('**Average Improvement per Selector:**')
             })
 
             test('should use inline code for selectors', () => {
@@ -116,34 +103,26 @@ describe('markdown-formatter', () => {
                 expect(result).toContain('`')
             })
 
-            test('should use markdown tables', () => {
+            test('should use markdown tables for executive summary', () => {
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                // Summary table
-                expect(result).toContain('| Metric | Value |')
-                expect(result).toContain('|--------|-------|')
-
-                // Impact breakdown table
-                expect(result).toContain('| Impact Level | Count |')
-                expect(result).toContain('|--------------|-------|')
-
-                // Top optimizations table
-                expect(result).toContain('| # | Original | Optimized | Improvement | Time Saved |')
-                expect(result).toContain('|---|----------|-----------|-------------|------------|')
+                expect(result).toContain('| Impact Level | Count | Action |')
+                expect(result).toContain('|:-------------|------:|:-------|')
             })
 
-            test('should use bullet lists for actions', () => {
+            test('should use markdown tables for file-based fixes', () => {
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('- **Replace:**')
+                expect(result).toContain('| Location | Original | Optimized | Per Use | Uses | Total Saved |')
+                expect(result).toContain('|:---------|:---------|:----------|--------:|-----:|-----------:|')
             })
 
             test('should use markdown links for documentation', () => {
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('[Accessibility ID Selectors](https://webdriver.io/docs/selectors#accessibility-id)')
-                expect(result).toContain('[iOS Class Chain Selectors](https://webdriver.io/docs/selectors#ios-uiautomation)')
-                expect(result).toContain('[Mobile Selectors Best Practices](https://webdriver.io/docs/selectors#mobile-selectors)')
+                expect(result).toContain('[WebdriverIO Mobile Selectors](https://webdriver.io/docs/selectors#mobile-selectors)')
+                expect(result).toContain('[iOS Predicate String](https://webdriver.io/docs/selectors#ios-predicate-string)')
+                expect(result).toContain('[iOS Class Chain](https://webdriver.io/docs/selectors#ios-class-chain)')
             })
 
             test('should include horizontal rule before footer', () => {
@@ -155,12 +134,12 @@ describe('markdown-formatter', () => {
             test('should include italic footer text', () => {
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('*Generated by WebdriverIO Mobile Selector Performance Optimizer*')
+                expect(result).toContain('*Generated by WebdriverIO Mobile Selector Performance Optimizer')
             })
         })
 
-        describe('summary statistics', () => {
-            test('should calculate total optimizations', () => {
+        describe('header statistics', () => {
+            test('should show analyzed selectors count', () => {
                 const mockData: SelectorPerformanceData[] = [
                     createMockData({ selector: 'sel1', optimizedSelector: 'opt1', improvementMs: 50, improvementPercent: 50 }),
                     createMockData({ selector: 'sel2', optimizedSelector: 'opt2', improvementMs: 30, improvementPercent: 30 })
@@ -168,7 +147,7 @@ describe('markdown-formatter', () => {
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('| Total selectors analyzed | **2** |')
+                expect(result).toContain('**Analyzed:** 2 unique selectors')
             })
 
             test('should calculate average improvement', () => {
@@ -180,10 +159,10 @@ describe('markdown-formatter', () => {
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
                 // Average of 50 and 30 is 40
-                expect(result).toContain('| Average improvement | **40.0%** faster |')
+                expect(result).toContain('**Average Improvement per Selector:** **40.0%**')
             })
 
-            test('should calculate total time saved', () => {
+            test('should calculate total savings', () => {
                 const mockData: SelectorPerformanceData[] = [
                     createMockData({ selector: 'sel1', optimizedSelector: 'opt1', improvementMs: 50, improvementPercent: 50 }),
                     createMockData({ selector: 'sel2', optimizedSelector: 'opt2', improvementMs: 30, improvementPercent: 30 })
@@ -191,12 +170,12 @@ describe('markdown-formatter', () => {
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                // Total: 50 + 30 = 80ms = 0.08s
-                expect(result).toContain('| Total time saved | **80.00ms** (0.08s) per test run |')
+                // Total: 50×1 + 30×1 = 80ms (each selector used once)
+                expect(result).toContain('**Total Potential Savings:** **80ms**')
             })
         })
 
-        describe('impact breakdown', () => {
+        describe('executive summary impact breakdown', () => {
             test('should categorize high impact (>50%)', () => {
                 const mockData: SelectorPerformanceData[] = [
                     createMockData({ optimizedSelector: 'opt1', improvementMs: 60, improvementPercent: 60 })
@@ -204,8 +183,7 @@ describe('markdown-formatter', () => {
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('| 🔴 High (>50%) | 1 |')
-                expect(result).toContain('| 🟠 Medium (20-50%) | 0 |')
+                expect(result).toContain('🔴 **High** (>50% gain) | 1 | Fix immediately')
             })
 
             test('should categorize medium impact (20-50%)', () => {
@@ -215,8 +193,7 @@ describe('markdown-formatter', () => {
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('| 🔴 High (>50%) | 0 |')
-                expect(result).toContain('| 🟠 Medium (20-50%) | 1 |')
+                expect(result).toContain('🟠 **Medium** (20-50% gain) | 1 | Recommended')
             })
 
             test('should categorize low impact (10-20%)', () => {
@@ -226,7 +203,7 @@ describe('markdown-formatter', () => {
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('| 🟡 Low (10-20%) | 1 |')
+                expect(result).toContain('🟡 **Low** (10-20% gain) | 1 | Minor optimization')
             })
 
             test('should categorize minor impact (<10%)', () => {
@@ -236,148 +213,244 @@ describe('markdown-formatter', () => {
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('| ⚪ Minor (<10%) | 1 |')
+                expect(result).toContain('⚪ **Minor** (<10% gain) | 1 | Optional')
             })
-        })
 
-        describe('top 10 optimizations', () => {
-            test('should sort by improvement time descending', () => {
+            test('should not show categories with zero count', () => {
                 const mockData: SelectorPerformanceData[] = [
-                    createMockData({ selector: 'sel1', optimizedSelector: 'opt1', improvementMs: 30, improvementPercent: 30 }),
-                    createMockData({ selector: 'sel2', optimizedSelector: 'opt2', improvementMs: 50, improvementPercent: 50 }),
-                    createMockData({ selector: 'sel3', optimizedSelector: 'opt3', improvementMs: 10, improvementPercent: 10 })
+                    createMockData({ optimizedSelector: 'opt1', improvementMs: 60, improvementPercent: 60 })
                 ]
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                // The order in the table should be: sel2 (50ms), sel1 (30ms), sel3 (10ms)
-                const lines = result.split('\n')
-                const tableLines = lines.filter(l => l.startsWith('| ') && l.includes('50.00ms'))
-                expect(tableLines.length).toBeGreaterThan(0)
+                // Should have high impact but not others with 0
+                expect(result).toContain('🔴 **High**')
+                expect(result).not.toContain('🟠 **Medium**')
+                expect(result).not.toContain('🟡 **Low**')
+                expect(result).not.toContain('⚪ **Minor**')
             })
+        })
 
-            test('should limit to 10 entries', () => {
-                const mockData: SelectorPerformanceData[] = Array.from({ length: 15 }, (_, i) =>
+        describe('file-based fixes', () => {
+            test('should group selectors by source file', () => {
+                const mockData: SelectorPerformanceData[] = [
                     createMockData({
-                        selector: `sel${i}`,
-                        optimizedSelector: `opt${i}`,
-                        improvementMs: i * 10,
-                        improvementPercent: i * 5
+                        selector: 'sel1',
+                        optimizedSelector: 'opt1',
+                        improvementMs: 50,
+                        improvementPercent: 50,
+                        selectorFile: 'LoginPage.ts',
+                        lineNumber: 10
+                    }),
+                    createMockData({
+                        selector: 'sel2',
+                        optimizedSelector: 'opt2',
+                        improvementMs: 30,
+                        improvementPercent: 30,
+                        selectorFile: 'HomePage.ts',
+                        lineNumber: 20
                     })
-                )
+                ]
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                // Find the top optimizations table and count rows
-                // The table starts with "| # |" header and each data row starts with "| NUMBER |"
-                const topOptSection = result.split('## 🏆 Top 10 Most Impactful Optimizations')[1]?.split('## ')[0] || ''
-                // Match table rows that start with | followed by a number (1-10)
-                const dataRows = topOptSection.match(/^\| \d+ \|/gm) || []
-                expect(dataRows.length).toBe(10)
+                // File headers should be clickable markdown links
+                expect(result).toContain('### 📁 [`LoginPage.ts`](LoginPage.ts)')
+                expect(result).toContain('### 📁 [`HomePage.ts`](HomePage.ts)')
+            })
+
+            test('should show line numbers as clickable links in table', () => {
+                const mockData: SelectorPerformanceData[] = [
+                    createMockData({
+                        selector: 'sel1',
+                        optimizedSelector: 'opt1',
+                        improvementMs: 50,
+                        improvementPercent: 50,
+                        selectorFile: 'LoginPage.ts',
+                        lineNumber: 42
+                    })
+                ]
+
+                const result = generateMarkdownReport(mockData, 'iPhone 15')
+
+                // Line number should be a clickable markdown link with #L anchor
+                expect(result).toContain('[L42:](LoginPage.ts#L42)')
+            })
+
+            test('should show file total savings', () => {
+                const mockData: SelectorPerformanceData[] = [
+                    createMockData({
+                        selector: 'sel1',
+                        optimizedSelector: 'opt1',
+                        improvementMs: 50,
+                        improvementPercent: 50,
+                        selectorFile: 'LoginPage.ts',
+                        lineNumber: 10
+                    }),
+                    createMockData({
+                        selector: 'sel2',
+                        optimizedSelector: 'opt2',
+                        improvementMs: 30,
+                        improvementPercent: 30,
+                        selectorFile: 'LoginPage.ts',
+                        lineNumber: 20
+                    })
+                ]
+
+                const result = generateMarkdownReport(mockData, 'iPhone 15')
+
+                // 50×1 + 30×1 = 80ms (each selector used once)
+                expect(result).toContain('**File total:** 80ms saved (2 selectors)')
+            })
+
+            test('should show usage count', () => {
+                const mockData: SelectorPerformanceData[] = [
+                    createMockData({
+                        selector: 'sel1',
+                        optimizedSelector: 'opt1',
+                        improvementMs: 50,
+                        improvementPercent: 50,
+                        selectorFile: 'LoginPage.ts',
+                        lineNumber: 10
+                    }),
+                    createMockData({
+                        selector: 'sel1',
+                        optimizedSelector: 'opt1',
+                        improvementMs: 45,
+                        improvementPercent: 45,
+                        selectorFile: 'LoginPage.ts',
+                        lineNumber: 10
+                    }),
+                    createMockData({
+                        selector: 'sel1',
+                        optimizedSelector: 'opt1',
+                        improvementMs: 48,
+                        improvementPercent: 48,
+                        selectorFile: 'LoginPage.ts',
+                        lineNumber: 10
+                    })
+                ]
+
+                const result = generateMarkdownReport(mockData, 'iPhone 15')
+
+                // Selector appears 3 times so should show 3×
+                expect(result).toContain('3×')
             })
         })
 
-        describe('grouping by test', () => {
-            test('should group selectors by test file', () => {
+        describe('workspace-wide optimizations', () => {
+            test('should show selectors without known location in workspace-wide section', () => {
                 const mockData: SelectorPerformanceData[] = [
-                    createMockData({ testFile: 'file1.spec.ts', suiteName: 'Suite1', testName: 'Test1', selector: 'sel1', optimizedSelector: 'opt1', improvementMs: 50, improvementPercent: 50 }),
-                    createMockData({ testFile: 'file2.spec.ts', suiteName: 'Suite2', testName: 'Test2', selector: 'sel2', optimizedSelector: 'opt2', improvementMs: 30, improvementPercent: 30 })
+                    createMockData({
+                        selector: 'sel1',
+                        optimizedSelector: 'opt1',
+                        improvementMs: 50,
+                        improvementPercent: 50
+                        // No selectorFile or lineNumber
+                    })
                 ]
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('### 📁 file1.spec.ts')
-                expect(result).toContain('### 📁 file2.spec.ts')
+                expect(result).toContain('## 🔍 Workspace-Wide Optimizations')
+                expect(result).toContain('Source file location unknown')
             })
 
-            test('should group selectors by suite within test file', () => {
+            test('should not show workspace-wide section when all selectors have locations', () => {
                 const mockData: SelectorPerformanceData[] = [
-                    createMockData({ testFile: 'file.spec.ts', suiteName: 'Suite A', testName: 'Test1', selector: 'sel1', optimizedSelector: 'opt1', improvementMs: 50, improvementPercent: 50 }),
-                    createMockData({ testFile: 'file.spec.ts', suiteName: 'Suite B', testName: 'Test2', selector: 'sel2', optimizedSelector: 'opt2', improvementMs: 30, improvementPercent: 30 })
+                    createMockData({
+                        selector: 'sel1',
+                        optimizedSelector: 'opt1',
+                        improvementMs: 50,
+                        improvementPercent: 50,
+                        selectorFile: 'LoginPage.ts',
+                        lineNumber: 10
+                    })
                 ]
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('#### 📦 Suite: "Suite A"')
-                expect(result).toContain('#### 📦 Suite: "Suite B"')
-            })
-
-            test('should group selectors by test within suite', () => {
-                const mockData: SelectorPerformanceData[] = [
-                    createMockData({ testFile: 'file.spec.ts', suiteName: 'Suite', testName: 'Test A', selector: 'sel1', optimizedSelector: 'opt1', improvementMs: 50, improvementPercent: 50 }),
-                    createMockData({ testFile: 'file.spec.ts', suiteName: 'Suite', testName: 'Test B', selector: 'sel2', optimizedSelector: 'opt2', improvementMs: 30, improvementPercent: 30 })
-                ]
-
-                const result = generateMarkdownReport(mockData, 'iPhone 15')
-
-                expect(result).toContain('##### 🧪 Test: "Test A"')
-                expect(result).toContain('##### 🧪 Test: "Test B"')
-            })
-
-            test('should handle missing test file with default', () => {
-                const mockData: SelectorPerformanceData[] = [
-                    createMockData({ testFile: undefined as unknown as string, suiteName: 'Suite', testName: 'Test', optimizedSelector: 'opt1', improvementMs: 50, improvementPercent: 50 })
-                ]
-
-                const result = generateMarkdownReport(mockData, 'iPhone 15')
-
-                expect(result).toContain('### 📁 Unknown File')
-            })
-
-            test('should handle missing suite name with default', () => {
-                const mockData: SelectorPerformanceData[] = [
-                    createMockData({ testFile: 'file.spec.ts', suiteName: undefined as unknown as string, testName: 'Test', optimizedSelector: 'opt1', improvementMs: 50, improvementPercent: 50 })
-                ]
-
-                const result = generateMarkdownReport(mockData, 'iPhone 15')
-
-                expect(result).toContain('#### 📦 Suite: "Unknown Suite"')
-            })
-
-            test('should handle missing test name with default', () => {
-                const mockData: SelectorPerformanceData[] = [
-                    createMockData({ testFile: 'file.spec.ts', suiteName: 'Suite', testName: undefined as unknown as string, optimizedSelector: 'opt1', improvementMs: 50, improvementPercent: 50 })
-                ]
-
-                const result = generateMarkdownReport(mockData, 'iPhone 15')
-
-                expect(result).toContain('##### 🧪 Test: "Unknown Test"')
+                expect(result).not.toContain('## 🔍 Workspace-Wide Optimizations')
             })
         })
 
-        describe('selector location', () => {
-            test('should include selector location when provided', () => {
-                const mockData: SelectorPerformanceData[] = [createMockData({
-                    testFile: 'test.spec.ts',
-                    optimizedSelector: 'opt1',
-                    improvementMs: 50,
-                    improvementPercent: 50,
-                    selectorFile: 'LoginPage.ts',
-                    lineNumber: 42
-                })]
+        describe('performance warnings (negative optimizations)', () => {
+            test('should show performance warnings for negative optimizations', () => {
+                const mockData: SelectorPerformanceData[] = [
+                    createMockData({
+                        selector: 'sel1',
+                        optimizedSelector: 'opt1',
+                        duration: 10,
+                        optimizedDuration: 100,
+                        improvementMs: -90,
+                        improvementPercent: -900
+                    })
+                ]
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('📍 Found at: `LoginPage.ts:42`')
+                expect(result).toContain('## ⚠️ Performance Warnings')
+                expect(result).toContain('slower')
             })
 
-            test('should include selector location with just file when no line number', () => {
-                const mockData: SelectorPerformanceData[] = [createMockData({
-                    testFile: 'test.spec.ts',
-                    optimizedSelector: 'opt1',
-                    improvementMs: 50,
-                    improvementPercent: 50,
-                    selectorFile: 'LoginPage.ts'
-                })]
+            test('should show original vs optimized times in warnings', () => {
+                const mockData: SelectorPerformanceData[] = [
+                    createMockData({
+                        selector: 'sel1',
+                        optimizedSelector: 'opt1',
+                        duration: 10,
+                        optimizedDuration: 100,
+                        improvementMs: -90,
+                        improvementPercent: -900
+                    })
+                ]
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('📍 Found at: `LoginPage.ts`')
+                expect(result).toContain('10ms')
+                expect(result).toContain('100ms')
             })
 
-            test('should not include location section when not provided', () => {
+            test('should show slower in testing count in header', () => {
+                const mockData: SelectorPerformanceData[] = [
+                    createMockData({
+                        selector: 'sel1',
+                        optimizedSelector: 'opt1',
+                        improvementMs: 50,
+                        improvementPercent: 50
+                    }),
+                    createMockData({
+                        selector: 'sel2',
+                        optimizedSelector: 'opt2',
+                        improvementMs: -10,
+                        improvementPercent: -50
+                    })
+                ]
+
+                const result = generateMarkdownReport(mockData, 'iPhone 15')
+
+                expect(result).toContain('1 optimizable, 1 not recommended')
+            })
+
+            test('should not show warnings section when no negative optimizations', () => {
+                const mockData: SelectorPerformanceData[] = [
+                    createMockData({
+                        selector: 'sel1',
+                        optimizedSelector: 'opt1',
+                        improvementMs: 50,
+                        improvementPercent: 50
+                    })
+                ]
+
+                const result = generateMarkdownReport(mockData, 'iPhone 15')
+
+                expect(result).not.toContain('## ⚠️ Performance Warnings')
+            })
+        })
+
+        describe('implementation guide', () => {
+            test('should include why make these changes section', () => {
                 const mockData: SelectorPerformanceData[] = [createMockData({
-                    testFile: 'test.spec.ts',
                     optimizedSelector: 'opt1',
                     improvementMs: 50,
                     improvementPercent: 50
@@ -385,22 +458,19 @@ describe('markdown-formatter', () => {
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).not.toContain('📍 Found at:')
+                expect(result).toContain('### Why make these changes?')
             })
-        })
 
-        describe('why change section', () => {
-            test('should include performance improvement summary', () => {
+            test('should include speed benefit', () => {
                 const mockData: SelectorPerformanceData[] = [createMockData({
                     optimizedSelector: 'opt1',
-                    improvementMs: 500,
+                    improvementMs: 50,
                     improvementPercent: 50
                 })]
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('**Average 50.0% performance improvement**')
-                expect(result).toContain('0.50 seconds faster per run')
+                expect(result).toContain('**Speed:**')
             })
 
             test('should include stability benefit', () => {
@@ -412,10 +482,10 @@ describe('markdown-formatter', () => {
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('**More stable:** Uses native iOS accessibility identifiers or class chains')
+                expect(result).toContain('**Stability:**')
             })
 
-            test('should include maintainability benefit', () => {
+            test('should include selector priority list', () => {
                 const mockData: SelectorPerformanceData[] = [createMockData({
                     optimizedSelector: 'opt1',
                     improvementMs: 50,
@@ -424,7 +494,49 @@ describe('markdown-formatter', () => {
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('**Better maintainability:** Optimized selectors are less brittle than XPath')
+                expect(result).toContain('### Selector Priority (fastest to slowest)')
+                expect(result).toContain('**Accessibility ID**')
+                expect(result).toContain('**iOS Predicate String**')
+                expect(result).toContain('**iOS Class Chain**')
+                expect(result).toContain('**XPath**')
+            })
+        })
+
+        describe('deduplication', () => {
+            test('should deduplicate selectors keeping highest improvement', () => {
+                const mockData: SelectorPerformanceData[] = [
+                    createMockData({
+                        selector: 'sel1',
+                        optimizedSelector: 'opt1',
+                        improvementMs: 30,
+                        improvementPercent: 30,
+                        selectorFile: 'Page.ts',
+                        lineNumber: 10
+                    }),
+                    createMockData({
+                        selector: 'sel1',
+                        optimizedSelector: 'opt1',
+                        improvementMs: 50,
+                        improvementPercent: 50,
+                        selectorFile: 'Page.ts',
+                        lineNumber: 10
+                    }),
+                    createMockData({
+                        selector: 'sel1',
+                        optimizedSelector: 'opt1',
+                        improvementMs: 20,
+                        improvementPercent: 20,
+                        selectorFile: 'Page.ts',
+                        lineNumber: 10
+                    })
+                ]
+
+                const result = generateMarkdownReport(mockData, 'iPhone 15')
+
+                // Should only show one entry with the highest improvement (50ms)
+                expect(result).toContain('50.0ms')
+                // File total should be 50ms×3 uses = 150ms (deduplicated with usage count)
+                expect(result).toContain('**File total:** 150ms saved (1 selector)')
             })
         })
 
@@ -438,8 +550,8 @@ describe('markdown-formatter', () => {
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('0.00ms')
-                expect(result).toContain('0.0%')
+                // Should still generate a report without errors
+                expect(result).toContain('# 📊 Mobile Selector Performance Optimizer Report')
             })
 
             test('should handle missing optimizedSelector', () => {
@@ -451,7 +563,24 @@ describe('markdown-formatter', () => {
 
                 const result = generateMarkdownReport(mockData, 'iPhone 15')
 
-                expect(result).toContain('N/A')
+                // Should generate empty sections report
+                expect(result).toContain('# 📊 Mobile Selector Performance Optimizer Report')
+            })
+
+            test('should escape pipe characters in selectors for tables', () => {
+                const mockData: SelectorPerformanceData[] = [createMockData({
+                    selector: 'sel|with|pipes',
+                    optimizedSelector: 'opt|with|pipes',
+                    improvementMs: 50,
+                    improvementPercent: 50,
+                    selectorFile: 'Page.ts',
+                    lineNumber: 10
+                })]
+
+                const result = generateMarkdownReport(mockData, 'iPhone 15')
+
+                // Pipes should be escaped
+                expect(result).toContain('\\|')
             })
         })
     })
