@@ -11,41 +11,36 @@ describe('Community iOS XPath Selectors', () => {
         test('1. //*[@name="valueId"]/*[contains(@name, "valueName")] - parent with child containing', () => {
             const xpath = '//*[@name="valueId"]/*[contains(@name, "valueName")]'
             const result = convertXPathToClassChain(xpath)
-            expect(result).toEqual({
-                selector: '-ios class chain:**/*[`name == "valueId"`]/*[`name CONTAINS "valueName"`]'
-            })
+
+            expect(result).toMatchSnapshot()
         })
 
         test('4. //*[contains(@name, "value")]//XCUIElementTypeText[2] - descendant with index', () => {
             const xpath = '//*[contains(@name, "value")]//XCUIElementTypeText[2]'
             const result = convertXPathToClassChain(xpath)
-            expect(result).toEqual({
-                selector: '-ios class chain:**/*[`name CONTAINS "value"`]/**/XCUIElementTypeText[2]'
-            })
+
+            expect(result).toMatchSnapshot()
         })
 
         test('7. //XCUIElementTypeButton//*[@label="value"] - element type with descendant', () => {
             const xpath = '//XCUIElementTypeButton//*[@label="value"]'
             const result = convertXPathToClassChain(xpath)
-            expect(result).toEqual({
-                selector: '-ios class chain:**/XCUIElementTypeButton/**/*[`label == "value"`]'
-            })
+
+            expect(result).toMatchSnapshot()
         })
 
         test('10. //XCUIElementTypeNavigationBar[@name="SELECT ADDRESS"]/XCUIElementTypeStaticText[@name="SELECT ADDRESS"] - two element types', () => {
             const xpath = '//XCUIElementTypeNavigationBar[@name="SELECT ADDRESS"]/XCUIElementTypeStaticText[@name="SELECT ADDRESS"]'
             const result = convertXPathToClassChain(xpath)
-            expect(result).toEqual({
-                selector: '-ios class chain:**/XCUIElementTypeNavigationBar[`name == "SELECT ADDRESS"`]/XCUIElementTypeStaticText[`name == "SELECT ADDRESS"`]'
-            })
+
+            expect(result).toMatchSnapshot()
         })
 
         test('13. (//XCUIElementTypeSwitch[@name=" SMS"])[1]/XCUIElementTypeSwitch - grouped with index then child', () => {
             const xpath = '(//XCUIElementTypeSwitch[@name=" SMS"])[1]/XCUIElementTypeSwitch'
             const result = convertXPathToClassChain(xpath)
-            expect(result).toEqual({
-                selector: '-ios class chain:**/XCUIElementTypeSwitch[`name == " SMS"`][1]/XCUIElementTypeSwitch'
-            })
+
+            expect(result).toMatchSnapshot()
         })
     })
 
@@ -53,6 +48,7 @@ describe('Community iOS XPath Selectors', () => {
         test('8. (//XCUIElementTypeButton[@name="Pizza" or @name="Choose a pizza"])[1] - OR conditions with index', () => {
             const xpath = '(//XCUIElementTypeButton[@name="Pizza" or @name="Choose a pizza"])[1]'
             const result = convertXPathToClassChain(xpath)
+
             expect(result?.selector).toContain('-ios class chain:**/XCUIElementTypeButton')
             expect(result?.selector).toContain('Pizza')
             expect(result?.selector).toContain('Choose a pizza')
@@ -62,12 +58,14 @@ describe('Community iOS XPath Selectors', () => {
         test('9. //XCUIElementTypeButton[@name="T&Cs"] - simple element with name', () => {
             const xpath = '//XCUIElementTypeButton[@name="T&Cs"]'
             const result = convertXPathToOptimizedSelector(xpath) as { selector: string | null; warning?: string } | null
+
             expect(result?.selector).toBe('~T&Cs')
         })
 
         test('11. //XCUIElementTypeTextField[@name="value_text" and @label="Email address"] - AND conditions', () => {
             const xpath = '//XCUIElementTypeTextField[@name="value_text" and @label="Email address"]'
             const result = convertXPathToOptimizedSelector(xpath) as { selector: string | null; warning?: string } | null
+
             expect(result?.selector).toContain("name == 'value_text'")
             expect(result?.selector).toContain("label == 'Email address'")
         })
@@ -75,6 +73,7 @@ describe('Community iOS XPath Selectors', () => {
         test('14. //XCUIElementTypeButton[starts-with(@label, "SHOW ")] - starts-with function', () => {
             const xpath = '//XCUIElementTypeButton[starts-with(@label, "SHOW ")]'
             const result = convertXPathToOptimizedSelector(xpath) as { selector: string | null; warning?: string } | null
+
             expect(result?.selector).toContain('BEGINSWITH')
             expect(result?.selector).toContain('SHOW ')
         })
@@ -84,6 +83,7 @@ describe('Community iOS XPath Selectors', () => {
         test('2. //*[@name="value"]/following-sibling::*[1] - following-sibling axis', async () => {
             const xpath = '//*[@name="value"]/following-sibling::*[1]'
             const result = await convertXPathToOptimizedSelector(xpath)
+
             expect(result?.selector).toBeNull()
             expect(result?.warning).toContain('following-sibling axis')
         })
@@ -91,6 +91,7 @@ describe('Community iOS XPath Selectors', () => {
         test('3. //*[@name="value"]/following-sibling::*//XCUIElementTypeImage - following-sibling with descendant', async () => {
             const xpath = '//*[@name="value"]/following-sibling::*//XCUIElementTypeImage'
             const result = await convertXPathToOptimizedSelector(xpath)
+
             expect(result?.selector).toBeNull()
             expect(result?.warning).toContain('following-sibling axis')
         })
@@ -98,6 +99,7 @@ describe('Community iOS XPath Selectors', () => {
         test('5. //*[@name="value"]/preceding-sibling::* - preceding-sibling axis', async () => {
             const xpath = '//*[@name="value"]/preceding-sibling::*'
             const result = await convertXPathToOptimizedSelector(xpath) as { selector: string | null; warning?: string } | null
+
             expect(result?.selector).toBeNull()
             expect(result?.warning).toContain('preceding-sibling axis')
         })
@@ -105,6 +107,7 @@ describe('Community iOS XPath Selectors', () => {
         test('6. //*[@name="value"]/preceding-sibling::*[1] - preceding-sibling with index', async () => {
             const xpath = '//*[@name="value"]/preceding-sibling::*[1]'
             const result = await convertXPathToOptimizedSelector(xpath) as { selector: string | null; warning?: string } | null
+
             expect(result?.selector).toBeNull()
             expect(result?.warning).toContain('preceding-sibling axis')
         })
@@ -112,6 +115,7 @@ describe('Community iOS XPath Selectors', () => {
         test('12. (//XCUIElementTypeTextView/../..|//XCUIElementTypeStaticText/../..) - parent traversal and union', async () => {
             const xpath = '(//XCUIElementTypeTextView[@name="Driver instructions (optional)"]/../../..|//XCUIElementTypeStaticText[@name="Add driver instructions (Optional)"]/../..)'
             const result = await convertXPathToOptimizedSelector(xpath) as { selector: string | null; warning?: string } | null
+
             expect(result?.selector).toBeNull()
             expect(result?.warning).toContain('parent axis')
         })
@@ -119,6 +123,7 @@ describe('Community iOS XPath Selectors', () => {
         test('15. //XCUIElementTypeStaticText[@name="DELIVERY"]/following-sibling::XCUIElementTypeStaticText[...][1] - following-sibling', async () => {
             const xpath = '//XCUIElementTypeStaticText[@name="DELIVERY"]/following-sibling::XCUIElementTypeStaticText[starts-with(@name,"£") or starts-with(@name,"€")][1]'
             const result = await convertXPathToOptimizedSelector(xpath) as { selector: string | null; warning?: string } | null
+
             expect(result?.selector).toBeNull()
             expect(result?.warning).toContain('following-sibling axis')
         })

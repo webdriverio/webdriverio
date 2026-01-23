@@ -29,9 +29,7 @@ describe('xpath-predicate', () => {
 
             const result = convertXPathToPredicateString('//XCUIElementTypeButton[@name="Submit"]')
 
-            expect(result).toEqual({
-                selector: "-ios predicate string:type == 'XCUIElementTypeButton' AND name == 'Submit'"
-            })
+            expect(result).toMatchSnapshot()
         })
 
         test('should return predicate string with only element type', () => {
@@ -41,9 +39,7 @@ describe('xpath-predicate', () => {
 
             const result = convertXPathToPredicateString('//XCUIElementTypeButton')
 
-            expect(result).toEqual({
-                selector: "-ios predicate string:type == 'XCUIElementTypeButton'"
-            })
+            expect(result).toMatchSnapshot()
         })
 
         test('should return predicate string with only conditions', () => {
@@ -55,9 +51,7 @@ describe('xpath-predicate', () => {
 
             const result = convertXPathToPredicateString('//*[@name="Submit"]')
 
-            expect(result).toEqual({
-                selector: "-ios predicate string:name == 'Submit'"
-            })
+            expect(result).toMatchSnapshot()
         })
 
         test('should return null when no element type and no conditions', () => {
