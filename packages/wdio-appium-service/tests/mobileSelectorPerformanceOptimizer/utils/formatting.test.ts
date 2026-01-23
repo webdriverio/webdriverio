@@ -16,12 +16,14 @@ describe('formatting utils', () => {
     describe('formatSelectorForDisplay', () => {
         test('should return selector as-is when under max length', () => {
             const selector = '//button[@id="test"]'
+
             expect(formatSelectorForDisplay(selector)).toBe(selector)
         })
 
         test('should truncate long selectors', () => {
             const longSelector = 'a'.repeat(150)
             const result = formatSelectorForDisplay(longSelector, 100)
+
             expect(result).toBe('a'.repeat(100) + '...')
             expect(result.length).toBe(103)
         })
@@ -29,11 +31,13 @@ describe('formatting utils', () => {
         test('should handle custom max length', () => {
             const selector = 'a'.repeat(60)
             const result = formatSelectorForDisplay(selector, 50)
+
             expect(result).toBe('a'.repeat(50) + '...')
         })
 
         test('should convert object to string', () => {
             const selector = { id: 'test', tag: 'button' }
+
             expect(formatSelectorForDisplay(selector)).toBe('[object Object]')
         })
     })
@@ -49,7 +53,8 @@ describe('formatting utils', () => {
                 line: 42,
                 isPageObject: false
             }]
-            expect(formatSelectorLocations(locations)).toBe(' at test/spec.ts:42')
+
+            expect(formatSelectorLocations(locations)).toMatchSnapshot()
         })
 
         test('should format single page object location', () => {
@@ -58,7 +63,8 @@ describe('formatting utils', () => {
                 line: 10,
                 isPageObject: true
             }]
-            expect(formatSelectorLocations(locations)).toBe(' at test/page.ts (page object):10')
+
+            expect(formatSelectorLocations(locations)).toMatchSnapshot()
         })
 
         test('should format multiple locations', () => {
@@ -67,10 +73,8 @@ describe('formatting utils', () => {
                 { file: 'test/page.ts', line: 10, isPageObject: true }
             ]
             const result = formatSelectorLocations(locations)
-            expect(result).toContain('at multiple locations')
-            expect(result).toContain('test/spec.ts:42')
-            expect(result).toContain('test/page.ts (page object):10')
-            expect(result).toContain('found in 2 files')
+
+            expect(result).toMatchSnapshot()
         })
     })
 

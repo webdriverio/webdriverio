@@ -1,0 +1,7 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`formatting utils > formatSelectorLocations > should format multiple locations 1`] = `" at multiple locations: test/spec.ts:42, test/page.ts (page object):10. Note: The selector was found in 2 files. Please verify which one is correct."`;
+
+exports[`formatting utils > formatSelectorLocations > should format single location 1`] = `" at test/spec.ts:42"`;
+
+exports[`formatting utils > formatSelectorLocations > should format single page object location 1`] = `" at test/page.ts (page object):10"`;
