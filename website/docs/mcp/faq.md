@@ -88,7 +88,15 @@ Yes. You can specify dimensions when starting the browser:
 
 "Start Chrome with a window size of 1920x1080"
 
-Supported dimensions: 400-3840 pixels wide, 400-2160 pixels tall.
+Supported dimensions: 400-3840 pixels wide, 400-2160 pixels tall. Default is 1920x1080.
+
+### Can I start the browser and navigate in one step?
+
+Yes! Use the `navigationUrl` parameter:
+
+"Start Chrome and navigate to https://webdriver.io"
+
+This is more efficient than starting the browser and then navigating separately.
 
 ### How do I take screenshots?
 
@@ -96,11 +104,21 @@ Simply ask Claude:
 
 "Take a screenshot of the current page"
 
-Screenshots are captured as PNG images.
+Screenshots are automatically optimized:
+- Scaled to max 2000px dimension
+- Compressed to max 1MB file size
+- Format: PNG or JPEG (automatically selected for optimal quality)
 
 ### Can I interact with iframes?
 
 Currently, the MCP server operates on the main document. iframe interaction may be added in future versions.
+
+### Can I execute custom JavaScript?
+
+Yes! Use the `execute_script` tool:
+
+"Execute script to get the page title"
+"Execute script: return document.querySelectorAll('button').length"
 
 ---
 
@@ -114,7 +132,7 @@ Ask Claude with the necessary details:
 
 Or for an installed app:
 
-"Start the app with bundle ID com.example.myapp on the iPhone 15 simulator"
+"Start the app with noReset enabled on the iPhone 15 simulator"
 
 ### How do I start an Android app?
 
@@ -122,7 +140,7 @@ Or for an installed app:
 
 Or for an installed app:
 
-"Start the app with package com.example.myapp on the Pixel 7 emulator"
+"Start the app with noReset enabled on the Pixel 7 emulator"
 
 ### Can I test on real devices?
 
@@ -145,8 +163,9 @@ By default, permissions are automatically granted (`autoGrantPermissions: true`)
 
 -   **Tap:** Tap on elements or coordinates
 -   **Swipe:** Swipe up, down, left, or right
--   **Long Press:** Hold on an element
--   **Drag and Drop:** Drag from one point to another
+-   **Drag and Drop:** Drag from one element to another or to coordinates
+
+Note: `long_press` is available through `execute_script` with Appium mobile commands.
 
 ### How do I scroll in mobile apps?
 
@@ -170,6 +189,16 @@ For apps with webviews, you can switch contexts:
 "Switch to the webview context"
 "Switch back to native context"
 
+### Can I execute Appium mobile commands?
+
+Yes! Use the `execute_script` tool:
+
+```
+Execute script "mobile: pressKey" with args [{ keycode: 4 }]  // Press BACK on Android
+Execute script "mobile: activateApp" with args [{ appId: "com.example.app" }]
+Execute script "mobile: terminateApp" with args [{ bundleId: "com.example.app" }]
+```
+
 ---
 
 ## Element Selection
@@ -177,6 +206,25 @@ For apps with webviews, you can switch contexts:
 ### How does Claude know which element to interact with?
 
 Claude uses the `get_visible_elements` tool to identify interactive elements on the page/screen. Each element comes with multiple selector strategies.
+
+### What if there are too many elements on the page?
+
+Use pagination to manage large element lists:
+
+"Get the first 20 visible elements"
+"Get visible elements with offset 20 and limit 20"
+
+The response includes `total`, `showing`, and `hasMore` to help navigate through elements.
+
+### Can I get only specific types of elements?
+
+Yes! Use the `elementType` parameter:
+
+-   `interactable` (default): Buttons, links, inputs
+-   `visual`: Images, SVGs
+-   `all`: Both types
+
+"Get visible visual elements on the page"
 
 ### What if Claude clicks the wrong element?
 
@@ -193,6 +241,15 @@ You can be more specific:
 3. **Predicate String** (iOS) - `-ios predicate string:label == "Login"`
 4. **XPath** (last resort) - slower but works everywhere
 
+### What is the accessibility tree and when should I use it?
+
+The accessibility tree provides semantic information about page elements (roles, names, states). Use `get_accessibility` when:
+- `get_visible_elements` doesn't return expected elements
+- You need to find elements by accessibility role (button, link, textbox, etc.)
+- You need detailed semantic information about elements
+
+"Get accessibility tree filtered to button and link roles"
+
 ---
 
 ## Session Management
@@ -207,7 +264,7 @@ It depends on the session type and settings:
 
 -   **Browser:** Chrome closes completely
 -   **Mobile with `noReset: false`:** App terminates
--   **Mobile with `noReset: true`:** App stays open (session detaches)
+-   **Mobile with `noReset: true` or no `appPath`:** App stays open (session detaches automatically)
 
 ### Can I preserve app state between sessions?
 
@@ -223,6 +280,14 @@ This preserves login state, preferences, and other app data.
 -   **Detach:** Disconnects automation but keeps browser/app running
 
 Detach is useful when you want to manually inspect the state after automation.
+
+### My session keeps timing out during debugging
+
+Increase the command timeout:
+
+"Start my app with newCommandTimeout of 300 seconds"
+
+Default is 60 seconds. For long debugging sessions, try 300-600 seconds.
 
 ---
 
@@ -241,6 +306,7 @@ The element might not be visible or might have a different selector. Try:
 1. Asking Claude to get all visible elements first
 2. Providing a more specific selector
 3. Waiting for the page/app to fully load
+4. Using `inViewportOnly: false` to find off-screen elements
 
 ### Browser won't start
 
@@ -250,9 +316,20 @@ The element might not be visible or might have a different selector. Try:
 
 ### Appium connection failed
 
-1. Verify Appium is running: `curl http://localhost:4723/status`
-2. Check your Appium URL configuration
-3. Ensure drivers are installed: `appium driver list --installed`
+This is the most common issue when starting mobile automation.
+
+1. **Verify Appium is running**: `curl http://localhost:4723/status`
+2. Start Appium if needed: `appium`
+3. Check your Appium URL configuration matches the server
+4. Ensure drivers are installed: `appium driver list --installed`
+
+:::tip
+The MCP server requires Appium to be running before starting mobile sessions. Make sure to start Appium first:
+```sh
+appium
+```
+Future versions may include automatic Appium service management.
+:::
 
 ### iOS Simulator won't start
 
@@ -273,6 +350,8 @@ The element might not be visible or might have a different selector. Try:
 2. For browser, try a different page (some pages block screenshots)
 3. Check Claude Desktop logs for errors
 
+Screenshots are automatically compressed to max 1MB, so large screenshots will work but may be lower quality.
+
 ---
 
 ## Performance
@@ -288,6 +367,7 @@ Tips for faster automation:
 -   Use emulators/simulators instead of real devices for development
 -   Use accessibility IDs instead of XPath
 -   Enable `inViewportOnly: true` for element detection
+-   Use pagination (`limit`) to reduce token usage
 
 ### How can I speed up element detection?
 
@@ -295,7 +375,17 @@ The MCP server already optimizes element detection using XML page source parsing
 
 -   Keep `inViewportOnly: true` (default)
 -   Set `includeContainers: false` (default)
+-   Use `limit` and `offset` for pagination on large screens
 -   Use specific selectors instead of finding all elements
+
+### Screenshots are slow or failing
+
+Screenshots are automatically optimized:
+- Resized if larger than 2000px
+- Compressed to stay under 1MB
+- Converted to JPEG if PNG is too large
+
+This optimization reduces processing time and ensures Claude can handle the image.
 
 ---
 

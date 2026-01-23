@@ -347,3 +347,48 @@ Ask Claude: "Get all visible elements on the screen"
 ```
 
 This returns elements with pre-generated selectors you can use directly.
+
+#### Advanced Options
+
+For more control over element discovery:
+
+```
+# Get only images and visual elements
+Get visible elements with elementType "visual"
+
+# Get elements with their coordinates for layout debugging
+Get visible elements with includeBounds enabled
+
+# Get the next 20 elements (pagination)
+Get visible elements with limit 20 and offset 20
+
+# Include layout containers for debugging
+Get visible elements with includeContainers enabled
+```
+
+The tool returns a paginated response:
+```json
+{
+  "total": 42,
+  "showing": 20,
+  "hasMore": true,
+  "elements": [...]
+}
+```
+
+### Using `get_accessibility` (Browser Only)
+
+For browser automation, the `get_accessibility` tool provides semantic information about page elements:
+
+```
+# Get all named accessibility nodes
+Get accessibility tree
+
+# Filter to only buttons and links
+Get accessibility tree filtered to button and link roles
+
+# Get next page of results
+Get accessibility tree with limit 50 and offset 50
+```
+
+This is useful when `get_visible_elements` doesn't return expected elements, as it queries the browser's native accessibility API.

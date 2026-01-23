@@ -5,7 +5,15 @@ title: MCP (Model Context Protocol)
 
 ## What can it do?
 
-WebdriverIO MCP is a **Model Context Protocol (MCP) server** that enables AI assistants like Claude Desktop and Claude Code to automate and interact with web browsers and mobile applications. It provides a unified interface for:
+WebdriverIO MCP is a **Model Context Protocol (MCP) server** that enables AI assistants like Claude Desktop and Claude Code to automate and interact with web browsers and mobile applications.
+
+### Why WebdriverIO MCP?
+
+-   **Mobile-First**: Unlike browser-only MCP servers, WebdriverIO MCP supports iOS and Android native app automation via Appium
+-   **Cross-Platform Selectors**: Smart element detection generates multiple locator strategies (accessibility ID, XPath, UiAutomator, iOS predicates) automatically
+-   **WebdriverIO Ecosystem**: Built on the battle-tested WebdriverIO framework with its rich ecosystem of services and reporters
+
+It provides a unified interface for:
 
 -   🖥️ **Desktop Browsers** (Chrome - headed or headless mode)
 -   📱 **Native Mobile Apps** (iOS Simulators / Android Emulators / Real Devices via Appium)
@@ -15,14 +23,15 @@ through the [`@wdio/mcp`](https://www.npmjs.com/package/@wdio/mcp) package.
 
 This allows AI assistants to:
 
--   **Launch and control browsers** with configurable dimensions and headless mode
+-   **Launch and control browsers** with configurable dimensions, headless mode, and optional initial navigation
 -   **Navigate websites** and interact with elements (click, type, scroll)
--   **Analyze page content** via accessibility tree and visible elements detection
--   **Take screenshots** for visual verification
+-   **Analyze page content** via accessibility tree and visible elements detection with pagination support
+-   **Take screenshots** automatically optimized (resized, compressed to max 1MB)
 -   **Manage cookies** for session handling
--   **Control mobile devices** including gestures (tap, swipe, long press, drag and drop)
+-   **Control mobile devices** including gestures (tap, swipe, drag and drop)
 -   **Switch contexts** in hybrid apps between native and webview
--   **Handle device features** like rotation, keyboard, geolocation, and more
+-   **Execute scripts** - JavaScript in browsers, Appium mobile commands on devices
+-   **Handle device features** like rotation, keyboard, geolocation
 -   and much more, see the [Tools](./mcp/tools) and [Configuration](./mcp/configuration) options
 
 :::info
@@ -103,26 +112,28 @@ Ask Claude to automate mobile apps:
 
 | Feature | Description |
 |---------|-------------|
-| **Session Management** | Launch Chrome in headed/headless mode with custom dimensions |
-| **Navigation** | Navigate to URLs, refresh, go back/forward |
+| **Session Management** | Launch Chrome in headed/headless mode with custom dimensions and optional navigation URL |
+| **Navigation** | Navigate to URLs |
 | **Element Interaction** | Click elements, type text, find elements by various selectors |
-| **Page Analysis** | Get visible elements, accessibility tree, element text |
-| **Screenshots** | Capture viewport or element screenshots |
+| **Page Analysis** | Get visible elements (with pagination), accessibility tree (with filtering) |
+| **Screenshots** | Capture screenshots (auto-optimized to max 1MB) |
 | **Scrolling** | Scroll up/down by configurable pixel amounts |
 | **Cookie Management** | Get, set, and delete cookies |
+| **Script Execution** | Execute custom JavaScript in browser context |
 
 ### Mobile App Automation (iOS/Android)
 
 | Feature | Description |
 |---------|-------------|
 | **Session Management** | Launch apps on simulators, emulators, or real devices |
-| **Touch Gestures** | Tap, swipe, long press, drag and drop |
-| **Element Detection** | Smart element detection with multiple locator strategies |
-| **App Lifecycle** | Get app state, activate, terminate apps |
+| **Touch Gestures** | Tap, swipe, drag and drop |
+| **Element Detection** | Smart element detection with multiple locator strategies and pagination |
+| **App Lifecycle** | Get app state (via `execute_script` for activate/terminate) |
 | **Context Switching** | Switch between native and webview contexts in hybrid apps |
-| **Device Control** | Rotate device, lock/unlock, shake (iOS), keyboard control |
+| **Device Control** | Rotate device, keyboard control |
 | **Geolocation** | Get and set device GPS coordinates |
 | **Permissions** | Automatic permission and alert handling |
+| **Script Execution** | Execute Appium mobile commands (pressKey, deepLink, shell, etc.) |
 
 ## Prerequisites
 
@@ -269,22 +280,23 @@ android=new UiSelector().text("Login")
 
 ## Available Tools
 
-The MCP server provides 40+ tools for browser and mobile automation. See [Tools](./mcp/tools) for the complete reference.
+The MCP server provides 25 tools for browser and mobile automation. See [Tools](./mcp/tools) for the complete reference.
 
 ### Browser Tools
 
 | Tool | Description |
 |------|-------------|
-| `start_browser` | Launch Chrome browser |
+| `start_browser` | Launch Chrome browser (with optional initial URL) |
 | `close_session` | Close or detach from session |
 | `navigate` | Navigate to a URL |
 | `click_element` | Click an element |
 | `set_value` | Type text into input |
-| `get_visible_elements` | Get visible/interactable elements |
-| `get_accessibility` | Get accessibility tree |
-| `take_screenshot` | Capture screenshot |
-| `scroll_down` / `scroll_up` | Scroll the page |
+| `get_visible_elements` | Get visible/interactable elements (with pagination) |
+| `get_accessibility` | Get accessibility tree (with filtering) |
+| `take_screenshot` | Capture screenshot (auto-optimized) |
+| `scroll` | Scroll the page up or down |
 | `get_cookies` / `set_cookie` / `delete_cookies` | Cookie management |
+| `execute_script` | Execute JavaScript in browser |
 
 ### Mobile Tools
 
@@ -293,15 +305,13 @@ The MCP server provides 40+ tools for browser and mobile automation. See [Tools]
 | `start_app_session` | Launch iOS/Android app |
 | `tap_element` | Tap element or coordinates |
 | `swipe` | Swipe in a direction |
-| `long_press` | Long press element |
 | `drag_and_drop` | Drag between locations |
 | `get_app_state` | Check if app is running |
-| `activate_app` / `terminate_app` | App lifecycle control |
 | `get_contexts` / `switch_context` | Hybrid app context switching |
 | `rotate_device` | Rotate to portrait/landscape |
-| `lock_device` / `unlock_device` | Device lock control |
-| `set_geolocation` | Set GPS coordinates |
+| `get_geolocation` / `set_geolocation` | Get or set GPS coordinates |
 | `hide_keyboard` | Dismiss on-screen keyboard |
+| `execute_script` | Execute Appium mobile commands |
 
 ## Automatic Handling
 
@@ -341,6 +351,16 @@ Configure the Appium server connection:
     }
 }
 ```
+
+## Performance Optimization
+
+The MCP server is optimized for efficient AI assistant communication:
+
+-   **TOON Format**: Uses Token-Oriented Object Notation for minimal token usage
+-   **XML Parsing**: Mobile element detection uses 2 HTTP calls (vs 600+ traditionally)
+-   **Screenshot Compression**: Images auto-compressed to max 1MB using Sharp
+-   **Viewport Filtering**: Only visible elements returned by default
+-   **Pagination**: Large element lists can be paginated to reduce response size
 
 ## TypeScript Support
 

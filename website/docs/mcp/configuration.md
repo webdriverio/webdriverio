@@ -102,23 +102,35 @@ Options available when starting a browser session via the `start_browser` tool.
 
 Run Chrome in headless mode (no visible browser window). Useful for CI/CD environments or when you don't need to see the browser.
 
-### `width`
+### `windowWidth`
 
 -   **Type:** `number`
 -   **Mandatory:** No
--   **Default:** `1280`
+-   **Default:** `1920`
 -   **Range:** `400` - `3840`
 
 Initial browser window width in pixels.
 
-### `height`
+### `windowHeight`
 
 -   **Type:** `number`
 -   **Mandatory:** No
--   **Default:** `720`
+-   **Default:** `1080`
 -   **Range:** `400` - `2160`
 
 Initial browser window height in pixels.
+
+### `navigationUrl`
+
+-   **Type:** `string`
+-   **Mandatory:** No
+
+URL to navigate to immediately after starting the browser. This is more efficient than calling `start_browser` followed by `navigate` separately.
+
+**Example:** Start browser and navigate in one call:
+```
+Start Chrome and navigate to https://webdriver.io
+```
 
 ---
 
@@ -128,7 +140,7 @@ Options available when starting a mobile app session via the `start_app_session`
 
 ### Platform Options
 
-#### `platformName`
+#### `platform`
 
 -   **Type:** `string`
 -   **Mandatory:** Yes
@@ -142,6 +154,14 @@ The mobile platform to automate.
 -   **Mandatory:** No
 
 The OS version of the device/simulator/emulator (e.g., `17.0` for iOS, `14` for Android).
+
+#### `automationName`
+
+-   **Type:** `string`
+-   **Mandatory:** No
+-   **Values:** `XCUITest` (iOS), `UiAutomator2` | `Espresso` (Android)
+
+The automation driver to use. Defaults to `XCUITest` for iOS and `UiAutomator2` for Android.
 
 ### Device Options
 
@@ -160,7 +180,7 @@ Name of the device, simulator, or emulator to use.
 #### `udid`
 
 -   **Type:** `string`
--   **Mandatory:** No (Required for real devices)
+-   **Mandatory:** No (Required for real iOS devices)
 
 Unique Device Identifier. Required for real iOS devices (40-character identifier) and recommended for Android real devices.
 
@@ -182,38 +202,14 @@ Path to the application file to install and launch.
 -   iOS Real Device: `.ipa` file
 -   Android: `.apk` file
 
-*Either `appPath` or `bundleId`/`appPackage` is required.
+*Either `appPath` must be provided, or `noReset: true` to connect to an already-running app.
 
-#### `bundleId`
-
--   **Type:** `string`
--   **Mandatory:** No*
-
-iOS bundle identifier for launching an already-installed app.
-
-**Examples:**
--   Safari: `com.apple.mobilesafari`
--   Settings: `com.apple.Preferences`
--   Your app: `com.yourcompany.yourapp`
-
-#### `appPackage`
-
--   **Type:** `string`
--   **Mandatory:** No* (Android only)
-
-Android application package name for launching an already-installed app.
-
-**Examples:**
--   Chrome: `com.android.chrome`
--   Settings: `com.android.settings`
--   Your app: `com.yourcompany.yourapp`
-
-#### `appActivity`
+#### `appWaitActivity`
 
 -   **Type:** `string`
 -   **Mandatory:** No (Android only)
 
-Android activity to launch. If not specified, the app's main/launcher activity is used.
+Activity to wait for on app launch. If not specified, the app's main/launcher activity is used.
 
 **Example:** `com.example.app.MainActivity`
 
@@ -229,17 +225,35 @@ Preserve the app state between sessions. When `true`:
 -   App data is preserved (login state, preferences, etc.)
 -   Session will **detach** instead of close (keeps app running)
 -   Useful for testing user journeys across multiple sessions
+-   Can be used without `appPath` to connect to an already-running app
 
 #### `fullReset`
 
 -   **Type:** `boolean`
 -   **Mandatory:** No
--   **Default:** `false`
+-   **Default:** `true`
 
 Completely reset the app before the session. When `true`:
 -   iOS: Uninstalls and reinstalls the app
 -   Android: Clears app data and cache
 -   Useful for starting with a clean state
+
+Set `fullReset: false` with `noReset: true` to preserve app state completely.
+
+### Session Timeout
+
+#### `newCommandTimeout`
+
+-   **Type:** `number`
+-   **Mandatory:** No
+-   **Default:** `60`
+
+How long (in seconds) Appium will wait for a new command before assuming the client has quit and ending the session. Increase this value for longer debugging sessions.
+
+**Examples:**
+-   `60` - Default, suitable for most automation
+-   `300` - 5 minutes, for debugging or slower operations
+-   `600` - 10 minutes, for very long-running tests
 
 ### Automatic Handling Options
 
@@ -277,13 +291,50 @@ Automatically accept system alerts (dialogs) that appear during automation.
 -   **Mandatory:** No
 -   **Default:** `false`
 
-Dismiss (cancel) system alerts instead of accepting them. Takes precedence over `autoAcceptAlerts` when both are `true`.
+Dismiss (cancel) system alerts instead of accepting them. Takes precedence over `autoAcceptAlerts` when set to `true`.
+
+### Appium Server Override
+
+You can override the Appium server connection on a per-session basis:
+
+#### `appiumHost`
+
+-   **Type:** `string`
+-   **Mandatory:** No
+
+Appium server hostname. Overrides `APPIUM_URL` environment variable.
+
+#### `appiumPort`
+
+-   **Type:** `number`
+-   **Mandatory:** No
+
+Appium server port. Overrides `APPIUM_URL_PORT` environment variable.
+
+#### `appiumPath`
+
+-   **Type:** `string`
+-   **Mandatory:** No
+
+Appium server path. Overrides `APPIUM_PATH` environment variable.
 
 ---
 
 ## Element Detection Options
 
-Options for the `get_visible_elements` tool on mobile platforms.
+Options for the `get_visible_elements` tool.
+
+### `elementType`
+
+-   **Type:** `string`
+-   **Mandatory:** No
+-   **Default:** `interactable`
+-   **Values:** `interactable` | `visual` | `all`
+
+Type of elements to return:
+-   `interactable`: Buttons, links, inputs, and other clickable elements
+-   `visual`: Images, SVGs, and visual elements
+-   `all`: Both interactable and visual elements
 
 ### `inViewportOnly`
 
@@ -291,7 +342,7 @@ Options for the `get_visible_elements` tool on mobile platforms.
 -   **Mandatory:** No
 -   **Default:** `true`
 
-Only return elements that are visible within the current viewport. When `false`, returns all elements in the view hierarchy.
+Only return elements that are visible within the current viewport. When `false`, returns all elements in the view hierarchy (useful for finding off-screen elements).
 
 ### `includeContainers`
 
@@ -312,6 +363,112 @@ Include container/layout elements in the results. When `true`:
 
 Useful for debugging layout issues or understanding the view hierarchy.
 
+### `includeBounds`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `false`
+
+Include element bounds/coordinates (x, y, width, height) in the response. Set to `true` for:
+-   Coordinate-based interactions
+-   Layout debugging
+-   Visual element positioning
+
+### Pagination Options
+
+For large pages with many elements, use pagination to reduce token usage:
+
+#### `limit`
+
+-   **Type:** `number`
+-   **Mandatory:** No
+-   **Default:** `0` (unlimited)
+
+Maximum number of elements to return.
+
+#### `offset`
+
+-   **Type:** `number`
+-   **Mandatory:** No
+-   **Default:** `0`
+
+Number of elements to skip before returning results.
+
+**Example:** Get elements 21-40:
+```
+Get visible elements with limit 20 and offset 20
+```
+
+---
+
+## Accessibility Tree Options
+
+Options for the `get_accessibility` tool (browser-only).
+
+### `limit`
+
+-   **Type:** `number`
+-   **Mandatory:** No
+-   **Default:** `100`
+
+Maximum number of nodes to return. Use `0` for unlimited (not recommended for large pages).
+
+### `offset`
+
+-   **Type:** `number`
+-   **Mandatory:** No
+-   **Default:** `0`
+
+Number of nodes to skip for pagination.
+
+### `roles`
+
+-   **Type:** `string[]`
+-   **Mandatory:** No
+-   **Default:** All roles
+
+Filter to specific accessibility roles.
+
+**Common roles:** `button`, `link`, `textbox`, `checkbox`, `radio`, `heading`, `img`, `listitem`
+
+**Example:** Get only buttons and links:
+```
+Get accessibility tree filtered to button and link roles
+```
+
+### `namedOnly`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `true`
+
+Only return nodes that have a name/label. Filters out anonymous containers and reduces noise in the results.
+
+---
+
+## Screenshot Options
+
+Options for the `take_screenshot` tool.
+
+### `outputPath`
+
+-   **Type:** `string`
+-   **Mandatory:** No
+
+Path where to save the screenshot file. If not provided, returns base64-encoded image data.
+
+### Automatic Optimization
+
+Screenshots are automatically processed to optimize for LLM consumption:
+
+| Optimization | Value | Description |
+|--------------|-------|-------------|
+| Max dimension | 2000px | Images larger than 2000px are scaled down |
+| Max file size | 1MB | Images are compressed to stay under 1MB |
+| Format | PNG/JPEG | PNG with max compression; JPEG if needed for size |
+
+This optimization ensures screenshots can be efficiently processed without exceeding token limits.
+
 ---
 
 ## Session Behavior
@@ -323,8 +480,8 @@ The MCP server tracks session types to provide appropriate tools and behavior:
 | Type | Description | Auto-Detach |
 |------|-------------|-------------|
 | `browser` | Chrome browser session | No |
-| `ios` | iOS app session | Yes (if `noReset: true`) |
-| `android` | Android app session | Yes (if `noReset: true`) |
+| `ios` | iOS app session | Yes (if `noReset: true` or no `appPath`) |
+| `android` | Android app session | Yes (if `noReset: true` or no `appPath`) |
 
 ### Single-Session Model
 
@@ -346,18 +503,34 @@ The MCP server operates with a **single-session model**:
 
 ## Performance Considerations
 
+The MCP server is optimized for efficient LLM communication using **TOON (Token-Oriented Object Notation)** format, which minimizes token usage when sending data to Claude.
+
 ### Browser Automation
 
 -   **Headless mode** is faster but doesn't render visual elements
 -   **Smaller window sizes** reduce screenshot capture time
 -   **Element detection** is optimized with a single script execution
+-   **Screenshot optimization** keeps images under 1MB for efficient processing
+-   **`inViewportOnly: true`** (default) filters to only visible elements
 
 ### Mobile Automation
 
--   **XML page source parsing** uses only 2 HTTP calls (vs 600+ for element queries)
--   **Accessibility ID selectors** are fastest
--   **XPath selectors** are slowest, use sparingly
--   **`inViewportOnly: true`** reduces element count and improves performance
+-   **XML page source parsing** uses only 2 HTTP calls (vs 600+ for traditional element queries)
+-   **Accessibility ID selectors** are fastest and most reliable
+-   **XPath selectors** are slowest - use only as a last resort
+-   **`inViewportOnly: true`** (default) significantly reduces element count
+-   **Pagination** (`limit` and `offset`) reduces token usage for screens with many elements
+-   **`includeBounds: false`** (default) omits coordinate data unless needed
+
+### Token Usage Tips
+
+| Setting | Impact |
+|---------|--------|
+| `inViewportOnly: true` | Filters off-screen elements, reducing response size |
+| `includeContainers: false` | Excludes layout elements (ViewGroup, etc.) |
+| `includeBounds: false` | Omits x/y/width/height data |
+| `limit` with pagination | Process elements in batches instead of all at once |
+| `namedOnly: true` (accessibility) | Filters anonymous nodes |
 
 ---
 
@@ -427,3 +600,10 @@ curl http://localhost:4723/status
 2. **iOS:** Verify Xcode and simulators are available
 3. **Android:** Check `ANDROID_HOME` and emulator is running
 4. Review Appium server logs for detailed error messages
+
+### Session Timeouts
+
+If sessions are timing out during debugging:
+1. Increase `newCommandTimeout` when starting the session
+2. Use `noReset: true` to preserve state between sessions
+3. Use `detach: true` when closing to keep the app running
