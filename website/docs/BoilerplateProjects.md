@@ -37,6 +37,37 @@ Boilerplate project to run WebdriverIO tests on a minimal Electron application.
     - Mocha
 - Features
     - Electron API mocking
+ 
+## [syamphaneendra/webdriverio9-boilerplate](https://github.com/syamphaneendra/webdriverio9-boilerplate)
+
+This boilerplate project has WebdriverIO 9 mobile tests with Cucumber, TypeScript, and Appium for Android and iOS platforms, following the Page Object Model pattern. Features comprehensive logging, reporting, mobile gestures, app-to-web navigation, and CI/CD integration.
+
+- Frameworks:
+    - WebdriverIO v9
+    - Cucumber v9
+    - Appium v2.5
+    - TypeScript v5
+
+- Features:
+    - Multi-platform support
+      - Android (UiAutomator2)
+      - iOS (XCUITest)
+    - Mobile Gestures
+      - Scroll
+      - Swipe
+      - Long press
+      - Hide keyboard
+    - App-to-Web Navigation
+      - Context switching
+      - WebView support
+      - Browser automation (Chrome/Safari)
+    - Fresh App State
+      - Automatic app reset between scenarios
+      - Configurable reset behavior (noReset, fullReset)
+    - Device Configuration
+      - Centralized device management
+      - Easy platform switching
+    - Example of Directory Structure for JavaScript / TypeScript. Below is for JS version, TS version has smae structure as well.
 
 ## [amiya-pattnaik/wdio-testgen-from-gherkin-js](https://github.com/amiya-pattnaik/wdio-testgen-from-gherkin-js)
 ## [amiya-pattnaik/wdio-testgen-from-gherkin-ts](https://github.com/amiya-pattnaik/wdio-testgen-from-gherkin-ts)

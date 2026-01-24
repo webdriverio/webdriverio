@@ -121,4 +121,7 @@ e2e/wdio/headless/*.png
 website/i18n/*
 !website/i18n/en
 
+
 .pnpm-store
+
+e2e/wdio/wdio-chrome-*

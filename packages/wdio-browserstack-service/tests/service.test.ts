@@ -20,7 +20,7 @@ vi.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 vi.mock('uuid', () => ({ v4: () => '123456789' }))
 
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
-bstackLoggerSpy.mockImplementation(() => { })
+bstackLoggerSpy.mockImplementation(() => {})
 
 // Mock Listener to prevent hanging in after method
 vi.mock('../src/listener.js', () => ({
@@ -92,11 +92,9 @@ beforeEach(() => {
 
     vi.mocked(log.info).mockClear()
     vi.mocked(fetch).mockClear()
-    vi.mocked(fetch).mockReturnValue(Promise.resolve(Response.json({
-        automation_session: {
-            browser_url: 'https://www.browserstack.com/automate/builds/1/sessions/2'
-        }
-    })))
+    vi.mocked(fetch).mockReturnValue(Promise.resolve(Response.json({ automation_session: {
+        browser_url: 'https://www.browserstack.com/automate/builds/1/sessions/2'
+    } })))
 
     browser = {
         execute: vi.fn(),
@@ -185,7 +183,7 @@ describe('onReload()', () => {
         expect(updateSpy).toBeCalledTimes(0)
     })
 
-    it('should not reset suiteTitle', async () => {
+    it ('should not reset suiteTitle', async() => {
         const updateSpy = vi.spyOn(service, '_update')
         service['_browser'] = browser
         service['_failReasons'] = []
@@ -371,20 +369,18 @@ describe('_printSessionURL', () => {
 
 describe('_printSessionURL Appium', () => {
     beforeEach(() => {
-        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({
-            automation_session: {
-                name: 'Smoke Test',
-                duration: 65,
-                os: 'ios',
-                os_version: '12.1',
-                browser_version: 'app',
-                browser: null,
-                device: 'iPhone XS',
-                status: 'failed',
-                reason: 'CLIENT_STOPPED_SESSION',
-                browser_url: 'https://app-automate.browserstack.com/builds/1/sessions/2'
-            }
-        })))
+        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ automation_session: {
+            name: 'Smoke Test',
+            duration: 65,
+            os: 'ios',
+            os_version: '12.1',
+            browser_version: 'app',
+            browser: null,
+            device: 'iPhone XS',
+            status: 'failed',
+            reason: 'CLIENT_STOPPED_SESSION',
+            browser_url: 'https://app-automate.browserstack.com/builds/1/sessions/2'
+        } })))
 
         browser.capabilities = {
             device: 'iPhone XS',
@@ -1049,8 +1045,8 @@ describe('after', () => {
 
             // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
             // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
-            if (preferScenarioName && this._scenariosThatRan.length === 1) {
-                this._fullTitle = this._scenariosThatRan.pop()
+            if (preferScenarioName && this._scenariosRanCount === 1 && this._lastScenarioName){
+                this._fullTitle = this._lastScenarioName
             }
 
             if (setSessionStatus) {
@@ -1134,12 +1130,10 @@ describe('after', () => {
             })
         expect(fetch).toHaveBeenCalledWith(
             `${sessionBaseUrl}/${sessionId}.json`,
-            {
-                method: 'PUT', body: JSON.stringify({
-                    status: 'passed',
-                    name: 'foo - bar'
-                }), headers
-            })
+            { method: 'PUT', body: JSON.stringify({
+                status: 'passed',
+                name: 'foo - bar'
+            }), headers })
     })
 
     it('should call _update when session has errors (exit code 1)', async () => {
@@ -1158,13 +1152,11 @@ describe('after', () => {
             })
         expect(fetch).toHaveBeenCalledWith(
             `${sessionBaseUrl}/${sessionId}.json`,
-            {
-                method: 'PUT', body: JSON.stringify({
-                    status: 'failed',
-                    name: 'foo - bar',
-                    reason: 'I am failure'
-                }), headers
-            })
+            { method: 'PUT', body: JSON.stringify({
+                status: 'failed',
+                name: 'foo - bar',
+                reason: 'I am failure'
+            }), headers })
     })
 
     it('should call _update with failed when session has no errors (exit code 0) but no tests ran', async () => {
@@ -1184,13 +1176,11 @@ describe('after', () => {
             })
         expect(fetch).toHaveBeenCalledWith(
             `${sessionBaseUrl}/${sessionId}.json`,
-            {
-                method: 'PUT', body: JSON.stringify({
-                    status: 'failed',
-                    name: 'foo - bar',
-                    reason: ''
-                }), headers
-            })
+            { method: 'PUT', body: JSON.stringify({
+                status: 'failed',
+                name: 'foo - bar',
+                reason: ''
+            }), headers })
     })
 
     it('should not set session status if option setSessionStatus is false', async () => {
@@ -1238,17 +1228,17 @@ describe('after', () => {
             await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeFeature(null, { name: 'Feature1' })
 
-            await service.afterScenario({ pickle: { name: 'Can do something but pending 1' }, result: { status: 'PENDING' } as any })
-            await service.afterScenario({ pickle: { name: 'Can do something but pending 2' }, result: { status: 'PENDING' } as any })
-            await service.afterScenario({ pickle: { name: 'Can do something but pending 3' }, result: { status: 'PENDING' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending 1' },  result: { status: 'PENDING' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending 2' },  result: { status: 'PENDING' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending 3' },  result: { status: 'PENDING' } as any })
 
             await service.after(1)
 
             expect(updateSpy).toHaveBeenLastCalledWith(service['_browser']?.sessionId, {
                 name: 'Feature1',
                 reason: 'Some steps/hooks are pending for scenario "Can do something but pending 1"' + '\n' +
-                    'Some steps/hooks are pending for scenario "Can do something but pending 2"' + '\n' +
-                    'Some steps/hooks are pending for scenario "Can do something but pending 3"',
+                        'Some steps/hooks are pending for scenario "Can do something but pending 2"' + '\n' +
+                        'Some steps/hooks are pending for scenario "Can do something but pending 3"',
                 status: 'failed',
             })
             expect(updateSpy).toHaveBeenCalled()
@@ -1266,9 +1256,9 @@ describe('after', () => {
             await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeFeature(null, { name: 'Feature1' })
 
-            await service.afterScenario({ pickle: { name: 'Can do something' }, result: { status: 'PASSED' } as any })
-            await service.afterScenario({ pickle: { name: 'Can do something' }, result: { status: 'PENDING' } as any })
-            await service.afterScenario({ pickle: { name: 'Can do something' }, result: { status: 'PASSED' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something' },  result: { status: 'PASSED' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something' },  result: { status: 'PENDING' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something' },  result: { status: 'PASSED' } as any })
 
             await service.after(0)
 
@@ -1291,9 +1281,9 @@ describe('after', () => {
             await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeFeature(null, { name: 'Feature1' })
 
-            await service.afterScenario({ pickle: { name: 'Can do something 1' }, result: { status: 'PASSED' } as any })
-            await service.afterScenario({ pickle: { name: 'Can do something but pending' }, result: { status: 'PENDING' } as any })
-            await service.afterScenario({ pickle: { name: 'Can do something 2' }, result: { status: 'PASSED' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something 1' },  result: { status: 'PASSED' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending' },  result: { status: 'PENDING' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something 2' },  result: { status: 'PASSED' } as any })
 
             await service.after(1)
 
@@ -1314,9 +1304,9 @@ describe('after', () => {
             await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeFeature(null, { name: 'Feature1' })
 
-            await service.afterScenario({ pickle: { name: 'Can do something skipped 1' }, result: { status: 'SKIPPED' } as any })
-            await service.afterScenario({ pickle: { name: 'Can do something skipped 2' }, result: { status: 'SKIPPED' } as any })
-            await service.afterScenario({ pickle: { name: 'Can do something skipped 3' }, result: { status: 'SKIPPED' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something skipped 1' },  result: { status: 'SKIPPED' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something skipped 2' },  result: { status: 'SKIPPED' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something skipped 3' },  result: { status: 'SKIPPED' } as any })
 
             await service.after(0)
 
@@ -1344,9 +1334,9 @@ describe('after', () => {
                 name: 'Feature1'
             })
 
-            await service.afterScenario({ pickle: { name: 'Can do something failed 1' }, result: { message: 'I am error, hear me roar', status: 'FAILED' } as any })
-            await service.afterScenario({ pickle: { name: 'Can do something but pending 2' }, result: { status: 'PENDING' } as any })
-            await service.afterScenario({ pickle: { name: 'Can do something but passed 3' }, result: { status: 'SKIPPED' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something failed 1' },  result: { message: 'I am error, hear me roar', status: 'FAILED' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending 2' },  result: { status: 'PENDING' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something but passed 3' },  result: { status: 'SKIPPED' } as any })
 
             await service.after(1)
 
@@ -1355,9 +1345,9 @@ describe('after', () => {
                 service['_browser']?.sessionId, {
                     name: 'Feature1',
                     reason:
-                    'I am error, hear me roar' +
-                    '\n' +
-                    'Some steps/hooks are pending for scenario "Can do something but pending 2"',
+                        'I am error, hear me roar' +
+                        '\n' +
+                        'Some steps/hooks are pending for scenario "Can do something but pending 2"',
                     status: 'failed',
                 })
             expect(afterSpy).toHaveBeenCalledTimes(1)
@@ -1377,9 +1367,9 @@ describe('after', () => {
                 name: 'Feature1'
             })
 
-            await service.afterScenario({ pickle: { name: 'Can do something failed 1' }, result: { message: 'I am error, hear me roar', status: 'FAILED' } as any })
-            await service.afterScenario({ pickle: { name: 'Can do something but pending 2' }, result: { status: 'PENDING' } as any })
-            await service.afterScenario({ pickle: { name: 'Can do something but passed 3' }, result: { status: 'SKIPPED' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something failed 1' },  result: { message: 'I am error, hear me roar', status: 'FAILED' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending 2' },  result: { status: 'PENDING' } as any })
+            await service.afterScenario({ pickle: { name: 'Can do something but passed 3' },  result: { status: 'SKIPPED' } as any })
 
             await service.after(1)
 
@@ -1396,23 +1386,21 @@ describe('after', () => {
         describe('preferScenarioName', () => {
             describe('enabled', () => {
                 [
-                    {
-                        status: 'FAILED', body: {
-                            name: 'Can do something single',
-                            reason: 'Unknown Error',
-                            status: 'failed',
-                        }
-                    }
+                    { status: 'FAILED', body: {
+                        name: 'Can do something single',
+                        reason: 'Unknown Error',
+                        status: 'failed',
+                    } }
                     /*, 5, 4, 0*/
                 ].map(({ status, body }) =>
                     it(`should call _update /w status failed and name of Scenario when single "${status}" Scenario ran`, async () => {
-                        service = new BrowserstackService({ testObservability: false, preferScenarioName: true } as any, [] as any,
+                        service = new BrowserstackService({ testObservability: false, preferScenarioName : true, setSessionName: true, setSessionStatus: true } as any, [] as any,
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                         const browserWithExecuteScript = {
                             ...browser,
                             executeScript: browser.execute
                         } as WebdriverIO.Browser
-                        service.before({}, [], browserWithExecuteScript)
+                        await service.before({}, [], browserWithExecuteScript)
 
                         const updateSpy = vi.spyOn(service, '_update')
 
@@ -1425,13 +1413,13 @@ describe('after', () => {
                 )
 
                 it('should call _update /w status passed and name of Scenario when single "passed" Scenario ran', async () => {
-                    service = new BrowserstackService({ testObservability: false, preferScenarioName: true } as any, [] as any,
+                    service = new BrowserstackService({ testObservability: false, preferScenarioName : true, setSessionName: true, setSessionStatus: true } as any, [] as any,
                         { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                     const browserWithExecuteScript = {
                         ...browser,
                         executeScript: browser.execute
                     } as WebdriverIO.Browser
-                    service.before({}, [], browserWithExecuteScript)
+                    await service.before({}, [], browserWithExecuteScript)
 
                     const updateSpy = vi.spyOn(service, '_update')
 
@@ -1454,7 +1442,7 @@ describe('after', () => {
             describe('disabled', () => {
                 ['FAILED', 'AMBIGUOUS', 'UNDEFINED', 'UNKNOWN'].map(status =>
                     it(`should call _update /w status failed and name of Feature when single "${status}" Scenario ran`, async () => {
-                        service = new BrowserstackService({ testObservability: false, preferScenarioName: false } as any, [] as any,
+                        service = new BrowserstackService({ testObservability: false, preferScenarioName : false } as any, [] as any,
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                         const browserWithExecuteScript = {
                             ...browser,
@@ -1479,7 +1467,7 @@ describe('after', () => {
                 )
 
                 it('should call _update /w status passed and name of Feature when single "passed" Scenario ran', async () => {
-                    service = new BrowserstackService({ testObservability: false, preferScenarioName: false } as any, [] as any,
+                    service = new BrowserstackService({ testObservability: false, preferScenarioName : false } as any, [] as any,
                         { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                     const browserWithExecuteScript = {
                         ...browser,
@@ -1554,9 +1542,9 @@ describe('setAnnotation', () => {
             }
             await service.beforeStep(step)
             expect(browser.execute).toBeCalledTimes(3)
-            expect(browser.execute).toHaveBeenNthCalledWith(1, expect.any(Function), { 'action': 'annotate', 'arguments': { 'data': 'Feature: Feature1', 'level': 'info' } })
-            expect(browser.execute).toHaveBeenNthCalledWith(2, expect.any(Function), { 'action': 'annotate', 'arguments': { 'data': 'Scenario: foobar', 'level': 'info' } })
-            expect(browser.execute).toHaveBeenNthCalledWith(3, expect.any(Function), { 'action': 'annotate', 'arguments': { 'data': 'Step: Given I am a step', 'level': 'info' } })
+            expect(browserWithExecuteScript.executeScript).toHaveBeenNthCalledWith(1, 'browserstack_executor: {"action":"annotate","arguments":{"data":"Feature: Feature1","level":"info"}}', [])
+            expect(browserWithExecuteScript.executeScript).toHaveBeenNthCalledWith(2, 'browserstack_executor: {"action":"annotate","arguments":{"data":"Scenario: foobar","level":"info"}}', [])
+            expect(browserWithExecuteScript.executeScript).toHaveBeenNthCalledWith(3, 'browserstack_executor: {"action":"annotate","arguments":{"data":"Step: Given I am a step","level":"info"}}', [])
         })
     })
 
@@ -1570,7 +1558,7 @@ describe('setAnnotation', () => {
             await service.beforeSuite({ title: jasmineSuiteTitle } as any)
             await service.beforeTest({ fullName: 'foo bar baz', description: 'baz' } as any)
             expect(browser.execute).toBeCalledTimes(1)
-            expect(browser.execute).toBeCalledWith(expect.any(Function), { 'action': 'annotate', 'arguments': { 'data': 'Test: foo bar baz', 'level': 'info' } })
+            expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Test: foo bar baz","level":"info"}}', [])
         })
     })
 
@@ -1584,7 +1572,7 @@ describe('setAnnotation', () => {
             await service.beforeSuite({ title: 'My Feature' } as any)
             await service.beforeTest({ title: 'Test Title', parent: 'Suite Title' } as any)
             expect(browser.execute).toBeCalledTimes(1)
-            expect(browser.execute).toBeCalledWith(expect.any(Function), { 'action': 'annotate', 'arguments': { 'data': 'Test: Test Title', 'level': 'info' } })
+            expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Test: Test Title","level":"info"}}', [])
         })
     })
 })
