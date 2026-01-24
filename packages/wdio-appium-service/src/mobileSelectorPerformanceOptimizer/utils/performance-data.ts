@@ -1,5 +1,5 @@
 import type { TestContext, SelectorPerformanceData, CommandTiming } from '../types.js'
-import { addPerformanceData } from '../mspo-store.js'
+import { addPerformanceData, getCurrentDeviceName } from '../mspo-store.js'
 
 /**
  * Creates optimized selector performance data object.
@@ -24,6 +24,7 @@ export function createOptimizedSelectorData(
         selectorType: 'xpath',
         duration: originalDuration,
         timestamp: Date.now(),
+        deviceName: getCurrentDeviceName(),
         optimizedSelector: optimizedSelector,
         optimizedDuration: optimizedDuration,
         improvementMs: timeDifference,
@@ -47,7 +48,8 @@ export function storePerformanceData(
         selector: timing.selector,
         selectorType: timing.selectorType!,
         duration,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        deviceName: getCurrentDeviceName()
     }
 
     addPerformanceData(data)
