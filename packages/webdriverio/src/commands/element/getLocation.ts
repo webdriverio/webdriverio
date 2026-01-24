@@ -36,15 +36,12 @@ export async function getLocation (
     this: WebdriverIO.Element,
     prop?: keyof Location
 ): Promise<Location | number> {
-    let location: Partial<RectReturn> = {}
-
-    location = await getElementRect(this)
-    delete location.width
-    delete location.height
+    const  { x, y } = await getElementRect(this)
+    const location = { x, y }
 
     if (prop === 'x' || prop === 'y') {
-        return location[prop] as number
+        return location[prop] satisfies number
     }
 
-    return location as Location
+    return location satisfies Location
 }
