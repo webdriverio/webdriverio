@@ -1,349 +1,50 @@
-import { builtinModules } from 'node:module'
+import { builtinModules, createRequire } from 'node:module'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { Plugin } from 'esbuild'
 
 /**
  * Browser Polyfills Plugin for WebdriverIO
  *
  * Implements a two-category approach to Node.js compatibility:
- * 1. REAL POLYFILLS: Provide compatible implementations (process, buffer, events)
+ * 1. REAL POLYFILLS: Use NPM packages (events, path-browserify) or custom implementations
  * 2. HARD ERROR MOCKS: Throw descriptive errors (fs, child_process, etc.)
  *
  * @see https://github.com/webdriverio/webdriverio/issues/14598
  */
 
-/**
- * Category A: Modules that get REAL polyfills with compatible implementations
- */
-const POLYFILLED_BUILTINS: Record<string, string> = {
-    'process': `
-        // Minimal process polyfill for browser
-        export const env = {};
-        export const platform = 'browser';
-        export const version = '';
-        export const versions = {};
-        export const cwd = () => '/';
-        export const nextTick = (fn, ...args) => setTimeout(() => fn(...args), 0);
-        export const stdout = { write: () => {} };
-        export const stderr = { write: () => {} };
-        export default { env, platform, version, versions, cwd, nextTick, stdout, stderr };
-    `,
-    'buffer': `
-        // Buffer polyfill - implementation for WebdriverIO needs
-        class BufferPolyfill extends Uint8Array {
-            static from(data, encoding) {
-                if (typeof data === 'string') {
-                    if (encoding === 'base64') {
-                        const binary = atob(data);
-                        const bytes = new Uint8Array(binary.length);
-                        for (let i = 0; i < binary.length; i++) {
-                            bytes[i] = binary.charCodeAt(i);
-                        }
-                        return new BufferPolyfill(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-                    }
-                    if (encoding === 'hex') {
-                        const bytes = new Uint8Array(data.length / 2);
-                        for (let i = 0; i < bytes.length; i++) {
-                            bytes[i] = parseInt(data.substring(i * 2, i * 2 + 2), 16);
-                        }
-                        return new BufferPolyfill(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-                    }
-                    // Default: UTF-8 encoding
-                    const bytes = new TextEncoder().encode(data);
-                    return new BufferPolyfill(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-                }
-                const bytes = new Uint8Array(data);
-                return new BufferPolyfill(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-            }
-            static alloc(size) {
-                return new BufferPolyfill(size);
-            }
-            static isBuffer(obj) {
-                return obj instanceof Uint8Array;
-            }
-            static concat(list) {
-                const totalLength = list.reduce((acc, arr) => acc + arr.length, 0);
-                const result = new Uint8Array(totalLength);
-                let offset = 0;
-                for (const arr of list) {
-                    result.set(arr, offset);
-                    offset += arr.length;
-                }
-                return new BufferPolyfill(result.buffer, result.byteOffset, result.byteLength);
-            }
-            static toString(buf, encoding) {
-                if (encoding === 'base64') {
-                    let binary = '';
-                    for (let i = 0; i < buf.length; i++) {
-                        binary += String.fromCharCode(buf[i]);
-                    }
-                    return btoa(binary);
-                }
-                if (encoding === 'hex') {
-                    let hex = '';
-                    for (let i = 0; i < buf.length; i++) {
-                        const b = buf[i];
-                        hex += (b < 16 ? '0' : '') + b.toString(16);
-                    }
-                    return hex;
-                }
-                return new TextDecoder().decode(buf);
-            }
-            toString(encoding) {
-                return BufferPolyfill.toString(this, encoding);
-            }
-        }
-        export const Buffer = BufferPolyfill;
-        export default { Buffer: BufferPolyfill };
-    `,
-    'events': `
-        // EventEmitter polyfill for browser
-        class EventEmitter {
-            constructor() {
-                this._events = {};
-                this._maxListeners = 10;
-            }
-            on(event, listener) {
-                if (!this._events[event]) this._events[event] = [];
-                this._events[event].push(listener);
-                return this;
-            }
-            once(event, listener) {
-                const onceWrapper = (...args) => {
-                    this.off(event, onceWrapper);
-                    listener.apply(this, args);
-                };
-                onceWrapper.listener = listener;
-                return this.on(event, onceWrapper);
-            }
-            off(event, listener) {
-                if (!this._events[event]) return this;
-                this._events[event] = this._events[event].filter(
-                    l => l !== listener && l.listener !== listener
-                );
-                return this;
-            }
-            removeListener(event, listener) {
-                return this.off(event, listener);
-            }
-            removeAllListeners(event) {
-                if (event) {
-                    delete this._events[event];
-                } else {
-                    this._events = {};
-                }
-                return this;
-            }
-            emit(event, ...args) {
-                if (!this._events[event]) return false;
-                this._events[event].forEach(listener => listener.apply(this, args));
-                return true;
-            }
-            listeners(event) {
-                return this._events[event] || [];
-            }
-            listenerCount(event) {
-                return (this._events[event] || []).length;
-            }
-            setMaxListeners(n) {
-                this._maxListeners = n;
-                return this;
-            }
-            getMaxListeners() {
-                return this._maxListeners;
-            }
-            addListener(event, listener) {
-                return this.on(event, listener);
-            }
-            prependListener(event, listener) {
-                if (!this._events[event]) this._events[event] = [];
-                this._events[event].unshift(listener);
-                return this;
-            }
-        }
-        export { EventEmitter };
-        export default EventEmitter;
-    `,
-    'util': `
-        // Minimal util polyfill
-        export const promisify = (fn) => (...args) => new Promise((resolve, reject) => {
-            fn(...args, (err, result) => err ? reject(err) : resolve(result));
-        });
-        export const deprecate = (fn) => fn;
-        export const inherits = (ctor, superCtor) => {
-            ctor.super_ = superCtor;
-            Object.setPrototypeOf(ctor.prototype, superCtor.prototype);
-        };
-        export const format = (...args) => args.join(' ');
-        export const inspect = (obj) => JSON.stringify(obj, null, 2);
-        export default { promisify, deprecate, inherits, format, inspect };
-    `,
-    'url': `
-        // URL module - use native browser URL
-        export const URL = globalThis.URL;
-        export const URLSearchParams = globalThis.URLSearchParams;
-        export const fileURLToPath = (url) => {
-            if (typeof url === 'string') {
-                return url.replace('file://', '');
-            }
-            return url.pathname;
-        };
-        export const pathToFileURL = (path) => new URL('file://' + path);
-        export default { URL, URLSearchParams, fileURLToPath, pathToFileURL };
-    `,
-    'path': `
-        // Path polyfill for browser (CommonJS for compatibility with all loaders)
-        var sep = '/';
-        var delimiter = ':';
-        
-        var splitPath = function(filename) {
-            return filename.split(new RegExp('/+')).filter(function(p) { return !!p; });
-        };
-        
-        var normalizeArray = function(parts, allowAboveRoot) {
-            var up = 0;
-            for (var i = parts.length - 1; i >= 0; i--) {
-                var last = parts[i];
-                if (last === '.') {
-                    parts.splice(i, 1);
-                } else if (last === '..') {
-                    parts.splice(i, 1);
-                    up++;
-                } else if (up) {
-                    parts.splice(i, 1);
-                    up--;
-                }
-            }
-            if (allowAboveRoot) {
-                for (; up--; up) {
-                    parts.unshift('..');
-                }
-            }
-            return parts;
-        };
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const polyfillsDir = join(__dirname, '..', 'polyfills')
 
-        var resolve = function() {
-            var resolvedPath = '';
-            var resolvedAbsolute = false;
-            
-            for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-                var path = (i >= 0) ? arguments[i] : '/';
-                
-                // Skip non-string arguments
-                if (typeof path !== 'string') {
-                    throw new TypeError('Path must be a string. Received ' + JSON.stringify(path));
-                } else if (path.length === 0) {
-                    continue;
-                }
-                
-                resolvedPath = path + '/' + resolvedPath;
-                resolvedAbsolute = path.charAt(0) === '/';
-            }
-            
-            // At this point the path should be resolved to a full absolute path, but
-            // handle relative paths to be safe (though in browser we force root)
-            resolvedPath = normalizeArray(splitPath(resolvedPath), !resolvedAbsolute).join('/');
-            
-            return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
-        };
-        
-        var normalize = function(path) {
-            var isAbsolute = path.charAt(0) === '/';
-            var trailingSlash = path && path[path.length - 1] === '/';
-            
-            path = normalizeArray(splitPath(path), !isAbsolute).join('/');
-            
-            if (!path && !isAbsolute) {
-                path = '.';
-            }
-            if (path && trailingSlash) {
-                path += '/';
-            }
-            
-            return (isAbsolute ? '/' : '') + path;
-        };
-        
-        var isAbsolute = function(path) {
-            return path.charAt(0) === '/';
-        };
-        
-        var join = function() {
-            var paths = [];
-            for (var i = 0; i < arguments.length; i++) {
-                var arg = arguments[i];
-                if (typeof arg !== 'string') {
-                    throw new TypeError('Args must be strings');
-                }
-                if (arg) {
-                    paths.push(arg);
-                }
-            }
-            return normalize(paths.join('/'));
-        };
-        
-        var relative = function(from, to) {
-            from = resolve(from).substr(1);
-            to = resolve(to).substr(1);
-            
-            var fromParts = splitPath(from);
-            var toParts = splitPath(to);
-            
-            var length = Math.min(fromParts.length, toParts.length);
-            var samePartsLength = length;
-            for (var i = 0; i < length; i++) {
-                if (fromParts[i] !== toParts[i]) {
-                    samePartsLength = i;
-                    break;
-                }
-            }
-            
-            var outputParts = [];
-            for (var i = samePartsLength; i < fromParts.length; i++) {
-                outputParts.push('..');
-            }
-            
-            outputParts = outputParts.concat(toParts.slice(samePartsLength));
-            
-            return outputParts.join('/');
-        };
-        
-        var dirname = function(path) {
-            var result = resolve(path).replace(new RegExp('/[^/]*$'), '');
-            return result === '' ? '/' : result;
-        };
-        
-        var basename = function(path, ext) {
-           var f = splitPath(path).pop() || '';
-           if (ext && f.substr(-1 * ext.length) === ext) {
-               f = f.substr(0, f.length - ext.length);
-           }
-           return f;
-        };
-        
-        var extname = function(path) {
-            var f = basename(path);
-            var i = f.lastIndexOf('.');
-            if (i === -1 || i === 0) return '';
-            return f.substr(i);
-        };
-        
-        var parse = function(path) {
-            var ret = { root: '', dir: '', base: '', ext: '', name: '' };
-            if (path.length === 0) return ret;
-            var isAbsolute = path.charCodeAt(0) === 47; /* / */
-            if (isAbsolute) {
-                ret.root = '/';
-            }
-            ret.base = basename(path);
-            ret.ext = extname(ret.base);
-            ret.name = ret.base.slice(0, ret.base.length - ret.ext.length);
-            ret.dir = dirname(path);
-            return ret;
-        };
-        
-        var posix = { sep, delimiter, resolve, normalize, isAbsolute, join, relative, dirname, basename, extname, parse };
-        
-        module.exports = { sep, delimiter, resolve, normalize, isAbsolute, join, relative, dirname, basename, extname, parse, posix, default: posix };
-    `
+// Create require function for ESM to resolve NPM packages
+const require = createRequire(import.meta.url)
+
+/**
+ * Load polyfill content from a file
+ */
+function loadPolyfill(filename: string): string {
+    return readFileSync(join(polyfillsDir, filename), 'utf-8')
+}
+
+/**
+ * Category A: Modules that get REAL polyfills
+ * - events and path use NPM packages (resolved by esbuild)
+ * - others use custom implementations loaded from files
+ */
+const POLYFILLED_BUILTINS_FROM_FILES: Record<string, string> = {
+    'process': 'process.js',
+    'buffer': 'buffer.js',
+    'util': 'util.js',
+    'url': 'url.js'
+}
+
+/**
+ * Modules that should be resolved to NPM packages
+ */
+const NPM_POLYFILL_PACKAGES: Record<string, string> = {
+    'events': 'events',
+    'path': 'path-browserify'
 }
 
 /**
@@ -389,7 +90,7 @@ const MOCKED_PACKAGES = [
     'ws'
 ]
 
-export { POLYFILLED_BUILTINS, HARD_ERROR_BUILTINS, MOCKED_PACKAGES }
+export { POLYFILLED_BUILTINS_FROM_FILES, NPM_POLYFILL_PACKAGES, HARD_ERROR_BUILTINS, MOCKED_PACKAGES }
 
 /**
  * Creates an esbuild plugin for browser builds with proper polyfill strategy.
@@ -412,14 +113,38 @@ export function browserPolyfills(): Plugin {
                 return
             }
 
-            // Handle Node.js built-in modules
-            build.onResolve({ filter: /^(node:)?[a-z_-]+(\/.*)?$/ }, (args) => {
+            // Handle Node.js built-in modules (includes digits for http2, v8, etc.)
+            build.onResolve({ filter: /^(node:)?[a-z0-9_-]+(\/.*)?$/ }, (args) => {
                 const moduleName = args.path.replace(/^node:/, '').split('/')[0]
+                const subpath = args.path.replace(/^node:/, '').includes('/')
+                    ? args.path.replace(/^node:/, '').split('/').slice(1).join('/')
+                    : null
 
-                // Check if this builtin has a polyfill
-                if (moduleName in POLYFILLED_BUILTINS) {
+                // Check if this should use an NPM package
+                if (moduleName in NPM_POLYFILL_PACKAGES) {
+                    const packageName = NPM_POLYFILL_PACKAGES[moduleName]
+                    try {
+                        return {
+                            path: require.resolve(packageName),
+                            external: false
+                        }
+                    } catch (err) {
+                        const error = err as NodeJS.ErrnoException
+                        if (error.code === 'MODULE_NOT_FOUND') {
+                            throw new Error(
+                                `Failed to resolve polyfill package "${packageName}" for module "${moduleName}". ` +
+                                `Please install it: pnpm add ${packageName}`
+                            )
+                        }
+                        throw err
+                    }
+                }
+
+                // Check if this builtin has a file-based polyfill
+                // Also route subpaths to the same namespace (e.g., 'util/types' -> wdio-polyfill)
+                if (moduleName in POLYFILLED_BUILTINS_FROM_FILES) {
                     return {
-                        path: `wdio-polyfill-${moduleName}`,
+                        path: subpath ? `wdio-polyfill-${moduleName}/${subpath}` : `wdio-polyfill-${moduleName}`,
                         namespace: 'wdio-polyfill'
                     }
                 }
@@ -451,19 +176,30 @@ export function browserPolyfills(): Plugin {
                 return null
             })
 
-            // Load real polyfills
+            // Load polyfills from files
             build.onLoad({ filter: /.*/, namespace: 'wdio-polyfill' }, (args) => {
                 const moduleName = args.path.replace('wdio-polyfill-', '')
-                const polyfill = POLYFILLED_BUILTINS[moduleName]
+                // Extract base module for subpath imports (e.g., 'util/types' -> 'util')
+                const baseModule = moduleName.split('/')[0]
+                const filename = POLYFILLED_BUILTINS_FROM_FILES[baseModule]
 
-                if (polyfill) {
-                    return {
-                        contents: polyfill,
-                        loader: 'ts'
+                if (filename) {
+                    try {
+                        const contents = loadPolyfill(filename)
+                        return {
+                            contents,
+                            loader: 'js'
+                        }
+                    } catch (err) {
+                        return {
+                            errors: [{
+                                text: `Failed to load polyfill for ${moduleName}: ${err}`
+                            }]
+                        }
                     }
                 }
 
-                // Fallback for subpaths
+                // Fallback for subpaths without a polyfill file
                 return {
                     contents: 'export default {};',
                     loader: 'js'

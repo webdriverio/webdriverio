@@ -30,7 +30,7 @@ You can also use an [Import Map](https://developer.mozilla.org/en-US/docs/Web/HT
 <script type="importmap">
 {
     "imports": {
-        "webdriverio": "/node_modules/.vite/deps/webdriverio.js"
+        "webdriverio": "/node_modules/webdriverio/build/index.js"
     }
 }
 </script>

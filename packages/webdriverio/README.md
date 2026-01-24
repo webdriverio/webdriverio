@@ -43,7 +43,7 @@ For more information on [options](https://webdriver.io/docs/options#webdriver-op
 
 ## Browser Build
 
-WebdriverIO provides a standalone browser build that allows you to run automation scripts directly in the browser (e.g. for AI sandboxes or debugging). This build includes necessary polyfills for Node.js globals like `buffer` and `process`.
+WebdriverIO provides a standalone browser build that allows you to run automation scripts directly in the browser (e.g. for AI sandboxes or debugging). This build includes necessary polyfills for Node.js globals like `process`, `buffer`, `events`, `path`, `url`, and `util`.
 
 Bundlers like **Vite** can resolve WebdriverIO to this browser-compatible build via the `exports.browser` condition when targeting the browser environment.
 
@@ -59,6 +59,7 @@ const browser = await remote({
 
 **Note:** Node.js-specific modules like `fs` or `child_process` are not available in the browser build. Attempting to use methods that rely on them will throw a descriptive error.
 
+See the [Browser Build documentation](https://webdriver.io/docs/BrowserBuild) for more details on installation, polyfills, and usage examples.
 
 ---
 
