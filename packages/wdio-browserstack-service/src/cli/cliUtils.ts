@@ -466,6 +466,26 @@ export class CLIUtils {
     }
 
     /**
+     * Generate a unique client worker identifier combining thread ID and process ID.
+     * This identifier is used to track worker-specific events and performance metrics
+     * across distributed test execution. Format matches the Python SDK implementation
+     * for consistency across SDKs.
+     *
+     * Format: "threadId-processId"
+     *
+     * @param context - Optional execution context with threadId and processId
+     * @returns Worker ID string in format "threadId-processId"
+     * @example
+     * const workerId = CLIUtils.getClientWorkerId() // Returns "1-12345"
+     * const workerId = CLIUtils.getClientWorkerId({ threadId: 123, processId: 456 }) // Returns "123-456"
+     */
+    static getClientWorkerId(context?: { threadId?: string | number; processId?: string | number }): string {
+        const workerThreadId = context?.threadId?.toString() || threadId.toString()
+        const workerProcessId = context?.processId?.toString() || process.pid.toString()
+        return `${workerThreadId}-${workerProcessId}`
+    }
+
+    /**
      *
      * @param {TestFrameworkState | AutomationFrameworkState} frameworkState
      * @param {HookState} hookState

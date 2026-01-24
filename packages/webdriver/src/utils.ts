@@ -119,7 +119,6 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
             if (alwaysVal === undefined) {
                 continue
             }
-
             const hasConflict = capabilities.firstMatch.some((match) =>
                 (key in match) && !deepEqual((match as Record<string, unknown>)[key], alwaysVal)
             )
