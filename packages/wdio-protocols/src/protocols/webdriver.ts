@@ -328,7 +328,7 @@ export default {
                 },
                 {
                     name: 'pageRanges',
-                    type: 'object[]',
+                    type: '(string|number)[]',
                     description: 'page ranges. Default `[]`',
                     required: false,
                 },
@@ -693,7 +693,7 @@ export default {
             command: 'getElementShadowRoot',
             description:
                 'Get the shadow root object of an element. The result object can be used to fetch elements within this shadow root using e.g. findElementFromShadowRoots or findElementsFromShadowRoots.',
-            ref: 'https://w3c.github.io/webdriver/#dfn-get-active-element',
+            ref: 'https://w3c.github.io/webdriver/#get-element-shadow-root',
             variables: [
                 {
                     name: 'elementId',
@@ -703,7 +703,7 @@ export default {
             ],
             parameters: [],
             returns: {
-                type: 'string',
+                type: 'object',
                 name: 'shadowRoot',
                 description:
                     "A JSON representation of an element shadow root, e.g. `{ 'shadow-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`.",
@@ -720,7 +720,7 @@ export default {
             ref: 'https://w3c.github.io/webdriver/#dfn-get-active-element',
             parameters: [],
             returns: {
-                type: 'string',
+                type: 'object',
                 name: 'element',
                 description:
                     "A JSON representation of an element object, e.g. `{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`.",
@@ -793,7 +793,7 @@ export default {
             ],
             parameters: [],
             returns: {
-                type: 'string',
+                type: '(string|null)',
                 name: 'attribute',
                 description: 'The named attribute of the element.',
             },
@@ -820,10 +820,9 @@ export default {
             ],
             parameters: [],
             returns: {
-                type: 'string',
+                type: 'unknown',
                 name: 'property',
-                description:
-                    'The named property of the element, accessed by calling GetOwnProperty on the element object.',
+                description: 'The value of the named own property of the element.',
             },
             alternativeCommands: ['element/getProperty'],
             exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/api/webdriver/examples.js#L347-L349']
@@ -1268,14 +1267,7 @@ export default {
                         'the id of an element returned in a previous call to Find Element(s)',
                 },
             ],
-            parameters: [
-                {
-                    name: 'scroll',
-                    type: 'boolean',
-                    description: 'scroll into view the element. Default: true',
-                    required: false,
-                },
-            ],
+            parameters: [],
             returns: {
                 type: 'string',
                 name: 'screenshot',
@@ -1402,23 +1394,32 @@ export default {
             ref: 'https://w3c.github.io/sensors/#create-mock-sensor-command',
             parameters: [
                 {
-                    name: 'mockSensorType',
+                    name: 'type',
                     type: 'string',
                     description:
                         "Type of sensor API to mock, e.g. 'ambient-light'",
                     required: true,
                 },
                 {
+                    name: 'connected',
+                    type: 'boolean',
+                    description:
+                        'A flag indicating whether the mock sensor is connected.',
+                    required: false,
+                },
+                {
                     name: 'maxSamplingFrequency',
                     type: 'number',
                     description:
                         'A double representing frequency in Hz that is used to set maximum supported sampling frequency for the associated mock sensor.',
+                    required: false,
                 },
                 {
                     name: 'minSamplingFrequency',
                     type: 'number',
                     description:
                         'A double representing frequency in Hz that is used to set minimum supported sampling frequency for the associated mock sensor.',
+                    required: false,
                 },
             ],
         },
@@ -1456,23 +1457,10 @@ export default {
             ],
             parameters: [
                 {
-                    name: 'mockSensorType',
-                    type: 'string',
-                    description:
-                        "Type of sensor API to mock, e.g. 'ambient-light'",
+                    name: 'reading',
+                    type: 'object',
+                    description: 'A JSON Object with the new reading.',
                     required: true,
-                },
-                {
-                    name: 'maxSamplingFrequency',
-                    type: 'number',
-                    description:
-                        'A double representing frequency in Hz that is used to set maximum supported sampling frequency for the associated mock sensor.',
-                },
-                {
-                    name: 'minSamplingFrequency',
-                    type: 'number',
-                    description:
-                        'A double representing frequency in Hz that is used to set minimum supported sampling frequency for the associated mock sensor.',
                 },
             ],
         },
@@ -1495,7 +1483,7 @@ export default {
             command: 'setTimeZone',
             description:
                 'Simulates the changing of a time zone for the purposes of testing. __Note:__ this feature has not landed in all browsers yet.',
-            ref: 'https://w3c.github.io/sensors/#create-mock-sensor-command',
+            ref: 'https://w3c.github.io/webdriver-bidi/#command-emulation-setTimezoneOverride',
             parameters: [
                 {
                     name: 'time_zone',
