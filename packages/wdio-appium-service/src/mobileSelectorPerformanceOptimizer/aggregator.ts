@@ -722,8 +722,8 @@ function generateGroupedSummaryReport(
     write(`${REPORT_INDENT_SUMMARY}Average Improvement per Selector: ${avgImprovement.toFixed(1)}% faster\n`)
     write('\n')
 
-    // Executive Summary
-    write('📈 Executive Summary\n')
+    // Summary
+    write('📈 Summary\n')
     write('───────────────────────────────────────────────────────────────────────────────\n')
     if (highImpact.length > 0) {
         write(`${REPORT_INDENT_SUMMARY}🔴 High (>50% gain):      ${String(highImpact.length).padStart(3)} → Fix immediately\n`)
