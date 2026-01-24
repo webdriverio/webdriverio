@@ -493,6 +493,68 @@ export const config = {
 }
 ```
 
+### Using with Cloud Services (BrowserStack, Sauce Labs, etc.)
+
+The Mobile Selector Performance Optimizer works independently of the local Appium server. This means you can use it with cloud-based testing services like BrowserStack, Sauce Labs, or any other Appium cloud provider.
+
+When cloud capabilities are detected, the `@wdio/appium-service` automatically skips starting a local Appium server (since the cloud provider manages Appium for you), but the MSPO feature continues to work normally. It hooks into WebdriverIO's command lifecycle to track selector performance, regardless of where the Appium server is running.
+
+**Example configuration with BrowserStack:**
+
+```js
+// wdio.conf.js
+export const config = {
+    // ...
+    services: [
+        ['browserstack', {
+            // BrowserStack service options
+        }],
+        ['appium', {
+            // No need to configure Appium server options - it won't start locally
+            // Just configure the MSPO feature:
+            trackSelectorPerformance: {
+                enabled: true,
+                enableCliReport: true,
+                enableMarkdownReport: true,
+                reportPath: './reports/selector-performance'
+            }
+        }]
+    ],
+    // ...
+};
+```
+
+**Example configuration with Sauce Labs:**
+
+```js
+// wdio.conf.js
+export const config = {
+    // ...
+    services: [
+        ['sauce', {
+            // Sauce Labs service options
+        }],
+        ['appium', {
+            trackSelectorPerformance: {
+                enabled: true,
+                enableCliReport: true,
+                enableMarkdownReport: true,
+                reportPath: './reports/selector-performance'
+            }
+        }]
+    ],
+    // ...
+};
+```
+
+**What happens:**
+- The Appium launcher detects cloud capabilities and logs: `Could not identify any capability that indicates a local Appium session, skipping Appium launch`
+- MSPO tracks all selector performance during test execution on the cloud device
+- Each worker writes its performance data locally
+- After all tests complete, the aggregator combines data from all workers and generates the final report
+
+**Expected output:** The same comprehensive performance report (JSON, CLI, and/or Markdown) is generated locally, containing all selector performance data collected from your cloud-based iOS test runs. See the [Report Output](#report-output) section for sample output.
+
 ### Logging
 
 The Mobile Selector Performance Optimizer logs via `@wdio/logger` with the namespace `@wdio/appium-service:selector-optimizer`. This means that all output respects WebdriverIO `logLevel` and per-logger overrides.
@@ -615,133 +677,266 @@ The report is saved as a JSON file in the specified `reportPath` (or default loc
 <summary>Click to expand sample terminal report output</summary>
 
 ```
- "Mobile Selector Performance Optimizer" Reporter:
+═══════════════════════════════════════════════════════════════════════════════
+📊 Mobile Selector Performance Optimizer Report
+═══════════════════════════════════════════════════════════════════════════════
 
-═══════════════════════════════════════════════════════════════════════════════
-📊 Mobile Selector Performance: Summary Report
-═══════════════════════════════════════════════════════════════════════════════
    Device: iPhone 16 Pro
-   Total selectors analyzed: 20
-   Positive optimizations found: 19
-   Average improvement: 31.3% faster
-   Total time saved: 1359.45ms (1.36s) per test run
-   Impact breakdown: 1 high (>50%), 15 medium (20-50%), 1 low (10-20%), 1 minor (<10%)
+   Run Time: 07:46:00 → 07:53:15 (7m 14s)
+   Analyzed: 67 unique selectors (50 optimizable, 17 not recommended)
+   Total Potential Savings: 10.98s per test run (2.5% of total run time)
+   Average Improvement per Selector: 30.3% faster
 
-🏆 Top 10 Most Impactful Optimizations
-───────────────────────────────────────────────────────────────────────────
-   1. $('//*[@name="Home"]') → $("~Home") (56.0% faster, 60.87ms saved) ⚠️ (shared)
-      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
-   2. $('//*[@name="OK"]') → $("~OK") (29.7% faster, 33.76ms saved)
-   3. $('//*[@name="Swipe-screen"]') → $("~Swipe-screen") (25.0% faster, 32.25ms saved)
-      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/SwipeScreen.ts:2
-   4. $('//*[@name="Drag-drop-screen"]') → $("~Drag-drop-screen") (27.4% faster, 27.04ms saved)
-      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/DragScreen.ts:5
-   5. $('//*[@name="Forms-screen"]') → $("~Forms-screen") (25.7% faster, 25.98ms saved)
-      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/FormsScreen.ts:4
-   6. $('//XCUIElementTypeAlert') → $("-ios predicate string:type == 'XCUIElementTypeAlert'") (20.4%
-      faster, 22.97ms saved) ⚠️ (shared)
-      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/NativeAlert.ts:8
-   7. $('//*[@name="button-biometric"]') → $("~button-biometric") (26.6% faster, 22.77ms saved) ⚠️
-      (shared)
-      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:20
-   8. $('//*[@name="Login-screen"]') → $("~Login-screen") (23.4% faster, 21.28ms saved) ⚠️ (shared)
-      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:4
-   9. $('//*[@name="Login"]') → $("~Login") (29.9% faster, 19.65ms saved)
-      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:11
-   10. $('//*[@name="Home-screen"]') → $("~Home-screen") (25.5% faster, 17.60ms saved)
-      📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/HomeScreen.ts:5
+📈 Summary
+───────────────────────────────────────────────────────────────────────────────
+   🔴 High (>50% gain):        2 → Fix immediately
+   🟠 Medium (20-50% gain):   47 → Recommended
+   🟡 Low (10-20% gain):       1 → Minor optimization
+   ⚠️  Slower in Testing:     17 → See warnings below
 
-⚡ Quick Wins (Shared Selectors with High Impact)
-───────────────────────────────────────────────────────────────────────────
-   These selectors appear in multiple tests and have high improvement. Fix once, benefit everywhere!
-   • $('//*[@name="Home"]') → $("~Home") (56.0% faster, appears in 7 test(s))
-     📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
-   • $('//*[@name="button-biometric"]') → $("~button-biometric") (26.6% faster, appears in 2
-     test(s))
-     📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:20
-   • $('//*[@name="Login-screen"]') → $("~Login-screen") (22.4% faster, appears in 2 test(s))
-     📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:4
+🎯 File-Based Fixes
+───────────────────────────────────────────────────────────────────────────────
+   Update these specific lines for immediate impact:
 
-📋 All Actions Required - Grouped by Test
-───────────────────────────────────────────────────────────────────────────
+   📁 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/NativeAlert.ts
+            L8: $('//XCUIElementTypeAlert') → $("-ios predicate string:type == 'XCUIElementTyp...")
+                ⚡ 410.0ms/use × 14 uses = 5.74s total
+      └─ File total: 5.74s saved (1 selector)
+
+   📁 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/DragScreen.ts
+            L5: $('//*[@name="Drag-drop-screen"]') → $("~Drag-drop-screen")
+                ⚡ 61.0ms/use × 3 uses = 183.1ms total
+            L8: $('//*[@name="drag-l1"]') → $("~drag-l1") [73.6ms]
+            L9: $('//*[@name="drag-c1"]') → $("~drag-c1") [70.1ms]
+            L10: $('//*[@name="drag-r1"]') → $("~drag-r1") [73.0ms]
+            L11: $('//*[@name="drag-l2"]') → $("~drag-l2") [71.7ms]
+            L12: $('//*[@name="drag-c2"]') → $("~drag-c2") [53.9ms]
+            L13: $('//*[@name="drag-r2"]') → $("~drag-r2") [51.3ms]
+            L14: $('//*[@name="drag-l3"]') → $("~drag-l3") [59.3ms]
+            L15: $('//*[@name="drag-c3"]') → $("~drag-c3") [58.1ms]
+            L16: $('//*[@name="drag-r3"]') → $("~drag-r3") [50.1ms]
+            L26: $('//*[@name="renew"]') → $("~renew") [36.3ms]
+            L27: $('//*[@name="button-Retry"]') → $("~button-Retry")
+                ⚡ 347.1ms/use × 2 uses = 694.3ms total
+      └─ File total: 1.47s saved (12 selectors)
+
+   📁 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/FormsScreen.ts
+            L13: $('//*[@name="text-input"]') → $("~text-input") [25.4ms]
+            L14: $('//*[@name="input-text-result"]') → $("~input-text-result")
+                ⚡ 32.7ms/use × 2 uses = 65.3ms total
+            L15: $('//*[@name="switch"]') → $("~switch")
+                ⚡ 36.5ms/use × 5 uses = 182.4ms total
+            L18: $('//*[@name="dropdown-chevron"]') → $("~dropdown-chevron")
+                ⚡ 27.4ms/use × 3 uses = 82.3ms total
+            L19: $('//*[@name="button-Active"]') → $("~button-Active")
+                ⚡ 57.3ms/use × 4 uses = 229.3ms total
+            L20: $('//*[@name="button-Inactive"]') → $("~button-Inactive")
+                ⚡ 47.7ms/use × 2 uses = 95.4ms total
+            L72: $('//*[@name="Dropdown"]//XCUIElementTypeTextFie...') → $("~text_input")
+                ⚡ 31.8ms/use × 3 uses = 95.4ms total
+      └─ File total: 775.4ms saved (7 selectors)
+
+   📁 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts
+            L13: $('//*[@name="button-login-container"]') → $("~button-login-container")
+                ⚡ 24.1ms/use × 3 uses = 72.4ms total
+            L14: $('//*[@name="button-sign-up-container"]') → $("~button-sign-up-container")
+                [23.6ms]
+            L15: $('//*[@name="button-LOGIN"]') → $("~button-LOGIN")
+                ⚡ 56.6ms/use × 2 uses = 113.3ms total
+            L16: $('//*[@name="button-SIGN UP"]') → $("~button-SIGN UP")
+                ⚡ 53.3ms/use × 2 uses = 106.6ms total
+            L17: $('//*[@name="input-email"]') → $("~input-email")
+                ⚡ 55.4ms/use × 2 uses = 110.8ms total
+            L18: $('//*[@name="input-password"]') → $("~input-password")
+                ⚡ 35.6ms/use × 2 uses = 71.3ms total
+            L19: $('//*[@name="input-repeat-password"]') → $("~input-repeat-password") [41.7ms]
+            L20: $('//*[@name="button-biometric"]') → $("~button-biometric")
+                ⚡ 29.2ms/use × 4 uses = 116.7ms total
+      └─ File total: 656.3ms saved (8 selectors)
+
+   📁 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/Picker.ts
+            L3: $('//XCUIElementTypePickerWheel') → $("-ios predicate string:type ==
+                'XCUIElementTyp...")
+                ⚡ 46.2ms/use × 6 uses = 277.4ms total
+            L4: $('//*[@name="done_button"]') → $("~done_button")
+                ⚡ 48.2ms/use × 3 uses = 144.7ms total
+      └─ File total: 422.1ms saved (2 selectors)
+
+   📁 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts
+            L15: $('//*[@name="Forms"]') → $("~Forms")
+                ⚡ 29.5ms/use × 6 uses = 177.0ms total
+            L19: $('//*[@name="Swipe"]') → $("~Swipe")
+                ⚡ 35.1ms/use × 3 uses = 105.3ms total
+            L23: $('//*[@name="Drag"]') → $("~Drag")
+                ⚡ 33.2ms/use × 2 uses = 66.4ms total
+      └─ File total: 348.8ms saved (3 selectors)
+
+   📁 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/SwipeScreen.ts
+            L10: $('//*[@name="WebdriverIO logo"]') → $("~WebdriverIO logo")
+                ⚡ 86.9ms/use × 2 uses = 173.9ms total
+      └─ File total: 173.9ms saved (1 selector)
+
    📁 tests/specs/app.biometric.login.spec.ts
-      📦 Suite: "WebdriverIO and Appium, when interacting with a biometric button,"
-         🧪 Test: "should be able to login with a matching touch/faceID/fingerprint"
-            • Replace: $('//*[@name="Home"]') → $("~Home") (56.0% faster) ⚠️ (also in other test(s))
-               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
-            • Replace: $('//*[@name="Login"]') → $("~Login") (29.9% faster)
-               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:11
-            • Replace: $('//*[@name="Login-screen"]') → $("~Login-screen") (22.4% faster) ⚠️ (also
-              in other test(s))
-               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:4
-            • Replace: $('//*[@name="button-biometric"]') → $("~button-biometric") (26.6% faster) ⚠️
-              (also in other test(s))
-               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:20
-            • Replace: $('//*[@name="button-login-container"]') → $("~button-login-container")
-              (22.1% faster)
-               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:13
-            • Replace: $('//XCUIElementTypeAlert') → $("-ios predicate string:type ==
-              'XCUIElementTypeAlert'") (20.4% faster) ⚠️ (also in other test(s))
-               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/NativeAlert.ts:8
-            • Replace: $('//*[@name="OK"]') → $("~OK") (29.7% faster)
-   📁 tests/specs/app.deep.link.navigation.spec.ts
-      📦 Suite: "WebdriverIO and Appium, when navigating by deep link"
-         🧪 Test: "should be able to open the webview"
-            • Replace: $('//*[@name="Home"]') → $("~Home") (49.2% faster) ⚠️ (also in other test(s))
-               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
-         🧪 Test: "should be able to open the login form screen"
-            • Replace: $('//*[@name="Login-screen"]') → $("~Login-screen") (23.4% faster) ⚠️ (also
-              in other test(s))
-               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:4
-            • 1 minor optimization(s) (<10% improvement) - see detailed report
-         🧪 Test: "should be able to open the forms screen"
-            • Replace: $('//*[@name="Home"]') → $("~Home") (21.3% faster) ⚠️ (also in other test(s))
-               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
-            • Replace: $('//*[@name="Forms-screen"]') → $("~Forms-screen") (25.7% faster)
-               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/FormsScreen.ts:4
-         🧪 Test: "should be able to open the swipe screen"
-            • Replace: $('//*[@name="Home"]') → $("~Home") (19.7% faster) ⚠️ (also in other test(s))
-               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
-            • Replace: $('//*[@name="Swipe-screen"]') → $("~Swipe-screen") (25.0% faster)
-               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/SwipeScreen.ts:2
-         🧪 Test: "should be able to open the drag and drop screen"
-            • Replace: $('//*[@name="Home"]') → $("~Home") (24.9% faster) ⚠️ (also in other test(s))
-               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
-            • Replace: $('//*[@name="Drag-drop-screen"]') → $("~Drag-drop-screen") (27.4% faster)
-               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/DragScreen.ts:5
-         🧪 Test: "should be able to open the home screen"
-            • Replace: $('//*[@name="Home"]') → $("~Home") (27.9% faster) ⚠️ (also in other test(s))
-               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
-            • Replace: $('//*[@name="Home-screen"]') → $("~Home-screen") (25.5% faster)
-               📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/HomeScreen.ts:5
+            L64: $('//XCUIElementTypeStaticText[@name="LOGIN"]/an...') → $("~button-LOGIN") [24.0ms]
+            L66: $('//XCUIElementTypeStaticText[@name="LOGIN"]/pa...') → $("~button-LOGIN") [22.0ms]
+            L67: $('//XCUIElementTypeStaticText[@name="LOGIN"]/.....') → $("~button-LOGIN") [21.6ms]
+            L68: $('//XCUIElementTypeOther[@name="button-LOGIN"]/...') → $("~button-biometric")
+                [21.2ms]
+            L69: $('//XCUIElementTypeOther[@name="button-biometri...') → $("~button-LOGIN") [23.6ms]
+      └─ File total: 112.4ms saved (5 selectors)
 
-⚠️  [Shared Selectors Detected]
-───────────────────────────────────────────────────────────────────────────
-      The following selectors appear in multiple tests and are likely in Page Objects:
-      • $('//*[@name="Home"]') - appears in 7 test(s) across 2 file(s)
-         📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
-         → Replace with: $("~Home")
-      • $('//*[@name="Login-screen"]') - appears in 2 test(s) across 2 file(s)
-         📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:4
-         → Replace with: $("~Login-screen")
-      • $('//*[@name="button-biometric"]') - appears in 2 test(s) across 1 file(s)
-         📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:20
-         → Replace with: $("~button-biometric")
-      • $('//XCUIElementTypeAlert') - appears in 2 test(s) across 1 file(s)
-         📍 Found at: /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/NativeAlert.ts:8
-         → Replace with: $("-ios predicate string:type == 'XCUIElementTypeAlert'")
+   📁 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/HomeScreen.ts
+            L5: $('//*[@name="Home-screen"]') → $("~Home-screen")
+                ⚡ 27.4ms/use × 2 uses = 54.8ms total
+      └─ File total: 54.8ms saved (1 selector)
 
-💡 [Why Change?]
-───────────────────────────────────────────────────────────────────────────
-      • Average 31.3% performance improvement (total of 1.36 seconds faster per run of this suite)
-      • More stable: uses native iOS accessibility ID, uses iOS predicate strings
-      • Documentation:
-        - Accessibility ID: https://webdriver.io/docs/selectors#accessibility-id
-        - Predicate String: https://webdriver.io/docs/selectors#ios-predicate-string
+🔍 Workspace-Wide Optimizations
+───────────────────────────────────────────────────────────────────────────────
+   Source file unknown. Search your IDE (Cmd+Shift+F) for these selectors:
+
+            $('//*[@name="Carousel"]') → $("~Carousel")
+               ⚡ 57.0ms/use × 10 uses = 570.5ms total
+            $('//*[@name="OK"]') → $("~OK")
+               ⚡ 48.5ms/use × 4 uses = 193.9ms total
+            $('//*[@name="__CAROUSEL_ITEM_0__"]') → $("~__CAROUSEL_ITEM_0__")
+               ⚡ 51.1ms/use × 2 uses = 102.2ms total
+            $('//*[@name="Cancel"]') → $("~Cancel")
+               ⚡ 38.9ms/use × 2 uses = 77.7ms total
+            $('//*[@name="__CAROUSEL_ITEM_5__"]') → $("~__CAROUSEL_ITEM_5__")
+               ⚡ 61.3ms
+            $('//*[@name="__CAROUSEL_ITEM_4__"]') → $("~__CAROUSEL_ITEM_4__")
+               ⚡ 54.9ms
+            $('//*[@name="__CAROUSEL_ITEM_3__"]') → $("~__CAROUSEL_ITEM_3__")
+               ⚡ 51.8ms
+            $('//*[@name="__CAROUSEL_ITEM_2__"]') → $("~__CAROUSEL_ITEM_2__")
+               ⚡ 41.4ms
+            $('//*[@name="__CAROUSEL_ITEM_1__"]') → $("~__CAROUSEL_ITEM_1__")
+               ⚡ 37.2ms
+            $('//*[@name="Ask me later"]') → $("~Ask me later")
+               ⚡ 29.4ms
+
+⚠️  Performance Warnings
+───────────────────────────────────────────────────────────────────────────────
+   Native selectors were SLOWER than XPath for these cases.
+   This can happen due to app-specific optimizations, element hierarchy,
+   caching effects, or Appium/driver version differences.
+   Recommendation: Keep using XPath for these selectors.
+
+   📍 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:3
+            XPath:  $('//*[@name="Home"]') → 841ms
+            Native: $('~Home') → 1052ms
+                    ❌ Native was 212ms slower (25%)
+
+   📍 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:11
+            XPath:  $('//*[@name="Login"]') → 902ms
+            Native: $('~Login') → 1068ms
+                    ❌ Native was 167ms slower (18%)
+
+   📍 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/LoginScreen.ts:4
+            XPath:  $('//*[@name="Login-screen"]') → 118ms
+            Native: $('~Login-screen') → 431ms
+                    ❌ Native was 313ms slower (265%)
+
+   📍 tests/specs/app.biometric.login.spec.ts:65
+            XPath:  $('//XCUIElementTypeStaticText[@name="LOGIN...') → 96ms
+            Native: $('~button-LOGIN') → 106ms
+                    ❌ Native was 10ms slower (11%)
+
+   📍 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/FormsScreen.ts:4
+            XPath:  $('//*[@name="Forms-screen"]') → 126ms
+            Native: $('~Forms-screen') → 507ms
+                    ❌ Native was 381ms slower (303%)
+
+   📍 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/SwipeScreen.ts:2
+            XPath:  $('//*[@name="Swipe-screen"]') → 158ms
+            Native: $('~Swipe-screen') → 1134ms
+                    ❌ Native was 976ms slower (619%)
+
+   📍 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/DragScreen.ts:17
+            XPath:  $('//*[@name="drop-l1"]') → 124ms
+            Native: $('~drop-l1') → 582ms
+                    ❌ Native was 458ms slower (370%)
+
+   📍 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/DragScreen.ts:18
+            XPath:  $('//*[@name="drop-c1"]') → 122ms
+            Native: $('~drop-c1') → 491ms
+                    ❌ Native was 369ms slower (303%)
+
+   📍 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/DragScreen.ts:19
+            XPath:  $('//*[@name="drop-r1"]') → 122ms
+            Native: $('~drop-r1') → 452ms
+                    ❌ Native was 330ms slower (271%)
+
+   📍 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/DragScreen.ts:20
+            XPath:  $('//*[@name="drop-l2"]') → 114ms
+            Native: $('~drop-l2') → 420ms
+                    ❌ Native was 306ms slower (268%)
+
+   📍 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/DragScreen.ts:21
+            XPath:  $('//*[@name="drop-c2"]') → 100ms
+            Native: $('~drop-c2') → 371ms
+                    ❌ Native was 270ms slower (269%)
+
+   📍 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/DragScreen.ts:22
+            XPath:  $('//*[@name="drop-r2"]') → 93ms
+            Native: $('~drop-r2') → 334ms
+                    ❌ Native was 240ms slower (257%)
+
+   📍 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/DragScreen.ts:23
+            XPath:  $('//*[@name="drop-l3"]') → 92ms
+            Native: $('~drop-l3') → 279ms
+                    ❌ Native was 187ms slower (204%)
+
+   📍 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/DragScreen.ts:24
+            XPath:  $('//*[@name="drop-c3"]') → 87ms
+            Native: $('~drop-c3') → 237ms
+                    ❌ Native was 150ms slower (172%)
+
+   📍 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/DragScreen.ts:25
+            XPath:  $('//*[@name="drop-r3"]') → 80ms
+            Native: $('~drop-r3') → 198ms
+                    ❌ Native was 118ms slower (148%)
+
+   📍 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/components/TabBar.ts:7
+            XPath:  $('//*[@name="Webview"]') → 948ms
+            Native: $('~Webview') → 1060ms
+                    ❌ Native was 111ms slower (12%)
+
+   📍 /Users/wimselles/Git/wdio/appium-boilerplate/tests/screenobjects/WebviewScreen.ts:8
+            XPath:  $('*//XCUIElementTypeWebView') → 102ms
+            Native: $('-ios predicate string:type == 'XCUIEleme...') → 153ms
+                    ❌ Native was 51ms slower (50%)
+
+💡 Why Change?
+───────────────────────────────────────────────────────────────────────────────
+   • Speed: Native selectors bypass expensive XML tree traversal
+   • Stability: Less affected by UI hierarchy changes
+   • Priority: ~accessibilityId > -ios predicate string > -ios class chain > //xpath
+   • Docs: https://webdriver.io/docs/selectors#mobile-selectors
 ═══════════════════════════════════════════════════════════════════════════════
+
+───────────────────────────────────────────────────────────────────────────────
+📝 Mobile Selector Performance Optimizer - Markdown Report
+───────────────────────────────────────────────────────────────────────────────
+   📁 Markdown report written to: /Users/wimselles/Git/wdio/appium-boilerplate/logs/mobile-selector-performance-optimizer-report-iphone_16_pro-1769237599894.md
+───────────────────────────────────────────────────────────────────────────────
 ```
 
 </details>
+
+#### Understanding Performance Results
+
+While native selectors (like accessibility IDs) are generally faster than XPath, you may occasionally see cases in your report where the suggested selector performed slower during testing. This is normal and can happen for a few reasons:
+
+- **Timing variations**: Mobile devices aren't perfectly consistent. Background processes, screen animations, or momentary CPU load can affect individual measurements. A selector tested during a busy moment may appear slower than one tested when the device was idle.
+
+- **App-specific behavior**: Some apps have unique UI structures where certain selector strategies work better than others. The "typical" performance ranking doesn't apply universally to every element in every app.
+
+- **Measurement represents a single snapshot**: Each selector is tested once during your test run. This captures real performance but includes normal variation. A selector showing 10-15% slower results may actually perform the same or better on average.
+
+**What to do with "slower" results**: The report flags these cases in the "Performance Warnings" section so you can make informed decisions. For selectors showing significantly slower native performance (50%+), it's reasonable to keep using XPath. For borderline cases, the difference is likely negligible in practice, and native selectors are typically more stable and less brittle than XPath since they don't depend on the exact UI hierarchy, which can change between app versions.
+
+The optimizer helps you find clear wins, and most selectors will show genuine improvements. The warnings simply ensure you have complete information rather than blindly replacing every selector.
 
 #### Platform Support
 
