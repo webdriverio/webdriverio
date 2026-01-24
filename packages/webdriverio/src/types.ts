@@ -40,9 +40,9 @@ type AsyncElementProto = {
 } & ChainablePrototype & {
     // Fixed typings for getSize and getLocation since `OmitThisParameter` does not support overloads
     getSize(prop: keyof RectReturn): Promise<number>
-    getSize(): Promise<Pick<RectReturn, 'width' | 'height'>>
-    getLocation(prop: 'x' | 'y'): Promise<number>
-    getLocation(): Promise<Pick<RectReturn, 'x' | 'y'>>
+    getSize(): Promise<ElementCommands.Size>
+    getLocation(prop: keyof ElementCommands.Location): Promise<number>
+    getLocation(): Promise<ElementCommands.Location>
 }
 
 interface ChainablePromiseBaseElement {
