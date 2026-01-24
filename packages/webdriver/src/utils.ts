@@ -104,10 +104,21 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
      * remove overlapping keys in firstMatch that are already defined in alwaysMatch
      * to avoid errors in Selenium Grid
      */
-    const keysToNormalize = Object.keys(capabilities.alwaysMatch)
+    const keysToNormalize = new Set(Object.keys(capabilities.alwaysMatch))
     if (capabilities.firstMatch) {
+        capabilities.firstMatch.forEach((match) => {
+            Object.keys(match).forEach((key) => keysToNormalize.add(key))
+        })
+
         for (const key of keysToNormalize) {
             const alwaysVal = (capabilities.alwaysMatch as Record<string, unknown>)[key]
+
+            /**
+             * if the key is not in alwaysMatch, we don't need to do anything
+             */
+            if (alwaysVal === undefined) {
+                continue
+            }
             const hasConflict = capabilities.firstMatch.some((match) =>
                 (key in match) && !deepEqual((match as Record<string, unknown>)[key], alwaysVal)
             )
