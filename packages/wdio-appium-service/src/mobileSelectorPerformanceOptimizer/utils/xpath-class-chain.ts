@@ -1,5 +1,4 @@
-import type { XPathConversionResult, XPathCondition } from './xpath-types.js'
-import type { XPathSegment } from './xpath-parser.js'
+import type { XPathConversionResult, XPathCondition, XPathSegment } from './xpath-types.js'
 import { parseXPathToSegments } from './xpath-parser.js'
 import { convertConditionToPredicate } from './xpath-conditions.js'
 

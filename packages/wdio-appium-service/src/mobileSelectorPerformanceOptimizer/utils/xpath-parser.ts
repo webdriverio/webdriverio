@@ -1,19 +1,5 @@
-import type { XPathCondition } from './xpath-types.js'
+import type { XPathCondition, XPathSegment } from './xpath-types.js'
 import { UNMAPPABLE_XPATH_AXES, UNMAPPABLE_XPATH_FUNCTIONS } from './xpath-constants.js'
-
-/**
- * Represents a single segment of a parsed XPath expression
- */
-export interface XPathSegment {
-    /** The axis used: '//' for descendant, '/' for child */
-    axis: '//' | '/'
-    /** The element type or '*' for wildcard */
-    element: string
-    /** Conditions/predicates for this segment */
-    conditions: XPathCondition[]
-    /** Positional index if specified (e.g., [1]) */
-    index?: number
-}
 
 /**
  * Checks if the XPath contains unmappable features (axes or functions)
