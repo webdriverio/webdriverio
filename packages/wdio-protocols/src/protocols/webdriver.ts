@@ -196,11 +196,6 @@ export default {
                 'The Close Window command closes the current top-level browsing context. Once done, if there are no more top-level browsing contexts open, the WebDriver session itself is closed.',
             ref: 'https://w3c.github.io/webdriver/#dfn-close-window',
             parameters: [],
-            returns: {
-                type: 'string[]',
-                name: 'handles',
-                description: 'A list of window handles of active window handles.'
-            },
             exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/api/webdriver/examples.js#L97-L117']
         },
         POST: {
