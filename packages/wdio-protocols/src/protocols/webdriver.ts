@@ -820,10 +820,9 @@ export default {
             ],
             parameters: [],
             returns: {
-                type: '*',
+                type: 'unknown',
                 name: 'property',
-                description:
-                    'The named property of the element, accessed by calling GetOwnProperty on the element object.',
+                description: 'The value of the named own property of the element.',
             },
             alternativeCommands: ['element/getProperty'],
             exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/api/webdriver/examples.js#L347-L349']
