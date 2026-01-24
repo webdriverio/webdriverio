@@ -753,6 +753,25 @@ describe('main suite 1', () => {
         })
     })
 
+    it.only('should be able to save PDF with pageRanges', async () => {
+        await browser.url('https://guinea-pig.webdriver.io/')
+
+        const pdf = await browser.savePDF(path.join(os.tmpdir(), 'page-ranges.pdf'), {
+            pageRanges: ['1', 2]
+        })
+
+        expect(pdf.length).toBeGreaterThan(0)
+    })
+
+    it.only('should be able to create and update a mock sensor', async () => {
+        await browser.createMockSensor('gravity')
+        await browser.updateMockSensor('gravity', { x: 1, y: 2, z: 3 })
+
+        const reading = await browser.getMockSensor('gravity')
+
+        expect(reading).toEqual({ x: 1, y: 2, z: 3 })
+    })
+
     describe('reloading applications with different strategies', () => {
         const scenarios = {
             nothing: ['', '1'],
@@ -799,4 +818,5 @@ describe('main suite 1', () => {
             })
         }
     })
+
 })
