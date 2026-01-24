@@ -157,7 +157,9 @@ class _AccessibilityHandler {
         }
     }
 
-    async before (sessionId: string) {
+    async before(sessionId: string) {
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.CONFIG_EVENTS.ACCESSIBILITY)
+
         this._sessionId = sessionId
         this._accessibility = isTrue(this._getCapabilityValue(this._caps, 'accessibility', 'browserstack.accessibility'))
 
@@ -264,6 +266,8 @@ class _AccessibilityHandler {
                     BStackLogger.debug(`Exception in overwrite command ${command.name} - ${error}`)
                 }
             })
+        PerformanceTester.end(PERFORMANCE_SDK_EVENTS.CONFIG_EVENTS.ACCESSIBILITY)
+
     }
 
     async beforeTest (suiteTitle: string | undefined, test: Frameworks.Test) {

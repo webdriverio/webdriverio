@@ -262,6 +262,9 @@ export default class AllureReporter extends WDIOReporter {
     private _handleCucumberStepStart(t: TestStats): void {
         if (!this._hasPendingTest) { return }
 
+        const start = AllureReporter.getTimeOrNow(t.start)
+        this._startStep({ name: t.title, start })
+
         const arg = t.argument as Argument | undefined
         const dataTable = Array.isArray(arg?.rows)
             ? arg!.rows.map((row: { cells: string[] }) => row.cells)
@@ -273,9 +276,6 @@ export default class AllureReporter extends WDIOReporter {
                 contentType: AllureContentType.CSV,
             })
         }
-
-        const start = AllureReporter.getTimeOrNow(t.start)
-        this._startStep({ name: t.title, start })
     }
 
     private _handleCucumberStepEnd(

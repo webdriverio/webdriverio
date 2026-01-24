@@ -1045,8 +1045,8 @@ describe('after', () => {
 
             // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
             // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
-            if (preferScenarioName && this._scenariosThatRan.length === 1){
-                this._fullTitle = this._scenariosThatRan.pop()
+            if (preferScenarioName && this._scenariosRanCount === 1 && this._lastScenarioName){
+                this._fullTitle = this._lastScenarioName
             }
 
             if (setSessionStatus) {
@@ -1394,13 +1394,13 @@ describe('after', () => {
                     /*, 5, 4, 0*/
                 ].map(({ status, body }) =>
                     it(`should call _update /w status failed and name of Scenario when single "${status}" Scenario ran`, async () => {
-                        service = new BrowserstackService({ testObservability: false, preferScenarioName : true } as any, [] as any,
+                        service = new BrowserstackService({ testObservability: false, preferScenarioName : true, setSessionName: true, setSessionStatus: true } as any, [] as any,
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                         const browserWithExecuteScript = {
                             ...browser,
                             executeScript: browser.execute
                         } as WebdriverIO.Browser
-                        service.before({}, [], browserWithExecuteScript)
+                        await service.before({}, [], browserWithExecuteScript)
 
                         const updateSpy = vi.spyOn(service, '_update')
 
@@ -1413,13 +1413,13 @@ describe('after', () => {
                 )
 
                 it('should call _update /w status passed and name of Scenario when single "passed" Scenario ran', async () => {
-                    service = new BrowserstackService({ testObservability: false, preferScenarioName : true } as any, [] as any,
+                    service = new BrowserstackService({ testObservability: false, preferScenarioName : true, setSessionName: true, setSessionStatus: true } as any, [] as any,
                         { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                     const browserWithExecuteScript = {
                         ...browser,
                         executeScript: browser.execute
                     } as WebdriverIO.Browser
-                    service.before({}, [], browserWithExecuteScript)
+                    await service.before({}, [], browserWithExecuteScript)
 
                     const updateSpy = vi.spyOn(service, '_update')
 
