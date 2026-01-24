@@ -3,6 +3,7 @@ import type { SelectorPerformanceData } from './types.js'
 let currentSuiteName: string | undefined
 let currentTestFile: string | undefined
 let currentTestName: string | undefined
+let currentDeviceName: string | undefined
 let performanceData: SelectorPerformanceData[] = []
 
 /**
@@ -48,6 +49,20 @@ export function getCurrentTestName(): string | undefined {
 }
 
 /**
+ * Update current device name
+ */
+export function setCurrentDeviceName(deviceName: string): void {
+    currentDeviceName = deviceName
+}
+
+/**
+ * Get current device name
+ */
+export function getCurrentDeviceName(): string | undefined {
+    return currentDeviceName
+}
+
+/**
  * Add performance data to the store
  */
 export function addPerformanceData(data: SelectorPerformanceData): void {
@@ -75,6 +90,7 @@ export function clearStore(): void {
     currentSuiteName = undefined
     currentTestFile = undefined
     currentTestName = undefined
+    currentDeviceName = undefined
     performanceData = []
 }
 

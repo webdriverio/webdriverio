@@ -96,6 +96,40 @@ function applyInference(
 }
 
 /**
+ * Groups performance data by device name.
+ * Falls back to capabilities-based device name if data doesn't contain device info.
+ *
+ * @param data - Array of selector performance data
+ * @param capabilities - Capabilities to fall back to for device name extraction
+ * @returns Map of device name to performance data for that device
+ */
+function groupDataByDevice(
+    data: SelectorPerformanceData[],
+    capabilities: Capabilities.TestrunnerCapabilities | Capabilities.ResolvedTestrunnerCapabilities
+): Map<string, SelectorPerformanceData[]> {
+    const deviceMap = new Map<string, SelectorPerformanceData[]>()
+
+    for (const entry of data) {
+        const deviceName = entry.deviceName || 'unknown'
+        if (!deviceMap.has(deviceName)) {
+            deviceMap.set(deviceName, [])
+        }
+        deviceMap.get(deviceName)!.push(entry)
+    }
+
+    if (deviceMap.size === 1 && deviceMap.has('unknown')) {
+        const fallbackDeviceName = getDeviceName(capabilities)
+        if (fallbackDeviceName !== 'unknown') {
+            const unknownData = deviceMap.get('unknown')!
+            deviceMap.delete('unknown')
+            deviceMap.set(fallbackDeviceName, unknownData)
+        }
+    }
+
+    return deviceMap
+}
+
+/**
  * Aggregates selector performance data from all worker files and generates a report
  * @param capabilities - The capabilities for this runner instance
  * @param maxLineLength - Maximum line length for report output
@@ -136,10 +170,7 @@ export async function aggregateSelectorPerformanceData(
     }
 
     const workersDataDir = path.join(reportDirectory, 'selector-performance-worker-data')
-    const deviceName = getDeviceName(capabilities)
-    const sanitizedDeviceName = deviceName.replace(/[^a-zA-Z0-9-_]/g, '_').toLowerCase() || 'unknown'
     const timestamp = Date.now()
-    const finalJsonPath = path.join(reportDirectory, `mobile-selector-performance-optimizer-report-${sanitizedDeviceName}-${timestamp}.json`)
 
     try {
         let allData: SelectorPerformanceData[] = []
@@ -178,64 +209,68 @@ export async function aggregateSelectorPerformanceData(
             return
         }
 
-        const groupedData = groupDataBySpecFile(allData)
+        const dataByDevice = groupDataByDevice(allData, capabilities)
 
-        fs.writeFileSync(finalJsonPath, JSON.stringify(groupedData, null, 2))
+        for (const [deviceName, deviceData] of dataByDevice.entries()) {
+            const sanitizedDeviceName = deviceName.replace(/[^a-zA-Z0-9-_]/g, '_').toLowerCase() || 'unknown'
+            const finalJsonPath = path.join(reportDirectory, `mobile-selector-performance-optimizer-report-${sanitizedDeviceName}-${timestamp}.json`)
 
-        const totalSelectors = allData.length
-        const avgDuration = totalSelectors > 0 ? allData.reduce((sum, d) => sum + d.duration, 0) / totalSelectors : 0
-        const optimizedSelectors = allData.filter(d => d.optimizedSelector && d.improvementMs !== undefined)
+            const groupedData = groupDataBySpecFile(deviceData)
+            fs.writeFileSync(finalJsonPath, JSON.stringify(groupedData, null, 2))
 
-        // Calculate timing info from timestamps
-        let timingInfo: RunTimingInfo | undefined
-        if (allData.length > 0) {
-            const timestamps = allData.map(d => d.timestamp).filter(t => t > 0)
-            if (timestamps.length > 0) {
-                const startTime = Math.min(...timestamps)
-                const endTime = Math.max(...timestamps)
-                const totalRunDurationMs = endTime - startTime
-                timingInfo = { startTime, endTime, totalRunDurationMs }
+            const totalSelectors = deviceData.length
+            const avgDuration = totalSelectors > 0 ? deviceData.reduce((sum: number, d: SelectorPerformanceData) => sum + d.duration, 0) / totalSelectors : 0
+            const optimizedSelectors = deviceData.filter((d: SelectorPerformanceData) => d.optimizedSelector && d.improvementMs !== undefined)
+
+            let timingInfo: RunTimingInfo | undefined
+            if (deviceData.length > 0) {
+                const timestamps = deviceData.map((d: SelectorPerformanceData) => d.timestamp).filter((t: number) => t > 0)
+                if (timestamps.length > 0) {
+                    const startTime = Math.min(...timestamps)
+                    const endTime = Math.max(...timestamps)
+                    const totalRunDurationMs = endTime - startTime
+                    timingInfo = { startTime, endTime, totalRunDurationMs }
+                }
             }
-        }
 
-        if (totalSelectors === 0) {
-            write('\n📊 Selector Performance Summary:\n')
-            write(`${REPORT_INDENT_SUMMARY}No element-finding commands were tracked.\n`)
-            write(`${REPORT_INDENT_SUMMARY}💡 JSON file written to: ${finalJsonPath}\n`)
-        } else {
-            if (optimizedSelectors.length > 0) {
-                generateGroupedSummaryReport(optimizedSelectors, deviceName, write, maxLineLength, timingInfo)
-            } else {
+            if (totalSelectors === 0) {
                 write('\n📊 Selector Performance Summary:\n')
-                write(`${REPORT_INDENT_SUMMARY}Total element finds: ${totalSelectors}\n`)
-                write(`${REPORT_INDENT_SUMMARY}Average duration: ${avgDuration.toFixed(2)}ms\n`)
-            }
-
-            if (optimizedSelectors.length === 0) {
-                write(`\n${REPORT_INDENT_SUMMARY}✅ All selectors performed well\n`)
+                write(`${REPORT_INDENT_SUMMARY}No element-finding commands were tracked.\n`)
                 write(`${REPORT_INDENT_SUMMARY}💡 JSON file written to: ${finalJsonPath}\n`)
+            } else {
+                if (optimizedSelectors.length > 0) {
+                    generateGroupedSummaryReport(optimizedSelectors, deviceName, write, maxLineLength, timingInfo)
+                } else {
+                    write('\n📊 Selector Performance Summary:\n')
+                    write(`${REPORT_INDENT_SUMMARY}Total element finds: ${totalSelectors}\n`)
+                    write(`${REPORT_INDENT_SUMMARY}Average duration: ${avgDuration.toFixed(2)}ms\n`)
+                }
+
+                if (optimizedSelectors.length === 0) {
+                    write(`\n${REPORT_INDENT_SUMMARY}✅ All selectors performed well\n`)
+                    write(`${REPORT_INDENT_SUMMARY}💡 JSON file written to: ${finalJsonPath}\n`)
+                }
             }
-        }
 
-        if (enableMarkdownReport) {
-            const markdownPath = path.join(reportDirectory, `mobile-selector-performance-optimizer-report-${sanitizedDeviceName}-${timestamp}.md`)
-            const projectRoot = process.cwd()
-            const markdownContent = generateMarkdownReport(optimizedSelectors, deviceName, timingInfo, projectRoot)
-            fs.writeFileSync(markdownPath, markdownContent)
+            if (enableMarkdownReport) {
+                const markdownPath = path.join(reportDirectory, `mobile-selector-performance-optimizer-report-${sanitizedDeviceName}-${timestamp}.md`)
+                const projectRoot = process.cwd()
+                const markdownContent = generateMarkdownReport(optimizedSelectors, deviceName, timingInfo, projectRoot)
+                fs.writeFileSync(markdownPath, markdownContent)
 
-            // Log markdown report location
-            const message = `
+                // Log markdown report location
+                const message = `
 ───────────────────────────────────────────────────────────────────────────────
 📝 Mobile Selector Performance Optimizer - Markdown Report
 ───────────────────────────────────────────────────────────────────────────────
    📁 Markdown report written to: ${markdownPath}
 ───────────────────────────────────────────────────────────────────────────────
 `
-            console.log(message)
-        }
+                console.log(message)
+            }
 
-        if (!enableCliReport && !enableMarkdownReport) {
-            const message = `
+            if (!enableCliReport && !enableMarkdownReport) {
+                const message = `
 ───────────────────────────────────────────────────────────────────────────────
 📊 Mobile Selector Performance Optimizer
 ───────────────────────────────────────────────────────────────────────────────
@@ -251,7 +286,8 @@ export async function aggregateSelectorPerformanceData(
       }
 ───────────────────────────────────────────────────────────────────────────────
 `
-            console.log(message)
+                console.log(message)
+            }
         }
     } catch (err) {
         writeError('Failed to aggregate selector performance data:', err)
@@ -410,12 +446,6 @@ export function getDeviceName(capabilities: Capabilities.TestrunnerCapabilities 
             return appiumDeviceName
         }
 
-        const deviceName = capsRecord['deviceName']
-
-        if (deviceName && typeof deviceName === 'string') {
-            return deviceName
-        }
-
         const w3cCap = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
 
         if (w3cCap && typeof w3cCap === 'object') {
@@ -423,10 +453,6 @@ export function getDeviceName(capabilities: Capabilities.TestrunnerCapabilities 
             const w3cAppiumDeviceName = w3cRecord['appium:deviceName']
             if (w3cAppiumDeviceName && typeof w3cAppiumDeviceName === 'string') {
                 return w3cAppiumDeviceName
-            }
-            const w3cDeviceName = w3cRecord['deviceName']
-            if (w3cDeviceName && typeof w3cDeviceName === 'string') {
-                return w3cDeviceName
             }
         }
 

@@ -20,7 +20,7 @@ import {
     findSelectorLocation,
     USER_COMMANDS
 } from './utils/index.js'
-import { getCurrentTestFile, getCurrentSuiteName, getCurrentTestName, getPerformanceData } from './mspo-store.js'
+import { getCurrentTestFile, getCurrentSuiteName, getCurrentTestName, getPerformanceData, setCurrentDeviceName } from './mspo-store.js'
 import MobileSelectorPerformanceReporter from './mspo-reporter.js'
 import { overwriteUserCommands } from './overwrite.js'
 
@@ -128,6 +128,12 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
                 log.info('   → Android support coming in a future release')
                 this._enabled = false
                 return
+            }
+
+            const deviceName = this._extractDeviceName(browser)
+            if (deviceName) {
+                setCurrentDeviceName(deviceName)
+                log.debug(`Device name stored: ${deviceName}`)
             }
 
             log.info('Mobile Selector Performance Optimizer enabled for iOS')
@@ -323,5 +329,22 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
         } catch (err) {
             log.error('Failed to write worker selector performance data:', err)
         }
+    }
+
+    /**
+     * Extract device name from browser capabilities
+     */
+    private _extractDeviceName(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser): string | undefined {
+        if (!browser || !('capabilities' in browser)) {
+            return undefined
+        }
+
+        const caps = browser.capabilities as Record<string, unknown>
+
+        if (caps['appium:deviceName'] && typeof caps['appium:deviceName'] === 'string') {
+            return caps['appium:deviceName']
+        }
+
+        return undefined
     }
 }

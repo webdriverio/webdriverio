@@ -11,7 +11,7 @@ export interface SelectorPerformanceData {
     selectorType: string
     duration: number
     timestamp: number
-    // Optimized selector information (when replaceWithOptimizedSelector is enabled)
+    deviceName?: string
     optimizedSelector?: string
     optimizedDuration?: number
     improvementMs?: number
