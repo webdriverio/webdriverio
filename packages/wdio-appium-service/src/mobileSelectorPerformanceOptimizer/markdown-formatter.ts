@@ -1,40 +1,8 @@
 import path from 'node:path'
 
 import type { SelectorPerformanceData } from './types.js'
+import type { RunTimingInfo, GroupedOptimization, FileGroup } from './reporting-types.js'
 import { formatSelectorForDisplay } from './utils/index.js'
-
-/**
- * Timing information for the test run
- */
-export interface RunTimingInfo {
-    startTime: number
-    endTime: number
-    totalRunDurationMs: number
-}
-
-/**
- * Grouped optimization data for reporting
- */
-interface GroupedOptimization {
-    selector: string
-    optimizedSelector: string
-    improvementMs: number
-    improvementPercent: number
-    lineNumber?: number
-    selectorFile?: string
-    testFile: string
-    usageCount: number
-}
-
-/**
- * File-based grouping with subtotals
- */
-interface FileGroup {
-    filePath: string
-    optimizations: GroupedOptimization[]
-    totalSavingsMs: number  // Per-use savings sum (for display)
-    totalSavingsWithUsage: number  // True total = sum(improvementMs × usageCount)
-}
 
 /**
  * Count selector usage across all data entries

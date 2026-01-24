@@ -3,8 +3,9 @@ import path from 'node:path'
 import { SevereServiceError } from 'webdriverio'
 import type { Capabilities } from '@wdio/types'
 import type { SelectorPerformanceData } from './types.js'
+import type { ReportOptions, GroupedOptimization, FileGroup, RunTimingInfo } from './reporting-types.js'
 import { getPerformanceData } from './mspo-store.js'
-import { generateMarkdownReport, type RunTimingInfo } from './markdown-formatter.js'
+import { generateMarkdownReport } from './markdown-formatter.js'
 import {
     formatSelectorForDisplay,
     REPORT_INDENT_SUMMARY,
@@ -92,22 +93,6 @@ function applyInference(
     }
 
     return [resolvedTestFile, resolvedSuiteName]
-}
-
-/**
- * Report options for controlling output formats
- */
-export interface ReportOptions {
-    /**
-     * Enable CLI report output to terminal
-     * @default false
-     */
-    enableCliReport?: boolean
-    /**
-     * Enable markdown report file generation
-     * @default false
-     */
-    enableMarkdownReport?: boolean
 }
 
 /**
@@ -548,32 +533,6 @@ function wrapLine(line: string, maxLineLength: number, indent: string = ''): str
     }
 
     return lines
-}
-
-/**
- * Grouped optimization data for CLI reporting
- */
-interface GroupedOptimization {
-    selector: string
-    optimizedSelector: string
-    improvementMs: number
-    improvementPercent: number
-    lineNumber?: number
-    selectorFile?: string
-    testFile: string
-    usageCount: number
-    duration?: number
-    optimizedDuration?: number
-}
-
-/**
- * File-based grouping with subtotals for CLI report
- */
-interface FileGroup {
-    filePath: string
-    optimizations: GroupedOptimization[]
-    totalSavingsMs: number  // Per-use savings sum (for display)
-    totalSavingsWithUsage: number  // True total = sum(improvementMs × usageCount)
 }
 
 /**

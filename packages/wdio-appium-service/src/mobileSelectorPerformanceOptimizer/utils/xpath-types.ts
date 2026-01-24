@@ -51,3 +51,25 @@ export interface PredicateCondition {
     op: string
     value: string
 }
+
+/**
+ * Represents a single segment of a parsed XPath expression
+ */
+export interface XPathSegment {
+    /**
+     * The axis used: '//' for descendant, '/' for child
+     **/
+    axis: '//' | '/'
+    /**
+     * The element type or '*' for wildcard
+     **/
+    element: string
+    /**
+     * Conditions/predicates for this segment
+     **/
+    conditions: XPathCondition[]
+    /**
+     * Positional index if specified (e.g., [1])
+     **/
+    index?: number
+}
