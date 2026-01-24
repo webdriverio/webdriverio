@@ -764,12 +764,13 @@ describe('main suite 1', () => {
     })
 
     it.only('should be able to create and update a mock sensor', async () => {
-        await browser.createMockSensor('gravity')
-        await browser.updateMockSensor('gravity', { x: 1, y: 2, z: 3 })
+        await browser.createMockSensor('gravity', true, 10, 2)
+        const reading1 = await browser.getMockSensor('gravity')
+        expect(reading1).toEqual({ requestedSamplingFrequency: 0 })
 
-        const reading = await browser.getMockSensor('gravity')
-
-        expect(reading).toEqual({ x: 1, y: 2, z: 3 })
+        await browser.updateMockSensor('gravity', { x: 1, y: 2, z: 3, minRequestedSamplingFrequency: 2, maxRequestedSamplingFrequency: 10 })
+        const reading2 = await browser.getMockSensor('gravity')
+        expect(reading2).toEqual({ requestedSamplingFrequency: 0 })
     })
 
     describe('reloading applications with different strategies', () => {
