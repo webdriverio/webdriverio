@@ -203,7 +203,7 @@ The Native Mobile Selector Performance Optimizer helps identify and optimize slo
 
 **Important:** This feature **does not replace selectors in your code automatically**. Instead, it provides a report with recommendations. You need to manually update your code based on the report findings. The feature only replaces selectors during test execution for validation purposes.
 
-**⚠️ Performance Impact:** Enabling this feature adds significant overhead to your test execution time. Features like `usePageSource` and `replaceWithOptimizedSelector` especially increase runtime. **Do not enable this feature constantly in your CI/CD pipeline** as it will slow down your tests. Recommended workflow:
+**⚠️ Performance Impact:** Enabling this feature adds significant overhead to your test execution time as it requires fetching and parsing the page source for each selector analysis. The `replaceWithOptimizedSelector` option especially increases runtime. **Do not enable this feature constantly in your CI/CD pipeline** as it will slow down your tests. Recommended workflow:
 1. Enable the feature and run your tests
 2. Review the generated performance report
 3. Update your code with the optimized selectors from the report
@@ -250,32 +250,6 @@ export const config = {
         ['appium', {
             trackSelectorPerformance: {
                 enabled: true
-            }
-        }]
-    ],
-    // ...
-}
-```
-
-#### usePageSource
-
-Use page source analysis for more accurate selector suggestions. When enabled, analyzes the actual element from page source to find optimal selectors.
-
-**⚠️ Performance Impact:** This option adds significant overhead to test execution time as it requires fetching and parsing the entire page source for each selector analysis.
-
-Type: `boolean`
-
-Default: `true`
-
-Example:
-```js
-export const config = {
-    // ...
-    services: [
-        ['appium', {
-            trackSelectorPerformance: {
-                enabled: true,
-                usePageSource: false  // Disable to reduce overhead
             }
         }]
     ],

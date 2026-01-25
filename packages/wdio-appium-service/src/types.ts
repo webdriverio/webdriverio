@@ -157,13 +157,6 @@ export interface AppiumServiceConfig {
          */
         enabled?: boolean
         /**
-         * Use page source analysis for more accurate selector suggestions.
-         * When enabled, analyzes the actual element from page source to find optimal selectors.
-         * This provides better suggestions but has performance overhead.
-         * @default true
-         */
-        usePageSource?: boolean
-        /**
          * Replace XPath selectors with optimized alternatives automatically.
          * When enabled, tests optimized selectors and uses them if they work, falling back to original if not.
          * This adds overhead as it requires testing the optimized selector, but provides real performance improvements.

@@ -26,13 +26,10 @@ export interface XPathCondition {
  */
 export interface XPathConversionOptions {
     /**
-     * Browser instance for dynamic page source analysis
+     * Browser instance for page source analysis.
+     * Used to execute XPath and build optimized selectors with uniqueness validation.
      */
-    browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-    /**
-     * Whether to use page source analysis for more accurate suggestions
-     */
-    usePageSource?: boolean
+    browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 }
 
 /**

@@ -114,7 +114,7 @@ describe('SelectorPerformanceService', () => {
 
         test('should throw error when trackSelectorPerformance is not an object', () => {
             const expectedError = 'trackSelectorPerformance must be an object. ' +
-                'Expected format: { enabled: boolean, usePageSource?: boolean, replaceWithOptimizedSelector?: boolean, enableCliReport?: boolean, enableMarkdownReport?: boolean, reportPath?: string, maxLineLength?: number }'
+                'Expected format: { enabled: boolean, replaceWithOptimizedSelector?: boolean, enableCliReport?: boolean, enableMarkdownReport?: boolean, reportPath?: string, maxLineLength?: number }'
 
             expect(() => {
                 new SelectorPerformanceService({ trackSelectorPerformance: 'invalid' as any }, mockConfig)
@@ -130,7 +130,6 @@ describe('SelectorPerformanceService', () => {
 
             expect(service['_enabled']).toBe(true)
             // Defaults
-            expect(service['_usePageSource']).toBe(true)
             expect(service['_replaceWithOptimized']).toBe(true)
             expect(service['_enableCliReport']).toBe(false)
             expect(service['_enableMarkdownReport']).toBe(false)
@@ -140,7 +139,6 @@ describe('SelectorPerformanceService', () => {
             const options = {
                 trackSelectorPerformance: {
                     enabled: true,
-                    usePageSource: false,
                     replaceWithOptimizedSelector: false,
                     enableCliReport: false,
                 }
@@ -148,7 +146,6 @@ describe('SelectorPerformanceService', () => {
             const service = new SelectorPerformanceService(options, mockConfig)
 
             expect(service['_enabled']).toBe(true)
-            expect(service['_usePageSource']).toBe(false)
             expect(service['_replaceWithOptimized']).toBe(false)
             expect(service['_enableCliReport']).toBe(false)
         })
@@ -389,8 +386,7 @@ describe('SelectorPerformanceService', () => {
                 ...createDefaultOptions(),
                 trackSelectorPerformance: {
                     enabled: true,
-                    replaceWithOptimizedSelector: true,
-                    usePageSource: true
+                    replaceWithOptimizedSelector: true
                 }
             }
             const service = new SelectorPerformanceService(options, mockConfig)
@@ -400,7 +396,6 @@ describe('SelectorPerformanceService', () => {
             await service.before({} as never, [] as never, mockBrowser)
 
             expect(vi.mocked(overwrite.overwriteUserCommands)).toHaveBeenCalledWith(mockBrowser, {
-                usePageSource: true,
                 browser: service['_browser'],
                 isReplacingSelector: service['_isReplacingSelectorRef'],
                 pageObjectPaths: undefined,
@@ -414,7 +409,6 @@ describe('SelectorPerformanceService', () => {
                 trackSelectorPerformance: {
                     enabled: true,
                     replaceWithOptimizedSelector: true,
-                    usePageSource: true,
                     pageObjectPaths: ['./tests/pageobjects'],
                     provideSelectorLocation: true
                 }
@@ -426,7 +420,6 @@ describe('SelectorPerformanceService', () => {
             await service.before({} as never, [] as never, mockBrowser)
 
             expect(vi.mocked(overwrite.overwriteUserCommands)).toHaveBeenCalledWith(mockBrowser, {
-                usePageSource: true,
                 browser: service['_browser'],
                 isReplacingSelector: service['_isReplacingSelectorRef'],
                 pageObjectPaths: ['./tests/pageobjects'],

@@ -47,7 +47,6 @@ export interface TestContext {
  * Options for selector optimization
  */
 export interface OptimizationOptions {
-    usePageSource: boolean
     browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     isReplacingSelector: { value: boolean }
     pageObjectPaths?: string[]
