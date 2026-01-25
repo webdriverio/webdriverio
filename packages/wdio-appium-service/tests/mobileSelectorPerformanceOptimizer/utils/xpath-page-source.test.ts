@@ -1,6 +1,5 @@
 import { describe, expect, test, vi, beforeEach } from 'vitest'
 import {
-    parseElementFromPageSource,
     isSelectorUniqueInPageSource,
     countMatchingElementsByPredicate,
     countMatchingElementsByClassChain
@@ -26,108 +25,6 @@ const FIXTURES = {
 describe('xpath-page-source', () => {
     beforeEach(() => {
         vi.clearAllMocks()
-    })
-
-    describe('parseElementFromPageSource', () => {
-        test('should parse element with matching type and attribute', () => {
-            const result = parseElementFromPageSource(FIXTURES.singleButton, '//XCUIElementTypeButton[@name="Submit"]')
-            expect(result).toEqual({
-                type: 'XCUIElementTypeButton',
-                attributes: { name: 'Submit', enabled: 'true' }
-            })
-        })
-
-        test('should handle OR conditions', () => {
-            const pageSource = '<XCUIElementTypeButton name="OK"></XCUIElementTypeButton>'
-            const result = parseElementFromPageSource(pageSource, '//XCUIElementTypeButton[@name="Allow" or @name="OK"]')
-            expect(result).toEqual({
-                type: 'XCUIElementTypeButton',
-                attributes: { name: 'OK' }
-            })
-        })
-
-        test('should return null when no matching element found', () => {
-            const pageSource = '<XCUIElementTypeButton name="Other"></XCUIElementTypeButton>'
-            expect(parseElementFromPageSource(pageSource, '//XCUIElementTypeButton[@name="Submit"]')).toBeNull()
-        })
-
-        test('should fallback to first condition when exact match not found', () => {
-            const result = parseElementFromPageSource(FIXTURES.singleButtonNameOnly, '//XCUIElementTypeButton[@name="Submit"][@enabled="true"]')
-            expect(result).toEqual({
-                type: 'XCUIElementTypeButton',
-                attributes: { name: 'Submit' }
-            })
-        })
-
-        test('should handle wildcard XPath', () => {
-            const result = parseElementFromPageSource(FIXTURES.singleButtonNameOnly, '//*[@name="Submit"]')
-            expect(result).toEqual({
-                type: 'XCUIElementTypeButton',
-                attributes: { name: 'Submit' }
-            })
-        })
-
-        test('should return first match when multiple elements exist', () => {
-            const result = parseElementFromPageSource(FIXTURES.twoButtonsDifferentNames, '//XCUIElementTypeButton[@name="Submit"]')
-            expect(result).toEqual({
-                type: 'XCUIElementTypeButton',
-                attributes: { name: 'Submit' }
-            })
-        })
-
-        test('should return null for empty page source', () => {
-            expect(parseElementFromPageSource('', '//XCUIElementTypeButton[@name="Submit"]')).toBeNull()
-        })
-
-        test('should return null for wildcard XPath without conditions when element has no name/label', () => {
-            expect(parseElementFromPageSource(FIXTURES.singleButtonNoAttrs, '//*')).toBeNull()
-        })
-
-        test('should accept wildcard XPath element with name', () => {
-            const result = parseElementFromPageSource(FIXTURES.singleButtonNameOnly, '//*')
-            expect(result).toEqual({
-                type: 'XCUIElementTypeButton',
-                attributes: { name: 'Submit' }
-            })
-        })
-
-        test('should return null when no conditions to match', () => {
-            expect(parseElementFromPageSource(FIXTURES.singleButtonNoAttrs, '//XCUIElementTypeButton')).toBeNull()
-        })
-
-        test('should handle multiple attribute conditions', () => {
-            const result = parseElementFromPageSource(FIXTURES.singleButton, '//XCUIElementTypeButton[@name="Submit"][@enabled="true"]')
-            expect(result).toEqual({
-                type: 'XCUIElementTypeButton',
-                attributes: { name: 'Submit', enabled: 'true' }
-            })
-        })
-
-        test('should handle OR conditions with additional conditions', () => {
-            const pageSource = '<XCUIElementTypeButton name="OK" enabled="true"></XCUIElementTypeButton>'
-            const result = parseElementFromPageSource(pageSource, '//XCUIElementTypeButton[@name="Allow" or @name="OK"][@enabled="true"]')
-            expect(result).toEqual({
-                type: 'XCUIElementTypeButton',
-                attributes: { name: 'OK', enabled: 'true' }
-            })
-        })
-
-        test('should filter by element type in fallback', () => {
-            const result = parseElementFromPageSource(FIXTURES.buttonAndTextField, '//XCUIElementTypeButton[@name="Submit"][@enabled="true"]')
-            expect(result).toEqual({
-                type: 'XCUIElementTypeButton',
-                attributes: { name: 'Submit' }
-            })
-        })
-
-        test('should handle fallback with OR conditions', () => {
-            const pageSource = '<XCUIElementTypeButton name="OK" enabled="false"></XCUIElementTypeButton>'
-            const result = parseElementFromPageSource(pageSource, '//XCUIElementTypeButton[@name="Allow" or @name="OK"]')
-            expect(result).toEqual({
-                type: 'XCUIElementTypeButton',
-                attributes: { name: 'OK', enabled: 'false' }
-            })
-        })
     })
 
     describe('isSelectorUniqueInPageSource', () => {

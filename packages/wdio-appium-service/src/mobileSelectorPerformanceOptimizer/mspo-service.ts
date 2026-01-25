@@ -29,7 +29,6 @@ const log = logger('@wdio/appium-service:selector-optimizer')
 export default class SelectorPerformanceService implements Services.ServiceInstance {
     // Service configuration
     private _enabled: boolean = false
-    private _usePageSource: boolean = true
     private _replaceWithOptimized: boolean = true
     private _enableCliReport: boolean = false
     private _enableMarkdownReport: boolean = false
@@ -58,11 +57,10 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             if (typeof trackConfig !== 'object' || Array.isArray(trackConfig)) {
                 throw new SevereServiceError(
                     'trackSelectorPerformance must be an object. ' +
-                    'Expected format: { enabled: boolean, usePageSource?: boolean, replaceWithOptimizedSelector?: boolean, enableCliReport?: boolean, enableMarkdownReport?: boolean, reportPath?: string, maxLineLength?: number }'
+                    'Expected format: { enabled: boolean, replaceWithOptimizedSelector?: boolean, enableCliReport?: boolean, enableMarkdownReport?: boolean, reportPath?: string, maxLineLength?: number }'
                 )
             }
             this._enabled = trackConfig.enabled === true
-            this._usePageSource = trackConfig.usePageSource !== undefined ? trackConfig.usePageSource === true : true
             this._replaceWithOptimized = trackConfig.replaceWithOptimizedSelector !== undefined ? trackConfig.replaceWithOptimizedSelector === true : true
             this._enableCliReport = trackConfig.enableCliReport === true
             this._enableMarkdownReport = trackConfig.enableMarkdownReport === true
@@ -142,7 +140,6 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
         // Overwrite all user commands to replace XPath with optimized selectors if enabled
         if (this._enabled && this._replaceWithOptimized) {
             overwriteUserCommands(browser, {
-                usePageSource: this._usePageSource,
                 browser: browser,
                 isReplacingSelector: this._isReplacingSelectorRef,
                 pageObjectPaths: this._pageObjectPaths,
@@ -288,7 +285,6 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
                 log.info(`[Selector Performance] ${timing.commandName}('${formattedSelector}') took ${duration.toFixed(2)}ms${locationInfo}`)
 
                 const conversionResult = await findOptimizedSelector(timing.selector, {
-                    usePageSource: this._usePageSource,
                     browser: this._browser!
                 })
 

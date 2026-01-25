@@ -12,24 +12,16 @@ const log = logger('@wdio/appium-service:selector-optimizer')
 export async function findOptimizedSelector(
     xpath: string,
     options: {
-        usePageSource: boolean
         browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     }
 ): Promise<XPathConversionResult | null> {
-    if (options.usePageSource) {
-        log.info(`[${LOG_PREFIX}: Step 2] Collecting page source for dynamic analysis...`)
-        const pageSourceStartTime = getHighResTime()
-        const result = await convertXPathToOptimizedSelector(xpath, {
-            browser: options.browser,
-            usePageSource: true
-        })
-        const pageSourceDuration = getHighResTime() - pageSourceStartTime
-        log.info(`[${LOG_PREFIX}: Step 2] Page source collected in ${pageSourceDuration.toFixed(2)}ms`)
-        return result
-    }
-
-    const staticResult = convertXPathToOptimizedSelector(xpath, {
-        usePageSource: false
+    log.info(`[${LOG_PREFIX}: Step 2] Collecting page source for dynamic analysis...`)
+    const pageSourceStartTime = getHighResTime()
+    const result = await convertXPathToOptimizedSelector(xpath, {
+        browser: options.browser
     })
-    return staticResult instanceof Promise ? await staticResult : staticResult
+    const pageSourceDuration = getHighResTime() - pageSourceStartTime
+    log.info(`[${LOG_PREFIX}: Step 2] Page source collected in ${pageSourceDuration.toFixed(2)}ms`)
+
+    return result
 }

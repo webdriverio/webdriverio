@@ -20,49 +20,29 @@ describe('optimization utils', () => {
     describe('findOptimizedSelector', () => {
         const mockBrowser = {} as any
 
-        test('should use static analysis when usePageSource is false', async () => {
-            const xpath = '//button[@id="test"]'
-            const mockResult = { selector: '~test', strategy: 'accessibility id' }
-
-            vi.mocked(xpathConverter.convertXPathToOptimizedSelector).mockReturnValue(mockResult as any)
-
-            const result = await findOptimizedSelector(xpath, {
-                usePageSource: false,
-                browser: mockBrowser
-            })
-
-            expect(result).toEqual(mockResult)
-            expect(xpathConverter.convertXPathToOptimizedSelector).toHaveBeenCalledWith(xpath, {
-                usePageSource: false
-            })
-        })
-
-        test('should use page source analysis when usePageSource is true', async () => {
+        test('should call convertXPathToOptimizedSelector with browser', async () => {
             const xpath = '//button[@id="test"]'
             const mockResult = { selector: '~test', strategy: 'accessibility id' }
 
             vi.mocked(xpathConverter.convertXPathToOptimizedSelector).mockResolvedValue(mockResult as any)
 
             const result = await findOptimizedSelector(xpath, {
-                usePageSource: true,
                 browser: mockBrowser
             })
 
             expect(result).toEqual(mockResult)
             expect(xpathConverter.convertXPathToOptimizedSelector).toHaveBeenCalledWith(xpath, {
-                browser: mockBrowser,
-                usePageSource: true
+                browser: mockBrowser
             })
         })
 
-        test('should log page source collection when usePageSource is true', async () => {
+        test('should log page source collection timing', async () => {
             const xpath = '//button[@id="test"]'
             const mockResult = { selector: '~test', strategy: 'accessibility id' }
 
             vi.mocked(xpathConverter.convertXPathToOptimizedSelector).mockResolvedValue(mockResult as any)
 
             await findOptimizedSelector(xpath, {
-                usePageSource: true,
                 browser: mockBrowser
             })
 
@@ -74,45 +54,29 @@ describe('optimization utils', () => {
             )
         })
 
-        test('should handle synchronous result from convertXPathToOptimizedSelector', async () => {
-            const xpath = '//button[@id="test"]'
-            const mockResult = { selector: '~test', strategy: 'accessibility id' }
-
-            vi.mocked(xpathConverter.convertXPathToOptimizedSelector).mockReturnValue(mockResult as any)
-
-            const result = await findOptimizedSelector(xpath, {
-                usePageSource: false,
-                browser: mockBrowser
-            })
-
-            expect(result).toEqual(mockResult)
-        })
-
-        test('should handle async result from convertXPathToOptimizedSelector', async () => {
-            const xpath = '//button[@id="test"]'
-            const mockResult = { selector: '~test', strategy: 'accessibility id' }
-
-            vi.mocked(xpathConverter.convertXPathToOptimizedSelector).mockResolvedValue(mockResult as any)
-
-            const result = await findOptimizedSelector(xpath, {
-                usePageSource: false,
-                browser: mockBrowser
-            })
-
-            expect(result).toEqual(mockResult)
-        })
-
         test('should return null when convertXPathToOptimizedSelector returns null', async () => {
             const xpath = '//button[@invalid]'
 
-            vi.mocked(xpathConverter.convertXPathToOptimizedSelector).mockReturnValue(null as any)
+            vi.mocked(xpathConverter.convertXPathToOptimizedSelector).mockResolvedValue(null)
 
             const result = await findOptimizedSelector(xpath, {
-                usePageSource: false,
                 browser: mockBrowser
             })
 
             expect(result).toBeNull()
+        })
+
+        test('should return warning result when conversion fails', async () => {
+            const xpath = '//button[@id="test"]'
+            const mockResult = { selector: null, warning: 'Could not convert' }
+
+            vi.mocked(xpathConverter.convertXPathToOptimizedSelector).mockResolvedValue(mockResult as any)
+
+            const result = await findOptimizedSelector(xpath, {
+                browser: mockBrowser
+            })
+
+            expect(result).toEqual(mockResult)
         })
     })
 })

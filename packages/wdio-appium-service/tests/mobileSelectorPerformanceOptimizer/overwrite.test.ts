@@ -1,6 +1,7 @@
 import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
 
 import { overwriteUserCommands } from '../../src/mobileSelectorPerformanceOptimizer/overwrite.js'
+import type { OptimizationOptions } from '../../src/mobileSelectorPerformanceOptimizer/types.js'
 import * as utils from '../../src/mobileSelectorPerformanceOptimizer/utils/index.js'
 import * as optimizer from '../../src/mobileSelectorPerformanceOptimizer/optimizer.js'
 
@@ -20,11 +21,7 @@ vi.mock('../../src/mobileSelectorPerformanceOptimizer/optimizer.js', () => ({
 
 describe('overwriteUserCommands', () => {
     let mockBrowser: WebdriverIO.Browser
-    let mockOptions: {
-        usePageSource: boolean
-        browser?: WebdriverIO.Browser
-        isReplacingSelector: { value: boolean }
-    }
+    let mockOptions: OptimizationOptions
     let mockOverwriteCommand: ReturnType<typeof vi.fn>
 
     beforeEach(() => {
@@ -37,7 +34,6 @@ describe('overwriteUserCommands', () => {
         } as unknown as WebdriverIO.Browser
 
         mockOptions = {
-            usePageSource: true,
             browser: mockBrowser,
             isReplacingSelector: { value: false }
         }

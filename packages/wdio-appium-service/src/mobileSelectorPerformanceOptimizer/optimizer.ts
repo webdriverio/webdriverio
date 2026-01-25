@@ -60,7 +60,6 @@ async function optimizeSelector<T extends WebdriverIO.Element | WebdriverIO.Elem
 
     // Step 2: Find optimized selector
     const conversionResult = await findOptimizedSelector(selector, {
-        usePageSource: options.usePageSource,
         browser: options.browser
     })
 
