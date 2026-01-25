@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { EventEmitter } from 'node:events'
+import fs from 'node:fs'
+import os from 'node:os'
+import { resolve } from 'node:path'
 
 import logger from '@wdio/logger'
 import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from '@wdio/utils'
@@ -9,6 +12,7 @@ import { expect, setOptions, getConfig, matchers, SnapshotService, SoftAssertion
 import { attach } from 'webdriverio'
 import type { AddCommandFunction, CustomCommandOptions, Instances, Selector } from 'webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
+import type { Logger } from '@wdio/logger'
 
 import BrowserFramework from './browser.js'
 import BaseReporter from './reporter.js'
@@ -146,6 +150,24 @@ export default class Runner extends EventEmitter {
             const afterArgs: AfterArgs = [1, this._caps, this._specs]
             await executeHooksWithArgs('after', this._config.after as Function, afterArgs)
             return this._shutdown(1, retries, true)
+        }
+
+        if (browser?.isBidi && this._config.logBrowserConsole) {
+            const consoleLogger: Logger = logger('browserconsole')
+
+            let logStream: fs.WriteStream | undefined
+            if (this._config.outputDir) {
+                const logFileName = process.env.WDIO_WORKER_ID
+                    ? `wdio-${process.env.WDIO_WORKER_ID}-browserconsole.log`
+                    : 'wdio-browserconsole.log'
+                const logFile = resolve(this._config.outputDir, logFileName)
+                logStream = fs.createWriteStream(logFile, { flags: 'w' })
+            }
+
+            browser.on('log.entryAdded', (logEntry) => {
+                consoleLogger[logEntry.level].call(log, logEntry.text)
+                logStream?.write(logEntry.text + os.EOL)
+            })
         }
 
         this._reporter.caps = browser.capabilities
