@@ -9,6 +9,7 @@ import type { PackageJson } from 'type-fest'
 import { getExternal } from './utils.js'
 import { log, clear, generateDts, copyEJSTemplates, externalScripts, runBuildScript } from './plugins.js'
 import { generateTypes } from './type-generation/index.js'
+import { browserPolyfills } from './polyfill.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const rootDir = path.resolve(__dirname, '..', '..', '..')
@@ -69,8 +70,11 @@ const esmPlugins: Record<string, Plugin[]> = {
 const cjsPlugins: Record<string, Plugin[]> = {}
 /**
  * plugins for the browser build
+ * @see https://github.com/webdriverio/webdriverio/issues/14598
  */
-const browserPlugins: Record<string, Plugin[]> = {}
+const browserPlugins: Record<string, Plugin[]> = {
+    'webdriverio': [browserPolyfills()]
+}
 
 const WDIO_RESQ_SCRIPT = JSON.stringify(await fs.readFile(path.resolve(rootDir, 'packages', 'webdriverio', 'node_modules', 'resq', 'dist', 'index.js'), 'utf-8'))
 const WDIO_FAKER_SCRIPT = JSON.stringify(await fs.readFile(path.resolve(rootDir, 'packages', 'webdriverio', 'third_party', 'fake-timers.js'), 'utf-8'))
@@ -197,13 +201,53 @@ const configs = packages.map(([packageDir, pkg]) => {
             const browserSource = (exp.browserSource as string | undefined) || source
             const browserBuild: BuildOptions = {
                 ...baseConfig,
+                /**
+                 * For browser builds, we need to bundle all dependencies
+                 * instead of marking them as external. However we want to keep
+                 * Node.js built-ins external (they are likely polyfilled or not used).
+                 */
+                external: getExternal(pkg).filter((ext) => ext.startsWith('node:') || ext.startsWith('virtual:') || ext === 'vscode'),
                 entryPoints: [path.resolve(absWorkingDir, browserSource)],
                 platform: 'browser',
                 format: 'esm',
-                target: ['es2021', 'chrome90', 'edge90', 'firefox90', 'safari12'],
+                target: ['es2021', 'chrome90', 'edge90', 'firefox90', 'safari15'],
                 plugins: [],
                 supported: {
                     'top-level-await': true //browsers can handle top-level-await features
+                },
+                /**
+                 * Inject global process and Buffer for dependencies that reference
+                 * them directly (globalThis.process, globalThis.Buffer) without importing.
+                 * This ensures compatibility with libraries expecting Node.js globals.
+                 */
+                banner: {
+                    js: `
+// Browser polyfill globals for Node.js compatibility
+if (typeof globalThis.process === 'undefined') {
+    globalThis.process = { env: {}, platform: 'browser', version: '', nextTick: (fn, ...a) => setTimeout(() => fn(...a), 0) };
+}
+if (typeof globalThis.Buffer === 'undefined') {
+    class B extends Uint8Array {
+        static from(d, e) {
+            if (typeof d === 'string') {
+                if (e === 'base64') { const b = atob(d); const r = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) r[i] = b.charCodeAt(i); return new B(r.buffer, r.byteOffset, r.byteLength); }
+                if (e === 'hex') { const r = new Uint8Array(d.length / 2); for (let i = 0; i < r.length; i++) r[i] = parseInt(d.substring(i * 2, i * 2 + 2), 16); return new B(r.buffer, r.byteOffset, r.byteLength); }
+                const r = new TextEncoder().encode(d); return new B(r.buffer, r.byteOffset, r.byteLength);
+            }
+            const r = new Uint8Array(d); return new B(r.buffer, r.byteOffset, r.byteLength);
+        }
+        static alloc(s) { return new B(s); }
+        static isBuffer(o) { return o instanceof Uint8Array; }
+        static concat(l) { const r = new Uint8Array(l.reduce((a, b) => a + b.length, 0)); let o = 0; l.forEach(a => { r.set(a, o); o += a.length; }); return new B(r.buffer, r.byteOffset, r.byteLength); }
+        toString(e) {
+            if (e === 'base64') { let s = ''; for (let i = 0; i < this.length; i++) s += String.fromCharCode(this[i]); return btoa(s); }
+            if (e === 'hex') { let s = ''; for (let i = 0; i < this.length; i++) s += (this[i] < 16 ? '0' : '') + this[i].toString(16); return s; }
+            return new TextDecoder().decode(this);
+        }
+    }
+    globalThis.Buffer = B;
+}
+`
                 }
             }
 
