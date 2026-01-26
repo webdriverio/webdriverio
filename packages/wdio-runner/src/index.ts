@@ -148,6 +148,12 @@ export default class Runner extends EventEmitter {
             return this._shutdown(1, retries, true)
         }
 
+        if (browser?.isBidi && this._config.logBrowserConsole) {
+            browser.on('log.entryAdded', (logEntry: any) => {
+                this._reporter?.emit('client:logEntry', logEntry)
+            })
+        }
+
         this._reporter.caps = browser.capabilities
 
         const beforeArgs: BeforeArgs = [this._caps, this._specs, browser]
@@ -427,6 +433,7 @@ export default class Runner extends EventEmitter {
         } as Options.RunnerEnd)
         try {
             await this._reporter!.waitForSync()
+            this._reporter!.closeStream()
         } catch (err: any) {
             log.error(err)
         }
