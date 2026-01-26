@@ -36,3 +36,8 @@ export interface Argument {
         cells: string[]
     }[]
 }
+
+export interface ClientLogArgs {
+    level: string
+    text: string
+}

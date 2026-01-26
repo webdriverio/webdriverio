@@ -276,6 +276,14 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     groupLogsByTestSpec?: boolean,
     /**
+     * Add console.logs from browser to your local log output.
+     * These logs will be in the browserconsole namespace and loglevel is according to
+     * the browsers log level.
+     *
+     * @default false
+     */
+    logBrowserConsole?: boolean
+    /**
      * Services take over a specific job you don't want to take care of. They enhance
      * your test setup with almost no effort.
      */

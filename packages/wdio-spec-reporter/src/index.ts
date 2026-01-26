@@ -4,7 +4,7 @@ import prettyMs from 'pretty-ms'
 import type { Capabilities } from '@wdio/types'
 import { Chalk, type ChalkInstance } from 'chalk'
 import WDIOReporter, { TestStats, getBrowserName } from '@wdio/reporter'
-import type { SuiteStats, HookStats, RunnerStats, Argument } from '@wdio/reporter'
+import type { SuiteStats, HookStats, RunnerStats, Argument, ClientLogArgs } from '@wdio/reporter'
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
 import { ChalkColors, type SpecReporterOptions, type TestLink, type StateCount, type Symbols, State } from './types.js'
 
@@ -161,6 +161,10 @@ export default class SpecReporter extends WDIOReporter {
 
     onRunnerEnd (runner: RunnerStats) {
         this.printReport(runner)
+    }
+
+    onClientLogEntry (logEntry: ClientLogArgs) {
+        this._consoleLogs.push(this.setMessageColor(`${logEntry.level}: ${logEntry.text}`, State.PASSED))
     }
 
     /**
