@@ -48,7 +48,8 @@ describe('overwriteUserCommands', () => {
 
         mockOptions = {
             browser: mockBrowser,
-            isReplacingSelector: { value: false }
+            isReplacingSelector: { value: false },
+            pageObjectPaths: []
         }
 
         vi.mocked(utils.isNativeContext).mockReturnValue(true)
