@@ -182,8 +182,10 @@ export interface AppiumServiceConfig {
         maxLineLength?: number
         /**
          * Paths to directories containing page objects or helper files where selectors may be defined.
-         * When provided, the service will search these directories to find selector locations.
-         * Supports glob patterns for flexible matching.
+         * The service will search these directories to find selector locations and show file paths
+         * in the report (e.g., "Found at: TabBar.ts:3").
+         *
+         * This option is required when `trackSelectorPerformance` is enabled.
          *
          * @example
          * // Single directory
@@ -192,25 +194,8 @@ export interface AppiumServiceConfig {
          * @example
          * // Multiple directories
          * pageObjectPaths: ['./tests/pageobjects', './tests/pages', './tests/helpers']
-         *
-         * @example
-         * // With glob patterns
-         * pageObjectPaths: ['./tests/** /*.page.ts', './tests/** /*.po.js']
-         *
-         * @default undefined (searches relative to test file)
          */
-        pageObjectPaths?: string[]
-        /**
-         * Enable file location tracking for selectors found in page objects and test files.
-         * When enabled, the report will show clickable file paths (e.g., "Found at: TabBar.ts:3")
-         * to help you quickly navigate to the selector definition.
-         *
-         * Note: This option requires `pageObjectPaths` to be configured.
-         * If `pageObjectPaths` is not provided, location tracking will be disabled automatically.
-         *
-         * @default true (when pageObjectPaths is provided)
-         */
-        provideSelectorLocation?: boolean
+        pageObjectPaths: string[]
     }
 }
 
