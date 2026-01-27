@@ -43,11 +43,9 @@ async function optimizeSelector<T extends WebdriverIO.Element | WebdriverIO.Elem
 ): Promise<T> {
     const elementWord = isMultiple ? 'element(s)' : 'element'
 
-    // Search for selector locations in test file and page objects (if enabled)
+    // Search for selector locations in test file and page objects
     const testFile = getCurrentTestFile()
-    const locations = options.provideSelectorLocation
-        ? findSelectorLocation(testFile, selector, options.pageObjectPaths)
-        : []
+    const locations = findSelectorLocation(testFile, selector, options.pageObjectPaths)
     const locationInfo = formatSelectorLocations(locations)
 
     // Step 1: Test the current XPath selector first

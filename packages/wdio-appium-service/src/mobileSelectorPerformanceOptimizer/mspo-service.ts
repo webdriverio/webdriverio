@@ -31,8 +31,7 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
     private _enableCliReport: boolean = false
     private _enableMarkdownReport: boolean = false
     private _reportDirectory?: string
-    private _pageObjectPaths?: string[]
-    private _provideSelectorLocation: boolean = true
+    private _pageObjectPaths: string[] = []
     // Some internal consts
     private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     private _isReplacingSelectorRef: { value: boolean } = { value: false }
@@ -55,25 +54,22 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             if (typeof trackConfig !== 'object' || Array.isArray(trackConfig)) {
                 throw new SevereServiceError(
                     'trackSelectorPerformance must be an object. ' +
-                    'Expected format: { enabled: boolean, enableCliReport?: boolean, enableMarkdownReport?: boolean, reportPath?: string, maxLineLength?: number }'
+                    'Expected format: { enabled: boolean, pageObjectPaths: string[], enableCliReport?: boolean, enableMarkdownReport?: boolean, reportPath?: string, maxLineLength?: number }'
                 )
             }
             this._enabled = trackConfig.enabled === true
             this._enableCliReport = trackConfig.enableCliReport === true
             this._enableMarkdownReport = trackConfig.enableMarkdownReport === true
-            this._pageObjectPaths = trackConfig.pageObjectPaths
-
-            if (trackConfig.provideSelectorLocation !== undefined) {
-                this._provideSelectorLocation = trackConfig.provideSelectorLocation === true
-                if (this._provideSelectorLocation && (!this._pageObjectPaths || this._pageObjectPaths.length === 0)) {
-                    log.warn('provideSelectorLocation is enabled but pageObjectPaths is not configured. Selector location tracking will be disabled.')
-                    this._provideSelectorLocation = false
-                }
-            } else {
-                this._provideSelectorLocation = !!(this._pageObjectPaths && this._pageObjectPaths.length > 0)
-            }
-
             if (this._enabled) {
+                if (!trackConfig.pageObjectPaths || trackConfig.pageObjectPaths.length === 0) {
+                    throw new SevereServiceError(
+                        'trackSelectorPerformance.pageObjectPaths is required when we want to track the selector performance. ' +
+                        'Please provide an array of paths to directories containing page objects or test files where selectors are defined. ' +
+                        "Example: pageObjectPaths: ['./tests/pageobjects']"
+                    )
+                }
+                this._pageObjectPaths = trackConfig.pageObjectPaths
+
                 this._reportDirectory = determineReportDirectory(
                     trackConfig.reportPath,
                     this._config,
@@ -140,7 +136,6 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
                 browser: browser,
                 isReplacingSelector: this._isReplacingSelectorRef,
                 pageObjectPaths: this._pageObjectPaths,
-                provideSelectorLocation: this._provideSelectorLocation
             })
         }
     }
@@ -164,12 +159,9 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             const formattedSelector = formatSelectorForDisplay(selector)
             const timingId = crypto.randomUUID()
 
-            let lineNumber: number | undefined
-            if (this._provideSelectorLocation) {
-                const testFile = getCurrentTestFile()
-                const locations = findSelectorLocation(testFile, selector, this._pageObjectPaths)
-                lineNumber = locations.length > 0 ? locations[0].line : undefined
-            }
+            const testFile = getCurrentTestFile()
+            const locations = findSelectorLocation(testFile, selector, this._pageObjectPaths)
+            const lineNumber = locations.length > 0 ? locations[0].line : undefined
 
             this._commandTimings.set(timingId, {
                 startTime: getHighResTime(),

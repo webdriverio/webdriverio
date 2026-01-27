@@ -224,7 +224,8 @@ export const config = {
     services: [
         ['appium', {
             trackSelectorPerformance: {
-                enabled: true
+                enabled: true,
+                pageObjectPaths: ['./tests/pageobjects'] // Mandatory
             }
         }]
     ],
@@ -249,7 +250,8 @@ export const config = {
     services: [
         ['appium', {
             trackSelectorPerformance: {
-                enabled: true
+                enabled: true,
+                pageObjectPaths: ['./tests/pageobjects']
             }
         }]
     ],
@@ -275,6 +277,7 @@ export const config = {
         ['appium', {
             trackSelectorPerformance: {
                 enabled: true,
+                pageObjectPaths: ['./tests/pageobjects'],
                 enableCliReport: true  // Enable terminal output
             }
         }]
@@ -299,6 +302,7 @@ export const config = {
         ['appium', {
             trackSelectorPerformance: {
                 enabled: true,
+                pageObjectPaths: ['./tests/pageobjects'],
                 enableMarkdownReport: true  // Generate a markdown report file
             }
         }]
@@ -321,6 +325,7 @@ export const config = {
         ['appium', {
             trackSelectorPerformance: {
                 enabled: true,
+                pageObjectPaths: ['./tests/pageobjects'],
                 reportPath: './reports/selector-performance'
             }
         }]
@@ -345,34 +350,8 @@ export const config = {
         ['appium', {
             trackSelectorPerformance: {
                 enabled: true,
-                maxLineLength: 120
-            }
-        }]
-    ],
-    // ...
-}
-```
-
-#### provideSelectorLocation
-
-Enable file location tracking for selectors found in page objects and test files. When enabled, the report will show clickable file paths (e.g., "📍 Found at: TabBar.ts:3") to help you quickly navigate to the selector definition.
-
-**Note:** This option requires `pageObjectPaths` to be configured. If `pageObjectPaths` is not provided, location tracking will be disabled automatically.
-
-Type: `boolean`
-
-Default: `true` (when `pageObjectPaths` is provided)
-
-Example:
-```js
-export const config = {
-    // ...
-    services: [
-        ['appium', {
-            trackSelectorPerformance: {
-                enabled: true,
                 pageObjectPaths: ['./tests/pageobjects'],
-                provideSelectorLocation: true
+                maxLineLength: 120
             }
         }]
     ],
@@ -382,15 +361,11 @@ export const config = {
 
 #### pageObjectPaths
 
-Paths to directories containing page objects or helper files where selectors may be defined. When provided, the service will search these directories to find selector locations.
+Paths to directories containing page objects or helper files where selectors may be defined. The service will search these directories to find selector locations and show file paths (e.g., "📍 Found at: TabBar.ts:3") in the report.
 
-When not provided, the service attempts to automatically discover page objects using common naming patterns (e.g., `tests/pageobjects/`, `tests/pages/`, `tests/page-objects/`). However, **explicitly configuring this option is strongly recommended** for accurate selector location tracking, especially if your page objects follow a custom directory structure.
-
-**Note:** This option is required for `provideSelectorLocation` to work. If `pageObjectPaths` is not provided, `provideSelectorLocation` will be disabled automatically.
+**This option is required** when `trackSelectorPerformance` is enabled. The service will throw an error if it is not provided.
 
 Type: `string[]`
-
-Default: `undefined` (auto-discovery using common patterns)
 
 Example:
 ```js
@@ -431,8 +406,7 @@ export const config = {
                 enableMarkdownReport: true,
                 reportPath: './reports/selector-performance',
                 maxLineLength: 100,
-                pageObjectPaths: ['./tests/pageobjects', './tests/helpers'],
-                provideSelectorLocation: true
+                pageObjectPaths: ['./tests/pageobjects', './tests/helpers']
             }
         }]
     ],
@@ -461,6 +435,7 @@ export const config = {
             // Just configure the MSPO feature:
             trackSelectorPerformance: {
                 enabled: true,
+                pageObjectPaths: ['./tests/pageobjects'],
                 enableCliReport: true,
                 enableMarkdownReport: true,
                 reportPath: './reports/selector-performance'
@@ -484,6 +459,7 @@ export const config = {
         ['appium', {
             trackSelectorPerformance: {
                 enabled: true,
+                pageObjectPaths: ['./tests/pageobjects'],
                 enableCliReport: true,
                 enableMarkdownReport: true,
                 reportPath: './reports/selector-performance'
@@ -559,6 +535,7 @@ services: [
     ['appium', {
         trackSelectorPerformance: {
             enabled: true,
+            pageObjectPaths: ['./tests/pageobjects'],
             enableCliReport: true, // Enable CLI report output to terminal
             enableMarkdownReport: true // Enable markdown report file generation
         }
