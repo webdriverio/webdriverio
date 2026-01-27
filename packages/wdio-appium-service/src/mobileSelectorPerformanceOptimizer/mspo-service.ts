@@ -54,28 +54,25 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             if (typeof trackConfig !== 'object' || Array.isArray(trackConfig)) {
                 throw new SevereServiceError(
                     'trackSelectorPerformance must be an object. ' +
-                    'Expected format: { enabled: boolean, pageObjectPaths: string[], enableCliReport?: boolean, enableMarkdownReport?: boolean, reportPath?: string, maxLineLength?: number }'
+                    'Expected format: { pageObjectPaths: string[], enableCliReport?: boolean, enableMarkdownReport?: boolean, reportPath?: string, maxLineLength?: number }'
                 )
             }
-            this._enabled = trackConfig.enabled === true
+            if (!trackConfig.pageObjectPaths || trackConfig.pageObjectPaths.length === 0) {
+                throw new SevereServiceError(
+                    'trackSelectorPerformance.pageObjectPaths is required. ' +
+                    'Please provide an array of paths to directories containing page objects or test files where selectors are defined. ' +
+                    "Example: pageObjectPaths: ['./tests/pageobjects']"
+                )
+            }
+            this._enabled = true
+            this._pageObjectPaths = trackConfig.pageObjectPaths
             this._enableCliReport = trackConfig.enableCliReport === true
             this._enableMarkdownReport = trackConfig.enableMarkdownReport === true
-            if (this._enabled) {
-                if (!trackConfig.pageObjectPaths || trackConfig.pageObjectPaths.length === 0) {
-                    throw new SevereServiceError(
-                        'trackSelectorPerformance.pageObjectPaths is required when we want to track the selector performance. ' +
-                        'Please provide an array of paths to directories containing page objects or test files where selectors are defined. ' +
-                        "Example: pageObjectPaths: ['./tests/pageobjects']"
-                    )
-                }
-                this._pageObjectPaths = trackConfig.pageObjectPaths
-
-                this._reportDirectory = determineReportDirectory(
-                    trackConfig.reportPath,
-                    this._config,
-                    this._options
-                )
-            }
+            this._reportDirectory = determineReportDirectory(
+                trackConfig.reportPath,
+                this._config,
+                this._options
+            )
         }
 
     }

@@ -224,8 +224,7 @@ export const config = {
     services: [
         ['appium', {
             trackSelectorPerformance: {
-                enabled: true,
-                pageObjectPaths: ['./tests/pageobjects'] // Mandatory
+                pageObjectPaths: ['./tests/pageobjects']
             }
         }]
     ],
@@ -235,35 +234,11 @@ export const config = {
 
 ### Options
 
-#### enabled
-
-Enable or disable selector performance tracking.
-
-Type: `boolean`
-
-Default: `false`
-
-Example:
-```js
-export const config = {
-    // ...
-    services: [
-        ['appium', {
-            trackSelectorPerformance: {
-                enabled: true,
-                pageObjectPaths: ['./tests/pageobjects']
-            }
-        }]
-    ],
-    // ...
-}
-```
-
 #### enableCliReport
 
 Enable or disable the CLI report output to the terminal. When enabled, a formatted performance report is printed to the terminal after test execution.
 
-**Note:** The JSON report is always generated when `enabled: true`. This option only controls whether the report is also printed to the terminal.
+**Note:** The JSON report is always generated when `trackSelectorPerformance` is configured. This option only controls whether the report is also printed to the terminal.
 
 Type: `boolean`
 
@@ -276,7 +251,6 @@ export const config = {
     services: [
         ['appium', {
             trackSelectorPerformance: {
-                enabled: true,
                 pageObjectPaths: ['./tests/pageobjects'],
                 enableCliReport: true  // Enable terminal output
             }
@@ -290,6 +264,8 @@ export const config = {
 
 Enable markdown report file generation. When enabled, a markdown file with the same content as the CLI report is written to the logs folder (the same directory as the JSON report).
 
+**Note:** The JSON report is always generated when `trackSelectorPerformance` is configured. This option only controls whether the report is also printed to the terminal.
+
 Type: `boolean`
 
 Default: `false`
@@ -301,7 +277,6 @@ export const config = {
     services: [
         ['appium', {
             trackSelectorPerformance: {
-                enabled: true,
                 pageObjectPaths: ['./tests/pageobjects'],
                 enableMarkdownReport: true  // Generate a markdown report file
             }
@@ -324,7 +299,6 @@ export const config = {
     services: [
         ['appium', {
             trackSelectorPerformance: {
-                enabled: true,
                 pageObjectPaths: ['./tests/pageobjects'],
                 reportPath: './reports/selector-performance'
             }
@@ -349,7 +323,6 @@ export const config = {
     services: [
         ['appium', {
             trackSelectorPerformance: {
-                enabled: true,
                 pageObjectPaths: ['./tests/pageobjects'],
                 maxLineLength: 120
             }
@@ -363,7 +336,7 @@ export const config = {
 
 Paths to directories containing page objects or helper files where selectors may be defined. The service will search these directories to find selector locations and show file paths (e.g., "📍 Found at: TabBar.ts:3") in the report.
 
-**This option is required** when `trackSelectorPerformance` is enabled. The service will throw an error if it is not provided.
+**This option is required.** The service will throw an error if it is not provided.
 
 Type: `string[]`
 
@@ -374,7 +347,6 @@ export const config = {
     services: [
         ['appium', {
             trackSelectorPerformance: {
-                enabled: true,
                 // Single directory
                 pageObjectPaths: ['./tests/pageobjects']
                 // Or multiple directories
@@ -400,7 +372,6 @@ export const config = {
     services: [
         ['appium', {
             trackSelectorPerformance: {
-                enabled: true,
                 usePageSource: true,
                 enableCliReport: true,
                 enableMarkdownReport: true,
@@ -434,7 +405,6 @@ export const config = {
             // No need to configure Appium server options - it won't start locally
             // Just configure the MSPO feature:
             trackSelectorPerformance: {
-                enabled: true,
                 pageObjectPaths: ['./tests/pageobjects'],
                 enableCliReport: true,
                 enableMarkdownReport: true,
@@ -458,7 +428,6 @@ export const config = {
         }],
         ['appium', {
             trackSelectorPerformance: {
-                enabled: true,
                 pageObjectPaths: ['./tests/pageobjects'],
                 enableCliReport: true,
                 enableMarkdownReport: true,
@@ -534,7 +503,6 @@ export const config = {
 services: [
     ['appium', {
         trackSelectorPerformance: {
-            enabled: true,
             pageObjectPaths: ['./tests/pageobjects'],
             enableCliReport: true, // Enable CLI report output to terminal
             enableMarkdownReport: true // Enable markdown report file generation
@@ -563,7 +531,7 @@ Run your tests and review the generated report.
 ```js
 services: [
     ['appium', {
-        // trackSelectorPerformance removed or `enabled` set to false
+        // trackSelectorPerformance removed to disable the feature
     }]
 ]
 ```

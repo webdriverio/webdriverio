@@ -24,6 +24,19 @@ describe('overwriteUserCommands', () => {
     let mockOptions: OptimizationOptions
     let mockOverwriteCommand: ReturnType<typeof vi.fn>
 
+    /**
+     * Registers overwrite commands on the mock browser and returns
+     * the overwritten function for the given command name.
+     */
+    const getOverwrittenFunc = (commandName: string) => {
+        overwriteUserCommands(mockBrowser, mockOptions)
+        const func = mockOverwriteCommand.mock.calls.find(
+            (call: any[]) => call[0] === commandName
+        )?.[1]
+        expect(func).toBeDefined()
+        return func!
+    }
+
     beforeEach(() => {
         vi.clearAllMocks()
 
@@ -83,36 +96,22 @@ describe('overwriteUserCommands', () => {
         test('should call original function when already replacing', async () => {
             mockOptions.isReplacingSelector.value = true
             const originalFunc = vi.fn().mockResolvedValue({} as WebdriverIO.Element)
-            const selector = '//xpath'
 
-            overwriteUserCommands(mockBrowser, mockOptions)
+            const overwrittenFunc = getOverwrittenFunc('$')
+            await overwrittenFunc(originalFunc, '//xpath')
 
-            const overwrittenFunc = mockOverwriteCommand.mock.calls.find(
-                call => call[0] === '$'
-            )?.[1]
-
-            expect(overwrittenFunc).toBeDefined()
-            await overwrittenFunc!(originalFunc, selector)
-
-            expect(originalFunc).toHaveBeenCalledWith(selector)
+            expect(originalFunc).toHaveBeenCalledWith('//xpath')
             expect(vi.mocked(optimizer.optimizeSingleSelector)).not.toHaveBeenCalled()
         })
 
         test('should call original function when not in native context', async () => {
             vi.mocked(utils.isNativeContext).mockReturnValue(false)
             const originalFunc = vi.fn().mockResolvedValue({} as WebdriverIO.Element)
-            const selector = '//xpath'
 
-            overwriteUserCommands(mockBrowser, mockOptions)
+            const overwrittenFunc = getOverwrittenFunc('$')
+            await overwrittenFunc(originalFunc, '//xpath')
 
-            const overwrittenFunc = mockOverwriteCommand.mock.calls.find(
-                call => call[0] === '$'
-            )?.[1]
-
-            expect(overwrittenFunc).toBeDefined()
-            await overwrittenFunc!(originalFunc, selector)
-
-            expect(originalFunc).toHaveBeenCalledWith(selector)
+            expect(originalFunc).toHaveBeenCalledWith('//xpath')
             expect(vi.mocked(optimizer.optimizeSingleSelector)).not.toHaveBeenCalled()
         })
 
@@ -121,14 +120,8 @@ describe('overwriteUserCommands', () => {
             const originalFunc = vi.fn().mockResolvedValue({} as WebdriverIO.Element)
             const selector = 'accessibility id'
 
-            overwriteUserCommands(mockBrowser, mockOptions)
-
-            const overwrittenFunc = mockOverwriteCommand.mock.calls.find(
-                call => call[0] === '$'
-            )?.[1]
-
-            expect(overwrittenFunc).toBeDefined()
-            await overwrittenFunc!(originalFunc, selector)
+            const overwrittenFunc = getOverwrittenFunc('$')
+            await overwrittenFunc(originalFunc, selector)
 
             expect(originalFunc).toHaveBeenCalledWith(selector)
             expect(vi.mocked(optimizer.optimizeSingleSelector)).not.toHaveBeenCalled()
@@ -140,14 +133,8 @@ describe('overwriteUserCommands', () => {
             const mockElement = {} as WebdriverIO.Element
             vi.mocked(optimizer.optimizeSingleSelector).mockResolvedValue(mockElement)
 
-            overwriteUserCommands(mockBrowser, mockOptions)
-
-            const overwrittenFunc = mockOverwriteCommand.mock.calls.find(
-                call => call[0] === '$'
-            )?.[1]
-
-            expect(overwrittenFunc).toBeDefined()
-            const result = await overwrittenFunc!(originalFunc, selector)
+            const overwrittenFunc = getOverwrittenFunc('$')
+            const result = await overwrittenFunc(originalFunc, selector)
 
             expect(vi.mocked(utils.isNativeContext)).toHaveBeenCalledWith(mockBrowser)
             expect(vi.mocked(utils.isXPathSelector)).toHaveBeenCalledWith(selector)
@@ -164,17 +151,10 @@ describe('overwriteUserCommands', () => {
         test('should work with custom$ command', async () => {
             const originalFunc = vi.fn().mockResolvedValue({} as WebdriverIO.Element)
             const selector = '//xpath'
-            const mockElement = {} as WebdriverIO.Element
-            vi.mocked(optimizer.optimizeSingleSelector).mockResolvedValue(mockElement)
+            vi.mocked(optimizer.optimizeSingleSelector).mockResolvedValue({} as WebdriverIO.Element)
 
-            overwriteUserCommands(mockBrowser, mockOptions)
-
-            const overwrittenFunc = mockOverwriteCommand.mock.calls.find(
-                call => call[0] === 'custom$'
-            )?.[1]
-
-            expect(overwrittenFunc).toBeDefined()
-            await overwrittenFunc!(originalFunc, selector)
+            const overwrittenFunc = getOverwrittenFunc('custom$')
+            await overwrittenFunc(originalFunc, selector)
 
             expect(vi.mocked(optimizer.optimizeSingleSelector)).toHaveBeenCalledWith(
                 'custom$',
@@ -190,36 +170,22 @@ describe('overwriteUserCommands', () => {
         test('should call original function when already replacing', async () => {
             mockOptions.isReplacingSelector.value = true
             const originalFunc = vi.fn().mockResolvedValue([{}] as WebdriverIO.Element[])
-            const selector = '//xpath'
 
-            overwriteUserCommands(mockBrowser, mockOptions)
+            const overwrittenFunc = getOverwrittenFunc('$$')
+            await overwrittenFunc(originalFunc, '//xpath')
 
-            const overwrittenFunc = mockOverwriteCommand.mock.calls.find(
-                call => call[0] === '$$'
-            )?.[1]
-
-            expect(overwrittenFunc).toBeDefined()
-            await overwrittenFunc!(originalFunc, selector)
-
-            expect(originalFunc).toHaveBeenCalledWith(selector)
+            expect(originalFunc).toHaveBeenCalledWith('//xpath')
             expect(vi.mocked(optimizer.optimizeMultipleSelectors)).not.toHaveBeenCalled()
         })
 
         test('should call original function when not in native context', async () => {
             vi.mocked(utils.isNativeContext).mockReturnValue(false)
             const originalFunc = vi.fn().mockResolvedValue([{}] as WebdriverIO.Element[])
-            const selector = '//xpath'
 
-            overwriteUserCommands(mockBrowser, mockOptions)
+            const overwrittenFunc = getOverwrittenFunc('$$')
+            await overwrittenFunc(originalFunc, '//xpath')
 
-            const overwrittenFunc = mockOverwriteCommand.mock.calls.find(
-                call => call[0] === '$$'
-            )?.[1]
-
-            expect(overwrittenFunc).toBeDefined()
-            await overwrittenFunc!(originalFunc, selector)
-
-            expect(originalFunc).toHaveBeenCalledWith(selector)
+            expect(originalFunc).toHaveBeenCalledWith('//xpath')
             expect(vi.mocked(optimizer.optimizeMultipleSelectors)).not.toHaveBeenCalled()
         })
 
@@ -228,14 +194,8 @@ describe('overwriteUserCommands', () => {
             const originalFunc = vi.fn().mockResolvedValue([{}] as WebdriverIO.Element[])
             const selector = 'accessibility id'
 
-            overwriteUserCommands(mockBrowser, mockOptions)
-
-            const overwrittenFunc = mockOverwriteCommand.mock.calls.find(
-                call => call[0] === '$$'
-            )?.[1]
-
-            expect(overwrittenFunc).toBeDefined()
-            await overwrittenFunc!(originalFunc, selector)
+            const overwrittenFunc = getOverwrittenFunc('$$')
+            await overwrittenFunc(originalFunc, selector)
 
             expect(originalFunc).toHaveBeenCalledWith(selector)
             expect(vi.mocked(optimizer.optimizeMultipleSelectors)).not.toHaveBeenCalled()
@@ -247,14 +207,8 @@ describe('overwriteUserCommands', () => {
             const mockElements = [{}] as WebdriverIO.Element[]
             vi.mocked(optimizer.optimizeMultipleSelectors).mockResolvedValue(mockElements)
 
-            overwriteUserCommands(mockBrowser, mockOptions)
-
-            const overwrittenFunc = mockOverwriteCommand.mock.calls.find(
-                call => call[0] === '$$'
-            )?.[1]
-
-            expect(overwrittenFunc).toBeDefined()
-            const result = await overwrittenFunc!(originalFunc, selector)
+            const overwrittenFunc = getOverwrittenFunc('$$')
+            const result = await overwrittenFunc(originalFunc, selector)
 
             expect(vi.mocked(utils.isNativeContext)).toHaveBeenCalledWith(mockBrowser)
             expect(vi.mocked(utils.isXPathSelector)).toHaveBeenCalledWith(selector)
@@ -271,17 +225,10 @@ describe('overwriteUserCommands', () => {
         test('should work with custom$$ command', async () => {
             const originalFunc = vi.fn().mockResolvedValue([{}] as WebdriverIO.Element[])
             const selector = '//xpath'
-            const mockElements = [{}] as WebdriverIO.Element[]
-            vi.mocked(optimizer.optimizeMultipleSelectors).mockResolvedValue(mockElements)
+            vi.mocked(optimizer.optimizeMultipleSelectors).mockResolvedValue([{}] as WebdriverIO.Element[])
 
-            overwriteUserCommands(mockBrowser, mockOptions)
-
-            const overwrittenFunc = mockOverwriteCommand.mock.calls.find(
-                call => call[0] === 'custom$$'
-            )?.[1]
-
-            expect(overwrittenFunc).toBeDefined()
-            await overwrittenFunc!(originalFunc, selector)
+            const overwrittenFunc = getOverwrittenFunc('custom$$')
+            await overwrittenFunc(originalFunc, selector)
 
             expect(vi.mocked(optimizer.optimizeMultipleSelectors)).toHaveBeenCalledWith(
                 'custom$$',
@@ -293,4 +240,3 @@ describe('overwriteUserCommands', () => {
         })
     })
 })
-
