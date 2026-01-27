@@ -203,7 +203,7 @@ The Native Mobile Selector Performance Optimizer helps identify and optimize slo
 
 **Important:** This feature **does not replace selectors in your code automatically**. Instead, it provides a report with recommendations. You need to manually update your code based on the report findings. The feature only replaces selectors during test execution for validation purposes.
 
-**⚠️ Performance Impact:** Enabling this feature adds significant overhead to your test execution time as it requires fetching and parsing the page source for each selector analysis. The `replaceWithOptimizedSelector` option especially increases runtime. **Do not enable this feature constantly in your CI/CD pipeline** as it will slow down your tests. Recommended workflow:
+**⚠️ Performance Impact:** Enabling this feature adds significant overhead to your test execution time as it requires fetching and parsing the page source for each selector analysis. **Do not enable this feature (constantly) in your CI/CD pipeline** as it will slow down your tests. Recommended workflow:
 1. Enable the feature and run your tests
 2. Review the generated performance report
 3. Update your code with the optimized selectors from the report
@@ -250,32 +250,6 @@ export const config = {
         ['appium', {
             trackSelectorPerformance: {
                 enabled: true
-            }
-        }]
-    ],
-    // ...
-}
-```
-
-#### replaceWithOptimizedSelector
-
-Automatically test optimized selectors during test execution. When enabled, the service tests optimized selectors during the run to validate they work correctly and measure actual performance improvements. This helps ensure the suggested selectors are valid before you update your code.
-
-**⚠️ Performance Impact:** This option significantly increases test execution time as it requires testing each optimized selector in addition to the original XPath selector. Each selector is tested twice (original + optimized), effectively doubling the execution time for element finding operations.
-
-Type: `boolean`
-
-Default: `true`
-
-Example:
-```js
-export const config = {
-    // ...
-    services: [
-        ['appium', {
-            trackSelectorPerformance: {
-                enabled: true,
-                replaceWithOptimizedSelector: false  // Only track and suggest, don't validate during test
             }
         }]
     ],
@@ -453,7 +427,6 @@ export const config = {
             trackSelectorPerformance: {
                 enabled: true,
                 usePageSource: true,
-                replaceWithOptimizedSelector: true,
                 enableCliReport: true,
                 enableMarkdownReport: true,
                 reportPath: './reports/selector-performance',
@@ -543,16 +516,6 @@ The Mobile Selector Performance Optimizer logs via `@wdio/logger` with the names
 
 When you set a log level, all levels at or above that level will be shown. For example, setting `logLevel: 'info'` will show `info`, `warn`, and `error` messages, but not `debug` or `trace` messages.
 
-Behavior by mode:
-- **`replaceWithOptimizedSelector: true` (validation mode):**
-  - `info` logs cover research steps, timing, testing of optimized selectors, and comparisons.
-  - `debug` logs add detailed selector testing steps (enable by setting logger level to `debug`).
-  - Warnings are always emitted at `warn`.
-
-- **`replaceWithOptimizedSelector: false` (tracking-only mode):**
-  - `info` logs cover tracking and suggested optimizations.
-  - `debug` adds detailed selector analysis when enabled.
-
 To silence the optimizer logs entirely, set:
 
 ```js
@@ -571,7 +534,7 @@ export const config = {
 
 2. **Analysis**: When XPath selectors are detected, the service analyzes them and suggests optimized alternatives (iOS class chain, accessibility ID, etc.).
 
-3. **Validation** (optional): If `replaceWithOptimizedSelector` is enabled, the service automatically tests optimized selectors during the test run to:
+3. **Validation**: The service automatically tests optimized selectors during the test run to:
    - Verify the optimized selector works correctly
    - Measure actual performance improvements
    - Ensure the suggestion is valid before you update your code
@@ -596,8 +559,6 @@ services: [
     ['appium', {
         trackSelectorPerformance: {
             enabled: true,
-            usePageSource: true, // Enabled by default, this is for demo purpose
-            replaceWithOptimizedSelector: true, // Enabled by default, this is for demo purpose
             enableCliReport: true, // Enable CLI report output to terminal
             enableMarkdownReport: true // Enable markdown report file generation
         }
