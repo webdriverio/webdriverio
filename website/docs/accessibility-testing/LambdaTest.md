@@ -88,3 +88,4 @@ After your tests complete, you can view detailed accessibility reports in the [T
 3. Review identified issues with severity levels
 4. Get remediation guidance for each issue
 
+For more detailed information, visit the [TestMu AI Accessibility Automation documentation](https://www.testmuai.com/support/docs/accessibility-automation-settings/).
