@@ -25,10 +25,14 @@ const config: Config = {
     url: 'https://webdriver.io',
     baseUrl: '/',
     onBrokenLinks: 'throw',
-    onBrokenMarkdownLinks: 'throw',
     favicon: 'img/favicon.png',
     organizationName: 'webdriverio',
     projectName: 'webdriverio',
+    markdown: {
+        hooks: {
+            onBrokenMarkdownLinks: 'throw',
+        },
+    },
     customFields: {
         repoUrl,
         mendableAnonKey
