@@ -10,7 +10,6 @@ import {
     extractSelectorFromArgs,
     formatSelectorForDisplay,
     getHighResTime,
-    findOptimizedSelector,
     findMostRecentUnmatchedUserCommand,
     findMatchingInternalCommandTiming,
     storePerformanceData,
@@ -29,7 +28,6 @@ const log = logger('@wdio/appium-service:selector-optimizer')
 export default class SelectorPerformanceService implements Services.ServiceInstance {
     // Service configuration
     private _enabled: boolean = false
-    private _replaceWithOptimized: boolean = true
     private _enableCliReport: boolean = false
     private _enableMarkdownReport: boolean = false
     private _reportDirectory?: string
@@ -57,11 +55,10 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             if (typeof trackConfig !== 'object' || Array.isArray(trackConfig)) {
                 throw new SevereServiceError(
                     'trackSelectorPerformance must be an object. ' +
-                    'Expected format: { enabled: boolean, replaceWithOptimizedSelector?: boolean, enableCliReport?: boolean, enableMarkdownReport?: boolean, reportPath?: string, maxLineLength?: number }'
+                    'Expected format: { enabled: boolean, enableCliReport?: boolean, enableMarkdownReport?: boolean, reportPath?: string, maxLineLength?: number }'
                 )
             }
             this._enabled = trackConfig.enabled === true
-            this._replaceWithOptimized = trackConfig.replaceWithOptimizedSelector !== undefined ? trackConfig.replaceWithOptimizedSelector === true : true
             this._enableCliReport = trackConfig.enableCliReport === true
             this._enableMarkdownReport = trackConfig.enableMarkdownReport === true
             this._pageObjectPaths = trackConfig.pageObjectPaths
@@ -137,8 +134,8 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             log.info('Mobile Selector Performance Optimizer enabled for iOS')
         }
 
-        // Overwrite all user commands to replace XPath with optimized selectors if enabled
-        if (this._enabled && this._replaceWithOptimized) {
+        // Overwrite all user commands to replace XPath with optimized selectors
+        if (this._enabled) {
             overwriteUserCommands(browser, {
                 browser: browser,
                 isReplacingSelector: this._isReplacingSelectorRef,
@@ -268,36 +265,6 @@ export default class SelectorPerformanceService implements Services.ServiceInsta
             }
 
             storePerformanceData(timing, duration, testContext)
-
-            if (!this._replaceWithOptimized) {
-                let locationInfo = ''
-                if (this._provideSelectorLocation) {
-                    const locations = findSelectorLocation(testContext.testFile, timing.selector, this._pageObjectPaths)
-                    if (locations.length > 0) {
-                        const location = locations[0]
-                        const fileDisplay = location.isPageObject
-                            ? `${location.file} (page object)`
-                            : location.file
-                        locationInfo = ` at ${fileDisplay}:${location.line}`
-                    }
-                }
-
-                log.info(`[Selector Performance] ${timing.commandName}('${formattedSelector}') took ${duration.toFixed(2)}ms${locationInfo}`)
-
-                const conversionResult = await findOptimizedSelector(timing.selector, {
-                    browser: this._browser!
-                })
-
-                if (conversionResult) {
-                    if (conversionResult.selector) {
-                        const quoteStyle = conversionResult.selector.startsWith('-ios class chain:') ? "'" : '"'
-                        log.info(`[Potential Optimized Selector] ${timing.commandName}(${quoteStyle}${conversionResult.selector}${quoteStyle})${locationInfo}`)
-                    }
-                    if (conversionResult.warning) {
-                        log.warn(`[Selector Performance Warning] ${conversionResult.warning}${locationInfo}`)
-                    }
-                }
-            }
 
             this._commandTimings.delete(timingId)
         }
