@@ -68,12 +68,13 @@ describe('SelectorPerformanceService', () => {
 
     const createDefaultOptions = (): AppiumServiceConfig => ({
         trackSelectorPerformance: {
-            enabled: true,
             pageObjectPaths: ['./tests/pageobjects']
         }
     })
+    const createService = (options: AppiumServiceConfig = createDefaultOptions()) =>
+        new SelectorPerformanceService(options, mockConfig)
     const createAndInitializeService = async (options: AppiumServiceConfig = createDefaultOptions()) => {
-        const service = new SelectorPerformanceService(options, mockConfig)
+        const service = createService(options)
         await service.before({} as never, [] as never, mockBrowser)
         return service
     }
@@ -90,7 +91,6 @@ describe('SelectorPerformanceService', () => {
             reporters: []
         } as Options.Testrunner
 
-        // Reset process.pid mock
         Object.defineProperty(process, 'pid', {
             value: 12345,
             writable: true
@@ -103,180 +103,133 @@ describe('SelectorPerformanceService', () => {
 
     describe('constructor', () => {
         test('should initialize with disabled state when trackSelectorPerformance is undefined', () => {
-            const service = new SelectorPerformanceService({}, mockConfig)
+            const service = createService({})
             expect(service['_enabled']).toBe(false)
         })
 
         test('should initialize with disabled state when trackSelectorPerformance is null', () => {
-            const service = new SelectorPerformanceService({ trackSelectorPerformance: null as any }, mockConfig)
+            const service = createService({ trackSelectorPerformance: null as any })
             expect(service['_enabled']).toBe(false)
         })
 
         test('should throw error when trackSelectorPerformance is not an object', () => {
             const expectedError = 'trackSelectorPerformance must be an object. ' +
-                'Expected format: { enabled: boolean, pageObjectPaths: string[], enableCliReport?: boolean, enableMarkdownReport?: boolean, reportPath?: string, maxLineLength?: number }'
+                'Expected format: { pageObjectPaths: string[], enableCliReport?: boolean, enableMarkdownReport?: boolean, reportPath?: string, maxLineLength?: number }'
 
             expect(() => {
-                new SelectorPerformanceService({ trackSelectorPerformance: 'invalid' as any }, mockConfig)
+                createService({ trackSelectorPerformance: 'invalid' as any })
             }).toThrow(new SevereServiceError(expectedError))
             expect(() => {
-                new SelectorPerformanceService({ trackSelectorPerformance: [] as any }, mockConfig)
+                createService({ trackSelectorPerformance: [] as any })
             }).toThrow(new SevereServiceError(expectedError))
         })
 
-        test('should initialize with enabled state when enabled is true', () => {
-            const options = createDefaultOptions()
-            const service = new SelectorPerformanceService(options, mockConfig)
+        test('should initialize with enabled state when trackSelectorPerformance is configured', () => {
+            const service = createService()
 
             expect(service['_enabled']).toBe(true)
-            // Defaults
             expect(service['_enableCliReport']).toBe(false)
             expect(service['_enableMarkdownReport']).toBe(false)
         })
 
         test('should initialize with custom options', () => {
-            const options = {
+            const service = createService({
                 trackSelectorPerformance: {
-                    enabled: true,
                     pageObjectPaths: ['./tests/pageobjects'],
                     enableCliReport: true,
                 }
-            }
-            const service = new SelectorPerformanceService(options, mockConfig)
+            })
 
             expect(service['_enabled']).toBe(true)
             expect(service['_enableCliReport']).toBe(true)
         })
 
         test('should initialize enableCliReport to false by default', () => {
-            const options = createDefaultOptions()
-            const service = new SelectorPerformanceService(options, mockConfig)
-
+            const service = createService()
             expect(service['_enableCliReport']).toBe(false)
         })
 
         test('should initialize enableMarkdownReport to false by default', () => {
-            const options = createDefaultOptions()
-            const service = new SelectorPerformanceService(options, mockConfig)
-
+            const service = createService()
             expect(service['_enableMarkdownReport']).toBe(false)
         })
 
         test('should enable markdown report when enableMarkdownReport is true', () => {
-            const options = {
+            const service = createService({
                 trackSelectorPerformance: {
-                    enabled: true,
                     pageObjectPaths: ['./tests/pageobjects'],
                     enableMarkdownReport: true
                 }
-            }
-            const service = new SelectorPerformanceService(options, mockConfig)
+            })
 
             expect(service['_enableMarkdownReport']).toBe(true)
         })
 
-        test('should call determineReportDirectory when enabled', () => {
-            const options = {
-                ...createDefaultOptions(),
+        test('should call determineReportDirectory when configured', () => {
+            const options: AppiumServiceConfig = {
                 trackSelectorPerformance: {
-                    enabled: true,
                     pageObjectPaths: ['./tests/pageobjects'],
                     reportPath: '/custom/path'
                 }
             }
-            new SelectorPerformanceService(options, mockConfig)
+            createService(options)
             expect(vi.mocked(utils.determineReportDirectory)).toHaveBeenCalledWith('/custom/path', mockConfig, options)
         })
 
-        test('should not call determineReportDirectory when disabled', () => {
-            const options = {
-                trackSelectorPerformance: {
-                    enabled: false,
-                    pageObjectPaths: []
-                }
-            }
-            new SelectorPerformanceService(options, mockConfig)
+        test('should not call determineReportDirectory when trackSelectorPerformance is not configured', () => {
+            createService({})
             expect(vi.mocked(utils.determineReportDirectory)).not.toHaveBeenCalled()
         })
 
-        test('should always call determineReportDirectory when enabled is true (enableReporter removed)', () => {
-            // enableReporter has been removed - JSON is always written when enabled=true
-            const options = {
-                ...createDefaultOptions(),
+        test('should always call determineReportDirectory when configured (enableReporter removed)', () => {
+            const options: AppiumServiceConfig = {
                 trackSelectorPerformance: {
-                    enabled: true,
                     pageObjectPaths: ['./tests/pageobjects'],
                     reportPath: '/custom/path'
                 }
             }
-            new SelectorPerformanceService(options, mockConfig)
+            createService(options)
             expect(vi.mocked(utils.determineReportDirectory)).toHaveBeenCalledWith('/custom/path', mockConfig, options)
         })
 
-        test('should throw SevereServiceError when enabled but pageObjectPaths is not provided', () => {
+        test('should throw SevereServiceError when pageObjectPaths is not provided', () => {
             expect(() => {
-                new SelectorPerformanceService({
-                    trackSelectorPerformance: {
-                        enabled: true
-                    }
-                } as any, mockConfig)
+                createService({
+                    trackSelectorPerformance: {}
+                } as any)
             }).toThrow(SevereServiceError)
             expect(() => {
-                new SelectorPerformanceService({
-                    trackSelectorPerformance: {
-                        enabled: true
-                    }
-                } as any, mockConfig)
-            }).toThrow('trackSelectorPerformance.pageObjectPaths is required when we want to track the selector performance.')
+                createService({
+                    trackSelectorPerformance: {}
+                } as any)
+            }).toThrow('trackSelectorPerformance.pageObjectPaths is required.')
         })
 
-        test('should throw SevereServiceError when enabled but pageObjectPaths is empty array', () => {
+        test('should throw SevereServiceError when pageObjectPaths is empty array', () => {
             expect(() => {
-                new SelectorPerformanceService({
+                createService({
                     trackSelectorPerformance: {
-                        enabled: true,
                         pageObjectPaths: []
                     }
-                }, mockConfig)
+                })
             }).toThrow(SevereServiceError)
         })
 
-        test('should not throw when enabled with valid pageObjectPaths', () => {
+        test('should not throw when configured with valid pageObjectPaths', () => {
             expect(() => {
-                new SelectorPerformanceService({
-                    trackSelectorPerformance: {
-                        enabled: true,
-                        pageObjectPaths: ['./tests/pageobjects']
-                    }
-                }, mockConfig)
-            }).not.toThrow()
-        })
-
-        test('should not throw when disabled even without pageObjectPaths', () => {
-            expect(() => {
-                new SelectorPerformanceService({
-                    trackSelectorPerformance: {
-                        enabled: false
-                    }
-                } as any, mockConfig)
+                createService()
             }).not.toThrow()
         })
 
         test('should store pageObjectPaths when provided', () => {
-            const options = {
-                trackSelectorPerformance: {
-                    enabled: true,
-                    pageObjectPaths: ['./tests/pageobjects']
-                }
-            }
-            const service = new SelectorPerformanceService(options, mockConfig)
+            const service = createService()
             expect(service['_pageObjectPaths']).toEqual(['./tests/pageobjects'])
         })
     })
 
     describe('beforeSession', () => {
         test('should do nothing when service is disabled', async () => {
-            const service = new SelectorPerformanceService({}, mockConfig)
+            const service = createService({})
             const config = { reporters: [] } as Options.Testrunner
             await service.beforeSession(config, {} as never, [] as never)
             expect(config.reporters).toEqual([])
@@ -285,8 +238,7 @@ describe('SelectorPerformanceService', () => {
         test('should register reporter when enabled and not already registered', async () => {
             vi.mocked(utils.isReporterRegistered).mockReturnValue(false)
 
-            const options = createDefaultOptions()
-            const service = new SelectorPerformanceService(options, mockConfig)
+            const service = createService()
             const config = { reporters: [] } as Options.Testrunner
 
             await service.beforeSession(config, {} as never, [] as never)
@@ -304,8 +256,7 @@ describe('SelectorPerformanceService', () => {
         test('should not register reporter when already registered', async () => {
             vi.mocked(utils.isReporterRegistered).mockReturnValue(true)
 
-            const options = createDefaultOptions()
-            const service = new SelectorPerformanceService(options, mockConfig)
+            const service = createService()
             const config = { reporters: [] } as Options.Testrunner
 
             await service.beforeSession(config, {} as never, [] as never)
@@ -313,13 +264,10 @@ describe('SelectorPerformanceService', () => {
             expect(config.reporters).toHaveLength(0)
         })
 
-        test('should always register reporter when enabled is true (enableReporter removed)', async () => {
-            // enableReporter has been removed - reporter is always registered when enabled=true
-            // to collect test context information for the JSON report
+        test('should always register reporter when configured (enableReporter removed)', async () => {
             vi.mocked(utils.isReporterRegistered).mockReturnValue(false)
 
-            const options = createDefaultOptions()
-            const service = new SelectorPerformanceService(options, mockConfig)
+            const service = createService()
             const config = { reporters: [] } as Options.Testrunner
 
             await service.beforeSession(config, {} as never, [] as never)
@@ -331,8 +279,7 @@ describe('SelectorPerformanceService', () => {
         test('should initialize reporters array if not present', async () => {
             vi.mocked(utils.isReporterRegistered).mockReturnValue(false)
 
-            const options = createDefaultOptions()
-            const service = new SelectorPerformanceService(options, mockConfig)
+            const service = createService()
             const config = {} as Options.Testrunner
 
             await service.beforeSession(config, {} as never, [] as never)
@@ -345,14 +292,13 @@ describe('SelectorPerformanceService', () => {
 
     describe('before', () => {
         test('should do nothing when service is disabled', async () => {
-            const service = new SelectorPerformanceService({}, mockConfig)
+            const service = createService({})
             await service.before({} as never, [] as never, mockBrowser)
             expect(log.info).not.toHaveBeenCalled()
         })
 
         test('should log BETA messages and enable for iOS', async () => {
-            const options = createDefaultOptions()
-            const service = new SelectorPerformanceService(options, mockConfig)
+            const service = createService()
             mockBrowser.isIOS = true
             mockBrowser.isAndroid = false
 
@@ -365,8 +311,7 @@ describe('SelectorPerformanceService', () => {
         })
 
         test('should disable service and log warning for Android', async () => {
-            const options = createDefaultOptions()
-            const service = new SelectorPerformanceService(options, mockConfig)
+            const service = createService()
             mockBrowser.isIOS = false
             mockBrowser.isAndroid = true
 
@@ -380,15 +325,8 @@ describe('SelectorPerformanceService', () => {
             expect(service['_enabled']).toBe(false)
         })
 
-        test('should call overwriteUserCommands when enabled', async () => {
-            const options = {
-                ...createDefaultOptions(),
-                trackSelectorPerformance: {
-                    enabled: true,
-                    pageObjectPaths: ['./tests/pageobjects']
-                }
-            }
-            const service = new SelectorPerformanceService(options, mockConfig)
+        test('should call overwriteUserCommands when configured', async () => {
+            const service = createService()
             mockBrowser.isIOS = true
             mockBrowser.isAndroid = false
 
@@ -404,18 +342,16 @@ describe('SelectorPerformanceService', () => {
 
     describe('afterSession', () => {
         test('should do nothing when service is disabled', async () => {
-            const service = new SelectorPerformanceService({}, mockConfig)
+            const service = createService({})
             await service.afterSession()
             expect(fs.mkdirSync).not.toHaveBeenCalled()
             expect(fs.writeFileSync).not.toHaveBeenCalled()
         })
 
-        test('should always write worker data when enabled is true (enableReporter removed)', async () => {
-            // enableReporter has been removed - JSON is always written when enabled=true
+        test('should always write worker data when configured (enableReporter removed)', async () => {
             vi.mocked(store.getPerformanceData).mockReturnValue([])
 
-            const options = createDefaultOptions()
-            const service = new SelectorPerformanceService(options, mockConfig)
+            const service = createService()
             service['_reportDirectory'] = '/test/report/dir'
 
             await service.afterSession()
@@ -426,8 +362,7 @@ describe('SelectorPerformanceService', () => {
 
         test('should warn and return when report directory is not set', async () => {
             const warnSpy = vi.spyOn(log, 'warn')
-            const options = createDefaultOptions()
-            const service = new SelectorPerformanceService(options, mockConfig)
+            const service = createService()
             service['_reportDirectory'] = undefined
 
             await service.afterSession()
@@ -451,8 +386,7 @@ describe('SelectorPerformanceService', () => {
             ]
             vi.mocked(store.getPerformanceData).mockReturnValue(mockData)
 
-            const options = createDefaultOptions()
-            const service = new SelectorPerformanceService(options, mockConfig)
+            const service = createService()
             service['_reportDirectory'] = '/test/report/dir'
 
             await service.afterSession()
@@ -473,8 +407,7 @@ describe('SelectorPerformanceService', () => {
         test('should handle empty performance data', async () => {
             vi.mocked(store.getPerformanceData).mockReturnValue([])
 
-            const options = createDefaultOptions()
-            const service = new SelectorPerformanceService(options, mockConfig)
+            const service = createService()
             service['_reportDirectory'] = '/test/report/dir'
 
             await service.afterSession()
@@ -495,8 +428,7 @@ describe('SelectorPerformanceService', () => {
                 throw mockError
             })
 
-            const options = createDefaultOptions()
-            const service = new SelectorPerformanceService(options, mockConfig)
+            const service = createService()
             service['_reportDirectory'] = '/test/report/dir'
 
             await service.afterSession()
@@ -511,8 +443,7 @@ describe('SelectorPerformanceService', () => {
                 throw mockError
             })
 
-            const options = createDefaultOptions()
-            const service = new SelectorPerformanceService(options, mockConfig)
+            const service = createService()
             service['_reportDirectory'] = '/test/report/dir'
 
             await service.afterSession()
@@ -522,25 +453,16 @@ describe('SelectorPerformanceService', () => {
     })
 
     describe('beforeCommand', () => {
-        let options: AppiumServiceConfig
-        let xpath: string
-        let formattedSelector: string
+        const xpath = '//xpath'
+        const formattedSelector = 'formatted selector'
 
         beforeEach(() => {
-            options = {
-                trackSelectorPerformance: {
-                    enabled: true,
-                    pageObjectPaths: ['./tests/pageobjects']
-                }
-            }
-            xpath = '//xpath'
-            formattedSelector = 'formatted selector'
             vi.mocked(utils.isNativeContext).mockReturnValue(true)
             vi.mocked(utils.findSelectorLocation).mockReturnValue([])
         })
 
         test('should do nothing when service is disabled', async () => {
-            const service = new SelectorPerformanceService({}, mockConfig)
+            const service = createService({})
             await service.beforeCommand('$', ['//xpath'])
 
             expect(vi.mocked(utils.extractSelectorFromArgs)).not.toHaveBeenCalled()
@@ -620,16 +542,14 @@ describe('SelectorPerformanceService', () => {
 
         describe('internal commands', () => {
             test('should return early when args length is less than 2', async () => {
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.beforeCommand('findElement', ['xpath'])
 
                 expect(vi.mocked(utils.formatSelectorForDisplay)).not.toHaveBeenCalled()
             })
 
             test('should return early when not xpath selector', async () => {
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.beforeCommand('findElement', ['accessibility id', 'button'])
 
                 expect(vi.mocked(utils.formatSelectorForDisplay)).not.toHaveBeenCalled()
@@ -637,8 +557,7 @@ describe('SelectorPerformanceService', () => {
             })
 
             test('should return early when value is not a string', async () => {
-                const service = new SelectorPerformanceService(options, mockConfig)
-                await service.before({} as never, [] as never, mockBrowser)
+                const service = await createAndInitializeService()
                 await service.beforeCommand('findElement', ['xpath', 123])
 
                 expect(vi.mocked(utils.formatSelectorForDisplay)).not.toHaveBeenCalled()
@@ -662,10 +581,7 @@ describe('SelectorPerformanceService', () => {
 
                 const service = await createAndInitializeService()
 
-                // First create a user command timing
                 await service.beforeCommand('$', [xpath])
-
-                // Then the internal command should match it
                 await service.beforeCommand('findElement', ['xpath', xpath])
 
                 expect(vi.mocked(utils.findMostRecentUnmatchedUserCommand)).toHaveBeenCalled()
@@ -715,12 +631,6 @@ describe('SelectorPerformanceService', () => {
 
         describe('selector location tracking in beforeCommand', () => {
             test('should always call findSelectorLocation for user commands', async () => {
-                const options: AppiumServiceConfig = {
-                    trackSelectorPerformance: {
-                        enabled: true,
-                        pageObjectPaths: ['./tests/pageobjects'],
-                    }
-                }
                 vi.mocked(store.getCurrentTestFile).mockReturnValue('test-file.ts')
                 vi.mocked(utils.extractSelectorFromArgs).mockReturnValue(xpath)
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
@@ -729,7 +639,7 @@ describe('SelectorPerformanceService', () => {
                     { file: 'TabBar.ts', line: 3, isPageObject: true }
                 ])
 
-                const service = await createAndInitializeService(options)
+                const service = await createAndInitializeService()
                 await service.beforeCommand('$', [xpath])
 
                 expect(vi.mocked(utils.findSelectorLocation)).toHaveBeenCalledWith(
@@ -745,9 +655,8 @@ describe('SelectorPerformanceService', () => {
     })
 
     describe('afterCommand', () => {
-        let options: AppiumServiceConfig
-        let xpath: string
-        let formattedSelector: string
+        const xpath = '//xpath'
+        const formattedSelector = 'formatted selector'
 
         const createMockTiming = (overrides?: Partial<{
             commandName: string
@@ -775,14 +684,11 @@ describe('SelectorPerformanceService', () => {
         }
 
         beforeEach(() => {
-            options = createDefaultOptions()
-            xpath = '//xpath'
-            formattedSelector = 'formatted selector'
             vi.mocked(utils.isNativeContext).mockReturnValue(true)
         })
 
         test('should do nothing when service is disabled', async () => {
-            const service = new SelectorPerformanceService({}, mockConfig)
+            const service = createService({})
             await service.afterCommand('findElement', ['xpath', xpath], {})
 
             expect(vi.mocked(utils.formatSelectorForDisplay)).not.toHaveBeenCalled()
@@ -837,7 +743,7 @@ describe('SelectorPerformanceService', () => {
             test('should return early when duration is negative', async () => {
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
                 vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue(createMockTiming({ startTime: 100 }))
-                vi.mocked(utils.getHighResTime).mockReturnValue(50) // Negative duration
+                vi.mocked(utils.getHighResTime).mockReturnValue(50)
 
                 const service = await createAndInitializeService()
                 await service.afterCommand('findElement', ['xpath', xpath], {})
@@ -861,7 +767,6 @@ describe('SelectorPerformanceService', () => {
             test('should return early when selectorType is missing', async () => {
                 vi.mocked(utils.formatSelectorForDisplay).mockReturnValue(formattedSelector)
                 const timingWithoutSelectorType = createMockTiming()
-                // Remove selectorType from the timing object to simulate missing property
                 delete (timingWithoutSelectorType[1] as any).selectorType
                 vi.mocked(utils.findMatchingInternalCommandTiming).mockReturnValue(timingWithoutSelectorType)
                 vi.mocked(utils.getHighResTime).mockReturnValue(100)
@@ -887,7 +792,7 @@ describe('SelectorPerformanceService', () => {
                         selector: xpath,
                         selectorType: 'xpath'
                     }),
-                    50, // duration: 100 - 50
+                    50,
                     expect.objectContaining({
                         testFile: expect.any(String),
                         suiteName: expect.any(String),
@@ -911,4 +816,3 @@ describe('SelectorPerformanceService', () => {
         })
     })
 })
-

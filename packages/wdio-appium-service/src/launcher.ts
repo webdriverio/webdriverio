@@ -192,7 +192,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         this._isShuttingDown = true
 
         const trackConfig = this._options.trackSelectorPerformance
-        if (trackConfig && typeof trackConfig === 'object' && !Array.isArray(trackConfig) && trackConfig.enabled === true) {
+        if (trackConfig && typeof trackConfig === 'object' && !Array.isArray(trackConfig)) {
             try {
                 const reportDirectory = determineReportDirectory(
                     trackConfig.reportPath,

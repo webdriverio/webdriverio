@@ -152,11 +152,6 @@ export interface AppiumServiceConfig {
      */
     trackSelectorPerformance?: {
         /**
-         * Enable selector performance tracking
-         * @default false
-         */
-        enabled?: boolean
-        /**
          * Enable the CLI report output to the terminal.
          * When enabled, a formatted performance report is printed to the terminal after test execution.
          * @default false
@@ -185,7 +180,7 @@ export interface AppiumServiceConfig {
          * The service will search these directories to find selector locations and show file paths
          * in the report (e.g., "Found at: TabBar.ts:3").
          *
-         * This option is required when `trackSelectorPerformance` is enabled.
+         * This option is required when `trackSelectorPerformance` is configured.
          *
          * @example
          * // Single directory

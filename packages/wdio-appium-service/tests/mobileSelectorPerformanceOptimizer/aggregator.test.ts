@@ -5,7 +5,6 @@ import type { Capabilities } from '@wdio/types'
 import { aggregateSelectorPerformanceData } from '../../src/mobileSelectorPerformanceOptimizer/aggregator.js'
 import * as store from '../../src/mobileSelectorPerformanceOptimizer/mspo-store.js'
 
-// Mock all dependencies
 vi.mock('node:fs', () => ({
     default: {
         existsSync: vi.fn(),
@@ -31,12 +30,39 @@ describe('aggregateSelectorPerformanceData', () => {
     let mockCapabilities: Capabilities.TestrunnerCapabilities
     let writeFnMock: ReturnType<typeof vi.fn>
 
+    const createMockData = (overrides?: Record<string, unknown>) => [{
+        testFile: 'test.ts',
+        suiteName: 'Suite',
+        testName: 'Test',
+        selector: '//xpath',
+        selectorType: 'xpath',
+        duration: 100,
+        timestamp: Date.now(),
+        ...overrides
+    }]
+
+    const createOptimizedMockData = (overrides?: Record<string, unknown>) => createMockData({
+        optimizedSelector: '~button',
+        optimizedDuration: 50,
+        improvementMs: 50,
+        improvementPercent: 50,
+        ...overrides
+    })
+
+    const callAggregator = (options: { enableCliReport?: boolean, enableMarkdownReport?: boolean } = {}) =>
+        aggregateSelectorPerformanceData(
+            mockCapabilities,
+            100,
+            writeFnMock,
+            '/test/report/dir',
+            options
+        )
+
     beforeEach(() => {
         vi.clearAllMocks()
         mockCapabilities = [{ 'appium:deviceName': 'iPhone 15' }]
         writeFnMock = vi.fn()
 
-        // Default mock setup
         vi.mocked(fs.existsSync).mockReturnValue(true)
         vi.mocked(fs.readdirSync).mockReturnValue([])
     })
@@ -47,86 +73,29 @@ describe('aggregateSelectorPerformanceData', () => {
 
     describe('enableCliReport flag', () => {
         test('should write CLI report to stdout when enableCliReport is true', async () => {
-            const mockData = [{
-                testFile: 'test.ts',
-                suiteName: 'Suite',
-                testName: 'Test',
-                selector: '//xpath',
-                selectorType: 'xpath',
-                duration: 100,
-                timestamp: Date.now(),
-                optimizedSelector: '~button',
-                optimizedDuration: 50,
-                improvementMs: 50,
-                improvementPercent: 50
-            }]
-            vi.mocked(store.getPerformanceData).mockReturnValue(mockData)
+            vi.mocked(store.getPerformanceData).mockReturnValue(createOptimizedMockData())
 
-            await aggregateSelectorPerformanceData(
-                mockCapabilities,
-                100,
-                writeFnMock,
-                '/test/report/dir',
-                { enableCliReport: true }
-            )
+            await callAggregator({ enableCliReport: true })
 
-            // Should have written CLI report
             expect(writeFnMock).toHaveBeenCalled()
-            // Check that some CLI report content was written
             const allCalls = writeFnMock.mock.calls.map((call: string[]) => call[0]).join('')
             expect(allCalls).toContain('Mobile Selector Performance')
         })
 
         test('should NOT write CLI report when enableCliReport is false', async () => {
-            const mockData = [{
-                testFile: 'test.ts',
-                suiteName: 'Suite',
-                testName: 'Test',
-                selector: '//xpath',
-                selectorType: 'xpath',
-                duration: 100,
-                timestamp: Date.now(),
-                optimizedSelector: '~button',
-                optimizedDuration: 50,
-                improvementMs: 50,
-                improvementPercent: 50
-            }]
-            vi.mocked(store.getPerformanceData).mockReturnValue(mockData)
+            vi.mocked(store.getPerformanceData).mockReturnValue(createOptimizedMockData())
 
-            await aggregateSelectorPerformanceData(
-                mockCapabilities,
-                100,
-                writeFnMock,
-                '/test/report/dir',
-                { enableCliReport: false }
-            )
+            await callAggregator({ enableCliReport: false })
 
-            // Should NOT have written CLI report content
             const allCalls = writeFnMock.mock.calls.map((call: string[]) => call[0]).join('')
             expect(allCalls).not.toContain('Mobile Selector Performance')
         })
 
         test('should still write JSON report even when enableCliReport is false', async () => {
-            const mockData = [{
-                testFile: 'test.ts',
-                suiteName: 'Suite',
-                testName: 'Test',
-                selector: '//xpath',
-                selectorType: 'xpath',
-                duration: 100,
-                timestamp: Date.now()
-            }]
-            vi.mocked(store.getPerformanceData).mockReturnValue(mockData)
+            vi.mocked(store.getPerformanceData).mockReturnValue(createMockData())
 
-            await aggregateSelectorPerformanceData(
-                mockCapabilities,
-                100,
-                writeFnMock,
-                '/test/report/dir',
-                { enableCliReport: false }
-            )
+            await callAggregator({ enableCliReport: false })
 
-            // JSON should always be written
             expect(fs.writeFileSync).toHaveBeenCalledWith(
                 expect.stringContaining('mobile-selector-performance-optimizer-report'),
                 expect.any(String)
@@ -136,28 +105,9 @@ describe('aggregateSelectorPerformanceData', () => {
 
     describe('enableMarkdownReport flag', () => {
         test('should NOT write markdown report when enableMarkdownReport is false', async () => {
-            const mockData = [{
-                testFile: 'test.ts',
-                suiteName: 'Suite',
-                testName: 'Test',
-                selector: '//xpath',
-                selectorType: 'xpath',
-                duration: 100,
-                timestamp: Date.now(),
-                optimizedSelector: '~button',
-                optimizedDuration: 50,
-                improvementMs: 50,
-                improvementPercent: 50
-            }]
-            vi.mocked(store.getPerformanceData).mockReturnValue(mockData)
+            vi.mocked(store.getPerformanceData).mockReturnValue(createOptimizedMockData())
 
-            await aggregateSelectorPerformanceData(
-                mockCapabilities,
-                100,
-                writeFnMock,
-                '/test/report/dir',
-                { enableMarkdownReport: false }
-            )
+            await callAggregator({ enableMarkdownReport: false })
 
             const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls as any[]
             const markdownCalls = writeFileCalls.filter((call) =>
@@ -167,28 +117,9 @@ describe('aggregateSelectorPerformanceData', () => {
         })
 
         test('should write markdown report to logs folder when enableMarkdownReport is true', async () => {
-            const mockData = [{
-                testFile: 'test.ts',
-                suiteName: 'Suite',
-                testName: 'Test',
-                selector: '//xpath',
-                selectorType: 'xpath',
-                duration: 100,
-                timestamp: Date.now(),
-                optimizedSelector: '~button',
-                optimizedDuration: 50,
-                improvementMs: 50,
-                improvementPercent: 50
-            }]
-            vi.mocked(store.getPerformanceData).mockReturnValue(mockData)
+            vi.mocked(store.getPerformanceData).mockReturnValue(createOptimizedMockData())
 
-            await aggregateSelectorPerformanceData(
-                mockCapabilities,
-                100,
-                writeFnMock,
-                '/test/report/dir',
-                { enableMarkdownReport: true }
-            )
+            await callAggregator({ enableMarkdownReport: true })
 
             const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls as any[]
             const markdownCalls = writeFileCalls.filter((call) =>
@@ -200,28 +131,9 @@ describe('aggregateSelectorPerformanceData', () => {
         })
 
         test('markdown report should contain same content as CLI report', async () => {
-            const mockData = [{
-                testFile: 'test.ts',
-                suiteName: 'Suite',
-                testName: 'Test',
-                selector: '//xpath',
-                selectorType: 'xpath',
-                duration: 100,
-                timestamp: Date.now(),
-                optimizedSelector: '~button',
-                optimizedDuration: 50,
-                improvementMs: 50,
-                improvementPercent: 50
-            }]
-            vi.mocked(store.getPerformanceData).mockReturnValue(mockData)
+            vi.mocked(store.getPerformanceData).mockReturnValue(createOptimizedMockData())
 
-            await aggregateSelectorPerformanceData(
-                mockCapabilities,
-                100,
-                writeFnMock,
-                '/test/report/dir',
-                { enableMarkdownReport: true, enableCliReport: true }
-            )
+            await callAggregator({ enableMarkdownReport: true, enableCliReport: true })
 
             const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls as any[]
             const markdownCall = writeFileCalls.find((call) =>
@@ -236,28 +148,9 @@ describe('aggregateSelectorPerformanceData', () => {
         })
 
         test('should write markdown report even when enableCliReport is false', async () => {
-            const mockData = [{
-                testFile: 'test.ts',
-                suiteName: 'Suite',
-                testName: 'Test',
-                selector: '//xpath',
-                selectorType: 'xpath',
-                duration: 100,
-                timestamp: Date.now(),
-                optimizedSelector: '~button',
-                optimizedDuration: 50,
-                improvementMs: 50,
-                improvementPercent: 50
-            }]
-            vi.mocked(store.getPerformanceData).mockReturnValue(mockData)
+            vi.mocked(store.getPerformanceData).mockReturnValue(createOptimizedMockData())
 
-            await aggregateSelectorPerformanceData(
-                mockCapabilities,
-                100,
-                writeFnMock,
-                '/test/report/dir',
-                { enableMarkdownReport: true, enableCliReport: false }
-            )
+            await callAggregator({ enableMarkdownReport: true, enableCliReport: false })
 
             const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls as any[]
             const markdownCalls = writeFileCalls.filter((call) =>
@@ -268,28 +161,9 @@ describe('aggregateSelectorPerformanceData', () => {
 
         test('should log markdown report location to console when enableMarkdownReport is true', async () => {
             const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-            const mockData = [{
-                testFile: 'test.ts',
-                suiteName: 'Suite',
-                testName: 'Test',
-                selector: '//xpath',
-                selectorType: 'xpath',
-                duration: 100,
-                timestamp: Date.now(),
-                optimizedSelector: '~button',
-                optimizedDuration: 50,
-                improvementMs: 50,
-                improvementPercent: 50
-            }]
-            vi.mocked(store.getPerformanceData).mockReturnValue(mockData)
+            vi.mocked(store.getPerformanceData).mockReturnValue(createOptimizedMockData())
 
-            await aggregateSelectorPerformanceData(
-                mockCapabilities,
-                100,
-                writeFnMock,
-                '/test/report/dir',
-                { enableMarkdownReport: true, enableCliReport: false }
-            )
+            await callAggregator({ enableMarkdownReport: true, enableCliReport: false })
 
             expect(consoleSpy).toHaveBeenCalled()
             const loggedMessage = consoleSpy.mock.calls.map(call => call[0]).join('')
@@ -300,28 +174,9 @@ describe('aggregateSelectorPerformanceData', () => {
         })
 
         test('markdown report should use proper markdown formatting with headers and bold', async () => {
-            const mockData = [{
-                testFile: 'test.ts',
-                suiteName: 'Suite',
-                testName: 'Test',
-                selector: '//xpath',
-                selectorType: 'xpath',
-                duration: 100,
-                timestamp: Date.now(),
-                optimizedSelector: '~button',
-                optimizedDuration: 50,
-                improvementMs: 50,
-                improvementPercent: 50
-            }]
-            vi.mocked(store.getPerformanceData).mockReturnValue(mockData)
+            vi.mocked(store.getPerformanceData).mockReturnValue(createOptimizedMockData())
 
-            await aggregateSelectorPerformanceData(
-                mockCapabilities,
-                100,
-                writeFnMock,
-                '/test/report/dir',
-                { enableMarkdownReport: true, enableCliReport: false }
-            )
+            await callAggregator({ enableMarkdownReport: true, enableCliReport: false })
 
             const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls as any[]
             const markdownCall = writeFileCalls.find((call) =>
@@ -331,32 +186,17 @@ describe('aggregateSelectorPerformanceData', () => {
 
             const markdownContent = markdownCall![1] as string
 
-            expect(markdownContent).toContain('# ')  // H1 header
-            expect(markdownContent).toContain('## ') // H2 header
-            expect(markdownContent).toContain('**')  // Bold text
+            expect(markdownContent).toContain('# ')
+            expect(markdownContent).toContain('## ')
+            expect(markdownContent).toContain('**')
         })
     })
 
     describe('JSON report always written', () => {
         test('should always write JSON report when enabled (regardless of other flags)', async () => {
-            const mockData = [{
-                testFile: 'test.ts',
-                suiteName: 'Suite',
-                testName: 'Test',
-                selector: '//xpath',
-                selectorType: 'xpath',
-                duration: 100,
-                timestamp: Date.now()
-            }]
-            vi.mocked(store.getPerformanceData).mockReturnValue(mockData)
+            vi.mocked(store.getPerformanceData).mockReturnValue(createMockData())
 
-            await aggregateSelectorPerformanceData(
-                mockCapabilities,
-                100,
-                writeFnMock,
-                '/test/report/dir',
-                { enableCliReport: false, enableMarkdownReport: false }
-            )
+            await callAggregator({ enableCliReport: false, enableMarkdownReport: false })
 
             const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls as any[]
             const jsonCalls = writeFileCalls.filter((call) =>

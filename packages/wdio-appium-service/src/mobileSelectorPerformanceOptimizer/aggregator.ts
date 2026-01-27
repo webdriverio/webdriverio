@@ -280,7 +280,7 @@ export async function aggregateSelectorPerformanceData(
       enable one of these options in your config:
 
       trackSelectorPerformance: {
-          enabled: true,
+          pageObjectPaths: ['./tests/pageobjects'],
           enableCliReport: true,      // Show report in terminal
           enableMarkdownReport: true  // Save report as markdown file
       }
