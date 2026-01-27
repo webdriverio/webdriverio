@@ -61,10 +61,10 @@ export default function Sponsors () {
                     />
 
                     <ImageSwitcher
-                        lightImageSrc="/img/sponsors/lambdatest_black.svg"
-                        darkImageSrc="/img/sponsors/lambdatest_white.svg"
-                        alt="Lambdatest"
-                        link="https://www.lambdatest.com/"
+                        lightImageSrc="/img/sponsors/testmu_ai_black.svg"
+                        darkImageSrc="/img/sponsors/testmu_ai_white.svg"
+                        alt="TestMu AI (Formerly LambdaTest)"
+                        link="https://www.testmuai.com/"
                         width="200"
                         target="_blank"
                     />
