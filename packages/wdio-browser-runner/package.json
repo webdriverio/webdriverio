@@ -100,7 +100,7 @@
     "vite-plugin-top-level-await": "^1.4.1"
   },
   "peerDependencies": {
-    "expect-webdriverio": "^5.6.1",
+    "expect-webdriverio": "^5.6.4",
     "webdriver": "^9.0.0",
     "webdriverio": "^9.0.0"
   },
