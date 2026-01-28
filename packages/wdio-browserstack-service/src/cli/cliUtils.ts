@@ -81,8 +81,7 @@ export class CLIUtils {
         modifiedOpts.testContextOptions = {
             skipSessionName: isFalse(modifiedOpts.setSessionName),
             skipSessionStatus: isFalse(modifiedOpts.setSessionStatus),
-            sessionNameOmitTestTitle:
-                modifiedOpts.sessionNameOmitTestTitle || false,
+            sessionNameOmitTestTitle: modifiedOpts.sessionNameOmitTestTitle || false,
             sessionNamePrependTopLevelSuiteTitle:
                 modifiedOpts.sessionNamePrependTopLevelSuiteTitle || false,
             sessionNameFormat: modifiedOpts.sessionNameFormat || '',
@@ -124,13 +123,9 @@ export class CLIUtils {
             ...commonBstackOptions,
         }
 
-        binconfig.buildName =
-            observabilityOptions.buildName || binconfig.buildName
-        binconfig.projectName =
-            observabilityOptions.projectName || binconfig.projectName
-        binconfig.buildTag =
-            this.getObservabilityBuildTags(observabilityOptions, buildTag) ||
-            []
+        binconfig.buildName = observabilityOptions.buildName || binconfig.buildName
+        binconfig.projectName = observabilityOptions.projectName || binconfig.projectName
+        binconfig.buildTag = this.getObservabilityBuildTags(observabilityOptions, buildTag) || []
 
         let caps = capabilities
         if (capabilities && !Array.isArray(capabilities)) {
