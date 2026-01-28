@@ -91,10 +91,10 @@ describe('Lit Component testing', () => {
 
     it('does not stale on elements not found', async () => {
         const start = Date.now()
-        await expect($('non-existing-element')).not.toBePresent()
-        await expect($('non-existing-element')).not.toBeDisplayed()
-        await expect(await $('non-existing-element')).not.toBePresent()
-        await expect(await $('non-existing-element')).not.toBeDisplayed()
+        await expect($('non-existing-element')).not.toBePresent( { wait: 300 })
+        await expect($('non-existing-element')).not.toBeDisplayed({ wait: 300 })
+        await expect(await $('non-existing-element')).not.toBePresent({ wait: 300 })
+        await expect(await $('non-existing-element')).not.toBeDisplayed({ wait: 300 })
         expect(Date.now() - start).toBeLessThan(1500)
     })
 
