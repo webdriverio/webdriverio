@@ -27,4 +27,4 @@ This makes it easy to debug JavaScript errors, track application behavior, and s
 ## Demo
 
 ### >_ Console Logs
-<img src="https://github.com/user-attachments/assets/aff14f15-a298-4a12-bc3d-8e4deefddae6" alt="Console Logs" width="600" />
+![Console Logs](./demo/console-logs.gif)

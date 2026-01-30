@@ -18,7 +18,7 @@ After your initial test run completes, click on any test case or suite in the De
 ## Demo
 
 ### 🛠️ Test Rerunner & Snapshot
-<img src="https://github.com/user-attachments/assets/c3804559-c0ec-441a-80dc-e4048385f3b2" alt="Test Rerunner & Snapshot Demo" width="600" />
+![Test Rerunner & Snapshot Demo](./demo/test-rerunner.gif)
 
 ### 🛑 Stop Test Runner
-<img src="https://github.com/user-attachments/assets/f42e43ed-bfac-4280-be5f-87895fb232d3" alt="Stop Test Runner Demo" width="600" />
+![Stop Test Runner Demo](./demo/stop-runner.gif)

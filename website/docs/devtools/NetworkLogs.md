@@ -16,6 +16,6 @@ This is invaluable for debugging API issues, identifying slow requests, validati
 ## Demo
 
 ### 🌐 Network Logs
-<img src="https://github.com/user-attachments/assets/2cca4885-f989-4d07-b7ce-a4fa476c3c1c" alt="Network Logs 1" width="600" />
+![Network Logs Overview](./demo/network-logs-1.gif)
 
-<img src="https://github.com/user-attachments/assets/0f81e0af-75b5-454f-bffb-e40654c89908" alt="Network Logs 2" width="600" />
+![Network Logs Details](./demo/network-logs-2.gif)
