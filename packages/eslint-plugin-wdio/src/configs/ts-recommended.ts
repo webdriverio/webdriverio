@@ -10,13 +10,13 @@ const require = createRequire(import.meta.url)
 const tsRecommended = () => {
     const tseslint = require('typescript-eslint')
 
-    const typescriptPlugin = noFloatingPromise ? {
+    const typescriptPlugin = {
         ...plugin,
         rules: {
             ...plugin.rules,
             'no-floating-promise': noFloatingPromise
         }
-    } : plugin
+    }
 
     return {
         languageOptions: {
