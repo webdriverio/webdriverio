@@ -107,7 +107,12 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         })
 
         if (this.config.outputDir) {
-            runnerEnv.WDIO_LOG_PATH = path.join(this.config.outputDir, `wdio-${cid}.log`)
+            let logFileRunner = `wdio-${cid}.log`
+            if (this.specs.length && this.specs[0]) {
+                const specBaseName = path.basename(this.specs[0], path.extname(this.specs[0]))
+                logFileRunner = `${specBaseName}-${cid}.log`
+            }
+            runnerEnv.WDIO_LOG_PATH = path.join(this.config.outputDir, logFileRunner)
         }
 
         /**
