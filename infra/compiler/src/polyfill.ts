@@ -45,7 +45,8 @@ const POLYFILLED_BUILTINS_FROM_FILES: Record<string, string> = {
  */
 const NPM_POLYFILL_PACKAGES: Record<string, string> = {
     'events': 'events',
-    'path': 'path-browserify'
+    'path': 'path-browserify',
+    'querystring': 'querystring-es3'
 }
 
 /**
@@ -136,8 +137,22 @@ export function browserPolyfills(): Plugin {
                 if (moduleName in NPM_POLYFILL_PACKAGES) {
                     const packageName = NPM_POLYFILL_PACKAGES[moduleName]
                     try {
+                        /**
+                         * Robustly resolve the NPM package's entry point.
+                         * Simple require.resolve(packageName) can return a core module name (e.g., 'events')
+                         * or a relative path, which confuses esbuild.
+                         */
+                        const pkgJsonPath = require.resolve(`${packageName}/package.json`, {
+                            paths: [join(__dirname, '..')]
+                        })
+                        const pkgJson = JSON.parse(readFileSync(pkgJsonPath, 'utf-8'))
+                        const pkgDir = dirname(pkgJsonPath)
+
+                        // Pick the best entry point for the browser
+                        const entryPoint = pkgJson.browser || pkgJson.module || pkgJson.main || 'index.js'
+                        const resolvedPath = require.resolve(join(pkgDir, entryPoint))
                         return {
-                            path: require.resolve(packageName),
+                            path: resolvedPath,
                             external: false
                         }
                     } catch (err) {
@@ -218,19 +233,38 @@ export function browserPolyfills(): Plugin {
                 }
             })
 
-            // Load hard error mocks
-            build.onLoad({ filter: /.*/, namespace: 'wdio-hard-error' }, (args) => ({
-                contents: `
-                    const moduleName = "${args.path}";
-                    const createError = (method) => () => {
-                        throw new Error(\`\${moduleName}.\${method}() is not available in browser environments. This module requires Node.js.\`);
-                    };
-                    export default new Proxy({}, {
-                        get: (_target, prop) => createError(prop)
-                    });
-                `,
-                loader: 'js'
-            }))
+            build.onLoad({ filter: /.*/, namespace: 'wdio-hard-error' }, (args) => {
+                const moduleName = args.path
+                let namedExports = ''
+
+                try {
+                    // Inspect the actual Node.js module to generate named exports
+                    // This allows named imports like `import { existsSync } from 'fs'` to work in the bundle
+                    const realModule = require(moduleName)
+                    const keys = Object.keys(realModule).filter(k =>
+                        // Filter out default and invalid identifiers
+                        k !== 'default' && /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k)
+                    )
+                    namedExports = keys.map(k => `export const ${k} = createError("${k}");`).join('\n')
+                } catch {
+                    // Fallback if module cannot be required
+                    namedExports = '// No named exports found'
+                }
+
+                return {
+                    contents: `
+                        const moduleName = "${moduleName}";
+                        const createError = (method) => () => {
+                            throw new Error(\`\${moduleName}.\${method}() is not available in browser environments. This module requires Node.js.\`);
+                        };
+                        ${namedExports}
+                        export default new Proxy({}, {
+                            get: (_target, prop) => createError(prop)
+                        })
+                    `,
+                    loader: 'js'
+                }
+            })
 
             // Load mocked NPM packages
             build.onLoad({ filter: /.*/, namespace: 'wdio-mock-package' }, (args) => ({

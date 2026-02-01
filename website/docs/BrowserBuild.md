@@ -30,7 +30,7 @@ You can also use an [Import Map](https://developer.mozilla.org/en-US/docs/Web/HT
 <script type="importmap">
 {
     "imports": {
-        "webdriverio": "/node_modules/webdriverio/build/index.js"
+        "webdriverio": "/node_modules/webdriverio/build/browser.js"
     }
 }
 </script>
@@ -51,10 +51,111 @@ The following Node.js globals and modules are polyfilled:
 - **`path`**: POSIX-compliant implementation for path manipulation.
 - **`url`**: Uses native browser `URL` and `URLSearchParams`.
 - **`events`**: Full `EventEmitter` implementation.
-- **`util`**: Includes `promisify`, `inherits`, etc.
+- **`querystring`**: Query string encoding/decoding utilities.
+- **`util`**: Includes `promisify`, `inherits`, `format`, `inspect`, etc.
 
 ### Limitations
-Some Node.js modules that clearly rely on OS-level access (like `fs`, `child_process`, `net`) are **not** available and will throw descriptive errors if accessed.
+
+> [!IMPORTANT]
+> Some Node.js modules and WebdriverIO commands are not available in browser environments.
+
+#### Unavailable Commands
+The following WebdriverIO commands will throw descriptive errors:
+- `browser.saveScreenshot()` - File system access required
+- `browser.uploadFile()` - File system access required
+- `browser.savePDF()` - File system access required
+- `browser.saveRecordingScreen()` - File system access required
+- `browser.downloadFile()` - File system access required
+
+#### Unavailable Node.js Modules
+These modules throw errors if accessed:
+- `fs`, `fs/promises` - File system operations
+- `child_process` - Process spawning
+- `net`, `tls`, `dgram` - Network sockets
+- `http`, `https`, `http2` - HTTP servers
+- `os` - Operating system utilities
+- `crypto` - Cryptographic operations (use Web Crypto API instead)
+
+## CORS Requirements
+
+> [!WARNING]
+> When connecting to a remote WebDriver endpoint from the browser, you must handle CORS (Cross-Origin Resource Sharing).
+
+### Option 1: Configure WebDriver Server
+Enable CORS headers on your WebDriver server:
+```bash
+# Example: ChromeDriver with CORS
+chromedriver --allowed-origins=http://localhost:3000
+```
+
+### Option 2: Use a Proxy Server
+Configure your development server to proxy WebDriver requests:
+
+**Vite Configuration:**
+```javascript
+// vite.config.js
+export default {
+  server: {
+    proxy: {
+      '/webdriver': {
+        target: 'http://localhost:4444',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/webdriver/, '')
+      }
+    }
+  }
+}
+```
+
+**Webpack Dev Server:**
+```javascript
+// webpack.config.js
+module.exports = {
+  devServer: {
+    proxy: {
+      '/webdriver': {
+        target: 'http://localhost:4444',
+        pathRewrite: { '^/webdriver': '' }
+      }
+    }
+  }
+}
+```
+
+Then connect using the proxy path:
+```javascript
+const browser = await remote({
+    hostname: window.location.hostname,
+    port: window.location.port,
+    path: '/webdriver',
+    capabilities: { browserName: 'chrome' }
+})
+```
+
+## Troubleshooting
+
+### "Module not found" Errors
+If you see errors like `Cannot find module 'fs'`:
+1. Ensure you're importing from the browser build (not the Node.js build)
+2. Check your bundler configuration picks up the `browser` export condition
+3. Verify your bundler supports export conditions (Vite, Webpack 5+, Rollup with plugins)
+
+### WebSocket Connection Failures
+- Verify the WebDriver endpoint supports WebSocket (BiDi protocol)
+- Check CORS headers if connecting to a remote endpoint
+- Ensure the WebDriver server is running and accessible
+- Use browser DevTools Network tab to inspect WebSocket handshake
+
+### Buffer/Process Not Defined
+If you see `Buffer is not defined` or `process is not defined`:
+1. The polyfills should be automatically injected
+2. Check that the browser build is being used (not Node.js build)
+3. Verify your bundler isn't stripping the banner injection
+
+### Performance Issues
+- The browser build bundles all dependencies, which can be large (~500KB+)
+- Use code splitting if only certain features are needed
+- Consider lazy loading the WebdriverIO module when needed
 
 ## Example Usage
 

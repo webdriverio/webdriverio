@@ -73,7 +73,8 @@ const cjsPlugins: Record<string, Plugin[]> = {}
  * @see https://github.com/webdriverio/webdriverio/issues/14598
  */
 const browserPlugins: Record<string, Plugin[]> = {
-    'webdriverio': [browserPolyfills()]
+    'webdriverio': [browserPolyfills()],
+    '@wdio/browser-runner': [browserPolyfills()]
 }
 
 const WDIO_RESQ_SCRIPT = JSON.stringify(await fs.readFile(path.resolve(rootDir, 'packages', 'webdriverio', 'node_modules', 'resq', 'dist', 'index.js'), 'utf-8'))
@@ -225,27 +226,6 @@ const configs = packages.map(([packageDir, pkg]) => {
 // Browser polyfill globals for Node.js compatibility
 if (typeof globalThis.process === 'undefined') {
     globalThis.process = { env: {}, platform: 'browser', version: '', nextTick: (fn, ...a) => setTimeout(() => fn(...a), 0) };
-}
-if (typeof globalThis.Buffer === 'undefined') {
-    class B extends Uint8Array {
-        static from(d, e) {
-            if (typeof d === 'string') {
-                if (e === 'base64') { const b = atob(d); const r = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) r[i] = b.charCodeAt(i); return new B(r.buffer, r.byteOffset, r.byteLength); }
-                if (e === 'hex') { const r = new Uint8Array(d.length / 2); for (let i = 0; i < r.length; i++) r[i] = parseInt(d.substring(i * 2, i * 2 + 2), 16); return new B(r.buffer, r.byteOffset, r.byteLength); }
-                const r = new TextEncoder().encode(d); return new B(r.buffer, r.byteOffset, r.byteLength);
-            }
-            const r = new Uint8Array(d); return new B(r.buffer, r.byteOffset, r.byteLength);
-        }
-        static alloc(s) { return new B(s); }
-        static isBuffer(o) { return o instanceof Uint8Array; }
-        static concat(l) { const r = new Uint8Array(l.reduce((a, b) => a + b.length, 0)); let o = 0; l.forEach(a => { r.set(a, o); o += a.length; }); return new B(r.buffer, r.byteOffset, r.byteLength); }
-        toString(e) {
-            if (e === 'base64') { let s = ''; for (let i = 0; i < this.length; i++) s += String.fromCharCode(this[i]); return btoa(s); }
-            if (e === 'hex') { let s = ''; for (let i = 0; i < this.length; i++) s += (this[i] < 16 ? '0' : '') + this[i].toString(16); return s; }
-            return new TextDecoder().decode(this);
-        }
-    }
-    globalThis.Buffer = B;
 }
 `
                 }
