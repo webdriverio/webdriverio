@@ -763,7 +763,7 @@ describe('main suite 1', () => {
         expect(pdf.length).toBeGreaterThan(0)
     })
 
-    it.only('should be able to create and update a mock sensor', async () => {
+    it('should be able to create and update a mock sensor', async () => {
         await browser.createMockSensor('gravity', true, 10, 2)
         const reading1 = await browser.getMockSensor('gravity')
         expect(reading1).toEqual({ requestedSamplingFrequency: 0 })
