@@ -221,7 +221,6 @@ export function generateMarkdownReport(
 ): string {
     const lines: string[] = []
 
-    // Header
     lines.push('# 📊 Mobile Selector Performance Optimizer Report')
     lines.push('')
 
@@ -282,7 +281,6 @@ export function generateMarkdownReport(
     lines.push('---')
     lines.push('')
 
-    // Summary
     lines.push('## 📈 Summary')
     lines.push('')
     lines.push('| Impact Level | Count | Action |')
@@ -306,10 +304,8 @@ export function generateMarkdownReport(
     lines.push('---')
     lines.push('')
 
-    // Group by file
     const { fileGroups, workspaceWide } = groupByFile(positiveOptimizations)
 
-    // File-Based Fixes
     if (fileGroups.length > 0) {
         lines.push('## 🎯 File-Based Fixes')
         lines.push('')
@@ -342,7 +338,6 @@ export function generateMarkdownReport(
         lines.push('')
     }
 
-    // Workspace-Wide Optimizations
     if (workspaceWide.length > 0) {
         lines.push('## 🔍 Workspace-Wide Optimizations')
         lines.push('')
@@ -365,7 +360,6 @@ export function generateMarkdownReport(
         lines.push('')
     }
 
-    // Performance Warnings
     if (negativeOptimizations.length > 0) {
         lines.push('## ⚠️ Performance Warnings')
         lines.push('')
@@ -407,7 +401,6 @@ export function generateMarkdownReport(
         lines.push('')
     }
 
-    // Implementation Guide
     lines.push('## 💡 Implementation Guide')
     lines.push('')
     lines.push('### Why make these changes?')

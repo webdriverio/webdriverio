@@ -258,7 +258,6 @@ export async function aggregateSelectorPerformanceData(
                 const markdownContent = generateMarkdownReport(optimizedSelectors, deviceName, timingInfo, projectRoot)
                 fs.writeFileSync(markdownPath, markdownContent)
 
-                // Log markdown report location
                 const message = `
 ───────────────────────────────────────────────────────────────────────────────
 📝 Mobile Selector Performance Optimizer - Markdown Report
@@ -696,19 +695,16 @@ function generateGroupedSummaryReport(
     // Group by file
     const { fileGroups, workspaceWide } = groupByFileForCli(positiveOptimizations)
 
-    // Header
     write('\n')
     write('═══════════════════════════════════════════════════════════════════════════════\n')
     write('📊 Mobile Selector Performance Optimizer Report\n')
     write('═══════════════════════════════════════════════════════════════════════════════\n')
     write('\n')
 
-    // Summary stats
     if (deviceName && deviceName !== 'unknown') {
         write(`${REPORT_INDENT_SUMMARY}Device: ${deviceName}\n`)
     }
 
-    // Timing information
     if (timingInfo) {
         const formatTime = (ts: number) => new Date(ts).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
         const formatDuration = (ms: number) => {
@@ -732,13 +728,11 @@ function generateGroupedSummaryReport(
         : `${deduplicated.length} unique selectors (${positiveOptimizations.length} optimizable)`
     write(`${REPORT_INDENT_SUMMARY}Analyzed: ${analyzedText}\n`)
 
-    // Format total savings
     const formatSavings = (ms: number) => {
         if (ms < 1000) {return `${ms.toFixed(0)}ms`}
         return `${(ms / 1000).toFixed(2)}s`
     }
 
-    // Total savings with potential improvement percentage
     let savingsLine = `${REPORT_INDENT_SUMMARY}Total Potential Savings: ${formatSavings(totalSavingsMs)} per test run`
     if (timingInfo && timingInfo.totalRunDurationMs > 0) {
         const improvementPercent = (totalSavingsMs / timingInfo.totalRunDurationMs) * 100
@@ -748,7 +742,6 @@ function generateGroupedSummaryReport(
     write(`${REPORT_INDENT_SUMMARY}Average Improvement per Selector: ${avgImprovement.toFixed(1)}% faster\n`)
     write('\n')
 
-    // Summary
     write('📈 Summary\n')
     write('───────────────────────────────────────────────────────────────────────────────\n')
     if (highImpact.length > 0) {
@@ -768,7 +761,6 @@ function generateGroupedSummaryReport(
     }
     write('\n')
 
-    // File-Based Fixes
     if (fileGroups.length > 0) {
         write('🎯 File-Based Fixes\n')
         write('───────────────────────────────────────────────────────────────────────────────\n')
@@ -811,7 +803,6 @@ function generateGroupedSummaryReport(
         }
     }
 
-    // Workspace-Wide Optimizations
     if (workspaceWide.length > 0) {
         write('🔍 Workspace-Wide Optimizations\n')
         write('───────────────────────────────────────────────────────────────────────────────\n')
@@ -840,7 +831,6 @@ function generateGroupedSummaryReport(
         write('\n')
     }
 
-    // Performance Warnings
     if (negativeOptimizations.length > 0) {
         write('⚠️  Performance Warnings\n')
         write('───────────────────────────────────────────────────────────────────────────────\n')
@@ -876,7 +866,6 @@ function generateGroupedSummaryReport(
         }
     }
 
-    // Why Change section (compact)
     write('💡 Why Change?\n')
     write('───────────────────────────────────────────────────────────────────────────────\n')
     write(`${REPORT_INDENT_SUMMARY}• Speed: Native selectors bypass expensive XML tree traversal\n`)
