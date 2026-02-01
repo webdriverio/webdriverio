@@ -295,7 +295,7 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
     'sauce:visual'?: SauceLabsVisualCapabilities
     // Experitest Access Keys
     'experitest:accessKey'?: string
-    //LambdaTest w3c specific
+    //TestMu AI (Formerly LambdaTest) w3c specific
     'LT:Options'?: LambdaTestCapabilities
     // LT w3c specific as "officially" documented
     'lt:options'?: LambdaTestCapabilities
@@ -1493,9 +1493,9 @@ export interface LambdaTestCapabilities {
     visual?: boolean
     video?: boolean
     /**
-     * Test locally hosted websites on LambdaTest.
+     * Test locally hosted websites on TestMu AI (Formerly LambdaTest).
      * To enable access to the local machine you need to setup the
-     * LambdaTest Tunnel (https://www.lambdatest.com/support/docs/testing-locally-hosted-pages).
+     * TestMu AI Tunnel (https://www.testmuai.com/support/docs/testing-locally-hosted-pages/).
      */
     tunnel?: boolean
     tunnelName?: string
