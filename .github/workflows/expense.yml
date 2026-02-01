@@ -55,3 +55,4 @@ jobs:
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           GH_TOKEN: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}
+          EXPENSE_SIGNING_SECRET: ${{ secrets.EXPENSE_SIGNING_SECRET }}
