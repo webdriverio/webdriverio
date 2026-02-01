@@ -753,7 +753,7 @@ describe('main suite 1', () => {
         })
     })
 
-    it.only('should be able to save PDF with pageRanges', async () => {
+    it('should be able to save PDF with pageRanges', async () => {
         await browser.url('https://guinea-pig.webdriver.io/')
 
         const pdf = await browser.savePDF(path.join(os.tmpdir(), 'page-ranges.pdf'), {
