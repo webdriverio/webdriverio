@@ -223,7 +223,12 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     }
     private _startAppium(command: string, args: Array<string>, timeout = APPIUM_START_TIMEOUT) {
         log.info(`Will spawn Appium process: ${command} ${args.join(' ')}`)
-        const appiumProcess: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+        /**
+         * We need to pass a clean NODE_OPTIONS to prevent the child process from inheriting
+         * the tsx loader from the parent process (when running with TypeScript config).
+         */
+        const appiumEnv = { ...process.env, NODE_OPTIONS: '' }
+        const appiumProcess: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'], env: appiumEnv })
         // just for validate the first error
         let errorCaptured = false
         // to set a timeout for the promise

@@ -74,11 +74,11 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
 />
 
 <ImageSwitcher
-    lightImageSrc="/img/sponsors/lambdatest_black.svg"
-    darkImageSrc="/img/sponsors/lambdatest_white.svg"
-    alt="Lambdatest"
+    lightImageSrc="/img/sponsors/testmu_ai_black.svg"
+    darkImageSrc="/img/sponsors/testmu_ai_white.svg"
+    alt="TestMu AI (Formerly LambdaTest)"
     target="_blank"
-    link="https://www.lambdatest.com/"
+    link="https://www.testmuai.com/"
     width="250"
 />
 

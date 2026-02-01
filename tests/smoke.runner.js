@@ -670,7 +670,7 @@ const retryFail = async () => {
  */
 const retryPass = async () => {
     const retryFilename = path.resolve(__dirname, '.retry_succeeded')
-    const logfiles = ['wdio-0-0.log', 'wdio-0-1.log'].map(f => path.join(__dirname, f))
+    const logfiles = ['retry_and_pass-0-0.log', 'retry_and_pass-0-1.log'].map(f => path.join(__dirname, f))
     const rmfiles = [retryFilename, ...logfiles]
     for (const filename of rmfiles) {
         if (await fileExists(filename)) {
