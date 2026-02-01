@@ -49,7 +49,7 @@ import UsageStats from './testOps/usageStats.js'
 import TestOpsConfig from './testOps/testOpsConfig.js'
 import type { StartBinSessionResponse } from '@browserstack/wdio-browserstack-service'
 import APIUtils from './cli/apiUtils.js'
-import tar from 'tar'
+import { create } from 'tar'
 import { fileFromPath } from 'formdata-node/file-from-path'
 
 import AccessibilityScripts from './scripts/accessibility-scripts.js'
@@ -1387,7 +1387,7 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
             copiedFileNames.push(path.basename(f))
         }
 
-        await tar.create(
+        await create(
             {
                 file: tarPath,
                 cwd: tmpDir,
