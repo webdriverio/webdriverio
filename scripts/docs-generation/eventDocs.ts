@@ -15,12 +15,20 @@ interface Event {
 
 export async function generateEventDocs () {
     const eventsDir = path.resolve(__dirname, '..', '..', 'website', 'community', 'events')
-    await fs.mkdir(eventsDir, { recursive: true })
-
-    const res = await fetch('https://events.webdriver.io/api/events')
-    const events = await res.json() as Event[]
-
     const sidebarPath = path.join(__dirname, '..', '..', 'website', 'events.json')
+    await fs.mkdir(eventsDir, { recursive: true })
+    await fs.writeFile(sidebarPath, JSON.stringify([]), 'utf-8')
+
+    let events
+
+    try {
+        const res = await fetch('https://events.webdriver.io/api/events')
+        events = await res.json() as Event[]
+    } catch (err) {
+        console.error(`ERROR: Failed fetching events from [https://events.webdriver.io/api/events]: ${(err as Error).message}`)
+        return
+    }
+
     const sidebarContent = events
         .filter((event) => new Date(event.time) > new Date())
         .map((event) => event.id)
