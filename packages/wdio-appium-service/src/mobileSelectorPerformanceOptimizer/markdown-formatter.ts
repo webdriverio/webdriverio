@@ -104,7 +104,7 @@ function groupByFile(optimizations: GroupedOptimization[]): {
  * Escape pipe characters for markdown tables
  */
 function escapeForTable(str: string): string {
-    return str.replace(/\|/g, '\\|')
+    return str.replace(/\\/g, '\\\\').replace(/\|/g, '\\|')
 }
 
 /**
