@@ -107,7 +107,12 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         })
 
         if (this.config.outputDir) {
-            runnerEnv.WDIO_LOG_PATH = path.join(this.config.outputDir, `wdio-${cid}.log`)
+            let logFileRunner = `wdio-${cid}.log`
+            if (this.specs.length && this.specs[0]) {
+                const specBaseName = path.basename(this.specs[0], path.extname(this.specs[0]))
+                logFileRunner = `${specBaseName}-${cid}.log`
+            }
+            runnerEnv.WDIO_LOG_PATH = path.join(this.config.outputDir, logFileRunner)
         }
 
         /**
@@ -232,6 +237,30 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         if (childProcess) {
             childProcess.kill('SIGTERM')
         }
+    }
+
+    /**
+     * Forcefully kill the worker process.
+     * This is used when a worker doesn't respond to graceful shutdown
+     * (e.g., when a test times out with pending async operations).
+     *
+     * @param signal - The signal to send (default: 'SIGTERM', use 'SIGKILL' for force kill)
+     */
+    kill(signal: NodeJS.Signals = 'SIGTERM'): void {
+        if (!this.childProcess) {
+            log.debug(`Worker ${this.cid} has no child process to kill`)
+            return
+        }
+
+        log.info(`Killing worker ${this.cid} with ${signal}`)
+        try {
+            this.childProcess.kill(signal)
+        } catch (err) {
+            log.warn(`Failed to kill worker ${this.cid}:`, err)
+        }
+        delete this.childProcess
+        this.isBusy = false
+        this.isKilled = true
     }
 
     /**

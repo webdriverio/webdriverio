@@ -11,7 +11,7 @@ type PDFPrintOptions = {
     left?: number,
     right?: number,
     shrinkToFit?: boolean,
-    pageRanges?: object[]
+    pageRanges?: Array<string | number>
 }
 
 /**
@@ -38,7 +38,7 @@ type PDFPrintOptions = {
  * @param   {number=}          options.left         Left padding of PDF page
  * @param   {number=}          options.right        Right padding of PDF page
  * @param   {boolean=}         options.shrinkToFit  Shrink page to fit page
- * @param   {object[]}         options.pageRanges   Range of pages to include in PDF
+ * @param   {Array<string|number>=}         options.pageRanges   Range of pages to include in PDF
  * @return  {Buffer}   screenshot buffer
  * @type utility
  *

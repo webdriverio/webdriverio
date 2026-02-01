@@ -150,7 +150,7 @@
       "items": [
         "accessibility-testing/axe-core",
         "accessibility-testing/browserstack",
-        "accessibility-testing/lambdatest"
+        "accessibility-testing/testmuai"
       ]
     },
     {
@@ -222,6 +222,20 @@
       "link": {
         "type": "doc",
         "id": "visual-testing"
+      }
+    },
+    {
+      "type": "category",
+      "label": "MCP",
+      "items": [
+        "mcp/tools",
+        "mcp/selectors",
+        "mcp/configuration",
+        "mcp/faq"
+      ],
+      "link": {
+        "type": "doc",
+        "id": "mcp"
       }
     },
     {

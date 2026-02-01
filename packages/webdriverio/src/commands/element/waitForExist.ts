@@ -65,21 +65,37 @@ export async function waitForExist (
      * calling `waitForExist`.
      */
     if (!reverse && isExisting && typeof this.selector === 'string') {
-        let element: WebdriverIO.Element | ChainablePromiseElement
-
-        if (this.index !== undefined) {
-            const elements = this.isShadowElement
-                ? await this.parent.shadow$$(this.selector as string)
-                : await this.parent.$$(this.selector as string)
-            element = elements[this.index]
-        } else {
-            element = this.isShadowElement
-                ? this.parent.shadow$(this.selector)
-                : this.parent.$(this.selector)
+        /**
+         * If the element already has a valid elementId, we don't need to refetch it.
+         * This prevents overwriting the element with a different one if the DOM order changed.
+         */
+        let isCurrentIdValid = false
+        if (this.elementId) {
+            try {
+                await this.getElementTagName(this.elementId)
+                isCurrentIdValid = true
+            } catch {
+                // ignore
+            }
         }
 
-        this.elementId = await element.elementId
-        this[ELEMENT_KEY] = this.elementId
+        if (!isCurrentIdValid) {
+            let element: WebdriverIO.Element | ChainablePromiseElement
+
+            if (this.index !== undefined) {
+                const elements = this.isShadowElement
+                    ? await this.parent.shadow$$(this.selector as string)
+                    : await this.parent.$$(this.selector as string)
+                element = elements[this.index]
+            } else {
+                element = this.isShadowElement
+                    ? this.parent.shadow$(this.selector)
+                    : this.parent.$(this.selector)
+            }
+
+            this.elementId = await element.elementId
+            this[ELEMENT_KEY] = this.elementId
+        }
         delete this.error
     }
 
