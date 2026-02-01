@@ -63,10 +63,16 @@ export const config = {
         viteConfig: ({ command, mode }) => {
             const env = loadEnv(mode, __dirname, '')
             return {
+                resolve: {
+                    alias: {
+                        'graceful-fs': path.resolve(__dirname, '__mocks__/graceful-fs.js')
+                    }
+                },
                 // vite config
                 define: {
                     WDIO_ENV_TEST: `${JSON.stringify(env.WDIO_ENV_TEST)}`,
-                    TEST_COMMAND: `${JSON.stringify(command)}`
+                    TEST_COMMAND: `${JSON.stringify(command)}`,
+                    'process.env.IS_MAC': JSON.stringify(isMac)
                 },
             }
         },

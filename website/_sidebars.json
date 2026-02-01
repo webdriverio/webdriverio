@@ -151,7 +151,7 @@
       "items": [
         "accessibility-testing/axe-core",
         "accessibility-testing/browserstack",
-        "accessibility-testing/lambdatest"
+        "accessibility-testing/testmuai"
       ]
     },
     {

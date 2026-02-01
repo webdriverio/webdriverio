@@ -23,6 +23,47 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.23.3 (2026-02-01)
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#15044](https://github.com/webdriverio/webdriverio/pull/15044) fix(wdio-config): restore jiti fallback for CJS named imports ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-sauce-service`
+  * [#15000](https://github.com/webdriverio/webdriverio/pull/15000) Fix/sauce service jasmine error ([@mccmrunal](https://github.com/mccmrunal))
+* `webdriverio`
+  * [#15045](https://github.com/webdriverio/webdriverio/pull/15045) fix(webdriverio): allow waitForClickable in native context if browser… ([@mccmrunal](https://github.com/mccmrunal))
+  * [#15034](https://github.com/webdriverio/webdriverio/pull/15034) Fix/bidi cookie robustness ([@mccmrunal](https://github.com/mccmrunal))
+* `webdriver`
+  * [#15046](https://github.com/webdriverio/webdriverio/pull/15046) Fix/14946 overlapping capabilities ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-protocols`, `webdriverio`
+  * [#15003](https://github.com/webdriverio/webdriverio/pull/15003) fix: Fix incorrect typings and commands inconsistency ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-local-runner`
+  * [#15047](https://github.com/webdriverio/webdriverio/pull/15047) feat: add spec file name to log file prefix ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-appium-service`
+  * [#15070](https://github.com/webdriverio/webdriverio/pull/15070) fix(appium): pass through clean NODE_OPTIONS ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#15041](https://github.com/webdriverio/webdriverio/pull/15041) fix(allure-reporter): attach cucumber data table to step instead of s… ([@mccmrunal](https://github.com/mccmrunal))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#15066](https://github.com/webdriverio/webdriverio/pull/15066) Allow parallel runs to download CLI ([@xxshubhamxx](https://github.com/xxshubhamxx))
+
+#### :memo: Documentation
+* [#15057](https://github.com/webdriverio/webdriverio/pull/15057) fix(website): Change Expect API docs, manage Event docs generation error and update website packages ([@Winify](https://github.com/Winify))
+* [#15056](https://github.com/webdriverio/webdriverio/pull/15056) fix(website): ensure footer copyright year is dynamic ([@mccmrunal](https://github.com/mccmrunal))
+* [#15035](https://github.com/webdriverio/webdriverio/pull/15035) Add WebdriverIO 9 Mobile Automation Boilerplate with Appium ([@syamphaneendra](https://github.com/syamphaneendra))
+
+#### Committers: 8
+- Aakash Hotchandani ([@AakashHotchandani](https://github.com/AakashHotchandani))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Shubham Garg ([@xxshubhamxx](https://github.com/xxshubhamxx))
+- Swastik Baranwal ([@Delta456](https://github.com/Delta456))
+- Syamphaneendra Kalluri ([@syamphaneendra](https://github.com/syamphaneendra))
+- Vince Graics ([@Winify](https://github.com/Winify))
+
+
 ## v9.23.1 (2026-01-18)
 
 #### :eyeglasses: Spec Compliancy

@@ -100,7 +100,8 @@ const MOCKED_PACKAGES = [
     'glob',
     'import-meta-resolve',
     '@wdio/repl',
-    'ws'
+    'ws',
+    'graceful-fs'
 ]
 
 export { POLYFILLED_BUILTINS_FROM_FILES, NPM_POLYFILL_PACKAGES, HARD_ERROR_BUILTINS, MOCKED_PACKAGES }
