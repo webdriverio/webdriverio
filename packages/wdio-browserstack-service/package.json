@@ -1,6 +1,6 @@
 {
   "name": "@wdio/browserstack-service",
-  "version": "9.23.2",
+  "version": "9.23.3",
   "description": "WebdriverIO service for better Browserstack integration",
   "author": "Adam Bjerstedt <abjerstedt@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browserstack-service",
