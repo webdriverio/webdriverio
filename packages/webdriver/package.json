@@ -45,7 +45,7 @@
     "@wdio/utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",
     "https-proxy-agent": "^7.0.6",
-    "undici": "^6.21.3",
+    "undici": "^7.18.2",
     "ws": "^8.8.0"
   }
 }
