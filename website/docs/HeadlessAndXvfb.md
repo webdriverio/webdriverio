@@ -1,6 +1,6 @@
 ---
 id: headless-and-xvfb
-title: Headless & Xvfb with the Testrunner
+title: Headless & Xvfb
 description: How WebdriverIO uses Xvfb for headless testing on Linux, configuration options, CI recipes, and troubleshooting.
 ---
 
