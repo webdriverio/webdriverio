@@ -3,7 +3,37 @@ id: coverage
 title: Coverage
 ---
 
-WebdriverIO's browser runner supports code coverage reporting using [`istanbul`](https://istanbul.js.org/). The testrunner will automatically instrument your code and capture code coverage for you.
+WebdriverIO's browser runner supports code coverage reporting using [`istanbul`](https://istanbul.js.org/). The testrunner will automatically instrument your code using Vite and capture code coverage for you.
+
+## How it Works
+
+The `@wdio/browser-runner` uses Vite to serve your application. When you enable coverage, it adds a plugin to the Vite server that attempts to instrument your source code on the fly as it is requested by the browser.
+
+:::warning Important
+**Do not navigate away from the test runner!**
+
+Code coverage relies on the files being served and instrumented by the local Vite server started by WebdriverIO.
+If you use `browser.url('http://...')` or `browser.url('file://...')` to navigate to a different page, you are leaving the instrumented environment. Your code will run, but **no coverage will be collected**.
+
+**Correct Approach (Component Testing):**
+Render your component or import your module directly in the test file.
+
+```js
+import { myFunction } from '../src/utils.js'
+
+it('should cover my function', () => {
+    myFunction() // This is covered
+})
+```
+
+**Incorrect Approach (E2E Style):**
+```js
+it('will not have coverage', async () => {
+    // ❌ navigating away breaks instrumentation
+    await browser.url('http://localhost:3000')
+})
+```
+:::
 
 ## Setup
 
@@ -23,6 +53,20 @@ export const config = {
 ```
 
 Checkout all [coverage options](/docs/runner#coverage-options), to learn how to properly configure it.
+
+:::tip Configuration Tips
+If you are testing non-standard files (like inline scripts in `.html`) or if your files are not being picked up, you may need to explicitly verify your `include` and `extension` options:
+
+```js
+coverage: {
+    enabled: true,
+    // Explicitly target your source files if default resolution fails
+    include: ['src/**/*.js', 'src/**/*.vue'],
+    // Add .html if you have inline scripts
+    extension: ['.js', '.jsx', '.ts', '.tsx', '.vue', '.html']
+}
+```
+:::
 
 ## Ignoring Code
 
