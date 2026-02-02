@@ -104,7 +104,7 @@
   },
   {
     "packageName": "wdio-lambdatest-service",
-    "title": "LambdaTest",
+    "title": "TestMu AI (Formerly LambdaTest)",
     "branch": "master",
     "githubUrl": "https://github.com/LambdaTest/wdio-lambdatest-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-lambdatest-service"
