@@ -1,6 +1,6 @@
 import { describe, expect, test, vi, beforeEach } from 'vitest'
 import fs from 'node:fs'
-import path from 'node:path'
+import { join, normalize } from 'node:path'
 import logger from '@wdio/logger'
 import { findSelectorLocation } from '../../../src/mobileSelectorPerformanceOptimizer/utils/selector-location.js'
 
@@ -17,7 +17,7 @@ vi.mock('node:fs', () => ({
     readdirSync: vi.fn()
 }))
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@wdio/logger', () => import(join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const log = logger('@wdio/appium-service:selector-optimizer')
 
@@ -113,11 +113,13 @@ describe('selector-location utils', () => {
             const poContent = `get loginButton() { return $('${selector}') }`
 
             vi.mocked(fs.existsSync).mockImplementation((p) => {
-                return p === testFile || p === pageObjectPath || p === pageObjectFile
+                const normalized = normalize(String(p))
+                return normalized === testFile || normalized === pageObjectPath || normalized === pageObjectFile
             })
             vi.mocked(fs.readFileSync).mockImplementation((p) => {
-                if (p === testFile) {return 'test content'}
-                if (p === pageObjectFile) {return poContent}
+                const normalized = normalize(String(p))
+                if (normalized === testFile) {return 'test content'}
+                if (normalized === pageObjectFile) {return poContent}
                 return ''
             })
             vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true, isFile: () => false } as fs.Stats)

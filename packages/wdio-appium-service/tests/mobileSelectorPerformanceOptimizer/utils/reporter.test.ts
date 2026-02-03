@@ -1,3 +1,4 @@
+import { normalize } from 'node:path'
 import { describe, expect, test } from 'vitest'
 import type { Reporters, Options } from '@wdio/types'
 import type { AppiumServiceConfig } from '../../../src/types.js'
@@ -61,7 +62,7 @@ describe('reporter utils', () => {
 
         test('should use reportPath when provided (relative)', () => {
             const result = determineReportDirectory('relative/path')
-            expect(result).toContain('relative/path')
+            expect(result).toContain(normalize('relative/path'))
             expect(result).toContain(originalCwd)
         })
 
@@ -74,7 +75,7 @@ describe('reporter utils', () => {
         test('should use config.outputDir when reportPath not provided (relative)', () => {
             const config = { outputDir: 'config/output' } as Options.Testrunner
             const result = determineReportDirectory(undefined, config)
-            expect(result).toContain('config/output')
+            expect(result).toContain(normalize('config/output'))
             expect(result).toContain(originalCwd)
         })
 
@@ -87,7 +88,7 @@ describe('reporter utils', () => {
         test('should use appiumServiceOptions.logPath when no reportPath or outputDir (relative)', () => {
             const appiumOptions = { logPath: 'appium/log' } as AppiumServiceConfig
             const result = determineReportDirectory(undefined, undefined, appiumOptions)
-            expect(result).toContain('appium/log')
+            expect(result).toContain(normalize('appium/log'))
             expect(result).toContain(originalCwd)
         })
 
@@ -100,7 +101,7 @@ describe('reporter utils', () => {
         test('should use directory from appiumServiceOptions.args.log (relative)', () => {
             const appiumOptions = { args: { log: 'appium/logs/app.log' } } as AppiumServiceConfig
             const result = determineReportDirectory(undefined, undefined, appiumOptions)
-            expect(result).toContain('appium/logs')
+            expect(result).toContain(normalize('appium/logs'))
             expect(result).toContain(originalCwd)
         })
 
