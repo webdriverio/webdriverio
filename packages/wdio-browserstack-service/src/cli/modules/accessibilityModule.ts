@@ -34,6 +34,7 @@ export default class AccessibilityModule extends BaseModule {
     accessibilityMap: Map<number, boolean>
     LOG_DISABLED_SHOWN: Map<number, boolean>
     testMetadata: Record<string, { [key: string]: unknown; }> = {}
+    currentTestName: string | null = null  // Track current test name
 
     constructor(accessibilityConfig: Accessibility, isNonBstackA11y: boolean) {
         super()
@@ -107,7 +108,7 @@ export default class AccessibilityModule extends BaseModule {
                 if (!this.accessibility && !this.isAppAccessibility){
                     return
                 }
-                return await this.performScanCli(browser)
+                return await this.performScanCli(browser, undefined, this.isAppAccessibility ? (this.currentTestName || undefined) : undefined)
             }
 
             (browser as WebdriverIO.Browser).startA11yScanning = async () => {
@@ -166,7 +167,7 @@ export default class AccessibilityModule extends BaseModule {
                     !this.shouldPatchExecuteScript(args.length ? args[0] as string : null)
                 ) {
                     try {
-                        await this.performScanCli(browser, command.name)
+                        await this.performScanCli(browser, command.name, this.isAppAccessibility ? (this.currentTestName || undefined) : undefined)
                         this.logger.debug(`Accessibility scan performed after ${command.name} command`)
                     } catch (scanError) {
                         this.logger.debug(`Error performing accessibility scan after ${command.name}: ${scanError}`)
@@ -191,6 +192,9 @@ export default class AccessibilityModule extends BaseModule {
             this.logger.debug('Accessibility before test hook. Starting accessibility scan for this test case.')
             const suiteTitle = (typeof args.suiteTitle === 'string' ? args.suiteTitle : '') || ''
             const test = (args.test && typeof args.test === 'object' ? args.test as { title?: string } : {}) || {}
+
+            // Store current test name for use in getAccessibilityResults/Summary
+            this.currentTestName = suiteTitle
 
             const autoInstance: AutomationFrameworkInstance = AutomationFramework.getTrackedInstance()
             const testInstance: TestFrameworkInstance = TestFramework.getTrackedInstance()
@@ -235,7 +239,7 @@ export default class AccessibilityModule extends BaseModule {
                 if (!this.accessibility && !this.isAppAccessibility){
                     return
                 }
-                const results = await this.performScanCli(browser)
+                const results = await this.performScanCli(browser, undefined, this.isAppAccessibility ? (this.currentTestName || undefined) : undefined)
                 if (results){
                     const testIdentifier = String(testInstance.getContext().getId())
                     this.testMetadata[testIdentifier] = {
@@ -276,6 +280,8 @@ export default class AccessibilityModule extends BaseModule {
 
             if (!autoInstance || !testInstance) {
                 this.logger.error('No tracked instances found for accessibility after test')
+                // Clear current test name
+                this.currentTestName = null
                 return
             }
 
@@ -323,6 +329,10 @@ export default class AccessibilityModule extends BaseModule {
 
         } catch (error) {
             this.logger.error(`Accessibility results could not be processed for the test case. Error: ${error}`)
+        } finally {
+            // Clear current test name after test completes
+            this.currentTestName = null
+            this.logger.debug('[AccessibilityModule] Current test name cleared after test completion')
         }
     }
 
@@ -362,7 +372,8 @@ export default class AccessibilityModule extends BaseModule {
 
     private async performScanCli(
         browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
-        commandName?: string
+        commandName?: string,
+        testName?: string
     ): Promise<Record<string, unknown> | undefined> {
         return await PerformanceTester.measureWrapper(
             PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.PERFORM_SCAN,
@@ -374,7 +385,7 @@ export default class AccessibilityModule extends BaseModule {
                     }
                     if (this.isAppAccessibility) {
                         const results: unknown = await (browser as WebdriverIO.Browser).execute(
-                            formatString(this.scriptInstance.performScan, JSON.stringify(_getParamsForAppAccessibility(commandName))) as string,
+                            formatString(this.scriptInstance.performScan, JSON.stringify(_getParamsForAppAccessibility(commandName, testName))) as string,
                             {}
                         )
                         BStackLogger.debug(util.format(results as string))
@@ -405,7 +416,7 @@ export default class AccessibilityModule extends BaseModule {
 
             if (this.accessibilityMap.get(sessionId)) {
                 this.logger.debug('Performing scan before saving results')
-                await this.performScanCli(browser)
+                await this.performScanCli(browser, undefined, this.isAppAccessibility ? (this.currentTestName || undefined) : undefined)
             }
 
             if (this.isAppAccessibility) {
