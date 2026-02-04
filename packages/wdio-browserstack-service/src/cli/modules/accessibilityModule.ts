@@ -34,7 +34,7 @@ export default class AccessibilityModule extends BaseModule {
     accessibilityMap: Map<number, boolean>
     LOG_DISABLED_SHOWN: Map<number, boolean>
     testMetadata: Record<string, { [key: string]: unknown; }> = {}
-    currentTestName: string | null = null  // Track current test name
+    currentTestName: string | null = null
 
     constructor(accessibilityConfig: Accessibility, isNonBstackA11y: boolean) {
         super()
