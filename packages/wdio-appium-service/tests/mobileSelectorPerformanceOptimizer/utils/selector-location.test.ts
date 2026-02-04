@@ -1,6 +1,6 @@
 import { describe, expect, test, vi, beforeEach } from 'vitest'
 import fs from 'node:fs'
-import { join, normalize } from 'node:path'
+import { join } from 'node:path'
 import logger from '@wdio/logger'
 import { findSelectorLocation } from '../../../src/mobileSelectorPerformanceOptimizer/utils/selector-location.js'
 
@@ -109,17 +109,24 @@ describe('selector-location utils', () => {
             const testFile = '/project/test/spec.ts'
             const selector = '//button'
             const pageObjectPath = '/project/test/pageobjects'
-            const pageObjectFile = '/project/test/pageobjects/login.page.ts'
             const poContent = `get loginButton() { return $('${selector}') }`
 
+            const pathEndsWith = (p: string, suffix: string) => {
+                const normalizedPath = p.replace(/\\/g, '/')
+                const normalizedSuffix = suffix.replace(/\\/g, '/')
+                return normalizedPath.endsWith(normalizedSuffix) || normalizedPath === normalizedSuffix
+            }
+
             vi.mocked(fs.existsSync).mockImplementation((p) => {
-                const normalized = normalize(String(p))
-                return normalized === testFile || normalized === pageObjectPath || normalized === pageObjectFile
+                const pathStr = String(p)
+                return pathEndsWith(pathStr, 'spec.ts') ||
+                       pathEndsWith(pathStr, 'pageobjects') ||
+                       pathEndsWith(pathStr, 'login.page.ts')
             })
             vi.mocked(fs.readFileSync).mockImplementation((p) => {
-                const normalized = normalize(String(p))
-                if (normalized === testFile) {return 'test content'}
-                if (normalized === pageObjectFile) {return poContent}
+                const pathStr = String(p)
+                if (pathEndsWith(pathStr, 'spec.ts')) {return 'test content'}
+                if (pathEndsWith(pathStr, 'login.page.ts')) {return poContent}
                 return ''
             })
             vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true, isFile: () => false } as fs.Stats)
