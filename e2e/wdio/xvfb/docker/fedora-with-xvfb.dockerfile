@@ -1,4 +1,4 @@
-FROM fedora:40
+FROM fedora:43
 
 # Set environment variables
 ENV CI=true
