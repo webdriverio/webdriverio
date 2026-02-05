@@ -319,9 +319,9 @@ function parseElectronCapabilities(capabilities?: WebdriverIO.Capabilities) {
 }
 
 /**
- * Determine the appropriate platform, with ARM Linux override.
+ * Determine the appropriate platform, with ARM overrides.
  */
-function resolveChromedriverPlatform(): BrowserPlatform {
+function resolveChromedriverPlatform(): { platform: BrowserPlatform; isWindowsArm64: boolean } {
     const platform = detectBrowserPlatform()
     const actualPlatform = (platform === BrowserPlatform.LINUX && process.arch === 'arm64') ? BrowserPlatform.LINUX_ARM : platform
 
@@ -333,16 +333,20 @@ function resolveChromedriverPlatform(): BrowserPlatform {
         throw new Error('The current platform is not supported.')
     }
 
-    return actualPlatform
+    // Windows ARM64 detection - detectBrowserPlatform() returns WIN64 for both x64 and ARM64
+    const isWindowsArm64 = process.platform === 'win32' && process.arch === 'arm64'
+
+    return { platform: actualPlatform, isWindowsArm64 }
 }
 
 export async function setupChromedriver (cacheDir: string, driverVersion?: string, capabilities?: WebdriverIO.Capabilities) {
-    const platform = resolveChromedriverPlatform()
+    const { platform, isWindowsArm64 } = resolveChromedriverPlatform()
     const { chromiumVersion, electronVersion } = parseElectronCapabilities(capabilities)
 
-    // Platforms where Chrome for Testing doesn't provide binaries
+    // Platforms where Chrome for Testing doesn't provide native binaries
+    // Windows ARM64 is detected separately since detectBrowserPlatform() returns WIN64
     const unsupportedPlatforms = [BrowserPlatform.LINUX_ARM]
-    const needsAlternativeProvider = unsupportedPlatforms.includes(platform)
+    const needsAlternativeProvider = unsupportedPlatforms.includes(platform) || isWindowsArm64
 
     // Determine buildId and providers based on capabilities
     let buildId: string
@@ -370,7 +374,8 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
         buildId = detectedVersion || ChromeReleaseChannel.STABLE
 
         if (needsAlternativeProvider && !chromiumVersion) {
-            log.info(`Chrome for Testing doesn't provide binaries for ${platform}. Using Electron releases as fallback with Chrome v${buildId}.`)
+            const platformName = isWindowsArm64 ? 'Windows ARM64' : platform
+            log.info(`Chrome for Testing doesn't provide native binaries for ${platformName}. Using Electron releases as fallback with Chrome v${buildId}.`)
         } else if (chromiumVersion) {
             log.info(`Using Electron provider with Chromium v${buildId}`)
         }

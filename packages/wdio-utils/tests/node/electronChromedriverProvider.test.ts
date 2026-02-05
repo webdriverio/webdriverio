@@ -12,10 +12,14 @@ vi.mock('electron-to-chromium', () => ({
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('ElectronChromedriverProvider', () => {
+    const originalArch = process.arch
+
     beforeEach(() => {
         vi.clearAllMocks()
         resetElectronMappingCache()
         vi.mocked(chromiumToElectron).mockReset()
+        // Reset process.arch to original before each test
+        Object.defineProperty(process, 'arch', { value: originalArch, configurable: true })
     })
 
     describe('getName', () => {
@@ -114,6 +118,9 @@ describe('ElectronChromedriverProvider', () => {
         })
 
         it('should return correct URL for Windows x64', async () => {
+            // Explicitly set x64 arch for this test
+            Object.defineProperty(process, 'arch', { value: 'x64', configurable: true })
+
             const downloader = new ElectronChromedriverProvider()
             const options: DownloadOptions = {
                 browser: Browser.CHROMEDRIVER,
@@ -126,6 +133,25 @@ describe('ElectronChromedriverProvider', () => {
 
             expect(url?.toString()).toBe(
                 'https://github.com/electron/electron/releases/download/v33.0.0/chromedriver-v33.0.0-win32-x64.zip'
+            )
+        })
+
+        it('should return correct URL for Windows ARM64', async () => {
+            // Mock Windows ARM64 environment
+            Object.defineProperty(process, 'arch', { value: 'arm64', configurable: true })
+
+            const downloader = new ElectronChromedriverProvider()
+            const options: DownloadOptions = {
+                browser: Browser.CHROMEDRIVER,
+                buildId: '130.0.6723.2',
+                platform: BrowserPlatform.WIN64 // detectBrowserPlatform returns WIN64 for ARM64 too
+            }
+
+            vi.mocked(chromiumToElectron).mockReturnValue('33.0.0')
+            const url = await downloader.getDownloadUrl(options)
+
+            expect(url?.toString()).toBe(
+                'https://github.com/electron/electron/releases/download/v33.0.0/chromedriver-v33.0.0-win32-arm64.zip'
             )
         })
 

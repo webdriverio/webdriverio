@@ -116,6 +116,12 @@ async function fetchChromiumToElectronMapping(): Promise<Record<string, string>>
  * Maps BrowserPlatform to Electron release platform names.
  */
 function mapPlatformForElectron(platform: BrowserPlatform): string {
+    // Windows ARM64 special case: detectBrowserPlatform() returns WIN64 for both x64 and ARM64
+    // We need to check process.arch to determine if we should use win32-arm64
+    if (platform === BrowserPlatform.WIN64 && process.arch === 'arm64') {
+        return 'win32-arm64'
+    }
+
     const platformMap: Record<BrowserPlatform, string> = {
         [BrowserPlatform.LINUX]: 'linux-x64',
         [BrowserPlatform.LINUX_ARM]: 'linux-arm64',

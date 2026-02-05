@@ -84,9 +84,9 @@ Type: `boolean`
 Specify the Electron version to use for downloading Chromedriver. When set, WebdriverIO will download Chromedriver from [Electron releases](https://github.com/electron/electron/releases) instead of Chrome for Testing. This is particularly useful for:
 
 - Testing Electron applications
-- Platforms where Chrome for Testing doesn't provide binaries (e.g., Linux ARM64)
+- Platforms where Chrome for Testing doesn't provide native binaries (e.g., Linux ARM64, Windows ARM64)
 
-On Linux ARM64, if neither `wdio:electronVersion` nor `wdio:chromiumVersion` is set, WebdriverIO will automatically use Electron releases as a fallback since Chrome for Testing doesn't support this platform.
+On Linux ARM64 and Windows ARM64, if neither `wdio:electronVersion` nor `wdio:chromiumVersion` is set, WebdriverIO will automatically use Electron releases as a fallback since Chrome for Testing doesn't support these platforms natively.
 
 Type: `string`
 
@@ -114,9 +114,9 @@ Example:
 }
 ```
 
-:::info Linux ARM64 Support
+:::info ARM64 Platform Support
 
-On Linux ARM64 systems, Chromedriver is automatically downloaded from Electron releases since Chrome for Testing doesn't provide ARM64 binaries. This happens automatically without any configuration required.
+On Linux ARM64 and Windows ARM64 systems, Chromedriver is automatically downloaded from Electron releases since Chrome for Testing doesn't provide native ARM64 binaries for these platforms. This happens automatically without any configuration required.
 
 If you want to specify a particular version, you can use either `wdio:electronVersion` or `wdio:chromiumVersion` capabilities.
 

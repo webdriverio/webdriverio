@@ -119,6 +119,40 @@ describe('setupChromedriver', () => {
             const installCall = mockInstall.mock.calls[0][0]
             expect(installCall.providers).toBeUndefined()
         })
+
+        it('should use Electron provider on Windows ARM64 without explicit capabilities', async () => {
+            Object.defineProperty(process, 'arch', { value: 'arm64', configurable: true })
+            Object.defineProperty(process, 'platform', { value: 'win32', configurable: true })
+            mockDetectBrowserPlatform.mockReturnValue(BrowserPlatform.WIN64)
+            mockResolveBuildId.mockResolvedValueOnce('130.0.6723.58')
+
+            const result = await setupChromedriver('/cache', undefined, {
+                browserName: 'chrome'
+            })
+
+            expect(result).toEqual({
+                executablePath: '/path/to/chromedriver'
+            })
+
+            // Verify Electron provider was used
+            const installCall = mockInstall.mock.calls[0][0]
+            expect(installCall.providers).toBeDefined()
+            expect(installCall.providers).toHaveLength(1)
+        })
+
+        it('should NOT use fallback on Windows x64', async () => {
+            Object.defineProperty(process, 'arch', { value: 'x64', configurable: true })
+            Object.defineProperty(process, 'platform', { value: 'win32', configurable: true })
+            mockDetectBrowserPlatform.mockReturnValue(BrowserPlatform.WIN64)
+
+            await setupChromedriver('/cache', '130.0.6723.58', {
+                browserName: 'chrome'
+            })
+
+            // Verify standard Chrome for Testing was used (no providers)
+            const installCall = mockInstall.mock.calls[0][0]
+            expect(installCall.providers).toBeUndefined()
+        })
     })
 
     describe('explicit Electron capabilities (backward compatibility)', () => {
