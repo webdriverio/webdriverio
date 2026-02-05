@@ -190,6 +190,10 @@ describe('setupChromedriver', () => {
             Object.defineProperty(process, 'arch', { value: 'arm64', configurable: true })
             mockDetectBrowserPlatform.mockReturnValue(BrowserPlatform.LINUX)
 
+            // Mock os.platform to return non-Windows so it uses the Unix code path
+            const os = await import('node:os')
+            vi.spyOn(os.default, 'platform').mockReturnValue('linux')
+
             const { locateChrome } = await import('locate-app')
             vi.mocked(locateChrome).mockResolvedValue('/usr/bin/google-chrome')
 
