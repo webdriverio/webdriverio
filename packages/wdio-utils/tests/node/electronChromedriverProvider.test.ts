@@ -3,7 +3,7 @@ import { Browser, BrowserPlatform, type DownloadOptions } from '@puppeteer/brows
 import path from 'node:path'
 import { chromiumToElectron } from 'electron-to-chromium'
 
-import { ElectronDownloader, resetElectronMappingCache } from '../../src/node/electronDownloader.js'
+import { ElectronChromedriverProvider, resetElectronMappingCache } from '../../src/node/electronChromedriverProvider.js'
 
 vi.mock('electron-to-chromium', () => ({
     chromiumToElectron: vi.fn()
@@ -11,7 +11,7 @@ vi.mock('electron-to-chromium', () => ({
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-describe('ElectronDownloader', () => {
+describe('ElectronChromedriverProvider', () => {
     beforeEach(() => {
         vi.clearAllMocks()
         resetElectronMappingCache()
@@ -20,14 +20,14 @@ describe('ElectronDownloader', () => {
 
     describe('getName', () => {
         it('should return "electron"', () => {
-            const downloader = new ElectronDownloader()
+            const downloader = new ElectronChromedriverProvider()
             expect(downloader.getName()).toBe('electron')
         })
     })
 
     describe('supports', () => {
         it('should return true for chromedriver on supported platform', async () => {
-            const downloader = new ElectronDownloader()
+            const downloader = new ElectronChromedriverProvider()
             const options: DownloadOptions = {
                 browser: Browser.CHROMEDRIVER,
                 buildId: '130.0.6723.2',
@@ -40,7 +40,7 @@ describe('ElectronDownloader', () => {
         })
 
         it('should return false for non-chromedriver browser', async () => {
-            const downloader = new ElectronDownloader()
+            const downloader = new ElectronChromedriverProvider()
             const options: DownloadOptions = {
                 browser: Browser.CHROME,
                 buildId: '130.0.6723.2',
@@ -52,7 +52,7 @@ describe('ElectronDownloader', () => {
         })
 
         it('should respect platform restriction when set', async () => {
-            const downloader = new ElectronDownloader({
+            const downloader = new ElectronChromedriverProvider({
                 platforms: [BrowserPlatform.LINUX_ARM]
             })
             const options: DownloadOptions = {
@@ -67,7 +67,7 @@ describe('ElectronDownloader', () => {
         })
 
         it('should return false when version cannot be resolved', async () => {
-            const downloader = new ElectronDownloader()
+            const downloader = new ElectronChromedriverProvider()
             const options: DownloadOptions = {
                 browser: Browser.CHROMEDRIVER,
                 buildId: 'unknown.version',
@@ -82,7 +82,7 @@ describe('ElectronDownloader', () => {
 
     describe('getDownloadUrl', () => {
         it('should return correct URL for Linux ARM64', async () => {
-            const downloader = new ElectronDownloader()
+            const downloader = new ElectronChromedriverProvider()
             const options: DownloadOptions = {
                 browser: Browser.CHROMEDRIVER,
                 buildId: '130.0.6723.2',
@@ -98,7 +98,7 @@ describe('ElectronDownloader', () => {
         })
 
         it('should return correct URL for macOS ARM64', async () => {
-            const downloader = new ElectronDownloader()
+            const downloader = new ElectronChromedriverProvider()
             const options: DownloadOptions = {
                 browser: Browser.CHROMEDRIVER,
                 buildId: '130.0.6723.2',
@@ -114,7 +114,7 @@ describe('ElectronDownloader', () => {
         })
 
         it('should return correct URL for Windows x64', async () => {
-            const downloader = new ElectronDownloader()
+            const downloader = new ElectronChromedriverProvider()
             const options: DownloadOptions = {
                 browser: Browser.CHROMEDRIVER,
                 buildId: '130.0.6723.2',
@@ -130,7 +130,7 @@ describe('ElectronDownloader', () => {
         })
 
         it('should pass through Electron version directly', async () => {
-            const downloader = new ElectronDownloader()
+            const downloader = new ElectronChromedriverProvider()
             const options: DownloadOptions = {
                 browser: Browser.CHROMEDRIVER,
                 buildId: '33.0.0',
@@ -145,7 +145,7 @@ describe('ElectronDownloader', () => {
         })
 
         it('should return null when version cannot be resolved', async () => {
-            const downloader = new ElectronDownloader()
+            const downloader = new ElectronChromedriverProvider()
             const options: DownloadOptions = {
                 browser: Browser.CHROMEDRIVER,
                 buildId: 'unknown.version',
@@ -159,7 +159,7 @@ describe('ElectronDownloader', () => {
         })
 
         it('should use custom baseUrl when provided', async () => {
-            const downloader = new ElectronDownloader({
+            const downloader = new ElectronChromedriverProvider({
                 baseUrl: 'https://custom-mirror.example.com/electron/releases/'
             })
             const options: DownloadOptions = {
@@ -178,7 +178,7 @@ describe('ElectronDownloader', () => {
 
     describe('getExecutablePath', () => {
         it('should return chromedriver for non-Windows platforms', () => {
-            const downloader = new ElectronDownloader()
+            const downloader = new ElectronChromedriverProvider()
             const result = downloader.getExecutablePath({
                 browser: Browser.CHROMEDRIVER,
                 buildId: '33.0.0',
@@ -189,7 +189,7 @@ describe('ElectronDownloader', () => {
         })
 
         it('should return chromedriver.exe for Windows platforms', () => {
-            const downloader = new ElectronDownloader()
+            const downloader = new ElectronChromedriverProvider()
             const result = downloader.getExecutablePath({
                 browser: Browser.CHROMEDRIVER,
                 buildId: '33.0.0',
@@ -202,7 +202,7 @@ describe('ElectronDownloader', () => {
 
     describe('version mapping', () => {
         it('should use custom version mapping when provided', async () => {
-            const downloader = new ElectronDownloader({
+            const downloader = new ElectronChromedriverProvider({
                 versionMapping: {
                     '130.0.6723.2': '34.0.0'
                 }
@@ -219,7 +219,7 @@ describe('ElectronDownloader', () => {
         })
 
         it('should handle array return from chromiumToElectron', async () => {
-            const downloader = new ElectronDownloader()
+            const downloader = new ElectronChromedriverProvider()
             const options: DownloadOptions = {
                 browser: Browser.CHROMEDRIVER,
                 buildId: '130.0.6723.2',

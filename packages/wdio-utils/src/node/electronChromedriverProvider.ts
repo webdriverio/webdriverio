@@ -14,12 +14,12 @@ type ElectronRelease = {
 }
 
 /**
- * Options for ElectronDownloader.
+ * Options for ElectronChromedriverProvider.
  *
- * ElectronDownloader is a custom browser provider that downloads
+ * ElectronChromedriverProvider is a custom browser provider that downloads
  * Chromedriver from Electron releases instead of Chrome for Testing.
  */
-export interface ElectronDownloaderOptions {
+export interface ElectronChromedriverProviderOptions {
     /**
      * Only use Electron provider for specific platforms.
      * If not specified, Electron releases will be used for all platforms.
@@ -27,7 +27,7 @@ export interface ElectronDownloaderOptions {
      * @example
      * ```typescript
      * // Only use for ARM64 Linux, let Chrome for Testing handle others
-     * new ElectronDownloader({ platforms: [BrowserPlatform.LINUX_ARM] })
+      * new ElectronChromedriverProvider({ platforms: [BrowserPlatform.LINUX_ARM] })
      * ```
      */
     platforms?: BrowserPlatform[];
@@ -51,11 +51,11 @@ export interface ElectronDownloaderOptions {
      *
      * @example
      * ```typescript
-     * new ElectronDownloader({
-     *   versionMapping: {
-     *     '131.0.0.0': '34.0.0' // Override for unreleased versions
-     *   }
-     * })
+      * new ElectronChromedriverProvider({
+      *   versionMapping: {
+      *     '131.0.0.0': '34.0.0' // Override for unreleased versions
+      *   }
+      * })
      * ```
      */
     versionMapping?: Record<string, string>;
@@ -177,7 +177,7 @@ async function resolveElectronVersion(buildId: string, versionMapping?: Record<s
 }
 
 // ============================================================================
-// ElectronDownloader Class
+// ElectronChromedriverProvider Class
 // ============================================================================
 
 /**
@@ -205,7 +205,7 @@ async function resolveElectronVersion(buildId: string, versionMapping?: Record<s
  *
  * // For non-Electron apps - pass Chromium version, restrict to ARM64
  * const providers = [
- *   new ElectronDownloader({
+ *   new ElectronChromedriverProvider({
  *     platforms: [BrowserPlatform.LINUX_ARM]
  *   })
  * ];
@@ -219,12 +219,12 @@ async function resolveElectronVersion(buildId: string, versionMapping?: Record<s
  * // → Downloads chromedriver from Electron v33.2.1 release
  * ```
  */
-export class ElectronDownloader implements BrowserProvider {
+export class ElectronChromedriverProvider implements BrowserProvider {
     readonly #platforms?: BrowserPlatform[]
     readonly #baseUrl: string
     readonly #versionMapping?: Record<string, string>
 
-    constructor(options: ElectronDownloaderOptions = {}) {
+    constructor(options: ElectronChromedriverProviderOptions = {}) {
         this.#platforms = options.platforms
         this.#baseUrl = options.baseUrl || 'https://github.com/electron/electron/releases/download/'
         this.#versionMapping = options.versionMapping

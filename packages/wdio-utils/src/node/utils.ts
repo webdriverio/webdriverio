@@ -17,7 +17,7 @@ import { locateChrome, locateFirefox, locateApp } from 'locate-app'
 import type { EdgedriverParameters } from 'edgedriver'
 import type { Options } from '@wdio/types'
 
-import { ElectronDownloader } from './electronDownloader.js'
+import { ElectronChromedriverProvider } from './electronChromedriverProvider.js'
 
 const log = logger('webdriver')
 const EXCLUDED_PARAMS = ['version', 'help']
@@ -346,12 +346,12 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
 
     if (electronVersion) {
         // Use Electron provider with Electron version
-        providers = [new ElectronDownloader()]
+        providers = [new ElectronChromedriverProvider()]
         buildId = electronVersion
         log.info(`Using Electron provider with Electron v${buildId} (Chromium ${chromiumVersion})`)
     } else if (chromiumVersion) {
         // Fallback: use Chromium version with Electron provider
-        providers = [new ElectronDownloader()]
+        providers = [new ElectronChromedriverProvider()]
         buildId = chromiumVersion
         log.info(`Using Electron provider with Chromium v${buildId}`)
     } else {
