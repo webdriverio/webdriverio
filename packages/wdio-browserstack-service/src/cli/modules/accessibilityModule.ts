@@ -193,9 +193,7 @@ export default class AccessibilityModule extends BaseModule {
             const suiteTitle = (typeof args.suiteTitle === 'string' ? args.suiteTitle : '') || ''
             const test = (args.test && typeof args.test === 'object' ? args.test as { title?: string } : {}) || {}
 
-            // Store current test name for use in getAccessibilityResults/Summary
             this.currentTestName = suiteTitle
-
             const autoInstance: AutomationFrameworkInstance = AutomationFramework.getTrackedInstance()
             const testInstance: TestFrameworkInstance = TestFramework.getTrackedInstance()
 
@@ -280,7 +278,6 @@ export default class AccessibilityModule extends BaseModule {
 
             if (!autoInstance || !testInstance) {
                 this.logger.error('No tracked instances found for accessibility after test')
-                // Clear current test name
                 this.currentTestName = null
                 return
             }
@@ -330,7 +327,6 @@ export default class AccessibilityModule extends BaseModule {
         } catch (error) {
             this.logger.error(`Accessibility results could not be processed for the test case. Error: ${error}`)
         } finally {
-            // Clear current test name after test completes
             this.currentTestName = null
             this.logger.debug('[AccessibilityModule] Current test name cleared after test completion')
         }
@@ -372,7 +368,7 @@ export default class AccessibilityModule extends BaseModule {
 
     private async performScanCli(
         browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
-        commandName?: string,
+        commandName?: string
     ): Promise<Record<string, unknown> | undefined> {
         return await PerformanceTester.measureWrapper(
             PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.PERFORM_SCAN,

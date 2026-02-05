@@ -579,7 +579,7 @@ export const _getParamsForAppAccessibility = ( commandName?: string, testName?: 
 }
 
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-export const performA11yScan = async (isAppAutomate: boolean, browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, testName?: string, commandName?: string) : Promise<{ [key: string]: any; } | undefined> => {
+export const performA11yScan = async (isAppAutomate: boolean, browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string,  commandName?: string, testName?: string,) : Promise<{ [key: string]: any; } | undefined> => {
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
         BStackLogger.warn('Not an Accessibility Automation session, cannot perform Accessibility scan.')
@@ -674,7 +674,7 @@ export const getAppA11yResultsSummary = PerformanceTester.measureWrapper(PERFORM
 
 const getAppA11yResultResponse = async (apiUrl: string, isAppAutomate: boolean, browser: WebdriverIO.Browser, testName: string, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<PollingResult> => {
     BStackLogger.debug('Performing scan before getting results summary')
-    await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility, testName)
+    await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility, undefined, testName)
     const upperTimeLimit = process.env.BSTACK_A11Y_POLLING_TIMEOUT ? Date.now() + parseInt(process.env.BSTACK_A11Y_POLLING_TIMEOUT) * 1000 : Date.now() + 30000
     const params = { test_run_uuid: process.env.TEST_ANALYTICS_ID, session_id: sessionId, timestamp: Date.now() } // Query params to pass
     const header = { Authorization: `Bearer ${process.env.BSTACK_A11Y_JWT}` }
