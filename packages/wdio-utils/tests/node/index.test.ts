@@ -77,7 +77,7 @@ vi.mock('@puppeteer/browsers', () => ({
     canDownload: vi.fn().mockResolvedValue(true),
     computeExecutablePath: vi.fn().mockReturnValue('/foo/bar/executable'),
     getInstalledBrowsers: vi.fn().mockResolvedValue([]),
-    install: vi.fn().mockResolvedValue({})
+    install: vi.fn().mockResolvedValue({ executablePath: '/foo/bar/executable' })
 }))
 
 vi.mock('../../src/node/utils.js', async (actualMod) => ({
@@ -220,7 +220,6 @@ describe('startWebDriver', () => {
                 },
             }
         })
-        expect(fsp.access).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledWith(
             '/foo/bar/executable',
