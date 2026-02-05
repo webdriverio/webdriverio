@@ -28,6 +28,11 @@ RUN echo '[google-chrome]' > /etc/yum.repos.d/google-chrome.repo && \
     dnf install -y google-chrome-stable && \
     dnf clean all
 
+# Enable CRB repository and install EPEL for Xvfb availability in CentOS Stream 10
+RUN dnf config-manager --set-enabled crb && \
+    dnf install -y epel-release && \
+    dnf clean all
+
 # Ensure clean environment by removing any xvfb packages
 RUN dnf remove -y xorg-x11-server-Xvfb || true && \
     dnf autoremove -y && \
