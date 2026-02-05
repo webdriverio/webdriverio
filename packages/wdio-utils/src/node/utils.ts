@@ -688,4 +688,8 @@ export class ElectronDownloader implements BrowserProvider {
         const binaryName = options.platform.includes('win') ? 'chromedriver.exe' : 'chromedriver'
         return binaryName
     }
+
+    getName(): string {
+        return 'electron'
+    }
 }
