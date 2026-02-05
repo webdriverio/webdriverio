@@ -123,7 +123,7 @@ export async function setupDriver (options: Omit<Options.WebDriver, 'capabilitie
                 : cap.browserVersion
             return setupGeckodriver(cacheDir, version)
         } else if (isChrome(cap.browserName)) {
-            return setupChromedriver(cacheDir, cap.browserVersion)
+            return setupChromedriver(cacheDir, cap.browserVersion, cap)
         }
 
         return Promise.resolve()
