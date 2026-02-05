@@ -124,7 +124,7 @@ If you want to specify a particular version, you can use either `wdio:electronVe
 
 #### Common Driver Options
 
-While all driver offer different parameters for configuration, there are some common ones that WebdriverIO understand and uses for setting up your driver or browser:
+Whilst all drivers offer different parameters for configuration, there are some common ones that WebdriverIO understands and uses for setting up your driver or browser:
 
 ##### `cacheDir`
 
