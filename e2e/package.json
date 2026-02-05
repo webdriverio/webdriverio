@@ -33,9 +33,9 @@
     "test:multiremote": "wdio ./wdio/wdio-multiremote.conf.ts",
     "test:customReporter": "wdio ./custom-reporter/wdio.conf.js",
     "test:customService": "wdio ./custom-service/wdio.conf.js",
-    "test:xvfb": "wdio ./wdio/xvfb/wdio.conf.ts",
-    "test:xvfb:base": "wdio ./wdio/xvfb/wdio.conf.ts --spec base-install.e2e.ts",
-    "test:xvfb:existing": "wdio ./wdio/xvfb/wdio.conf.ts --spec existing-xvfb.e2e.ts",
+    "test:display-server": "wdio ./wdio/xvfb/wdio.conf.ts",
+    "test:display-server:base": "wdio ./wdio/xvfb/wdio.conf.ts --spec base-install.e2e.ts",
+    "test:display-server:existing": "wdio ./wdio/xvfb/wdio.conf.ts --spec existing-display-server.e2e.ts",
     "verifyCoverage": "test -d ./browser-runner/coverage"
   },
   "devDependencies": {
@@ -65,7 +65,7 @@
     "@wdio/shared-store-service": "workspace:*",
     "@wdio/spec-reporter": "workspace:*",
     "@wdio/types": "workspace:*",
-    "@wdio/xvfb": "workspace:*",
+    "@wdio/display-server": "workspace:*",
     "babel-plugin-transform-hook-names": "^1.0.2",
     "cross-env": "^7.0.3",
     "expect": "^29.7.0",

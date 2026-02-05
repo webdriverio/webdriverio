@@ -3,7 +3,7 @@ import path from 'node:path'
 import { EventEmitter } from 'node:events'
 import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
-import { ProcessFactory, type XvfbManager } from '@wdio/xvfb'
+import { DisplayProcessFactory, type DisplayServerManager } from '@wdio/display-server'
 import type { Workers } from '@wdio/types'
 import type { ReplConfig } from '@wdio/repl'
 
@@ -45,7 +45,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     sessionId?: string
     server?: Record<string, string>
     logsAggregator: string[] = []
-    #processFactory: ProcessFactory
+    #processFactory: DisplayProcessFactory
 
     instances?: Record<string, { sessionId: string }>
     isMultiremote?: boolean
@@ -66,14 +66,14 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
      * @param  {string[]} specs       list of paths to test files to run in this worker
      * @param  {number}   retries     number of retries remaining
      * @param  {object}   execArgv    execution arguments for the test run
-     * @param  {XvfbManager} xvfbManager configured XvfbManager instance
+     * @param  {DisplayServerManager} displayServerManager configured DisplayServerManager instance
      */
     constructor(
         config: WebdriverIO.Config,
         { cid, configFile, caps, specs, execArgv, retries }: Workers.WorkerRunPayload,
         stdout: WritableStreamBuffer,
         stderr: WritableStreamBuffer,
-        xvfbManager: XvfbManager
+        displayServerManager: DisplayServerManager
     ) {
         super()
         this.cid = cid
@@ -86,7 +86,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         this.retries = retries
         this.stdout = stdout
         this.stderr = stderr
-        this.#processFactory = new ProcessFactory(xvfbManager)
+        this.#processFactory = new DisplayProcessFactory(displayServerManager)
 
         this.isReady = new Promise((resolve) => { this.isReadyResolver = resolve })
         this.isSetup = new Promise((resolve) => { this.isSetupResolver = resolve })

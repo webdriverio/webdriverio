@@ -3,7 +3,7 @@ FROM opensuse/leap:16.0
 # Set environment variables
 ENV CI=true
 
-# Install requirements including xvfb
+# Install requirements including Wayland (weston)
 RUN zypper refresh && \
     zypper install -y \
         curl \
@@ -11,8 +11,7 @@ RUN zypper refresh && \
         sudo \
         nodejs \
         npm \
-        xorg-x11-server-Xvfb \
-        xvfb-run && \
+        weston && \
     zypper clean -a
 
 # Install pnpm globally as root
@@ -24,9 +23,6 @@ RUN zypper addrepo -f http://dl.google.com/linux/chrome/rpm/stable/x86_64 google
     zypper refresh && \
     zypper install -y google-chrome-stable && \
     zypper clean -a
-
-# Verify xvfb-run is available
-RUN which xvfb-run
 
 # Create test user with sudo access
 RUN groupadd testuser && \
