@@ -16,6 +16,7 @@ import type { Plugin } from 'esbuild'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const polyfillsDir = join(__dirname, '..', 'polyfills')
+const BROWSER_LIMITATIONS_DOCS = 'https://github.com/webdriverio/webdriverio/blob/main/packages/webdriverio/docs/browser-usage.md#limitations'
 
 // Create require function for ESM to resolve NPM packages
 const require = createRequire(import.meta.url)
@@ -235,7 +236,7 @@ export function browserPolyfills(): Plugin {
             })
 
             build.onLoad({ filter: /.*/, namespace: 'wdio-hard-error' }, (args) => {
-                const moduleName = args.path
+                const moduleName = args.path.replace(/^node:/, '')
                 let namedExports = ''
 
                 try {
@@ -255,8 +256,9 @@ export function browserPolyfills(): Plugin {
                 return {
                     contents: `
                         const moduleName = "${moduleName}";
+                        const docs = "${BROWSER_LIMITATIONS_DOCS}";
                         const createError = (method) => () => {
-                            throw new Error(\`\${moduleName}.\${method}() is not available in browser environments. This module requires Node.js.\`);
+                            throw new Error(\`\${moduleName}.\${method}() is not available in browser environments. This module requires Node.js. See: \${docs}\`);
                         };
                         ${namedExports}
                         export default new Proxy({}, {

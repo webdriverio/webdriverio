@@ -13,6 +13,7 @@ import { browserPolyfills } from './polyfill.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const rootDir = path.resolve(__dirname, '..', '..', '..')
+const browserGlobalsPath = path.resolve(__dirname, '..', 'polyfills', 'globals.js')
 const args = process.argv.slice(2)
 const options = {
     project: {
@@ -200,7 +201,7 @@ const configs = packages.map(([packageDir, pkg]) => {
 
         if (typeof exp.browser === 'string') {
             const browserSource = (exp.browserSource as string | undefined) || source
-            const browserBuild: BuildOptions = {
+            const browserBase: BuildOptions = {
                 ...baseConfig,
                 /**
                  * For browser builds, we need to bundle all dependencies
@@ -210,25 +211,23 @@ const configs = packages.map(([packageDir, pkg]) => {
                 external: getExternal(pkg).filter((ext) => ext.startsWith('node:') || ext.startsWith('virtual:') || ext === 'vscode'),
                 entryPoints: [path.resolve(absWorkingDir, browserSource)],
                 platform: 'browser',
-                format: 'esm',
                 target: ['es2021', 'chrome90', 'edge90', 'firefox90', 'safari15'],
                 plugins: [],
+                inject: [browserGlobalsPath],
+                sourcemap: true,
+                define: {
+                    ...baseConfig.define,
+                    'import.meta.resolve': 'undefined'
+                },
                 supported: {
                     'top-level-await': true //browsers can handle top-level-await features
-                },
-                /**
-                 * Inject global process and Buffer for dependencies that reference
-                 * them directly (globalThis.process, globalThis.Buffer) without importing.
-                 * This ensures compatibility with libraries expecting Node.js globals.
-                 */
-                banner: {
-                    js: `
-// Browser polyfill globals for Node.js compatibility
-if (typeof globalThis.process === 'undefined') {
-    globalThis.process = { env: {}, platform: 'browser', version: '', nextTick: (fn, ...a) => setTimeout(() => fn(...a), 0) };
-}
-`
                 }
+            }
+
+            const browserBuild: BuildOptions = {
+                ...browserBase,
+                format: 'esm',
+                plugins: []
             }
 
             if (exp.browser.endsWith('*')) {
@@ -243,6 +242,31 @@ if (typeof globalThis.process === 'undefined') {
             )
 
             packageBuilds.push(browserBuild)
+
+            /**
+             * For the main webdriverio browser entry we also generate a minified IIFE
+             * bundle for direct script usage (e.g. via CDN).
+             */
+            const shouldBuildIife = pkg.name === 'webdriverio' && target === '.' && !exp.browser.endsWith('*')
+            if (shouldBuildIife) {
+                const parsed = path.parse(exp.browser)
+                const minFile = path.resolve(absWorkingDir, parsed.dir, `${parsed.name}.min${parsed.ext}`)
+                const browserMinBuild: BuildOptions = {
+                    ...browserBase,
+                    format: 'iife',
+                    globalName: 'WebdriverIO',
+                    minify: true,
+                    plugins: [],
+                    outfile: minFile
+                }
+
+                browserMinBuild.plugins?.push(
+                    log(browserMinBuild, pkg),
+                    ...(browserPlugins[pkg.name] || [])
+                )
+
+                packageBuilds.push(browserMinBuild)
+            }
         }
     }
     return packageBuilds

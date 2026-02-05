@@ -55,6 +55,10 @@
       "requireSource": "./src/index.cts",
       "require": "./build/index.cjs"
     },
+    "./browser": {
+      "types": "./build/browser.d.ts",
+      "default": "./build/browser.js"
+    },
     "./scripts/*": {
       "source": "./src/scripts/*.ts",
       "import": "./build/scripts/*"

@@ -76,6 +76,39 @@ class BufferPolyfill extends Uint8Array {
         return new BufferPolyfill(result.buffer, result.byteOffset, result.byteLength)
     }
 
+    static byteLength(value, encoding) {
+        if (typeof value === 'string') {
+            const enc = (encoding || 'utf8').toLowerCase()
+            if (enc === 'base64') {
+                return atob(value).length
+            }
+            if (enc === 'hex') {
+                if (value.length % 2 !== 0) {
+                    throw new RangeError(`Invalid hex string length: expected even number, got ${value.length}`)
+                }
+                if (!/^[0-9a-fA-F]*$/.test(value)) {
+                    throw new TypeError('Invalid hex string: contains non-hexadecimal characters')
+                }
+                return value.length / 2
+            }
+            return new TextEncoder().encode(value).length
+        }
+
+        if (typeof value === 'number') {
+            throw new TypeError('The "value" argument must not be of type number. Received type number')
+        }
+
+        if (ArrayBuffer.isView(value)) {
+            return value.byteLength
+        }
+        if (value instanceof ArrayBuffer) {
+            return value.byteLength
+        }
+
+        const bytes = new Uint8Array(value)
+        return bytes.byteLength
+    }
+
     static toString(buf, encoding) {
         if (encoding === 'base64') {
             let binary = ''

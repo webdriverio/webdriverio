@@ -11,6 +11,10 @@ interface ProtocolDriver {
 
 let webdriverImport: Automation.Driver<Capabilities.RemoteConfig> | undefined
 
+export function setWebdriverImport (driver: Automation.Driver<Capabilities.RemoteConfig>) {
+    webdriverImport = driver
+}
+
 /**
  * get protocol driver
  * @param  {Capabilities.WebdriverIOConfig} options  remote options

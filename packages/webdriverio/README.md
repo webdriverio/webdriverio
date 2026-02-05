@@ -41,25 +41,24 @@ See the raw [protocol example](https://www.npmjs.com/package/webdriver#example) 
 
 For more information on [options](https://webdriver.io/docs/options#webdriver-options), [multiremote usage](https://webdriver.io/docs/multiremote) or integration into [cloud services](https://webdriver.io/docs/cloudservices) please check out the [docs](https://webdriver.io/docs/gettingstarted).
 
-## Browser Build
+## Browser Usage (New!)
 
-WebdriverIO provides a standalone browser build that allows you to run automation scripts directly in the browser (e.g. for AI sandboxes or debugging). This build includes necessary polyfills for Node.js globals like `process`, `buffer`, `events`, `path`, `url`, and `util`.
-
-Bundlers like **Vite** can resolve WebdriverIO to this browser-compatible build via the `exports.browser` condition when targeting the browser environment.
+WebdriverIO can now run directly in the browser, enabling client-side automation without Node.js.
 
 ```js
-import { remote } from 'webdriverio'
+import { remote } from 'webdriverio/browser'
 
-// Initialize a session directly in the browser!
-// Note: Requires a WebDriver server (like ChromeDriver) running on localhost or a cloud provider.
 const browser = await remote({
-    // ...
+    hostname: 'selenium-grid.example.com',
+    capabilities: { browserName: 'chrome' }
 })
+
+await browser.url('https://example.com')
 ```
 
-**Note:** Node.js-specific modules like `fs` or `child_process` are not available in the browser build. Attempting to use methods that rely on them will throw a descriptive error.
+**Note:** Node.js-specific modules like `fs` or `child_process` are not available in the browser build. Operations that rely on them will throw descriptive errors.
 
-See the [Browser Build documentation](https://webdriver.io/docs/BrowserBuild) for more details on installation, polyfills, and usage examples.
+See `./docs/browser-usage.md` for full usage details, limitations, and examples.
 
 ---
 
