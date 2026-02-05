@@ -3,13 +3,21 @@ FROM quay.io/centos/centos:stream10
 # Set environment variables
 ENV CI=true
 
-# Install requirements including xvfb
+# Enable CRB repository and install EPEL (required for Xvfb in CentOS Stream 10)
 RUN dnf update -y && \
     dnf install -y \
         ca-certificates \
         sudo \
         which \
-        xorg-x11-server-Xvfb && \
+        dnf-plugins-core && \
+    dnf config-manager --set-enabled crb && \
+    dnf install -y epel-release && \
+    dnf clean all
+
+# Install requirements including xvfb (now available via EPEL)
+RUN dnf install -y \
+        xorg-x11-server-Xvfb \
+        xorg-x11-server-utils && \
     dnf clean all
 
 # Install Node.js from NodeSource
