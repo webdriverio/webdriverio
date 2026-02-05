@@ -37,19 +37,15 @@
   },
   "devDependencies": {
     "@types/estree": "^1.0.8",
-    "@typescript-eslint/eslint-plugin": "^8.54.0",
     "eslint": "^9.39.2",
-    "typescript-eslint": "^8.54.0"
+    "typescript-eslint": "^8.54.0",
+    "expect-webdriverio": "^5.3.4"
   },
   "peerDependencies": {
-    "@typescript-eslint/eslint-plugin": "^8.54.0",
     "eslint": "^9.39.2",
     "typescript-eslint": "^8.54.0"
   },
   "peerDependenciesMeta": {
-    "@typescript-eslint/eslint-plugin": {
-      "optional": true
-    },
     "typescript-eslint": {
       "optional": true
     }
