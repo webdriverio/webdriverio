@@ -72,6 +72,7 @@ vi.mock('get-port', () => ({ default: vi.fn().mockResolvedValue(1234) }))
 vi.mock('@puppeteer/browsers', () => ({
     Browser: { CHROME: 'chrome', CHROMEDRIVER: 'chromedriver' },
     ChromeReleaseChannel: { STABLE: 'stable' },
+    BrowserPlatform: { LINUX: 'linux', LINUX_ARM: 'linux_arm', MAC: 'mac', MAC_ARM: 'mac_arm', WIN32: 'win32', WIN64: 'win64' },
     detectBrowserPlatform: vi.fn().mockReturnValue('mac_arm'),
     resolveBuildId: vi.fn().mockReturnValue('115.0.5790.171'),
     canDownload: vi.fn().mockResolvedValue(true),
