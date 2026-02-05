@@ -3,7 +3,7 @@ import plugin from '../plugin.js'
 import { sharedGlobals } from '../globals.js'
 import noFloatingPromise from '../rules/no-floating-promise.js'
 import type { Rule } from 'eslint'
-import { isTypeAware } from 'src/utils/typeAware.js'
+import { isTypeAware } from '../utils/typeAware.js'
 
 const require = createRequire(import.meta.url)
 

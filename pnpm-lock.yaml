@@ -555,6 +555,9 @@ importers:
       expect-webdriverio:
         specifier: ^5.3.4
         version: 5.6.1(@wdio/globals@9.23.0)(@wdio/logger@9.18.0)(webdriverio@9.24.0(puppeteer-core@24.34.0))
+      globals:
+        specifier: ^16.5.0
+        version: 16.5.0
       typescript-eslint:
         specifier: ^8.54.0
         version: 8.56.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)
