@@ -109,6 +109,7 @@ describe('setupChromedriver', () => {
 
         it('should NOT use fallback on macOS ARM64', async () => {
             Object.defineProperty(process, 'arch', { value: 'arm64', configurable: true })
+            Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true })
             mockDetectBrowserPlatform.mockReturnValue(BrowserPlatform.MAC_ARM)
 
             await setupChromedriver('/cache', '130.0.6723.58', {
