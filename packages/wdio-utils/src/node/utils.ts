@@ -340,6 +340,10 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
     const platform = resolveChromedriverPlatform()
     const { chromiumVersion, electronVersion } = parseElectronCapabilities(capabilities)
 
+    // Platforms where Chrome for Testing doesn't provide binaries
+    const unsupportedPlatforms = [BrowserPlatform.LINUX_ARM]
+    const needsAlternativeProvider = unsupportedPlatforms.includes(platform)
+
     // Determine buildId and providers based on capabilities
     let buildId: string
     let providers: BrowserProvider[] | undefined
@@ -349,11 +353,27 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
         providers = [new ElectronChromedriverProvider()]
         buildId = electronVersion
         log.info(`Using Electron provider with Electron v${buildId} (Chromium ${chromiumVersion})`)
-    } else if (chromiumVersion) {
-        // Fallback: use Chromium version with Electron provider
+    } else if (chromiumVersion || needsAlternativeProvider) {
+        // Use Electron provider with Chromium version OR for unsupported platforms
         providers = [new ElectronChromedriverProvider()]
-        buildId = chromiumVersion
-        log.info(`Using Electron provider with Chromium v${buildId}`)
+
+        // For fallback scenario, we need to resolve "stable" to an actual version
+        // that the Electron provider can map to an Electron release
+        let detectedVersion = chromiumVersion || driverVersion || getBuildIdByChromePath(await locateChromeSafely())
+
+        if (!detectedVersion && needsAlternativeProvider) {
+            // No Chrome detected - resolve "stable" from Chrome for Testing to get actual version
+            log.info('No Chrome installation detected. Resolving latest stable version...')
+            detectedVersion = await resolveBuildId(Browser.CHROME, platform, ChromeReleaseChannel.STABLE)
+        }
+
+        buildId = detectedVersion || ChromeReleaseChannel.STABLE
+
+        if (needsAlternativeProvider && !chromiumVersion) {
+            log.info(`Chrome for Testing doesn't provide binaries for ${platform}. Using Electron releases as fallback with Chrome v${buildId}.`)
+        } else if (chromiumVersion) {
+            log.info(`Using Electron provider with Chromium v${buildId}`)
+        }
     } else {
         // Use standard Chrome chromedriver logic (no Electron provider)
         const version = driverVersion || getBuildIdByChromePath(await locateChromeSafely()) || ChromeReleaseChannel.STABLE
