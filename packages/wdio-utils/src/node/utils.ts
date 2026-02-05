@@ -323,7 +323,7 @@ function parseElectronCapabilities(capabilities?: WebdriverIO.Capabilities) {
  */
 function resolveChromedriverPlatform(): BrowserPlatform {
     const platform = detectBrowserPlatform()
-    const actualPlatform = (platform === 'linux' && process.arch === 'arm64') ? BrowserPlatform.LINUX_ARM : platform
+    const actualPlatform = (platform === BrowserPlatform.LINUX && process.arch === 'arm64') ? BrowserPlatform.LINUX_ARM : platform
 
     if (actualPlatform !== platform) {
         log.info(`Overriding platform from ${platform} to ${actualPlatform} for ARM Linux`)
