@@ -25,11 +25,11 @@ jobs:
 
           # Fedora scenarios
           - distro: fedora
-            version: "40"
+            version: "43"
             scenario: base
             dockerfile: fedora-base.dockerfile
           - distro: fedora
-            version: "40"
+            version: "43"
             scenario: with-xvfb
             dockerfile: fedora-with-xvfb.dockerfile
 
@@ -45,21 +45,21 @@ jobs:
 
           # Debian scenarios
           - distro: debian
-            version: "12"
+            version: "13"
             scenario: base
             dockerfile: debian-base.dockerfile
           - distro: debian
-            version: "12"
+            version: "13"
             scenario: with-xvfb
             dockerfile: debian-with-xvfb.dockerfile
 
           # CentOS Stream scenarios (upstream RHEL)
           - distro: centos-stream
-            version: "9"
+            version: "10"
             scenario: base
             dockerfile: centos-stream-base.dockerfile
           - distro: centos-stream
-            version: "9"
+            version: "10"
             scenario: with-xvfb
             dockerfile: centos-stream-with-xvfb.dockerfile
 
@@ -75,11 +75,11 @@ jobs:
 
           # SUSE scenarios
           - distro: suse
-            version: "15.6"
+            version: "16.0"
             scenario: base
             dockerfile: suse-base.dockerfile
           - distro: suse
-            version: "15.6"
+            version: "16.0"
             scenario: with-xvfb
             dockerfile: suse-with-xvfb.dockerfile
 
