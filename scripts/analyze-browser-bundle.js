@@ -13,10 +13,18 @@ console.log(`Gzipped:        ${(gzipSync(browserBuildMin).length / 1024).toFixed
 const code = browserBuild.toString()
 const issues = []
 
-if (code.includes('require(\"fs\")') || code.includes('node:fs')) issues.push('Found fs require')
-if (code.includes('require(\"child_process\")') || code.includes('node:child_process')) issues.push('Found child_process require')
-if (code.includes('process.exit')) issues.push('Found process.exit call')
-if (code.includes('require(\"net\")') || code.includes('node:net')) issues.push('Found net require')
+if (code.includes('require("fs")') || code.includes('node:fs')) {
+    issues.push('Found fs require')
+}
+if (code.includes('require("child_process")') || code.includes('node:child_process')) {
+    issues.push('Found child_process require')
+}
+if (code.includes('process.exit')) {
+    issues.push('Found process.exit call')
+}
+if (code.includes('require("net")') || code.includes('node:net')) {
+    issues.push('Found net require')
+}
 
 if (issues.length > 0) {
     console.log('\nPotential Issues:')
