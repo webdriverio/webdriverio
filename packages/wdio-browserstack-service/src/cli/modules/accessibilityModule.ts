@@ -90,7 +90,7 @@ export default class AccessibilityModule extends BaseModule {
             //patching getA11yResultsSummary
             (browser as WebdriverIO.Browser).getAccessibilityResultsSummary = async () => {
                 if (this.isAppAccessibility) {
-                    return await getAppA11yResultsSummary(true, browser, isBrowserstackSession, this.accessibility, sessionId)
+                    return await getAppA11yResultsSummary(true, browser, this.currentTestName, isBrowserstackSession, this.accessibility, sessionId)
                 }
                 return await this.getA11yResultsSummary(browser)
             }
@@ -98,7 +98,7 @@ export default class AccessibilityModule extends BaseModule {
             //patching getA11yResults
             (browser as WebdriverIO.Browser).getAccessibilityResults = async () => {
                 if (this.isAppAccessibility) {
-                    return await getAppA11yResults(true, browser, isBrowserstackSession, this.accessibility, sessionId)
+                    return await getAppA11yResults(true, browser, this.currentTestName, isBrowserstackSession, this.accessibility, sessionId)
                 }
                 return await this.getA11yResults(browser)
             }
@@ -108,7 +108,7 @@ export default class AccessibilityModule extends BaseModule {
                 if (!this.accessibility && !this.isAppAccessibility){
                     return
                 }
-                return await this.performScanCli(browser, undefined, this.isAppAccessibility ? (this.currentTestName || undefined) : undefined)
+                return await this.performScanCli(browser)
             }
 
             (browser as WebdriverIO.Browser).startA11yScanning = async () => {
@@ -167,7 +167,7 @@ export default class AccessibilityModule extends BaseModule {
                     !this.shouldPatchExecuteScript(args.length ? args[0] as string : null)
                 ) {
                     try {
-                        await this.performScanCli(browser, command.name, this.isAppAccessibility ? (this.currentTestName || undefined) : undefined)
+                        await this.performScanCli(browser, command.name)
                         this.logger.debug(`Accessibility scan performed after ${command.name} command`)
                     } catch (scanError) {
                         this.logger.debug(`Error performing accessibility scan after ${command.name}: ${scanError}`)
@@ -239,7 +239,7 @@ export default class AccessibilityModule extends BaseModule {
                 if (!this.accessibility && !this.isAppAccessibility){
                     return
                 }
-                const results = await this.performScanCli(browser, undefined, this.isAppAccessibility ? (this.currentTestName || undefined) : undefined)
+                const results = await this.performScanCli(browser)
                 if (results){
                     const testIdentifier = String(testInstance.getContext().getId())
                     this.testMetadata[testIdentifier] = {
@@ -373,7 +373,6 @@ export default class AccessibilityModule extends BaseModule {
     private async performScanCli(
         browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
         commandName?: string,
-        testName?: string
     ): Promise<Record<string, unknown> | undefined> {
         return await PerformanceTester.measureWrapper(
             PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.PERFORM_SCAN,
@@ -384,6 +383,7 @@ export default class AccessibilityModule extends BaseModule {
                         return
                     }
                     if (this.isAppAccessibility) {
+                        const testName=this.currentTestName || undefined
                         const results: unknown = await (browser as WebdriverIO.Browser).execute(
                             formatString(this.scriptInstance.performScan, JSON.stringify(_getParamsForAppAccessibility(commandName, testName))) as string,
                             {}
@@ -416,7 +416,7 @@ export default class AccessibilityModule extends BaseModule {
 
             if (this.accessibilityMap.get(sessionId)) {
                 this.logger.debug('Performing scan before saving results')
-                await this.performScanCli(browser, undefined, this.isAppAccessibility ? (this.currentTestName || undefined) : undefined)
+                await this.performScanCli(browser)
             }
 
             if (this.isAppAccessibility) {
