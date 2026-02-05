@@ -1,7 +1,7 @@
 // Global polyfills for browser bundle
 // Ensures globalThis.process and globalThis.Buffer exist for dependencies
-import process from 'process'
-import { Buffer } from 'buffer'
+import process from './process.js'
+import { Buffer } from './buffer.js'
 
 if (typeof globalThis.process === 'undefined') {
     globalThis.process = process

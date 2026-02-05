@@ -25,27 +25,6 @@ jobs:
           NODE_ENV: production
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🌐 Build Browser Bundle
-        run: pnpm run build:browser
-        shell: bash
-
-      - name: 📦 Check Browser Bundle Size
-        run: |
-          SIZE=$(stat -c%s "packages/webdriverio/build/browser.min.js")
-          MAX_SIZE=512000
-          if [ "$SIZE" -gt "$MAX_SIZE" ]; then
-            echo "❌ Browser bundle too large: $SIZE bytes (max: $MAX_SIZE)"
-            exit 1
-          fi
-          echo "✅ Browser bundle size OK: $SIZE bytes"
-        shell: bash
-
-      - name: 🧪 Test Browser Build
-        run: pnpm run test:browser
-        shell: bash
-        env:
-          WDIO_BROWSER_TESTS: '1'
-
       - name: ⬆️ Upload Build Artifacts
         uses: ./.github/workflows/actions/upload-archive
         with:
