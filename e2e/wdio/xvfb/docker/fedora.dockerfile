@@ -3,7 +3,7 @@ FROM fedora:43
 # Set environment variables
 ENV CI=true
 
-# Install basic requirements but explicitly NOT xvfb
+# Install requirements including Wayland (weston)
 RUN dnf update -y && \
     dnf install -y \
         curl \
@@ -11,7 +11,8 @@ RUN dnf update -y && \
         sudo \
         nodejs \
         npm \
-        which && \
+        which \
+        weston && \
     dnf clean all
 
 # Install pnpm globally as root
@@ -30,15 +31,6 @@ RUN echo '[google-chrome]' > /etc/yum.repos.d/google-chrome.repo && \
 # Create test user with sudo access
 RUN useradd -m -s /bin/bash testuser && \
     echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-
-# Ensure clean environment by removing any xvfb packages (do this at the very end)
-RUN dnf remove -y xorg-x11-server-Xvfb || true && \
-    dnf autoremove -y && \
-    rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run && \
-    dnf clean all
-
-# Verify xvfb-run is NOT available
-RUN ! which xvfb-run || exit 1
 
 WORKDIR /app
 USER testuser

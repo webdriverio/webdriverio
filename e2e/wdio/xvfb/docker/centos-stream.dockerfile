@@ -1,19 +1,26 @@
-FROM fedora:43
+FROM quay.io/centos/centos:stream10
 
 # Set environment variables
 ENV CI=true
 
-# Install requirements including xvfb
+# Enable CRB repository and install EPEL (required for Wayland in CentOS Stream 10)
 RUN dnf update -y && \
     dnf install -y \
-        curl \
         ca-certificates \
         sudo \
-        nodejs \
-        npm \
         which \
-        xorg-x11-server-Xvfb && \
+        dnf-plugins-core && \
+    dnf config-manager --set-enabled crb && \
+    dnf install -y epel-release && \
     dnf clean all
+
+# Install Wayland (weston) from EPEL
+RUN dnf install -y weston && \
+    dnf clean all
+
+# Install Node.js from NodeSource
+RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash - && \
+    dnf install -y nodejs
 
 # Install pnpm globally as root
 RUN npm install -g pnpm
@@ -27,9 +34,6 @@ RUN echo '[google-chrome]' > /etc/yum.repos.d/google-chrome.repo && \
     echo 'gpgkey=https://dl.google.com/linux/linux_signing_key.pub' >> /etc/yum.repos.d/google-chrome.repo && \
     dnf install -y google-chrome-stable && \
     dnf clean all
-
-# Verify xvfb-run is available
-RUN which xvfb-run
 
 # Create test user with sudo access
 RUN useradd -m -s /bin/bash testuser && \
