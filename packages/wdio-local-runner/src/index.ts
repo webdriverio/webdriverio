@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 import { WritableStreamBuffer } from 'stream-buffers'
-import { XvfbManager } from '@wdio/xvfb'
+import { DisplayServerManager } from '@wdio/display-server'
 import type { Workers } from '@wdio/types'
 
 import WorkerInstance from './worker.js'
@@ -18,8 +18,8 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 
 export default class LocalRunner {
     workerPool: Record<string, WorkerInstance> = {}
-    private xvfbInitialized = false
-    private xvfbManager: XvfbManager
+    private displayServerInitialized = false
+    private displayServerManager: DisplayServerManager
 
     stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
     stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
@@ -28,14 +28,15 @@ export default class LocalRunner {
         private _options: never,
         protected config: WebdriverIO.Config
     ) {
-        // Initialize XvfbManager
-        this.xvfbManager = new XvfbManager({
+        // Initialize DisplayServerManager
+        this.displayServerManager = new DisplayServerManager({
             enabled: this.config.autoXvfb !== false,
+            displayServer: this.config.displayServer,
             autoInstall: this.config.xvfbAutoInstall,
             autoInstallMode: this.config.xvfbAutoInstallMode,
             autoInstallCommand: this.config.xvfbAutoInstallCommand,
-            xvfbMaxRetries: this.config.xvfbMaxRetries,
-            xvfbRetryDelay: this.config.xvfbRetryDelay
+            maxRetries: this.config.xvfbMaxRetries,
+            retryDelay: this.config.xvfbRetryDelay
         })
     }
 
@@ -51,10 +52,10 @@ export default class LocalRunner {
     }
 
     async run({ command, args, ...workerOptions }: RunArgs) {
-        // Initialize XVFB lazily on first worker creation
-        if (!this.xvfbInitialized) {
-            await this.initializeXvfb(workerOptions)
-            this.xvfbInitialized = true
+        // Initialize display server lazily on first worker creation
+        if (!this.displayServerInitialized) {
+            await this.initializeDisplayServer(workerOptions)
+            this.displayServerInitialized = true
         }
 
         /**
@@ -71,7 +72,7 @@ export default class LocalRunner {
             workerOptions,
             this.stdout,
             this.stderr,
-            this.xvfbManager
+            this.displayServerManager
         )
         this.workerPool[workerOptions.cid] = worker
         await worker.postMessage(command, args)
@@ -79,25 +80,26 @@ export default class LocalRunner {
     }
 
     /**
-     * Initialize XVFB with capability-aware detection
+     * Initialize display server with capability-aware detection
      */
-    private async initializeXvfb(workerOptions: Workers.WorkerRunPayload) {
-        // Skip Xvfb initialization if disabled
+    private async initializeDisplayServer(workerOptions: Workers.WorkerRunPayload) {
+        // Skip display server initialization if disabled
         if (this.config.autoXvfb === false) {
-            log.info('Skipping automatic Xvfb initialization (disabled by config)')
+            log.info('Skipping automatic display server initialization (disabled by config)')
             return
         }
 
-        // Initialize Xvfb if needed for headless testing
+        // Initialize display server if needed for headless testing
         try {
             const capabilities = workerOptions.caps
-            const xvfbInitialized = await this.xvfbManager.init(capabilities)
-            if (xvfbInitialized) {
-                log.info('Xvfb is ready for use')
+            const displayServerReady = await this.displayServerManager.init(capabilities)
+            if (displayServerReady) {
+                const server = this.displayServerManager.getDisplayServer()
+                log.info(`${server?.name || 'Display server'} is ready for use`)
             }
         } catch (error) {
             log.warn(
-                'Failed to initialize Xvfb, continuing without virtual display:',
+                'Failed to initialize display server, continuing without virtual display:',
                 error
             )
         }
@@ -182,9 +184,10 @@ export default class LocalRunner {
             }, 250)
         })
 
-        // Xvfb cleanup is handled automatically by xvfb-run
-        if (this.xvfbManager.shouldRun()) {
-            log.info('Xvfb cleanup handled automatically by xvfb-run')
+        // Display server cleanup is handled automatically
+        if (this.displayServerManager.shouldRun()) {
+            const server = this.displayServerManager.getDisplayServer()
+            log.info(`${server?.name || 'Display server'} cleanup handled automatically`)
         }
 
         return shutdownResult

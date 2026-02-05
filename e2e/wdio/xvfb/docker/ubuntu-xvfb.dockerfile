@@ -4,13 +4,14 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CI=true
 
-# Install basic requirements but explicitly NOT xvfb
+# Install requirements including Xvfb
 RUN apt-get update -qq && \
     apt-get install -y \
         curl \
         ca-certificates \
         gnupg \
-        sudo && \
+        sudo \
+        xvfb && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -32,17 +33,6 @@ RUN npm install -g pnpm
 # Create test user with sudo access
 RUN useradd -m -s /bin/bash testuser && \
     echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-
-# Ensure clean environment by removing any xvfb packages (do this at the very end)
-RUN apt-get update -qq && \
-    apt-get remove -y xvfb || true && \
-    apt-get autoremove -y && \
-    rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Verify xvfb-run is NOT available
-RUN ! which xvfb-run || exit 1
 
 WORKDIR /app
 USER testuser
