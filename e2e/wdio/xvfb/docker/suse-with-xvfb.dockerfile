@@ -1,4 +1,4 @@
-FROM opensuse/leap:15.6
+FROM opensuse/leap:16.0
 
 # Set environment variables
 ENV CI=true

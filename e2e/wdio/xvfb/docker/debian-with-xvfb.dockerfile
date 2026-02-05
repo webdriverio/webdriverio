@@ -1,4 +1,4 @@
-FROM debian:12
+FROM debian:13
 
 # Avoid interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
