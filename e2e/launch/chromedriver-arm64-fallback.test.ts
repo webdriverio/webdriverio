@@ -1,4 +1,4 @@
-import { describe, it, expect, afterAll, vi } from 'vitest'
+import { describe, it, expect, afterAll } from 'vitest'
 import { remote, type RemoteOptions } from 'webdriverio'
 import type { Browser } from 'webdriverio'
 
@@ -192,15 +192,6 @@ describe('Chromedriver ARM64 Fallback (mocked platform)', () => {
 
         // Import setupChromedriver to test the logic directly
         const { setupChromedriver } = await import('../../packages/wdio-utils/src/node/utils.js')
-
-        // Mock the download to avoid actual network calls
-        const _mockInstall = vi.fn().mockResolvedValue({
-            executablePath: '/mock/path/to/chromedriver',
-            browser: 'chromedriver',
-            buildId: '130.0.6723.58',
-            platform: 'linux-arm64',
-            path: '/cache/chromedriver'
-        })
 
         // This should not throw and should use Electron provider
         const result = await setupChromedriver('/tmp/cache', undefined, {

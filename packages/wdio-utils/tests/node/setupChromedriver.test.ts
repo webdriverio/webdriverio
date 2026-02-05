@@ -7,7 +7,7 @@ import { setupChromedriver } from '../../src/node/utils.js'
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 vi.mock('locate-app', () => ({
-    locateChrome: vi.fn()
+    locateChrome: vi.fn().mockRejectedValue(new Error('Chrome not found'))
 }))
 
 vi.mock('../../src/node/electronChromedriverProvider.js', () => ({
@@ -19,19 +19,20 @@ vi.mock('../../src/node/electronChromedriverProvider.js', () => ({
     }))
 }))
 
-const mockInstall = vi.fn()
-const mockResolveBuildId = vi.fn()
-const mockDetectBrowserPlatform = vi.fn()
-
 vi.mock('@puppeteer/browsers', async () => {
     const actual = await vi.importActual('@puppeteer/browsers')
     return {
         ...actual,
-        install: mockInstall,
-        resolveBuildId: mockResolveBuildId,
-        detectBrowserPlatform: mockDetectBrowserPlatform
+        install: vi.fn(),
+        resolveBuildId: vi.fn(),
+        detectBrowserPlatform: vi.fn()
     }
 })
+
+// Import mocked functions after vi.mock() calls
+const mockInstall = vi.mocked((await import('@puppeteer/browsers')).install)
+const mockResolveBuildId = vi.mocked((await import('@puppeteer/browsers')).resolveBuildId)
+const mockDetectBrowserPlatform = vi.mocked((await import('@puppeteer/browsers')).detectBrowserPlatform)
 
 describe('setupChromedriver', () => {
     const originalArch = process.arch
