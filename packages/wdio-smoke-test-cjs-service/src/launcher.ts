@@ -4,7 +4,7 @@ import path from 'node:path'
 export default class SmokeServiceLauncher {
     logFile: fs.WriteStream
     constructor () {
-        this.logFile = fs.createWriteStream(path.resolve(__dirname, '..', '..', '..', 'tests', 'helpers', 'launcher.log'))
+        this.logFile = fs.createWriteStream(path.resolve(__dirname, '..', '..', '..', 'tests', 'helpers', 'launcher-cjs.log'))
     }
     onPrepare () { this.logFile.write('onPrepare called\n') }
     onWorkerStart () { this.logFile.write('onWorkerStart called\n')}

@@ -11,6 +11,10 @@ interface ProtocolDriver {
 
 let webdriverImport: Automation.Driver<Capabilities.RemoteConfig> | undefined
 
+export function setWebdriverImport (driver: Automation.Driver<Capabilities.RemoteConfig>) {
+    webdriverImport = driver
+}
+
 /**
  * get protocol driver
  * @param  {Capabilities.WebdriverIOConfig} options  remote options
@@ -36,6 +40,10 @@ export async function getProtocolDriver (options: Capabilities.WebdriverIOConfig
         Object.assign(options, detectBackend(options))
     }
 
-    const Driver = webdriverImport || (await import(/* @vite-ignore */options.automationProtocol || 'webdriver')).default
+    const Driver = webdriverImport || (
+        options.automationProtocol
+            ? (await import(options.automationProtocol)).default
+            : (await import('webdriver')).default
+    )
     return { Driver, options }
 }

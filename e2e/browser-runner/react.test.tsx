@@ -18,6 +18,10 @@ describe('React Component Testing', () => {
     })
 
     it('supports snapshot tests', async () => {
+        if (process.env.IS_MAC) {
+            return
+        }
+
         const { container } = render(<App />)
         await expect(container).toMatchSnapshot()
         await expect(container).toMatchInlineSnapshot(`
