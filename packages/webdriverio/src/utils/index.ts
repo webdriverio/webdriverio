@@ -12,8 +12,9 @@ import * as elementCommands from '../commands/element.js'
 import elementContains from '../scripts/elementContains.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
-import { DEEP_SELECTOR, Key } from '../constants.js'
+import { DEEP_SELECTOR, ACCESSIBILITY_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
+import { findAccessibilityElement, findAccessibilityElements, parseAccessibilitySelectorString } from './accessibilityLocator.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
@@ -471,13 +472,31 @@ export async function findElement(
      * do a deep lookup if
      * - we are using Bidi
      * - have a string selector
-     * - that is not a deep selector
+     * - that is not a deep selector or accessibility selector
      * - and we are not in an iframe (because it is currently not supported to locate nodes in an iframe via Bidi)
      */
-    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR) && !shadowRootManager.isWithinFrame()) {
+    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR) && !selector.startsWith(ACCESSIBILITY_SELECTOR) && !shadowRootManager.isWithinFrame()) {
         const notFoundError = new Error(`Couldn't find element with selector "${selector}"`)
         const elem = await findDeepElement.call(this, selector)
         return getElementFromResponse(elem) ? elem : notFoundError
+    }
+
+    /**
+     * Handle accessibility/ selector (three-tier strategy)
+     * Parse directly without going through findStrategy to avoid non-standard using='accessibility'
+     */
+    if (typeof selector === 'string' && selector.startsWith(ACCESSIBILITY_SELECTOR)) {
+        const accessibilitySelector = parseAccessibilitySelectorString(selector)
+        if (accessibilitySelector) {
+            /* eslint-disable @typescript-eslint/no-explicit-any */
+            const options = {
+                a11yStrict: (browserObject.options as any)?.a11yStrict ?? (browserObject.options as any)?.accessibilityStrict ?? false,
+                a11yCandidateCap: (browserObject.options as any)?.a11yCandidateCap ?? (browserObject.options as any)?.accessibilityCandidateCap ?? 1000,
+                a11yIncludeHidden: (browserObject.options as any)?.a11yIncludeHidden ?? (browserObject.options as any)?.accessibilityIncludeHidden ?? false
+            }
+            /* eslint-enable @typescript-eslint/no-explicit-any */
+            return findAccessibilityElement.call(this, accessibilitySelector, options)
+        }
     }
 
     /**
@@ -579,6 +598,23 @@ export async function findElements(
         )
         const elemArray = Array.isArray(elems) ? elems : [elems]
         return elemArray.filter((elem) => elem && getElementFromResponse(elem))
+    }
+
+    /**
+     * Handle accessibility/ selector (three-tier strategy) for $$
+     * Uses findAccessibilityElements to return ALL matching elements
+     */
+    if (typeof selector === 'string' && selector.startsWith(ACCESSIBILITY_SELECTOR)) {
+        const accessibilitySelector = parseAccessibilitySelectorString(selector)
+        if (accessibilitySelector) {
+            /* eslint-disable @typescript-eslint/no-explicit-any */
+            const options = {
+                a11yCandidateCap: (browserObject.options as any)?.a11yCandidateCap ?? (browserObject.options as any)?.accessibilityCandidateCap ?? 1000,
+                a11yIncludeHidden: (browserObject.options as any)?.a11yIncludeHidden ?? (browserObject.options as any)?.accessibilityIncludeHidden ?? false
+            }
+            /* eslint-enable @typescript-eslint/no-explicit-any */
+            return findAccessibilityElements.call(this, accessibilitySelector, options)
+        }
     }
 
     /**
