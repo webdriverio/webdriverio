@@ -30,13 +30,13 @@ export default class LocalRunner {
     ) {
         // Initialize DisplayServerManager
         this.displayServerManager = new DisplayServerManager({
-            enabled: this.config.autoXvfb !== false,
+            enabled: this.config.enabled !== false,
             displayServer: this.config.displayServer,
-            autoInstall: this.config.xvfbAutoInstall,
-            autoInstallMode: this.config.xvfbAutoInstallMode,
-            autoInstallCommand: this.config.xvfbAutoInstallCommand,
-            maxRetries: this.config.xvfbMaxRetries,
-            retryDelay: this.config.xvfbRetryDelay
+            autoInstall: this.config.autoInstall,
+            autoInstallMode: this.config.autoInstallMode,
+            autoInstallCommand: this.config.autoInstallCommand,
+            maxRetries: this.config.maxRetries,
+            retryDelay: this.config.retryDelay
         })
     }
 
