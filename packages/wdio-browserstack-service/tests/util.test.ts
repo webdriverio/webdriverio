@@ -1987,7 +1987,7 @@ describe('getAppA11yResults', () => {
             capabilities: {}
         } as unknown as WebdriverIO.Browser
 
-        const result = await getAppA11yResults(true, browser, false, true)
+        const result = await getAppA11yResults(true, browser, 'testName', false, true)
         expect(result).toEqual([])
     })
 
@@ -1998,7 +1998,7 @@ describe('getAppA11yResults', () => {
             capabilities: {}
         } as unknown as WebdriverIO.Browser
 
-        const result = await getAppA11yResults(true, browser, true, false)
+        const result = await getAppA11yResults(true, browser, 'testName', true, false)
         expect(result).toEqual([])
         expect(logInfoMock.mock.calls[0][0])
             .toContain('Not an Accessibility Automation session, cannot retrieve Accessibility results summary.')
@@ -2020,7 +2020,7 @@ describe('getAppA11yResults', () => {
         vi.spyOn(utils, 'isAppAccessibilityAutomationSession').mockReturnValue(true)
         vi.spyOn(utils, 'performA11yScan').mockResolvedValue(undefined)
 
-        const result = await getAppA11yResults(true, browser, true, true, 'session123')
+        const result = await getAppA11yResults(true, browser, 'testName', true, true, 'session123')
 
         expect(result).toEqual(mockResults)
 
@@ -2036,7 +2036,7 @@ describe('getAppA11yResults', () => {
             capabilities: {}
         } as unknown as WebdriverIO.Browser
 
-        const result = await getAppA11yResults(true, browser, true, true, 'session123')
+        const result = await getAppA11yResults(true, browser, 'testName', true, true, 'session123')
         expect(result).toEqual([])
     })
 })
