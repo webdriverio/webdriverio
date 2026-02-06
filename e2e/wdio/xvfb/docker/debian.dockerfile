@@ -1,17 +1,17 @@
-FROM debian:12
+FROM debian:13
 
 # Avoid interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CI=true
 
-# Install requirements including xvfb
+# Install requirements including Wayland (weston)
 RUN apt-get update -qq && \
     apt-get install -y \
         curl \
         ca-certificates \
         gnupg \
         sudo \
-        xvfb && \
+        weston && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -29,9 +29,6 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
 
 # Install pnpm globally as root
 RUN npm install -g pnpm
-
-# Verify xvfb-run is available
-RUN which xvfb-run
 
 # Create test user with sudo access
 RUN useradd -m -s /bin/bash testuser && \

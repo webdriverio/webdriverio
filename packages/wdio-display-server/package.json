@@ -1,9 +1,9 @@
 {
-  "name": "@wdio/xvfb",
+  "name": "@wdio/display-server",
   "version": "9.23.3",
-  "description": "A standalone utility to manage Xvfb (X Virtual Framebuffer) for headless testing",
+  "description": "A standalone utility to manage display servers (Wayland/Xvfb) for headless testing",
   "author": "WebdriverIO Team",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-xvfb",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-display-server",
   "license": "MIT",
   "engines": {
     "node": ">=18"
@@ -11,9 +11,10 @@
   "repository": {
     "type": "git",
     "url": "git://github.com/webdriverio/webdriverio.git",
-    "directory": "packages/wdio-xvfb"
+    "directory": "packages/wdio-display-server"
   },
   "keywords": [
+    "wayland",
     "xvfb",
     "headless",
     "display",
