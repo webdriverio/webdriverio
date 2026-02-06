@@ -255,7 +255,7 @@ export async function url (
                 return network.getPendingRequests(navigation.navigation as string).length === 0
             }, {
                 timeout,
-                timeoutMsg: `Navigation to '${path}' timed out after ${timeout}ms with ${network.getPendingRequests(navigation.navigation as string).length} (${network.getPendingRequests(navigation.navigation as string).map((r) => r.url).join(', ')}) pending requests`
+                timeoutMsg: () => `Navigation to '${path}' timed out after ${timeout}ms with ${network.getPendingRequests(navigation.navigation as string).length} (${network.getPendingRequests(navigation.navigation as string).map((r) => r.url).join(', ')}) pending requests`
             })
         }
 
