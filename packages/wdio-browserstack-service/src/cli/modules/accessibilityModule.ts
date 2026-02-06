@@ -34,6 +34,7 @@ export default class AccessibilityModule extends BaseModule {
     accessibilityMap: Map<number, boolean>
     LOG_DISABLED_SHOWN: Map<number, boolean>
     testMetadata: Record<string, { [key: string]: unknown; }> = {}
+    currentTestName: string | null = null
 
     constructor(accessibilityConfig: Accessibility, isNonBstackA11y: boolean) {
         super()
@@ -89,7 +90,7 @@ export default class AccessibilityModule extends BaseModule {
             //patching getA11yResultsSummary
             (browser as WebdriverIO.Browser).getAccessibilityResultsSummary = async () => {
                 if (this.isAppAccessibility) {
-                    return await getAppA11yResultsSummary(true, browser, isBrowserstackSession, this.accessibility, sessionId)
+                    return await getAppA11yResultsSummary(true, browser, this.currentTestName, isBrowserstackSession, this.accessibility, sessionId)
                 }
                 return await this.getA11yResultsSummary(browser)
             }
@@ -97,7 +98,7 @@ export default class AccessibilityModule extends BaseModule {
             //patching getA11yResults
             (browser as WebdriverIO.Browser).getAccessibilityResults = async () => {
                 if (this.isAppAccessibility) {
-                    return await getAppA11yResults(true, browser, isBrowserstackSession, this.accessibility, sessionId)
+                    return await getAppA11yResults(true, browser, this.currentTestName, isBrowserstackSession, this.accessibility, sessionId)
                 }
                 return await this.getA11yResults(browser)
             }
@@ -192,6 +193,7 @@ export default class AccessibilityModule extends BaseModule {
             const suiteTitle = (typeof args.suiteTitle === 'string' ? args.suiteTitle : '') || ''
             const test = (args.test && typeof args.test === 'object' ? args.test as { title?: string } : {}) || {}
 
+            this.currentTestName = suiteTitle
             const autoInstance: AutomationFrameworkInstance = AutomationFramework.getTrackedInstance()
             const testInstance: TestFrameworkInstance = TestFramework.getTrackedInstance()
 
@@ -276,6 +278,7 @@ export default class AccessibilityModule extends BaseModule {
 
             if (!autoInstance || !testInstance) {
                 this.logger.error('No tracked instances found for accessibility after test')
+                this.currentTestName = null
                 return
             }
 
@@ -323,6 +326,9 @@ export default class AccessibilityModule extends BaseModule {
 
         } catch (error) {
             this.logger.error(`Accessibility results could not be processed for the test case. Error: ${error}`)
+        } finally {
+            this.currentTestName = null
+            this.logger.debug('[AccessibilityModule] Current test name cleared after test completion')
         }
     }
 
@@ -373,8 +379,9 @@ export default class AccessibilityModule extends BaseModule {
                         return
                     }
                     if (this.isAppAccessibility) {
+                        const testName=this.currentTestName || undefined
                         const results: unknown = await (browser as WebdriverIO.Browser).execute(
-                            formatString(this.scriptInstance.performScan, JSON.stringify(_getParamsForAppAccessibility(commandName))) as string,
+                            formatString(this.scriptInstance.performScan, JSON.stringify(_getParamsForAppAccessibility(commandName, testName))) as string,
                             {}
                         )
                         BStackLogger.debug(util.format(results as string))
