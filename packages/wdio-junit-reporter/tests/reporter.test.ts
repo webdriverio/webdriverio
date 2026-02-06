@@ -393,6 +393,24 @@ describe('wdio-junit-reporter', () => {
         expect(reporter['_sameFileName'](undefined, undefined)).toBeTruthy()
     })
 
+    it('_sameFileName - compares basenames when one path is just a filename (issue #13052)', () => {
+        reporter = new WDIOJunitReporter({ stdout: true })
+        const fullPath = os.platform() === 'win32'
+            ? 'C:\\path\\to\\project\\test\\specs\\spec.js'
+            : '/path/to/project/test/specs/spec.js'
+        const filenameOnly = 'spec.js'
+        const differentFilename = 'other.js'
+
+        // Jasmine provides only filenames while the suite has full paths
+        expect(reporter['_sameFileName'](fullPath, filenameOnly)).toBeTruthy()
+        expect(reporter['_sameFileName'](filenameOnly, fullPath)).toBeTruthy()
+        expect(reporter['_sameFileName'](fullPath, differentFilename)).toBeFalsy()
+        expect(reporter['_sameFileName'](differentFilename, fullPath)).toBeFalsy()
+        // Both are basenames
+        expect(reporter['_sameFileName'](filenameOnly, filenameOnly)).toBeTruthy()
+        expect(reporter['_sameFileName'](filenameOnly, differentFilename)).toBeFalsy()
+    })
+
     const options = { stdout: true, addWorkerLogs: true }
 
     it('addWorkerLogs: should add worker console log to report for test if activated', () => {
