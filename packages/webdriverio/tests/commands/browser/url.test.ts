@@ -2,19 +2,23 @@ import path from 'node:path'
 import { expect, describe, it, beforeAll, beforeEach, afterEach, vi, type MockInstance } from 'vitest'
 
 import { remote } from '../../../src/index.js'
+import { getNetworkManager } from '../../../src/session/networkManager.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-vi.mock('../../../src/session/networkManager.js', () => ({
-    getNetworkManager: vi.fn().mockImplementation(() => ({
-        getPendingRequests: vi.fn().mockResolvedValue([]),
+vi.mock('../../../src/session/networkManager.js', () => {
+    const networkManagerMock = {
+        getPendingRequests: vi.fn().mockReturnValue([]),
         initialize: vi.fn(),
         getRequestResponseData: vi.fn().mockResolvedValue({
             some: 'request'
         })
-    }))
-}))
+    }
+    return {
+        getNetworkManager: vi.fn().mockReturnValue(networkManagerMock)
+    }
+})
 
 vi.mock('../../../src/session/context.js', () => ({
     getContextManager: vi.fn().mockImplementation(() => ({
@@ -89,6 +93,7 @@ describe('url', () => {
         let url: MockInstance
         let addInitScript: MockInstance
         let mock: MockInstance
+        let networkManager: any
 
         const mockMock = {
             requestOnce: vi.fn(),
@@ -111,6 +116,7 @@ describe('url', () => {
                 remove: vi.fn()
             } as any))
             mock = vi.spyOn(browser, 'mock').mockImplementation(() => Promise.resolve(mockMock) as any)
+            networkManager = getNetworkManager(browser)
         })
 
         beforeEach(() => {
@@ -120,6 +126,7 @@ describe('url', () => {
             mock.mockClear()
             mockMock.requestOnce.mockClear()
             mockMock.restore.mockClear()
+            networkManager.getPendingRequests.mockClear()
         })
 
         it('should use browsingContextNavigate', async () => {
@@ -184,6 +191,20 @@ describe('url', () => {
                 throw new Error('navigation failed')
             }) as any)
             await expect(browser.url('http://google.com')).rejects.toThrow('navigation failed')
+        })
+
+        it('should wait for network idle using navigation ID', async () => {
+            // Restore implementation for success
+            browsingContextNavigate.mockImplementation((async () => ({
+                navigation: 'nav-123'
+            })) as any)
+
+            await browser.url('http://google.com', { wait: 'networkIdle' })
+
+            expect(networkManager.getPendingRequests).toBeCalledWith('nav-123')
+            expect(browsingContextNavigate).toBeCalledWith(expect.objectContaining({
+                wait: 'complete' // Default fallback for networkIdle in browsingContextNavigate
+            }))
         })
     })
 })

@@ -243,15 +243,19 @@ export async function url (
             await mock.restore()
         }
 
+        if (!navigation) {
+            return
+        }
+
         const network = getNetworkManager(this)
 
         if (options.wait === 'networkIdle') {
             const timeout = options.timeout || DEFAULT_NETWORK_IDLE_TIMEOUT
             await this.waitUntil(async () => {
-                return network.getPendingRequests(context).length === 0
+                return network.getPendingRequests(navigation.navigation as string).length === 0
             }, {
                 timeout,
-                timeoutMsg: `Navigation to '${path}' timed out after ${timeout}ms with ${network.getPendingRequests(context).length} (${network.getPendingRequests(context).map((r) => r.url).join(', ')}) pending requests`
+                timeoutMsg: `Navigation to '${path}' timed out after ${timeout}ms with ${network.getPendingRequests(navigation.navigation as string).length} (${network.getPendingRequests(navigation.navigation as string).map((r) => r.url).join(', ')}) pending requests`
             })
         }
 
@@ -260,10 +264,6 @@ export async function url (
          */
         if (resetPreloadScript) {
             await resetPreloadScript.remove()
-        }
-
-        if (!navigation) {
-            return
         }
 
         /**
