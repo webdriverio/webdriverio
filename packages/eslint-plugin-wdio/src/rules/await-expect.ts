@@ -28,10 +28,35 @@ const rule: Rule.RuleModule = {
                 if (
                     node.callee.type !== 'MemberExpression' ||
                     node.callee.object.type !== 'CallExpression' ||
-                    (node.callee.object.callee as Identifier).name !== 'expect' ||
-                    !MATCHERS.includes((node.callee.property as Identifier).name)
+                    (node.callee.object.callee as Identifier).name !== 'expect'
                 ) {
                     return
+                }
+
+                const propertyName = (node.callee.property as Identifier).name
+                const isWdioMatcher = MATCHERS.includes(propertyName)
+                const isSnapshotMatcher = ['toMatchSnapshot', 'toMatchInlineSnapshot'].includes(propertyName)
+
+                if (!isWdioMatcher && !isSnapshotMatcher) {
+                    return
+                }
+
+                if (isSnapshotMatcher) {
+                    const selectorFunctions = ['$', '$$']
+                    const expectArg = node.callee.object.arguments[0]
+                    const isLikelyWdioElement = (
+                        (expectArg.type === 'CallExpression' &&
+                        expectArg.callee.type === 'Identifier' &&
+                        selectorFunctions.includes(expectArg.callee.name)) ||
+                        (expectArg.type === 'CallExpression' &&
+                        expectArg.callee.type === 'MemberExpression' &&
+                        (expectArg.callee.property as Identifier).name &&
+                        selectorFunctions.includes((expectArg.callee.property as Identifier).name))
+                    )
+
+                    if (!isLikelyWdioElement) {
+                        return
+                    }
                 }
 
                 /**
