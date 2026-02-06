@@ -376,6 +376,21 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     cucumberOpts?: WebdriverIO.CucumberOpts
     /**
+     * Enable Node.js CPU profiling for worker processes.
+     * Uses `--cpu-prof` and writes .cpuprofile files compatible with Chrome DevTools.
+     */
+    cpuProf?: boolean
+    /**
+     * Enable Node.js heap profiling for worker processes.
+     * Uses `--heap-prof` (sampling heap profiler) and writes .heapprofile files compatible with Chrome DevTools.
+     */
+    heapProf?: boolean
+    /**
+     * Directory to save profiling output.
+     * @default './profiles'
+     */
+    profileOutputDir?: string
+    /**
      * TSX custom TSConfig path
      */
     tsConfigPath?: string
