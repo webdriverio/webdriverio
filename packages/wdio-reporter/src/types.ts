@@ -38,6 +38,6 @@ export interface Argument {
 }
 
 export interface ClientLogArgs {
-    level: string
+    level: 'debug' | 'info' | 'warn' | 'error' | string
     text: string
 }

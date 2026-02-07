@@ -1,6 +1,4 @@
 import path from 'node:path'
-import fs from 'node:fs'
-import os from 'node:os'
 import logger from '@wdio/logger'
 
 import DotReporter from '@wdio/dot-reporter'
@@ -18,7 +16,6 @@ const mochaAllHooks = ['"before all" hook', '"after all" hook']
 export default class BaseReporter {
     private _reporters: Reporters.ReporterInstance[] = []
     private listeners: ((ev: unknown) => void)[] = []
-    private _browserConsoleLogStream?: fs.WriteStream
 
     constructor(
         private _config: Options.Testrunner,
@@ -32,13 +29,6 @@ export default class BaseReporter {
         this._config.reporters = this._config.reporters || []
         if (this._config.reporters.length === 0) {
             this._config.reporters.push([DotReporter, {}])
-        }
-
-        if (this._config.logBrowserConsole && this._config.outputDir) {
-            const logFileName = `wdio-${this._cid}-browserconsole.log`
-            const logFile = path.resolve(this._config.outputDir, logFileName)
-            fs.mkdirSync(path.dirname(logFile), { recursive: true })
-            this._browserConsoleLogStream = fs.createWriteStream(logFile, { flags: 'w' })
         }
     }
 
@@ -69,11 +59,6 @@ export default class BaseReporter {
         retry?: number,
     }) {
         payload.cid = this._cid
-
-        if (e === 'client:logEntry') {
-            const logEntry = payload as unknown as { level: string, text: string }
-            this._browserConsoleLogStream?.write(logEntry.text + os.EOL)
-        }
 
         /**
          * Send failure message (only once) in case of test or hook failure
@@ -218,9 +203,6 @@ export default class BaseReporter {
      * close log stream
      */
     closeStream () {
-        if (this._browserConsoleLogStream) {
-            this._browserConsoleLogStream.end()
-        }
     }
 
     /**

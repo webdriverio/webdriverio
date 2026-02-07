@@ -23,6 +23,7 @@ export default class SpecReporter extends WDIOReporter {
     private _suiteIndent = ''
     private _preface = ''
     private _consoleLogs: string[] = []
+    private _addBrowserConsoleLogs = false
     private _pendingReasons: string[] = []
     private _originalStdoutWrite = process.stdout.write.bind(process.stdout)
 
@@ -77,6 +78,7 @@ export default class SpecReporter extends WDIOReporter {
                 return this._originalStdoutWrite(chunk, encoding, callback)
             }
         }
+        this._addBrowserConsoleLogs = options.addBrowserConsoleLogs || false
         this._chalk = new Chalk(options.color === false ? { level:0 } : {})
     }
 
@@ -159,12 +161,16 @@ export default class SpecReporter extends WDIOReporter {
         this._stateCounts.pending++
     }
 
-    onRunnerEnd (runner: RunnerStats) {
-        this.printReport(runner)
+    onClientLogEntry (logEntry: ClientLogArgs) {
+        if (this._addBrowserConsoleLogs) {
+            const level = logEntry.level.toLowerCase()
+            const color = level === 'error' ? 'red' : level === 'warn' ? 'yellow' : 'gray'
+            this._consoleOutput += `[browser] ${this._chalk[color](level)}: ${logEntry.text}\n`
+        }
     }
 
-    onClientLogEntry (logEntry: ClientLogArgs) {
-        this._consoleLogs.push(this.setMessageColor(`${logEntry.level}: ${logEntry.text}`, State.PASSED))
+    onRunnerEnd (runner: RunnerStats) {
+        this.printReport(runner)
     }
 
     /**
