@@ -68,7 +68,7 @@ BrowserStack integration is first, with LambdaTest and Sauce Labs on the roadmap
 
 ## Learn More
 
-Full documentation at [MCP docs](../docs/MCP.md) - setup guides, tool reference, and selector syntax for web and mobile.
+Full documentation at [MCP docs](/docs/mcp) - setup guides, tool reference, and selector syntax for web and mobile.
 
 Questions or feedback? Find us on [Discord](https://discord.webdriver.io).
 
