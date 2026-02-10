@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`xpath-predicate > convertXPathToPredicateString > should return predicate string with element type and conditions 1`] = `
+{
+  "selector": "-ios predicate string:type == 'XCUIElementTypeButton' AND name == 'Submit'",
+}
+`;
+
+exports[`xpath-predicate > convertXPathToPredicateString > should return predicate string with only conditions 1`] = `
+{
+  "selector": "-ios predicate string:name == 'Submit'",
+}
+`;
+
+exports[`xpath-predicate > convertXPathToPredicateString > should return predicate string with only element type 1`] = `
+{
+  "selector": "-ios predicate string:type == 'XCUIElementTypeButton'",
+}
+`;
