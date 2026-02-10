@@ -1,0 +1,91 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`xpath-class-chain > convertXPathToClassChain > multi-segment XPath conversion > should convert XPath with index on grouped expression 1`] = `
+{
+  "selector": "-ios class chain:**/XCUIElementTypeButton[\`(name == "Pizza" OR name == "Choose a pizza")\`][1]",
+}
+`;
+
+exports[`xpath-class-chain > convertXPathToClassChain > multi-segment XPath conversion > should convert XPath with index on intermediate segment followed by child 1`] = `
+{
+  "selector": "-ios class chain:**/XCUIElementTypeSwitch[\`name == " SMS"\`][1]/XCUIElementTypeSwitch",
+}
+`;
+
+exports[`xpath-class-chain > convertXPathToClassChain > multi-segment XPath conversion > should convert multi-segment XPath with element types 1`] = `
+{
+  "selector": "-ios class chain:**/XCUIElementTypeNavigationBar[\`name == "SELECT ADDRESS"\`]/XCUIElementTypeStaticText[\`name == "SELECT ADDRESS"\`]",
+}
+`;
+
+exports[`xpath-class-chain > convertXPathToClassChain > multi-segment XPath conversion > should convert three-segment XPath 1`] = `
+{
+  "selector": "-ios class chain:**/XCUIElementTypeTable/XCUIElementTypeCell/*[\`name == "test"\`]",
+}
+`;
+
+exports[`xpath-class-chain > convertXPathToClassChain > multi-segment XPath conversion > should convert two-segment XPath with descendant relationships 1`] = `
+{
+  "selector": "-ios class chain:**/XCUIElementTypeButton/**/*[\`label == "value"\`]",
+}
+`;
+
+exports[`xpath-class-chain > convertXPathToClassChain > multi-segment XPath conversion > should convert two-segment XPath with parent-child relationship 1`] = `
+{
+  "selector": "-ios class chain:**/*[\`name == "valueId"\`]/*[\`name CONTAINS "valueName"\`]",
+}
+`;
+
+exports[`xpath-class-chain > convertXPathToClassChain > multi-segment XPath conversion > should handle segment without conditions followed by segment with conditions 1`] = `
+{
+  "selector": "-ios class chain:**/XCUIElementTypeButton/**/*[\`name == "test"\`]",
+}
+`;
+
+exports[`xpath-class-chain > convertXPathToClassChain > should convert XPath with multiple attributes 1`] = `
+{
+  "selector": "-ios class chain:**/XCUIElementTypeButton[\`name == "Submit" AND enabled == "true"\`]",
+}
+`;
+
+exports[`xpath-class-chain > convertXPathToClassChain > should convert XPath with only element type 1`] = `
+{
+  "selector": "-ios class chain:**/XCUIElementTypeButton",
+}
+`;
+
+exports[`xpath-class-chain > convertXPathToClassChain > should convert simple XPath with element type 1`] = `
+{
+  "selector": "-ios class chain:**/XCUIElementTypeButton[\`name == "Submit"\`]",
+}
+`;
+
+exports[`xpath-class-chain > convertXPathToClassChain > should convert wildcard XPath 1`] = `
+{
+  "selector": "-ios class chain:**/*[\`name == "Submit"\`]",
+}
+`;
+
+exports[`xpath-class-chain > convertXPathToClassChain > should handle OR conditions 1`] = `
+{
+  "selector": "-ios class chain:**/XCUIElementTypeButton[\`(name == "Allow" OR name == "OK")\`]",
+}
+`;
+
+exports[`xpath-class-chain > convertXPathToClassChain > should handle last() function 1`] = `
+{
+  "selector": "-ios class chain:**/XCUIElementTypeButton[\`name == "Submit"\`][last()]",
+}
+`;
+
+exports[`xpath-class-chain > convertXPathToClassChain > should handle position index 1`] = `
+{
+  "selector": "-ios class chain:**/XCUIElementTypeButton[\`name == "Submit"\`][1]",
+}
+`;
+
+exports[`xpath-class-chain > convertXPathToClassChain > should handle position index greater than 1 1`] = `
+{
+  "selector": "-ios class chain:**/XCUIElementTypeButton[\`name == "Submit"\`][2]",
+}
+`;

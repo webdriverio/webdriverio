@@ -23,6 +23,25 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.24.0 (2026-02-10)
+
+#### :rocket: New Feature
+* `wdio-appium-service`
+  * [#14980](https://github.com/webdriverio/webdriverio/pull/14980) Ws/appium service selector performance ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :nail_care: Polish
+* `wdio-appium-service`
+  * [#14980](https://github.com/webdriverio/webdriverio/pull/14980) Ws/appium service selector performance ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :memo: Documentation
+* [#15079](https://github.com/webdriverio/webdriverio/pull/15079) fix: resolve broken link in docs ([@mccmrunal](https://github.com/mccmrunal))
+
+#### Committers: 3
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Vince Graics ([@Winify](https://github.com/Winify))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v9.23.3 (2026-02-01)
 
 #### :bug: Bug Fix
