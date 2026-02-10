@@ -21,7 +21,7 @@ describe('WDIOReporter', () => {
 
     it('constructor', () => {
         new WDIOReporter({ logFile: '/some/logpath' })
-        expect(eventsOnSpy.mock.calls).toHaveLength(20)
+        expect(eventsOnSpy.mock.calls).toHaveLength(21)
         expect(eventsOnSpy).toBeCalledWith('client:beforeCommand', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('client:afterCommand', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('client:beforeAssertion', expect.any(Function))
@@ -42,6 +42,7 @@ describe('WDIOReporter', () => {
         expect(eventsOnSpy).toBeCalledWith('runner:end', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('client:beforeCommand', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('client:afterCommand', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('client:logEntry', expect.any(Function))
     })
 
     it('should be by default synchronised', () => {
