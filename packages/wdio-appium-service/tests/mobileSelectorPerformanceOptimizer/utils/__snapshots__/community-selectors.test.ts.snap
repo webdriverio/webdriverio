@@ -1,0 +1,31 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Community iOS XPath Selectors > Multi-segment hierarchical XPaths (now supported) > 1. //*[@name="valueId"]/*[contains(@name, "valueName")] - parent with child containing 1`] = `
+{
+  "selector": "-ios class chain:**/*[\`name == "valueId"\`]/*[\`name CONTAINS "valueName"\`]",
+}
+`;
+
+exports[`Community iOS XPath Selectors > Multi-segment hierarchical XPaths (now supported) > 4. //*[contains(@name, "value")]//XCUIElementTypeText[2] - descendant with index 1`] = `
+{
+  "selector": "-ios class chain:**/*[\`name CONTAINS "value"\`]/**/XCUIElementTypeText[2]",
+}
+`;
+
+exports[`Community iOS XPath Selectors > Multi-segment hierarchical XPaths (now supported) > 7. //XCUIElementTypeButton//*[@label="value"] - element type with descendant 1`] = `
+{
+  "selector": "-ios class chain:**/XCUIElementTypeButton/**/*[\`label == "value"\`]",
+}
+`;
+
+exports[`Community iOS XPath Selectors > Multi-segment hierarchical XPaths (now supported) > 10. //XCUIElementTypeNavigationBar[@name="SELECT ADDRESS"]/XCUIElementTypeStaticText[@name="SELECT ADDRESS"] - two element types 1`] = `
+{
+  "selector": "-ios class chain:**/XCUIElementTypeNavigationBar[\`name == "SELECT ADDRESS"\`]/XCUIElementTypeStaticText[\`name == "SELECT ADDRESS"\`]",
+}
+`;
+
+exports[`Community iOS XPath Selectors > Multi-segment hierarchical XPaths (now supported) > 13. (//XCUIElementTypeSwitch[@name=" SMS"])[1]/XCUIElementTypeSwitch - grouped with index then child 1`] = `
+{
+  "selector": "-ios class chain:**/XCUIElementTypeSwitch[\`name == " SMS"\`][1]/XCUIElementTypeSwitch",
+}
+`;
