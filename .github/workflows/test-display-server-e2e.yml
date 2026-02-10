@@ -1,4 +1,4 @@
-name: XVFB E2E Tests
+name: Display Server E2E Tests
 
 on:
   workflow_call:
@@ -6,94 +6,73 @@ on:
     # https://docs.github.com/en/actions/using-workflows/reusing-workflows
 
 jobs:
-  xvfb-e2e-tests:
+  display-server-e2e-tests:
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Ubuntu scenarios
+          # Ubuntu scenarios - 4 variants
           - distro: ubuntu
             version: "24.04"
-            scenario: base
-            dockerfile: ubuntu-base.dockerfile
+            scenario: wayland-autoinstall
+            dockerfile: ubuntu-wayland-autoinstall.dockerfile
+            test: base
           - distro: ubuntu
             version: "24.04"
-            scenario: with-xvfb
-            dockerfile: ubuntu-with-xvfb.dockerfile
+            scenario: wayland
+            dockerfile: ubuntu-wayland.dockerfile
+            test: existing
+          - distro: ubuntu
+            version: "24.04"
+            scenario: xvfb-autoinstall
+            dockerfile: ubuntu-xvfb-autoinstall.dockerfile
+            test: base
+          - distro: ubuntu
+            version: "24.04"
+            scenario: xvfb
+            dockerfile: ubuntu-xvfb.dockerfile
+            test: existing
 
-          # Fedora scenarios
+          # Other distros - pre-installed only
           - distro: fedora
-            version: "40"
-            scenario: base
-            dockerfile: fedora-base.dockerfile
-          - distro: fedora
-            version: "40"
-            scenario: with-xvfb
-            dockerfile: fedora-with-xvfb.dockerfile
-
-          # Alpine scenarios
+            version: "43"
+            scenario: wayland
+            dockerfile: fedora.dockerfile
+            test: existing
+          - distro: debian
+            version: "13"
+            scenario: wayland
+            dockerfile: debian.dockerfile
+            test: existing
+          - distro: centos-stream
+            version: "10"
+            scenario: wayland
+            dockerfile: centos-stream.dockerfile
+            test: existing
           - distro: alpine
             version: "3.20"
-            scenario: base
-            dockerfile: alpine-base.dockerfile
-          - distro: alpine
-            version: "3.20"
-            scenario: with-xvfb
-            dockerfile: alpine-with-xvfb.dockerfile
-
-          # Debian scenarios
-          - distro: debian
-            version: "12"
-            scenario: base
-            dockerfile: debian-base.dockerfile
-          - distro: debian
-            version: "12"
-            scenario: with-xvfb
-            dockerfile: debian-with-xvfb.dockerfile
-
-          # CentOS Stream scenarios (upstream RHEL)
-          - distro: centos-stream
-            version: "9"
-            scenario: base
-            dockerfile: centos-stream-base.dockerfile
-          - distro: centos-stream
-            version: "9"
-            scenario: with-xvfb
-            dockerfile: centos-stream-with-xvfb.dockerfile
-
-          # Arch Linux scenarios
+            scenario: xvfb
+            dockerfile: alpine.dockerfile
+            test: existing
           - distro: arch
             version: "latest"
-            scenario: base
-            dockerfile: arch-base.dockerfile
-          - distro: arch
-            version: "latest"
-            scenario: with-xvfb
-            dockerfile: arch-with-xvfb.dockerfile
-
-          # SUSE scenarios
+            scenario: wayland
+            dockerfile: arch.dockerfile
+            test: existing
           - distro: suse
-            version: "15.6"
-            scenario: base
-            dockerfile: suse-base.dockerfile
-          - distro: suse
-            version: "15.6"
-            scenario: with-xvfb
-            dockerfile: suse-with-xvfb.dockerfile
-
-          # Void Linux scenarios
+            version: "16.0"
+            scenario: wayland
+            dockerfile: suse.dockerfile
+            test: existing
           - distro: void
             version: "latest"
-            scenario: base
-            dockerfile: void-base.dockerfile
-          - distro: void
-            version: "latest"
-            scenario: with-xvfb
-            dockerfile: void-with-xvfb.dockerfile
+            scenario: wayland
+            dockerfile: void.dockerfile
+            test: existing
 
-    name: "XVFB E2E: ${{ matrix.distro }}:${{ matrix.version }} (${{ matrix.scenario }})"
+    name: "Display Server E2E: ${{ matrix.distro }}:${{ matrix.version }} (${{ matrix.scenario }})"
 
     steps:
       - name: ⬇️ Checkout Code
@@ -116,10 +95,10 @@ jobs:
         run: |
           docker build \
             -f e2e/wdio/xvfb/docker/${{ matrix.dockerfile }} \
-            -t xvfb-test:${{ matrix.distro }}-${{ matrix.scenario }} \
+            -t display-server-test:${{ matrix.distro }}-${{ matrix.scenario }} \
             e2e/wdio/xvfb/docker/
 
-      - name: Run XVFB E2E tests in container
+      - name: Run Display Server E2E tests in container
         run: |
           # Copy built packages and test files to container
           docker run --rm \
@@ -128,7 +107,7 @@ jobs:
             -e CI=true \
             -e NODE_ENV=test \
             -e WDIO_LOG_LEVEL=debug \
-            xvfb-test:${{ matrix.distro }}-${{ matrix.scenario }} \
+            display-server-test:${{ matrix.distro }}-${{ matrix.scenario }} \
             bash -c "
               set -e
               set -o pipefail
@@ -141,7 +120,7 @@ jobs:
               pnpm install --frozen-lockfile
 
               # Run the appropriate E2E test based on scenario
-              if [ '${{ matrix.scenario }}' = 'base' ]; then
+              if [ '${{ matrix.test }}' = 'base' ]; then
                 cd e2e && pnpm test:xvfb:base
               else
                 cd e2e && pnpm test:xvfb:existing
@@ -172,8 +151,7 @@ jobs:
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: failure()
         with:
-          name: xvfb-e2e-logs-${{ matrix.distro }}-${{ matrix.version }}-${{ matrix.scenario }}
+          name: display-server-e2e-logs-${{ matrix.distro }}-${{ matrix.version }}-${{ matrix.scenario }}
           path: |
             e2e/wdio/xvfb/logs/
             e2e/wdio/xvfb/screenshots/
-

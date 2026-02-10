@@ -41,7 +41,7 @@
     "@wdio/repl": "workspace:*",
     "@wdio/runner": "workspace:*",
     "@wdio/types": "workspace:*",
-    "@wdio/xvfb": "workspace:*",
+    "@wdio/display-server": "workspace:*",
     "exit-hook": "^4.0.0",
     "expect-webdriverio": "^5.3.4",
     "split2": "^4.1.0",

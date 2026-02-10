@@ -85,3 +85,19 @@ updates:
     major-deps-updates:
       update-types:
         - "major"
+- package-ecosystem: docker
+  directory: "/e2e/wdio/xvfb/docker"
+  schedule:
+    interval: weekly
+    time: "11:00"
+  open-pull-requests-limit: 10
+  groups:
+    docker-patch-updates:
+      update-types:
+        - "patch"
+    docker-minor-updates:
+      update-types:
+        - "minor"
+    docker-major-updates:
+      update-types:
+        - "major"
