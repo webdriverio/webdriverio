@@ -28,6 +28,9 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 vi.mock('foobar', () => ({ default: vi.fn().mockReturnValue('foobar') }))
 vi.mock('vite')
 vi.mock('get-port', () => ({ default: vi.fn().mockResolvedValue(1234) }))
+vi.mock('vite-plugin-istanbul', () => ({
+    default: vi.fn().mockReturnValue('istanbul plugin')
+}))
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const consoleLog = console.log.bind(console)
@@ -117,6 +120,53 @@ describe('ViteServer', () => {
                 port: 1234
             },
             someDefault: 'config'
+        })
+    })
+
+    it('start with coverage enabled', async () => {
+        const server = new ViteServer({
+            coverage: {
+                enabled: true,
+                exclude: ['foo']
+            }
+        }, config, {})
+        const viteServer = { listen: vi.fn() }
+        vi.mocked(createServer).mockResolvedValue(viteServer as any)
+        await server.start()
+
+        expect(viteServer.listen).toBeCalledTimes(1)
+        expect(createServer).toBeCalledWith({
+            plugins: ['testrunner plugin', 'mock hoisting plugin', 'worker plugin', 'istanbul plugin'],
+            root: expect.any(String),
+            server: {
+                port: 1234
+            },
+            someDefault: 'config'
+        })
+
+        const istanbulPlugin = await import('vite-plugin-istanbul')
+        expect(istanbulPlugin.default).toBeCalledWith({
+            cwd: '/foo/bar',
+            enabled: true,
+            exclude: [
+                '**/node_modules/**',
+                '**/.git/**',
+                '**/.github/**',
+                '**/.nuxt/**',
+                '**/.output/**',
+                '**/.dist/**',
+                '**/.cache/**',
+                '**/packages/wdio-browser-runner/**',
+                '**/packages/wdio-utils/**',
+                '../packages/wdio-browser-runner/**',
+                '../packages/wdio-utils/**',
+                '**/*.test.*',
+                '**/*.spec.*',
+                'foo'
+            ],
+            extension: ['.js', '.cjs', '.mjs', '.ts', '.mts', '.cts', '.tsx', '.jsx', '.vue', '.svelte', '.html'],
+            forceBuildInstrument: true,
+            include: ['**']
         })
     })
 
