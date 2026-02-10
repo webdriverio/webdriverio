@@ -1,5 +1,11 @@
 [
   {
+    "packageName": "@wdio/devtools-service",
+    "title": "DevTools (Test Debugging & Visualization)",
+    "githubUrl": "https://github.com/webdriverio/devtools",
+    "npmUrl": "https://www.npmjs.com/package/@wdio/devtools-service"
+  },
+  {
     "packageName": "@wdio/visual-service",
     "title": "Image Comparison (Visual Regression Testing)",
     "githubUrl": "https://github.com/webdriverio/visual-testing",
