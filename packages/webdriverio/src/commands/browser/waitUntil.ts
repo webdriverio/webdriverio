@@ -63,6 +63,9 @@ export function waitUntil<ReturnValue>(
     const timer = new Timer(interval as number, timeout as number, fn, true, abort.signal)
     return timer.catch<Exclude<ReturnValue, false | 0 | '' | null | undefined>>((e: Error) => {
         if (e.message === 'timeout') {
+            if (typeof timeoutMsg === 'function') {
+                throw new Error(timeoutMsg())
+            }
             if (typeof timeoutMsg === 'string') {
                 throw new Error(timeoutMsg)
             }
