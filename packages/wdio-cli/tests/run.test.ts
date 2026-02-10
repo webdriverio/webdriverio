@@ -48,4 +48,8 @@ describe('cmdArgs', () => {
             expect(cmdArg.default).toBeUndefined()
         })
     })
+    it('should have cpuProf and heapProf args without defaults', () => {
+        expect(cmdArgs.cpuProf).toBeDefined()
+        expect(cmdArgs.heapProf).toBeDefined()
+    })
 })
