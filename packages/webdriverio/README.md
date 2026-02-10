@@ -41,6 +41,25 @@ See the raw [protocol example](https://www.npmjs.com/package/webdriver#example) 
 
 For more information on [options](https://webdriver.io/docs/options#webdriver-options), [multiremote usage](https://webdriver.io/docs/multiremote) or integration into [cloud services](https://webdriver.io/docs/cloudservices) please check out the [docs](https://webdriver.io/docs/gettingstarted).
 
+## Browser Usage (New!)
+
+WebdriverIO can now run directly in the browser, enabling client-side automation without Node.js.
+
+```js
+import { remote } from 'webdriverio/browser'
+
+const browser = await remote({
+    hostname: 'selenium-grid.example.com',
+    capabilities: { browserName: 'chrome' }
+})
+
+await browser.url('https://example.com')
+```
+
+**Note:** Node.js-specific modules like `fs` or `child_process` are not available in the browser build. Operations that rely on them will throw descriptive errors.
+
+See `./docs/browser-usage.md` for full usage details, limitations, and examples.
+
 ---
 
 <center>Package Sponsors:</center>

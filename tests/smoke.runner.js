@@ -538,9 +538,9 @@ const customCJSService = async () => {
         services: [['smoke-test-cjs', { foo: 'bar' }]]
     })
     await sleep(100)
-    const serviceLogs = await fs.readFile(path.resolve(__dirname, 'helpers', 'service.log'))
+    const serviceLogs = await fs.readFile(path.resolve(__dirname, 'helpers', 'service-cjs.log'))
     assert.equal(serviceLogs.toString(), SERVICE_LOGS)
-    const launcherLogs = await fs.readFile(path.resolve(__dirname, 'helpers', 'launcher.log'))
+    const launcherLogs = await fs.readFile(path.resolve(__dirname, 'helpers', 'launcher-cjs.log'))
     assert.equal(launcherLogs.toString(), LAUNCHER_LOGS)
 }
 
