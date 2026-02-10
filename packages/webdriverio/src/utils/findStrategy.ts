@@ -78,6 +78,8 @@ const defineStrategy = function (selector: SelectorStrategy) {
     if (stringSelector.startsWith(ARIA_SELECTOR)) {
         return 'aria'
     }
+    // Note: a11y/ selectors are handled directly in findElement/findElements
+    // to avoid non-standard using='a11y' leaking into protocol commands
     // Recursive element search using the UiAutomator library (Android only)
     if (stringSelector.startsWith('android=')) {
         return '-android uiautomator'
@@ -201,6 +203,8 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         value = conditions.join(' | ')
         break
     }
+    // Note: a11y/ selectors are handled directly in findElement/findElements,
+    // not here, to avoid non-standard using='a11y' leaking into protocol commands
     case '-android uiautomator': {
         using = '-android uiautomator'
         value = stringSelector.slice(8)
