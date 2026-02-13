@@ -295,6 +295,39 @@ describe('WebDriverInterception', () => {
         expect(mock.getBinaryResponse('123')).toBeNull()
     })
 
+    it('handleResponseStarted with dynamic respond payload callback', async () => {
+        const browser: any = new EventEmitter()
+        browser.sessionSubscribe = vi.fn().mockReturnValue(Promise.resolve())
+        browser.networkProvideResponse = vi.fn().mockReturnValue(Promise.resolve())
+        browser.networkAddIntercept = vi.fn().mockReturnValue(Promise.resolve({ intercept: '123' }))
+        const mock = await WebDriverInterception.initiate('http://foobar.com:1234/foo/bar.html?foo=bar', {}, browser)
+
+        mock.respond((request) => ({ requestId: request.request.request, foo: 'bar' }), {
+            statusCode: 200
+        })
+
+        browser.emit('network.responseStarted', {
+            isBlocked: true,
+            request: {
+                url: 'http://foobar.com:1234/foo/bar.html?foo=bar',
+                method: 'GET',
+                request: 'req-123',
+                headers: []
+            },
+            response: {
+                status: 200,
+                headers: []
+            }
+        })
+
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            body: { type: 'string', value: '{"requestId":"req-123","foo":"bar"}' },
+            statusCode: 200
+        })
+    })
+
     it('handles non-binary response correctly', async () => {
         const browser: any = new EventEmitter()
         browser.sessionSubscribe = vi.fn().mockReturnValue(Promise.resolve())
