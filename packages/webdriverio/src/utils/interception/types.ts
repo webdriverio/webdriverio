@@ -11,16 +11,19 @@ export type MockFilterOptions = {
 type Overwrite <T, Request> = T | ((request: Request) => T)
 type Methods = 'POST' | 'GET' | 'DELETE' | 'PUT' | 'PATCH' | 'OPTIONS' | 'HEAD'
 
-export interface RequestWithOptions {
+interface BaseOverwriteOptions<Request> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    body?: Overwrite<any, local.NetworkBeforeRequestSentParameters>
-    cookies?: Overwrite<Cookie[], local.NetworkBeforeRequestSentParameters>
-    headers?: Overwrite<Record<string, string>, local.NetworkBeforeRequestSentParameters>
+    body?: Overwrite<any, Request>
+    cookies?: Overwrite<Cookie[], Request>
+    headers?: Overwrite<Record<string, string>, Request>
+}
+
+export interface RequestWithOptions extends BaseOverwriteOptions<local.NetworkBeforeRequestSentParameters> {
     method?: Overwrite<Methods, local.NetworkBeforeRequestSentParameters>
     url?: Overwrite<string, local.NetworkBeforeRequestSentParameters>
 }
 
-export interface RespondWithOptions extends Omit<RequestWithOptions, 'url' | 'method'> {
+export interface RespondWithOptions extends BaseOverwriteOptions<local.NetworkResponseCompletedParameters> {
     statusCode?: Overwrite<number, local.NetworkResponseCompletedParameters>
 }
 
