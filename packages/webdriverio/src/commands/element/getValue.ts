@@ -20,11 +20,11 @@
  * @uses protocol/elements, protocol/elementIdProperty
  *
  */
-export function getValue (this: WebdriverIO.Element) {
+export function getValue (this: WebdriverIO.Element): Promise<string> {
     // `!this.isMobile` added to workaround https://github.com/appium/appium/issues/12218
-    if (this.isW3C && !this.isMobile) {
-        return this.getElementProperty(this.elementId, 'value')
-    }
+    const value = this.isW3C && !this.isMobile ?
+        this.getElementProperty(this.elementId, 'value')
+        : this.getElementAttribute(this.elementId, 'value')
 
-    return this.getElementAttribute(this.elementId, 'value')
+    return value.then((res) => typeof res === 'string' ? res : '')
 }

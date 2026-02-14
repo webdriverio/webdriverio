@@ -47,4 +47,8 @@ describe('WebdriverIO commands', async () => {
     it('getElementProperty', async () => {
         expectTypeOf(await el.getElementProperty(el.elementId, 'tagName')).toEqualTypeOf<unknown>()
     })
+
+    it('getValue', async () => {
+        expectTypeOf(await el.getValue()).toEqualTypeOf<string>()
+    })
 })
