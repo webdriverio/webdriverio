@@ -1,0 +1,49 @@
+{
+  "name": "@wdio/x",
+  "version": "0.1.0",
+  "description": "Interactive browser and app CLI for developers",
+  "author": "Vince Graics <wince17@gmail.com>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-x",
+  "license": "MIT",
+  "bin": {
+    "wdiox": "./bin/wdiox.js"
+  },
+  "engines": {
+    "node": ">=18.20.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-x"
+  },
+  "keywords": ["webdriver", "webdriverio", "wdio", "cli", "browser", "automation"],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js"
+    },
+    "./snapshot": {
+      "types": "./build/snapshot/index.d.ts",
+      "import": "./build/snapshot/index.js"
+    }
+  },
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
+  "dependencies": {
+    "@wdio/types": "workspace:*",
+    "@xmldom/xmldom": "^0.9.8",
+    "webdriverio": "workspace:*",
+    "xpath": "^0.0.34",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/yargs": "^17.0.24"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
