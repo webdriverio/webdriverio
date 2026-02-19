@@ -240,27 +240,31 @@ export class ContextManager extends SessionManager {
             !this.#mobileContext &&
             this.#getContextSupport
         ) {
-            const context = await this.#browser.getContext().catch((err) => {
-                log.warn(
-                    `Error getting context: ${err}\n\n` +
-                    `WebDriver capabilities: ${JSON.stringify(this.#browser.capabilities)}\n` +
-                    `Requested WebDriver capabilities: ${JSON.stringify(this.#browser.requestedCapabilities)}`
-                )
+            if (typeof this.#browser.getContext !== 'function') {
+                this.#getContextSupport = false
+            } else {
+                const context = await this.#browser.getContext().catch((err) => {
+                    log.warn(
+                        `Error getting context: ${err}\n\n` +
+                        `WebDriver capabilities: ${JSON.stringify(this.#browser.capabilities)}\n` +
+                        `Requested WebDriver capabilities: ${JSON.stringify(this.#browser.requestedCapabilities)}`
+                    )
 
-                /**
-                 * Avoid continuing fetching the context if the environment does not support it
-                 */
-                if (err.message.includes('Request failed with status code 405')) {
-                    this.#getContextSupport = false
-                }
+                    /**
+                     * Avoid continuing fetching the context if the environment does not support it
+                     */
+                    if (err.message.includes('Request failed with status code 405')) {
+                        this.#getContextSupport = false
+                    }
 
-                return undefined
-            })
-            this.#mobileContext = typeof context === 'string'
-                ? context
-                : typeof context === 'object'
-                    ? context.id
-                    : undefined
+                    return undefined
+                })
+                this.#mobileContext = typeof context === 'string'
+                    ? context
+                    : typeof context === 'object'
+                        ? context.id
+                        : undefined
+            }
         }
 
         const windowHandle = this.#mobileContext || await this.#browser.getWindowHandle()
