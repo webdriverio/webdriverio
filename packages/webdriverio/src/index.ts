@@ -75,7 +75,14 @@ export const remote = async function (
     }
 
     instance.addLocatorStrategy = addLocatorStrategyHandler(instance)
-    await registerSessionManager(instance)
+
+    /**
+     * protocol stub sessions are used before the real session starts (e.g. spec filtering).
+     * They don't have full command coverage, so skip session manager initialization.
+     */
+    if (!isStub(options.automationProtocol)) {
+        await registerSessionManager(instance)
+    }
     return instance
 }
 
@@ -209,4 +216,3 @@ export const multiremote = async function (
     driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
     return driver
 }
-
