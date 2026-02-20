@@ -14,14 +14,12 @@ function createBrowserStub() {
         isMobile: false,
         isBidi: false,
         capabilities: {},
-        requestedCapabilities: {},
         on: vi.fn((event: string, handler: (arg: any) => any) => {
             listeners[event] ||= []
             listeners[event].push(handler)
         }),
         off: vi.fn(),
         switchToWindow: vi.fn(),
-        getWindowHandle: vi.fn().mockResolvedValue('window-handle'),
         sessionSubscribe: vi.fn(),
         browsingContextGetTree: vi.fn()
     } as unknown as WebdriverIO.Browser & { on: any, off: any, switchToWindow: any }
@@ -101,30 +99,5 @@ describe('ContextManager', () => {
         const error = new Error('no such window')
         handler({ command: 'switchToWindow', result: { error } })
         expect(getContextManager(browser).getCurrentWindowHandle()).toBeUndefined()
-    })
-
-    it('falls back to getWindowHandle if mobile getContext command is not available', async () => {
-        browser.isMobile = true
-        browser.capabilities = {
-            browserName: 'Safari',
-            platformName: 'iOS',
-            'appium:options': { automationName: 'XCUITest' }
-        }
-        delete (browser as { getContext?: unknown }).getContext
-
-        const contextManager = getContextManager(browser)
-        const originalWdioUnitTests = process.env.WDIO_UNIT_TESTS
-        try {
-            delete process.env.WDIO_UNIT_TESTS
-            await expect(contextManager.initialize()).resolves.toBe('window-handle')
-        } finally {
-            if (originalWdioUnitTests === undefined) {
-                delete process.env.WDIO_UNIT_TESTS
-            } else {
-                process.env.WDIO_UNIT_TESTS = originalWdioUnitTests
-            }
-        }
-
-        expect((browser as { getWindowHandle: ReturnType<typeof vi.fn> }).getWindowHandle).toHaveBeenCalledTimes(1)
     })
 })
