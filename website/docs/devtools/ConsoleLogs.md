@@ -27,4 +27,4 @@ This makes it easy to debug JavaScript errors, track application behavior, and s
 ## Demo
 
 ### >_ Console Logs
-![Console Logs](./demo/console-logs.gif)
+![Console Logs](/img/devtools/console-logs.gif)

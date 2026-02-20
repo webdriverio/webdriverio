@@ -16,4 +16,4 @@ This seamless connection between UI and code speeds up debugging by eliminating 
 ## Demo
 
 ### 🔍︎ TestLens
-![TestLens Demo](./demo/testlens.gif)
+![TestLens Demo](/img/devtools/testlens.gif)

@@ -16,6 +16,6 @@ This is invaluable for debugging API issues, identifying slow requests, validati
 ## Demo
 
 ### 🌐 Network Logs
-![Network Logs Overview](./demo/network-logs-1.gif)
+![Network Logs Overview](/img/devtools/network-logs-1.gif)
 
-![Network Logs Details](./demo/network-logs-2.gif)
+![Network Logs Details](/img/devtools/network-logs-2.gif)
