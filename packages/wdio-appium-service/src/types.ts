@@ -145,6 +145,53 @@ export interface AppiumServiceConfig {
      * @default 30000
      */
     appiumStartTimeout?: number
+
+    /**
+     * Enable selector performance tracking to measure element finding times.
+     * When enabled, tracks all element-finding commands and stores timing data in JSON format.
+     */
+    trackSelectorPerformance?: {
+        /**
+         * Enable the CLI report output to the terminal.
+         * When enabled, a formatted performance report is printed to the terminal after test execution.
+         * @default false
+         */
+        enableCliReport?: boolean
+        /**
+         * Enable markdown report generation.
+         * When enabled, a markdown file with the same content as the CLI report is written to the logs folder.
+         * @default false
+         */
+        enableMarkdownReport?: boolean
+        /**
+         * Path where the JSON report file should be saved.
+         * If not provided, falls back to config.outputDir, then appium service logPath.
+         * If none are set, an error will be thrown.
+         */
+        reportPath?: string
+        /**
+         * Maximum line length for terminal report output.
+         * Lines longer than this will be wrapped at word boundaries.
+         * @default 100
+         */
+        maxLineLength?: number
+        /**
+         * Paths to directories containing page objects or helper files where selectors may be defined.
+         * The service will search these directories to find selector locations and show file paths
+         * in the report (e.g., "Found at: TabBar.ts:3").
+         *
+         * This option is required when `trackSelectorPerformance` is configured.
+         *
+         * @example
+         * // Single directory
+         * pageObjectPaths: ['./tests/pageobjects']
+         *
+         * @example
+         * // Multiple directories
+         * pageObjectPaths: ['./tests/pageobjects', './tests/pages', './tests/helpers']
+         */
+        pageObjectPaths: string[]
+    }
 }
 
 export type ArgValue = string | number | boolean | null | object
