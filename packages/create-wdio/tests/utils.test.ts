@@ -628,7 +628,8 @@ test('setupTypeScript', async () => {
             ]
         },
         packagesToInstall: [],
-        tsConfigFilePath: '/foobar/tsconfig.json'
+        tsConfigFilePath: '/foobar/tsconfig.json',
+        projectRootDir: '/foobar'
     } as any
     await setupTypeScript(parsedAnswers)
     expect(vi.mocked(fs.writeFile).mock.calls[0][1]).toMatchSnapshot()
@@ -646,14 +647,15 @@ test('setupTypeScript does not create tsconfig.json if TypeScript was not select
             ]
         },
         packagesToInstall: [],
-        tsConfigFilePath: '/foobar/tsconfig.json'
+        tsConfigFilePath: '/foobar/tsconfig.json',
+        projectRootDir: '/foobar'
     } as any
     await setupTypeScript(parsedAnswers)
     expect(fs.writeFile).not.toBeCalled()
     expect(parsedAnswers.packagesToInstall).toEqual([])
 })
 
-test('setupTypeScript does not create tsconfig.json if there is already one', async () => {
+test('setupTypeScript creates tsconfig.json even if there is already one', async () => {
     const parsedAnswers = {
         isUsingTypeScript: true,
         esmSupport: true,
@@ -666,10 +668,13 @@ test('setupTypeScript does not create tsconfig.json if there is already one', as
         },
         packagesToInstall: [],
         tsConfigFilePath: '/foobar/tsconfig.json',
-        hasRootTSConfig: true
+        hasRootTSConfig: true,
+        projectRootDir: '/foobar'
     } as any
     await setupTypeScript(parsedAnswers)
-    expect(fs.writeFile).not.toBeCalled()
+    const writtenContent = vi.mocked(fs.writeFile).mock.calls[0][1] as string
+    expect(writtenContent).toContain('"extends"')
+    expect(writtenContent).toMatchSnapshot()
 })
 
 describe.skip('createWDIOScript', () => {
