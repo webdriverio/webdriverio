@@ -115,7 +115,6 @@ export class BrowserstackCLI {
         BStackLogger.debug(`start: startBinSession response=${JSON.stringify(response)}`)
         this.loadModules(response)
         this.isMainConnected = true
-
     }
 
     /**
@@ -297,6 +296,9 @@ export class BrowserstackCLI {
                         }
                     }, CLI_STOP_TIMEOUT)
                 })
+
+                this.isMainConnected = false
+                this.isChildConnected = false
             }
         } catch (error: unknown) {
             PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP, false, util.format(error))
