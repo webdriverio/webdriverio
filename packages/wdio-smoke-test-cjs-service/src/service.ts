@@ -4,7 +4,7 @@ import path from 'node:path'
 export default class SmokeService {
     logFile: fs.WriteStream
     constructor () {
-        this.logFile = fs.createWriteStream(path.resolve(__dirname, '..', '..', '..', 'tests', 'helpers', 'service.log'))
+        this.logFile = fs.createWriteStream(path.resolve(__dirname, '..', '..', '..', 'tests', 'helpers', 'service-cjs.log'))
     }
     beforeSession () { this.logFile.write('beforeSession called\n') }
     before () { this.logFile.write('before called\n') }

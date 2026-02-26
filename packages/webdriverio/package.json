@@ -48,11 +48,16 @@
   "exports": {
     ".": {
       "types": "./build/index.d.ts",
-      "browser": "./build/index.js",
+      "browserSource": "./src/browser.ts",
+      "browser": "./build/browser.js",
       "importSource": "./src/node.ts",
       "import": "./build/node.js",
       "requireSource": "./src/index.cts",
       "require": "./build/index.cjs"
+    },
+    "./browser": {
+      "types": "./build/browser.d.ts",
+      "default": "./build/browser.js"
     },
     "./scripts/*": {
       "source": "./src/scripts/*.ts",

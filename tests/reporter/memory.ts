@@ -18,7 +18,7 @@ function heapSnapshot() {
 }
 
 describe('`execute` memory leak check', () => {
-    it('repeated large `execute` scripts should not lead to memory leak', async () => {
+    it('repeated large `execute` scripts should not lead to memory leak', async function () {
         // @ts-expect-error mock feature
         const nockReset = await browser.executeMemLeakScenario(executeCalls)
         // @ts-expect-error gc is exposed
