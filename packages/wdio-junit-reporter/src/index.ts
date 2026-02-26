@@ -308,7 +308,7 @@ class JunitReporter extends WDIOReporter {
         } else {
             this._packageName = this.options.packageName || runner.sanitizedCapabilities
         }
-        const isCucumberFrameworkRunner = runner.config.framework === 'cucumber'
+        const isCucumberFrameworkRunner = runner.config.framework === 'cucumber' || Object.values(runner.instanceOptions).some(it => it.framework === "cucumber")
         if (isCucumberFrameworkRunner) {
             this._packageName = `CucumberJUnitReport-${this._packageName}`
             this._suiteTitleLabel = 'featureName'
