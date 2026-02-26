@@ -4,6 +4,7 @@ import type { remote } from 'webdriver'
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
+import { createSerializableAsyncScript } from '../../utils/bidi/serialize.js'
 import { getContextManager } from '../../session/context.js'
 import { polyfillFn } from '../../scripts/polyfill.js'
 import type { TransformElement } from '../../types.js'
@@ -89,17 +90,7 @@ export async function executeAsync<ReturnValue, InnerArguments extends unknown[]
         const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
         const userScript = typeof script === 'string' ? new Function(script) : script
-        const functionDeclaration = new Function(`
-            const args = Array.from(arguments)
-            return new Promise(async (resolve, reject) => {
-                const cb = (result) => resolve(result)
-                try {
-                    await (${userScript.toString()}).apply(this, [...args, cb])
-                } catch (err) {
-                    return reject(err)
-                }
-            })
-        `).toString()
+        const functionDeclaration = new Function(createSerializableAsyncScript(userScript)).toString()
         const params: remote.ScriptCallFunctionParameters = {
             functionDeclaration,
             awaitPromise: true,
