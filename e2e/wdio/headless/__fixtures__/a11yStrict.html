@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>A11y Strict Test</title>
+</head>
+<body>
+    <h1>Accessibility Strictness Test</h1>
+    
+    <!-- Two elements with the same accessible name to trigger strict mode -->
+    <button>Submit</button>
+    <div role="button" aria-label="Submit">Submit Div</div>
+    
+    <!-- A single unique element -->
+    <button>Cancel</button>
+    
+    <label for="input1">Username</label>
+    <input id="input1" />
+</body>
+</html>
