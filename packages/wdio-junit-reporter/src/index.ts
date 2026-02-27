@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import path from 'node:path'
 import url from 'node:url'
 import os from 'node:os'
 
@@ -413,17 +414,24 @@ class JunitReporter extends WDIOReporter {
 
     private _sameFileName(file1?: string, file2?: string) {
         if (!file1 && !file2) {
-            // both null -> same
             return true
         }
         if (!file1 || !file2) {
-            // only one null -> not the same
             return false
         }
 
-        // ensure both files are not a file URL
         file1 = file1.startsWith('file://') ? url.fileURLToPath(file1) : file1
         file2 = file2.startsWith('file://') ? url.fileURLToPath(file2) : file2
+
+        // If either path is just a filename (no directory separator),
+        // compare only the basenames. This fixes Jasmine which provides
+        // only filenames while the suite has full paths (issue #13052)
+        const isBasename1 = !file1.includes('/') && !file1.includes('\\')
+        const isBasename2 = !file2.includes('/') && !file2.includes('\\')
+        if (isBasename1 || isBasename2) {
+            file1 = path.basename(file1)
+            file2 = path.basename(file2)
+        }
 
         return file1.localeCompare(file2, undefined, { sensitivity: this._isWindows ? 'accent' : 'variant' }) === 0
     }
