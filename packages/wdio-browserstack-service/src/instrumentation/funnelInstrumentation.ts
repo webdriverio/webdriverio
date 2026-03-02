@@ -14,14 +14,14 @@ import type { FunnelData, EventProperties } from '../types.js'
 import TestOpsConfig from '../testOps/testOpsConfig.js'
 import APIUtils from '../cli/apiUtils.js'
 
-async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig) {
+async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig, isCLIEnabled = false) {
     if (!config.userName || !config.accessKey) {
         BStackLogger.debug('username/accesskey not passed')
         return
     }
 
     try {
-        const data = buildEventData(eventType, config)
+        const data = buildEventData(eventType, config, isCLIEnabled)
         await fireFunnelRequest(data)
         BStackLogger.debug('Funnel event success')
         config.sentFunnelData()
@@ -34,12 +34,12 @@ export async function sendStart(config: BrowserStackConfig) {
     await fireFunnelTestEvent('SDKTestAttempted', config)
 }
 
-export async function sendFinish(config: BrowserStackConfig) {
-    await fireFunnelTestEvent('SDKTestSuccessful', config)
+export async function sendFinish(config: BrowserStackConfig, isCLIEnabled = false) {
+    await fireFunnelTestEvent('SDKTestSuccessful', config, isCLIEnabled)
 }
 
-export function saveFunnelData(eventType: string, config: BrowserStackConfig): string {
-    const data = buildEventData(eventType, config)
+export function saveFunnelData(eventType: string, config: BrowserStackConfig, isCLIEnabled = false): string {
+    const data = buildEventData(eventType, config, isCLIEnabled)
 
     BStackLogger.ensureLogsFolder()
     const filePath = path.join(BStackLogger.logFolderPath, 'funnelData.json')
@@ -102,7 +102,7 @@ function getProductList(config: BrowserStackConfig) {
     return products
 }
 
-function buildEventData(eventType: string, config: BrowserStackConfig) {
+function buildEventData(eventType: string, config: BrowserStackConfig, isCLIEnabled = false) {
     const eventProperties: EventProperties = {
         // Framework Details
         sdkRunId: config?.sdkRunID,
@@ -125,7 +125,10 @@ function buildEventData(eventType: string, config: BrowserStackConfig) {
         product: getProductList(config),
 
         // framework details
-        framework: config.framework
+        framework: config.framework,
+
+        // CLI Details
+        isCLIEnabled: isCLIEnabled
     }
 
     if (eventType === 'SDKTestSuccessful') {

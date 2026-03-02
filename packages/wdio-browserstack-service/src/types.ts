@@ -405,7 +405,7 @@ export interface EventProperties {
     productMap: { [key: string]: boolean }
     product: string[]
     framework?: string
-    pollingTimeout?: string,
+    pollingTimeout?: string
     productUsage?: {
         testObservability: {
             events: {
@@ -419,6 +419,7 @@ export interface EventProperties {
             }
         }
     }
+    isCLIEnabled?: boolean
 }
 
 export interface FunnelData {

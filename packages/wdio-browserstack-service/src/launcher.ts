@@ -463,7 +463,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         BStackLogger.debug('Inside OnComplete hook..')
 
         BStackLogger.debug('Sending stop launch event')
-        await (BrowserstackCLI.getInstance().isRunning() ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
+        const isCLIEnabled = BrowserstackCLI.getInstance().isRunning()
+        await (isCLIEnabled ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
 
         if ((process.env[BROWSERSTACK_OBSERVABILITY]) && process.env[BROWSERSTACK_TESTHUB_UUID]) {
             console.log(`\nVisit https://automation.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
@@ -482,7 +483,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         BStackLogger.info(`BrowserStack service run ended for id: ${this.browserStackConfig?.sdkRunID} testhub id: ${TestOpsConfig.getInstance()?.buildHashedId}`)
-        await sendFinish(this.browserStackConfig)
+        await sendFinish(this.browserStackConfig, isCLIEnabled)
         try {
             await this._uploadServiceLogs()
         } catch (error) {
