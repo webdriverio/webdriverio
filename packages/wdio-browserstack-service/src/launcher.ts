@@ -590,7 +590,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 await (isCLIEnabled ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
                 PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.STOP)
             } catch (err) {
-                BStackLogger.error(`Error while stoping CLI ${err}`)
+                BStackLogger.error(`Error while stopping CLI ${err}`)
                 PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.STOP, false, format(err))
             }
             if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
