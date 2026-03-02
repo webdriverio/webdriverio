@@ -72,12 +72,13 @@ vi.mock('get-port', () => ({ default: vi.fn().mockResolvedValue(1234) }))
 vi.mock('@puppeteer/browsers', () => ({
     Browser: { CHROME: 'chrome', CHROMEDRIVER: 'chromedriver' },
     ChromeReleaseChannel: { STABLE: 'stable' },
+    BrowserPlatform: { LINUX: 'linux', LINUX_ARM: 'linux_arm', MAC: 'mac', MAC_ARM: 'mac_arm', WIN32: 'win32', WIN64: 'win64' },
     detectBrowserPlatform: vi.fn().mockReturnValue('mac_arm'),
     resolveBuildId: vi.fn().mockReturnValue('115.0.5790.171'),
     canDownload: vi.fn().mockResolvedValue(true),
     computeExecutablePath: vi.fn().mockReturnValue('/foo/bar/executable'),
     getInstalledBrowsers: vi.fn().mockResolvedValue([]),
-    install: vi.fn().mockResolvedValue({})
+    install: vi.fn().mockResolvedValue({ executablePath: '/foo/bar/executable' })
 }))
 
 vi.mock('../../src/node/utils.js', async (actualMod) => ({
@@ -220,7 +221,6 @@ describe('startWebDriver', () => {
                 },
             }
         })
-        expect(fsp.access).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledWith(
             '/foo/bar/executable',

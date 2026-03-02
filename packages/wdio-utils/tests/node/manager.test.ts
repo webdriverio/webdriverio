@@ -79,8 +79,8 @@ describe('setupDriver', () => {
             browserVersion: '6'
         }])
         expect(setupChromedriver).toBeCalledTimes(2)
-        expect(setupChromedriver).toBeCalledWith('/foo/bar', '1')
-        expect(setupChromedriver).toBeCalledWith('/foo/bar', '2')
+        expect(setupChromedriver).toBeCalledWith('/foo/bar', '1', expect.any(Object))
+        expect(setupChromedriver).toBeCalledWith('/foo/bar', '2', expect.any(Object))
         expect(setupEdgedriver).toBeCalledTimes(3)
         expect(setupEdgedriver).toBeCalledWith('/foo/bar', undefined)
         expect(setupEdgedriver).toBeCalledWith('/foo/bar', '3')
@@ -175,8 +175,8 @@ describe('setupDriver', () => {
             }
         })
         expect(setupChromedriver).toBeCalledTimes(2)
-        expect(setupChromedriver).toBeCalledWith('/foo/bar', '1')
-        expect(setupChromedriver).toBeCalledWith('/foo/bar', '2')
+        expect(setupChromedriver).toBeCalledWith('/foo/bar', '1', expect.any(Object))
+        expect(setupChromedriver).toBeCalledWith('/foo/bar', '2', expect.any(Object))
         expect(setupEdgedriver).toBeCalledTimes(2)
         expect(setupEdgedriver).toBeCalledWith('/foo/bar', '3')
         expect(setupEdgedriver).toBeCalledWith('/foo/bar', '4')
@@ -266,8 +266,8 @@ describe('setupDriver', () => {
             }
         }])
         expect(setupChromedriver).toBeCalledTimes(2)
-        expect(setupChromedriver).toBeCalledWith('/foo/bar', '1')
-        expect(setupChromedriver).toBeCalledWith('/foo/bar', '2')
+        expect(setupChromedriver).toBeCalledWith('/foo/bar', '1', expect.any(Object))
+        expect(setupChromedriver).toBeCalledWith('/foo/bar', '2', expect.any(Object))
         expect(setupEdgedriver).toBeCalledTimes(2)
         expect(setupEdgedriver).toBeCalledWith('/foo/bar', '3')
         expect(setupEdgedriver).toBeCalledWith('/foo/bar', '4')
