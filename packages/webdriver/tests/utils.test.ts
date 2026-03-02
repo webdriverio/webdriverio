@@ -356,6 +356,300 @@ describe('utils', () => {
                 '("platform", "foo").'
             )
         })
+
+        describe('overlapping capabilities normalization', () => {
+            it('should remove duplicate keys from firstMatch when they match alwaysMatch', async () => {
+                const params: RemoteConfig = {
+                    hostname: 'localhost',
+                    port: 4444,
+                    path: '/',
+                    protocol: 'http',
+                    capabilities: {
+                        alwaysMatch: {
+                            browserName: 'chrome',
+                            // @ts-expect-error test vendor cap
+                            'requester:project-id': 'my-project',
+                            'requester:project-branch-id': 'main'
+                        },
+                        firstMatch: [
+                            {
+                                browserName: 'chrome',
+                                // @ts-expect-error test vendor cap
+                                'requester:project-id': 'my-project',
+                                'requester:project-branch-id': 'main'
+                            }
+                        ]
+                    }
+                }
+
+                await startWebDriverSession(params)
+
+                const body = mockedFetch.mock.calls[0]?.[1]?.body as string
+                expect(body).toBeTruthy()
+                const payload = JSON.parse(body)
+                const am = payload.capabilities.alwaysMatch
+                const fm0 = payload.capabilities.firstMatch[0]
+
+                // Keys should remain in alwaysMatch
+                expect(am.browserName).toBe('chrome')
+                expect(am['requester:project-id']).toBe('my-project')
+                expect(am['requester:project-branch-id']).toBe('main')
+
+                // Keys should be removed from firstMatch to avoid overlap
+                expect(fm0.browserName).toBeUndefined()
+                expect(fm0['requester:project-id']).toBeUndefined()
+                expect(fm0['requester:project-branch-id']).toBeUndefined()
+            })
+
+            it('should handle conflicting values by moving them to firstMatch', async () => {
+                const params: RemoteConfig = {
+                    hostname: 'localhost',
+                    port: 4444,
+                    path: '/',
+                    protocol: 'http',
+                    capabilities: {
+                        alwaysMatch: {
+                            browserName: 'chrome',
+                            // @ts-expect-error test vendor cap
+                            'my:option': 'default'
+                        },
+                        firstMatch: [
+                            {
+                                // @ts-expect-error test vendor cap
+                                'my:option': 'special'
+                            }
+                        ]
+                    }
+                }
+
+                await startWebDriverSession(params)
+
+                const body = mockedFetch.mock.calls[0]?.[1]?.body as string
+                expect(body).toBeTruthy()
+                const payload = JSON.parse(body)
+
+                // Conflicting key should be removed from alwaysMatch
+                expect(payload.capabilities.alwaysMatch['my:option']).toBeUndefined()
+
+                // Conflicting key should remain in firstMatch with its specific value
+                expect(payload.capabilities.firstMatch[0]['my:option']).toBe('special')
+            })
+
+            it('should handle multiple firstMatch entries with conflicts', async () => {
+                const params: RemoteConfig = {
+                    hostname: 'localhost',
+                    port: 4444,
+                    path: '/',
+                    protocol: 'http',
+                    capabilities: {
+                        alwaysMatch: {
+                            browserName: 'chrome',
+                            // @ts-expect-error test vendor cap
+                            'my:option': 'default'
+                        },
+                        firstMatch: [
+                            {
+                                // @ts-expect-error test vendor cap
+                                'my:option': 'option1'
+                            },
+                            {
+                                // @ts-expect-error test vendor cap
+                                'my:option': 'option2'
+                            },
+                            {}
+                        ]
+                    }
+                }
+
+                await startWebDriverSession(params)
+
+                const body = mockedFetch.mock.calls[0]?.[1]?.body as string
+                expect(body).toBeTruthy()
+                const payload = JSON.parse(body)
+
+                // Conflicting key should be removed from alwaysMatch
+                expect(payload.capabilities.alwaysMatch['my:option']).toBeUndefined()
+
+                // Each firstMatch should have the key with its specific value
+                expect(payload.capabilities.firstMatch[0]['my:option']).toBe('option1')
+                expect(payload.capabilities.firstMatch[1]['my:option']).toBe('option2')
+                // Empty firstMatch should get the default value from alwaysMatch
+                expect(payload.capabilities.firstMatch[2]['my:option']).toBe('default')
+            })
+
+            it('should handle complex object values when checking for conflicts', async () => {
+                const params: RemoteConfig = {
+                    hostname: 'localhost',
+                    port: 4444,
+                    path: '/',
+                    protocol: 'http',
+                    capabilities: {
+                        alwaysMatch: {
+                            browserName: 'chrome',
+                            'goog:chromeOptions': {
+                                args: ['--headless']
+                            }
+                        },
+                        firstMatch: [
+                            {
+                                'goog:chromeOptions': {
+                                    args: ['--headless']
+                                }
+                            }
+                        ]
+                    }
+                }
+
+                await startWebDriverSession(params)
+
+                const body = mockedFetch.mock.calls[0]?.[1]?.body as string
+                expect(body).toBeTruthy()
+                const payload = JSON.parse(body)
+
+                // Identical objects should be treated as non-conflicting
+                expect(payload.capabilities.alwaysMatch['goog:chromeOptions']).toEqual({
+                    args: ['--headless']
+                })
+                expect(payload.capabilities.firstMatch[0]['goog:chromeOptions']).toBeUndefined()
+            })
+
+            it('should detect structurally equal objects as conflicts', async () => {
+                const params: RemoteConfig = {
+                    hostname: 'localhost',
+                    port: 4444,
+                    path: '/',
+                    protocol: 'http',
+                    capabilities: {
+                        alwaysMatch: {
+                            browserName: 'chrome',
+                            'goog:chromeOptions': {
+                                args: ['--headless']
+                            }
+                        },
+                        firstMatch: [
+                            {
+                                'goog:chromeOptions': {
+                                    args: ['--headless', '--disable-gpu']
+                                }
+                            }
+                        ]
+                    }
+                }
+
+                await startWebDriverSession(params)
+
+                const body = mockedFetch.mock.calls[0]?.[1]?.body as string
+                expect(body).toBeTruthy()
+                const payload = JSON.parse(body)
+
+                // Different objects should be treated as conflicting
+                expect(payload.capabilities.alwaysMatch['goog:chromeOptions']).toBeUndefined()
+                expect(payload.capabilities.firstMatch[0]['goog:chromeOptions']).toEqual({
+                    args: ['--headless', '--disable-gpu']
+                })
+            })
+
+            it('should handle mixed scenarios with some overlapping and some unique keys', async () => {
+                const params: RemoteConfig = {
+                    hostname: 'localhost',
+                    port: 4444,
+                    path: '/',
+                    protocol: 'http',
+                    capabilities: {
+                        alwaysMatch: {
+                            browserName: 'chrome',
+                            platformName: 'linux',
+                            // @ts-expect-error test vendor cap
+                            'my:sharedOption': 'value'
+                        },
+                        firstMatch: [
+                            {
+                                browserName: 'chrome',
+                                // @ts-expect-error test vendor cap
+                                'my:uniqueOption': 'special'
+                            }
+                        ]
+                    }
+                }
+
+                await startWebDriverSession(params)
+
+                const body = mockedFetch.mock.calls[0]?.[1]?.body as string
+                expect(body).toBeTruthy()
+                const payload = JSON.parse(body)
+
+                // Non-conflicting keys should stay in alwaysMatch
+                expect(payload.capabilities.alwaysMatch.platformName).toBe('linux')
+                expect(payload.capabilities.alwaysMatch['my:sharedOption']).toBe('value')
+
+                // Duplicate key should be removed from firstMatch
+                expect(payload.capabilities.firstMatch[0].browserName).toBeUndefined()
+
+                // Unique keys in firstMatch should remain
+                expect(payload.capabilities.firstMatch[0]['my:uniqueOption']).toBe('special')
+            })
+
+            it('should handle empty firstMatch array', async () => {
+                const params: RemoteConfig = {
+                    hostname: 'localhost',
+                    port: 4444,
+                    path: '/',
+                    protocol: 'http',
+                    capabilities: {
+                        alwaysMatch: {
+                            browserName: 'chrome'
+                        },
+                        firstMatch: []
+                    }
+                }
+
+                await startWebDriverSession(params)
+
+                const body = mockedFetch.mock.calls[0]?.[1]?.body as string
+                expect(body).toBeTruthy()
+                const payload = JSON.parse(body)
+
+                // alwaysMatch should remain unchanged
+                expect(payload.capabilities.alwaysMatch.browserName).toBe('chrome')
+                expect(payload.capabilities.firstMatch).toEqual([])
+            })
+
+            it('should handle vendor-specific capabilities when duplicated', async () => {
+                const params: RemoteConfig = {
+                    hostname: 'localhost',
+                    port: 4444,
+                    path: '/',
+                    protocol: 'http',
+                    capabilities: {
+                        alwaysMatch: {
+                            browserName: 'chrome',
+                            'sauce:options': {
+                                build: 'my-build'
+                            }
+                        },
+                        firstMatch: [
+                            {
+                                'sauce:options': {
+                                    build: 'my-build'
+                                }
+                            }
+                        ]
+                    }
+                }
+
+                await startWebDriverSession(params)
+
+                const body = mockedFetch.mock.calls[0]?.[1]?.body as string
+                expect(body).toBeTruthy()
+                const payload = JSON.parse(body)
+
+                // Vendor caps should stay in alwaysMatch (no conflict) and be removed from firstMatch
+                expect(payload.capabilities.alwaysMatch['sauce:options']).toEqual({
+                    build: 'my-build'
+                })
+                expect(payload.capabilities.firstMatch[0]['sauce:options']).toBeUndefined()
+            })
+        })
     })
 
     describe('validateCapabilities', () => {

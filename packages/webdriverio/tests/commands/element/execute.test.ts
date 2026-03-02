@@ -43,7 +43,7 @@ describe('execute test', () => {
             "http://localhost:4321/session",
             "http://localhost:4321/session/foobar-123/element",
             "http://localhost:4321/session/foobar-123/elements",
-            "http://localhost:4321/session/foobar-123/element",
+            "http://localhost:4321/session/foobar-123/element/some-elem-123/name",
             "http://localhost:4321/session/foobar-123/execute/sync",
           ]
         `)

@@ -7,7 +7,19 @@ import { isUsingTailwindCSS, optimizeForTailwindCSS } from '../../../src/vite/fr
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 vi.mock('import-meta-resolve', () => ({
-    resolve: vi.fn().mockResolvedValue('tailwindcss')
+    resolve: vi.fn().mockImplementation((pkg) => {
+        if (pkg === '@tailwindcss/postcss') {
+            return Promise.resolve('@tailwindcss/postcss')
+        }
+        if (pkg === 'tailwindcss') {
+            return Promise.resolve('tailwindcss')
+        }
+        return Promise.reject(new Error(`Package ${pkg} not found`))
+    })
+}))
+
+vi.mock('@tailwindcss/postcss', () => ({
+    default: 'tailwindcss-postcss'
 }))
 
 vi.mock('tailwindcss', () => ({
@@ -19,6 +31,22 @@ test('isUsingTailwindCSS', async () => {
 })
 
 test('optimizeForTailwindCSS', async () => {
+    expect(await optimizeForTailwindCSS(path.resolve(__dirname, '__fixtures__'))).toEqual({
+        css: {
+            postcss: { plugins: ['tailwindcss-postcss'] }
+        }
+    })
+})
+
+test('optimizeForTailwindCSS falls back to legacy tailwindcss', async () => {
+    const { resolve } = await import('import-meta-resolve')
+    vi.mocked(resolve).mockImplementationOnce((pkg) => {
+        if (pkg === 'tailwindcss') {
+            return Promise.resolve('tailwindcss')
+        }
+        return Promise.reject(new Error(`Package ${pkg} not found`))
+    })
+
     expect(await optimizeForTailwindCSS(path.resolve(__dirname, '__fixtures__'))).toEqual({
         css: {
             postcss: { plugins: ['tailwindcss'] }

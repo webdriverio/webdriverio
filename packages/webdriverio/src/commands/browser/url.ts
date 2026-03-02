@@ -229,7 +229,9 @@ export async function url (
                 // Chrome error message
                 err.message.includes('navigation canceled by concurrent navigation') ||
                 // Firefox error message
-                err.message.includes('failed with error: unknown error')
+                err.message.includes('failed with error: unknown error') ||
+                // Race condition where the context is destroyed before navigation
+                err.message.includes('no such frame')
             ) {
                 return this.navigateTo(validateUrl(path))
             }

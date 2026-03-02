@@ -101,6 +101,7 @@ describe('getCookies', () => {
                     }
                 }]
             }) as any))
+            vi.spyOn(browser, 'getUrl').mockResolvedValue('https://webdriver.io')
         })
 
         beforeEach(() => {
@@ -111,7 +112,12 @@ describe('getCookies', () => {
         it('should return all cookies', async () => {
             const cookies = await browser.getCookies()
             expect(storageGetCookies).toBeCalledTimes(1)
-            expect(storageGetCookies).toBeCalledWith({})
+            expect(storageGetCookies).toBeCalledWith({
+                partition: {
+                    type: 'storageKey',
+                    sourceOrigin: 'https://webdriver.io'
+                }
+            })
             expect(cookies).toEqual([
                 {
                     name: 'cookie',

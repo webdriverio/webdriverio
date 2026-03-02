@@ -115,7 +115,6 @@ export class BrowserstackCLI {
         BStackLogger.debug(`start: startBinSession response=${JSON.stringify(response)}`)
         this.loadModules(response)
         this.isMainConnected = true
-
     }
 
     /**
@@ -211,11 +210,6 @@ export class BrowserstackCLI {
             env: process.env
         })
 
-        // Check if process started successfully
-        if (!this.process.pid) {
-            throw new Error('failed to start CLI, no PID found')
-        }
-
         // Return a promise that resolves when CLI is ready
         return new Promise<void>((resolve, reject) => {
             const cliOut: Record<string, string> = {}
@@ -302,6 +296,9 @@ export class BrowserstackCLI {
                         }
                     }, CLI_STOP_TIMEOUT)
                 })
+
+                this.isMainConnected = false
+                this.isChildConnected = false
             }
         } catch (error: unknown) {
             PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP, false, util.format(error))

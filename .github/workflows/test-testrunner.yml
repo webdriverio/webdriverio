@@ -17,7 +17,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: ⬇️ Checkout Code
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: 🧑‍🔧 Get Core Dependencies
         uses: ./.github/workflows/actions/get-core-dependencies
@@ -35,7 +35,7 @@ jobs:
           pnpm run test:e2e:classic
         shell: bash
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: failure()
         with:
           name: e2e-testrunner-tests-logs

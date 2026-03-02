@@ -34,51 +34,51 @@ export function testFailed() {
 
 export function testFailedWithMultipleErrors() {
     const errors =
-    [
-        {
-            message: 'ReferenceError: All is Dust',
-            stack: 'ReferenceError: All is Dust'
-        },
-        {
-            message: 'InternalError: Abandon Hope',
-            stack: 'InternalError: Abandon Hope'
-        }
-    ]
+        [
+            {
+                message: 'ReferenceError: All is Dust',
+                stack: 'ReferenceError: All is Dust'
+            },
+            {
+                message: 'InternalError: Abandon Hope',
+                stack: 'InternalError: Abandon Hope'
+            }
+        ]
     return Object.assign(testState(), { errors, state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
 }
 
 export function testFailedWithMultipleErrorsAndStacksNotContainingMessages() {
     const errors =
-    [
-        {
-            message: 'ReferenceError: All is Dust',
-            stack: 'stack trace of ReferenceError'
-        },
-        {
-            message: 'InternalError: Abandon Hope',
-            stack: 'stack trace of InternalError'
-        }
-    ]
+        [
+            {
+                message: 'ReferenceError: All is Dust',
+                stack: 'stack trace of ReferenceError'
+            },
+            {
+                message: 'InternalError: Abandon Hope',
+                stack: 'stack trace of InternalError'
+            }
+        ]
     return Object.assign(testState(), { errors, state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
 }
 
 export function testFailedWithAssertionErrorFromExpectWebdriverIO() {
     const errors =
-    [
-        {
-            message: 'Expect $(`login-app`).$(`<fn>`).$(`<fn>`).$(`<fn>`) to be displayed\n' +
+        [
+            {
+                message: 'Expect $(`login-app`).$(`<fn>`).$(`<fn>`).$(`<fn>`) to be displayed\n' +
             'Expected: \u001b[32m"displayed"\u001b[39m\n' +
             'Received: \u001b[31m"\u001b[7mnot \u001b[27mdisplayed"\u001b[39m',
-            stack: 'Error: Expect $(`content-production-app`).$(`<fn>`).$(`<fn>`).$(`<fn>`) to be displayed\n' +
+                stack: 'Error: Expect $(`content-production-app`).$(`<fn>`).$(`<fn>`).$(`<fn>`) to be displayed\n' +
             '\n' +
             'Expected: \u001b[32m"displayed"\u001b[39m\n' +
             'Received: \u001b[31m"\u001b[7mnot \u001b[27mdisplayed"\u001b[39m\n' +
             '    at World.<anonymous> (then.js:271:21)\n' +
             '    at World.executeSync (node_modules/@wdio/sync/build/index.js:56:18)\n' +
             '    at node_modules/@wdio/sync/build/index.js:82:70',
-            name: 'Error',
-        }
-    ]
+                name: 'Error',
+            }
+        ]
     const error =
         {
             message: 'Expect $(`login-app`).$(`<fn>`).$(`<fn>`).$(`<fn>`) to be displayed\n' +
@@ -98,19 +98,19 @@ export function testFailedWithAssertionErrorFromExpectWebdriverIO() {
 
 export function testFailedWithHtmlEntities() {
     const errors =
-    [
-        {
+        [
+            {
             // Example is borrowed from testing-library
-            message: `Found multiple elements with the role "list" and name \`/.*/\`·
+                message: `Found multiple elements with the role "list" and name \`/.*/\`·
 Here are the matching elements:·
 Ignored nodes: comments, script, style
 <ul
   class="some class"
 >`,
-            name: 'Error',
-            stack: '<span>some more html</span>'
-        }
-    ]
+                name: 'Error',
+                stack: '<span>some more html</span>'
+            }
+        ]
     const error =
         {
             message: `Found multiple elements with the role "list" and name \`/.*/\`·
@@ -164,11 +164,11 @@ export function hookPassed(): WDIOReporter.Hook {
 
 export function hookFailed(): WDIOReporter.Hook {
     const error =
-    {
-        message: 'element ("body") still existing after 100ms',
-        stack: 'Error: element ("body") still existing after 100ms',
-        type: 'Error',
-    }
+        {
+            message: 'element ("body") still existing after 100ms',
+            stack: 'Error: element ("body") still existing after 100ms',
+            type: 'Error',
+        }
     return Object.assign(allHookState(), { error, errors: [error], state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
 }
 

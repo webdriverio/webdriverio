@@ -54,11 +54,46 @@ export async function getCookies(
     }
 
     const cookieFilter = getCookieFilter(filter)
-    const { cookies } = await this.storageGetCookies({ filter: cookieFilter })
-    return cookies.map((cookie) => ({
-        ...cookie,
-        value: cookie.value.type === 'base64' ? atob(cookie.value.value) : cookie.value.value
-    }))
+
+    let url: URL
+    try {
+        url = new URL(await this.getUrl())
+        if (url.origin === 'null') {
+            return getCookiesClassic.call(this, filter)
+        }
+    } catch {
+        return getCookiesClassic.call(this, filter)
+    }
+
+    const params: remote.StorageGetCookiesParameters = {
+        partition: {
+            type: 'storageKey',
+            sourceOrigin: url.origin
+        }
+    }
+    if (typeof cookieFilter !== 'undefined') {
+        params.filter = cookieFilter
+    }
+
+    try {
+        const { cookies } = await this.storageGetCookies(params)
+
+        // Fallback to classic if BiDi returns empty (common in hybrid/guest modes)
+        if (cookies.length === 0) {
+            log.debug('BiDi getCookies returned empty, falling back to classic')
+            return getCookiesClassic.call(this, filter)
+        }
+
+        return cookies.map((cookie) => ({
+            ...cookie,
+            value: cookie.value.type === 'base64'
+                ? Buffer.from(cookie.value.value, 'base64').toString('utf-8')
+                : cookie.value.value
+        }))
+    } catch (err) {
+        log.warn(`BiDi getCookies failed, falling back to classic: ${(err as Error).message}`)
+        return getCookiesClassic.call(this, filter)
+    }
 }
 
 /**

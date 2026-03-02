@@ -91,6 +91,21 @@
     },
     {
       "type": "category",
+      "label": "DevTools",
+      "link": {
+        "type": "doc",
+        "id": "devtools"
+      },
+      "items": [
+        "devtools/interactive-test-rerunning",
+        "devtools/multi-framework-support",
+        "devtools/console-logs",
+        "devtools/network-logs",
+        "devtools/testlens"
+      ]
+    },
+    {
+      "type": "category",
       "label": "Desktop Testing",
       "items": [
         "desktop-testing/macos",
@@ -149,7 +164,8 @@
       "label": "Accessibility Testing",
       "items": [
         "accessibility-testing/axe-core",
-        "accessibility-testing/browserstack"
+        "accessibility-testing/browserstack",
+        "accessibility-testing/testmuai"
       ]
     },
     {
@@ -221,6 +237,20 @@
       "link": {
         "type": "doc",
         "id": "visual-testing"
+      }
+    },
+    {
+      "type": "category",
+      "label": "MCP",
+      "items": [
+        "mcp/tools",
+        "mcp/selectors",
+        "mcp/configuration",
+        "mcp/faq"
+      ],
+      "link": {
+        "type": "doc",
+        "id": "mcp"
       }
     },
     {

@@ -1,4 +1,4 @@
-import { multiremotebrowser as browser } from '@wdio/globals'
+import { multiRemoteBrowser as browser } from '@wdio/globals'
 import { Key } from 'webdriverio'
 
 let browserA: WebdriverIO.Browser
@@ -20,7 +20,7 @@ describe('multi remote test', () => {
         /**
          * Unfortunately we don't know which result is from which browser
          */
-        const results = (await browser.checkPWA() as any).map((result: { passed: boolean }) => result.passed)
+        const results = (await browser.checkPWA() as unknown as []).map((result: { passed: boolean }) => result.passed)
         expect(typeof results[0]).toBe('boolean')
         expect(typeof results[1]).toBe('boolean')
         expect(results[0] !== results[1]).toBeTruthy()

@@ -2,7 +2,7 @@
 import type { EventEmitter } from 'node:events'
 import type { remote, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, EventMap } from 'webdriver'
 import type { Capabilities, Options, ThenArg, CustomCommands } from '@wdio/types'
-import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
+import type { ElementReference, ProtocolCommands, RectReturn } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 
 import type { Dialog as DialogImport } from './session/dialog.js'
@@ -36,8 +36,14 @@ type ChainablePrototype = {
 }
 
 type AsyncElementProto = {
-    [K in keyof Omit<$ElementCommands, keyof ChainablePrototype>]: OmitThisParameter<$ElementCommands[K]>
-} & ChainablePrototype
+    [K in keyof Omit<$ElementCommands, keyof ChainablePrototype | 'getSize' | 'getLocation'>]: OmitThisParameter<$ElementCommands[K]>
+} & ChainablePrototype & {
+    // Fixed typings for getSize and getLocation since `OmitThisParameter` does not support overloads
+    getSize(prop: keyof RectReturn): Promise<number>
+    getSize(): Promise<ElementCommands.Size>
+    getLocation(prop: keyof ElementCommands.Location): Promise<number>
+    getLocation(): Promise<ElementCommands.Location>
+}
 
 interface ChainablePromiseBaseElement {
     /**

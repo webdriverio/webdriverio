@@ -3,17 +3,17 @@ id: integrate-with-smartui
 title: SmartUI
 ---
 
-LambdaTest [SmartUI](https://www.lambdatest.com/smart-visual-testing) provides AI-powered visual regression testing for your WebdriverIO tests. It captures screenshots, compares them against baselines, and highlights visual differences with intelligent comparison algorithms.
+TestMu AI (Formerly LambdaTest) [SmartUI](https://www.testmuai.com/support/docs/smart-visual-testing/) provides AI-powered visual regression testing for your WebdriverIO tests. It captures screenshots, compares them against baselines, and highlights visual differences with intelligent comparison algorithms.
 
 ## Setup
 
 **Create a SmartUI project**
 
-[Sign in](https://accounts.lambdatest.com/register) to LambdaTest and navigate to [SmartUI Projects](https://smartui.lambdatest.com/) to create a new project. Select **Web** as the platform and configure your project name, approvers, and tags.
+[Sign in](https://accounts.lambdatest.com/register) to TestMu AI (Formerly LambdaTest) and navigate to [SmartUI Projects](https://smartui.lambdatest.com/) to create a new project. Select **Web** as the platform and configure your project name, approvers, and tags.
 
 **Set up credentials**
 
-Get your `LT_USERNAME` and `LT_ACCESS_KEY` from the LambdaTest dashboard and set them as environment variables:
+Get your `LT_USERNAME` and `LT_ACCESS_KEY` from the TestMu AI (Formerly LambdaTest) dashboard and set them as environment variables:
 
 ```sh
 export LT_USERNAME="<your username>"
@@ -34,7 +34,7 @@ Update your `wdio.conf.js`:
 exports.config = {
   user: process.env.LT_USERNAME,
   key: process.env.LT_ACCESS_KEY,
-  
+
   capabilities: [{
     browserName: 'chrome',
     browserVersion: 'latest',
@@ -58,11 +58,11 @@ Use `browser.execute('smartui.takeScreenshot')` to capture screenshots:
 describe('WebdriverIO SmartUI Test', () => {
   it('should capture screenshot for visual testing', async () => {
     await browser.url('https://webdriver.io');
-    
+
     await browser.execute('smartui.takeScreenshot', {
       screenshotName: 'Homepage Screenshot'
     });
-    
+
     await browser.execute('smartui.takeScreenshot', {
       screenshotName: 'Homepage with Options',
       ignoreDOM: {
@@ -112,7 +112,7 @@ await browser.execute('smartui.takeScreenshot', {
 
 | Resource                                                                                          | Description                              |
 |---------------------------------------------------------------------------------------------------|------------------------------------------|
-| [Official Documentation](https://www.lambdatest.com/support/docs/smart-ui-cypress/)              | SmartUI Documentation                    |
+| [Official Documentation](https://www.testmuai.com/support/docs/smart-ui-cypress/)              | SmartUI Documentation                    |
 | [SmartUI Dashboard](https://smartui.lambdatest.com/)                                              | Access your SmartUI projects and builds  |
-| [Advanced Settings](https://www.lambdatest.com/support/docs/test-settings-options/)              | Configure comparison sensitivity         |
-| [Build Options](https://www.lambdatest.com/support/docs/smart-ui-build-options/)                 | Advanced build configuration             |
+| [Advanced Settings](https://www.testmuai.com/support/docs/test-settings-options/)              | Configure comparison sensitivity         |
+| [Build Options](https://www.testmuai.com/support/docs/smart-ui-build-options/)                 | Advanced build configuration             |

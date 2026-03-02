@@ -128,9 +128,9 @@ We recommend defining custom logic in [page objects](pageobjects), so they are b
 This example shows how to add a new command for multiremote.
 
 ```js
-import { multiremotebrowser } from '@wdio/globals'
+import { multiRemoteBrowser } from '@wdio/globals'
 
-multiremotebrowser.addCommand('getUrlAndTitle', async function (this: WebdriverIO.MultiRemoteBrowser, customVar: any) {
+multiRemoteBrowser.addCommand('getUrlAndTitle', async function (this: WebdriverIO.MultiRemoteBrowser, customVar: any) {
     // `this` refers to:
     //      - MultiRemoteBrowser scope for browser
     //      - Browser scope for instances
@@ -141,7 +141,7 @@ multiremotebrowser.addCommand('getUrlAndTitle', async function (this: WebdriverI
     }
 })
 
-multiremotebrowser.getUrlAndTitle()
+multiRemoteBrowser.getUrlAndTitle()
 /*
 {
     url: [ 'https://webdriver.io/', 'https://webdriver.io/' ],
@@ -153,7 +153,7 @@ multiremotebrowser.getUrlAndTitle()
 }
 */
 
-multiremotebrowser.getInstance('browserA').getUrlAndTitle()
+multiRemoteBrowser.getInstance('browserA').getUrlAndTitle()
 /*
 {
     url: 'https://webdriver.io/',
@@ -292,7 +292,7 @@ The overall approach is similar to `addCommand`, the only difference is that the
 ```js
 /**
  * Print milliseconds before pause and return its value.
- * 
+ *
  * @param pause - name of command to be overwritten
  * @param this of func - the original browser instance on which the function was called
  * @param originalPauseFunction of func - the original pause function

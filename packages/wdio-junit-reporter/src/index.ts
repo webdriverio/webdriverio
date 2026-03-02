@@ -339,8 +339,13 @@ class JunitReporter extends WDIOReporter {
              * would generate two <testsuite>.
              */
             if (!isCucumberFrameworkRunner || (isCucumberFrameworkRunner && type === 'feature')) {
-                const testCase = builder.testSuite().testCase().className('').name('')
-                return this.runnerStat?.error ? testCase.failure(this.runnerStat.error) : testCase.skipped()
+                // Only create a test case if there was an actual error
+                // When no tests match filters (e.g., Cucumber tags), we should not report any tests
+                if (this.runnerStat?.error) {
+                    const testCase = builder.testSuite().testCase().className('').name('')
+                    return testCase.failure(this.runnerStat.error)
+                }
+                return builder
             }
         }
 

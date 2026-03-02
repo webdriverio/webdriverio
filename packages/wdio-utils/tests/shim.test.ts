@@ -117,6 +117,30 @@ describe('executeAsync', () => {
         expect(result).to.equal('Success')
     })
 
+    it('should keep the provided timeout for follow-up retries', async () => {
+        vi.useFakeTimers()
+
+        try {
+            let attempts = 0
+            const retryFunction = () => {
+                attempts++
+                if (attempts === 1) {
+                    return Promise.reject(new Error('Failed'))
+                }
+                return new Promise((resolve) => setTimeout(() => resolve('Success'), 25000))
+            }
+
+            const resultPromise = executeAsync.call({}, retryFunction, { attempts: 0, limit: 1 }, [], 60000)
+            await vi.advanceTimersByTimeAsync(0)
+            await vi.advanceTimersByTimeAsync(25000)
+
+            await expect(resultPromise).resolves.toEqual('Success')
+            expect(attempts).toBe(2)
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+
     it('should handle errors during execution', async () => {
         const fn = () => Promise.reject(new Error('Execution Error'))
         const result = await executeAsync.call({}, fn, { attempts: 1, limit: 1 }, [], 200).catch((err) => err.message)

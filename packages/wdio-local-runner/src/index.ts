@@ -112,6 +112,9 @@ export default class LocalRunner {
     async shutdown() {
         log.info('Shutting down spawned worker')
 
+        // Track workers that need potential forced termination
+        const workersToShutdown: [string, WorkerInstance][] = []
+
         for (const [cid, worker] of Object.entries(this.workerPool)) {
             const {
                 capabilities,
@@ -140,11 +143,30 @@ export default class LocalRunner {
                 continue
             }
 
+            // Track this worker for potential forced shutdown
+            if (worker.isBusy) {
+                workersToShutdown.push([cid, worker])
+            }
+
             await worker.postMessage('endSession', payload)
         }
 
         const shutdownResult = await new Promise<boolean>((resolve) => {
-            const timeout = setTimeout(resolve, SHUTDOWN_TIMEOUT)
+            const timeout = setTimeout(() => {
+                /**
+                 * Force kill any workers that are still busy after timeout.
+                 * This prevents async operations (like polling loops) from
+                 * polluting subsequent test runs.
+                 * @see https://github.com/webdriverio/webdriverio/discussions/14686
+                 */
+                for (const [cid, worker] of workersToShutdown) {
+                    if (worker.isBusy && !worker.isKilled) {
+                        log.warn(`Worker ${cid} did not shut down gracefully, force killing with SIGKILL`)
+                        worker.kill('SIGKILL')
+                    }
+                }
+                resolve(false)
+            }, SHUTDOWN_TIMEOUT)
             const interval = setInterval(() => {
                 const busyWorker = Object.entries(this.workerPool).filter(
                     ([, worker]) => worker.isBusy

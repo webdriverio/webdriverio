@@ -101,6 +101,7 @@ describe('setCookies', () => {
 
             storageSetCookie =  vi.spyOn(browser, 'storageSetCookie')
             storageSetCookie.mockImplementation((() => {}) as any)
+            vi.spyOn(browser, 'getUrl').mockResolvedValue('https://webdriver.io')
         })
 
         beforeEach(() => {
@@ -118,6 +119,10 @@ describe('setCookies', () => {
                         type: 'string',
                         value: cookie1.value
                     }
+                },
+                partition: {
+                    type: 'storageKey',
+                    sourceOrigin: 'https://webdriver.io'
                 }
             })
         })
@@ -133,6 +138,10 @@ describe('setCookies', () => {
                         type: 'string',
                         value: cookie1.value
                     }
+                },
+                partition: {
+                    type: 'storageKey',
+                    sourceOrigin: 'https://webdriver.io'
                 }
             })
         })

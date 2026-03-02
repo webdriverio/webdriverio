@@ -48,7 +48,7 @@
 
 ***
 
-WebdriverIO is a test automation framework, for e2e as well as unit and component testing in the browser, that allows you to run tests based on the [WebDriver](https://w3c.github.io/webdriver/webdriver-spec.html) and [WebDriver BiDi](https://github.com/w3c/webdriver-bidi) as well as [Appium](https://appium.io/) automation technology. It provides support for your favorite BDD/TDD test framework and will run your tests locally or in the cloud using Sauce Labs, BrowserStack, TestingBot or LambdaTest.
+WebdriverIO is a test automation framework, for e2e as well as unit and component testing in the browser, that allows you to run tests based on the [WebDriver](https://w3c.github.io/webdriver/webdriver-spec.html) and [WebDriver BiDi](https://github.com/w3c/webdriver-bidi) as well as [Appium](https://appium.io/) automation technology. It provides support for your favorite BDD/TDD test framework and will run your tests locally or in the cloud using Sauce Labs, BrowserStack, TestingBot or TestMu AI (Formerly LambdaTest).
 
 ## :woman_technologist: :man_technologist: Contributing
 Do you like WebdriverIO and want to help make it better? Awesome! Have a look into our [Contributor Documentation](CONTRIBUTING.md) to get started and find out what contributions can be and how to make them.

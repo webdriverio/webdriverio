@@ -38,6 +38,37 @@ Boilerplate project to run WebdriverIO tests on a minimal Electron application.
 - Features
     - Electron API mocking
 
+## [syamphaneendra/webdriverio9-boilerplate](https://github.com/syamphaneendra/webdriverio9-boilerplate)
+
+This boilerplate project has WebdriverIO 9 mobile tests with Cucumber, TypeScript, and Appium for Android and iOS platforms, following the Page Object Model pattern. Features comprehensive logging, reporting, mobile gestures, app-to-web navigation, and CI/CD integration.
+
+- Frameworks:
+    - WebdriverIO v9
+    - Cucumber v9
+    - Appium v2.5
+    - TypeScript v5
+
+- Features:
+    - Multi-platform support
+      - Android (UiAutomator2)
+      - iOS (XCUITest)
+    - Mobile Gestures
+      - Scroll
+      - Swipe
+      - Long press
+      - Hide keyboard
+    - App-to-Web Navigation
+      - Context switching
+      - WebView support
+      - Browser automation (Chrome/Safari)
+    - Fresh App State
+      - Automatic app reset between scenarios
+      - Configurable reset behavior (noReset, fullReset)
+    - Device Configuration
+      - Centralized device management
+      - Easy platform switching
+    - Example of Directory Structure for JavaScript / TypeScript. Below is for JS version, TS version has smae structure as well.
+
 ## [amiya-pattnaik/wdio-testgen-from-gherkin-js](https://github.com/amiya-pattnaik/wdio-testgen-from-gherkin-js)
 ## [amiya-pattnaik/wdio-testgen-from-gherkin-ts](https://github.com/amiya-pattnaik/wdio-testgen-from-gherkin-ts)
 Automatically generate WebdriverIO Page Object classes and Mocha test specs from Gherkin .feature files — reducing manual effort, improving consistency, and speeding up QA automation. This project not only produces codes compatible with webdriver.io but also enhances all functionalities of webdriver.io. We have created two flavours one for JavaScript uses and other for TypeScript users. But both project works in the smae way.
@@ -63,7 +94,7 @@ Automatically generate WebdriverIO Page Object classes and Mocha test specs 
 project-root/
 ├── features/                   # Gherkin .feature files (user input / source file)
 ├── stepMaps/                   # Auto-generated .stepMap.json files
-├── test/                 
+├── test/
 │   ├── pageobjects/            # Auto-generated WebdriverIO tests Page Object Model classes
 │   └── specs/                  # Auto-generated Mocha test specs
 ├── src/
@@ -88,12 +119,12 @@ project-root/
     - Page Objects Model uses with ES6 /ES7 style class base approach and TypeScript support
     - Examples of multi selector option to query element with more than one selector at a time
     - Examples of multi browser and headless browser execution using - Chrome and Firefox
-    - Cloud testing Integration with BrowserStack, Sauce Labs, LambdaTest
+    - Cloud testing Integration with BrowserStack, Sauce Labs, TestMu AI (Formerly LambdaTest)
     - Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
     - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
     - Multiple reporting (Spec, Xunit/Junit, Allure, JSON) and Hosting Allure and Xunit/Junit reporting on WebServer.
     - Examples with demo app https://search.yahoo.com/  and http://the-internet.herokuapp.com.
-    - BrowserStack, Sauce Labs, LambdaTest and Appium specific `.config` file (for playback on mobile device). For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+    - BrowserStack, Sauce Labs, TestMu AI (Formerly LambdaTest) and Appium specific `.config` file (for playback on mobile device). For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
 
@@ -102,11 +133,11 @@ project-root/
     -  Page Objects Model uses with ES6 /ES7 style class base approach and TypeScript support
     -  Examples with demo app https://search.yahoo.com  and http://the-internet.herokuapp.com
     -  Examples of multi browser and headless browser execution using - Chrome and Firefox
-    -  Cloud testing Integration with BrowserStack, Sauce Labs, LambdaTest
+    -  Cloud testing Integration with BrowserStack, Sauce Labs, TestMu AI (Formerly LambdaTest)
     -  Multiple reporting (Spec, Xunit/Junit, Allure, JSON) and Hosting Allure and Xunit/Junit reporting on WebServer.
     -  Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
     -  Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set etc. with examples for E2E testing
-    -  BrowserStack, Sauce Labs, LambdaTest and Appium specific `.config` file (for playback on mobile device). For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+    -  BrowserStack, Sauce Labs, TestMu AI (Formerly LambdaTest) and Appium specific `.config` file (for playback on mobile device). For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
 
@@ -115,11 +146,11 @@ project-root/
     -  Page Objects Model uses with ES6 /ES7 style class base approach and TypeScript support
     -  Examples with demo app https://search.yahoo.com  and http://the-internet.herokuapp.com
     -  Examples of multi browser and headless browser execution using - Chrome and Firefox
-    -  Cloud testing Integration with BrowserStack, Sauce Labs, LambdaTest
+    -  Cloud testing Integration with BrowserStack, Sauce Labs, TestMu AI (Formerly LambdaTest)
     -  Multiple reporting (Spec, Xunit/Junit, Allure, JSON) and Hosting Allure and Xunit/Junit reporting on WebServer.
     -  Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
     -  Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set etc. with examples for E2E testing
-    -  BrowserStack, Sauce Labs, LambdaTest and Appium specific `.config` file ( for playback on mobile device). For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+    -  BrowserStack, Sauce Labs, TestMu AI (Formerly LambdaTest) and Appium specific `.config` file ( for playback on mobile device). For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [syamphaneendra/webdriverio-web-mobile-boilerplate](https://github.com/syamphaneendra/webdriverio-web-mobile-boilerplate)
 

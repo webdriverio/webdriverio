@@ -797,8 +797,6 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             reporter.onHookStart(cucumberHelper.hookStart())
             reporter.onHookEnd(cucumberHelper.hookEnd())
             reporter.onTestStart(cucumberHelper.test3Start())
-            reporter.onBeforeCommand(commandStart())
-            reporter.onAfterCommand(commandEnd())
             reporter.onTestPass(cucumberHelper.testPass())
             reporter.onHookStart(cucumberHelper.hookStart())
             reporter.addAttachment(attachmentHelper.xmlAttachment())
@@ -821,10 +819,16 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             clean(outputDir)
         })
 
-        it('should add data table as attachment to test-case', () => {
-            const testCaseStep = allureResult.steps.find((step) => step.name !== 'Hook')
+        it('should add data table as attachment to step', () => {
+            const testCaseStep = allureResult.steps.find((step: any) => step.name === 'I check something')
             expect(testCaseStep).toBeDefined()
-            expect(Array.isArray(testCaseStep!.attachments)).toBe(true)
+            expect(testCaseStep!.attachments).toHaveLength(1)
+            expect(testCaseStep!.attachments[0].name).toBe('Data Table')
+        })
+
+        it('should not add data table as attachment to test-case', () => {
+            const dataTableAttachment = allureResult.attachments.find((attachment: any) => attachment.name === 'Data Table')
+            expect(dataTableAttachment).toBeUndefined()
         })
     })
 

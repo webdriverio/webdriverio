@@ -46,7 +46,7 @@ async function bar() {
     const location = await mElem.getLocation('x')
     expectType<number[]>(location)
 
-    const url = await multiremotebrowser.getUrl()
+    const url = await multiRemoteBrowser.getUrl()
     expectType<string[]>(url)
 
     multiremote({
@@ -216,7 +216,7 @@ async function bar() {
         left: 5,
         right: 5,
         shrinkToFit: true,
-        pageRanges: [{}]
+        pageRanges: ['1', 2]
     })
 
     await browser.savePDF('./packages/bar.pdf')

@@ -68,10 +68,10 @@ describe('saveScreenshot', () => {
         const expectedError =
 
         // no file
-        await expect(
+            await expect(
             // @ts-ignore test invalid parameter
-            browser.saveScreenshot()
-        ).rejects.toEqual(new Error('saveScreenshot expects a filepath of type string and ".png" file ending'))
+                browser.saveScreenshot()
+            ).rejects.toEqual(new Error('saveScreenshot expects a filepath of type string and ".png" file ending'))
 
         // wrong extension
         await expect(

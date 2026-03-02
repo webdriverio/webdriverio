@@ -12,6 +12,8 @@ import type { Options } from '@wdio/types'
 import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
 import { getBrowserStackUserAndKey, isBrowserstackInfra } from './util.js'
 import type { BrowserstackOptions } from './types.js'
+import PerformanceTester from './instrumentation/performance/performance-tester.js'
+import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 
 class AiHandler {
     authResult: BrowserstackHealing.InitSuccessResponse | BrowserstackHealing.InitErrorResponse
@@ -88,18 +90,26 @@ class AiHandler {
             }
             if (options.selfHeal === true && this.authResult.isHealingEnabled) {
                 BStackLogger.info('findElement failed, trying to heal')
+                PerformanceTester.start(PERFORMANCE_SDK_EVENTS.AI_EVENTS.SELF_HEAL_STEP)
                 const script = await aiSDK.BrowserstackHealing.healFailure(locatorType, locatorValue, undefined, undefined, this.authResult.userId, this.authResult.groupId, sessionId, undefined, undefined, this.authResult.isGroupAIEnabled, tcgDetails)
                 if (script) {
                     await browser.execute(script)
+                    PerformanceTester.start(PERFORMANCE_SDK_EVENTS.AI_EVENTS.SELF_HEAL_GET_RESULT)
                     const tcgData = await aiSDK.BrowserstackHealing.pollResult(TCG_URL, sessionId, this.authResult.sessionToken)
+                    PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AI_EVENTS.SELF_HEAL_GET_RESULT)
                     if (tcgData && tcgData.selector && tcgData.value){
                         const healedResult = await orginalFunc(tcgData.selector, tcgData.value)
                         BStackLogger.info('Healing worked, element found: ' + tcgData.selector + ': ' + tcgData.value)
+                        PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AI_EVENTS.SELF_HEAL_STEP)
                         return healedResult.error ? result : healedResult
                     }
+                    PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AI_EVENTS.SELF_HEAL_STEP, false, 'No healed result found')
+                } else {
+                    PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AI_EVENTS.SELF_HEAL_STEP, false, 'No healing script generated')
                 }
             }
         } catch (err) {
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AI_EVENTS.SELF_HEAL_STEP, false, String(err))
             if (options.selfHeal === true) {
                 BStackLogger.warn('Something went wrong while healing. Disabling healing for this command')
             } else {

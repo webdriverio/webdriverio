@@ -361,6 +361,9 @@ export async function executeAsync(
 ): Promise<unknown> {
     this.wdioRetries = retries.attempts
 
+    let done = false
+    let timer: ReturnType<typeof setTimeout> | undefined
+
     try {
         /**
          * To prevent test failures due to timeout exceptions in Jasmine from overwriting test objects with subsequent values,
@@ -376,11 +379,10 @@ export async function executeAsync(
         /**
          * Executes the function with specified timeout and returns the result, or throws an error if the timeout is exceeded.
          */
-        let done = false
         const result = await Promise.race([
             fn.apply(this, args),
             new Promise<void>((resolve, reject) => {
-                setTimeout(() => {
+                timer = setTimeout(() => {
                     if (done) {
                         resolve()
                     } else {
@@ -390,6 +392,9 @@ export async function executeAsync(
             })
         ])
         done = true
+        if (timer) {
+            clearTimeout(timer)
+        }
 
         if (result !== null && typeof result === 'object' && 'finally' in result && typeof result.finally === 'function') {
             result.catch((err: unknown) => err)
@@ -397,9 +402,16 @@ export async function executeAsync(
 
         return await result
     } catch (err) {
+        done = true
+        /**
+         * ensure we don't leak the timeout timer into follow-up retries
+         */
+        if (timer) {
+            clearTimeout(timer)
+        }
         if (retries.limit > retries.attempts) {
             retries.attempts++
-            return await executeAsync.call(this, fn, retries, args)
+            return await executeAsync.call(this, fn, retries, args, timeout)
         }
 
         throw err
