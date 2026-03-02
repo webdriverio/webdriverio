@@ -584,16 +584,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         try {
             BStackLogger.debug('Inside OnComplete hook..')
-
             BStackLogger.debug('Sending stop launch event')
-            await (BrowserstackCLI.getInstance().isRunning() ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
-
-            if ((process.env[BROWSERSTACK_OBSERVABILITY]) && process.env[BROWSERSTACK_TESTHUB_UUID]) {
-                console.log(`\nVisit https://automation.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
-            }
-            this.browserStackConfig.testObservability.buildStopped = true
-            BStackLogger.debug('Sending stop launch event')
-
             try {
                 await (BrowserstackCLI.getInstance().isRunning() ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
                 PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.STOP)

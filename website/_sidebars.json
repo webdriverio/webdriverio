@@ -91,6 +91,21 @@
     },
     {
       "type": "category",
+      "label": "DevTools",
+      "link": {
+        "type": "doc",
+        "id": "devtools"
+      },
+      "items": [
+        "devtools/interactive-test-rerunning",
+        "devtools/multi-framework-support",
+        "devtools/console-logs",
+        "devtools/network-logs",
+        "devtools/testlens"
+      ]
+    },
+    {
+      "type": "category",
       "label": "Desktop Testing",
       "items": [
         "desktop-testing/macos",
