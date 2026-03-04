@@ -1,6 +1,6 @@
 import { expectTypeOf, describe, it } from 'vitest'
 import { $ } from '@wdio/globals'
-import type { RectReturn } from '@wdio/protocols'
+import type { RectReturn, ElementReference } from '@wdio/protocols'
 
 describe('WebdriverIO commands', async () => {
     const chainableEl = $('foo')
@@ -46,5 +46,12 @@ describe('WebdriverIO commands', async () => {
 
     it('getElementProperty', async () => {
         expectTypeOf(await el.getElementProperty(el.elementId, 'tagName')).toEqualTypeOf<unknown>()
+    })
+
+    it('getActiveElement should be compatible with $ (issue #15118)', async () => {
+        const activeEl = await browser.getActiveElement()
+        expectTypeOf(activeEl).toEqualTypeOf<ElementReference>()
+        const chainableElFromActive = $(activeEl)
+        expectTypeOf(chainableElFromActive).toEqualTypeOf(chainableEl)
     })
 })
