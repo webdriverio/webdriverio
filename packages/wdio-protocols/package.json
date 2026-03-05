@@ -6,6 +6,9 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "types": "./build/index.d.ts",
   "exports": {
     ".": {

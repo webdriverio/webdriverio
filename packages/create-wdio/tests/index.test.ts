@@ -75,7 +75,7 @@ test('does not run if Node.js version is too low', async () => {
     const op = vi.fn().mockResolvedValue({})
     await run(op)
     expect(op).toBeCalledTimes(0)
-    expect(consoleLog).toBeCalledWith(expect.stringContaining('Please update to Node.js v20 to continue.'))
+    expect(consoleLog).toBeCalledWith(expect.stringContaining('Please update to Node.js v22 to continue.'))
 })
 
 test('createWebdriverIO with Yarn', async () => {

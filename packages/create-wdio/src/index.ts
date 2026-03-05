@@ -31,7 +31,7 @@ export async function run(operation = createWebdriverIO) {
     /**
      * ensure right Node.js version is used
      */
-    const unsupportedNodeVersion = !semver.satisfies(process.version, '>=18.18.0')
+    const unsupportedNodeVersion = !semver.satisfies(process.version, '>=22')
     if (unsupportedNodeVersion) {
         console.log(chalk.yellow(UNSUPPORTED_NODE_VERSION))
         return

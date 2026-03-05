@@ -9,7 +9,7 @@ import { setupDriver, setupBrowser } from '@wdio/utils/node'
 import type { Capabilities, Services } from '@wdio/types'
 
 import CLInterface from './interface.js'
-import { runLauncherHook, runOnCompleteHook, runServiceHook, nodeVersion, type HookError } from './utils.js'
+import { runLauncherHook, runOnCompleteHook, runServiceHook, type HookError } from './utils.js'
 import { TESTRUNNER_DEFAULTS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
 import type { RunCommandArguments } from './types.js'
 const log = logger('@wdio/cli:launcher')
@@ -184,15 +184,7 @@ class Launcher {
          */
         const tsxPath = resolve('tsx', import.meta.url)
         if (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes(tsxPath)) {
-            /**
-             * The `--import` flag is only available in Node 20.6.0 / 18.19.0 and later.
-             * This switching can be removed once the minimum supported version of Node exceeds 20.6.0 / 18.19.0
-             * see https://nodejs.org/api/module.html#customization-hooks and https://tsx.is/dev-api/node-cli#module-mode-only
-             */
-            const moduleLoaderFlag = nodeVersion('major') >= 21 ||
-                (nodeVersion('major') === 20 && nodeVersion('minor') >= 6) ||
-                (nodeVersion('major') === 18 && nodeVersion('minor') >= 19) ? '--import' : '--loader'
-            process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS || ''} ${moduleLoaderFlag} ${tsxPath}`
+            process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS || ''} --import ${tsxPath}`
         }
 
         /**

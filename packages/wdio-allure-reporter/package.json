@@ -33,10 +33,10 @@
   },
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=22"
   },
   "dependencies": {
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.0.0",
     "@wdio/reporter": "workspace:*",
     "@wdio/types": "workspace:*",
     "allure-js-commons": "^3.3.2",

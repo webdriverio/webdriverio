@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browserstack-service",
   "license": "MIT",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=22"
   },
   "repository": {
     "type": "git",
@@ -62,7 +62,7 @@
     "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0 || ^9.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.0.0",
     "@types/tar": "^6.1.13",
     "@types/yauzl": "^2.10.3",
     "@wdio/globals": "workspace:*"
