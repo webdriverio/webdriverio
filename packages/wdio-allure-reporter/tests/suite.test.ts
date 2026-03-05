@@ -586,6 +586,40 @@ describe('Hook reporting', () => {
 
         expect(results).toHaveLength(1)
         expect(results[0].name).toEqual('"before all" hook for "should login with valid credentials"')
+        expect(results[0].status).toEqual(Status.BROKEN)
+        expect(results[0].stage).toEqual(Stage.FINISHED)
+    })
+
+    it('should keep before all hook steps on hook failure', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        const runnerEvent = runnerStart()
+
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onHookStart(hookStart())
+        reporter.addStep({ step: { title: 'Login as Admin', status: Status.PASSED } })
+        reporter.onHookEnd(hookFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results, containers } = getResults(outputDir)
+        expect(results).toHaveLength(1)
+        expect(results[0].status).toEqual(Status.BROKEN)
+        expect(results[0].stage).toEqual(Stage.FINISHED)
+
+        const beforeFixtures = containers.flatMap((container: any) =>
+            Array.isArray(container.befores) ? container.befores : []
+        )
+        const hookFixtureWithStep = beforeFixtures.find((fixture: any) =>
+            fixture.name === '"before all" hook for "should login with valid credentials"' &&
+            fixture.steps?.some((step: any) => step.name === 'Login as Admin')
+        )
+
+        expect(hookFixtureWithStep).toBeDefined()
+        expect(hookFixtureWithStep.statusDetails.message).toEqual('element ("body") still existing after 100ms')
     })
 
     it('should report failed before each hook', async () => {
