@@ -193,7 +193,7 @@ export default class AccessibilityModule extends BaseModule {
             const suiteTitle = (typeof args.suiteTitle === 'string' ? args.suiteTitle : '') || ''
             const test = (args.test && typeof args.test === 'object' ? args.test as { title?: string } : {}) || {}
 
-            this.currentTestName = suiteTitle
+            this.currentTestName = test.title || null
             const autoInstance: AutomationFrameworkInstance = AutomationFramework.getTrackedInstance()
             const testInstance: TestFrameworkInstance = TestFramework.getTrackedInstance()
 
