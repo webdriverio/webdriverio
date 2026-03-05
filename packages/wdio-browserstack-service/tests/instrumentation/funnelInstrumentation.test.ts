@@ -48,7 +48,8 @@ const expectedEventData = {
             'app_automate': false
         },
         product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility']),
-        framework: 'framework'
+        framework: 'framework',
+        isCLIEnabled: false
     }
 }
 
@@ -111,7 +112,8 @@ describe('funnelInstrumentation', () => {
                     productUsage: expect.objectContaining({
                         testObservability: expect.any(Object)
                     }),
-                    framework: 'framework'
+                    framework: 'framework',
+                    isCLIEnabled: false
                 },
             }
 
@@ -122,12 +124,52 @@ describe('funnelInstrumentation', () => {
                 password: finishConfig.accessKey,
                 json: finishExpectedEventData }))
         })
+
+        it('includes isCLIEnabled=true in event_properties when explicitly passed', async () => {
+            await sendFinish(config as any, true)
+            expect(got.post).toHaveBeenCalledWith(FUNNEL_INSTRUMENTATION_URL, expect.objectContaining({
+                json: expect.objectContaining({
+                    event_properties: expect.objectContaining({
+                        isCLIEnabled: true
+                    })
+                })
+            }))
+        })
+
+        it('defaults isCLIEnabled to false in event_properties when not provided', async () => {
+            await sendFinish(config as any)
+            expect(got.post).toHaveBeenCalledWith(FUNNEL_INSTRUMENTATION_URL, expect.objectContaining({
+                json: expect.objectContaining({
+                    event_properties: expect.objectContaining({
+                        isCLIEnabled: false
+                    })
+                })
+            }))
+        })
     })
 
     it('saveFunnelData writes data to file and returns file path', () => {
         BStackLogger.ensureLogsFolder = vi.fn()
         vi.spyOn(fs, 'writeFileSync').mockImplementationOnce(() => {})
         const filePath = FunnelTestEvent.saveFunnelData('SDKTestSuccessful', config as any)
+        expect(fs.writeFileSync).toHaveBeenCalledWith(filePath, expect.any(String))
+    })
+
+    it('saveFunnelData writes isCLIEnabled=true when explicitly passed', () => {
+        BStackLogger.ensureLogsFolder = vi.fn()
+        vi.spyOn(fs, 'writeFileSync').mockImplementationOnce(() => {})
+        const filePath = FunnelTestEvent.saveFunnelData('SDKTestSuccessful', config as any, true)
+        const writtenData = JSON.parse((fs.writeFileSync as any).mock.calls[0][1])
+        expect(writtenData.event_properties.isCLIEnabled).toBe(true)
+        expect(fs.writeFileSync).toHaveBeenCalledWith(filePath, expect.any(String))
+    })
+
+    it('saveFunnelData defaults isCLIEnabled to false when not provided', () => {
+        BStackLogger.ensureLogsFolder = vi.fn()
+        vi.spyOn(fs, 'writeFileSync').mockImplementationOnce(() => {})
+        const filePath = FunnelTestEvent.saveFunnelData('SDKTestSuccessful', config as any)
+        const writtenData = JSON.parse((fs.writeFileSync as any).mock.calls[0][1])
+        expect(writtenData.event_properties.isCLIEnabled).toBe(false)
         expect(fs.writeFileSync).toHaveBeenCalledWith(filePath, expect.any(String))
     })
 
@@ -180,7 +222,8 @@ describe('funnelInstrumentation', () => {
                             'app_automate': false
                         },
                         product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility']),
-                        framework: 'framework'
+                        framework: 'framework',
+                        isCLIEnabled: false
                     }
                 }
             }))
@@ -216,7 +259,8 @@ describe('funnelInstrumentation', () => {
                             'app_automate': false
                         },
                         product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility']),
-                        framework: 'framework'
+                        framework: 'framework',
+                        isCLIEnabled: false
                     }
                 }
             }))
@@ -261,7 +305,8 @@ describe('funnelInstrumentation', () => {
                             'app_automate': false
                         },
                         product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility']),
-                        framework: 'framework'
+                        framework: 'framework',
+                        isCLIEnabled: false
                     }
                 }
             }))
@@ -302,7 +347,8 @@ describe('funnelInstrumentation', () => {
                             'app_automate': false
                         },
                         product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility']),
-                        framework: 'framework'
+                        framework: 'framework',
+                        isCLIEnabled: false
                     }
                 }
             }))
@@ -346,7 +392,8 @@ describe('funnelInstrumentation', () => {
                             'app_automate': false
                         },
                         product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility']),
-                        framework: 'framework'
+                        framework: 'framework',
+                        isCLIEnabled: false
                     }
                 }
             }))
