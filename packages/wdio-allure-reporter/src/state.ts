@@ -318,6 +318,16 @@ export class AllureReportState {
                     this._isCapturingPendingHook = false
                     continue
                 }
+                if (this._fixturesStack.length === 0 && this._pendingHookMessages.length > 0 && !this.currentFeature) {
+                    this._pendingHookMessages.push(message)
+                    this._isCapturingPendingHook = false
+                    const testName = this._currentTestName ?? 'unknown test'
+                    await this._attachPendingHookToCurrentTest('before', testName, '')
+                    await this._attachPendingHookToCurrentTest('before', testName, 'each')
+                    await this._attachPendingHookToCurrentTest('after', testName, 'each')
+                    await this._attachPendingHookToCurrentTest('after', testName, '')
+                    continue
+                }
                 await this._endHook(message)
                 continue
 
@@ -381,7 +391,6 @@ export class AllureReportState {
         }
 
         const startMsg = this._pendingHookMessages[startIdx] as WDIOHookStartMessage
-        const endMsg = this._pendingHookMessages[endIdx] as WDIOHookEndMessage
 
         await this._startHook({
             type: 'allure:hook:start',
@@ -409,8 +418,8 @@ export class AllureReportState {
             }
         }
 
+        const endMsg = this._pendingHookMessages[endIdx] as WDIOHookEndMessage
         await this._endHook(endMsg)
-
         this._pendingHookMessages.splice(startIdx, (endIdx - startIdx) + 1)
     }
 }
