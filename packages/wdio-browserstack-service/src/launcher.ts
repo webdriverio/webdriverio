@@ -558,11 +558,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
             BStackLogger.debug('Sending stop launch event')
 
+            const isCLIEnabled = BrowserstackCLI.getInstance().isRunning()
             try {
-                await (BrowserstackCLI.getInstance().isRunning() ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
+                await (isCLIEnabled ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
                 PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.STOP)
             } catch (err) {
-                BStackLogger.error(`Error while stoping CLI ${err}`)
+                BStackLogger.error(`Error while stopping CLI ${err}`)
                 PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.STOP, false, util.format(err))
             }
             if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
@@ -583,7 +584,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             }
 
             BStackLogger.info(`BrowserStack service run ended for id: ${this.browserStackConfig?.sdkRunID} testhub id: ${TestOpsConfig.getInstance()?.buildHashedId}`)
-            await sendFinish(this.browserStackConfig)
+            await sendFinish(this.browserStackConfig, isCLIEnabled)
             try {
                 PerformanceTester.start(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_SEND_LOGS)
                 await this._uploadServiceLogs()
