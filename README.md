@@ -186,7 +186,7 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 <p align="center">
     <a href="https://testingbot.com/"><img src="https://webdriver.io/img/sponsors/testingbot.svg" width="250" alt="TestingBot" /></a>
     &nbsp; &nbsp; &nbsp;
-    <a href="https://www.sap.com/"><img src="https://webdriver.io/img/sponsors/sap_black.svg" width="250" alt="SAP" /></a>
+    <a href="https://www.sap.com/"><img src="https://webdriver.io/img/sponsors/sap.png" width="250" alt="SAP" /></a>
 </p>
 
 ### 🥉 Bronze Sponsor

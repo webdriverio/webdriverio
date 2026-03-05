@@ -98,8 +98,8 @@ Become a [Gold Sponsor](https://opencollective.com/webdriverio/contribute/gold-s
 />
 
 <ImageSwitcher
-    lightImageSrc="/img/sponsors/sap_black.svg"
-    darkImageSrc="/img/sponsors/sap_white.svg"
+    lightImageSrc="/img/sponsors/sap.png"
+    darkImageSrc="/img/sponsors/sap.png"
     alt="SAP"
     link="https://www.sap.com/"
     width="150"
