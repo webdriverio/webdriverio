@@ -63,7 +63,7 @@ export const PROGRAM_TITLE = `
 export const UNSUPPORTED_NODE_VERSION = (
     '⚠️  Unsupported Node.js Version Error ⚠️\n' +
     `You are using Node.js ${process.version} which is too old to be used with WebdriverIO.\n` +
-    'Please update to Node.js v20 to continue.\n'
+    'WebdriverIO v10 requires Node.js v22 or later. Please update to Node.js v22 to continue.\n'
 )
 
 export const INSTALL_COMMAND: Record<PACKAGE_MANAGER, string> = {

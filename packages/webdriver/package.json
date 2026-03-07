@@ -22,7 +22,7 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=22"
   },
   "repository": {
     "type": "git",
@@ -36,7 +36,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.0.0",
     "@types/ws": "^8.5.3",
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",

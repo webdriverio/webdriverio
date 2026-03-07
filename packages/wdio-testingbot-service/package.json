@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service",
   "license": "MIT",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=22"
   },
   "repository": {
     "type": "git",
@@ -38,7 +38,7 @@
     "webdriverio": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.0.0",
     "@wdio/globals": "workspace:*"
   },
   "publishConfig": {

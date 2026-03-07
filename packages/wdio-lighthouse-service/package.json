@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-lighthouse-service",
   "license": "MIT",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=22"
   },
   "repository": {
     "type": "git",
@@ -42,7 +42,7 @@
   "dependencies": {
     "@babel/core": "^7.18.0",
     "@tracerbench/trace-event": "^8.0.0",
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.0.0",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "babel-plugin-istanbul": "^7.0.0",

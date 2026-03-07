@@ -14,7 +14,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=22"
   },
   "tags": [
     "webdriver",
@@ -75,7 +75,7 @@
     "safe-stable-stringify": "^2.4.3"
   },
   "dependencies": {
-    "@types/node": "^20.11.30",
+    "@types/node": "^22.0.0",
     "@types/sinonjs__fake-timers": "^8.1.5",
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",
