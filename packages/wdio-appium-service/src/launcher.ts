@@ -18,6 +18,8 @@ import { isAppiumCapability } from '@wdio/utils'
 import { getFilePath, formatCliArgs } from './utils.js'
 import type { AppiumServerArguments, AppiumServiceConfig } from './types.js'
 import treeKill from 'tree-kill'
+import { aggregateSelectorPerformanceData } from './mobileSelectorPerformanceOptimizer/aggregator.js'
+import { determineReportDirectory } from './mobileSelectorPerformanceOptimizer/utils/index.js'
 
 const log = logger('@wdio/appium-service')
 const DEFAULT_APPIUM_PORT = 4723
@@ -186,8 +188,32 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     }
 
     private promisifiedTreeKill = promisify<number, string>(treeKill)
-    async onComplete() {
+    async onComplete(exitCode: number, config: Options.Testrunner, capabilities: Capabilities.TestrunnerCapabilities) {
         this._isShuttingDown = true
+
+        const trackConfig = this._options.trackSelectorPerformance
+        if (trackConfig && typeof trackConfig === 'object' && !Array.isArray(trackConfig)) {
+            try {
+                const reportDirectory = determineReportDirectory(
+                    trackConfig.reportPath,
+                    this._config,
+                    this._options
+                )
+                const maxLineLength = trackConfig.maxLineLength || 100
+                const enableCliReport = trackConfig.enableCliReport === true
+                const enableMarkdownReport = trackConfig.enableMarkdownReport === true
+                await aggregateSelectorPerformanceData(
+                    capabilities,
+                    maxLineLength,
+                    undefined,
+                    reportDirectory,
+                    { enableCliReport, enableMarkdownReport }
+                )
+            } catch (err) {
+                log.error('Failed to aggregate selector performance data:', err)
+            }
+        }
+
         /**
          * Kill appium and all process' spawned from it
          */

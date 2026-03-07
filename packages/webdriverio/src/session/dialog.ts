@@ -65,8 +65,11 @@ export class DialogManager extends SessionManager {
                     context: log.context
                 })
             } catch (err) {
-                // ignore error if dialog is already closed
-                if (err instanceof Error && err.message.includes('no such alert')) {
+                // ignore race conditions when the dialog/context is gone before auto-dismiss runs
+                if (
+                    err instanceof Error &&
+                    (err.message.includes('no such alert') || err.message.includes('no such frame'))
+                ) {
                     return
                 }
                 throw err

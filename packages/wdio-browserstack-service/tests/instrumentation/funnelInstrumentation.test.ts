@@ -44,7 +44,8 @@ const expectedEventData = {
             'app_automate': false
         },
         product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility']),
-        framework: 'framework'
+        framework: 'framework',
+        isCLIEnabled: false
     }
 }
 
@@ -117,6 +118,22 @@ describe('funnelInstrumentation', () => {
                 body: expect.any(String) // TODO: find a way to match exact
             }))
         })
+
+        it('includes isCLIEnabled=true in event_properties when explicitly passed', async () => {
+            mockedFetch.mockReturnValueOnce(Promise.resolve(Response.json({})))
+            await sendFinish(config as any, true)
+            const [[, { body }]] = mockedFetch.mock.calls
+            const parsedBody = JSON.parse(body as string)
+            expect(parsedBody.event_properties.isCLIEnabled).toBe(true)
+        })
+
+        it('defaults isCLIEnabled to false in event_properties when not provided', async () => {
+            mockedFetch.mockReturnValueOnce(Promise.resolve(Response.json({})))
+            await sendFinish(config as any)
+            const [[, { body }]] = mockedFetch.mock.calls
+            const parsedBody = JSON.parse(body as string)
+            expect(parsedBody.event_properties.isCLIEnabled).toBe(false)
+        })
     })
 
     it('saveFunnelData writes data to file and returns file path', () => {
@@ -124,6 +141,24 @@ describe('funnelInstrumentation', () => {
         vi.spyOn(fs, 'writeFileSync').mockImplementationOnce(() => {})
         const filePath = FunnelTestEvent.saveFunnelData('SDKTestSuccessful', config as any)
         expect(fs.writeFileSync).toHaveBeenCalledWith(filePath, expect.any(String))
+    })
+
+    it('saveFunnelData writes isCLIEnabled=true in event_properties when explicitly passed', () => {
+        BStackLogger.ensureLogsFolder = vi.fn()
+        let writtenData = ''
+        vi.spyOn(fs, 'writeFileSync').mockImplementationOnce((_path, data) => { writtenData = data as string })
+        FunnelTestEvent.saveFunnelData('SDKTestSuccessful', config as any, true)
+        const parsed = JSON.parse(writtenData)
+        expect(parsed.event_properties.isCLIEnabled).toBe(true)
+    })
+
+    it('saveFunnelData defaults isCLIEnabled to false in event_properties when not provided', () => {
+        BStackLogger.ensureLogsFolder = vi.fn()
+        let writtenData = ''
+        vi.spyOn(fs, 'writeFileSync').mockImplementationOnce((_path, data) => { writtenData = data as string })
+        FunnelTestEvent.saveFunnelData('SDKTestSuccessful', config as any)
+        const parsed = JSON.parse(writtenData)
+        expect(parsed.event_properties.isCLIEnabled).toBe(false)
     })
 
     it('fireFunnelRequest sends request with correct data', async () => {

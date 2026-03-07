@@ -8,7 +8,7 @@
  *   npm install -g assemblyscript
  *   asc add.ts -o add.wasm
  */
-// eslint-disable-next-line no-undef
+// @ts-expect-error
 export function add(a: i32, b: i32): i32 {
     return a + b
 }

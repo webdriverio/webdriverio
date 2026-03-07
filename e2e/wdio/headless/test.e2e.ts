@@ -521,6 +521,10 @@ describe('main suite 1', () => {
             await browser.switchToWindow(allHandles[0])
         }
 
+        afterEach(async () => {
+            await closeAllWindowsButFirst()
+        })
+
         it('should allow user to switch between contexts', async () => {
             await browser.url('https://guinea-pig.webdriver.io/')
 
@@ -570,12 +574,12 @@ describe('main suite 1', () => {
             const elementalSeleniumLink = await $('/html/body/div[3]/div/div/a')
             await elementalSeleniumLink.waitForDisplayed()
             await elementalSeleniumLink.click()
-            await browser.waitUntil(async () => (await browser.getWindowHandles()).length === 3)
+            await browser.waitUntil(async () => (await browser.getWindowHandles()).length === 2)
             await browser.switchWindow('https://elementalselenium.com/')
             await $('#__docusaurus_skipToContent_fallback').waitForDisplayed()
             await browser.closeWindow()
             await $('#__docusaurus_skipToContent_fallback').waitForDisplayed({ reverse: true })
-            await browser.waitUntil(async () => (await browser.getWindowHandles()).length === 2)
+            await browser.waitUntil(async () => (await browser.getWindowHandles()).length === 1)
             await browser.switchWindow('https://the-internet.herokuapp.com/iframe')
         })
     })
