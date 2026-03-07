@@ -33,6 +33,7 @@
     "@wdio/cucumber-framework": "workspace:*",
     "@wdio/jasmine-framework": "workspace:*",
     "@wdio/mocha-framework": "workspace:*",
+    "@wdio/vitest-framework": "workspace:*",
     "@wdio/smoke-test-reporter": "workspace:*",
     "@wdio/smoke-test-service": "workspace:*",
     "@wdio/smoke-test-cjs-service": "workspace:*",
