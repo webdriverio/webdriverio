@@ -2,13 +2,22 @@ import url from 'node:url'
 import type { EventEmitter } from 'node:events'
 
 import logger from '@wdio/logger'
-import { executeHooksWithArgs, wrapGlobalTestMethod } from '@wdio/utils'
+import { executeHooksWithArgs } from '@wdio/utils'
 import type { Services } from '@wdio/types'
-import { startTests } from '@vitest/runner'
+import {
+    startTests,
+    describe as vitestDescribe,
+    it as vitestIt,
+    test as vitestTest,
+    suite as vitestSuite,
+    beforeAll as vitestBeforeAll,
+    afterAll as vitestAfterAll,
+    beforeEach as vitestBeforeEach,
+    afterEach as vitestAfterEach,
+} from '@vitest/runner'
 import type { VitestRunnerConfig } from '@vitest/runner'
 
 import { WDIOVitestRunner } from './runner.js'
-import { INTERFACES, TEST_INTERFACES } from './constants.js'
 import type { VitestOpts, FrameworkMessage } from './types.js'
 
 const log = logger('@wdio/vitest-framework')
@@ -60,7 +69,13 @@ class VitestAdapter {
             runnerConfig,
             this._cid,
             this._specs,
-            this._reporter
+            this._reporter,
+            {
+                beforeTest: this._config.beforeTest,
+                afterTest: this._config.afterTest,
+                beforeHook: this._config.beforeHook,
+                afterHook: this._config.afterHook,
+            }
         )
 
         this._setupGlobalTestMethods()
@@ -170,26 +185,17 @@ class VitestAdapter {
     }
 
     private _setupGlobalTestMethods(): void {
-        const { beforeTest, beforeHook, afterTest, afterHook } = this._config
-
-        const hookArgsFn = (context: unknown) => {
-            return [context]
-        }
-
-        INTERFACES.forEach((fnName: string) => {
-            const isTest = (TEST_INTERFACES as readonly string[]).includes(fnName)
-            wrapGlobalTestMethod(
-                isTest,
-                isTest ? beforeTest as Function : beforeHook as Function,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                hookArgsFn as any,
-                isTest ? afterTest as Function : afterHook as Function,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                hookArgsFn as any,
-                fnName,
-                this._cid
-            )
-        })
+        const g = globalThis as Record<string, unknown>
+        g.describe = vitestDescribe
+        g.it = vitestIt
+        g.test = vitestTest
+        g.suite = vitestSuite
+        g.beforeAll = vitestBeforeAll
+        g.afterAll = vitestAfterAll
+        g.beforeEach = vitestBeforeEach
+        g.afterEach = vitestAfterEach
+        g.before = vitestBeforeAll
+        g.after = vitestAfterAll
     }
 
     async _loadFiles(_vitestOpts: VitestOpts): Promise<void> {

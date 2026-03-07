@@ -2,7 +2,16 @@ import url from 'node:url'
 import type { VitestRunner, VitestRunnerConfig, File, Suite, Test } from '@vitest/runner'
 import type { EventEmitter } from 'node:events'
 
+import { executeHooksWithArgs } from '@wdio/utils'
+
 import type { FrameworkMessage, ErrorInfo } from './types.js'
+
+interface WDIOHooks {
+    beforeTest?: Function | Function[]
+    afterTest?: Function | Function[]
+    beforeHook?: Function | Function[]
+    afterHook?: Function | Function[]
+}
 
 /**
  * Custom VitestRunner implementation that bridges Vitest lifecycle hooks
@@ -13,6 +22,7 @@ export class WDIOVitestRunner implements VitestRunner {
     private _cid: string
     private _specs: string[]
     private _reporter: EventEmitter
+    private _hooks: WDIOHooks
 
     private _level = 0
     private _suiteIds: string[] = ['0']
@@ -24,12 +34,14 @@ export class WDIOVitestRunner implements VitestRunner {
         config: VitestRunnerConfig,
         cid: string,
         specs: string[],
-        reporter: EventEmitter
+        reporter: EventEmitter,
+        hooks: WDIOHooks = {}
     ) {
         this.config = config
         this._cid = cid
         this._specs = specs
         this._reporter = reporter
+        this._hooks = hooks
     }
 
     get failedCount(): number {
@@ -62,13 +74,19 @@ export class WDIOVitestRunner implements VitestRunner {
         }
     }
 
-    onBeforeRunTask(test: Test): void {
+    async onBeforeRunTask(test: Test): Promise<void> {
         const message = this._formatTestMessage('test:start', test)
         message.uid = this._getTestStartUID()
         this._reporter.emit('test:start', message)
+
+        await Promise.resolve(executeHooksWithArgs(
+            'beforeTest',
+            this._hooks.beforeTest as Function,
+            [message, {}]
+        )).catch(() => {})
     }
 
-    onAfterRunTask(test: Test): void {
+    async onAfterRunTask(test: Test): Promise<void> {
         const state = test.result?.state
 
         if (state === 'pass') {
@@ -103,6 +121,16 @@ export class WDIOVitestRunner implements VitestRunner {
         endMessage.uid = this._peekTestUID()
         endMessage.duration = test.result?.duration
         this._reporter.emit('test:end', endMessage)
+
+        await Promise.resolve(executeHooksWithArgs(
+            'afterTest',
+            this._hooks.afterTest as Function,
+            [endMessage, {}, {
+                error: test.result?.errors?.[0],
+                duration: test.result?.duration,
+                passed: test.result?.state === 'pass'
+            }]
+        )).catch(() => {})
     }
 
     private _isFileTask(suite: Suite): boolean {

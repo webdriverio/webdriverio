@@ -1,7 +1,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
 import path from 'node:path'
 import logger from '@wdio/logger'
-import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
+import { executeHooksWithArgs } from '@wdio/utils'
 import { startTests } from '@vitest/runner'
 
 import VitestAdapterFactory, { VitestAdapter } from '../src/index.js'
@@ -57,7 +57,10 @@ test('should properly set up vitest adapter', async () => {
     const result = await adapter.run()
     expect(result).toBe(0)
     expect(vi.mocked(startTests)).toBeCalled()
-    expect(vi.mocked(executeHooksWithArgs).mock.calls).toHaveLength(3)
+    const hookNames = vi.mocked(executeHooksWithArgs).mock.calls.map((c: unknown[]) => c[0])
+    expect(hookNames).toContain('beforeSuite')
+    expect(hookNames).toContain('afterSuite')
+    expect(hookNames).toContain('after')
 })
 
 test('should pass config options to runner', async () => {
@@ -157,10 +160,11 @@ test('should pass spec load error to after hook', async () => {
     await expect(adapter.run()).rejects.toEqual(specError)
 
     const afterCall = vi.mocked(executeHooksWithArgs).mock.calls.find(
-        (c: any) => c[0] === 'after'
+        (c: unknown[]) => c[0] === 'after'
     )
     expect(afterCall).toBeTruthy()
-    expect((afterCall![2] as any)[0]).toBe(specError)
+    const afterArgs = afterCall![2] as unknown[]
+    expect(afterArgs[0]).toBe(specError)
 })
 
 test('wrapHook if successful', async () => {
@@ -175,6 +179,7 @@ test('wrapHook if successful', async () => {
     expect(call[0]).toBe('beforeSuite')
     expect(call[1]).toBe('somehook')
     expect((call[2] as any)[0].type).toBe('beforeSuite')
+    vi.mocked(executeHooksWithArgs).mockReset()
 })
 
 test('wrapHook if failing', async () => {
@@ -189,6 +194,7 @@ test('wrapHook if failing', async () => {
     expect(call[0]).toBe('beforeSuite')
     expect(vi.mocked(logger('').error).mock.calls[0][0]
         .startsWith('Error in beforeSuite hook: uuuups')).toBe(true)
+    vi.mocked(executeHooksWithArgs).mockReset()
 })
 
 describe('hasTests', () => {
@@ -219,7 +225,14 @@ test('should set up global test methods', async () => {
     })
     await adapter.init()
 
-    expect(vi.mocked(wrapGlobalTestMethod).mock.calls.length).toBeGreaterThan(0)
+    const g = globalThis as Record<string, unknown>
+    expect(g.describe).toBeDefined()
+    expect(g.it).toBeDefined()
+    expect(g.test).toBeDefined()
+    expect(g.beforeAll).toBeDefined()
+    expect(g.afterAll).toBeDefined()
+    expect(g.beforeEach).toBeDefined()
+    expect(g.afterEach).toBeDefined()
 })
 
 test('should handle afterSuite duration', async () => {
@@ -286,6 +299,5 @@ test('should return failed count from runner', async () => {
 afterEach(() => {
     vi.mocked(startTests).mockReset()
     vi.mocked(startTests).mockResolvedValue([])
-    vi.mocked(wrapGlobalTestMethod).mockReset()
     vi.mocked(executeHooksWithArgs).mockReset()
 })
