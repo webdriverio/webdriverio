@@ -52,7 +52,7 @@
     "gitconfiglocal": "^2.1.0",
     "glob": "^11.0.0",
     "tar": "^7.5.7",
-    "undici": "^6.21.3",
+    "undici": "^7.18.2",
     "uuid": "^11.1.0",
     "webdriverio": "workspace:*",
     "winston-transport": "^4.5.0",
