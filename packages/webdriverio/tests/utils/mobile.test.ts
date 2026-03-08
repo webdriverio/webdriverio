@@ -1,6 +1,54 @@
-import { describe, it, expect } from 'vitest'
-import { calculateAndroidPinchAndZoomSpeed, getMobileContext, getNativeContext, validatePinchAndZoomOptions } from '../../src/utils/mobile.js'
+import path from 'node:path'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import logger from '@wdio/logger'
+import { calculateAndroidPinchAndZoomSpeed, getMobileContext, getNativeContext, isUnknownMethodError, logAppiumDeprecationWarning, validatePinchAndZoomOptions } from '../../src/utils/mobile.js'
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+const log = logger('test')
 import type { PinchAndZoomOptions } from '../../src/types.js'
+
+describe('isUnknownMethodError', () => {
+    it('returns true for "unknown method" errors', () => {
+        expect(isUnknownMethodError(new Error('unknown method: mobile: lock'))).toBe(true)
+    })
+
+    it('returns true for "unknown command" errors', () => {
+        expect(isUnknownMethodError(new Error('unknown command'))).toBe(true)
+    })
+
+    it('is case-insensitive', () => {
+        expect(isUnknownMethodError(new Error('Unknown Method: something'))).toBe(true)
+        expect(isUnknownMethodError(new Error('UNKNOWN COMMAND'))).toBe(true)
+    })
+
+    it('returns false for unrelated errors', () => {
+        expect(isUnknownMethodError(new Error('device disconnected'))).toBe(false)
+        expect(isUnknownMethodError(new Error('invalid argument'))).toBe(false)
+    })
+
+    it('returns false for non-Error values', () => {
+        expect(isUnknownMethodError('some string')).toBe(false)
+        expect(isUnknownMethodError(null)).toBe(false)
+        expect(isUnknownMethodError(undefined)).toBe(false)
+        expect(isUnknownMethodError(42)).toBe(false)
+    })
+})
+
+describe('logAppiumDeprecationWarning', () => {
+    beforeEach(() => {
+        log.warn = vi.fn()
+    })
+
+    it('logs a warning containing the mobile command name', () => {
+        logAppiumDeprecationWarning('mobile: lock', '/appium/device/lock')
+        expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: lock'))
+    })
+
+    it('logs a warning containing the protocol endpoint', () => {
+        logAppiumDeprecationWarning('mobile: lock', '/appium/device/lock')
+        expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('/appium/device/lock'))
+    })
+})
 
 describe('getNativeContext', () => {
     it('should return false if capabilities are missing', () => {

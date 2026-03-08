@@ -1,6 +1,4 @@
-import logger from '@wdio/logger'
-
-const log = logger('webdriver')
+import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
 
 /**
  *
@@ -47,24 +45,7 @@ export async function lock(
             throw err
         }
 
-        log.warn(
-            'The `mobile: lock` execute method is not supported by your Appium driver. ' +
-            'Falling back to the deprecated `/appium/device/lock` protocol endpoint. ' +
-            'Please upgrade your Appium driver to a version that supports `mobile: lock`.'
-        )
+        logAppiumDeprecationWarning('mobile: lock', '/appium/device/lock')
         return browser.appiumLock(seconds)
     }
-}
-
-/**
- * Returns true if the error indicates that the driver does not know about the
- * requested `mobile:` execute method (old Appium 2 driver). Any other error
- * (wrong params, device disconnected, etc.) is re-thrown by the caller.
- */
-function isUnknownMethodError(err: unknown): boolean {
-    if (!(err instanceof Error)) {
-        return false
-    }
-    const msg = err.message.toLowerCase()
-    return msg.includes('unknown method') || msg.includes('unknown command')
 }
