@@ -679,8 +679,9 @@ export default {
     },
     '/session/:sessionId/appium/device/app_state': {
         POST: {
-            command: 'queryAppState',
-            description: 'Get the given app status on the device',
+            command: 'appiumQueryAppState',
+            description: 'This is the raw Appium protocol endpoint. Prefer the `queryAppState` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers. Get the given app status on the device',
+            deprecated: 'Use the `queryAppState` mobile command (`driver.queryAppState()`) instead',
             ref: 'https://appium.io/docs/en/latest/reference/api/appium/#queryappstate',
             parameters: [
                 {
