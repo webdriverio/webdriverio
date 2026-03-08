@@ -263,7 +263,9 @@ describe('getContexts test', () => {
             } as any
         })
         const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(androidChromeInternalContexts)
-        const currentPackageSpy = vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.wdiodemoapp')
+        // TODO: update to use `getCurrentPackage` mobile command once implemented
+        const currentPackageSpy = // TODO: update to use `getCurrentPackage` mobile command once implemented
+            vi.spyOn(browser, 'appiumGetCurrentPackage').mockResolvedValue('com.wdiodemoapp')
         const contexts = await browser.getContexts({ returnDetailedContexts: true })
 
         expect(executeSpy).toHaveBeenCalledTimes(1)
@@ -281,7 +283,9 @@ describe('getContexts test', () => {
             } as any
         })
         const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(androidChromeInternalContexts)
-        const currentPackageSpy = vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.wdiodemoapp')
+        // TODO: update to use `getCurrentPackage` mobile command once implemented
+        const currentPackageSpy = // TODO: update to use `getCurrentPackage` mobile command once implemented
+            vi.spyOn(browser, 'appiumGetCurrentPackage').mockResolvedValue('com.wdiodemoapp')
         const contexts = await browser.getContexts({
             returnAndroidDescriptionData: true,
             returnDetailedContexts: true,
@@ -302,7 +306,9 @@ describe('getContexts test', () => {
             } as any
         })
         const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(androidChromeInternalContexts)
-        const currentPackageSpy = vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.wdiodemoapp')
+        // TODO: update to use `getCurrentPackage` mobile command once implemented
+        const currentPackageSpy = // TODO: update to use `getCurrentPackage` mobile command once implemented
+            vi.spyOn(browser, 'appiumGetCurrentPackage').mockResolvedValue('com.wdiodemoapp')
         const contexts = await browser.getContexts({
             filterByCurrentAndroidApp: true,
             returnDetailedContexts: true,
@@ -323,7 +329,9 @@ describe('getContexts test', () => {
             } as any
         })
         const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(androidChromeInternalContexts)
-        const currentPackageSpy = vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.wdiodemoapp')
+        // TODO: update to use `getCurrentPackage` mobile command once implemented
+        const currentPackageSpy = // TODO: update to use `getCurrentPackage` mobile command once implemented
+            vi.spyOn(browser, 'appiumGetCurrentPackage').mockResolvedValue('com.wdiodemoapp')
         const contexts = await browser.getContexts({
             isAndroidWebviewVisible: true,
             returnDetailedContexts: true,
@@ -344,7 +352,9 @@ describe('getContexts test', () => {
             } as any
         })
         const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(androidChromeInternalContexts)
-        const currentPackageSpy = vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.wdiodemoapp')
+        // TODO: update to use `getCurrentPackage` mobile command once implemented
+        const currentPackageSpy = // TODO: update to use `getCurrentPackage` mobile command once implemented
+            vi.spyOn(browser, 'appiumGetCurrentPackage').mockResolvedValue('com.wdiodemoapp')
         const contexts = await browser.getContexts({
             isAndroidWebviewVisible: false,
             returnDetailedContexts: true,
@@ -365,7 +375,9 @@ describe('getContexts test', () => {
             } as any
         })
         const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(androidChromeInternalContexts)
-        const currentPackageSpy = vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.wdiodemoapp')
+        // TODO: update to use `getCurrentPackage` mobile command once implemented
+        const currentPackageSpy = // TODO: update to use `getCurrentPackage` mobile command once implemented
+            vi.spyOn(browser, 'appiumGetCurrentPackage').mockResolvedValue('com.wdiodemoapp')
         const contexts = await browser.getContexts({
             isAndroidWebviewVisible: false,
             returnAndroidDescriptionData: true,
@@ -397,7 +409,9 @@ describe('getContexts test', () => {
             } as any
         })
         const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(androidChromeInternalContexts)
-        const currentPackageSpy = vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.nonMatchingApp')
+        // TODO: update to use `getCurrentPackage` mobile command once implemented
+        const currentPackageSpy = // TODO: update to use `getCurrentPackage` mobile command once implemented
+            vi.spyOn(browser, 'appiumGetCurrentPackage').mockResolvedValue('com.nonMatchingApp')
         await expect(browser.getContexts({
             // Reduce the timeout to speed up the test
             androidWebviewConnectTimeout: 5,
@@ -421,7 +435,9 @@ describe('getContexts test', () => {
             } as any
         })
         const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue([androidChromeInternalContexts[0], androidChromeInternalContexts[androidChromeInternalContexts.length - 1]])
-        const currentPackageSpy = vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.no.webviews')
+        // TODO: update to use `getCurrentPackage` mobile command once implemented
+        const currentPackageSpy = // TODO: update to use `getCurrentPackage` mobile command once implemented
+            vi.spyOn(browser, 'appiumGetCurrentPackage').mockResolvedValue('com.no.webviews')
         await expect(browser.getContexts({
             // Reduce the timeout to speed up the test
             androidWebviewConnectTimeout: 5,
@@ -484,7 +500,8 @@ describe('getContexts test', () => {
         ]
 
         vi.spyOn(browser, 'execute').mockResolvedValue(espressoLikeContexts as any)
-        vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.ismobile.android.blaandroid')
+        // TODO: update to use `getCurrentPackage` mobile command once implemented
+        vi.spyOn(browser, 'appiumGetCurrentPackage').mockResolvedValue('com.ismobile.android.blaandroid')
 
         const contexts = await browser.getContexts({
             androidWebviewConnectTimeout: 50,

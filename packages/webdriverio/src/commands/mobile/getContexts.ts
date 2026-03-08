@@ -407,7 +407,8 @@ async function getCurrentContexts({
 
     // For Android we need to wait for the webview to contain pages, so we need to do a few checks
     // 1. Get the package name of the app we are testing
-    const packageName = await browser.getCurrentPackage()
+    // TODO: update to use the `getCurrentPackage` mobile command once implemented
+    const packageName = await browser.appiumGetCurrentPackage()
     const startTime = Date.now()
     const retryInterval = androidWebviewConnectionRetryTime
     let isPackageNameMissing = false

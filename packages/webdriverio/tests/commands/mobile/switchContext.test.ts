@@ -170,7 +170,8 @@ describe('switchContext test', () => {
             } as any
         })
         const getContextsSpy = vi.spyOn(browser, 'getContexts').mockResolvedValue(androidContexts)
-        const getCurrentPackageSpy = vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.wdiodemoapp')
+        // TODO: update to use `getCurrentPackage` mobile command once implemented
+        const getCurrentPackageSpy = vi.spyOn(browser, 'appiumGetCurrentPackage').mockResolvedValue('com.wdiodemoapp')
         const switchAppiumContextSpy = vi.spyOn(browser, 'switchAppiumContext')
         const switchToWindowSpy = vi.spyOn(browser, 'switchToWindow')
 
@@ -261,7 +262,8 @@ describe('switchContext test', () => {
             } as any
         })
         const getContextsSpy = vi.spyOn(browser, 'getContexts').mockResolvedValue(androidContexts)
-        const getCurrentPackageSpy = vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.foo')
+        // TODO: update to use `getCurrentPackage` mobile command once implemented
+        const getCurrentPackageSpy = vi.spyOn(browser, 'appiumGetCurrentPackage').mockResolvedValue('com.foo')
         const switchAppiumContextSpy = vi.spyOn(browser, 'switchAppiumContext')
 
         await expect(browser.switchContext({ url: 'https://no-matching-url.io' })).rejects.toThrowErrorMatchingSnapshot()
@@ -281,7 +283,8 @@ describe('switchContext test', () => {
             } as any
         })
         const getContextsSpy = vi.spyOn(browser, 'getContexts').mockResolvedValue(androidContexts)
-        const getCurrentPackageSpy = vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.foo')
+        // TODO: update to use `getCurrentPackage` mobile command once implemented
+        const getCurrentPackageSpy = vi.spyOn(browser, 'appiumGetCurrentPackage').mockResolvedValue('com.foo')
         const switchAppiumContextSpy = vi.spyOn(browser, 'switchAppiumContext')
 
         await expect(browser.switchContext({

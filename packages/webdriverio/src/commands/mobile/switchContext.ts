@@ -187,7 +187,8 @@ async function switchToContext(
         identifier = options.appIdentifier
     } else {
         // @ts-expect-error
-        identifier = browser.isIOS ? (await browser.execute('mobile: activeAppInfo'))?.bundleId : await browser.getCurrentPackage()
+        // TODO: update to use the `getCurrentPackage` mobile command once implemented
+        identifier = browser.isIOS ? (await browser.execute('mobile: activeAppInfo'))?.bundleId : await browser.appiumGetCurrentPackage()
     }
     const { matchingContext, reasons } = findMatchingContext({ browser, contexts, identifier, ...(options?.title && { title: options.title }), ...(options?.url && { url: options.url }) })
 
