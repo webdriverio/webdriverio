@@ -41,8 +41,8 @@ export function setupExitHandlers() {
                         cliProcess.kill('SIGTERM')
                         BStackLogger.debug('CLI process terminated successfully with SIGTERM (Windows)')
                     } else {
-                        cliProcess.kill('SIGKILL')
-                        BStackLogger.debug('CLI process terminated successfully with SIGKILL (Unix)')
+                        cliProcess.kill('SIGINT')
+                        BStackLogger.debug('CLI process terminated successfully with SIGINT (Unix)')
                     }
                 } catch (processError) {
                     BStackLogger.debug(`CLI process termination error: ${processError}`)
