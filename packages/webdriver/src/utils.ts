@@ -9,6 +9,7 @@ import {
 } from '@wdio/protocols'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options } from '@wdio/types'
+import type { ClientOptions } from 'ws'
 
 import command from './command.js'
 import { environment } from './environment.js'
@@ -455,6 +456,20 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
     return err.message
 }
 
+export function getBidiRequestOptions (
+    strictSSL: boolean = true,
+    headers?: Record<string, string>
+): ClientOptions {
+    const bidiReqOpts: ClientOptions = { followRedirects: true }
+    if (!strictSSL) {
+        bidiReqOpts.rejectUnauthorized = false
+    }
+    if (headers) {
+        bidiReqOpts.headers = headers
+    }
+    return bidiReqOpts
+}
+
 /**
  * Enhance the monad with WebDriver Bidi primitives if a connection can be established successfully
  * @param socketUrl url to bidi interface
@@ -485,10 +500,7 @@ export function initiateBidi (
     }
 
     socketUrl = socketUrl.replace('localhost', '127.0.0.1')
-    const bidiReqOpts: { rejectUnauthorized?: boolean, headers?: Record<string, string> } = strictSSL ? {} : { rejectUnauthorized: false }
-    if (userHeaders) {
-        bidiReqOpts.headers = userHeaders
-    }
+    const bidiReqOpts = getBidiRequestOptions(strictSSL, userHeaders)
     const handler = new BidiHandler(socketUrl, bidiReqOpts)
     handler.connect().then((isConnected) => isConnected && log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`))
 
