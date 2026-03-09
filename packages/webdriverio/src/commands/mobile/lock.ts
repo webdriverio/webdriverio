@@ -4,9 +4,7 @@ import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/m
  *
  * Lock the device screen.
  *
- * This command tries the modern `mobile: lock` execute method first (supported by Appium 3 and
- * Appium 2 drivers from 2023+). If the driver does not support it, it falls back to the legacy
- * `/appium/device/lock` protocol endpoint and logs a deprecation warning.
+ * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :lock.js
@@ -26,7 +24,7 @@ import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/m
  *
  * @param {number}  [seconds]   How long to lock the screen in seconds (iOS only)
  *
- * @see https://appium.github.io/appium.io/docs/en/commands/device/interactions/lock/
+ * @support ["ios","android"]
  */
 export async function lock(
     this: WebdriverIO.Browser,

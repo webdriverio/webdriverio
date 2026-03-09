@@ -18,6 +18,8 @@
  *
  * @param {string}  link            The deep link URL that should be opened in the mobile app. It should be a valid deep link URL (e.g. `myapp://path`). If it's a universal deep link, which can be used for iOS, use the `browser.url("your-url")`-method.
  * @param {string}  appIdentifier   The value of the `package` (Android) or `bundleId` (iOS) of the app that the deep link should open.
+ *
+ * @support ["ios","android"]
  */
 export async function deepLink(
     this: WebdriverIO.Browser,
