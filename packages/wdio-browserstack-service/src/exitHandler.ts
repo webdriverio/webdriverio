@@ -64,9 +64,10 @@ export function setupExitHandlers() {
     process.on('exit', () => {
         BStackLogger.debug('Exit handler called')
 
+        const isCLIEnabled = BrowserstackCLI.getInstance().isRunning()
         handleCLICleanup()
 
-        const args = shouldCallCleanup(BrowserStackConfig.getInstance())
+        const args = shouldCallCleanup(BrowserStackConfig.getInstance(), isCLIEnabled)
         if (Array.isArray(args) && args.length) {
             BStackLogger.debug(`Spawning cleanup.js with args: ${args.join(', ')}`)
             const childProcess = spawn('node', [`${path.join(__dirname, 'cleanup.js')}`, ...args], {
@@ -88,14 +89,14 @@ export function setupExitHandlers() {
     BStackLogger.debug('Exit handlers registered')
 }
 
-export function shouldCallCleanup(config: BrowserStackConfig): string[] {
+export function shouldCallCleanup(config: BrowserStackConfig, isCLIEnabled = false): string[] {
     const args: string[] = []
     if (!!process.env[BROWSERSTACK_TESTHUB_JWT] && !config.testObservability.buildStopped) {
         args.push('--observability')
     }
 
     if (config.userName && config.accessKey && !config.funnelDataSent) {
-        const savedFilePath = saveFunnelData('SDKTestSuccessful', config)
+        const savedFilePath = saveFunnelData('SDKTestSuccessful', config, isCLIEnabled)
         args.push('--funnelData', savedFilePath)
     }
 
