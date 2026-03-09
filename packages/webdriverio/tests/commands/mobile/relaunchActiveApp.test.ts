@@ -66,8 +66,7 @@ describe('relaunchActiveApp test', () => {
             } as any
         })
 
-        // TODO: update to use `getCurrentPackage` mobile command once implemented
-        const currentPackageSpy = vi.spyOn(browser, 'appiumGetCurrentPackage').mockResolvedValue('com.wdiodemoapp')
+        const currentPackageSpy = vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.wdiodemoapp')
         const executeSpy = vi.spyOn(browser, 'execute')
 
         await browser.relaunchActiveApp()

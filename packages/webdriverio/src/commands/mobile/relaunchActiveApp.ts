@@ -59,8 +59,7 @@ export async function relaunchActiveApp(
         return browser.execute('mobile:launchApp', iOSLaunchOptions)
     }
 
-    // TODO: update to use the `getCurrentPackage` mobile command once implemented
-    const packageName = await browser.appiumGetCurrentPackage()
+    const packageName = await browser.getCurrentPackage()
 
     await browser.execute('mobile: terminateApp', { appId: packageName })
 
