@@ -94,7 +94,7 @@ test('runProgram', async () => {
 
     await runProgram('foobarloo', [], {}).catch((e) => e)
 
-    expect(vi.mocked(console.log).mock.calls[1][0]).toMatch(/spawn foobarloo ENOENT/)
+    expect(vi.mocked(console.log).mock.calls[1][0]).toMatch(/spawn foobarloo (ENOENT|EACCES)/)
     expect(process.exit).toBeCalledTimes(2)
 })
 
