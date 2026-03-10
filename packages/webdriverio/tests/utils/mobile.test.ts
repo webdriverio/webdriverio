@@ -7,7 +7,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 const log = logger('test')
 import type { PinchAndZoomOptions } from '../../src/types.js'
 
-describe('isUnknownMethodError', () => {
+describe(isUnknownMethodError, () => {
     it('returns true for "unknown method" errors', () => {
         expect(isUnknownMethodError(new Error('unknown method: mobile: lock'))).toBe(true)
     })
@@ -34,7 +34,7 @@ describe('isUnknownMethodError', () => {
     })
 })
 
-describe('logAppiumDeprecationWarning', () => {
+describe(logAppiumDeprecationWarning, () => {
     beforeEach(() => {
         log.warn = vi.fn()
     })
@@ -50,7 +50,7 @@ describe('logAppiumDeprecationWarning', () => {
     })
 })
 
-describe('getNativeContext', () => {
+describe(getNativeContext, () => {
     it('should return false if capabilities are missing', () => {
         // @ts-expect-error
         expect(getNativeContext({ isMobile: true })).toBe(false)
@@ -133,7 +133,7 @@ describe('getNativeContext', () => {
     })
 })
 
-describe('getMobileContext', () => {
+describe(getMobileContext, () => {
     it('should return `NATIVE_APP` if `isNativeContext` is true', () => {
         const capabilities = { browserName: 'chrome' } as WebdriverIO.Capabilities
 
@@ -157,7 +157,7 @@ describe('getMobileContext', () => {
     })
 })
 
-describe('calculateAndroidPinchAndZoomSpeed', () => {
+describe(calculateAndroidPinchAndZoomSpeed, () => {
     it('uses defaults', () => {
         const mockBrowserWithoutScreenSize = {
             capabilities: {},
@@ -186,7 +186,7 @@ describe('calculateAndroidPinchAndZoomSpeed', () => {
     })
 })
 
-describe('validatePinchAndZoomOptions', () => {
+describe(validatePinchAndZoomOptions, () => {
     const mockBrowserMobile = {
         isMobile: true,
         isIOS: false,
