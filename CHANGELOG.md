@@ -23,6 +23,36 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.25.0 (2026-03-10)
+
+#### :rocket: New Feature
+* `eslint-plugin-wdio`
+  * [#15084](https://github.com/webdriverio/webdriverio/pull/15084) feat: Use no floating promise eslint rule for missing `await` ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#15117](https://github.com/webdriverio/webdriverio/pull/15117) fix: update exit signal for CLI process termination on Unix systems ([@xxshubhamxx](https://github.com/xxshubhamxx))
+* `webdriverio`
+  * [#15098](https://github.com/webdriverio/webdriverio/pull/15098) fix: Ensure getValue returns a string ([@dprevost-LMI](https://github.com/dprevost-LMI))
+  * [#15131](https://github.com/webdriverio/webdriverio/pull/15131) fix(webdriverio): ignore 'no such frame' error in handleUserPrompt (#… ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-junit-reporter`
+  * [#15133](https://github.com/webdriverio/webdriverio/pull/15133) fix(wdio-junit-reporter): correctly detect Cucumber framework in mult… ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-allure-reporter`
+  * [#15130](https://github.com/webdriverio/webdriverio/pull/15130) fix(wdio-allure-reporter): properly resolve pending steps and status … ([@mccmrunal](https://github.com/mccmrunal))
+
+#### Committers: 10
+- Anish Kumar Sinha ([@anish353](https://github.com/anish353))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Rounak Bhatia ([@rounak610](https://github.com/rounak610))
+- Shubham Garg ([@xxshubhamxx](https://github.com/xxshubhamxx))
+- Vishnu Vardhan ([@vishnuv688](https://github.com/vishnuv688))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- Yevhen Laichenkov ([@elaichenkov](https://github.com/elaichenkov))
+
+
 ## v9.24.0 (2026-02-10)
 
 #### :rocket: New Feature
