@@ -1,18 +1,26 @@
-FROM fedora:40
+FROM quay.io/centos/centos:stream10
 
 # Set environment variables
 ENV CI=true
 
-# Install basic requirements but explicitly NOT xvfb
+# Enable CRB repository and install EPEL (required for Wayland in CentOS Stream 10)
 RUN dnf update -y && \
     dnf install -y \
-        curl \
         ca-certificates \
         sudo \
-        nodejs \
-        npm \
-        which && \
+        which \
+        dnf-plugins-core && \
+    dnf config-manager --set-enabled crb && \
+    dnf install -y epel-release && \
     dnf clean all
+
+# Install Wayland (weston) from EPEL
+RUN dnf install -y weston && \
+    dnf clean all
+
+# Install Node.js from NodeSource
+RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash - && \
+    dnf install -y nodejs
 
 # Install pnpm globally as root
 RUN npm install -g pnpm
@@ -30,15 +38,6 @@ RUN echo '[google-chrome]' > /etc/yum.repos.d/google-chrome.repo && \
 # Create test user with sudo access
 RUN useradd -m -s /bin/bash testuser && \
     echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-
-# Ensure clean environment by removing any xvfb packages (do this at the very end)
-RUN dnf remove -y xorg-x11-server-Xvfb || true && \
-    dnf autoremove -y && \
-    rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run && \
-    dnf clean all
-
-# Verify xvfb-run is NOT available
-RUN ! which xvfb-run || exit 1
 
 WORKDIR /app
 USER testuser
