@@ -870,6 +870,8 @@ export default class AllureReporter extends WDIOReporter {
         const { disableMochaHooks } = this._options
         if (!hook.parent && !this._isGlobalHook(hook)) { return }
         if (disableMochaHooks && !hook.error) { return }
+        const hadPendingTest = this._hasPendingTest
+        const hadPendingHook = this._hasPendingHook
 
         const isCucumber = this._isCucumberHook(hook)
 
@@ -885,7 +887,7 @@ export default class AllureReporter extends WDIOReporter {
 
         const hookType = this._deriveHookType(hook)
 
-        if (hook.error && !this._hasPendingTest && !this._hasPendingHook) {
+        if (hook.error && !hadPendingTest && !hadPendingHook) {
 
             const start = AllureReporter.getTimeOrNow(hook.start)
             this._startTest({ name: hook.title || 'Hook failure', start })
@@ -905,12 +907,12 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        if (hook.error && this._hasPendingTest && !this._hasPendingHook) {
+        if (hook.error && hadPendingTest && !hadPendingHook) {
             const start = AllureReporter.getTimeOrNow(hook.start)
             this._startHook({ name: hook.title ?? 'Hook', type: hookType, start })
         }
 
-        if (hook.error && !this._hasPendingTest && this._hasPendingHook) {
+        if (hook.error && !hadPendingTest && hadPendingHook) {
             const start = AllureReporter.getTimeOrNow(hook.start)
             this._startTest({ name: hook.title || 'Hook failure', start })
         }
@@ -922,7 +924,7 @@ export default class AllureReporter extends WDIOReporter {
             duration: hook.duration,
         })
 
-        if (hook.error && !this._hasPendingTest && this._hasPendingHook) {
+        if (hook.error && !hadPendingTest && hadPendingHook) {
             this._endTest({
                 status: AllureStatusEnum.BROKEN,
                 stage: AllureStage.FINISHED,
