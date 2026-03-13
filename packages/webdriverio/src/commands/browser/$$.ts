@@ -3,7 +3,7 @@ import type { ElementReference } from '@wdio/protocols'
 import { findElements, enhanceElementsArray, isElement, findElement } from '../../utils/index.js'
 import { getElements, getElement } from '../../utils/getElementObject.js'
 import { findDeepElements } from '../../utils/index.js'
-import { DEEP_SELECTOR } from '../../constants.js'
+import { DEEP_SELECTOR, ACCESSIBILITY_SELECTOR } from '../../constants.js'
 import type { Selector } from '../../types.js'
 
 /**
@@ -54,9 +54,9 @@ export async function $$ (
      * do a deep lookup if
      * - we are using Bidi
      * - have a string selector
-     * - that is not a deep selector
+     * - that is not a deep selector or accessibility selector
      */
-    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR)) {
+    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR) && !selector.startsWith(ACCESSIBILITY_SELECTOR)) {
         /**
          * run this in Node.js land if we are using browser runner
          */
