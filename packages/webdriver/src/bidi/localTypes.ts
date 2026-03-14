@@ -535,6 +535,10 @@ export interface NetworkResponseCompletedParameters extends NetworkBaseParameter
      * The response body of the request.
      */
     body?: string | number | boolean | object | Buffer | null;
+    /**
+     * The request body of the request.
+     */
+    postData?: string | number | boolean | object | Buffer | null;
 }
 
 export interface NetworkResponseStarted {

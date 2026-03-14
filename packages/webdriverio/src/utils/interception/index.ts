@@ -263,6 +263,25 @@ export default class WebDriverInterception {
         }
 
         /**
+         * try populate request body
+         */
+        try {
+            const { bytes } = await this.#browser.networkGetData({
+                request: request.request.request,
+                dataType: 'request'
+            })
+
+            if (bytes) {
+                const call = this.#calls.find((call) => call.request.request === request.request.request)
+                if (call) {
+                    call.postData = bytes.value
+                }
+            }
+        } catch (err: unknown) {
+            log.debug(`Failed to get request body for ${request.request.request}: ${(err as Error).message}`)
+        }
+
+        /**
          * try populate response body
          */
         try {

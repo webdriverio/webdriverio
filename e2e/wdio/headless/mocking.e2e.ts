@@ -113,6 +113,25 @@ describe('network mocking', () => {
         expect(mock.calls[0].body).toContain('<html>')
     })
 
+    it('should be able to see the request body', async () => {
+        const mock = await browser.mock('https://guinea-pig.webdriver.io/my-api', { method: 'post' })
+        mock.respond({ value: 'response-body' })
+
+        await browser.url('https://guinea-pig.webdriver.io/')
+        await browser.executeAsync(async (done) => {
+            await fetch('/my-api', {
+                method: 'POST',
+                body: JSON.stringify({ value: 'request-body' })
+            })
+            done(null)
+        })
+
+        await browser.waitUntil(() => mock.calls.length > 0 && Boolean(mock.calls[0].postData))
+
+        expect(mock.calls[0].postData).toBe('{"value":"request-body"}')
+        expect(mock.calls[0].body).toEqual({ value: 'response-body' })
+    })
+
     it('should mock with complex mixed wildcards', async () => {
         // Matches https://cdn.jsdelivr.net/.../bootstrap.min.js
         const mock = await browser.mock('https://*.jsdelivr.net/**/bootstrap.min.js', {
