@@ -55,6 +55,7 @@ export default class WebDriverInterception {
          */
         browser.on('network.beforeRequestSent', this.#handleBeforeRequestSent.bind(this))
         browser.on('network.responseStarted', this.#handleResponseStarted.bind(this))
+        browser.on('network.responseCompleted', this.#handleResponseCompleted.bind(this))
     }
 
     static async initiate(
@@ -67,8 +68,13 @@ export default class WebDriverInterception {
             await browser.sessionSubscribe({
                 events: [
                     'network.beforeRequestSent',
-                    'network.responseStarted'
+                    'network.responseStarted',
+                    'network.responseCompleted'
                 ]
+            })
+            await browser.networkAddDataCollector({
+                dataTypes: ['request', 'response'],
+                maxEncodedDataSize: 10 * 1024 * 1024
             })
             log.info('subscribed to network events')
             hasSubscribedToEvents = true
@@ -238,6 +244,43 @@ export default class WebDriverInterception {
         return this.#browser.networkProvideResponse({
             request: request.request.request
         }).catch(this.#handleNetworkProvideResponseError)
+    }
+
+    async #handleResponseCompleted(request: local.NetworkResponseCompletedParameters) {
+        /**
+         * don't do anything if:
+         * - request is not matching the pattern, e.g. a different mock is responsible for this request
+         */
+        if (!this.#pattern.test(request.request.url)) {
+            return
+        }
+
+        /**
+         * continue mock if not matching filter
+         */
+        if (!this.#matchesFilterOptions(request)) {
+            return
+        }
+
+        /**
+         * try populate response body
+         */
+        try {
+            const { bytes } = await this.#browser.networkGetData({
+                request: request.request.request,
+                dataType: 'response'
+            })
+
+            if (bytes) {
+                this.#responseBodies.set(request.request.request, bytes)
+                const call = this.#calls.find((call) => call.request.request === request.request.request)
+                if (call) {
+                    call.body = bytes.value
+                }
+            }
+        } catch (err: unknown) {
+            log.debug(`Failed to get response body for ${request.request.request}: ${(err as Error).message}`)
+        }
     }
 
     /**

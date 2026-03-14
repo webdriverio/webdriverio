@@ -228,6 +228,9 @@ export interface BrowsingContextNavigationInfo extends BrowsingContextBaseNaviga
 export type BrowsingContextUserPromptType = 'alert' | 'beforeunload' | 'confirm' | 'prompt'
 export type BrowsingContextActivateResult = EmptyResult
 
+export type BrowsingContextActivateResult = EmptyResult
+export type BrowsingContextCloseResult = EmptyResult
+
 export interface BrowsingContextCaptureScreenshotResult {
     data: string;
 }
@@ -238,6 +241,8 @@ export interface BrowsingContextCreateResult {
     context: BrowsingContextBrowsingContext;
     userContext?: BrowserUserContext;
 }
+
+export type BrowsingContextHandleUserPromptResult = EmptyResult
 
 export interface BrowsingContextGetTreeResult {
     contexts: BrowsingContextInfoList;
@@ -258,10 +263,32 @@ export interface BrowsingContextPrintResult {
     data: string;
 }
 
+export type BrowsingContextReloadResult = BrowsingContextNavigateResult
+export type BrowsingContextSetBypassCSPResult = EmptyResult
+export type BrowsingContextSetViewportResult = EmptyResult
+
 export interface BrowsingContextTraverseHistoryResult {}
 export type BrowsingContextReloadResult = BrowsingContextNavigateResult
 export type BrowsingContextSetBypassCspResult = EmptyResult
 export type BrowsingContextSetViewportResult = EmptyResult
+
+export type EmulationResult = EmulationSetForcedColorsModeThemeOverrideResult | EmulationSetGeolocationOverrideResult | EmulationSetLocaleOverrideResult | EmulationSetScreenOrientationOverrideResult | EmulationSetScriptingEnabledResult | EmulationSetScrollbarTypeOverrideResult | EmulationSetTimezoneOverrideResult | EmulationSetTouchOverrideResult | EmulationSetUserAgentOverrideResult
+
+export type EmulationSetForcedColorsModeThemeOverrideResult = EmptyResult
+export type EmulationSetGeolocationOverrideResult = EmptyResult
+export type EmulationSetLocaleOverrideResult = EmptyResult
+export type EmulationSetScreenOrientationOverrideResult = EmptyResult
+export type EmulationSetScriptingEnabledResult = EmptyResult
+export type EmulationSetScrollbarTypeOverrideResult = EmptyResult
+export type EmulationSetTimezoneOverrideResult = EmptyResult
+export type EmulationSetTouchOverrideResult = EmptyResult
+export type EmulationSetUserAgentOverrideResult = EmptyResult
+
+export type InputResult = InputPerformActionsResult | InputReleaseActionsResult | InputSetFilesResult
+
+export type InputPerformActionsResult = EmptyResult
+export type InputReleaseActionsResult = EmptyResult
+export type InputSetFilesResult = EmptyResult
 
 export interface BrowsingContextContextCreated {
     method: 'browsingContext.contextCreated';
@@ -555,6 +582,10 @@ export interface NetworkResponseCompleted {
 
 export interface NetworkResponseCompletedParameters extends NetworkBaseParameters {
     response: NetworkResponseData;
+    /**
+     * The response body of the request.
+     */
+    body?: string | number | boolean | object | Buffer | null;
 }
 
 export interface NetworkResponseStarted {
@@ -1029,6 +1060,7 @@ export interface InputFileDialogInfo {
     context: BrowsingContextBrowsingContext;
     userContext?: BrowserUserContext;
     element?: ScriptSharedReference;
+    userContext?: BrowserUserContext;
     multiple: boolean;
 }
 
