@@ -495,7 +495,12 @@ describe('WebDriverInterception', () => {
         browser.networkAddIntercept = vi.fn().mockReturnValue(Promise.resolve({ intercept: 'mock-id' }))
         browser.networkProvideResponse = vi.fn().mockReturnValue(Promise.resolve())
         browser.networkAddDataCollector = vi.fn().mockReturnValue(Promise.resolve({ collector: '123' }))
-        browser.networkGetData = vi.fn().mockReturnValue(Promise.resolve({ bytes: { type: 'string', value: 'foobar' } }))
+        browser.networkGetData = vi.fn().mockImplementation((params: any) => {
+            if (params.dataType === 'request') {
+                return Promise.resolve({ bytes: { type: 'string', value: 'request-body' } })
+            }
+            return Promise.resolve({ bytes: { type: 'string', value: 'response-body' } })
+        })
 
         const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
 
@@ -517,6 +522,7 @@ describe('WebDriverInterception', () => {
         browser.emit('network.responseStarted', request)
         expect(mock.calls.length).toBe(1)
         expect((mock.calls[0] as any).body).toBeUndefined()
+        expect((mock.calls[0] as any).postData).toBeUndefined()
 
         // Response completed fetches body
         // responseCompleted is not blocked
@@ -528,8 +534,13 @@ describe('WebDriverInterception', () => {
 
         expect(browser.networkGetData).toHaveBeenCalledWith({
             request: 'req-123',
+            dataType: 'request'
+        })
+        expect(browser.networkGetData).toHaveBeenCalledWith({
+            request: 'req-123',
             dataType: 'response'
         })
-        expect((mock.calls[0] as any).body).toBe('foobar')
+        expect((mock.calls[0] as any).postData).toBe('request-body')
+        expect((mock.calls[0] as any).body).toBe('response-body')
     })
 })
