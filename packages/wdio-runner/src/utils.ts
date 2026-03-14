@@ -3,7 +3,7 @@ import logger from '@wdio/logger'
 import { remote, multiremote, attach, type AttachOptions } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
-import type { AsymmetricMatchers } from 'expect-webdriverio'
+import type { AsymmetricMatchers, InverseAsymmetricMatchers } from 'expect-webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
 import { enableFileLogging } from '@wdio/utils'
 
@@ -201,7 +201,8 @@ const SUPPORTED_ASYMMETRIC_MATCHER = {
 export function transformExpectArgs (arg: unknown) {
     if (typeof arg === 'object' && arg && '$$typeof' in arg && typeof arg.$$typeof === 'string' && Object.keys(SUPPORTED_ASYMMETRIC_MATCHER).includes(arg.$$typeof)) {
         const matcherKey = SUPPORTED_ASYMMETRIC_MATCHER[arg.$$typeof as keyof typeof SUPPORTED_ASYMMETRIC_MATCHER] as keyof AsymmetricMatchers
-        const matcher = ('inverse' in arg && arg.inverse ? expect.not[matcherKey] : expect[matcherKey]) as unknown as (sample: string) => unknown
+        const inverseMatcherKey = SUPPORTED_ASYMMETRIC_MATCHER[arg.$$typeof as keyof typeof SUPPORTED_ASYMMETRIC_MATCHER] as keyof InverseAsymmetricMatchers
+        const matcher = ('inverse' in arg && arg.inverse ? expect.not[inverseMatcherKey] : expect[matcherKey]) as unknown as (sample: string) => unknown
 
         if (!matcher) {
             throw new Error(`Matcher "${matcherKey}" is not supported by expect-webdriverio`)

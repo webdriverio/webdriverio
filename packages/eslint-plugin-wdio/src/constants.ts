@@ -31,6 +31,7 @@ export const MATCHERS = [
     'toHaveHref',
     'toHaveId',
     'toHaveLink',
+    'toHaveLocalStorageItem',
     'toHaveSize',
     'toHaveStyle',
     'toHaveText',

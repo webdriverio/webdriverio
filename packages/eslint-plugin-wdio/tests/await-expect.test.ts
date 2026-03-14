@@ -83,7 +83,6 @@ describe('await-expect', () => {
         const expectWebdriverio = await vi.importActual<typeof import('expect-webdriverio')>('expect-webdriverio')
         const matchers = Array.from(expectWebdriverio.matchers.keys())
             .filter((matcher) => !['toMatchSnapshot', 'toMatchInlineSnapshot'].includes(matcher))
-        console.log('matchers', matchers)
 
         expect(MATCHERS.sort()).toEqual(matchers.sort())
     })
