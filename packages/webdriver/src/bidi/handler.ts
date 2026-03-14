@@ -454,6 +454,36 @@ export class BidiHandler extends BidiCore {
     }
 
     /**
+     * WebDriver Bidi command to send command method "network.addDataCollector" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-network-addDataCollector
+     * @param params `remote.NetworkAddDataCollectorParameters` {@link https://w3c.github.io/webdriver-bidi/#command-network-addDataCollector | command parameter}
+     * @returns `Promise<local.NetworkAddDataCollectorResult>`
+     **/
+    async networkAddDataCollector(params: remote.NetworkAddDataCollectorParameters): Promise<local.NetworkAddDataCollectorResult> {
+        const result = await this.send({
+            method: 'network.addDataCollector',
+            params
+        })
+
+        return result.result as local.NetworkAddDataCollectorResult
+    }
+
+    /**
+     * WebDriver Bidi command to send command method "network.getData" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-network-getData
+     * @param params `remote.NetworkGetDataParameters` {@link https://w3c.github.io/webdriver-bidi/#command-network-getData | command parameter}
+     * @returns `Promise<local.NetworkGetDataResult>`
+     **/
+    async networkGetData(params: remote.NetworkGetDataParameters): Promise<local.NetworkGetDataResult> {
+        const result = await this.send({
+            method: 'network.getData',
+            params
+        })
+
+        return result.result as local.NetworkGetDataResult
+    }
+
+    /**
      * WebDriver Bidi command to send command method "network.provideResponse" with parameters.
      * @url https://w3c.github.io/webdriver-bidi/#command-network-provideResponse
      * @param params `remote.NetworkProvideResponseParameters` {@link https://w3c.github.io/webdriver-bidi/#command-network-provideResponse | command parameter}

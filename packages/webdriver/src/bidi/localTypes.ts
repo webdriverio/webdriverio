@@ -29,7 +29,7 @@ export interface ErrorResponse extends Extensible {
     stacktrace?: string;
 }
 
-export type ResultData = BrowsingContextResult | EmptyResult | NetworkResult | ScriptResult | SessionResult | StorageResult | WebExtensionResult
+export type ResultData = BrowserResult | BrowsingContextResult | EmulationResult | InputResult | EmptyResult | NetworkResult | ScriptResult | SessionResult | StorageResult | WebExtensionResult
 export interface EmptyResult extends Extensible {}
 
 export interface Event extends Extensible {
@@ -154,7 +154,7 @@ export interface BrowserGetUserContextsResult {
     userContexts: BrowserUserContextInfo[];
 }
 
-export type BrowsingContextResult = BrowsingContextCaptureScreenshotResult | BrowsingContextCreateResult | BrowsingContextGetTreeResult | BrowsingContextLocateNodesResult | BrowsingContextNavigateResult | BrowsingContextPrintResult | BrowsingContextTraverseHistoryResult
+export type BrowsingContextResult = BrowsingContextActivateResult | BrowsingContextCaptureScreenshotResult | BrowsingContextCloseResult | BrowsingContextCreateResult | BrowsingContextGetTreeResult | BrowsingContextHandleUserPromptResult | BrowsingContextLocateNodesResult | BrowsingContextNavigateResult | BrowsingContextPrintResult | BrowsingContextReloadResult | BrowsingContextSetBypassCSPResult | BrowsingContextSetViewportResult | BrowsingContextTraverseHistoryResult
 export type BrowsingContextEvent = BrowsingContextContextCreated | BrowsingContextContextDestroyed | BrowsingContextDomContentLoaded | BrowsingContextDownloadWillBegin | BrowsingContextFragmentNavigated | BrowsingContextHistoryUpdated | BrowsingContextLoad | BrowsingContextNavigationAborted | BrowsingContextNavigationCommitted | BrowsingContextNavigationFailed | BrowsingContextNavigationStarted | BrowsingContextUserPromptClosed | BrowsingContextUserPromptOpened
 export type BrowsingContextBrowsingContext = string
 export type BrowsingContextInfoList = (BrowsingContextInfo)[]
@@ -216,6 +216,9 @@ export interface BrowsingContextBaseNavigationInfo {
 export interface BrowsingContextNavigationInfo extends BrowsingContextBaseNavigationInfo {}
 export type BrowsingContextUserPromptType = 'alert' | 'beforeunload' | 'confirm' | 'prompt'
 
+export type BrowsingContextActivateResult = EmptyResult
+export type BrowsingContextCloseResult = EmptyResult
+
 export interface BrowsingContextCaptureScreenshotResult {
     data: string;
 }
@@ -223,6 +226,8 @@ export interface BrowsingContextCaptureScreenshotResult {
 export interface BrowsingContextCreateResult {
     context: BrowsingContextBrowsingContext;
 }
+
+export type BrowsingContextHandleUserPromptResult = EmptyResult
 
 export interface BrowsingContextGetTreeResult {
     contexts: BrowsingContextInfoList;
@@ -241,7 +246,29 @@ export interface BrowsingContextPrintResult {
     data: string;
 }
 
+export type BrowsingContextReloadResult = BrowsingContextNavigateResult
+export type BrowsingContextSetBypassCSPResult = EmptyResult
+export type BrowsingContextSetViewportResult = EmptyResult
+
 export interface BrowsingContextTraverseHistoryResult {}
+
+export type EmulationResult = EmulationSetForcedColorsModeThemeOverrideResult | EmulationSetGeolocationOverrideResult | EmulationSetLocaleOverrideResult | EmulationSetScreenOrientationOverrideResult | EmulationSetScriptingEnabledResult | EmulationSetScrollbarTypeOverrideResult | EmulationSetTimezoneOverrideResult | EmulationSetTouchOverrideResult | EmulationSetUserAgentOverrideResult
+
+export type EmulationSetForcedColorsModeThemeOverrideResult = EmptyResult
+export type EmulationSetGeolocationOverrideResult = EmptyResult
+export type EmulationSetLocaleOverrideResult = EmptyResult
+export type EmulationSetScreenOrientationOverrideResult = EmptyResult
+export type EmulationSetScriptingEnabledResult = EmptyResult
+export type EmulationSetScrollbarTypeOverrideResult = EmptyResult
+export type EmulationSetTimezoneOverrideResult = EmptyResult
+export type EmulationSetTouchOverrideResult = EmptyResult
+export type EmulationSetUserAgentOverrideResult = EmptyResult
+
+export type InputResult = InputPerformActionsResult | InputReleaseActionsResult | InputSetFilesResult
+
+export type InputPerformActionsResult = EmptyResult
+export type InputReleaseActionsResult = EmptyResult
+export type InputSetFilesResult = EmptyResult
 
 export interface BrowsingContextContextCreated {
     method: 'browsingContext.contextCreated';
@@ -332,7 +359,33 @@ export interface BrowsingContextUserPromptOpenedParameters {
     defaultValue?: string;
 }
 
-export interface NetworkResult extends NetworkAddInterceptResult {}
+export type NetworkResult = NetworkAddDataCollectorResult | NetworkAddInterceptResult | NetworkGetDataResult | NetworkContinueRequestResult | NetworkContinueResponseResult | NetworkContinueWithAuthResult | NetworkDisownDataResult | NetworkFailRequestResult | NetworkProvideResponseResult | NetworkRemoveDataCollectorResult | NetworkRemoveInterceptResult | NetworkSetCacheBehaviorResult | NetworkSetExtraHeadersResult
+
+export interface NetworkAddDataCollectorResult {
+    /**
+     * The unique identifier of the created data collector.
+     */
+    collector: string;
+}
+
+export type NetworkContinueRequestResult = EmptyResult
+export type NetworkContinueResponseResult = EmptyResult
+export type NetworkContinueWithAuthResult = EmptyResult
+export type NetworkDisownDataResult = EmptyResult
+export type NetworkFailRequestResult = EmptyResult
+export type NetworkProvideResponseResult = EmptyResult
+export type NetworkRemoveDataCollectorResult = EmptyResult
+export type NetworkRemoveInterceptResult = EmptyResult
+export type NetworkSetCacheBehaviorResult = EmptyResult
+export type NetworkSetExtraHeadersResult = EmptyResult
+
+export interface NetworkGetDataResult {
+    /**
+     * The request or response data depending on the `NetworkGetDataParameters.dataType`
+     */
+    bytes: NetworkBytesValue;
+}
+
 export type NetworkEvent = NetworkAuthRequired | NetworkBeforeRequestSent | NetworkFetchError | NetworkResponseCompleted | NetworkResponseStarted
 
 export interface NetworkAuthChallenge {
@@ -362,7 +415,7 @@ export interface NetworkBase64Value {
     value: string;
 }
 
-export type NetworkSameSite = 'strict' | 'lax' | 'none'
+export type NetworkSameSite = 'strict' | 'lax' | 'none' | 'default'
 
 export interface NetworkCookie {
     name: string;
@@ -478,6 +531,10 @@ export interface NetworkResponseCompleted {
 
 export interface NetworkResponseCompletedParameters extends NetworkBaseParameters {
     response: NetworkResponseData;
+    /**
+     * The response body of the request.
+     */
+    body?: string | number | boolean | object | Buffer | null;
 }
 
 export interface NetworkResponseStarted {
@@ -934,10 +991,13 @@ export interface InputFileDialogOpened {
 export interface InputFileDialogInfo {
     context: BrowsingContextBrowsingContext;
     element?: ScriptSharedReference;
+    userContext?: BrowserUserContext;
     multiple: boolean;
 }
 
-export interface WebExtensionResult extends WebExtensionInstallResult {}
+export type WebExtensionResult = WebExtensionInstallResult | WebExtensionUninstallResult
+export type WebExtensionUninstallResult = EmptyResult
+
 export type WebExtensionExtension = string
 
 export interface WebExtensionInstallResult {

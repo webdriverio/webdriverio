@@ -9,7 +9,8 @@ describe('WebDriverInterception', () => {
         const browser: any = {
             on: vi.fn(),
             sessionSubscribe: vi.fn().mockReturnValue(Promise.resolve()),
-            networkAddIntercept: vi.fn().mockReturnValue(Promise.resolve({ intercept: '123' }))
+            networkAddIntercept: vi.fn().mockReturnValue(Promise.resolve({ intercept: '123' })),
+            networkAddDataCollector: vi.fn().mockReturnValue(Promise.resolve({ collector: '123' }))
         }
         const mock = await WebDriverInterception.initiate('http://foobar.com:1234/foo/bar.html?foo=bar', {
             method: 'GET',
@@ -18,7 +19,7 @@ describe('WebDriverInterception', () => {
             statusCode: 200
         }, browser)
         expect(mock).toBeInstanceOf(WebDriverInterception)
-        expect(browser.on).toHaveBeenCalledTimes(2)
+        expect(browser.on).toHaveBeenCalledTimes(3)
         expect(browser.sessionSubscribe).toHaveBeenCalledTimes(1)
         expect(browser.networkAddIntercept).toHaveBeenCalledTimes(1)
         expect(browser.networkAddIntercept.mock.calls).toMatchInlineSnapshot(`
@@ -49,6 +50,7 @@ describe('WebDriverInterception', () => {
         const browser: any = new EventEmitter()
         browser.sessionSubscribe = vi.fn().mockReturnValue(Promise.resolve())
         browser.networkAddIntercept = vi.fn().mockReturnValue(Promise.resolve({ intercept: '123' }))
+        browser.networkAddDataCollector = vi.fn().mockReturnValue(Promise.resolve({ collector: '123' }))
         browser.networkContinueRequest = vi.fn().mockReturnValue(Promise.resolve())
         browser.networkFailRequest = vi.fn().mockReturnValue(Promise.resolve())
         const mock = await WebDriverInterception.initiate('http://foobar.com:1234/foo/bar.html?foo=bar', {
@@ -211,6 +213,7 @@ describe('WebDriverInterception', () => {
         browser.sessionSubscribe = vi.fn().mockReturnValue(Promise.resolve())
         browser.networkProvideResponse = vi.fn().mockReturnValue(Promise.resolve())
         browser.networkAddIntercept = vi.fn().mockReturnValue(Promise.resolve({ intercept: '123' }))
+        browser.networkAddDataCollector = vi.fn().mockReturnValue(Promise.resolve({ collector: '123' }))
         const mock = await WebDriverInterception.initiate('http://foobar.com:1234/foo/bar.html?foo=bar', {
             method: 'get',
             requestHeaders: { foo: 'bar' },
@@ -300,6 +303,7 @@ describe('WebDriverInterception', () => {
         browser.sessionSubscribe = vi.fn().mockReturnValue(Promise.resolve())
         browser.networkProvideResponse = vi.fn().mockReturnValue(Promise.resolve())
         browser.networkAddIntercept = vi.fn().mockReturnValue(Promise.resolve({ intercept: 'mock-id' }))
+        browser.networkAddDataCollector = vi.fn().mockReturnValue(Promise.resolve({ collector: '123' }))
 
         const mock = await WebDriverInterception.initiate('http://localhost/test/*', {}, browser)
 
@@ -375,6 +379,7 @@ describe('WebDriverInterception', () => {
         browser.sessionSubscribe = vi.fn().mockReturnValue(Promise.resolve())
         browser.networkProvideResponse = vi.fn().mockReturnValue(Promise.resolve())
         browser.networkAddIntercept = vi.fn().mockReturnValue(Promise.resolve({ intercept: 'mock-id' }))
+        browser.networkAddDataCollector = vi.fn().mockReturnValue(Promise.resolve({ collector: '123' }))
 
         const mock = await WebDriverInterception.initiate('http://localhost/test/*', {}, browser)
 
@@ -453,6 +458,7 @@ describe('WebDriverInterception', () => {
         browser.sessionSubscribe = vi.fn().mockReturnValue(Promise.resolve())
         browser.networkProvideResponse = vi.fn().mockReturnValue(Promise.resolve())
         browser.networkAddIntercept = vi.fn().mockReturnValue(Promise.resolve({ intercept: 'mock-id' }))
+        browser.networkAddDataCollector = vi.fn().mockReturnValue(Promise.resolve({ collector: '123' }))
 
         const mock = await WebDriverInterception.initiate('http://localhost/test/*', {}, browser)
         const logWarnSpy = vi.spyOn(logger('WebDriverInterception'), 'warn')
@@ -481,5 +487,49 @@ describe('WebDriverInterception', () => {
         expect(logWarnSpy).toHaveBeenCalledTimes(1)
 
         logWarnSpy.mockRestore()
+    })
+
+    it('should fetch response body on responseCompleted', async () => {
+        const browser: any = new EventEmitter()
+        browser.sessionSubscribe = vi.fn().mockReturnValue(Promise.resolve())
+        browser.networkAddIntercept = vi.fn().mockReturnValue(Promise.resolve({ intercept: 'mock-id' }))
+        browser.networkProvideResponse = vi.fn().mockReturnValue(Promise.resolve())
+        browser.networkAddDataCollector = vi.fn().mockReturnValue(Promise.resolve({ collector: '123' }))
+        browser.networkGetData = vi.fn().mockReturnValue(Promise.resolve({ bytes: { type: 'string', value: 'foobar' } }))
+
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        const request: any = {
+            request: {
+                request: 'req-123',
+                url: 'http://test.com/foo',
+                method: 'GET',
+                headers: []
+            },
+            response: {
+                headers: [],
+                status: 200
+            },
+            isBlocked: true
+        }
+
+        // Response started populates calls
+        browser.emit('network.responseStarted', request)
+        expect(mock.calls.length).toBe(1)
+        expect((mock.calls[0] as any).body).toBeUndefined()
+
+        // Response completed fetches body
+        // responseCompleted is not blocked
+        const completedRequest = { ...request, isBlocked: false }
+        browser.emit('network.responseCompleted', completedRequest)
+
+        // Use setImmediate to wait for promise resolution in handler
+        await new Promise(resolve => setTimeout(resolve, 10))
+
+        expect(browser.networkGetData).toHaveBeenCalledWith({
+            request: 'req-123',
+            dataType: 'response'
+        })
+        expect((mock.calls[0] as any).body).toBe('foobar')
     })
 })
