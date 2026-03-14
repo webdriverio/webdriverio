@@ -35,7 +35,7 @@ describe('toggleNetworkSpeed', () => {
         })
     })
 
-    describe('modern driver (mobile: setNetworkSpeed succeeds)', () => {
+    describe('modern driver (mobile: networkSpeed succeeds)', () => {
         beforeEach(async () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
@@ -47,10 +47,10 @@ describe('toggleNetworkSpeed', () => {
             })
         })
 
-        it('should call mobile: setNetworkSpeed with the given netspeed', async () => {
+        it('should call mobile: networkSpeed with the given netspeed', async () => {
             const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
             await browser.toggleNetworkSpeed('lte')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: setNetworkSpeed', { netspeed: 'lte' })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: networkSpeed', { netspeed: 'lte' })
         })
 
         it('should re-throw non-unknown-method errors', async () => {
@@ -59,7 +59,7 @@ describe('toggleNetworkSpeed', () => {
         })
     })
 
-    describe('legacy driver fallback (mobile: setNetworkSpeed returns unknown method)', () => {
+    describe('legacy driver fallback (mobile: networkSpeed returns unknown method)', () => {
         beforeEach(async () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
@@ -72,13 +72,13 @@ describe('toggleNetworkSpeed', () => {
         })
 
         it('should fall back to appiumToggleNetworkSpeed and log a warning', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('unknown method: mobile: setNetworkSpeed'))
+            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('unknown method: mobile: networkSpeed'))
             const appiumSpy = vi.spyOn(browser, 'appiumToggleNetworkSpeed').mockResolvedValue(undefined)
 
             await browser.toggleNetworkSpeed('lte')
 
             expect(appiumSpy).toHaveBeenCalledWith('lte')
-            expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: setNetworkSpeed'))
+            expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: networkSpeed'))
         })
 
         it('should pass netspeed to appiumToggleNetworkSpeed on fallback', async () => {

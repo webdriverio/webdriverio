@@ -39,14 +39,16 @@ export async function stopRecordingScreen(
         throw new Error('The `stopRecordingScreen` command is only available for mobile platforms.')
     }
 
+    const mobileCommand = browser.isIOS ? 'mobile: stopXCTestScreenRecording' : 'mobile: stopMediaProjectionRecording'
+
     try {
-        return await browser.execute('mobile: stopRecordingScreen', { remotePath, username, password, method }) as string
+        return await browser.execute(mobileCommand, { remotePath, username, password, method }) as string
     } catch (err: unknown) {
         if (!isUnknownMethodError(err)) {
             throw err
         }
 
-        logAppiumDeprecationWarning('mobile: stopRecordingScreen', '/appium/stop_recording_screen')
+        logAppiumDeprecationWarning(mobileCommand, '/appium/stop_recording_screen')
         return browser.appiumStopRecordingScreen(remotePath, username, password, method) as Promise<string>
     }
 }

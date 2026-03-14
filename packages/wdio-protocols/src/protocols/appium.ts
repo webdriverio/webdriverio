@@ -426,7 +426,6 @@ export default {
             command: 'rotateDevice',
             description: 'Rotate the device in three dimensions.',
             ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#setrotation',
-            deprecated: 'This command is removed in Appium 3. Check your driver documentation for the mobile: equivalent.',
             parameters: [
                 {
                     name: 'x',
@@ -1990,7 +1989,7 @@ export default {
             command: 'availableIMEEngines',
             description: 'List all available IME engines on the device. To use an engine, it has to be present in this list.',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#availableimeengines',
-            deprecated: 'IME commands are not supported in Appium 3. Use `driver.execute(\'mobile: shell\', { command: \'ime\', args: [\'list\', \'-a\'] })` instead',
+            deprecated: 'IME commands are deprecated. Check your driver documentation for alternatives.',
             parameters: [],
             returns: {
                 type: 'String[]',
@@ -2009,7 +2008,7 @@ export default {
             command: 'getActiveIMEEngine',
             description: 'Get the name of the active IME engine. The name string is platform specific.',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#getactiveimeengine',
-            deprecated: 'IME commands are not supported in Appium 3. Use `driver.execute(\'mobile: shell\', { command: \'ime\', args: [\'get-default-id\'] })` instead',
+            deprecated: 'IME commands are deprecated. Check your driver documentation for alternatives.',
             parameters: [],
             returns: {
                 type: 'String',
@@ -2028,7 +2027,7 @@ export default {
             command: 'isIMEActivated',
             description: 'Indicates whether IME input is active at the moment',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#isimeactivated',
-            deprecated: 'IME commands are not supported in Appium 3',
+            deprecated: 'IME commands are deprecated. Check your driver documentation for alternatives.',
             parameters: [],
             returns: {
                 type: 'Boolean',
@@ -2048,7 +2047,7 @@ export default {
             command: 'deactivateIMEEngine',
             description: 'De-activates the currently-active IME engine.',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#deactivateimeengine',
-            deprecated: 'IME commands are not supported in Appium 3. Use `driver.execute(\'mobile: shell\', { command: \'ime\', args: [\'disable\', \'<engine_id>\'] })` instead',
+            deprecated: 'IME commands are deprecated. Check your driver documentation for alternatives.',
             parameters: [],
             support: {
                 android: {
@@ -2062,7 +2061,7 @@ export default {
             command: 'activateIMEEngine',
             description: 'Activates an IME engine.',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#activateimeengine',
-            deprecated: 'IME commands are not supported in Appium 3. Use `driver.execute(\'mobile: shell\', { command: \'ime\', args: [\'enable\', \'<engine_id>\'] })` instead',
+            deprecated: 'IME commands are deprecated. Check your driver documentation for alternatives.',
             parameters: [
                 {
                     name: 'engine',

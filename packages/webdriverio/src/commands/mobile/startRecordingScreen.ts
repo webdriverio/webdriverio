@@ -31,14 +31,16 @@ export async function startRecordingScreen(
         throw new Error('The `startRecordingScreen` command is only available for mobile platforms.')
     }
 
+    const mobileCommand = browser.isIOS ? 'mobile: startXCTestScreenRecording' : 'mobile: startMediaProjectionRecording'
+
     try {
-        return await browser.execute('mobile: startRecordingScreen', { options })
+        return await browser.execute(mobileCommand, { options })
     } catch (err: unknown) {
         if (!isUnknownMethodError(err)) {
             throw err
         }
 
-        logAppiumDeprecationWarning('mobile: startRecordingScreen', '/appium/start_recording_screen')
+        logAppiumDeprecationWarning(mobileCommand, '/appium/start_recording_screen')
         return browser.appiumStartRecordingScreen(options)
     }
 }

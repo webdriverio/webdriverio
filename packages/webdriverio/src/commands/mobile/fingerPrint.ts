@@ -33,13 +33,13 @@ export async function fingerPrint(
     }
 
     try {
-        return await browser.execute('mobile: fingerPrint', { fingerprintId })
+        return await browser.execute('mobile: fingerprint', { fingerprintId })
     } catch (err: unknown) {
         if (!isUnknownMethodError(err)) {
             throw err
         }
 
-        logAppiumDeprecationWarning('mobile: fingerPrint', '/appium/device/finger_print')
+        logAppiumDeprecationWarning('mobile: fingerprint', '/appium/device/finger_print')
         return browser.appiumFingerPrint(fingerprintId)
     }
 }

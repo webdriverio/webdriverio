@@ -33,13 +33,13 @@ export async function toggleNetworkSpeed(
     }
 
     try {
-        return await browser.execute('mobile: setNetworkSpeed', { netspeed })
+        return await browser.execute('mobile: networkSpeed', { netspeed })
     } catch (err: unknown) {
         if (!isUnknownMethodError(err)) {
             throw err
         }
 
-        logAppiumDeprecationWarning('mobile: setNetworkSpeed', '/appium/device/network_speed')
+        logAppiumDeprecationWarning('mobile: networkSpeed', '/appium/device/network_speed')
         return browser.appiumToggleNetworkSpeed(netspeed)
     }
 }

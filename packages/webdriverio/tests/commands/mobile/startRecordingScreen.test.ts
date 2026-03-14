@@ -25,7 +25,7 @@ describe('startRecordingScreen', () => {
         })
     })
 
-    describe('modern driver (mobile: startRecordingScreen succeeds)', () => {
+    describe('Android - modern driver (mobile: startMediaProjectionRecording succeeds)', () => {
         beforeEach(async () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
@@ -37,17 +37,17 @@ describe('startRecordingScreen', () => {
             })
         })
 
-        it('should call mobile: startRecordingScreen without options', async () => {
+        it('should call mobile: startMediaProjectionRecording without options', async () => {
             const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
             await browser.startRecordingScreen()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: startRecordingScreen', { options: undefined })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: startMediaProjectionRecording', { options: undefined })
         })
 
-        it('should call mobile: startRecordingScreen with options', async () => {
+        it('should call mobile: startMediaProjectionRecording with options', async () => {
             const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
             const options = { videoType: 'mp4', videoQuality: 'high', timeLimit: '180' }
             await browser.startRecordingScreen(options)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: startRecordingScreen', { options })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: startMediaProjectionRecording', { options })
         })
 
         it('should re-throw non-unknown-method errors', async () => {
@@ -56,7 +56,26 @@ describe('startRecordingScreen', () => {
         })
     })
 
-    describe('legacy driver fallback (mobile: startRecordingScreen returns unknown method)', () => {
+    describe('iOS - modern driver (mobile: startXCTestScreenRecording succeeds)', () => {
+        beforeEach(async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'foobar',
+                    mobileMode: true,
+                    platformName: 'iOS',
+                } as any
+            })
+        })
+
+        it('should call mobile: startXCTestScreenRecording without options', async () => {
+            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            await browser.startRecordingScreen()
+            expect(executeSpy).toHaveBeenCalledWith('mobile: startXCTestScreenRecording', { options: undefined })
+        })
+    })
+
+    describe('legacy driver fallback', () => {
         beforeEach(async () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
@@ -69,13 +88,13 @@ describe('startRecordingScreen', () => {
         })
 
         it('should fall back to appiumStartRecordingScreen without options and log a warning', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('unknown method: mobile: startRecordingScreen'))
+            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('unknown method: mobile: startMediaProjectionRecording'))
             const appiumSpy = vi.spyOn(browser, 'appiumStartRecordingScreen').mockResolvedValue(undefined)
 
             await browser.startRecordingScreen()
 
             expect(appiumSpy).toHaveBeenCalledWith(undefined)
-            expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: startRecordingScreen'))
+            expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: startMediaProjectionRecording'))
         })
 
         it('should fall back to appiumStartRecordingScreen with options and log a warning', async () => {
@@ -86,7 +105,7 @@ describe('startRecordingScreen', () => {
             await browser.startRecordingScreen(options)
 
             expect(appiumSpy).toHaveBeenCalledWith(options)
-            expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: startRecordingScreen'))
+            expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: startMediaProjectionRecording'))
         })
     })
 })

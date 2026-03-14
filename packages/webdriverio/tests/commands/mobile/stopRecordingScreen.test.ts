@@ -25,7 +25,7 @@ describe('stopRecordingScreen', () => {
         })
     })
 
-    describe('modern driver (mobile: stopRecordingScreen succeeds)', () => {
+    describe('Android - modern driver (mobile: stopMediaProjectionRecording succeeds)', () => {
         beforeEach(async () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
@@ -37,10 +37,10 @@ describe('stopRecordingScreen', () => {
             })
         })
 
-        it('should call mobile: stopRecordingScreen without arguments', async () => {
+        it('should call mobile: stopMediaProjectionRecording without arguments', async () => {
             const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue('base64video')
             const result = await browser.stopRecordingScreen()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: stopRecordingScreen', {
+            expect(executeSpy).toHaveBeenCalledWith('mobile: stopMediaProjectionRecording', {
                 remotePath: undefined,
                 username: undefined,
                 password: undefined,
@@ -49,10 +49,10 @@ describe('stopRecordingScreen', () => {
             expect(result).toBe('base64video')
         })
 
-        it('should call mobile: stopRecordingScreen with all arguments', async () => {
+        it('should call mobile: stopMediaProjectionRecording with all arguments', async () => {
             const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue('')
             const result = await browser.stopRecordingScreen('https://storage.example.com/video.mp4', 'user', 'pass', 'PUT')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: stopRecordingScreen', {
+            expect(executeSpy).toHaveBeenCalledWith('mobile: stopMediaProjectionRecording', {
                 remotePath: 'https://storage.example.com/video.mp4',
                 username: 'user',
                 password: 'pass',
@@ -67,7 +67,32 @@ describe('stopRecordingScreen', () => {
         })
     })
 
-    describe('legacy driver fallback (mobile: stopRecordingScreen returns unknown method)', () => {
+    describe('iOS - modern driver (mobile: stopXCTestScreenRecording succeeds)', () => {
+        beforeEach(async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'foobar',
+                    mobileMode: true,
+                    platformName: 'iOS',
+                } as any
+            })
+        })
+
+        it('should call mobile: stopXCTestScreenRecording without arguments', async () => {
+            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue('base64video')
+            const result = await browser.stopRecordingScreen()
+            expect(executeSpy).toHaveBeenCalledWith('mobile: stopXCTestScreenRecording', {
+                remotePath: undefined,
+                username: undefined,
+                password: undefined,
+                method: undefined,
+            })
+            expect(result).toBe('base64video')
+        })
+    })
+
+    describe('legacy driver fallback', () => {
         beforeEach(async () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
@@ -80,14 +105,14 @@ describe('stopRecordingScreen', () => {
         })
 
         it('should fall back to appiumStopRecordingScreen without arguments and log a warning', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('unknown method: mobile: stopRecordingScreen'))
+            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('unknown method: mobile: stopMediaProjectionRecording'))
             const appiumSpy = vi.spyOn(browser, 'appiumStopRecordingScreen').mockResolvedValue('base64video')
 
             const result = await browser.stopRecordingScreen()
 
             expect(appiumSpy).toHaveBeenCalledWith(undefined, undefined, undefined, undefined)
             expect(result).toBe('base64video')
-            expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: stopRecordingScreen'))
+            expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: stopMediaProjectionRecording'))
         })
 
         it('should fall back to appiumStopRecordingScreen with all arguments and log a warning', async () => {
@@ -98,7 +123,7 @@ describe('stopRecordingScreen', () => {
 
             expect(appiumSpy).toHaveBeenCalledWith('https://storage.example.com/video.mp4', 'user', 'pass', 'PUT')
             expect(result).toBe('')
-            expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: stopRecordingScreen'))
+            expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: stopMediaProjectionRecording'))
         })
     })
 })

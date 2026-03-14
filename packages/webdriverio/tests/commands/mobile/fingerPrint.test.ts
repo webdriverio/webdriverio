@@ -35,7 +35,7 @@ describe('fingerPrint', () => {
         })
     })
 
-    describe('modern driver (mobile: fingerPrint succeeds)', () => {
+    describe('modern driver (mobile: fingerprint succeeds)', () => {
         beforeEach(async () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
@@ -47,10 +47,10 @@ describe('fingerPrint', () => {
             })
         })
 
-        it('should call mobile: fingerPrint with the given fingerprintId', async () => {
+        it('should call mobile: fingerprint with the given fingerprintId', async () => {
             const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
             await browser.fingerPrint(1)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: fingerPrint', { fingerprintId: 1 })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: fingerprint', { fingerprintId: 1 })
         })
 
         it('should re-throw non-unknown-method errors', async () => {
@@ -59,7 +59,7 @@ describe('fingerPrint', () => {
         })
     })
 
-    describe('legacy driver fallback (mobile: fingerPrint returns unknown method)', () => {
+    describe('legacy driver fallback (mobile: fingerprint returns unknown method)', () => {
         beforeEach(async () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
@@ -72,13 +72,13 @@ describe('fingerPrint', () => {
         })
 
         it('should fall back to appiumFingerPrint and log a warning', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('unknown method: mobile: fingerPrint'))
+            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('unknown method: mobile: fingerprint'))
             const appiumSpy = vi.spyOn(browser, 'appiumFingerPrint').mockResolvedValue(undefined)
 
             await browser.fingerPrint(1)
 
             expect(appiumSpy).toHaveBeenCalledWith(1)
-            expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: fingerPrint'))
+            expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: fingerprint'))
         })
 
         it('should pass fingerprintId to appiumFingerPrint on fallback', async () => {
