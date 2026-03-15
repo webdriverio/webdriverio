@@ -20,8 +20,7 @@ export async function saveRecordingScreen (
     const absoluteFilepath = path.resolve(filepath)
     await assertDirectoryExists(absoluteFilepath)
 
-    // TODO: update to use the `stopRecordingScreen` mobile command once implemented
-    const videoBuffer = await this.appiumStopRecordingScreen()
+    const videoBuffer = await this.stopRecordingScreen()
     const video = Buffer.from(videoBuffer, 'base64')
     fs.writeFileSync(absoluteFilepath, video)
 

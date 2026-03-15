@@ -186,10 +186,9 @@ export default {
     },
     '/session/:sessionId/appium/start_recording_screen': {
         POST: {
-            command: 'appiumStartRecordingScreen',
-            description: 'Start recording the screen. This is the raw Appium protocol endpoint. Prefer the `startRecordingScreen` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
+            command: 'startRecordingScreen',
+            description: 'Start recording the screen.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/recording-screen/start-recording-screen/',
-            deprecated: 'Use the `startRecordingScreen` mobile command (`driver.startRecordingScreen()`) instead',
             parameters: [
                 {
                     name: 'options',
@@ -214,10 +213,9 @@ export default {
     },
     '/session/:sessionId/appium/stop_recording_screen': {
         POST: {
-            command: 'appiumStopRecordingScreen',
-            description: 'Stop recording screen. This is the raw Appium protocol endpoint. Prefer the `stopRecordingScreen` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
+            command: 'stopRecordingScreen',
+            description: 'Stop recording screen.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/recording-screen/stop-recording-screen/',
-            deprecated: 'Use the `stopRecordingScreen` mobile command (`driver.stopRecordingScreen()`) instead',
             parameters: [
                 {
                     name: 'remotePath',
@@ -1989,7 +1987,6 @@ export default {
             command: 'availableIMEEngines',
             description: 'List all available IME engines on the device. To use an engine, it has to be present in this list.',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#availableimeengines',
-            deprecated: 'IME commands are deprecated. Check your driver documentation for alternatives.',
             parameters: [],
             returns: {
                 type: 'String[]',
@@ -2008,7 +2005,6 @@ export default {
             command: 'getActiveIMEEngine',
             description: 'Get the name of the active IME engine. The name string is platform specific.',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#getactiveimeengine',
-            deprecated: 'IME commands are deprecated. Check your driver documentation for alternatives.',
             parameters: [],
             returns: {
                 type: 'String',
@@ -2027,7 +2023,6 @@ export default {
             command: 'isIMEActivated',
             description: 'Indicates whether IME input is active at the moment',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#isimeactivated',
-            deprecated: 'IME commands are deprecated. Check your driver documentation for alternatives.',
             parameters: [],
             returns: {
                 type: 'Boolean',
@@ -2047,7 +2042,6 @@ export default {
             command: 'deactivateIMEEngine',
             description: 'De-activates the currently-active IME engine.',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#deactivateimeengine',
-            deprecated: 'IME commands are deprecated. Check your driver documentation for alternatives.',
             parameters: [],
             support: {
                 android: {
@@ -2061,7 +2055,6 @@ export default {
             command: 'activateIMEEngine',
             description: 'Activates an IME engine.',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#activateimeengine',
-            deprecated: 'IME commands are deprecated. Check your driver documentation for alternatives.',
             parameters: [
                 {
                     name: 'engine',
