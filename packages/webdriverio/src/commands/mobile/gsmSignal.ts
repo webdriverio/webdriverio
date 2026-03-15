@@ -42,6 +42,6 @@ export async function gsmSignal(
         }
 
         logAppiumDeprecationWarning('mobile: gsmSignal', '/appium/device/gsm_signal')
-        return browser.appiumGsmSignal(signalStrength)
+        return browser.appiumGsmSignal(String(signalStrength))
     }
 }
