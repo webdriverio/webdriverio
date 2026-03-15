@@ -26,7 +26,7 @@ describe('touchId', () => {
     })
 
     describe('platform validation', () => {
-        it('should throw for non-Android platforms', async () => {
+        it('should throw for Android platforms', async () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
                 capabilities: { browserName: 'foobar', mobileMode: true, platformName: 'Android' } as any
@@ -47,16 +47,28 @@ describe('touchId', () => {
             })
         })
 
-        it('should call mobile: sendBiometricMatch with match=true', async () => {
+        it('should call mobile: sendBiometricMatch with match=true and default type touchId', async () => {
             const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
             await browser.touchId(true)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: sendBiometricMatch', { match: true })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: sendBiometricMatch', { match: true, type: 'touchId' })
         })
 
-        it('should call mobile: sendBiometricMatch with match=false', async () => {
+        it('should call mobile: sendBiometricMatch with match=false and default type touchId', async () => {
             const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
             await browser.touchId(false)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: sendBiometricMatch', { match: false })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: sendBiometricMatch', { match: false, type: 'touchId' })
+        })
+
+        it('should call mobile: sendBiometricMatch with type faceId', async () => {
+            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            await browser.touchId(true, 'faceId')
+            expect(executeSpy).toHaveBeenCalledWith('mobile: sendBiometricMatch', { match: true, type: 'faceId' })
+        })
+
+        it('should call mobile: sendBiometricMatch with match=false and type faceId', async () => {
+            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            await browser.touchId(false, 'faceId')
+            expect(executeSpy).toHaveBeenCalledWith('mobile: sendBiometricMatch', { match: false, type: 'faceId' })
         })
 
         it('should re-throw non-unknown-method errors', async () => {
@@ -77,7 +89,7 @@ describe('touchId', () => {
             })
         })
 
-        it('should fall back to appiumTouchId and log a warning', async () => {
+        it('should fall back to appiumTouchId with match and log a warning', async () => {
             vi.spyOn(browser, 'execute').mockRejectedValue(new Error('unknown method: mobile: sendBiometricMatch'))
             const appiumTouchIdSpy = vi.spyOn(browser, 'appiumTouchId').mockResolvedValue(undefined)
 

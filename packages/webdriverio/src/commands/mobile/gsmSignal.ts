@@ -2,25 +2,27 @@ import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/m
 
 /**
  *
- * Set the GSM signal strength on the Android emulator. Value must be in range [0, 4] where 0 is
- * no signal and 4 is full signal.
+ * Set the GSM signal strength on the Android emulator.
  *
  * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :gsmSignal.js
     it('should set GSM signal to full strength', async () => {
-        await browser.gsmSignal('4')
+        await browser.gsmSignal(4)
+    })
+    it('should set GSM signal to no signal', async () => {
+        await browser.gsmSignal(0)
     })
  * </example>
  *
- * @param {string}  signalStrength  The signal strength to set (0–4, where 0 is none and 4 is full)
+ * @param {number}  signalStrength  The signal strength to set. Accepted values: `0` (no signal), `1` (very poor), `2` (poor), `3` (moderate), `4` (good/full)
  *
  * @support ["android"]
  */
 export async function gsmSignal(
     this: WebdriverIO.Browser,
-    signalStrength: string
+    signalStrength: number
 ) {
     const browser = this
 
@@ -40,6 +42,6 @@ export async function gsmSignal(
         }
 
         logAppiumDeprecationWarning('mobile: gsmSignal', '/appium/device/gsm_signal')
-        return browser.appiumGsmSignal(signalStrength)
+        return browser.appiumGsmSignal(String(signalStrength))
     }
 }

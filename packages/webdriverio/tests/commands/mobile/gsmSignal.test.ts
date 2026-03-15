@@ -21,12 +21,12 @@ describe('gsmSignal', () => {
                 baseUrl: 'http://foobar.com',
                 capabilities: { browserName: 'foobar' } as any
             })
-            await expect(browser.gsmSignal('4')).rejects.toThrow('The `gsmSignal` command is only available for mobile platforms.')
+            await expect(browser.gsmSignal(4)).rejects.toThrow('The `gsmSignal` command is only available for mobile platforms.')
         })
     })
 
     describe('platform validation', () => {
-        it('should throw for non-iOS platforms', async () => {
+        it('should throw for iOS platforms', async () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
                 capabilities: { browserName: 'foobar', mobileMode: true, platformName: 'iOS' } as any
@@ -47,15 +47,21 @@ describe('gsmSignal', () => {
             })
         })
 
-        it('should call mobile: gsmSignal with the given signalStrength', async () => {
+        it('should call mobile: gsmSignal with signalStrength as a number', async () => {
             const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
-            await browser.gsmSignal('4')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: gsmSignal', { signalStrength: '4' })
+            await browser.gsmSignal(4)
+            expect(executeSpy).toHaveBeenCalledWith('mobile: gsmSignal', { signalStrength: 4 })
+        })
+
+        it('should call mobile: gsmSignal with signalStrength 0', async () => {
+            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            await browser.gsmSignal(0)
+            expect(executeSpy).toHaveBeenCalledWith('mobile: gsmSignal', { signalStrength: 0 })
         })
 
         it('should re-throw non-unknown-method errors', async () => {
             vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
-            await expect(browser.gsmSignal('4')).rejects.toThrow('device disconnected')
+            await expect(browser.gsmSignal(4)).rejects.toThrow('device disconnected')
         })
     })
 
@@ -75,17 +81,17 @@ describe('gsmSignal', () => {
             vi.spyOn(browser, 'execute').mockRejectedValue(new Error('unknown method: mobile: gsmSignal'))
             const appiumSpy = vi.spyOn(browser, 'appiumGsmSignal').mockResolvedValue(undefined)
 
-            await browser.gsmSignal('4')
+            await browser.gsmSignal(4)
 
             expect(appiumSpy).toHaveBeenCalledWith('4')
             expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: gsmSignal'))
         })
 
-        it('should pass signalStrength to appiumGsmSignal on fallback', async () => {
+        it('should pass signalStrength 0 to appiumGsmSignal on fallback', async () => {
             vi.spyOn(browser, 'execute').mockRejectedValue(new Error('unknown command'))
             const appiumSpy = vi.spyOn(browser, 'appiumGsmSignal').mockResolvedValue(undefined)
 
-            await browser.gsmSignal('0')
+            await browser.gsmSignal(0)
 
             expect(appiumSpy).toHaveBeenCalledWith('0')
         })

@@ -39,16 +39,16 @@ describe('sendKeyEvent', () => {
             })
         })
 
-        it('should call mobile: pressKey with keycode only', async () => {
+        it('should call mobile: pressKey with integer keycode', async () => {
             const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
             await browser.sendKeyEvent('3')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: pressKey', { keycode: '3', metastate: undefined })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: pressKey', { keycode: 3 })
         })
 
-        it('should call mobile: pressKey with keycode and metastate', async () => {
+        it('should call mobile: pressKey with integer keycode and metastate', async () => {
             const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
             await browser.sendKeyEvent('29', '1')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: pressKey', { keycode: '29', metastate: '1' })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: pressKey', { keycode: 29, metastate: 1 })
         })
 
         it('should re-throw non-unknown-method errors', async () => {
@@ -65,7 +65,7 @@ describe('sendKeyEvent', () => {
             })
         })
 
-        it('should fall back to appiumSendKeyEvent and log a warning', async () => {
+        it('should fall back to appiumSendKeyEvent with original string args and log a warning', async () => {
             vi.spyOn(browser, 'execute').mockRejectedValue(new Error('unknown method'))
             const fallbackSpy = vi.spyOn(browser, 'appiumSendKeyEvent').mockResolvedValue(undefined)
             await browser.sendKeyEvent('3')
@@ -73,7 +73,7 @@ describe('sendKeyEvent', () => {
             expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: pressKey'))
         })
 
-        it('should pass metastate to fallback', async () => {
+        it('should pass metastate string to fallback', async () => {
             vi.spyOn(browser, 'execute').mockRejectedValue(new Error('unknown command'))
             const fallbackSpy = vi.spyOn(browser, 'appiumSendKeyEvent').mockResolvedValue(undefined)
             await browser.sendKeyEvent('29', '1')
