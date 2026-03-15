@@ -107,7 +107,6 @@ describe('network mocking', () => {
     it('should be able to see the response body', async () => {
         // Navigate away or clear cache to force a fresh request
         await browser.url('about:blank')
-
         const mock = await browser.mock('https://guinea-pig.webdriver.io/')
 
         await browser.url('https://guinea-pig.webdriver.io/')
