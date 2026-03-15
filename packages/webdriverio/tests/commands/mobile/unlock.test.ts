@@ -25,7 +25,32 @@ describe('unlock', () => {
         })
     })
 
-    describe('modern driver (mobile: unlock succeeds)', () => {
+    describe('iOS (mobile: unlock succeeds)', () => {
+        beforeEach(async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'foobar',
+                    mobileMode: true,
+                    platformName: 'iOS',
+                } as any
+            })
+        })
+
+        it('should call mobile: unlock with no args on iOS', async () => {
+            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            await browser.unlock()
+            expect(executeSpy).toHaveBeenCalledWith('mobile: unlock', {})
+        })
+
+        it('should ignore Android-specific options on iOS', async () => {
+            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            await browser.unlock({ strategy: 'locksettings', unlockKey: '1234' })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: unlock', {})
+        })
+    })
+
+    describe('Android (mobile: unlock succeeds)', () => {
         beforeEach(async () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
@@ -37,10 +62,32 @@ describe('unlock', () => {
             })
         })
 
-        it('should call mobile: unlock with no args', async () => {
+        it('should call mobile: unlock with no args when no options provided', async () => {
             const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
             await browser.unlock()
             expect(executeSpy).toHaveBeenCalledWith('mobile: unlock', {})
+        })
+
+        it('should call mobile: unlock with strategy option', async () => {
+            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            await browser.unlock({ strategy: 'locksettings' })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: unlock', { strategy: 'locksettings' })
+        })
+
+        it('should call mobile: unlock with all Android options', async () => {
+            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            await browser.unlock({
+                strategy: 'uiautomator',
+                timeoutMs: 5000,
+                unlockKey: '1234',
+                unlockType: 'pin',
+            })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: unlock', {
+                strategy: 'uiautomator',
+                timeoutMs: 5000,
+                unlockKey: '1234',
+                unlockType: 'pin',
+            })
         })
 
         it('should re-throw non-unknown-method errors', async () => {
@@ -75,7 +122,7 @@ describe('unlock', () => {
             vi.spyOn(browser, 'execute').mockRejectedValue(new Error('unknown command'))
             const appiumUnlockSpy = vi.spyOn(browser, 'appiumUnlock').mockResolvedValue(undefined)
 
-            await browser.unlock()
+            await browser.unlock({ strategy: 'locksettings', unlockKey: '1234' })
 
             expect(appiumUnlockSpy).toHaveBeenCalledWith()
         })
