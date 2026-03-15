@@ -180,12 +180,12 @@ export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'before
     waitforInterval?: number
 
     /**
-     * Maximum size of the encoded data (in bytes) that can be returned from the server.
-     * Use 0 to disable data collection of the response payload.
+     * Maximum size of the response body (in bytes) that can be returned when using the `mock` command.
+     * Use 0 to disable data collection of the spied response payload.
      *
      * @default 10485760 (10MB)
      */
-    maxEncodedDataSize?: number
+    maxSpyCollectedBodySize?: number
 }
 
 export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunctionExtension {

@@ -11,6 +11,8 @@ import type { WaitForOptions } from '../../types.js'
 
 const log = logger('WebDriverInterception')
 
+const DEFAULT_SPY_COLLECTED_BODY_SIZE = 10 * 1024 * 1024
+
 let hasSubscribedToEvents = false
 
 type RespondBody = string | JsonCompatible | Buffer
@@ -72,12 +74,12 @@ export default class WebDriverInterception {
                     'network.responseCompleted'
                 ]
             })
-            if (browser.options.maxEncodedDataSize !== 0) {
+            if (browser.options.maxSpyCollectedBodySize !== 0) {
                 await browser.networkAddDataCollector({
                     dataTypes: ['response'],
-                    maxEncodedDataSize: typeof browser.options.maxEncodedDataSize === 'number'
-                        ? browser.options.maxEncodedDataSize
-                        : 10 * 1024 * 1024
+                    maxEncodedDataSize: typeof browser.options.maxSpyCollectedBodySize === 'number'
+                        ? browser.options.maxSpyCollectedBodySize
+                        : DEFAULT_SPY_COLLECTED_BODY_SIZE
                 })
             }
             log.info('subscribed to network events')
@@ -259,7 +261,7 @@ export default class WebDriverInterception {
         if (
             !this.#pattern.test(request.request.url) ||
             !this.#matchesFilterOptions(request) ||
-            this.#browser.options.maxEncodedDataSize === 0
+            this.#browser.options.maxSpyCollectedBodySize === 0
         ) {
             return
         }
