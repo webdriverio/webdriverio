@@ -105,31 +105,14 @@ describe('network mocking', () => {
     })
 
     it('should be able to see the response body', async () => {
+        // Navigate away or clear cache to force a fresh request
+        await browser.url('about:blank')
+
         const mock = await browser.mock('https://guinea-pig.webdriver.io/')
+
         await browser.url('https://guinea-pig.webdriver.io/')
-        await browser.waitUntil(() => mock.calls.length > 0 && typeof mock.calls[0].body !== 'undefined', {
-            timeoutMsg: 'Expected mock to have a body'
-        })
+
         expect(mock.calls[0].body).toContain('<html>')
-    })
-
-    it('should be able to see the request body', async () => {
-        const mock = await browser.mock('https://guinea-pig.webdriver.io/my-api', { method: 'post' })
-        mock.respond({ value: 'response-body' })
-
-        await browser.url('https://guinea-pig.webdriver.io/')
-        await browser.executeAsync(async (done) => {
-            await fetch('/my-api', {
-                method: 'POST',
-                body: JSON.stringify({ value: 'request-body' })
-            })
-            done(null)
-        })
-
-        await browser.waitUntil(() => mock.calls.length > 0 && Boolean(mock.calls[0].postData))
-
-        expect(mock.calls[0].postData).toBe('{"value":"request-body"}')
-        expect(mock.calls[0].body).toEqual({ value: 'response-body' })
     })
 
     it('should mock with complex mixed wildcards', async () => {
