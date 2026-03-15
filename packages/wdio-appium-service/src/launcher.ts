@@ -288,7 +288,9 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             }
 
             /**
-             * only capture first error to print it in case Appium failed to start.
+             * Appium writes all log output (debug, info, warn, error) to stderr, so we cannot
+             * distinguish real errors from normal log output in the data handler.
+             * Accumulate stderr for error reporting and let the exit/timeout handlers detect failures.
              */
             const onErrorMessage = (data: Buffer) => {
                 const message = data.toString()
@@ -301,29 +303,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                     return
                 }
 
-                appiumProcess.stderr.off('data', onErrorMessage)
-
-                error = message || 'Appium exited without unknown error message'
-
-                /**
-                 * Check if the message is a warning (not an actual error)
-                 * Warnings should be logged but not cause the service to fail
-                 */
-                const isWarning = message.trim().startsWith('WARN')
-
-                if (isWarning) {
-                    log.warn(error)
-                } else {
-                    log.error(error)
-                }
-
-                /**
-                 * Don't reject on warnings - this is the fix for issue #14770
-                 * Continue to reject on all other stderr output for backward compatibility
-                 */
-                if (!isWarning) {
-                    rejectOnce(new Error(error))
-                }
+                error = (error || '') + message
             }
 
             const onStdout = (data: Buffer) => {
@@ -348,8 +328,8 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                 let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
                 if (exitCode === 2) {
                     errorMessage += '\n' + (error?.toString() || 'Check that you don\'t already have a running Appium service.')
-                } else if (errorCaptured) {
-                    errorMessage += `\n${error?.toString()}`
+                } else if (error) {
+                    errorMessage += `\n${error}`
                 }
                 if (exitCode !== 0) {
                     log.error(errorMessage)

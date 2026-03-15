@@ -316,7 +316,7 @@ describe('startAppiumForCli', () => {
         await expect(promise).rejects.toThrow('Timeout: Appium did not start within expected time')
     })
 
-    it('should reject on stderr error (non-warning)', async () => {
+    it('should pass stderr through and reject via exit event', async () => {
         vi.mocked(os.platform).mockReturnValue('darwin')
 
         const promise = startAppiumForCli('/path/to/appium', ['server'])
@@ -326,8 +326,16 @@ describe('startAppiumForCli', () => {
             onStderrHandler(Buffer.from('ERROR: Port already in use'))
         }
 
+        // Stderr is passed through, not rejected immediately
+        expect(process.stderr.write).toHaveBeenCalledWith('ERROR: Port already in use')
+
+        // Rejection happens via exit event with accumulated stderr content
+        const onExitHandler = mockProcess.once.mock.calls.find((call: any[]) => call[0] === 'exit')?.[1]
+        if (onExitHandler) {
+            onExitHandler(1)
+        }
+
         await expect(promise).rejects.toThrow('Port already in use')
-        // Note: process.stderr.write is not called for first non-warning error because function returns early
     })
 
     it('should not reject on WARN messages', async () => {

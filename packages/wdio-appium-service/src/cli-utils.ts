@@ -190,7 +190,9 @@ export async function startAppiumForCli(
         }
 
         /**
-         * only capture first error to print it in case Appium failed to start.
+         * Appium writes all log output (debug, info, warn, error) to stderr, so we cannot
+         * distinguish real errors from normal log output in the data handler.
+         * Accumulate stderr for error reporting and let the exit/timeout handlers detect failures.
          */
         const onErrorMessage = (data: Buffer) => {
             const message = data.toString()
@@ -203,26 +205,7 @@ export async function startAppiumForCli(
                 return
             }
 
-            if (!errorCaptured) {
-                error = message || 'Appium exited without error message'
-
-                /**
-                 * Check if the message is a warning (not an actual error)
-                 * Warnings should be logged but not cause the service to fail
-                 */
-                const isWarning = message.trim().startsWith('WARN')
-
-                /**
-                 * Don't reject on warnings - this is the fix for issue #14770
-                 * Continue to reject on all other stderr output for backward compatibility
-                 */
-                if (!isWarning) {
-                    rejectOnce(new Error(error))
-                    return
-                }
-            }
-
-            // Write all stderr to console (keep listener attached for continuous logging)
+            error = (error || '') + message
             process.stderr.write(message)
         }
 
@@ -245,8 +228,8 @@ export async function startAppiumForCli(
             let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
             if (exitCode === 2) {
                 errorMessage += '\n' + (error?.toString() || 'Check that you don\'t already have a running Appium service.')
-            } else if (errorCaptured) {
-                errorMessage += `\n${error?.toString()}`
+            } else if (error) {
+                errorMessage += `\n${error}`
             }
             if (exitCode !== 0) {
                 console.error(errorMessage)
