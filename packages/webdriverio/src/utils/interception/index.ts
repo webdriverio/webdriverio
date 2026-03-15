@@ -72,10 +72,14 @@ export default class WebDriverInterception {
                     'network.responseCompleted'
                 ]
             })
-            await browser.networkAddDataCollector({
-                dataTypes: ['response'],
-                maxEncodedDataSize: 10 * 1024 * 1024
-            })
+            if (browser.options.maxEncodedDataSize !== 0) {
+                await browser.networkAddDataCollector({
+                    dataTypes: ['response'],
+                    maxEncodedDataSize: typeof browser.options.maxEncodedDataSize === 'number'
+                        ? browser.options.maxEncodedDataSize
+                        : 10 * 1024 * 1024
+                })
+            }
             log.info('subscribed to network events')
             hasSubscribedToEvents = true
         }
@@ -249,16 +253,14 @@ export default class WebDriverInterception {
     async #handleResponseCompleted(request: local.NetworkResponseCompletedParameters) {
         /**
          * don't do anything if:
-         * - request is not matching the pattern, e.g. a different mock is responsible for this request
+         * - request is not matching the pattern or filter options
+         * - data collection is disabled
          */
-        if (!this.#pattern.test(request.request.url)) {
-            return
-        }
-
-        /**
-         * continue mock if not matching filter
-         */
-        if (!this.#matchesFilterOptions(request)) {
+        if (
+            !this.#pattern.test(request.request.url) ||
+            !this.#matchesFilterOptions(request) ||
+            this.#browser.options.maxEncodedDataSize === 0
+        ) {
             return
         }
 
