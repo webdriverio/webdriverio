@@ -6,10 +6,12 @@ import { URLPattern } from 'urlpattern-polyfill'
 import Timer from '../Timer.js'
 import { parseOverwrite, getPatternParam } from './utils.js'
 import { SESSION_MOCKS } from '../../commands/browser/mock.js'
-import type { MockFilterOptions, RequestWithOptions, RespondWithOptions } from './types.js'
+import type { MockFilterOptions, RequestWithOptions, RespondWithOptions, InterceptionResponseCompletedParameters } from './types.js'
 import type { WaitForOptions } from '../../types.js'
 
 const log = logger('WebDriverInterception')
+
+const DEFAULT_SPY_COLLECTED_BODY_SIZE = 10 * 1024 * 1024
 
 let hasSubscribedToEvents = false
 
@@ -36,7 +38,7 @@ export default class WebDriverInterception {
     #restored = false
     #requestOverwrites: Overwrite[] = []
     #respondOverwrites: Overwrite[] = []
-    #calls: local.NetworkResponseCompletedParameters[] = []
+    #calls: InterceptionResponseCompletedParameters[] = []
     #responseBodies = new Map<string, remote.NetworkBytesValue>()
 
     constructor(
@@ -55,6 +57,7 @@ export default class WebDriverInterception {
          */
         browser.on('network.beforeRequestSent', this.#handleBeforeRequestSent.bind(this))
         browser.on('network.responseStarted', this.#handleResponseStarted.bind(this))
+        browser.on('network.responseCompleted', this.#handleResponseCompleted.bind(this))
     }
 
     static async initiate(
@@ -67,9 +70,18 @@ export default class WebDriverInterception {
             await browser.sessionSubscribe({
                 events: [
                     'network.beforeRequestSent',
-                    'network.responseStarted'
+                    'network.responseStarted',
+                    'network.responseCompleted'
                 ]
             })
+            if (browser.options.maxSpyCollectedBodySize !== 0) {
+                await browser.networkAddDataCollector({
+                    dataTypes: ['response'],
+                    maxEncodedDataSize: typeof browser.options.maxSpyCollectedBodySize === 'number'
+                        ? browser.options.maxSpyCollectedBodySize
+                        : DEFAULT_SPY_COLLECTED_BODY_SIZE
+                })
+            }
             log.info('subscribed to network events')
             hasSubscribedToEvents = true
         }
@@ -165,7 +177,7 @@ export default class WebDriverInterception {
         })
     }
 
-    #handleResponseStarted(request: local.NetworkResponseCompletedParameters) {
+    #handleResponseStarted(request: InterceptionResponseCompletedParameters) {
         /**
          * don't do anything if:
          * - request is not blocked
@@ -240,6 +252,41 @@ export default class WebDriverInterception {
         }).catch(this.#handleNetworkProvideResponseError)
     }
 
+    async #handleResponseCompleted(request: InterceptionResponseCompletedParameters) {
+        /**
+         * don't do anything if:
+         * - request is not matching the pattern or filter options
+         * - data collection is disabled
+         */
+        if (
+            !this.#pattern.test(request.request.url) ||
+            !this.#matchesFilterOptions(request) ||
+            this.#browser.options.maxSpyCollectedBodySize === 0
+        ) {
+            return
+        }
+
+        /**
+         * try populate response body
+         */
+        try {
+            const { bytes } = await this.#browser.networkGetData({
+                request: request.request.request,
+                dataType: 'response'
+            })
+
+            if (bytes) {
+                this.#responseBodies.set(request.request.request, bytes)
+                const call = this.#calls.find((call) => call.request.request === request.request.request)
+                if (call) {
+                    call.body = bytes.value
+                }
+            }
+        } catch (err: unknown) {
+            log.debug(`Failed to get response body for ${request.request.request}: ${(err as Error).message}`)
+        }
+    }
+
     /**
      * It appears that the networkProvideResponse method may throw an "no such request" error even though the request
      * is marked as "blocked", in these cases we can safely ignore the error.
@@ -274,7 +321,7 @@ export default class WebDriverInterception {
      * Simulate a responseStarted event for testing purposes
      * @param request NetworkResponseCompletedParameters to simulate
      */
-    public simulateResponseStarted(request: local.NetworkResponseCompletedParameters): void {
+    public simulateResponseStarted(request: InterceptionResponseCompletedParameters): void {
         try {
             this.#handleResponseStarted(request)
         } catch (e) {
@@ -287,12 +334,12 @@ export default class WebDriverInterception {
         return this.#responseBodies
     }
 
-    #isRequestMatching<T extends local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters>(request: T) {
+    #isRequestMatching<T extends local.NetworkBeforeRequestSentParameters | InterceptionResponseCompletedParameters>(request: T) {
         const matches = this.#pattern && this.#pattern.test(request.request.url)
         return request.isBlocked && matches
     }
 
-    #matchesFilterOptions<T extends local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters>(request: T) {
+    #matchesFilterOptions<T extends local.NetworkBeforeRequestSentParameters | InterceptionResponseCompletedParameters>(request: T) {
         let isRequestMatching = true
 
         if (isRequestMatching && this.#filterOptions.method) {
@@ -358,7 +405,7 @@ export default class WebDriverInterception {
     /**
      * allows access to all requests made with given pattern
      */
-    get calls(): local.NetworkResponseCompletedParameters[] {
+    get calls(): InterceptionResponseCompletedParameters[] {
         return this.#calls
     }
 
@@ -487,7 +534,7 @@ export default class WebDriverInterception {
     on(event: 'match', callback: (match: local.NetworkBeforeRequestSentParameters) => void): WebDriverInterception
     on(event: 'continue', callback: (requestId: string) => void): WebDriverInterception
     on(event: 'fail', callback: (requestId: string) => void): WebDriverInterception
-    on(event: 'overwrite', callback: (response: local.NetworkResponseCompletedParameters) => void): WebDriverInterception
+    on(event: 'overwrite', callback: (response: InterceptionResponseCompletedParameters) => void): WebDriverInterception
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     on(event: string, callback: (...args: any[]) => void): WebDriverInterception {
         this.#addEventHandler(event, callback)

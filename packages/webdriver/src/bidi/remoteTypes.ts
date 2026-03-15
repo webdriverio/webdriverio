@@ -200,7 +200,7 @@ export interface BrowserClientWindowRectState {
     y?: JsInt;
 }
 
-export type BrowsingContextCommand = BrowsingContextActivate | BrowsingContextCaptureScreenshot | BrowsingContextClose | BrowsingContextCreate | BrowsingContextGetTree | BrowsingContextHandleUserPrompt | BrowsingContextLocateNodes | BrowsingContextNavigate | BrowsingContextPrint | BrowsingContextReload | BrowsingContextSetViewport | BrowsingContextTraverseHistory
+export type BrowsingContextCommand = BrowsingContextActivate | BrowsingContextCaptureScreenshot | BrowsingContextClose | BrowsingContextCreate | BrowsingContextGetTree | BrowsingContextHandleUserPrompt | BrowsingContextLocateNodes | BrowsingContextNavigate | BrowsingContextPrint | BrowsingContextReload | BrowsingContextSetViewport | BrowsingContextTraverseHistory | BrowsingContextSetBypassCSP
 export type BrowsingContextBrowsingContext = string
 export type BrowsingContextLocator = BrowsingContextAccessibilityLocator | BrowsingContextCssLocator | BrowsingContextContextLocator | BrowsingContextInnerTextLocator | BrowsingContextXPathLocator
 
@@ -422,6 +422,17 @@ export interface BrowsingContextReloadParameters {
     wait?: BrowsingContextReadinessState;
 }
 
+export interface BrowsingContextSetBypassCSPParameters {
+    bypass: boolean | null;
+    contexts?: BrowsingContextBrowsingContext[];
+    userContexts?: BrowserUserContext[];
+}
+
+export interface BrowsingContextSetBypassCSP extends Command {
+    method: 'browsingContext.setBypassCSP';
+    params: BrowsingContextSetBypassCSPParameters;
+}
+
 export interface BrowsingContextSetViewport extends Command {
     method: 'browsingContext.setViewport';
     params: BrowsingContextSetViewportParameters;
@@ -497,7 +508,7 @@ export interface EmulationGeolocationPositionUnavailableError {
     type: 'positionUnavailable';
 }
 
-export type NetworkCommand = NetworkAddIntercept | NetworkContinueRequest | NetworkContinueResponse | NetworkContinueWithAuth | NetworkFailRequest | NetworkProvideResponse | NetworkRemoveIntercept | NetworkSetCacheBehavior
+export type NetworkCommand = NetworkAddDataCollector | NetworkAddIntercept | NetworkContinueRequest | NetworkContinueResponse | NetworkContinueWithAuth | NetworkFailRequest | NetworkGetData | NetworkProvideResponse | NetworkRemoveIntercept | NetworkSetCacheBehavior | NetworkDisownData | NetworkRemoveDataCollector | NetworkSetExtraHeaders
 
 export interface NetworkAuthCredentials {
     type: 'password';
@@ -517,7 +528,7 @@ export interface NetworkBase64Value {
     value: string;
 }
 
-export type NetworkSameSite = 'strict' | 'lax' | 'none'
+export type NetworkSameSite = 'strict' | 'lax' | 'none' | 'default'
 
 export interface NetworkCookie {
     name: string;
@@ -571,6 +582,22 @@ export interface NetworkUrlPatternString {
     type: 'string';
     pattern: string;
 }
+
+export interface NetworkAddDataCollector extends Command {
+    method: 'network.addDataCollector';
+    params: NetworkAddDataCollectorParameters;
+}
+
+export interface NetworkAddDataCollectorParameters {
+    dataTypes: NetworkDataType[];
+    maxEncodedDataSize: JsUint;
+    collectorType?: NetworkCollectorType;
+    contexts?: BrowsingContextBrowsingContext[];
+    userContexts?: BrowserUserContext[];
+}
+
+export type NetworkDataType = 'request' | 'response'
+export type NetworkCollectorType = 'blob'
 
 export interface NetworkAddIntercept extends Command {
     method: 'network.addIntercept';
@@ -640,6 +667,18 @@ export interface NetworkFailRequestParameters {
     request: NetworkRequest;
 }
 
+export interface NetworkGetData extends Command {
+    method: 'network.getData';
+    params: NetworkGetDataParameters;
+}
+
+export interface NetworkGetDataParameters {
+    dataType: NetworkDataType;
+    request: NetworkRequest;
+    collector?: string;
+    disown?: boolean;
+}
+
 export interface NetworkProvideResponse extends Command {
     method: 'network.provideResponse';
     params: NetworkProvideResponseParameters;
@@ -671,6 +710,37 @@ export interface NetworkSetCacheBehavior extends Command {
 export interface NetworkSetCacheBehaviorParameters {
     cacheBehavior: 'default' | 'bypass';
     contexts?: BrowsingContextBrowsingContext[];
+}
+
+export interface NetworkDisownData extends Command {
+    method: 'network.disownData';
+    params: NetworkDisownDataParameters;
+}
+
+export interface NetworkDisownDataParameters {
+    dataType: NetworkDataType;
+    collector: string;
+    request: NetworkRequest;
+}
+
+export interface NetworkRemoveDataCollector extends Command {
+    method: 'network.removeDataCollector';
+    params: NetworkRemoveDataCollectorParameters;
+}
+
+export interface NetworkRemoveDataCollectorParameters {
+    collector: string;
+}
+
+export interface NetworkSetExtraHeaders extends Command {
+    method: 'network.setExtraHeaders';
+    params: NetworkSetExtraHeadersParameters;
+}
+
+export interface NetworkSetExtraHeadersParameters {
+    headers: NetworkHeader[];
+    contexts?: BrowsingContextBrowsingContext[];
+    userContexts?: BrowserUserContext[];
 }
 
 export type ScriptCommand = ScriptAddPreloadScript | ScriptCallFunction | ScriptDisown | ScriptEvaluate | ScriptGetRealms | ScriptRemovePreloadScript
