@@ -1,6 +1,10 @@
 import type { local } from 'webdriver'
 import type { Cookie } from '@wdio/protocols'
 
+export interface InterceptionResponseCompletedParameters extends local.NetworkResponseCompletedParameters {
+    body?: string | number | boolean | object | Buffer | null
+}
+
 export type MockFilterOptions = {
     method?: string | ((method: string) => boolean)
     requestHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean)
