@@ -23,6 +23,17 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.26.0 (2026-03-15)
+
+#### :rocket: New Feature
+* `wdio-protocols`, `webdriver`, `webdriverio`
+  * [#15141](https://github.com/webdriverio/webdriverio/pull/15141) fix(appium): rename deprecated Appium protocol commands for Appium 3 compatibility ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 2
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v9.25.0 (2026-03-10)
 
 #### :rocket: New Feature
