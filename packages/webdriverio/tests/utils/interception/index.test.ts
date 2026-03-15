@@ -585,13 +585,13 @@ describe('WebDriverInterception', () => {
             WebDriverInterception = (await import('../../../src/utils/interception/index.js')).default
         })
 
-        it('initiate should NOT add data collector if maxEncodedDataSize is 0', async () => {
-            const browser = getBrowserMock({ maxEncodedDataSize: 0 })
+        it('initiate should NOT add data collector if maxSpyCollectedBodySize is 0', async () => {
+            const browser = getBrowserMock({ maxSpyCollectedBodySize: 0 })
             await WebDriverInterception.initiate('http://foobar.com', {}, browser)
             expect(browser.networkAddDataCollector).not.toHaveBeenCalled()
         })
 
-        it('initiate should add data collector with default size if maxEncodedDataSize is not provided', async () => {
+        it('initiate should add data collector with default size if maxSpyCollectedBodySize is not provided', async () => {
             const browser = getBrowserMock()
             await WebDriverInterception.initiate('http://foobar.com', {}, browser)
             expect(browser.networkAddDataCollector).toHaveBeenCalledWith({
@@ -601,7 +601,7 @@ describe('WebDriverInterception', () => {
         })
 
         it('initiate should add data collector with custom size', async () => {
-            const browser = getBrowserMock({ maxEncodedDataSize: 1024 })
+            const browser = getBrowserMock({ maxSpyCollectedBodySize: 1024 })
             await WebDriverInterception.initiate('http://foobar.com', {}, browser)
             expect(browser.networkAddDataCollector).toHaveBeenCalledWith({
                 dataTypes: ['response'],
@@ -609,8 +609,8 @@ describe('WebDriverInterception', () => {
             })
         })
 
-        it('should NOT fetch response body on responseCompleted if maxEncodedDataSize is 0', async () => {
-            const browser = getBrowserMock({ maxEncodedDataSize: 0 })
+        it('should NOT fetch response body on responseCompleted if maxSpyCollectedBodySize is 0', async () => {
+            const browser = getBrowserMock({ maxSpyCollectedBodySize: 0 })
             const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
             const request = getRequestStub()
 
@@ -628,8 +628,8 @@ describe('WebDriverInterception', () => {
             expect(browser.networkGetData).not.toHaveBeenCalled()
         })
 
-        it('should fetch response body on responseCompleted if maxEncodedDataSize is > 0', async () => {
-            const browser = getBrowserMock({ maxEncodedDataSize: 1024 })
+        it('should fetch response body on responseCompleted if maxSpyCollectedBodySize is > 0', async () => {
+            const browser = getBrowserMock({ maxSpyCollectedBodySize: 1024 })
             const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
             const request = getRequestStub()
 
