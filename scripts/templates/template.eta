@@ -126,12 +126,24 @@ const ext = it.path.extname(filename).slice(1);
 <% it.throwsTags.forEach(function(throwsTag) { %>- **<%= throwsTag.type %>**: <%= throwsTag.description %><% }) %>
 <% } %>
 
-<% if (it.support && Object.keys(it.support).length) { %>
+<% if (it.support) { %>
 ##### Support
 
+<% if (Array.isArray(it.support) && it.support.length) { %>
+<% it.support.forEach(function(platform) { %>
+![Support for <%= platform %>](/img/icons/<%= platform %>.svg)
+<% }) %>
+
+:::note
+
+Refer to the official [Appium driver documentation](https://appium.io/docs/en/latest/ecosystem/) to see which driver versions support this command.
+
+:::
+<% } else if (!Array.isArray(it.support) && Object.keys(it.support).length) { %>
 <% Object.keys(it.support).forEach(function(platform) { %>
 ![Support for <%= Object.keys(it.support[platform]).map(function(driver) {
     return driver + " (" + it.support[platform][driver] + ")";
 }).join(", ") %>](/img/icons/<%= platform %>.svg)
 <% }) %>
+<% } %>
 <% } %>

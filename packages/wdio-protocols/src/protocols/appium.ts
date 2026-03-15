@@ -105,10 +105,10 @@ export default {
     },
     '/session/:sessionId/appium/device/shake': {
         POST: {
-            command: 'shake',
-            description: 'Perform a shake action on the device.',
+            command: 'appiumShake',
+            description: 'Perform a shake action on the device. This is the raw Appium protocol endpoint. Prefer the `shake` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/interactions/shake/',
-            deprecated: 'Use `driver.execute(\'mobile: shake\')` instead',
+            deprecated: 'Use the `shake` mobile command (`driver.shake()`) instead',
             parameters: [],
             support: {
                 ios: {
@@ -120,10 +120,10 @@ export default {
     },
     '/session/:sessionId/appium/device/lock': {
         POST: {
-            command: 'lock',
-            description: 'Lock the device.',
+            command: 'appiumLock',
+            description: 'Lock the device. This is the raw Appium protocol endpoint. Prefer the `lock` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/interactions/lock/',
-            deprecated: 'Use `driver.execute(\'mobile: lock\', { ... })` instead',
+            deprecated: 'Use the `lock` mobile command (`driver.lock()`) instead',
             parameters: [
                 {
                     name: 'seconds',
@@ -147,10 +147,10 @@ export default {
     },
     '/session/:sessionId/appium/device/unlock': {
         POST: {
-            command: 'unlock',
-            description: 'Unlock the device.',
+            command: 'appiumUnlock',
+            description: 'Unlock the device. This is the raw Appium protocol endpoint. Prefer the `unlock` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/interactions/unlock/',
-            deprecated: 'Use `driver.execute(\'mobile: unlock\')` instead',
+            deprecated: 'Use the `unlock` mobile command (`driver.unlock()`) instead',
             parameters: [],
             support: {
                 android: {
@@ -164,10 +164,10 @@ export default {
     },
     '/session/:sessionId/appium/device/is_locked': {
         POST: {
-            command: 'isLocked',
-            description: 'Check whether the device is locked or not.',
+            command: 'appiumIsLocked',
+            description: 'Check whether the device is locked or not. This is the raw Appium protocol endpoint. Prefer the `isLocked` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/interactions/is-locked/',
-            deprecated: 'Use `driver.execute(\'mobile: isLocked\')` instead',
+            deprecated: 'Use the `isLocked` mobile command (`driver.isLocked()`) instead',
             parameters: [],
             returns: {
                 type: 'boolean',
@@ -214,7 +214,7 @@ export default {
     '/session/:sessionId/appium/stop_recording_screen': {
         POST: {
             command: 'stopRecordingScreen',
-            description: 'Stop recording screen',
+            description: 'Stop recording screen.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/recording-screen/stop-recording-screen/',
             parameters: [
                 {
@@ -266,11 +266,11 @@ export default {
     },
     '/session/:sessionId/appium/performanceData/types': {
         POST: {
-            command: 'getPerformanceDataTypes',
+            command: 'appiumGetPerformanceDataTypes',
             description:
-                'Returns the information types of the system state which is supported to read as like cpu, memory, network traffic, and battery.',
+                'Returns the information types of the system state which is supported to read as like cpu, memory, network traffic, and battery. This is the raw Appium protocol endpoint. Prefer the `getPerformanceDataTypes` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/performance-data/performance-data-types/',
-            deprecated: 'Use `driver.execute(\'mobile: getPerformanceDataTypes\')` instead',
+            deprecated: 'Use the `getPerformanceDataTypes` mobile command (`driver.getPerformanceDataTypes()`) instead',
             parameters: [],
             returns: {
                 type: 'string[]',
@@ -287,11 +287,11 @@ export default {
     },
     '/session/:sessionId/appium/getPerformanceData': {
         POST: {
-            command: 'getPerformanceData',
+            command: 'appiumGetPerformanceData',
             description:
-                'Returns the information of the system state which is supported to read as like cpu, memory, network traffic, and battery.',
+                'Returns the information of the system state which is supported to read as like cpu, memory, network traffic, and battery. This is the raw Appium protocol endpoint. Prefer the `getPerformanceData` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/performance-data/get-performance-data/',
-            deprecated: 'Use `driver.execute(\'mobile: getPerformanceData\', { ... })` instead',
+            deprecated: 'Use the `getPerformanceData` mobile command (`driver.getPerformanceData()`) instead',
             parameters: [
                 {
                     name: 'packageName',
@@ -328,10 +328,10 @@ export default {
     },
     '/session/:sessionId/appium/device/press_keycode': {
         POST: {
-            command: 'pressKeyCode',
-            description: 'Press a particular key on the device.',
+            command: 'appiumPressKeyCode',
+            description: 'Press a particular key on the device. This is the raw Appium protocol endpoint. Prefer the `pressKeyCode` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/keys/press-keycode/',
-            deprecated: 'Use `driver.execute(\'mobile: pressKey\', { ... })` instead',
+            deprecated: 'Use the `pressKeyCode` mobile command (`driver.pressKeyCode()`) instead',
             parameters: [
                 {
                     name: 'keycode',
@@ -361,10 +361,10 @@ export default {
     },
     '/session/:sessionId/appium/device/long_press_keycode': {
         POST: {
-            command: 'longPressKeyCode',
-            description: 'Press and hold a particular key code on the device.',
+            command: 'appiumLongPressKeyCode',
+            description: 'Press and hold a particular key code on the device. This is the raw Appium protocol endpoint. Prefer the `longPressKeyCode` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/keys/long-press-keycode/',
-            deprecated: 'Use `driver.execute(\'mobile: pressKey\', { ... })` instead',
+            deprecated: 'Use the `longPressKeyCode` mobile command (`driver.longPressKeyCode()`) instead',
             parameters: [
                 {
                     name: 'keycode',
@@ -394,10 +394,10 @@ export default {
     },
     '/session/:sessionId/appium/device/keyevent': {
         POST: {
-            command: 'sendKeyEvent',
-            description: 'Send a key code to the device.',
+            command: 'appiumSendKeyEvent',
+            description: 'Send a key code to the device. This is the raw Appium protocol endpoint. Prefer the `pressKeyCode` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints',
-            deprecated: 'Use `driver.execute(\'mobile: pressKey\', { ... })` instead',
+            deprecated: 'Use the `pressKeyCode` mobile command (`driver.pressKeyCode()`) instead',
             parameters: [
                 {
                     name: 'keycode',
@@ -462,10 +462,10 @@ export default {
     },
     '/session/:sessionId/appium/device/current_activity': {
         GET: {
-            command: 'getCurrentActivity',
-            description: 'Get the name of the current Android activity.',
+            command: 'appiumGetCurrentActivity',
+            description: 'Get the name of the current Android activity. This is the raw Appium protocol endpoint. Prefer the `getCurrentActivity` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/activity/current-activity/',
-            deprecated: 'Use `driver.execute(\'mobile: getCurrentActivity\')` instead',
+            deprecated: 'Use the `getCurrentActivity` mobile command (`driver.getCurrentActivity()`) instead',
             parameters: [],
             returns: {
                 type: 'string',
@@ -481,10 +481,10 @@ export default {
     },
     '/session/:sessionId/appium/device/current_package': {
         GET: {
-            command: 'getCurrentPackage',
-            description: 'Get the name of the current Android package.',
+            command: 'appiumGetCurrentPackage',
+            description: 'Get the name of the current Android package. This is the raw Appium protocol endpoint. Prefer the `getCurrentPackage` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/activity/current-package/',
-            deprecated: 'Use `driver.execute(\'mobile: getCurrentPackage\')` instead',
+            deprecated: 'Use the `getCurrentPackage` mobile command (`driver.getCurrentPackage()`) instead',
             parameters: [],
             returns: {
                 type: 'string',
@@ -676,8 +676,9 @@ export default {
     },
     '/session/:sessionId/appium/device/app_state': {
         POST: {
-            command: 'queryAppState',
-            description: 'Get the given app status on the device',
+            command: 'appiumQueryAppState',
+            description: 'This is the raw Appium protocol endpoint. Prefer the `queryAppState` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers. Get the given app status on the device',
+            deprecated: 'Use the `queryAppState` mobile command (`driver.queryAppState()`) instead',
             ref: 'https://appium.io/docs/en/latest/reference/api/appium/#queryappstate',
             parameters: [
                 {
@@ -879,10 +880,10 @@ export default {
     },
     '/session/:sessionId/appium/device/toggle_airplane_mode': {
         POST: {
-            command: 'toggleAirplaneMode',
-            description: 'Toggle airplane mode on device.',
+            command: 'appiumToggleAirplaneMode',
+            description: 'Toggle airplane mode on device. This is the raw Appium protocol endpoint. Prefer the `toggleAirplaneMode` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/toggle-airplane-mode/',
-            deprecated: 'Use `driver.execute(\'mobile: setConnectivity\', { ... })` instead',
+            deprecated: 'Use the `toggleAirplaneMode` mobile command (`driver.toggleAirplaneMode()`) instead',
             parameters: [],
             support: {
                 android: {
@@ -893,10 +894,10 @@ export default {
     },
     '/session/:sessionId/appium/device/toggle_data': {
         POST: {
-            command: 'toggleData',
-            description: 'Switch the state of data service.',
+            command: 'appiumToggleData',
+            description: 'Switch the state of data service. This is the raw Appium protocol endpoint. Prefer the `toggleData` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/toggle-data/',
-            deprecated: 'Use `driver.execute(\'mobile: setConnectivity\', { ... })` instead',
+            deprecated: 'Use the `toggleData` mobile command (`driver.toggleData()`) instead',
             parameters: [],
             support: {
                 android: {
@@ -907,10 +908,10 @@ export default {
     },
     '/session/:sessionId/appium/device/toggle_wifi': {
         POST: {
-            command: 'toggleWiFi',
-            description: 'Switch the state of the wifi service.',
+            command: 'appiumToggleWiFi',
+            description: 'Switch the state of the wifi service. This is the raw Appium protocol endpoint. Prefer the `toggleWiFi` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/toggle-wifi/',
-            deprecated: 'Use `driver.execute(\'mobile: setConnectivity\', { ... })` instead',
+            deprecated: 'Use the `toggleWiFi` mobile command (`driver.toggleWiFi()`) instead',
             parameters: [],
             support: {
                 android: {
@@ -921,10 +922,10 @@ export default {
     },
     '/session/:sessionId/appium/device/toggle_location_services': {
         POST: {
-            command: 'toggleLocationServices',
-            description: 'Switch the state of the location service.',
+            command: 'appiumToggleLocationServices',
+            description: 'Switch the state of the location service. This is the raw Appium protocol endpoint. Prefer the `toggleLocationServices` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/toggle-location-services/',
-            deprecated: 'Use `driver.execute(\'mobile: toggleGps\')` instead',
+            deprecated: 'Use the `toggleLocationServices` mobile command (`driver.toggleLocationServices()`) instead',
             parameters: [],
             support: {
                 android: {
@@ -935,10 +936,10 @@ export default {
     },
     '/session/:sessionId/appium/device/network_speed': {
         POST: {
-            command: 'toggleNetworkSpeed',
-            description: 'Set network speed (Emulator only)',
+            command: 'appiumToggleNetworkSpeed',
+            description: 'Set network speed (Emulator only). This is the raw Appium protocol endpoint. Prefer the `toggleNetworkSpeed` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/network-speed/',
-            deprecated: 'Use `driver.execute(\'mobile: networkSpeed\', { ... })` instead',
+            deprecated: 'Use the `toggleNetworkSpeed` mobile command (`driver.toggleNetworkSpeed()`) instead',
             parameters: [
                 {
                     name: 'netspeed',
@@ -957,10 +958,10 @@ export default {
     },
     '/session/:sessionId/appium/device/open_notifications': {
         POST: {
-            command: 'openNotifications',
-            description: 'Open Android notifications.',
+            command: 'appiumOpenNotifications',
+            description: 'Open Android notifications. This is the raw Appium protocol endpoint. Prefer the `openNotifications` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/system/open-notifications/',
-            deprecated: 'Use `driver.execute(\'mobile: openNotifications\')` or `driver.execute(\'mobile: statusBar\', { ... })` instead',
+            deprecated: 'Use the `openNotifications` mobile command (`driver.openNotifications()`) instead',
             parameters: [],
             support: {
                 android: {
@@ -971,11 +972,11 @@ export default {
     },
     '/session/:sessionId/appium/device/start_activity': {
         POST: {
-            command: 'startActivity',
+            command: 'appiumStartActivity',
             description:
-                'Start an Android activity by providing package name and activity name.',
+                'Start an Android activity by providing package name and activity name. This is the raw Appium protocol endpoint. Prefer the `startActivity` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/activity/start-activity/',
-            deprecated: 'Use `driver.execute(\'mobile: startActivity\', { ... })` instead',
+            deprecated: 'Use the `startActivity` mobile command (`driver.startActivity()`) instead',
             parameters: [
                 {
                     name: 'appPackage',
@@ -1048,11 +1049,11 @@ export default {
     },
     '/session/:sessionId/appium/device/system_bars': {
         GET: {
-            command: 'getSystemBars',
+            command: 'appiumGetSystemBars',
             description:
-                'Retrieve visibility and bounds information of the status and navigation bars.',
+                'Retrieve visibility and bounds information of the status and navigation bars. This is the raw Appium protocol endpoint. Prefer the `getSystemBars` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/system/system-bars/',
-            deprecated: 'Use `driver.execute(\'mobile: getSystemBars\')` instead',
+            deprecated: 'Use the `getSystemBars` mobile command (`driver.getSystemBars()`) instead',
             parameters: [],
             returns: {
                 type: 'object[]',
@@ -1091,10 +1092,10 @@ export default {
     },
     '/session/:sessionId/appium/device/display_density': {
         GET: {
-            command: 'getDisplayDensity',
-            description: 'Get display density from device.',
+            command: 'appiumGetDisplayDensity',
+            description: 'Get display density from device. This is the raw Appium protocol endpoint. Prefer the `getDisplayDensity` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints',
-            deprecated: 'Use `driver.execute(\'mobile: getDisplayDensity\')` instead',
+            deprecated: 'Use the `getDisplayDensity` mobile command (`driver.getDisplayDensity()`) instead',
             parameters: [],
             returns: {
                 type: '*',
@@ -1109,11 +1110,11 @@ export default {
     },
     '/session/:sessionId/appium/simulator/touch_id': {
         POST: {
-            command: 'touchId',
+            command: 'appiumTouchId',
             description:
                 'Simulate a [touch id](https://support.apple.com/en-ca/ht201371) event (iOS Simulator only). To enable this feature, the `allowTouchIdEnroll` desired capability must be set to true and the Simulator must be [enrolled](https://support.apple.com/en-ca/ht201371). When you set allowTouchIdEnroll to true, it will set the Simulator to be enrolled by default. The enrollment state can be [toggled](https://appium.github.io/appium.io/docs/en/commands/device/simulator/toggle-touch-id-enrollment/index.html). This call will only work if Appium process or its parent application (e.g. Terminal.app or Appium.app) has access to Mac OS accessibility in System Preferences > Security & Privacy > Privacy > Accessibility list.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/simulator/touch-id/',
-            deprecated: 'Use `driver.execute(\'mobile: sendBiometricMatch\', { ... })` instead',
+            deprecated: 'Use the `touchId` mobile command (`driver.touchId()`) instead',
             parameters: [
                 {
                     name: 'match',
@@ -1132,11 +1133,11 @@ export default {
     },
     '/session/:sessionId/appium/simulator/toggle_touch_id_enrollment': {
         POST: {
-            command: 'toggleEnrollTouchId',
+            command: 'appiumToggleEnrollTouchId',
             description:
                 "Toggle the simulator being [enrolled](https://support.apple.com/en-ca/ht201371) to accept touchId (iOS Simulator only). To enable this feature, the `allowTouchIdEnroll` desired capability must be set to true. When `allowTouchIdEnroll` is set to true the Simulator will be enrolled by default, and the 'Toggle Touch ID Enrollment' changes the enrollment state. This call will only work if the Appium process or its parent application (e.g., Terminal.app or Appium.app) has access to Mac OS accessibility in System Preferences > Security & Privacy > Privacy > Accessibility list.",
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/simulator/toggle-touch-id-enrollment/',
-            deprecated: 'Use `driver.execute(\'mobile: enrollBiometric\', { ... })` instead',
+            deprecated: 'Use the `toggleEnrollTouchId` mobile command (`driver.toggleEnrollTouchId()`) instead',
             parameters: [
                 {
                     name: 'enabled',
@@ -1156,11 +1157,11 @@ export default {
     },
     '/session/:sessionId/appium/app/launch': {
         POST: {
-            command: 'launchApp',
+            command: 'appiumLaunchApp',
             description:
-                'Launch an app on device.',
+                'Launch an app on device. This is the raw Appium protocol endpoint. Prefer the `launchApp` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/launch-app/',
-            deprecated: 'Use `driver.execute(\'mobile: launchApp\', { ... })` (iOS) or `driver.execute(\'mobile: activateApp\', { ... })` (Android) instead',
+            deprecated: 'Use the `launchApp` mobile command (`driver.launchApp()`) instead',
             parameters: [],
             support: {
                 ios: {
@@ -1175,10 +1176,10 @@ export default {
     },
     '/session/:sessionId/appium/app/close': {
         POST: {
-            command: 'closeApp',
-            description: 'Close an app on device.',
+            command: 'appiumCloseApp',
+            description: 'Close an app on device. This is the raw Appium protocol endpoint. Prefer the `closeApp` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/close-app/',
-            deprecated: 'Use `driver.execute(\'mobile: terminateApp\', { ... })` instead',
+            deprecated: 'Use the `closeApp` mobile command (`driver.closeApp()`) instead',
             parameters: [],
             support: {
                 ios: {
@@ -1193,11 +1194,11 @@ export default {
     },
     '/session/:sessionId/appium/app/background': {
         POST: {
-            command: 'background',
+            command: 'appiumBackground',
             description:
-                'Send the currently running app for this session to the background.',
+                'Send the currently running app for this session to the background. This is the raw Appium protocol endpoint. Prefer the `background` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/background-app/',
-            deprecated: 'Use `driver.execute(\'mobile: backgroundApp\', { ... })` instead',
+            deprecated: 'Use the `background` mobile command (`driver.background()`) instead',
             parameters: [
                 {
                     name: 'seconds',
@@ -1248,10 +1249,10 @@ export default {
     },
     '/session/:sessionId/appium/app/strings': {
         POST: {
-            command: 'getStrings',
-            description: 'Get app strings.',
+            command: 'appiumGetStrings',
+            description: 'Get app strings. This is the raw Appium protocol endpoint. Prefer the `getStrings` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/get-app-strings/',
-            deprecated: 'Use `driver.execute(\'mobile: getAppStrings\', { ... })` instead',
+            deprecated: 'Use the `getStrings` mobile command (`driver.getStrings()`) instead',
             parameters: [
                 {
                     name: 'language',
@@ -1421,10 +1422,10 @@ export default {
     },
     '/session/:sessionId/appium/device/gsm_call': {
         POST: {
-            command: 'gsmCall',
-            description: 'Make GSM call (Emulator only).',
+            command: 'appiumGsmCall',
+            description: 'Make GSM call (Emulator only). This is the raw Appium protocol endpoint. Prefer the `gsmCall` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/gsm-call/',
-            deprecated: 'Use `driver.execute(\'mobile: gsmCall\', { ... })` instead',
+            deprecated: 'Use the `gsmCall` mobile command (`driver.gsmCall()`) instead',
             parameters: [
                 {
                     name: 'phoneNumber',
@@ -1449,10 +1450,10 @@ export default {
     },
     '/session/:sessionId/appium/device/gsm_signal': {
         POST: {
-            command: 'gsmSignal',
-            description: 'Set GSM signal strength (Emulator only).',
+            command: 'appiumGsmSignal',
+            description: 'Set GSM signal strength (Emulator only). This is the raw Appium protocol endpoint. Prefer the `gsmSignal` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/gsm-signal/',
-            deprecated: 'Use `driver.execute(\'mobile: gsmSignal\', { ... })` instead',
+            deprecated: 'Use the `gsmSignal` mobile command (`driver.gsmSignal()`) instead',
             parameters: [
                 {
                     name: 'signalStrength',
@@ -1477,10 +1478,10 @@ export default {
     },
     '/session/:sessionId/appium/device/power_capacity': {
         POST: {
-            command: 'powerCapacity',
-            description: 'Set the battery percentage (Emulator only).',
+            command: 'appiumPowerCapacity',
+            description: 'Set the battery percentage (Emulator only). This is the raw Appium protocol endpoint. Prefer the `powerCapacity` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/emulator/power_capacity/',
-            deprecated: 'Use `driver.execute(\'mobile: powerCapacity\', { ... })` instead',
+            deprecated: 'Use the `powerCapacity` mobile command (`driver.powerCapacity()`) instead',
             parameters: [
                 {
                     name: 'percent',
@@ -1498,11 +1499,11 @@ export default {
     },
     '/session/:sessionId/appium/device/power_ac': {
         POST: {
-            command: 'powerAC',
+            command: 'appiumPowerAC',
             description:
-                'Set the state of the battery charger to connected or not (Emulator only).',
+                'Set the state of the battery charger to connected or not (Emulator only). This is the raw Appium protocol endpoint. Prefer the `powerAC` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/emulator/power_ac/',
-            deprecated: 'Use `driver.execute(\'mobile: powerAC\', { ... })` instead',
+            deprecated: 'Use the `powerAC` mobile command (`driver.powerAC()`) instead',
             parameters: [
                 {
                     name: 'state',
@@ -1520,10 +1521,10 @@ export default {
     },
     '/session/:sessionId/appium/device/gsm_voice': {
         POST: {
-            command: 'gsmVoice',
-            description: 'Set GSM voice state (Emulator only).',
+            command: 'appiumGsmVoice',
+            description: 'Set GSM voice state (Emulator only). This is the raw Appium protocol endpoint. Prefer the `gsmVoice` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/gsm-voice/',
-            deprecated: 'Use `driver.execute(\'mobile: gsmVoice\', { ... })` instead',
+            deprecated: 'Use the `gsmVoice` mobile command (`driver.gsmVoice()`) instead',
             parameters: [
                 {
                     name: 'state',
@@ -1542,10 +1543,10 @@ export default {
     },
     '/session/:sessionId/appium/device/send_sms': {
         POST: {
-            command: 'sendSms',
-            description: 'Simulate an SMS message (Emulator only).',
+            command: 'appiumSendSms',
+            description: 'Simulate an SMS message (Emulator only). This is the raw Appium protocol endpoint. Prefer the `sendSms` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/network/send-sms/',
-            deprecated: 'Use `driver.execute(\'mobile: sendSms\', { ... })` instead',
+            deprecated: 'Use the `sendSms` mobile command (`driver.sendSms()`) instead',
             parameters: [
                 {
                     name: 'phoneNumber',
@@ -1569,11 +1570,11 @@ export default {
     },
     '/session/:sessionId/appium/device/finger_print': {
         POST: {
-            command: 'fingerPrint',
+            command: 'appiumFingerPrint',
             description:
-                'Authenticate users by using their finger print scans on supported emulators.',
+                'Authenticate users by using their finger print scans on supported emulators. This is the raw Appium protocol endpoint. Prefer the `fingerPrint` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/authentication/finger-print/',
-            deprecated: 'Use `driver.execute(\'mobile: fingerPrint\', { ... })` instead',
+            deprecated: 'Use the `fingerPrint` mobile command (`driver.fingerPrint()`) instead',
             parameters: [
                 {
                     name: 'fingerprintId',
@@ -1592,10 +1593,10 @@ export default {
     },
     '/session/:sessionId/appium/device/set_clipboard': {
         POST: {
-            command: 'setClipboard',
-            description: 'Set the content of the system clipboard',
+            command: 'appiumSetClipboard',
+            description: 'Set the content of the system clipboard. This is the raw Appium protocol endpoint. Prefer the `setClipboard` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/clipboard/set-clipboard/',
-            deprecated: 'Use `driver.execute(\'mobile: setClipboard\', { ... })` instead',
+            deprecated: 'Use the `setClipboard` mobile command (`driver.setClipboard()`) instead',
             parameters: [
                 {
                     name: 'content',
@@ -1634,10 +1635,10 @@ export default {
     },
     '/session/:sessionId/appium/device/get_clipboard': {
         POST: {
-            command: 'getClipboard',
-            description: 'Get the content of the system clipboard',
+            command: 'appiumGetClipboard',
+            description: 'Get the content of the system clipboard. This is the raw Appium protocol endpoint. Prefer the `getClipboard` mobile command which provides automatic Appium 3 compatibility with fallback for older drivers.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/clipboard/get-clipboard/',
-            deprecated: 'Use `driver.execute(\'mobile: getClipboard\', { ... })` instead',
+            deprecated: 'Use the `getClipboard` mobile command (`driver.getClipboard()`) instead',
             parameters: [
                 {
                     name: 'contentType',
