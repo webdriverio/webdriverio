@@ -295,7 +295,6 @@ describe('WebDriver', () => {
                 }
             }) as unknown as TestClient
             expect(client.isMobile).toBe(true)
-            // TODO: update to use new mobile command names once `isLocked` and `shake` mobile commands are implemented
             expect(client.appiumIsLocked).toBeTruthy()
             expect(client.appiumShake).toBeTruthy()
         })
