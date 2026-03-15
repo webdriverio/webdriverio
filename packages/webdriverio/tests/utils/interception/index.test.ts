@@ -496,9 +496,6 @@ describe('WebDriverInterception', () => {
         browser.networkProvideResponse = vi.fn().mockReturnValue(Promise.resolve())
         browser.networkAddDataCollector = vi.fn().mockReturnValue(Promise.resolve({ collector: '123' }))
         browser.networkGetData = vi.fn().mockImplementation((params: any) => {
-            if (params.dataType === 'request') {
-                return Promise.resolve({ bytes: { type: 'string', value: 'request-body' } })
-            }
             return Promise.resolve({ bytes: { type: 'string', value: 'response-body' } })
         })
 
@@ -532,10 +529,6 @@ describe('WebDriverInterception', () => {
         // Use setImmediate to wait for promise resolution in handler
         await new Promise(resolve => setTimeout(resolve, 10))
 
-        expect(browser.networkGetData).toHaveBeenCalledWith({
-            request: 'req-123',
-            dataType: 'request'
-        })
         expect(browser.networkGetData).toHaveBeenCalledWith({
             request: 'req-123',
             dataType: 'response'

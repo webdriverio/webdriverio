@@ -73,7 +73,7 @@ export default class WebDriverInterception {
                 ]
             })
             await browser.networkAddDataCollector({
-                dataTypes: ['request', 'response'],
+                dataTypes: ['response'],
                 maxEncodedDataSize: 10 * 1024 * 1024
             })
             log.info('subscribed to network events')
@@ -260,25 +260,6 @@ export default class WebDriverInterception {
          */
         if (!this.#matchesFilterOptions(request)) {
             return
-        }
-
-        /**
-         * try populate request body
-         */
-        try {
-            const { bytes } = await this.#browser.networkGetData({
-                request: request.request.request,
-                dataType: 'request'
-            })
-
-            if (bytes) {
-                const call = this.#calls.find((call) => call.request.request === request.request.request)
-                if (call) {
-                    call.postData = bytes.value
-                }
-            }
-        } catch (err: unknown) {
-            log.debug(`Failed to get request body for ${request.request.request}: ${(err as Error).message}`)
         }
 
         /**
