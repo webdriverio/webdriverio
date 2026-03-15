@@ -23,6 +23,16 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.26.1 (2026-03-15)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#15154](https://github.com/webdriverio/webdriverio/pull/15154) fix(webdriverio): fix mobile command argument mismatches for Appium 3 compatibility ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 1
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v9.26.0 (2026-03-15)
 
 #### :rocket: New Feature
