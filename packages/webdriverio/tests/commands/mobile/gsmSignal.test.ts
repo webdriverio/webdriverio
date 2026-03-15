@@ -83,7 +83,7 @@ describe('gsmSignal', () => {
 
             await browser.gsmSignal(4)
 
-            expect(appiumSpy).toHaveBeenCalledWith(4)
+            expect(appiumSpy).toHaveBeenCalledWith('4')
             expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: gsmSignal'))
         })
 
@@ -93,7 +93,7 @@ describe('gsmSignal', () => {
 
             await browser.gsmSignal(0)
 
-            expect(appiumSpy).toHaveBeenCalledWith(0)
+            expect(appiumSpy).toHaveBeenCalledWith('0')
         })
     })
 })
