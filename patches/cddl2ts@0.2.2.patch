@@ -1,0 +1,351 @@
+diff --git a/build/cli.js b/build/cli.js
+index dee4e9d72518483580d6f560ec7d13c6b0bc0207..ddc34ae497d2c00c8885ce1de05d770df46a1cb4 100644
+--- a/build/cli.js
++++ b/build/cli.js
+@@ -1,33 +1,50 @@
+ import fs from 'node:fs/promises';
+ import path from 'node:path';
++import yargs from 'yargs';
+ import { parse } from 'cddl';
+ import { transform } from './index.js';
+ import { pkg } from './constants.js';
+-const HELP = `
+-${pkg.name}
+-${pkg.description}
+ 
+-Usage:
+-runme2ts ./path/to/spec.cddl &> ./path/to/interface.ts
++export default async function cli(argv = process.argv.slice(2)) {
++    // If argv is passed but empty (e.g. called from script), we might want to default to process.argv
++    // But let's stick to what the TS patch implied: cli(argv).
++    // The previous code had: cli (args = process.argv.slice(2))
++    
++    // In the patch:
++    // export default async function cli (argv = process.argv.slice(2)) {
++    //    const parser = yargs(argv) ...
++    
++    // So if called without args, it takes process.argv.slice(2).
++    
++    const parser = yargs(argv)
++        .usage(`${pkg.name}\n${pkg.description}\n\nUsage:\nrunme2ts ./path/to/spec.cddl &> ./path/to/interface.ts`)
++        .epilog(`v${pkg.version}\nCopyright ${(new Date()).getFullYear()} ${pkg.author}`)
++        .version(pkg.version)
++        .option('u', {
++            alias: 'unknown-as-any',
++            type: 'boolean',
++            description: 'Use unknown instead of any',
++            default: false
++        })
++        .help('help')
++        .alias('h', 'help')
++        .alias('v', 'version');
+ 
+-v${pkg.version}
+-Copyright ${(new Date()).getFullYear()} ${pkg.author}
+-`;
+-export default async function cli(args = process.argv.slice(2)) {
+-    if (args.includes('--help') || args.length === 0) {
+-        console.log(HELP);
+-        return process.exit(0);
+-    }
+-    if (args.includes('--version') || args.includes('-v')) {
+-        console.log(pkg.version);
++    const args = await parser.argv;
++
++    if (args._.length === 0) {
++        parser.showHelp();
+         return process.exit(0);
+     }
+-    const absoluteFilePath = path.resolve(process.cwd(), args[0]);
++
++    const absoluteFilePath = path.resolve(process.cwd(), args._[0]);
+     const hasAccess = await fs.access(absoluteFilePath).then(() => true, () => false);
++
+     if (!hasAccess) {
+         console.error(`Couldn't find or access source CDDL file at "${absoluteFilePath}"`);
+         return process.exit(1);
+     }
++
+     const ast = parse(absoluteFilePath);
+-    console.log(transform(ast));
++    console.log(transform(ast, { useUnknown: args.u }));
+ }
+diff --git a/build/index.js b/build/index.js
+index b68f432c8041b7694ebc5f190b9f6586447d0095..d21bddfbd8c4d7afebd4e45f719629ff1d045141 100644
+--- a/build/index.js
++++ b/build/index.js
+@@ -1,5 +1,5 @@
+ import camelcase from 'camelcase';
+-import { parse, print, types } from 'recast';
++import { parse, types, print } from 'recast'; 
+ import typescriptParser from 'recast/parsers/typescript.js';
+ import { pkg } from './constants.js';
+ const b = types.builders;
+@@ -16,13 +16,20 @@ const NATIVE_TYPES = {
+     nil: b.tsNullKeyword(),
+     null: b.tsNullKeyword()
+ };
+-export function transform(assignments) {
++export function transform(assignments, options) {
++    if (options?.useUnknown) {
++        NATIVE_TYPES.any = b.tsUnknownKeyword();
++    } else {
++        NATIVE_TYPES.any = b.tsAnyKeyword();
++    }
++
+     let ast = parse(`// compiled with https://www.npmjs.com/package/cddl2ts v${pkg.version}`, {
+         parser: typescriptParser,
+         sourceFileName: 'cddl2Ts.ts',
+         sourceRoot: process.cwd()
+     });
+     for (const assignment of assignments) {
++        if (!assignment) continue;
+         const statement = parseAssignment(ast, assignment);
+         if (!statement) {
+             continue;
+@@ -43,7 +50,7 @@ function parseAssignment(ast, assignment) {
+             typeParameters = b.tsNumberKeyword();
+         }
+         else {
+-            typeParameters = b.tsUnionType(propType.map(parsePropertyType));
++            typeParameters = b.tsUnionType(propType.map(parseUnionType));
+         }
+         const expr = b.tsTypeAliasDeclaration(id, typeParameters);
+         expr.comments = assignment.Comments.map((c) => b.commentLine(` ${c.Content}`, true));
+@@ -51,23 +58,154 @@ function parseAssignment(ast, assignment) {
+     }
+     if (assignment.Type === 'group') {
+         const id = b.identifier(camelcase(assignment.Name, { pascalCase: true }));
++        /**
++         * Check if we have choices in the group (arrays of Properties)
++         */
++        const properties = assignment.Properties;
++        const hasChoices = properties.some(p => Array.isArray(p));
++
++        if (hasChoices) {
++            // Flatten static properties and collect choices
++            const staticProps = [];
++            const intersections = [];
++
++            for (let i = 0; i < properties.length; i++) {
++                const prop = properties[i];
++                if (Array.isArray(prop)) {
++                    // It's a choice (Union)
++                    // prop is Property[] where each Property is an option
++                    // CDDL parser appends the last choice element as a subsequent property
++                    // so we need to grab it and merge it into the union
++                    const choiceOptions = [...prop];
++                    if (properties[i + 1] && !Array.isArray(properties[i + 1])) {
++                        choiceOptions.push(properties[i + 1]);
++                        i++; // Skip next property
++                    }
++
++                    const options = choiceOptions.map(p => {
++                        // If p is a group reference (Name ''), it's a TypeReference
++                        const typeVal = Array.isArray(p.Type) ? p.Type[0] : p.Type;
++
++                        if (p.Name === '' && typeVal.Type === 'group') {
++                             return b.tsTypeReference(
++                                b.identifier(camelcase(typeVal.Value, { pascalCase: true }))
++                            );
++                        }
++                        // Otherwise it is an object literal with this property
++                        return b.tsTypeLiteral(parseObjectType([p]));
++                    });
++                    intersections.push(b.tsUnionType(options));
++                } else {
++                    staticProps.push(prop);
++                }
++            }
++
++            if (staticProps.length > 0) {
++                // Check if we have mixins in static props
++                const mixins = staticProps.filter(p => p.Name === '');
++                const ownProps = staticProps.filter(p => p.Name !== '');
++
++                if (ownProps.length > 0) {
++                    intersections.unshift(b.tsTypeLiteral(parseObjectType(ownProps)));
++                }
++
++                for (const mixin of mixins) {
++                    if (Array.isArray(mixin.Type) && mixin.Type.length > 1) {
++                         const options = mixin.Type.map(t => {
++                             if (t.Type === 'group') {
++                                 return b.tsTypeReference(
++                                     b.identifier(camelcase(t.Value, { pascalCase: true }))
++                                 );
++                             }
++                             throw new Error(`Unexpected type in mixin union: ${JSON.stringify(t)}`);
++                         });
++                         intersections.push(b.tsUnionType(options));
++                    } else {
++                        const typeVal = Array.isArray(mixin.Type) ? mixin.Type[0] : mixin.Type;
++                        if (typeVal.Type === 'group') {
++                            intersections.push(b.tsTypeReference(
++                                b.identifier(camelcase(typeVal.Value, { pascalCase: true }))
++                            ));
++                        }
++                    }
++                }
++            }
++
++            // If only one intersection element, return it directly
++            // If multiple, return Intersection
++            let value;
++            if (intersections.length === 0) {
++                value = b.tsAnyKeyword(); // Should not happen for valid CDDL?
++            } else if (intersections.length === 1) {
++                value = intersections[0];
++            } else {
++                value = b.tsIntersectionType(intersections);
++            }
++
++            const expr = b.tsTypeAliasDeclaration(id, value);
++            expr.comments = assignment.Comments.map((c) => b.commentLine(` ${c.Content}`, true));
++            return b.exportDeclaration(false, expr);
++        }
++
+         /**
+          * transform CDDL groups like `Extensible = (*text => any)`
+          */
+         if (assignment.Properties.length === 1 && assignment.Properties[0].Type.length === 1 && Object.keys(NATIVE_TYPES).includes((assignment.Properties[0].Name))) {
+-            const value = parseUnionType(assignment);
++            const value = parseUnionType(assignment.Properties[0].Type[0]); // Fixed access
+             const expr = b.tsTypeAliasDeclaration(id, value);
+             expr.comments = assignment.Comments.map((c) => b.commentLine(` ${c.Content}`, true));
+             return b.exportDeclaration(false, expr);
+         }
+-        const objectType = parseObjectType(assignment.Properties);
+-        const extendInterfaces = assignment.Properties
+-            .filter((prop) => prop.Name === '')
+-            .map((prop) => b.tsExpressionWithTypeArguments(b.identifier(camelcase(prop.Type[0].Value, { pascalCase: true }))));
++        
++        // --- CHANGED BLOCK STARTS ---
++        // Check if extended interfaces are likely unions or conflicting types
++        const mixins = assignment.Properties.filter((prop) => prop.Name === '');
++        
++        if (mixins.length > 0) {
++            // It has mixins (extensions). Use type alias with intersection to be safe against unions.
++            // Type = (Mixin1 & Mixin2 & { OwnProps })
++            
++            const intersections = [];
++            
++            for (const mixin of mixins) {
++                const propType = mixin.Type;
++                const groupRef = Array.isArray(propType) ? propType[0] : propType;
++                
++                // Handle nested inline groups if any (though usually flat here if name is empty?)
++                const value = (groupRef?.Value || groupRef?.Type);
++                if (value) {
++                     intersections.push(
++                         b.tsTypeReference(b.identifier(camelcase(value, { pascalCase: true })))
++                     );
++                }
++            }
++            
++            const ownProps = assignment.Properties.filter(p => p.Name !== '');
++            if (ownProps.length > 0) {
++                 intersections.push(b.tsTypeLiteral(parseObjectType(ownProps)));
++            }
++            
++            let value;
++            if (intersections.length === 1) {
++                value = intersections[0];
++            } else {
++                value = b.tsIntersectionType(intersections);
++            }
++            
++            const expr = b.tsTypeAliasDeclaration(id, value);
++            expr.comments = assignment.Comments.map((c) => b.commentLine(` ${c.Content}`, true));
++            return b.exportDeclaration(false, expr);
++        }
++
++        // Fallback to interface if no mixins (pure object)
++        const props = assignment.Properties;
++        const objectType = parseObjectType(props);
++
+         const expr = b.tsInterfaceDeclaration(id, b.tsInterfaceBody(objectType));
+-        expr.extends = extendInterfaces;
++        // expr.extends = extendInterfaces; // REMOVED
+         expr.comments = assignment.Comments.map((c) => b.commentLine(` ${c.Content}`, true));
+         return b.exportDeclaration(false, expr);
++        // --- CHANGED BLOCK ENDS ---
+     }
+     if (assignment.Type === 'array') {
+         const id = b.identifier(camelcase(assignment.Name, { pascalCase: true }));
+@@ -76,27 +214,19 @@ function parseAssignment(ast, assignment) {
+             ? firstType.map(parseUnionType)
+             : firstType.Values
+                 ? firstType.Values.map((val) => parseUnionType(val.Type[0]))
+-                // ToDo(Christian): transpile this case correctly
+-                : [];
+-        const value = b.tsArrayType(b.tsParenthesizedType(b.tsUnionType(obj)));
++                : [parseUnionType(firstType)];
++        
++        const value = b.tsArrayType(
++            obj.length === 1
++                ? obj[0]
++                : b.tsParenthesizedType(b.tsUnionType(obj))
++        );
+         const expr = b.tsTypeAliasDeclaration(id, value);
+         expr.comments = assignment.Comments.map((c) => b.commentLine(` ${c.Content}`, true));
+         return b.exportDeclaration(false, expr);
+     }
+     throw new Error(`Unknown assignment type "${assignment.Type}"`);
+ }
+-function parsePropertyType(propType) {
+-    if (typeof propType === 'string') {
+-        return b.tsStringKeyword();
+-    }
+-    if (propType.Type === 'group') {
+-        return b.tsTypeReference(b.identifier(camelcase(propType.Value.toString(), { pascalCase: true })));
+-    }
+-    if (propType.Type === 'literal') {
+-        return b.tsLiteralType(b.stringLiteral(propType.Value.toString()));
+-    }
+-    throw new Error(`Couldn't parse property type ${JSON.stringify(propType, null, 4)}`);
+-}
+ function parseObjectType(props) {
+     const propItems = [];
+     for (const prop of props) {
+@@ -182,16 +312,22 @@ function parseUnionType(t) {
+     else if (t.Type === 'literal' && typeof t.Value === 'number') {
+         return b.tsLiteralType(b.numericLiteral(t.Value));
+     }
++    else if (t.Type === 'literal' && typeof t.Value === 'boolean') {
++        return b.tsLiteralType(b.booleanLiteral(t.Value));
++    }
+     else if (t.Type === 'array') {
+         const types = t.Values[0].Type;
+         const typedTypes = (Array.isArray(types) ? types : [types]).map((val) => {
+-            return typeof val === 'string' && NATIVE_TYPES[val]
+-                ? NATIVE_TYPES[val]
+-                : b.tsTypeReference(b.identifier(camelcase(val.Value, { pascalCase: true })));
++             if (typeof val === 'string' && NATIVE_TYPES[val]) {
++                return NATIVE_TYPES[val];
++             }
++             return b.tsTypeReference(b.identifier(camelcase(val.Value, { pascalCase: true })));
+         });
+-        return b.tsArrayType(typedTypes.length > 1
+-            ? b.tsParenthesizedType(b.tsUnionType(typedTypes))
+-            : b.tsUnionType(typedTypes));
++
++        if (typedTypes.length > 1) {
++            return b.tsArrayType(b.tsParenthesizedType(b.tsUnionType(typedTypes)));
++        }
++        return b.tsArrayType(typedTypes[0]);
+     }
+     else if (typeof t.Type === 'object' && t.Type.Type === 'range') {
+         return b.tsNumberKeyword();
+@@ -214,9 +350,7 @@ function parseDefaultValue(operator) {
+         return operator.Value;
+     }
+     if (operatorValue.Type !== 'literal') {
+-        throw new Error(`Can't parse operator default value of ${JSON.stringify(operator)}`);
++        throw new Error(`Can not transform default value of type ${operatorValue.Type}`);
+     }
+-    return typeof operatorValue.Value === 'string'
+-        ? `'${operatorValue.Value}'`
+-        : operatorValue.Value;
++    return operatorValue.Value;
+ }

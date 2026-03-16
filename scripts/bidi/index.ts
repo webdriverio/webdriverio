@@ -1,6 +1,7 @@
 import url from 'node:url'
 import path from 'node:path'
 import util from 'node:util'
+import fs from 'node:fs'
 
 import camelcase from 'camelcase'
 import typescriptParser from 'recast/parsers/typescript.js'
@@ -10,7 +11,7 @@ import { parse as parseCDDL, type PropertyReference, type Property, type Group }
 
 import downloadSpec from './downloadSpec.js'
 import { writeFile } from './utils.js'
-import { BASE_PROTOCOL_SPEC, GENERATED_FILE_COMMENT, CDDL_PARSE_ERROR_MESSAGE } from './constants.js'
+import { BASE_PROTOCOL_SPEC, CDDL_PARSE_ERROR_MESSAGE } from './constants.js'
 
 const b = types.builders
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
@@ -29,13 +30,37 @@ if (!hasNewSpec) {
 
 const cddlTypes = ['local', 'remote']
 const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
-    let ast
+    const cddlPath = path.join(__dirname, 'cddl', `${type}.cddl`)
+    const tempPath = path.join(__dirname, 'cddl', `${type}.tmp.cddl`)
+    let content = fs.readFileSync(cddlPath, 'utf8')
 
+    if (type === 'local') {
+        content += `
+InputResult = (
+  input.PerformActionsResult /
+  input.ReleaseActionsResult /
+  input.SetFilesResult
+)
+
+input.PerformActionsResult = { }
+input.ReleaseActionsResult = { }
+input.SetFilesResult = { }
+`
+    } else if (type === 'remote') {
+        const regex = /InputResult\s*=\s*\(\s*input\.PerformActionsResult\s*\/\s*input\.ReleaseActionsResult\s*\/\s*input\.SetFilesResult\s*\)/g
+        content = content.replace(regex, '')
+    }
+
+    fs.writeFileSync(tempPath, content)
+
+    let ast
     try {
-        ast = parseCDDL(path.join(__dirname, 'cddl', `${type}.cddl`))
+        ast = parseCDDL(tempPath)
     } catch (err) {
         console.log(util.format(CDDL_PARSE_ERROR_MESSAGE, `Failed to parse ${type}.cddl: ${(err as Error).stack}`))
         process.exit(0)
+    } finally {
+        fs.unlinkSync(tempPath)
     }
 
     /**
@@ -69,7 +94,8 @@ const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
         }
     }
 
-    const cddl = transform(ast)
+    // @ts-expect-error - fixed in the library, waiting for next release
+    const cddl = transform(ast, { useUnknown: true })
     await writeFile(
         path.resolve(__dirname, '..', '..', 'packages', 'webdriver', 'src', 'bidi', `${type}Types.ts`),
         cddl.replace(/"/g, "'").replace('export interface Event extends EventData, Extensible {}', '')
@@ -77,8 +103,7 @@ const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
     return ast
 }))
 
-const code = `${GENERATED_FILE_COMMENT}
-
+const code = `
 import type * as local from './localTypes.js'
 import type * as remote from './remoteTypes.js'
 import { BidiCore } from './core.js'`
@@ -94,8 +119,8 @@ for (const assignment of astRemote) {
         continue
     }
 
-    const responseType = astLocal.find((a) => camelcase(a.Name) === `${camelcase(assignment.Name)}Result`)
     const commandName = camelcase(assignment.Name)
+    const responseType = astLocal.find((a) => camelcase(a.Name) === `${camelcase(assignment.Name)}Result`)
     const methodId = (((assignment.Properties[0] as Property).Type as PropertyReference[])[0]).Value as string
     const paramName = (((assignment.Properties[1] as Property).Type as PropertyReference[])[0]).Value as string
     const paramType = `remote.${camelcase(paramName, { pascalCase: true })}`
@@ -150,10 +175,14 @@ for (const assignment of astRemote) {
 
     const paramAST = astRemote.find((a) => a.Type === 'group' && a.Name === paramName) as Group
     const commandParamTS = transform([paramAST])
-    const paramExample = commandParamTS.slice(commandParamTS.indexOf('{'))
-        .replaceAll('\n', '<br />')
-        .replaceAll('*', '\\*')
-        .replaceAll('|', '&#124;')
+    const exampleStart = commandParamTS.indexOf('{')
+    const paramExample = (exampleStart === -1 || paramName.includes('EmptyParams'))
+        ? ''
+        : commandParamTS.slice(exampleStart)
+            .replaceAll('\n', '<br />')
+            .replaceAll('*', '\\*')
+            .replaceAll('|', '&#124;')
+
     const commandReturnAST = astLocal.find((a) => a.Name === (responseType?.Name || 'EmptyResult')) as Group
     const commandReturnTS = transform([commandReturnAST])
     const returnExample = commandReturnTS.slice(commandReturnTS.indexOf('{'))
@@ -168,7 +197,10 @@ for (const assignment of astRemote) {
             parameters: [{
                 name: paramKey,
                 type: `\`${paramType}\``,
-                description: `<pre>\\${paramExample.slice(0, -1)}\\}</pre>`,
+
+                description: paramExample
+                    ? `<pre>\\${paramExample.slice(0, -1)}\\}</pre>`
+                    : '<pre>\\{\\}</pre>',
                 required: true
             }],
             ...(example ? {
