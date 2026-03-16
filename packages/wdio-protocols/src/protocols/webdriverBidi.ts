@@ -323,7 +323,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextCaptureScreenshotParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  /\\*\\*<br />   \\* @default viewport<br />   \\*/<br />  origin?: \"viewport\" &#124; \"document\";<br />  format?: BrowsingContextImageFormat;<br />  clip?: BrowsingContextClipRectangle;<br />\\}</pre>",
+                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  /\\*\\*<br />   \\* @default 'viewport'<br />   \\*/<br />  origin?: \"viewport\" &#124; \"document\";<br />  format?: BrowsingContextImageFormat;<br />  clip?: BrowsingContextClipRectangle;<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -463,7 +463,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextPrintParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  background?: boolean;<br />  margin?: BrowsingContextPrintMarginParameters;<br />  /\\*\\*<br />   \\* @default portrait<br />   \\*/<br />  orientation?: \"portrait\" &#124; \"landscape\";<br />  page?: BrowsingContextPrintPageParameters;<br />  pageRanges?: (JsUint &#124; string)[];<br />  /\\*\\*<br />   \\* @default 1<br />   \\*/<br />  scale?: number;<br />  /\\*\\*<br />   \\* @default true<br />   \\*/<br />  shrinkToFit?: boolean;<br />\\}</pre>",
+                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  background?: boolean;<br />  margin?: BrowsingContextPrintMarginParameters;<br />  /\\*\\*<br />   \\* @default 'portrait'<br />   \\*/<br />  orientation?: \"portrait\" &#124; \"landscape\";<br />  page?: BrowsingContextPrintPageParameters;<br />  pageRanges?: (JsUint &#124; string)[];<br />  /\\*\\*<br />   \\* @default 1<br />   \\*/<br />  scale?: number;<br />  /\\*\\*<br />   \\* @default true<br />   \\*/<br />  shrinkToFit?: boolean;<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -783,7 +783,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkAddDataCollectorParameters`",
-                    "description": "<pre>\\{<br />  dataTypes: NetworkDataType[];<br />  maxEncodedDataSize: JsUint;<br />  /\\*\\*<br />   \\* @default blob<br />   \\*/<br />  collectorType?: NetworkCollectorType;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{<br />  dataTypes: NetworkDataType[];<br />  maxEncodedDataSize: JsUint;<br />  /\\*\\*<br />   \\* @default 'blob'<br />   \\*/<br />  collectorType?: NetworkCollectorType;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
                     "required": true
                 }
             ],

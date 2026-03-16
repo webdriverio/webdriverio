@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   cddl2ts@0.2.2:
-    hash: f9b114cb1daa377acdbc1819a3056911bde749265c5b3461a772ca01183397a5
+    hash: d4820e49d21e352f1df33d289cb75d54aad3651ae39dba84bf118b34a996fd56
     path: patches/cddl2ts@0.2.2.patch
   cddl@0.12.0:
     hash: 77c71a37b4f0b819df6dc9fff5576a887c7ff8673f178da3d30fc9c56aaa4fac
@@ -105,7 +105,7 @@ importers:
         version: 0.12.0(patch_hash=77c71a37b4f0b819df6dc9fff5576a887c7ff8673f178da3d30fc9c56aaa4fac)
       cddl2ts:
         specifier: ^0.2.2
-        version: 0.2.2(patch_hash=f9b114cb1daa377acdbc1819a3056911bde749265c5b3461a772ca01183397a5)
+        version: 0.2.2(patch_hash=d4820e49d21e352f1df33d289cb75d54aad3651ae39dba84bf118b34a996fd56)
       chalk:
         specifier: ^5.4.1
         version: 5.6.2
@@ -23992,7 +23992,7 @@ snapshots:
 
   ccount@2.0.1: {}
 
-  cddl2ts@0.2.2(patch_hash=f9b114cb1daa377acdbc1819a3056911bde749265c5b3461a772ca01183397a5):
+  cddl2ts@0.2.2(patch_hash=d4820e49d21e352f1df33d289cb75d54aad3651ae39dba84bf118b34a996fd56):
     dependencies:
       '@babel/parser': 7.27.7
       camelcase: 8.0.0

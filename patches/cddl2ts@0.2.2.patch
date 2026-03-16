@@ -71,13 +71,13 @@ index dee4e9d72518483580d6f560ec7d13c6b0bc0207..ddc34ae497d2c00c8885ce1de05d770d
 +    console.log(transform(ast, { useUnknown: args.u }));
  }
 diff --git a/build/index.js b/build/index.js
-index b68f432c8041b7694ebc5f190b9f6586447d0095..d21bddfbd8c4d7afebd4e45f719629ff1d045141 100644
+index b68f432c8041b7694ebc5f190b9f6586447d0095..625d0893d3fe8f15831e86f0c158a27e35222d13 100644
 --- a/build/index.js
 +++ b/build/index.js
 @@ -1,5 +1,5 @@
  import camelcase from 'camelcase';
 -import { parse, print, types } from 'recast';
-+import { parse, types, print } from 'recast'; 
++import { parse, types, print } from 'recast';
  import typescriptParser from 'recast/parsers/typescript.js';
  import { pkg } from './constants.js';
  const b = types.builders;
@@ -99,7 +99,7 @@ index b68f432c8041b7694ebc5f190b9f6586447d0095..d21bddfbd8c4d7afebd4e45f719629ff
          sourceRoot: process.cwd()
      });
      for (const assignment of assignments) {
-+        if (!assignment) continue;
++        // if (!assignment) continue;
          const statement = parseAssignment(ast, assignment);
          if (!statement) {
              continue;
@@ -112,10 +112,11 @@ index b68f432c8041b7694ebc5f190b9f6586447d0095..d21bddfbd8c4d7afebd4e45f719629ff
          }
          const expr = b.tsTypeAliasDeclaration(id, typeParameters);
          expr.comments = assignment.Comments.map((c) => b.commentLine(` ${c.Content}`, true));
-@@ -51,23 +58,154 @@ function parseAssignment(ast, assignment) {
+@@ -51,23 +58,158 @@ function parseAssignment(ast, assignment) {
      }
      if (assignment.Type === 'group') {
          const id = b.identifier(camelcase(assignment.Name, { pascalCase: true }));
++
 +        /**
 +         * Check if we have choices in the group (arrays of Properties)
 +         */
@@ -142,9 +143,11 @@ index b68f432c8041b7694ebc5f190b9f6586447d0095..d21bddfbd8c4d7afebd4e45f719629ff
 +
 +                    const options = choiceOptions.map(p => {
 +                        // If p is a group reference (Name ''), it's a TypeReference
++                        // e.g. SessionAutodetectProxyConfiguration // SessionDirectProxyConfiguration
++                        // The parser sometimes wraps it in an array, sometimes not (if inside a choice)
 +                        const typeVal = Array.isArray(p.Type) ? p.Type[0] : p.Type;
 +
-+                        if (p.Name === '' && typeVal.Type === 'group') {
++                        if (p.Name === '' && typeVal.Type === 'group' && typeVal.Value) {
 +                             return b.tsTypeReference(
 +                                b.identifier(camelcase(typeVal.Value, { pascalCase: true }))
 +                            );
@@ -209,8 +212,8 @@ index b68f432c8041b7694ebc5f190b9f6586447d0095..d21bddfbd8c4d7afebd4e45f719629ff
           * transform CDDL groups like `Extensible = (*text => any)`
           */
          if (assignment.Properties.length === 1 && assignment.Properties[0].Type.length === 1 && Object.keys(NATIVE_TYPES).includes((assignment.Properties[0].Name))) {
--            const value = parseUnionType(assignment);
-+            const value = parseUnionType(assignment.Properties[0].Type[0]); // Fixed access
+             const value = parseUnionType(assignment);
++            // const value = parseUnionType(assignment.Properties[0].Type[0]); // Fixed access
              const expr = b.tsTypeAliasDeclaration(id, value);
              expr.comments = assignment.Comments.map((c) => b.commentLine(` ${c.Content}`, true));
              return b.exportDeclaration(false, expr);
@@ -219,21 +222,21 @@ index b68f432c8041b7694ebc5f190b9f6586447d0095..d21bddfbd8c4d7afebd4e45f719629ff
 -        const extendInterfaces = assignment.Properties
 -            .filter((prop) => prop.Name === '')
 -            .map((prop) => b.tsExpressionWithTypeArguments(b.identifier(camelcase(prop.Type[0].Value, { pascalCase: true }))));
-+        
++
 +        // --- CHANGED BLOCK STARTS ---
 +        // Check if extended interfaces are likely unions or conflicting types
 +        const mixins = assignment.Properties.filter((prop) => prop.Name === '');
-+        
++
 +        if (mixins.length > 0) {
 +            // It has mixins (extensions). Use type alias with intersection to be safe against unions.
 +            // Type = (Mixin1 & Mixin2 & { OwnProps })
-+            
++
 +            const intersections = [];
-+            
++
 +            for (const mixin of mixins) {
 +                const propType = mixin.Type;
-+                const groupRef = Array.isArray(propType) ? propType[0] : propType;
-+                
++                const groupRef = propType[0]
++
 +                // Handle nested inline groups if any (though usually flat here if name is empty?)
 +                const value = (groupRef?.Value || groupRef?.Type);
 +                if (value) {
@@ -242,19 +245,19 @@ index b68f432c8041b7694ebc5f190b9f6586447d0095..d21bddfbd8c4d7afebd4e45f719629ff
 +                     );
 +                }
 +            }
-+            
++
 +            const ownProps = assignment.Properties.filter(p => p.Name !== '');
 +            if (ownProps.length > 0) {
 +                 intersections.push(b.tsTypeLiteral(parseObjectType(ownProps)));
 +            }
-+            
++
 +            let value;
 +            if (intersections.length === 1) {
 +                value = intersections[0];
 +            } else {
 +                value = b.tsIntersectionType(intersections);
 +            }
-+            
++
 +            const expr = b.tsTypeAliasDeclaration(id, value);
 +            expr.comments = assignment.Comments.map((c) => b.commentLine(` ${c.Content}`, true));
 +            return b.exportDeclaration(false, expr);
@@ -273,7 +276,7 @@ index b68f432c8041b7694ebc5f190b9f6586447d0095..d21bddfbd8c4d7afebd4e45f719629ff
      }
      if (assignment.Type === 'array') {
          const id = b.identifier(camelcase(assignment.Name, { pascalCase: true }));
-@@ -76,27 +214,19 @@ function parseAssignment(ast, assignment) {
+@@ -76,27 +218,19 @@ function parseAssignment(ast, assignment) {
              ? firstType.map(parseUnionType)
              : firstType.Values
                  ? firstType.Values.map((val) => parseUnionType(val.Type[0]))
@@ -281,7 +284,7 @@ index b68f432c8041b7694ebc5f190b9f6586447d0095..d21bddfbd8c4d7afebd4e45f719629ff
 -                : [];
 -        const value = b.tsArrayType(b.tsParenthesizedType(b.tsUnionType(obj)));
 +                : [parseUnionType(firstType)];
-+        
++
 +        const value = b.tsArrayType(
 +            obj.length === 1
 +                ? obj[0]
@@ -308,7 +311,7 @@ index b68f432c8041b7694ebc5f190b9f6586447d0095..d21bddfbd8c4d7afebd4e45f719629ff
  function parseObjectType(props) {
      const propItems = [];
      for (const prop of props) {
-@@ -182,16 +312,22 @@ function parseUnionType(t) {
+@@ -182,16 +316,22 @@ function parseUnionType(t) {
      else if (t.Type === 'literal' && typeof t.Value === 'number') {
          return b.tsLiteralType(b.numericLiteral(t.Value));
      }
@@ -337,15 +340,3 @@ index b68f432c8041b7694ebc5f190b9f6586447d0095..d21bddfbd8c4d7afebd4e45f719629ff
      }
      else if (typeof t.Type === 'object' && t.Type.Type === 'range') {
          return b.tsNumberKeyword();
-@@ -214,9 +350,7 @@ function parseDefaultValue(operator) {
-         return operator.Value;
-     }
-     if (operatorValue.Type !== 'literal') {
--        throw new Error(`Can't parse operator default value of ${JSON.stringify(operator)}`);
-+        throw new Error(`Can not transform default value of type ${operatorValue.Type}`);
-     }
--    return typeof operatorValue.Value === 'string'
--        ? `'${operatorValue.Value}'`
--        : operatorValue.Value;
-+    return operatorValue.Value;
- }

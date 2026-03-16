@@ -7,14 +7,21 @@ import camelcase from 'camelcase'
 import typescriptParser from 'recast/parsers/typescript.js'
 import { transform } from 'cddl2ts'
 import { parse, print, types } from 'recast'
+import type { Assignment } from 'cddl'
 import { parse as parseCDDL, type PropertyReference, type Property, type Group } from 'cddl'
 
 import downloadSpec from './downloadSpec.js'
 import { writeFile } from './utils.js'
 import { BASE_PROTOCOL_SPEC, CDDL_PARSE_ERROR_MESSAGE } from './constants.js'
 
+function findGroup (ast: Assignment[], name: string): Group | undefined {
+    return ast.find((a: Assignment): a is Group => a.Type === 'group' && a.Name === name)
+}
+
 const b = types.builders
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+
+// Start of `webdriverBidi.ts`
 const jsonSpec = Object.assign(BASE_PROTOCOL_SPEC)
 
 if (!process.env.GITHUB_AUTH) {
@@ -60,42 +67,11 @@ InputResult = (
         fs.unlinkSync(tempPath)
     }
 
-    /**
-     * CDDL ast transformation
-     * Unfortunately the CDDL can not be always correctly transformed into TypeScript
-     * Therefor we need to make some adjustments here
-     */
-    if (type === 'remote') {
-        /**
-         * remove CommandData and Extensible from Command group
-         */
-        (ast[0] as Group).Properties = [(ast[0] as Group).Properties[0]]
-
-        /**
-         * have groups with method property extend from Command group
-         */
-        const commandGroups = ast.filter((a: Group) => (
-            a.Properties &&
-            a.Properties[0] &&
-            (a.Properties[0] as Property).Name === 'method'
-        )) as Group[]
-
-        for (const g of commandGroups) {
-            g.Properties.push({
-                HasCut: false,
-                Occurrence: { n: 1, m: 1 },
-                Name: '',
-                Type: [{ Type: 'group', Value: 'Command', Unwrapped: false }],
-                Comments: []
-            })
-        }
-    }
-
     // @ts-expect-error - fixed in the library, waiting for next release
     const cddl = transform(ast, { useUnknown: true })
     await writeFile(
         path.resolve(__dirname, '..', '..', 'packages', 'webdriver', 'src', 'bidi', `${type}Types.ts`),
-        cddl.replace(/"/g, "'").replace('export interface Event extends EventData, Extensible {}', '')
+        cddl
     )
     return ast
 }))
@@ -170,8 +146,8 @@ for (const assignment of astRemote) {
     method.comments = [comment]
     methods.push(method)
 
-    const paramAST = astRemote.find((a) => a.Type === 'group' && a.Name === paramName) as Group
-    const commandParamTS = transform([paramAST])
+    const paramAST = findGroup(astRemote, paramName)
+    const commandParamTS = paramAST ? transform([paramAST]) : ''
     const exampleStart = commandParamTS.indexOf('{')
     const paramExample = (exampleStart === -1 || paramName.includes('EmptyParams'))
         ? ''
@@ -180,12 +156,13 @@ for (const assignment of astRemote) {
             .replaceAll('*', '\\*')
             .replaceAll('|', '&#124;')
 
-    const commandReturnAST = astLocal.find((a) => a.Name === (responseType?.Name || 'EmptyResult')) as Group
-    const commandReturnTS = transform([commandReturnAST])
+    const commandReturnAST = astLocal.find((a) => a.Name === (responseType?.Name || 'EmptyResult'))
+    const commandReturnTS = commandReturnAST ? transform([commandReturnAST]) : ''
     const returnExample = commandReturnTS.slice(commandReturnTS.indexOf('{'))
     const example = returnExample === '{}'
         ? undefined
         : ['', '```ts', ...returnExample.split('\n'), '```'].join('\n   ')
+
     jsonSpec[methodId] = {
         socket: {
             command: commandName,
