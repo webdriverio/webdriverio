@@ -1000,6 +1000,7 @@ export interface LogEntryAdded {
     params: LogEntry;
 }
 
+export type InputResult = InputPerformActionsResult | InputReleaseActionsResult | InputSetFilesResult
 export type InputEvent = InputFileDialogOpened
 export type InputPerformActionsResult = EmptyResult
 export type InputReleaseActionsResult = EmptyResult
@@ -1025,4 +1026,3 @@ export interface WebExtensionInstallResult {
 }
 
 export type WebExtensionUninstallResult = EmptyResult
-export type InputResult = InputPerformActionsResult | InputReleaseActionsResult | InputSetFilesResult
