@@ -42,9 +42,6 @@ InputResult = (
   input.SetFilesResult
 )
 
-input.PerformActionsResult = { }
-input.ReleaseActionsResult = { }
-input.SetFilesResult = { }
 `
     } else if (type === 'remote') {
         const regex = /InputResult\s*=\s*\(\s*input\.PerformActionsResult\s*\/\s*input\.ReleaseActionsResult\s*\/\s*input\.SetFilesResult\s*\)/g
