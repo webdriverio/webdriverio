@@ -934,21 +934,6 @@ export class BidiHandler extends BidiCore {
     }
 
     /**
-     * WebDriver Bidi command to send command method "input.fileDialogOpened" with parameters.
-     * @url https://w3c.github.io/webdriver-bidi/#command-input-fileDialogOpened
-     * @param params `remote.InputFileDialogInfo` {@link https://w3c.github.io/webdriver-bidi/#command-input-fileDialogOpened | command parameter}
-     * @returns `Promise<local.EmptyResult>`
-     **/
-    async inputFileDialogOpened(params: remote.InputFileDialogInfo): Promise<local.EmptyResult> {
-        const result = await this.send({
-            method: 'input.fileDialogOpened',
-            params
-        })
-
-        return result.result as local.EmptyResult
-    }
-
-    /**
      * WebDriver Bidi command to send command method "webExtension.install" with parameters.
      * @url https://w3c.github.io/webdriver-bidi/#command-webExtension-install
      * @param params `remote.WebExtensionInstallParameters` {@link https://w3c.github.io/webdriver-bidi/#command-webExtension-install | command parameter}

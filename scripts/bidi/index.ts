@@ -41,7 +41,9 @@ const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
     const tempPath = path.join(__dirname, 'cddl', `${type}.tmp.cddl`)
     let content = fs.readFileSync(cddlPath, 'utf8')
 
+    // Fixes error found in the local.cddl. Report those issue to https://github.com/w3c/webdriver-bidi to have them fixed.
     if (type === 'local') {
+        // `InputResult` is missing in local.cddl, remove temporary fix when issue is merge: https://github.com/w3c/webdriver-bidi/pull/1102
         content += `
 InputResult = (
   input.PerformActionsResult /
@@ -50,9 +52,11 @@ InputResult = (
 )
 
 `
+    // Fixes error found in the remote.cddl. Report those issue to https://github.com/w3c/webdriver-bidi to have them fixed.
     } else if (type === 'remote') {
-        const regex = /InputResult\s*=\s*\(\s*input\.PerformActionsResult\s*\/\s*input\.ReleaseActionsResult\s*\/\s*input\.SetFilesResult\s*\)/g
-        content = content.replace(regex, '')
+        // `InputResult` should not be in remote.cddl, remove temporary fix when issue is merge: https://github.com/w3c/webdriver-bidi/pull/1102
+        content = content.replace(/InputResult\s*=\s*\(\s*input\.PerformActionsResult\s*\/\s*input\.ReleaseActionsResult\s*\/\s*input\.SetFilesResult\s*\)/g, '')
+            .replace(/input\.FileDialogOpened\s*=\s*\(\s*method:\s*"input\.fileDialogOpened",\s*params:\s*input\.FileDialogInfo\s*\)\s*input\.FileDialogInfo\s*=\s*\{\s*context:\s*browsingContext\.BrowsingContext,\s*\?\s*userContext:\s*browser\.UserContext,\s*\?\s*element:\s*script\.SharedReference,\s*multiple:\s*bool,\s*\}/g, '')
     }
 
     fs.writeFileSync(tempPath, content)
