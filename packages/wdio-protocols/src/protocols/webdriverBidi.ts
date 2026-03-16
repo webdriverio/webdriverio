@@ -1274,26 +1274,6 @@ const protocol = {
             }
         }
     },
-    "input.fileDialogOpened": {
-        "socket": {
-            "command": "inputFileDialogOpened",
-            "description": "WebDriver Bidi command to send command method \"input.fileDialogOpened\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-input-fileDialogOpened",
-            "parameters": [
-                {
-                    "name": "params",
-                    "type": "`remote.InputFileDialogInfo`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  userContext?: BrowserUserContext;<br />  element?: ScriptSharedReference;<br />  multiple: boolean;<br />\\}</pre>",
-                    "required": true
-                }
-            ],
-            "returns": {
-                "type": "Object",
-                "name": "local.EmptyResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
-            }
-        }
-    },
     "webExtension.install": {
         "socket": {
             "command": "webExtensionInstall",

@@ -1498,18 +1498,6 @@ export interface InputSetFilesParameters {
     files: string[];
 }
 
-export interface InputFileDialogOpened {
-    method: 'input.fileDialogOpened';
-    params: InputFileDialogInfo;
-}
-
-export interface InputFileDialogInfo {
-    context: BrowsingContextBrowsingContext;
-    userContext?: BrowserUserContext;
-    element?: ScriptSharedReference;
-    multiple: boolean;
-}
-
 export type WebExtensionCommand = WebExtensionInstall | WebExtensionUninstall
 export type WebExtensionExtension = string
 
