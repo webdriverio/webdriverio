@@ -1026,6 +1026,3 @@ export interface WebExtensionInstallResult {
 
 export type WebExtensionUninstallResult = EmptyResult
 export type InputResult = InputPerformActionsResult | InputReleaseActionsResult | InputSetFilesResult
-export interface InputPerformActionsResult {}
-export interface InputReleaseActionsResult {}
-export interface InputSetFilesResult {}
