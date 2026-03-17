@@ -46,7 +46,7 @@ const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
     } else if (type === 'remote') {
         // Fixes error found in the remote.cddl. Report those issue to https://github.com/w3c/webdriver-bidi to have them fixed.
 
-        // TODO dprevost enter a ticket for this issue.
+        // To remove when https://github.com/w3c/webdriver-bidi/pull/1104 is merged
         content = content.replace(/input\.FileDialogOpened\s*=\s*\(\s*method:\s*"input\.fileDialogOpened",\s*params:\s*input\.FileDialogInfo\s*\)\s*input\.FileDialogInfo\s*=\s*\{\s*context:\s*browsingContext\.BrowsingContext,\s*\?\s*userContext:\s*browser\.UserContext,\s*\?\s*element:\s*script\.SharedReference,\s*multiple:\s*bool,\s*\}/g, '')
     }
 
