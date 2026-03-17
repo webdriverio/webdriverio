@@ -315,7 +315,7 @@ export interface BrowsingContextDownloadEnd {
     params: BrowsingContextDownloadEndParams;
 }
 
-export type BrowsingContextDownloadEndParams = BrowsingContextDownloadCanceledParams
+export type BrowsingContextDownloadEndParams = (BrowsingContextDownloadCanceledParams | BrowsingContextDownloadCompleteParams)
 
 export type BrowsingContextDownloadCanceledParams = BrowsingContextBaseNavigationInfo & {
     status: 'canceled';
@@ -601,7 +601,7 @@ export interface ScriptExceptionDetails {
 
 export type ScriptHandle = string
 export type ScriptInternalId = string
-export type ScriptLocalValue = ScriptRemoteReference | ScriptPrimitiveProtocolValue | ScriptChannelValue | ScriptArrayLocalValue | {} | ScriptObjectLocalValue | {}
+export type ScriptLocalValue = ScriptRemoteReference | ScriptPrimitiveProtocolValue | ScriptChannelValue | ScriptArrayLocalValue | ScriptDateLocalValue | ScriptObjectLocalValue | ScriptRegExpLocalValue
 export type ScriptListLocalValue = ScriptLocalValue[]
 
 export interface ScriptArrayLocalValue {
