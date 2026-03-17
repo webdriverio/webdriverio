@@ -14,7 +14,3 @@ packages:
 
 onlyBuiltDependencies:
   - sharp
-
-patchedDependencies:
-  cddl@0.12.0: patches/cddl@0.12.0.patch
-  cddl2ts@0.2.2: patches/cddl2ts@0.2.2.patch

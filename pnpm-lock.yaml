@@ -4,14 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-patchedDependencies:
-  cddl2ts@0.2.2:
-    hash: d4820e49d21e352f1df33d289cb75d54aad3651ae39dba84bf118b34a996fd56
-    path: patches/cddl2ts@0.2.2.patch
-  cddl@0.12.0:
-    hash: 77c71a37b4f0b819df6dc9fff5576a887c7ff8673f178da3d30fc9c56aaa4fac
-    path: patches/cddl@0.12.0.patch
-
 importers:
 
   .:
@@ -101,11 +93,11 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0
       cddl:
-        specifier: ^0.12.0
-        version: 0.12.0(patch_hash=77c71a37b4f0b819df6dc9fff5576a887c7ff8673f178da3d30fc9c56aaa4fac)
+        specifier: ^0.13.0
+        version: 0.13.0
       cddl2ts:
-        specifier: ^0.2.2
-        version: 0.2.2(patch_hash=d4820e49d21e352f1df33d289cb75d54aad3651ae39dba84bf118b34a996fd56)
+        specifier: ^0.3.0
+        version: 0.3.0
       chalk:
         specifier: ^5.4.1
         version: 5.6.2
@@ -7783,6 +7775,10 @@ packages:
     resolution: {integrity: sha512-8WB3Jcas3swSvjIeA2yvCJ+Miyz5l1ZmB6HFb9R1317dt9LCQoswg/BGrmAmkWVEszSrrg4RwmO46qIm2OEnSA==}
     engines: {node: '>=16'}
 
+  camelcase@9.0.0:
+    resolution: {integrity: sha512-TO9xmyXTZ9HUHI8M1OnvExxYB0eYVS/1e5s7IDMTAoIcwUd+aNcFODs6Xk83mobk0velyHFQgA1yIrvYc6wclw==}
+    engines: {node: '>=20'}
+
   caniuse-api@3.0.0:
     resolution: {integrity: sha512-bsTwuIg/BZZK/vreVTYYbSWoe2F+71P7K5QGEX+pT250DZbfU1MQ5prOKpPR+LL6uWKK3KMwMCAS74QB3Um1uw==}
 
@@ -7795,16 +7791,14 @@ packages:
   ccount@2.0.1:
     resolution: {integrity: sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==}
 
-  cddl2ts@0.2.2:
-    resolution: {integrity: sha512-aAiow6auAznZgFrBjFCGmPWi6bg4SddxhnMjFrldefERBHjJZ7ZDqtqGiFnYUA8tHLjD5k52F/7ifT8gMLMdAg==}
+  cddl2ts@0.3.0:
+    resolution: {integrity: sha512-QjuF8SAR3pkx3ShEe8tSHhEX+AQzFStgL4meZrG3e3iTI1invlo8B7c6E8RhPlev6DNrPO1IFsmyemQMQi+FIg==}
+    engines: {node: '>=20.0.0', npm: '>=9.0.0'}
     hasBin: true
 
-  cddl@0.12.0:
-    resolution: {integrity: sha512-ZC6S8Kb+AAL8JsMtXUSiXwJftNUwWhdhiluFFN15GQIFkqwC11rKt9dSMUeUdC9USdG2coGFRRSWbElo8GnusA==}
-    hasBin: true
-
-  cddl@0.8.5:
-    resolution: {integrity: sha512-QI16osnIzXgwbDi+/w3QpZLH5Y6HH0SDdGw5Yi54vQIU0bfYfLEK5UUGPrZYe008ETeuR4Fh8VYnOtpln9+36g==}
+  cddl@0.13.0:
+    resolution: {integrity: sha512-Rx3eoFU6xoJY3ha4pMsvbtYuB5f3+h9a41QraQ5pNw0WvyNsNKKfZGtoSXIK2qw8W7OwX/QcwTQnkCA9J8h5yg==}
+    engines: {node: '>=20.0.0', npm: '>=9.0.0'}
     hasBin: true
 
   chai@5.2.0:
@@ -7985,6 +7979,10 @@ packages:
   cliui@8.0.1:
     resolution: {integrity: sha512-BSeNnyus75C4//NQ9gQt1/csTXyo/8Sb+afLAkzAptFuMsod9HFokGNudZpi/oQV73hnVK+sR+5PVRMd+Dr7YQ==}
     engines: {node: '>=12'}
+
+  cliui@9.0.1:
+    resolution: {integrity: sha512-k7ndgKhwoQveBL+/1tqGJYNz097I7WOvwbmmU2AR5+magtbjPWQTS1C5vzGkBC8Ym8UWRzfKUzUUqFLypY4Q+w==}
+    engines: {node: '>=20'}
 
   clone-deep@4.0.1:
     resolution: {integrity: sha512-neHB9xuzh/wk0dIHweyAXv2aPGZIVk3pLMe+/RNzINf17fe0OG96QroktYAUm7SM1PBnzTabaLboqqxDyMU+SQ==}
@@ -15402,6 +15400,10 @@ packages:
     resolution: {integrity: sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ==}
     engines: {node: '>=12'}
 
+  wrap-ansi@9.0.2:
+    resolution: {integrity: sha512-42AtmgqjV+X1VpdOfyTGOYRi0/zsoLqtXQckTmqTeybT+BDIbM/Guxo7x3pE2vtpr1ok6xRqM9OpBe+Jyoqyww==}
+    engines: {node: '>=18'}
+
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
@@ -15542,6 +15544,10 @@ packages:
     resolution: {integrity: sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==}
     engines: {node: '>=12'}
 
+  yargs-parser@22.0.0:
+    resolution: {integrity: sha512-rwu/ClNdSMpkSrUb+d6BRsSkLUq1fmfsY6TOpYzTwvwkg1/NRG85KBy3kq++A8LKQwX6lsu+aWad+2khvuXrqw==}
+    engines: {node: ^20.19.0 || ^22.12.0 || >=23}
+
   yargs-unparser@2.0.0:
     resolution: {integrity: sha512-7pRTIA9Qc1caZ0bZ6RYRGbHJthJWuakf+WmHK0rVeLkNrrGhfoabBNdue6kdINI6r4if7ocq9aD/n7xwKOdzOA==}
     engines: {node: '>=10'}
@@ -15553,6 +15559,10 @@ packages:
   yargs@17.7.2:
     resolution: {integrity: sha512-7dSzzRQ++CKnNI/krKnYRV7JKKPUXMEh61soaHKg9mrWEhzFWhFnxPxGl+69cD1Ou63C13NUPCnmIcrvqCuM6w==}
     engines: {node: '>=12'}
+
+  yargs@18.0.0:
+    resolution: {integrity: sha512-4UEqdc2RYGHZc7Doyqkrqiln3p9X2DZVxaGbwhn2pi7MrRagKaOcIKe8L3OxYcbhXLgLFUS3zAYuQjKBQgmuNg==}
+    engines: {node: ^20.19.0 || ^22.12.0 || >=23}
 
   yauzl@2.10.0:
     resolution: {integrity: sha512-p4a9I6X6nu6IhoGmBqAcbJy1mlC4j27vEPZX9F4L4/vZT3Lyq1VkFHw/V/PUcB9Buo+DG3iHkT0x3Qya58zc3g==}
@@ -23975,6 +23985,8 @@ snapshots:
 
   camelcase@8.0.0: {}
 
+  camelcase@9.0.0: {}
+
   caniuse-api@3.0.0:
     dependencies:
       browserslist: 4.28.1
@@ -23992,21 +24004,17 @@ snapshots:
 
   ccount@2.0.1: {}
 
-  cddl2ts@0.2.2(patch_hash=d4820e49d21e352f1df33d289cb75d54aad3651ae39dba84bf118b34a996fd56):
+  cddl2ts@0.3.0:
     dependencies:
-      '@babel/parser': 7.27.7
-      camelcase: 8.0.0
-      cddl: 0.8.5
+      '@babel/parser': 7.29.0
+      camelcase: 9.0.0
+      cddl: 0.13.0
       recast: 0.23.11
-      yargs: 17.7.2
+      yargs: 18.0.0
 
-  cddl@0.12.0(patch_hash=77c71a37b4f0b819df6dc9fff5576a887c7ff8673f178da3d30fc9c56aaa4fac):
+  cddl@0.13.0:
     dependencies:
-      yargs: 17.7.2
-
-  cddl@0.8.5:
-    dependencies:
-      yargs: 17.7.2
+      yargs: 18.0.0
 
   chai@5.2.0:
     dependencies:
@@ -24225,6 +24233,12 @@ snapshots:
       string-width: 4.2.3
       strip-ansi: 6.0.1
       wrap-ansi: 7.0.0
+
+  cliui@9.0.1:
+    dependencies:
+      string-width: 7.2.0
+      strip-ansi: 7.2.0
+      wrap-ansi: 9.0.2
 
   clone-deep@4.0.1:
     dependencies:
@@ -33441,6 +33455,12 @@ snapshots:
       string-width: 5.1.2
       strip-ansi: 7.2.0
 
+  wrap-ansi@9.0.2:
+    dependencies:
+      ansi-styles: 6.2.3
+      string-width: 7.2.0
+      strip-ansi: 7.2.0
+
   wrappy@1.0.2: {}
 
   write-file-atomic@2.4.3:
@@ -33534,6 +33554,8 @@ snapshots:
 
   yargs-parser@21.1.1: {}
 
+  yargs-parser@22.0.0: {}
+
   yargs-unparser@2.0.0:
     dependencies:
       camelcase: 6.3.0
@@ -33560,6 +33582,15 @@ snapshots:
       string-width: 4.2.3
       y18n: 5.0.8
       yargs-parser: 21.1.1
+
+  yargs@18.0.0:
+    dependencies:
+      cliui: 9.0.1
+      escalade: 3.2.0
+      get-caller-file: 2.0.5
+      string-width: 7.2.0
+      y18n: 5.0.8
+      yargs-parser: 22.0.0
 
   yauzl@2.10.0:
     dependencies:

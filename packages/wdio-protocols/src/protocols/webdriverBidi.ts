@@ -583,7 +583,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.EmulationSetGeolocationOverrideParameters`",
-                    "description": "<pre>\\{<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />}\\}</pre>",
+                    "description": "<pre>\\{<br />  coordinates: EmulationGeolocationCoordinates &#124; null;<br />} &#124; {<br />  error: EmulationGeolocationPositionError;<br />}) & {<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />}\\}</pre>",
                     "required": true
                 }
             ],
