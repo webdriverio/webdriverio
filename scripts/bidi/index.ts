@@ -1,22 +1,18 @@
 import url from 'node:url'
 import path from 'node:path'
 import util from 'node:util'
-import fs from 'node:fs'
+import fs from 'node:fs/promises'
 
 import camelcase from 'camelcase'
 import typescriptParser from 'recast/parsers/typescript.js'
 import { transform } from 'cddl2ts'
 import { parse, print, types } from 'recast'
-import type { Assignment } from 'cddl'
-import { parse as parseCDDL, type PropertyReference, type Property, type Group } from 'cddl'
+import { parse as parseCDDL, type PropertyReference, type Property } from 'cddl'
 
 import downloadSpec from './downloadSpec.js'
-import { writeFile } from './utils.js'
+import type { CddlType } from './utils.js'
+import { findGroupByName, patchCDDLFileContent, writeFile } from './utils.js'
 import { BASE_PROTOCOL_SPEC, CDDL_PARSE_ERROR_MESSAGE } from './constants.js'
-
-function findGroup (ast: Assignment[], name: string): Group | undefined {
-    return ast.find((a: Assignment): a is Group => a.Type === 'group' && a.Name === name)
-}
 
 const b = types.builders
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
@@ -35,34 +31,22 @@ if (!hasNewSpec) {
     process.exit(0)
 }
 
-const cddlTypes = ['local', 'remote']
+const cddlTypes: CddlType[] = ['local', 'remote']
 const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
     const cddlPath = path.join(__dirname, 'cddl', `${type}.cddl`)
-    const tempPath = path.join(__dirname, 'cddl', `${type}.tmp.cddl`)
-    let content = fs.readFileSync(cddlPath, 'utf8')
-
-    if (type === 'local') {
-        // Fixes error found in the local.cddl. Report those issue to https://github.com/w3c/webdriver-bidi to have them fixed.
-    } else if (type === 'remote') {
-        // Fixes error found in the remote.cddl. Report those issue to https://github.com/w3c/webdriver-bidi to have them fixed.
-
-        // To remove when https://github.com/w3c/webdriver-bidi/pull/1104 is merged
-        content = content.replace(/input\.FileDialogOpened\s*=\s*\(\s*method:\s*"input\.fileDialogOpened",\s*params:\s*input\.FileDialogInfo\s*\)\s*input\.FileDialogInfo\s*=\s*\{\s*context:\s*browsingContext\.BrowsingContext,\s*\?\s*userContext:\s*browser\.UserContext,\s*\?\s*element:\s*script\.SharedReference,\s*multiple:\s*bool,\s*\}/g, '')
-    }
-
-    fs.writeFileSync(tempPath, content)
+    const pathedCDDLPath = await patchCDDLFileContent(__dirname, path, cddlPath, type)
 
     let ast
     try {
-        ast = parseCDDL(tempPath)
+        ast = parseCDDL(pathedCDDLPath)
     } catch (err) {
-        console.log(util.format(CDDL_PARSE_ERROR_MESSAGE, `Failed to parse ${type}.cddl: ${(err as Error).stack}`))
+        console.error(util.format(CDDL_PARSE_ERROR_MESSAGE, `Failed to parse ${type}.cddl: ${(err as Error).stack}`))
         process.exit(0)
     } finally {
-        fs.unlinkSync(tempPath)
+        await fs.unlink(pathedCDDLPath)
     }
 
-    // @ts-expect-error - fixed in the library, waiting for next release
+    // @ts-expect-error - TODO dprevost fixed in the library, waiting for next release
     const cddl = transform(ast, { useUnknown: true })
     await writeFile(
         path.resolve(__dirname, '..', '..', 'packages', 'webdriver', 'src', 'bidi', `${type}Types.ts`),
@@ -141,7 +125,7 @@ for (const assignment of astRemote) {
     method.comments = [comment]
     methods.push(method)
 
-    const paramAST = findGroup(astRemote, paramName)
+    const paramAST = findGroupByName(astRemote, paramName)
     const commandParamTS = paramAST ? transform([paramAST]) : ''
     const exampleStart = commandParamTS.indexOf('{')
     const paramExample = (exampleStart === -1 || paramName.includes('EmptyParams'))
