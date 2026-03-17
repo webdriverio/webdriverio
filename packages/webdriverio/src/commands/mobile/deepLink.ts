@@ -14,15 +14,23 @@
         // Or if you want to have it "cross-platform" you can use it like this
         await browser.deepLink('wdio://drag', browser.isIOS ? 'org.reactjs.native.example.wdiodemoapp' : 'com.wdiodemoapp');
     })
+    it('should open a deep link without waiting for the app to launch (Android)', async () => {
+        // Android-only: do not wait for the app to launch after opening the deep link
+        await browser.deepLink('wdio://drag', 'com.wdiodemoapp', false)
+    })
  * </example>
  *
- * @param {string}  link            The deep link URL that should be opened in the mobile app. It should be a valid deep link URL (e.g. `myapp://path`). If it's a universal deep link, which can be used for iOS, use the `browser.url("your-url")`-method.
- * @param {string}  appIdentifier   The value of the `package` (Android) or `bundleId` (iOS) of the app that the deep link should open.
+ * @param {string}   link             The deep link URL that should be opened in the mobile app. It should be a valid deep link URL (e.g. `myapp://path`). If it's a universal deep link, which can be used for iOS, use the `browser.url("your-url")`-method.
+ * @param {string}   appIdentifier    The value of the `package` (Android) or `bundleId` (iOS) of the app that the deep link should open.
+ * @param {boolean}  [waitForLaunch]  Whether to wait for the app to launch after opening the deep link. Default is `true`. <br /><strong>ANDROID-ONLY</strong>
+ *
+ * @support ["ios","android"]
  */
 export async function deepLink(
     this: WebdriverIO.Browser,
     link: string,
-    appIdentifier: string
+    appIdentifier: string,
+    waitForLaunch?: boolean
 ) {
     const browser = this
 
@@ -41,10 +49,16 @@ export async function deepLink(
         throw new Error(`When using a deep link URL for ${mobileOS}, you need to provide the \`${identifierValue}\` of the app that the deep link should open.`)
     }
 
-    return browser.execute('mobile:deepLink', {
+    const args: Record<string, unknown> = {
         url: link,
         [browser.isIOS ? 'bundleId' : 'package']: appIdentifier,
-    })
+    }
+
+    if (!browser.isIOS && waitForLaunch !== undefined) {
+        args.waitForLaunch = waitForLaunch
+    }
+
+    return browser.execute('mobile:deepLink', args)
 }
 
 function isDeepLinkUrl(link: string): boolean {
