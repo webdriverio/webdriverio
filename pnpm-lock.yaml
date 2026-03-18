@@ -93,8 +93,8 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0
       cddl:
-        specifier: ^0.13.0
-        version: 0.13.0
+        specifier: ^0.13.1
+        version: 0.13.1
       cddl2ts:
         specifier: ^0.3.0
         version: 0.3.0
@@ -7796,8 +7796,8 @@ packages:
     engines: {node: '>=20.0.0', npm: '>=9.0.0'}
     hasBin: true
 
-  cddl@0.13.0:
-    resolution: {integrity: sha512-Rx3eoFU6xoJY3ha4pMsvbtYuB5f3+h9a41QraQ5pNw0WvyNsNKKfZGtoSXIK2qw8W7OwX/QcwTQnkCA9J8h5yg==}
+  cddl@0.13.1:
+    resolution: {integrity: sha512-DTCnazZVHkIDlXvtgiz+rw/vaeWmSvO6HIccmYJmi7lMTx4J3jC0ook7lBd5mhTcrW1IbyuUT1366kGUbgGuyg==}
     engines: {node: '>=20.0.0', npm: '>=9.0.0'}
     hasBin: true
 
@@ -24008,11 +24008,11 @@ snapshots:
     dependencies:
       '@babel/parser': 7.29.0
       camelcase: 9.0.0
-      cddl: 0.13.0
+      cddl: 0.13.1
       recast: 0.23.11
       yargs: 18.0.0
 
-  cddl@0.13.0:
+  cddl@0.13.1:
     dependencies:
       yargs: 18.0.0
 

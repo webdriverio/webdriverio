@@ -46,7 +46,6 @@ const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
         await fs.unlink(pathedCDDLPath)
     }
 
-    // @ts-expect-error - TODO dprevost fixed in the library, waiting for next release
     const cddl = transform(ast, { useUnknown: true })
     await writeFile(
         path.resolve(__dirname, '..', '..', 'packages', 'webdriver', 'src', 'bidi', `${type}Types.ts`),

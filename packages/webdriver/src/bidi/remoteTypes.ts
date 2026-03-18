@@ -934,7 +934,7 @@ export interface ScriptExceptionDetails {
 
 export type ScriptHandle = string
 export type ScriptInternalId = string
-export type ScriptLocalValue = ScriptRemoteReference | ScriptPrimitiveProtocolValue | ScriptChannelValue | ScriptArrayLocalValue | ScriptDateLocalValue | ScriptObjectLocalValue | ScriptRegExpLocalValue
+export type ScriptLocalValue = ScriptRemoteReference | ScriptPrimitiveProtocolValue | ScriptChannelValue | ScriptArrayLocalValue | ScriptDateLocalValue | ScriptMapLocalValue | ScriptObjectLocalValue | ScriptRegExpLocalValue | ScriptSetLocalValue
 export type ScriptListLocalValue = ScriptLocalValue[]
 
 export interface ScriptArrayLocalValue {
