@@ -48,7 +48,7 @@
     "test:unit:run": "vitest --config vitest.config.ts --run",
     "test:unit:watch": "vitest --config vitest.config.ts --watch",
     "test:component": "run-s test:component:*",
-    "test:component:run": "cd e2e",
+    "test:component:run": "cd e2e && pnpm test:browser",
     "test:smoke": "cd ./tests && node ./smoke.runner.js",
     "test:e2e:testrunner": "cd ./e2e && npx wdio run ./wdio/wdio.conf.ts",
     "test:e2e:multiremote": "cd ./e2e && npx wdio run ./wdio/wdio-multiremote.conf.ts",

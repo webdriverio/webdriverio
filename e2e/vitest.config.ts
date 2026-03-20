@@ -5,7 +5,7 @@ export default defineConfig({
         testTimeout: 1000 * 60 * 3,
         include: [
             './e2e/standalone/*.test.ts',
-            // './e2e/launch/*.test.ts'
+            './e2e/launch/*.test.ts'
         ],
         hookTimeout: 60 * 1000
     }

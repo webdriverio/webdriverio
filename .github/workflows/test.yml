@@ -40,7 +40,7 @@ jobs:
 
   unit_tests:
     name: Unit Tests
-    needs: [build_core]
+    needs: [build_core, static_code_analysis]
     uses: ./.github/workflows/test-unit.yml
 
   smoke_tests:
@@ -81,6 +81,5 @@ jobs:
 
   xvfb_tests:
     name: XVFB E2E Tests
-    # needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
-    needs: [unit_tests]
+    needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
     uses: ./.github/workflows/test-xvfb-e2e.yml
