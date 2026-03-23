@@ -6,7 +6,7 @@ import type { Capabilities, Options, Reporters, Services } from '@wdio/types'
 
 import FileSystemPathService from './FileSystemPathService.js'
 import { makeRelativeToCWD } from './utils.js'
-import { removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray } from '../utils.js'
+import { removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray, applyHeadlessFlag } from '../utils.js'
 import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_CONFIG_EXPORT } from '../constants.js'
 
 import type { PathService } from '../types.js'
@@ -23,6 +23,7 @@ type ImportedConfigModule = ESMImport | DefaultImport
 interface TestrunnerOptionsWithParameters extends Options.Testrunner {
     watch?: boolean
     coverage?: boolean
+    headless?: boolean
     spec?: string[]
     suite?: string[]
     repeat?: number
@@ -100,6 +101,20 @@ export default class ConfigParser {
                     ...(this._config.runner[1] as any).coverage,
                     enabled: this._initialConfig.coverage
                 }
+            }
+        }
+
+        /**
+         * Apply --headless CLI flag: inject or strip headless args from all capabilities
+         */
+        if (typeof this._initialConfig.headless === 'boolean') {
+            const headless = this._initialConfig.headless
+            if (Array.isArray(this._capabilities)) {
+                for (const cap of this._capabilities) {
+                    applyHeadlessFlag(cap as WebdriverIO.Capabilities, headless)
+                }
+            } else if (this._capabilities && typeof this._capabilities === 'object') {
+                log.warn('--headless flag is not supported with object-style capabilities, use array format instead')
             }
         }
 
