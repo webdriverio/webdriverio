@@ -27,6 +27,7 @@ vi.mock('../src/bidi/core.js', () => {
     return {
         BidiCore: class BidiHandlerMock {
             connect = vi.fn().mockResolvedValue({})
+            reconnect = vi.fn().mockResolvedValue({})
             constructor () {
                 ++initCount
             }
@@ -313,9 +314,22 @@ describe('WebDriver', () => {
                 capabilities: { browserName: 'firefox' }
             })
             vi.mocked(startWebDriver).mockClear()
+            vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: { webSocketUrl: 'ws://foo/bar' } }))
+            const reconnect = vi.fn().mockResolvedValue(undefined)
+            ;(session as any)._bidiHandler = { reconnect, socket: { on: vi.fn() } }
+            session.options.strictSSL = false
+            session.options.headers = { Authorization: 'OAuth 12345' }
             await WebDriver.reloadSession(session)
             expect(startWebDriver).not.toHaveBeenCalledOnce()
             expect(fetch).toHaveBeenCalledTimes(2)
+            expect(reconnect).toHaveBeenCalledWith(
+                expect.any(String),
+                expect.objectContaining({
+                    followRedirects: true,
+                    rejectUnauthorized: false,
+                    headers: { Authorization: 'OAuth 12345' }
+                })
+            )
         })
 
         it('starts a new driver process if browserName is given', async () => {
