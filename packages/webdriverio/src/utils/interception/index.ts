@@ -13,11 +13,20 @@ const log = logger('WebDriverInterception')
 
 let hasSubscribedToEvents = false
 
-type RespondBody = string | JsonCompatible | Buffer
+type RespondBodyValue = string | JsonCompatible | Buffer
+type RespondBody = RespondBodyValue | ((request: local.NetworkResponseCompletedParameters) => RespondBodyValue)
 interface Overwrite {
     overwrite?: RequestWithOptions | RespondWithOptions
     once?: boolean
     abort?: boolean
+}
+
+function toStringBody(payload: Exclude<RespondBodyValue, Buffer>) {
+    if (typeof payload === 'string') {
+        return payload
+    }
+
+    return JSON.stringify(payload) ?? 'null'
 }
 
 /**
@@ -431,9 +440,18 @@ export default class WebDriverInterception {
      */
     respond(payload: RespondBody, params: Omit<RespondWithOptions, 'body'> = {}, once?: boolean) {
         this.#ensureNotRestored()
-        const body = Buffer.isBuffer(payload)
-            ? { type: 'base64', value: payload.toString('base64') }
-            : { type: 'string', value: typeof payload === 'string' ? payload : JSON.stringify(payload) }
+        const body = typeof payload === 'function'
+            ? (request: local.NetworkResponseCompletedParameters) => {
+                const result = payload(request)
+                if (Buffer.isBuffer(result)) {
+                    return { type: 'base64', value: result.toString('base64') } as const
+                }
+
+                return { type: 'string', value: toStringBody(result) } as const
+            }
+            : Buffer.isBuffer(payload)
+                ? { type: 'base64', value: payload.toString('base64') }
+                : { type: 'string', value: toStringBody(payload) }
         const overwrite: RespondWithOptions = { body, ...params }
         this.#respondOverwrites = this.#setOverwrite(this.#respondOverwrites, { overwrite, once })
         return this
