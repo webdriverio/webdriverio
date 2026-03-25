@@ -174,6 +174,24 @@ describe('CLIUtils', () => {
             expect(parsed.buildName).toBe('common-build')
             expect(parsed.platforms[0]).not.toHaveProperty('buildName')
         })
+
+        it('includes testManagementOptions when testPlanId is provided', () => {
+            const capabilities = [
+                { browserName: 'chrome' }
+            ]
+            const options = {
+                testManagementOptions: {
+                    testPlanId: 'tm-plan-123'
+                }
+            }
+
+            const result = CLIUtils.getBinConfig(mockConfig, capabilities, options)
+            const parsed = JSON.parse(result)
+
+            expect(parsed.testManagementOptions).toEqual({
+                testPlanId: 'tm-plan-123'
+            })
+        })
     })
 
     describe('getSdkVersion', () => {

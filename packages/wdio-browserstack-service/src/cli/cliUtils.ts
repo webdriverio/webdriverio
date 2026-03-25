@@ -32,7 +32,7 @@ import { EVENTS as PerformanceEvents } from '../instrumentation/performance/cons
 import { BStackLogger as logger } from './cliLogger.js'
 import { UPDATED_CLI_ENDPOINT } from '../constants.js'
 import type { Options, Capabilities } from '@wdio/types'
-import type { BrowserstackConfig, BrowserstackOptions, TestObservabilityOptions } from '../types.js'
+import type { BrowserstackConfig, BrowserstackOptions, TestManagementOptions, TestObservabilityOptions } from '../types.js'
 import { TestFrameworkConstants } from './frameworks/constants/testFrameworkConstants.js'
 import APIUtils from './apiUtils.js'
 
@@ -88,6 +88,7 @@ export class CLIUtils {
 
         const isNonBstackA11y = isTurboScale(options) || !shouldAddServiceVersion(config as Options.Testrunner, options.testObservability)
         const observabilityOptions: TestObservabilityOptions = options.testObservabilityOptions || {}
+        const testManagementOptions: TestManagementOptions = options.testManagementOptions || {}
         const binconfig: Record<string, unknown> = {
             userName: observabilityOptions.user || config.user,
             accessKey: observabilityOptions.key || config.key,
@@ -100,6 +101,11 @@ export class CLIUtils {
         binconfig.buildName = observabilityOptions.buildName || binconfig.buildName
         binconfig.projectName = observabilityOptions.projectName || binconfig.projectName
         binconfig.buildTag = this.getObservabilityBuildTags(observabilityOptions, buildTag) || []
+        if (testManagementOptions.testPlanId) {
+            binconfig.testManagementOptions = {
+                testPlanId: testManagementOptions.testPlanId
+            }
+        }
 
         let caps = capabilities
         if (capabilities && !Array.isArray(capabilities)) {
