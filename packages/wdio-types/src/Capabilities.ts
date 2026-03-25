@@ -360,7 +360,7 @@ export interface WebdriverIOCapabilities {
     * pattern to match multiple files at once or wrap a glob or set of
     * paths into an array to run them within a single worker process.
     */
-    'wdio:specs'?: string[]
+    'wdio:specs'?: (string | string[])[]
 
     /**
      * Exclude specs from test execution.
