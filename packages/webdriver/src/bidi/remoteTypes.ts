@@ -1459,13 +1459,7 @@ export interface InputWheelScrollAction {
 }
 
 export interface InputPointerCommonProperties {
-    /**
-   * @default 1
-   */
     width?: JsUint;
-    /**
-   * @default 1
-   */
     height?: JsUint;
     pressure?: number;
     tangentialPressure?: number;
