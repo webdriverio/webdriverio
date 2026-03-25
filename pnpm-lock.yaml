@@ -93,11 +93,11 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0
       cddl:
-        specifier: ^0.14.0
-        version: 0.14.0
+        specifier: ^0.14.5
+        version: 0.14.5
       cddl2ts:
-        specifier: ^0.3.1
-        version: 0.3.1
+        specifier: ^0.4.1
+        version: 0.4.1
       chalk:
         specifier: ^5.4.1
         version: 5.6.2
@@ -7791,18 +7791,12 @@ packages:
   ccount@2.0.1:
     resolution: {integrity: sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==}
 
-  cddl2ts@0.3.1:
-    resolution: {integrity: sha512-LMGfmHsyua8cZdRh1yjFw+5Ffm45A59XlDYb3ZnjMZySczaBuXOH1h7ke3oFX1BF4v+CGLLvDNW0vde/TcgUyg==}
-    engines: {node: '>=20.0.0', npm: '>=9.0.0'}
+  cddl2ts@0.4.1:
+    resolution: {integrity: sha512-27wq7kJXUjgUDd4CVvuuf7+zFJ0azyJjVgEK8e/ekPn8HMAkbhnpS/VSS962D7J9TmAsD0cq6NA/ADXhiihclg==}
     hasBin: true
 
-  cddl@0.13.1:
-    resolution: {integrity: sha512-DTCnazZVHkIDlXvtgiz+rw/vaeWmSvO6HIccmYJmi7lMTx4J3jC0ook7lBd5mhTcrW1IbyuUT1366kGUbgGuyg==}
-    engines: {node: '>=20.0.0', npm: '>=9.0.0'}
-    hasBin: true
-
-  cddl@0.14.0:
-    resolution: {integrity: sha512-OwCPQqGdVZbQ8fmPKuixJrzDRKRVfx8911yuI2TYIT0ese8k6shTrds3JVIdLCgBD9eeJqzJVXK5quTqHI732Q==}
+  cddl@0.14.5:
+    resolution: {integrity: sha512-Pvio1zMYXtcs0Oiw42aYVrLmvb4ItpJt22BDP0v7BzBCTMX6xXf7JIXW9p6B0VYAHvz4ONJjzLzcfn+j2IoItw==}
     hasBin: true
 
   chai@5.2.0:
@@ -24008,19 +24002,15 @@ snapshots:
 
   ccount@2.0.1: {}
 
-  cddl2ts@0.3.1:
+  cddl2ts@0.4.1:
     dependencies:
       '@babel/parser': 7.29.0
       camelcase: 9.0.0
-      cddl: 0.13.1
+      cddl: 0.14.5
       recast: 0.23.11
       yargs: 18.0.0
 
-  cddl@0.13.1:
-    dependencies:
-      yargs: 18.0.0
-
-  cddl@0.14.0:
+  cddl@0.14.5:
     dependencies:
       yargs: 18.0.0
 
