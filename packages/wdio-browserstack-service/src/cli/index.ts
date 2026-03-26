@@ -22,6 +22,7 @@ import AccessibilityModule from './modules/accessibilityModule.js'
 import { isTurboScale, processAccessibilityResponse, shouldAddServiceVersion } from '../util.js'
 import ObservabilityModule from './modules/observabilityModule.js'
 import type { BrowserstackConfig, BrowserstackOptions, LaunchResponse } from '../types.js'
+import CrashReporter from '../crash-reporter.js'
 import PercyModule from './modules/percyModule.js'
 import APIUtils from './apiUtils.js'
 
@@ -112,7 +113,9 @@ export class BrowserstackCLI {
         await this.start()
         this.logger.debug('startMain: main-process started')
         const response = await GrpcClient.getInstance().startBinSession(this.wdioConfig)
-        BStackLogger.debug(`start: startBinSession response=${JSON.stringify(response)}`)
+        const redactedStartResponse = JSON.parse(JSON.stringify(response))
+        CrashReporter.recursivelyRedactKeysFromObject(redactedStartResponse, ['user', 'username', 'key', 'accesskey', 'password'])
+        BStackLogger.debug(`start: startBinSession response=${JSON.stringify(redactedStartResponse)}`)
         this.loadModules(response)
         this.isMainConnected = true
     }
@@ -343,7 +346,9 @@ export class BrowserstackCLI {
             this.logger.info(`Starting as child process with session ID: ${binSessionId}`)
             GrpcClient.getInstance().connect()
             const response = await GrpcClient.getInstance().connectBinSession()
-            this.logger.info(`Connected to bin session: ${JSON.stringify(response)}`)
+            const redactedResponse = JSON.parse(JSON.stringify(response))
+            CrashReporter.recursivelyRedactKeysFromObject(redactedResponse, ['user', 'username', 'key', 'accesskey', 'password'])
+            this.logger.info(`Connected to bin session: ${JSON.stringify(redactedResponse)}`)
             this.loadModules(response)
             this.isChildConnected = true
             PerformanceTester.end(PerformanceEvents.SDK_CONNECT_BIN_SESSION)
@@ -420,7 +425,9 @@ export class BrowserstackCLI {
     setConfig(response: StartBinSessionResponse) {
         try {
             this.config = JSON.parse(response.config)
-            this.logger.debug(`loadModules: config=${JSON.stringify(this.config)}`)
+            const redactedConfig = JSON.parse(response.config)
+            CrashReporter.recursivelyRedactKeysFromObject(redactedConfig, ['user', 'username', 'key', 'accesskey', 'password'])
+            this.logger.debug(`loadModules: config=${JSON.stringify(redactedConfig)}`)
         } catch (error) {
             this.logger.error(`setConfig: error=${util.format(error)}`)
         }

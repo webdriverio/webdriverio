@@ -113,6 +113,16 @@ export default class CrashReporter {
                     obj[prop] = '[REDACTED]'
                 } else if (typeof obj[prop] === 'object' && obj[prop] !== null) {
                     this.recursivelyRedactKeysFromObject(obj[prop] as Dict | Array<Dict>, keys)
+                } else if (typeof obj[prop] === 'string') {
+                    try {
+                        const parsed = JSON.parse(obj[prop] as string)
+                        if (typeof parsed === 'object' && parsed !== null) {
+                            this.recursivelyRedactKeysFromObject(parsed as Dict | Array<Dict>, keys)
+                            obj[prop] = JSON.stringify(parsed)
+                        }
+                    } catch {
+                        // Not valid JSON, leave as-is
+                    }
                 }
             }
         }
