@@ -28,6 +28,8 @@ export interface RunCommandArguments {
     configPath: string
     updateSnapshots?: Options.Testrunner['updateSnapshots']
     tsConfigPath?: string
+    cpuProf?: boolean
+    heapProf?: boolean
 
     /**
      * @internal
