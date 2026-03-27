@@ -1,5 +1,6 @@
 import path from 'node:path'
 import logger from '@wdio/logger'
+
 import DotReporter from '@wdio/dot-reporter'
 import { initializePlugin } from '@wdio/utils'
 import type { Options, Capabilities, Reporters } from '@wdio/types'
@@ -196,6 +197,12 @@ export default class BaseReporter {
                 // wait otherwise
             }, this._config.reporterSyncInterval)
         })
+    }
+
+    /**
+     * close log stream
+     */
+    closeStream () {
     }
 
     /**
