@@ -256,68 +256,127 @@ describe('bidi e2e test', () => {
         })
     })
 
-    describe('Cookies commands', () => {
-        it('can set and get cookies with sameSite in camelCase', async () => {
-            await browser.url('https://guinea-pig.webdriver.io')
-            const cookieSetParam = {
-                cookie: {
-                    name: 'foo10',
-                    value: { type: 'string', value: 'bar' },
-                    domain: 'guinea-pig.webdriver.io',
-                    sameSite: 'default'
-                }
-            } satisfies remote.StorageSetCookieParameters
+    describe('WebDriver Bidi commands', function () {
 
-            await browser.storageSetCookie(cookieSetParam)
-
-            const cookiesGetParam = {
-                filter: {
-                    name: 'foo10',
-                }
-            } satisfies remote.StorageGetCookiesParameters
-            const cookies = await browser.storageGetCookies(cookiesGetParam)
-
-            expect(cookies.cookies.length).toBe(1)
-            expect(cookies.cookies[0].name).toBe('foo10')
-            expect(cookies.cookies[0].value).toEqual({ 'type': 'string', 'value': 'bar' })
-            expect(cookies.cookies[0].sameSite).toBe('lax')
+        before(async function () {
+            if (!browser.isBidi) {
+                // Mostly skipping safari not supporting Bidi for now!
+                this.skip()
+            }
         })
 
-        it('can set and get cookies with partition storageKey', async () => {
+        describe('Storage cookies', () => {
+            it('can set and get cookies with sameSite in camelCase', async () => {
+                await browser.url('https://guinea-pig.webdriver.io')
+                const cookieSetParam = {
+                    cookie: {
+                        name: 'foo10',
+                        value: { type: 'string', value: 'bar' },
+                        domain: 'guinea-pig.webdriver.io',
+                        sameSite: 'default'
+                    }
+                } satisfies remote.StorageSetCookieParameters
 
-            await browser.url('https://guinea-pig.webdriver.io')
-            const cookieSetParam = {
-                cookie: {
-                    name: 'foo20',
-                    value: { type: 'string', value: 'bar' },
-                    domain: 'guinea-pig.webdriver.io',
-                    sameSite: 'default',
-                    secure: true // Required with partition key in Chrome???
-                },
-                partition: {
-                    type: 'storageKey',
-                    sourceOrigin: 'https://guinea-pig.webdriver.io',
-                },
-            } satisfies remote.StorageSetCookieParameters
+                await browser.storageSetCookie(cookieSetParam)
 
-            await browser.storageSetCookie(cookieSetParam)
+                const cookiesGetParam = {
+                    filter: {
+                        name: 'foo10',
+                    }
+                } satisfies remote.StorageGetCookiesParameters
+                const cookies = await browser.storageGetCookies(cookiesGetParam)
 
-            const cookiesGetParam = {
-                filter: {
-                    name: 'foo20',
-                },
-                // Note adding partition key filtering here does not allow to find back my cookie
-                // partition: {
-                //     type: 'storageKey',
-                //     sourceOrigin: 'https://guinea-pig.webdriver.io',
-                // }
-            } satisfies remote.StorageGetCookiesParameters
-            const cookies = await browser.storageGetCookies(cookiesGetParam)
+                expect(cookies.cookies.length).toBe(1)
+                expect(cookies.cookies[0].name).toBe('foo10')
+                expect(cookies.cookies[0].value).toEqual({ 'type': 'string', 'value': 'bar' })
+                expect(cookies.cookies[0].sameSite).toBe('lax')
+            })
 
-            expect(cookies.cookies.length).toBe(1)
-            expect(cookies.cookies[0].name).toBe('foo20')
-            expect(cookies.cookies[0].value).toEqual({ 'type': 'string', 'value': 'bar' })
-            expect(cookies.cookies[0].sameSite).toBe('lax')
+            it('can set and get cookies with partition storageKey', async () => {
+
+                await browser.url('https://guinea-pig.webdriver.io')
+                const cookieSetParam = {
+                    cookie: {
+                        name: 'foo20',
+                        value: { type: 'string', value: 'bar' },
+                        domain: 'guinea-pig.webdriver.io',
+                        sameSite: 'default',
+                        secure: true // Required with partition key in Chrome???
+                    },
+                    partition: {
+                        type: 'storageKey',
+                        sourceOrigin: 'https://guinea-pig.webdriver.io',
+                    },
+                } satisfies remote.StorageSetCookieParameters
+
+                await browser.storageSetCookie(cookieSetParam)
+
+                const cookiesGetParam = {
+                    filter: {
+                        name: 'foo20',
+                    },
+                    // Note adding partition key filtering here does not allow to find back my cookie
+                    // partition: {
+                    //     type: 'storageKey',
+                    //     sourceOrigin: 'https://guinea-pig.webdriver.io',
+                    // }
+                } satisfies remote.StorageGetCookiesParameters
+                const cookies = await browser.storageGetCookies(cookiesGetParam)
+
+                expect(cookies.cookies.length).toBe(1)
+                expect(cookies.cookies[0].name).toBe('foo20')
+                expect(cookies.cookies[0].value).toEqual({ 'type': 'string', 'value': 'bar' })
+                expect(cookies.cookies[0].sameSite).toBe('lax')
+            })
         })
+
+        describe('Browser ClientWindowState', () => {
+
+            it('can get window state', async function () {
+                console.log('Getting window state')
+                await browser.url('https://guinea-pig.webdriver.io')
+
+                const windowState = await browser.browserGetClientWindows({})
+
+                expect(windowState.clientWindows[0].state).toBeDefined()
+            })
+
+            // To enable one day once some browser support it!
+            it.skip('can set window state to minimized', async function () {
+                await browser.url('https://guinea-pig.webdriver.io')
+
+                const clientWindow = await browser.getWindowHandle()
+
+                const params: remote.BrowserSetClientWindowStateParameters = {
+                    clientWindow,
+                    state: 'minimized'
+                }
+                await browser.browserSetClientWindowState(params)
+
+                const windowState = await browser.browserGetClientWindows({})
+                expect(windowState.clientWindows[0].state).toBe('minimized')
+            })
+
+        })
+
+        describe('Browsing Context', () => {
+
+            it('can browsingContext.reload with ignoreCache', async function () {
+                await browser.url('https://guinea-pig.webdriver.io')
+
+                const params: remote.BrowsingContextReloadParameters = {
+                    context: await browser.getWindowHandle(),
+                    ignoreCache: true
+                }
+                const result = await browser.browsingContextReload(params)
+
+                expect(result).toEqual({
+                    navigation: expect.any(String),
+                    url: 'https://guinea-pig.webdriver.io/',
+                })
+            })
+        })
+
     })
+
 })
