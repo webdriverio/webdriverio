@@ -87,6 +87,11 @@ export interface SessionSubscribeParameters {
     userContexts?: BrowserUserContext[];
 }
 
+/**
+ * @deprecated Use SessionSubscribeParameters instead, will be removed in v10.
+ */
+export interface SessionSubscriptionRequest extends SessionSubscribeParameters {}
+
 export interface SessionUnsubscribeByIdRequest {
     subscriptions: SessionSubscription[];
 }
@@ -116,7 +121,7 @@ export interface SessionEnd {
 
 export interface SessionSubscribe {
     method: 'session.subscribe';
-    params: SessionSubscribeParameters;
+    params: SessionSubscribeParameters | SessionSubscriptionRequest;
 }
 
 export interface SessionUnsubscribe {
