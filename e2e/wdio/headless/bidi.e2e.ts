@@ -377,6 +377,93 @@ describe('bidi e2e test', () => {
             })
         })
 
+        describe('Scripts', () => {
+
+            it('can return a ScriptEvaluateResultSuccess', async function () {
+                await browser.url('https://guinea-pig.webdriver.io')
+                const context = await browser.getWindowHandle()
+
+                const params: remote.ScriptCallFunctionParameters = {
+                    functionDeclaration: 'function(){ return 42 }',
+                    awaitPromise: false,
+                    target: {
+                        context
+                    }
+                }
+                const result = await browser.scriptCallFunction(params)
+
+                const expectedSuccessResult: remote.ScriptEvaluateResultSuccess = {
+                    realm: 'expect.any(String)',
+                    type: 'success',
+                    result: {
+                        type: 'number',
+                        value: 42
+                    }
+                }
+                expect(result).toEqual({
+                    ...expectedSuccessResult,
+                    realm: expect.any(String),
+                })
+            })
+
+            it.only('can return a ScriptEvaluateResultException', async function () {
+                await browser.url('https://guinea-pig.webdriver.io')
+                const context = await browser.getWindowHandle()
+
+                const params: remote.ScriptCallFunctionParameters = {
+                    functionDeclaration: 'function(){ throw new Error("Hello Bidi") }',
+                    awaitPromise: false,
+                    target: {
+                        context
+                    }
+                }
+                const result = await browser.scriptCallFunction(params)
+
+                const expectedExceptionResult: remote.ScriptEvaluateResultException = {
+                    'exceptionDetails': {
+                        'columnNumber': 20,
+                        'exception': {
+                            'type': 'error'
+                        },
+                        'lineNumber': 6,
+                        'stackTrace': {
+                            'callFrames': [
+                                {
+                                    'columnNumber': 26,
+                                    'functionName': '',
+                                    'lineNumber': 6,
+                                    'url': ''
+                                },
+                                {
+                                    'columnNumber': 17,
+                                    'functionName': 'callFunction',
+                                    'lineNumber': 3,
+                                    'url': ''
+                                },
+                                {
+                                    'columnNumber': 13,
+                                    'functionName': '',
+                                    'lineNumber': 5,
+                                    'url': ''
+                                }
+                            ]
+                        },
+                        'text': 'Error: Hello Bidi'
+                    },
+                    'realm': '-5543416938055767372.-832953021250353980',
+                    'type': 'exception'
+                }
+
+                expect(result).toEqual({
+                    ...expectedExceptionResult,
+                    realm: expect.any(String),
+                    exceptionDetails: {
+                        ...expectedExceptionResult.exceptionDetails,
+                    }
+                })
+            })
+        })
+
     })
 
 })
