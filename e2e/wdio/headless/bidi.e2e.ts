@@ -1,5 +1,5 @@
 import { browser, expect } from '@wdio/globals'
-import type { local } from 'webdriver'
+import type { local, remote } from 'webdriver'
 
 describe('bidi e2e test', () => {
     describe('execute', () => {
@@ -63,7 +63,7 @@ describe('bidi e2e test', () => {
         await browser.sessionSubscribe({ events: ['log.entryAdded'] })
         browser.on('log.entryAdded', (logEntry) => logEvents.push(logEntry))
         await browser.execute(() => console.log('Hello Bidi'))
-        // eslint-disable-next-line wdio/no-pause
+
         await browser.waitUntil(
             async () => logEvents.find((logEvent) => logEvent.text === 'Hello Bidi'),
             {
@@ -253,6 +253,71 @@ describe('bidi e2e test', () => {
             const script = 'return 2 * arguments[0]'
             const res = await browser.execute(script, 2)
             expect(res).toBe(4)
+        })
+    })
+
+    describe('Cookies commands', () => {
+        it('can set and get cookies with sameSite in camelCase', async () => {
+            await browser.url('https://guinea-pig.webdriver.io')
+            const cookieSetParam = {
+                cookie: {
+                    name: 'foo10',
+                    value: { type: 'string', value: 'bar' },
+                    domain: 'guinea-pig.webdriver.io',
+                    sameSite: 'default'
+                }
+            } satisfies remote.StorageSetCookieParameters
+
+            await browser.storageSetCookie(cookieSetParam)
+
+            const cookiesGetParam = {
+                filter: {
+                    name: 'foo10',
+                }
+            } satisfies remote.StorageGetCookiesParameters
+            const cookies = await browser.storageGetCookies(cookiesGetParam)
+
+            expect(cookies.cookies.length).toBe(1)
+            expect(cookies.cookies[0].name).toBe('foo10')
+            expect(cookies.cookies[0].value).toEqual({ 'type': 'string', 'value': 'bar' })
+            expect(cookies.cookies[0].sameSite).toBe('lax')
+        })
+
+        it('can set and get cookies with partition storageKey', async () => {
+
+            await browser.url('https://guinea-pig.webdriver.io')
+            const cookieSetParam = {
+                cookie: {
+                    name: 'foo20',
+                    value: { type: 'string', value: 'bar' },
+                    domain: 'guinea-pig.webdriver.io',
+                    sameSite: 'default',
+                    secure: true // Required with partition key in Chrome???
+                },
+                partition: {
+                    type: 'storageKey',
+                    sourceOrigin: 'https://guinea-pig.webdriver.io',
+                },
+            } satisfies remote.StorageSetCookieParameters
+
+            await browser.storageSetCookie(cookieSetParam)
+
+            const cookiesGetParam = {
+                filter: {
+                    name: 'foo20',
+                },
+                // Note adding partition key filtering here does not allow to find back my cookie
+                // partition: {
+                //     type: 'storageKey',
+                //     sourceOrigin: 'https://guinea-pig.webdriver.io',
+                // }
+            } satisfies remote.StorageGetCookiesParameters
+            const cookies = await browser.storageGetCookies(cookiesGetParam)
+
+            expect(cookies.cookies.length).toBe(1)
+            expect(cookies.cookies[0].name).toBe('foo20')
+            expect(cookies.cookies[0].value).toEqual({ 'type': 'string', 'value': 'bar' })
+            expect(cookies.cookies[0].sameSite).toBe('lax')
         })
     })
 })
