@@ -8,7 +8,7 @@ import { browser, $, expect } from '@wdio/globals'
 
 import { imageSize } from 'image-size'
 import type { InputOptions } from 'webdriverio'
-import type { remote } from '../../../packages/webdriver/src/node.js'
+import type { remote } from 'webdriver'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
