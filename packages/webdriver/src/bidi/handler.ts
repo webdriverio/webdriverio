@@ -69,7 +69,7 @@ export class BidiHandler extends BidiCore {
      * @param params `remote.SessionSubscribeParameters` {@link https://w3c.github.io/webdriver-bidi/#command-session-subscribe | command parameter}
      * @returns `Promise<local.SessionSubscribeResult>`
      **/
-    async sessionSubscribe(params: remote.SessionSubscribeParameters): Promise<local.SessionSubscribeResult> {
+    async sessionSubscribe(params: remote.SessionSubscribeParameters | remote.SessionSubscriptionRequest): Promise<local.SessionSubscribeResult> {
         const result = await this.send({
             method: 'session.subscribe',
             params
