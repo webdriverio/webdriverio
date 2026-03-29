@@ -178,6 +178,14 @@ export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'before
      * @default 500
      */
     waitforInterval?: number
+
+    /**
+     * Maximum size of the response body (in bytes) that can be returned when using the `mock` command.
+     * Use 0 to disable data collection of the spied response payload.
+     *
+     * @default 10485760 (10MB)
+     */
+    maxSpyCollectedBodySize?: number
 }
 
 export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunctionExtension {
