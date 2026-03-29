@@ -865,7 +865,7 @@ describe('main suite 1', () => {
             ])
         })
 
-        it.only('should have sameSite in PascalCase for Bidi cases', async function () {
+        it('should have sameSite in PascalCase for Bidi cases', async function () {
             await browser.url('https://guinea-pig.webdriver.io')
             await browser.setCookies([
                 {
@@ -877,15 +877,11 @@ describe('main suite 1', () => {
                 },
             ])
 
-            // Filter on name does not work since partition is added by default
             const bidiFilter: remote.StorageCookieFilter = {
                 name: 'test2-0'
             }
 
             const testCookies = await browser.getCookies(bidiFilter, null /* the default partition filter blocks using Bidi, so using null to bypass it */)
-
-            // Filter manually for the test because of the above mentionned
-            testCookies.filter(cookie => cookie.name === 'test2-0')
 
             expect(testCookies).toEqual([
                 {
