@@ -162,7 +162,7 @@ async function bar() {
         domain: '',
         path: '',
         expiry: 1,
-        sameSite: 'lax',
+        sameSite: 'Lax',
         secure: true,
         httpOnly: true
     }])
