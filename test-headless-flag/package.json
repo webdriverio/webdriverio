@@ -1,0 +1,19 @@
+{
+  "name": "test-headless-flag",
+  "version": "1.0.0",
+  "description": "Test project to verify the --headless CLI flag in WebdriverIO",
+  "type": "module",
+  "scripts": {
+    "test:headless": "wdio run wdio.conf.js --headless",
+    "test:headed": "wdio run wdio.conf.js --headless=false",
+    "test": "wdio run wdio.conf.js"
+  },
+  "devDependencies": {
+    "@wdio/cli": "workspace:*",
+    "@wdio/local-runner": "workspace:*",
+    "@wdio/mocha-framework": "workspace:*",
+    "@wdio/spec-reporter": "workspace:*",
+    "expect-webdriverio": "^5.6.5",
+    "webdriverio": "workspace:*"
+  }
+}

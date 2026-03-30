@@ -11,6 +11,7 @@ packages:
   - 'examples/cloudservices/**'
   - 'examples/bidi/**'
   - 'examples/appium/**'
+  - 'test-headless-flag'
 
 onlyBuiltDependencies:
 - sharp

@@ -5,6 +5,46 @@ export const validObjectOrArray = (object: object): object is object | Array<unk
     (typeof object === 'object' && Object.keys(object).length > 0)
 
 /**
+ * Inject or strip headless CLI args from a single capability object.
+ * Handles Chrome/Chromium, Firefox, and Edge.
+ */
+export function applyHeadlessFlag(caps: WebdriverIO.Capabilities, headless: boolean): WebdriverIO.Capabilities {
+    // W3C capabilities may nest browser settings under `alwaysMatch`
+    const target = (caps as { alwaysMatch?: WebdriverIO.Capabilities }).alwaysMatch || caps
+    const browser = (target.browserName || '').toLowerCase()
+
+    if (browser === 'chrome' || browser === 'chromium') {
+        const opts = (target['goog:chromeOptions'] as { args?: string[] }) || {}
+        const args = opts.args || []
+        target['goog:chromeOptions'] = {
+            ...opts,
+            args: headless
+                ? Array.from(new Set([...args, '--headless', '--disable-gpu']))
+                : args.filter((a: string) => a !== '--headless' && a !== 'headless' && !a.startsWith('--headless='))
+        }
+    } else if (browser === 'firefox') {
+        const opts = (target['moz:firefoxOptions'] as { args?: string[] }) || {}
+        const args = opts.args || []
+        target['moz:firefoxOptions'] = {
+            ...opts,
+            args: headless
+                ? Array.from(new Set([...args, '-headless']))
+                : args.filter((a: string) => a !== '-headless' && a !== '--headless')
+        }
+    } else if (browser === 'microsoftedge' || browser === 'msedge' || browser === 'edge') {
+        const opts = (target['ms:edgeOptions'] as { args?: string[] }) || {}
+        const args = opts.args || []
+        target['ms:edgeOptions'] = {
+            ...opts,
+            args: headless
+                ? Array.from(new Set([...args, '--headless']))
+                : args.filter((a: string) => a !== '--headless' && a !== 'headless' && !a.startsWith('--headless='))
+        }
+    }
+    return caps
+}
+
+/**
  * remove line numbers from file path, ex:
  * `/foo:9` or `c:\bar:14:5`
  * @param   {string} filePath path to spec file
