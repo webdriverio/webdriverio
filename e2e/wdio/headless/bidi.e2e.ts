@@ -1,5 +1,5 @@
 import { browser, expect } from '@wdio/globals'
-import type { local } from 'webdriver'
+import type { local, remote } from 'webdriver'
 
 describe('bidi e2e test', () => {
     describe('execute', () => {
@@ -63,7 +63,7 @@ describe('bidi e2e test', () => {
         await browser.sessionSubscribe({ events: ['log.entryAdded'] })
         browser.on('log.entryAdded', (logEntry) => logEvents.push(logEntry))
         await browser.execute(() => console.log('Hello Bidi'))
-        // eslint-disable-next-line wdio/no-pause
+
         await browser.waitUntil(
             async () => logEvents.find((logEvent) => logEvent.text === 'Hello Bidi'),
             {
@@ -253,6 +253,274 @@ describe('bidi e2e test', () => {
             const script = 'return 2 * arguments[0]'
             const res = await browser.execute(script, 2)
             expect(res).toBe(4)
+        })
+    })
+
+    describe('WebDriver Bidi commands', function () {
+
+        before(async function () {
+            if (!browser.isBidi) {
+                // Mostly skipping safari not supporting Bidi for now!
+                this.skip()
+            }
+        })
+
+        describe('Storage cookies', () => {
+            it('can set and get cookies with sameSite in camelCase', async () => {
+                await browser.url('https://guinea-pig.webdriver.io')
+                const cookieSetParam = {
+                    cookie: {
+                        name: 'foo10',
+                        value: { type: 'string', value: 'bar' },
+                        domain: 'guinea-pig.webdriver.io',
+                        sameSite: 'default'
+                    }
+                } satisfies remote.StorageSetCookieParameters
+
+                await browser.storageSetCookie(cookieSetParam)
+
+                const cookiesGetParam = {
+                    filter: {
+                        name: 'foo10',
+                    }
+                } satisfies remote.StorageGetCookiesParameters
+                const cookies = await browser.storageGetCookies(cookiesGetParam)
+
+                expect(cookies.cookies.length).toBe(1)
+                expect(cookies.cookies[0].name).toBe('foo10')
+                expect(cookies.cookies[0].value).toEqual({ 'type': 'string', 'value': 'bar' })
+
+                // On some platforms like linux, it returns default and not lax, bug?.
+                expect(['lax', 'default']).toContain(cookies.cookies[0].sameSite)
+            })
+
+            it('can set and get cookies with partition storageKey', async () => {
+
+                await browser.url('https://guinea-pig.webdriver.io')
+                const cookieSetParam = {
+                    cookie: {
+                        name: 'foo20',
+                        value: { type: 'string', value: 'bar' },
+                        domain: 'guinea-pig.webdriver.io',
+                        sameSite: 'default',
+                        secure: true // Required with partition key in Chrome???
+                    },
+                    partition: {
+                        type: 'storageKey',
+                        sourceOrigin: 'https://guinea-pig.webdriver.io',
+                    },
+                } satisfies remote.StorageSetCookieParameters
+
+                await browser.storageSetCookie(cookieSetParam)
+
+                const cookiesGetParam = {
+                    filter: {
+                        name: 'foo20',
+                    },
+                    // Note adding partition key filtering here does not allow to find back my cookie
+                    // partition: {
+                    //     type: 'storageKey',
+                    //     sourceOrigin: 'https://guinea-pig.webdriver.io',
+                    // }
+                } satisfies remote.StorageGetCookiesParameters
+                const cookies = await browser.storageGetCookies(cookiesGetParam)
+
+                expect(cookies.cookies.length).toBe(1)
+                expect(cookies.cookies[0].name).toBe('foo20')
+                expect(cookies.cookies[0].value).toEqual({ 'type': 'string', 'value': 'bar' })
+
+                // On some platforms like linux, it returns default and not lax, bug?.
+                expect(['lax', 'default']).toContain(cookies.cookies[0].sameSite)
+            })
+        })
+
+        describe('Browser ClientWindowState', () => {
+
+            it('can get window state', async () => {
+                console.log('Getting window state')
+                await browser.url('https://guinea-pig.webdriver.io')
+
+                const windowState = await browser.browserGetClientWindows({})
+
+                expect(windowState.clientWindows[0].state).toBeDefined()
+            })
+
+            // To enable one day once some browser support it!
+            it.skip('can set window state to minimized', async () => {
+                await browser.url('https://guinea-pig.webdriver.io')
+
+                const clientWindow = await browser.getWindowHandle()
+
+                const params: remote.BrowserSetClientWindowStateParameters = {
+                    clientWindow,
+                    state: 'minimized'
+                }
+                await browser.browserSetClientWindowState(params)
+
+                const windowState = await browser.browserGetClientWindows({})
+                expect(windowState.clientWindows[0].state).toBe('minimized')
+            })
+
+        })
+
+        describe('Browsing Context', () => {
+
+            it('can browsingContext.reload', async () => {
+                await browser.url('https://guinea-pig.webdriver.io')
+
+                const params: remote.BrowsingContextReloadParameters = {
+                    context: await browser.getWindowHandle()
+                }
+                const result = await browser.browsingContextReload(params)
+
+                expect(result).toEqual({
+                    navigation: expect.any(String),
+                    url: 'https://guinea-pig.webdriver.io/',
+                })
+            })
+        })
+
+        describe('Scripts', () => {
+
+            it('can return a ScriptEvaluateResultSuccess', async () => {
+                await browser.url('https://guinea-pig.webdriver.io')
+                const context = await browser.getWindowHandle()
+
+                const params: remote.ScriptCallFunctionParameters = {
+                    functionDeclaration: 'function(){ return 42 }',
+                    awaitPromise: false,
+                    target: {
+                        context
+                    }
+                }
+                const result = await browser.scriptCallFunction(params)
+
+                const expectedSuccessResult: remote.ScriptEvaluateResultSuccess = {
+                    realm: 'expect.any(String)',
+                    type: 'success',
+                    result: {
+                        type: 'number',
+                        value: 42
+                    }
+                }
+                expect(result).toEqual({
+                    ...expectedSuccessResult,
+                    realm: expect.any(String),
+                })
+            })
+
+            it('can return a ScriptEvaluateResultException', async () => {
+                await browser.url('https://guinea-pig.webdriver.io')
+                const context = await browser.getWindowHandle()
+
+                const params: remote.ScriptCallFunctionParameters = {
+                    functionDeclaration: 'function(){ throw new Error("Hello Bidi") }',
+                    awaitPromise: false,
+                    target: {
+                        context
+                    }
+                }
+                const result = await browser.scriptCallFunction(params)
+
+                const expectedExceptionResult: remote.ScriptEvaluateResultException = {
+                    exceptionDetails: {
+                        columnNumber: 20,
+                        exception: {
+                            type: 'error'
+                        },
+                        lineNumber: 6,
+                        stackTrace: {
+                            callFrames: []
+                        },
+                        text: 'Error: Hello Bidi'
+                    },
+                    realm: '-5543416938055767372.-832953021250353980',
+                    type: 'exception'
+                }
+
+                expect(result).toEqual({
+                    ...expectedExceptionResult,
+                    realm: expect.any(String),
+                    exceptionDetails: {
+                        ...expectedExceptionResult.exceptionDetails,
+                        columnNumber: expect.any(Number),
+                        lineNumber: expect.any(Number),
+                        stackTrace: {
+                            callFrames: expect.any(Array)
+                        }
+                    }
+                })
+            })
+        })
+
+        describe('Geolocation', () => {
+
+            before(async function () {
+                if (browser.isFirefox) {
+                    this.skip()
+                }
+            })
+
+            const getGeolocation = () => browser.execute(() => {
+                // You must wrap callback-based APIs in a Promise even in an async function
+                return new Promise((resolve, reject) => {
+                    if (!navigator.geolocation) {
+                        return reject(new Error('Geolocation not supported'))
+                    }
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => resolve({
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            accuracy: position.coords.accuracy
+                        }),
+                        (error) => reject(error),
+                        { timeout: 10000 }
+                    )
+                })
+            })
+
+            it('can set geolocation override with coordinates', async () => {
+                await browser.url('https://guinea-pig.webdriver.io')
+                const contextId = await browser.getWindowHandle()
+
+                const params: remote.EmulationSetGeolocationOverrideParameters = {
+                    coordinates: {
+                        latitude: 52.52,
+                        longitude: 13.405,
+                        accuracy: 1
+                    } satisfies remote.EmulationGeolocationCoordinates,
+                    // Not so optional in the end...
+                    contexts: [contextId],
+                }
+                await browser.emulationSetGeolocationOverride(params)
+
+                const geolocation = await getGeolocation()
+
+                expect(geolocation).toEqual({
+                    latitude: 52.52,
+                    longitude: 13.405,
+                    accuracy: 1
+                })
+            })
+
+            it('can set geolocation override with error', async () => {
+                await browser.url('https://guinea-pig.webdriver.io')
+                const contextId = await browser.getWindowHandle()
+
+                const params: remote.EmulationSetGeolocationOverrideParameters = {
+                    error: {
+                        type: 'positionUnavailable'
+                    } satisfies remote.EmulationGeolocationPositionError,
+                    // Not so optional in the end...
+                    contexts: [contextId],
+                }
+                await browser.emulationSetGeolocationOverride(params)
+
+                const geolocation = getGeolocation()
+
+                // TODO fix one day we should be able to assert 'positionUnavailable' somehow
+                await expect(geolocation).rejects.toThrow()
+            })
         })
     })
 })

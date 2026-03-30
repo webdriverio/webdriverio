@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import type { Cookie } from '@wdio/protocols'
+import { mapSameSiteOptionsToBiDiSameSite } from './cookies.utils.js'
 
 const log = logger('webdriverio')
 
@@ -91,25 +92,30 @@ export async function setCookies(
     }
 
     try {
-        await Promise.all(cookieObjsList.map((cookie) => (
-            this.storageSetCookie({
-                cookie: {
-                    ...cookie,
-                    domain: cookie.domain || url.hostname,
-                    value: {
-                        type: 'string',
-                        value: cookie.value,
-                    }
-                },
-                partition: {
-                    type: 'storageKey',
-                    sourceOrigin: url.origin
-                }
-            })
-        )))
+        await Promise.all(cookieObjsList.map((cookie) => {
+            const { sameSite, ...cookieWithoutSameSite } = cookie
+            return (
+                this.storageSetCookie({
+                    cookie: {
+                        ...cookieWithoutSameSite,
+                        domain: cookie.domain || url.hostname,
+                        value: {
+                            type: 'string',
+                            value: cookie.value,
+                        },
+                        sameSite: sameSite ? mapSameSiteOptionsToBiDiSameSite(sameSite): undefined
+                    },
+                    partition: {
+                        type: 'storageKey',
+                        sourceOrigin: url.origin
+                    },
+                })
+            )
+        }))
     } catch (err) {
         log.warn(`BiDi setCookies failed, falling back to classic: ${(err as Error).message}`)
         await Promise.all(cookieObjsList.map(cookieObj => this.addCookie(cookieObj)))
     }
     return
 }
+

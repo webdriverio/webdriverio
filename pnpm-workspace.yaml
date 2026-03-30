@@ -1,16 +1,16 @@
 packages:
-  - 'packages/**'
-  - 'infra/**'
-  - 'website/**'
-  - 'e2e/**'
-  - 'tests/**'
-  - 'tests/typings/**'
-  - 'examples/wdio/**'
-  - 'examples/standalone/**'
-  - 'examples/pageobject/**'
-  - 'examples/cloudservices/**'
-  - 'examples/bidi/**'
-  - 'examples/appium/**'
+  - packages/**
+  - infra/**
+  - website/**
+  - e2e/**
+  - tests/**
+  - tests/typings/**
+  - examples/wdio/**
+  - examples/standalone/**
+  - examples/pageobject/**
+  - examples/cloudservices/**
+  - examples/bidi/**
+  - examples/appium/**
 
 onlyBuiltDependencies:
-- sharp
+  - sharp

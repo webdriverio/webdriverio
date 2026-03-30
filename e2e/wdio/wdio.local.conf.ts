@@ -64,7 +64,7 @@ export const config: WebdriverIO.Config = {
 
 if (os.platform() === 'darwin') {
     config.capabilities.push({
-        // not yet supported
+        // Not yet supported, safari use classic WebDriver for now.
         // webSocketUrl: true,
         browserName: 'safari'
     })

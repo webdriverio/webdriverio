@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 import type { Cookie } from '@wdio/protocols'
 import type { remote } from 'webdriver'
+import { mapBiDiSameSiteToSameSiteOption, mapSameSiteOptionsToBiDiSameSite } from './cookies.utils.js'
 
 const log = logger('webdriverio')
 
@@ -37,12 +38,14 @@ const log = logger('webdriverio')
  *
  * @alias browser.getCookies
  * @param {remote.StorageCookieFilter}  filter  an object that allows to filter for cookies with specific attributes
+ * @param {string|null} sourceOrigin  an optional source origin to fetch cookies for, if not provided it will default to the current page's origin, if explicitly set to null it will fetch cookies without a partition (only supported in BiDi)
  * @return {Cookie[]}                           requested cookies
  *
  */
 export async function getCookies(
     this: WebdriverIO.Browser,
-    filter?: string | string[] | remote.StorageCookieFilter
+    filter?: string | string[] | remote.StorageCookieFilter,
+    sourceOrigin?: string | null
 ): Promise<Cookie[]> {
     /**
      * check if filter is a string array and let users know that this feature
@@ -65,12 +68,16 @@ export async function getCookies(
         return getCookiesClassic.call(this, filter)
     }
 
-    const params: remote.StorageGetCookiesParameters = {
-        partition: {
-            type: 'storageKey',
-            sourceOrigin: url.origin
+    // In some cases, the forced origin in BiDi does not allow to find back the cookies, so by using null we can bypass the partition and filter by name only.
+    const params: remote.StorageGetCookiesParameters = sourceOrigin === null
+        ? {}
+        : {
+            partition: {
+                type: 'storageKey',
+                sourceOrigin: sourceOrigin || url.origin
+            }
         }
-    }
+
     if (typeof cookieFilter !== 'undefined') {
         params.filter = cookieFilter
     }
@@ -88,7 +95,8 @@ export async function getCookies(
             ...cookie,
             value: cookie.value.type === 'base64'
                 ? Buffer.from(cookie.value.value, 'base64').toString('utf-8')
-                : cookie.value.value
+                : cookie.value.value,
+            sameSite: cookie.sameSite ? mapBiDiSameSiteToSameSiteOption(cookie.sameSite) : undefined
         }))
     } catch (err) {
         log.warn(`BiDi getCookies failed, falling back to classic: ${(err as Error).message}`)
@@ -125,7 +133,7 @@ async function getCookiesClassic(
         cookie.value && filter.value?.value === cookie.value ||
         cookie.path && filter.path === cookie.path ||
         cookie.domain && filter.domain === cookie.domain ||
-        cookie.sameSite && filter.sameSite === cookie.sameSite ||
+        cookie.sameSite && filter.sameSite === mapSameSiteOptionsToBiDiSameSite(cookie.sameSite) ||
         cookie.expiry && filter.expiry === cookie.expiry ||
         typeof cookie.httpOnly === 'boolean' && filter.httpOnly === cookie.httpOnly ||
         typeof cookie.secure === 'boolean' && filter.secure === cookie.secure
