@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>A11y Strict Complex Test</title>
+</head>
+<body>
+    <h1>Complex Accessibility Test</h1>
+    
+    <section id="form-section" aria-label="Registration">
+        <h2>Registration Form</h2>
+        <form>
+            <label for="username">Username</label>
+            <input id="username" type="text" />
+            
+            <label for="password">Password</label>
+            <input id="password" type="password" />
+            
+            <button id="submit-btn">Register</button>
+        </form>
+    </section>
+
+    <section id="settings-section" aria-label="Settings">
+        <h2>Settings</h2>
+        <button aria-label="Close Settings">X</button>
+        <button>Save</button>
+        
+        <!-- Chaining test: This 'Save' button is unique within this section -->
+        <div class="nested-settings">
+            <button>Advanced Save</button>
+        </div>
+    </section>
+
+    <div id="dynamic-area">
+        <button id="trigger-dynamic">Show Message</button>
+        <!-- Message will appear here -->
+    </div>
+
+    <!-- Hidden element test -->
+    <button hidden>Hidden Action</button>
+    <div style="display:none">
+        <button>Display None Action</button>
+    </div>
+
+    <script>
+        document.getElementById('trigger-dynamic').addEventListener('click', () => {
+            setTimeout(() => {
+                const msg = document.createElement('div');
+                msg.setAttribute('role', 'alert');
+                msg.textContent = 'Action Successful';
+                document.getElementById('dynamic-area').appendChild(msg);
+                
+                const btn = document.createElement('button');
+                btn.textContent = 'Delayed Button';
+                document.getElementById('dynamic-area').appendChild(btn);
+            }, 500);
+        });
+    </script>
+</body>
+</html>

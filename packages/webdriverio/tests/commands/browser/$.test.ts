@@ -58,6 +58,27 @@ describe('element', () => {
         expect(elem.isMobile).toBe(true)
     })
 
+    it('should not treat a11y selectors as deep selectors', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const elem = await browser.$('a11y/Submit')
+        // Since a11y selectors now use script execution (via findAccessibilityElement -> browser.execute),
+        // we expect the second fetch call to be to the execute endpoint, not element endpoint.
+        const requestUrl = vi.mocked(fetch).mock.calls[1][0] as any
+        expect(requestUrl.pathname).toContain('/execute')
+
+        // The body should contain the script
+        const requestBody = JSON.parse(vi.mocked(fetch).mock.calls[1][1]!.body as string)
+        expect(requestBody.script).toBeDefined()
+        expect(requestBody.args).toBeDefined()
+        // args[0] is selector name, args[1] is role, args[2] is options
+        expect(requestBody.args[0]).toBe('Submit')
+    })
+
     afterEach(() => {
         vi.mocked(fetch).mockClear()
     })
