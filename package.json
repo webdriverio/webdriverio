@@ -34,6 +34,7 @@
     "docs:deploy": "tsx ./scripts/updateDocs.ts",
     "eslint:fix": "eslint --fix packages examples scripts tests",
     "test": "run-s test:eslint test:ejslint test:typings test:unit:run test:smoke test:component",
+    "test:local": "run-s test:eslint test:ejslint test:typings test:unit:run",
     "test:depcheck": "tsx ./scripts/depcheck.ts",
     "test:eslint": "eslint --cache packages examples scripts tests",
     "test:ejslint": "ejslint packages/wdio-cli/src/templates/**/* packages/create-wdio/src/templates/**/*",

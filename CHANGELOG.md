@@ -23,6 +23,21 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.27.0 (2026-03-23)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`
+  * [#15155](https://github.com/webdriverio/webdriverio/pull/15155) fix(appium-service): fix startup failure caused by Appium stderr log output ([@wswebcreation](https://github.com/wswebcreation))
+* `wdio-globals`
+  * [#15135](https://github.com/webdriverio/webdriverio/pull/15135) fix: TypeScript 7 compatibility ([@mscrivo](https://github.com/mscrivo))
+* `wdio-protocols`, `webdriverio`
+  * [#15159](https://github.com/webdriverio/webdriverio/pull/15159) fix(webdriverio): revert queryAppState protocol rename and remove mobile command wrapper ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 2
+- Michael Scrivo ([@mscrivo](https://github.com/mscrivo))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v9.26.1 (2026-03-15)
 
 #### :bug: Bug Fix
