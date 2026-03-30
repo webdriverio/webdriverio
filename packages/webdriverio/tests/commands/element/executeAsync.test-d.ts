@@ -5,9 +5,9 @@ test('properly transforms element arguments', async () => {
     const browser = await remote({
         capabilities: {}
     })
-    const elem = await browser.$('body')
+    const elem = await browser.$('body').getElement()
 
-    const result: WebdriverIO.Element = await elem.executeAsync((el, a, b, c, d, done) => {
+    const result: WebdriverIO.Element = await elem.executeAsync((el, a: number, b: string, c: boolean, d: HTMLElement, done) => {
         expectTypeOf(el).toEqualTypeOf<HTMLElement>()
         expectTypeOf(a).toEqualTypeOf<number>()
         expectTypeOf(b).toEqualTypeOf<string>()
