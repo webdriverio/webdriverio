@@ -332,7 +332,7 @@ describe('bidi e2e test', () => {
 
         describe('Browser ClientWindowState', () => {
 
-            it('can get window state', async function () {
+            it('can get window state', async () => {
                 console.log('Getting window state')
                 await browser.url('https://guinea-pig.webdriver.io')
 
@@ -342,7 +342,7 @@ describe('bidi e2e test', () => {
             })
 
             // To enable one day once some browser support it!
-            it.skip('can set window state to minimized', async function () {
+            it.skip('can set window state to minimized', async () => {
                 await browser.url('https://guinea-pig.webdriver.io')
 
                 const clientWindow = await browser.getWindowHandle()
@@ -361,7 +361,7 @@ describe('bidi e2e test', () => {
 
         describe('Browsing Context', () => {
 
-            it('can browsingContext.reload with ignoreCache', async function () {
+            it('can browsingContext.reload with ignoreCache', async () => {
                 await browser.url('https://guinea-pig.webdriver.io')
 
                 const params: remote.BrowsingContextReloadParameters = {
@@ -379,7 +379,7 @@ describe('bidi e2e test', () => {
 
         describe('Scripts', () => {
 
-            it('can return a ScriptEvaluateResultSuccess', async function () {
+            it('can return a ScriptEvaluateResultSuccess', async () => {
                 await browser.url('https://guinea-pig.webdriver.io')
                 const context = await browser.getWindowHandle()
 
@@ -406,7 +406,7 @@ describe('bidi e2e test', () => {
                 })
             })
 
-            it('can return a ScriptEvaluateResultException', async function () {
+            it('can return a ScriptEvaluateResultException', async () => {
                 await browser.url('https://guinea-pig.webdriver.io')
                 const context = await browser.getWindowHandle()
 
@@ -464,8 +464,8 @@ describe('bidi e2e test', () => {
             })
         })
 
-        describe.only('Geolocation', () => {
-            it('can set geolocation override', async function () {
+        describe('Geolocation', () => {
+            it('can set geolocation override with coordinates', async () => {
                 await browser.url('https://guinea-pig.webdriver.io')
                 const contextId = await browser.getWindowHandle()
 
@@ -474,7 +474,7 @@ describe('bidi e2e test', () => {
                         latitude: 52.52,
                         longitude: 13.405,
                         accuracy: 1
-                    },
+                    } satisfies remote.EmulationGeolocationCoordinates,
                     // Not so optional in the end...
                     contexts: [contextId],
                 }
@@ -498,8 +498,37 @@ describe('bidi e2e test', () => {
                     accuracy: 1
                 })
             })
+
+            it('can set geolocation override with error', async () => {
+                await browser.url('https://guinea-pig.webdriver.io')
+                const contextId = await browser.getWindowHandle()
+
+                const params: remote.EmulationSetGeolocationOverrideParameters = {
+                    error: {
+                        type: 'positionUnavailable'
+                    } satisfies remote.EmulationGeolocationPositionError,
+                    // Not so optional in the end...
+                    contexts: [contextId],
+                }
+                await browser.emulationSetGeolocationOverride(params)
+
+                const geolocation = browser.execute(() => {
+                    return new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition((position) => {
+                            resolve({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                                accuracy: position.coords.accuracy
+                            })
+                        }, (error) => {
+                            reject(error)
+                        })
+                    })
+                })
+
+                // TODO fix one day we should be able to assert 'positionUnavailable' somehow
+                await expect(geolocation).rejects.toThrow()
+            })
         })
-
     })
-
 })
