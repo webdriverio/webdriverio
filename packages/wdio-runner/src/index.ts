@@ -75,7 +75,7 @@ export default class Runner extends EventEmitter {
          * add built-in services
          */
         const softAssertionService = new SoftAssertionService({
-            autoAssertOnTestEnd: this._config.autoAssertOnTestEnd || true
+            autoAssertOnTestEnd: this._config.autoAssertOnTestEnd ?? true
         }, this._caps, this._config)
 
         const snapshotService = SnapshotService.initiate({

@@ -29,10 +29,11 @@ export async function mock (path: string, factory?: MockFactoryWithHelper) {
     // eslint-disable-next-line prefer-rest-params
     const actualImport = arguments[2]
 
+    const specPath = window.__wdioSpec__.replace(/\\/g, '/')
     const mockLocalFile = path.startsWith('/') || path.startsWith('./') || path.startsWith('../')
     const mockPath = mockLocalFile
         // use absolute path for local files without extension
-        ? (new URL(resolveUrl(window.__wdioSpec__.split('/').slice(0, -1).join('/') + '/' + path))).pathname.replace(/\.[^/.]+$/, '')
+        ? (new URL(resolveUrl(specPath.split('/').slice(0, -1).join('/') + '/' + path))).pathname.replace(/\.[^/.]+$/, '')
         : path
 
     try {

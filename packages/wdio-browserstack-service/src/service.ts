@@ -366,7 +366,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (test.fullName) {
             // For Jasmine, `suite.title` is `Jasmine__TopLevel__Suite`.
             // This tweak allows us to set the real suite name.
-            const testSuiteName = test.fullName.slice(0, test.fullName.indexOf(test.description || '') - 1)
+            const descIndex = test.fullName.indexOf(test.description || '')
+            const testSuiteName = descIndex > 0
+                ? test.fullName.slice(0, descIndex - 1)
+                : test.fullName
             if (this._suiteTitle === 'Jasmine__TopLevel__Suite') {
                 suiteTitle = testSuiteName
             } else if (this._suiteTitle) {

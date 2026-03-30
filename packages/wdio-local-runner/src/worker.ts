@@ -118,7 +118,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         /**
          * propagate node flags to child process, e.g. `--import tsx`
          */
-        runnerEnv.NODE_OPTIONS = process.env.NODE_OPTIONS + ' ' + (runnerEnv.NODE_OPTIONS || '')
+        runnerEnv.NODE_OPTIONS = (process.env.NODE_OPTIONS || '') + ' ' + (runnerEnv.NODE_OPTIONS || '')
 
         log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
 

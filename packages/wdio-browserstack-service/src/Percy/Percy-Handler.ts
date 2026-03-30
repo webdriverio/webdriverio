@@ -40,8 +40,9 @@ class _PercyHandler {
 
     async teardown () {
         await new Promise<void>((resolve) => {
-            setInterval(() => {
+            const interval = setInterval(() => {
                 if (this._percyScreenshotCounter === 0) {
+                    clearInterval(interval)
                     resolve()
                 }
             }, 1000)

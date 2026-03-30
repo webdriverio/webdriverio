@@ -653,8 +653,8 @@ export default class SpecReporter extends WDIOReporter {
         if (isMultiremote) {
             const browserNames = Object.values(capability).map((c) => c.browserName)
             const browserName = browserNames.length > 1
-                ? `${browserNames.slice(0, -1).join(', ')} and ${browserNames.pop()}`
-                : browserNames.pop()
+                ? `${browserNames.slice(0, -1).join(', ')} and ${browserNames[browserNames.length - 1]}`
+                : browserNames[0]
             return `MultiremoteBrowser on ${browserName}`
         }
         const caps = 'alwaysMatch' in capability ? capability.alwaysMatch : capability
