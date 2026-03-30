@@ -406,7 +406,7 @@ describe('bidi e2e test', () => {
                 })
             })
 
-            it.only('can return a ScriptEvaluateResultException', async function () {
+            it('can return a ScriptEvaluateResultException', async function () {
                 await browser.url('https://guinea-pig.webdriver.io')
                 const context = await browser.getWindowHandle()
 
@@ -460,6 +460,42 @@ describe('bidi e2e test', () => {
                     exceptionDetails: {
                         ...expectedExceptionResult.exceptionDetails,
                     }
+                })
+            })
+        })
+
+        describe.only('Geolocation', () => {
+            it('can set geolocation override', async function () {
+                await browser.url('https://guinea-pig.webdriver.io')
+                const contextId = await browser.getWindowHandle()
+
+                const params: remote.EmulationSetGeolocationOverrideParameters = {
+                    coordinates: {
+                        latitude: 52.52,
+                        longitude: 13.405,
+                        accuracy: 1
+                    },
+                    // Not so optional in the end...
+                    contexts: [contextId],
+                }
+                await browser.emulationSetGeolocationOverride(params)
+
+                const geolocation = await browser.execute(() => {
+                    return new Promise((resolve) => {
+                        navigator.geolocation.getCurrentPosition((position) => {
+                            resolve({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                                accuracy: position.coords.accuracy
+                            })
+                        })
+                    })
+                })
+
+                expect(geolocation).toEqual({
+                    latitude: 52.52,
+                    longitude: 13.405,
+                    accuracy: 1
                 })
             })
         })
