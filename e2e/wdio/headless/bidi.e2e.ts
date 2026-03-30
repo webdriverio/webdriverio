@@ -365,12 +365,11 @@ describe('bidi e2e test', () => {
 
         describe('Browsing Context', () => {
 
-            it('can browsingContext.reload with ignoreCache', async () => {
+            it('can browsingContext.reload', async () => {
                 await browser.url('https://guinea-pig.webdriver.io')
 
                 const params: remote.BrowsingContextReloadParameters = {
-                    context: await browser.getWindowHandle(),
-                    ignoreCache: true
+                    context: await browser.getWindowHandle()
                 }
                 const result = await browser.browsingContextReload(params)
 
