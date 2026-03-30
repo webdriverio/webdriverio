@@ -454,6 +454,13 @@ describe('bidi e2e test', () => {
         })
 
         describe('Geolocation', () => {
+
+            before(async function () {
+                if (browser.isFirefox) {
+                    this.skip()
+                }
+            })
+
             it('can set geolocation override with coordinates', async () => {
                 await browser.url('https://guinea-pig.webdriver.io')
                 const contextId = await browser.getWindowHandle()
