@@ -8,7 +8,7 @@ import APIUtils from './cli/apiUtils.js'
 
 import { _fetch as fetch } from './fetchWrapper.js'
 
-type Dict = Record<string, string>
+type Dict = Record<string, unknown>
 
 export default class CrashReporter {
     /* User test config for build run minus PII */
@@ -111,8 +111,18 @@ export default class CrashReporter {
             for (const prop in obj) {
                 if (keys.includes(prop.toLowerCase())) {
                     obj[prop] = '[REDACTED]'
-                } else if (typeof obj[prop] === 'object') {
-                    this.recursivelyRedactKeysFromObject(obj[prop], keys)
+                } else if (typeof obj[prop] === 'object' && obj[prop] !== null) {
+                    this.recursivelyRedactKeysFromObject(obj[prop] as Dict | Array<Dict>, keys)
+                } else if (typeof obj[prop] === 'string') {
+                    try {
+                        const parsed = JSON.parse(obj[prop] as string)
+                        if (typeof parsed === 'object' && parsed !== null) {
+                            this.recursivelyRedactKeysFromObject(parsed as Dict | Array<Dict>, keys)
+                            obj[prop] = JSON.stringify(parsed)
+                        }
+                    } catch {
+                        // Not valid JSON, leave as-is
+                    }
                 }
             }
         }

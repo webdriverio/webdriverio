@@ -120,7 +120,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         BStackLogger.debug(`_options data: ${JSON.stringify(_options)}`)
         BStackLogger.debug(`webdriver capabilities data: ${JSON.stringify(capabilities)}`)
         const configCopy = JSON.parse(JSON.stringify(_config))
-        CrashReporter.recursivelyRedactKeysFromObject(configCopy, ['user', 'key', 'accesskey', 'password'])
+        CrashReporter.recursivelyRedactKeysFromObject(configCopy, ['user', 'username', 'key', 'accesskey', 'password'])
         BStackLogger.debug(`_config data: ${JSON.stringify(configCopy)}`)
         if (Array.isArray(capabilities)) {
             capabilities
