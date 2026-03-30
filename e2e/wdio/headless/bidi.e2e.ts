@@ -461,6 +461,24 @@ describe('bidi e2e test', () => {
                 }
             })
 
+            const getGeolocation = () => browser.execute(() => {
+                // You must wrap callback-based APIs in a Promise even in an async function
+                return new Promise((resolve, reject) => {
+                    if (!navigator.geolocation) {
+                        return reject(new Error('Geolocation not supported'))
+                    }
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => resolve({
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            accuracy: position.coords.accuracy
+                        }),
+                        (error) => reject(error),
+                        { timeout: 10000 }
+                    )
+                })
+            })
+
             it('can set geolocation override with coordinates', async () => {
                 await browser.url('https://guinea-pig.webdriver.io')
                 const contextId = await browser.getWindowHandle()
@@ -476,17 +494,7 @@ describe('bidi e2e test', () => {
                 }
                 await browser.emulationSetGeolocationOverride(params)
 
-                const geolocation = await browser.execute(() => {
-                    return new Promise((resolve) => {
-                        navigator.geolocation.getCurrentPosition((position) => {
-                            resolve({
-                                latitude: position.coords.latitude,
-                                longitude: position.coords.longitude,
-                                accuracy: position.coords.accuracy
-                            })
-                        })
-                    })
-                })
+                const geolocation = await getGeolocation()
 
                 expect(geolocation).toEqual({
                     latitude: 52.52,
@@ -508,19 +516,7 @@ describe('bidi e2e test', () => {
                 }
                 await browser.emulationSetGeolocationOverride(params)
 
-                const geolocation = browser.execute(() => {
-                    return new Promise((resolve, reject) => {
-                        navigator.geolocation.getCurrentPosition((position) => {
-                            resolve({
-                                latitude: position.coords.latitude,
-                                longitude: position.coords.longitude,
-                                accuracy: position.coords.accuracy
-                            })
-                        }, (error) => {
-                            reject(error)
-                        })
-                    })
-                })
+                const geolocation = getGeolocation()
 
                 // TODO fix one day we should be able to assert 'positionUnavailable' somehow
                 await expect(geolocation).rejects.toThrow()
