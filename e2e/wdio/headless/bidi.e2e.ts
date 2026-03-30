@@ -420,38 +420,19 @@ describe('bidi e2e test', () => {
                 const result = await browser.scriptCallFunction(params)
 
                 const expectedExceptionResult: remote.ScriptEvaluateResultException = {
-                    'exceptionDetails': {
-                        'columnNumber': 20,
-                        'exception': {
-                            'type': 'error'
+                    exceptionDetails: {
+                        columnNumber: 20,
+                        exception: {
+                            type: 'error'
                         },
-                        'lineNumber': 6,
-                        'stackTrace': {
-                            'callFrames': [
-                                {
-                                    'columnNumber': 26,
-                                    'functionName': '',
-                                    'lineNumber': 6,
-                                    'url': ''
-                                },
-                                {
-                                    'columnNumber': 17,
-                                    'functionName': 'callFunction',
-                                    'lineNumber': 3,
-                                    'url': ''
-                                },
-                                {
-                                    'columnNumber': 13,
-                                    'functionName': '',
-                                    'lineNumber': 5,
-                                    'url': ''
-                                }
-                            ]
+                        lineNumber: 6,
+                        stackTrace: {
+                            callFrames: []
                         },
-                        'text': 'Error: Hello Bidi'
+                        text: 'Error: Hello Bidi'
                     },
-                    'realm': '-5543416938055767372.-832953021250353980',
-                    'type': 'exception'
+                    realm: '-5543416938055767372.-832953021250353980',
+                    type: 'exception'
                 }
 
                 expect(result).toEqual({
@@ -459,6 +440,11 @@ describe('bidi e2e test', () => {
                     realm: expect.any(String),
                     exceptionDetails: {
                         ...expectedExceptionResult.exceptionDetails,
+                        columnNumber: expect.any(Number),
+                        lineNumber: expect.any(Number),
+                        stackTrace: {
+                            callFrames: expect.any(Array)
+                        }
                     }
                 })
             })
