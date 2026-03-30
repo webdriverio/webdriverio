@@ -194,6 +194,7 @@ export default class AccessibilityModule extends BaseModule {
             const test = (args.test && typeof args.test === 'object' ? args.test as { title?: string } : {}) || {}
 
             this.currentTestName = test.title || null
+            BStackLogger.debug(`[AccessibilityModule] Current test name set to: ${this.currentTestName}`)
             const autoInstance: AutomationFrameworkInstance = AutomationFramework.getTrackedInstance()
             const testInstance: TestFrameworkInstance = TestFramework.getTrackedInstance()
 
@@ -380,6 +381,7 @@ export default class AccessibilityModule extends BaseModule {
                     }
                     if (this.isAppAccessibility) {
                         const testName=this.currentTestName || undefined
+                        BStackLogger.debug(`Performing accessibility scan for app with testName: ${testName}`)
                         const results: unknown = await (browser as WebdriverIO.Browser).execute(
                             formatString(this.scriptInstance.performScan, JSON.stringify(_getParamsForAppAccessibility(commandName, testName))) as string,
                             {}
