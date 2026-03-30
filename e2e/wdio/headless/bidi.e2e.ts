@@ -461,23 +461,28 @@ describe('bidi e2e test', () => {
                 }
             })
 
-            const getGeolocation = () => browser.execute(() => {
+            const getGeolocation = async () => {
+
+                await browser.setPermissions({ name: 'geolocation' }, 'granted')
+
+                return browser.execute(() => {
                 // You must wrap callback-based APIs in a Promise even in an async function
-                return new Promise((resolve, reject) => {
-                    if (!navigator.geolocation) {
-                        return reject(new Error('Geolocation not supported'))
-                    }
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => resolve({
-                            latitude: position.coords.latitude,
-                            longitude: position.coords.longitude,
-                            accuracy: position.coords.accuracy
-                        }),
-                        (error) => reject(error),
-                        { timeout: 10000 }
-                    )
+                    return new Promise((resolve, reject) => {
+                        if (!navigator.geolocation) {
+                            return reject(new Error('Geolocation not supported'))
+                        }
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => resolve({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                                accuracy: position.coords.accuracy
+                            }),
+                            (error) => reject(error),
+                            { timeout: 10000 }
+                        )
+                    })
                 })
-            })
+            }
 
             it('can set geolocation override with coordinates', async () => {
                 await browser.url('https://guinea-pig.webdriver.io')
