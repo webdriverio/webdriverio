@@ -9,6 +9,7 @@ import { browser, $, expect } from '@wdio/globals'
 import { imageSize } from 'image-size'
 import type { InputOptions } from 'webdriverio'
 import type { remote } from 'webdriver'
+import type { SameSiteOptions } from '../../../packages/wdio-protocols/build/types.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -830,8 +831,9 @@ describe('main suite 1', () => {
         it('should have sameSite in PascalCase for classic cases fallback', async function () {
             await browser.url('https://guinea-pig.webdriver.io')
             await browser.setCookies([
-                { name: 'test1-0', value: '123', sameSite: 'Strict' },
-                { name: 'test1-1', value: '456', sameSite: 'None' },
+                // TODO one day, fix the Api not supporting classic PascalCase enaum
+                { name: 'test1-0', value: '123', sameSite: 'Strict' as SameSiteOptions },
+                { name: 'test1-1', value: '456', sameSite: 'None' as SameSiteOptions },
                 { name: 'test1-2', value: '789' }
             ])
 
@@ -873,7 +875,7 @@ describe('main suite 1', () => {
                     domain: 'guinea-pig.webdriver.io',
                     value: '101112',
                     secure: true, // Required since in the BiDi case we force partition and it requires secure cookies
-                    sameSite: 'Default' // Default only supported in BiDi.
+                    sameSite: 'default' // default only supported in BiDi.
                 },
             ])
 
@@ -898,12 +900,11 @@ describe('main suite 1', () => {
                     'httpOnly': false,
                     'name': 'test2-0',
                     'path': '/',
-                    'sameSite': 'Lax',
+                    'sameSite': 'lax',
                     'secure': true,
                     'size': 13,
                     'value': '101112',
                 }
-
             ])
         })
     })

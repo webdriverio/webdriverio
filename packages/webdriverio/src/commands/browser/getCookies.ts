@@ -1,7 +1,6 @@
 import logger from '@wdio/logger'
 import type { Cookie } from '@wdio/protocols'
 import type { remote } from 'webdriver'
-import { mapBiDiSameSiteToSameSiteOption, mapSameSiteOptionsToBiDiSameSite } from './cookies.utils.js'
 
 const log = logger('webdriverio')
 
@@ -96,7 +95,6 @@ export async function getCookies(
             value: cookie.value.type === 'base64'
                 ? Buffer.from(cookie.value.value, 'base64').toString('utf-8')
                 : cookie.value.value,
-            sameSite: cookie.sameSite ? mapBiDiSameSiteToSameSiteOption(cookie.sameSite) : undefined
         }))
     } catch (err) {
         log.warn(`BiDi getCookies failed, falling back to classic: ${(err as Error).message}`)
@@ -133,7 +131,7 @@ async function getCookiesClassic(
         cookie.value && filter.value?.value === cookie.value ||
         cookie.path && filter.path === cookie.path ||
         cookie.domain && filter.domain === cookie.domain ||
-        cookie.sameSite && filter.sameSite === mapSameSiteOptionsToBiDiSameSite(cookie.sameSite) ||
+        cookie.sameSite && filter.sameSite === cookie.sameSite ||
         cookie.expiry && filter.expiry === cookie.expiry ||
         typeof cookie.httpOnly === 'boolean' && filter.httpOnly === cookie.httpOnly ||
         typeof cookie.secure === 'boolean' && filter.secure === cookie.secure
