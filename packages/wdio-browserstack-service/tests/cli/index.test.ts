@@ -438,6 +438,22 @@ describe('BrowserstackCLI', () => {
 
             expect(browserstackCLI.getConfig()).toEqual(mockConfig)
         })
+
+        it('logs test management build-start errors for the main process', () => {
+            const errorSpy = vi.spyOn(bstackLogger.BStackLogger, 'error').mockImplementation(() => {})
+            mockStartBinResponse.testhub = {
+                errors: Buffer.from(JSON.stringify({
+                    PLAN_ID_INVALID: {
+                        message: 'The provided Test Plan ID or format is invalid. Build created without association.',
+                        type: 'error'
+                    }
+                }))
+            }
+
+            browserstackCLI.loadModules(mockStartBinResponse)
+
+            expect(errorSpy).toHaveBeenCalledWith('[Test Management] PLAN_ID_INVALID: The provided Test Plan ID or format is invalid. Build created without association.')
+        })
     })
 
     describe('isRunning', () => {
