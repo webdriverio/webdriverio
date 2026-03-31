@@ -11,6 +11,7 @@ import { CLIUtils } from '../../src/cli/cliUtils.js'
 import PerformanceTester from '../../src/instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../../src/instrumentation/performance/constants.js'
 import type { Options } from '@wdio/types'
+import type { BrowserstackConfig, BrowserstackOptions } from '../../src/types.js'
 import APIUtils from '../../src/cli/apiUtils.js'
 
 const cliLoggerSpy = vi.spyOn(cliLogger.BStackLogger, 'logToFile')
@@ -72,12 +73,13 @@ describe('CLIUtils', () => {
                 }
             } as Record <string, unknown>
         } as Options.Testrunner
+        const createBrowserstackOptions = (overrides: Record<string, unknown> = {}) => overrides as unknown as BrowserstackConfig & BrowserstackOptions
 
         it('returns stringified config with basic options', () => {
             const capabilities = [
                 { browserName: 'chrome' }
             ]
-            const options = {}
+            const options = createBrowserstackOptions()
 
             const result = CLIUtils.getBinConfig(mockConfig, capabilities, options)
             const parsed = JSON.parse(result)
@@ -106,7 +108,7 @@ describe('CLIUtils', () => {
                 { browserName: 'chrome' },
                 { browserName: 'firefox' }
             ]
-            const options = {}
+            const options = createBrowserstackOptions()
 
             const result = CLIUtils.getBinConfig(mockConfig, capabilities, options)
             const parsed = JSON.parse(result)
@@ -126,7 +128,7 @@ describe('CLIUtils', () => {
                     osVersion: '10'
                 }
             }]
-            const options = {}
+            const options = createBrowserstackOptions()
 
             const result = CLIUtils.getBinConfig(mockConfig, capabilities, options)
             const parsed = JSON.parse(result)
@@ -142,11 +144,11 @@ describe('CLIUtils', () => {
             const capabilities = [
                 { browserName: 'chrome' }
             ]
-            const options = {
+            const options = createBrowserstackOptions({
                 opts: {
                     localIdentifier: 'test123'
                 }
-            }
+            })
 
             const result = CLIUtils.getBinConfig(mockConfig, capabilities, options)
             const parsed = JSON.parse(result)
@@ -164,9 +166,9 @@ describe('CLIUtils', () => {
                     buildName: 'cap-build'
                 }
             }]
-            const options = {
+            const options = createBrowserstackOptions({
                 buildName: 'opt-build'
-            }
+            })
 
             const result = CLIUtils.getBinConfig(mockConfig, capabilities, options)
             const parsed = JSON.parse(result)
@@ -179,17 +181,47 @@ describe('CLIUtils', () => {
             const capabilities = [
                 { browserName: 'chrome' }
             ]
-            const options = {
+            const options = createBrowserstackOptions({
                 testManagementOptions: {
                     testPlanId: 'tm-plan-123'
                 }
-            }
+            })
 
             const result = CLIUtils.getBinConfig(mockConfig, capabilities, options)
             const parsed = JSON.parse(result)
 
             expect(parsed.testManagementOptions).toEqual({
                 testPlanId: 'tm-plan-123'
+            })
+        })
+
+        it('omits empty testManagementOptions and strips unrelated keys', () => {
+            const capabilities = [
+                { browserName: 'chrome' }
+            ]
+            const emptyPlanOptions = createBrowserstackOptions({
+                testManagementOptions: {
+                    testPlanId: '   ',
+                    ignoredKey: 'ignored'
+                }
+            })
+            const validPlanOptions = createBrowserstackOptions({
+                testManagementOptions: {
+                    testPlanId: ' tm-plan-456 ',
+                    ignoredKey: 'ignored'
+                }
+            })
+
+            const emptyPlanResult = CLIUtils.getBinConfig(mockConfig, capabilities, emptyPlanOptions)
+
+            const emptyPlanParsed = JSON.parse(emptyPlanResult)
+            expect(emptyPlanParsed.testManagementOptions).toBeUndefined()
+
+            const validPlanResult = CLIUtils.getBinConfig(mockConfig, capabilities, validPlanOptions)
+
+            const validPlanParsed = JSON.parse(validPlanResult)
+            expect(validPlanParsed.testManagementOptions).toEqual({
+                testPlanId: 'tm-plan-456'
             })
         })
     })

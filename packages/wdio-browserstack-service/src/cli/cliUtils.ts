@@ -63,6 +63,7 @@ export class CLIUtils {
             modifiedOpts.browserStackLocalOptions = modifiedOpts.opts
             delete modifiedOpts.opts
         }
+        delete modifiedOpts.testManagementOptions
 
         modifiedOpts.testContextOptions = {
             skipSessionName: isFalse(modifiedOpts.setSessionName),
@@ -89,6 +90,9 @@ export class CLIUtils {
         const isNonBstackA11y = isTurboScale(options) || !shouldAddServiceVersion(config as Options.Testrunner, options.testObservability)
         const observabilityOptions: TestObservabilityOptions = options.testObservabilityOptions || {}
         const testManagementOptions: TestManagementOptions = options.testManagementOptions || {}
+        const testPlanId = typeof testManagementOptions.testPlanId === 'string'
+            ? testManagementOptions.testPlanId.trim()
+            : ''
         const binconfig: Record<string, unknown> = {
             userName: observabilityOptions.user || config.user,
             accessKey: observabilityOptions.key || config.key,
@@ -101,9 +105,9 @@ export class CLIUtils {
         binconfig.buildName = observabilityOptions.buildName || binconfig.buildName
         binconfig.projectName = observabilityOptions.projectName || binconfig.projectName
         binconfig.buildTag = this.getObservabilityBuildTags(observabilityOptions, buildTag) || []
-        if (testManagementOptions.testPlanId) {
+        if (testPlanId.length > 0) {
             binconfig.testManagementOptions = {
-                testPlanId: testManagementOptions.testPlanId
+                testPlanId
             }
         }
 

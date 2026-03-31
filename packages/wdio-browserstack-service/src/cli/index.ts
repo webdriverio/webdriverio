@@ -206,12 +206,12 @@ export class BrowserstackCLI {
                 return JSON.parse(rawErrors) as Record<string, { message?: string, type?: string }>
             }
 
-            if (rawErrors instanceof Uint8Array) {
-                return JSON.parse(Buffer.from(rawErrors).toString('utf8')) as Record<string, { message?: string, type?: string }>
-            }
-
             if (Buffer.isBuffer(rawErrors)) {
                 return JSON.parse(rawErrors.toString('utf8')) as Record<string, { message?: string, type?: string }>
+            }
+
+            if (rawErrors instanceof Uint8Array) {
+                return JSON.parse(Buffer.from(rawErrors).toString('utf8')) as Record<string, { message?: string, type?: string }>
             }
 
             if (typeof rawErrors === 'object') {
