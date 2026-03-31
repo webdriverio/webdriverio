@@ -185,7 +185,7 @@ export class BrowserstackCLI {
                 continue
             }
 
-            const formattedMessage = `[Test Management] ${errorKey}: ${errorMessage}`
+            const formattedMessage = `[Build] ${errorKey}: ${errorMessage}`
             if (errorDetails.type === 'info') {
                 BStackLogger.info(formattedMessage)
             } else if (errorDetails.type === 'warn') {
