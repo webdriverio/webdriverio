@@ -12,6 +12,7 @@ export const log4jsAppender = { configure }
 export const BStackTestOpsLogger = logReportingAPI
 
 import * as Percy from './Percy/PercySDK.js'
+export { BrowserStackSDK } from './browserStackSdk.js'
 export const PercySDK = Percy
 
 export * from './types.js'

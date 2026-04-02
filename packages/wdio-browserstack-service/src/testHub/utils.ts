@@ -2,7 +2,7 @@
 import { BROWSERSTACK_PERCY, BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_ACCESSIBILITY } from '../constants.js'
 import type BrowserStackConfig from '../config.js'
 import { BStackLogger } from '../bstackLogger.js'
-import { isTrue } from '../util.js'
+import { getCentralUser, isTrue } from '../util.js'
 
 export const getProductMap = (config: BrowserStackConfig): any => {
     return {
@@ -10,7 +10,8 @@ export const getProductMap = (config: BrowserStackConfig): any => {
         'accessibility': config.accessibility as boolean,
         'percy': config.percy,
         'automate': config.automate,
-        'app_automate': config.appAutomate
+        'app_automate': config.appAutomate,
+        ...getCentralUser()
     }
 }
 
@@ -70,6 +71,7 @@ export const getProductMapForBuildStartCall = (config: BrowserStackConfig, acces
         accessibility: accessibilityAutomation,
         percy: config.percy,
         automate: config.automate,
-        app_automate: config.appAutomate
+        app_automate: config.appAutomate,
+        ...getCentralUser()
     }
 }

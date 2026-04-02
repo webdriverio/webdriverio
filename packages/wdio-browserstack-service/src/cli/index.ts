@@ -21,7 +21,7 @@ import WebdriverIOModule from './modules/webdriverIOModule.js'
 import AccessibilityModule from './modules/accessibilityModule.js'
 import { isTurboScale, processAccessibilityResponse, shouldAddServiceVersion } from '../util.js'
 import ObservabilityModule from './modules/observabilityModule.js'
-import type { BrowserstackConfig, BrowserstackOptions } from '../types.js'
+import type { BrowserstackConfig, BrowserstackOptions, LaunchResponse } from '../types.js'
 import PercyModule from './modules/percyModule.js'
 import APIUtils from './apiUtils.js'
 
@@ -115,7 +115,6 @@ export class BrowserstackCLI {
         BStackLogger.debug(`start: startBinSession response=${JSON.stringify(response)}`)
         this.loadModules(response)
         this.isMainConnected = true
-
     }
 
     /**
@@ -128,7 +127,10 @@ export class BrowserstackCLI {
         this.logger.info(`loadModules: binSessionId=${this.binSessionId}`)
 
         this.setConfig(startBinResponse)
-        APIUtils.updateURLSForGRR(this.config.apis as GRRUrls)
+        const configApis = (this.config as { apis?: Partial<GRRUrls> }).apis
+        if (!APIUtils.updateURLSForGRR(configApis)) {
+            this.logger.warn('loadModules: missing GRR API URLs in startBinSession config, using existing API defaults')
+        }
 
         this.setupTestFramework()
         this.setupAutomationFramework()
@@ -160,7 +162,7 @@ export class BrowserstackCLI {
                 process.env[BROWSERSTACK_ACCESSIBILITY] = 'true'
                 const options = this.options as BrowserstackConfig & BrowserstackOptions
                 const isNonBstackA11y = isTurboScale(options) || !shouldAddServiceVersion(this.browserstackConfig as Options.Testrunner, options.testObservability)
-                processAccessibilityResponse(startBinResponse, this.options as BrowserstackConfig & BrowserstackOptions)
+                processAccessibilityResponse(startBinResponse as unknown as LaunchResponse, this.options as BrowserstackConfig & BrowserstackOptions)
                 this.modules[AccessibilityModule.MODULE_NAME] = new AccessibilityModule(startBinResponse.accessibility, isNonBstackA11y)
             }
         }
@@ -302,7 +304,16 @@ export class BrowserstackCLI {
             PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP, false, util.format(error))
             const errorMessage = error instanceof Error ? error.stack || error.message : String(error)
             this.logger.error(`stop: error in stop session exception=${errorMessage}`)
+        } finally {
+            this.clearCliSessionEnv()
+            this.isMainConnected = false
+            this.isChildConnected = false
         }
+    }
+
+    clearCliSessionEnv() {
+        delete process.env.BROWSERSTACK_CLI_BIN_SESSION_ID
+        delete process.env.BROWSERSTACK_CLI_BIN_LISTEN_ADDR
     }
 
     /**
@@ -416,6 +427,7 @@ export class BrowserstackCLI {
     * @returns {void}
     */
     setConfig(response: StartBinSessionResponse) {
+        this.config = {}
         try {
             this.config = JSON.parse(response.config)
             this.logger.debug(`loadModules: config=${JSON.stringify(this.config)}`)

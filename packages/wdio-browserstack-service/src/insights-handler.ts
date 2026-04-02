@@ -35,6 +35,7 @@ import type {
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
 import Listener from './testOps/listener.js'
+import TestMetadata from './metadata.js'
 import { TESTOPS_SCREENSHOT_ENV } from './constants.js'
 import { BrowserstackCLI } from './cli/index.js'
 import { TestFrameworkState } from './cli/states/testFrameworkState.js'
@@ -388,6 +389,7 @@ class _InsightsHandler {
         InsightsHandler.currentTest = {
             test, uuid
         }
+        TestMetadata.setCurrentTestRunUuid(uuid)
         if (this._framework !== 'mocha') {
             return
         }
@@ -403,6 +405,8 @@ class _InsightsHandler {
         InsightsHandler.currentTest = {
             test, uuid
         }
+        TestMetadata.setCurrentTestRunUuid(uuid)
+
         if (this._framework !== 'mocha') {
             return
         }
@@ -444,6 +448,7 @@ class _InsightsHandler {
         InsightsHandler.currentTest = {
             uuid
         }
+        TestMetadata.setCurrentTestRunUuid(uuid)
         this._cucumberData.scenario = world.pickle
         this._cucumberData.scenariosStarted = true
         this._cucumberData.stepsStarted = false
@@ -737,6 +742,13 @@ class _InsightsHandler {
             if (this._browser && this._platformMeta) {
                 const provider = getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
+            }
+        }
+
+        if (['TestRunStarted', 'TestRunFinished', 'TestRunSkipped'].includes(eventType)) {
+            const appLcncMetaData = TestMetadata.get(testData.uuid)
+            if (Object.keys(appLcncMetaData).length > 0) {
+                testData.app_lcnc = appLcncMetaData
             }
         }
 
