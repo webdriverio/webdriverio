@@ -134,7 +134,17 @@ export async function mock(
     if (!SESSION_MOCKS[context]) {
         SESSION_MOCKS[context] = new Set()
     }
-    const networkInterception = await WebDriverInterception.initiate(url, filterOptions || {}, this)
+    const normalizedFilterOptions = filterOptions || {}
+    for (const existingMock of Array.from(SESSION_MOCKS[context])) {
+        if (!existingMock.isSameDefinition(url, normalizedFilterOptions)) {
+            continue
+        }
+
+        await existingMock.restore()
+        SESSION_MOCKS[context].delete(existingMock)
+    }
+
+    const networkInterception = await WebDriverInterception.initiate(url, normalizedFilterOptions, this)
     SESSION_MOCKS[context].add(networkInterception)
     return networkInterception as WebdriverIO.Mock
 }
