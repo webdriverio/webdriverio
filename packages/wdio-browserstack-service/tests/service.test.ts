@@ -46,6 +46,18 @@ vi.mock('../src/performance-testing/index.js', () => ({
     }
 }))
 
+vi.mock('../src/instrumentation/performance/performance-tester.js', () => ({
+    default: {
+        start: vi.fn(),
+        end: vi.fn(),
+        startMonitoring: vi.fn(),
+        measureWrapper: vi.fn().mockImplementation((_name: string, fn: Function) => fn),
+        Measure: vi.fn().mockImplementation(() => (_target: any, _propertyKey: string, descriptor: PropertyDescriptor) => descriptor),
+        browser: undefined,
+        scenarioThatRan: [],
+    }
+}))
+
 // Mock data-store to prevent file I/O operations
 vi.mock('../src/data-store.js', () => ({
     saveWorkerData: vi.fn()
@@ -211,6 +223,74 @@ describe('beforeSession', () => {
         it('should set key default to make missing key parameter apparent', () => {
             service.beforeSession({ key: 'bar' } as any)
             expect(service['_config']).toEqual({ user: 'NotSetUser', key: 'bar' })
+        })
+
+        it('should remove testManagementOptions from CLI-managed capabilities before session creation', () => {
+            const caps = {
+                alwaysMatch: {
+                    browserName: 'chrome',
+                    'bstack:options': {
+                        os: 'Windows',
+                        testManagementOptions: {
+                            testPlanId: 'tm-plan-123'
+                        }
+                    }
+                },
+                'browserstack.testManagementOptions': {
+                    testPlanId: 'tm-plan-123'
+                }
+            } as unknown as WebdriverIO.Capabilities
+
+            ;(service as any)._removeCliOnlyCapabilityOptions(caps)
+
+            expect(caps.alwaysMatch?.['bstack:options']).toEqual({
+                os: 'Windows'
+            })
+            expect((caps as Record<string, unknown>)['browserstack.testManagementOptions']).toBeUndefined()
+        })
+
+        it('should remove testManagementOptions from live session capabilities before tracked caps are merged', () => {
+            const trackedCaps = {
+                alwaysMatch: {
+                    browserName: 'chrome',
+                    'bstack:options': {
+                        os: 'Windows',
+                        testManagementOptions: {
+                            testPlanId: 'tm-plan-123'
+                        }
+                    }
+                },
+                'browserstack.testManagementOptions': {
+                    testPlanId: 'tm-plan-123'
+                }
+            } as unknown as WebdriverIO.Capabilities
+            const liveCaps = {
+                alwaysMatch: {
+                    browserName: 'chrome',
+                    'bstack:options': {
+                        os: 'Windows',
+                        testManagementOptions: {
+                            testPlanId: 'tm-plan-123'
+                        }
+                    }
+                },
+                'browserstack.testManagementOptions': {
+                    testPlanId: 'tm-plan-123'
+                }
+            } as unknown as WebdriverIO.Capabilities
+
+            ;(service as any)._removeCliOnlyCapabilityOptions(liveCaps)
+            ;(service as any)._removeCliOnlyCapabilityOptions(trackedCaps)
+            Object.assign(liveCaps, trackedCaps)
+
+            expect(liveCaps.alwaysMatch?.['bstack:options']).toEqual({
+                os: 'Windows'
+            })
+            expect((liveCaps as Record<string, unknown>)['browserstack.testManagementOptions']).toBeUndefined()
+            expect(trackedCaps.alwaysMatch?.['bstack:options']).toEqual({
+                os: 'Windows'
+            })
+            expect((trackedCaps as Record<string, unknown>)['browserstack.testManagementOptions']).toBeUndefined()
         })
     })
 
