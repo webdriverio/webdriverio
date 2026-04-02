@@ -448,7 +448,6 @@ class _InsightsHandler {
         InsightsHandler.currentTest = {
             uuid
         }
-        TestMetadata.setCurrentTestRunUuid(uuid)
         this._cucumberData.scenario = world.pickle
         this._cucumberData.scenariosStarted = true
         this._cucumberData.stepsStarted = false
@@ -742,13 +741,6 @@ class _InsightsHandler {
             if (this._browser && this._platformMeta) {
                 const provider = getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
-            }
-        }
-
-        if (['TestRunStarted', 'TestRunFinished', 'TestRunSkipped'].includes(eventType)) {
-            const appLcncMetaData = TestMetadata.get(testData.uuid)
-            if (Object.keys(appLcncMetaData).length > 0) {
-                testData.app_lcnc = appLcncMetaData
             }
         }
 

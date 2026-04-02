@@ -256,6 +256,16 @@ class _TestReporter extends WDIOReporter {
             testData.retries = { limit: (testStats as TestStats).retries || 0, attempts: (testStats as TestStats).retries || 0 }
         }
 
+        if (['TestRunStarted', 'TestRunFinished', 'TestRunSkipped'].includes(eventType)) {
+            const appLcncMetaData = process.env.BSTACK_SDK_META
+            if (appLcncMetaData) {
+                const parsedAppLcncMetaData = JSON.parse(appLcncMetaData) as Record<string, any>
+                if (parsedAppLcncMetaData && Object.keys(parsedAppLcncMetaData).length > 0) {
+                    testData.app_lcnc = parsedAppLcncMetaData
+                }
+            }
+        }
+
         if (eventType.startsWith('TestRun') || eventType === 'HookRunStarted') {
             /* istanbul ignore next */
             const cloudProvider = getCloudProvider({ options: { hostname: this._config?.hostname } } as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser)
