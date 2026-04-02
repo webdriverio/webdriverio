@@ -4,7 +4,7 @@ import prettyMs from 'pretty-ms'
 import type { Capabilities } from '@wdio/types'
 import { Chalk, type ChalkInstance } from 'chalk'
 import WDIOReporter, { TestStats, getBrowserName } from '@wdio/reporter'
-import type { SuiteStats, HookStats, RunnerStats, Argument } from '@wdio/reporter'
+import type { SuiteStats, HookStats, RunnerStats, Argument, ClientLogArgs } from '@wdio/reporter'
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
 import { ChalkColors, type SpecReporterOptions, type TestLink, type StateCount, type Symbols, State } from './types.js'
 
@@ -23,6 +23,7 @@ export default class SpecReporter extends WDIOReporter {
     private _suiteIndent = ''
     private _preface = ''
     private _consoleLogs: string[] = []
+    private _addBrowserConsoleLogs = false
     private _pendingReasons: string[] = []
     private _originalStdoutWrite = process.stdout.write.bind(process.stdout)
 
@@ -77,6 +78,7 @@ export default class SpecReporter extends WDIOReporter {
                 return this._originalStdoutWrite(chunk, encoding, callback)
             }
         }
+        this._addBrowserConsoleLogs = options.addBrowserConsoleLogs || false
         this._chalk = new Chalk(options.color === false ? { level:0 } : {})
     }
 
@@ -157,6 +159,14 @@ export default class SpecReporter extends WDIOReporter {
         this._pendingReasons.push(testStat.pendingReason as string)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.pending++
+    }
+
+    onClientLogEntry (logEntry: ClientLogArgs) {
+        if (this._addBrowserConsoleLogs) {
+            const level = logEntry.level.toLowerCase()
+            const color = level === 'error' ? 'red' : level === 'warn' ? 'yellow' : 'gray'
+            this._consoleOutput += `[browser] ${this._chalk[color](level)}: ${logEntry.text}\n`
+        }
     }
 
     onRunnerEnd (runner: RunnerStats) {

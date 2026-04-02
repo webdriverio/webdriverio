@@ -46,6 +46,12 @@ export interface SpecReporterOptions {
      */
     addConsoleLogs?: boolean
     /**
+     * Ability to show console logs from browser in report
+     *
+     * @default: false
+     */
+    addBrowserConsoleLogs?: boolean
+    /**
      * Ability to show test status realtime
      *
      * @default: `false`

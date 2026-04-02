@@ -459,12 +459,14 @@ describe('wdio-runner', () => {
             runner['_browser'] = {} as unknown as BrowserObject
             runner['_reporter'] = {
                 waitForSync: vi.fn().mockReturnValue(Promise.resolve()),
-                emit: vi.fn()
+                emit: vi.fn(),
+                closeStream: vi.fn()
             } as any
             runner.emit = vi.fn()
 
             expect(await runner['_shutdown'](123, 123)).toBe(123)
             expect(runner['_reporter']!.waitForSync).toBeCalledTimes(1)
+            expect(runner['_reporter']!.closeStream).toBeCalledTimes(1)
             expect(runner.emit).toBeCalledWith('exit', 1)
         })
 
@@ -476,12 +478,14 @@ describe('wdio-runner', () => {
             runner['_browser'] = {} as unknown as BrowserObject
             runner['_reporter'] = {
                 waitForSync: vi.fn().mockReturnValue(Promise.reject('foo')),
-                emit: vi.fn()
+                emit: vi.fn(),
+                closeStream: vi.fn()
             } as any
             runner.emit = vi.fn()
 
             expect(await runner['_shutdown'](123, 123)).toBe(123)
             expect(runner['_reporter']!.waitForSync).toBeCalledTimes(1)
+            expect(runner['_reporter']!.closeStream).toBeCalledTimes(1)
             expect(runner.emit).toBeCalledWith('exit', 1)
             expect(log.error).toHaveBeenCalledWith('foo')
         })
@@ -493,7 +497,8 @@ describe('wdio-runner', () => {
             runner['_caps'] = { 'browserName': 'safari' }
             runner['_reporter'] = {
                 waitForSync: vi.fn().mockReturnValue(Promise.resolve()),
-                emit: vi.fn()
+                emit: vi.fn(),
+                closeStream: vi.fn()
             } as any
             const reporter = runner['_reporter'] as any
             runner.emit = vi.fn()
@@ -512,6 +517,7 @@ describe('wdio-runner', () => {
             ]
             expect(await runner['_shutdown'](123, 123, true)).toBe(123)
             expect(reporter.emit.mock.calls).toEqual(args)
+            expect(runner['_reporter']!.closeStream).toBeCalledTimes(1)
             expect(runner.emit).toBeCalledWith('exit', 1)
         })
     })

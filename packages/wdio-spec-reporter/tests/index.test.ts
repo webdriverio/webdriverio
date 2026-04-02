@@ -704,6 +704,82 @@ describe('SpecReporter', () => {
         })
     })
 
+    describe('add browser console logs', () => {
+        const options = { addBrowserConsoleLogs: true }
+
+        it('should add browser console log to report for passing test', () => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter.onClientLogEntry({
+                level: 'error',
+                text: 'some error from browser'
+            })
+            tmpReporter.onTestPass({
+                title:'test1',
+                state:State.PASSED
+            } as any)
+            expect(tmpReporter.getResultDisplay().toString()).toContain('[browser] red error: some error from browser')
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
+        })
+
+        it('should add browser console log to report for failing test', () => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter.onClientLogEntry({
+                level: 'error',
+                text: 'some error from browser'
+            })
+            tmpReporter.onTestFail({
+                title:'test1',
+                state:State.FAILED
+            } as any)
+            expect(tmpReporter.getResultDisplay().toString()).toContain('[browser] red error: some error from browser')
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
+        })
+
+        it('should add browser console log to report for skipped test', () => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter.onClientLogEntry({
+                level: 'error',
+                text: 'some error from browser'
+            })
+            tmpReporter.onTestSkip({
+                title:'test1',
+                state:State.SKIPPED
+            } as any)
+            expect(tmpReporter.getResultDisplay().toString()).toContain('[browser] red error: some error from browser')
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
+        })
+
+        it('should NOT add browser console log to report if disabled', () => {
+            tmpReporter = new SpecReporter({ addBrowserConsoleLogs: false })
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter.onClientLogEntry({
+                level: 'error',
+                text: 'some error from browser'
+            })
+            tmpReporter.onTestPass({
+                title:'test1',
+                state:State.PASSED
+            } as any)
+            expect(tmpReporter.getResultDisplay().toString()).not.toContain('[browser] red error: some error from browser')
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
+        })
+    })
+
     describe('onlyFailures', () => {
         let printReporter: any = null
         const runner = getRunnerConfig({ hostname: 'localhost' })
