@@ -41,6 +41,13 @@ import { TestFrameworkConstants } from './cli/frameworks/constants/testFramework
 
 import util from 'node:util'
 
+type CliManagedCapabilityRecord = Record<string, unknown> & {
+    'bstack:options'?: {
+        testManagementOptions?: unknown
+    }
+    'browserstack.testManagementOptions'?: unknown
+}
+
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
     private _failReasons: string[] = []
@@ -126,8 +133,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         ].filter(Boolean) as WebdriverIO.Capabilities[]
 
         for (const capabilityTarget of capabilityTargets) {
-            const capabilityTargetRecord = capabilityTarget as Record<string, any>
-            const bstackOptions = capabilityTargetRecord['bstack:options'] as Record<string, any> | undefined
+            const capabilityTargetRecord = capabilityTarget as CliManagedCapabilityRecord
+            const bstackOptions = capabilityTargetRecord['bstack:options']
             if (bstackOptions && typeof bstackOptions === 'object') {
                 delete bstackOptions.testManagementOptions
             }
