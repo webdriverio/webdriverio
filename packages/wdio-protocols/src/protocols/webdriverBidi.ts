@@ -794,26 +794,6 @@ const protocol = {
             }
         }
     },
-    "network.addDataCollector": {
-        "socket": {
-            "command": "networkAddDataCollector",
-            "description": "WebDriver Bidi command to send command method \"network.addDataCollector\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-addDataCollector",
-            "parameters": [
-                {
-                    "name": "params",
-                    "type": "`remote.NetworkAddDataCollectorParameters`",
-                    "description": "<pre>\\{<br />  dataTypes: NetworkDataType[];<br />  maxEncodedDataSize: number;<br />  collectorType?: NetworkCollectorType;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
-                }
-            ],
-            "returns": {
-                "type": "Object",
-                "name": "local.NetworkAddDataCollectorResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     collector: string;\n   }\n   ```"
-            }
-        }
-    },
     "network.addIntercept": {
         "socket": {
             "command": "networkAddIntercept",
@@ -944,26 +924,6 @@ const protocol = {
                     "name": "params",
                     "type": "`remote.NetworkGetDataParameters`",
                     "description": "<pre>\\{<br />  dataType: NetworkDataType;<br />  collector?: NetworkCollector;<br />  disown?: boolean;<br />  request: NetworkRequest;<br />\\}</pre>",
-                    "required": true
-                }
-            ],
-            "returns": {
-                "type": "Object",
-                "name": "local.NetworkGetDataResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     bytes: NetworkBytesValue;\n   }\n   ```"
-            }
-        }
-    },
-    "network.getData": {
-        "socket": {
-            "command": "networkGetData",
-            "description": "WebDriver Bidi command to send command method \"network.getData\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-getData",
-            "parameters": [
-                {
-                    "name": "params",
-                    "type": "`remote.NetworkGetDataParameters`",
-                    "description": "<pre>\\{<br />  request: NetworkRequest;<br />  dataType: NetworkDataType;<br />  collector?: NetworkCollector;<br />  disown?: boolean;<br />\\}</pre>",
                     "required": true
                 }
             ],
