@@ -1,7 +1,6 @@
 import url from 'node:url'
 import path from 'node:path'
 import util from 'node:util'
-import fs from 'node:fs/promises'
 
 import camelcase from 'camelcase'
 import typescriptParser from 'recast/parsers/typescript.js'
@@ -11,7 +10,7 @@ import { parse as parseCDDL, type PropertyReference, type Property } from 'cddl'
 
 import downloadSpec from './downloadSpec.js'
 import type { CddlType } from './utils.js'
-import { findGroupByName, patchCDDLFileContent, writeFile } from './utils.js'
+import { findGroupByName, writeFile } from './utils.js'
 import { BASE_PROTOCOL_SPEC, CDDL_PARSE_ERROR_MESSAGE } from './constants.js'
 
 const b = types.builders
@@ -34,16 +33,13 @@ if (!hasNewSpec) {
 const cddlTypes: CddlType[] = ['local', 'remote']
 const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
     const cddlPath = path.join(__dirname, 'cddl', `${type}.cddl`)
-    const pathedCDDLPath = await patchCDDLFileContent(__dirname, path, cddlPath, type)
 
     let ast
     try {
-        ast = parseCDDL(pathedCDDLPath)
+        ast = parseCDDL(cddlPath)
     } catch (err) {
         console.error(util.format(CDDL_PARSE_ERROR_MESSAGE, `Failed to parse ${type}.cddl: ${(err as Error).stack}`))
         process.exit(0)
-    } finally {
-        await fs.unlink(pathedCDDLPath)
     }
 
     const cddl = transform(ast, { useUnknown: true })
