@@ -126,6 +126,14 @@ export const cmdArgs = {
             }
             return { current, total }
         }
+    },
+    cpuProf: {
+        desc: 'Enable Node.js CPU profiling for worker processes (--cpu-prof)',
+        type: 'boolean',
+    },
+    heapProf: {
+        desc: 'Enable Node.js heap profiling for worker processes (--heap-prof)',
+        type: 'boolean',
     }
 } as const
 
