@@ -111,7 +111,7 @@ describe('network mocking', () => {
 
         await browser.url('https://guinea-pig.webdriver.io/')
 
-        expect(mock.calls[0].body).toContain('<html>')
+        expect(mock.calls[0].body).toContain('<title>WebdriverJS Testpage</title>')
     })
 
     it('should mock with complex mixed wildcards', async () => {
