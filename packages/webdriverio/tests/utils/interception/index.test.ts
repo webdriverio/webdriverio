@@ -6,7 +6,60 @@ import logger from '@wdio/logger'
 
 type WebDriverInterceptionClass = typeof WebDriverInterception
 
+const { loggerMock } = vi.hoisted(() => ({
+    loggerMock: {
+        warn: vi.fn(),
+        info: vi.fn(),
+        debug: vi.fn(),
+        trace: vi.fn()
+    }
+}))
+
+vi.mock('@wdio/logger', () => {
+    return {
+        default: () => loggerMock
+    }
+})
+
 describe('WebDriverInterception', () => {
+    const waitForAsyncHandlers = () => new Promise((resolve) => setTimeout(resolve, 10))
+
+    const getResponseCollectionBrowserMock = (
+        options: WebdriverIO.Browser['options'] = {},
+        overrides: Partial<WebdriverIO.Browser> = {}
+    ) => {
+        const defaults = {
+            options,
+            sessionSubscribe: vi.fn().mockReturnValue(Promise.resolve()),
+            networkAddIntercept: vi.fn().mockReturnValue(Promise.resolve({ intercept: 'mock-id' })),
+            networkAddDataCollector: vi.fn().mockReturnValue(Promise.resolve({ collector: '123' })),
+            networkProvideResponse: vi.fn().mockReturnValue(Promise.resolve()),
+            networkGetData: vi.fn().mockReturnValue(Promise.resolve({ bytes: { type: 'string', value: 'response-body' } })),
+            networkContinueRequest: vi.fn().mockReturnValue(Promise.resolve()),
+            networkFailRequest: vi.fn().mockReturnValue(Promise.resolve())
+        } satisfies Partial<WebdriverIO.Browser>
+        const browser = Object.assign(new EventEmitter(), defaults, overrides) as unknown as WebdriverIO.Browser
+        return browser
+    }
+
+    const getResponseCollectionRequestStub = () => ({
+        request: {
+            request: 'req-123',
+            url: 'http://test.com/foo',
+            method: 'GET',
+            headers: []
+        } satisfies Partial<local.NetworkRequestData> as unknown as local.NetworkRequestData,
+        response: {
+            headers: [],
+            status: 200
+        } satisfies Partial<local.NetworkResponseData> as unknown as local.NetworkResponseData,
+        isBlocked: true
+    } satisfies Partial<local.NetworkResponseStartedParameters> as local.NetworkResponseStartedParameters)
+
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
+
     it('initiate', async () => {
         const browser = {
             options: {},
@@ -49,15 +102,23 @@ describe('WebDriverInterception', () => {
         `)
     })
 
+    it('initiate even when networkAddDataCollector is not supported', async () => {
+        vi.resetModules()
+        const FreshWebDriverInterception = (await import('../../../src/utils/interception/index.js')).default
+
+        const browser = getResponseCollectionBrowserMock({}, {
+            networkAddDataCollector: vi.fn().mockImplementation(() => {
+                throw new Error('not supported')
+            })
+        })
+        const mock = await FreshWebDriverInterception.initiate('http://foobar.com:1234/foo/bar.html?foo=bar', {}, browser)
+
+        expect(browser.networkAddIntercept).toHaveBeenCalledTimes(1)
+        expect(loggerMock.warn).toHaveBeenCalledWith('[BiDi] network.addDataCollector not supported: not supported')
+    })
+
     it('handleBeforeRequestSent', async () => {
-        const browser = Object.assign(new EventEmitter(), {
-            options: {},
-            sessionSubscribe: vi.fn().mockReturnValue(Promise.resolve()),
-            networkAddIntercept: vi.fn().mockReturnValue(Promise.resolve({ intercept: '123' })),
-            networkAddDataCollector: vi.fn().mockReturnValue(Promise.resolve({ collector: '123' })),
-            networkContinueRequest: vi.fn().mockReturnValue(Promise.resolve()),
-            networkFailRequest: vi.fn().mockReturnValue(Promise.resolve())
-        } satisfies Partial<WebdriverIO.Browser>) as unknown as WebdriverIO.Browser
+        const browser = getResponseCollectionBrowserMock()
         const mock = await WebDriverInterception.initiate('http://foobar.com:1234/foo/bar.html?foo=bar', {
             method: 'GET',
             requestHeaders: { foo: 'bar' },
@@ -214,13 +275,7 @@ describe('WebDriverInterception', () => {
     })
 
     it('handleResponseStarted', async () => {
-        const browser = Object.assign(new EventEmitter(), {
-            options: {},
-            sessionSubscribe: vi.fn().mockReturnValue(Promise.resolve()),
-            networkProvideResponse: vi.fn().mockReturnValue(Promise.resolve()),
-            networkAddIntercept: vi.fn().mockReturnValue(Promise.resolve({ intercept: '123' })),
-            networkAddDataCollector: vi.fn().mockReturnValue(Promise.resolve({ collector: '123' }))
-        } satisfies Partial<WebdriverIO.Browser>) as unknown as WebdriverIO.Browser
+        const browser = getResponseCollectionBrowserMock()
         const mock = await WebDriverInterception.initiate('http://foobar.com:1234/foo/bar.html?foo=bar', {
             method: 'get',
             requestHeaders: { foo: 'bar' },
@@ -306,13 +361,7 @@ describe('WebDriverInterception', () => {
     })
 
     it('handles non-binary response correctly', async () => {
-        const browser = Object.assign(new EventEmitter(), {
-            options: {},
-            sessionSubscribe: vi.fn().mockReturnValue(Promise.resolve()),
-            networkProvideResponse: vi.fn().mockReturnValue(Promise.resolve()),
-            networkAddIntercept: vi.fn().mockReturnValue(Promise.resolve({ intercept: 'mock-id' })),
-            networkAddDataCollector: vi.fn().mockReturnValue(Promise.resolve({ collector: '123' }))
-        } satisfies Partial<WebdriverIO.Browser>) as unknown as WebdriverIO.Browser
+        const browser = getResponseCollectionBrowserMock()
 
         const mock = await WebDriverInterception.initiate('http://localhost/test/*', {}, browser)
 
@@ -384,13 +433,7 @@ describe('WebDriverInterception', () => {
     })
 
     it('handles binary response body and clear', async () => {
-        const browser = Object.assign(new EventEmitter(), {
-            options: {},
-            sessionSubscribe: vi.fn().mockReturnValue(Promise.resolve()),
-            networkProvideResponse: vi.fn().mockReturnValue(Promise.resolve()),
-            networkAddIntercept: vi.fn().mockReturnValue(Promise.resolve({ intercept: 'mock-id' })),
-            networkAddDataCollector: vi.fn().mockReturnValue(Promise.resolve({ collector: '123' }))
-        } satisfies Partial<WebdriverIO.Browser>) as unknown as WebdriverIO.Browser
+        const browser = getResponseCollectionBrowserMock()
 
         const mock = await WebDriverInterception.initiate('http://localhost/test/*', {}, browser)
 
@@ -465,13 +508,7 @@ describe('WebDriverInterception', () => {
     })
 
     it('handles invalid and unusual base64 data in getBinaryResponse', async () => {
-        const browser = Object.assign(new EventEmitter(), {
-            options: {},
-            sessionSubscribe: vi.fn().mockReturnValue(Promise.resolve()),
-            networkProvideResponse: vi.fn().mockReturnValue(Promise.resolve()),
-            networkAddIntercept: vi.fn().mockReturnValue(Promise.resolve({ intercept: 'mock-id' })),
-            networkAddDataCollector: vi.fn().mockReturnValue(Promise.resolve({ collector: '123' }))
-        } satisfies Partial<WebdriverIO.Browser>) as unknown as WebdriverIO.Browser
+        const browser = getResponseCollectionBrowserMock()
 
         const mock = await WebDriverInterception.initiate('http://localhost/test/*', {}, browser)
         const logWarnSpy = vi.spyOn(logger('WebDriverInterception'), 'warn')
@@ -503,32 +540,10 @@ describe('WebDriverInterception', () => {
     })
 
     it('should fetch response body on responseCompleted', async () => {
-        const browser = Object.assign(new EventEmitter(), {
-            options: {},
-            sessionSubscribe: vi.fn().mockReturnValue(Promise.resolve()),
-            networkAddIntercept: vi.fn().mockReturnValue(Promise.resolve({ intercept: 'mock-id' })),
-            networkProvideResponse: vi.fn().mockReturnValue(Promise.resolve()),
-            networkAddDataCollector: vi.fn().mockReturnValue(Promise.resolve({ collector: '123' })),
-            networkGetData: vi.fn().mockImplementation(() => {
-                return Promise.resolve({ bytes: { type: 'string', value: 'response-body' } })
-            })
-        } satisfies Partial<WebdriverIO.Browser>) as unknown as WebdriverIO.Browser
+        const browser = getResponseCollectionBrowserMock()
 
         const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
-
-        const request = {
-            request: {
-                request: 'req-123',
-                url: 'http://test.com/foo',
-                method: 'GET',
-                headers: []
-            } satisfies Partial<local.NetworkRequestData> as unknown as local.NetworkRequestData,
-            response: {
-                headers: [],
-                status: 200
-            } satisfies Partial<local.NetworkResponseData> as unknown as local.NetworkResponseData,
-            isBlocked: true
-        } satisfies Partial<local.NetworkResponseStartedParameters> as local.NetworkResponseStartedParameters
+        const request = getResponseCollectionRequestStub()
 
         // Response started populates calls
         browser.emit('network.responseStarted', request)
@@ -540,8 +555,7 @@ describe('WebDriverInterception', () => {
         const completedRequest = { ...request, isBlocked: false } satisfies Partial<local.NetworkResponseCompletedParameters> as unknown as local.NetworkResponseCompletedParameters
         browser.emit('network.responseCompleted', completedRequest)
 
-        // Use setImmediate to wait for promise resolution in handler
-        await new Promise(resolve => setTimeout(resolve, 10))
+        await waitForAsyncHandlers()
 
         expect(browser.networkGetData).toHaveBeenCalledWith({
             request: 'req-123',
@@ -553,46 +567,19 @@ describe('WebDriverInterception', () => {
     describe('WebDriverInterception options', () => {
         let WebDriverInterception: WebDriverInterceptionClass
 
-        const getBrowserMock = (options: WebdriverIO.Browser['options'] = {}) => {
-            const browser = Object.assign(new EventEmitter(), {
-                options,
-                sessionSubscribe: vi.fn().mockReturnValue(Promise.resolve()),
-                networkAddIntercept: vi.fn().mockReturnValue(Promise.resolve({ intercept: 'mock-id' })),
-                networkAddDataCollector: vi.fn().mockReturnValue(Promise.resolve({ collector: '123' })),
-                networkProvideResponse: vi.fn().mockReturnValue(Promise.resolve()),
-                networkGetData: vi.fn().mockReturnValue(Promise.resolve({ bytes: { type: 'string', value: 'response-body' } }))
-            } satisfies Partial<WebdriverIO.Browser>) as unknown as WebdriverIO.Browser
-            vi.spyOn(browser, 'on')
-            return browser
-        }
-
-        const getRequestStub = () => ({
-            request: {
-                request: 'req-123',
-                url: 'http://test.com/foo',
-                method: 'GET',
-                headers: []
-            } satisfies Partial<local.NetworkRequestData> as unknown as local.NetworkRequestData,
-            response: {
-                headers: [],
-                status: 200
-            } satisfies Partial<local.NetworkResponseData> as unknown as local.NetworkResponseData,
-            isBlocked: true
-        } satisfies Partial<local.NetworkResponseStartedParameters> as local.NetworkResponseStartedParameters)
-
         beforeEach(async () => {
             vi.resetModules()
             WebDriverInterception = (await import('../../../src/utils/interception/index.js')).default
         })
 
         it('initiate should NOT add data collector if maxSpyCollectedBodySize is 0', async () => {
-            const browser = getBrowserMock({ maxSpyCollectedBodySize: 0 })
+            const browser = getResponseCollectionBrowserMock({ maxSpyCollectedBodySize: 0 })
             await WebDriverInterception.initiate('http://foobar.com', {}, browser)
             expect(browser.networkAddDataCollector).not.toHaveBeenCalled()
         })
 
         it('initiate should add data collector with default size if maxSpyCollectedBodySize is not provided', async () => {
-            const browser = getBrowserMock()
+            const browser = getResponseCollectionBrowserMock()
             await WebDriverInterception.initiate('http://foobar.com', {}, browser)
             expect(browser.networkAddDataCollector).toHaveBeenCalledWith({
                 dataTypes: ['response'],
@@ -601,7 +588,7 @@ describe('WebDriverInterception', () => {
         })
 
         it('initiate should add data collector with custom size', async () => {
-            const browser = getBrowserMock({ maxSpyCollectedBodySize: 1024 })
+            const browser = getResponseCollectionBrowserMock({ maxSpyCollectedBodySize: 1024 })
             await WebDriverInterception.initiate('http://foobar.com', {}, browser)
             expect(browser.networkAddDataCollector).toHaveBeenCalledWith({
                 dataTypes: ['response'],
@@ -610,9 +597,9 @@ describe('WebDriverInterception', () => {
         })
 
         it('should NOT fetch response body on responseCompleted if maxSpyCollectedBodySize is 0', async () => {
-            const browser = getBrowserMock({ maxSpyCollectedBodySize: 0 })
+            const browser = getResponseCollectionBrowserMock({ maxSpyCollectedBodySize: 0 })
             const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
-            const request = getRequestStub()
+            const request = getResponseCollectionRequestStub()
 
             // Response started populates calls
             browser.emit('network.responseStarted', request)
@@ -622,16 +609,15 @@ describe('WebDriverInterception', () => {
             const completedRequest = { ...request, isBlocked: false } satisfies Partial<local.NetworkResponseCompletedParameters> as unknown as local.NetworkResponseCompletedParameters
             browser.emit('network.responseCompleted', completedRequest)
 
-            // Use setImmediate to wait for promise resolution in handler
-            await new Promise(resolve => setTimeout(resolve, 10))
+            await waitForAsyncHandlers()
 
             expect(browser.networkGetData).not.toHaveBeenCalled()
         })
 
         it('should fetch response body on responseCompleted if maxSpyCollectedBodySize is > 0', async () => {
-            const browser = getBrowserMock({ maxSpyCollectedBodySize: 1024 })
+            const browser = getResponseCollectionBrowserMock({ maxSpyCollectedBodySize: 1024 })
             const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
-            const request = getRequestStub()
+            const request = getResponseCollectionRequestStub()
 
             // Response started populates calls
             browser.emit('network.responseStarted', request)
@@ -641,8 +627,7 @@ describe('WebDriverInterception', () => {
             const completedRequest = { ...request, isBlocked: false } as Partial<local.NetworkResponseCompletedParameters> as local.NetworkResponseCompletedParameters
             browser.emit('network.responseCompleted', completedRequest)
 
-            // Use setImmediate to wait for promise resolution in handler
-            await new Promise(resolve => setTimeout(resolve, 10))
+            await waitForAsyncHandlers()
 
             expect(browser.networkGetData).toHaveBeenCalledWith({
                 request: 'req-123',

@@ -85,7 +85,7 @@ export default class WebDriverInterception {
                 }
             } catch (error) {
                 // Log a warning instead of failing the test
-                console.warn(`[BiDi] network.addDataCollector not supported: ${(error as Error)?.message}`)
+                log.warn(`[BiDi] network.addDataCollector not supported: ${(error as Error)?.message}`)
             }
             log.info('subscribed to network events')
             hasSubscribedToEvents = true
