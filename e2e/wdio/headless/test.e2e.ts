@@ -15,13 +15,6 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 describe('main suite 1', () => {
 
-    browser.addCommand('myElementGlobalCustomCommand', async function () {
-        return 'myElementGlobalCommandResult'
-    }, {
-        attachToElement: true,
-        disableElementImplicitWait: true
-    })
-
     it('supports snapshot testing', async () => {
         await browser.url('https://guinea-pig.webdriver.io/')
         await expect($('.findme')).toMatchSnapshot()
@@ -39,24 +32,56 @@ describe('main suite 1', () => {
         expect(inputValue).toBe('mySecretPassword')
     })
 
-    it('should support custom element command on non-existing elements', async () => {
-        browser.addCommand('myElementCustomCommand', async function () {
-            return 'myElementCommandResult'
+    describe('Custom commands', () => {
+        browser.addCommand('myElementGlobalCustomCommand', async function () {
+            return 'myElementGlobalCommandResult'
         }, {
             attachToElement: true,
             disableElementImplicitWait: true
         })
 
-        await browser.url('https://guinea-pig.webdriver.io/')
+        browser.addCommand('myElementLegacyCustomCommand', async function () {
+            return 'myElementLegacyCommandResult'
+        }, true)
 
-        // @ts-expect-error
-        const result = await $('nonExistingElement').myElementCustomCommand()
-        expect(result).toBe('myElementCommandResult')
+        browser.addCommand('myBrowserCustomCommand', async function () {
+            return 'myBrowserCommandResult'
+        })
 
-        // @ts-expect-error
-        const globalCmdResult = await $('nonExistingElement').myElementGlobalCustomCommand()
-        expect(globalCmdResult).toBe('myElementGlobalCommandResult')
+        before(async () => {
+            await browser.url('https://guinea-pig.webdriver.io/')
+        })
 
+        it('should support custom element command on non-existing elements', async () => {
+            browser.addCommand('myElementCustomCommandAfterSession', async function () {
+                return 'myElementCustomCommandAfterSession'
+            }, {
+                attachToElement: true,
+                disableElementImplicitWait: true
+            })
+
+            // @ts-expect-error
+            const result = await $('nonExistingElement').myElementCustomCommandAfterSession()
+            expect(result).toBe('myElementCustomCommandAfterSession')
+
+            // @ts-expect-error
+            const globalCmdResult = await $('nonExistingElement').myElementGlobalCustomCommand()
+            expect(globalCmdResult).toBe('myElementGlobalCommandResult')
+        })
+
+        it('should support legacy custom element command on existing elements', async () => {
+            // @ts-expect-error
+            const legacyCmdResult = await $('input').myElementLegacyCustomCommand()
+
+            expect(legacyCmdResult).toBe('myElementLegacyCommandResult')
+        })
+
+        it('should support browser custom command', async () => {
+            // @ts-expect-error
+            const browserCmdResult = await browser.myBrowserCustomCommand()
+
+            expect(browserCmdResult).toBe('myBrowserCommandResult')
+        })
     })
 
     it.skip('should allow to check for PWA', async () => {
