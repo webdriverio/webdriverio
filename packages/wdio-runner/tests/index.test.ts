@@ -4,11 +4,13 @@ import logger from '@wdio/logger'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
+import type { Instances } from 'webdriverio'
 import { attach } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import { setOptions, SnapshotService } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
+import type { CustomStubCommand, LegacyCustomStubCommand } from '../src/types.js'
 
 vi.mock('fs/promises', async (orig) => ({
     ...(await orig()) as any,
@@ -432,10 +434,9 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             const myCustomFunction = () => {}
             const options = { attachToElement: true, disableElementImplicitWait: true }
+            const customCommands: CustomStubCommand[] = [['myCustomCommandName', myCustomFunction, options]]
 
-            runner['_browser'] = {
-                customCommands: [['myCustomCommandName', myCustomFunction, options]],
-            } as any
+            runner['_browser'] = { customCommands } as any
             const browser = await runner['_startSession']({} as any, {} as any)
 
             expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction, options)
@@ -445,11 +446,10 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             const myCustomFunction = () => {}
             const proto = { foo: 'bar' }
-            const instances = { baz: 'qux' }
+            const instances: Record<string, Instances> = { baz: 'qux' as unknown as Instances }
+            const customCommands: LegacyCustomStubCommand[] = [['myCustomCommandName', myCustomFunction, true, proto, instances]]
 
-            runner['_browser'] = {
-                customCommands: [['myCustomCommandName', myCustomFunction, true, proto, instances]],
-            } as any
+            runner['_browser'] = { customCommands } as any
             const browser = await runner['_startSession']({} as any, {} as any)
 
             expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction, true, proto, instances)
