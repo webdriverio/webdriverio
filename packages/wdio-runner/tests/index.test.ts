@@ -428,17 +428,31 @@ describe('wdio-runner', () => {
             expect(setOptions).toBeCalledTimes(1)
         })
 
-        it('transfers custom commands from old instance to new one', async () => {
+        it('transfers custom commands with options object from old instance to new one', async () => {
             const runner = new WDIORunner()
             const myCustomFunction = () => {}
-            const attachToElement = true
+            const options = { attachToElement: true, disableElementImplicitWait: true }
 
             runner['_browser'] = {
-                customCommands: [['myCustomCommandName', myCustomFunction, attachToElement]],
+                customCommands: [['myCustomCommandName', myCustomFunction, options]],
             } as any
             const browser = await runner['_startSession']({} as any, {} as any)
 
-            expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction, { attachToElement })
+            expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction, options)
+        })
+
+        it('transfers custom commands with deprecated positional args from old instance to new one', async () => {
+            const runner = new WDIORunner()
+            const myCustomFunction = () => {}
+            const proto = { foo: 'bar' }
+            const instances = { baz: 'qux' }
+
+            runner['_browser'] = {
+                customCommands: [['myCustomCommandName', myCustomFunction, true, proto, instances]],
+            } as any
+            const browser = await runner['_startSession']({} as any, {} as any)
+
+            expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction, true, proto, instances)
         })
 
         it('transfers overwritten commands from old instance to new one', async () => {

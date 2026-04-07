@@ -14,6 +14,14 @@ import type { SameSiteOptions } from '../../../packages/wdio-protocols/build/typ
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 describe('main suite 1', () => {
+
+    browser.addCommand('myElementGlobalCustomCommand', async function () {
+        return 'myElementGlobalCommandResult'
+    }, {
+        attachToElement: true,
+        disableElementImplicitWait: true
+    })
+
     it('supports snapshot testing', async () => {
         await browser.url('https://guinea-pig.webdriver.io/')
         await expect($('.findme')).toMatchSnapshot()
@@ -32,7 +40,6 @@ describe('main suite 1', () => {
     })
 
     it('should support custom element command on non-existing elements', async () => {
-        await browser.url('https://guinea-pig.webdriver.io/')
         browser.addCommand('myElementCustomCommand', async function () {
             return 'myElementCommandResult'
         }, {
@@ -40,10 +47,16 @@ describe('main suite 1', () => {
             disableElementImplicitWait: true
         })
 
+        await browser.url('https://guinea-pig.webdriver.io/')
+
         // @ts-expect-error
         const result = await $('nonExistingElement').myElementCustomCommand()
-
         expect(result).toBe('myElementCommandResult')
+
+        // @ts-expect-error
+        const globalCmdResult = await $('nonExistingElement').myElementGlobalCustomCommand()
+        expect(globalCmdResult).toBe('myElementGlobalCommandResult')
+
     })
 
     it.skip('should allow to check for PWA', async () => {
