@@ -10,7 +10,7 @@ import { _setGlobal } from '@wdio/globals'
 import { setOptions, SnapshotService } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
-import type { CustomStubCommand, LegacyCustomStubCommand } from '../src/types.js'
+import type { CustomStubCommand, CustomStubCommandWithOptions, LegacyCustomStubCommand } from '../src/types.js'
 
 vi.mock('fs/promises', async (orig) => ({
     ...(await orig()) as any,
@@ -430,11 +430,11 @@ describe('wdio-runner', () => {
             expect(setOptions).toBeCalledTimes(1)
         })
 
-        it('transfers custom commands with options object from old instance to new one', async () => {
+        it('transfers custom element commands with options object from old instance to new one', async () => {
             const runner = new WDIORunner()
             const myCustomFunction = () => {}
             const options = { attachToElement: true, disableElementImplicitWait: true }
-            const customCommands: CustomStubCommand[] = [['myCustomCommandName', myCustomFunction, options]]
+            const customCommands: CustomStubCommandWithOptions[] = [['myCustomCommandName', myCustomFunction, options]]
 
             runner['_browser'] = { customCommands } as any
             const browser = await runner['_startSession']({} as any, {} as any)
@@ -442,7 +442,7 @@ describe('wdio-runner', () => {
             expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction, options)
         })
 
-        it('transfers custom commands with deprecated positional args from old instance to new one', async () => {
+        it('transfers custom element commands with deprecated positional args from old instance to new one', async () => {
             const runner = new WDIORunner()
             const myCustomFunction = () => {}
             const proto = { foo: 'bar' }
@@ -453,6 +453,17 @@ describe('wdio-runner', () => {
             const browser = await runner['_startSession']({} as any, {} as any)
 
             expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction, true, proto, instances)
+        })
+
+        it('transfers browser custom commands from old instance to new one', async () => {
+            const runner = new WDIORunner()
+            const myCustomFunction = () => {}
+            const customCommands: CustomStubCommand[] = [['myCustomCommandName', myCustomFunction]]
+
+            runner['_browser'] = { customCommands } as any
+            const browser = await runner['_startSession']({} as any, {} as any)
+
+            expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction)
         })
 
         it('transfers overwritten commands from old instance to new one', async () => {
