@@ -316,7 +316,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             if (CLIUtils.checkCLISupportedFrameworks(config.framework) && !isMultiremote) {
                 PerformanceTester.start(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.START)
                 CLIUtils.setFrameworkDetail(WDIO_NAMING_PREFIX + config.framework, 'WebdriverIO')
-                const binconfig = CLIUtils.getBinConfig(config, capabilities, this._options, this._buildTag)
+                const binconfig = CLIUtils.getBinConfig(config, capabilities as Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedStandaloneCapabilities[], this._options, this._buildTag)
                 await BrowserstackCLI.getInstance().bootstrap(this._options, config, binconfig)
                 BStackLogger.debug(`Is CLI running ${BrowserstackCLI.getInstance().isRunning()}`)
                 PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.START)
