@@ -127,19 +127,23 @@ export default class BrowserstackService implements Services.ServiceInstance {
             return
         }
 
-        const capabilityTargets = [
-            capabilities,
-            (capabilities as WebdriverIO.Capabilities & { alwaysMatch?: WebdriverIO.Capabilities }).alwaysMatch,
-        ].filter(Boolean) as WebdriverIO.Capabilities[]
+        try {
+            const capabilityTargets = [
+                capabilities,
+                (capabilities as WebdriverIO.Capabilities & { alwaysMatch?: WebdriverIO.Capabilities }).alwaysMatch,
+            ].filter(Boolean) as WebdriverIO.Capabilities[]
 
-        for (const capabilityTarget of capabilityTargets) {
-            const capabilityTargetRecord = capabilityTarget as CliManagedCapabilityRecord
-            const bstackOptions = capabilityTargetRecord['bstack:options']
-            if (bstackOptions && typeof bstackOptions === 'object') {
-                delete bstackOptions.testManagementOptions
+            for (const capabilityTarget of capabilityTargets) {
+                const capabilityTargetRecord = capabilityTarget as CliManagedCapabilityRecord
+                const bstackOptions = capabilityTargetRecord['bstack:options']
+                if (bstackOptions && typeof bstackOptions === 'object') {
+                    delete bstackOptions.testManagementOptions
+                }
+
+                delete capabilityTargetRecord['browserstack.testManagementOptions']
             }
-
-            delete capabilityTargetRecord['browserstack.testManagementOptions']
+        } catch (err) {
+            BStackLogger.debug(`Error while removing CLI-only capability options: ${err}`)
         }
     }
 
@@ -182,12 +186,16 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_FIND_NEAREST_HUB, false, 'Hub URL not found')
                 }
             }
-            if (BrowserstackCLI.getInstance().isRunning()) {
-                await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps: capabilities })
-                const instance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
-                const caps = AutomationFramework.getState(instance, AutomationFrameworkConstants.KEY_CAPABILITIES)
-                this._removeCliOnlyCapabilityOptions(caps as Capabilities.RequestedStandaloneCapabilities)
-                Object.assign(capabilities, caps)
+            try {
+                if (BrowserstackCLI.getInstance().isRunning()) {
+                    await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps: capabilities })
+                    const instance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
+                    const caps = AutomationFramework.getState(instance, AutomationFrameworkConstants.KEY_CAPABILITIES)
+                    this._removeCliOnlyCapabilityOptions(caps as Capabilities.RequestedStandaloneCapabilities)
+                    Object.assign(capabilities, caps)
+                }
+            } catch (err) {
+                BStackLogger.error(`Error while tracking automation framework event: ${err}`)
             }
         } catch (err) {
             BStackLogger.error(`Error while connecting to Browserstack CLI: ${err}`)

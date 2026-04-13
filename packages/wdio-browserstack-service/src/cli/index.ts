@@ -178,23 +178,27 @@ export class BrowserstackCLI {
             return
         }
 
-        const rawErrors = (testhub as { errors?: unknown } | null)?.errors
-        const parsedErrors = this.parseBuildStartErrors(rawErrors)
+        try {
+            const rawErrors = (testhub as { errors?: unknown } | null)?.errors
+            const parsedErrors = this.parseBuildStartErrors(rawErrors)
 
-        for (const [errorKey, errorDetails] of Object.entries(parsedErrors)) {
-            const errorMessage = errorDetails?.message
-            if (!errorMessage) {
-                continue
-            }
+            for (const [errorKey, errorDetails] of Object.entries(parsedErrors)) {
+                const errorMessage = errorDetails?.message
+                if (!errorMessage) {
+                    continue
+                }
 
-            const formattedMessage = `[Build] ${errorKey}: ${errorMessage}`
-            if (errorDetails.type === 'info') {
-                BStackLogger.info(formattedMessage)
-            } else if (errorDetails.type === 'warn') {
-                BStackLogger.warn(formattedMessage)
-            } else {
-                BStackLogger.error(formattedMessage)
+                const formattedMessage = `[Build] ${errorKey}: ${errorMessage}`
+                if (errorDetails.type === 'info') {
+                    BStackLogger.info(formattedMessage)
+                } else if (errorDetails.type === 'warn') {
+                    BStackLogger.warn(formattedMessage)
+                } else {
+                    BStackLogger.error(formattedMessage)
+                }
             }
+        } catch (err) {
+            BStackLogger.debug(`Error while logging build start errors: ${err}`)
         }
     }
 
