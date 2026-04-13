@@ -187,7 +187,16 @@ export class ShadowRootManager extends SessionManager {
             return
         }
 
-        if (eventType === 'removeShadowRoot' && args[2].type === 'node' && args[2].sharedId) {
+        if (eventType === 'removeShadowRoot' && args[2].type === 'node') {
+            if (!args[2].sharedId) {
+                /**
+                 * If the element was already garbage collected or detached (common in SPA
+                 * client-side navigation where the entire DOM is reconstructed), the BiDi
+                 * event may not include a sharedId. Log a warning and return gracefully
+                 * instead of throwing.
+                 */
+                return log.warn('Received removeShadowRoot event without sharedId, element may have been garbage collected')
+            }
             const tree = this.#shadowRoots.get(logEntry.source.context)
             if (!tree) {
                 return

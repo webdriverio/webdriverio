@@ -117,6 +117,80 @@ describe('ShadowRootManager', () => {
             source: { context: 'foobar' }
         } as any)).toThrow()
     })
+
+    it('should handle removeShadowRoot without sharedId gracefully', () => {
+        const browser = { ...defaultBrowser } as any
+        const manager = getShadowRootManager(browser)
+        // First register a shadow root
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'elem1', value: {
+                    shadowRoot: {
+                        sharedId: 'shadow1',
+                        value: { nodeType: 11, mode: 'open' }
+                    },
+                    localName: 'my-component'
+                } },
+                { type: 'node', sharedId: 'root1' },
+                { type: 'boolean', value: true },
+                { type: 'node', sharedId: 'docElem' }
+            ],
+            source: { context: 'spaContext' }
+        } as any)
+        expect(manager.getShadowElementsByContextId('spaContext')).toContain('shadow1')
+
+        // removeShadowRoot without sharedId (element GC'd in SPA navigation)
+        // should NOT throw
+        expect(() => manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'removeShadowRoot' },
+                { type: 'node' } // no sharedId ? element was garbage collected
+            ],
+            source: { context: 'spaContext' }
+        } as any)).not.toThrow()
+    })
+
+    it('should remove shadow root when removeShadowRoot has valid sharedId', () => {
+        const browser = { ...defaultBrowser } as any
+        const manager = getShadowRootManager(browser)
+        // Register a shadow root
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'elemA', value: {
+                    shadowRoot: {
+                        sharedId: 'shadowA',
+                        value: { nodeType: 11, mode: 'open' }
+                    },
+                    localName: 'test-element'
+                } },
+                { type: 'node', sharedId: 'rootA' },
+                { type: 'boolean', value: true },
+                { type: 'node', sharedId: 'docElemA' }
+            ],
+            source: { context: 'removeContext' }
+        } as any)
+        expect(manager.getShadowElementsByContextId('removeContext')).toContain('shadowA')
+
+        // removeShadowRoot with valid sharedId
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'removeShadowRoot' },
+                { type: 'node', sharedId: 'elemA' }
+            ],
+            source: { context: 'removeContext' }
+        } as any)
+        expect(manager.getShadowElementsByContextId('removeContext')).not.toContain('shadowA')
+    })
 })
 
 describe('ShadowRootTree', () => {
