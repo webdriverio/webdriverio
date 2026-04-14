@@ -41,13 +41,6 @@ import { TestFrameworkConstants } from './cli/frameworks/constants/testFramework
 
 import util from 'node:util'
 
-type CliManagedCapabilityRecord = Record<string, unknown> & {
-    'bstack:options'?: {
-        testManagementOptions?: unknown
-    }
-    'browserstack.testManagementOptions'?: unknown
-}
-
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
     private _failReasons: string[] = []
@@ -122,31 +115,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
         return fn(this._caps as WebdriverIO.Capabilities)
     }
 
-    private _removeCliOnlyCapabilityOptions(capabilities?: Capabilities.RequestedStandaloneCapabilities) {
-        if (!capabilities || typeof capabilities !== 'object') {
-            return
-        }
-
-        try {
-            const capabilityTargets = [
-                capabilities,
-                (capabilities as WebdriverIO.Capabilities & { alwaysMatch?: WebdriverIO.Capabilities }).alwaysMatch,
-            ].filter(Boolean) as WebdriverIO.Capabilities[]
-
-            for (const capabilityTarget of capabilityTargets) {
-                const capabilityTargetRecord = capabilityTarget as CliManagedCapabilityRecord
-                const bstackOptions = capabilityTargetRecord['bstack:options']
-                if (bstackOptions && typeof bstackOptions === 'object') {
-                    delete bstackOptions.testManagementOptions
-                }
-
-                delete capabilityTargetRecord['browserstack.testManagementOptions']
-            }
-        } catch (err) {
-            BStackLogger.debug(`Error while removing CLI-only capability options: ${err}`)
-        }
-    }
-
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeSession' })
     async beforeSession(config: Omit<Options.Testrunner, 'capabilities'>, capabilities: WebdriverIO.Capabilities) {
         PerformanceTester.start(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.INIT)
@@ -164,10 +132,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
         this._config.user = config.user
         this._config.key = config.key
-
-        // `testManagementOptions` is consumed by the SDK CLI and must not leak into
-        // the WebDriver session payload, where BrowserStack validates `bstack:options`.
-        this._removeCliOnlyCapabilityOptions(capabilities)
 
         // CLI integration for beforeSession
         try {
@@ -191,7 +155,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps: capabilities })
                     const instance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
                     const caps = AutomationFramework.getState(instance, AutomationFrameworkConstants.KEY_CAPABILITIES)
-                    this._removeCliOnlyCapabilityOptions(caps as Capabilities.RequestedStandaloneCapabilities)
                     Object.assign(capabilities, caps)
                 }
             } catch (err) {
