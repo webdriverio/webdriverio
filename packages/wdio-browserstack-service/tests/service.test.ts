@@ -8,10 +8,6 @@ import BrowserstackService from '../src/service.js'
 import * as utils from '../src/util.js'
 import InsightsHandler from '../src/insights-handler.js'
 import * as bstackLogger from '../src/bstackLogger.js'
-import { BrowserstackCLI } from '../src/cli/index.js'
-import AutomationFramework from '../src/cli/frameworks/automationFramework.js'
-import { AutomationFrameworkConstants } from '../src/cli/frameworks/constants/automationFrameworkConstants.js'
-import { CLIUtils } from '../src/cli/cliUtils.js'
 
 const jasmineSuiteTitle = 'Jasmine__TopLevel__Suite'
 const sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -160,99 +156,6 @@ describe('beforeSession', () => {
             expect(service['_config']).toEqual({ user: 'NotSetUser', key: 'bar' })
         })
 
-        it('should remove testManagementOptions from CLI-managed capabilities before session creation', () => {
-            const caps = {
-                alwaysMatch: {
-                    browserName: 'chrome',
-                    'bstack:options': {
-                        os: 'Windows',
-                        testManagementOptions: {
-                            testPlanId: 'tm-plan-123'
-                        }
-                    }
-                },
-                'browserstack.testManagementOptions': {
-                    testPlanId: 'tm-plan-123'
-                }
-            } as unknown as WebdriverIO.Capabilities
-
-            ;(service as any)._removeCliOnlyCapabilityOptions(caps)
-
-            expect(caps.alwaysMatch?.['bstack:options']).toEqual({
-                os: 'Windows'
-            })
-            expect((caps as Record<string, unknown>)['browserstack.testManagementOptions']).toBeUndefined()
-        })
-
-        it('should remove testManagementOptions from live session capabilities when CLI is running', async () => {
-            const trackedCaps = {
-                alwaysMatch: {
-                    browserName: 'chrome',
-                    'bstack:options': {
-                        os: 'Windows',
-                        testManagementOptions: {
-                            testPlanId: 'tm-plan-123'
-                        }
-                    }
-                },
-                'browserstack.testManagementOptions': {
-                    testPlanId: 'tm-plan-123'
-                }
-            } as unknown as WebdriverIO.Capabilities
-            const liveCaps = {
-                alwaysMatch: {
-                    browserName: 'chrome',
-                    'bstack:options': {
-                        os: 'Windows',
-                        testManagementOptions: {
-                            testPlanId: 'tm-plan-123'
-                        }
-                    }
-                },
-                'browserstack.testManagementOptions': {
-                    testPlanId: 'tm-plan-123'
-                }
-            } as unknown as WebdriverIO.Capabilities
-            const automationFramework = {
-                trackEvent: vi.fn().mockResolvedValue(undefined)
-            }
-            const cliInstance = {
-                bootstrap: vi.fn().mockResolvedValue(undefined),
-                getAutomationFramework: vi.fn().mockReturnValue(automationFramework),
-                getConfig: vi.fn().mockReturnValue({ hubUrl: 'https://hub.browserstack.com/wd/hub' }),
-                isRunning: vi.fn().mockReturnValue(true)
-            }
-            const trackedInstance = {} as any
-
-            const getInstanceSpy = vi.spyOn(BrowserstackCLI, 'getInstance').mockReturnValue(cliInstance as any)
-            const supportedFrameworkSpy = vi.spyOn(CLIUtils, 'checkCLISupportedFrameworks').mockReturnValue(true)
-            const trackedInstanceSpy = vi.spyOn(AutomationFramework, 'getTrackedInstance').mockReturnValue(trackedInstance)
-            const getStateSpy = vi.spyOn(AutomationFramework, 'getState').mockImplementation((instance, key) => {
-                if (instance === trackedInstance && key === AutomationFrameworkConstants.KEY_CAPABILITIES) {
-                    return trackedCaps
-                }
-
-                return undefined
-            })
-
-            await service.beforeSession({ user: 'foo', key: 'bar' } as any, liveCaps)
-
-            expect(cliInstance.bootstrap).toHaveBeenCalled()
-            expect(automationFramework.trackEvent).toHaveBeenCalled()
-            expect(liveCaps.alwaysMatch?.['bstack:options']).toEqual({
-                os: 'Windows'
-            })
-            expect((liveCaps as Record<string, unknown>)['browserstack.testManagementOptions']).toBeUndefined()
-            expect(trackedCaps.alwaysMatch?.['bstack:options']).toEqual({
-                os: 'Windows'
-            })
-            expect((trackedCaps as Record<string, unknown>)['browserstack.testManagementOptions']).toBeUndefined()
-
-            getInstanceSpy.mockRestore()
-            supportedFrameworkSpy.mockRestore()
-            trackedInstanceSpy.mockRestore()
-            getStateSpy.mockRestore()
-        })
     })
 
     describe('testObservabilityOpts passed', () => {

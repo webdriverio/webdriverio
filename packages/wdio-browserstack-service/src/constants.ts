@@ -47,7 +47,7 @@ export const BSTACK_SERVICE_VERSION = bstackServiceVersion
 export const UPDATED_CLI_ENDPOINT =  'sdk/v1/update_cli'
 export const CLI_STOP_TIMEOUT = 3000
 
-export const NOT_ALLOWED_KEYS_IN_CAPS = ['includeTagsInTestingScope', 'excludeTagsInTestingScope']
+export const NOT_ALLOWED_KEYS_IN_CAPS = ['includeTagsInTestingScope', 'excludeTagsInTestingScope', 'testManagementOptions']
 
 export const LOGS_FILE = 'logs/bstack-wdio-service.log'
 export const CLI_DEBUG_LOGS_FILE = 'log/sdk-cli-debug.log'
