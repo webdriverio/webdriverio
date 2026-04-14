@@ -191,6 +191,88 @@ describe('ShadowRootManager', () => {
         } as any)
         expect(manager.getShadowElementsByContextId('removeContext')).not.toContain('shadowA')
     })
+
+    it('should purge old shadow roots when document ID changes', () => {
+        const browser = { ...defaultBrowser } as any
+        const manager = getShadowRootManager(browser)
+        const handleLogEntry = manager.handleLogEntry.bind(manager)
+
+        // Register shadow root with document A
+        handleLogEntry({
+            level: 'debug',
+            source: { context: 'ctx1' },
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'f.C1.d.AAAA0000AAAA0000AAAA0000AAAA0000.e.100', value: { localName: 'comp-a', shadowRoot: { sharedId: 'f.C1.d.AAAA0000AAAA0000AAAA0000AAAA0000.e.101', value: { nodeType: 11, mode: 'open' } } } },
+                { type: 'node', sharedId: 'f.C1.d.AAAA0000AAAA0000AAAA0000AAAA0000.e.1' },
+                { type: 'boolean', value: true },
+                { type: 'node', sharedId: 'root1' }
+            ]
+        } as any)
+
+        let elements = manager.getShadowElementsByContextId('ctx1')
+        expect(elements.length).toBeGreaterThan(0)
+
+        // Register shadow root with NEW document B → should purge old entries
+        handleLogEntry({
+            level: 'debug',
+            source: { context: 'ctx1' },
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'f.C1.d.BBBB0000BBBB0000BBBB0000BBBB0000.e.200', value: { localName: 'comp-b', shadowRoot: { sharedId: 'f.C1.d.BBBB0000BBBB0000BBBB0000BBBB0000.e.201', value: { nodeType: 11, mode: 'open' } } } },
+                { type: 'node', sharedId: 'f.C1.d.BBBB0000BBBB0000BBBB0000BBBB0000.e.2' },
+                { type: 'boolean', value: true },
+                { type: 'node', sharedId: 'root2' }
+            ]
+        } as any)
+
+        elements = manager.getShadowElementsByContextId('ctx1')
+        // Should only contain elements from document B, not document A
+        const hasDocA = elements.some(e => e.includes('AAAA0000'))
+        const hasDocB = elements.some(e => e.includes('BBBB0000'))
+        expect(hasDocA).toBe(false)
+        expect(hasDocB).toBe(true)
+    })
+
+    it('should not purge when document ID stays the same', () => {
+        const browser = { ...defaultBrowser } as any
+        const manager = getShadowRootManager(browser)
+        const handleLogEntry = manager.handleLogEntry.bind(manager)
+
+        // Register two shadow roots with same document
+        handleLogEntry({
+            level: 'debug',
+            source: { context: 'ctx1' },
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'f.C1.d.AAAA0000AAAA0000AAAA0000AAAA0000.e.100', value: { localName: 'comp-a', shadowRoot: { sharedId: 'f.C1.d.AAAA0000AAAA0000AAAA0000AAAA0000.e.101', value: { nodeType: 11, mode: 'open' } } } },
+                { type: 'node', sharedId: 'f.C1.d.AAAA0000AAAA0000AAAA0000AAAA0000.e.1' },
+                { type: 'boolean', value: true },
+                { type: 'node', sharedId: 'root1' }
+            ]
+        } as any)
+
+        handleLogEntry({
+            level: 'debug',
+            source: { context: 'ctx1' },
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'f.C1.d.AAAA0000AAAA0000AAAA0000AAAA0000.e.200', value: { localName: 'comp-b', shadowRoot: { sharedId: 'f.C1.d.AAAA0000AAAA0000AAAA0000AAAA0000.e.201', value: { nodeType: 11, mode: 'open' } } } },
+                { type: 'node', sharedId: 'f.C1.d.AAAA0000AAAA0000AAAA0000AAAA0000.e.1' },
+                { type: 'boolean', value: false },
+                { type: 'node', sharedId: 'root1' }
+            ]
+        } as any)
+
+        const elements = manager.getShadowElementsByContextId('ctx1')
+        // Should have both elements since same document
+        expect(elements.filter(e => e.includes('AAAA0000')).length).toBeGreaterThanOrEqual(2)
+    })
+
 })
 
 describe('ShadowRootTree', () => {
@@ -234,7 +316,6 @@ describe('ShadowRootTree', () => {
             "17",
             "19",
             "21",
-            "19",
           ]
         `)
         expect(root.find('8')?.getAllLookupScopes()).toMatchInlineSnapshot(`
@@ -260,7 +341,6 @@ describe('ShadowRootTree', () => {
             "17",
             "19",
             "21",
-            "19",
           ]
         `)
     })
@@ -271,9 +351,18 @@ describe('ShadowRootTree', () => {
         expect(child?.getAllLookupScopes()).toMatchInlineSnapshot(`
           [
             "17",
-            "19",
-            "21",
           ]
         `)
     })
+    it('should deduplicate children with same element id', () => {
+        const root = new ShadowRootTree('root1', 'shadow1')
+        const child1 = new ShadowRootTree('elem1', 'shadow-elem1')
+        const child1dup = new ShadowRootTree('elem1', 'shadow-elem1-dup')
+        const child2 = new ShadowRootTree('elem2', 'shadow-elem2')
+        root.addShadowElement(child1)
+        root.addShadowElement(child1dup)  // Duplicate — should be ignored
+        root.addShadowElement(child2)
+        expect(root.flat().length).toBe(3)  // root + child1 + child2 (not child1dup)
+    })
+
 })

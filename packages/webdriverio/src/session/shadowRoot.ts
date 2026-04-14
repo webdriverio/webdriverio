@@ -21,6 +21,7 @@ export class ShadowRootManager extends SessionManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #shadowRoots = new Map<string, ShadowRootTree>()
+    #currentDocumentIds = new Map<string, string>()
     #documentElement?: remote.ScriptNodeRemoteValue
     #frameDepth = 0
 
@@ -74,6 +75,7 @@ export class ShadowRootManager extends SessionManager {
         }
         const params = command.params as remote.BrowsingContextNavigateParameters
         this.#shadowRoots.delete(params.context)
+        this.#currentDocumentIds.delete(params.context)
     }
 
     /**
@@ -126,6 +128,25 @@ export class ShadowRootManager extends SessionManager {
         const eventType = args[1].value
         if (eventType === 'newShadowRoot' && args[2].type === 'node' && args[3].type === 'node') {
             const [/* [WDIO] */, /* newShadowRoot */, shadowElem, rootElem, isDocument, documentElement] = args
+
+            /**
+             * Detect document ID changes from sharedId format: f.<frameId>.d.<documentId>.e.<elementId>
+             * When the document changes (full navigation), purge the old tree to prevent unbounded growth.
+             */
+            const ctxId = logEntry.source.context
+            if (shadowElem.sharedId) {
+                const docMatch = shadowElem.sharedId.match(/\.d\.([A-F0-9]+)\./)
+                if (docMatch) {
+                    const newDocId = docMatch[1]
+                    const currentDocId = this.#currentDocumentIds.get(ctxId)
+                    if (currentDocId && currentDocId !== newDocId) {
+                        log.info(`Document changed in context ${ctxId}: ${currentDocId} -> ${newDocId}, purging ${this.#shadowRoots.get(ctxId)?.flat().length ?? 0} stale shadow roots`)
+                        this.#shadowRoots.delete(ctxId)
+                    }
+                    this.#currentDocumentIds.set(ctxId, newDocId)
+                }
+            }
+
             if (!this.#shadowRoots.has(logEntry.source.context)) {
                 /**
                  * initiate shadow tree for context
@@ -310,6 +331,11 @@ export class ShadowRootTree {
         }
 
         if (scope instanceof ShadowRootTree) {
+            for (const child of this.children) {
+                if (child.element === scope.element) {
+                    return
+                }
+            }
             this.children.add(scope)
             return
         }

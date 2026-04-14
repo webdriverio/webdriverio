@@ -19,6 +19,7 @@ vi.mock('@wdio/utils', async (importOriginal) => {
 vi.mock('../../src/session/shadowRoot.js', () => ({
     getShadowRootManager: vi.fn(() => ({
         getShadowElementsByContextId: mockGetShadowElementsByContextId,
+        deleteShadowRoot: vi.fn(),
     })),
 }))
 
@@ -108,8 +109,9 @@ describe('findDeepElement - isConnected validation', () => {
 
         const result = await findDeepElement.call(browser, '[data-qa="my-btn"]')
 
-        expect(result).toEqual(classicResult)
-        expect(browser.findElement).toHaveBeenCalledWith('css selector', '[data-qa="my-btn"]')
+        // Classic fallback removed - returns undefined for retry
+        expect(result).toBeUndefined()
+        expect(browser.findElement).not.toHaveBeenCalled()
     })
 
     it('should handle execute throwing for stale elements (unscoped)', async () => {
@@ -184,12 +186,8 @@ describe('findDeepElement - isConnected validation', () => {
 
         const result = await findDeepElement.call(element, '.child-selector')
 
-        expect(result).toEqual(classicResult)
-        expect(element.findElementFromElement).toHaveBeenCalledWith(
-            'parent-elem-id',
-            'css selector',
-            '.child-selector'
-        )
+        // Classic fallback removed — returns undefined for retry
+        expect(result).toBeUndefined()
     })
 
     it('should return first connected scoped node (scoped/element context)', async () => {
@@ -283,8 +281,8 @@ describe('findDeepElements - isConnected validation', () => {
 
         const result = await findDeepElements.call(browser, '.card')
 
-        expect(result).toEqual(classicResults)
-        expect(browser.findElements).toHaveBeenCalledWith('css selector', '.card')
+        // Classic fallback removed — returns empty array for retry
+        expect(result).toEqual([])
     })
 
     it('should handle execute throwing for stale elements (unscoped)', async () => {
@@ -359,12 +357,9 @@ describe('findDeepElements - isConnected validation', () => {
 
         const result = await findDeepElements.call(element, '.child')
 
-        expect(result).toEqual(classicResults)
-        expect(element.findElementsFromElement).toHaveBeenCalledWith(
-            'parent-elem',
-            'css selector',
-            '.child'
-        )
+        // Classic fallback removed — returns empty array for retry
+        expect(result).toEqual([])
+        expect(element.findElementsFromElement).not.toHaveBeenCalled()
     })
 
     it('should return connected scoped nodes only (scoped/element context)', async () => {

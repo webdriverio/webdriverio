@@ -357,13 +357,13 @@ export async function findDeepElement(
                     try {
                         const connected = await browser.execute((el: Element) => el.isConnected, node as unknown as HTMLElement)
                         if (connected) { return node }
+                        shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
                     } catch {
-                        // Element reference is stale or garbage collected, try next
+                        shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
                     }
                 }
-                // All BiDi results are detached, fall back to Classic WebDriver
-                log.warn(`All ${nodes.length} BiDi results for "${value}" are detached, falling back to Classic WebDriver`)
-                return browser.findElement(using, value)
+                log.warn(`All ${nodes.length} BiDi results for "${value}" are detached, removed stale entries from shadow root tree`)
+                return undefined
             }
             return nodes[0]
         }
@@ -392,13 +392,14 @@ export async function findDeepElement(
             try {
                 const connected = await browser.execute((el: Element) => el.isConnected, node as unknown as HTMLElement)
                 if (connected) { return node }
+                shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
             } catch {
-                // stale, try next
+                shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
             }
         }
         if (scopedNodes.length > 0) {
-            log.warn(`All ${scopedNodes.length} scoped BiDi results for "${value}" are detached, falling back to Classic WebDriver`)
-            return this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value)
+            log.warn(`All ${scopedNodes.length} scoped BiDi results for "${value}" are detached, removed stale entries from shadow root tree`)
+            return undefined
         }
         return scopedNodes[0]
     }, (err) => {
@@ -471,14 +472,18 @@ export async function findDeepElements(
                 for (const node of nodes) {
                     try {
                         const connected = await browser.execute((el: Element) => el.isConnected, node as unknown as HTMLElement)
-                        if (connected) { validNodes.push(node) }
+                        if (connected) {
+                            validNodes.push(node)
+                        } else {
+                            shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+                        }
                     } catch {
-                        // Element reference is stale or garbage collected, skip
+                        shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
                     }
                 }
                 if (validNodes.length > 0) { return validNodes }
                 // All BiDi results are detached, fall back to Classic WebDriver
-                return browser.findElements(using, value)
+                return []
             }
             return nodes
         }
@@ -507,14 +512,18 @@ export async function findDeepElements(
         for (const node of scopedNodes) {
             try {
                 const connected = await browser.execute((el: Element) => el.isConnected, node as unknown as HTMLElement)
-                if (connected) { connectedScopedNodes.push(node as unknown as (boolean | ElementReference)[]) }
+                if (connected) {
+                    connectedScopedNodes.push(node as unknown as (boolean | ElementReference)[])
+                } else {
+                    shadowRootManager.deleteShadowRoot((node as unknown as Record<string, string>)[ELEMENT_KEY], context)
+                }
             } catch {
-                // stale, skip
+                shadowRootManager.deleteShadowRoot((node as unknown as Record<string, string>)[ELEMENT_KEY], context)
             }
         }
         if (connectedScopedNodes.length > 0) { return connectedScopedNodes }
         if (scopedNodes.length > 0) {
-            return this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value)
+            return []
         }
         return scopedNodes
     }, (err) => {
