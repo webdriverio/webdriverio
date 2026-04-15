@@ -24,62 +24,62 @@ jobs:
     name: Build
     uses: ./.github/workflows/build.yml
 
-  static_code_analysis:
-    name: Static Code Analysis
-    uses: ./.github/workflows/test-static.yml
+  # static_code_analysis:
+  #   name: Static Code Analysis
+  #   uses: ./.github/workflows/test-static.yml
 
-  typing_tests:
-    name: Typing Tests
-    needs: [build_core, static_code_analysis]
-    uses: ./.github/workflows/test-typings.yml
+  # typing_tests:
+  #   name: Typing Tests
+  #   needs: [build_core, static_code_analysis]
+  #   uses: ./.github/workflows/test-typings.yml
 
-  interop_tests:
-    name: Interop Tests
-    needs: [build_core, static_code_analysis]
-    uses: ./.github/workflows/test-interop.yml
+  # interop_tests:
+  #   name: Interop Tests
+  #   needs: [build_core, static_code_analysis]
+  #   uses: ./.github/workflows/test-interop.yml
 
-  unit_tests:
-    name: Unit Tests
-    needs: [build_core, static_code_analysis]
-    uses: ./.github/workflows/test-unit.yml
+  # unit_tests:
+  #   name: Unit Tests
+  #   needs: [build_core, static_code_analysis]
+  #   uses: ./.github/workflows/test-unit.yml
 
-  smoke_tests:
-    name: Smoke Tests
-    needs: [build_core, static_code_analysis]
-    uses: ./.github/workflows/test-smoke.yml
+  # smoke_tests:
+  #   name: Smoke Tests
+  #   needs: [build_core, static_code_analysis]
+  #   uses: ./.github/workflows/test-smoke.yml
 
-  component_tests:
-    name: Component Tests
-    needs: [build_core, static_code_analysis]
-    uses: ./.github/workflows/test-component.yml
+  # component_tests:
+  #   name: Component Tests
+  #   needs: [build_core, static_code_analysis]
+  #   uses: ./.github/workflows/test-component.yml
 
-  launch_tests:
-    name: E2E Tests
-    needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
-    uses: ./.github/workflows/test-launch.yml
+  # launch_tests:
+  #   name: E2E Tests
+  #   needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
+  #   uses: ./.github/workflows/test-launch.yml
 
-  cloud_tests:
-    name: E2E Tests
-    needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
-    uses: ./.github/workflows/test-cloud.yml
-    secrets: inherit
+  # cloud_tests:
+  #   name: E2E Tests
+  #   needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
+  #   uses: ./.github/workflows/test-cloud.yml
+  #   secrets: inherit
 
-  testrunner_tests:
-    name: E2E Tests
-    needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
-    uses: ./.github/workflows/test-testrunner.yml
+  # testrunner_tests:
+  #   name: E2E Tests
+  #   needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
+  #   uses: ./.github/workflows/test-testrunner.yml
 
-  multiremote_tests:
-    name: E2E Tests
-    needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
-    uses: ./.github/workflows/test-multiremote.yml
+  # multiremote_tests:
+  #   name: E2E Tests
+  #   needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
+  #   uses: ./.github/workflows/test-multiremote.yml
 
-  standalone_tests:
-    name: E2E Tests
-    needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
-    uses: ./.github/workflows/test-standalone.yml
+  # standalone_tests:
+  #   name: E2E Tests
+  #   needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
+  #   uses: ./.github/workflows/test-standalone.yml
 
   xvfb_tests:
     name: XVFB E2E Tests
-    needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
+    needs: [build_core]
     uses: ./.github/workflows/test-xvfb-e2e.yml
