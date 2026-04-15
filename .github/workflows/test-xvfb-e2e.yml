@@ -35,11 +35,11 @@ jobs:
 
           # Alpine scenarios
           - distro: alpine
-            version: "3.20"
+            version: "3.23"
             scenario: base
             dockerfile: alpine-base.dockerfile
           - distro: alpine
-            version: "3.20"
+            version: "3.23"
             scenario: with-xvfb
             dockerfile: alpine-with-xvfb.dockerfile
 
