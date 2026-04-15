@@ -13,11 +13,85 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Alpine with-xvfb only — debugging chromium version detection issue
+          # Ubuntu scenarios
+          - distro: ubuntu
+            version: "24.04"
+            scenario: base
+            dockerfile: ubuntu-base.dockerfile
+          - distro: ubuntu
+            version: "24.04"
+            scenario: with-xvfb
+            dockerfile: ubuntu-with-xvfb.dockerfile
+
+          # Fedora scenarios
+          - distro: fedora
+            version: "40"
+            scenario: base
+            dockerfile: fedora-base.dockerfile
+          - distro: fedora
+            version: "40"
+            scenario: with-xvfb
+            dockerfile: fedora-with-xvfb.dockerfile
+
+          # Alpine scenarios
+          - distro: alpine
+            version: "3.20"
+            scenario: base
+            dockerfile: alpine-base.dockerfile
           - distro: alpine
             version: "3.20"
             scenario: with-xvfb
             dockerfile: alpine-with-xvfb.dockerfile
+
+          # Debian scenarios
+          - distro: debian
+            version: "12"
+            scenario: base
+            dockerfile: debian-base.dockerfile
+          - distro: debian
+            version: "12"
+            scenario: with-xvfb
+            dockerfile: debian-with-xvfb.dockerfile
+
+          # CentOS Stream scenarios (upstream RHEL)
+          - distro: centos-stream
+            version: "9"
+            scenario: base
+            dockerfile: centos-stream-base.dockerfile
+          - distro: centos-stream
+            version: "9"
+            scenario: with-xvfb
+            dockerfile: centos-stream-with-xvfb.dockerfile
+
+          # Arch Linux scenarios
+          - distro: arch
+            version: "latest"
+            scenario: base
+            dockerfile: arch-base.dockerfile
+          - distro: arch
+            version: "latest"
+            scenario: with-xvfb
+            dockerfile: arch-with-xvfb.dockerfile
+
+          # SUSE scenarios
+          - distro: suse
+            version: "15.6"
+            scenario: base
+            dockerfile: suse-base.dockerfile
+          - distro: suse
+            version: "15.6"
+            scenario: with-xvfb
+            dockerfile: suse-with-xvfb.dockerfile
+
+          # Void Linux scenarios
+          - distro: void
+            version: "latest"
+            scenario: base
+            dockerfile: void-base.dockerfile
+          - distro: void
+            version: "latest"
+            scenario: with-xvfb
+            dockerfile: void-with-xvfb.dockerfile
 
     name: "XVFB E2E: ${{ matrix.distro }}:${{ matrix.version }} (${{ matrix.scenario }})"
 
@@ -44,40 +118,6 @@ jobs:
             -f e2e/wdio/xvfb/docker/${{ matrix.dockerfile }} \
             -t xvfb-test:${{ matrix.distro }}-${{ matrix.scenario }} \
             e2e/wdio/xvfb/docker/
-
-      - name: Debug browser environment in container
-        run: |
-          docker run --rm \
-            -e CHROME_BIN=/usr/bin/chromium \
-            xvfb-test:${{ matrix.distro }}-${{ matrix.scenario }} \
-            bash -c "
-              echo '=== which chromium ==='
-              which chromium 2>&1 || echo 'chromium not in PATH'
-              which chromium-browser 2>&1 || echo 'chromium-browser not in PATH'
-              which google-chrome 2>&1 || echo 'google-chrome not in PATH'
-
-              echo '=== chromium --version stdout ==='
-              /usr/bin/chromium --version --no-sandbox 2>/dev/null || echo 'stdout: (empty or error)'
-
-              echo '=== chromium --version stderr ==='
-              /usr/bin/chromium --version --no-sandbox 1>/dev/null 2>&1 || true
-
-              echo '=== chromium --version both streams ==='
-              { /usr/bin/chromium --version --no-sandbox 2>&1 || true; }
-
-              echo '=== CHROME_BIN env ==='
-              echo \"CHROME_BIN=\$CHROME_BIN\"
-
-              echo '=== node version check ==='
-              node -e \"
-                const cp = require('child_process');
-                const result = cp.spawnSync('/usr/bin/chromium', ['--version', '--no-sandbox'], { encoding: 'utf8' });
-                console.log('stdout:', JSON.stringify(result.stdout));
-                console.log('stderr:', JSON.stringify(result.stderr));
-                console.log('error:', result.error ? result.error.message : 'none');
-                console.log('status:', result.status);
-              \"
-            " || true
 
       - name: Run XVFB E2E tests in container
         run: |
