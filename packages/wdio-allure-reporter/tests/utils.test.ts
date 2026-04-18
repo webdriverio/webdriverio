@@ -62,6 +62,24 @@ describe('utils', () => {
             expect(getTestStatus(test as any, config)).toEqual(Status.FAILED)
         })
 
+        it('failed for AssertionError with custom message via error name', () => {
+            const config: any = { framework: 'mocha' }
+            const test = { error: { name: 'AssertionError', message: 'Login failed' } }
+            expect(getTestStatus(test as any, config)).toEqual(Status.FAILED)
+        })
+
+        it('failed for error name containing assert (e.g. AssertionError [ERR_ASSERTION])', () => {
+            const config: any = { framework: 'mocha' }
+            const test = { error: { name: 'AssertionError [ERR_ASSERTION]', message: 'Custom message' } }
+            expect(getTestStatus(test as any, config)).toEqual(Status.FAILED)
+        })
+
+        it('failed for error with only name AssertionError and no message or stack', () => {
+            const config: any = { framework: 'mocha' }
+            const test = { error: { name: 'AssertionError' } }
+            expect(getTestStatus(test as any, config)).toEqual(Status.FAILED)
+        })
+
         it('broken for not AssertionError', () => {
             const config: any = { framework: 'mocha' }
             const test = { error: { name: 'MyError' } }
