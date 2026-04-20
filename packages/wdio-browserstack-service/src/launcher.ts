@@ -783,7 +783,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 })
                 .forEach(strip)
         } else {
-            Object.entries(capabilities as Capabilities.RequestedMultiremoteCapabilities).forEach(([, caps]) => {
+            Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
                 strip(caps.capabilities as WebdriverIO.Capabilities)
             })
         }
