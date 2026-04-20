@@ -56,10 +56,11 @@ import {
     getAppA11yResultsSummary,
     mergeDeep,
     mergeChromeOptions,
-    isMultiRemoteCaps
+    isMultiRemoteCaps,
+    getTestPlanId,
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
-import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY } from '../src/constants.js'
+import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY, BROWSERSTACK_TEST_PLAN_ID } from '../src/constants.js'
 import * as testHubUtils from '../src/testHub/utils.js'
 import type { Options } from '@wdio/types'
 
@@ -791,6 +792,46 @@ describe('launchTestSession', () => {
         expect(result).toEqual(mockResponse)
     })
 
+    it('includes test_management with testPlanId from options in build start payload', async () => {
+        const mockResponse = { build_hashed_id: 'build_id', jwt: 'jwt' }
+        mockedGot.post = vi.fn().mockReturnValue({
+            json: () => Promise.resolve(mockResponse),
+        } as any)
+        vi.spyOn(testHubUtils, 'getProductMapForBuildStartCall').mockReturnValue({})
+
+        await launchTestSession({ framework: 'framework', testManagementOptions: { testPlanId: 'tp-123' } } as any, {}, {}, {})
+        const [, reqOptions] = (mockedGot.post as any).mock.calls[0]
+        const body = JSON.parse(reqOptions.body)
+        expect(body.test_management).toEqual({ test_plan_id: 'tp-123' })
+    })
+
+    it('includes test_management with testPlanId from env var in build start payload', async () => {
+        process.env[BROWSERSTACK_TEST_PLAN_ID] = 'tp-env-456'
+        const mockResponse = { build_hashed_id: 'build_id', jwt: 'jwt' }
+        mockedGot.post = vi.fn().mockReturnValue({
+            json: () => Promise.resolve(mockResponse),
+        } as any)
+        vi.spyOn(testHubUtils, 'getProductMapForBuildStartCall').mockReturnValue({})
+
+        await launchTestSession({ framework: 'framework' } as any, {}, {}, {})
+        const [, reqOptions] = (mockedGot.post as any).mock.calls[0]
+        const body = JSON.parse(reqOptions.body)
+        expect(body.test_management).toEqual({ test_plan_id: 'tp-env-456' })
+        delete process.env[BROWSERSTACK_TEST_PLAN_ID]
+    })
+
+    it('includes test_management with undefined testPlanId when not set', async () => {
+        const mockResponse = { build_hashed_id: 'build_id', jwt: 'jwt' }
+        mockedGot.post = vi.fn().mockReturnValue({
+            json: () => Promise.resolve(mockResponse),
+        } as any)
+        vi.spyOn(testHubUtils, 'getProductMapForBuildStartCall').mockReturnValue({})
+
+        await launchTestSession({ framework: 'framework' } as any, {}, {}, {})
+        const [, reqOptions] = (mockedGot.post as any).mock.calls[0]
+        const body = JSON.parse(reqOptions.body)
+        expect(body.test_management).toEqual({ test_plan_id: undefined })
+    })
 })
 
 describe('getLogTag', () => {
@@ -954,6 +995,62 @@ describe('getObservabilityBuildTags', () => {
     it('get empty array', () => {
         delete process.env.TEST_OBSERVABILITY_BUILD_TAG
         expect(getObservabilityBuildTags({})).toEqual([])
+    })
+})
+
+describe('getTestPlanId', () => {
+    const CLI_ARG = '--browserstack.testManagementOptions.testPlanId'
+
+    afterEach(() => {
+        delete process.env[BROWSERSTACK_TEST_PLAN_ID]
+        // restore argv to original state
+        process.argv = process.argv.filter((arg) => !arg.startsWith(CLI_ARG))
+    })
+
+    it('returns testPlanId from env var', () => {
+        process.env[BROWSERSTACK_TEST_PLAN_ID] = 'tp-env-123'
+        expect(getTestPlanId({} as any)).toEqual('tp-env-123')
+    })
+
+    it('env var takes priority over CLI arg and options', () => {
+        process.env[BROWSERSTACK_TEST_PLAN_ID] = 'tp-env-123'
+        process.argv.push(CLI_ARG, 'tp-cli-789')
+        expect(getTestPlanId({ testManagementOptions: { testPlanId: 'tp-opts-456' } } as any)).toEqual('tp-env-123')
+    })
+
+    it('returns testPlanId from CLI arg (space-separated)', () => {
+        process.argv.push(CLI_ARG, 'tp-cli-789')
+        expect(getTestPlanId({} as any)).toEqual('tp-cli-789')
+    })
+
+    it('returns testPlanId from CLI arg (equals-separated)', () => {
+        process.argv.push(`${CLI_ARG}=tp-cli-equals`)
+        expect(getTestPlanId({} as any)).toEqual('tp-cli-equals')
+    })
+
+    it('CLI arg takes priority over options', () => {
+        process.argv.push(CLI_ARG, 'tp-cli-789')
+        expect(getTestPlanId({ testManagementOptions: { testPlanId: 'tp-opts-456' } } as any)).toEqual('tp-cli-789')
+    })
+
+    it('returns testPlanId from testManagementOptions when env var and CLI arg are not set', () => {
+        expect(getTestPlanId({ testManagementOptions: { testPlanId: 'tp-opts-456' } } as any)).toEqual('tp-opts-456')
+    })
+
+    it('trims whitespace from testManagementOptions testPlanId', () => {
+        expect(getTestPlanId({ testManagementOptions: { testPlanId: '  tp-opts-456  ' } } as any)).toEqual('tp-opts-456')
+    })
+
+    it('returns undefined when testPlanId is empty string', () => {
+        expect(getTestPlanId({ testManagementOptions: { testPlanId: '   ' } } as any)).toBeUndefined()
+    })
+
+    it('returns undefined when testManagementOptions is not set', () => {
+        expect(getTestPlanId({} as any)).toBeUndefined()
+    })
+
+    it('returns undefined when testManagementOptions.testPlanId is not a string', () => {
+        expect(getTestPlanId({ testManagementOptions: { testPlanId: 123 } } as any)).toBeUndefined()
     })
 })
 
