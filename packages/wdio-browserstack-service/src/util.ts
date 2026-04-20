@@ -439,6 +439,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         const jsonResponse: LaunchResponse = await response.json()
         delete data?.accessibility?.settings?.includeEncodedExtension
         BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(jsonResponse)}`)
+        BStackLogger.debug(`Test Plan Id sent in request: ${getTestPlanId(options)}`)
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
         if (jsonResponse.jwt) {
             process.env[BROWSERSTACK_TESTHUB_JWT] = jsonResponse.jwt
@@ -1923,4 +1924,3 @@ export function isMultiRemoteCaps(capabilities: Capabilities.TestrunnerCapabilit
         Object.values(cap).every(c => c !== null && typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities)
     )
 }
-
