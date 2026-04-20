@@ -1,63 +1,62 @@
-import { hostname, platform, type, version, arch } from 'node:os'
 import fs from 'node:fs'
-import zlib from 'node:zlib'
-import { promisify } from 'node:util'
 import http from 'node:http'
 import https from 'node:https'
+import { arch, hostname, platform, type, version } from 'node:os'
 import path from 'node:path'
-import util from 'node:util'
+import util, { promisify } from 'node:util'
+import zlib from 'node:zlib'
 
+import type { AfterCommandArgs, BeforeCommandArgs } from '@wdio/reporter'
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
-import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
-import got, { HTTPError } from 'got'
-import type { Method } from 'got'
+import type { StartBinSessionResponse } from '@browserstack/wdio-browserstack-service'
+import type { ColorName } from 'chalk'
+import { FormData } from 'formdata-node'
+import { fileFromPath } from 'formdata-node/file-from-path'
 import type { GitRepoInfo } from 'git-repo-info'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
-import type { ColorName } from 'chalk'
-import { FormData } from 'formdata-node'
+import type { Method } from 'got'
+import got, { HTTPError } from 'got'
 import { performance } from 'node:perf_hooks'
-import logPatcher from './logPatcher.js'
-import PerformanceTester from './instrumentation/performance/performance-tester.js'
-import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
-import { logBuildError, handleErrorForObservability, handleErrorForAccessibility, getProductMapForBuildStartCall } from './testHub/utils.js'
+import tar from 'tar'
+import { BStackLogger } from './bstackLogger.js'
+import APIUtils from './cli/apiUtils.js'
 import type BrowserStackConfig from './config.js'
-import { OrchestrationUtils } from './testorchestration/testorcherstrationutils.js'
-import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig, TOStopData } from './types.js'
-import type { ITestCaseHookParameter } from './cucumber-types.js'
 import {
-    BROWSER_DESCRIPTION,
-    UPLOAD_LOGS_ENDPOINT,
-    consoleHolder,
-    BSTACK_A11Y_POLLING_TIMEOUT,
-    TESTOPS_SCREENSHOT_ENV,
+    APP_ALLY_ISSUES_ENDPOINT,
+    APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
+    BROWSERSTACK_ACCESSIBILITY,
+    BROWSERSTACK_OBSERVABILITY,
+    BROWSERSTACK_TESTHUB_JWT,
     BROWSERSTACK_TESTHUB_UUID,
+    BROWSERSTACK_TEST_PLAN_ID,
+    BROWSERSTACK_TEST_REPORTING,
+    BROWSER_DESCRIPTION,
+    BSTACK_A11Y_POLLING_TIMEOUT,
+    CLI_DEBUG_LOGS_FILE,
+    GIT_META_DATA_TRUNCATED,
+    MAX_GIT_META_DATA_SIZE_IN_BYTES,
     PERF_MEASUREMENT_ENV,
     RERUN_ENV,
-    BROWSERSTACK_TEST_PLAN_ID,
     TESTOPS_BUILD_COMPLETED_ENV,
-    BROWSERSTACK_TESTHUB_JWT,
-    BROWSERSTACK_OBSERVABILITY,
-    BROWSERSTACK_TEST_REPORTING,
-    BROWSERSTACK_ACCESSIBILITY,
-    MAX_GIT_META_DATA_SIZE_IN_BYTES,
-    GIT_META_DATA_TRUNCATED,
-    APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
-    APP_ALLY_ISSUES_ENDPOINT,
+    TESTOPS_SCREENSHOT_ENV,
     TEST_REPORTING_PROJECT_NAME,
-    CLI_DEBUG_LOGS_FILE,
-    WDIO_NAMING_PREFIX
+    UPLOAD_LOGS_ENDPOINT,
+    WDIO_NAMING_PREFIX,
+    consoleHolder
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
-import { BStackLogger } from './bstackLogger.js'
+import type { ITestCaseHookParameter } from './cucumber-types.js'
+import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
+import PerformanceTester from './instrumentation/performance/performance-tester.js'
+import logPatcher from './logPatcher.js'
 import AccessibilityScripts from './scripts/accessibility-scripts.js'
-import UsageStats from './testOps/usageStats.js'
+import { getProductMapForBuildStartCall, handleErrorForAccessibility, handleErrorForObservability, logBuildError } from './testHub/utils.js'
 import TestOpsConfig from './testOps/testOpsConfig.js'
-import type { StartBinSessionResponse } from '@browserstack/wdio-browserstack-service'
-import APIUtils from './cli/apiUtils.js'
-import tar from 'tar'
-import { fileFromPath } from 'formdata-node/file-from-path'
+import UsageStats from './testOps/usageStats.js'
+import { OrchestrationUtils } from './testorchestration/testorcherstrationutils.js'
+import type { BrowserstackConfig, LaunchResponse, TOStopData, UploadType, UserConfig } from './types.js'
 
 const pGitconfig = promisify(gitconfig)
 
@@ -438,6 +437,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         }).json()
         delete data?.accessibility?.settings?.includeEncodedExtension
         BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
+        BStackLogger.debug(`Test Plan id for the build: ${getTestPlanId(options)}`)
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
         if (response.jwt) {
             process.env[BROWSERSTACK_TESTHUB_JWT] = response.jwt
