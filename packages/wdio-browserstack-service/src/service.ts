@@ -13,7 +13,7 @@ import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction } from 
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
-import { DEFAULT_OPTIONS, PERF_MEASUREMENT_ENV } from './constants.js'
+import { DEFAULT_OPTIONS, NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import AccessibilityHandler from './accessibility-handler.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -156,6 +156,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     const instance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
                     const caps = AutomationFramework.getState(instance, AutomationFrameworkConstants.KEY_CAPABILITIES)
                     Object.assign(capabilities, caps)
+
+                    // Strip CLI-only options that BrowserStack hub doesn't accept
+                    const bstackOptions = (capabilities as Record<string, unknown>)['bstack:options'] as Record<string, unknown> | undefined
+                    if (bstackOptions && typeof bstackOptions === 'object') {
+                        NOT_ALLOWED_KEYS_IN_CAPS.forEach(key => delete bstackOptions[key])
+                    }
+                    NOT_ALLOWED_KEYS_IN_CAPS.forEach(key => delete (capabilities as Record<string, unknown>)[`browserstack.${key}`])
                 }
             } catch (err) {
                 BStackLogger.error(`Error while tracking automation framework event: ${err}`)
