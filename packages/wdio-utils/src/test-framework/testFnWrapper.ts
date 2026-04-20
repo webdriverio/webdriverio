@@ -109,7 +109,13 @@ export const testFrameworkFnWrapper = async function (
          * To address skipping tests for Mocha and Jasmine
          */
         if (!(JSON.stringify(_err, Object.getOwnPropertyNames(_err)).includes('sync skip; aborting execution') || JSON.stringify(_err, Object.getOwnPropertyNames(_err)).includes('marked Pending'))) {
-            const err = _err instanceof Error ? _err : new Error(typeof _err === 'string' ? _err : 'An unknown error occurred')
+            const err = _err instanceof Error
+                ? _err
+                : new Error(
+                    typeof _err === 'string'
+                        ? _err
+                        : `An unknown error occurred: ${JSON.stringify(_err)}`
+                )
             if (err.stack) {
                 err.stack = filterStackTrace(err.stack)
             }

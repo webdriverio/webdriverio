@@ -26,7 +26,10 @@ export default wdioEslint.config([
             'examples/**/*.ts',
             'examples/**/*.js',
             'packages/**/*.test.ts',
-            'packages/**/tests/**/*.ts'
+            'packages/**/tests/**/*.ts',
+            'e2e/**/*.js',
+            'e2e/**/*.ts',
+            'e2e/**/*.tsx'
         ],
         languageOptions: {
             globals: {
