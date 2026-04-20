@@ -437,7 +437,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         }).json()
         delete data?.accessibility?.settings?.includeEncodedExtension
         BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
-        BStackLogger.debug(`Test Plan id for the build: ${getTestPlanId(options)}`)
+        BStackLogger.debug(`Test Plan Id sent in request: ${getTestPlanId(options)}`)
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
         if (response.jwt) {
             process.env[BROWSERSTACK_TESTHUB_JWT] = response.jwt
