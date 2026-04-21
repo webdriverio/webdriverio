@@ -122,20 +122,26 @@ export class GrpcClient {
             throw new Error('Unable to determine gRPC server listen address')
         }
 
+        const GRPC_MESSAGE_LIMIT = 20 * 1024 * 1024 // 20 MB in bytes
+
+        const channelOptions = {
+            'grpc.keepalive_time_ms': 10000,
+            'grpc.max_send_message_length': GRPC_MESSAGE_LIMIT,
+            'grpc.max_receive_message_length': GRPC_MESSAGE_LIMIT,
+        }
+
         // Create a channel
         this.channel = new grpcChannel(
             listenAddress,
             grpcCredentials.createInsecure(),
-            {
-                'grpc.keepalive_time_ms': 10000
-            }
+            channelOptions
         )
 
         // Create a client using the channel
         this.client = new SDKClient(
             listenAddress,
             grpcCredentials.createInsecure(),
-            {}
+            channelOptions
         )
 
         this.logger.info(`Connected to gRPC server at ${listenAddress}`)
