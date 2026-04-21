@@ -3,39 +3,60 @@ id: wdio
 title: WebDriverIO DevTools
 ---
 
-The DevTools service provides a powerful browser-based debugging interface for WebdriverIO test executions. It allows you to visualize, debug, and control your tests in real-time through an interactive web application.
+A WebdriverIO service that provides a developer tools UI for running, debugging, and inspecting browser automation tests. Features include DOM mutation replay, per-command screenshots, network request inspection, console log capture, and session screencast recording.
 
 ## Installation
 
 ```sh
-npm install --save-dev @wdio/devtools-service
-```
-
-## Configuration
-
-Add the service to your WebDriverIO configuration:
-
-```js
-// wdio.conf.js
-export const config = {
-    // ...
-    services: [
-        ['devtools', {
-            port: 3000,      // Port for the devtools UI (default: 3000)
-        }]
-    ],
-    // ...
-};
+npm install @wdio/devtools-service --save-dev
 ```
 
 ## Usage
 
+### Test Runner
+
+```ts
+// wdio.conf.ts
+export const config = {
+  services: ['devtools'],
+}
+```
+
+### Standalone
+
+```ts
+import { remote } from 'webdriverio'
+import { setupForDevtools } from '@wdio/devtools-service'
+
+const browser = await remote(setupForDevtools({
+  capabilities: { browserName: 'chrome' }
+}))
+await browser.url('https://example.com')
+await browser.deleteSession()
+```
+
+## Service Options
+
+```ts
+services: [['devtools', options]]
+```
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `port` | `number` | random | Port the DevTools UI server listens on |
+| `hostname` | `string` | `'localhost'` | Hostname the DevTools UI server binds to |
+| `devtoolsCapabilities` | `Capabilities` | Chrome 1600x1200 | Capabilities used to open the DevTools UI window |
+| `screencast` | `ScreencastOptions` | — | Session video recording ([see Screencast](/docs/devtools/wdio/screencast)) |
+
+## Getting Started
+
 1. Run your WebdriverIO tests
-2. The DevTools UI automatically opens in a browser window at `http://localhost:3000`
-3. Tests begin executing with real-time visualization
-4. After the initial run, use play buttons to rerun individual tests or suites
-5. Click the stop button anytime to terminate running tests
-6. Explore the Actions, Metadata, Console Logs, and Network tabs in the workbench
+2. The DevTools UI automatically opens in an external browser window
+3. Tests begin executing immediately with real-time visualization
+4. View live browser preview, test progress, and command execution
+5. After initial run completes, use play buttons to rerun individual tests or suites
+6. Click stop button anytime to terminate running tests
+7. Explore actions, metadata, console logs, and source code in the workbench tabs
 
 ## Features
 
@@ -46,3 +67,4 @@ Explore the WebDriverIO DevTools features in detail:
 - **[Console Logs](/docs/devtools/wdio/console-logs)** - Capture and inspect browser console output
 - **[Network Logs](/docs/devtools/wdio/network-logs)** - Monitor API calls and network activity
 - **[TestLens](/docs/devtools/wdio/testlens)** - Navigate to source code with intelligent code navigation
+- **[Session Screencast](/docs/devtools/wdio/screencast)** - Automatic video recording of browser sessions
