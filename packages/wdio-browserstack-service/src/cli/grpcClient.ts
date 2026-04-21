@@ -45,6 +45,8 @@ import PerformanceTester from '../instrumentation/performance/performance-tester
 import * as PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
 import { BStackLogger } from './cliLogger.js'
 
+const GRPC_MESSAGE_LIMIT = 20 * 1024 * 1024 // 20 MB in bytes
+
 /**
  * GrpcClient - Singleton class for managing gRPC client connections
  *
@@ -121,8 +123,6 @@ export class GrpcClient {
         if (!listenAddress) {
             throw new Error('Unable to determine gRPC server listen address')
         }
-
-        const GRPC_MESSAGE_LIMIT = 20 * 1024 * 1024 // 20 MB in bytes
 
         const channelOptions = {
             'grpc.keepalive_time_ms': 10000,
