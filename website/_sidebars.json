@@ -97,11 +97,30 @@
         "id": "devtools"
       },
       "items": [
-        "devtools/interactive-test-rerunning",
-        "devtools/multi-framework-support",
-        "devtools/console-logs",
-        "devtools/network-logs",
-        "devtools/testlens"
+        {
+          "type": "category",
+          "label": "WebDriverIO",
+          "link": {
+            "type": "doc",
+            "id": "devtools/wdio"
+          },
+          "items": [
+            "devtools/wdio/interactive-test-rerunning",
+            "devtools/wdio/multi-framework-support",
+            "devtools/wdio/console-logs",
+            "devtools/wdio/network-logs",
+            "devtools/wdio/testlens"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Nightwatch",
+          "link": {
+            "type": "doc",
+            "id": "devtools/nightwatch"
+          },
+          "items": []
+        }
       ]
     },
     {
