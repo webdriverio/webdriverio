@@ -3,58 +3,49 @@ id: nightwatch
 title: Nightwatch DevTools
 ---
 
-`@wdio/nightwatch-devtools` is a dedicated adapter that brings the same powerful DevTools UI to your [Nightwatch.js](https://nightwatchjs.org/) test suite - **zero changes to your test files required**.
-
-It uses the same backend, same UI, and same capture infrastructure as the WebDriverIO DevTools service, providing approximately **80–90% feature parity**.
+Nightwatch adapter for [WebdriverIO DevTools](https://github.com/webdriverio/devtools) — brings the same visual debugging UI to your Nightwatch test suite with zero test code changes.
 
 ## Installation
 
-```sh
-npm install --save-dev @wdio/devtools-service
+```bash
+npm install @wdio/nightwatch-devtools
 ```
-
-> `@wdio/nightwatch-devtools` is included as a dependency of `@wdio/devtools-service`. No separate installation needed — just import from `@wdio/nightwatch-devtools` directly in your config.
 
 ## Setup
 
-### Standard Nightwatch (Mocha-style)
+### Standard Nightwatch (mocha-style)
 
 ```js
 // nightwatch.conf.cjs
 const nightwatchDevtools = require('@wdio/nightwatch-devtools').default
 
 module.exports = {
-    src_folders: ['tests'],
+  src_folders: ['tests'],
 
-    test_settings: {
-        default: {
-            desiredCapabilities: {
-                browserName: 'chrome',
-                // Required for network request capture
-                'goog:loggingPrefs': { performance: 'ALL' }
-            },
-            globals: nightwatchDevtools({ port: 3000 })
-        }
+  test_settings: {
+    default: {
+      desiredCapabilities: {
+        browserName: 'chrome',
+        // Required for network request capture
+        'goog:loggingPrefs': { performance: 'ALL' }
+      },
+      globals: nightwatchDevtools({ port: 3000 })
     }
+  }
 }
 ```
 
 Run your tests as normal — the DevTools UI opens automatically in a new browser window:
 
-```sh
-# Run all tests
+```bash
 nightwatch
-
-# Run a specific test file
-nightwatch tests/myTest.js
-
-# Run with a specific environment
-nightwatch --env chrome
 ```
+
+> No changes to your test files are needed.
 
 ### Cucumber / BDD
 
-Import `cucumberHooksPath` alongside the main export and pass it to the Cucumber `require` option. This registers `Before`/`After` scenario hooks automatically:
+Import `cucumberHooksPath` alongside the main export and pass it to the Cucumber `require` option. This registers `Before` / `After` scenario hooks that mirror the WebdriverIO service's `beforeScenario` / `afterScenario` behaviour.
 
 ```js
 // nightwatch.conf.cjs
@@ -62,25 +53,25 @@ const nightwatchDevtools = require('@wdio/nightwatch-devtools').default
 const { cucumberHooksPath } = require('@wdio/nightwatch-devtools')
 
 module.exports = {
-    src_folders: ['features/step_definitions'],
+  src_folders: ['features/step_definitions'],
 
-    test_runner: {
-        type: 'cucumber',
-        options: {
-            feature_path: 'features',
-            require: [cucumberHooksPath]  // registers DevTools Cucumber hooks
-        }
-    },
-
-    test_settings: {
-        default: {
-            desiredCapabilities: {
-                browserName: 'chrome',
-                'goog:loggingPrefs': { performance: 'ALL' }
-            },
-            globals: nightwatchDevtools({ port: 3000 })
-        }
+  test_runner: {
+    type: 'cucumber',
+    options: {
+      feature_path: 'features',
+      require: [cucumberHooksPath] // <-- register DevTools Cucumber hooks
     }
+  },
+
+  test_settings: {
+    default: {
+      desiredCapabilities: {
+        browserName: 'chrome',
+        'goog:loggingPrefs': { performance: 'ALL' }
+      },
+      globals: nightwatchDevtools({ port: 3000 })
+    }
+  }
 }
 ```
 
@@ -93,9 +84,26 @@ module.exports = {
 
 ```js
 globals: nightwatchDevtools({
-    port: 3000,
-    hostname: 'localhost'
+  port: 3000,
+  hostname: 'localhost'
 })
+```
+
+## Examples
+
+Working examples are included in the package:
+
+| Directory | Runner | Command |
+|-----------|--------|---------|
+| [`example/`](https://github.com/webdriverio/devtools/tree/main/packages/nightwatch-devtools/example) | Nightwatch mocha-style | `pnpm example` |
+
+Build the package first:
+
+```bash
+# From repo root
+pnpm build --filter @wdio/nightwatch-devtools
+cd packages/nightwatch-devtools
+pnpm example
 ```
 
 ## Features
@@ -109,11 +117,13 @@ The Nightwatch adapter provides the same DevTools UI experience:
 
 ## Limitations
 
-Nightwatch does not provide the same depth of framework hooks as WebdriverIO, so there are a few differences:
+Nightwatch does not provide the same depth of framework hooks as WebdriverIO, so there are a few differences from the WDIO DevTools service:
 
-| Limitation | Details |
-|-----------|---------|
-| No native command hooks | Nightwatch has no `beforeCommand`/`afterCommand` hook. Commands are intercepted via a browser proxy wrapper instead. |
+| Limitation | Detail |
+|-----------|--------|
+| No native command hooks | Nightwatch has no `beforeCommand` / `afterCommand` hook. Commands are intercepted via a browser proxy wrapper instead. |
 | Limited test context | `browser.currentTest` provides less metadata than the WDIO runner context; test names and file paths require additional heuristics. |
 | Flat suite nesting | Nightwatch does not natively support multiply-nested `describe` blocks; the plugin reports a maximum of two levels. |
 | Delayed result availability | Test results are only finalised in `afterEach`, not available mid-test. |
+
+Overall feature parity with the WebdriverIO DevTools service is approximately **80–90%**.
