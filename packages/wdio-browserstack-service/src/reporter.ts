@@ -11,6 +11,7 @@ import type { CurrentRunInfo, StdLog } from './types.js'
 import type { BrowserstackConfig, TestData, TestMeta } from './types.js'
 import {
     getCloudProvider,
+    getCentralUser,
     o11yClassErrorHandler,
     getGitMetaData,
     removeAnsiColors,
@@ -125,6 +126,11 @@ class _TestReporter extends WDIOReporter {
 
     needToSendData(testType?: string, event?: string) {
         if (!this._observability) {return false}
+
+        // APP_LCNC SDK flow: send test events via Listener so app_lcnc metadata reaches the ingestor
+        if (getCentralUser().app_lcnc && testType === 'test') {
+            return true
+        }
 
         switch (this._config?.framework) {
         case 'mocha':
