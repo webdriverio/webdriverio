@@ -16,8 +16,8 @@ export class BStackLogger {
 
     private static redactCredentials(logMessage: string): string {
         return logMessage
-            .replace(/([\\'"]*(?:username|accesskey|user|key)[\\'"]*\s*[:=]\s*[\\'"]*)([^\\'"\s,}]+)/gi, '$1[REDACTED]')
-            .replace(/([?&](?:username|access_key|accesskey|user|key)=)([^&#\s]+)/gi, '$1[REDACTED]')
+            .replace(/([\\'"]*(?:username|accesskey|user|key)[\\'"]*\s*[:=]\s*[\\'"]*)([^\\'"\s,}]+)/gi, '$1')
+            .replace(/([?&](?:username|access_key|accesskey|user|key)=)([^&#\s]+)/gi, '$1')
     }
 
     static logToFile(logMessage: string, logLevel: string) {
