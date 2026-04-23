@@ -7,43 +7,11 @@ This page documents all configuration options for the WebdriverIO MCP server.
 
 ## MCP Server Configuration
 
-The MCP server is configured through the Claude Desktop or Claude Code configuration files.
+The MCP server is configured through the configuration files or commands.
 
 ### Basic Configuration
 
-#### macOS
-
-Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
-
-```json
-{
-    "mcpServers": {
-        "wdio-mcp": {
-            "command": "npx",
-            "args": ["-y", "@wdio/mcp"]
-        }
-    }
-}
-```
-
-#### Windows
-
-Edit `%APPDATA%\Claude\claude_desktop_config.json`:
-
-```json
-{
-    "mcpServers": {
-        "wdio-mcp": {
-            "command": "npx",
-            "args": ["-y", "@wdio/mcp"]
-        }
-    }
-}
-```
-
-#### Claude Code
-
-Edit your project's `.claude/settings.json`:
+Edit your MCP configuration file (e.g. `./.mcp.json`) and add the following::
 
 ```json
 {
@@ -58,49 +26,62 @@ Edit your project's `.claude/settings.json`:
 
 ---
 
-## Environment Variables
+## Session Options
 
-Configure the Appium server connection and other settings via environment variables.
+All session options are passed to the `start_session` tool. There is a single unified tool for browser and mobile sessions — the `platform` parameter determines the session type.
 
-### Appium Connection
+### Common Options
 
-| Variable | Type | Default | Description |
-|----------|------|---------|-------------|
-| `APPIUM_URL` | string | `127.0.0.1` | Appium server hostname |
-| `APPIUM_URL_PORT` | number | `4723` | Appium server port |
-| `APPIUM_PATH` | string | `/` | Appium server path |
+#### `platform`
 
-### Example with Environment Variables
+-   **Type:** `"browser" | "ios" | "android"`
+-   **Mandatory:** Yes
 
-```json
-{
-    "mcpServers": {
-        "wdio-mcp": {
-            "command": "npx",
-            "args": ["-y", "@wdio/mcp"],
-            "env": {
-                "APPIUM_URL": "192.168.1.100",
-                "APPIUM_URL_PORT": "4724",
-                "APPIUM_PATH": "/wd/hub"
-            }
-        }
-    }
-}
-```
+The platform to automate.
+
+#### `provider`
+
+-   **Type:** `"local" | "browserstack"`
+-   **Mandatory:** No
+-   **Default:** `"local"`
+
+Where the session runs. Use `"browserstack"` for cloud devices — requires `BROWSERSTACK_USERNAME` and `BROWSERSTACK_ACCESS_KEY` environment variables. See [BrowserStack](./browserstack) for details.
 
 ---
 
 ## Browser Session Options
 
-Options available when starting a browser session via the `start_browser` tool.
+Options for `platform: "browser"` sessions.
+
+### `browser`
+
+-   **Type:** `"chrome" | "firefox" | "edge" | "safari"`
+-   **Mandatory:** Yes (for browser platform)
+
+Browser to launch.
+
+### `browserVersion`
+
+-   **Type:** `string`
+-   **Mandatory:** No
+-   **Default:** `"latest"`
+
+Browser version. BrowserStack only.
+
+### `os` / `osVersion`
+
+-   **Type:** `string`
+-   **Mandatory:** No
+
+Operating system for BrowserStack browser sessions. Examples: `os: "Windows"`, `osVersion: "11"` or `os: "OS X"`, `osVersion: "Sequoia"`.
 
 ### `headless`
 
 -   **Type:** `boolean`
 -   **Mandatory:** No
--   **Default:** `false`
+-   **Default:** `true`
 
-Run Chrome in headless mode (no visible browser window). Useful for CI/CD environments or when you don't need to see the browser.
+Run browser in headless mode (no visible window). Set to `false` to see the browser.
 
 ### `windowWidth`
 
@@ -125,75 +106,71 @@ Initial browser window height in pixels.
 -   **Type:** `string`
 -   **Mandatory:** No
 
-URL to navigate to immediately after starting the browser. This is more efficient than calling `start_browser` followed by `navigate` separately.
+URL to navigate to immediately after starting the browser. More efficient than calling `start_session` followed by `navigate` separately.
 
-**Example:** Start browser and navigate in one call:
-```
-Start Chrome and navigate to https://webdriver.io
-```
+### `attach`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `false`
+
+Attach to an existing Chrome instance instead of launching a new one. Use after `launch_chrome` to connect via CDP.
+
+### `attachConfig`
+
+-   **Type:** `{ port?: number; host?: string }`
+-   **Mandatory:** No
+-   **Default:** `{ port: 9222, host: "localhost" }`
+
+Chrome remote debugging connection config. Only applies when `attach: true`.
 
 ---
 
 ## Mobile Session Options
 
-Options available when starting a mobile app session via the `start_app_session` tool.
+Options for `platform: "ios"` or `platform: "android"` sessions.
 
-### Platform Options
-
-#### `platform`
+### `deviceName`
 
 -   **Type:** `string`
--   **Mandatory:** Yes
--   **Values:** `iOS` | `Android`
+-   **Mandatory:** Yes (for mobile platforms)
 
-The mobile platform to automate.
-
-#### `platformVersion`
-
--   **Type:** `string`
--   **Mandatory:** No
-
-The OS version of the device/simulator/emulator (e.g., `17.0` for iOS, `14` for Android).
-
-#### `automationName`
-
--   **Type:** `string`
--   **Mandatory:** No
--   **Values:** `XCUITest` (iOS), `UiAutomator2` | `Espresso` (Android)
-
-The automation driver to use. Defaults to `XCUITest` for iOS and `UiAutomator2` for Android.
-
-### Device Options
-
-#### `deviceName`
-
--   **Type:** `string`
--   **Mandatory:** Yes
-
-Name of the device, simulator, or emulator to use.
+Name of the device, simulator, or emulator.
 
 **Examples:**
--   iOS Simulator: `iPhone 15 Pro`, `iPad Air (5th generation)`
--   Android Emulator: `Pixel 7`, `Nexus 5X`
+-   iOS Simulator: `"iPhone 16"`, `"iPad Air (5th generation)"`
+-   Android Emulator: `"Pixel 7"`, `"Nexus 5X"`
 -   Real Device: The device name as shown in your system
 
-#### `udid`
+### `platformVersion`
+
+-   **Type:** `string`
+-   **Mandatory:** No
+
+OS version of the device/simulator/emulator (e.g., `"18.0"` for iOS, `"14"` for Android).
+
+### `automationName`
+
+-   **Type:** `"XCUITest" | "UiAutomator2"`
+-   **Mandatory:** No
+
+Automation driver. Defaults to `XCUITest` for iOS and `UiAutomator2` for Android.
+
+### `udid`
 
 -   **Type:** `string`
 -   **Mandatory:** No (Required for real iOS devices)
 
-Unique Device Identifier. Required for real iOS devices (40-character identifier) and recommended for Android real devices.
+Unique Device Identifier. Required for real iOS devices (40-character identifier).
 
 **Finding UDID:**
--   **iOS:** Connect device, open Finder/iTunes, click on device → Serial Number (click to reveal UDID)
+-   **iOS:** Connect device, open Finder, click on device → Serial Number (click to reveal UDID)
 -   **Android:** Run `adb devices` in terminal
 
-### App Options
-
-#### `appPath`
+### `appPath`
 
 -   **Type:** `string`
--   **Mandatory:** No*
+-   **Mandatory:** No
 
 Path to the application file to install and launch.
 
@@ -202,16 +179,23 @@ Path to the application file to install and launch.
 -   iOS Real Device: `.ipa` file
 -   Android: `.apk` file
 
-*Either `appPath` must be provided, or `noReset: true` to connect to an already-running app.
+Either `appPath` must be provided, or `noReset: true` to connect to an already-running app.
 
-#### `appWaitActivity`
+### `app`
+
+-   **Type:** `string`
+-   **Mandatory:** No
+
+BrowserStack app URL (`bs://...`) or `customId`. Used instead of `appPath` for BrowserStack App Automate sessions.
+
+### `appWaitActivity`
 
 -   **Type:** `string`
 -   **Mandatory:** No (Android only)
 
 Activity to wait for on app launch. If not specified, the app's main/launcher activity is used.
 
-**Example:** `com.example.app.MainActivity`
+**Example:** `"com.example.app.MainActivity"`
 
 ### Session State Options
 
@@ -219,24 +203,20 @@ Activity to wait for on app launch. If not specified, the app's main/launcher ac
 
 -   **Type:** `boolean`
 -   **Mandatory:** No
--   **Default:** `false`
 
 Preserve the app state between sessions. When `true`:
 -   App data is preserved (login state, preferences, etc.)
 -   Session will **detach** instead of close (keeps app running)
--   Useful for testing user journeys across multiple sessions
 -   Can be used without `appPath` to connect to an already-running app
 
 #### `fullReset`
 
 -   **Type:** `boolean`
 -   **Mandatory:** No
--   **Default:** `true`
 
-Completely reset the app before the session. When `true`:
+Completely reset the app before the session:
 -   iOS: Uninstalls and reinstalls the app
 -   Android: Clears app data and cache
--   Useful for starting with a clean state
 
 Set `fullReset: false` with `noReset: true` to preserve app state completely.
 
@@ -246,16 +226,11 @@ Set `fullReset: false` with `noReset: true` to preserve app state completely.
 
 -   **Type:** `number`
 -   **Mandatory:** No
--   **Default:** `60`
+-   **Default:** `300`
 
-How long (in seconds) Appium will wait for a new command before assuming the client has quit and ending the session. Increase this value for longer debugging sessions.
+How long (in seconds) Appium will wait for a new command before ending the session. Increase for longer debugging sessions.
 
-**Examples:**
--   `60` - Default, suitable for most automation
--   `300` - 5 minutes, for debugging or slower operations
--   `600` - 10 minutes, for very long-running tests
-
-### Automatic Handling Options
+### Automatic Handling
 
 #### `autoGrantPermissions`
 
@@ -263,10 +238,7 @@ How long (in seconds) Appium will wait for a new command before assuming the cli
 -   **Mandatory:** No
 -   **Default:** `true`
 
-Automatically grant app permissions on install/launch. When `true`:
--   Camera, microphone, location, etc. permissions are auto-granted
--   No manual permission dialog handling needed
--   Streamlines automation by avoiding permission popups
+Automatically grant app permissions on install/launch (camera, microphone, location, etc.).
 
 :::note Android Only
 This option primarily affects Android. iOS permissions must be handled differently due to system restrictions.
@@ -278,12 +250,7 @@ This option primarily affects Android. iOS permissions must be handled different
 -   **Mandatory:** No
 -   **Default:** `true`
 
-Automatically accept system alerts (dialogs) that appear during automation.
-
-**Examples of auto-accepted alerts:**
--   "Allow notifications?"
--   "App would like to access your location"
--   "Allow app to access photos?"
+Automatically accept system alerts (dialogs) during automation ("Allow notifications?", etc.).
 
 #### `autoDismissAlerts`
 
@@ -291,58 +258,65 @@ Automatically accept system alerts (dialogs) that appear during automation.
 -   **Mandatory:** No
 -   **Default:** `false`
 
-Dismiss (cancel) system alerts instead of accepting them. Takes precedence over `autoAcceptAlerts` when set to `true`.
+Dismiss system alerts instead of accepting them. Takes precedence over `autoAcceptAlerts` when `true`.
 
-### Appium Server Override
+### Appium Server Connection
 
-You can override the Appium server connection on a per-session basis:
+Override the Appium server connection on a per-session basis using `appiumConfig`:
 
-#### `appiumHost`
+```
+start_session({
+  platform: "ios",
+  deviceName: "iPhone 16",
+  appPath: "/path/to/app.app",
+  appiumConfig: { host: "192.168.1.100", port: 4724, path: "/wd/hub" }
+})
+```
 
--   **Type:** `string`
+#### `appiumConfig`
+
+-   **Type:** `{ host?: string; port?: number; path?: string }`
 -   **Mandatory:** No
 
-Appium server hostname. Overrides `APPIUM_URL` environment variable.
+Appium server connection. Defaults to `{ host: "127.0.0.1", port: 4723, path: "/" }`.
 
-#### `appiumPort`
+---
 
--   **Type:** `number`
+## BrowserStack Options
+
+### `browserstackLocal`
+
+-   **Type:** `boolean | "external"`
+-   **Mandatory:** No
+-   **Default:** `false`
+
+Enable BrowserStack Local tunnel for accessing localhost from BrowserStack devices.
+
+-   `true` — Auto-start the tunnel before the session and stop it on close
+-   `"external"` — Tunnel already running externally; set `local: true` in capabilities only
+
+Before using `true`, read `wdio://browserstack/local-binary` for setup instructions specific to your OS and architecture.
+
+### `reporting`
+
+-   **Type:** `{ project?: string; build?: string; session?: string }`
 -   **Mandatory:** No
 
-Appium server port. Overrides `APPIUM_URL_PORT` environment variable.
-
-#### `appiumPath`
-
--   **Type:** `string`
--   **Mandatory:** No
-
-Appium server path. Overrides `APPIUM_PATH` environment variable.
+BrowserStack Automate session labels visible in the dashboard.
 
 ---
 
 ## Element Detection Options
 
-Options for the `get_visible_elements` tool.
-
-### `elementType`
-
--   **Type:** `string`
--   **Mandatory:** No
--   **Default:** `interactable`
--   **Values:** `interactable` | `visual` | `all`
-
-Type of elements to return:
--   `interactable`: Buttons, links, inputs, and other clickable elements
--   `visual`: Images, SVGs, and visual elements
--   `all`: Both interactable and visual elements
+Options for the `get_elements` tool.
 
 ### `inViewportOnly`
 
 -   **Type:** `boolean`
 -   **Mandatory:** No
--   **Default:** `true`
+-   **Default:** `false`
 
-Only return elements that are visible within the current viewport. When `false`, returns all elements in the view hierarchy (useful for finding off-screen elements).
+Only return elements visible in the current viewport. Set to `true` to reduce results on long pages.
 
 ### `includeContainers`
 
@@ -350,18 +324,11 @@ Only return elements that are visible within the current viewport. When `false`,
 -   **Mandatory:** No
 -   **Default:** `false`
 
-Include container/layout elements in the results. When `true`:
+Include container/layout elements in the results:
 
-**Android containers included:**
--   `ViewGroup`, `FrameLayout`, `LinearLayout`
--   `RelativeLayout`, `ConstraintLayout`
--   `ScrollView`, `RecyclerView`
+**Android containers:** `ViewGroup`, `FrameLayout`, `LinearLayout`, `RelativeLayout`, `ConstraintLayout`, `ScrollView`, `RecyclerView`
 
-**iOS containers included:**
--   `View`, `StackView`, `CollectionView`
--   `ScrollView`, `TableView`
-
-Useful for debugging layout issues or understanding the view hierarchy.
+**iOS containers:** `View`, `StackView`, `CollectionView`, `ScrollView`, `TableView`
 
 ### `includeBounds`
 
@@ -369,14 +336,9 @@ Useful for debugging layout issues or understanding the view hierarchy.
 -   **Mandatory:** No
 -   **Default:** `false`
 
-Include element bounds/coordinates (x, y, width, height) in the response. Set to `true` for:
--   Coordinate-based interactions
--   Layout debugging
--   Visual element positioning
+Include element bounding box coordinates (x, y, width, height) in the response.
 
-### Pagination Options
-
-For large pages with many elements, use pagination to reduce token usage:
+### Pagination
 
 #### `limit`
 
@@ -394,24 +356,24 @@ Maximum number of elements to return.
 
 Number of elements to skip before returning results.
 
-**Example:** Get elements 21-40:
+**Example:** Get elements 21–40:
 ```
-Get visible elements with limit 20 and offset 20
+Get elements with limit 20 and offset 20
 ```
 
 ---
 
 ## Accessibility Tree Options
 
-Options for the `get_accessibility` tool (browser-only).
+Options for the `get_accessibility_tree` tool (browser-only).
 
 ### `limit`
 
 -   **Type:** `number`
 -   **Mandatory:** No
--   **Default:** `100`
+-   **Default:** `0` (unlimited)
 
-Maximum number of nodes to return. Use `0` for unlimited (not recommended for large pages).
+Maximum number of nodes to return.
 
 ### `offset`
 
@@ -436,30 +398,11 @@ Filter to specific accessibility roles.
 Get accessibility tree filtered to button and link roles
 ```
 
-### `namedOnly`
-
--   **Type:** `boolean`
--   **Mandatory:** No
--   **Default:** `true`
-
-Only return nodes that have a name/label. Filters out anonymous containers and reduces noise in the results.
-
 ---
 
-## Screenshot Options
+## Screenshot
 
-Options for the `take_screenshot` tool.
-
-### `outputPath`
-
--   **Type:** `string`
--   **Mandatory:** No
-
-Path where to save the screenshot file. If not provided, returns base64-encoded image data.
-
-### Automatic Optimization
-
-Screenshots are automatically processed to optimize for LLM consumption:
+The `get_screenshot` tool takes no parameters. Screenshots are automatically processed:
 
 | Optimization | Value | Description |
 |--------------|-------|-------------|
@@ -467,19 +410,15 @@ Screenshots are automatically processed to optimize for LLM consumption:
 | Max file size | 1MB | Images are compressed to stay under 1MB |
 | Format | PNG/JPEG | PNG with max compression; JPEG if needed for size |
 
-This optimization ensures screenshots can be efficiently processed without exceeding token limits.
-
 ---
 
 ## Session Behavior
 
 ### Session Types
 
-The MCP server tracks session types to provide appropriate tools and behavior:
-
 | Type | Description | Auto-Detach |
 |------|-------------|-------------|
-| `browser` | Chrome browser session | No |
+| `browser` | Browser session | No |
 | `ios` | iOS app session | Yes (if `noReset: true` or no `appPath`) |
 | `android` | Android app session | Yes (if `noReset: true` or no `appPath`) |
 
@@ -495,7 +434,7 @@ The MCP server operates with a **single-session model**:
 
 | Action | `detach: false` (Close) | `detach: true` (Detach) |
 |--------|-------------------------|-------------------------|
-| Browser | Closes Chrome completely | Keeps Chrome running, disconnects WebDriver |
+| Browser | Closes browser completely | Keeps browser running, disconnects WebDriver |
 | Mobile App | Terminates app | Keeps app running in current state |
 | Use Case | Clean slate for next session | Preserve state, manual inspection |
 
@@ -503,24 +442,19 @@ The MCP server operates with a **single-session model**:
 
 ## Performance Considerations
 
-The MCP server is optimized for efficient LLM communication using **TOON (Token-Oriented Object Notation)** format, which minimizes token usage when sending data to Claude.
-
 ### Browser Automation
 
 -   **Headless mode** is faster but doesn't render visual elements
 -   **Smaller window sizes** reduce screenshot capture time
 -   **Element detection** is optimized with a single script execution
 -   **Screenshot optimization** keeps images under 1MB for efficient processing
--   **`inViewportOnly: true`** (default) filters to only visible elements
 
 ### Mobile Automation
 
 -   **XML page source parsing** uses only 2 HTTP calls (vs 600+ for traditional element queries)
 -   **Accessibility ID selectors** are fastest and most reliable
--   **XPath selectors** are slowest - use only as a last resort
--   **`inViewportOnly: true`** (default) significantly reduces element count
+-   **XPath selectors** are slowest — use only as a last resort
 -   **Pagination** (`limit` and `offset`) reduces token usage for screens with many elements
--   **`includeBounds: false`** (default) omits coordinate data unless needed
 
 ### Token Usage Tips
 
@@ -530,7 +464,6 @@ The MCP server is optimized for efficient LLM communication using **TOON (Token-
 | `includeContainers: false` | Excludes layout elements (ViewGroup, etc.) |
 | `includeBounds: false` | Omits x/y/width/height data |
 | `limit` with pagination | Process elements in batches instead of all at once |
-| `namedOnly: true` (accessibility) | Filters anonymous nodes |
 
 ---
 
@@ -586,17 +519,17 @@ curl http://localhost:4723/status
 
 1. Verify npm/npx is installed: `npm --version`
 2. Try running manually: `npx @wdio/mcp`
-3. Check Claude Desktop logs for errors
+3. Check your harness' logs for errors
 
 ### Appium Connection Issues
 
 1. Verify Appium is running: `curl http://localhost:4723/status`
-2. Check environment variables match Appium server settings
+2. Check `appiumConfig` in `start_session` matches the Appium server settings
 3. Ensure firewall allows connections on the Appium port
 
 ### Session Won't Start
 
-1. **Browser:** Ensure Chrome is installed
+1. **Browser:** Ensure the target browser is installed
 2. **iOS:** Verify Xcode and simulators are available
 3. **Android:** Check `ANDROID_HOME` and emulator is running
 4. Review Appium server logs for detailed error messages

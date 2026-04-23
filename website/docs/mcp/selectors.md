@@ -343,7 +343,7 @@ android=new UiSelector().text("Submit")
 The MCP server's `get_visible_elements` tool returns multiple selector strategies for each element:
 
 ```
-Ask Claude: "Get all visible elements on the screen"
+Ask: "Get all visible elements on the screen"
 ```
 
 This returns elements with pre-generated selectors you can use directly.
