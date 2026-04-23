@@ -40,5 +40,10 @@ export const config = {
         timeout: 5000,
         requireModule: ['tsx'],
         require: [path.resolve(__dirname, '..', 'cucumber', 'step-definitions', '*.js')]
+    },
+
+    vitestOpts: {
+        testTimeout: 10000,
+        hookTimeout: 10000,
     }
 }

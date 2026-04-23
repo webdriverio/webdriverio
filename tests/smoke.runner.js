@@ -1151,6 +1151,70 @@ const jasmineAfterHookArgsValidation = async () => {
 }
 // *** END - Tests for Jasmine ***
 
+// **************************
+// *** Tests for Vitest   ***
+// **************************
+
+/**
+ * Vitest wdio testrunner tests
+ */
+const vitestTestrunner = async () => {
+    const { skippedSpecs, passed } = await launch('vitestTestrunner', baseConfig, {
+        specs: [
+            path.resolve(__dirname, 'vitest', 'test.js'),
+            path.resolve(__dirname, 'vitest', 'test-skipped.js'),
+        ],
+        framework: 'vitest',
+    })
+
+    /**
+     * assertion fails in Windows
+     * ToDo(Christian): fix
+     */
+    if (process.platform === 'win32') {
+        return
+    }
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(passed, 2)
+}
+
+/**
+ * Vitest with reporter
+ */
+const vitestReporter = async () => {
+    await launch('vitestReporter', baseConfig, {
+        specs: [path.resolve(__dirname, 'vitest', 'reporter.js')],
+        reporters: [['smoke-test', { foo: 'bar' }]],
+        framework: 'vitest',
+        outputDir: __dirname + '/vitest'
+    }).catch((err) => err) // error expected
+    await sleep(100)
+    const reporterLogsPath = path.resolve(__dirname, 'vitest', 'wdio-0-0-smoke-test-reporter.log')
+    const reporterLogsExist = await fileExists(reporterLogsPath)
+    assert.ok(reporterLogsExist, 'Vitest reporter log file should exist')
+    if (reporterLogsExist) {
+        await fs.unlink(reporterLogsPath)
+    }
+}
+
+/**
+ * Vitest with custom service
+ */
+const vitestCustomService = async () => {
+    await launch('vitestCustomService', baseConfig, {
+        specs: [path.resolve(__dirname, 'vitest', 'service.js')],
+        services: [['smoke-test', { foo: 'bar' }]],
+        framework: 'vitest',
+    })
+    await sleep(100)
+    const serviceLogs = await fs.readFile(path.resolve(__dirname, 'helpers', 'service.log'))
+    assert.equal(serviceLogs.toString(), SERVICE_LOGS)
+    const launcherLogs = await fs.readFile(path.resolve(__dirname, 'helpers', 'launcher.log'))
+    assert.equal(launcherLogs.toString(), LAUNCHER_LOGS)
+}
+
+// *** END - Tests for Vitest ***
+
 (async () => {
     const smokeTests = [
         mochaTestrunner,
@@ -1193,6 +1257,9 @@ const jasmineAfterHookArgsValidation = async () => {
         runSpecsWithFlagNoArg,
         jasmineHooksTestrunner,
         jasmineAfterHookArgsValidation,
+        vitestTestrunner,
+        vitestReporter,
+        vitestCustomService,
         cliExcludeParamValidationAllExcludedByKeyword,
         cliExcludeParamValidationSomeExcludedByKeyword,
         cliExcludeParamValidationSomeExcludedByPath,

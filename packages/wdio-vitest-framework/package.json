@@ -1,0 +1,46 @@
+{
+  "name": "@wdio/vitest-framework",
+  "version": "9.24.0",
+  "description": "A WebdriverIO plugin. Adapter for Vitest testing framework.",
+  "author": "Christian Bromann <mail@bromann.dev>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-vitest-framework",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.20.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-vitest-framework"
+  },
+  "keywords": [
+    "vitest",
+    "webdriver",
+    "wdio",
+    "wdio-plugin",
+    "wdio-framework"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./build/index.js",
+      "types": "./build/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
+  "dependencies": {
+    "@vitest/runner": "^4.0.0",
+    "@vitest/utils": "^4.0.0",
+    "@wdio/logger": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "@wdio/utils": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
