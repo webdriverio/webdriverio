@@ -262,6 +262,19 @@ describe('webdriver request', () => {
             }))
         })
 
+        it('should log string request bodies without enumerating them', async () => {
+            const onLogData = vi.fn()
+            const req = new WebFetchRequest('POST', webdriverPath, {}, undefined, false, {
+                onLogData
+            })
+
+            const url = new URL('/session/foobar-123/element', baseUrl)
+            const opts = { body: JSON.stringify({ file: 'x'.repeat(10_000) }) }
+            await req['_request'](url, opts)
+
+            expect(onLogData).toHaveBeenCalledWith(opts.body)
+        })
+
         it('should short circuit if request throws a stale element exception', async () => {
             const onResponse = vi.fn()
             const onPerformance = vi.fn()
