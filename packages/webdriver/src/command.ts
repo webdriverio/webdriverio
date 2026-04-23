@@ -48,12 +48,10 @@ export default function (
          *
          * Note: there are situations where we have to use deprecated commands, e.g. `switchToFrame`
          * internally where we don't want to have the message shown to the user. In these cases we
-         * use the `DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS` env variable to suppress the message.
+         * use the suppress the message.
          */
-        const DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS = globalThis.process && globalThis.process.env
-            ? globalThis.process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS
-            : undefined
-        if (typeof deprecated === 'string' && !DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS) {
+        const IGNORE_COMMANDS = ['switchToFrame']
+        if (typeof deprecated === 'string' && !IGNORE_COMMANDS.includes(command)) {
             const warning = deprecated.replace('This command', `The "${command}" command`)
             log.warn(warning)
             console.warn(`⚠️ [WEBDRIVERIO DEPRECATION NOTICE] ${warning}`)
