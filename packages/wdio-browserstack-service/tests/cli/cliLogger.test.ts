@@ -27,31 +27,31 @@ describe('cliLogger - redactCredentials', () => {
         it('should redact userName with double quotes', () => {
             const logInfoMock = vi.spyOn(log, 'info')
             BStackLogger.info('config: {"userName": "myUser123"}')
-            expect(logInfoMock).toHaveBeenCalledWith('config: {"userName": "[REDACTED]"}')
+            expect(logInfoMock).toHaveBeenCalledWith('config: {"userName": ""}')
         })
 
         it('should redact accessKey with double quotes', () => {
             const logInfoMock = vi.spyOn(log, 'info')
             BStackLogger.info('config: {"accessKey": "secretKey456"}')
-            expect(logInfoMock).toHaveBeenCalledWith('config: {"accessKey": "[REDACTED]"}')
+            expect(logInfoMock).toHaveBeenCalledWith('config: {"accessKey": ""}')
         })
 
         it('should redact user and key fields', () => {
             const logInfoMock = vi.spyOn(log, 'info')
             BStackLogger.info('config: {"user": "myUser", "key": "myKey"}')
-            expect(logInfoMock).toHaveBeenCalledWith('config: {"user": "[REDACTED]", "key": "[REDACTED]"}')
+            expect(logInfoMock).toHaveBeenCalledWith('config: {"user": "", "key": ""}')
         })
 
         it('should redact username with single quotes', () => {
             const logInfoMock = vi.spyOn(log, 'info')
             BStackLogger.info("config: {'username': 'myUser123'}")
-            expect(logInfoMock).toHaveBeenCalledWith("config: {'username': '[REDACTED]'}")
+            expect(logInfoMock).toHaveBeenCalledWith("config: {'username': ''}")
         })
 
         it('should redact multiple credentials in the same message', () => {
             const logInfoMock = vi.spyOn(log, 'info')
             BStackLogger.info('{"username": "user1", "accessKey": "key1"}')
-            expect(logInfoMock).toHaveBeenCalledWith('{"username": "[REDACTED]", "accessKey": "[REDACTED]"}')
+            expect(logInfoMock).toHaveBeenCalledWith('{"username": "", "accessKey": ""}')
         })
     })
 
@@ -59,19 +59,19 @@ describe('cliLogger - redactCredentials', () => {
         it('should redact username=value', () => {
             const logInfoMock = vi.spyOn(log, 'info')
             BStackLogger.info('config: username=myUser123, other=value')
-            expect(logInfoMock).toHaveBeenCalledWith('config: username=[REDACTED], other=value')
+            expect(logInfoMock).toHaveBeenCalledWith('config: username=, other=value')
         })
 
         it('should redact accesskey case-insensitively', () => {
             const logInfoMock = vi.spyOn(log, 'info')
             BStackLogger.info('config: ACCESSKEY=secretKey456, other=value')
-            expect(logInfoMock).toHaveBeenCalledWith('config: ACCESSKEY=[REDACTED], other=value')
+            expect(logInfoMock).toHaveBeenCalledWith('config: ACCESSKEY=, other=value')
         })
 
         it('should redact key: value without quotes', () => {
             const logInfoMock = vi.spyOn(log, 'info')
             BStackLogger.info('username: myUser123, done')
-            expect(logInfoMock).toHaveBeenCalledWith('username: [REDACTED], done')
+            expect(logInfoMock).toHaveBeenCalledWith('username: , done')
         })
     })
 
@@ -79,7 +79,7 @@ describe('cliLogger - redactCredentials', () => {
         it('should redact credential at end of URL', () => {
             const logInfoMock = vi.spyOn(log, 'info')
             BStackLogger.info('url: https://hub.example.com?other=val&username=myUser')
-            expect(logInfoMock).toHaveBeenCalledWith('url: https://hub.example.com?other=val&username=[REDACTED]')
+            expect(logInfoMock).toHaveBeenCalledWith('url: https://hub.example.com?other=val&username=')
         })
     })
 
@@ -99,7 +99,7 @@ describe('cliLogger - redactCredentials', () => {
 
     describe('redaction across all log levels', () => {
         const msg = '{"username": "user1", "accessKey": "key1"}'
-        const expected = '{"username": "[REDACTED]", "accessKey": "[REDACTED]"}'
+        const expected = '{"username": "", "accessKey": ""}'
 
         it('should redact in info', () => {
             const mock = vi.spyOn(log, 'info')
