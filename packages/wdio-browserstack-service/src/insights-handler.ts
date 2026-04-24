@@ -712,7 +712,6 @@ class _InsightsHandler {
             framework: this._framework
         }
 
-
         if ((eventType === 'TestRunFinished' || eventType === 'HookRunFinished') && results) {
             const { error, passed } = results
             if (!passed) {
