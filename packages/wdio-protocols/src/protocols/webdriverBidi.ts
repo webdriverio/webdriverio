@@ -14,1303 +14,1303 @@
  */
 
 const protocol = {
-    "sendCommand": {
-        "socket": {
-            "command": "send",
-            "description": "Send socket commands via WebDriver Bidi",
-            "ref": "https://github.com/w3c/webdriver-bidi",
-            "parameters": [
+    'sendCommand': {
+        'socket': {
+            'command': 'send',
+            'description': 'Send socket commands via WebDriver Bidi',
+            'ref': 'https://github.com/w3c/webdriver-bidi',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "CommandData",
-                    "description": "socket payload",
-                    "required": true
+                    'name': 'params',
+                    'type': 'CommandData',
+                    'description': 'socket payload',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "CommandResponse",
-                "description": "WebDriver Bidi response"
+            'returns': {
+                'type': 'Object',
+                'name': 'CommandResponse',
+                'description': 'WebDriver Bidi response'
             }
         }
     },
-    "sendAsyncCommand": {
-        "socket": {
-            "command": "sendAsync",
-            "description": "Send asynchronous socket commands via WebDriver Bidi",
-            "ref": "https://github.com/w3c/webdriver-bidi",
-            "parameters": [
+    'sendAsyncCommand': {
+        'socket': {
+            'command': 'sendAsync',
+            'description': 'Send asynchronous socket commands via WebDriver Bidi',
+            'ref': 'https://github.com/w3c/webdriver-bidi',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "CommandData",
-                    "description": "socket payload",
-                    "required": true
+                    'name': 'params',
+                    'type': 'CommandData',
+                    'description': 'socket payload',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Number",
-                "name": "id",
-                "description": "id of WebDriver Bidi request"
+            'returns': {
+                'type': 'Number',
+                'name': 'id',
+                'description': 'id of WebDriver Bidi request'
             }
         }
     },
-    "session.status": {
-        "socket": {
-            "command": "sessionStatus",
-            "description": "WebDriver Bidi command to send command method \"session.status\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-session-status",
-            "parameters": [
+    'session.status': {
+        'socket': {
+            'command': 'sessionStatus',
+            'description': 'WebDriver Bidi command to send command method "session.status" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-session-status',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.EmptyParams`",
-                    "description": "<pre>\\{\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.EmptyParams`',
+                    'description': '<pre>\\{\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.SessionStatusResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     ready: boolean;\n     message: string;\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.SessionStatusResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     ready: boolean;\r\n     message: string;\r\n   }\n   ```'
             }
         }
     },
-    "session.new": {
-        "socket": {
-            "command": "sessionNew",
-            "description": "WebDriver Bidi command to send command method \"session.new\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-session-new",
-            "parameters": [
+    'session.new': {
+        'socket': {
+            'command': 'sessionNew',
+            'description': 'WebDriver Bidi command to send command method "session.new" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-session-new',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.SessionNewParameters`",
-                    "description": "<pre>\\{<br />  capabilities: SessionCapabilitiesRequest;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.SessionNewParameters`',
+                    'description': '<pre>\\{\r<br />  capabilities: SessionCapabilitiesRequest;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.SessionNewResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     sessionId: string;\n     capabilities: {\n       acceptInsecureCerts: boolean;\n       browserName: string;\n       browserVersion: string;\n       platformName: string;\n       setWindowRect: boolean;\n       userAgent: string;\n       proxy?: SessionProxyConfiguration;\n       unhandledPromptBehavior?: SessionUserPromptHandler;\n       webSocketUrl?: string;\n     };\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.SessionNewResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     sessionId: string;\r\n     capabilities: {\r\n       acceptInsecureCerts: boolean;\r\n       browserName: string;\r\n       browserVersion: string;\r\n       platformName: string;\r\n       setWindowRect: boolean;\r\n       userAgent: string;\r\n       proxy?: SessionProxyConfiguration;\r\n       unhandledPromptBehavior?: SessionUserPromptHandler;\r\n       webSocketUrl?: string;\r\n     };\r\n   }\n   ```'
             }
         }
     },
-    "session.end": {
-        "socket": {
-            "command": "sessionEnd",
-            "description": "WebDriver Bidi command to send command method \"session.end\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-session-end",
-            "parameters": [
+    'session.end': {
+        'socket': {
+            'command': 'sessionEnd',
+            'description': 'WebDriver Bidi command to send command method "session.end" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-session-end',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.EmptyParams`",
-                    "description": "<pre>\\{\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.EmptyParams`',
+                    'description': '<pre>\\{\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.SessionEndResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.SessionEndResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "session.subscribe": {
-        "socket": {
-            "command": "sessionSubscribe",
-            "description": "WebDriver Bidi command to send command method \"session.subscribe\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-session-subscribe",
-            "parameters": [
+    'session.subscribe': {
+        'socket': {
+            'command': 'sessionSubscribe',
+            'description': 'WebDriver Bidi command to send command method "session.subscribe" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-session-subscribe',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.SessionSubscribeParameters`",
-                    "description": "<pre>\\{<br />  events: string[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.SessionSubscribeParameters`',
+                    'description': '<pre>\\{\r<br />  events: string[];\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.SessionSubscribeResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     subscription: SessionSubscription;\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.SessionSubscribeResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     subscription: SessionSubscription;\r\n   }\n   ```'
             }
         }
     },
-    "session.unsubscribe": {
-        "socket": {
-            "command": "sessionUnsubscribe",
-            "description": "WebDriver Bidi command to send command method \"session.unsubscribe\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-session-unsubscribe",
-            "parameters": [
+    'session.unsubscribe': {
+        'socket': {
+            'command': 'sessionUnsubscribe',
+            'description': 'WebDriver Bidi command to send command method "session.unsubscribe" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-session-unsubscribe',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.SessionUnsubscribeParameters`",
-                    "description": "<pre>\\{\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.SessionUnsubscribeParameters`',
+                    'description': '<pre>\\{\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.SessionUnsubscribeResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.SessionUnsubscribeResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "browser.close": {
-        "socket": {
-            "command": "browserClose",
-            "description": "WebDriver Bidi command to send command method \"browser.close\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browser-close",
-            "parameters": [
+    'browser.close': {
+        'socket': {
+            'command': 'browserClose',
+            'description': 'WebDriver Bidi command to send command method "browser.close" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browser-close',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.EmptyParams`",
-                    "description": "<pre>\\{\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.EmptyParams`',
+                    'description': '<pre>\\{\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowserCloseResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowserCloseResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "browser.createUserContext": {
-        "socket": {
-            "command": "browserCreateUserContext",
-            "description": "WebDriver Bidi command to send command method \"browser.createUserContext\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browser-createUserContext",
-            "parameters": [
+    'browser.createUserContext': {
+        'socket': {
+            'command': 'browserCreateUserContext',
+            'description': 'WebDriver Bidi command to send command method "browser.createUserContext" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browser-createUserContext',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowserCreateUserContextParameters`",
-                    "description": "<pre>\\{<br />  acceptInsecureCerts?: boolean;<br />  proxy?: SessionProxyConfiguration;<br />  unhandledPromptBehavior?: SessionUserPromptHandler;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowserCreateUserContextParameters`',
+                    'description': '<pre>\\{\r<br />  acceptInsecureCerts?: boolean;\r<br />  proxy?: SessionProxyConfiguration;\r<br />  unhandledPromptBehavior?: SessionUserPromptHandler;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowserCreateUserContextResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowserCreateUserContextResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "browser.getClientWindows": {
-        "socket": {
-            "command": "browserGetClientWindows",
-            "description": "WebDriver Bidi command to send command method \"browser.getClientWindows\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browser-getClientWindows",
-            "parameters": [
+    'browser.getClientWindows': {
+        'socket': {
+            'command': 'browserGetClientWindows',
+            'description': 'WebDriver Bidi command to send command method "browser.getClientWindows" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browser-getClientWindows',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.EmptyParams`",
-                    "description": "<pre>\\{\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.EmptyParams`',
+                    'description': '<pre>\\{\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowserGetClientWindowsResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     clientWindows: BrowserClientWindowInfo[];\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowserGetClientWindowsResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     clientWindows: BrowserClientWindowInfo[];\r\n   }\n   ```'
             }
         }
     },
-    "browser.getUserContexts": {
-        "socket": {
-            "command": "browserGetUserContexts",
-            "description": "WebDriver Bidi command to send command method \"browser.getUserContexts\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browser-getUserContexts",
-            "parameters": [
+    'browser.getUserContexts': {
+        'socket': {
+            'command': 'browserGetUserContexts',
+            'description': 'WebDriver Bidi command to send command method "browser.getUserContexts" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browser-getUserContexts',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.EmptyParams`",
-                    "description": "<pre>\\{\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.EmptyParams`',
+                    'description': '<pre>\\{\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowserGetUserContextsResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     userContexts: BrowserUserContextInfo[];\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowserGetUserContextsResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     userContexts: BrowserUserContextInfo[];\r\n   }\n   ```'
             }
         }
     },
-    "browser.removeUserContext": {
-        "socket": {
-            "command": "browserRemoveUserContext",
-            "description": "WebDriver Bidi command to send command method \"browser.removeUserContext\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browser-removeUserContext",
-            "parameters": [
+    'browser.removeUserContext': {
+        'socket': {
+            'command': 'browserRemoveUserContext',
+            'description': 'WebDriver Bidi command to send command method "browser.removeUserContext" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browser-removeUserContext',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowserRemoveUserContextParameters`",
-                    "description": "<pre>\\{<br />  userContext: BrowserUserContext;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowserRemoveUserContextParameters`',
+                    'description': '<pre>\\{\r<br />  userContext: BrowserUserContext;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowserRemoveUserContextResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowserRemoveUserContextResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "browser.setClientWindowState": {
-        "socket": {
-            "command": "browserSetClientWindowState",
-            "description": "WebDriver Bidi command to send command method \"browser.setClientWindowState\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browser-setClientWindowState",
-            "parameters": [
+    'browser.setClientWindowState': {
+        'socket': {
+            'command': 'browserSetClientWindowState',
+            'description': 'WebDriver Bidi command to send command method "browser.setClientWindowState" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browser-setClientWindowState',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowserSetClientWindowStateParameters`",
-                    "description": "<pre>\\{<br />  clientWindow: BrowserClientWindow;<br />}\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowserSetClientWindowStateParameters`',
+                    'description': '<pre>\\{\r<br />  clientWindow: BrowserClientWindow;\r<br />}\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowserSetClientWindowStateResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowserSetClientWindowStateResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "browser.setDownloadBehavior": {
-        "socket": {
-            "command": "browserSetDownloadBehavior",
-            "description": "WebDriver Bidi command to send command method \"browser.setDownloadBehavior\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browser-setDownloadBehavior",
-            "parameters": [
+    'browser.setDownloadBehavior': {
+        'socket': {
+            'command': 'browserSetDownloadBehavior',
+            'description': 'WebDriver Bidi command to send command method "browser.setDownloadBehavior" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browser-setDownloadBehavior',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowserSetDownloadBehaviorParameters`",
-                    "description": "<pre>\\{<br />  downloadBehavior: BrowserDownloadBehavior &#124; null;<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowserSetDownloadBehaviorParameters`',
+                    'description': '<pre>\\{\r<br />  downloadBehavior: BrowserDownloadBehavior &#124; null;\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowserSetDownloadBehaviorResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowserSetDownloadBehaviorResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "browsingContext.activate": {
-        "socket": {
-            "command": "browsingContextActivate",
-            "description": "WebDriver Bidi command to send command method \"browsingContext.activate\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-activate",
-            "parameters": [
+    'browsingContext.activate': {
+        'socket': {
+            'command': 'browsingContextActivate',
+            'description': 'WebDriver Bidi command to send command method "browsingContext.activate" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browsingContext-activate',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowsingContextActivateParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowsingContextActivateParameters`',
+                    'description': '<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowsingContextActivateResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowsingContextActivateResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "browsingContext.captureScreenshot": {
-        "socket": {
-            "command": "browsingContextCaptureScreenshot",
-            "description": "WebDriver Bidi command to send command method \"browsingContext.captureScreenshot\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-captureScreenshot",
-            "parameters": [
+    'browsingContext.captureScreenshot': {
+        'socket': {
+            'command': 'browsingContextCaptureScreenshot',
+            'description': 'WebDriver Bidi command to send command method "browsingContext.captureScreenshot" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browsingContext-captureScreenshot',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowsingContextCaptureScreenshotParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  /\\*\\*<br />   \\* @default 'viewport'<br />   \\*/<br />  origin?: \"viewport\" &#124; \"document\";<br />  format?: BrowsingContextImageFormat;<br />  clip?: BrowsingContextClipRectangle;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowsingContextCaptureScreenshotParameters`',
+                    'description': "<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  /\\*\\*\r<br />   \\* @default 'viewport'\r<br />   \\*/\r<br />  origin?: \"viewport\" &#124; \"document\";\r<br />  format?: BrowsingContextImageFormat;\r<br />  clip?: BrowsingContextClipRectangle;\r<br />\\}</pre>",
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowsingContextCaptureScreenshotResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     data: string;\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowsingContextCaptureScreenshotResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     data: string;\r\n   }\n   ```'
             }
         }
     },
-    "browsingContext.close": {
-        "socket": {
-            "command": "browsingContextClose",
-            "description": "WebDriver Bidi command to send command method \"browsingContext.close\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-close",
-            "parameters": [
+    'browsingContext.close': {
+        'socket': {
+            'command': 'browsingContextClose',
+            'description': 'WebDriver Bidi command to send command method "browsingContext.close" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browsingContext-close',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowsingContextCloseParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  promptUnload?: boolean;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowsingContextCloseParameters`',
+                    'description': '<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  promptUnload?: boolean;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowsingContextCloseResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowsingContextCloseResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "browsingContext.create": {
-        "socket": {
-            "command": "browsingContextCreate",
-            "description": "WebDriver Bidi command to send command method \"browsingContext.create\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-create",
-            "parameters": [
+    'browsingContext.create': {
+        'socket': {
+            'command': 'browsingContextCreate',
+            'description': 'WebDriver Bidi command to send command method "browsingContext.create" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browsingContext-create',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowsingContextCreateParameters`",
-                    "description": "<pre>\\{<br />  type: BrowsingContextCreateType;<br />  referenceContext?: BrowsingContextBrowsingContext;<br />  background?: boolean;<br />  userContext?: BrowserUserContext;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowsingContextCreateParameters`',
+                    'description': '<pre>\\{\r<br />  type: BrowsingContextCreateType;\r<br />  referenceContext?: BrowsingContextBrowsingContext;\r<br />  background?: boolean;\r<br />  userContext?: BrowserUserContext;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowsingContextCreateResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     context: BrowsingContextBrowsingContext;\n     userContext?: BrowserUserContext;\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowsingContextCreateResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     context: BrowsingContextBrowsingContext;\r\n     userContext?: BrowserUserContext;\r\n   }\n   ```'
             }
         }
     },
-    "browsingContext.getTree": {
-        "socket": {
-            "command": "browsingContextGetTree",
-            "description": "WebDriver Bidi command to send command method \"browsingContext.getTree\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-getTree",
-            "parameters": [
+    'browsingContext.getTree': {
+        'socket': {
+            'command': 'browsingContextGetTree',
+            'description': 'WebDriver Bidi command to send command method "browsingContext.getTree" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browsingContext-getTree',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowsingContextGetTreeParameters`",
-                    "description": "<pre>\\{<br />  maxDepth?: JsUint;<br />  root?: BrowsingContextBrowsingContext;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowsingContextGetTreeParameters`',
+                    'description': '<pre>\\{\r<br />  maxDepth?: JsUint;\r<br />  root?: BrowsingContextBrowsingContext;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowsingContextGetTreeResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     contexts: BrowsingContextInfoList;\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowsingContextGetTreeResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     contexts: BrowsingContextInfoList;\r\n   }\n   ```'
             }
         }
     },
-    "browsingContext.handleUserPrompt": {
-        "socket": {
-            "command": "browsingContextHandleUserPrompt",
-            "description": "WebDriver Bidi command to send command method \"browsingContext.handleUserPrompt\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-handleUserPrompt",
-            "parameters": [
+    'browsingContext.handleUserPrompt': {
+        'socket': {
+            'command': 'browsingContextHandleUserPrompt',
+            'description': 'WebDriver Bidi command to send command method "browsingContext.handleUserPrompt" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browsingContext-handleUserPrompt',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowsingContextHandleUserPromptParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  accept?: boolean;<br />  userText?: string;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowsingContextHandleUserPromptParameters`',
+                    'description': '<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  accept?: boolean;\r<br />  userText?: string;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowsingContextHandleUserPromptResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowsingContextHandleUserPromptResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "browsingContext.locateNodes": {
-        "socket": {
-            "command": "browsingContextLocateNodes",
-            "description": "WebDriver Bidi command to send command method \"browsingContext.locateNodes\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-locateNodes",
-            "parameters": [
+    'browsingContext.locateNodes': {
+        'socket': {
+            'command': 'browsingContextLocateNodes',
+            'description': 'WebDriver Bidi command to send command method "browsingContext.locateNodes" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browsingContext-locateNodes',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowsingContextLocateNodesParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  locator: BrowsingContextLocator;<br />  maxNodeCount?: JsUint;<br />  serializationOptions?: ScriptSerializationOptions;<br />  startNodes?: ScriptSharedReference[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowsingContextLocateNodesParameters`',
+                    'description': '<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  locator: BrowsingContextLocator;\r<br />  maxNodeCount?: JsUint;\r<br />  serializationOptions?: ScriptSerializationOptions;\r<br />  startNodes?: ScriptSharedReference[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowsingContextLocateNodesResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     nodes: ScriptNodeRemoteValue[];\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowsingContextLocateNodesResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     nodes: ScriptNodeRemoteValue[];\r\n   }\n   ```'
             }
         }
     },
-    "browsingContext.navigate": {
-        "socket": {
-            "command": "browsingContextNavigate",
-            "description": "WebDriver Bidi command to send command method \"browsingContext.navigate\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-navigate",
-            "parameters": [
+    'browsingContext.navigate': {
+        'socket': {
+            'command': 'browsingContextNavigate',
+            'description': 'WebDriver Bidi command to send command method "browsingContext.navigate" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browsingContext-navigate',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowsingContextNavigateParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  url: string;<br />  wait?: BrowsingContextReadinessState;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowsingContextNavigateParameters`',
+                    'description': '<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  url: string;\r<br />  wait?: BrowsingContextReadinessState;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowsingContextNavigateResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     navigation: BrowsingContextNavigation | null;\n     url: string;\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowsingContextNavigateResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     navigation: BrowsingContextNavigation | null;\r\n     url: string;\r\n   }\n   ```'
             }
         }
     },
-    "browsingContext.print": {
-        "socket": {
-            "command": "browsingContextPrint",
-            "description": "WebDriver Bidi command to send command method \"browsingContext.print\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-print",
-            "parameters": [
+    'browsingContext.print': {
+        'socket': {
+            'command': 'browsingContextPrint',
+            'description': 'WebDriver Bidi command to send command method "browsingContext.print" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browsingContext-print',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowsingContextPrintParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  background?: boolean;<br />  margin?: BrowsingContextPrintMarginParameters;<br />  /\\*\\*<br />   \\* @default 'portrait'<br />   \\*/<br />  orientation?: \"portrait\" &#124; \"landscape\";<br />  page?: BrowsingContextPrintPageParameters;<br />  pageRanges?: (JsUint &#124; string)[];<br />  /\\*\\*<br />   \\* @default 1<br />   \\*/<br />  scale?: number;<br />  /\\*\\*<br />   \\* @default true<br />   \\*/<br />  shrinkToFit?: boolean;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowsingContextPrintParameters`',
+                    'description': "<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  background?: boolean;\r<br />  margin?: BrowsingContextPrintMarginParameters;\r<br />  /\\*\\*\r<br />   \\* @default 'portrait'\r<br />   \\*/\r<br />  orientation?: \"portrait\" &#124; \"landscape\";\r<br />  page?: BrowsingContextPrintPageParameters;\r<br />  pageRanges?: (JsUint &#124; string)[];\r<br />  /\\*\\*\r<br />   \\* @default 1\r<br />   \\*/\r<br />  scale?: number;\r<br />  /\\*\\*\r<br />   \\* @default true\r<br />   \\*/\r<br />  shrinkToFit?: boolean;\r<br />\\}</pre>",
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowsingContextPrintResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     data: string;\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowsingContextPrintResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     data: string;\r\n   }\n   ```'
             }
         }
     },
-    "browsingContext.reload": {
-        "socket": {
-            "command": "browsingContextReload",
-            "description": "WebDriver Bidi command to send command method \"browsingContext.reload\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-reload",
-            "parameters": [
+    'browsingContext.reload': {
+        'socket': {
+            'command': 'browsingContextReload',
+            'description': 'WebDriver Bidi command to send command method "browsingContext.reload" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browsingContext-reload',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowsingContextReloadParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  ignoreCache?: boolean;<br />  wait?: BrowsingContextReadinessState;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowsingContextReloadParameters`',
+                    'description': '<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  ignoreCache?: boolean;\r<br />  wait?: BrowsingContextReadinessState;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowsingContextReloadResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowsingContextReloadResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "browsingContext.setBypassCSP": {
-        "socket": {
-            "command": "browsingContextSetBypassCsp",
-            "description": "WebDriver Bidi command to send command method \"browsingContext.setBypassCSP\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-setBypassCSP",
-            "parameters": [
+    'browsingContext.setBypassCSP': {
+        'socket': {
+            'command': 'browsingContextSetBypassCsp',
+            'description': 'WebDriver Bidi command to send command method "browsingContext.setBypassCSP" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browsingContext-setBypassCSP',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowsingContextSetBypassCspParameters`",
-                    "description": "<pre>\\{<br />  bypass: true &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowsingContextSetBypassCspParameters`',
+                    'description': '<pre>\\{\r<br />  bypass: true &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowsingContextSetBypassCspResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowsingContextSetBypassCspResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "browsingContext.setViewport": {
-        "socket": {
-            "command": "browsingContextSetViewport",
-            "description": "WebDriver Bidi command to send command method \"browsingContext.setViewport\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-setViewport",
-            "parameters": [
+    'browsingContext.setViewport': {
+        'socket': {
+            'command': 'browsingContextSetViewport',
+            'description': 'WebDriver Bidi command to send command method "browsingContext.setViewport" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browsingContext-setViewport',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowsingContextSetViewportParameters`",
-                    "description": "<pre>\\{<br />  context?: BrowsingContextBrowsingContext;<br />  viewport?: BrowsingContextViewport &#124; null;<br />  devicePixelRatio?: number &#124; null;<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowsingContextSetViewportParameters`',
+                    'description': '<pre>\\{\r<br />  context?: BrowsingContextBrowsingContext;\r<br />  viewport?: BrowsingContextViewport &#124; null;\r<br />  devicePixelRatio?: number &#124; null;\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowsingContextSetViewportResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowsingContextSetViewportResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "browsingContext.traverseHistory": {
-        "socket": {
-            "command": "browsingContextTraverseHistory",
-            "description": "WebDriver Bidi command to send command method \"browsingContext.traverseHistory\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-traverseHistory",
-            "parameters": [
+    'browsingContext.traverseHistory': {
+        'socket': {
+            'command': 'browsingContextTraverseHistory',
+            'description': 'WebDriver Bidi command to send command method "browsingContext.traverseHistory" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-browsingContext-traverseHistory',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.BrowsingContextTraverseHistoryParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  delta: JsInt;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.BrowsingContextTraverseHistoryParameters`',
+                    'description': '<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  delta: JsInt;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.BrowsingContextTraverseHistoryResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.BrowsingContextTraverseHistoryResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "emulation.setForcedColorsModeThemeOverride": {
-        "socket": {
-            "command": "emulationSetForcedColorsModeThemeOverride",
-            "description": "WebDriver Bidi command to send command method \"emulation.setForcedColorsModeThemeOverride\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setForcedColorsModeThemeOverride",
-            "parameters": [
+    'emulation.setForcedColorsModeThemeOverride': {
+        'socket': {
+            'command': 'emulationSetForcedColorsModeThemeOverride',
+            'description': 'WebDriver Bidi command to send command method "emulation.setForcedColorsModeThemeOverride" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-emulation-setForcedColorsModeThemeOverride',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.EmulationSetForcedColorsModeThemeOverrideParameters`",
-                    "description": "<pre>\\{<br />  theme: EmulationForcedColorsModeTheme &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.EmulationSetForcedColorsModeThemeOverrideParameters`',
+                    'description': '<pre>\\{\r<br />  theme: EmulationForcedColorsModeTheme &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.EmulationSetForcedColorsModeThemeOverrideResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.EmulationSetForcedColorsModeThemeOverrideResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "emulation.setGeolocationOverride": {
-        "socket": {
-            "command": "emulationSetGeolocationOverride",
-            "description": "WebDriver Bidi command to send command method \"emulation.setGeolocationOverride\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setGeolocationOverride",
-            "parameters": [
+    'emulation.setGeolocationOverride': {
+        'socket': {
+            'command': 'emulationSetGeolocationOverride',
+            'description': 'WebDriver Bidi command to send command method "emulation.setGeolocationOverride" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-emulation-setGeolocationOverride',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.EmulationSetGeolocationOverrideParameters`",
-                    "description": "<pre>\\{<br />  coordinates: EmulationGeolocationCoordinates &#124; null;<br />} &#124; {<br />  error: EmulationGeolocationPositionError;<br />}) & {<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />}\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.EmulationSetGeolocationOverrideParameters`',
+                    'description': '<pre>\\{\r<br />  coordinates: EmulationGeolocationCoordinates &#124; null;\r<br />} &#124; {\r<br />  error: EmulationGeolocationPositionError;\r<br />}) & {\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />}\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.EmulationSetGeolocationOverrideResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.EmulationSetGeolocationOverrideResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "emulation.setLocaleOverride": {
-        "socket": {
-            "command": "emulationSetLocaleOverride",
-            "description": "WebDriver Bidi command to send command method \"emulation.setLocaleOverride\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setLocaleOverride",
-            "parameters": [
+    'emulation.setLocaleOverride': {
+        'socket': {
+            'command': 'emulationSetLocaleOverride',
+            'description': 'WebDriver Bidi command to send command method "emulation.setLocaleOverride" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-emulation-setLocaleOverride',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.EmulationSetLocaleOverrideParameters`",
-                    "description": "<pre>\\{<br />  locale: string &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.EmulationSetLocaleOverrideParameters`',
+                    'description': '<pre>\\{\r<br />  locale: string &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.EmulationSetLocaleOverrideResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.EmulationSetLocaleOverrideResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "emulation.setNetworkConditions": {
-        "socket": {
-            "command": "emulationSetNetworkConditions",
-            "description": "WebDriver Bidi command to send command method \"emulation.setNetworkConditions\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setNetworkConditions",
-            "parameters": [
+    'emulation.setNetworkConditions': {
+        'socket': {
+            'command': 'emulationSetNetworkConditions',
+            'description': 'WebDriver Bidi command to send command method "emulation.setNetworkConditions" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-emulation-setNetworkConditions',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.EmulationSetNetworkConditionsParameters`",
-                    "description": "<pre>\\{<br />  networkConditions: EmulationNetworkConditions &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.EmulationSetNetworkConditionsParameters`',
+                    'description': '<pre>\\{\r<br />  networkConditions: EmulationNetworkConditions &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.EmulationSetNetworkConditionsResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.EmulationSetNetworkConditionsResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "emulation.setScreenSettingsOverride": {
-        "socket": {
-            "command": "emulationSetScreenSettingsOverride",
-            "description": "WebDriver Bidi command to send command method \"emulation.setScreenSettingsOverride\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setScreenSettingsOverride",
-            "parameters": [
+    'emulation.setScreenSettingsOverride': {
+        'socket': {
+            'command': 'emulationSetScreenSettingsOverride',
+            'description': 'WebDriver Bidi command to send command method "emulation.setScreenSettingsOverride" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-emulation-setScreenSettingsOverride',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.EmulationSetScreenSettingsOverrideParameters`",
-                    "description": "<pre>\\{<br />  screenArea: EmulationScreenArea &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.EmulationSetScreenSettingsOverrideParameters`',
+                    'description': '<pre>\\{\r<br />  screenArea: EmulationScreenArea &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.EmulationSetScreenSettingsOverrideResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.EmulationSetScreenSettingsOverrideResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "emulation.setScreenOrientationOverride": {
-        "socket": {
-            "command": "emulationSetScreenOrientationOverride",
-            "description": "WebDriver Bidi command to send command method \"emulation.setScreenOrientationOverride\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setScreenOrientationOverride",
-            "parameters": [
+    'emulation.setScreenOrientationOverride': {
+        'socket': {
+            'command': 'emulationSetScreenOrientationOverride',
+            'description': 'WebDriver Bidi command to send command method "emulation.setScreenOrientationOverride" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-emulation-setScreenOrientationOverride',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.EmulationSetScreenOrientationOverrideParameters`",
-                    "description": "<pre>\\{<br />  screenOrientation: EmulationScreenOrientation &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.EmulationSetScreenOrientationOverrideParameters`',
+                    'description': '<pre>\\{\r<br />  screenOrientation: EmulationScreenOrientation &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.EmulationSetScreenOrientationOverrideResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.EmulationSetScreenOrientationOverrideResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "emulation.setUserAgentOverride": {
-        "socket": {
-            "command": "emulationSetUserAgentOverride",
-            "description": "WebDriver Bidi command to send command method \"emulation.setUserAgentOverride\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setUserAgentOverride",
-            "parameters": [
+    'emulation.setUserAgentOverride': {
+        'socket': {
+            'command': 'emulationSetUserAgentOverride',
+            'description': 'WebDriver Bidi command to send command method "emulation.setUserAgentOverride" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-emulation-setUserAgentOverride',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.EmulationSetUserAgentOverrideParameters`",
-                    "description": "<pre>\\{<br />  userAgent: string &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.EmulationSetUserAgentOverrideParameters`',
+                    'description': '<pre>\\{\r<br />  userAgent: string &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.EmulationSetUserAgentOverrideResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.EmulationSetUserAgentOverrideResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "emulation.setScriptingEnabled": {
-        "socket": {
-            "command": "emulationSetScriptingEnabled",
-            "description": "WebDriver Bidi command to send command method \"emulation.setScriptingEnabled\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setScriptingEnabled",
-            "parameters": [
+    'emulation.setScriptingEnabled': {
+        'socket': {
+            'command': 'emulationSetScriptingEnabled',
+            'description': 'WebDriver Bidi command to send command method "emulation.setScriptingEnabled" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-emulation-setScriptingEnabled',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.EmulationSetScriptingEnabledParameters`",
-                    "description": "<pre>\\{<br />  enabled: false &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.EmulationSetScriptingEnabledParameters`',
+                    'description': '<pre>\\{\r<br />  enabled: false &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.EmulationSetScriptingEnabledResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.EmulationSetScriptingEnabledResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "emulation.setScrollbarTypeOverride": {
-        "socket": {
-            "command": "emulationSetScrollbarTypeOverride",
-            "description": "WebDriver Bidi command to send command method \"emulation.setScrollbarTypeOverride\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setScrollbarTypeOverride",
-            "parameters": [
+    'emulation.setScrollbarTypeOverride': {
+        'socket': {
+            'command': 'emulationSetScrollbarTypeOverride',
+            'description': 'WebDriver Bidi command to send command method "emulation.setScrollbarTypeOverride" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-emulation-setScrollbarTypeOverride',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.EmulationSetScrollbarTypeOverrideParameters`",
-                    "description": "<pre>\\{<br />  scrollbarType: \"classic\" &#124; \"overlay\" &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.EmulationSetScrollbarTypeOverrideParameters`',
+                    'description': '<pre>\\{\r<br />  scrollbarType: "classic" &#124; "overlay" &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.EmulationSetScrollbarTypeOverrideResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.EmulationSetScrollbarTypeOverrideResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "emulation.setTimezoneOverride": {
-        "socket": {
-            "command": "emulationSetTimezoneOverride",
-            "description": "WebDriver Bidi command to send command method \"emulation.setTimezoneOverride\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setTimezoneOverride",
-            "parameters": [
+    'emulation.setTimezoneOverride': {
+        'socket': {
+            'command': 'emulationSetTimezoneOverride',
+            'description': 'WebDriver Bidi command to send command method "emulation.setTimezoneOverride" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-emulation-setTimezoneOverride',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.EmulationSetTimezoneOverrideParameters`",
-                    "description": "<pre>\\{<br />  timezone: string &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.EmulationSetTimezoneOverrideParameters`',
+                    'description': '<pre>\\{\r<br />  timezone: string &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.EmulationSetTimezoneOverrideResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.EmulationSetTimezoneOverrideResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "emulation.setTouchOverride": {
-        "socket": {
-            "command": "emulationSetTouchOverride",
-            "description": "WebDriver Bidi command to send command method \"emulation.setTouchOverride\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setTouchOverride",
-            "parameters": [
+    'emulation.setTouchOverride': {
+        'socket': {
+            'command': 'emulationSetTouchOverride',
+            'description': 'WebDriver Bidi command to send command method "emulation.setTouchOverride" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-emulation-setTouchOverride',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.EmulationSetTouchOverrideParameters`",
-                    "description": "<pre>\\{<br />  maxTouchPoints: JsUint &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.EmulationSetTouchOverrideParameters`',
+                    'description': '<pre>\\{\r<br />  maxTouchPoints: JsUint &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.EmulationSetTouchOverrideResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.EmulationSetTouchOverrideResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "network.addDataCollector": {
-        "socket": {
-            "command": "networkAddDataCollector",
-            "description": "WebDriver Bidi command to send command method \"network.addDataCollector\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-addDataCollector",
-            "parameters": [
+    'network.addDataCollector': {
+        'socket': {
+            'command': 'networkAddDataCollector',
+            'description': 'WebDriver Bidi command to send command method "network.addDataCollector" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-network-addDataCollector',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.NetworkAddDataCollectorParameters`",
-                    "description": "<pre>\\{<br />  dataTypes: NetworkDataType[];<br />  maxEncodedDataSize: JsUint;<br />  /\\*\\*<br />   \\* @default 'blob'<br />   \\*/<br />  collectorType?: NetworkCollectorType;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.NetworkAddDataCollectorParameters`',
+                    'description': "<pre>\\{\r<br />  dataTypes: NetworkDataType[];\r<br />  maxEncodedDataSize: JsUint;\r<br />  /\\*\\*\r<br />   \\* @default 'blob'\r<br />   \\*/\r<br />  collectorType?: NetworkCollectorType;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.NetworkAddDataCollectorResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     collector: NetworkCollector;\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.NetworkAddDataCollectorResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     collector: NetworkCollector;\r\n   }\n   ```'
             }
         }
     },
-    "network.addIntercept": {
-        "socket": {
-            "command": "networkAddIntercept",
-            "description": "WebDriver Bidi command to send command method \"network.addIntercept\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-addIntercept",
-            "parameters": [
+    'network.addIntercept': {
+        'socket': {
+            'command': 'networkAddIntercept',
+            'description': 'WebDriver Bidi command to send command method "network.addIntercept" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-network-addIntercept',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.NetworkAddInterceptParameters`",
-                    "description": "<pre>\\{<br />  phases: NetworkInterceptPhase[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />  urlPatterns?: NetworkUrlPattern[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.NetworkAddInterceptParameters`',
+                    'description': '<pre>\\{\r<br />  phases: NetworkInterceptPhase[];\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  urlPatterns?: NetworkUrlPattern[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.NetworkAddInterceptResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     intercept: NetworkIntercept;\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.NetworkAddInterceptResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     intercept: NetworkIntercept;\r\n   }\n   ```'
             }
         }
     },
-    "network.continueRequest": {
-        "socket": {
-            "command": "networkContinueRequest",
-            "description": "WebDriver Bidi command to send command method \"network.continueRequest\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-continueRequest",
-            "parameters": [
+    'network.continueRequest': {
+        'socket': {
+            'command': 'networkContinueRequest',
+            'description': 'WebDriver Bidi command to send command method "network.continueRequest" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-network-continueRequest',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.NetworkContinueRequestParameters`",
-                    "description": "<pre>\\{<br />  request: NetworkRequest;<br />  body?: NetworkBytesValue;<br />  cookies?: NetworkCookieHeader[];<br />  headers?: NetworkHeader[];<br />  method?: string;<br />  url?: string;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.NetworkContinueRequestParameters`',
+                    'description': '<pre>\\{\r<br />  request: NetworkRequest;\r<br />  body?: NetworkBytesValue;\r<br />  cookies?: NetworkCookieHeader[];\r<br />  headers?: NetworkHeader[];\r<br />  method?: string;\r<br />  url?: string;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.NetworkContinueRequestResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.NetworkContinueRequestResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "network.continueResponse": {
-        "socket": {
-            "command": "networkContinueResponse",
-            "description": "WebDriver Bidi command to send command method \"network.continueResponse\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-continueResponse",
-            "parameters": [
+    'network.continueResponse': {
+        'socket': {
+            'command': 'networkContinueResponse',
+            'description': 'WebDriver Bidi command to send command method "network.continueResponse" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-network-continueResponse',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.NetworkContinueResponseParameters`",
-                    "description": "<pre>\\{<br />  request: NetworkRequest;<br />  cookies?: NetworkSetCookieHeader[];<br />  credentials?: NetworkAuthCredentials;<br />  headers?: NetworkHeader[];<br />  reasonPhrase?: string;<br />  statusCode?: JsUint;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.NetworkContinueResponseParameters`',
+                    'description': '<pre>\\{\r<br />  request: NetworkRequest;\r<br />  cookies?: NetworkSetCookieHeader[];\r<br />  credentials?: NetworkAuthCredentials;\r<br />  headers?: NetworkHeader[];\r<br />  reasonPhrase?: string;\r<br />  statusCode?: JsUint;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.NetworkContinueResponseResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.NetworkContinueResponseResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "network.continueWithAuth": {
-        "socket": {
-            "command": "networkContinueWithAuth",
-            "description": "WebDriver Bidi command to send command method \"network.continueWithAuth\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-continueWithAuth",
-            "parameters": [
+    'network.continueWithAuth': {
+        'socket': {
+            'command': 'networkContinueWithAuth',
+            'description': 'WebDriver Bidi command to send command method "network.continueWithAuth" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-network-continueWithAuth',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.NetworkContinueWithAuthParameters`",
-                    "description": "<pre>\\{<br />  request: NetworkRequest;<br />}\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.NetworkContinueWithAuthParameters`',
+                    'description': '<pre>\\{\r<br />  request: NetworkRequest;\r<br />}\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.NetworkContinueWithAuthResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.NetworkContinueWithAuthResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "network.disownData": {
-        "socket": {
-            "command": "networkDisownData",
-            "description": "WebDriver Bidi command to send command method \"network.disownData\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-disownData",
-            "parameters": [
+    'network.disownData': {
+        'socket': {
+            'command': 'networkDisownData',
+            'description': 'WebDriver Bidi command to send command method "network.disownData" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-network-disownData',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.NetworkDisownDataParameters`",
-                    "description": "<pre>\\{<br />  dataType: NetworkDataType;<br />  collector: NetworkCollector;<br />  request: NetworkRequest;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.NetworkDisownDataParameters`',
+                    'description': '<pre>\\{\r<br />  dataType: NetworkDataType;\r<br />  collector: NetworkCollector;\r<br />  request: NetworkRequest;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.NetworkDisownDataResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.NetworkDisownDataResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "network.failRequest": {
-        "socket": {
-            "command": "networkFailRequest",
-            "description": "WebDriver Bidi command to send command method \"network.failRequest\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-failRequest",
-            "parameters": [
+    'network.failRequest': {
+        'socket': {
+            'command': 'networkFailRequest',
+            'description': 'WebDriver Bidi command to send command method "network.failRequest" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-network-failRequest',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.NetworkFailRequestParameters`",
-                    "description": "<pre>\\{<br />  request: NetworkRequest;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.NetworkFailRequestParameters`',
+                    'description': '<pre>\\{\r<br />  request: NetworkRequest;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.NetworkFailRequestResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.NetworkFailRequestResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "network.getData": {
-        "socket": {
-            "command": "networkGetData",
-            "description": "WebDriver Bidi command to send command method \"network.getData\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-getData",
-            "parameters": [
+    'network.getData': {
+        'socket': {
+            'command': 'networkGetData',
+            'description': 'WebDriver Bidi command to send command method "network.getData" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-network-getData',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.NetworkGetDataParameters`",
-                    "description": "<pre>\\{<br />  dataType: NetworkDataType;<br />  collector?: NetworkCollector;<br />  disown?: boolean;<br />  request: NetworkRequest;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.NetworkGetDataParameters`',
+                    'description': '<pre>\\{\r<br />  dataType: NetworkDataType;\r<br />  collector?: NetworkCollector;\r<br />  disown?: boolean;\r<br />  request: NetworkRequest;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.NetworkGetDataResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     bytes: NetworkBytesValue;\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.NetworkGetDataResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     bytes: NetworkBytesValue;\r\n   }\n   ```'
             }
         }
     },
-    "network.provideResponse": {
-        "socket": {
-            "command": "networkProvideResponse",
-            "description": "WebDriver Bidi command to send command method \"network.provideResponse\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-provideResponse",
-            "parameters": [
+    'network.provideResponse': {
+        'socket': {
+            'command': 'networkProvideResponse',
+            'description': 'WebDriver Bidi command to send command method "network.provideResponse" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-network-provideResponse',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.NetworkProvideResponseParameters`",
-                    "description": "<pre>\\{<br />  request: NetworkRequest;<br />  body?: NetworkBytesValue;<br />  cookies?: NetworkSetCookieHeader[];<br />  headers?: NetworkHeader[];<br />  reasonPhrase?: string;<br />  statusCode?: JsUint;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.NetworkProvideResponseParameters`',
+                    'description': '<pre>\\{\r<br />  request: NetworkRequest;\r<br />  body?: NetworkBytesValue;\r<br />  cookies?: NetworkSetCookieHeader[];\r<br />  headers?: NetworkHeader[];\r<br />  reasonPhrase?: string;\r<br />  statusCode?: JsUint;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.NetworkProvideResponseResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.NetworkProvideResponseResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "network.removeDataCollector": {
-        "socket": {
-            "command": "networkRemoveDataCollector",
-            "description": "WebDriver Bidi command to send command method \"network.removeDataCollector\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-removeDataCollector",
-            "parameters": [
+    'network.removeDataCollector': {
+        'socket': {
+            'command': 'networkRemoveDataCollector',
+            'description': 'WebDriver Bidi command to send command method "network.removeDataCollector" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-network-removeDataCollector',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.NetworkRemoveDataCollectorParameters`",
-                    "description": "<pre>\\{<br />  collector: NetworkCollector;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.NetworkRemoveDataCollectorParameters`',
+                    'description': '<pre>\\{\r<br />  collector: NetworkCollector;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.NetworkRemoveDataCollectorResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.NetworkRemoveDataCollectorResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "network.removeIntercept": {
-        "socket": {
-            "command": "networkRemoveIntercept",
-            "description": "WebDriver Bidi command to send command method \"network.removeIntercept\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-removeIntercept",
-            "parameters": [
+    'network.removeIntercept': {
+        'socket': {
+            'command': 'networkRemoveIntercept',
+            'description': 'WebDriver Bidi command to send command method "network.removeIntercept" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-network-removeIntercept',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.NetworkRemoveInterceptParameters`",
-                    "description": "<pre>\\{<br />  intercept: NetworkIntercept;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.NetworkRemoveInterceptParameters`',
+                    'description': '<pre>\\{\r<br />  intercept: NetworkIntercept;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.NetworkRemoveInterceptResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.NetworkRemoveInterceptResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "network.setCacheBehavior": {
-        "socket": {
-            "command": "networkSetCacheBehavior",
-            "description": "WebDriver Bidi command to send command method \"network.setCacheBehavior\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-setCacheBehavior",
-            "parameters": [
+    'network.setCacheBehavior': {
+        'socket': {
+            'command': 'networkSetCacheBehavior',
+            'description': 'WebDriver Bidi command to send command method "network.setCacheBehavior" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-network-setCacheBehavior',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.NetworkSetCacheBehaviorParameters`",
-                    "description": "<pre>\\{<br />  cacheBehavior: \"default\" &#124; \"bypass\";<br />  contexts?: BrowsingContextBrowsingContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.NetworkSetCacheBehaviorParameters`',
+                    'description': '<pre>\\{\r<br />  cacheBehavior: "default" &#124; "bypass";\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.NetworkSetCacheBehaviorResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.NetworkSetCacheBehaviorResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "network.setExtraHeaders": {
-        "socket": {
-            "command": "networkSetExtraHeaders",
-            "description": "WebDriver Bidi command to send command method \"network.setExtraHeaders\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-setExtraHeaders",
-            "parameters": [
+    'network.setExtraHeaders': {
+        'socket': {
+            'command': 'networkSetExtraHeaders',
+            'description': 'WebDriver Bidi command to send command method "network.setExtraHeaders" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-network-setExtraHeaders',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.NetworkSetExtraHeadersParameters`",
-                    "description": "<pre>\\{<br />  headers: NetworkHeader[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.NetworkSetExtraHeadersParameters`',
+                    'description': '<pre>\\{\r<br />  headers: NetworkHeader[];\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.NetworkSetExtraHeadersResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.NetworkSetExtraHeadersResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "script.addPreloadScript": {
-        "socket": {
-            "command": "scriptAddPreloadScript",
-            "description": "WebDriver Bidi command to send command method \"script.addPreloadScript\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-script-addPreloadScript",
-            "parameters": [
+    'script.addPreloadScript': {
+        'socket': {
+            'command': 'scriptAddPreloadScript',
+            'description': 'WebDriver Bidi command to send command method "script.addPreloadScript" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-script-addPreloadScript',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.ScriptAddPreloadScriptParameters`",
-                    "description": "<pre>\\{<br />  functionDeclaration: string;<br />  arguments?: ScriptChannelValue[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />  sandbox?: string;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.ScriptAddPreloadScriptParameters`',
+                    'description': '<pre>\\{\r<br />  functionDeclaration: string;\r<br />  arguments?: ScriptChannelValue[];\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />  sandbox?: string;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.ScriptAddPreloadScriptResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     script: ScriptPreloadScript;\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.ScriptAddPreloadScriptResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     script: ScriptPreloadScript;\r\n   }\n   ```'
             }
         }
     },
-    "script.disown": {
-        "socket": {
-            "command": "scriptDisown",
-            "description": "WebDriver Bidi command to send command method \"script.disown\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-script-disown",
-            "parameters": [
+    'script.disown': {
+        'socket': {
+            'command': 'scriptDisown',
+            'description': 'WebDriver Bidi command to send command method "script.disown" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-script-disown',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.ScriptDisownParameters`",
-                    "description": "<pre>\\{<br />  handles: ScriptHandle[];<br />  target: ScriptTarget;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.ScriptDisownParameters`',
+                    'description': '<pre>\\{\r<br />  handles: ScriptHandle[];\r<br />  target: ScriptTarget;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.ScriptDisownResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.ScriptDisownResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "script.callFunction": {
-        "socket": {
-            "command": "scriptCallFunction",
-            "description": "WebDriver Bidi command to send command method \"script.callFunction\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-script-callFunction",
-            "parameters": [
+    'script.callFunction': {
+        'socket': {
+            'command': 'scriptCallFunction',
+            'description': 'WebDriver Bidi command to send command method "script.callFunction" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-script-callFunction',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.ScriptCallFunctionParameters`",
-                    "description": "<pre>\\{<br />  functionDeclaration: string;<br />  awaitPromise: boolean;<br />  target: ScriptTarget;<br />  arguments?: ScriptLocalValue[];<br />  resultOwnership?: ScriptResultOwnership;<br />  serializationOptions?: ScriptSerializationOptions;<br />  this?: ScriptLocalValue;<br />  userActivation?: boolean;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.ScriptCallFunctionParameters`',
+                    'description': '<pre>\\{\r<br />  functionDeclaration: string;\r<br />  awaitPromise: boolean;\r<br />  target: ScriptTarget;\r<br />  arguments?: ScriptLocalValue[];\r<br />  resultOwnership?: ScriptResultOwnership;\r<br />  serializationOptions?: ScriptSerializationOptions;\r<br />  this?: ScriptLocalValue;\r<br />  userActivation?: boolean;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.ScriptCallFunctionResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.ScriptCallFunctionResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "script.evaluate": {
-        "socket": {
-            "command": "scriptEvaluate",
-            "description": "WebDriver Bidi command to send command method \"script.evaluate\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-script-evaluate",
-            "parameters": [
+    'script.evaluate': {
+        'socket': {
+            'command': 'scriptEvaluate',
+            'description': 'WebDriver Bidi command to send command method "script.evaluate" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-script-evaluate',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.ScriptEvaluateParameters`",
-                    "description": "<pre>\\{<br />  expression: string;<br />  target: ScriptTarget;<br />  awaitPromise: boolean;<br />  resultOwnership?: ScriptResultOwnership;<br />  serializationOptions?: ScriptSerializationOptions;<br />  userActivation?: boolean;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.ScriptEvaluateParameters`',
+                    'description': '<pre>\\{\r<br />  expression: string;\r<br />  target: ScriptTarget;\r<br />  awaitPromise: boolean;\r<br />  resultOwnership?: ScriptResultOwnership;\r<br />  serializationOptions?: ScriptSerializationOptions;\r<br />  userActivation?: boolean;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.ScriptEvaluateResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.ScriptEvaluateResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "script.getRealms": {
-        "socket": {
-            "command": "scriptGetRealms",
-            "description": "WebDriver Bidi command to send command method \"script.getRealms\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-script-getRealms",
-            "parameters": [
+    'script.getRealms': {
+        'socket': {
+            'command': 'scriptGetRealms',
+            'description': 'WebDriver Bidi command to send command method "script.getRealms" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-script-getRealms',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.ScriptGetRealmsParameters`",
-                    "description": "<pre>\\{<br />  context?: BrowsingContextBrowsingContext;<br />  type?: ScriptRealmType;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.ScriptGetRealmsParameters`',
+                    'description': '<pre>\\{\r<br />  context?: BrowsingContextBrowsingContext;\r<br />  type?: ScriptRealmType;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.ScriptGetRealmsResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     realms: ScriptRealmInfo[];\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.ScriptGetRealmsResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     realms: ScriptRealmInfo[];\r\n   }\n   ```'
             }
         }
     },
-    "script.removePreloadScript": {
-        "socket": {
-            "command": "scriptRemovePreloadScript",
-            "description": "WebDriver Bidi command to send command method \"script.removePreloadScript\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-script-removePreloadScript",
-            "parameters": [
+    'script.removePreloadScript': {
+        'socket': {
+            'command': 'scriptRemovePreloadScript',
+            'description': 'WebDriver Bidi command to send command method "script.removePreloadScript" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-script-removePreloadScript',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.ScriptRemovePreloadScriptParameters`",
-                    "description": "<pre>\\{<br />  script: ScriptPreloadScript;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.ScriptRemovePreloadScriptParameters`',
+                    'description': '<pre>\\{\r<br />  script: ScriptPreloadScript;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.ScriptRemovePreloadScriptResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.ScriptRemovePreloadScriptResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "storage.getCookies": {
-        "socket": {
-            "command": "storageGetCookies",
-            "description": "WebDriver Bidi command to send command method \"storage.getCookies\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-storage-getCookies",
-            "parameters": [
+    'storage.getCookies': {
+        'socket': {
+            'command': 'storageGetCookies',
+            'description': 'WebDriver Bidi command to send command method "storage.getCookies" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-storage-getCookies',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.StorageGetCookiesParameters`",
-                    "description": "<pre>\\{<br />  filter?: StorageCookieFilter;<br />  partition?: StoragePartitionDescriptor;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.StorageGetCookiesParameters`',
+                    'description': '<pre>\\{\r<br />  filter?: StorageCookieFilter;\r<br />  partition?: StoragePartitionDescriptor;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.StorageGetCookiesResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     cookies: NetworkCookie[];\n     partitionKey: StoragePartitionKey;\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.StorageGetCookiesResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     cookies: NetworkCookie[];\r\n     partitionKey: StoragePartitionKey;\r\n   }\n   ```'
             }
         }
     },
-    "storage.setCookie": {
-        "socket": {
-            "command": "storageSetCookie",
-            "description": "WebDriver Bidi command to send command method \"storage.setCookie\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-storage-setCookie",
-            "parameters": [
+    'storage.setCookie': {
+        'socket': {
+            'command': 'storageSetCookie',
+            'description': 'WebDriver Bidi command to send command method "storage.setCookie" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-storage-setCookie',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.StorageSetCookieParameters`",
-                    "description": "<pre>\\{<br />  cookie: StoragePartialCookie;<br />  partition?: StoragePartitionDescriptor;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.StorageSetCookieParameters`',
+                    'description': '<pre>\\{\r<br />  cookie: StoragePartialCookie;\r<br />  partition?: StoragePartitionDescriptor;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.StorageSetCookieResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     partitionKey: StoragePartitionKey;\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.StorageSetCookieResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     partitionKey: StoragePartitionKey;\r\n   }\n   ```'
             }
         }
     },
-    "storage.deleteCookies": {
-        "socket": {
-            "command": "storageDeleteCookies",
-            "description": "WebDriver Bidi command to send command method \"storage.deleteCookies\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-storage-deleteCookies",
-            "parameters": [
+    'storage.deleteCookies': {
+        'socket': {
+            'command': 'storageDeleteCookies',
+            'description': 'WebDriver Bidi command to send command method "storage.deleteCookies" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-storage-deleteCookies',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.StorageDeleteCookiesParameters`",
-                    "description": "<pre>\\{<br />  filter?: StorageCookieFilter;<br />  partition?: StoragePartitionDescriptor;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.StorageDeleteCookiesParameters`',
+                    'description': '<pre>\\{\r<br />  filter?: StorageCookieFilter;\r<br />  partition?: StoragePartitionDescriptor;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.StorageDeleteCookiesResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     partitionKey: StoragePartitionKey;\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.StorageDeleteCookiesResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     partitionKey: StoragePartitionKey;\r\n   }\n   ```'
             }
         }
     },
-    "input.performActions": {
-        "socket": {
-            "command": "inputPerformActions",
-            "description": "WebDriver Bidi command to send command method \"input.performActions\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-input-performActions",
-            "parameters": [
+    'input.performActions': {
+        'socket': {
+            'command': 'inputPerformActions',
+            'description': 'WebDriver Bidi command to send command method "input.performActions" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-input-performActions',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.InputPerformActionsParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  actions: InputSourceActions[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.InputPerformActionsParameters`',
+                    'description': '<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  actions: InputSourceActions[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.InputPerformActionsResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.InputPerformActionsResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "input.releaseActions": {
-        "socket": {
-            "command": "inputReleaseActions",
-            "description": "WebDriver Bidi command to send command method \"input.releaseActions\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-input-releaseActions",
-            "parameters": [
+    'input.releaseActions': {
+        'socket': {
+            'command': 'inputReleaseActions',
+            'description': 'WebDriver Bidi command to send command method "input.releaseActions" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-input-releaseActions',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.InputReleaseActionsParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.InputReleaseActionsParameters`',
+                    'description': '<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.InputReleaseActionsResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.InputReleaseActionsResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "input.setFiles": {
-        "socket": {
-            "command": "inputSetFiles",
-            "description": "WebDriver Bidi command to send command method \"input.setFiles\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-input-setFiles",
-            "parameters": [
+    'input.setFiles': {
+        'socket': {
+            'command': 'inputSetFiles',
+            'description': 'WebDriver Bidi command to send command method "input.setFiles" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-input-setFiles',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.InputSetFilesParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  element: ScriptSharedReference;<br />  files: string[];<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.InputSetFilesParameters`',
+                    'description': '<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  element: ScriptSharedReference;\r<br />  files: string[];\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.InputSetFilesResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.InputSetFilesResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     },
-    "webExtension.install": {
-        "socket": {
-            "command": "webExtensionInstall",
-            "description": "WebDriver Bidi command to send command method \"webExtension.install\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-webExtension-install",
-            "parameters": [
+    'webExtension.install': {
+        'socket': {
+            'command': 'webExtensionInstall',
+            'description': 'WebDriver Bidi command to send command method "webExtension.install" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-webExtension-install',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.WebExtensionInstallParameters`",
-                    "description": "<pre>\\{<br />  extensionData: WebExtensionExtensionData;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.WebExtensionInstallParameters`',
+                    'description': '<pre>\\{\r<br />  extensionData: WebExtensionExtensionData;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.WebExtensionInstallResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     extension: WebExtensionExtension;\n   }\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.WebExtensionInstallResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   {\r\n     extension: WebExtensionExtension;\r\n   }\n   ```'
             }
         }
     },
-    "webExtension.uninstall": {
-        "socket": {
-            "command": "webExtensionUninstall",
-            "description": "WebDriver Bidi command to send command method \"webExtension.uninstall\" with parameters.",
-            "ref": "https://w3c.github.io/webdriver-bidi/#command-webExtension-uninstall",
-            "parameters": [
+    'webExtension.uninstall': {
+        'socket': {
+            'command': 'webExtensionUninstall',
+            'description': 'WebDriver Bidi command to send command method "webExtension.uninstall" with parameters.',
+            'ref': 'https://w3c.github.io/webdriver-bidi/#command-webExtension-uninstall',
+            'parameters': [
                 {
-                    "name": "params",
-                    "type": "`remote.WebExtensionUninstallParameters`",
-                    "description": "<pre>\\{<br />  extension: WebExtensionExtension;<br />\\}</pre>",
-                    "required": true
+                    'name': 'params',
+                    'type': '`remote.WebExtensionUninstallParameters`',
+                    'description': '<pre>\\{\r<br />  extension: WebExtensionExtension;\r<br />\\}</pre>',
+                    'required': true
                 }
             ],
-            "returns": {
-                "type": "Object",
-                "name": "local.WebExtensionUninstallResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            'returns': {
+                'type': 'Object',
+                'name': 'local.WebExtensionUninstallResult',
+                'description': 'Command return value with the following interface:\n   ```ts\n   ;\n   ```'
             }
         }
     }
