@@ -381,7 +381,7 @@ export const getCentralUser = (): CentralUser => {
     case 'app_lcnc':
         return { central_scanner: false, app_lcnc: true }
     default:
-        return { central_scanner: false, app_lcnc: true }
+        return { central_scanner: false, app_lcnc: false }
     }
 }
 export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation: boolean | null) {
@@ -1253,6 +1253,7 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
 
     try {
         const url = `${APIUtils.DATA_ENDPOINT}/${eventUrl}`
+        BStackLogger.debug(`[${url}] URL for ${kind} upload`)
         const response = await got.post(url, {
             agent: DEFAULT_REQUEST_CONFIG.agent,
             headers: {

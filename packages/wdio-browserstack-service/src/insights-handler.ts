@@ -35,7 +35,6 @@ import type {
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
 import Listener from './testOps/listener.js'
-import TestMetadata from './metadata.js'
 import { TESTOPS_SCREENSHOT_ENV } from './constants.js'
 import { BrowserstackCLI } from './cli/index.js'
 import { TestFrameworkState } from './cli/states/testFrameworkState.js'
@@ -389,7 +388,6 @@ class _InsightsHandler {
         InsightsHandler.currentTest = {
             test, uuid
         }
-        TestMetadata.setCurrentTestRunUuid(uuid)
         if (this._framework !== 'mocha') {
             return
         }
@@ -405,8 +403,6 @@ class _InsightsHandler {
         InsightsHandler.currentTest = {
             test, uuid
         }
-        TestMetadata.setCurrentTestRunUuid(uuid)
-
         if (this._framework !== 'mocha') {
             return
         }
@@ -716,31 +712,6 @@ class _InsightsHandler {
             framework: this._framework
         }
 
-        if (['TestRunStarted', 'TestRunFinished', 'TestRunSkipped'].includes(eventType)) {
-            BStackLogger.debug(`TestRunStarted/TestRunFinished/TestRunSkipped event received for test: ${testData.name} with status: ${testData.result}`)
-            let appLcncMetaData: Record<string, any> = {}
-            // Try TestMetadata first (set by BrowserStackSDK.setTestMetadata)
-            const tmData = TestMetadata.get(testData.uuid)
-            BStackLogger.debug(`[APP_LCNC_DEBUG] ${eventType}: TestMetadata.get(${testData.uuid}) returned: ${JSON.stringify(tmData)}`)
-            if (Object.keys(tmData).length > 0) {
-                appLcncMetaData = tmData
-            }
-            // Fallback: read directly from env var
-            if (Object.keys(appLcncMetaData).length === 0 && process.env.BSTACK_SDK_META) {
-                BStackLogger.debug(`[APP_LCNC_DEBUG] ${eventType}: Falling back to process.env.BSTACK_SDK_META = ${process.env.BSTACK_SDK_META}`)
-                try {
-                    appLcncMetaData = JSON.parse(process.env.BSTACK_SDK_META) as Record<string, any>
-                } catch (e) {
-                    BStackLogger.debug(`[APP_LCNC_DEBUG] ${eventType}: Failed to parse BSTACK_SDK_META: ${e}`)
-                }
-            }
-            if (Object.keys(appLcncMetaData).length > 0) {
-                testData.app_lcnc = appLcncMetaData
-                BStackLogger.debug(`[APP_LCNC_DEBUG] ${eventType}: Set testData.app_lcnc = ${JSON.stringify(testData.app_lcnc)}`)
-            } else {
-                BStackLogger.debug(`[APP_LCNC_DEBUG] ${eventType}: NO app_lcnc metadata found`)
-            }
-        }
 
         if ((eventType === 'TestRunFinished' || eventType === 'HookRunFinished') && results) {
             const { error, passed } = results

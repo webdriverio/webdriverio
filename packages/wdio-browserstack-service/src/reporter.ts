@@ -11,7 +11,6 @@ import type { CurrentRunInfo, StdLog } from './types.js'
 import type { BrowserstackConfig, TestData, TestMeta } from './types.js'
 import {
     getCloudProvider,
-    getCentralUser,
     o11yClassErrorHandler,
     getGitMetaData,
     removeAnsiColors,
@@ -126,11 +125,6 @@ class _TestReporter extends WDIOReporter {
 
     needToSendData(testType?: string, event?: string) {
         if (!this._observability) {return false}
-
-        // APP_LCNC SDK flow: send test events via Listener so app_lcnc metadata reaches the ingestor
-        if (getCentralUser().app_lcnc && testType === 'test') {
-            return true
-        }
 
         switch (this._config?.framework) {
         case 'mocha':
@@ -262,15 +256,6 @@ class _TestReporter extends WDIOReporter {
             testData.retries = { limit: (testStats as TestStats).retries || 0, attempts: (testStats as TestStats).retries || 0 }
         }
 
-        if (['TestRunStarted', 'TestRunFinished', 'TestRunSkipped'].includes(eventType)) {
-            const appLcncMetaData = process.env.BSTACK_SDK_META
-            if (appLcncMetaData) {
-                const parsedAppLcncMetaData = JSON.parse(appLcncMetaData) as Record<string, any>
-                if (parsedAppLcncMetaData && Object.keys(parsedAppLcncMetaData).length > 0) {
-                    testData.app_lcnc = parsedAppLcncMetaData
-                }
-            }
-        }
 
         if (eventType.startsWith('TestRun') || eventType === 'HookRunStarted') {
             /* istanbul ignore next */
