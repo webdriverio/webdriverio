@@ -335,6 +335,14 @@ interface InstanceBase extends EventEmitter, SessionFlags {
 export interface BrowserBase extends InstanceBase, CustomInstanceCommands<WebdriverIO.Browser> {
     isMultiremote: false
     /**
+     * @private
+     * Set to true when this browser instance is a named member of a multiremote session.
+     * Lets internal session managers (e.g. ContextManager) distinguish a sub-browser
+     * whose last window was closed from a standalone browser, so they do not terminate
+     * the whole multiremote test when only one browser has no windows left.
+     */
+    isMultiremoteBrowser?: boolean
+    /**
      * capabilities of the browser instance
      */
     capabilities: WebdriverIO.Capabilities
