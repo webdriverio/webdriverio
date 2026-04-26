@@ -12,7 +12,7 @@ import TestHubModule from './modules/testHubModule.js'
 import type { ChildProcess } from 'node:child_process'
 import type { StartBinSessionResponse } from '@browserstack/wdio-browserstack-service'
 import type BaseModule from './modules/baseModule.js'
-import { BROWSERSTACK_ACCESSIBILITY, BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_TESTHUB_UUID, CLI_STOP_TIMEOUT, TESTOPS_BUILD_COMPLETED_ENV, TESTOPS_SCREENSHOT_ENV } from '../constants.js'
+import { BROWSERSTACK_ACCESSIBILITY, BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_TESTHUB_UUID, CLI_STOP_TIMEOUT, TESTOPS_BUILD_COMPLETED_ENV, TESTOPS_SCREENSHOT_ENV, BINARY_BUSY_ERROR_CODES, MAX_SPAWN_RETRIES, SPAWN_RETRY_DELAY_MS } from '../constants.js'
 import type { Options } from '@wdio/types'
 import TestOpsConfig from '../testOps/testOpsConfig.js'
 import WdioMochaTestFramework from './frameworks/wdioMochaTestFramework.js'
@@ -206,52 +206,105 @@ export class BrowserstackCLI {
         }
 
         const SDK_CLI_BIN_PATH = await this.getCliBinPath()
-        const cmd:Array<string> = [SDK_CLI_BIN_PATH, 'sdk']
-        this.logger.debug(`spawning command='${cmd}'`)
-        // Create a child process
-        this.process = spawn(cmd[0], cmd.slice(1), {
-            env: process.env
-        })
 
-        // Return a promise that resolves when CLI is ready
+        if (!SDK_CLI_BIN_PATH) {
+            throw new Error('Failed to get CLI binary path. CLI setup failed.')
+        }
+
+        const cmd: Array<string> = [SDK_CLI_BIN_PATH, 'sdk']
+        this.logger.debug(`spawning command='${cmd}'`)
+
+        // Defensive retry: atomic rename in CLIUtils prevents ETXTBSY/EBUSY in normal flow,
+        // but retry as a safety net for both synchronous and async spawn failures.
+        for (let attempt = 1; attempt <= MAX_SPAWN_RETRIES; attempt++) {
+            try {
+                await this._spawnAndAwaitReady(cmd)
+                if (attempt > 1) {
+                    this.logger.info(`Spawn succeeded on attempt ${attempt}/${MAX_SPAWN_RETRIES}`)
+                }
+                PerformanceTester.end(PerformanceEvents.SDK_CLI_START)
+                return
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } catch (err: any) {
+                const isBusy = BINARY_BUSY_ERROR_CODES.includes(err.code) ||
+                    (err.message && (
+                        err.message.toLowerCase().includes('text file busy') ||
+                        err.message.toLowerCase().includes('being used by another process')
+                    ))
+                if (isBusy && attempt < MAX_SPAWN_RETRIES) {
+                    this.logger.warn(
+                        `Spawn attempt ${attempt}/${MAX_SPAWN_RETRIES} failed with busy error, ` +
+                        `retrying in ${SPAWN_RETRY_DELAY_MS}ms: ${err.message}`
+                    )
+                    // Clean up failed process before retry
+                    if (this.process) {
+                        this.process.removeAllListeners()
+                        this.process.stdout?.removeAllListeners()
+                        this.process.stderr?.removeAllListeners()
+                        this.process = null
+                    }
+                    await new Promise((r) => setTimeout(r, SPAWN_RETRY_DELAY_MS))
+                } else {
+                    PerformanceTester.end(PerformanceEvents.SDK_CLI_START, false, err)
+                    throw err
+                }
+            }
+        }
+    }
+
+    /**
+     * Spawn the CLI process and wait until it emits "ready".
+     * Handles both synchronous spawn errors and async error/close events.
+     */
+    private _spawnAndAwaitReady(cmd: Array<string>): Promise<void> {
         return new Promise<void>((resolve, reject) => {
+            let settled = false
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const settle = (fn: typeof resolve | typeof reject, val?: any) => {
+                if (settled) {return}
+                settled = true
+                fn(val)
+            }
+
+            try {
+                this.process = spawn(cmd[0], cmd.slice(1), {
+                    env: process.env
+                })
+            } catch (syncErr) {
+                settle(reject, syncErr)
+                return
+            }
+
             const cliOut: Record<string, string> = {}
 
-            this.process!.stdout!.on('data', (data: Buffer) => {
+            this.process.stdout!.on('data', (data: Buffer) => {
                 const lines = data.toString().trim().split('\n')
-
                 for (const line of lines) {
-                    // Parse key=value pairs
                     if (/^(id|listen|port)=.*$/.test(line)) {
                         const [key, value] = line.split('=', 2)
                         if (value !== undefined) {
                             cliOut[key] = value
                         }
                     }
-
-                    // Check for ready message
                     if (line.toLowerCase().includes('ready')) {
                         this.loadCliParams(cliOut)
-                        PerformanceTester.end(PerformanceEvents.SDK_CLI_START)
-                        resolve()
+                        settle(resolve)
                         return
                     }
                 }
             })
 
-            this.process!.stderr!.on('data', (data: Buffer) => {
+            this.process.stderr!.on('data', (data: Buffer) => {
                 this.logger.error(`CLI stderr: ${data.toString().trim()}`)
             })
 
-            this.process!.on('error', (err: Error) => {
-                cliOut.error = `Error in start: ${err.message}`
-                PerformanceTester.end(PerformanceEvents.SDK_CLI_START, false, err)
-                reject(new Error(`Failed to start CLI process: ${err.message}`))
+            this.process.on('error', (err: Error) => {
+                settle(reject, err)
             })
 
-            this.process!.on('close', (code: number) => {
+            this.process.on('close', (code: number) => {
                 if (code !== 0) {
-                    reject(new Error(`CLI process exited with code ${code}`))
+                    settle(reject, new Error(`CLI process exited with code ${code}`))
                 }
             })
         })

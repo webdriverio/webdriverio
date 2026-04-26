@@ -27,7 +27,7 @@ import {
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
 import { BStackLogger as logger } from './cliLogger.js'
-import { UPDATED_CLI_ENDPOINT, BSTACK_SERVICE_VERSION } from '../constants.js'
+import { UPDATED_CLI_ENDPOINT, BSTACK_SERVICE_VERSION, BINARY_BUSY_ERROR_CODES } from '../constants.js'
 import type { Options, Capabilities } from '@wdio/types'
 import type {
     BrowserstackConfig,
@@ -228,9 +228,22 @@ export class CLIUtils {
             sdk_language: this.getSdkLanguage(),
         }
         if (!isNullOrEmpty(existingCliPath)) {
-            queryParams.cli_version = await this.runShellCommand(
+            // If binary is busy (being executed by another process), skip version check
+            // and API call entirely — use existing binary as-is
+            if (this.isBinaryBusy(existingCliPath)) {
+                logger.warn(`Existing binary is currently in use, skipping update: ${existingCliPath}`)
+                PerformanceTester.end(PerformanceEvents.SDK_CLI_CHECK_UPDATE)
+                return existingCliPath
+            }
+            const version = await this.runShellCommand(
                 `${existingCliPath} version`,
             )
+            if (version.toLowerCase().includes('text file busy')) {
+                logger.warn(`Binary busy during version check, skipping update: ${existingCliPath}`)
+                PerformanceTester.end(PerformanceEvents.SDK_CLI_CHECK_UPDATE)
+                return existingCliPath
+            }
+            queryParams.cli_version = version
         }
         const response = await this.requestToUpdateCLI(queryParams, config)
         if (nestedKeyValue(response, ['updated_cli_version'])) {
@@ -369,6 +382,26 @@ export class CLIUtils {
         } catch (err) {
             logger.error(`Error while reading CLI path: ${util.format(err)}`)
             return ''
+        }
+    }
+
+    static isBinaryBusy(binaryPath: string): boolean {
+        if (isNullOrEmpty(binaryPath)) {return false}
+        if (platform() === 'darwin') {return false}
+        if (!fs.existsSync(binaryPath)) {return false}
+
+        try {
+            const fd = fs.openSync(binaryPath, 'r+')
+            fs.closeSync(fd)
+            return false
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
+            if (BINARY_BUSY_ERROR_CODES.includes(err.code)) {
+                logger.debug(`Binary is busy: ${binaryPath}`)
+                return true
+            }
+            logger.debug(`Error checking if binary is busy: ${err.message}`)
+            return false
         }
     }
 
@@ -705,35 +738,89 @@ export class CLIUtils {
                 })
                 zipfile.readEntry()
                 zipfile.on('entry', async (entry) => {
-                    if (!binaryName) {
+                    if (/\/$/.test(entry.fileName)) {
+                        // Directory entry — skip, no temp file needed
+                        zipfile.readEntry()
+                        return
+                    }
+
+                    const isBinaryEntry = path.basename(entry.fileName).startsWith('binary-')
+                    if (!binaryName && isBinaryEntry) {
                         binaryName = entry.fileName
                     }
-                    if (/\/$/.test(entry.fileName)) {
-                        // Directory file names end with '/'.
-                        zipfile.readEntry()
-                    } else {
-                        // file entry
-                        const writeStream = fs.createWriteStream(
+
+                    if (!isBinaryEntry) {
+                        const directStream = fs.createWriteStream(
                             path.join(cliDir, entry.fileName),
                         )
                         const openReadStreamPromise = promisify(
                             zipfile.openReadStream,
                         ).bind(zipfile)
                         try {
-                            const readStream =
-                                await openReadStreamPromise(entry)
+                            const readStream = await openReadStreamPromise(entry)
                             readStream.on('end', function () {
-                                writeStream.close()
-                                zipfile.readEntry()
+                                directStream.end()
+                                directStream.on('close', () => zipfile.readEntry())
                             })
-                            readStream.pipe(writeStream)
+                            readStream.pipe(directStream)
                         } catch (zipErr) {
+                            zipfile.close()
                             reject(zipErr as Error)
                         }
+                        return
+                    }
 
-                        if (entry.fileName === binaryName) {
+                    // Binary entry: extract to PID-scoped temp file, then atomic rename.
+                    // This prevents ETXTBSY/EBUSY(text file busy): the file being executed is never the file being written.
+                    const finalPath = path.join(cliDir, entry.fileName)
+                    const tempPath = path.join(cliDir, `${entry.fileName}.tmp.${process.pid}`)
+
+                    let writeStream: fs.WriteStream
+                    try {
+                        writeStream = fs.createWriteStream(tempPath)
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    } catch (createErr: any) {
+                        if (BINARY_BUSY_ERROR_CODES.includes(createErr.code) && fs.existsSync(finalPath)) {
+                            logger.warn(`Temp file busy, falling back to existing binary: ${entry.fileName}`)
+                            fsp.unlink(zipFilePath).catch(() => {})
                             zipfile.close()
+                            resolve(finalPath)
+                            return
                         }
+                        zipfile.close()
+                        reject(createErr)
+                        return
+                    }
+
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    writeStream.on('error', (writeErr: any) => {
+                        if (BINARY_BUSY_ERROR_CODES.includes(writeErr.code) && fs.existsSync(finalPath)) {
+                            logger.warn(`Temp write busy, falling back to existing binary: ${writeErr.message}`)
+                            writeStream.close()
+                            fsp.unlink(tempPath).catch(() => {})
+                            fsp.unlink(zipFilePath).catch(() => {})
+                            zipfile.close()
+                            resolve(finalPath)
+                        } else {
+                            zipfile.close()
+                            reject(writeErr)
+                        }
+                    })
+
+                    const openReadStreamPromise = promisify(
+                        zipfile.openReadStream,
+                    ).bind(zipfile)
+                    try {
+                        const readStream = await openReadStreamPromise(entry)
+                        readStream.on('end', function () {
+                            writeStream.end()
+                            writeStream.on('close', () => zipfile.readEntry())
+                        })
+                        readStream.pipe(writeStream)
+                    } catch (zipErr) {
+                        fsp.unlink(tempPath).catch(() => {})
+                        zipfile.close()
+                        reject(zipErr as Error)
                     }
                 })
 
@@ -743,18 +830,48 @@ export class CLIUtils {
 
                 zipfile.once('end', () => {
                     fsp.unlink(zipFilePath).catch(() => {
-                        logger.warn(
-                            `Failed to delete zip file: ${zipFilePath}`,
-                        )
+                        logger.warn(`Failed to delete zip file: ${zipFilePath}`)
                     })
-                    fsp.chmod(`${cliDir}/${binaryName}`, '0755')
+
+                    if (!binaryName) {
+                        zipfile.close()
+                        reject(new Error('No binary entry found in zip'))
+                        return
+                    }
+
+                    const tempPath = path.join(cliDir, `${binaryName}.tmp.${process.pid}`)
+                    const finalPath = path.join(cliDir, binaryName)
+
+                    // Set executable permission on temp file, then atomic rename
+                    fsp.chmod(tempPath, '0755')
                         .then(() => {
-                            resolve(`${cliDir}/${binaryName}`)
+                            // Atomic rename: temp -> final
+                            return fsp.rename(tempPath, finalPath)
                         })
-                        .catch((err) => {
-                            reject(err)
+                        .then(() => {
+                            zipfile.close()
+                            resolve(finalPath)
                         })
-                    zipfile.close()
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        .catch((renameErr: any) => {
+                            // Narrow fallback to cross-device (EXDEV) only
+                            if (renameErr.code === 'EXDEV') {
+                                logger.warn(`Atomic rename failed (cross-device), falling back to copy: ${renameErr.message}`)
+                                fs.copyFile(tempPath, finalPath, (copyErr) => {
+                                    fsp.unlink(tempPath).catch(() => {})
+                                    zipfile.close()
+                                    if (copyErr) {
+                                        reject(copyErr)
+                                    } else {
+                                        resolve(finalPath)
+                                    }
+                                })
+                            } else {
+                                fsp.unlink(tempPath).catch(() => {})
+                                zipfile.close()
+                                reject(renameErr)
+                            }
+                        })
                 })
             } catch (err) {
                 reject(err as Error)
