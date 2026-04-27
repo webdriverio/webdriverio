@@ -737,6 +737,7 @@ export class CLIUtils {
                     lazyEntries: true,
                 })
                 zipfile.readEntry()
+                let firstEntryName: string | null = null
                 zipfile.on('entry', async (entry) => {
                     if (/\/$/.test(entry.fileName)) {
                         // Directory entry — skip, no temp file needed
@@ -744,6 +745,9 @@ export class CLIUtils {
                         return
                     }
 
+                    if (!firstEntryName) {
+                        firstEntryName = entry.fileName
+                    }
                     const isBinaryEntry = path.basename(entry.fileName).startsWith('binary-')
                     if (!binaryName && isBinaryEntry) {
                         binaryName = entry.fileName
@@ -834,9 +838,14 @@ export class CLIUtils {
                     })
 
                     if (!binaryName) {
-                        zipfile.close()
-                        reject(new Error('No binary entry found in zip'))
-                        return
+                        // Fallback: use first entry if no binary-* entry found
+                        if (firstEntryName) {
+                            binaryName = firstEntryName
+                        } else {
+                            zipfile.close()
+                            reject(new Error('No binary entry found in zip'))
+                            return
+                        }
                     }
 
                     const tempPath = path.join(cliDir, `${binaryName}.tmp.${process.pid}`)
@@ -857,15 +866,10 @@ export class CLIUtils {
                             // Narrow fallback to cross-device (EXDEV) only
                             if (renameErr.code === 'EXDEV') {
                                 logger.warn(`Atomic rename failed (cross-device), falling back to copy: ${renameErr.message}`)
-                                fs.copyFile(tempPath, finalPath, (copyErr) => {
-                                    fsp.unlink(tempPath).catch(() => {})
-                                    zipfile.close()
-                                    if (copyErr) {
-                                        reject(copyErr)
-                                    } else {
-                                        resolve(finalPath)
-                                    }
-                                })
+                                fsp.copyFile(tempPath, finalPath)
+                                    .then(() => fsp.unlink(tempPath).catch(() => {}))
+                                    .then(() => { zipfile.close(); resolve(finalPath) })
+                                    .catch((copyErr) => { zipfile.close(); reject(copyErr) })
                             } else {
                                 fsp.unlink(tempPath).catch(() => {})
                                 zipfile.close()
