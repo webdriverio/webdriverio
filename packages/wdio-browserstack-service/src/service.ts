@@ -389,10 +389,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'afterTest' })
-    async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
+    async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult & { skipped?: boolean }) {
         this._specsRan = true
-        const { error, passed } = results
-        if (!passed) {
+        const { error, passed, skipped } = results
+        if (!passed && !skipped) {
             const testError = (error && error.message) || 'Unknown Error'
             this._failReasons.push(testError)
 
