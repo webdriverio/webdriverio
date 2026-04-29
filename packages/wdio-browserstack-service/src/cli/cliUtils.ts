@@ -737,7 +737,6 @@ export class CLIUtils {
                     lazyEntries: true,
                 })
                 zipfile.readEntry()
-                let firstEntryName: string | null = null
                 zipfile.on('entry', async (entry) => {
                     if (/\/$/.test(entry.fileName)) {
                         // Directory entry — skip, no temp file needed
@@ -745,9 +744,6 @@ export class CLIUtils {
                         return
                     }
 
-                    if (!firstEntryName) {
-                        firstEntryName = entry.fileName
-                    }
                     const isBinaryEntry = path.basename(entry.fileName).startsWith('binary-')
                     if (!binaryName && isBinaryEntry) {
                         binaryName = entry.fileName
@@ -837,19 +833,10 @@ export class CLIUtils {
                         logger.warn(`Failed to delete zip file: ${zipFilePath}`)
                     })
 
-                    if (!binaryName) {
-                        // Fallback: use first entry if no binary-* entry found
-                        if (firstEntryName) {
-                            binaryName = firstEntryName
-                        } else {
-                            zipfile.close()
-                            reject(new Error('No binary entry found in zip'))
-                            return
-                        }
-                    }
-
+                    // The BrowserStack zip always contains a binary-* entry by convention,
+                    // so binaryName is non-null here.
                     const tempPath = path.join(cliDir, `${binaryName}.tmp.${process.pid}`)
-                    const finalPath = path.join(cliDir, binaryName)
+                    const finalPath = path.join(cliDir, binaryName!)
 
                     // Set executable permission on temp file, then atomic rename
                     fsp.chmod(tempPath, '0755')
