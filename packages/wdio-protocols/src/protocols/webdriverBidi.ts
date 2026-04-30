@@ -70,7 +70,7 @@ const protocol = {
             "returns": {
                 "type": "Object",
                 "name": "local.SessionStatusResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     ready: boolean;\n     message: string;\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     ready: boolean;\r\n     message: string;\r\n   }\n   ```"
             }
         }
     },
@@ -83,14 +83,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.SessionNewParameters`",
-                    "description": "<pre>\\{<br />  capabilities: SessionCapabilitiesRequest;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  capabilities: SessionCapabilitiesRequest;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.SessionNewResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     sessionId: string;\n     capabilities: {\n       acceptInsecureCerts: boolean;\n       browserName: string;\n       browserVersion: string;\n       platformName: string;\n       setWindowRect: boolean;\n       userAgent: string;\n       proxy?: SessionProxyConfiguration;\n       unhandledPromptBehavior?: SessionUserPromptHandler;\n       webSocketUrl?: string;\n     };\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     sessionId: string;\r\n     capabilities: {\r\n       acceptInsecureCerts: boolean;\r\n       browserName: string;\r\n       browserVersion: string;\r\n       platformName: string;\r\n       setWindowRect: boolean;\r\n       userAgent: string;\r\n       proxy?: SessionProxyConfiguration;\r\n       unhandledPromptBehavior?: SessionUserPromptHandler;\r\n       webSocketUrl?: string;\r\n     };\r\n   }\n   ```"
             }
         }
     },
@@ -123,14 +123,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.SessionSubscribeParameters`",
-                    "description": "<pre>\\{<br />  events: string[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  events: string[];\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.SessionSubscribeResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     subscription: SessionSubscription;\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     subscription: SessionSubscription;\r\n   }\n   ```"
             }
         }
     },
@@ -183,7 +183,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowserCreateUserContextParameters`",
-                    "description": "<pre>\\{<br />  acceptInsecureCerts?: boolean;<br />  proxy?: SessionProxyConfiguration;<br />  unhandledPromptBehavior?: SessionUserPromptHandler;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  acceptInsecureCerts?: boolean;\r<br />  proxy?: SessionProxyConfiguration;\r<br />  unhandledPromptBehavior?: SessionUserPromptHandler;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -210,7 +210,7 @@ const protocol = {
             "returns": {
                 "type": "Object",
                 "name": "local.BrowserGetClientWindowsResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     clientWindows: BrowserClientWindowInfo[];\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     clientWindows: BrowserClientWindowInfo[];\r\n   }\n   ```"
             }
         }
     },
@@ -230,7 +230,7 @@ const protocol = {
             "returns": {
                 "type": "Object",
                 "name": "local.BrowserGetUserContextsResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     userContexts: BrowserUserContextInfo[];\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     userContexts: BrowserUserContextInfo[];\r\n   }\n   ```"
             }
         }
     },
@@ -243,7 +243,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowserRemoveUserContextParameters`",
-                    "description": "<pre>\\{<br />  userContext: BrowserUserContext;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  userContext: BrowserUserContext;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -263,7 +263,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowserSetClientWindowStateParameters`",
-                    "description": "<pre>\\{<br />  clientWindow: BrowserClientWindow;<br />}\\}</pre>",
+                    "description": "<pre>\\{\r<br />  clientWindow: BrowserClientWindow;\r<br />}\\}</pre>",
                     "required": true
                 }
             ],
@@ -283,7 +283,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowserSetDownloadBehaviorParameters`",
-                    "description": "<pre>\\{<br />  downloadBehavior: BrowserDownloadBehavior &#124; null;<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  downloadBehavior: BrowserDownloadBehavior &#124; null;\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -303,7 +303,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextActivateParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -323,14 +323,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextCaptureScreenshotParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  /\\*\\*<br />   \\* @default 'viewport'<br />   \\*/<br />  origin?: \"viewport\" &#124; \"document\";<br />  format?: BrowsingContextImageFormat;<br />  clip?: BrowsingContextClipRectangle;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  /\\*\\*\r<br />   \\* @default 'viewport'\r<br />   \\*/\r<br />  origin?: \"viewport\" &#124; \"document\";\r<br />  format?: BrowsingContextImageFormat;\r<br />  clip?: BrowsingContextClipRectangle;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.BrowsingContextCaptureScreenshotResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     data: string;\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     data: string;\r\n   }\n   ```"
             }
         }
     },
@@ -343,7 +343,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextCloseParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  promptUnload?: boolean;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  promptUnload?: boolean;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -363,14 +363,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextCreateParameters`",
-                    "description": "<pre>\\{<br />  type: BrowsingContextCreateType;<br />  referenceContext?: BrowsingContextBrowsingContext;<br />  background?: boolean;<br />  userContext?: BrowserUserContext;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  type: BrowsingContextCreateType;\r<br />  referenceContext?: BrowsingContextBrowsingContext;\r<br />  background?: boolean;\r<br />  userContext?: BrowserUserContext;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.BrowsingContextCreateResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     context: BrowsingContextBrowsingContext;\n     userContext?: BrowserUserContext;\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     context: BrowsingContextBrowsingContext;\r\n     userContext?: BrowserUserContext;\r\n   }\n   ```"
             }
         }
     },
@@ -383,14 +383,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextGetTreeParameters`",
-                    "description": "<pre>\\{<br />  maxDepth?: JsUint;<br />  root?: BrowsingContextBrowsingContext;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  maxDepth?: JsUint;\r<br />  root?: BrowsingContextBrowsingContext;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.BrowsingContextGetTreeResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     contexts: BrowsingContextInfoList;\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     contexts: BrowsingContextInfoList;\r\n   }\n   ```"
             }
         }
     },
@@ -403,7 +403,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextHandleUserPromptParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  accept?: boolean;<br />  userText?: string;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  accept?: boolean;\r<br />  userText?: string;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -423,14 +423,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextLocateNodesParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  locator: BrowsingContextLocator;<br />  maxNodeCount?: JsUint;<br />  serializationOptions?: ScriptSerializationOptions;<br />  startNodes?: ScriptSharedReference[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  locator: BrowsingContextLocator;\r<br />  maxNodeCount?: JsUint;\r<br />  serializationOptions?: ScriptSerializationOptions;\r<br />  startNodes?: ScriptSharedReference[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.BrowsingContextLocateNodesResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     nodes: ScriptNodeRemoteValue[];\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     nodes: ScriptNodeRemoteValue[];\r\n   }\n   ```"
             }
         }
     },
@@ -443,14 +443,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextNavigateParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  url: string;<br />  wait?: BrowsingContextReadinessState;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  url: string;\r<br />  wait?: BrowsingContextReadinessState;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.BrowsingContextNavigateResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     navigation: BrowsingContextNavigation | null;\n     url: string;\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     navigation: BrowsingContextNavigation | null;\r\n     url: string;\r\n   }\n   ```"
             }
         }
     },
@@ -463,14 +463,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextPrintParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  background?: boolean;<br />  margin?: BrowsingContextPrintMarginParameters;<br />  /\\*\\*<br />   \\* @default 'portrait'<br />   \\*/<br />  orientation?: \"portrait\" &#124; \"landscape\";<br />  page?: BrowsingContextPrintPageParameters;<br />  pageRanges?: (JsUint &#124; string)[];<br />  /\\*\\*<br />   \\* @default 1<br />   \\*/<br />  scale?: number;<br />  /\\*\\*<br />   \\* @default true<br />   \\*/<br />  shrinkToFit?: boolean;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  background?: boolean;\r<br />  margin?: BrowsingContextPrintMarginParameters;\r<br />  /\\*\\*\r<br />   \\* @default 'portrait'\r<br />   \\*/\r<br />  orientation?: \"portrait\" &#124; \"landscape\";\r<br />  page?: BrowsingContextPrintPageParameters;\r<br />  pageRanges?: (JsUint &#124; string)[];\r<br />  /\\*\\*\r<br />   \\* @default 1\r<br />   \\*/\r<br />  scale?: number;\r<br />  /\\*\\*\r<br />   \\* @default true\r<br />   \\*/\r<br />  shrinkToFit?: boolean;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.BrowsingContextPrintResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     data: string;\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     data: string;\r\n   }\n   ```"
             }
         }
     },
@@ -483,7 +483,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextReloadParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  ignoreCache?: boolean;<br />  wait?: BrowsingContextReadinessState;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  ignoreCache?: boolean;\r<br />  wait?: BrowsingContextReadinessState;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -503,7 +503,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextSetBypassCspParameters`",
-                    "description": "<pre>\\{<br />  bypass: true &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  bypass: true &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -523,7 +523,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextSetViewportParameters`",
-                    "description": "<pre>\\{<br />  context?: BrowsingContextBrowsingContext;<br />  viewport?: BrowsingContextViewport &#124; null;<br />  devicePixelRatio?: number &#124; null;<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  context?: BrowsingContextBrowsingContext;\r<br />  viewport?: BrowsingContextViewport &#124; null;\r<br />  devicePixelRatio?: number &#124; null;\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -543,7 +543,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextTraverseHistoryParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  delta: JsInt;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  delta: JsInt;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -563,7 +563,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.EmulationSetForcedColorsModeThemeOverrideParameters`",
-                    "description": "<pre>\\{<br />  theme: EmulationForcedColorsModeTheme &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  theme: EmulationForcedColorsModeTheme &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -583,7 +583,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.EmulationSetGeolocationOverrideParameters`",
-                    "description": "<pre>\\{<br />  coordinates: EmulationGeolocationCoordinates &#124; null;<br />} &#124; {<br />  error: EmulationGeolocationPositionError;<br />}) & {<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />}\\}</pre>",
+                    "description": "<pre>\\{\r<br />  coordinates: EmulationGeolocationCoordinates &#124; null;\r<br />} &#124; {\r<br />  error: EmulationGeolocationPositionError;\r<br />}) & {\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />}\\}</pre>",
                     "required": true
                 }
             ],
@@ -603,7 +603,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.EmulationSetLocaleOverrideParameters`",
-                    "description": "<pre>\\{<br />  locale: string &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  locale: string &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -623,7 +623,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.EmulationSetNetworkConditionsParameters`",
-                    "description": "<pre>\\{<br />  networkConditions: EmulationNetworkConditions &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  networkConditions: EmulationNetworkConditions &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -643,7 +643,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.EmulationSetScreenSettingsOverrideParameters`",
-                    "description": "<pre>\\{<br />  screenArea: EmulationScreenArea &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  screenArea: EmulationScreenArea &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -663,7 +663,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.EmulationSetScreenOrientationOverrideParameters`",
-                    "description": "<pre>\\{<br />  screenOrientation: EmulationScreenOrientation &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  screenOrientation: EmulationScreenOrientation &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -683,7 +683,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.EmulationSetUserAgentOverrideParameters`",
-                    "description": "<pre>\\{<br />  userAgent: string &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  userAgent: string &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -703,7 +703,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.EmulationSetScriptingEnabledParameters`",
-                    "description": "<pre>\\{<br />  enabled: false &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  enabled: false &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -723,7 +723,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.EmulationSetScrollbarTypeOverrideParameters`",
-                    "description": "<pre>\\{<br />  scrollbarType: \"classic\" &#124; \"overlay\" &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  scrollbarType: \"classic\" &#124; \"overlay\" &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -743,7 +743,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.EmulationSetTimezoneOverrideParameters`",
-                    "description": "<pre>\\{<br />  timezone: string &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  timezone: string &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -763,7 +763,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.EmulationSetTouchOverrideParameters`",
-                    "description": "<pre>\\{<br />  maxTouchPoints: JsUint &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  maxTouchPoints: JsUint &#124; null;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -783,14 +783,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkAddDataCollectorParameters`",
-                    "description": "<pre>\\{<br />  dataTypes: NetworkDataType[];<br />  maxEncodedDataSize: JsUint;<br />  /\\*\\*<br />   \\* @default 'blob'<br />   \\*/<br />  collectorType?: NetworkCollectorType;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  dataTypes: NetworkDataType[];\r<br />  maxEncodedDataSize: JsUint;\r<br />  /\\*\\*\r<br />   \\* @default 'blob'\r<br />   \\*/\r<br />  collectorType?: NetworkCollectorType;\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.NetworkAddDataCollectorResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     collector: NetworkCollector;\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     collector: NetworkCollector;\r\n   }\n   ```"
             }
         }
     },
@@ -803,14 +803,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkAddInterceptParameters`",
-                    "description": "<pre>\\{<br />  phases: NetworkInterceptPhase[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />  urlPatterns?: NetworkUrlPattern[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  phases: NetworkInterceptPhase[];\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  urlPatterns?: NetworkUrlPattern[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.NetworkAddInterceptResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     intercept: NetworkIntercept;\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     intercept: NetworkIntercept;\r\n   }\n   ```"
             }
         }
     },
@@ -823,7 +823,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkContinueRequestParameters`",
-                    "description": "<pre>\\{<br />  request: NetworkRequest;<br />  body?: NetworkBytesValue;<br />  cookies?: NetworkCookieHeader[];<br />  headers?: NetworkHeader[];<br />  method?: string;<br />  url?: string;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  request: NetworkRequest;\r<br />  body?: NetworkBytesValue;\r<br />  cookies?: NetworkCookieHeader[];\r<br />  headers?: NetworkHeader[];\r<br />  method?: string;\r<br />  url?: string;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -843,7 +843,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkContinueResponseParameters`",
-                    "description": "<pre>\\{<br />  request: NetworkRequest;<br />  cookies?: NetworkSetCookieHeader[];<br />  credentials?: NetworkAuthCredentials;<br />  headers?: NetworkHeader[];<br />  reasonPhrase?: string;<br />  statusCode?: JsUint;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  request: NetworkRequest;\r<br />  cookies?: NetworkSetCookieHeader[];\r<br />  credentials?: NetworkAuthCredentials;\r<br />  headers?: NetworkHeader[];\r<br />  reasonPhrase?: string;\r<br />  statusCode?: JsUint;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -863,7 +863,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkContinueWithAuthParameters`",
-                    "description": "<pre>\\{<br />  request: NetworkRequest;<br />}\\}</pre>",
+                    "description": "<pre>\\{\r<br />  request: NetworkRequest;\r<br />}\\}</pre>",
                     "required": true
                 }
             ],
@@ -883,7 +883,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkDisownDataParameters`",
-                    "description": "<pre>\\{<br />  dataType: NetworkDataType;<br />  collector: NetworkCollector;<br />  request: NetworkRequest;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  dataType: NetworkDataType;\r<br />  collector: NetworkCollector;\r<br />  request: NetworkRequest;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -903,7 +903,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkFailRequestParameters`",
-                    "description": "<pre>\\{<br />  request: NetworkRequest;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  request: NetworkRequest;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -923,14 +923,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkGetDataParameters`",
-                    "description": "<pre>\\{<br />  dataType: NetworkDataType;<br />  collector?: NetworkCollector;<br />  disown?: boolean;<br />  request: NetworkRequest;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  dataType: NetworkDataType;\r<br />  collector?: NetworkCollector;\r<br />  disown?: boolean;\r<br />  request: NetworkRequest;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.NetworkGetDataResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     bytes: NetworkBytesValue;\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     bytes: NetworkBytesValue;\r\n   }\n   ```"
             }
         }
     },
@@ -943,7 +943,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkProvideResponseParameters`",
-                    "description": "<pre>\\{<br />  request: NetworkRequest;<br />  body?: NetworkBytesValue;<br />  cookies?: NetworkSetCookieHeader[];<br />  headers?: NetworkHeader[];<br />  reasonPhrase?: string;<br />  statusCode?: JsUint;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  request: NetworkRequest;\r<br />  body?: NetworkBytesValue;\r<br />  cookies?: NetworkSetCookieHeader[];\r<br />  headers?: NetworkHeader[];\r<br />  reasonPhrase?: string;\r<br />  statusCode?: JsUint;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -963,7 +963,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkRemoveDataCollectorParameters`",
-                    "description": "<pre>\\{<br />  collector: NetworkCollector;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  collector: NetworkCollector;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -983,7 +983,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkRemoveInterceptParameters`",
-                    "description": "<pre>\\{<br />  intercept: NetworkIntercept;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  intercept: NetworkIntercept;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -1003,7 +1003,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkSetCacheBehaviorParameters`",
-                    "description": "<pre>\\{<br />  cacheBehavior: \"default\" &#124; \"bypass\";<br />  contexts?: BrowsingContextBrowsingContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  cacheBehavior: \"default\" &#124; \"bypass\";\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -1023,7 +1023,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkSetExtraHeadersParameters`",
-                    "description": "<pre>\\{<br />  headers: NetworkHeader[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  headers: NetworkHeader[];\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -1043,14 +1043,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.ScriptAddPreloadScriptParameters`",
-                    "description": "<pre>\\{<br />  functionDeclaration: string;<br />  arguments?: ScriptChannelValue[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />  sandbox?: string;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  functionDeclaration: string;\r<br />  arguments?: ScriptChannelValue[];\r<br />  contexts?: BrowsingContextBrowsingContext[];\r<br />  userContexts?: BrowserUserContext[];\r<br />  sandbox?: string;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.ScriptAddPreloadScriptResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     script: ScriptPreloadScript;\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     script: ScriptPreloadScript;\r\n   }\n   ```"
             }
         }
     },
@@ -1063,7 +1063,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.ScriptDisownParameters`",
-                    "description": "<pre>\\{<br />  handles: ScriptHandle[];<br />  target: ScriptTarget;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  handles: ScriptHandle[];\r<br />  target: ScriptTarget;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -1083,7 +1083,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.ScriptCallFunctionParameters`",
-                    "description": "<pre>\\{<br />  functionDeclaration: string;<br />  awaitPromise: boolean;<br />  target: ScriptTarget;<br />  arguments?: ScriptLocalValue[];<br />  resultOwnership?: ScriptResultOwnership;<br />  serializationOptions?: ScriptSerializationOptions;<br />  this?: ScriptLocalValue;<br />  userActivation?: boolean;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  functionDeclaration: string;\r<br />  awaitPromise: boolean;\r<br />  target: ScriptTarget;\r<br />  arguments?: ScriptLocalValue[];\r<br />  resultOwnership?: ScriptResultOwnership;\r<br />  serializationOptions?: ScriptSerializationOptions;\r<br />  this?: ScriptLocalValue;\r<br />  userActivation?: boolean;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -1103,7 +1103,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.ScriptEvaluateParameters`",
-                    "description": "<pre>\\{<br />  expression: string;<br />  target: ScriptTarget;<br />  awaitPromise: boolean;<br />  resultOwnership?: ScriptResultOwnership;<br />  serializationOptions?: ScriptSerializationOptions;<br />  userActivation?: boolean;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  expression: string;\r<br />  target: ScriptTarget;\r<br />  awaitPromise: boolean;\r<br />  resultOwnership?: ScriptResultOwnership;\r<br />  serializationOptions?: ScriptSerializationOptions;\r<br />  userActivation?: boolean;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -1123,14 +1123,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.ScriptGetRealmsParameters`",
-                    "description": "<pre>\\{<br />  context?: BrowsingContextBrowsingContext;<br />  type?: ScriptRealmType;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  context?: BrowsingContextBrowsingContext;\r<br />  type?: ScriptRealmType;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.ScriptGetRealmsResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     realms: ScriptRealmInfo[];\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     realms: ScriptRealmInfo[];\r\n   }\n   ```"
             }
         }
     },
@@ -1143,7 +1143,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.ScriptRemovePreloadScriptParameters`",
-                    "description": "<pre>\\{<br />  script: ScriptPreloadScript;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  script: ScriptPreloadScript;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -1163,14 +1163,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.StorageGetCookiesParameters`",
-                    "description": "<pre>\\{<br />  filter?: StorageCookieFilter;<br />  partition?: StoragePartitionDescriptor;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  filter?: StorageCookieFilter;\r<br />  partition?: StoragePartitionDescriptor;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.StorageGetCookiesResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     cookies: NetworkCookie[];\n     partitionKey: StoragePartitionKey;\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     cookies: NetworkCookie[];\r\n     partitionKey: StoragePartitionKey;\r\n   }\n   ```"
             }
         }
     },
@@ -1183,14 +1183,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.StorageSetCookieParameters`",
-                    "description": "<pre>\\{<br />  cookie: StoragePartialCookie;<br />  partition?: StoragePartitionDescriptor;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  cookie: StoragePartialCookie;\r<br />  partition?: StoragePartitionDescriptor;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.StorageSetCookieResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     partitionKey: StoragePartitionKey;\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     partitionKey: StoragePartitionKey;\r\n   }\n   ```"
             }
         }
     },
@@ -1203,14 +1203,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.StorageDeleteCookiesParameters`",
-                    "description": "<pre>\\{<br />  filter?: StorageCookieFilter;<br />  partition?: StoragePartitionDescriptor;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  filter?: StorageCookieFilter;\r<br />  partition?: StoragePartitionDescriptor;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.StorageDeleteCookiesResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     partitionKey: StoragePartitionKey;\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     partitionKey: StoragePartitionKey;\r\n   }\n   ```"
             }
         }
     },
@@ -1223,7 +1223,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.InputPerformActionsParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  actions: InputSourceActions[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  actions: InputSourceActions[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -1243,7 +1243,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.InputReleaseActionsParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -1263,7 +1263,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.InputSetFilesParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  element: ScriptSharedReference;<br />  files: string[];<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  context: BrowsingContextBrowsingContext;\r<br />  element: ScriptSharedReference;\r<br />  files: string[];\r<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -1283,14 +1283,14 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.WebExtensionInstallParameters`",
-                    "description": "<pre>\\{<br />  extensionData: WebExtensionExtensionData;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  extensionData: WebExtensionExtensionData;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
             "returns": {
                 "type": "Object",
                 "name": "local.WebExtensionInstallResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     extension: WebExtensionExtension;\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\r\n     extension: WebExtensionExtension;\r\n   }\n   ```"
             }
         }
     },
@@ -1303,7 +1303,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.WebExtensionUninstallParameters`",
-                    "description": "<pre>\\{<br />  extension: WebExtensionExtension;<br />\\}</pre>",
+                    "description": "<pre>\\{\r<br />  extension: WebExtensionExtension;\r<br />\\}</pre>",
                     "required": true
                 }
             ],
