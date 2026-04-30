@@ -17,9 +17,9 @@ export type Command = CommandData & Extensible & {
     id: JsUint;
 }
 
-export type CommandData = BrowserCommand | BrowsingContextCommand | EmulationCommand | InputCommand | NetworkCommand | ScriptCommand | SessionCommand | StorageCommand | WebExtensionCommand
-export type EmptyParams = Extensible
 export type Extensible = Record<string, unknown>
+export type CommandData = BrowserCommand | BrowsingContextCommand | EmulationCommand | InputCommand | NetworkCommand | ScriptCommand | SessionCommand | StorageCommand | WebExtensionCommand
+export interface EmptyParams {}
 export type JsInt = number
 export type JsUint = number
 export type SessionCommand = SessionEnd | SessionNew | SessionStatus | SessionSubscribe | SessionUnsubscribe
@@ -29,7 +29,7 @@ export interface SessionCapabilitiesRequest {
     firstMatch?: SessionCapabilityRequest[];
 }
 
-export type SessionCapabilityRequest = Extensible & {
+export interface SessionCapabilityRequest extends Extensible {
     acceptInsecureCerts?: boolean;
     browserName?: string;
     browserVersion?: string;
@@ -40,16 +40,20 @@ export type SessionCapabilityRequest = Extensible & {
 
 export type SessionProxyConfiguration = SessionAutodetectProxyConfiguration | SessionDirectProxyConfiguration | SessionManualProxyConfiguration | SessionPacProxyConfiguration | SessionSystemProxyConfiguration
 
-export type SessionAutodetectProxyConfiguration = Extensible & {
+export interface SessionAutodetectProxyConfiguration extends Extensible {
     proxyType: 'autodetect';
 }
 
-export type SessionDirectProxyConfiguration = Extensible & {
+export interface SessionDirectProxyConfiguration extends Extensible {
     proxyType: 'direct';
 }
 
-export type SessionManualProxyConfiguration = SessionSocksProxyConfiguration & Extensible & {
+export interface SessionManualProxyConfiguration extends SessionSocksProxyConfiguration, Extensible {
     proxyType: 'manual';
+    /**
+     * @deprecated no longer supported by browsers, will be removed in v10. See https://github.com/w3c/webdriver-bidi/commit/c580471251eaefe812526b0c894faf9dc201716d
+     */
+    ftpProxy?: string;
     httpProxy?: string;
     sslProxy?: string;
     noProxy?: string[];
@@ -60,12 +64,12 @@ export interface SessionSocksProxyConfiguration {
     socksVersion: number;
 }
 
-export type SessionPacProxyConfiguration = Extensible & {
+export interface SessionPacProxyConfiguration extends Extensible {
     proxyType: 'pac';
     proxyAutoconfigUrl: string;
 }
 
-export type SessionSystemProxyConfiguration = Extensible & {
+export interface SessionSystemProxyConfiguration extends Extensible {
     proxyType: 'system';
 }
 
@@ -81,6 +85,11 @@ export interface SessionUserPromptHandler {
 export type SessionUserPromptHandlerType = 'accept' | 'dismiss' | 'ignore'
 export type SessionSubscription = string
 
+/**
+ * @deprecated Use SessionSubscribeParameters instead, will be removed in v10.
+ */
+export interface SessionSubscriptionRequest extends SessionSubscribeParameters {}
+
 export interface SessionSubscribeParameters {
     events: string[];
     contexts?: BrowsingContextBrowsingContext[];
@@ -93,6 +102,10 @@ export interface SessionUnsubscribeByIdRequest {
 
 export interface SessionUnsubscribeByAttributesRequest {
     events: string[];
+    /**
+     * @deprecated should no longer be used, will be removed in v10, see https://github.com/w3c/webdriver-bidi/issues/829 & https://github.com/w3c/webdriver-bidi/pull/998
+     */
+    contexts?: BrowsingContextBrowsingContext[];
 }
 
 export interface SessionStatus {
@@ -116,7 +129,7 @@ export interface SessionEnd {
 
 export interface SessionSubscribe {
     method: 'session.subscribe';
-    params: SessionSubscribeParameters;
+    params: SessionSubscribeParameters | SessionSubscriptionRequest;
 }
 
 export interface SessionUnsubscribe {
@@ -681,7 +694,7 @@ export type NetworkCollector = string
 export type NetworkCollectorType = 'blob'
 export type NetworkSameSite = 'strict' | 'lax' | 'none' | 'default'
 
-export type NetworkCookie = Extensible & {
+export interface NetworkCookie extends Extensible {
     name: string;
     value: NetworkBytesValue;
     domain: string;
@@ -934,13 +947,18 @@ export interface ScriptExceptionDetails {
 
 export type ScriptHandle = string
 export type ScriptInternalId = string
-export type ScriptLocalValue = ScriptRemoteReference | ScriptPrimitiveProtocolValue | ScriptChannelValue | ScriptArrayLocalValue | ScriptDateLocalValue | ScriptMapLocalValue | ScriptObjectLocalValue | ScriptRegExpLocalValue | ScriptSetLocalValue
+export type ScriptLocalValue = ScriptRemoteReference | ScriptPrimitiveProtocolValue | ScriptChannelValue | ScriptArrayLocalValue | ScriptDateLocalValueMap | ScriptDateLocalValue | ScriptMapLocalValue | ScriptObjectLocalValue | ScriptRegExpLocalValueMap | ScriptRegExpLocalValue | ScriptSetLocalValue
 export type ScriptListLocalValue = ScriptLocalValue[]
 
 export interface ScriptArrayLocalValue {
     type: 'array';
     value: ScriptListLocalValue;
 }
+
+/**
+ * @deprecated in v9. Will be removed in v10 since the new cddl library will no longer generate this layer and rely on on ScriptDateLocalValue
+ */
+export interface ScriptDateLocalValueMap extends ScriptDateLocalValue {}
 
 export interface ScriptDateLocalValue {
     type: 'date';
@@ -963,6 +981,11 @@ export interface ScriptRegExpValue {
     pattern: string;
     flags?: string;
 }
+
+/**
+ * @deprecated in v9. Will be removed in v10 since the new cddl library will no longer generate this layer and rely on on ScriptDateLocalValue
+ */
+export interface ScriptRegExpLocalValueMap extends ScriptRegExpLocalValue {}
 
 export interface ScriptRegExpLocalValue {
     type: 'regexp';
@@ -1011,12 +1034,12 @@ export interface ScriptBigIntValue {
 export type ScriptRealmType = 'window' | 'dedicated-worker' | 'shared-worker' | 'service-worker' | 'worker' | 'paint-worklet' | 'audio-worklet' | 'worklet'
 export type ScriptRemoteReference = ScriptSharedReference | ScriptRemoteObjectReference
 
-export type ScriptSharedReference = Extensible & {
+export interface ScriptSharedReference extends Extensible {
     sharedId: ScriptSharedId;
     handle?: ScriptHandle;
 }
 
-export type ScriptRemoteObjectReference = Extensible & {
+export interface ScriptRemoteObjectReference extends Extensible {
     handle: ScriptHandle;
     sharedId?: ScriptSharedId;
 }
@@ -1051,12 +1074,12 @@ export interface ScriptFunctionRemoteValue {
     internalId?: ScriptInternalId;
 }
 
-export type ScriptRegExpRemoteValue = ScriptRegExpLocalValue & {
+export interface ScriptRegExpRemoteValue extends ScriptRegExpLocalValue {
     handle?: ScriptHandle;
     internalId?: ScriptInternalId;
 }
 
-export type ScriptDateRemoteValue = ScriptDateLocalValue & {
+export interface ScriptDateRemoteValue extends ScriptDateLocalValue {
     handle?: ScriptHandle;
     internalId?: ScriptInternalId;
 }
@@ -1280,7 +1303,7 @@ export interface ScriptRemovePreloadScriptParameters {
 
 export type StorageCommand = StorageDeleteCookies | StorageGetCookies | StorageSetCookie
 
-export type StoragePartitionKey = Extensible & {
+export interface StoragePartitionKey extends Extensible {
     userContext?: string;
     sourceOrigin?: string;
 }
@@ -1290,7 +1313,7 @@ export interface StorageGetCookies {
     params: StorageGetCookiesParameters;
 }
 
-export type StorageCookieFilter = Extensible & {
+export interface StorageCookieFilter extends Extensible {
     name?: string;
     value?: NetworkBytesValue;
     domain?: string;
@@ -1307,7 +1330,7 @@ export interface StorageBrowsingContextPartitionDescriptor {
     context: BrowsingContextBrowsingContext;
 }
 
-export type StorageStorageKeyPartitionDescriptor = Extensible & {
+export interface StorageStorageKeyPartitionDescriptor extends Extensible {
     type: 'storageKey';
     userContext?: string;
     sourceOrigin?: string;
@@ -1325,7 +1348,7 @@ export interface StorageSetCookie {
     params: StorageSetCookieParameters;
 }
 
-export type StoragePartialCookie = Extensible & {
+export interface StoragePartialCookie extends Extensible {
     name: string;
     value: NetworkBytesValue;
     domain: string;
@@ -1432,12 +1455,12 @@ export interface InputPointerUpAction {
     button: JsUint;
 }
 
-export type InputPointerDownAction = InputPointerCommonProperties & {
+export interface InputPointerDownAction extends InputPointerCommonProperties {
     type: 'pointerDown';
     button: JsUint;
 }
 
-export type InputPointerMoveAction = InputPointerCommonProperties & {
+export interface InputPointerMoveAction extends InputPointerCommonProperties {
     type: 'pointerMove';
     x: number;
     y: number;
