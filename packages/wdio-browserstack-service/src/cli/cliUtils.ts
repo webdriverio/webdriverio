@@ -555,11 +555,15 @@ export class CLIUtils {
         const cleanupTemporaryDownloads = (maxAgeMs = CLI_LOCK_TIMEOUT_MS) => {
             try {
                 const now = Date.now()
+                // Match both download zips (downloaded_file_*.zip) and orphan extract
+                // temp files (<name>.tmp.<pid>) left by crashed peer workers.
+                const tmpExtractRe = /\.tmp\.\d+$/
                 for (const entry of fs.readdirSync(cliDir)) {
-                    if (
-                        !entry.startsWith(CLI_DOWNLOAD_TMP_PREFIX) ||
-                        !entry.endsWith(CLI_DOWNLOAD_TMP_SUFFIX)
-                    ) {
+                    const isDownloadZip =
+                        entry.startsWith(CLI_DOWNLOAD_TMP_PREFIX) &&
+                        entry.endsWith(CLI_DOWNLOAD_TMP_SUFFIX)
+                    const isExtractTmp = tmpExtractRe.test(entry)
+                    if (!isDownloadZip && !isExtractTmp) {
                         continue
                     }
                     const filePath = path.join(cliDir, entry)
@@ -576,13 +580,13 @@ export class CLIUtils {
                         fs.unlinkSync(filePath)
                     } catch (err) {
                         logger.debug(
-                            `Failed to delete temp CLI zip file ${filePath}: ${util.format(err)}`,
+                            `Failed to delete temp CLI file ${filePath}: ${util.format(err)}`,
                         )
                     }
                 }
             } catch (err) {
                 logger.debug(
-                    `Failed to scan temp CLI downloads in ${cliDir}: ${util.format(err)}`,
+                    `Failed to scan temp CLI files in ${cliDir}: ${util.format(err)}`,
                 )
             }
         }
