@@ -18,6 +18,35 @@ export interface DisplayServerInstallOptions {
 }
 
 /**
+ * Options for starting a long-lived display server daemon
+ */
+export interface DisplayDaemonOptions {
+    /** Screen width in pixels */
+    width?: number
+    /** Screen height in pixels */
+    height?: number
+    /** Color depth (Xvfb only; Wayland implementations ignore this) */
+    depth?: number
+}
+
+/**
+ * Handle to a running display server daemon
+ */
+export interface DisplayDaemon {
+    /**
+     * Environment variables that downstream child processes need
+     * (e.g. { DISPLAY: ':99' } or { WAYLAND_DISPLAY, XDG_RUNTIME_DIR, ... })
+     */
+    env: Record<string, string>
+
+    /**
+     * Terminate the daemon and clean up its socket / runtime files.
+     * Must be safe to call multiple times.
+     */
+    stop(): Promise<void>
+}
+
+/**
  * Interface for display server implementations (Wayland, Xvfb)
  */
 export interface DisplayServer {
@@ -50,6 +79,16 @@ export interface DisplayServer {
      * Get Chrome/Chromium flags needed for this display server
      */
     getChromeFlags(): string[]
+
+    /**
+     * Start the display server as a long-lived background daemon. Used by the
+     * launcher service so child processes spawned in `onPrepare` (e.g. Tauri's
+     * tauri-driver) inherit DISPLAY / WAYLAND_DISPLAY via process.env.
+     *
+     * Distinct from getProcessWrapper(): the wrapper is lifecycle-coupled to a
+     * single child command, whereas a daemon outlives any individual child.
+     */
+    startDaemon(options?: DisplayDaemonOptions): Promise<DisplayDaemon>
 }
 
 /**

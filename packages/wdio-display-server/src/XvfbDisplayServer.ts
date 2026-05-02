@@ -1,9 +1,16 @@
-import { exec } from 'node:child_process'
+import { exec, spawn } from 'node:child_process'
+import { access, readdir } from 'node:fs/promises'
 import { promisify } from 'node:util'
 import logger from '@wdio/logger'
-import type { DisplayServer, DisplayServerInstallOptions } from './types.js'
+import type {
+    DisplayDaemon,
+    DisplayDaemonOptions,
+    DisplayServer,
+    DisplayServerInstallOptions,
+} from './types.js'
 
 const execAsync = promisify(exec)
+const X_SOCKET_DIR = '/tmp/.X11-unix'
 
 export class XvfbDisplayServer implements DisplayServer {
     readonly name = 'xvfb' as const
@@ -145,5 +152,87 @@ export class XvfbDisplayServer implements DisplayServer {
     getChromeFlags(): string[] {
         // Xvfb doesn't need special Chrome flags
         return []
+    }
+
+    async startDaemon(options?: DisplayDaemonOptions): Promise<DisplayDaemon> {
+        const width = options?.width ?? 1920
+        const height = options?.height ?? 1080
+        const depth = options?.depth ?? 24
+
+        const displayNum = await this.findFreeDisplay()
+        const display = `:${displayNum}`
+        const socketPath = `${X_SOCKET_DIR}/X${displayNum}`
+
+        this.log.info(`Starting Xvfb daemon on ${display} (${width}x${height}x${depth})`)
+
+        const proc = spawn(
+            'Xvfb',
+            [display, '-screen', '0', `${width}x${height}x${depth}`, '-nolisten', 'tcp'],
+            { stdio: 'ignore' }
+        )
+
+        proc.on('error', (err) => {
+            this.log.error(`Xvfb daemon spawn error: ${err.message}`)
+        })
+
+        await this.waitForSocket(socketPath, 10_000)
+
+        let stopped = false
+        const stop = async (): Promise<void> => {
+            if (stopped) {
+                return
+            }
+            stopped = true
+            this.log.info(`Stopping Xvfb daemon on ${display}`)
+            proc.kill('SIGTERM')
+            await new Promise<void>((resolve) => {
+                const timer = setTimeout(() => {
+                    if (!proc.killed) {
+                        proc.kill('SIGKILL')
+                    }
+                    resolve()
+                }, 1000)
+                proc.once('exit', () => {
+                    clearTimeout(timer)
+                    resolve()
+                })
+            })
+        }
+
+        return { env: { DISPLAY: display }, stop }
+    }
+
+    private async findFreeDisplay(): Promise<number> {
+        const used = new Set<number>()
+        try {
+            const entries = await readdir(X_SOCKET_DIR)
+            for (const entry of entries) {
+                const match = entry.match(/^X(\d+)$/)
+                if (match) {
+                    used.add(parseInt(match[1], 10))
+                }
+            }
+        } catch {
+            // socket dir may not exist yet — Xvfb will create it
+        }
+        for (let n = 99; n < 200; n++) {
+            if (!used.has(n)) {
+                return n
+            }
+        }
+        throw new Error('No free X display number available in range :99-:199')
+    }
+
+    private async waitForSocket(path: string, timeoutMs: number): Promise<void> {
+        const deadline = Date.now() + timeoutMs
+        while (Date.now() < deadline) {
+            try {
+                await access(path)
+                return
+            } catch {
+                await new Promise((resolve) => setTimeout(resolve, 50))
+            }
+        }
+        throw new Error(`Timed out waiting for Xvfb socket at ${path}`)
     }
 }

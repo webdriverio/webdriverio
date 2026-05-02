@@ -174,6 +174,48 @@ export const config: WebdriverIO.Config = {
 }
 ```
 
+## Launcher Service for `onPrepare`-driven drivers (Tauri, etc.)
+
+The configuration options described above wrap each WDIO **worker process** with `xvfb-run` (or Weston). That works for services whose drivers run inside workers — Electron, plain Chromedriver — but it does **not** help services that spawn their driver from the **launcher process** during `onPrepare`. By the time workers exist, those drivers have already failed because no display was available.
+
+The canonical example is `@wdio/tauri-service`: it spawns `tauri-driver` in `TauriLaunchService.onPrepare()`. On Linux without a display, `tauri-driver` exits before any worker has a chance to start.
+
+For these cases, register the launcher service from `@wdio/display-server`. It starts a long-lived Xvfb/Weston daemon in `onPrepare`, sets `DISPLAY` / `WAYLAND_DISPLAY` on the launcher's `process.env`, and any child process spawned afterward inherits the display via normal env propagation. On `onComplete` the daemon is stopped and its runtime files are cleaned up.
+
+```ts
+// wdio.conf.ts
+import { launcher as DisplayServerLauncher } from '@wdio/display-server'
+
+export const config: WebdriverIO.Config = {
+  services: [
+    // Register the launcher BEFORE any service that spawns a driver in onPrepare —
+    // service hooks run in declaration order.
+    [DisplayServerLauncher, {
+      displayServer: 'auto',  // 'auto' | 'wayland' | 'xvfb'
+      autoInstall: false,
+      // Optional daemon screen geometry:
+      // width: 1920, height: 1080, depth: 24,
+    }],
+    ['@wdio/tauri-service', { driverProvider: 'official' }],
+  ],
+  // No need for `autoXvfb: false` — the launcher service IS the display provider.
+}
+```
+
+The launcher is a no-op:
+- on non-Linux platforms,
+- when `enabled: false`,
+- or when `DISPLAY` / `WAYLAND_DISPLAY` is already set (e.g. by `xvfb-run` at the CI level).
+
+Worker-wrap and the launcher service compose cleanly: when the launcher has set `DISPLAY`, the worker-wrap path's `hasDisplay` check causes it to skip — so registering the launcher does not double-wrap workers.
+
+### When do I need this?
+
+| Driver lifecycle                                         | Use this                                          |
+|----------------------------------------------------------|---------------------------------------------------|
+| Driver starts inside a WDIO worker (Electron, Chromedriver) | Worker-wrap (the default). No service needed.    |
+| Driver starts in the launcher's `onPrepare` (Tauri)      | Add `[DisplayServerLauncher, { … }]` to `services`. |
+
 ## Automatic Selection Logic
 
 The runner uses intelligent display server detection:
@@ -216,6 +258,7 @@ If your CI sets up its own display server:
 
 - Leave `enabled: true` and ensure `DISPLAY` or `WAYLAND_DISPLAY` is exported; the runner will honor it
 - Or set `enabled: false` to explicitly disable any display server behavior from the runner
+- Or, if you previously wrapped your test command with `xvfb-run` at the CI level only because a service spawns its driver in `onPrepare` (Tauri), drop the wrap and register the [Launcher Service](#launcher-service-for-onprepare-driven-drivers-tauri-etc) instead
 
 ## CI and Docker recipes
 
@@ -331,6 +374,12 @@ Notes:
 - If you have a custom `DISPLAY` or `WAYLAND_DISPLAY` setup, set `enabled: false` or ensure the environment variable is exported before the runner starts
 - Check for conflicting display server configurations in your CI environment
 
+#### Driver fails with `cannot connect to X server` / `tauri-driver` exits immediately on Linux
+
+- The driver is being spawned from the launcher process (in `onPrepare`) rather than from a worker, so the worker-wrap path can't help it
+- Register the [Launcher Service](#launcher-service-for-onprepare-driven-drivers-tauri-etc) so the display is started before `onPrepare` runs and the driver inherits `DISPLAY` / `WAYLAND_DISPLAY` via `process.env`
+- Make sure the launcher service is listed **before** the service that owns the driver in your `services` array
+
 #### Missing display server packages
 
 - Keep `autoInstall: false` to avoid modifying the environment; install via your base image
@@ -391,9 +440,9 @@ Notes:
    - Handles installation of missing packages (when enabled)
    - Manages startup retries with progressive backoff
 
-2. **Process Wrapping**: The runner creates processes via a factory that wraps the node worker:
-   - Wayland: Uses Weston or native Wayland compositor
-   - Xvfb: Uses `xvfb-run` wrapper
+2. **Two integration modes**:
+   - **Worker-wrap (default)**: `@wdio/local-runner` wraps each spawned node worker with `xvfb-run` (Xvfb) or Weston. Lifecycle-coupled to the worker — when the worker exits, the display exits.
+   - **Launcher daemon (opt-in)**: the [Launcher Service](#launcher-service-for-onprepare-driven-drivers-tauri-etc) starts a long-lived Xvfb/Weston daemon in `onPrepare` and sets `DISPLAY` / `WAYLAND_DISPLAY` on the launcher's `process.env`, so drivers spawned in `onPrepare` (e.g. `tauri-driver`) inherit the display.
 
 3. **Browser Integration**: Headless browser flags (Chrome/Edge/Firefox) signal headless usage and can trigger display server in environments without `DISPLAY` or `WAYLAND_DISPLAY`.
 

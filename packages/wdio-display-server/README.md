@@ -28,6 +28,42 @@ npm install @wdio/display-server
 
 Simply run your WebDriverIO tests normally, and the display server will be managed automatically.
 
+### Launcher Service (for Tauri and other `onPrepare`-driven services)
+
+The automatic integration above wraps each WDIO **worker process** with `xvfb-run`,
+which works for services whose drivers run inside workers (e.g. Electron). It does
+**not** help services that spawn their driver from the **launcher process** during
+`onPrepare` — by then the worker hasn't started yet, so wrapping comes too late.
+Tauri's `tauri-driver` is the canonical example.
+
+For these cases, register the launcher service explicitly. It starts a long-lived
+Xvfb (or Weston) daemon in `onPrepare`, sets `DISPLAY` / `WAYLAND_DISPLAY` on
+`process.env`, and any child process spawned afterward inherits the display via
+normal env propagation.
+
+```js
+// wdio.conf.ts
+import { launcher as DisplayServerLauncher } from "@wdio/display-server";
+
+export const config = {
+    services: [
+        // Register the display launcher BEFORE any service that spawns a
+        // driver in onPrepare — service hooks run in declaration order.
+        [DisplayServerLauncher, {
+            displayServer: 'auto', // 'auto' | 'wayland' | 'xvfb'
+            autoInstall: false,
+            // Optional daemon screen geometry:
+            // width: 1920, height: 1080, depth: 24,
+        }],
+        ['@wdio/tauri-service', { driverProvider: 'official' }],
+    ],
+};
+```
+
+The launcher is a no-op outside Linux, when `enabled: false`, or when `DISPLAY`
+/ `WAYLAND_DISPLAY` is already set (e.g. by `xvfb-run` at the CI level).
+On `onComplete`, the daemon is stopped and its runtime files removed.
+
 ### Manual Usage (Advanced)
 
 For custom integrations or non-WDIO environments:

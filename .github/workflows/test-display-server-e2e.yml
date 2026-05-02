@@ -34,6 +34,16 @@ jobs:
             scenario: xvfb
             dockerfile: ubuntu-xvfb.dockerfile
             test: existing
+          - distro: ubuntu
+            version: "24.04"
+            scenario: xvfb-launcher
+            dockerfile: ubuntu-xvfb.dockerfile
+            test: launcher
+          - distro: ubuntu
+            version: "24.04"
+            scenario: wayland-launcher
+            dockerfile: ubuntu-wayland.dockerfile
+            test: launcher
 
           # Other distros - pre-installed only
           - distro: fedora
@@ -120,11 +130,7 @@ jobs:
               pnpm install --frozen-lockfile
 
               # Run the appropriate E2E test based on scenario
-              if [ '${{ matrix.test }}' = 'base' ]; then
-                cd e2e && pnpm test:xvfb:base
-              else
-                cd e2e && pnpm test:xvfb:existing
-              fi
+              cd e2e && pnpm test:display-server:${{ matrix.test }}
             "
 
       - name: Display logs on failure

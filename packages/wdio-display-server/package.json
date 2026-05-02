@@ -35,6 +35,10 @@
       "types": "./build/index.d.ts",
       "import": "./build/index.js"
     },
+    "./launcher": {
+      "types": "./build/launcher.d.ts",
+      "import": "./build/launcher.js"
+    },
     "./package.json": "./package.json"
   },
   "typeScriptVersion": "3.8.3",

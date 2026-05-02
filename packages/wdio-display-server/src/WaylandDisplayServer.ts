@@ -1,7 +1,13 @@
-import { exec } from 'node:child_process'
+import { exec, spawn } from 'node:child_process'
+import { access, mkdir, rm } from 'node:fs/promises'
 import { promisify } from 'node:util'
 import logger from '@wdio/logger'
-import type { DisplayServer, DisplayServerInstallOptions } from './types.js'
+import type {
+    DisplayDaemon,
+    DisplayDaemonOptions,
+    DisplayServer,
+    DisplayServerInstallOptions,
+} from './types.js'
 
 const execAsync = promisify(exec)
 
@@ -145,5 +151,86 @@ export class WaylandDisplayServer implements DisplayServer {
             '--ozone-platform=wayland',
             '--enable-features=UseOzonePlatform'
         ]
+    }
+
+    async startDaemon(options?: DisplayDaemonOptions): Promise<DisplayDaemon> {
+        const width = options?.width ?? 1920
+        const height = options?.height ?? 1080
+
+        const runtimeDir = `/tmp/wdio-wayland-${process.pid}-${Date.now()}`
+        const socketName = `wayland-${this.displayNum}`
+        const socketPath = `${runtimeDir}/${socketName}`
+
+        await mkdir(runtimeDir, { recursive: true, mode: 0o700 })
+        this.runtimeDir = runtimeDir
+
+        this.log.info(`Starting Weston daemon on ${socketName} (${width}x${height}) in ${runtimeDir}`)
+
+        const proc = spawn(
+            'weston',
+            [
+                '--backend=headless-backend.so',
+                `--width=${width}`,
+                `--height=${height}`,
+                '--use-pixman',
+                '--shell=fullscreen-shell.so',
+                `--socket=${socketName}`,
+            ],
+            {
+                stdio: 'ignore',
+                env: { ...process.env, XDG_RUNTIME_DIR: runtimeDir },
+            }
+        )
+
+        proc.on('error', (err) => {
+            this.log.error(`Weston daemon spawn error: ${err.message}`)
+        })
+
+        await this.waitForSocket(socketPath, 10_000)
+
+        let stopped = false
+        const stop = async (): Promise<void> => {
+            if (stopped) {
+                return
+            }
+            stopped = true
+            this.log.info(`Stopping Weston daemon on ${socketName}`)
+            proc.kill('SIGTERM')
+            await new Promise<void>((resolve) => {
+                const timer = setTimeout(() => {
+                    if (!proc.killed) {
+                        proc.kill('SIGKILL')
+                    }
+                    resolve()
+                }, 1000)
+                proc.once('exit', () => {
+                    clearTimeout(timer)
+                    resolve()
+                })
+            })
+            await rm(runtimeDir, { recursive: true, force: true }).catch(() => {})
+        }
+
+        return {
+            env: {
+                WAYLAND_DISPLAY: socketName,
+                XDG_RUNTIME_DIR: runtimeDir,
+                ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
+            },
+            stop,
+        }
+    }
+
+    private async waitForSocket(path: string, timeoutMs: number): Promise<void> {
+        const deadline = Date.now() + timeoutMs
+        while (Date.now() < deadline) {
+            try {
+                await access(path)
+                return
+            } catch {
+                await new Promise((resolve) => setTimeout(resolve, 50))
+            }
+        }
+        throw new Error(`Timed out waiting for Wayland socket at ${path}`)
     }
 }

@@ -18,23 +18,37 @@ vi.mock('@wdio/logger', () => ({
     default: vi.fn(() => ({
         info: vi.fn(),
         error: vi.fn(),
-        warn: vi.fn()
+        warn: vi.fn(),
+        debug: vi.fn()
     }))
 }))
 
-// Mock XvfbManager
+// Mock DisplayServerManager (legacy name: XvfbManager — preserved for clarity in this file).
+// The ProcessFactory now consults `getDisplayServer()` to decide whether to wrap, instead of
+// probing `which xvfb-run` itself.
 const mockXvfbManager = {
     shouldRun: vi.fn(),
     init: vi.fn(),
-    executeWithRetry: vi.fn()
+    executeWithRetry: vi.fn(),
+    getDisplayServer: vi.fn(() => null),
 }
 
-vi.mock('../src/XvfbManager.js', () => ({
-    XvfbManager: vi.fn(() => mockXvfbManager)
+const makeFakeDisplayServer = () => ({
+    name: 'xvfb' as const,
+    isAvailable: vi.fn(),
+    install: vi.fn(),
+    getEnvironment: vi.fn(() => ({ DISPLAY: ':99' })),
+    getProcessWrapper: vi.fn(() => ['xvfb-run', '--auto-servernum', '--']),
+    getChromeFlags: vi.fn(() => []),
+    startDaemon: vi.fn(),
+})
+
+vi.mock('../src/DisplayServerManager.js', () => ({
+    DisplayServerManager: vi.fn(() => mockXvfbManager)
 }))
 
-// Import after mocks are set up
-const { ProcessFactory } = await import('../src/ProcessFactory.js')
+// Import after mocks are set up. The class is now DisplayProcessFactory.
+const { DisplayProcessFactory: ProcessFactory } = await import('../src/DisplayProcessFactory.js')
 
 describe('ProcessFactory', () => {
     let processFactory: InstanceType<typeof ProcessFactory>
@@ -131,42 +145,44 @@ describe('ProcessFactory', () => {
             })
         })
 
-        describe('when xvfb should run', () => {
+        describe('when display server should run', () => {
             beforeEach(() => {
                 mockXvfbManager.shouldRun.mockReturnValue(true)
-                mockXvfbManager.executeWithRetry.mockImplementation(async (fn) => await fn())
+                mockXvfbManager.executeWithRetry.mockImplementation(async (fn: () => Promise<unknown>) => await fn())
             })
 
-            it('should use executeWithRetry when xvfb is available', async () => {
-                mockExecSync.mockReturnValue('/usr/bin/xvfb-run')
+            it('uses executeWithRetry and the display server wrapper when available', async () => {
+                const fakeServer = makeFakeDisplayServer()
+                mockXvfbManager.getDisplayServer.mockReturnValue(fakeServer as never)
 
                 const mockProcess = {
                     ...mockChildProcess,
-                    on: vi.fn()
+                    on: vi.fn(),
+                    once: vi.fn(),
                 } as unknown as ChildProcess
                 mockSpawn.mockReturnValue(mockProcess)
 
                 const result = await processFactory.createWorkerProcess(scriptPath, args, options)
 
                 expect(mockXvfbManager.shouldRun).toHaveBeenCalled()
-                expect(mockExecSync).toHaveBeenCalledWith('which xvfb-run', { stdio: 'ignore' })
+                expect(mockXvfbManager.getDisplayServer).toHaveBeenCalled()
                 expect(mockXvfbManager.executeWithRetry).toHaveBeenCalledWith(
                     expect.any(Function),
                     'xvfb worker process creation'
                 )
+                expect(fakeServer.getProcessWrapper).toHaveBeenCalled()
+                expect(mockSpawn).toHaveBeenCalled()
                 expect(mockFork).not.toHaveBeenCalled()
                 expect(result).toBe(mockProcess)
             })
 
-            it('should fallback to fork when xvfb-run is not available', async () => {
-                mockExecSync.mockImplementation(() => {
-                    throw new Error('Command not found')
-                })
+            it('falls back to fork when no display server is available', async () => {
+                mockXvfbManager.getDisplayServer.mockReturnValue(null)
 
                 const result = await processFactory.createWorkerProcess(scriptPath, args, options)
 
                 expect(mockXvfbManager.shouldRun).toHaveBeenCalled()
-                expect(mockExecSync).toHaveBeenCalledWith('which xvfb-run', { stdio: 'ignore' })
+                expect(mockXvfbManager.getDisplayServer).toHaveBeenCalled()
                 expect(mockXvfbManager.executeWithRetry).not.toHaveBeenCalled()
                 expect(mockFork).toHaveBeenCalledWith(scriptPath, args, {
                     cwd: options.cwd,
@@ -209,30 +225,33 @@ describe('ProcessFactory', () => {
         })
     })
 
-    describe('integration with XvfbManager', () => {
-        it('should call shouldRun on the XvfbManager instance', async () => {
+    describe('integration with DisplayServerManager', () => {
+        it('calls shouldRun on the manager', async () => {
             const customManager = {
                 shouldRun: vi.fn().mockReturnValue(false),
-                executeWithRetry: vi.fn()
+                executeWithRetry: vi.fn(),
+                getDisplayServer: vi.fn(() => null),
             }
-            const factory = new ProcessFactory(customManager as any)
+            const factory = new ProcessFactory(customManager as never)
 
             await factory.createWorkerProcess('/script.js', [], {})
 
             expect(customManager.shouldRun).toHaveBeenCalled()
         })
 
-        it('should respect XvfbManager decision about whether to run xvfb', async () => {
+        it('respects the manager decision and uses the wrapper when a display server is selected', async () => {
+            const fakeServer = makeFakeDisplayServer()
             const customManager = {
                 shouldRun: vi.fn().mockReturnValue(true),
-                executeWithRetry: vi.fn().mockImplementation(async (fn) => await fn())
+                executeWithRetry: vi.fn().mockImplementation(async (fn: () => Promise<unknown>) => await fn()),
+                getDisplayServer: vi.fn(() => fakeServer),
             }
-            const factory = new ProcessFactory(customManager as any)
-            mockExecSync.mockReturnValue('/usr/bin/xvfb-run')
+            const factory = new ProcessFactory(customManager as never)
 
             const mockProcess = {
                 ...mockChildProcess,
-                on: vi.fn()
+                on: vi.fn(),
+                once: vi.fn(),
             } as unknown as ChildProcess
             mockSpawn.mockReturnValue(mockProcess)
 
@@ -240,6 +259,7 @@ describe('ProcessFactory', () => {
 
             expect(customManager.shouldRun).toHaveBeenCalled()
             expect(customManager.executeWithRetry).toHaveBeenCalled()
+            expect(fakeServer.getProcessWrapper).toHaveBeenCalled()
             expect(mockFork).not.toHaveBeenCalled()
         })
     })
