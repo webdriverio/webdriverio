@@ -105,6 +105,10 @@ export const BROWSERSTACK_TESTHUB_UUID = 'BROWSERSTACK_TESTHUB_UUID'
 // To store test run uuid
 export const TEST_ANALYTICS_ID = 'TEST_ANALYTICS_ID'
 
+// Central user mode for BrowserStack integrations.
+export const BROWSERSTACK_CENTRAL_USER = 'BROWSERSTACK_CENTRAL_USER'
+export const BROWSERSTACK_BUILD_GROUPING_IDENTIFIER = 'BROWSERSTACK_BUILD_GROUPING_IDENTIFIER'
+
 // Whether to collect performance instrumentation or not
 export const PERF_MEASUREMENT_ENV = 'BROWSERSTACK_O11Y_PERF_MEASUREMENT'
 

@@ -14,6 +14,7 @@ import type { Frameworks } from '@wdio/types'
 import WdioMochaTestFramework from '../frameworks/wdioMochaTestFramework.js'
 import type AutomationFrameworkInstance from '../instances/automationFrameworkInstance.js'
 import AutomationFramework from '../frameworks/automationFramework.js'
+import TestMetadata from '../../metadata.js'
 import { AutomationFrameworkConstants } from '../frameworks/constants/automationFrameworkConstants.js'
 
 /**
@@ -53,6 +54,10 @@ export default class TestHubModule extends BaseModule {
 
     onBeforeTest(args: Record<string, unknown>) {
         this.logger.debug('onBeforeTest: Called after test hook from cli configured module!!!')
+        const instance = args.instance as TestFrameworkInstance
+        const testUuid = TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_UUID) as string | undefined
+        TestMetadata.setCurrentTestRunUuid(testUuid)
+
         const autoInstace = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
         const instances = [autoInstace]
         args.autoInstance = instances
@@ -113,7 +118,14 @@ export default class TestHubModule extends BaseModule {
             this.logger.debug(`sendTestFrameworkEvent for testState: ${testFrameworkState} hookState: ${testHookState}`)
             const platformIndex = process.env.WDIO_WORKER_ID ? parseInt(process.env.WDIO_WORKER_ID.split('-')[0]) : 0
             const uuid =  TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_UUID) || instance.getRef()
-            const eventJson = Buffer.from(JSON.stringify(Object.fromEntries(testData)))
+            const testDataObj = Object.fromEntries(testData)
+            if (!testDataObj.app_lcnc) {
+                const appLcncMeta = TestMetadata.get(uuid as string)
+                if (appLcncMeta && Object.keys(appLcncMeta).length > 0) {
+                    testDataObj.app_lcnc = appLcncMeta
+                }
+            }
+            const eventJson = Buffer.from(JSON.stringify(testDataObj))
             const executionContext = { hash: trackedContext.getId(), threadId: trackedContext.getThreadId().toString(), processId: trackedContext.getProcessId().toString() }
             const payload: Omit<TestFrameworkEventRequest, 'binSessionId'> = {
                 platformIndex,
