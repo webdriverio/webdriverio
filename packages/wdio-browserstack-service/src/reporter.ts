@@ -20,6 +20,7 @@ import {
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
 import Listener from './testOps/listener.js'
+import TestMetadata from './metadata.js'
 
 class _TestReporter extends WDIOReporter {
     private _capabilities: WebdriverIO.Capabilities = {}
@@ -284,8 +285,21 @@ class _TestReporter extends WDIOReporter {
             }
         }
 
+        // For TestRunSkipped (mocha this.skip()), mocha sets testStats.state = 'pending'.
+        // Force result to 'skipped' so the BTCER event downstream gets the correct status.
+        if (eventType === 'TestRunSkipped') {
+            testData.result = 'skipped'
+        }
+
         if (eventType.match(/HookRun/)) {
             testData.hook_type = testData.name?.toLowerCase() ? getHookType(testData.name.toLowerCase()) : 'undefined'
+        }
+
+        if (eventType === 'TestRunSkipped') {
+            const appLcncMetaData = TestMetadata.get(testData.uuid)
+            if (Object.keys(appLcncMetaData).length > 0) {
+                testData.app_lcnc = appLcncMetaData
+            }
         }
 
         return testData

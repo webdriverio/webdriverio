@@ -29,12 +29,13 @@ class TestMetadata {
             return
         }
 
+        // Always update fallback so lookups by a different uuid (e.g. reporter's
+        // _tests[fullTitle].uuid vs testHubModule's KEY_TEST_UUID) still resolve.
+        TestMetadata.fallbackMetadata = metadata
+
         if (TestMetadata.currentTestRunUuid) {
             TestMetadata.metadataByTestRunUuid[TestMetadata.currentTestRunUuid] = metadata
-            return
         }
-
-        TestMetadata.fallbackMetadata = metadata
     }
 
     static get(testRunUuid?: string): Metadata {

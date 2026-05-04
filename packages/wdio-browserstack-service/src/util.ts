@@ -84,7 +84,7 @@ export type GitMetaData = {
 export type CentralUser = {
     central_scanner: boolean;
     app_lcnc: boolean;
-}
+};
 
 export const DEFAULT_REQUEST_CONFIG = {
     agent: {
@@ -1253,7 +1253,6 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
 
     try {
         const url = `${APIUtils.DATA_ENDPOINT}/${eventUrl}`
-        BStackLogger.debug(`[${url}] URL for ${kind} upload`)
         const response = await got.post(url, {
             agent: DEFAULT_REQUEST_CONFIG.agent,
             headers: {
