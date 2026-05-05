@@ -35,13 +35,13 @@ export default class TestHubModule extends BaseModule {
         this.name = 'TestHubModule'
         this.testhubConfig = testhubConfig
 
-        TestFramework.registerObserver(TestFrameworkState.TEST, HookState.PRE, this.onBeforeTest.bind(this))
 
         Object.values(TestFrameworkState).forEach(state => {
             Object.values(HookState).forEach(hook => {
                 TestFramework.registerObserver(state, hook, this.onAllTestEvents.bind(this))
             })
         })
+        TestFramework.registerObserver(TestFrameworkState.TEST, HookState.PRE, this.onBeforeTest.bind(this))
     }
 
     /**
