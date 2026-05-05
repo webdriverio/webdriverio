@@ -155,6 +155,7 @@ describe('beforeSession', () => {
             service.beforeSession({ key: 'bar' } as any)
             expect(service['_config']).toEqual({ user: 'NotSetUser', key: 'bar' })
         })
+
     })
 
     describe('testObservabilityOpts passed', () => {

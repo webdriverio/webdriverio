@@ -4,17 +4,18 @@ import path from 'node:path'
 import type { ZipFile } from 'yauzl'
 import yauzl from 'yauzl'
 import os from 'node:os'
-import * as bstackLogger from '../../src/bstackLogger.js'
+import * as cliLogger from '../../src/cli/cliLogger.js'
+import * as utilModule from '../../src/util.js'
 
 import { CLIUtils } from '../../src/cli/cliUtils.js'
 import PerformanceTester from '../../src/instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../../src/instrumentation/performance/constants.js'
 import type { Options } from '@wdio/types'
-import { nodeRequest } from '../../src/util.js'
+import type { BrowserstackConfig, BrowserstackOptions } from '../../src/types.js'
 import APIUtils from '../../src/cli/apiUtils.js'
 
-const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
-bstackLoggerSpy.mockImplementation(() => {})
+const cliLoggerSpy = vi.spyOn(cliLogger.BStackLogger, 'logToFile')
+cliLoggerSpy.mockImplementation(() => {})
 
 // vi.mock('../../src/util.js', () => ({
 //     isNullOrEmpty: vi.fn()
@@ -72,12 +73,13 @@ describe('CLIUtils', () => {
                 }
             } as Record <string, unknown>
         } as Options.Testrunner
+        const createBrowserstackOptions = (overrides: Record<string, unknown> = {}) => overrides as unknown as BrowserstackConfig & BrowserstackOptions
 
         it('returns stringified config with basic options', () => {
             const capabilities = [
                 { browserName: 'chrome' }
             ]
-            const options = {}
+            const options = createBrowserstackOptions()
 
             const result = CLIUtils.getBinConfig(mockConfig, capabilities, options)
             const parsed = JSON.parse(result)
@@ -106,7 +108,7 @@ describe('CLIUtils', () => {
                 { browserName: 'chrome' },
                 { browserName: 'firefox' }
             ]
-            const options = {}
+            const options = createBrowserstackOptions()
 
             const result = CLIUtils.getBinConfig(mockConfig, capabilities, options)
             const parsed = JSON.parse(result)
@@ -126,7 +128,7 @@ describe('CLIUtils', () => {
                     osVersion: '10'
                 }
             }]
-            const options = {}
+            const options = createBrowserstackOptions()
 
             const result = CLIUtils.getBinConfig(mockConfig, capabilities, options)
             const parsed = JSON.parse(result)
@@ -142,11 +144,11 @@ describe('CLIUtils', () => {
             const capabilities = [
                 { browserName: 'chrome' }
             ]
-            const options = {
+            const options = createBrowserstackOptions({
                 opts: {
                     localIdentifier: 'test123'
                 }
-            }
+            })
 
             const result = CLIUtils.getBinConfig(mockConfig, capabilities, options)
             const parsed = JSON.parse(result)
@@ -164,15 +166,63 @@ describe('CLIUtils', () => {
                     buildName: 'cap-build'
                 }
             }]
-            const options = {
+            const options = createBrowserstackOptions({
                 buildName: 'opt-build'
-            }
+            })
 
             const result = CLIUtils.getBinConfig(mockConfig, capabilities, options)
             const parsed = JSON.parse(result)
 
             expect(parsed.buildName).toBe('common-build')
             expect(parsed.platforms[0]).not.toHaveProperty('buildName')
+        })
+
+        it('includes testManagementOptions when testPlanId is provided', () => {
+            const capabilities = [
+                { browserName: 'chrome' }
+            ]
+            const options = createBrowserstackOptions({
+                testManagementOptions: {
+                    testPlanId: 'tm-plan-123'
+                }
+            })
+
+            const result = CLIUtils.getBinConfig(mockConfig, capabilities, options)
+            const parsed = JSON.parse(result)
+
+            expect(parsed.testManagementOptions).toEqual({
+                testPlanId: 'tm-plan-123'
+            })
+        })
+
+        it('omits empty testManagementOptions and strips unrelated keys', () => {
+            const capabilities = [
+                { browserName: 'chrome' }
+            ]
+            const emptyPlanOptions = createBrowserstackOptions({
+                testManagementOptions: {
+                    testPlanId: '   ',
+                    ignoredKey: 'ignored'
+                }
+            })
+            const validPlanOptions = createBrowserstackOptions({
+                testManagementOptions: {
+                    testPlanId: ' tm-plan-456 ',
+                    ignoredKey: 'ignored'
+                }
+            })
+
+            const emptyPlanResult = CLIUtils.getBinConfig(mockConfig, capabilities, emptyPlanOptions)
+
+            const emptyPlanParsed = JSON.parse(emptyPlanResult)
+            expect(emptyPlanParsed.testManagementOptions).toBeUndefined()
+
+            const validPlanResult = CLIUtils.getBinConfig(mockConfig, capabilities, validPlanOptions)
+
+            const validPlanParsed = JSON.parse(validPlanResult)
+            expect(validPlanParsed.testManagementOptions).toEqual({
+                testPlanId: 'tm-plan-456'
+            })
         })
     })
 
@@ -453,19 +503,15 @@ describe('CLIUtils', () => {
             user: 'testuser',
             key: 'testkey'
         } as Options.Testrunner
+        let nodeRequestSpy: ReturnType<typeof vi.spyOn>
+        let getBrowserStackUserSpy: ReturnType<typeof vi.spyOn>
+        let getBrowserStackKeySpy: ReturnType<typeof vi.spyOn>
 
         beforeEach(() => {
             vi.resetAllMocks()
-            vi.mock('../../src/util.js', async () => {
-                // Remove the type annotation from importActual
-                const actual = await vi.importActual('../../src/util.js')
-                return {
-                    ...actual,
-                    nodeRequest: vi.fn().mockResolvedValue({ status: 'success' }),
-                    getBrowserStackUser: vi.fn().mockReturnValue('testuser'),
-                    getBrowserStackKey: vi.fn().mockReturnValue('testkey'),
-                }
-            })
+            nodeRequestSpy = vi.spyOn(utilModule, 'nodeRequest').mockResolvedValue({ status: 'success' } as any)
+            getBrowserStackUserSpy = vi.spyOn(utilModule, 'getBrowserStackUser').mockReturnValue('testuser')
+            getBrowserStackKeySpy = vi.spyOn(utilModule, 'getBrowserStackKey').mockReturnValue('testkey')
         })
 
         afterEach(() => {
@@ -478,27 +524,29 @@ describe('CLIUtils', () => {
                 param2: 'value2'
             }
 
-            vi.mocked(nodeRequest).mockResolvedValue({})
+            nodeRequestSpy.mockResolvedValue({} as any)
 
             await CLIUtils.requestToUpdateCLI(queryParams, mockConfig)
 
-            expect(nodeRequest).toHaveBeenCalledWith(
+            expect(nodeRequestSpy).toHaveBeenCalledWith(
                 'GET',
                 expect.stringContaining('param1=value1'),
                 expect.any(Object),
                 APIUtils.BROWSERSTACK_AUTOMATE_API_URL
             )
-            expect(nodeRequest).toHaveBeenCalledWith(
+            expect(nodeRequestSpy).toHaveBeenCalledWith(
                 'GET',
                 expect.stringContaining('param2=value2'),
                 expect.any(Object),
                 APIUtils.BROWSERSTACK_AUTOMATE_API_URL
             )
+            expect(getBrowserStackUserSpy).toHaveBeenCalledWith(mockConfig)
+            expect(getBrowserStackKeySpy).toHaveBeenCalledWith(mockConfig)
         })
 
         it('returns response from nodeRequest', async () => {
             const mockResponse = { updated_cli_version: '2.0.0' }
-            vi.mocked(nodeRequest).mockResolvedValue(mockResponse)
+            nodeRequestSpy.mockResolvedValue(mockResponse as any)
 
             const result = await CLIUtils.requestToUpdateCLI({}, mockConfig)
 
@@ -507,7 +555,7 @@ describe('CLIUtils', () => {
 
         it('handles errors from nodeRequest', async () => {
             const mockError = new Error('Network error')
-            vi.mocked(nodeRequest).mockRejectedValue(mockError)
+            nodeRequestSpy.mockRejectedValue(mockError)
 
             await expect(CLIUtils.requestToUpdateCLI({}, mockConfig))
                 .rejects
