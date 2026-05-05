@@ -13,7 +13,6 @@ import type { GitRepoInfo } from 'git-repo-info'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import type { ColorName } from 'chalk'
-import { FormData } from 'formdata-node'
 import { performance } from 'node:perf_hooks'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
@@ -51,7 +50,6 @@ import TestOpsConfig from './testOps/testOpsConfig.js'
 import type { StartBinSessionResponse } from '@browserstack/wdio-browserstack-service'
 import APIUtils from './cli/apiUtils.js'
 import { create } from 'tar'
-import { fileFromPath } from 'formdata-node/file-from-path'
 
 import AccessibilityScripts from './scripts/accessibility-scripts.js'
 
@@ -1455,7 +1453,8 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
         })
 
         const formData = new FormData()
-        const file = await fileFromPath(tarGzPath)
+        const tarGzBytes = fs.readFileSync(tarGzPath)
+        const file = new Blob([tarGzBytes], { type: 'application/x-gzip' })
         formData.append('data', file, 'logs.tar.gz')
         formData.append('clientBuildUuid', clientBuildUuid)
 
