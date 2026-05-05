@@ -82,7 +82,6 @@ export type GitMetaData = {
 };
 
 export type CentralUser = {
-    central_scanner: boolean;
     app_lcnc: boolean;
 };
 
@@ -376,12 +375,12 @@ export const processLaunchBuildResponse = (response: LaunchResponse, options: Br
     processAccessibilityResponse(response, options)
 }
 
-export const getCentralUser = (): CentralUser => {
+export const getCentralUser = (): Partial<CentralUser> => {
     switch (process.env[BROWSERSTACK_CENTRAL_USER]) {
     case 'app_lcnc':
-        return { central_scanner: false, app_lcnc: true }
+        return { app_lcnc: true }
     default:
-        return { central_scanner: false, app_lcnc: false }
+        return { app_lcnc: false }
     }
 }
 export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation: boolean | null) {

@@ -51,10 +51,14 @@ export default class TestHubModule extends BaseModule {
         return TestHubModule.MODULE_NAME
     }
 
+    private getCurrentTestRunUuid(instance: TestFrameworkInstance): string | undefined {
+        return (TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_UUID) as string | undefined) ?? instance.getRef()
+    }
+
     onBeforeTest(args: Record<string, unknown>) {
         this.logger.debug('onBeforeTest: Called after test hook from cli configured module!!!')
         const instance = args.instance as TestFrameworkInstance
-        const testUuid = TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_UUID) as string | undefined
+        const testUuid = this.getCurrentTestRunUuid(instance)
         TestMetadata.setCurrentTestRunUuid(testUuid)
 
         const autoInstace = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance

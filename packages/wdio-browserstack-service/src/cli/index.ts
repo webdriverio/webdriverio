@@ -21,7 +21,7 @@ import WebdriverIOModule from './modules/webdriverIOModule.js'
 import AccessibilityModule from './modules/accessibilityModule.js'
 import { isTurboScale, processAccessibilityResponse, shouldAddServiceVersion } from '../util.js'
 import ObservabilityModule from './modules/observabilityModule.js'
-import type { BrowserstackConfig, BrowserstackOptions, LaunchResponse } from '../types.js'
+import type { BrowserstackConfig, BrowserstackOptions } from '../types.js'
 import PercyModule from './modules/percyModule.js'
 import APIUtils from './apiUtils.js'
 
@@ -127,10 +127,7 @@ export class BrowserstackCLI {
         this.logger.info(`loadModules: binSessionId=${this.binSessionId}`)
 
         this.setConfig(startBinResponse)
-        const configApis = (this.config as { apis?: Partial<GRRUrls> }).apis
-        if (!APIUtils.updateURLSForGRR(configApis)) {
-            this.logger.warn('loadModules: missing GRR API URLs in startBinSession config, using existing API defaults')
-        }
+        APIUtils.updateURLSForGRR(this.config.apis as GRRUrls)
 
         this.setupTestFramework()
         this.setupAutomationFramework()
@@ -162,7 +159,7 @@ export class BrowserstackCLI {
                 process.env[BROWSERSTACK_ACCESSIBILITY] = 'true'
                 const options = this.options as BrowserstackConfig & BrowserstackOptions
                 const isNonBstackA11y = isTurboScale(options) || !shouldAddServiceVersion(this.browserstackConfig as Options.Testrunner, options.testObservability)
-                processAccessibilityResponse(startBinResponse as unknown as LaunchResponse, this.options as BrowserstackConfig & BrowserstackOptions)
+                processAccessibilityResponse(startBinResponse, this.options as BrowserstackConfig & BrowserstackOptions)
                 this.modules[AccessibilityModule.MODULE_NAME] = new AccessibilityModule(startBinResponse.accessibility, isNonBstackA11y)
             }
         }

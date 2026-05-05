@@ -12,12 +12,6 @@ class TestMetadata {
         TestMetadata.currentTestRunUuid = testRunUuid
     }
 
-    static clearCurrentTestRunUuid(testRunUuid?: string) {
-        if (!testRunUuid || TestMetadata.currentTestRunUuid === testRunUuid) {
-            TestMetadata.currentTestRunUuid = undefined
-        }
-    }
-
     static set(metadata: Metadata = {}) {
         if (!getCentralUser().app_lcnc) {
             return
