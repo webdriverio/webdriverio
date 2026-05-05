@@ -329,9 +329,47 @@ export default class AllureReporter extends WDIOReporter {
         this._pushRuntimeMessage({ type: 'allure:hook:end', data: { status, statusDetails, stop, duration } })
     }
 
+    /**
+     * Stable key from current capabilities (browser/device + version) for hash.
+     * Must NOT include cid. Used to make historyId unique per environment.
+     */
+    private _getCapabilityKey(): string {
+        if (this._isMultiremote) { return 'multiremote' }
+        const capsUnknown: unknown = this._capabilities
+        const browserName = getStringField(capsUnknown, 'browserName')
+        const device = getStringField(capsUnknown, 'device')
+        const desired: Record<string, unknown> | undefined = ((): Record<string, unknown> | undefined => {
+            const maybe = (capsUnknown as Record<string, unknown>)?.['desired']
+            return isRecord(maybe) ? maybe : undefined
+        })()
+        const deviceName =
+            getStringField(desired, 'deviceName') ||
+            getStringField(desired, 'appium:deviceName') ||
+            getStringField(capsUnknown, 'deviceName') ||
+            getStringField(capsUnknown, 'appium:deviceName')
+        let targetName = device || browserName || deviceName || ''
+        const desiredPlatformVersion = getStringField(desired, 'appium:platformVersion')
+        if (desired && deviceName && desiredPlatformVersion) {
+            targetName = `${device || deviceName} ${desiredPlatformVersion}`
+        }
+        const version =
+            getStringField(capsUnknown, 'os_version') ||
+            getStringField(capsUnknown, 'osVersion') ||
+            getStringField(capsUnknown, 'browserVersion') ||
+            getStringField(capsUnknown, 'version') ||
+            getStringField(capsUnknown, 'appium:platformVersion') ||
+            ''
+        return version ? `${targetName}-${version}`.trim() : targetName.trim()
+    }
+
+    /**
+     * Emits historyId (and testCaseId) from full title and capability key (browser/device from test run).
+     * Must NOT include cid or file path: cid varies between runs; user asked for no filesystem.
+     */
     private _emitHistoryIdsFrom(fullTitleForHash: string): void {
-        const cid = this._currentCid()
-        const legacy = this._md5(`${fullTitleForHash}#${cid}`)
+        const capKey = this._getCapabilityKey()
+        const input = capKey ? `${fullTitleForHash}#${capKey}` : fullTitleForHash
+        const legacy = this._md5(input)
         this._pushRuntimeMessage({ type: 'metadata', data: { historyId: legacy, testCaseId: legacy } })
     }
 

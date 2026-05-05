@@ -106,7 +106,12 @@ const protocol = {
                     "description": "<pre>\\{\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.SessionEndResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "session.subscribe": {
@@ -117,7 +122,7 @@ const protocol = {
             "parameters": [
                 {
                     "name": "params",
-                    "type": "`remote.SessionSubscriptionRequest`",
+                    "type": "`remote.SessionSubscribeParameters`",
                     "description": "<pre>\\{<br />  events: string[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
                     "required": true
                 }
@@ -138,10 +143,15 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.SessionUnsubscribeParameters`",
-                    "description": "<pre>\\\\}</pre>",
+                    "description": "<pre>\\{\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.SessionUnsubscribeResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "browser.close": {
@@ -156,7 +166,12 @@ const protocol = {
                     "description": "<pre>\\{\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowserCloseResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "browser.createUserContext": {
@@ -168,7 +183,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowserCreateUserContextParameters`",
-                    "description": "<pre>\\{<br />  acceptInsecureCerts?: boolean;<br />\\}</pre>",
+                    "description": "<pre>\\{<br />  acceptInsecureCerts?: boolean;<br />  proxy?: SessionProxyConfiguration;<br />  unhandledPromptBehavior?: SessionUserPromptHandler;<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -231,7 +246,12 @@ const protocol = {
                     "description": "<pre>\\{<br />  userContext: BrowserUserContext;<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowserRemoveUserContextResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "browser.setClientWindowState": {
@@ -243,10 +263,35 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowserSetClientWindowStateParameters`",
-                    "description": "<pre>\\{<br />  clientWindow: BrowserClientWindow;<br />\\}</pre>",
+                    "description": "<pre>\\{<br />  clientWindow: BrowserClientWindow;<br />}\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowserSetClientWindowStateResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "browser.setDownloadBehavior": {
+        "socket": {
+            "command": "browserSetDownloadBehavior",
+            "description": "WebDriver Bidi command to send command method \"browser.setDownloadBehavior\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-browser-setDownloadBehavior",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.BrowserSetDownloadBehaviorParameters`",
+                    "description": "<pre>\\{<br />  downloadBehavior: BrowserDownloadBehavior &#124; null;<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowserSetDownloadBehaviorResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "browsingContext.activate": {
@@ -261,7 +306,12 @@ const protocol = {
                     "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowsingContextActivateResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "browsingContext.captureScreenshot": {
@@ -296,7 +346,12 @@ const protocol = {
                     "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  promptUnload?: boolean;<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowsingContextCloseResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "browsingContext.create": {
@@ -315,7 +370,7 @@ const protocol = {
             "returns": {
                 "type": "Object",
                 "name": "local.BrowsingContextCreateResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     context: BrowsingContextBrowsingContext;\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     context: BrowsingContextBrowsingContext;\n     userContext?: BrowserUserContext;\n   }\n   ```"
             }
         }
     },
@@ -351,7 +406,12 @@ const protocol = {
                     "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  accept?: boolean;<br />  userText?: string;<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowsingContextHandleUserPromptResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "browsingContext.locateNodes": {
@@ -426,7 +486,32 @@ const protocol = {
                     "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  ignoreCache?: boolean;<br />  wait?: BrowsingContextReadinessState;<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowsingContextReloadResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "browsingContext.setBypassCSP": {
+        "socket": {
+            "command": "browsingContextSetBypassCsp",
+            "description": "WebDriver Bidi command to send command method \"browsingContext.setBypassCSP\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-setBypassCSP",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.BrowsingContextSetBypassCspParameters`",
+                    "description": "<pre>\\{<br />  bypass: true &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowsingContextSetBypassCspResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "browsingContext.setViewport": {
@@ -441,7 +526,12 @@ const protocol = {
                     "description": "<pre>\\{<br />  context?: BrowsingContextBrowsingContext;<br />  viewport?: BrowsingContextViewport &#124; null;<br />  devicePixelRatio?: number &#124; null;<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowsingContextSetViewportResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "browsingContext.traverseHistory": {
@@ -456,7 +546,32 @@ const protocol = {
                     "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  delta: JsInt;<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowsingContextTraverseHistoryResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "emulation.setForcedColorsModeThemeOverride": {
+        "socket": {
+            "command": "emulationSetForcedColorsModeThemeOverride",
+            "description": "WebDriver Bidi command to send command method \"emulation.setForcedColorsModeThemeOverride\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setForcedColorsModeThemeOverride",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.EmulationSetForcedColorsModeThemeOverrideParameters`",
+                    "description": "<pre>\\{<br />  theme: EmulationForcedColorsModeTheme &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.EmulationSetForcedColorsModeThemeOverrideResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "emulation.setGeolocationOverride": {
@@ -468,10 +583,215 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.EmulationSetGeolocationOverrideParameters`",
-                    "description": "<pre>\\\\}</pre>",
+                    "description": "<pre>\\{<br />  coordinates: EmulationGeolocationCoordinates &#124; null;<br />} &#124; {<br />  error: EmulationGeolocationPositionError;<br />}) & {<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />}\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.EmulationSetGeolocationOverrideResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "emulation.setLocaleOverride": {
+        "socket": {
+            "command": "emulationSetLocaleOverride",
+            "description": "WebDriver Bidi command to send command method \"emulation.setLocaleOverride\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setLocaleOverride",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.EmulationSetLocaleOverrideParameters`",
+                    "description": "<pre>\\{<br />  locale: string &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.EmulationSetLocaleOverrideResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "emulation.setNetworkConditions": {
+        "socket": {
+            "command": "emulationSetNetworkConditions",
+            "description": "WebDriver Bidi command to send command method \"emulation.setNetworkConditions\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setNetworkConditions",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.EmulationSetNetworkConditionsParameters`",
+                    "description": "<pre>\\{<br />  networkConditions: EmulationNetworkConditions &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.EmulationSetNetworkConditionsResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "emulation.setScreenSettingsOverride": {
+        "socket": {
+            "command": "emulationSetScreenSettingsOverride",
+            "description": "WebDriver Bidi command to send command method \"emulation.setScreenSettingsOverride\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setScreenSettingsOverride",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.EmulationSetScreenSettingsOverrideParameters`",
+                    "description": "<pre>\\{<br />  screenArea: EmulationScreenArea &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.EmulationSetScreenSettingsOverrideResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "emulation.setScreenOrientationOverride": {
+        "socket": {
+            "command": "emulationSetScreenOrientationOverride",
+            "description": "WebDriver Bidi command to send command method \"emulation.setScreenOrientationOverride\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setScreenOrientationOverride",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.EmulationSetScreenOrientationOverrideParameters`",
+                    "description": "<pre>\\{<br />  screenOrientation: EmulationScreenOrientation &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.EmulationSetScreenOrientationOverrideResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "emulation.setUserAgentOverride": {
+        "socket": {
+            "command": "emulationSetUserAgentOverride",
+            "description": "WebDriver Bidi command to send command method \"emulation.setUserAgentOverride\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setUserAgentOverride",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.EmulationSetUserAgentOverrideParameters`",
+                    "description": "<pre>\\{<br />  userAgent: string &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.EmulationSetUserAgentOverrideResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "emulation.setScriptingEnabled": {
+        "socket": {
+            "command": "emulationSetScriptingEnabled",
+            "description": "WebDriver Bidi command to send command method \"emulation.setScriptingEnabled\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setScriptingEnabled",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.EmulationSetScriptingEnabledParameters`",
+                    "description": "<pre>\\{<br />  enabled: false &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.EmulationSetScriptingEnabledResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "emulation.setScrollbarTypeOverride": {
+        "socket": {
+            "command": "emulationSetScrollbarTypeOverride",
+            "description": "WebDriver Bidi command to send command method \"emulation.setScrollbarTypeOverride\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setScrollbarTypeOverride",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.EmulationSetScrollbarTypeOverrideParameters`",
+                    "description": "<pre>\\{<br />  scrollbarType: \"classic\" &#124; \"overlay\" &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.EmulationSetScrollbarTypeOverrideResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "emulation.setTimezoneOverride": {
+        "socket": {
+            "command": "emulationSetTimezoneOverride",
+            "description": "WebDriver Bidi command to send command method \"emulation.setTimezoneOverride\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setTimezoneOverride",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.EmulationSetTimezoneOverrideParameters`",
+                    "description": "<pre>\\{<br />  timezone: string &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.EmulationSetTimezoneOverrideResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "emulation.setTouchOverride": {
+        "socket": {
+            "command": "emulationSetTouchOverride",
+            "description": "WebDriver Bidi command to send command method \"emulation.setTouchOverride\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setTouchOverride",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.EmulationSetTouchOverrideParameters`",
+                    "description": "<pre>\\{<br />  maxTouchPoints: JsUint &#124; null;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.EmulationSetTouchOverrideResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "network.addDataCollector": {
+        "socket": {
+            "command": "networkAddDataCollector",
+            "description": "WebDriver Bidi command to send command method \"network.addDataCollector\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-addDataCollector",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.NetworkAddDataCollectorParameters`",
+                    "description": "<pre>\\{<br />  dataTypes: NetworkDataType[];<br />  maxEncodedDataSize: JsUint;<br />  /\\*\\*<br />   \\* @default 'blob'<br />   \\*/<br />  collectorType?: NetworkCollectorType;<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.NetworkAddDataCollectorResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     collector: NetworkCollector;\n   }\n   ```"
+            }
         }
     },
     "network.addIntercept": {
@@ -506,7 +826,12 @@ const protocol = {
                     "description": "<pre>\\{<br />  request: NetworkRequest;<br />  body?: NetworkBytesValue;<br />  cookies?: NetworkCookieHeader[];<br />  headers?: NetworkHeader[];<br />  method?: string;<br />  url?: string;<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.NetworkContinueRequestResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "network.continueResponse": {
@@ -521,7 +846,12 @@ const protocol = {
                     "description": "<pre>\\{<br />  request: NetworkRequest;<br />  cookies?: NetworkSetCookieHeader[];<br />  credentials?: NetworkAuthCredentials;<br />  headers?: NetworkHeader[];<br />  reasonPhrase?: string;<br />  statusCode?: JsUint;<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.NetworkContinueResponseResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "network.continueWithAuth": {
@@ -533,10 +863,35 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkContinueWithAuthParameters`",
-                    "description": "<pre>\\{<br />  request: NetworkRequest;<br />\\}</pre>",
+                    "description": "<pre>\\{<br />  request: NetworkRequest;<br />}\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.NetworkContinueWithAuthResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "network.disownData": {
+        "socket": {
+            "command": "networkDisownData",
+            "description": "WebDriver Bidi command to send command method \"network.disownData\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-disownData",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.NetworkDisownDataParameters`",
+                    "description": "<pre>\\{<br />  dataType: NetworkDataType;<br />  collector: NetworkCollector;<br />  request: NetworkRequest;<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.NetworkDisownDataResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "network.failRequest": {
@@ -551,7 +906,32 @@ const protocol = {
                     "description": "<pre>\\{<br />  request: NetworkRequest;<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.NetworkFailRequestResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "network.getData": {
+        "socket": {
+            "command": "networkGetData",
+            "description": "WebDriver Bidi command to send command method \"network.getData\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-getData",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.NetworkGetDataParameters`",
+                    "description": "<pre>\\{<br />  dataType: NetworkDataType;<br />  collector?: NetworkCollector;<br />  disown?: boolean;<br />  request: NetworkRequest;<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.NetworkGetDataResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     bytes: NetworkBytesValue;\n   }\n   ```"
+            }
         }
     },
     "network.provideResponse": {
@@ -566,7 +946,32 @@ const protocol = {
                     "description": "<pre>\\{<br />  request: NetworkRequest;<br />  body?: NetworkBytesValue;<br />  cookies?: NetworkSetCookieHeader[];<br />  headers?: NetworkHeader[];<br />  reasonPhrase?: string;<br />  statusCode?: JsUint;<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.NetworkProvideResponseResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "network.removeDataCollector": {
+        "socket": {
+            "command": "networkRemoveDataCollector",
+            "description": "WebDriver Bidi command to send command method \"network.removeDataCollector\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-removeDataCollector",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.NetworkRemoveDataCollectorParameters`",
+                    "description": "<pre>\\{<br />  collector: NetworkCollector;<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.NetworkRemoveDataCollectorResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "network.removeIntercept": {
@@ -581,7 +986,12 @@ const protocol = {
                     "description": "<pre>\\{<br />  intercept: NetworkIntercept;<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.NetworkRemoveInterceptResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "network.setCacheBehavior": {
@@ -596,7 +1006,32 @@ const protocol = {
                     "description": "<pre>\\{<br />  cacheBehavior: \"default\" &#124; \"bypass\";<br />  contexts?: BrowsingContextBrowsingContext[];<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.NetworkSetCacheBehaviorResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "network.setExtraHeaders": {
+        "socket": {
+            "command": "networkSetExtraHeaders",
+            "description": "WebDriver Bidi command to send command method \"network.setExtraHeaders\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-setExtraHeaders",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.NetworkSetExtraHeadersParameters`",
+                    "description": "<pre>\\{<br />  headers: NetworkHeader[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.NetworkSetExtraHeadersResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "script.addPreloadScript": {
@@ -631,7 +1066,12 @@ const protocol = {
                     "description": "<pre>\\{<br />  handles: ScriptHandle[];<br />  target: ScriptTarget;<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.ScriptDisownResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "script.callFunction": {
@@ -646,7 +1086,12 @@ const protocol = {
                     "description": "<pre>\\{<br />  functionDeclaration: string;<br />  awaitPromise: boolean;<br />  target: ScriptTarget;<br />  arguments?: ScriptLocalValue[];<br />  resultOwnership?: ScriptResultOwnership;<br />  serializationOptions?: ScriptSerializationOptions;<br />  this?: ScriptLocalValue;<br />  userActivation?: boolean;<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.ScriptCallFunctionResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "script.evaluate": {
@@ -701,7 +1146,12 @@ const protocol = {
                     "description": "<pre>\\{<br />  script: ScriptPreloadScript;<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.ScriptRemovePreloadScriptResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "storage.getCookies": {
@@ -776,7 +1226,12 @@ const protocol = {
                     "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  actions: InputSourceActions[];<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.InputPerformActionsResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "input.releaseActions": {
@@ -791,7 +1246,12 @@ const protocol = {
                     "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.InputReleaseActionsResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "input.setFiles": {
@@ -806,7 +1266,12 @@ const protocol = {
                     "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  element: ScriptSharedReference;<br />  files: string[];<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.InputSetFilesResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     },
     "webExtension.install": {
@@ -841,7 +1306,12 @@ const protocol = {
                     "description": "<pre>\\{<br />  extension: WebExtensionExtension;<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.WebExtensionUninstallResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
         }
     }
 } as const

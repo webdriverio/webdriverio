@@ -104,6 +104,20 @@ describe('network mocking', () => {
         })
     })
 
+    it('should be able to see the response body', async () => {
+        // Navigate away or clear cache to force a fresh request
+        await browser.url('about:blank')
+        const mock = await browser.mock('https://guinea-pig.webdriver.io/')
+
+        await browser.url('https://guinea-pig.webdriver.io/')
+
+        await browser.waitUntil(() => mock.calls[0]?.body !== undefined, {
+            timeoutMsg: 'Expected response body to be populated',
+            timeout: 5000
+        })
+        expect(mock.calls[0].body).toContain('<title>WebdriverJS Testpage</title>')
+    })
+
     it('should mock with complex mixed wildcards', async () => {
         // Matches https://cdn.jsdelivr.net/.../bootstrap.min.js
         const mock = await browser.mock('https://*.jsdelivr.net/**/bootstrap.min.js', {

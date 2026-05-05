@@ -636,7 +636,7 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'confirm',
     name: 'includeVisualTesting',
-    message: 'Would you like to include Visual Testing to your setup? For more information see https://webdriver.io/docs/visual-testing!',
+    message: 'Would you like to include Visual Testing to your setup? For more information see https://webdriver.io/docs/visual-testing',
     default: false,
     when: /* istanbul ignore next */ (answers: Questionnair) => {
         /**

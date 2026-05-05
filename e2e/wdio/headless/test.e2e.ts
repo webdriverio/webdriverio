@@ -8,10 +8,13 @@ import { browser, $, expect } from '@wdio/globals'
 
 import { imageSize } from 'image-size'
 import type { InputOptions } from 'webdriverio'
+import type { remote } from 'webdriver'
+import type { SameSiteOptions } from '../../../packages/wdio-protocols/build/types.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 describe('main suite 1', () => {
+
     it('supports snapshot testing', async () => {
         await browser.url('https://guinea-pig.webdriver.io/')
         await expect($('.findme')).toMatchSnapshot()
@@ -29,24 +32,61 @@ describe('main suite 1', () => {
         expect(inputValue).toBe('mySecretPassword')
     })
 
-    it('should support custom element command on non-existing elements', async () => {
-        await browser.url('https://guinea-pig.webdriver.io/')
-        browser.addCommand('myElementCustomCommand', async function () {
-            return 'myElementCommandResult'
+    describe('Custom commands', () => {
+        browser.addCommand('myElementGlobalCustomCommand', async function () {
+            return 'myElementGlobalCommandResult'
         }, {
             attachToElement: true,
             disableElementImplicitWait: true
         })
 
-        // @ts-expect-error
-        const result = await $('nonExistingElement').myElementCustomCommand()
+        browser.addCommand('myElementLegacyCustomCommand', async function () {
+            return 'myElementLegacyCommandResult'
+        }, true)
 
-        expect(result).toBe('myElementCommandResult')
+        browser.addCommand('myBrowserCustomCommand', async function () {
+            return 'myBrowserCommandResult'
+        })
+
+        before(async () => {
+            await browser.url('https://guinea-pig.webdriver.io/')
+        })
+
+        it('should support custom element command on non-existing elements', async () => {
+            browser.addCommand('myElementCustomCommandAfterSession', async function () {
+                return 'myElementCustomCommandAfterSession'
+            }, {
+                attachToElement: true,
+                disableElementImplicitWait: true
+            })
+
+            // @ts-expect-error
+            const result = await $('nonExistingElement').myElementCustomCommandAfterSession()
+            expect(result).toBe('myElementCustomCommandAfterSession')
+
+            // @ts-expect-error
+            const globalCmdResult = await $('nonExistingElement').myElementGlobalCustomCommand()
+            expect(globalCmdResult).toBe('myElementGlobalCommandResult')
+        })
+
+        it('should support legacy custom element command on existing elements', async () => {
+            // @ts-expect-error
+            const legacyCmdResult = await $('input').myElementLegacyCustomCommand()
+
+            expect(legacyCmdResult).toBe('myElementLegacyCommandResult')
+        })
+
+        it('should support browser custom command', async () => {
+            // @ts-expect-error
+            const browserCmdResult = await browser.myBrowserCustomCommand()
+
+            expect(browserCmdResult).toBe('myBrowserCommandResult')
+        })
     })
 
     it.skip('should allow to check for PWA', async () => {
         await browser.url('https://webdriver.io')
-        // eslint-disable-next-line wdio/no-pause
+
         await browser.pause(100)
         expect((await browser.checkPWA([
             'isInstallable',
@@ -824,4 +864,86 @@ describe('main suite 1', () => {
         }
     })
 
+    describe('Cookies commands', () => {
+
+        it('should have sameSite in PascalCase for classic cases fallback', async function () {
+            await browser.url('https://guinea-pig.webdriver.io')
+            await browser.setCookies([
+                // TODO one day, fix the Api not supporting classic PascalCase enaum
+                { name: 'test1-0', value: '123', sameSite: 'Strict' as SameSiteOptions },
+                { name: 'test1-1', value: '456', sameSite: 'None' as SameSiteOptions },
+                { name: 'test1-2', value: '789' }
+            ])
+
+            const testCookie = await browser.getCookies(['test1-0'])
+            expect(testCookie).toEqual([
+                expect.objectContaining({
+                    'domain': 'guinea-pig.webdriver.io',
+                    'name': 'test1-0',
+                    'sameSite': 'Strict',
+                    'value': '123',
+                })
+            ])
+
+            const testCookie2 = await browser.getCookies(['test1-1'])
+            expect(testCookie2).toEqual([
+                expect.objectContaining({
+                    'domain': 'guinea-pig.webdriver.io',
+                    'name': 'test1-1',
+                    'sameSite': 'None',
+                    'value': '456',
+                })
+            ])
+            const testCookie3 = await browser.getCookies(['test1-2'])
+            expect(testCookie3).toEqual([
+                expect.objectContaining({
+                    'domain': 'guinea-pig.webdriver.io',
+                    'name': 'test1-2',
+                    'sameSite': 'Lax',
+                    'value': '789',
+                })
+            ])
+        })
+
+        it('should have sameSite in PascalCase for Bidi cases', async function () {
+            await browser.url('https://guinea-pig.webdriver.io')
+            await browser.setCookies([
+                {
+                    name: 'test2-0',
+                    domain: 'guinea-pig.webdriver.io',
+                    value: '101112',
+                    secure: true, // Required since in the BiDi case we force partition and it requires secure cookies
+                    sameSite: 'default' // default only supported in BiDi.
+                },
+            ])
+
+            const bidiFilter: remote.StorageCookieFilter = {
+                name: 'test2-0'
+            }
+
+            const testCookies = await browser.getCookies(bidiFilter, null /* the default partition filter blocks using Bidi, so using null to bypass it */)
+
+            expect(testCookies).toEqual([
+                {
+                    'domain': 'guinea-pig.webdriver.io',
+                    // goog field are Bidi specific and proof we are not using classic fallback here!
+                    'goog:partitionKey':  {
+                        'hasCrossSiteAncestor': false,
+                        'topLevelSite': 'https://webdriver.io',
+                    },
+                    'goog:priority': 'Medium',
+                    'goog:session': true,
+                    'goog:sourcePort': 443,
+                    'goog:sourceScheme': 'Secure',
+                    'httpOnly': false,
+                    'name': 'test2-0',
+                    'path': '/',
+                    'sameSite': 'lax',
+                    'secure': true,
+                    'size': 13,
+                    'value': '101112',
+                }
+            ])
+        })
+    })
 })

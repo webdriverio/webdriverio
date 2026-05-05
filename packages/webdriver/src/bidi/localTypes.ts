@@ -29,10 +29,10 @@ export interface ErrorResponse extends Extensible {
     stacktrace?: string;
 }
 
-export type ResultData = BrowsingContextResult | EmptyResult | NetworkResult | ScriptResult | SessionResult | StorageResult | WebExtensionResult
+export type ResultData = BrowserResult | BrowsingContextResult | EmulationResult | InputResult | NetworkResult | ScriptResult | SessionResult | StorageResult | WebExtensionResult
 export interface EmptyResult extends Extensible {}
 
-export interface Event extends Extensible {
+export type Event = EventData & Extensible & {
     type: 'event';
 }
 
@@ -40,8 +40,8 @@ export type Extensible = Record<string, unknown>
 export type EventData = BrowsingContextEvent | InputEvent | LogEvent | NetworkEvent | ScriptEvent
 export type JsInt = number
 export type JsUint = number
-export type ErrorCode = 'invalid argument' | 'invalid selector' | 'invalid session id' | 'invalid web extension' | 'move target out of bounds' | 'no such alert' | 'no such element' | 'no such frame' | 'no such handle' | 'no such history entry' | 'no such intercept' | 'no such node' | 'no such request' | 'no such script' | 'no such storage partition' | 'no such user context' | 'no such web extension' | 'session not created' | 'unable to capture screen' | 'unable to close browser' | 'unable to set cookie' | 'unable to set file input' | 'underspecified storage partition' | 'unknown command' | 'unknown error' | 'unsupported operation'
-export type SessionResult = SessionNewResult | SessionStatusResult | SessionSubscribeResult
+export type ErrorCode = 'invalid argument' | 'invalid selector' | 'invalid session id' | 'invalid web extension' | 'move target out of bounds' | 'no such alert' | 'no such network collector' | 'no such element' | 'no such frame' | 'no such handle' | 'no such history entry' | 'no such intercept' | 'no such network data' | 'no such node' | 'no such request' | 'no such script' | 'no such storage partition' | 'no such user context' | 'no such web extension' | 'session not created' | 'unable to capture screen' | 'unable to close browser' | 'unable to set cookie' | 'unable to set file input' | 'unavailable network data' | 'underspecified storage partition' | 'unknown command' | 'unknown error' | 'unsupported operation'
+export type SessionResult = SessionEndResult | SessionNewResult | SessionStatusResult | SessionSubscribeResult | SessionUnsubscribeResult
 
 export interface SessionCapabilitiesRequest {
     alwaysMatch?: SessionCapabilityRequest;
@@ -69,6 +69,9 @@ export interface SessionDirectProxyConfiguration extends Extensible {
 
 export interface SessionManualProxyConfiguration extends SessionSocksProxyConfiguration, Extensible {
     proxyType: 'manual';
+    /**
+     * @deprecated no longer supported by browsers, will be removed in v10. See https://github.com/w3c/webdriver-bidi/commit/c580471251eaefe812526b0c894faf9dc201716d
+     */
     ftpProxy?: string;
     httpProxy?: string;
     sslProxy?: string;
@@ -121,11 +124,14 @@ export interface SessionNewResult {
     };
 }
 
+export type SessionEndResult = EmptyResult
+
 export interface SessionSubscribeResult {
     subscription: SessionSubscription;
 }
 
-export type BrowserResult = BrowserCreateUserContextResult | BrowserGetUserContextsResult
+export type SessionUnsubscribeResult = EmptyResult
+export type BrowserResult = BrowserCloseResult | BrowserCreateUserContextResult | BrowserGetClientWindowsResult | BrowserGetUserContextsResult | BrowserRemoveUserContextResult | BrowserSetClientWindowStateResult | BrowserSetDownloadBehaviorResult
 export type BrowserClientWindow = string
 
 export interface BrowserClientWindowInfo {
@@ -144,6 +150,7 @@ export interface BrowserUserContextInfo {
     userContext: BrowserUserContext;
 }
 
+export type BrowserCloseResult = EmptyResult
 export type BrowserCreateUserContextResult = BrowserUserContextInfo
 
 export interface BrowserGetClientWindowsResult {
@@ -154,10 +161,13 @@ export interface BrowserGetUserContextsResult {
     userContexts: BrowserUserContextInfo[];
 }
 
-export type BrowsingContextResult = BrowsingContextCaptureScreenshotResult | BrowsingContextCreateResult | BrowsingContextGetTreeResult | BrowsingContextLocateNodesResult | BrowsingContextNavigateResult | BrowsingContextPrintResult | BrowsingContextTraverseHistoryResult
-export type BrowsingContextEvent = BrowsingContextContextCreated | BrowsingContextContextDestroyed | BrowsingContextDomContentLoaded | BrowsingContextDownloadWillBegin | BrowsingContextFragmentNavigated | BrowsingContextHistoryUpdated | BrowsingContextLoad | BrowsingContextNavigationAborted | BrowsingContextNavigationCommitted | BrowsingContextNavigationFailed | BrowsingContextNavigationStarted | BrowsingContextUserPromptClosed | BrowsingContextUserPromptOpened
+export type BrowserRemoveUserContextResult = EmptyResult
+export type BrowserSetClientWindowStateResult = BrowserClientWindowInfo
+export type BrowserSetDownloadBehaviorResult = EmptyResult
+export type BrowsingContextResult = BrowsingContextActivateResult | BrowsingContextCaptureScreenshotResult | BrowsingContextCloseResult | BrowsingContextCreateResult | BrowsingContextGetTreeResult | BrowsingContextHandleUserPromptResult | BrowsingContextLocateNodesResult | BrowsingContextNavigateResult | BrowsingContextPrintResult | BrowsingContextReloadResult | BrowsingContextSetBypassCspResult | BrowsingContextSetViewportResult | BrowsingContextTraverseHistoryResult
+export type BrowsingContextEvent = BrowsingContextContextCreated | BrowsingContextContextDestroyed | BrowsingContextDomContentLoaded | BrowsingContextDownloadEnd | BrowsingContextDownloadWillBegin | BrowsingContextFragmentNavigated | BrowsingContextHistoryUpdated | BrowsingContextLoad | BrowsingContextNavigationAborted | BrowsingContextNavigationCommitted | BrowsingContextNavigationFailed | BrowsingContextNavigationStarted | BrowsingContextUserPromptClosed | BrowsingContextUserPromptOpened
 export type BrowsingContextBrowsingContext = string
-export type BrowsingContextInfoList = (BrowsingContextInfo)[]
+export type BrowsingContextInfoList = BrowsingContextInfo[]
 
 export interface BrowsingContextInfo {
     children: BrowsingContextInfoList | null;
@@ -211,22 +221,29 @@ export interface BrowsingContextBaseNavigationInfo {
     navigation: BrowsingContextNavigation | null;
     timestamp: JsUint;
     url: string;
+    userContext?: BrowserUserContext;
 }
 
 export interface BrowsingContextNavigationInfo extends BrowsingContextBaseNavigationInfo {}
 export type BrowsingContextUserPromptType = 'alert' | 'beforeunload' | 'confirm' | 'prompt'
+export type BrowsingContextActivateResult = EmptyResult
 
 export interface BrowsingContextCaptureScreenshotResult {
     data: string;
 }
 
+export type BrowsingContextCloseResult = EmptyResult
+
 export interface BrowsingContextCreateResult {
     context: BrowsingContextBrowsingContext;
+    userContext?: BrowserUserContext;
 }
 
 export interface BrowsingContextGetTreeResult {
     contexts: BrowsingContextInfoList;
 }
+
+export type BrowsingContextHandleUserPromptResult = EmptyResult
 
 export interface BrowsingContextLocateNodesResult {
     nodes: ScriptNodeRemoteValue[];
@@ -242,6 +259,9 @@ export interface BrowsingContextPrintResult {
 }
 
 export interface BrowsingContextTraverseHistoryResult {}
+export type BrowsingContextReloadResult = BrowsingContextNavigateResult
+export type BrowsingContextSetBypassCspResult = EmptyResult
+export type BrowsingContextSetViewportResult = EmptyResult
 
 export interface BrowsingContextContextCreated {
     method: 'browsingContext.contextCreated';
@@ -270,7 +290,9 @@ export interface BrowsingContextHistoryUpdated {
 
 export interface BrowsingContextHistoryUpdatedParameters {
     context: BrowsingContextBrowsingContext;
+    timestamp: JsUint;
     url: string;
+    userContext?: BrowserUserContext;
 }
 
 export interface BrowsingContextDomContentLoaded {
@@ -290,6 +312,22 @@ export interface BrowsingContextDownloadWillBegin {
 
 export interface BrowsingContextDownloadWillBeginParams extends BrowsingContextBaseNavigationInfo {
     suggestedFilename: string;
+}
+
+export interface BrowsingContextDownloadEnd {
+    method: 'browsingContext.downloadEnd';
+    params: BrowsingContextDownloadEndParams;
+}
+
+export type BrowsingContextDownloadEndParams = (BrowsingContextDownloadCanceledParams | BrowsingContextDownloadCompleteParams)
+
+export type BrowsingContextDownloadCanceledParams = BrowsingContextBaseNavigationInfo & {
+    status: 'canceled';
+}
+
+export type BrowsingContextDownloadCompleteParams = BrowsingContextBaseNavigationInfo & {
+    status: 'complete';
+    filepath: string | null;
 }
 
 export interface BrowsingContextNavigationAborted {
@@ -316,6 +354,7 @@ export interface BrowsingContextUserPromptClosedParameters {
     context: BrowsingContextBrowsingContext;
     accepted: boolean;
     type: BrowsingContextUserPromptType;
+    userContext?: BrowserUserContext;
     userText?: string;
 }
 
@@ -329,10 +368,23 @@ export interface BrowsingContextUserPromptOpenedParameters {
     handler: SessionUserPromptHandlerType;
     message: string;
     type: BrowsingContextUserPromptType;
+    userContext?: BrowserUserContext;
     defaultValue?: string;
 }
 
-export interface NetworkResult extends NetworkAddInterceptResult {}
+export type EmulationResult = EmulationSetForcedColorsModeThemeOverrideResult | EmulationSetGeolocationOverrideResult | EmulationSetLocaleOverrideResult | EmulationSetScreenOrientationOverrideResult | EmulationSetScriptingEnabledResult | EmulationSetScrollbarTypeOverrideResult | EmulationSetTimezoneOverrideResult | EmulationSetTouchOverrideResult | EmulationSetUserAgentOverrideResult
+export type EmulationSetForcedColorsModeThemeOverrideResult = EmptyResult
+export type EmulationSetGeolocationOverrideResult = EmptyResult
+export type EmulationSetLocaleOverrideResult = EmptyResult
+export type EmulationSetNetworkConditionsResult = EmptyResult
+export type EmulationSetScreenSettingsOverrideResult = EmptyResult
+export type EmulationSetScreenOrientationOverrideResult = EmptyResult
+export type EmulationSetUserAgentOverrideResult = EmptyResult
+export type EmulationSetScriptingEnabledResult = EmptyResult
+export type EmulationSetScrollbarTypeOverrideResult = EmptyResult
+export type EmulationSetTimezoneOverrideResult = EmptyResult
+export type EmulationSetTouchOverrideResult = EmptyResult
+export type NetworkResult = NetworkAddDataCollectorResult | NetworkAddInterceptResult | NetworkContinueRequestResult | NetworkContinueResponseResult | NetworkContinueWithAuthResult | NetworkDisownDataResult | NetworkFailRequestResult | NetworkGetDataResult | NetworkProvideResponseResult | NetworkRemoveDataCollectorResult | NetworkRemoveInterceptResult | NetworkSetCacheBehaviorResult | NetworkSetExtraHeadersResult
 export type NetworkEvent = NetworkAuthRequired | NetworkBeforeRequestSent | NetworkFetchError | NetworkResponseCompleted | NetworkResponseStarted
 
 export interface NetworkAuthChallenge {
@@ -347,6 +399,7 @@ export interface NetworkBaseParameters {
     redirectCount: JsUint;
     request: NetworkRequestData;
     timestamp: JsUint;
+    userContext?: BrowserUserContext | null;
     intercepts?: NetworkIntercept[];
 }
 
@@ -362,9 +415,11 @@ export interface NetworkBase64Value {
     value: string;
 }
 
-export type NetworkSameSite = 'strict' | 'lax' | 'none'
+export type NetworkCollector = string
+export type NetworkCollectorType = 'blob'
+export type NetworkSameSite = 'strict' | 'lax' | 'none' | 'default'
 
-export interface NetworkCookie {
+export interface NetworkCookie extends Extensible {
     name: string;
     value: NetworkBytesValue;
     domain: string;
@@ -375,6 +430,8 @@ export interface NetworkCookie {
     sameSite: NetworkSameSite;
     expiry?: JsUint;
 }
+
+export type NetworkDataType = 'request' | 'response'
 
 export interface NetworkFetchTimingInfo {
     timeOrigin: number;
@@ -440,9 +497,29 @@ export interface NetworkResponseData {
     authChallenges?: NetworkAuthChallenge[];
 }
 
+export interface NetworkAddDataCollectorResult {
+    collector: NetworkCollector;
+}
+
 export interface NetworkAddInterceptResult {
     intercept: NetworkIntercept;
 }
+
+export type NetworkContinueRequestResult = EmptyResult
+export type NetworkContinueResponseResult = EmptyResult
+export type NetworkContinueWithAuthResult = EmptyResult
+export type NetworkDisownDataResult = EmptyResult
+export type NetworkFailRequestResult = EmptyResult
+
+export interface NetworkGetDataResult {
+    bytes: NetworkBytesValue;
+}
+
+export type NetworkProvideResponseResult = EmptyResult
+export type NetworkRemoveDataCollectorResult = EmptyResult
+export type NetworkRemoveInterceptResult = EmptyResult
+export type NetworkSetCacheBehaviorResult = EmptyResult
+export type NetworkSetExtraHeadersResult = EmptyResult
 
 export interface NetworkAuthRequired {
     method: 'network.authRequired';
@@ -489,7 +566,7 @@ export interface NetworkResponseStartedParameters extends NetworkBaseParameters 
     response: NetworkResponseData;
 }
 
-export type ScriptResult = ScriptAddPreloadScriptResult | ScriptEvaluateResult | ScriptGetRealmsResult
+export type ScriptResult = ScriptAddPreloadScriptResult | ScriptCallFunctionResult | ScriptDisownResult | ScriptEvaluateResult | ScriptGetRealmsResult | ScriptRemovePreloadScriptResult
 export type ScriptEvent = ScriptMessage | ScriptRealmCreated | ScriptRealmDestroyed
 export type ScriptChannel = string
 
@@ -528,14 +605,17 @@ export interface ScriptExceptionDetails {
 
 export type ScriptHandle = string
 export type ScriptInternalId = string
-export type ScriptLocalValue = ScriptRemoteReference | ScriptPrimitiveProtocolValue | ScriptChannelValue | ScriptArrayLocalValue | ScriptDateLocalValueMap | ScriptMapLocalValue | ScriptObjectLocalValue | ScriptRegExpLocalValueMap | ScriptSetLocalValue
-export type ScriptListLocalValue = (ScriptLocalValue)[]
+export type ScriptLocalValue = ScriptRemoteReference | ScriptPrimitiveProtocolValue | ScriptChannelValue | ScriptArrayLocalValue | ScriptDateLocalValueMap | ScriptDateLocalValue | ScriptMapLocalValue | ScriptObjectLocalValue | ScriptRegExpLocalValueMap | ScriptRegExpLocalValue | ScriptSetLocalValue
+export type ScriptListLocalValue = ScriptLocalValue[]
 
 export interface ScriptArrayLocalValue {
     type: 'array';
     value: ScriptListLocalValue;
 }
 
+/**
+ * @deprecated in v9. Will be removed in v10 since the new cddl library will no longer generate this layer and rely on on ScriptDateLocalValue
+ */
 export interface ScriptDateLocalValueMap extends ScriptDateLocalValue {}
 
 export interface ScriptDateLocalValue {
@@ -560,6 +640,9 @@ export interface ScriptRegExpValue {
     flags?: string;
 }
 
+/**
+ * @deprecated in v9. Will be removed in v10 since the new cddl library will no longer generate this layer and rely on on ScriptDateLocalValue
+ */
 export interface ScriptRegExpLocalValueMap extends ScriptRegExpLocalValue {}
 
 export interface ScriptRegExpLocalValue {
@@ -616,6 +699,7 @@ export interface ScriptBaseRealmInfo {
 export interface ScriptWindowRealmInfo extends ScriptBaseRealmInfo {
     type: 'window';
     context: BrowsingContextBrowsingContext;
+    userContext?: BrowserUserContext;
     sandbox?: string;
 }
 
@@ -662,7 +746,7 @@ export interface ScriptRemoteObjectReference extends Extensible {
 }
 
 export type ScriptRemoteValue = ScriptPrimitiveProtocolValue | ScriptSymbolRemoteValue | ScriptArrayRemoteValue | ScriptObjectRemoteValue | ScriptFunctionRemoteValue | ScriptRegExpRemoteValue | ScriptDateRemoteValue | ScriptMapRemoteValue | ScriptSetRemoteValue | ScriptWeakMapRemoteValue | ScriptWeakSetRemoteValue | ScriptGeneratorRemoteValue | ScriptErrorRemoteValue | ScriptProxyRemoteValue | ScriptPromiseRemoteValue | ScriptTypedArrayRemoteValue | ScriptArrayBufferRemoteValue | ScriptNodeListRemoteValue | ScriptHtmlCollectionRemoteValue | ScriptNodeRemoteValue | ScriptWindowProxyRemoteValue
-export type ScriptListRemoteValue = (ScriptRemoteValue)[]
+export type ScriptListRemoteValue = ScriptRemoteValue[]
 export type ScriptMappingRemoteValue = (ScriptRemoteValue | ScriptRemoteValue)[]
 
 export interface ScriptSymbolRemoteValue {
@@ -838,15 +922,21 @@ export interface ScriptStackTrace {
 export interface ScriptSource {
     realm: ScriptRealm;
     context?: BrowsingContextBrowsingContext;
+    userContext?: BrowserUserContext;
 }
 
 export interface ScriptAddPreloadScriptResult {
     script: ScriptPreloadScript;
 }
 
+export type ScriptDisownResult = EmptyResult
+export type ScriptCallFunctionResult = ScriptEvaluateResult
+
 export interface ScriptGetRealmsResult {
     realms: ScriptRealmInfo[];
 }
+
+export type ScriptRemovePreloadScriptResult = EmptyResult
 
 export interface ScriptMessage {
     method: 'script.message';
@@ -925,6 +1015,10 @@ export interface LogEntryAdded {
 }
 
 export interface InputEvent extends InputFileDialogOpened {}
+export type InputResult = InputPerformActionsResult | InputReleaseActionsResult | InputSetFilesResult
+export type InputPerformActionsResult = EmptyResult
+export type InputReleaseActionsResult = EmptyResult
+export type InputSetFilesResult = EmptyResult
 
 export interface InputFileDialogOpened {
     method: 'input.fileDialogOpened';
@@ -933,13 +1027,16 @@ export interface InputFileDialogOpened {
 
 export interface InputFileDialogInfo {
     context: BrowsingContextBrowsingContext;
+    userContext?: BrowserUserContext;
     element?: ScriptSharedReference;
     multiple: boolean;
 }
 
-export interface WebExtensionResult extends WebExtensionInstallResult {}
+export type WebExtensionResult = WebExtensionInstallResult | WebExtensionUninstallResult
 export type WebExtensionExtension = string
 
 export interface WebExtensionInstallResult {
     extension: WebExtensionExtension;
 }
+
+export type WebExtensionUninstallResult = EmptyResult

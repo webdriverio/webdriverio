@@ -13,4 +13,4 @@ packages:
   - 'examples/appium/**'
 
 onlyBuiltDependencies:
-- sharp
+  - sharp
