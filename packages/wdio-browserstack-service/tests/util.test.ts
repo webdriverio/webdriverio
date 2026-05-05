@@ -801,8 +801,7 @@ describe('launchTestSession', () => {
 
         await launchTestSession({ framework: 'framework', testManagementOptions: { testPlanId: 'tp-123' } } as any, {}, {}, {})
         const [, reqOptions] = (mockedGot.post as any).mock.calls[0]
-        const body = JSON.parse(reqOptions.body)
-        expect(body.test_management).toEqual({ test_plan_id: 'tp-123' })
+        expect(reqOptions.json.test_management).toEqual({ test_plan_id: 'tp-123' })
     })
 
     it('includes test_management with testPlanId from env var in build start payload', async () => {
@@ -815,8 +814,7 @@ describe('launchTestSession', () => {
 
         await launchTestSession({ framework: 'framework' } as any, {}, {}, {})
         const [, reqOptions] = (mockedGot.post as any).mock.calls[0]
-        const body = JSON.parse(reqOptions.body)
-        expect(body.test_management).toEqual({ test_plan_id: 'tp-env-456' })
+        expect(reqOptions.json.test_management).toEqual({ test_plan_id: 'tp-env-456' })
         delete process.env[BROWSERSTACK_TEST_PLAN_ID]
     })
 
@@ -829,8 +827,7 @@ describe('launchTestSession', () => {
 
         await launchTestSession({ framework: 'framework' } as any, {}, {}, {})
         const [, reqOptions] = (mockedGot.post as any).mock.calls[0]
-        const body = JSON.parse(reqOptions.body)
-        expect(body.test_management).toEqual({ test_plan_id: undefined })
+        expect(reqOptions.json.test_management).toEqual({ test_plan_id: undefined })
     })
 })
 
