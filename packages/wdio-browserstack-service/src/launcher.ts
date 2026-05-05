@@ -785,15 +785,15 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     async _uploadServiceLogs() {
+        // uploadLogs records the SDK_UPLOAD_LOGS event with status/failure for every
+        // return path (no creds, archive failure, upload no-response, exception), so
+        // measureWrapper is no longer needed here.
         const clientBuildUuid = this._getClientBuildUuid()
-        await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS, async () => {
-
-            const response = await uploadLogs(getBrowserStackUser(this._config), getBrowserStackKey(this._config), clientBuildUuid)
-            if (response) {
-                BStackLogger.info(`Upload response: ${JSON.stringify(response, null, 2)}`)
-                BStackLogger.logToFile(`Response - ${format(response)}`, 'debug')
-            }
-        })
+        const response = await uploadLogs(getBrowserStackUser(this._config), getBrowserStackKey(this._config), clientBuildUuid)
+        if (response) {
+            BStackLogger.info(`Upload response: ${JSON.stringify(response, null, 2)}`)
+            BStackLogger.logToFile(`Response - ${format(response)}`, 'debug')
+        }
     }
 
     private _removeCliOnlyCapabilityOptions(capabilities?: Capabilities.TestrunnerCapabilities | WebdriverIO.Capabilities) {

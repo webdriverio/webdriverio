@@ -1391,8 +1391,19 @@ export function getFailureObject(error: string|Error) {
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export async function uploadLogs(user: string | undefined, key: string | undefined, clientBuildUuid: string) {
+    // Manual instrumentation: tag every return path on the SDK_UPLOAD_LOGS event so
+    // the metric identifies the specific reason logs were not uploaded (no creds,
+    // per-file copy failure, upload no-response, exception). measureWrapper would
+    // otherwise mark all non-throwing paths as success.
+    const eventName = PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS
+    let success = true
+    let failure: string | undefined
+    PerformanceTester.start(eventName)
+
     try {
         if (!user || !key) {
+            success = false
+            failure = 'skipped: missing_credentials'
             BStackLogger.debug('Uploading logs failed due to no credentials')
             return
         }
@@ -1406,11 +1417,21 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
             CLI_DEBUG_LOGS_FILE,
         ].filter(f => fs.existsSync(f))
 
-        const copiedFileNames = []
+        const copiedFileNames: string[] = []
+        const archiveAddFailures: string[] = []
         for (const f of filesToArchive) {
-            const dest = path.join(tmpDir, path.basename(f))
-            fs.copyFileSync(f, dest)
-            copiedFileNames.push(path.basename(f))
+            try {
+                const dest = path.join(tmpDir, path.basename(f))
+                fs.copyFileSync(f, dest)
+                copiedFileNames.push(path.basename(f))
+            } catch (copyErr) {
+                const msg = (copyErr as Error)?.message || String(copyErr)
+                archiveAddFailures.push(`${path.basename(f)}: ${msg}`)
+            }
+        }
+
+        if (archiveAddFailures.length > 0 && failure === undefined) {
+            failure = `archive_add_failed [${archiveAddFailures.length}]: ${archiveAddFailures.join('; ')}`.substring(0, 300)
         }
 
         await create(
@@ -1464,10 +1485,26 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
             fs.unlinkSync(CLI_DEBUG_LOGS_FILE)
         }
 
+        if (!response) {
+            // nodeRequest swallows errors for the log-upload path and returns undefined;
+            // record the silent upload failure on the metric.
+            success = false
+            failure = 'upload_no_response'
+        } else if (response.status && response.status !== 'success') {
+            // Server-side rejection (e.g. "File not attached") — response is truthy
+            // but the upload didn't actually land.
+            success = false
+            failure = `upload_status: ${response.status}${response.message ? ' - ' + String(response.message).slice(0, 200) : ''}`
+        }
+
         return response
     } catch (error) {
+        success = false
+        failure = `uploadLogs exception: ${getErrorString(error)}`
         BStackLogger.error(`Error while uploading logs: ${getErrorString(error)}`)
         return null
+    } finally {
+        PerformanceTester.end(eventName, success, failure)
     }
 }
 
