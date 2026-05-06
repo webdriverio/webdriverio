@@ -1,6 +1,18 @@
 services: [<%- answers.services.map((service) => {
     if (service === 'electron') {
         return /*js*/`'electron'`
+    } else if (service === 'tauri') {
+        const binaryLine = answers.rawAnswers.tauriAppBinaryPath
+            ? `\n            appBinaryPath: '${answers.rawAnswers.tauriAppBinaryPath}',`
+            : ''
+        return /*js*/`[
+        'tauri',
+        {${binaryLine}
+            // see https://webdriver.io/docs/desktop-testing/tauri/configuration for all options
+        }
+    ]`
+    } else if (service === 'tauri-plugin') {
+        return /*js*/`'tauri-plugin'`
     } else if (service === 'sauce' && answers.useSauceConnect) {
         return /*js*/`[
         'sauce',
