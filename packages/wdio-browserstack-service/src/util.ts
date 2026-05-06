@@ -36,6 +36,7 @@ import {
     BROWSERSTACK_TESTHUB_UUID,
     PERF_MEASUREMENT_ENV,
     RERUN_ENV,
+    BROWSERSTACK_TEST_PLAN_ID,
     MAX_GIT_META_DATA_SIZE_IN_BYTES,
     GIT_META_DATA_TRUNCATED,
     APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
@@ -403,7 +404,10 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         },
         product_map: getProductMapForBuildStartCall(bStackConfig, accessibilityAutomation),
         config: {},
-        test_orchestration: OrchestrationUtils.getInstance(config)?.getBuildStartData() || {}
+        test_orchestration: OrchestrationUtils.getInstance(config)?.getBuildStartData() || {},
+        test_management: {
+            test_plan_id: getTestPlanId(options)
+        }
     }
 
     if (accessibilityAutomation && (isTurboScale(options) || data.browserstackAutomation === false)){
@@ -435,6 +439,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         const jsonResponse: LaunchResponse = await response.json()
         delete data?.accessibility?.settings?.includeEncodedExtension
         BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(jsonResponse)}`)
+        BStackLogger.debug(`Test Plan Id sent in request: ${getTestPlanId(options)}`)
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
         if (jsonResponse.jwt) {
             process.env[BROWSERSTACK_TESTHUB_JWT] = jsonResponse.jwt
@@ -1283,6 +1288,26 @@ export function getObservabilityBuildTags(options: BrowserstackConfig & Options.
     return []
 }
 
+export function getTestPlanId(options: BrowserstackConfig & Options.Testrunner): string | undefined {
+    if (process.env[BROWSERSTACK_TEST_PLAN_ID]) {
+        return process.env[BROWSERSTACK_TEST_PLAN_ID]
+    }
+    const CLI_ARG = '--browserstack.testManagementOptions.testPlanId'
+    const argIndex = process.argv.indexOf(CLI_ARG)
+    if (argIndex !== -1 && process.argv[argIndex + 1]) {
+        return process.argv[argIndex + 1]
+    }
+    const argWithEquals = process.argv.find((arg) => arg.startsWith(`${CLI_ARG}=`))
+    if (argWithEquals) {
+        return argWithEquals.split('=')[1]
+    }
+    const testPlanId = options.testManagementOptions?.testPlanId
+    if (typeof testPlanId === 'string' && testPlanId.trim().length > 0) {
+        return testPlanId.trim()
+    }
+    return undefined
+}
+
 export function getBrowserStackUser(config: Options.Testrunner) {
     if (process.env.BROWSERSTACK_USERNAME) {
         return process.env.BROWSERSTACK_USERNAME as string
@@ -1899,4 +1924,3 @@ export function isMultiRemoteCaps(capabilities: Capabilities.TestrunnerCapabilit
         Object.values(cap).every(c => c !== null && typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities)
     )
 }
-

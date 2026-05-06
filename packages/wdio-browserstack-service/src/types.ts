@@ -45,6 +45,10 @@ export interface TestReportingOptions {
     key?: string
 }
 
+export interface TestManagementOptions {
+    testPlanId?: string,
+}
+
 export interface RunSmartSelectionOptions {
     enabled?: boolean,
     mode?: string,
@@ -93,6 +97,11 @@ export interface BrowserstackConfig {
      * For e.g. buildName, projectName, BrowserStack access credentials, etc.
      */
     testReportingOptions?: TestReportingOptions;
+    /**
+     * Set the Test Management related config options under this key.
+     * Currently supports testPlanId.
+     */
+    testManagementOptions?: TestManagementOptions;
     /**
      * Set this to true to enable BrowserStack Percy which will take screenshots
      * and snapshots for your tests run on Browserstack
