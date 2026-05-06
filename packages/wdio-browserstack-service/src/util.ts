@@ -409,7 +409,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
             settings: options.accessibilityOptions
         },
         browserstackAutomation: shouldAddServiceVersion(config, options.testObservability),
-        grouping_identifier: process.env[BROWSERSTACK_BUILD_GROUPING_IDENTIFIER],
+        grouping_identifier: process.env[BROWSERSTACK_BUILD_GROUPING_IDENTIFIER] || '',
         framework_details: {
             frameworkName: WDIO_NAMING_PREFIX + config.framework,
             frameworkVersion: bsConfig.bstackServiceVersion,

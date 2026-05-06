@@ -103,6 +103,10 @@ export default class TestHubModule extends BaseModule {
         if (testState === TestFrameworkState.TEST || CLIUtils.matchHookRegex(testState.toString().split('.')[1])) {
             this.sendTestFrameworkEvent(args)
         }
+
+        if (testState === TestFrameworkState.TEST && hookState === HookState.POST) {
+            TestMetadata.reset()
+        }
     }
 
     async sendTestFrameworkEvent(args: Record<string, unknown>) {

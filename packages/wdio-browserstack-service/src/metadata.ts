@@ -18,13 +18,14 @@ class TestMetadata {
         }
 
         const testRunIdentifier = metadata.identifier
-        if (typeof testRunIdentifier !== 'string' || testRunIdentifier.length > 40) {
-            BStackLogger.warn('The metadata object is not valid.')
+        if (typeof testRunIdentifier !== 'string') {
+            BStackLogger.warn('setTestMetadata: metadata.identifier must be a string.')
             return
         }
-
-        // Always update fallback so lookups by a different uuid (e.g. reporter's
-        // _tests[fullTitle].uuid vs testHubModule's KEY_TEST_UUID) still resolve.
+        if (testRunIdentifier.length > 40) {
+            BStackLogger.warn(`setTestMetadata: identifier "${testRunIdentifier}" exceeds the 40-character limit.`)
+            return
+        }
         TestMetadata.fallbackMetadata = metadata
 
         if (TestMetadata.currentTestRunUuid) {
