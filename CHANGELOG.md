@@ -23,6 +23,61 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.27.1 (2026-04-30)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`, `wdio-types`, `webdriver`, `webdriverio`
+  * [#15158](https://github.com/webdriverio/webdriverio/pull/15158) fix: cddl generation ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :rocket: New Feature
+* `wdio-protocols`, `wdio-types`, `webdriverio`
+  * [#15153](https://github.com/webdriverio/webdriverio/pull/15153) feat: Add bidi network data ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :bug: Bug Fix
+* `wdio-types`, `wdio-utils`
+  * [#15204](https://github.com/webdriverio/webdriverio/pull/15204) fix(utils): skip desktop browser download when androidPackage is set ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-local-runner`, `wdio-runner`
+  * [#15193](https://github.com/webdriverio/webdriverio/pull/15193) fix: call afterSession hook on session init failure and guard worker IPC against kill race ([@mccmrunal](https://github.com/mccmrunal))
+* `webdriverio`
+  * [#15192](https://github.com/webdriverio/webdriverio/pull/15192) enhancement: prevent shadow root memory leak in SPA navigation ([@lacell75](https://github.com/lacell75))
+  * [#15191](https://github.com/webdriverio/webdriverio/pull/15191) fix shadow element stale ([@lacell75](https://github.com/lacell75))
+* `wdio-allure-reporter`
+  * [#15112](https://github.com/webdriverio/webdriverio/pull/15112) Fix Allure reporter historyId — use capability key instead of cid ([@todti](https://github.com/todti))
+* `wdio-protocols`, `wdio-types`, `webdriverio`
+  * [#15153](https://github.com/webdriverio/webdriverio/pull/15153) feat: Add bidi network data ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-runner`
+  * [#15186](https://github.com/webdriverio/webdriverio/pull/15186) fix: `disableElementImplicitWait` not working when defined too early ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-protocols`, `wdio-types`, `webdriver`, `webdriverio`
+  * [#15158](https://github.com/webdriverio/webdriverio/pull/15158) fix: cddl generation ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#15206](https://github.com/webdriverio/webdriverio/pull/15206) V9 username accesskey redaction ([@minavkaria-bs](https://github.com/minavkaria-bs))
+* `wdio-protocols`, `wdio-types`, `webdriver`, `webdriverio`
+  * [#15158](https://github.com/webdriverio/webdriverio/pull/15158) fix: cddl generation ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :memo: Documentation
+* `wdio-protocols`, `wdio-types`, `webdriver`, `webdriverio`
+  * [#15158](https://github.com/webdriverio/webdriverio/pull/15158) fix: cddl generation ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :house: Internal
+* `wdio-protocols`, `wdio-types`, `webdriver`, `webdriverio`
+  * [#15158](https://github.com/webdriverio/webdriverio/pull/15158) fix: cddl generation ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `webdriverio`
+  * [#15173](https://github.com/webdriverio/webdriverio/pull/15173) ci: enable vitest typecheck tests ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### Committers: 9
+- #QualityWithMillan ([@eaccmk](https://github.com/eaccmk))
+- Alex ([@todti](https://github.com/todti))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Vishnu Vardhan ([@vishnuv688](https://github.com/vishnuv688))
+- YASH JAIN ([@osho-20](https://github.com/osho-20))
+- [@Badisi](https://github.com/Badisi)
+- [@minavkaria-bs](https://github.com/minavkaria-bs)
+
+
 ## v9.27.0 (2026-03-23)
 
 #### :bug: Bug Fix
