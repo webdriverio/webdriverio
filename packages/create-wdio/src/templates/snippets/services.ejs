@@ -2,12 +2,19 @@ services: [<%- answers.services.map((service) => {
     if (service === 'electron') {
         return /*js*/`'electron'`
     } else if (service === 'tauri') {
+        const providerMap: Record<string, string> = {
+            'Official tauri-driver (cross-platform, Cargo-installed)': 'official',
+            'CrabNebula tauri-driver (managed cloud / drop-in)': 'crabnebula',
+            'Embedded driver via tauri-plugin-wdio-webdriver crate': 'embedded',
+        }
+        const provider = providerMap[answers.rawAnswers.tauriDriverProvider as string] ?? 'official'
         const binaryLine = answers.rawAnswers.tauriAppBinaryPath
-            ? `\n            appBinaryPath: '${answers.rawAnswers.tauriAppBinaryPath}',`
+            ? `\n            appBinaryPath: ${JSON.stringify(answers.rawAnswers.tauriAppBinaryPath)},`
             : ''
         return /*js*/`[
         'tauri',
-        {${binaryLine}
+        {
+            driverProvider: '${provider}',${binaryLine}
             // see https://webdriver.io/docs/desktop-testing/tauri/configuration for all options
         }
     ]`

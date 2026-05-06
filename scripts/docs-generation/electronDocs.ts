@@ -2,13 +2,9 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import url from 'node:url'
 import { downloadFromGitHub } from '../utils/index.js'
+import { buildLinkRewriter, type PageProps } from './docsUtils.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-
-interface PageProps {
-    sourcePath: string
-    title: string
-}
 
 /**
  * Source files in `packages/electron-service/docs/` of the wdio-desktop-mobile
@@ -32,33 +28,12 @@ const DOCS_SOURCE_DIR = 'packages/electron-service/docs'
 const WEBSITE_DOCS_PATH = ['website', 'docs', 'desktop-testing', 'electron']
 const PUBLISHED_URL_PREFIX = '/docs/desktop-testing/electron'
 
-/**
- * Build a regex/replace map that turns the new repo's relative markdown links
- * (e.g. `./configuration.md`, `./electron-apis.md#mocking`) into Docusaurus URLs.
- */
-function buildLinkRewriter() {
-    const filenameToId = new Map<string, string>()
-    for (const [id, { sourcePath }] of Object.entries(allDocs)) {
-        filenameToId.set(sourcePath, id)
-    }
-    return (content: string): string => content.replace(
-        /\.\/([\w-]+\.md)(#[\w-]+)?/g,
-        (match, filename: string, anchor: string | undefined) => {
-            const id = filenameToId.get(filename)
-            if (!id) {
-                return match
-            }
-            return `${PUBLISHED_URL_PREFIX}/${id}${anchor ?? ''}`
-        }
-    )
-}
-
 export async function generateElectronDocs () {
     const basePath = path.join(__dirname, '..', '..')
     const electronDocsPath = path.join(basePath, ...WEBSITE_DOCS_PATH)
     await fs.mkdir(electronDocsPath, { recursive: true })
 
-    const rewriteLinks = buildLinkRewriter()
+    const rewriteLinks = buildLinkRewriter(allDocs, PUBLISHED_URL_PREFIX)
 
     for (const [id, { sourcePath, title }] of Object.entries(allDocs)) {
         const newDocsPath = path.join(electronDocsPath, `${id}.md`)
