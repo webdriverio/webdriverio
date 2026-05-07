@@ -40,6 +40,9 @@ export default class TestHubModule extends BaseModule {
                 TestFramework.registerObserver(state, hook, this.onAllTestEvents.bind(this))
             })
         })
+        // TEST/PRE: sendTestFrameworkEvent must run before onBeforeTest mutates
+        // TestMetadata.currentTestRunUuid, so sequence them explicitly instead of
+        // relying on observer registration order.
         TestFramework.registerObserver(TestFrameworkState.TEST, HookState.PRE, this.onBeforeTest.bind(this))
     }
 
