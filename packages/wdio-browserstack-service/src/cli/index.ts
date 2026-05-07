@@ -301,16 +301,7 @@ export class BrowserstackCLI {
             PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP, false, util.format(error))
             const errorMessage = error instanceof Error ? error.stack || error.message : String(error)
             this.logger.error(`stop: error in stop session exception=${errorMessage}`)
-        } finally {
-            this.clearCliSessionEnv()
-            this.isMainConnected = false
-            this.isChildConnected = false
         }
-    }
-
-    clearCliSessionEnv() {
-        delete process.env.BROWSERSTACK_CLI_BIN_SESSION_ID
-        delete process.env.BROWSERSTACK_CLI_BIN_LISTEN_ADDR
     }
 
     /**
@@ -424,7 +415,6 @@ export class BrowserstackCLI {
     * @returns {void}
     */
     setConfig(response: StartBinSessionResponse) {
-        this.config = {}
         try {
             this.config = JSON.parse(response.config)
             this.logger.debug(`loadModules: config=${JSON.stringify(this.config)}`)
