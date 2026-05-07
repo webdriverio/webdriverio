@@ -1,14 +1,14 @@
 export default class APIUtils {
-    static FUNNEL_INSTRUMENTATION_URL = 'https://api.devapplca.bsstag.com/sdk/v1/event'
-    static BROWSERSTACK_AUTOMATE_API_URL = 'https://api.devapplca.bsstag.com'
-    static BROWSERSTACK_AA_API_URL = 'https://api.devapplca.bsstag.com'
-    static BROWSERSTACK_PERCY_API_URL = 'https://api.devapplca.bsstag.com'
-    static BROWSERSTACK_AUTOMATE_API_CLOUD_URL = 'https://api-cloud.devapplca.bsstag.com'
-    static BROWSERSTACK_AA_API_CLOUD_URL = 'https://api-cloud.devapplca.bsstag.com'
-    static APP_ALLY_ENDPOINT = 'https://app-accessibility.devapplca.bsstag.com/automate'
-    static DATA_ENDPOINT = 'https://collector-testhub-devapplca.bsstag.com'
-    static UPLOAD_LOGS_ADDRESS = 'https://upload-observability.devapplca.bsstag.com'
-    static EDS_URL = 'https://eds.devapplca.bsstag.com'
+    static FUNNEL_INSTRUMENTATION_URL = 'https://api.browserstack.com/sdk/v1/event'
+    static BROWSERSTACK_AUTOMATE_API_URL = 'https://api.browserstack.com'
+    static BROWSERSTACK_AA_API_URL = 'https://api.browserstack.com'
+    static BROWSERSTACK_PERCY_API_URL = 'https://api.browserstack.com'
+    static BROWSERSTACK_AUTOMATE_API_CLOUD_URL = 'https://api-cloud.browserstack.com'
+    static BROWSERSTACK_AA_API_CLOUD_URL = 'https://api-cloud.browserstack.com'
+    static APP_ALLY_ENDPOINT = 'https://app-accessibility.browserstack.com/automate'
+    static DATA_ENDPOINT = 'https://collector-observability.browserstack.com'
+    static UPLOAD_LOGS_ADDRESS = 'https://upload-observability.browserstack.com'
+    static EDS_URL = 'https://eds.browserstack.com'
 
     static hasValidGRRUrls(apis?: Partial<GRRUrls>): apis is GRRUrls {
         return Boolean(
