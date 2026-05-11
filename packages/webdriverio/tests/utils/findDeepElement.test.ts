@@ -395,3 +395,141 @@ describe('findDeepElements - isConnected validation', () => {
         expect(element.findElementsFromElement).not.toHaveBeenCalled()
     })
 })
+
+// Firefox < 150 BiDi root selector workaround (issue #15233)
+describe('findDeepElement - Firefox root selector workaround', () => {
+    beforeEach(() => {
+        vi.clearAllMocks()
+        mockGetCurrentContext.mockResolvedValue('ctx-1')
+        mockGetShadowElementsByContextId.mockReturnValue([])
+    })
+
+    it('should convert "html" CSS selector to XPath for Firefox < 150 (unscoped)', async () => {
+        const browser = createMockBrowser({ isFirefox: true, capabilities: { browserVersion: '149.0.2' } })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [{ sharedId: 'html-node' }] })
+
+        await findDeepElement.call(browser, 'html')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(
+            expect.objectContaining({ locator: { type: 'xpath', value: '//html' } })
+        )
+    })
+
+    it('should convert ":root" CSS selector to XPath for Firefox < 150 (unscoped)', async () => {
+        const browser = createMockBrowser({ isFirefox: true, capabilities: { browserVersion: '149.0.2' } })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [{ sharedId: 'html-node' }] })
+
+        await findDeepElement.call(browser, ':root')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(
+            expect.objectContaining({ locator: { type: 'xpath', value: '//html' } })
+        )
+    })
+
+    it('should NOT convert for Firefox >= 150', async () => {
+        const browser = createMockBrowser({ isFirefox: true, capabilities: { browserVersion: '150.0' } })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [{ sharedId: 'html-node' }] })
+
+        await findDeepElement.call(browser, 'html')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(
+            expect.objectContaining({ locator: { type: 'css', value: 'html' } })
+        )
+    })
+
+    it('should NOT convert in element-scoped context (Firefox < 150)', async () => {
+        const browser = createMockBrowser({ isFirefox: true, capabilities: { browserVersion: '149.0.2' } })
+        const element: any = {
+            isW3C: true, isMobile: false, isFirefox: true,
+            elementId: 'parent-id', __browser: browser,
+            findElementFromElement: vi.fn().mockResolvedValue({ [ELEMENT_KEY]: 'found' }),
+        }
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [{ sharedId: 'html-node' }] })
+
+        await findDeepElement.call(element, 'html')
+
+        // scoped context: must NOT receive an absolute //html locator
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(
+            expect.objectContaining({ locator: { type: 'css', value: 'html' } })
+        )
+    })
+
+    it('should NOT convert other CSS selectors', async () => {
+        const browser = createMockBrowser({ isFirefox: true, capabilities: { browserVersion: '149.0.2' } })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [{ sharedId: 'body-node' }] })
+
+        await findDeepElement.call(browser, 'body')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(
+            expect.objectContaining({ locator: { type: 'css', value: 'body' } })
+        )
+    })
+})
+
+describe('findDeepElements - Firefox root selector workaround', () => {
+    beforeEach(() => {
+        vi.clearAllMocks()
+        mockGetCurrentContext.mockResolvedValue('ctx-1')
+        mockGetShadowElementsByContextId.mockReturnValue([])
+    })
+
+    it('should convert "html" CSS selector to XPath for Firefox < 150 (unscoped)', async () => {
+        const browser = createMockBrowser({ isFirefox: true, capabilities: { browserVersion: '149.0.2' } })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [{ sharedId: 'html-node' }] })
+
+        await findDeepElements.call(browser, 'html')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(
+            expect.objectContaining({ locator: { type: 'xpath', value: '//html' } })
+        )
+    })
+
+    it('should convert ":root" CSS selector to XPath for Firefox < 150 (unscoped)', async () => {
+        const browser = createMockBrowser({ isFirefox: true, capabilities: { browserVersion: '149.0.2' } })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [{ sharedId: 'html-node' }] })
+
+        await findDeepElements.call(browser, ':root')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(
+            expect.objectContaining({ locator: { type: 'xpath', value: '//html' } })
+        )
+    })
+
+    it('should NOT convert for Firefox >= 150', async () => {
+        const browser = createMockBrowser({ isFirefox: true, capabilities: { browserVersion: '150.0' } })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [{ sharedId: 'html-node' }] })
+
+        await findDeepElements.call(browser, 'html')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(
+            expect.objectContaining({ locator: { type: 'css', value: 'html' } })
+        )
+    })
+
+    it('should NOT convert in element-scoped context (Firefox < 150)', async () => {
+        const browser = createMockBrowser({ isFirefox: true, capabilities: { browserVersion: '149.0.2' } })
+        const element: any = {
+            isW3C: true, isMobile: false, isFirefox: true,
+            elementId: 'parent-id', __browser: browser,
+            findElementsFromElement: vi.fn().mockResolvedValue([]),
+        }
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [{ sharedId: 'html-node' }] })
+
+        await findDeepElements.call(element, 'html')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(
+            expect.objectContaining({ locator: { type: 'css', value: 'html' } })
+        )
+    })
+
+    it('should NOT convert other CSS selectors', async () => {
+        const browser = createMockBrowser({ isFirefox: true, capabilities: { browserVersion: '149.0.2' } })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [{ sharedId: 'div-node' }] })
+
+        await findDeepElements.call(browser, 'div')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(
+            expect.objectContaining({ locator: { type: 'css', value: 'div' } })
+        )
+    })
+})
