@@ -1454,8 +1454,10 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
         })
 
         const formData = new FormData()
-        const tarGzBytes = fs.readFileSync(tarGzPath)
-        const file = new Blob([tarGzBytes], { type: 'application/x-gzip' })
+        // openAsBlob returns a Blob backed by a file descriptor — undici streams
+        // from disk during the upload instead of materialising the full archive
+        // in V8 heap (which readFileSync + new Blob([Buffer]) would do twice).
+        const file = await fs.openAsBlob(tarGzPath, { type: 'application/x-gzip' })
         formData.append('data', file, 'logs.tar.gz')
         formData.append('clientBuildUuid', clientBuildUuid)
 
