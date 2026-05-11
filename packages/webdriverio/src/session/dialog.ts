@@ -2,6 +2,11 @@ import { type local } from 'webdriver'
 import { SessionManager } from './session.js'
 import { getContextManager } from './context.js'
 
+/**
+ * iOS SpringBoard bundle ID used to activate the system UI for accessing permission dialogs
+ */
+const SPRINGBOARD_BUNDLE_ID = 'com.apple.springboard'
+
 export function getDialogManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, DialogManager)
 }
@@ -125,29 +130,101 @@ export class Dialog {
      * @returns {Promise<void>}
      */
     async accept(userText?: string) {
-        const contextManager = getContextManager(this.#browser)
+        const browser = this.#browser
+
+        /**
+         * Handle mobile permission dialogs (iOS/Android)
+         */
+        if (browser.isMobile) {
+            return this.#handleMobileDialog('accept', userText)
+        }
+
+        const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
 
         if (this.#context !== context) {
             return
         }
 
-        await this.#browser.browsingContextHandleUserPrompt({
+        await browser.browsingContextHandleUserPrompt({
             accept: true,
             context: this.#context,
             userText
         })
     }
 
+    /**
+     * Handle mobile dialog acceptance/dismissal.
+     * For iOS: activates SpringBoard to access the dialog, then reactivates the original app.
+     * For Android: directly accepts/dismisses the alert.
+     *
+     * @param {'accept' | 'dismiss'} action The action to perform on the dialog
+     * @param {string=} userText Optional text to enter for prompt dialogs
+     */
+    async #handleMobileDialog(action: 'accept' | 'dismiss', userText?: string): Promise<void> {
+        const browser = this.#browser
+
+        if (browser.isIOS) {
+            // Get the current app's bundle ID before switching to SpringBoard
+            const { bundleId } = await browser.execute('mobile: activeAppInfo') as { bundleId: string }
+
+            // Activate SpringBoard so the permission dialog is accessible
+            await browser.execute('mobile: activateApp', { bundleId: SPRINGBOARD_BUNDLE_ID })
+
+            try {
+                // Accept or dismiss the alert (may throw if no alert is present)
+                if (action === 'accept') {
+                    if (userText) {
+                        await browser.sendAlertText(userText)
+                    }
+                    await browser.acceptAlert()
+                } else {
+                    await browser.dismissAlert()
+                }
+            } catch {
+                // No alert was shown (permission already granted, or not yet triggered).
+                // Do nothing and continue.
+            }
+
+            // Reactivate the original app after handling the dialog
+            await browser.execute('mobile: activateApp', { bundleId })
+            return
+        }
+
+        // Android: directly accept/dismiss the alert
+        try {
+            if (action === 'accept') {
+                if (userText) {
+                    await browser.sendAlertText(userText)
+                }
+                await browser.acceptAlert()
+            } else {
+                await browser.dismissAlert()
+            }
+        } catch {
+            // No alert was shown (permission already granted, or not yet triggered).
+            // Do nothing and continue.
+        }
+    }
+
     async dismiss() {
-        const contextManager = getContextManager(this.#browser)
+        const browser = this.#browser
+
+        /**
+         * Handle mobile permission dialogs (iOS/Android)
+         */
+        if (browser.isMobile) {
+            return this.#handleMobileDialog('dismiss')
+        }
+
+        const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
 
         if (this.#context !== context) {
             return
         }
 
-        await this.#browser.browsingContextHandleUserPrompt({
+        await browser.browsingContextHandleUserPrompt({
             accept: false,
             context: this.#context
         })
