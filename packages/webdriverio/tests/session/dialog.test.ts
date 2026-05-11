@@ -1,5 +1,10 @@
+import path from 'node:path'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { DialogManager } from '../../src/session/dialog.js'
+import { DialogManager, Dialog } from '../../src/session/dialog.js'
+import { remote } from '../../src/index.js'
+
+vi.mock('fetch')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('DialogManager', () => {
     let browser: any
@@ -8,6 +13,7 @@ describe('DialogManager', () => {
     beforeEach(() => {
         browser = {
             isBidi: true,
+            isMobile: false,
             sessionId: 'session-id',
             sessionSubscribe: vi.fn().mockResolvedValue({}),
             on: vi.fn(),
@@ -78,5 +84,247 @@ describe('DialogManager', () => {
             accept: false,
             context: 'some-context'
         })
+    })
+})
+
+describe('Dialog - Browser', () => {
+    let browser: any
+
+    beforeEach(() => {
+        browser = {
+            isMobile: false,
+            isBidi: true,
+            browsingContextHandleUserPrompt: vi.fn().mockResolvedValue(undefined),
+            sessionSubscribe: vi.fn().mockResolvedValue({}),
+            on: vi.fn(),
+            off: vi.fn(),
+            removeAllListeners: vi.fn(),
+            emit: vi.fn(),
+        }
+    })
+
+    it('should accept a browser dialog', async () => {
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Hello', type: 'alert' } as any,
+            browser
+        )
+
+        await dialog.accept()
+
+        expect(browser.browsingContextHandleUserPrompt).toHaveBeenCalledWith({
+            accept: true,
+            context: 'ctx-1',
+        })
+    })
+
+    it('should accept a browser dialog with prompt text', async () => {
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Hello', type: 'prompt', defaultValue: '' } as any,
+            browser
+        )
+
+        await dialog.accept('my input')
+
+        expect(browser.browsingContextHandleUserPrompt).toHaveBeenCalledWith({
+            accept: true,
+            context: 'ctx-1',
+            userText: 'my input',
+        })
+    })
+
+    it('should dismiss a browser dialog', async () => {
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Hello', type: 'confirm' } as any,
+            browser
+        )
+
+        await dialog.dismiss()
+
+        expect(browser.browsingContextHandleUserPrompt).toHaveBeenCalledWith({
+            accept: false,
+            context: 'ctx-1',
+        })
+    })
+
+    it('should return early if context does not match', async () => {
+        // Mock the context manager
+        const originalGetContextManager = await import('../../src/session/context.js').then(m => m.getContextManager)
+        vi.mock('../../src/session/context.js', () => ({
+            getContextManager: vi.fn().mockReturnValue({
+                getCurrentContext: vi.fn().mockResolvedValue('different-context')
+            })
+        }))
+
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Hello', type: 'alert' } as any,
+            browser
+        )
+
+        await dialog.accept()
+
+        expect(browser.browsingContextHandleUserPrompt).not.toHaveBeenCalled()
+
+        // Restore the mock
+        vi.unmock('../../src/session/context.js')
+    })
+})
+
+describe('Dialog - iOS Mobile', () => {
+    let browser: WebdriverIO.Browser
+
+    beforeEach(async () => {
+        vi.mocked(fetch).mockClear()
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                platformName: 'iOS',
+            } as any
+        })
+    })
+
+    it('should accept a mobile dialog on iOS', async () => {
+        const executeSpy = vi.spyOn(browser, 'execute')
+            .mockResolvedValueOnce({ bundleId: 'com.example.app' }) // activeAppInfo
+            .mockResolvedValueOnce(undefined) // activateApp (SpringBoard)
+            .mockResolvedValueOnce(undefined) // activateApp (original app)
+        const acceptAlertSpy = vi.spyOn(browser, 'acceptAlert').mockResolvedValue(undefined)
+
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Allow permission?', type: 'alert' } as any,
+            browser
+        )
+
+        await dialog.accept()
+
+        expect(executeSpy).toHaveBeenNthCalledWith(1, 'mobile: activeAppInfo')
+        expect(executeSpy).toHaveBeenNthCalledWith(2, 'mobile: activateApp', { bundleId: 'com.apple.springboard' })
+        expect(acceptAlertSpy).toHaveBeenCalledOnce()
+        expect(executeSpy).toHaveBeenNthCalledWith(3, 'mobile: activateApp', { bundleId: 'com.example.app' })
+    })
+
+    it('should accept a mobile dialog with text on iOS', async () => {
+        const executeSpy = vi.spyOn(browser, 'execute')
+            .mockResolvedValueOnce({ bundleId: 'com.example.app' })
+            .mockResolvedValueOnce(undefined)
+            .mockResolvedValueOnce(undefined)
+        const sendAlertTextSpy = vi.spyOn(browser, 'sendAlertText').mockResolvedValue(undefined)
+        const acceptAlertSpy = vi.spyOn(browser, 'acceptAlert').mockResolvedValue(undefined)
+
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Enter value', type: 'prompt', defaultValue: '' } as any,
+            browser
+        )
+
+        await dialog.accept('my input')
+
+        expect(sendAlertTextSpy).toHaveBeenCalledWith('my input')
+        expect(acceptAlertSpy).toHaveBeenCalledOnce()
+    })
+
+    it('should dismiss a mobile dialog on iOS', async () => {
+        const executeSpy = vi.spyOn(browser, 'execute')
+            .mockResolvedValueOnce({ bundleId: 'com.example.app' })
+            .mockResolvedValueOnce(undefined)
+            .mockResolvedValueOnce(undefined)
+        const dismissAlertSpy = vi.spyOn(browser, 'dismissAlert').mockResolvedValue(undefined)
+
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Allow permission?', type: 'alert' } as any,
+            browser
+        )
+
+        await dialog.dismiss()
+
+        expect(executeSpy).toHaveBeenNthCalledWith(1, 'mobile: activeAppInfo')
+        expect(executeSpy).toHaveBeenNthCalledWith(2, 'mobile: activateApp', { bundleId: 'com.apple.springboard' })
+        expect(dismissAlertSpy).toHaveBeenCalledOnce()
+        expect(executeSpy).toHaveBeenNthCalledWith(3, 'mobile: activateApp', { bundleId: 'com.example.app' })
+    })
+
+    it('should handle no alert on iOS (silent catch)', async () => {
+        vi.spyOn(browser, 'execute')
+            .mockResolvedValueOnce({ bundleId: 'com.example.app' })
+            .mockResolvedValueOnce(undefined)
+            .mockResolvedValueOnce(undefined)
+        vi.spyOn(browser, 'acceptAlert').mockRejectedValue(new Error('no such alert'))
+
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Allow permission?', type: 'alert' } as any,
+            browser
+        )
+
+        // Should not throw
+        await expect(dialog.accept()).resolves.toBeUndefined()
+    })
+})
+
+describe('Dialog - Android Mobile', () => {
+    let browser: WebdriverIO.Browser
+
+    beforeEach(async () => {
+        vi.mocked(fetch).mockClear()
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                platformName: 'Android',
+            } as any
+        })
+    })
+
+    it('should accept a mobile dialog on Android', async () => {
+        const acceptAlertSpy = vi.spyOn(browser, 'acceptAlert').mockResolvedValue(undefined)
+
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Allow permission?', type: 'alert' } as any,
+            browser
+        )
+
+        await dialog.accept()
+
+        expect(acceptAlertSpy).toHaveBeenCalledOnce()
+    })
+
+    it('should accept a mobile dialog with text on Android', async () => {
+        const sendAlertTextSpy = vi.spyOn(browser, 'sendAlertText').mockResolvedValue(undefined)
+        const acceptAlertSpy = vi.spyOn(browser, 'acceptAlert').mockResolvedValue(undefined)
+
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Enter value', type: 'prompt', defaultValue: '' } as any,
+            browser
+        )
+
+        await dialog.accept('android input')
+
+        expect(sendAlertTextSpy).toHaveBeenCalledWith('android input')
+        expect(acceptAlertSpy).toHaveBeenCalledOnce()
+    })
+
+    it('should dismiss a mobile dialog on Android', async () => {
+        const dismissAlertSpy = vi.spyOn(browser, 'dismissAlert').mockResolvedValue(undefined)
+
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Allow permission?', type: 'alert' } as any,
+            browser
+        )
+
+        await dialog.dismiss()
+
+        expect(dismissAlertSpy).toHaveBeenCalledOnce()
+    })
+
+    it('should handle no alert on Android (silent catch)', async () => {
+        vi.spyOn(browser, 'dismissAlert').mockRejectedValue(new Error('no such alert'))
+
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Allow permission?', type: 'alert' } as any,
+            browser
+        )
+
+        // Should not throw
+        await expect(dialog.dismiss()).resolves.toBeUndefined()
     })
 })
