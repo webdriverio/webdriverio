@@ -56,6 +56,8 @@ import {
     getTestPlanId,
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
+import PerformanceTester from '../src/instrumentation/performance/performance-tester.js'
+import * as PERFORMANCE_SDK_EVENTS from '../src/instrumentation/performance/constants.js'
 import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY, BROWSERSTACK_TEST_PLAN_ID } from '../src/constants.js'
 import * as testHubUtils from '../src/testHub/utils.js'
 import * as fs from 'node:fs/promises'
@@ -1563,32 +1565,101 @@ describe('frameworkSupportsHook', function () {
 describe('uploadLogs', function () {
     let tempLogFile: string
     let originalLogFilePath: string
+    let endSpy: ReturnType<typeof vi.spyOn>
 
-    beforeAll(async () => {
+    beforeAll(() => {
         tempLogFile = path.join(os.tmpdir(), 'test-logs.txt')
-        await fs.writeFile(tempLogFile, 'mock log content')
         // Store original log file path
         originalLogFilePath = bstackLogger.BStackLogger.logFilePath
         bstackLogger.BStackLogger.logFilePath = tempLogFile
     })
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        // uploadLogs's cleanup unlinks the copied file from tmpdir; that path
+        // is the same as tempLogFile, so re-create it before every test.
+        await fs.writeFile(tempLogFile, 'mock log content')
         vi.mocked(fetch).mockClear()
         vi.mocked(fetch).mockResolvedValue(Response.json({ status: 'success', message: 'Logs uploaded Successfully' }))
+        endSpy = vi.spyOn(PerformanceTester, 'end')
+    })
+
+    afterEach(() => {
+        endSpy.mockRestore()
     })
 
     it('should return if user is undefined', async function () {
         await uploadLogs(undefined, 'some_key', 'some_uuid')
         expect(fetch).not.toHaveBeenCalled()
+        expect(endSpy).toHaveBeenCalledWith(
+            PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS,
+            false,
+            'skipped: missing_credentials'
+        )
     })
+
     it('should return if key is undefined', async function () {
         await uploadLogs('some_user', undefined, 'some_uuid')
         expect(fetch).not.toHaveBeenCalled()
+        expect(endSpy).toHaveBeenCalledWith(
+            PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS,
+            false,
+            'skipped: missing_credentials'
+        )
     })
+
     it('should upload the logs', async function () {
         await uploadLogs('some_user', 'some_key', 'some_uuid')
         expect(fetch).toHaveBeenCalled()
+        expect(endSpy).toHaveBeenCalledWith(
+            PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS,
+            true,
+            undefined
+        )
     })
+
+    it('should send FormData with a Blob (native, not formdata-node)', async function () {
+        await uploadLogs('some_user', 'some_key', 'some_uuid')
+        expect(fetch).toHaveBeenCalled()
+        // The body passed to fetch should be a FormData with a `data` field containing
+        // a Blob/File so undici (native fetch) recognizes it as a file part. Sending
+        // formdata-node's FormData here causes undici to serialize the file as a
+        // string field and the server returns "File not attached".
+        const fetchCall = vi.mocked(fetch).mock.calls[0]
+        const opts: any = fetchCall[1]
+        expect(opts.body).toBeInstanceOf(FormData)
+        const dataField = (opts.body as FormData).get('data')
+        // In Node 18+, FormData.get for a file-like part returns a File/Blob.
+        // Either type is acceptable as long as it's a Blob (File extends Blob).
+        expect(dataField).toBeInstanceOf(Blob)
+        expect((opts.body as FormData).get('clientBuildUuid')).toBe('some_uuid')
+    })
+
+    it('should record upload_status when server rejects with non-success response', async function () {
+        vi.mocked(fetch).mockResolvedValueOnce(
+            Response.json({ status: 'failed', message: 'File not attached.' })
+        )
+        await uploadLogs('some_user', 'some_key', 'some_uuid')
+        expect(endSpy).toHaveBeenCalledWith(
+            PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS,
+            false,
+            expect.stringContaining('upload_status: failed')
+        )
+        // The failure string should also surface the server message for diagnostics
+        expect(endSpy.mock.calls[0][2]).toContain('File not attached.')
+    })
+
+    it('should record upload_no_response when nodeRequest swallows the error and returns undefined', async function () {
+        // nodeRequest returns undefined for the log-upload path on AbortError / network failure;
+        // simulate that via a fetch reject — the inner catch in nodeRequest swallows it and returns undefined.
+        vi.mocked(fetch).mockRejectedValueOnce(new Error('socket hang up'))
+        await uploadLogs('some_user', 'some_key', 'some_uuid')
+        expect(endSpy).toHaveBeenCalledWith(
+            PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS,
+            false,
+            'upload_no_response'
+        )
+    })
+
     afterAll(async () => {
         try {
             await fs.unlink(tempLogFile)
