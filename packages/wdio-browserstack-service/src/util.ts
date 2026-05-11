@@ -1429,6 +1429,7 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
         }
 
         if (archiveAddFailures.length > 0 && failure === undefined) {
+            success = false
             failure = `archive_add_failed [${archiveAddFailures.length}]: ${archiveAddFailures.join('; ')}`.substring(0, 300)
         }
 
