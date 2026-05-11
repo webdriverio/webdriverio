@@ -181,7 +181,7 @@ The following special keys are available via the `Key` object:
 | `Key.Shift` | Shift key |
 | `Key.Alt` | Alt key |
 | `Key.Command` | Command key (Mac) |
-| `Key.NULL` | Null key |
+| `Key.NULL` | Null/release key — releases all currently held modifier keys |
 
 **Navigation Keys:**
 
