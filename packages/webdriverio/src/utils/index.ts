@@ -303,8 +303,27 @@ export function transformClassicToBidiSelector(using: string, value: string): re
 function isFirefoxBidiRootSelectorBug(browser: WebdriverIO.Browser): boolean {
     if (!browser.isFirefox) { return false }
     const version = browser.capabilities?.browserVersion ?? ''
-    const major = parseInt(version.match(/(\d+)/)?.[1] ?? '0', 10)
+    const major = parseInt(version.match(/\d+/)?.[0] ?? '0', 10)
     return !isNaN(major) && major > 0 && major < 150
+}
+
+/**
+ * Applies the Firefox < 150 BiDi root selector workaround: converts CSS 'html' / ':root'
+ * to the absolute XPath '/html' for unscoped top-level lookups only.
+ * '/html' is anchored to the document root, making it semantically equivalent to ':root'.
+ * '//html' is intentionally avoided as it matches html elements at any depth.
+ */
+function applyFirefoxRootSelectorWorkaround(
+    using: string,
+    value: string,
+    isScopedContext: boolean,
+    browser: WebdriverIO.Browser
+): { using: string, value: string } {
+    if (using === 'css selector' && (value === 'html' || value === ':root') &&
+        !isScopedContext && isFirefoxBidiRootSelectorBug(browser)) {
+        return { using: 'xpath', value: '/html' }
+    }
+    return { using, value }
 }
 
 /**
@@ -338,18 +357,8 @@ export async function findDeepElement(
         return this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value)
     }
 
-    /**
-     * Firefox < 150 BiDi has a bug where browsingContext.locateNodes returns empty nodes for
-     * CSS root selectors ('html', ':root'). Convert to absolute XPath only for unscoped
-     * top-level lookups; scoped contexts (shadow roots, element-scoped) must not use //html
-     * as that would escape the scope. Fixed in Firefox 150+. (issue #15233)
-     */
     const isScopedContext = shadowRoots.length > 0 || Boolean((this as WebdriverIO.Element).elementId)
-    if (using === 'css selector' && (value === 'html' || value === ':root') &&
-        !isScopedContext && isFirefoxBidiRootSelectorBug(browser)) {
-        using = 'xpath'
-        value = '//html'
-    }
+    ;({ using, value } = applyFirefoxRootSelectorWorkaround(using, value, isScopedContext, browser))
 
     const locator = transformClassicToBidiSelector(using, value)
 
@@ -467,18 +476,8 @@ export async function findDeepElements(
         return this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value)
     }
 
-    /**
-     * Firefox < 150 BiDi has a bug where browsingContext.locateNodes returns empty nodes for
-     * CSS root selectors ('html', ':root'). Convert to absolute XPath only for unscoped
-     * top-level lookups; scoped contexts (shadow roots, element-scoped) must not use //html
-     * as that would escape the scope. Fixed in Firefox 150+. (issue #15233)
-     */
     const isScopedContext = shadowRoots.length > 0 || Boolean((this as WebdriverIO.Element).elementId)
-    if (using === 'css selector' && (value === 'html' || value === ':root') &&
-        !isScopedContext && isFirefoxBidiRootSelectorBug(browser)) {
-        using = 'xpath'
-        value = '//html'
-    }
+    ;({ using, value } = applyFirefoxRootSelectorWorkaround(using, value, isScopedContext, browser))
 
     const locator = transformClassicToBidiSelector(using, value)
 
