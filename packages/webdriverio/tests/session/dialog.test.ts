@@ -153,11 +153,15 @@ describe('Dialog - Browser', () => {
     })
 
     it('should return early if context does not match', async () => {
-        // Configure the mocked context manager to return a different context
+        // Use vi.doMock for dynamic mocking inside a test callback
+        vi.doMock('../../src/session/context.js', () => ({
+            getContextManager: vi.fn().mockReturnValue({
+                getCurrentContext: vi.fn().mockResolvedValue('different-context')
+            })
+        }))
+
+        // Fresh import to get the mocked module
         const { getContextManager } = await import('../../src/session/context.js')
-        vi.mocked(getContextManager).mockReturnValue({
-            getCurrentContext: vi.fn().mockResolvedValue('different-context')
-        } as any)
 
         const dialog = new Dialog(
             { context: 'ctx-1', message: 'Hello', type: 'alert' } as any,
@@ -167,11 +171,10 @@ describe('Dialog - Browser', () => {
         await dialog.accept()
 
         expect(browser.browsingContextHandleUserPrompt).not.toHaveBeenCalled()
+        expect(getContextManager).toHaveBeenCalledWith(browser)
 
-        // Reset the mock to default behavior for other tests
-        vi.mocked(getContextManager).mockReturnValue({
-            getCurrentContext: vi.fn().mockResolvedValue('ctx-1')
-        } as any)
+        // Reset the mock
+        vi.doUnmock('../../src/session/context.js')
     })
 })
 
