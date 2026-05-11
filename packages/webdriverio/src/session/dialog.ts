@@ -181,13 +181,16 @@ export class Dialog {
                 } else {
                     await browser.dismissAlert()
                 }
-            } catch {
-                // No alert was shown (permission already granted, or not yet triggered).
-                // Do nothing and continue.
+            } catch (err) {
+                // Only ignore "no such alert" errors (permission already granted, or not yet triggered).
+                // Re-throw all other errors (session expiry, network loss, driver crash, etc.)
+                if (!(err instanceof Error) || !err.message.includes('no such alert')) {
+                    throw err
+                }
+            } finally {
+                // Always reactivate the original app, even if alert handling failed
+                await browser.execute('mobile: activateApp', { bundleId })
             }
-
-            // Reactivate the original app after handling the dialog
-            await browser.execute('mobile: activateApp', { bundleId })
             return
         }
 
@@ -201,9 +204,12 @@ export class Dialog {
             } else {
                 await browser.dismissAlert()
             }
-        } catch {
-            // No alert was shown (permission already granted, or not yet triggered).
-            // Do nothing and continue.
+        } catch (err) {
+            // Only ignore "no such alert" errors (permission already granted, or not yet triggered).
+            // Re-throw all other errors (session expiry, network loss, driver crash, etc.)
+            if (!(err instanceof Error) || !err.message.includes('no such alert')) {
+                throw err
+            }
         }
     }
 

@@ -2,9 +2,15 @@ import path from 'node:path'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { DialogManager, Dialog } from '../../src/session/dialog.js'
 import { remote } from '../../src/index.js'
+import * as contextModule from '../../src/session/context.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('../../src/session/context.js', () => ({
+    getContextManager: vi.fn().mockReturnValue({
+        getCurrentContext: vi.fn().mockResolvedValue('ctx-1')
+    })
+}))
 
 describe('DialogManager', () => {
     let browser: any
@@ -147,13 +153,11 @@ describe('Dialog - Browser', () => {
     })
 
     it('should return early if context does not match', async () => {
-        // Mock the context manager
-        const originalGetContextManager = await import('../../src/session/context.js').then(m => m.getContextManager)
-        vi.mock('../../src/session/context.js', () => ({
-            getContextManager: vi.fn().mockReturnValue({
-                getCurrentContext: vi.fn().mockResolvedValue('different-context')
-            })
-        }))
+        // Configure the mocked context manager to return a different context
+        const { getContextManager } = await import('../../src/session/context.js')
+        vi.mocked(getContextManager).mockReturnValue({
+            getCurrentContext: vi.fn().mockResolvedValue('different-context')
+        } as any)
 
         const dialog = new Dialog(
             { context: 'ctx-1', message: 'Hello', type: 'alert' } as any,
@@ -164,8 +168,10 @@ describe('Dialog - Browser', () => {
 
         expect(browser.browsingContextHandleUserPrompt).not.toHaveBeenCalled()
 
-        // Restore the mock
-        vi.unmock('../../src/session/context.js')
+        // Reset the mock to default behavior for other tests
+        vi.mocked(getContextManager).mockReturnValue({
+            getCurrentContext: vi.fn().mockResolvedValue('ctx-1')
+        } as any)
     })
 })
 
@@ -255,8 +261,24 @@ describe('Dialog - iOS Mobile', () => {
             browser
         )
 
-        // Should not throw
+        // Should not throw for "no such alert"
         await expect(dialog.accept()).resolves.toBeUndefined()
+    })
+
+    it('should re-throw non-"no such alert" errors on iOS', async () => {
+        vi.spyOn(browser, 'execute')
+            .mockResolvedValueOnce({ bundleId: 'com.example.app' })
+            .mockResolvedValueOnce(undefined)
+            .mockResolvedValueOnce(undefined)
+        vi.spyOn(browser, 'acceptAlert').mockRejectedValue(new Error('device disconnected'))
+
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Allow permission?', type: 'alert' } as any,
+            browser
+        )
+
+        // Should re-throw non-"no such alert" errors
+        await expect(dialog.accept()).rejects.toThrow('device disconnected')
     })
 })
 
@@ -324,7 +346,19 @@ describe('Dialog - Android Mobile', () => {
             browser
         )
 
-        // Should not throw
+        // Should not throw for "no such alert"
         await expect(dialog.dismiss()).resolves.toBeUndefined()
+    })
+
+    it('should re-throw non-"no such alert" errors on Android', async () => {
+        vi.spyOn(browser, 'acceptAlert').mockRejectedValue(new Error('session expired'))
+
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Allow permission?', type: 'alert' } as any,
+            browser
+        )
+
+        // Should re-throw non-"no such alert" errors
+        await expect(dialog.accept()).rejects.toThrow('session expired')
     })
 })
