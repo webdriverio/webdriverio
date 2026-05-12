@@ -66,8 +66,7 @@ export class DisplayServerManager {
             return false
         }
 
-        // Check if we're in a headless environment (no DISPLAY set)
-        const hasDisplay = process.env.DISPLAY
+        const hasDisplay = process.env.DISPLAY || process.env.WAYLAND_DISPLAY
         const inHeadlessEnvironment = !hasDisplay
 
         // Force display server if headless browser flags are detected

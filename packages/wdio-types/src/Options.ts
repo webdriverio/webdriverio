@@ -458,30 +458,3 @@ export interface RunnerEnd {
     retries: number
     error?: string
 }
-
-export interface TSConfigPathsOptions {
-    baseUrl: string
-    paths: Record<string, string[]>
-    mainFields?: string[]
-    addMatchAll?: boolean
-}
-
-export interface RunnerStart {
-    cid: string
-    specs: string[]
-    config: Testrunner
-    isMultiremote: boolean
-    instanceOptions: Record<string, WebdriverIO>
-    sessionId: string
-    capabilities: WebdriverIO.Capabilities
-    retry?: number
-    failures?: number
-    retries?: number
-}
-
-export interface RunnerEnd {
-    failures: number
-    cid: string
-    retries: number
-    error?: string
-}
