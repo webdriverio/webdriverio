@@ -18,6 +18,7 @@ export class WaylandDisplayServer implements DisplayServer {
     private runtimeDir: string | null = null
     private displayNum = 1
     private static nextDisplayNum = 0
+    private static daemonCounter = 0
 
     async isAvailable(): Promise<boolean> {
         try {
@@ -161,8 +162,9 @@ export class WaylandDisplayServer implements DisplayServer {
         const width = options?.width ?? 1920
         const height = options?.height ?? 1080
 
-        const runtimeDir = `/tmp/wdio-wayland-${process.pid}-${Date.now()}`
-        const socketName = `wayland-${this.displayNum}`
+        const id = ++WaylandDisplayServer.daemonCounter
+        const runtimeDir = `/tmp/wdio-wayland-${process.pid}-${id}`
+        const socketName = `wayland-${id}`
         const socketPath = `${runtimeDir}/${socketName}`
 
         await mkdir(runtimeDir, { recursive: true, mode: 0o700 })

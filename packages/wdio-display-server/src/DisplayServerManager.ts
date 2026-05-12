@@ -16,6 +16,7 @@ export class DisplayServerManager {
     #force: boolean
     #log: ReturnType<typeof logger>
     #displayServer: DisplayServer | null = null
+    #initialized = false
 
     constructor(options: DisplayServerOptions = {}) {
         // Support both old and new option names
@@ -66,6 +67,12 @@ export class DisplayServerManager {
             return false
         }
 
+        // Once init() has run on this instance we know a display is active and
+        // workers must use it, regardless of what process.env now shows.
+        if (this.#initialized) {
+            return true
+        }
+
         const hasDisplay = process.env.DISPLAY || process.env.WAYLAND_DISPLAY
         const inHeadlessEnvironment = !hasDisplay
 
@@ -93,6 +100,7 @@ export class DisplayServerManager {
 
             if (displayServer) {
                 this.#displayServer = displayServer
+                this.#initialized = true
                 this.#log.info(`${displayServer.name} display server is ready for use`)
                 return true
             }
@@ -360,11 +368,13 @@ export class DisplayServerManager {
     }
 }
 
-// Lazy singleton — avoids side-effects (logger init, option parsing) at import time
+// Lazy singleton — avoids side-effects (logger init, option parsing) at import time.
+// Methods are bound to _defaultInstance so private-field access inside them works.
 let _defaultInstance: DisplayServerManager | undefined
 export const displayServer: DisplayServerManager = new Proxy({} as DisplayServerManager, {
-    get(_, prop, receiver) {
+    get(_, prop) {
         _defaultInstance ??= new DisplayServerManager()
-        return Reflect.get(_defaultInstance, prop, receiver)
+        const value = Reflect.get(_defaultInstance, prop, _defaultInstance)
+        return typeof value === 'function' ? (value as Function).bind(_defaultInstance) : value
     }
 })
