@@ -142,6 +142,9 @@ export const GIT_META_DATA_TRUNCATED = '...[TRUNCATED]'
 
 // CLI related constants
 export const CLI_STOP_TIMEOUT = 5000 // 5 seconds
+export const BINARY_BUSY_ERROR_CODES = ['ETXTBSY', 'EBUSY']
+export const MAX_SPAWN_RETRIES = 3
+export const SPAWN_RETRY_DELAY_MS = 1000
 export const WDIO_NAMING_PREFIX = 'WebdriverIO-'
 export const PERF_METRICS_WAIT_TIME = 2000
 
