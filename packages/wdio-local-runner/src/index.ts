@@ -89,12 +89,6 @@ export default class LocalRunner {
      * Initialize display server with capability-aware detection
      */
     private async initializeDisplayServer(workerOptions: Workers.WorkerRunPayload) {
-        // Skip display server initialization if disabled
-        if (this.config.autoXvfb === false) {
-            log.info('Skipping automatic display server initialization (disabled by config)')
-            return
-        }
-
         // Initialize display server if needed for headless testing
         try {
             const capabilities = workerOptions.caps

@@ -1,6 +1,5 @@
 import { spawn, fork } from 'node:child_process'
 import type { ChildProcess, SpawnOptions, ForkOptions } from 'node:child_process'
-import { access } from 'node:fs/promises'
 import logger from '@wdio/logger'
 import { DisplayServerManager } from './DisplayServerManager.js'
 import type { DisplayServer } from './types.js'
@@ -53,45 +52,60 @@ export class DisplayProcessFactory implements ProcessCreator {
     }
 
     /**
-     * Create process wrapped with display server
+     * Create process wrapped with display server.
+     *
+     * Wayland (Weston) does not exec its child — it spawns it as a subprocess,
+     * so the IPC fd that Node.js creates on the directly-spawned process never
+     * reaches the Node worker. We therefore start Weston as a short-lived
+     * per-worker daemon and fork the Node worker directly, which keeps IPC
+     * intact. xvfb-run does exec its child, so the spawn-wrapper path is fine
+     * for Xvfb.
      */
-    #createDisplayServerProcess(
+    async #createDisplayServerProcess(
         scriptPath: string,
         args: string[],
         options: ProcessCreationOptions,
         displayServer: DisplayServer
     ): Promise<ChildProcess> {
+        const { cwd, env, execArgv = [], stdio } = options
+
+        if (displayServer.name === 'wayland') {
+            const daemon = await displayServer.startDaemon()
+            const mergedEnv = { ...env, ...daemon.env }
+            const childProcess = fork(scriptPath, args, {
+                cwd,
+                env: mergedEnv,
+                execArgv,
+                stdio,
+            } as ForkOptions)
+            childProcess.once('exit', () => daemon.stop().catch(() => {}))
+            return childProcess
+        }
+
+        // Xvfb: xvfb-run execs into its child so IPC fd is preserved
         return new Promise((resolve, reject) => {
-            const { cwd, env, execArgv = [], stdio } = options
             const nodeArgs = [...execArgv, scriptPath, ...args]
 
             const wrapper = displayServer.getProcessWrapper()
             if (!wrapper) {
-                // No wrapping needed, use regular fork
                 resolve(this.#createRegularProcess(scriptPath, args, options))
                 return
             }
 
-            // Merge display server environment with provided environment
+            // displayEnv wins over env so per-worker values are not overridden
+            // by a previously-set DISPLAY in process.env
             const displayEnv = displayServer.getEnvironment()
-            const mergedEnv = { ...displayEnv, ...env }
+            const mergedEnv = { ...env, ...displayEnv }
 
             const childProcess = spawn(
                 wrapper[0],
                 [...wrapper.slice(1), 'node', ...nodeArgs],
-                {
-                    cwd,
-                    env: mergedEnv,
-                    stdio,
-                } as SpawnOptions
+                { cwd, env: mergedEnv, stdio } as SpawnOptions
             )
 
             let resolved = false
             const fail = (err: Error) => {
-                if (!resolved) {
-                    resolved = true
-                    reject(err)
-                }
+                if (!resolved) { resolved = true; reject(err) }
             }
 
             childProcess.on('error', fail)
@@ -100,34 +114,8 @@ export class DisplayProcessFactory implements ProcessCreator {
                     fail(new Error(`${displayServer.name} process exited with code ${code} and signal ${signal}`))
                 }
             })
-
-            // For Wayland, wait for the socket file to confirm startup (up to 10s).
-            // For other display servers, fall back to a short heuristic window.
-            const waylandSocket = mergedEnv.WAYLAND_DISPLAY && mergedEnv.XDG_RUNTIME_DIR
-                ? `${mergedEnv.XDG_RUNTIME_DIR}/${mergedEnv.WAYLAND_DISPLAY}`
-                : null
-
-            if (waylandSocket) {
-                this.#waitForSocket(waylandSocket, 10_000)
-                    .then(() => { if (!resolved) { resolved = true; resolve(childProcess) } })
-                    .catch(fail)
-            } else {
-                setTimeout(() => { if (!resolved) { resolved = true; resolve(childProcess) } }, 100)
-            }
+            setTimeout(() => { if (!resolved) { resolved = true; resolve(childProcess) } }, 100)
         })
-    }
-
-    async #waitForSocket(socketPath: string, timeoutMs: number): Promise<void> {
-        const deadline = Date.now() + timeoutMs
-        while (Date.now() < deadline) {
-            try {
-                await access(socketPath)
-                return
-            } catch {
-                await new Promise((res) => setTimeout(res, 50))
-            }
-        }
-        throw new Error(`Timed out waiting for display server socket: ${socketPath}`)
     }
 
     /**

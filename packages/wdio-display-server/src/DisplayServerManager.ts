@@ -360,5 +360,11 @@ export class DisplayServerManager {
     }
 }
 
-// Default export for convenience
-export const displayServer = new DisplayServerManager()
+// Lazy singleton — avoids side-effects (logger init, option parsing) at import time
+let _defaultInstance: DisplayServerManager | undefined
+export const displayServer: DisplayServerManager = new Proxy({} as DisplayServerManager, {
+    get(_, prop, receiver) {
+        _defaultInstance ??= new DisplayServerManager()
+        return Reflect.get(_defaultInstance, prop, receiver)
+    }
+})
