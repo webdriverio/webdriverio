@@ -2,19 +2,17 @@
  * Dismisses the dialog and returns when the dialog has been handled.
  *
  * :::info
- * Works with both browser dialogs (via BiDi protocol) and mobile permission dialogs (iOS/Android).
+ * Only works with browser dialogs (via BiDi protocol). For mobile native dialogs,
+ * use the appropriate mobile handling strategies instead.
  * :::
  *
  * <example>
     :dialogDismiss.js
-    // Browser dialog
-    await dialog.dismiss();
- * </example>
- *
- * <example>
-    :dialogDismissMobile.js
-    // Mobile permission dialog (iOS/Android)
-    await dialog.dismiss();
+    // Listen for the dialog event to get the dialog object
+    browser.on('dialog', async (dialog) => {
+        console.log(dialog.message()); // prints: 'Are you sure?'
+        await dialog.dismiss();
+    });
  * </example>
  *
  * @alias dialog.dismiss
