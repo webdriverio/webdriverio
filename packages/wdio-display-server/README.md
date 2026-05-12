@@ -19,14 +19,7 @@ npm install @wdio/display-server
 
 ## Usage
 
-### Automatic Integration
-
-**Most users don't need to use this package directly.** It's automatically integrated into:
-
-- **`@wdio/local-runner`** - Automatically manages display servers for headless browser testing
-- **`@wdio/electron-service`** - Provides headless Electron testing capabilities
-
-Simply run your WebDriverIO tests normally, and the display server will be managed automatically.
+**Most users don't need to install this package directly** — it's pulled in automatically by services that require a display server (e.g. `@wdio/local-runner`).
 
 ### Launcher Service (for Tauri and other `onPrepare`-driven services)
 
