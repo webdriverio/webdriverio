@@ -182,13 +182,10 @@ export class DisplayServerManager {
      * Setup environment and inject Chrome flags for display server
      */
     #setupDisplayEnvironment(displayServer: DisplayServer, capabilities?: Capabilities.ResolvedTestrunnerCapabilities): void {
-        // Set environment variables
-        const env = displayServer.getEnvironment()
-        Object.entries(env).forEach(([key, value]) => {
-            process.env[key] = value
-        })
-
-        // Inject Chrome flags for Wayland if needed
+        // Inject Chrome flags for Wayland if needed.
+        // Env vars are set by the caller (launcher.ts or DisplayProcessFactory)
+        // only after the daemon socket is ready, to avoid a brief window where
+        // child processes inherit a display address with no server behind it.
         if (displayServer.name === 'wayland' && capabilities) {
             this.#injectWaylandChromeFlags(capabilities)
         }

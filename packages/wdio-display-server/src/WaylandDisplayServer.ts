@@ -1,5 +1,4 @@
 import { exec, spawn } from 'node:child_process'
-import { mkdirSync } from 'node:fs'
 import { access, mkdir, rm } from 'node:fs/promises'
 import { promisify } from 'node:util'
 import logger from '@wdio/logger'
@@ -17,7 +16,6 @@ export class WaylandDisplayServer implements DisplayServer {
     private log = logger('@wdio/display-server:wayland')
     private runtimeDir: string | null = null
     private displayNum = 1
-    private static nextDisplayNum = 0
     private static daemonCounter = 0
 
     async isAvailable(): Promise<boolean> {
@@ -120,35 +118,18 @@ export class WaylandDisplayServer implements DisplayServer {
     }
 
     getEnvironment(): Record<string, string> {
-        if (!this.runtimeDir) {
-            this.runtimeDir = `/tmp/wdio-wayland-${process.pid}-${this.displayNum}`
-        }
-        mkdirSync(this.runtimeDir, { recursive: true, mode: 0o700 })
-
         return {
             WAYLAND_DISPLAY: `wayland-${this.displayNum}`,
-            XDG_RUNTIME_DIR: this.runtimeDir,
+            XDG_RUNTIME_DIR: this.runtimeDir ?? `/tmp/wdio-wayland-${process.pid}-${this.displayNum}`,
             ELECTRON_OZONE_PLATFORM_HINT: 'wayland'
         }
     }
 
     getProcessWrapper(): string[] | null {
-        this.displayNum = ++WaylandDisplayServer.nextDisplayNum
-        if (!this.runtimeDir) {
-            this.runtimeDir = `/tmp/wdio-wayland-${process.pid}-${this.displayNum}`
-        }
-
-        // Wrap process with weston in headless mode
-        return [
-            'weston',
-            '--backend=headless-backend.so',
-            '--width=1920',
-            '--height=1080',
-            '--use-pixman',
-            '--shell=fullscreen-shell.so',
-            `--socket=wayland-${this.displayNum}`,
-            '--',
-        ]
+        // Weston doesn't exec its child, so it cannot be used as a process
+        // wrapper without breaking the IPC fd. Workers use startDaemon()+fork()
+        // instead (handled by DisplayProcessFactory).
+        return null
     }
 
     getChromeFlags(): string[] {
