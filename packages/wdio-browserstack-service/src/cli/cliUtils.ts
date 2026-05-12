@@ -781,8 +781,8 @@ export class CLIUtils {
                         reject(writeErr as Error)
                     })
 
-                    // 'finish' fires on successful flush only; 'error' path won't reach here.
-                    writeStream.on('finish', async () => {
+                    // 'close' fires after the fd is closed; safe for fsp.rename on Windows (where 'finish' may fire before fd release).
+                    writeStream.on('close', async () => {
                         try {
                             await fsp.chmod(tempPath, '0755')
                             try {

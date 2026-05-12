@@ -303,9 +303,12 @@ export class BrowserstackCLI {
             })
 
             this.process.on('close', (code: number) => {
-                if (code !== 0) {
-                    settle(reject, new Error(`CLI process exited with code ${code}`))
-                }
+                // settle is idempotent — if 'ready' fired first, this reject is a no-op.
+                // If process exits (code 0 or otherwise) before 'ready', we reject so the retry loop / caller doesn't hang.
+                const msg = code !== 0
+                    ? `CLI process exited with code ${code}`
+                    : 'CLI process exited cleanly before emitting ready'
+                settle(reject, new Error(msg))
             })
         })
     }
