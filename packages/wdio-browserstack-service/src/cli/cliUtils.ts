@@ -752,12 +752,25 @@ export class CLIUtils {
                         return
                     }
 
+                    // Zip-slip guard: reject entries whose resolved path escapes cliDir
+                    // (BROWSERSTACK_BINARY_URL lets users supply arbitrary zips).
+                    const candidatePath = path.join(cliDir, entry.fileName)
+                    const resolvedCandidate = path.resolve(candidatePath)
+                    const resolvedDir = path.resolve(cliDir) + path.sep
+                    if (!resolvedCandidate.startsWith(resolvedDir)) {
+                        zipfile.close()
+                        reject(new Error(`Zip-slip detected: entry "${entry.fileName}" resolves outside ${cliDir}`))
+                        return
+                    }
+
                     const isBinaryEntry = path.basename(entry.fileName).startsWith('binary-')
 
                     if (!isBinaryEntry) {
-                        const directStream = fs.createWriteStream(
-                            path.join(cliDir, entry.fileName),
-                        )
+                        const directStream = fs.createWriteStream(candidatePath)
+                        directStream.on('error', (writeErr) => {
+                            zipfile.close()
+                            reject(writeErr as Error)
+                        })
                         const openReadStreamPromise = promisify(
                             zipfile.openReadStream,
                         ).bind(zipfile)
@@ -777,19 +790,23 @@ export class CLIUtils {
 
                     // Binary entry: extract to PID-scoped temp file, chmod, atomic rename inline.
                     // Prevents ETXTBSY/EBUSY: the file being executed is never the file being written.
-                    const finalPath = path.join(cliDir, entry.fileName)
+                    const finalPath = candidatePath
                     const tempPath = path.join(cliDir, `${entry.fileName}.tmp.${process.pid}`)
 
                     const writeStream = fs.createWriteStream(tempPath)
 
+                    let writeStreamErrored = false
                     writeStream.on('error', (writeErr) => {
+                        writeStreamErrored = true
                         fsp.unlink(tempPath).catch(() => {})
                         zipfile.close()
                         reject(writeErr as Error)
                     })
 
                     // 'close' fires after the fd is closed; safe for fsp.rename on Windows (where 'finish' may fire before fd release).
+                    // autoClose=true also makes 'close' fire after 'error' — bail out if the error path already rejected.
                     writeStream.on('close', async () => {
+                        if (writeStreamErrored) { return }
                         try {
                             await fsp.chmod(tempPath, '0755')
                             try {
