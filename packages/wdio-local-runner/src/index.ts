@@ -90,7 +90,7 @@ export default class LocalRunner {
      */
     private async initializeDisplayServer(workerOptions: Workers.WorkerRunPayload) {
         // Skip display server initialization if disabled
-        if (this.config.autoXvfb === false || this.config.enabled === false) {
+        if (this.config.autoXvfb === false) {
             log.info('Skipping automatic display server initialization (disabled by config)')
             return
         }

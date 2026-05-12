@@ -17,6 +17,7 @@ export class WaylandDisplayServer implements DisplayServer {
     private log = logger('@wdio/display-server:wayland')
     private runtimeDir: string | null = null
     private displayNum = 1
+    private static nextDisplayNum = 0
 
     async isAvailable(): Promise<boolean> {
         try {
@@ -118,8 +119,9 @@ export class WaylandDisplayServer implements DisplayServer {
     }
 
     getEnvironment(): Record<string, string> {
-        const pid = process.pid
-        this.runtimeDir = `/tmp/wdio-wayland-${pid}`
+        if (!this.runtimeDir) {
+            this.runtimeDir = `/tmp/wdio-wayland-${process.pid}-${this.displayNum}`
+        }
         mkdirSync(this.runtimeDir, { recursive: true, mode: 0o700 })
 
         return {
@@ -130,8 +132,9 @@ export class WaylandDisplayServer implements DisplayServer {
     }
 
     getProcessWrapper(): string[] | null {
+        this.displayNum = ++WaylandDisplayServer.nextDisplayNum
         if (!this.runtimeDir) {
-            this.runtimeDir = `/tmp/wdio-wayland-${process.pid}`
+            this.runtimeDir = `/tmp/wdio-wayland-${process.pid}-${this.displayNum}`
         }
 
         // Wrap process with weston in headless mode

@@ -1,5 +1,6 @@
 import { spawn, fork } from 'node:child_process'
 import type { ChildProcess, SpawnOptions, ForkOptions } from 'node:child_process'
+import { access } from 'node:fs/promises'
 import logger from '@wdio/logger'
 import { DisplayServerManager } from './DisplayServerManager.js'
 import type { DisplayServer } from './types.js'
@@ -85,31 +86,48 @@ export class DisplayProcessFactory implements ProcessCreator {
                 } as SpawnOptions
             )
 
-            // Check for immediate startup failures
             let resolved = false
-            const startupTimeout = setTimeout(() => {
+            const fail = (err: Error) => {
                 if (!resolved) {
                     resolved = true
-                    resolve(childProcess)
+                    reject(err)
                 }
-            }, 100)
+            }
 
-            childProcess.on('error', (error) => {
-                if (!resolved) {
-                    resolved = true
-                    clearTimeout(startupTimeout)
-                    reject(error)
-                }
-            })
-
+            childProcess.on('error', fail)
             childProcess.on('exit', (code, signal) => {
                 if (!resolved && code !== 0) {
-                    resolved = true
-                    clearTimeout(startupTimeout)
-                    reject(new Error(`${displayServer.name} process exited with code ${code} and signal ${signal}`))
+                    fail(new Error(`${displayServer.name} process exited with code ${code} and signal ${signal}`))
                 }
             })
+
+            // For Wayland, wait for the socket file to confirm startup (up to 10s).
+            // For other display servers, fall back to a short heuristic window.
+            const waylandSocket = mergedEnv.WAYLAND_DISPLAY && mergedEnv.XDG_RUNTIME_DIR
+                ? `${mergedEnv.XDG_RUNTIME_DIR}/${mergedEnv.WAYLAND_DISPLAY}`
+                : null
+
+            if (waylandSocket) {
+                this.#waitForSocket(waylandSocket, 10_000)
+                    .then(() => { if (!resolved) { resolved = true; resolve(childProcess) } })
+                    .catch(fail)
+            } else {
+                setTimeout(() => { if (!resolved) { resolved = true; resolve(childProcess) } }, 100)
+            }
         })
+    }
+
+    async #waitForSocket(socketPath: string, timeoutMs: number): Promise<void> {
+        const deadline = Date.now() + timeoutMs
+        while (Date.now() < deadline) {
+            try {
+                await access(socketPath)
+                return
+            } catch {
+                await new Promise((res) => setTimeout(res, 50))
+            }
+        }
+        throw new Error(`Timed out waiting for display server socket: ${socketPath}`)
     }
 
     /**
