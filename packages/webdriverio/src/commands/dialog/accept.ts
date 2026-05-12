@@ -3,7 +3,7 @@
  *
  * :::info
  * Only works with browser dialogs (via BiDi protocol). For mobile native dialogs,
- * use the appropriate mobile handling strategies instead.
+ * use the [`browser.dialog()`](/docs/api/mobile/dialog) command instead.
  * :::
  *
  * <example>
