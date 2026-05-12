@@ -1,4 +1,5 @@
 import { exec, spawn } from 'node:child_process'
+import { mkdirSync } from 'node:fs'
 import { access, mkdir, rm } from 'node:fs/promises'
 import { promisify } from 'node:util'
 import logger from '@wdio/logger'
@@ -70,7 +71,7 @@ export class WaylandDisplayServer implements DisplayServer {
             if (process.getuid && process.getuid() !== 0) {
                 try {
                     await execAsync('which sudo')
-                    command = `sudo -n ${command}`
+                    command = `sudo -n sh -c "${command}"`
                 } catch {
                     this.log.warn('sudo not available, attempting install without sudo')
                 }
@@ -117,9 +118,9 @@ export class WaylandDisplayServer implements DisplayServer {
     }
 
     getEnvironment(): Record<string, string> {
-        // Generate unique runtime directory
         const pid = process.pid
         this.runtimeDir = `/tmp/wdio-wayland-${pid}`
+        mkdirSync(this.runtimeDir, { recursive: true, mode: 0o700 })
 
         return {
             WAYLAND_DISPLAY: `wayland-${this.displayNum}`,

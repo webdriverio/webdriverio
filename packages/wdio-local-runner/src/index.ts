@@ -60,8 +60,8 @@ export default class LocalRunner {
     async run({ command, args, ...workerOptions }: RunArgs) {
         // Initialize display server lazily on first worker creation
         if (!this.displayServerInitialized) {
-            await this.initializeDisplayServer(workerOptions)
             this.displayServerInitialized = true
+            await this.initializeDisplayServer(workerOptions)
         }
 
         /**
@@ -90,7 +90,7 @@ export default class LocalRunner {
      */
     private async initializeDisplayServer(workerOptions: Workers.WorkerRunPayload) {
         // Skip display server initialization if disabled
-        if (this.config.autoXvfb === false) {
+        if (this.config.autoXvfb === false || this.config.enabled === false) {
             log.info('Skipping automatic display server initialization (disabled by config)')
             return
         }

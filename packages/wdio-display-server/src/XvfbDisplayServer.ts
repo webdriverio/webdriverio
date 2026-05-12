@@ -91,7 +91,7 @@ export class XvfbDisplayServer implements DisplayServer {
             if (process.getuid && process.getuid() !== 0) {
                 try {
                     await execAsync('which sudo')
-                    command = `sudo -n ${command}`
+                    command = `sudo -n sh -c "${command}"`
                 } catch {
                     this.log.warn('sudo not available, attempting install without sudo')
                 }
