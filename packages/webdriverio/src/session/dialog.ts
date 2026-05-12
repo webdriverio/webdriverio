@@ -2,11 +2,6 @@ import { type local } from 'webdriver'
 import { SessionManager } from './session.js'
 import { getContextManager } from './context.js'
 
-/**
- * iOS SpringBoard bundle ID used to activate the system UI for accessing permission dialogs
- */
-const SPRINGBOARD_BUNDLE_ID = 'com.apple.springboard'
-
 export function getDialogManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, DialogManager)
 }
@@ -55,7 +50,7 @@ export class DialogManager extends SessionManager {
         this.#browser.removeAllListeners('_dialogListenerRemoved')
     }
 
-    async initialize () {
+    async initialize() {
         return this.#initialize
     }
 
@@ -102,7 +97,7 @@ export class Dialog {
     #defaultValue?: string
     #type: local.BrowsingContextUserPromptOpenedParameters['type']
 
-    constructor (event: local.BrowsingContextUserPromptOpenedParameters, browser: WebdriverIO.Browser) {
+    constructor(event: local.BrowsingContextUserPromptOpenedParameters, browser: WebdriverIO.Browser) {
         this.#message = event.message
         this.#defaultValue = event.defaultValue
         this.#type = event.type
@@ -132,13 +127,6 @@ export class Dialog {
     async accept(userText?: string) {
         const browser = this.#browser
 
-        /**
-         * Handle mobile permission dialogs (iOS/Android)
-         */
-        if (browser.isMobile) {
-            return this.#handleMobileDialog('accept', userText)
-        }
-
         const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
 
@@ -153,75 +141,8 @@ export class Dialog {
         })
     }
 
-    /**
-     * Handle mobile dialog acceptance/dismissal.
-     * For iOS: activates SpringBoard to access the dialog, then reactivates the original app.
-     * For Android: directly accepts/dismisses the alert.
-     *
-     * @param {'accept' | 'dismiss'} action The action to perform on the dialog
-     * @param {string=} userText Optional text to enter for prompt dialogs
-     */
-    async #handleMobileDialog(action: 'accept' | 'dismiss', userText?: string): Promise<void> {
-        const browser = this.#browser
-
-        if (browser.isIOS) {
-            // Get the current app's bundle ID before switching to SpringBoard
-            const { bundleId } = await browser.execute('mobile: activeAppInfo') as { bundleId: string }
-
-            // Activate SpringBoard so the permission dialog is accessible
-            await browser.execute('mobile: activateApp', { bundleId: SPRINGBOARD_BUNDLE_ID })
-
-            try {
-                // Accept or dismiss the alert (may throw if no alert is present)
-                if (action === 'accept') {
-                    if (userText) {
-                        await browser.sendAlertText(userText)
-                    }
-                    await browser.acceptAlert()
-                } else {
-                    await browser.dismissAlert()
-                }
-            } catch (err) {
-                // Only ignore "no such alert" errors (permission already granted, or not yet triggered).
-                // Re-throw all other errors (session expiry, network loss, driver crash, etc.)
-                if (!(err instanceof Error) || !err.message.includes('no such alert')) {
-                    throw err
-                }
-            } finally {
-                // Always reactivate the original app, even if alert handling failed
-                await browser.execute('mobile: activateApp', { bundleId })
-            }
-            return
-        }
-
-        // Android: directly accept/dismiss the alert
-        try {
-            if (action === 'accept') {
-                if (userText) {
-                    await browser.sendAlertText(userText)
-                }
-                await browser.acceptAlert()
-            } else {
-                await browser.dismissAlert()
-            }
-        } catch (err) {
-            // Only ignore "no such alert" errors (permission already granted, or not yet triggered).
-            // Re-throw all other errors (session expiry, network loss, driver crash, etc.)
-            if (!(err instanceof Error) || !err.message.includes('no such alert')) {
-                throw err
-            }
-        }
-    }
-
     async dismiss() {
         const browser = this.#browser
-
-        /**
-         * Handle mobile permission dialogs (iOS/Android)
-         */
-        if (browser.isMobile) {
-            return this.#handleMobileDialog('dismiss')
-        }
 
         const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()

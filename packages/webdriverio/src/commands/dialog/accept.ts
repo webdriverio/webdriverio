@@ -2,20 +2,24 @@
  * Accepts the dialog and returns when the dialog has been handled.
  *
  * :::info
- * Works with both browser dialogs (via BiDi protocol) and mobile permission dialogs (iOS/Android).
+ * Only works with browser dialogs (via BiDi protocol). For mobile native dialogs,
+ * use the appropriate mobile handling strategies instead.
  * :::
  *
  * <example>
     :dialogAccept.js
-    // Browser dialog
-    await dialog.accept();
-    await dialog.accept(promptText);
- * </example>
- *
- * <example>
-    :dialogAcceptMobile.js
-    // Mobile permission dialog (iOS/Android)
-    await dialog.accept();
+    // Listen for the dialog event to get the dialog object
+    browser.on('dialog', async (dialog) => {
+        console.log(dialog.message()); // prints: 'Hello, world!'
+        await dialog.accept();
+    });
+
+    // Or accept a prompt dialog with text
+    browser.on('dialog', async (dialog) => {
+        if (dialog.type() === 'prompt') {
+            await dialog.accept('my input');
+        }
+    });
  * </example>
  *
  * @alias dialog.accept
