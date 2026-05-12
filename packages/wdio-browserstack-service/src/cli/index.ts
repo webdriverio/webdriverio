@@ -156,6 +156,18 @@ export class BrowserstackCLI {
                 this.modules[ObservabilityModule.MODULE_NAME] = new ObservabilityModule(startBinResponse.observability)
             }
 
+            if (startBinResponse.testhub.errors && startBinResponse.testhub.errors.length > 0) {
+                try {
+                    const errors = JSON.parse(Buffer.from(startBinResponse.testhub.errors).toString())
+                    for (const [code, detail] of Object.entries(errors)) {
+                        const { message } = detail as { message: string; type: string }
+                        BStackLogger.error(`[Build] ${code}: ${message}`)
+                    }
+                } catch (e) {
+                    BStackLogger.debug(`Failed to parse testhub errors: ${e}`)
+                }
+            }
+
             this.modules[TestHubModule.MODULE_NAME] = new TestHubModule(startBinResponse.testhub)
 
             if (startBinResponse.accessibility?.success){

@@ -97,11 +97,30 @@
         "id": "devtools"
       },
       "items": [
-        "devtools/interactive-test-rerunning",
-        "devtools/multi-framework-support",
-        "devtools/console-logs",
-        "devtools/network-logs",
-        "devtools/testlens"
+        {
+          "type": "category",
+          "label": "WebDriverIO",
+          "link": {
+            "type": "doc",
+            "id": "devtools/wdio"
+          },
+          "items": [
+            "devtools/wdio/interactive-test-rerunning",
+            "devtools/wdio/multi-framework-support",
+            "devtools/wdio/console-logs",
+            "devtools/wdio/network-logs",
+            "devtools/wdio/testlens"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Nightwatch",
+          "link": {
+            "type": "doc",
+            "id": "devtools/nightwatch"
+          },
+          "items": []
+        }
       ]
     },
     {
@@ -120,8 +139,33 @@
           "items": [
             "desktop-testing/electron/configuration",
             "desktop-testing/electron/api",
-            "desktop-testing/electron/mocking",
-            "desktop-testing/electron/standalone"
+            "desktop-testing/electron/api-reference",
+            "desktop-testing/electron/window-management",
+            "desktop-testing/electron/deeplink-testing",
+            "desktop-testing/electron/standalone",
+            "desktop-testing/electron/debugging",
+            "desktop-testing/electron/common-issues"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Tauri",
+          "link": {
+            "type": "doc",
+            "id": "desktop-testing/tauri"
+          },
+          "items": [
+            "desktop-testing/tauri/quick-start",
+            "desktop-testing/tauri/configuration",
+            "desktop-testing/tauri/api",
+            "desktop-testing/tauri/plugin-setup",
+            "desktop-testing/tauri/platform-support",
+            "desktop-testing/tauri/usage-examples",
+            "desktop-testing/tauri/log-forwarding",
+            "desktop-testing/tauri/edge-webdriver-windows",
+            "desktop-testing/tauri/deeplink-testing",
+            "desktop-testing/tauri/crabnebula-setup",
+            "desktop-testing/tauri/troubleshooting"
           ]
         }
       ]

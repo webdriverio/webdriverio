@@ -350,6 +350,41 @@ describe('wdio-runner', () => {
             // browser session is started
             expect(runner['_reporter']?.caps).toEqual(caps)
         })
+
+        it('should call afterSession hook when session initialization fails', async () => {
+            const afterSessionHook = vi.fn()
+            const runner = new WDIORunner()
+            const caps = { browserName: '123' }
+            const specs = ['foobar']
+            const config: any = {
+                framework: 'testNoFailures',
+                reporters: [],
+                beforeSession: [],
+                after: [],
+                afterSession: [afterSessionHook],
+                runner: 'local'
+            }
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            runner['_shutdown'] = vi.fn().mockReturnValue('_shutdown')
+            runner['_initSession'] = vi.fn().mockReturnValue(null)
+
+            await runner.run({
+                args: { reporters: [] },
+                cid: '0-0',
+                caps,
+                specs,
+                configFile: '/foo/bar',
+                retries: 0
+            })
+
+            // afterSession must run to allow services to clean up resources
+            // allocated during beforeSession, even when browser init fails
+            expect(executeHooksWithArgs).toBeCalledWith(
+                'afterSession',
+                [afterSessionHook],
+                expect.any(Array)
+            )
+        })
     })
 
     describe('_initSession', () => {

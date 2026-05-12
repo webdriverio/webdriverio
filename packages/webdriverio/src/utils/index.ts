@@ -346,6 +346,25 @@ export async function findDeepElement(
         nodes = returnUniqueNodes(nodes)
 
         if (!(this as WebdriverIO.Element).elementId) {
+            /**
+             * When searching via shadow root startNodes, validate that returned
+             * elements are connected to the live DOM. In SPAs using client-side
+             * routing, stale shadow root entries can cause browsingContextLocateNodes
+             * to return references to elements in detached DOM trees.
+             */
+            if (shadowRoots.length > 0 && nodes.length > 0) {
+                for (const node of nodes) {
+                    try {
+                        const connected = await browser.execute((el: Element) => el.isConnected, node as unknown as HTMLElement)
+                        if (connected) { return node }
+                        shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+                    } catch {
+                        shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+                    }
+                }
+                log.warn(`All ${nodes.length} BiDi results for "${value}" are detached, removed stale entries from shadow root tree`)
+                return undefined
+            }
             return nodes[0]
         }
 
@@ -353,14 +372,35 @@ export async function findDeepElement(
          * determine if node is within tree of current element
          */
         const scopedNodes = await Promise.all(nodes.map(async (node) => {
-            const isIn = await browser.execute(
-                elementContains,
-                { [ELEMENT_KEY]: (this as WebdriverIO.Element).elementId } as unknown as HTMLElement,
-                node as unknown as HTMLElement
-            )
-            return [isIn, node]
+            try {
+                const isIn = await browser.execute(
+                    elementContains,
+                    { [ELEMENT_KEY]: (this as WebdriverIO.Element).elementId } as unknown as HTMLElement,
+                    node as unknown as HTMLElement
+                )
+                return [isIn, node]
+            } catch {
+                // Element reference may be stale from detached shadow root, skip
+                return [false, node]
+            }
         })).then((elems) => elems.filter(([isIn]) => isIn).map(([, elem]) => elem)) as ExtendedElementReference[]
 
+        /**
+         * Validate that the first scoped node is connected to the live DOM
+         */
+        for (const node of scopedNodes) {
+            try {
+                const connected = await browser.execute((el: Element) => el.isConnected, node as unknown as HTMLElement)
+                if (connected) { return node }
+                shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+            } catch {
+                shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+            }
+        }
+        if (scopedNodes.length > 0) {
+            log.warn(`All ${scopedNodes.length} scoped BiDi results for "${value}" are detached, removed stale entries from shadow root tree`)
+            return undefined
+        }
         return scopedNodes[0]
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
@@ -423,6 +463,28 @@ export async function findDeepElements(
         nodes = returnUniqueNodes(nodes)
 
         if (!(this as WebdriverIO.Element).elementId) {
+            /**
+             * When searching via shadow root startNodes, filter out stale elements
+             * from detached DOM trees (common in SPA client-side navigation).
+             */
+            if (shadowRoots.length > 0 && nodes.length > 0) {
+                const validNodes: ExtendedElementReference[] = []
+                for (const node of nodes) {
+                    try {
+                        const connected = await browser.execute((el: Element) => el.isConnected, node as unknown as HTMLElement)
+                        if (connected) {
+                            validNodes.push(node)
+                        } else {
+                            shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+                        }
+                    } catch {
+                        shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+                    }
+                }
+                if (validNodes.length > 0) { return validNodes }
+                // All BiDi results are detached, fall back to Classic WebDriver
+                return []
+            }
             return nodes
         }
 
@@ -430,14 +492,39 @@ export async function findDeepElements(
          * determine if node is within tree of current element
          */
         const scopedNodes = await Promise.all(nodes.map(async (node) => {
-            const isIn = await browser.execute(
-                elementContains,
-                { [ELEMENT_KEY]: (this as WebdriverIO.Element).elementId } as unknown as HTMLElement,
-                node as unknown as HTMLElement
-            )
-            return [isIn, node]
+            try {
+                const isIn = await browser.execute(
+                    elementContains,
+                    { [ELEMENT_KEY]: (this as WebdriverIO.Element).elementId } as unknown as HTMLElement,
+                    node as unknown as HTMLElement
+                )
+                return [isIn, node]
+            } catch {
+                // Element reference may be stale from detached shadow root, skip
+                return [false, node]
+            }
         })).then((elems) => elems.filter(([isIn]) => isIn).map(([, elem]) => elem))
 
+        /**
+         * Filter out detached scoped nodes
+         */
+        const connectedScopedNodes: (boolean | ElementReference)[][] = []
+        for (const node of scopedNodes) {
+            try {
+                const connected = await browser.execute((el: Element) => el.isConnected, node as unknown as HTMLElement)
+                if (connected) {
+                    connectedScopedNodes.push(node as unknown as (boolean | ElementReference)[])
+                } else {
+                    shadowRootManager.deleteShadowRoot((node as unknown as Record<string, string>)[ELEMENT_KEY], context)
+                }
+            } catch {
+                shadowRootManager.deleteShadowRoot((node as unknown as Record<string, string>)[ELEMENT_KEY], context)
+            }
+        }
+        if (connectedScopedNodes.length > 0) { return connectedScopedNodes }
+        if (scopedNodes.length > 0) {
+            return []
+        }
         return scopedNodes
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)

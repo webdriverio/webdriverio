@@ -32,6 +32,7 @@ import type { Options, Capabilities } from '@wdio/types'
 import type {
     BrowserstackConfig,
     BrowserstackOptions,
+    TestManagementOptions,
     TestObservabilityOptions,
 } from '../types.js'
 import { TestFrameworkConstants } from './frameworks/constants/testFrameworkConstants.js'
@@ -67,8 +68,8 @@ export class CLIUtils {
     static getBinConfig(
         config: Options.Testrunner,
         capabilities:
-            | Capabilities.TestrunnerCapabilities
-            | WebdriverIO.Capabilities,
+            | Capabilities.RequestedStandaloneCapabilities
+            | Capabilities.RequestedStandaloneCapabilities[],
         options: BrowserstackConfig & BrowserstackOptions,
         buildTag?: string,
     ) {
@@ -77,6 +78,7 @@ export class CLIUtils {
             modifiedOpts.browserStackLocalOptions = modifiedOpts.opts
             delete modifiedOpts.opts
         }
+        delete modifiedOpts.testManagementOptions
 
         modifiedOpts.testContextOptions = {
             skipSessionName: isFalse(modifiedOpts.setSessionName),
@@ -114,6 +116,11 @@ export class CLIUtils {
             )
         const observabilityOptions: TestObservabilityOptions =
             options.testObservabilityOptions || {}
+        const testManagementOptions: TestManagementOptions =
+            options.testManagementOptions || {}
+        const testPlanId = typeof testManagementOptions.testPlanId === 'string'
+            ? testManagementOptions.testPlanId.trim()
+            : ''
         const binconfig: Record<string, unknown> = {
             userName: observabilityOptions.user || config.user,
             accessKey: observabilityOptions.key || config.key,
@@ -126,36 +133,36 @@ export class CLIUtils {
         binconfig.buildName = observabilityOptions.buildName || binconfig.buildName
         binconfig.projectName = observabilityOptions.projectName || binconfig.projectName
         binconfig.buildTag = this.getObservabilityBuildTags(observabilityOptions, buildTag) || []
-
-        let caps = capabilities
-        if (capabilities && !Array.isArray(capabilities)) {
-            caps = [capabilities]
-        }
-        if (Array.isArray(caps)) {
-            for (const cap of caps) {
-                const platform: Record<string, unknown> = {}
-                const capability = cap as Record<string, unknown>
-
-                Object.keys(capability)
-                    .filter((key) => key !== 'bstack:options')
-                    .forEach((key) => {
-                        platform[key] = capability[key]
-                    })
-
-                if (capability['bstack:options']) {
-                    Object.keys(
-                        capability['bstack:options'] as Record<string, unknown>,
-                    ).forEach((key) => {
-                        platform[key] = (
-                            capability['bstack:options'] as Record<
-                                string,
-                                unknown
-                            >
-                        )[key]
-                    })
-                }
-                (binconfig.platforms as Array<unknown>).push(platform)
+        if (testPlanId.length > 0) {
+            binconfig.testManagementOptions = {
+                testPlanId,
             }
+        }
+
+        const caps = Array.isArray(capabilities) ? capabilities : [capabilities]
+        for (const cap of caps) {
+            const platform: Record<string, unknown> = {}
+            const capability = cap as Record<string, unknown>
+
+            Object.keys(capability)
+                .filter((key) => key !== 'bstack:options')
+                .forEach((key) => {
+                    platform[key] = capability[key]
+                })
+
+            if (capability['bstack:options']) {
+                Object.keys(
+                    capability['bstack:options'] as Record<string, unknown>,
+                ).forEach((key) => {
+                    platform[key] = (
+                        capability['bstack:options'] as Record<
+                            string,
+                            unknown
+                        >
+                    )[key]
+                })
+            }
+            (binconfig.platforms as Array<unknown>).push(platform)
         }
         return JSON.stringify(binconfig)
     }

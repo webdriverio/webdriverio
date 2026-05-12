@@ -112,8 +112,7 @@ export const SUPPORTED_PACKAGES = {
     runner: [
         { name: 'E2E Testing - of Web or Mobile Applications', value: '@wdio/local-runner$--$local$--$e2e' },
         { name: 'Component or Unit Testing - in the browser\n    > https://webdriver.io/docs/component-testing', value: '@wdio/browser-runner$--$browser$--$component' },
-        { name: 'Desktop Testing - of Electron Applications\n    > https://webdriver.io/docs/desktop-testing/electron', value: '@wdio/local-runner$--$local$--$electron' },
-        { name: 'Desktop Testing - of MacOS Applications\n    > https://webdriver.io/docs/desktop-testing/macos', value: '@wdio/local-runner$--$local$--$macos' },
+        { name: 'Desktop Testing - of Electron, Tauri, or macOS Applications\n    > https://webdriver.io/docs/desktop-testing', value: '@wdio/local-runner$--$local$--$desktop' },
         { name: 'VS Code Extension Testing\n    > https://webdriver.io/docs/vscode-extension-testing', value: '@wdio/local-runner$--$local$--$vscode' },
         { name: 'Roku Testing - of OTT apps running on RokuOS\n    > https://webdriver.io/docs/wdio-roku-service', value: '@wdio/local-runner$--$local$--$roku' }
     ],
@@ -164,7 +163,9 @@ export const SUPPORTED_PACKAGES = {
         { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
         { name: 'lighthouse', value: '@wdio/lighthouse-service$--$lighthouse' },
         { name: 'vscode', value: 'wdio-vscode-service$--$vscode' },
-        { name: 'electron', value: 'wdio-electron-service$--$electron' },
+        { name: 'electron', value: '@wdio/electron-service$--$electron' },
+        { name: 'tauri', value: '@wdio/tauri-service$--$tauri' },
+        { name: 'tauri-plugin', value: '@wdio/tauri-plugin$--$tauri-plugin' },
         { name: 'appium', value: '@wdio/appium-service$--$appium' },
         // external
         { name: 'camera', value: 'wdio-camera-service$--$camera' },
@@ -239,6 +240,66 @@ export function usesSerenity (answers: Questionnair) {
     return answers.framework.includes('serenity-js')
 }
 
+/**
+ * Build the post-install instructions for Tauri users. The npm side is auto-installed,
+ * but the Rust side (Cargo.toml + plugin registration) needs manual edits.
+ */
+export function buildTauriBanner (
+    driverProvider: TauriDriverProviderChoice | undefined,
+    useFrontendPlugin: boolean | undefined
+) {
+    const lines = [
+        '',
+        '🦀 Tauri requires a couple of Rust-side additions before tests can run:',
+        ''
+    ]
+
+    if (driverProvider === TauriDriverProviderChoice.Embedded) {
+        lines.push(
+            '  1. Add the embedded WebDriver crate to `src-tauri/Cargo.toml`:',
+            '',
+            '       [dependencies]',
+            '       tauri-plugin-wdio-webdriver = "1"',
+            '',
+            '  2. Register the plugin in `src-tauri/src/lib.rs`:',
+            '',
+            '       tauri::Builder::default()',
+            '           .plugin(tauri_plugin_wdio_webdriver::init())',
+            '           // ...',
+            ''
+        )
+    } else if (driverProvider === TauriDriverProviderChoice.Official) {
+        lines.push(
+            '  1. Install the official tauri-driver via Cargo:',
+            '',
+            '       cargo install tauri-driver --locked',
+            '',
+            '  2. On Linux, set `WEBKIT_DISABLE_DMABUF_RENDERER=1` in your shell when running tests.',
+            ''
+        )
+    } else if (driverProvider === TauriDriverProviderChoice.CrabNebula) {
+        lines.push(
+            '  1. Follow the CrabNebula tauri-driver setup guide:',
+            '       🔗 https://crabnebula.dev/docs/tauri-driver',
+            ''
+        )
+    }
+
+    if (useFrontendPlugin) {
+        lines.push(
+            '  Frontend plugin (@wdio/tauri-plugin) was added to your npm dependencies.',
+            '  See https://webdriver.io/docs/desktop-testing/tauri/plugin-setup for wiring instructions.',
+            ''
+        )
+    }
+
+    lines.push(
+        'Full Tauri setup docs:',
+        '  🔗 https://webdriver.io/docs/desktop-testing/tauri'
+    )
+    return lines.join('\n')
+}
+
 enum ProtocolOptions {
     HTTPS = 'https',
     HTTP = 'http'
@@ -263,6 +324,18 @@ export enum ElectronBuildToolChoice {
     SomethingElse = 'Something else'
 }
 
+export enum DesktopFrameworkChoice {
+    Electron = 'Electron (https://www.electronjs.org/)',
+    Tauri = 'Tauri (https://tauri.app/)',
+    MacOS = 'Native macOS app'
+}
+
+export enum TauriDriverProviderChoice {
+    Official = 'Official tauri-driver (cross-platform, Cargo-installed)',
+    CrabNebula = 'CrabNebula tauri-driver (managed cloud / drop-in)',
+    Embedded = 'Embedded driver via tauri-plugin-wdio-webdriver crate'
+}
+
 export const SUPPORTED_BROWSER_RUNNER_PRESETS = [
     { name: 'Lit (https://lit.dev/)', value: '$--$' },
     { name: 'Vue.js (https://vuejs.org/)', value: '@vitejs/plugin-vue$--$vue' },
@@ -278,7 +351,20 @@ function isBrowserRunner (answers: Questionnair) {
     return answers.runner === SUPPORTED_PACKAGES.runner[1].value
 }
 function getTestingPurpose (answers: Questionnair) {
-    return convertPackageHashToObject(answers.runner).purpose as 'e2e' | 'electron' | 'component' | 'vscode' | 'macos' | 'roku'
+    return convertPackageHashToObject(answers.runner).purpose as 'e2e' | 'electron' | 'tauri' | 'component' | 'vscode' | 'macos' | 'desktop' | 'roku'
+}
+export function getResolvedPurpose (answers: Questionnair) {
+    const raw = getTestingPurpose(answers)
+    if (raw !== 'desktop') {
+        return raw
+    }
+    switch (answers.desktopFramework) {
+    case DesktopFrameworkChoice.Tauri: return 'tauri'
+    case DesktopFrameworkChoice.MacOS: return 'macos'
+    case DesktopFrameworkChoice.Electron:
+    default:
+        return 'electron'
+    }
 }
 
 export const TESTING_LIBRARY_PACKAGES: Record<string, string> = {
@@ -351,15 +437,38 @@ export const QUESTIONNAIRE = [{
     )
 }, {
     type: 'list',
+    name: 'desktopFramework',
+    message: 'What type of desktop application are you testing?',
+    choices: Object.values(DesktopFrameworkChoice),
+    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'desktop'
+}, {
+    type: 'list',
     name: 'electronBuildTool',
     message: 'Which tool are you using to build your Electron app?',
     choices: Object.values(ElectronBuildToolChoice),
-    when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron'
+    when: /* instanbul ignore next */ (answers: Questionnair) => getResolvedPurpose(answers) === 'electron'
 }, {
     type: 'input',
     name: 'electronAppBinaryPath',
     message: 'What is the path to the binary of your built Electron app?',
-    when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'electron' && (answers.electronBuildTool === ElectronBuildToolChoice.SomethingElse)
+    when: /* istanbul ignore next */ (answers: Questionnair) => getResolvedPurpose(answers) === 'electron' && (answers.electronBuildTool === ElectronBuildToolChoice.SomethingElse)
+}, {
+    type: 'list',
+    name: 'tauriDriverProvider',
+    message: 'Which WebDriver provider would you like to use for Tauri?',
+    choices: Object.values(TauriDriverProviderChoice),
+    when: /* istanbul ignore next */ (answers: Questionnair) => getResolvedPurpose(answers) === 'tauri'
+}, {
+    type: 'confirm',
+    name: 'tauriUseFrontendPlugin',
+    message: 'Install @wdio/tauri-plugin for richer in-webview integration (browser.tauri.execute, mocking)?',
+    default: true,
+    when: /* istanbul ignore next */ (answers: Questionnair) => getResolvedPurpose(answers) === 'tauri'
+}, {
+    type: 'input',
+    name: 'tauriAppBinaryPath',
+    message: 'Path to your built Tauri binary (leave blank to use the default `cargo tauri build` output)?',
+    when: /* istanbul ignore next */ (answers: Questionnair) => getResolvedPurpose(answers) === 'tauri'
 }, {
     type: 'list',
     name: 'backend',
@@ -521,9 +630,9 @@ export const QUESTIONNAIRE = [{
             return SUPPORTED_PACKAGES.framework.slice(0, 1)
         }
         /**
-         * Serenity tests don't come with proper ElectronJS example files
+         * Serenity tests don't come with proper Electron or Tauri example files
          */
-        if (getTestingPurpose(answers) === 'electron') {
+        if (['electron', 'tauri'].includes(getResolvedPurpose(answers))) {
             return SUPPORTED_PACKAGES.framework.filter(
                 ({ value }) => !value.startsWith('@serenity-js')
             )
@@ -554,7 +663,7 @@ export const QUESTIONNAIRE = [{
         /**
          * we only have examples for Mocha and Jasmine
          */
-        if (['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers)) && answers.framework.includes('cucumber')) {
+        if (['vscode', 'electron', 'tauri', 'macos'].includes(getResolvedPurpose(answers)) && answers.framework.includes('cucumber')) {
             return false
         }
         return true
@@ -595,7 +704,7 @@ export const QUESTIONNAIRE = [{
          * and also not needed when running VS Code tests since the service comes with
          * its own page object implementation, nor when running Electron or MacOS tests
          */
-        !['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers)) &&
+        !['vscode', 'electron', 'tauri', 'macos'].includes(getResolvedPurpose(answers)) &&
         /**
          * Serenity/JS generates Lean Page Objects by default, so there's no need to ask about it
          * See https://serenity-js.org/handbook/web-testing/page-objects-pattern/
@@ -636,7 +745,7 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'confirm',
     name: 'includeVisualTesting',
-    message: 'Would you like to include Visual Testing to your setup? For more information see https://webdriver.io/docs/visual-testing!',
+    message: 'Would you like to include Visual Testing to your setup? For more information see https://webdriver.io/docs/visual-testing',
     default: false,
     when: /* istanbul ignore next */ (answers: Questionnair) => {
         /**
@@ -658,17 +767,23 @@ export const QUESTIONNAIRE = [{
         if (answers.e2eEnvironment === 'mobile') {
             services.push('appium')
         }
-        if (getTestingPurpose(answers) === 'e2e' && isNuxtProject) {
+        if (getResolvedPurpose(answers) === 'e2e' && isNuxtProject) {
             services.push('nuxt')
         }
 
-        if (getTestingPurpose(answers) === 'vscode') {
+        if (getResolvedPurpose(answers) === 'vscode') {
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'vscode')]
-        } else if (getTestingPurpose(answers) === 'electron') {
+        } else if (getResolvedPurpose(answers) === 'electron') {
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'electron')]
-        } else if (getTestingPurpose(answers) === 'macos') {
+        } else if (getResolvedPurpose(answers) === 'tauri') {
+            const tauriEntries = [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'tauri')]
+            if (answers.tauriUseFrontendPlugin) {
+                tauriEntries.push(SUPPORTED_PACKAGES.service.find(({ name }) => name === 'tauri-plugin'))
+            }
+            return tauriEntries
+        } else if (getResolvedPurpose(answers) === 'macos') {
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'appium')]
-        } else if (getTestingPurpose(answers) === 'roku') {
+        } else if (getResolvedPurpose(answers) === 'roku') {
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'roku')]
         }
         return prioServiceOrderFor(services)
@@ -680,14 +795,19 @@ export const QUESTIONNAIRE = [{
         } else if (answers.backend === BackendChoice.Saucelabs) {
             defaultServices.push('sauce')
         }
-        if (answers.e2eEnvironment === 'mobile' || getTestingPurpose(answers) === 'macos') {
+        if (answers.e2eEnvironment === 'mobile' || getResolvedPurpose(answers) === 'macos') {
             defaultServices.push('appium')
         }
-        if (getTestingPurpose(answers) === 'vscode') {
+        if (getResolvedPurpose(answers) === 'vscode') {
             defaultServices.push('vscode')
-        } else if (getTestingPurpose(answers) === 'electron') {
+        } else if (getResolvedPurpose(answers) === 'electron') {
             defaultServices.push('electron')
-        } else if (getTestingPurpose(answers) === 'roku') {
+        } else if (getResolvedPurpose(answers) === 'tauri') {
+            defaultServices.push('tauri')
+            if (answers.tauriUseFrontendPlugin) {
+                defaultServices.push('tauri-plugin')
+            }
+        } else if (getResolvedPurpose(answers) === 'roku') {
             defaultServices.push('roku')
         }
         if (isNuxtProject) {
@@ -724,7 +844,6 @@ export const QUESTIONNAIRE = [{
 }]
 
 export const COMMUNITY_PACKAGES_WITH_TS_SUPPORT = [
-    'wdio-electron-service',
     'wdio-vscode-service',
     'wdio-nuxt-service',
     'wdio-vite-service',

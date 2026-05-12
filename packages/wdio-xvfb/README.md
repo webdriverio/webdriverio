@@ -15,7 +15,7 @@ npm install @wdio/xvfb
 **Most users don't need to use this package directly.** It's automatically integrated into:
 
 - **`@wdio/local-runner`** - Automatically ensures xvfb is available for headless browser testing
-- **`wdio-electron-service`** - Provides headless Electron testing capabilities
+- **`@wdio/electron-service`** - Provides headless Electron testing capabilities
 
 Simply run your WebDriverIO tests normally, and xvfb will be managed automatically when needed.
 

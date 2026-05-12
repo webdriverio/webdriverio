@@ -146,6 +146,7 @@ export default class Runner extends EventEmitter {
         if (!browser) {
             const afterArgs: AfterArgs = [1, this._caps, this._specs]
             await executeHooksWithArgs('after', this._config.after as Function, afterArgs)
+            await this.endSession()
             return this._shutdown(1, retries, true)
         }
 

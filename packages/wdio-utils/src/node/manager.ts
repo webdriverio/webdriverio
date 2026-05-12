@@ -137,6 +137,16 @@ export function setupBrowser (options: Omit<Options.WebDriver, 'capabilities'>, 
             // not yet implemented
             return Promise.resolve()
         } else if (isChrome(cap.browserName) || isFirefox(cap.browserName)) {
+            /**
+             * skip desktop browser download when androidPackage is set,
+             * as the browser runs on the Android device, not the host
+             */
+            const browserOptions = isFirefox(cap.browserName)
+                ? cap['moz:firefoxOptions']
+                : cap['goog:chromeOptions']
+            if (browserOptions?.androidPackage) {
+                return Promise.resolve()
+            }
             return setupPuppeteerBrowser(cacheDir, cap)
         }
 
