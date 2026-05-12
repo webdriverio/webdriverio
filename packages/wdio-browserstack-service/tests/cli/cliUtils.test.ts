@@ -629,7 +629,6 @@ describe('CLIUtils', () => {
 
             CLIUtils.downloadFileStream(
                 mockWriteStream,
-                'binary-1.0.0',
                 mockZipFilePath,
                 mockCliDir,
                 resolve,

@@ -24,7 +24,7 @@ npm install @wdio/display-server
 **Most users don't need to use this package directly.** It's automatically integrated into:
 
 - **`@wdio/local-runner`** - Automatically manages display servers for headless browser testing
-- **`wdio-electron-service`** - Provides headless Electron testing capabilities
+- **`@wdio/electron-service`** - Provides headless Electron testing capabilities
 
 Simply run your WebDriverIO tests normally, and the display server will be managed automatically.
 
