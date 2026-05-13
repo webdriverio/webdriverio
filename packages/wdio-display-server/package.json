@@ -37,7 +37,8 @@
     },
     "./launcher": {
       "types": "./build/launcher.d.ts",
-      "import": "./build/launcher.js"
+      "import": "./build/launcher.js",
+      "importSource": "./src/launcher.ts"
     },
     "./package.json": "./package.json"
   },
