@@ -28,6 +28,7 @@
     "@wdio/sauce-service": "workspace:*",
     "@wdio/shared-store-service": "workspace:*",
     "@wdio/testingbot-service": "workspace:*",
+    "@wdio/display-server": "workspace:*",
     "@wdio/local-runner": "workspace:*",
     "@wdio/browser-runner": "workspace:*",
     "@wdio/cucumber-framework": "workspace:*",

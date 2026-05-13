@@ -1706,6 +1706,9 @@ importers:
       '@wdio/cucumber-framework':
         specifier: workspace:*
         version: link:../packages/wdio-cucumber-framework
+      '@wdio/display-server':
+        specifier: workspace:*
+        version: link:../packages/wdio-display-server
       '@wdio/dot-reporter':
         specifier: workspace:*
         version: link:../packages/wdio-dot-reporter
