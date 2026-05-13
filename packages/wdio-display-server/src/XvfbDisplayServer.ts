@@ -180,6 +180,7 @@ export class XvfbDisplayServer implements DisplayServer {
                 reject(new Error(`Xvfb process error: ${err.message}`))
             })
         })
+        exitPromise.catch(() => {})
 
         await Promise.race([this.waitForSocket(socketPath, 10_000), exitPromise])
 
