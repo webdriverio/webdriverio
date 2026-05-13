@@ -340,36 +340,34 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * When disabled, tests should manually call display server init() if needed.
      * @default true
      */
-    enabled?: boolean
+    displayServerEnabled?: boolean
     /**
      * Enable automatic installation of display server packages if missing.
-     * When false, the runner will warn and continue without installing.
      * @default false
      */
-    autoInstall?: boolean
+    displayServerAutoInstall?: boolean
     /**
-     * Mode for automatic installation when autoInstall is true.
+     * Mode for automatic installation when displayServerAutoInstall is true.
      * - 'root': install only if running as root (no sudo)
      * - 'sudo': install if root or via non-interactive sudo (`sudo -n`) if available
      * @default 'sudo'
      */
-    autoInstallMode?: 'root' | 'sudo'
+    displayServerAutoInstallMode?: 'root' | 'sudo'
     /**
-     * Custom command to use for installation instead of built-in package manager detection.
-     * When provided, this command is executed as-is and overrides the built-in installation logic.
+     * Custom command to use for display server installation instead of built-in package manager detection.
      */
-    autoInstallCommand?: string | string[]
+    displayServerAutoInstallCommand?: string | string[]
     /**
      * Number of retry attempts for display server startup failures.
      * @default 3
      */
-    maxRetries?: number
+    displayServerMaxRetries?: number
     /**
      * Base delay between retries in milliseconds for display server startup failures.
-     * Progressive delay will be: retryDelay * attemptNumber
+     * Progressive delay will be: displayServerRetryDelay * attemptNumber
      * @default 1000
      */
-    retryDelay?: number
+    displayServerRetryDelay?: number
     /**
      * Which display server to use for headless testing on Linux.
      * - 'auto': Try Wayland first, then Xvfb fallback

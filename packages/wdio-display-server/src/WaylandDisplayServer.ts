@@ -144,6 +144,7 @@ export class WaylandDisplayServer implements DisplayServer {
         const height = options?.height ?? 1080
 
         const id = ++WaylandDisplayServer.daemonCounter
+        this.displayNum = id
         const runtimeDir = `/tmp/wdio-wayland-${process.pid}-${id}`
         const socketName = `wayland-${id}`
         const socketPath = `${runtimeDir}/${socketName}`
@@ -156,11 +157,10 @@ export class WaylandDisplayServer implements DisplayServer {
         const proc = spawn(
             'weston',
             [
-                '--backend=headless-backend.so',
+                '--backend=headless',
                 `--width=${width}`,
                 `--height=${height}`,
                 '--use-pixman',
-                '--shell=fullscreen-shell.so',
                 `--socket=${socketName}`,
             ],
             {
