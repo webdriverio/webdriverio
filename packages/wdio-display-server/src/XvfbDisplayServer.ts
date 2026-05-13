@@ -71,8 +71,8 @@ export class XvfbDisplayServer implements DisplayServer {
 
         const installCommands: Record<string, string> = {
             apt: 'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
-            dnf: 'dnf -y makecache && dnf -y install xorg-x11-server-Xvfb',
-            yum: 'yum -y makecache && yum -y install xorg-x11-server-Xvfb',
+            dnf: 'dnf -y makecache && dnf -y install xorg-x11-server-Xvfb xorg-x11-server-utils',
+            yum: 'yum -y makecache && yum -y install xorg-x11-server-Xvfb xorg-x11-server-utils',
             zypper: 'zypper --non-interactive refresh && zypper --non-interactive install -y xvfb-run',
             pacman: 'pacman -Sy --noconfirm xorg-server-xvfb',
             apk: 'apk update && apk add --no-cache xvfb-run',

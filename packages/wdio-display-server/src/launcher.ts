@@ -11,6 +11,7 @@ export default class DisplayServerLauncher implements Services.HookFunctions {
     #daemonOptions: DisplayDaemonOptions
     #daemon: DisplayDaemon | null = null
     #daemonEnvKeys: string[] = []
+    #savedEnv: Record<string, string> = {}
     #signalHandler: (() => void) | null = null
     #log = logger('@wdio/display-server:launcher')
 
@@ -50,6 +51,11 @@ export default class DisplayServerLauncher implements Services.HookFunctions {
 
         this.#daemon = await server.startDaemon(this.#daemonOptions)
         this.#daemonEnvKeys = Object.keys(this.#daemon.env)
+        for (const key of this.#daemonEnvKeys) {
+            if (key in process.env) {
+                this.#savedEnv[key] = process.env[key] as string
+            }
+        }
         Object.assign(process.env, this.#daemon.env)
         this.#log.info(
             `Daemon ready (${server.name}); env: ${JSON.stringify(this.#daemon.env)}`
@@ -68,11 +74,17 @@ export default class DisplayServerLauncher implements Services.HookFunctions {
         }
         const daemon = this.#daemon
         const envKeys = this.#daemonEnvKeys
+        const savedEnv = this.#savedEnv
         this.#daemon = null
         this.#daemonEnvKeys = []
+        this.#savedEnv = {}
         await daemon.stop()
         for (const key of envKeys) {
-            delete process.env[key]
+            if (key in savedEnv) {
+                process.env[key] = savedEnv[key]
+            } else {
+                delete process.env[key]
+            }
         }
         if (this.#signalHandler) {
             process.off('SIGINT', this.#signalHandler)
