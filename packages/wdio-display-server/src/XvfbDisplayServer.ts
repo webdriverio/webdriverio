@@ -208,7 +208,7 @@ export class XvfbDisplayServer implements DisplayServer {
             // socket dir may not exist yet — Xvfb will create it
         }
         for (let n = 99; n < 200; n++) {
-            if (!used.has(n)) {
+            if (!used.has(n) && !XvfbDisplayServer.reservedDisplays.has(n)) {
                 XvfbDisplayServer.reservedDisplays.add(n)
                 return n
             }

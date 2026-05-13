@@ -88,7 +88,7 @@ export class DisplayProcessFactory implements ProcessCreator {
 
             const childProcess = spawn(
                 wrapper[0],
-                [...wrapper.slice(1), 'node', ...nodeArgs],
+                [...wrapper.slice(1), process.execPath, ...nodeArgs],
                 { cwd, env: mergedEnv, stdio } as SpawnOptions
             )
 
