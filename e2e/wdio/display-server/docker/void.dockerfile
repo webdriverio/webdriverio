@@ -23,6 +23,7 @@ RUN xbps-install -Suy xbps && \
         curl \
         shadow \
         sudo \
+        which \
         nodejs \
         weston \
         chromium && \

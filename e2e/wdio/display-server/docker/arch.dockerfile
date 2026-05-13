@@ -9,11 +9,15 @@ ENV CHROME_BIN=/usr/bin/chromium
 ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
 
 # Install requirements including Wayland (weston)
+# Pin to Node 22 LTS. Arch's `nodejs` package follows current (Node 24+),
+# whose tightened undici input validation makes WDIO's session POST fail
+# with UND_ERR_INVALID_ARG. The rest of the matrix runs Node 20/22 and
+# passes, so align Arch with that range.
 RUN pacman -Sy --noconfirm \
         curl \
         ca-certificates \
         sudo \
-        nodejs \
+        nodejs-lts-jod \
         npm \
         which \
         weston \
