@@ -182,6 +182,9 @@ export class XvfbDisplayServer implements DisplayServer {
 
         try {
             await Promise.race([this.waitForSocket(socketPath, 10_000), exitPromise])
+        } catch (err) {
+            XvfbDisplayServer.reservedDisplays.delete(displayNum)
+            throw err
         } finally {
             proc.removeListener('exit', onExit)
             proc.removeListener('error', onError)

@@ -243,10 +243,12 @@ export class DisplayServerManager {
             edgeOptions = caps['ms:edgeOptions']
         }
 
+        const waylandFlags = this.#displayServer?.getChromeFlags() ?? ['--ozone-platform=wayland', '--enable-features=UseOzonePlatform']
+
         if (chromeOptions) {
             chromeOptions.args = chromeOptions.args || []
             if (!chromeOptions.args.includes('--ozone-platform=wayland')) {
-                chromeOptions.args.push('--ozone-platform=wayland', '--enable-features=UseOzonePlatform')
+                chromeOptions.args.push(...waylandFlags)
                 this.#log.info('Added Wayland flags to Chrome capabilities')
             }
         }
@@ -254,7 +256,7 @@ export class DisplayServerManager {
         if (edgeOptions) {
             edgeOptions.args = edgeOptions.args || []
             if (!edgeOptions.args.includes('--ozone-platform=wayland')) {
-                edgeOptions.args.push('--ozone-platform=wayland', '--enable-features=UseOzonePlatform')
+                edgeOptions.args.push(...waylandFlags)
                 this.#log.info('Added Wayland flags to Edge capabilities')
             }
         }

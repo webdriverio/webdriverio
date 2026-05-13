@@ -2,22 +2,7 @@ import { spawn, fork } from 'node:child_process'
 import type { ChildProcess, SpawnOptions, ForkOptions } from 'node:child_process'
 import logger from '@wdio/logger'
 import { DisplayServerManager } from './DisplayServerManager.js'
-import type { DisplayServer } from './types.js'
-
-export interface ProcessCreator {
-    createWorkerProcess(
-        scriptPath: string,
-        args: string[],
-        options: ProcessCreationOptions
-    ): Promise<ChildProcess>
-}
-
-export interface ProcessCreationOptions {
-    cwd?: string
-    env?: Record<string, string>
-    execArgv?: string[]
-    stdio?: ('inherit' | 'pipe' | 'ignore' | 'ipc')[]
-}
+import type { DisplayServer, ProcessCreator, ProcessCreationOptions } from './types.js'
 
 export class DisplayProcessFactory implements ProcessCreator {
     #displayServerManager: DisplayServerManager
