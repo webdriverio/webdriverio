@@ -9,6 +9,7 @@ import path from 'node:path'
 import type { ChildProcess } from 'node:child_process'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
+import type * as DisplayServerModule from '@wdio/display-server'
 import LocalRunner from '../src/index.js'
 
 const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -31,8 +32,10 @@ vi.mock(
     () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger'))
 )
 
-vi.mock('@wdio/display-server', () => {
+vi.mock('@wdio/display-server', async () => {
+    const actual = await vi.importActual<typeof DisplayServerModule>('@wdio/display-server')
     return {
+        ...actual,
         DisplayProcessFactory: vi.fn().mockImplementation(() => ({
             createWorkerProcess: vi.fn().mockImplementation(() => {
                 // Create a fresh mock for each process

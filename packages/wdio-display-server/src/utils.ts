@@ -123,3 +123,57 @@ export async function installViaPackageManager({
         return false
     }
 }
+
+/**
+ * Generic exponential-backoff retry helper. Used by DisplayProcessFactory to
+ * retry worker process creation when the display server is flaky.
+ *
+ * Lives in utils because it's a generic retry policy that doesn't reach into
+ * any display-server state — DisplayServerManager.executeWithRetry is a thin
+ * facade that forwards its configured maxRetries/retryDelay here.
+ */
+export async function executeWithRetry<T>({
+    fn,
+    maxRetries,
+    retryDelay,
+    log,
+    context = 'display server operation',
+}: {
+    fn: () => Promise<T>
+    maxRetries: number
+    retryDelay: number
+    log: ReturnType<typeof logger>
+    context?: string
+}): Promise<T> {
+    let lastError: Error | unknown = null
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            if (attempt === 1) {
+                log.info(`🚀 Executing ${context}`)
+            } else {
+                log.info(`🔄 Retry attempt ${attempt}/${maxRetries}: ${context}`)
+            }
+
+            const result = await fn()
+
+            if (attempt > 1) {
+                log.info(`✅ Success on attempt ${attempt}/${maxRetries}`)
+            }
+            return result
+        } catch (error: unknown) {
+            log.info(`❌ Attempt ${attempt}/${maxRetries} failed: ${error}`)
+            lastError = error
+
+            if (attempt < maxRetries) {
+                const delay = retryDelay * attempt
+                log.info(`⏳ Waiting ${delay}ms before retry...`)
+                await new Promise((resolve) => setTimeout(resolve, delay))
+            } else {
+                log.info(`❌ All ${maxRetries} attempts failed`)
+            }
+        }
+    }
+
+    throw lastError
+}

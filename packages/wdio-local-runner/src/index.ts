@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 import { WritableStreamBuffer } from 'stream-buffers'
-import { DisplayServerManager } from '@wdio/display-server'
+import { DisplayServerManager, optionsFromConfig } from '@wdio/display-server'
 import type { Workers } from '@wdio/types'
 
 import WorkerInstance from './worker.js'
@@ -28,22 +28,10 @@ export default class LocalRunner {
         private _options: never,
         protected config: WebdriverIO.Config
     ) {
-        // Initialize DisplayServerManager
-        this.displayServerManager = new DisplayServerManager({
-            enabled: this.config.displayServerEnabled,
-            autoXvfb: this.config.autoXvfb,
-            displayServer: this.config.displayServer,
-            autoInstall: this.config.displayServerAutoInstall,
-            xvfbAutoInstall: this.config.xvfbAutoInstall,
-            autoInstallMode: this.config.displayServerAutoInstallMode,
-            xvfbAutoInstallMode: this.config.xvfbAutoInstallMode,
-            autoInstallCommand: this.config.displayServerAutoInstallCommand,
-            xvfbAutoInstallCommand: this.config.xvfbAutoInstallCommand,
-            maxRetries: this.config.displayServerMaxRetries,
-            xvfbMaxRetries: this.config.xvfbMaxRetries,
-            retryDelay: this.config.displayServerRetryDelay,
-            xvfbRetryDelay: this.config.xvfbRetryDelay,
-        })
+        // Map config → display-server options. The mapping (and its legacy
+        // xvfb* / autoXvfb aliases) lives in @wdio/display-server so this
+        // file doesn't need to know about either vocabulary.
+        this.displayServerManager = new DisplayServerManager(optionsFromConfig(this.config))
     }
 
     /**

@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { expect, test, vi, beforeEach } from 'vitest'
 
+import type * as DisplayServerModule from '@wdio/display-server'
 import LocalRunner from '../src/index.js'
 
 const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -14,14 +15,19 @@ vi.mock(
     () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger'))
 )
 
-vi.mock('@wdio/display-server', () => {
+vi.mock('@wdio/display-server', async () => {
     const childProcessMock = {
         on: vi.fn(),
         send: vi.fn(),
         kill: vi.fn(),
     }
 
+    // Use the real optionsFromConfig so the mapping under test runs through;
+    // mock only the runtime classes that would otherwise pull in display-server
+    // side-effects (logger init, fs probes, etc.).
+    const actual = await vi.importActual<typeof DisplayServerModule>('@wdio/display-server')
     return {
+        ...actual,
         DisplayProcessFactory: vi.fn().mockImplementation(() => ({
             createWorkerProcess: vi.fn().mockResolvedValue(childProcessMock)
         })),

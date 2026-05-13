@@ -41,7 +41,7 @@ vi.mock('@wdio/logger', () => ({
     })),
 }))
 
-const { DisplayServerManager } = await import('../src/DisplayServerManager.js')
+const { DisplayServerManager, optionsFromConfig } = await import('../src/DisplayServerManager.js')
 
 describe('DisplayServerManager (gap coverage)', () => {
     beforeEach(() => {
@@ -307,5 +307,60 @@ describe('DisplayServerManager (gap coverage)', () => {
 
             expect(mockWayland.isAvailable).not.toHaveBeenCalled()
         })
+    })
+})
+
+describe('optionsFromConfig', () => {
+    it('maps all new displayServer* config keys to their option names', () => {
+        const result = optionsFromConfig({
+            displayServerEnabled: false,
+            displayServer: 'wayland',
+            displayServerAutoInstall: true,
+            displayServerAutoInstallMode: 'sudo',
+            displayServerAutoInstallCommand: 'custom-cmd',
+            displayServerMaxRetries: 5,
+            displayServerRetryDelay: 2000,
+        } as never)
+
+        expect(result).toMatchObject({
+            enabled: false,
+            displayServer: 'wayland',
+            autoInstall: true,
+            autoInstallMode: 'sudo',
+            autoInstallCommand: 'custom-cmd',
+            maxRetries: 5,
+            retryDelay: 2000,
+        })
+    })
+
+    it('forwards legacy xvfb* / autoXvfb aliases unchanged so the manager can apply precedence', () => {
+        const result = optionsFromConfig({
+            autoXvfb: false,
+            xvfbAutoInstall: 'sudo',
+            xvfbAutoInstallMode: 'root',
+            xvfbAutoInstallCommand: ['my', 'cmd'],
+            xvfbMaxRetries: 7,
+            xvfbRetryDelay: 500,
+        } as never)
+
+        expect(result).toMatchObject({
+            autoXvfb: false,
+            xvfbAutoInstall: 'sudo',
+            xvfbAutoInstallMode: 'root',
+            xvfbAutoInstallCommand: ['my', 'cmd'],
+            xvfbMaxRetries: 7,
+            xvfbRetryDelay: 500,
+        })
+    })
+
+    it('returns undefined values for keys absent from the config (DisplayServerManager fills defaults)', () => {
+        const result = optionsFromConfig({} as never)
+
+        // None of the option keys should throw on access; their values are undefined.
+        expect(result.enabled).toBeUndefined()
+        expect(result.displayServer).toBeUndefined()
+        expect(result.autoInstall).toBeUndefined()
+        expect(result.maxRetries).toBeUndefined()
+        expect(result.xvfbAutoInstall).toBeUndefined()
     })
 })

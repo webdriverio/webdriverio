@@ -4,6 +4,7 @@ import type { Capabilities } from '@wdio/types'
 import type { DisplayServer, DisplayServerOptions } from './types.js'
 import { WaylandDisplayServer } from './WaylandDisplayServer.js'
 import { XvfbDisplayServer } from './XvfbDisplayServer.js'
+import { executeWithRetry } from './utils.js'
 
 // ---------------------------------------------------------------------------
 // Module-private helpers for walking WebdriverIO capability shapes.
@@ -60,6 +61,31 @@ function forEachBrowserCapability(
         for (const [, browserConfig] of Object.entries(caps)) {
             visit(extractCapabilitiesFromBrowserConfig(browserConfig))
         }
+    }
+}
+
+/**
+ * Map a WebdriverIO config to the corresponding DisplayServerOptions. Pulls
+ * out both the modern `displayServer*` keys and the legacy `xvfb*` / `autoXvfb`
+ * aliases so callers (e.g. LocalRunner) don't have to know about either
+ * vocabulary — the DisplayServerManager constructor handles the precedence
+ * + deprecation warnings.
+ */
+export function optionsFromConfig(config: WebdriverIO.Config): DisplayServerOptions {
+    return {
+        enabled: config.displayServerEnabled,
+        autoXvfb: config.autoXvfb,
+        displayServer: config.displayServer,
+        autoInstall: config.displayServerAutoInstall,
+        xvfbAutoInstall: config.xvfbAutoInstall,
+        autoInstallMode: config.displayServerAutoInstallMode,
+        xvfbAutoInstallMode: config.xvfbAutoInstallMode,
+        autoInstallCommand: config.displayServerAutoInstallCommand,
+        xvfbAutoInstallCommand: config.xvfbAutoInstallCommand,
+        maxRetries: config.displayServerMaxRetries,
+        xvfbMaxRetries: config.xvfbMaxRetries,
+        retryDelay: config.displayServerRetryDelay,
+        xvfbRetryDelay: config.xvfbRetryDelay,
     }
 }
 
@@ -374,43 +400,23 @@ export class DisplayServerManager {
     }
 
     /**
-     * Execute a function with retry logic for display server failures
+     * Retry a function with this manager's configured maxRetries/retryDelay.
+     * Thin facade over the generic helper in utils.ts; kept here as a method
+     * because (a) it lets the factory continue calling `manager.executeWithRetry`
+     * without knowing the retry config, and (b) the legacy XvfbManager export
+     * surface expects this method.
      */
     async executeWithRetry<T>(
         commandFn: () => Promise<T>,
         context: string = 'display server operation'
     ): Promise<T> {
-        let lastError: Error | unknown = null
-
-        for (let attempt = 1; attempt <= this.#maxRetries; attempt++) {
-            try {
-                if (attempt === 1) {
-                    this.#log.info(`🚀 Executing ${context}`)
-                } else {
-                    this.#log.info(`🔄 Retry attempt ${attempt}/${this.#maxRetries}: ${context}`)
-                }
-
-                const result = await commandFn()
-
-                if (attempt > 1) {
-                    this.#log.info(`✅ Success on attempt ${attempt}/${this.#maxRetries}`)
-                }
-                return result
-            } catch (error: unknown) {
-                this.#log.info(`❌ Attempt ${attempt}/${this.#maxRetries} failed: ${error}`)
-                lastError = error
-
-                if (attempt < this.#maxRetries) {
-                    const delay = this.#retryDelay * attempt
-                    this.#log.info(`⏳ Waiting ${delay}ms before retry...`)
-                    await new Promise(resolve => setTimeout(resolve, delay))
-                } else {
-                    this.#log.info(`❌ All ${this.#maxRetries} attempts failed`)
-                }
-            }
-        }
-
-        throw lastError
+        return executeWithRetry({
+            fn: commandFn,
+            maxRetries: this.#maxRetries,
+            retryDelay: this.#retryDelay,
+            log: this.#log,
+            context,
+        })
     }
 }
 

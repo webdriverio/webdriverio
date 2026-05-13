@@ -1,4 +1,4 @@
-export { DisplayServerManager, displayServer } from './DisplayServerManager.js'
+export { DisplayServerManager, displayServer, optionsFromConfig } from './DisplayServerManager.js'
 export { DisplayProcessFactory } from './DisplayProcessFactory.js'
 export { WaylandDisplayServer } from './WaylandDisplayServer.js'
 export { XvfbDisplayServer } from './XvfbDisplayServer.js'
