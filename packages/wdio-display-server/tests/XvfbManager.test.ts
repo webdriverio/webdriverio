@@ -327,11 +327,8 @@ describe('XvfbManager', () => {
                 expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
                 expect(mockExecAsync).toHaveBeenCalledWith('which apt-get')
                 expect(mockExecAsync).toHaveBeenCalledWith('which sudo')
-                // NOTE: current source prefixes `sudo -n` only to the start of the
-                // compound command. The second `apt-get install` runs without sudo.
-                // Tracked as a separate regression — test asserts current behaviour.
                 expect(mockExecAsync).toHaveBeenCalledWith(
-                    'sudo -n DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
+                    'sudo -n sh -c "DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb"',
                     { timeout: 240000 }
                 )
             })
@@ -409,7 +406,7 @@ describe('XvfbManager', () => {
 
                     expect(mockExecAsync).toHaveBeenCalledWith('which dnf')
                     expect(mockExecAsync).toHaveBeenCalledWith(
-                        'dnf -y makecache && dnf -y install xorg-x11-server-Xvfb',
+                        'dnf -y makecache && dnf -y install xorg-x11-server-Xvfb xorg-x11-server-utils',
                         { timeout: 240000 }
                     )
                 })
