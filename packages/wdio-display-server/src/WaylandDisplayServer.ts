@@ -8,6 +8,7 @@ import type {
     DisplayServer,
     DisplayServerInstallOptions,
 } from './types.js'
+import { detectPackageManager } from './utils.js'
 
 const execAsync = promisify(exec)
 
@@ -54,7 +55,7 @@ export class WaylandDisplayServer implements DisplayServer {
             xbps: 'xbps-install -Sy weston',
         }
 
-        const packageManager = await this.detectPackageManager()
+        const packageManager = await detectPackageManager()
 
         if (!installCommands[packageManager]) {
             this.log.error(`Unsupported package manager: ${packageManager}`)
@@ -90,29 +91,6 @@ export class WaylandDisplayServer implements DisplayServer {
             this.log.error('Failed to install Weston:', error)
             return false
         }
-    }
-
-    private async detectPackageManager(): Promise<string> {
-        const packageManagers = [
-            { command: 'apt-get', name: 'apt' },
-            { command: 'dnf', name: 'dnf' },
-            { command: 'yum', name: 'yum' },
-            { command: 'zypper', name: 'zypper' },
-            { command: 'pacman', name: 'pacman' },
-            { command: 'apk', name: 'apk' },
-            { command: 'xbps-install', name: 'xbps' },
-        ]
-
-        for (const { command, name } of packageManagers) {
-            try {
-                await execAsync(`which ${command}`)
-                return name
-            } catch {
-                // Continue to next
-            }
-        }
-
-        return 'unknown'
     }
 
     getEnvironment(): Record<string, string> {

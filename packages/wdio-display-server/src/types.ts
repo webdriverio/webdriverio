@@ -152,16 +152,6 @@ export interface DisplayServerOptions {
      */
     force?: boolean
 
-    /**
-     * Override package manager detection (for testing)
-     */
-    packageManager?: string
-
-    /**
-     * Skip availability check and force installation (for testing)
-     */
-    forceInstall?: boolean
-
     // Legacy option aliases for backward compatibility
     /**
      * @deprecated Use `enabled` instead
