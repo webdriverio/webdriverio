@@ -1,5 +1,5 @@
 import { exec, spawn } from 'node:child_process'
-import { access, readdir } from 'node:fs/promises'
+import { readdir } from 'node:fs/promises'
 import { promisify } from 'node:util'
 import logger from '@wdio/logger'
 import type {
@@ -8,7 +8,7 @@ import type {
     DisplayServer,
     DisplayServerInstallOptions,
 } from './types.js'
-import { detectPackageManager } from './utils.js'
+import { installViaPackageManager, waitForSocket } from './utils.js'
 
 const execAsync = promisify(exec)
 const X_SOCKET_DIR = '/tmp/.X11-unix'
@@ -51,73 +51,27 @@ export class XvfbDisplayServer implements DisplayServer {
     }
 
     async install(options?: DisplayServerInstallOptions): Promise<boolean> {
-        // Don't try to install on CentOS 10
+        // Xvfb has no maintained package on CentOS Stream 10; bail before
+        // probing the package manager.
         if (this.isCentOS10) {
             this.log.info('Skipping Xvfb installation on CentOS Stream 10 - not available')
             return false
         }
 
-        this.log.info('Attempting to install Xvfb...')
-
-        // If custom command provided, use it
-        if (options?.command) {
-            const command = Array.isArray(options.command) ? options.command.join(' ') : options.command
-            try {
-                await execAsync(command, { timeout: 240000 })
-                this.log.info('Xvfb installed successfully using custom command')
-                return true
-            } catch (error) {
-                this.log.error('Failed to install Xvfb with custom command:', error)
-                return false
-            }
-        }
-
-        const installCommands: Record<string, string> = {
-            apt: 'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
-            dnf: 'dnf -y makecache && dnf -y install xorg-x11-server-Xvfb xorg-x11-server-utils',
-            yum: 'yum -y makecache && yum -y install xorg-x11-server-Xvfb xorg-x11-server-utils',
-            zypper: 'zypper --non-interactive refresh && zypper --non-interactive install -y xvfb-run',
-            pacman: 'pacman -Sy --noconfirm xorg-server-xvfb',
-            apk: 'apk update && apk add --no-cache xvfb-run',
-            xbps: 'xbps-install -Sy xvfb',
-        }
-
-        const packageManager = await detectPackageManager()
-
-        if (!installCommands[packageManager]) {
-            this.log.error(`Unsupported package manager: ${packageManager}`)
-            return false
-        }
-
-        let command = installCommands[packageManager]
-
-        // Apply installation mode (root vs sudo)
-        if (options?.mode === 'sudo') {
-            // Check if we're not root and sudo is available
-            if (process.getuid && process.getuid() !== 0) {
-                try {
-                    await execAsync('which sudo')
-                    command = `sudo -n sh -c "${command}"`
-                } catch {
-                    this.log.warn('sudo not available, attempting install without sudo')
-                }
-            }
-        } else if (options?.mode === 'root') {
-            // Only install if root
-            if (process.getuid && process.getuid() !== 0) {
-                this.log.error('Not running as root and autoInstallMode is "root"')
-                return false
-            }
-        }
-
-        try {
-            await execAsync(command, { timeout: 240000 })
-            this.log.info('Xvfb installed successfully')
-            return true
-        } catch (error) {
-            this.log.error('Failed to install Xvfb:', error)
-            return false
-        }
+        return installViaPackageManager({
+            name: 'Xvfb',
+            packageCommands: {
+                apt: 'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
+                dnf: 'dnf -y makecache && dnf -y install xorg-x11-server-Xvfb xorg-x11-server-utils',
+                yum: 'yum -y makecache && yum -y install xorg-x11-server-Xvfb xorg-x11-server-utils',
+                zypper: 'zypper --non-interactive refresh && zypper --non-interactive install -y xvfb-run',
+                pacman: 'pacman -Sy --noconfirm xorg-server-xvfb',
+                apk: 'apk update && apk add --no-cache xvfb-run',
+                xbps: 'xbps-install -Sy xvfb',
+            },
+            log: this.log,
+            options,
+        })
     }
 
     getEnvironment(): Record<string, string> {
@@ -162,7 +116,7 @@ export class XvfbDisplayServer implements DisplayServer {
         proc.once('error', onError)
 
         try {
-            await Promise.race([this.waitForSocket(socketPath, 10_000), exitPromise])
+            await Promise.race([waitForSocket(socketPath, 10_000, 'Xvfb socket'), exitPromise])
         } catch (err) {
             proc.removeListener('exit', onExit)
             proc.removeListener('error', onError)
@@ -239,16 +193,4 @@ export class XvfbDisplayServer implements DisplayServer {
         throw new Error('No free X display number available in range :99-:199')
     }
 
-    private async waitForSocket(path: string, timeoutMs: number): Promise<void> {
-        const deadline = Date.now() + timeoutMs
-        while (Date.now() < deadline) {
-            try {
-                await access(path)
-                return
-            } catch {
-                await new Promise((resolve) => setTimeout(resolve, 50))
-            }
-        }
-        throw new Error(`Timed out waiting for Xvfb socket at ${path}`)
-    }
 }

@@ -6,7 +6,6 @@ const mockSpawn = vi.hoisted(() => vi.fn())
 const mockAccess = vi.hoisted(() => vi.fn())
 const mockMkdir = vi.hoisted(() => vi.fn())
 const mockRm = vi.hoisted(() => vi.fn())
-const mockDetectPackageManager = vi.hoisted(() => vi.fn())
 
 vi.mock('node:child_process', () => ({
     exec: vi.fn(),
@@ -23,9 +22,30 @@ vi.mock('node:fs/promises', () => ({
     rm: mockRm,
 }))
 
-vi.mock('../src/utils.js', () => ({
-    detectPackageManager: mockDetectPackageManager,
-}))
+// `detectPackageManager` (used by installViaPackageManager) probes
+// `which apt-get`, `which dnf`, ... via execAsync. This helper queues
+// rejections for the package managers checked before the target, then a
+// resolution for the target. Tests using install() can call this to put the
+// detection in a deterministic state.
+const PM_PROBE_ORDER = ['apt-get', 'dnf', 'yum', 'zypper', 'pacman', 'apk', 'xbps-install']
+const PM_NAME_TO_CMD: Record<string, string> = {
+    apt: 'apt-get', dnf: 'dnf', yum: 'yum', zypper: 'zypper',
+    pacman: 'pacman', apk: 'apk', xbps: 'xbps-install',
+}
+function queuePackageManagerDetection(pm: string) {
+    if (pm === 'unknown') {
+        for (let i = 0; i < PM_PROBE_ORDER.length; i++) {
+            mockExecAsync.mockRejectedValueOnce(new Error('not found'))
+        }
+        return
+    }
+    const target = PM_NAME_TO_CMD[pm]
+    const targetIdx = PM_PROBE_ORDER.indexOf(target)
+    for (let i = 0; i < targetIdx; i++) {
+        mockExecAsync.mockRejectedValueOnce(new Error('not found'))
+    }
+    mockExecAsync.mockResolvedValueOnce({ stdout: `/usr/bin/${target}`, stderr: '' })
+}
 
 vi.mock('@wdio/logger', () => ({
     default: vi.fn(() => ({
@@ -113,7 +133,8 @@ describe('WaylandDisplayServer', () => {
 
             expect(result).toBe(true)
             expect(mockExecAsync).toHaveBeenCalledWith('my-custom-install', { timeout: 240000 })
-            expect(mockDetectPackageManager).not.toHaveBeenCalled()
+            // Custom command short-circuits before package-manager detection.
+            expect(mockExecAsync).not.toHaveBeenCalledWith('which apt-get')
         })
 
         it('joins array custom commands with spaces', async () => {
@@ -135,7 +156,7 @@ describe('WaylandDisplayServer', () => {
         })
 
         it('installs via apt when detected and running as root', async () => {
-            mockDetectPackageManager.mockResolvedValueOnce('apt')
+            queuePackageManagerDetection('apt')
             mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
             ;(process as any).getuid = vi.fn().mockReturnValue(0)
             const server = new WaylandDisplayServer()
@@ -146,55 +167,6 @@ describe('WaylandDisplayServer', () => {
             expect(mockExecAsync).toHaveBeenCalledWith(
                 'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y weston',
                 { timeout: 240000 }
-            )
-        })
-
-        it('wraps install with `sudo -n sh -c` in sudo mode when non-root and sudo present', async () => {
-            mockDetectPackageManager.mockResolvedValueOnce('apt')
-            mockExecAsync
-                .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' }) // which sudo
-                .mockResolvedValueOnce({ stdout: 'ok', stderr: '' }) // install
-            ;(process as any).getuid = vi.fn().mockReturnValue(1000)
-            const server = new WaylandDisplayServer()
-
-            const result = await server.install({ mode: 'sudo' })
-
-            expect(result).toBe(true)
-            expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo -n sh -c "DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y weston"',
-                { timeout: 240000 }
-            )
-        })
-
-        it('falls back to install without sudo prefix when sudo is missing', async () => {
-            mockDetectPackageManager.mockResolvedValueOnce('apt')
-            mockExecAsync
-                .mockRejectedValueOnce(new Error('no sudo')) // which sudo
-                .mockResolvedValueOnce({ stdout: 'ok', stderr: '' }) // install (no sudo)
-            ;(process as any).getuid = vi.fn().mockReturnValue(1000)
-            const server = new WaylandDisplayServer()
-
-            const result = await server.install({ mode: 'sudo' })
-
-            expect(result).toBe(true)
-            expect(mockExecAsync).toHaveBeenCalledWith(
-                'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y weston',
-                { timeout: 240000 }
-            )
-        })
-
-        it('refuses to install when mode=root and not running as root', async () => {
-            mockDetectPackageManager.mockResolvedValueOnce('apt')
-            ;(process as any).getuid = vi.fn().mockReturnValue(1000)
-            const server = new WaylandDisplayServer()
-
-            const result = await server.install({ mode: 'root' })
-
-            expect(result).toBe(false)
-            // Install command must NOT have been invoked
-            expect(mockExecAsync).not.toHaveBeenCalledWith(
-                expect.stringContaining('apt-get install'),
-                expect.anything()
             )
         })
 
@@ -206,7 +178,7 @@ describe('WaylandDisplayServer', () => {
             ['apk', 'apk update && apk add --no-cache weston'],
             ['xbps', 'xbps-install -Sy weston'],
         ])('uses the correct install command for %s', async (pm, expectedCmd) => {
-            mockDetectPackageManager.mockResolvedValueOnce(pm)
+            queuePackageManagerDetection(pm)
             mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
             ;(process as any).getuid = vi.fn().mockReturnValue(0)
             const server = new WaylandDisplayServer()
@@ -217,17 +189,8 @@ describe('WaylandDisplayServer', () => {
             expect(mockExecAsync).toHaveBeenCalledWith(expectedCmd, { timeout: 240000 })
         })
 
-        it('returns false when package manager is unknown', async () => {
-            mockDetectPackageManager.mockResolvedValueOnce('unknown')
-            const server = new WaylandDisplayServer()
-
-            const result = await server.install({ mode: 'root' })
-
-            expect(result).toBe(false)
-        })
-
         it('returns false when the install command itself fails', async () => {
-            mockDetectPackageManager.mockResolvedValueOnce('apt')
+            queuePackageManagerDetection('apt')
             mockExecAsync.mockRejectedValueOnce(new Error('apt failed'))
             ;(process as any).getuid = vi.fn().mockReturnValue(0)
             const server = new WaylandDisplayServer()

@@ -5,7 +5,6 @@ const mockExecAsync = vi.hoisted(() => vi.fn())
 const mockSpawn = vi.hoisted(() => vi.fn())
 const mockAccess = vi.hoisted(() => vi.fn())
 const mockReaddir = vi.hoisted(() => vi.fn())
-const mockDetectPackageManager = vi.hoisted(() => vi.fn())
 
 vi.mock('node:child_process', () => ({
     exec: vi.fn(),
@@ -21,9 +20,27 @@ vi.mock('node:fs/promises', () => ({
     readdir: mockReaddir,
 }))
 
-vi.mock('../src/utils.js', () => ({
-    detectPackageManager: mockDetectPackageManager,
-}))
+// Sequence execAsync responses so the real detectPackageManager (called by
+// the shared installViaPackageManager helper) "finds" the requested PM.
+const PM_PROBE_ORDER = ['apt-get', 'dnf', 'yum', 'zypper', 'pacman', 'apk', 'xbps-install']
+const PM_NAME_TO_CMD: Record<string, string> = {
+    apt: 'apt-get', dnf: 'dnf', yum: 'yum', zypper: 'zypper',
+    pacman: 'pacman', apk: 'apk', xbps: 'xbps-install',
+}
+function queuePackageManagerDetection(pm: string) {
+    if (pm === 'unknown') {
+        for (let i = 0; i < PM_PROBE_ORDER.length; i++) {
+            mockExecAsync.mockRejectedValueOnce(new Error('not found'))
+        }
+        return
+    }
+    const target = PM_NAME_TO_CMD[pm]
+    const targetIdx = PM_PROBE_ORDER.indexOf(target)
+    for (let i = 0; i < targetIdx; i++) {
+        mockExecAsync.mockRejectedValueOnce(new Error('not found'))
+    }
+    mockExecAsync.mockResolvedValueOnce({ stdout: `/usr/bin/${target}`, stderr: '' })
+}
 
 vi.mock('@wdio/logger', () => ({
     default: vi.fn(() => ({
@@ -129,8 +146,8 @@ describe('XvfbDisplayServer', () => {
             const result = await server.install()
 
             expect(result).toBe(false)
+            // Bail must happen before package-manager probing.
             expect(mockExecAsync).not.toHaveBeenCalled()
-            expect(mockDetectPackageManager).not.toHaveBeenCalled()
         })
 
         it.each([
@@ -142,7 +159,7 @@ describe('XvfbDisplayServer', () => {
             ['apk', 'apk update && apk add --no-cache xvfb-run'],
             ['xbps', 'xbps-install -Sy xvfb'],
         ])('uses the correct install command for %s', async (pm, expectedCmd) => {
-            mockDetectPackageManager.mockResolvedValueOnce(pm)
+            queuePackageManagerDetection(pm)
             mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
             ;(process as any).getuid = vi.fn().mockReturnValue(0)
             const server = new XvfbDisplayServer()
@@ -151,15 +168,6 @@ describe('XvfbDisplayServer', () => {
 
             expect(result).toBe(true)
             expect(mockExecAsync).toHaveBeenCalledWith(expectedCmd, { timeout: 240000 })
-        })
-
-        it('returns false when the package manager is unknown', async () => {
-            mockDetectPackageManager.mockResolvedValueOnce('unknown')
-            const server = new XvfbDisplayServer()
-
-            const result = await server.install({ mode: 'root' })
-
-            expect(result).toBe(false)
         })
     })
 

@@ -1,5 +1,5 @@
 import { exec, spawn } from 'node:child_process'
-import { access, mkdir, rm } from 'node:fs/promises'
+import { mkdir, rm } from 'node:fs/promises'
 import { promisify } from 'node:util'
 import logger from '@wdio/logger'
 import type {
@@ -8,7 +8,7 @@ import type {
     DisplayServer,
     DisplayServerInstallOptions,
 } from './types.js'
-import { detectPackageManager } from './utils.js'
+import { installViaPackageManager, waitForSocket } from './utils.js'
 
 const execAsync = promisify(exec)
 
@@ -29,68 +29,20 @@ export class WaylandDisplayServer implements DisplayServer {
     }
 
     async install(options?: DisplayServerInstallOptions): Promise<boolean> {
-        this.log.info('Attempting to install Weston compositor...')
-
-        // If custom command provided, use it
-        if (options?.command) {
-            const command = Array.isArray(options.command) ? options.command.join(' ') : options.command
-            try {
-                await execAsync(command, { timeout: 240000 })
-                this.log.info('Weston installed successfully using custom command')
-                return true
-            } catch (error) {
-                this.log.error('Failed to install Weston with custom command:', error)
-                return false
-            }
-        }
-
-        // Detect package manager and install
-        const installCommands: Record<string, string> = {
-            apt: 'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y weston',
-            dnf: 'dnf -y makecache && dnf -y install weston',
-            yum: 'yum -y makecache && yum -y install weston',
-            zypper: 'zypper --non-interactive refresh && zypper --non-interactive install -y weston',
-            pacman: 'pacman -Sy --noconfirm weston',
-            apk: 'apk update && apk add --no-cache weston',
-            xbps: 'xbps-install -Sy weston',
-        }
-
-        const packageManager = await detectPackageManager()
-
-        if (!installCommands[packageManager]) {
-            this.log.error(`Unsupported package manager: ${packageManager}`)
-            return false
-        }
-
-        let command = installCommands[packageManager]
-
-        // Apply installation mode (root vs sudo)
-        if (options?.mode === 'sudo') {
-            // Check if we're not root and sudo is available
-            if (process.getuid && process.getuid() !== 0) {
-                try {
-                    await execAsync('which sudo')
-                    command = `sudo -n sh -c "${command}"`
-                } catch {
-                    this.log.warn('sudo not available, attempting install without sudo')
-                }
-            }
-        } else if (options?.mode === 'root') {
-            // Only install if root
-            if (process.getuid && process.getuid() !== 0) {
-                this.log.error('Not running as root and autoInstallMode is "root"')
-                return false
-            }
-        }
-
-        try {
-            await execAsync(command, { timeout: 240000 })
-            this.log.info('Weston installed successfully')
-            return true
-        } catch (error) {
-            this.log.error('Failed to install Weston:', error)
-            return false
-        }
+        return installViaPackageManager({
+            name: 'Weston',
+            packageCommands: {
+                apt: 'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y weston',
+                dnf: 'dnf -y makecache && dnf -y install weston',
+                yum: 'yum -y makecache && yum -y install weston',
+                zypper: 'zypper --non-interactive refresh && zypper --non-interactive install -y weston',
+                pacman: 'pacman -Sy --noconfirm weston',
+                apk: 'apk update && apk add --no-cache weston',
+                xbps: 'xbps-install -Sy weston',
+            },
+            log: this.log,
+            options,
+        })
     }
 
     getEnvironment(): Record<string, string> {
@@ -150,7 +102,7 @@ export class WaylandDisplayServer implements DisplayServer {
         proc.once('error', onError)
 
         try {
-            await Promise.race([this.waitForSocket(socketPath, 10_000), exitPromise])
+            await Promise.race([waitForSocket(socketPath, 10_000, 'Wayland socket'), exitPromise])
         } catch (err) {
             proc.removeListener('exit', onExit)
             proc.removeListener('error', onError)
@@ -196,16 +148,4 @@ export class WaylandDisplayServer implements DisplayServer {
         }
     }
 
-    private async waitForSocket(path: string, timeoutMs: number): Promise<void> {
-        const deadline = Date.now() + timeoutMs
-        while (Date.now() < deadline) {
-            try {
-                await access(path)
-                return
-            } catch {
-                await new Promise((resolve) => setTimeout(resolve, 50))
-            }
-        }
-        throw new Error(`Timed out waiting for Wayland socket at ${path}`)
-    }
 }

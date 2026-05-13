@@ -5,6 +5,64 @@ import type { DisplayServer, DisplayServerOptions } from './types.js'
 import { WaylandDisplayServer } from './WaylandDisplayServer.js'
 import { XvfbDisplayServer } from './XvfbDisplayServer.js'
 
+// ---------------------------------------------------------------------------
+// Module-private helpers for walking WebdriverIO capability shapes.
+//
+// WDIO supports three capability shapes that all flow through the same APIs:
+//   - single:       { browserName: 'chrome', ... }
+//   - vendor-keyed: { 'goog:chromeOptions': {...} }
+//   - multiremote:  { browserA: { capabilities: {...} }, browserB: ... }
+//
+// The injectDisplayFlags + headless-detection paths both need to visit every
+// browser capability regardless of shape; these helpers centralise that walk.
+// ---------------------------------------------------------------------------
+
+type CapsRoot = WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }>
+
+function isSingleCapability(caps: CapsRoot): caps is WebdriverIO.Capabilities {
+    return Boolean(
+        (caps as WebdriverIO.Capabilities)['goog:chromeOptions'] ||
+        (caps as WebdriverIO.Capabilities)['ms:edgeOptions'] ||
+        (caps as WebdriverIO.Capabilities)['moz:firefoxOptions'] ||
+        'browserName' in caps
+    )
+}
+
+function isMultiRemoteCapability(caps: CapsRoot): caps is Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }> {
+    return !isSingleCapability(caps) && typeof caps === 'object' && caps !== null
+}
+
+function extractCapabilitiesFromBrowserConfig(
+    browserConfig: { capabilities: WebdriverIO.Capabilities } | WebdriverIO.Capabilities
+): WebdriverIO.Capabilities {
+    if (browserConfig && typeof browserConfig === 'object' && 'capabilities' in browserConfig && browserConfig.capabilities) {
+        return browserConfig.capabilities
+    }
+    return browserConfig as WebdriverIO.Capabilities
+}
+
+/**
+ * Iterate over every browser capability in either a single-capability or
+ * multiremote shape, invoking `visit` once per browser. No-op when caps is
+ * null/undefined.
+ */
+function forEachBrowserCapability(
+    capabilities: CapsRoot | WebdriverIO.Config['capabilities'] | undefined,
+    visit: (cap: WebdriverIO.Capabilities) => void
+): void {
+    if (!capabilities) {
+        return
+    }
+    const caps = capabilities as CapsRoot
+    if (isSingleCapability(caps)) {
+        visit(caps)
+    } else if (isMultiRemoteCapability(caps)) {
+        for (const [, browserConfig] of Object.entries(caps)) {
+            visit(extractCapabilitiesFromBrowserConfig(browserConfig))
+        }
+    }
+}
+
 export class DisplayServerManager {
     #enabled: boolean
     #displayServerPreference: 'auto' | 'wayland' | 'xvfb'
@@ -195,38 +253,7 @@ export class DisplayServerManager {
      * Inject Wayland-specific Chrome flags into capabilities
      */
     #injectWaylandChromeFlags(capabilities: Capabilities.ResolvedTestrunnerCapabilities): void {
-        const caps = capabilities as WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }>
-
-        // Handle single capability
-        if (this.#isSingleCapability(caps)) {
-            this.#addWaylandFlagsToCapability(caps)
-        } else if (this.#isMultiRemoteCapability(caps)) {
-            // Handle multiremote
-            for (const [, browserConfig] of Object.entries(caps)) {
-                const browserCaps = this.#extractCapabilitiesFromBrowserConfig(browserConfig)
-                this.#addWaylandFlagsToCapability(browserCaps)
-            }
-        }
-    }
-
-    #isSingleCapability(caps: WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }>): caps is WebdriverIO.Capabilities {
-        return Boolean(
-            caps['goog:chromeOptions'] ||
-            caps['ms:edgeOptions'] ||
-            caps['moz:firefoxOptions'] ||
-            'browserName' in caps
-        )
-    }
-
-    #isMultiRemoteCapability(caps: WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }>): caps is Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }> {
-        return !this.#isSingleCapability(caps) && typeof caps === 'object' && caps !== null
-    }
-
-    #extractCapabilitiesFromBrowserConfig(browserConfig: { capabilities: WebdriverIO.Capabilities } | WebdriverIO.Capabilities): WebdriverIO.Capabilities {
-        if (browserConfig && typeof browserConfig === 'object' && 'capabilities' in browserConfig && browserConfig.capabilities) {
-            return browserConfig.capabilities
-        }
-        return browserConfig as WebdriverIO.Capabilities
+        forEachBrowserCapability(capabilities as never, (cap) => this.#addWaylandFlagsToCapability(cap))
     }
 
     #addWaylandFlagsToCapability(caps: WebdriverIO.Capabilities): void {
@@ -263,29 +290,17 @@ export class DisplayServerManager {
     }
 
     /**
-     * Detect if headless mode is enabled in browser capabilities
+     * Detect if headless mode is enabled in browser capabilities. Returns true
+     * if any browser capability has a headless flag set.
      */
     #detectHeadlessMode(capabilities?: WebdriverIO.Config['capabilities']): boolean {
-        if (!capabilities) {
-            return false
-        }
-
-        const caps = capabilities as WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }>
-
-        if (this.#isSingleCapability(caps)) {
-            return this.#checkCapabilityForHeadless(caps)
-        }
-
-        if (this.#isMultiRemoteCapability(caps)) {
-            for (const [, browserConfig] of Object.entries(caps)) {
-                const browserCaps = this.#extractCapabilitiesFromBrowserConfig(browserConfig)
-                if (this.#checkCapabilityForHeadless(browserCaps)) {
-                    return true
-                }
+        let isHeadless = false
+        forEachBrowserCapability(capabilities, (cap) => {
+            if (this.#checkCapabilityForHeadless(cap)) {
+                isHeadless = true
             }
-        }
-
-        return false
+        })
+        return isHeadless
     }
 
     #checkCapabilityForHeadless(caps: WebdriverIO.Capabilities): boolean {
