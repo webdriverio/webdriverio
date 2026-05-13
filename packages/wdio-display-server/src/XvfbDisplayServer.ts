@@ -172,11 +172,16 @@ export class XvfbDisplayServer implements DisplayServer {
             { stdio: 'ignore' }
         )
 
-        proc.on('error', (err) => {
-            this.log.error(`Xvfb daemon spawn error: ${err.message}`)
+        const exitPromise = new Promise<never>((_, reject) => {
+            proc.once('exit', (code, signal) => {
+                reject(new Error(`Xvfb process exited unexpectedly (code=${code}, signal=${signal})`))
+            })
+            proc.once('error', (err) => {
+                reject(new Error(`Xvfb process error: ${err.message}`))
+            })
         })
 
-        await this.waitForSocket(socketPath, 10_000)
+        await Promise.race([this.waitForSocket(socketPath, 10_000), exitPromise])
 
         let stopped = false
         const stop = async (): Promise<void> => {

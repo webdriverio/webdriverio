@@ -118,9 +118,12 @@ export class WaylandDisplayServer implements DisplayServer {
     }
 
     getEnvironment(): Record<string, string> {
+        if (!this.runtimeDir) {
+            throw new Error('WaylandDisplayServer.getEnvironment() called before startDaemon()')
+        }
         return {
             WAYLAND_DISPLAY: `wayland-${this.displayNum}`,
-            XDG_RUNTIME_DIR: this.runtimeDir ?? `/tmp/wdio-wayland-${process.pid}-${this.displayNum}`,
+            XDG_RUNTIME_DIR: this.runtimeDir,
             ELECTRON_OZONE_PLATFORM_HINT: 'wayland'
         }
     }
@@ -169,11 +172,16 @@ export class WaylandDisplayServer implements DisplayServer {
             }
         )
 
-        proc.on('error', (err) => {
-            this.log.error(`Weston daemon spawn error: ${err.message}`)
+        const exitPromise = new Promise<never>((_, reject) => {
+            proc.once('exit', (code, signal) => {
+                reject(new Error(`Weston process exited unexpectedly (code=${code}, signal=${signal})`))
+            })
+            proc.once('error', (err) => {
+                reject(new Error(`Weston process error: ${err.message}`))
+            })
         })
 
-        await this.waitForSocket(socketPath, 10_000)
+        await Promise.race([this.waitForSocket(socketPath, 10_000), exitPromise])
 
         let stopped = false
         const stop = async (): Promise<void> => {
