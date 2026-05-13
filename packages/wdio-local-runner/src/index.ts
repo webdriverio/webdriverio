@@ -61,6 +61,8 @@ export default class LocalRunner {
         // All concurrent run() calls share one init promise so none advance until init settles
         this.displayServerInitPromise ??= this.initializeDisplayServer(workerOptions)
         await this.displayServerInitPromise
+        // Inject Wayland Chrome flags per-worker — init() only runs for the first worker's caps
+        this.displayServerManager.injectDisplayFlags(workerOptions.caps)
 
         /**
          * adjust max listeners on stdout/stderr when creating listeners

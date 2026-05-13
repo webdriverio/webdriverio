@@ -325,6 +325,16 @@ export class DisplayServerManager {
     }
 
     /**
+     * Inject Wayland Chrome flags into a worker's capabilities.
+     * Must be called per-worker since init() only runs once for the first worker.
+     */
+    injectDisplayFlags(capabilities: Capabilities.ResolvedTestrunnerCapabilities): void {
+        if (this.#displayServer?.name === 'wayland' && capabilities) {
+            this.#injectWaylandChromeFlags(capabilities)
+        }
+    }
+
+    /**
      * Execute a function with retry logic for display server failures
      */
     async executeWithRetry<T>(
