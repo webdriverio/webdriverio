@@ -27,10 +27,11 @@ export class XvfbDisplayServer implements DisplayServer {
 
         try {
             await execAsync('which xvfb-run')
-            this.log.info('xvfb-run found in PATH')
+            await execAsync('which Xvfb')
+            this.log.info('xvfb-run and Xvfb found in PATH')
             return true
         } catch {
-            this.log.debug('xvfb-run not found')
+            this.log.debug('xvfb-run or Xvfb not found')
             return false
         }
     }

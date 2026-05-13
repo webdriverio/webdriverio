@@ -395,27 +395,27 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
     tsConfigPath?: string
     // Legacy option aliases for backward compatibility
     /**
-     * @deprecated Use `enabled` instead
+     * @deprecated Use `displayServerEnabled` instead
      */
     autoXvfb?: boolean
     /**
-     * @deprecated Use `autoInstall` instead
+     * @deprecated Use `displayServerAutoInstall` instead
      */
     xvfbAutoInstall?: boolean
     /**
-     * @deprecated Use `autoInstallMode` instead
+     * @deprecated Use `displayServerAutoInstallMode` instead
      */
     xvfbAutoInstallMode?: 'root' | 'sudo'
     /**
-     * @deprecated Use `autoInstallCommand` instead
+     * @deprecated Use `displayServerAutoInstallCommand` instead
      */
     xvfbAutoInstallCommand?: string | string[]
     /**
-     * @deprecated Use `maxRetries` instead
+     * @deprecated Use `displayServerMaxRetries` instead
      */
     xvfbMaxRetries?: number
     /**
-     * @deprecated Use `retryDelay` instead
+     * @deprecated Use `displayServerRetryDelay` instead
      */
     xvfbRetryDelay?: number
 }
