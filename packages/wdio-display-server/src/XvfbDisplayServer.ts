@@ -12,6 +12,9 @@ import { detectPackageManager } from './utils.js'
 
 const execAsync = promisify(exec)
 const X_SOCKET_DIR = '/tmp/.X11-unix'
+// Xvfb hardcodes /tmp for its per-display lock files (`.X<n>-lock`) regardless
+// of TMPDIR; we scan the same path it would write to.
+const X_LOCK_DIR = '/tmp'
 
 export class XvfbDisplayServer implements DisplayServer {
     readonly name = 'xvfb' as const
@@ -210,6 +213,22 @@ export class XvfbDisplayServer implements DisplayServer {
             }
         } catch {
             // socket dir may not exist yet — Xvfb will create it
+        }
+        // Also treat displays with leftover lock files as in-use. A crashed
+        // Xvfb can leave /tmp/.X<n>-lock behind after the socket is gone; a
+        // fresh Xvfb will refuse to claim that display number with
+        // "Server is already active for display :<n>". Without this scan,
+        // retries pick the same stale-locked number and every attempt fails.
+        try {
+            const entries = await readdir(X_LOCK_DIR)
+            for (const entry of entries) {
+                const match = entry.match(/^\.X(\d+)-lock$/)
+                if (match) {
+                    used.add(parseInt(match[1], 10))
+                }
+            }
+        } catch {
+            // /tmp should always exist, but guard anyway
         }
         for (let n = 99; n < 200; n++) {
             if (!used.has(n) && !XvfbDisplayServer.reservedDisplays.has(n)) {

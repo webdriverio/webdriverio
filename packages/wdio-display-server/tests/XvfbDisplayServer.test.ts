@@ -333,6 +333,53 @@ describe('XvfbDisplayServer', () => {
             // Falls through to :99 when no sockets visible.
             expect(daemon.env.DISPLAY).toBe(':99')
         })
+
+        it('skips display numbers with leftover .X<n>-lock files from a crashed Xvfb', async () => {
+            // Reproduces the post-crash scenario: a previous Xvfb died after
+            // creating /tmp/.X99-lock and /tmp/.X100-lock but cleanup removed
+            // /tmp/.X11-unix/X99 and /tmp/.X11-unix/X100. Without scanning the
+            // lock files we'd pick :99, Xvfb would refuse to start ("Server is
+            // already active for display :99"), and every retry would re-pick
+            // the same stale-locked number.
+            mockReaddir.mockImplementation(async (dir: string) => {
+                if (dir === '/tmp/.X11-unix') {
+                    return [] // no live sockets
+                }
+                if (dir === '/tmp') {
+                    return ['.X99-lock', '.X100-lock', 'unrelated.txt']
+                }
+                return []
+            })
+            const proc = new FakeProc()
+            mockSpawn.mockReturnValue(proc)
+            mockAccess.mockResolvedValue(undefined)
+
+            const server = new XvfbDisplayServer()
+            const daemon = await server.startDaemon()
+
+            expect(daemon.env.DISPLAY).toBe(':101')
+        })
+
+        it('combines socket and lock-file evidence when finding a free display', async () => {
+            mockReaddir.mockImplementation(async (dir: string) => {
+                if (dir === '/tmp/.X11-unix') {
+                    return ['X99'] // live display :99
+                }
+                if (dir === '/tmp') {
+                    return ['.X100-lock'] // stale lock at :100
+                }
+                return []
+            })
+            const proc = new FakeProc()
+            mockSpawn.mockReturnValue(proc)
+            mockAccess.mockResolvedValue(undefined)
+
+            const server = new XvfbDisplayServer()
+            const daemon = await server.startDaemon()
+
+            // :99 socket-used, :100 lock-stale → :101 is the first free.
+            expect(daemon.env.DISPLAY).toBe(':101')
+        })
     })
 
     describe('waitForSocket (via startDaemon)', () => {
