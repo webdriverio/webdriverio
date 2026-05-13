@@ -4,16 +4,21 @@ FROM ghcr.io/void-linux/void-glibc:latest
 ENV CI=true
 ENV CHROME_BIN=/usr/bin/chromium
 
-# xbps needs an initial sync before any package install. Refresh keys so
-# the sync can verify signatures on first run.
+# Refresh xbps itself first (Void's recommended bootstrap step). Then install
+# packages.
+#
+# Notes:
+# - ca-certificates is preinstalled in the base image; including it makes xbps
+#   return a non-zero exit code on "already installed" which fails the build.
+# - npm ships inside the `nodejs` package on Void — it is NOT a separate
+#   package and xbps will error with "not found in repository pool".
 RUN xbps-install -Suy xbps && \
     xbps-install -Sy \
         bash \
         curl \
-        ca-certificates \
+        shadow \
         sudo \
         nodejs \
-        npm \
         weston \
         chromium && \
     xbps-install -Scc
