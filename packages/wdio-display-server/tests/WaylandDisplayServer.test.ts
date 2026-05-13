@@ -40,6 +40,8 @@ const { WaylandDisplayServer } = await import('../src/WaylandDisplayServer.js')
 
 class FakeProc extends EventEmitter {
     killed = false
+    exitCode: number | null = null
+    signalCode: NodeJS.Signals | null = null
     kill = vi.fn((_signal?: NodeJS.Signals) => {
         this.killed = true
         return true
@@ -352,10 +354,10 @@ describe('WaylandDisplayServer', () => {
             const server = new WaylandDisplayServer()
             const daemon = await server.startDaemon()
 
-            // SIGTERM stays "alive" — never emit 'exit'. We need killed=false
+            // SIGTERM stays "alive" — never emit 'exit'. We need exitCode=null
             // so the SIGKILL escalation path runs.
             proc.kill = vi.fn(() => false) as any
-            ;(proc as any).killed = false
+            ;(proc as any).exitCode = null
 
             const stopPromise = daemon.stop()
             await vi.advanceTimersByTimeAsync(1000)

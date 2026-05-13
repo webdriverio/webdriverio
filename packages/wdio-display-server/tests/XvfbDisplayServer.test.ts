@@ -38,6 +38,8 @@ const { XvfbDisplayServer } = await import('../src/XvfbDisplayServer.js')
 
 class FakeProc extends EventEmitter {
     killed = false
+    exitCode: number | null = null
+    signalCode: NodeJS.Signals | null = null
     kill = vi.fn((_signal?: NodeJS.Signals) => {
         this.killed = true
         return true
@@ -268,7 +270,7 @@ describe('XvfbDisplayServer', () => {
             const daemon = await server.startDaemon()
 
             proc.kill = vi.fn(() => false) as any
-            ;(proc as any).killed = false
+            ;(proc as any).exitCode = null
 
             const stopPromise = daemon.stop()
             await vi.advanceTimersByTimeAsync(1000)

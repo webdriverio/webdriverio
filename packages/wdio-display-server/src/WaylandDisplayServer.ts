@@ -173,7 +173,7 @@ export class WaylandDisplayServer implements DisplayServer {
             proc.kill('SIGTERM')
             await new Promise<void>((resolve) => {
                 const timer = setTimeout(() => {
-                    if (!proc.killed) {
+                    if (proc.exitCode === null && proc.signalCode === null) {
                         proc.kill('SIGKILL')
                     }
                     resolve()
