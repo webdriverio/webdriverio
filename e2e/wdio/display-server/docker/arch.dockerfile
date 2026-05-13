@@ -13,6 +13,11 @@ ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
 # whose tightened undici input validation makes WDIO's session POST fail
 # with UND_ERR_INVALID_ARG. The rest of the matrix runs Node 20/22 and
 # passes, so align Arch with that range.
+#
+# libdisplay-info is listed explicitly because weston's runtime dlopen of
+# libdisplay-info.so.3 fails when pacman -Sy lands on an inconsistent dep
+# version (a known partial-upgrade hazard); naming it as a top-level
+# install target forces pacman to resolve it against the same DB sync.
 RUN pacman -Sy --noconfirm \
         curl \
         ca-certificates \
@@ -21,6 +26,7 @@ RUN pacman -Sy --noconfirm \
         npm \
         which \
         weston \
+        libdisplay-info \
         chromium && \
     pacman -Scc --noconfirm
 
