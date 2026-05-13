@@ -151,10 +151,17 @@ export class WaylandDisplayServer implements DisplayServer {
 
         try {
             await Promise.race([this.waitForSocket(socketPath, 10_000), exitPromise])
-        } finally {
+        } catch (err) {
             proc.removeListener('exit', onExit)
             proc.removeListener('error', onError)
+            if (!proc.killed) {
+                proc.kill('SIGTERM')
+            }
+            await rm(runtimeDir, { recursive: true, force: true }).catch(() => {})
+            throw err
         }
+        proc.removeListener('exit', onExit)
+        proc.removeListener('error', onError)
 
         let stopped = false
         const stop = async (): Promise<void> => {
