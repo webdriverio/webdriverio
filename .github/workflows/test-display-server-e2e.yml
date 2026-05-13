@@ -1,4 +1,4 @@
-name: Display Server E2E Tests
+name: E2E Display Server Tests
 
 on:
   workflow_call:
@@ -92,7 +92,7 @@ jobs:
             dockerfile: void.dockerfile
             test: existing
 
-    name: "Display Server E2E: ${{ matrix.distro }}:${{ matrix.version }} (${{ matrix.scenario }})"
+    name: "E2E Display Server Test: ${{ matrix.distro }}:${{ matrix.version }} (${{ matrix.scenario }})"
 
     steps:
       - name: ⬇️ Checkout Code
