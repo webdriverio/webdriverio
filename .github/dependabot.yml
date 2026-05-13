@@ -86,7 +86,7 @@ updates:
       update-types:
         - "major"
 - package-ecosystem: docker
-  directory: "/e2e/wdio/xvfb/docker"
+  directory: "/e2e/wdio/display-server/docker"
   schedule:
     interval: weekly
     time: "11:00"

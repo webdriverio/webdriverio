@@ -114,9 +114,9 @@ jobs:
       - name: Build test container
         run: |
           docker build \
-            -f e2e/wdio/xvfb/docker/${{ matrix.dockerfile }} \
+            -f e2e/wdio/display-server/docker/${{ matrix.dockerfile }} \
             -t display-server-test:${{ matrix.distro }}-${{ matrix.scenario }} \
-            e2e/wdio/xvfb/docker/
+            e2e/wdio/display-server/docker/
 
       - name: Run Display Server E2E tests in container
         run: |
@@ -149,19 +149,19 @@ jobs:
           echo "=== Test failed, displaying diagnostic logs ==="
 
           # Show WDIO-generated log files
-          if [ -f e2e/wdio/xvfb/logs/wdio.log ]; then
+          if [ -f e2e/wdio/display-server/logs/wdio.log ]; then
             echo "=== WDIO Main Log ==="
-            cat e2e/wdio/xvfb/logs/wdio.log
+            cat e2e/wdio/display-server/logs/wdio.log
           fi
 
-          if [ -f e2e/wdio/xvfb/logs/wdio-0-0.log ]; then
+          if [ -f e2e/wdio/display-server/logs/wdio-0-0.log ]; then
             echo "=== WDIO Worker Log ==="
-            cat e2e/wdio/xvfb/logs/wdio-0-0.log
+            cat e2e/wdio/display-server/logs/wdio-0-0.log
           fi
 
-          if [ -f e2e/wdio/xvfb/logs/wdio-0-0-chromedriver.log ]; then
+          if [ -f e2e/wdio/display-server/logs/wdio-0-0-chromedriver.log ]; then
             echo "=== Chromedriver Log ==="
-            cat e2e/wdio/xvfb/logs/wdio-0-0-chromedriver.log
+            cat e2e/wdio/display-server/logs/wdio-0-0-chromedriver.log
           fi
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
@@ -169,5 +169,5 @@ jobs:
         with:
           name: display-server-e2e-logs-${{ matrix.distro }}-${{ matrix.version }}-${{ matrix.scenario }}
           path: |
-            e2e/wdio/xvfb/logs/
-            e2e/wdio/xvfb/screenshots/
+            e2e/wdio/display-server/logs/
+            e2e/wdio/display-server/screenshots/
