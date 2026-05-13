@@ -213,7 +213,8 @@ export class DisplayServerManager {
         return Boolean(
             caps['goog:chromeOptions'] ||
             caps['ms:edgeOptions'] ||
-            caps['moz:firefoxOptions']
+            caps['moz:firefoxOptions'] ||
+            'browserName' in caps
         )
     }
 
@@ -229,9 +230,18 @@ export class DisplayServerManager {
     }
 
     #addWaylandFlagsToCapability(caps: WebdriverIO.Capabilities): void {
-        // Only add flags for Chrome/Chromium/Edge
-        const chromeOptions = caps['goog:chromeOptions'] || (caps as Record<string, unknown>).chromeOptions as { args?: string[] }
-        const edgeOptions = caps['ms:edgeOptions'] || (caps as Record<string, unknown>).edgeOptions as { args?: string[] }
+        let chromeOptions = caps['goog:chromeOptions'] || (caps as Record<string, unknown>).chromeOptions as { args?: string[] }
+        let edgeOptions = caps['ms:edgeOptions'] || (caps as Record<string, unknown>).edgeOptions as { args?: string[] }
+
+        // Create options objects for bare caps like { browserName: 'chrome' }
+        if (!chromeOptions && (caps.browserName === 'chrome' || caps.browserName === 'chromium')) {
+            caps['goog:chromeOptions'] = { args: [] }
+            chromeOptions = caps['goog:chromeOptions']
+        }
+        if (!edgeOptions && caps.browserName === 'msedge') {
+            caps['ms:edgeOptions'] = { args: [] }
+            edgeOptions = caps['ms:edgeOptions']
+        }
 
         if (chromeOptions) {
             chromeOptions.args = chromeOptions.args || []

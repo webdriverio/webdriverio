@@ -97,8 +97,7 @@ export class DisplayProcessFactory implements ProcessCreator {
                 return
             }
 
-            // displayEnv wins over env so per-worker values are not overridden
-            // by a previously-set DISPLAY in process.env
+            // displayEnv is always {} for xvfb-run (it sets DISPLAY itself after exec'ing the child)
             const displayEnv = displayServer.getEnvironment()
             const mergedEnv = { ...env, ...displayEnv }
 

@@ -16,6 +16,7 @@ export class XvfbDisplayServer implements DisplayServer {
     readonly name = 'xvfb' as const
     private log = logger('@wdio/display-server: xvfb')
     private isCentOS10 = false
+    private static reservedDisplays = new Set<number>()
 
     async isAvailable(): Promise<boolean> {
         // Check if this is CentOS Stream 10 - Xvfb is not available
@@ -192,6 +193,7 @@ export class XvfbDisplayServer implements DisplayServer {
                 return
             }
             stopped = true
+            XvfbDisplayServer.reservedDisplays.delete(displayNum)
             this.log.info(`Stopping Xvfb daemon on ${display}`)
             proc.kill('SIGTERM')
             await new Promise<void>((resolve) => {
@@ -212,7 +214,7 @@ export class XvfbDisplayServer implements DisplayServer {
     }
 
     private async findFreeDisplay(): Promise<number> {
-        const used = new Set<number>()
+        const used = new Set<number>(XvfbDisplayServer.reservedDisplays)
         try {
             const entries = await readdir(X_SOCKET_DIR)
             for (const entry of entries) {
@@ -226,6 +228,7 @@ export class XvfbDisplayServer implements DisplayServer {
         }
         for (let n = 99; n < 200; n++) {
             if (!used.has(n)) {
+                XvfbDisplayServer.reservedDisplays.add(n)
                 return n
             }
         }
