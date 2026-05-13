@@ -2,7 +2,12 @@ FROM ghcr.io/void-linux/void-glibc:latest
 
 # Set environment variables
 ENV CI=true
+# Void's chromium package ships /usr/bin/chromedriver (symlink into
+# /usr/lib/chromium/) — use it instead of letting wdio download
+# chrome-for-testing chromedriver, which is built for a different chromium
+# version and may not match the system browser.
 ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
 
 # Refresh xbps itself first (Void's recommended bootstrap step). Then install
 # packages.

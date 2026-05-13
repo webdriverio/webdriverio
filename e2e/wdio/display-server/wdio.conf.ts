@@ -24,7 +24,13 @@ export const config: WebdriverIO.Config = {
             ],
             // Handle Alpine Linux with chromium-browser
             ...(process.env.CHROME_BIN && { binary: process.env.CHROME_BIN })
-        }
+        },
+        // Chrome-for-Testing chromedriver is glibc-only, so Alpine (musl) and
+        // any other distro without a glibc loader must provide a system
+        // chromedriver and point us at it. Set CHROMEDRIVER_PATH to opt in.
+        ...(process.env.CHROMEDRIVER_PATH && {
+            'wdio:chromedriverOptions': { binary: process.env.CHROMEDRIVER_PATH }
+        })
     }],
 
     /**

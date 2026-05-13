@@ -4,7 +4,9 @@ FROM archlinux:latest
 ENV CI=true
 # google-chrome lives in the AUR; use chromium from the official extra repo
 # instead. The wdio config honours CHROME_BIN to pick this up.
+# Arch's chromium package ships /usr/bin/chromedriver alongside the browser.
 ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
 
 # Install requirements including Wayland (weston)
 RUN pacman -Sy --noconfirm \

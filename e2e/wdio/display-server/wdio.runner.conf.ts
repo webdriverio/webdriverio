@@ -29,7 +29,11 @@ export const config: WebdriverIO.Config = {
                 '--disable-dev-shm-usage'
             ],
             ...(process.env.CHROME_BIN && { binary: process.env.CHROME_BIN })
-        }
+        },
+        // See wdio.conf.ts — same musl/glibc rationale.
+        ...(process.env.CHROMEDRIVER_PATH && {
+            'wdio:chromedriverOptions': { binary: process.env.CHROMEDRIVER_PATH }
+        })
     }],
 
     logLevel: 'info',
