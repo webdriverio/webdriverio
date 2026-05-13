@@ -44,6 +44,16 @@ jobs:
             scenario: wayland-launcher
             dockerfile: ubuntu-wayland.dockerfile
             test: launcher
+          - distro: ubuntu
+            version: "24.04"
+            scenario: xvfb-runner
+            dockerfile: ubuntu-xvfb.dockerfile
+            test: runner
+          - distro: ubuntu
+            version: "24.04"
+            scenario: wayland-runner
+            dockerfile: ubuntu-wayland.dockerfile
+            test: runner
 
           # Other distros - pre-installed only
           - distro: fedora

@@ -37,6 +37,7 @@
     "test:display-server:base": "wdio ./wdio/xvfb/wdio.conf.ts --spec base-install.e2e.ts",
     "test:display-server:existing": "wdio ./wdio/xvfb/wdio.conf.ts --spec existing-display-server.e2e.ts",
     "test:display-server:launcher": "wdio ./wdio/xvfb/wdio.conf.ts --spec launcher.e2e.ts",
+    "test:display-server:runner": "wdio ./wdio/xvfb/wdio.runner.conf.ts",
     "verifyCoverage": "test -d ./browser-runner/coverage"
   },
   "devDependencies": {
