@@ -225,6 +225,255 @@ describe('ProcessFactory', () => {
         })
     })
 
+    describe('Wayland path (startDaemon + fork)', () => {
+        const scriptPath = '/path/to/script.js'
+        const args = ['--arg1']
+        const options = {
+            cwd: '/working/dir',
+            env: { NODE_ENV: 'test' },
+            execArgv: ['--inspect'],
+            stdio: ['inherit', 'pipe', 'pipe', 'ipc'] as ('inherit' | 'pipe' | 'ignore' | 'ipc')[]
+        }
+
+        const makeWaylandServer = () => ({
+            name: 'wayland' as const,
+            isAvailable: vi.fn(),
+            install: vi.fn(),
+            getEnvironment: vi.fn(() => ({})),
+            // Wayland intentionally exposes no process wrapper (would break IPC)
+            getProcessWrapper: vi.fn(() => null),
+            getChromeFlags: vi.fn(() => []),
+            startDaemon: vi.fn(),
+        })
+
+        beforeEach(() => {
+            mockXvfbManager.shouldRun.mockReturnValue(true)
+            mockXvfbManager.executeWithRetry.mockImplementation(async (fn: () => Promise<unknown>) => await fn())
+        })
+
+        it('starts a per-worker Weston daemon and forks the worker with merged env', async () => {
+            const waylandServer = makeWaylandServer()
+            const daemonStop = vi.fn().mockResolvedValue(undefined)
+            waylandServer.startDaemon.mockResolvedValue({
+                env: {
+                    WAYLAND_DISPLAY: 'wayland-1',
+                    XDG_RUNTIME_DIR: '/tmp/wdio-wayland-x',
+                    ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
+                },
+                stop: daemonStop,
+            })
+            mockXvfbManager.getDisplayServer.mockReturnValue(waylandServer as never)
+
+            const mockProcess = {
+                ...mockChildProcess,
+                on: vi.fn(),
+                once: vi.fn(),
+            } as unknown as ChildProcess
+            mockFork.mockReturnValue(mockProcess)
+
+            const result = await processFactory.createWorkerProcess(scriptPath, args, options)
+
+            expect(waylandServer.startDaemon).toHaveBeenCalled()
+            // Falls through to fork() (not spawn) so the IPC fd is preserved
+            expect(mockSpawn).not.toHaveBeenCalled()
+            expect(mockFork).toHaveBeenCalledWith(scriptPath, args, {
+                cwd: options.cwd,
+                env: {
+                    NODE_ENV: 'test',
+                    WAYLAND_DISPLAY: 'wayland-1',
+                    XDG_RUNTIME_DIR: '/tmp/wdio-wayland-x',
+                    ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
+                },
+                execArgv: options.execArgv,
+                stdio: options.stdio,
+            })
+            expect(result).toBe(mockProcess)
+            // The factory should register an exit hook to stop the daemon
+            expect((mockProcess.once as any)).toHaveBeenCalledWith('exit', expect.any(Function))
+        })
+
+        it('stops the daemon when the forked worker exits', async () => {
+            const waylandServer = makeWaylandServer()
+            const daemonStop = vi.fn().mockResolvedValue(undefined)
+            waylandServer.startDaemon.mockResolvedValue({
+                env: { WAYLAND_DISPLAY: 'wayland-1' },
+                stop: daemonStop,
+            })
+            mockXvfbManager.getDisplayServer.mockReturnValue(waylandServer as never)
+
+            // Capture the 'exit' listener so we can invoke it manually.
+            let exitListener: (() => void) | undefined
+            const mockProcess = {
+                ...mockChildProcess,
+                on: vi.fn(),
+                once: vi.fn((event: string, listener: () => void) => {
+                    if (event === 'exit') {
+                        exitListener = listener
+                    }
+                }),
+            } as unknown as ChildProcess
+            mockFork.mockReturnValue(mockProcess)
+
+            await processFactory.createWorkerProcess(scriptPath, args, options)
+
+            expect(exitListener).toBeDefined()
+            exitListener!()
+            // Allow microtasks to drain (stop() is fire-and-forget)
+            await new Promise((r) => setImmediate(r))
+
+            expect(daemonStop).toHaveBeenCalledTimes(1)
+        })
+
+        it('stops the daemon and rethrows when fork() throws synchronously', async () => {
+            const waylandServer = makeWaylandServer()
+            const daemonStop = vi.fn().mockResolvedValue(undefined)
+            waylandServer.startDaemon.mockResolvedValue({
+                env: { WAYLAND_DISPLAY: 'wayland-1' },
+                stop: daemonStop,
+            })
+            mockXvfbManager.getDisplayServer.mockReturnValue(waylandServer as never)
+
+            mockFork.mockImplementation(() => {
+                throw new Error('fork blew up')
+            })
+
+            await expect(
+                processFactory.createWorkerProcess(scriptPath, args, options)
+            ).rejects.toThrow('fork blew up')
+
+            expect(daemonStop).toHaveBeenCalledTimes(1)
+        })
+
+        it('does not invoke the Xvfb spawn-wrapper path for Wayland', async () => {
+            const waylandServer = makeWaylandServer()
+            const daemonStop = vi.fn().mockResolvedValue(undefined)
+            waylandServer.startDaemon.mockResolvedValue({
+                env: { WAYLAND_DISPLAY: 'wayland-1' },
+                stop: daemonStop,
+            })
+            mockXvfbManager.getDisplayServer.mockReturnValue(waylandServer as never)
+
+            const mockProcess = {
+                ...mockChildProcess,
+                on: vi.fn(),
+                once: vi.fn(),
+            } as unknown as ChildProcess
+            mockFork.mockReturnValue(mockProcess)
+
+            await processFactory.createWorkerProcess(scriptPath, args, options)
+
+            // getProcessWrapper() must not be consulted on the Wayland path
+            expect(waylandServer.getProcessWrapper).not.toHaveBeenCalled()
+        })
+    })
+
+    describe('Xvfb spawn-wrapper construction', () => {
+        const scriptPath = '/path/to/script.js'
+        const args = ['--arg1']
+        const options = {
+            cwd: '/working/dir',
+            env: { NODE_ENV: 'test' },
+            execArgv: ['--inspect'],
+            stdio: ['inherit', 'pipe', 'pipe', 'ipc'] as ('inherit' | 'pipe' | 'ignore' | 'ipc')[]
+        }
+
+        beforeEach(() => {
+            mockXvfbManager.shouldRun.mockReturnValue(true)
+            mockXvfbManager.executeWithRetry.mockImplementation(async (fn: () => Promise<unknown>) => await fn())
+        })
+
+        it('spawns xvfb-run with process.execPath (not hardcoded "node")', async () => {
+            const fakeServer = makeFakeDisplayServer()
+            mockXvfbManager.getDisplayServer.mockReturnValue(fakeServer as never)
+
+            const mockProcess = {
+                ...mockChildProcess,
+                on: vi.fn(),
+                once: vi.fn(),
+            } as unknown as ChildProcess
+            mockSpawn.mockReturnValue(mockProcess)
+
+            await processFactory.createWorkerProcess(scriptPath, args, options)
+
+            expect(mockSpawn).toHaveBeenCalledWith(
+                'xvfb-run',
+                expect.arrayContaining([
+                    '--auto-servernum',
+                    '--',
+                    process.execPath,
+                    '--inspect',
+                    scriptPath,
+                    '--arg1',
+                ]),
+                expect.objectContaining({
+                    cwd: options.cwd,
+                    stdio: options.stdio,
+                })
+            )
+        })
+
+        it('falls through to regular fork when the server exposes no wrapper', async () => {
+            const fakeServer = makeFakeDisplayServer()
+            fakeServer.getProcessWrapper = vi.fn(() => null)
+            mockXvfbManager.getDisplayServer.mockReturnValue(fakeServer as never)
+
+            await processFactory.createWorkerProcess(scriptPath, args, options)
+
+            expect(mockSpawn).not.toHaveBeenCalled()
+            expect(mockFork).toHaveBeenCalled()
+        })
+
+        it('rejects when the spawned wrapper exits with a non-zero code before the 2s grace window', async () => {
+            const fakeServer = makeFakeDisplayServer()
+            mockXvfbManager.getDisplayServer.mockReturnValue(fakeServer as never)
+
+            // Capture the 'exit' handler so we can fire it manually.
+            let exitHandler: ((code: number, signal: NodeJS.Signals | null) => void) | undefined
+            const mockProcess = {
+                ...mockChildProcess,
+                on: vi.fn((event: string, handler: any) => {
+                    if (event === 'exit') {
+                        exitHandler = handler
+                    }
+                }),
+                once: vi.fn(),
+            } as unknown as ChildProcess
+            mockSpawn.mockReturnValue(mockProcess)
+
+            const resultPromise = processFactory.createWorkerProcess(scriptPath, args, options)
+            await new Promise((r) => setImmediate(r))
+
+            expect(exitHandler).toBeDefined()
+            exitHandler!(1, null)
+
+            await expect(resultPromise).rejects.toThrow(/xvfb process exited with code 1/)
+        })
+
+        it('resolves with the spawned process after the 2s grace window', async () => {
+            vi.useFakeTimers()
+            try {
+                const fakeServer = makeFakeDisplayServer()
+                mockXvfbManager.getDisplayServer.mockReturnValue(fakeServer as never)
+
+                const mockProcess = {
+                    ...mockChildProcess,
+                    on: vi.fn(),
+                    once: vi.fn(),
+                } as unknown as ChildProcess
+                mockSpawn.mockReturnValue(mockProcess)
+
+                const resultPromise = processFactory.createWorkerProcess(scriptPath, args, options)
+
+                // Before the 2s timer fires, the promise hasn't settled.
+                await vi.advanceTimersByTimeAsync(1999)
+                await vi.advanceTimersByTimeAsync(1)
+                await expect(resultPromise).resolves.toBe(mockProcess)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+    })
+
     describe('integration with DisplayServerManager', () => {
         it('calls shouldRun on the manager', async () => {
             const customManager = {

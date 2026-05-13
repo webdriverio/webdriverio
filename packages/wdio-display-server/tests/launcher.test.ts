@@ -193,6 +193,78 @@ describe('DisplayServerLauncher', () => {
         })
     })
 
+    describe('env restoration', () => {
+        it('restores XDG_RUNTIME_DIR to its pre-existing value after stop', async () => {
+            process.env.XDG_RUNTIME_DIR = '/run/user/1000'
+            mockGetDisplayServer.mockReturnValue({ name: 'wayland', startDaemon: mockStartDaemon })
+            mockStartDaemon.mockResolvedValue({
+                env: {
+                    WAYLAND_DISPLAY: 'wayland-1',
+                    XDG_RUNTIME_DIR: '/tmp/wdio-wayland-x',
+                },
+                stop: mockStop,
+            })
+
+            const launcher = makeLauncher()
+            await launcher.onPrepare!({} as never, [] as never)
+            expect(process.env.XDG_RUNTIME_DIR).toBe('/tmp/wdio-wayland-x')
+
+            await launcher.onComplete!(0, {} as never, [] as never, {} as never)
+            expect(process.env.XDG_RUNTIME_DIR).toBe('/run/user/1000')
+        })
+
+        it('deletes daemon-only env keys that had no prior value after stop', async () => {
+            // Pre-state: no WAYLAND_DISPLAY set
+            delete process.env.WAYLAND_DISPLAY
+            mockGetDisplayServer.mockReturnValue({ name: 'wayland', startDaemon: mockStartDaemon })
+            mockStartDaemon.mockResolvedValue({
+                env: { WAYLAND_DISPLAY: 'wayland-1' },
+                stop: mockStop,
+            })
+
+            const launcher = makeLauncher()
+            await launcher.onPrepare!({} as never, [] as never)
+            expect(process.env.WAYLAND_DISPLAY).toBe('wayland-1')
+
+            await launcher.onComplete!(0, {} as never, [] as never, {} as never)
+            expect('WAYLAND_DISPLAY' in process.env).toBe(false)
+        })
+
+        it('restores all keys when the daemon sets multiple env vars on top of existing ones', async () => {
+            process.env.XDG_RUNTIME_DIR = '/run/user/1000'
+            process.env.ELECTRON_OZONE_PLATFORM_HINT = 'x11'
+            delete process.env.WAYLAND_DISPLAY
+
+            mockGetDisplayServer.mockReturnValue({ name: 'wayland', startDaemon: mockStartDaemon })
+            mockStartDaemon.mockResolvedValue({
+                env: {
+                    WAYLAND_DISPLAY: 'wayland-1',
+                    XDG_RUNTIME_DIR: '/tmp/wdio-wayland-x',
+                    ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
+                },
+                stop: mockStop,
+            })
+
+            const launcher = makeLauncher()
+            await launcher.onPrepare!({} as never, [] as never)
+            await launcher.onComplete!(0, {} as never, [] as never, {} as never)
+
+            expect(process.env.XDG_RUNTIME_DIR).toBe('/run/user/1000')
+            expect(process.env.ELECTRON_OZONE_PLATFORM_HINT).toBe('x11')
+            expect('WAYLAND_DISPLAY' in process.env).toBe(false)
+        })
+
+        it('clears DISPLAY when Xvfb daemon stops and DISPLAY had no prior value', async () => {
+            delete process.env.DISPLAY
+            const launcher = makeLauncher()
+            await launcher.onPrepare!({} as never, [] as never)
+            expect(process.env.DISPLAY).toBe(':99')
+
+            await launcher.onComplete!(0, {} as never, [] as never, {} as never)
+            expect('DISPLAY' in process.env).toBe(false)
+        })
+    })
+
     describe('option aliases', () => {
         it('accepts legacy autoXvfb option (passed through to manager)', () => {
             // The manager mock receives the options; we just verify construction succeeds.
