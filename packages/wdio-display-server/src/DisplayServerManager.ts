@@ -339,9 +339,21 @@ export class DisplayServerManager {
     /**
      * Inject Wayland Chrome flags into a worker's capabilities.
      * Must be called per-worker since init() only runs once for the first worker.
+     *
+     * Triggers when either:
+     *   - this manager selected Wayland during init(), OR
+     *   - process.env.WAYLAND_DISPLAY is already set by an external party
+     *     (e.g. DisplayServerLauncher's onPrepare hook). In that case
+     *     shouldRun()/init() short-circuited and #displayServer is null,
+     *     but Chrome workers still need --ozone-platform=wayland so they
+     *     don't fall back to a missing X11 server on a Wayland-only host.
      */
     injectDisplayFlags(capabilities: Capabilities.ResolvedTestrunnerCapabilities): void {
-        if (this.#displayServer?.name === 'wayland' && capabilities) {
+        if (!capabilities) {
+            return
+        }
+        const isWayland = this.#displayServer?.name === 'wayland' || Boolean(process.env.WAYLAND_DISPLAY)
+        if (isWayland) {
             this.#injectWaylandChromeFlags(capabilities)
         }
     }

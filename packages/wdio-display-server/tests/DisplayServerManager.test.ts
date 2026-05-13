@@ -170,6 +170,28 @@ describe('DisplayServerManager (gap coverage)', () => {
             expect(caps['goog:chromeOptions']!.args).toEqual([])
         })
 
+        it('injects Wayland flags when WAYLAND_DISPLAY is set externally (launcher pre-set, this manager did not init)', () => {
+            // Reproduces the launcher-service interaction: DisplayServerLauncher
+            // ran in onPrepare and set process.env.WAYLAND_DISPLAY; this manager's
+            // own init() short-circuited (shouldRun = false because env is set),
+            // so #displayServer is null. Workers must still receive ozone-wayland
+            // flags so Chrome doesn't fall back to absent X11.
+            process.env.WAYLAND_DISPLAY = 'wayland-1'
+            try {
+                const mgr = new DisplayServerManager()
+                const caps = { browserName: 'chrome' } as WebdriverIO.Capabilities
+
+                mgr.injectDisplayFlags(caps as never)
+
+                expect(caps['goog:chromeOptions']?.args).toEqual([
+                    '--ozone-platform=wayland',
+                    '--enable-features=UseOzonePlatform',
+                ])
+            } finally {
+                delete process.env.WAYLAND_DISPLAY
+            }
+        })
+
         it('does nothing for Xvfb (no Chrome flags needed)', async () => {
             mockXvfb.isAvailable.mockResolvedValue(true)
             const mgr = new DisplayServerManager({ displayServer: 'xvfb' })
