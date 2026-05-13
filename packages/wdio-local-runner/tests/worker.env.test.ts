@@ -11,11 +11,17 @@ const createWorkerProcessMock = vi.fn().mockResolvedValue({
     stderr: { pipe: vi.fn() }
 })
 
-vi.mock('@wdio/xvfb', () => ({
-    ProcessFactory: class {
+vi.mock('@wdio/display-server', () => ({
+    DisplayProcessFactory: class {
         createWorkerProcess = createWorkerProcessMock
     }
 }))
+
+const mockDisplayServerManager = {
+    shouldRun: vi.fn().mockReturnValue(false),
+    getDisplayServer: vi.fn().mockReturnValue(null),
+    injectDisplayFlags: vi.fn(),
+}
 
 describe('Worker Env Generation', () => {
     beforeEach(() => {
@@ -31,7 +37,7 @@ describe('Worker Env Generation', () => {
             specs: [],
             execArgv: [],
             retries: 0
-        } as any, new WritableStreamBuffer(), new WritableStreamBuffer(), {} as any)
+        } as any, new WritableStreamBuffer(), new WritableStreamBuffer(), mockDisplayServerManager as any)
 
         await worker.startProcess()
 
@@ -49,7 +55,7 @@ describe('Worker Env Generation', () => {
             specs: ['/path/to/my.test.e2e.ts'],
             execArgv: [],
             retries: 0
-        } as any, new WritableStreamBuffer(), new WritableStreamBuffer(), {} as any)
+        } as any, new WritableStreamBuffer(), new WritableStreamBuffer(), mockDisplayServerManager as any)
 
         await worker.startProcess()
 
@@ -67,7 +73,7 @@ describe('Worker Env Generation', () => {
             specs: [''],
             execArgv: [],
             retries: 0
-        } as any, new WritableStreamBuffer(), new WritableStreamBuffer(), {} as any)
+        } as any, new WritableStreamBuffer(), new WritableStreamBuffer(), mockDisplayServerManager as any)
 
         await worker.startProcess()
 

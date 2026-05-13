@@ -31,9 +31,9 @@ vi.mock(
     () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger'))
 )
 
-vi.mock('@wdio/xvfb', () => {
+vi.mock('@wdio/display-server', () => {
     return {
-        ProcessFactory: vi.fn().mockImplementation(() => ({
+        DisplayProcessFactory: vi.fn().mockImplementation(() => ({
             createWorkerProcess: vi.fn().mockImplementation(() => {
                 // Create a fresh mock for each process
                 return Promise.resolve({
@@ -44,9 +44,11 @@ vi.mock('@wdio/xvfb', () => {
                 })
             })
         })),
-        XvfbManager: vi.fn().mockImplementation(() => ({
+        DisplayServerManager: vi.fn().mockImplementation(() => ({
             init: vi.fn().mockResolvedValue(true),
-            shouldRun: vi.fn().mockReturnValue(true)
+            shouldRun: vi.fn().mockReturnValue(true),
+            injectDisplayFlags: vi.fn(),
+            getDisplayServer: vi.fn().mockReturnValue(null),
         })),
         default: vi.fn()
     }
