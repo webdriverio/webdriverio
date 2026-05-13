@@ -6,6 +6,7 @@ ENV CI=true
 # Install basic requirements including Xvfb (Alpine uses Xvfb, limited Wayland support)
 RUN apk update && \
     apk add --no-cache \
+        bash \
         curl \
         ca-certificates \
         sudo \

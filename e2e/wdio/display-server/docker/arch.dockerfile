@@ -2,6 +2,9 @@ FROM archlinux:latest
 
 # Set environment variables
 ENV CI=true
+# google-chrome lives in the AUR; use chromium from the official extra repo
+# instead. The wdio config honours CHROME_BIN to pick this up.
+ENV CHROME_BIN=/usr/bin/chromium
 
 # Install requirements including Wayland (weston)
 RUN pacman -Sy --noconfirm \
@@ -12,7 +15,7 @@ RUN pacman -Sy --noconfirm \
         npm \
         which \
         weston \
-        google-chrome && \
+        chromium && \
     pacman -Scc --noconfirm
 
 # Install pnpm globally as root

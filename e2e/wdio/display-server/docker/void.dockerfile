@@ -1,10 +1,14 @@
-FROM voidlinux/void-linux:latest
+FROM ghcr.io/void-linux/void-glibc:latest
 
 # Set environment variables
 ENV CI=true
+ENV CHROME_BIN=/usr/bin/chromium
 
-# Install requirements including Wayland (weston)
-RUN xbps-install -Sy \
+# xbps needs an initial sync before any package install. Refresh keys so
+# the sync can verify signatures on first run.
+RUN xbps-install -Suy xbps && \
+    xbps-install -Sy \
+        bash \
         curl \
         ca-certificates \
         sudo \
