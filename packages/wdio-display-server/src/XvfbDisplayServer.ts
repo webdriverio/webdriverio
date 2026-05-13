@@ -139,10 +139,8 @@ export class XvfbDisplayServer implements DisplayServer {
     }
 
     getEnvironment(): Record<string, string> {
-        // Xvfb sets DISPLAY environment variable via xvfb-run
-        return {
-            DISPLAY: ':99'
-        }
+        // xvfb-run --auto-servernum sets DISPLAY itself before exec'ing the child
+        return {}
     }
 
     getProcessWrapper(): string[] | null {

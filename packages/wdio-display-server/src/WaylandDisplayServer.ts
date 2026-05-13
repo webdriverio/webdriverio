@@ -14,8 +14,6 @@ const execAsync = promisify(exec)
 export class WaylandDisplayServer implements DisplayServer {
     readonly name = 'wayland' as const
     private log = logger('@wdio/display-server:wayland')
-    private runtimeDir: string | null = null
-    private displayNum = 1
     private static daemonCounter = 0
 
     async isAvailable(): Promise<boolean> {
@@ -118,14 +116,8 @@ export class WaylandDisplayServer implements DisplayServer {
     }
 
     getEnvironment(): Record<string, string> {
-        if (!this.runtimeDir) {
-            throw new Error('WaylandDisplayServer.getEnvironment() called before startDaemon()')
-        }
-        return {
-            WAYLAND_DISPLAY: `wayland-${this.displayNum}`,
-            XDG_RUNTIME_DIR: this.runtimeDir,
-            ELECTRON_OZONE_PLATFORM_HINT: 'wayland'
-        }
+        // Wayland env is only available per-daemon via startDaemon().env
+        return {}
     }
 
     getProcessWrapper(): string[] | null {
@@ -147,13 +139,11 @@ export class WaylandDisplayServer implements DisplayServer {
         const height = options?.height ?? 1080
 
         const id = ++WaylandDisplayServer.daemonCounter
-        this.displayNum = id
         const runtimeDir = `/tmp/wdio-wayland-${process.pid}-${id}`
         const socketName = `wayland-${id}`
         const socketPath = `${runtimeDir}/${socketName}`
 
         await mkdir(runtimeDir, { recursive: true, mode: 0o700 })
-        this.runtimeDir = runtimeDir
 
         this.log.info(`Starting Weston daemon on ${socketName} (${width}x${height}) in ${runtimeDir}`)
 

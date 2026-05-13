@@ -71,13 +71,18 @@ export class DisplayProcessFactory implements ProcessCreator {
 
         if (displayServer.name === 'wayland') {
             const daemon = await displayServer.startDaemon()
-            const mergedEnv = { ...env, ...daemon.env }
-            const childProcess = fork(scriptPath, args, {
-                cwd,
-                env: mergedEnv,
-                execArgv,
-                stdio,
-            } as ForkOptions)
+            let childProcess: ChildProcess
+            try {
+                childProcess = fork(scriptPath, args, {
+                    cwd,
+                    env: { ...env, ...daemon.env },
+                    execArgv,
+                    stdio,
+                } as ForkOptions)
+            } catch (err) {
+                await daemon.stop().catch(() => {})
+                throw err
+            }
             childProcess.once('exit', () => daemon.stop().catch(() => {}))
             return childProcess
         }

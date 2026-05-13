@@ -18,7 +18,7 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 
 export default class LocalRunner {
     workerPool: Record<string, WorkerInstance> = {}
-    private displayServerInitialized = false
+    private displayServerInitPromise: Promise<void> | null = null
     private displayServerManager: DisplayServerManager
 
     stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
@@ -58,11 +58,9 @@ export default class LocalRunner {
     }
 
     async run({ command, args, ...workerOptions }: RunArgs) {
-        // Initialize display server lazily on first worker creation
-        if (!this.displayServerInitialized) {
-            this.displayServerInitialized = true
-            await this.initializeDisplayServer(workerOptions)
-        }
+        // All concurrent run() calls share one init promise so none advance until init settles
+        this.displayServerInitPromise ??= this.initializeDisplayServer(workerOptions)
+        await this.displayServerInitPromise
 
         /**
          * adjust max listeners on stdout/stderr when creating listeners
@@ -184,7 +182,6 @@ export default class LocalRunner {
             }, 250)
         })
 
-        // Display server cleanup is handled automatically
         if (this.displayServerManager.shouldRun()) {
             const server = this.displayServerManager.getDisplayServer()
             log.info(`${server?.name || 'Display server'} cleanup handled automatically`)
