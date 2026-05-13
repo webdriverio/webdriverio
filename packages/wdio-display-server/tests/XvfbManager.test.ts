@@ -3,7 +3,6 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 // Use vi.hoisted to ensure mocks are set up before imports
 const mockExecAsync = vi.hoisted(() => vi.fn())
 const mockPlatform = vi.hoisted(() => vi.fn())
-const mockIsCI = vi.hoisted(() => ({ value: false }))
 
 // Mock all the modules before importing anything else
 vi.mock('node:child_process', () => ({
@@ -17,12 +16,6 @@ vi.mock('node:util', () => ({
 vi.mock('node:os', () => ({
     default: {
         platform: mockPlatform
-    }
-}))
-
-vi.mock('is-ci', () => ({
-    get default() {
-        return mockIsCI.value
     }
 }))
 
@@ -56,7 +49,6 @@ describe('XvfbManager', () => {
 
         // Reset environment
         delete process.env.DISPLAY
-        mockIsCI.value = false
         mockPlatform.mockReturnValue('linux')
     })
 
@@ -74,7 +66,7 @@ describe('XvfbManager', () => {
             const manager = new XvfbManager({
                 displayServer: 'xvfb',
                 force: true,
-                packageManager: 'apt',
+                autoInstallMode: 'sudo',
                 xvfbMaxRetries: 5,
                 xvfbRetryDelay: 2000
             })
@@ -106,7 +98,6 @@ describe('XvfbManager', () => {
         it('should return false on Linux when DISPLAY is set', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
-            mockIsCI.value = true
 
             expect(manager.shouldRun()).toBe(false)
         })
@@ -114,7 +105,6 @@ describe('XvfbManager', () => {
         it('should return false on Linux with existing DISPLAY', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
-            mockIsCI.value = false
 
             expect(manager.shouldRun()).toBe(false)
         })
@@ -130,7 +120,6 @@ describe('XvfbManager', () => {
         it('should return true when Chrome headless flag is detected', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
-            mockIsCI.value = false
 
             const capabilities = {
                 'goog:chromeOptions': {
@@ -144,7 +133,6 @@ describe('XvfbManager', () => {
         it('should return true when Chrome headless=new flag is detected', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
-            mockIsCI.value = false
 
             const capabilities = {
                 'goog:chromeOptions': {
@@ -158,7 +146,6 @@ describe('XvfbManager', () => {
         it('should return true when Chrome headless=old flag is detected', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
-            mockIsCI.value = false
 
             const capabilities = {
                 'goog:chromeOptions': {
@@ -172,7 +159,6 @@ describe('XvfbManager', () => {
         it('should return true when Firefox headless flag is detected', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
-            mockIsCI.value = false
 
             const capabilities = {
                 'moz:firefoxOptions': {
@@ -186,7 +172,6 @@ describe('XvfbManager', () => {
         it('should return true when Firefox -headless flag is detected', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
-            mockIsCI.value = false
 
             const capabilities = {
                 'moz:firefoxOptions': {
@@ -200,7 +185,6 @@ describe('XvfbManager', () => {
         it('should handle array of capabilities (multiremote)', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
-            mockIsCI.value = false
 
             const capabilities = {
                 browser1: {
@@ -225,7 +209,6 @@ describe('XvfbManager', () => {
         it('should return false when no headless flags in capabilities', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
-            mockIsCI.value = false
 
             const capabilities = {
                 'goog:chromeOptions': {
@@ -239,7 +222,6 @@ describe('XvfbManager', () => {
         it('should handle capabilities without args', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
-            mockIsCI.value = false
 
             const capabilities = {
                 'goog:chromeOptions': {}
@@ -251,7 +233,6 @@ describe('XvfbManager', () => {
         it('should handle empty capabilities', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
-            mockIsCI.value = false
 
             expect(manager.shouldRun(undefined)).toBe(false)
         })
@@ -259,7 +240,6 @@ describe('XvfbManager', () => {
         it('should handle undefined capabilities', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
-            mockIsCI.value = false
 
             expect(manager.shouldRun(undefined)).toBe(false)
         })
@@ -267,7 +247,6 @@ describe('XvfbManager', () => {
         it('should return true when Edge headless flag is detected (ms:edgeOptions)', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
-            mockIsCI.value = false
 
             const capabilities = {
                 'ms:edgeOptions': {
@@ -303,7 +282,6 @@ describe('XvfbManager', () => {
 
         it('should setup xvfb-run when headless capabilities are provided', async () => {
             process.env.DISPLAY = ':0'
-            mockIsCI.value = false
             mockExecAsync.mockResolvedValue({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
             const capabilities = {

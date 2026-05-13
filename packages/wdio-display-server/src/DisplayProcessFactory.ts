@@ -103,7 +103,7 @@ export class DisplayProcessFactory implements ProcessCreator {
                     fail(new Error(`${displayServer.name} process exited with code ${code} and signal ${signal}`))
                 }
             })
-            setTimeout(() => { if (!resolved) { resolved = true; resolve(childProcess) } }, 100)
+            setTimeout(() => { if (!resolved) { resolved = true; resolve(childProcess) } }, 2000)
         })
     }
 

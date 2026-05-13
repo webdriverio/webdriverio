@@ -69,7 +69,7 @@ export class DisplayServerManager {
 
         // Once init() has run on this instance we know a display is active and
         // workers must use it, regardless of what process.env now shows.
-        if (this.#initialized) {
+        if (this.#enabled && this.#initialized) {
             return true
         }
 
