@@ -172,17 +172,21 @@ export class XvfbDisplayServer implements DisplayServer {
             { stdio: 'ignore' }
         )
 
-        const exitPromise = new Promise<never>((_, reject) => {
-            proc.once('exit', (code, signal) => {
-                reject(new Error(`Xvfb process exited unexpectedly (code=${code}, signal=${signal})`))
-            })
-            proc.once('error', (err) => {
-                reject(new Error(`Xvfb process error: ${err.message}`))
-            })
-        })
-        exitPromise.catch(() => {})
+        let rejectExit!: (err: Error) => void
+        const exitPromise = new Promise<never>((_, reject) => { rejectExit = reject })
+        const onExit = (code: number | null, signal: NodeJS.Signals | null) =>
+            rejectExit(new Error(`Xvfb process exited unexpectedly (code=${code}, signal=${signal})`))
+        const onError = (err: Error) =>
+            rejectExit(new Error(`Xvfb process error: ${err.message}`))
+        proc.once('exit', onExit)
+        proc.once('error', onError)
 
-        await Promise.race([this.waitForSocket(socketPath, 10_000), exitPromise])
+        try {
+            await Promise.race([this.waitForSocket(socketPath, 10_000), exitPromise])
+        } finally {
+            proc.removeListener('exit', onExit)
+            proc.removeListener('error', onError)
+        }
 
         let stopped = false
         const stop = async (): Promise<void> => {
