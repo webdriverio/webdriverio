@@ -82,4 +82,4 @@ jobs:
   display_server_tests:
     name: E2E Tests
     needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
-    uses: ./.github/workflows/test-display-server-e2e.yml
+    uses: ./.github/workflows/test-display-server.yml
