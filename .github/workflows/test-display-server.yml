@@ -72,7 +72,7 @@ jobs:
             dockerfile: centos-stream.dockerfile
             test: existing
           - distro: alpine
-            version: "3.20"
+            version: "3.22"
             scenario: xvfb
             dockerfile: alpine.dockerfile
             test: existing

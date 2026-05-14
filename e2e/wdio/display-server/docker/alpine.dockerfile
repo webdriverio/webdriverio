@@ -1,4 +1,4 @@
-FROM alpine:3.20
+FROM alpine:3.22
 
 # Set environment variables
 ENV CI=true
@@ -8,13 +8,6 @@ ENV CI=true
 # with ENOENT because the glibc dynamic linker is absent on musl).
 ENV CHROME_BIN=/usr/bin/chromium-browser
 ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
-# Alpine ships chromium 131. Chromium 131's --headless=new mode is unreliable
-# on minimal Alpine + musl (chromedriver hangs on Page.enable / Runtime.enable
-# after spawning the renderer, tripping WDIO's 120s connectionRetryTimeout
-# with UND_ERR_HEADERS_TIMEOUT). Legacy headless mode uses a simpler
-# architecture and is stable here. Ubuntu/Arch/Void run newer chromium/chrome
-# where --headless=new is fine, so opt this in per-distro.
-ENV WDIO_LEGACY_HEADLESS=1
 
 # Install basic requirements including Xvfb (Alpine uses Xvfb, limited Wayland support)
 RUN apk update && \

@@ -18,10 +18,7 @@ export const config: WebdriverIO.Config = {
         browserName: 'chrome',
         'goog:chromeOptions': {
             args: [
-                // Legacy headless mode for older chromium builds that hang on
-                // --headless=new (e.g. Alpine's chromium 131). Opt-in via
-                // WDIO_LEGACY_HEADLESS=1 in the corresponding Dockerfile.
-                process.env.WDIO_LEGACY_HEADLESS ? '--headless' : '--headless=new',
+                '--headless=new',
                 '--no-sandbox',
                 '--disable-dev-shm-usage'
             ],
