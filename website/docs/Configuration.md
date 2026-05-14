@@ -451,7 +451,7 @@ Defines the test framework to be used by the WDIO testrunner.
 
 Type: `String`<br />
 Default: `mocha`<br />
-Options: `mocha` | `jasmine`
+Options: `mocha` | `jasmine` | `cucumber`
 
 ### mochaOpts, jasmineOpts and cucumberOpts
 
