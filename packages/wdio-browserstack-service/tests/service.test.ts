@@ -46,6 +46,18 @@ vi.mock('../src/performance-testing/index.js', () => ({
     }
 }))
 
+vi.mock('../src/instrumentation/performance/performance-tester.js', () => ({
+    default: {
+        start: vi.fn(),
+        end: vi.fn(),
+        startMonitoring: vi.fn(),
+        measureWrapper: vi.fn().mockImplementation((_name: string, fn: Function) => fn),
+        Measure: vi.fn().mockImplementation(() => (_target: any, _propertyKey: string, descriptor: PropertyDescriptor) => descriptor),
+        browser: undefined,
+        scenarioThatRan: [],
+    }
+}))
+
 // Mock data-store to prevent file I/O operations
 vi.mock('../src/data-store.js', () => ({
     saveWorkerData: vi.fn()
@@ -212,6 +224,7 @@ describe('beforeSession', () => {
             service.beforeSession({ key: 'bar' } as any)
             expect(service['_config']).toEqual({ user: 'NotSetUser', key: 'bar' })
         })
+
     })
 
     describe('testObservabilityOpts passed (legacy)', () => {
