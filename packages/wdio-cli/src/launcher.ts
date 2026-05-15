@@ -471,7 +471,8 @@ class Launcher {
         const config = this.configParser.getConfig()
 
         // wait before retrying the spec file
-        if (typeof config.specFileRetriesDelay === 'number' && config.specFileRetries > 0 && config.specFileRetries !== retries) {
+        // retries === -1 means the sentinel "first run" value (specFileRetries unknown until sessionStarted fires)
+        if (typeof config.specFileRetriesDelay === 'number' && config.specFileRetries > 0 && retries >= 0 && config.specFileRetries !== retries) {
             await sleep(config.specFileRetriesDelay * 1000)
         }
 
@@ -596,10 +597,14 @@ class Launcher {
     private async _endHandler({ cid: rid, exitCode, specs, retries }: EndMessage): Promise<void> {
         const passed = this._isWatchModeHalted() || exitCode === 0
 
-        if (!passed && retries > 0) {
+        const config = this.configParser.getConfig()
+        // retries === -1 is the sentinel for "sessionStarted never fired" (e.g. session create failed).
+        // Fall back to config.specFileRetries so the run is still retried the correct number of times.
+        const effectiveRetries = retries === -1 ? config.specFileRetries : retries
+        if (!passed && effectiveRetries > 0) {
             // Default is true, so test for false explicitly
-            const requeue = this.configParser.getConfig().specFileRetriesDeferred ? 'push' : 'unshift'
-            this._schedule[parseInt(rid, 10)].specs[requeue]({ files: specs, retries: retries - 1, rid })
+            const requeue = config.specFileRetriesDeferred ? 'push' : 'unshift'
+            this._schedule[parseInt(rid, 10)].specs[requeue]({ files: specs, retries: effectiveRetries - 1, rid })
         } else {
             this._exitCode = this._isWatchModeHalted() ? 0 : this._exitCode || exitCode
             this._runnerFailed += !passed ? 1 : 0
@@ -622,7 +627,6 @@ class Launcher {
         this._schedule[cid].runningInstances--
 
         log.info('Run onWorkerEnd hook')
-        const config = this.configParser.getConfig()
         await runLauncherHook(config.onWorkerEnd, rid, exitCode, specs, retries)
             .catch((error) => this._workerHookError(error))
         await runServiceHook(this._launcher!, 'onWorkerEnd', rid, exitCode, specs, retries)
