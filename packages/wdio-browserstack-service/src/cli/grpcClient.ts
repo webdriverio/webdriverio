@@ -45,7 +45,7 @@ import PerformanceTester from '../instrumentation/performance/performance-tester
 import * as PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
 import { BStackLogger } from './cliLogger.js'
 
-// Increased from default 4 MB to accommodate large extension paylaods
+// Increased from default 4 MB to accommodate large extension payloads
 const GRPC_MESSAGE_LIMIT = 20 * 1024 * 1024 // 20 MB in bytes
 
 /**
