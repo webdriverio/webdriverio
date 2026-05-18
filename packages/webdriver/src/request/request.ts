@@ -26,6 +26,26 @@ const DEFAULT_HEADERS = {
 
 const log = logger('webdriver')
 
+function hasLoggableBodyContent (body: BodyInit | null | undefined): body is BodyInit {
+    if (!body) {
+        return false
+    }
+
+    if (typeof body === 'string') {
+        return body.length > 0
+    }
+
+    if (body instanceof URLSearchParams || body instanceof FormData) {
+        return Array.from(body.keys()).length > 0
+    }
+
+    if (body instanceof Blob || body instanceof ArrayBuffer || ArrayBuffer.isView(body)) {
+        return body.size ?? body.byteLength > 0
+    }
+
+    return typeof body === 'object' && Object.keys(body).length > 0
+}
+
 export abstract class WebDriverRequest {
     protected abstract fetch(url: URL, opts: RequestInit): Promise<Response>
 
@@ -165,7 +185,7 @@ export abstract class WebDriverRequest {
     ): Promise<WebDriverResponse> {
         log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
 
-        if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
+        if (hasLoggableBodyContent(fullRequestOptions.body)) {
             this.eventHandler.onLogData?.(fullRequestOptions.body)
         }
 
