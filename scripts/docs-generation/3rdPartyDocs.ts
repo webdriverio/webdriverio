@@ -36,7 +36,9 @@ const docsFixes: Record<string, ((docs: string) => string)> = {
         .replace('browser.getRequest(index: number, { includePending?: boolean, orderBy?: \'START\' | \'END\' }?: = {})', "`browser.getRequest(index: number, { includePending?: boolean, orderBy?: 'START' | 'END' }?: = {})`")
         .replace('browser.getRequests({ includePending?: boolean, orderBy?: \'START\' | \'END\' }?: = {})', "`browser.getRequests({ includePending?: boolean, orderBy?: 'START' | 'END' }?: = {})`"),
     'wdio-reportportal-reporter': (docs: string) => docs
-        .replace('<http://reportportal.io/>', '[http://reportportal.io/](http://reportportal.io/)')
+        .replace('<http://reportportal.io/>', '[http://reportportal.io/](http://reportportal.io/)'),
+    'wdio-camera-service': (docs: string) => docs
+        .replace(/Promise<void>/g, 'Promise\\<void\\>')
 }
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
