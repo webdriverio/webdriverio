@@ -13,10 +13,10 @@ export interface Errors {
     errors: ErrorType[]
 }
 
-export const getProductMap = (config: BrowserStackConfig): { [key: string]: boolean } => {
+export const getProductMap = (config: BrowserStackConfig): { [key: string]: boolean | undefined } => {
     return {
         observability: config.testObservability.enabled,
-        accessibility: config.accessibility as boolean,
+        accessibility: config.accessibility,
         percy: config.percy,
         automate: config.automate,
         app_automate: config.appAutomate
@@ -73,7 +73,7 @@ export const logBuildError = (error: Errors | null, product: string = ''): void 
     }
 }
 
-export const getProductMapForBuildStartCall = (config: BrowserStackConfig, accessibilityAutomation: boolean | null): { [key: string]: boolean | null } => {
+export const getProductMapForBuildStartCall = (config: BrowserStackConfig, accessibilityAutomation?: boolean): { [key: string]: boolean | undefined } => {
     return {
         observability: config.testObservability.enabled,
         accessibility: accessibilityAutomation,

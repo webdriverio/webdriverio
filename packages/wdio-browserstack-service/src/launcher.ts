@@ -73,7 +73,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _projectName?: string
     private _buildTag?: string
     private _buildIdentifier?: string
-    private _accessibilityAutomation?: boolean | null = null
+    private _accessibilityAutomation?: boolean
     private _percy?: Percy
     private _percyBestPlatformCaps?: WebdriverIO.Capabilities
     private readonly browserStackConfig: BrowserStackConfig
@@ -210,7 +210,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (!isUndefined(this._options.accessibility)) {
             this._accessibilityAutomation ||= isTrue(this._options.accessibility)
         }
-        this._options.accessibility = this._accessibilityAutomation as boolean
+        this._options.accessibility = this._accessibilityAutomation
 
         // Default is true unless explicitly set to false
         this._options.testObservability = this._options.testObservability !== false
@@ -316,7 +316,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             if (CLIUtils.checkCLISupportedFrameworks(config.framework) && !isMultiremote) {
                 PerformanceTester.start(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.START)
                 CLIUtils.setFrameworkDetail(WDIO_NAMING_PREFIX + config.framework, 'WebdriverIO')
-                const binconfig = CLIUtils.getBinConfig(config, capabilities, this._options, this._buildTag)
+                const binconfig = CLIUtils.getBinConfig(config, capabilities as Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedStandaloneCapabilities[], this._options, this._buildTag)
                 await BrowserstackCLI.getInstance().bootstrap(this._options, config, binconfig)
                 BStackLogger.debug(`Is CLI running ${BrowserstackCLI.getInstance().isRunning()}`)
                 PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.START)
@@ -425,7 +425,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         if (buildStartResponse?.accessibility) {
-            if (this._accessibilityAutomation === null) {
+            if (isUndefined(this._accessibilityAutomation)) {
                 this.browserStackConfig.accessibility = buildStartResponse.accessibility.success as boolean
                 this._accessibilityAutomation = buildStartResponse.accessibility.success as boolean
                 this._options.accessibility = buildStartResponse.accessibility.success as boolean
@@ -435,7 +435,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             }
         }
 
-        this.browserStackConfig.accessibility = this._accessibilityAutomation as boolean
+        this.browserStackConfig.accessibility = this._accessibilityAutomation
 
         if (this._accessibilityAutomation && this._options.accessibilityOptions) {
             const filteredOpts = Object.keys(this._options.accessibilityOptions)
@@ -451,6 +451,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         } else if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
             this._updateObjectTypeCaps(capabilities as Capabilities.TestrunnerCapabilities, 'accessibilityOptions', {})
         }
+
+        this._removeCliOnlyCapabilityOptions(capabilities as Capabilities.TestrunnerCapabilities)
 
         if (shouldSetupPercy) {
             try {
@@ -783,15 +785,50 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     async _uploadServiceLogs() {
+        // uploadLogs records the SDK_UPLOAD_LOGS event with status/failure for every
+        // return path (no creds, archive failure, upload no-response, exception), so
+        // measureWrapper is no longer needed here.
         const clientBuildUuid = this._getClientBuildUuid()
-        await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS, async () => {
+        const response = await uploadLogs(getBrowserStackUser(this._config), getBrowserStackKey(this._config), clientBuildUuid)
+        if (response) {
+            BStackLogger.info(`Upload response: ${JSON.stringify(response, null, 2)}`)
+            BStackLogger.logToFile(`Response - ${format(response)}`, 'debug')
+        }
+    }
 
-            const response = await uploadLogs(getBrowserStackUser(this._config), getBrowserStackKey(this._config), clientBuildUuid)
-            if (response) {
-                BStackLogger.info(`Upload response: ${JSON.stringify(response, null, 2)}`)
-                BStackLogger.logToFile(`Response - ${format(response)}`, 'debug')
+    private _removeCliOnlyCapabilityOptions(capabilities?: Capabilities.TestrunnerCapabilities | WebdriverIO.Capabilities) {
+        if (!capabilities || typeof capabilities !== 'object') {
+            return
+        }
+
+        const strip = (capability: WebdriverIO.Capabilities) => {
+            const capabilityRecord = capability as Record<string, unknown>
+            const bstackOptions = capabilityRecord['bstack:options'] as Record<string, unknown> | undefined
+            if (bstackOptions && typeof bstackOptions === 'object') {
+                NOT_ALLOWED_KEYS_IN_CAPS.forEach(key => delete bstackOptions[key])
             }
-        })
+            NOT_ALLOWED_KEYS_IN_CAPS.forEach(key => delete capabilityRecord[`browserstack.${key}`])
+
+            const alwaysMatch = (capability as WebdriverIO.Capabilities & { alwaysMatch?: WebdriverIO.Capabilities }).alwaysMatch
+            if (alwaysMatch && typeof alwaysMatch === 'object') {
+                strip(alwaysMatch)
+            }
+        }
+
+        if (Array.isArray(capabilities)) {
+            capabilities
+                .flatMap((c) => {
+                    if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
+                        return Object.values(c).map((o) => o.capabilities) as WebdriverIO.Capabilities[]
+                    }
+                    return c as WebdriverIO.Capabilities
+                })
+                .forEach(strip)
+        } else {
+            Object.entries(capabilities as Capabilities.RequestedMultiremoteCapabilities).forEach(([, caps]) => {
+                strip(caps.capabilities as WebdriverIO.Capabilities)
+            })
+        }
     }
 
     _updateObjectTypeCaps(capabilities?: Capabilities.TestrunnerCapabilities | WebdriverIO.Capabilities, capType?: string, value?: { [key: string]: unknown }) {
