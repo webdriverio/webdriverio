@@ -38,7 +38,7 @@
     "@wdio/logger": "8.38.0",
     "@wdio/reporter": "8.43.0",
     "@wdio/types": "8.41.0",
-    "browserstack-local": "^1.5.1",
+    "browserstack-local": "^1.5.13",
     "chalk": "^5.3.0",
     "csv-writer": "^1.6.0",
     "formdata-node": "5.0.1",
