@@ -16,7 +16,7 @@ const mockXvfb = vi.hoisted(() => ({
     install: vi.fn(),
     getEnvironment: vi.fn(() => ({})),
     getProcessWrapper: vi.fn(() => ['xvfb-run', '--auto-servernum', '--']),
-    getChromeFlags: vi.fn(() => []),
+    getChromeFlags: vi.fn(() => ['--ozone-platform=x11']),
     startDaemon: vi.fn(),
 }))
 
@@ -193,7 +193,7 @@ describe('DisplayServerManager (gap coverage)', () => {
             }
         })
 
-        it('does nothing for Xvfb (no Chrome flags needed)', async () => {
+        it('injects --ozone-platform=x11 for Xvfb (needed when host has a Wayland session)', async () => {
             mockXvfb.isAvailable.mockResolvedValue(true)
             const mgr = new DisplayServerManager({ displayServer: 'xvfb' })
             await mgr.init()
@@ -201,7 +201,37 @@ describe('DisplayServerManager (gap coverage)', () => {
             const caps = { 'goog:chromeOptions': { args: [] } } as WebdriverIO.Capabilities
             mgr.injectDisplayFlags(caps as never)
 
-            expect(caps['goog:chromeOptions']!.args).toEqual([])
+            expect(caps['goog:chromeOptions']!.args).toEqual(['--ozone-platform=x11'])
+        })
+
+        it('injects Xvfb flag into Electron appArgs as well', async () => {
+            mockXvfb.isAvailable.mockResolvedValue(true)
+            const mgr = new DisplayServerManager({ displayServer: 'xvfb' })
+            await mgr.init()
+
+            const caps = {
+                browserName: 'electron',
+                'wdio:electronServiceOptions': { appArgs: ['--my-app-flag'] },
+            } as unknown as WebdriverIO.Capabilities
+            mgr.injectDisplayFlags(caps as never)
+
+            const electronOpts = (caps as Record<string, unknown>)['wdio:electronServiceOptions'] as { appArgs: string[] }
+            expect(electronOpts.appArgs).toEqual(['--my-app-flag', '--ozone-platform=x11'])
+        })
+
+        it('does not duplicate --ozone-platform= when a different value is already present', async () => {
+            mockXvfb.isAvailable.mockResolvedValue(true)
+            const mgr = new DisplayServerManager({ displayServer: 'xvfb' })
+            await mgr.init()
+
+            // User pre-set --ozone-platform=wayland in their config; we honour
+            // it rather than appending a conflicting --ozone-platform=x11.
+            const caps = {
+                'goog:chromeOptions': { args: ['--ozone-platform=wayland'] },
+            } as WebdriverIO.Capabilities
+            mgr.injectDisplayFlags(caps as never)
+
+            expect(caps['goog:chromeOptions']!.args).toEqual(['--ozone-platform=wayland'])
         })
 
         it('appends Wayland Chrome flags to single-capability args', async () => {
@@ -261,6 +291,24 @@ describe('DisplayServerManager (gap coverage)', () => {
             mgr.injectDisplayFlags(caps as never)
 
             expect(caps['ms:edgeOptions']?.args).toEqual([
+                '--ozone-platform=wayland',
+                '--enable-features=UseOzonePlatform',
+            ])
+        })
+
+        it('injects Wayland flags into Electron appArgs', async () => {
+            mockWayland.isAvailable.mockResolvedValue(true)
+            const mgr = new DisplayServerManager({ displayServer: 'wayland' })
+            await mgr.init()
+
+            const caps = {
+                browserName: 'electron',
+                'wdio:electronServiceOptions': { appArgs: [] },
+            } as unknown as WebdriverIO.Capabilities
+            mgr.injectDisplayFlags(caps as never)
+
+            const electronOpts = (caps as Record<string, unknown>)['wdio:electronServiceOptions'] as { appArgs: string[] }
+            expect(electronOpts.appArgs).toEqual([
                 '--ozone-platform=wayland',
                 '--enable-features=UseOzonePlatform',
             ])

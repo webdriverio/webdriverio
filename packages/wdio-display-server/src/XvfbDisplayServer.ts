@@ -85,8 +85,16 @@ export class XvfbDisplayServer implements DisplayServer {
     }
 
     getChromeFlags(): string[] {
-        // Xvfb doesn't need special Chrome flags
-        return []
+        // Force the X11 ozone backend. On hosts that *also* have a Wayland
+        // session running (e.g. a developer on a Wayland desktop using
+        // `displayServer: 'xvfb'` to reproduce a CI failure), Chromium /
+        // Electron otherwise auto-detect Wayland and try to connect to the
+        // host's compositor — which we've explicitly unhooked from. Forcing
+        // x11 makes the daemon authoritative.
+        //
+        // On clean CI runners (no Wayland session at all), the flag is a
+        // harmless no-op because x11 is what Chromium would pick anyway.
+        return ['--ozone-platform=x11']
     }
 
     async startDaemon(options?: DisplayDaemonOptions): Promise<DisplayDaemon> {
@@ -152,7 +160,20 @@ export class XvfbDisplayServer implements DisplayServer {
             })
         }
 
-        return { env: { DISPLAY: display }, stop }
+        // Force GDK / Electron / Chromium toolkits to the X11 backend. If the
+        // caller's environment had `GDK_BACKEND=wayland,x11` (common on Wayland
+        // desktops) or `ELECTRON_OZONE_PLATFORM_HINT=wayland`, GTK/Electron
+        // would otherwise try Wayland first, fail to find a compositor (we're
+        // running Xvfb, not Weston), and exit before producing a window — which
+        // surfaces to wdio as `session not created: Chrome instance exited`.
+        return {
+            env: {
+                DISPLAY: display,
+                GDK_BACKEND: 'x11',
+                ELECTRON_OZONE_PLATFORM_HINT: 'x11',
+            },
+            stop,
+        }
     }
 
     private async findFreeDisplay(): Promise<number> {

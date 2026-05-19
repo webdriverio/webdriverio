@@ -184,8 +184,8 @@ describe('XvfbDisplayServer', () => {
             ])
         })
 
-        it('getChromeFlags returns [] (Xvfb needs no special Chrome flags)', () => {
-            expect(new XvfbDisplayServer().getChromeFlags()).toEqual([])
+        it('getChromeFlags returns --ozone-platform=x11 (authoritative against a Wayland-host bleed-through)', () => {
+            expect(new XvfbDisplayServer().getChromeFlags()).toEqual(['--ozone-platform=x11'])
         })
     })
 
@@ -211,6 +211,22 @@ describe('XvfbDisplayServer', () => {
                 { stdio: 'ignore' }
             )
             expect(daemon.env.DISPLAY).toBe(':99')
+        })
+
+        it('publishes GDK_BACKEND=x11 and ELECTRON_OZONE_PLATFORM_HINT=x11 in daemon env (Wayland-host fallback)', async () => {
+            const proc = new FakeProc()
+            mockSpawn.mockReturnValue(proc)
+            mockAccess.mockResolvedValue(undefined)
+
+            const server = new XvfbDisplayServer()
+            const daemon = await server.startDaemon()
+
+            // These force GTK/Electron to the X11 backend even when the host
+            // shell has GDK_BACKEND=wayland,x11 inherited from a Wayland desktop
+            // session — otherwise the toolkit tries Wayland first and fails
+            // because no compositor is listening (we're running Xvfb).
+            expect(daemon.env.GDK_BACKEND).toBe('x11')
+            expect(daemon.env.ELECTRON_OZONE_PLATFORM_HINT).toBe('x11')
         })
 
         it('uses default 1920x1080x24 when options omitted', async () => {

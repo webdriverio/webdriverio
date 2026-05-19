@@ -266,25 +266,33 @@ export class DisplayServerManager {
      * Setup environment and inject Chrome flags for display server
      */
     #setupDisplayEnvironment(displayServer: DisplayServer, capabilities?: Capabilities.ResolvedTestrunnerCapabilities): void {
-        // Inject Chrome flags for Wayland if needed.
+        // Inject the active display server's Chrome / Electron flags so apps
+        // launched in capability-driven workers pick the right ozone backend.
         // Env vars are set by the caller (startDisplayDaemonFromConfig) only
         // after the daemon socket is ready, to avoid a brief window where
         // child processes inherit a display address with no server behind it.
-        if (displayServer.name === 'wayland' && capabilities) {
-            this.#injectWaylandChromeFlags(capabilities)
+        if (capabilities && displayServer.getChromeFlags().length > 0) {
+            this.#injectDisplayServerFlags(capabilities, displayServer.getChromeFlags())
         }
     }
 
     /**
-     * Inject Wayland-specific Chrome flags into capabilities
+     * Inject the active display server's flags into every browser capability.
      */
-    #injectWaylandChromeFlags(capabilities: Capabilities.ResolvedTestrunnerCapabilities): void {
-        forEachBrowserCapability(capabilities as never, (cap) => this.#addWaylandFlagsToCapability(cap))
+    #injectDisplayServerFlags(
+        capabilities: Capabilities.ResolvedTestrunnerCapabilities,
+        flags: string[],
+    ): void {
+        if (flags.length === 0) {
+            return
+        }
+        forEachBrowserCapability(capabilities as never, (cap) => this.#addFlagsToCapability(cap, flags))
     }
 
-    #addWaylandFlagsToCapability(caps: WebdriverIO.Capabilities): void {
+    #addFlagsToCapability(caps: WebdriverIO.Capabilities, flags: string[]): void {
         let chromeOptions = caps['goog:chromeOptions'] || (caps as Record<string, unknown>).chromeOptions as { args?: string[] }
         let edgeOptions = caps['ms:edgeOptions'] || (caps as Record<string, unknown>).edgeOptions as { args?: string[] }
+        const electronOptions = (caps as Record<string, unknown>)['wdio:electronServiceOptions'] as { appArgs?: string[] } | undefined
 
         // Create options objects for bare caps like { browserName: 'chrome' }
         if (!chromeOptions && (caps.browserName === 'chrome' || caps.browserName === 'chromium')) {
@@ -296,21 +304,37 @@ export class DisplayServerManager {
             edgeOptions = caps['ms:edgeOptions']
         }
 
-        const waylandFlags = this.#displayServer?.getChromeFlags() ?? ['--ozone-platform=wayland', '--enable-features=UseOzonePlatform']
+        // De-duplicate by `--ozone-platform=...` token so re-injecting (per
+        // worker) or layering a config-level user flag doesn't double up.
+        const hasOzoneFlag = (args: string[] | undefined): boolean =>
+            !!args?.some(arg => typeof arg === 'string' && arg.startsWith('--ozone-platform='))
 
         if (chromeOptions) {
             chromeOptions.args = chromeOptions.args || []
-            if (!chromeOptions.args.includes('--ozone-platform=wayland')) {
-                chromeOptions.args.push(...waylandFlags)
-                this.#log.info('Added Wayland flags to Chrome capabilities')
+            if (!hasOzoneFlag(chromeOptions.args)) {
+                chromeOptions.args.push(...flags)
+                this.#log.info(`Added display-server flags to Chrome capabilities: ${flags.join(' ')}`)
             }
         }
 
         if (edgeOptions) {
             edgeOptions.args = edgeOptions.args || []
-            if (!edgeOptions.args.includes('--ozone-platform=wayland')) {
-                edgeOptions.args.push(...waylandFlags)
-                this.#log.info('Added Wayland flags to Edge capabilities')
+            if (!hasOzoneFlag(edgeOptions.args)) {
+                edgeOptions.args.push(...flags)
+                this.#log.info(`Added display-server flags to Edge capabilities: ${flags.join(' ')}`)
+            }
+        }
+
+        // Electron via @wdio/electron-service: appArgs are forwarded to the
+        // spawned Electron process. ELECTRON_OZONE_PLATFORM_HINT alone isn't
+        // authoritative enough on Wayland hosts (Chromium still tries the
+        // session's compositor first); a command-line `--ozone-platform=...`
+        // is.
+        if (electronOptions) {
+            electronOptions.appArgs = electronOptions.appArgs || []
+            if (!hasOzoneFlag(electronOptions.appArgs)) {
+                electronOptions.appArgs.push(...flags)
+                this.#log.info(`Added display-server flags to Electron appArgs: ${flags.join(' ')}`)
             }
         }
     }
@@ -378,25 +402,36 @@ export class DisplayServerManager {
     }
 
     /**
-     * Inject Wayland Chrome flags into a worker's capabilities.
+     * Inject the active display server's flags into a worker's capabilities.
      * Must be called per-worker since init() only runs once for the first worker.
      *
-     * Triggers when either:
-     *   - this manager selected Wayland during init(), OR
-     *   - process.env.WAYLAND_DISPLAY is already set by an external party
-     *     (e.g. the runner-level daemon set up by startDisplayDaemonFromConfig,
-     *     or an outer `xvfb-run`/Weston wrapper). In that case shouldRun()/init()
-     *     short-circuited and #displayServer is null, but Chrome workers still
-     *     need --ozone-platform=wayland so they don't fall back to a missing
-     *     X11 server on a Wayland-only host.
+     * Sources, in priority order:
+     *   1. The display server this manager started (`#displayServer`). Its
+     *      `getChromeFlags()` is authoritative — Wayland returns
+     *      `--ozone-platform=wayland`, Xvfb returns `--ozone-platform=x11`.
+     *   2. An externally-set `WAYLAND_DISPLAY` (e.g. CI wraps us in `xvfb-run`
+     *      or runs us inside an existing Wayland session). In that case
+     *      shouldRun()/init() short-circuited and `#displayServer` is null,
+     *      but Chrome workers still need `--ozone-platform=wayland` so they
+     *      don't fall back to a missing X11 server on a Wayland-only host.
      */
     injectDisplayFlags(capabilities: Capabilities.ResolvedTestrunnerCapabilities): void {
         if (!capabilities) {
             return
         }
-        const isWayland = this.#displayServer?.name === 'wayland' || Boolean(process.env.WAYLAND_DISPLAY)
-        if (isWayland) {
-            this.#injectWaylandChromeFlags(capabilities)
+        if (this.#displayServer) {
+            this.#injectDisplayServerFlags(capabilities, this.#displayServer.getChromeFlags())
+            return
+        }
+        if (process.env.WAYLAND_DISPLAY) {
+            // Fallback when we didn't start a daemon ourselves but the env
+            // indicates Wayland is the active session. (No equivalent for
+            // externally-set DISPLAY: Chromium's default is X11, so a flag
+            // injection there would be redundant.)
+            this.#injectDisplayServerFlags(capabilities, [
+                '--ozone-platform=wayland',
+                '--enable-features=UseOzonePlatform',
+            ])
         }
     }
 
