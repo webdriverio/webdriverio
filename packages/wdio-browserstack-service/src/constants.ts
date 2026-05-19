@@ -23,8 +23,7 @@ export const VALID_APP_EXTENSION = [
 export const DEFAULT_OPTIONS: Partial<BrowserstackConfig> = {
     setSessionName: true,
     setSessionStatus: true,
-    testObservability: true,
-    accessibility: false
+    testObservability: true
 }
 
 export const consoleHolder: typeof console = Object.assign({}, console)
@@ -193,4 +192,3 @@ export const MODULE_HOOK_EVENTS = {
     APPAUTOMATE_ON_START: 'MODULE_APPAUTOMATE_ON_START',
     APPAUTOMATE_ON_DRIVER_INIT: 'MODULE_APPAUTOMATE_ON_DRIVER_INIT',
 } as const
-
