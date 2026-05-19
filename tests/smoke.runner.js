@@ -1151,8 +1151,61 @@ const jasmineAfterHookArgsValidation = async () => {
 }
 // *** END - Tests for Jasmine ***
 
+/**
+ * Verifies @wdio/display-server's built artifacts load cleanly and honour the
+ * platform contract on every OS the smoke matrix exercises. Catches:
+ *   - stale build/ dirs that emit CJS code under "type": "module" (an actual
+ *     regression we hit during the package rename)
+ *   - missing exports / subpath misconfigurations
+ *   - shouldRun() drift across platforms
+ */
+const displayServerSmoke = async () => {
+    const savedDisplay = process.env.DISPLAY
+    const savedWayland = process.env.WAYLAND_DISPLAY
+    delete process.env.DISPLAY
+    delete process.env.WAYLAND_DISPLAY
+    try {
+        const pkg = await import('@wdio/display-server')
+        assert.ok(pkg.DisplayServerManager, 'DisplayServerManager export missing')
+        assert.ok(pkg.WaylandDisplayServer, 'WaylandDisplayServer export missing')
+        assert.ok(pkg.XvfbDisplayServer, 'XvfbDisplayServer export missing')
+        assert.ok(pkg.displayServer, 'displayServer singleton proxy missing')
+        assert.strictEqual(typeof pkg.startDisplayDaemonFromConfig, 'function',
+            'startDisplayDaemonFromConfig export missing — runner integration uses this')
+        assert.strictEqual(typeof pkg.optionsFromConfig, 'function',
+            'optionsFromConfig export missing')
+
+        // Legacy aliases preserved for v9 → v10 compatibility (see exports in
+        // src/index.ts). The runner doesn't use these but external consumers
+        // coming from @wdio/xvfb might still import them.
+        assert.ok(pkg.XvfbManager, 'XvfbManager legacy alias missing')
+        assert.ok(pkg.xvfb, 'xvfb legacy singleton alias missing')
+
+        const mgr = new pkg.DisplayServerManager()
+        const should = mgr.shouldRun()
+        if (process.platform === 'linux') {
+            assert.strictEqual(should, true,
+                'On Linux without DISPLAY/WAYLAND_DISPLAY, shouldRun() must be true')
+        } else {
+            assert.strictEqual(should, false,
+                `On ${process.platform}, shouldRun() must be false`)
+        }
+
+        const disabled = new pkg.DisplayServerManager({ enabled: false })
+        assert.strictEqual(disabled.shouldRun(), false,
+            'enabled:false must override platform/env')
+
+        // Lazy singleton proxy must not throw on access
+        assert.strictEqual(typeof pkg.displayServer.shouldRun, 'function')
+    } finally {
+        if (savedDisplay === undefined) { delete process.env.DISPLAY } else { process.env.DISPLAY = savedDisplay }
+        if (savedWayland === undefined) { delete process.env.WAYLAND_DISPLAY } else { process.env.WAYLAND_DISPLAY = savedWayland }
+    }
+}
+
 (async () => {
     const smokeTests = [
+        displayServerSmoke,
         mochaTestrunner,
         jasmineTestrunner,
         multiremote,

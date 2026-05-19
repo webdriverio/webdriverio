@@ -261,6 +261,9 @@ importers:
       '@wdio/config':
         specifier: workspace:*
         version: link:../packages/wdio-config
+      '@wdio/display-server':
+        specifier: workspace:*
+        version: link:../packages/wdio-display-server
       '@wdio/dot-reporter':
         specifier: workspace:*
         version: link:../packages/wdio-dot-reporter
@@ -294,9 +297,6 @@ importers:
       '@wdio/types':
         specifier: workspace:*
         version: link:../packages/wdio-types
-      '@wdio/xvfb':
-        specifier: workspace:*
-        version: link:../packages/wdio-xvfb
       babel-plugin-transform-hook-names:
         specifier: ^1.0.2
         version: 1.0.2(@babel/core@7.29.0)
@@ -995,6 +995,19 @@ importers:
         specifier: ^4.0.1
         version: 4.0.4
 
+  packages/wdio-display-server:
+    dependencies:
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.37
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+
   packages/wdio-dot-reporter:
     dependencies:
       '@wdio/reporter':
@@ -1160,6 +1173,9 @@ importers:
       '@types/node':
         specifier: ^20.1.0
         version: 20.19.37
+      '@wdio/display-server':
+        specifier: workspace:*
+        version: link:../wdio-display-server
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
@@ -1172,9 +1188,6 @@ importers:
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
-      '@wdio/xvfb':
-        specifier: workspace:*
-        version: link:../wdio-xvfb
       exit-hook:
         specifier: ^4.0.0
         version: 4.0.0
@@ -1531,19 +1544,6 @@ importers:
         specifier: workspace:*
         version: link:../wdio-globals
 
-  packages/wdio-xvfb:
-    dependencies:
-      '@wdio/logger':
-        specifier: workspace:*
-        version: link:../wdio-logger
-    devDependencies:
-      '@types/node':
-        specifier: ^20.0.0
-        version: 20.19.37
-      '@wdio/types':
-        specifier: workspace:*
-        version: link:../wdio-types
-
   packages/webdriver:
     dependencies:
       '@types/node':
@@ -1706,6 +1706,9 @@ importers:
       '@wdio/cucumber-framework':
         specifier: workspace:*
         version: link:../packages/wdio-cucumber-framework
+      '@wdio/display-server':
+        specifier: workspace:*
+        version: link:../packages/wdio-display-server
       '@wdio/dot-reporter':
         specifier: workspace:*
         version: link:../packages/wdio-dot-reporter
@@ -22115,7 +22118,7 @@ snapshots:
 
   '@types/ip@1.1.3':
     dependencies:
-      '@types/node': 25.3.5
+      '@types/node': 20.19.37
 
   '@types/is-glob@4.0.4': {}
 
@@ -22193,7 +22196,7 @@ snapshots:
 
   '@types/morgan@1.9.10':
     dependencies:
-      '@types/node': 25.3.5
+      '@types/node': 20.19.37
 
   '@types/ms@2.1.0': {}
 
@@ -22995,7 +22998,7 @@ snapshots:
 
   '@wdio/runner@9.16.2(expect-webdriverio@5.6.5(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.24.0(puppeteer-core@24.34.0)))(webdriverio@9.24.0(puppeteer-core@24.34.0))':
     dependencies:
-      '@types/node': 20.19.27
+      '@types/node': 20.19.37
       '@wdio/config': 9.16.2
       '@wdio/dot-reporter': 9.16.2
       '@wdio/globals': 9.16.2(expect-webdriverio@5.6.5(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.24.0(puppeteer-core@24.34.0)))(webdriverio@9.24.0(puppeteer-core@24.34.0))

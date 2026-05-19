@@ -205,7 +205,7 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * pattern to match multiple files at once or wrap a glob or set of
      * paths into an array to run them within a single worker process.
      */
-    specs?: (string | string[])[]
+    specs?: (string | string[])[],
     /**
      * Exclude specs from test execution.
      */
@@ -336,40 +336,61 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     shard?: ShardOptions
     /**
-     * Enable automatic Xvfb initialization in local runner for headless testing on Linux.
-     * When disabled, tests should manually call xvfb.init() if needed.
+     * Enable automatic display server initialization in local runner for headless testing on Linux.
+     * When disabled, tests should manually call display server init() if needed.
      * @default true
      */
-    autoXvfb?: boolean
+    displayServerEnabled?: boolean
     /**
-     * Enable automatic installation of `xvfb-run` on Linux if missing.
-     * When false, the runner will warn and continue without installing.
+     * Enable automatic installation of display server packages if missing.
      * @default false
      */
-    xvfbAutoInstall?: boolean
+    displayServerAutoInstall?: boolean
     /**
-     * Mode for automatic installation when xvfbAutoInstall is true.
+     * Mode for automatic installation when displayServerAutoInstall is true.
      * - 'root': install only if running as root (no sudo)
      * - 'sudo': install if root or via non-interactive sudo (`sudo -n`) if available
-     * @default 'root'
+     * @default 'sudo'
      */
-    xvfbAutoInstallMode?: 'root' | 'sudo'
+    displayServerAutoInstallMode?: 'root' | 'sudo'
     /**
-     * Custom command to use for installation instead of built-in package manager detection.
-     * When provided, this command is executed as-is and overrides the built-in installation logic.
+     * Custom command to use for display server installation instead of built-in package manager detection.
      */
-    xvfbAutoInstallCommand?: string | string[]
+    displayServerAutoInstallCommand?: string | string[]
     /**
-     * Number of retry attempts for xvfb process failures.
+     * Number of retry attempts for display server startup failures.
      * @default 3
      */
-    xvfbMaxRetries?: number
+    displayServerMaxRetries?: number
     /**
-     * Base delay between retries in milliseconds for xvfb process failures.
-     * Progressive delay will be: xvfbRetryDelay * attemptNumber
+     * Base delay between retries in milliseconds for display server startup failures.
+     * Progressive delay will be: displayServerRetryDelay * attemptNumber
      * @default 1000
      */
-    xvfbRetryDelay?: number
+    displayServerRetryDelay?: number
+    /**
+     * Which display server to use for headless testing on Linux.
+     * - 'auto': Try Wayland first, then Xvfb fallback
+     * - 'wayland': Force Wayland only
+     * - 'xvfb': Force Xvfb only (not available on CentOS Stream 10/RHEL 10+)
+     * @default 'auto'
+     */
+    displayServer?: 'auto' | 'wayland' | 'xvfb'
+    /**
+     * Screen width in pixels for the display-server daemon.
+     * @default 1920
+     */
+    displayServerWidth?: number
+    /**
+     * Screen height in pixels for the display-server daemon.
+     * @default 1080
+     */
+    displayServerHeight?: number
+    /**
+     * Color depth for the display-server daemon (Xvfb only; ignored by Wayland).
+     * @default 24
+     */
+    displayServerDepth?: number
     // framework options
     /**
      * Mocha specific options
@@ -387,6 +408,31 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * TSX custom TSConfig path
      */
     tsConfigPath?: string
+    // Legacy option aliases for backward compatibility
+    /**
+     * @deprecated Use `displayServerEnabled` instead
+     */
+    autoXvfb?: boolean
+    /**
+     * @deprecated Use `displayServerAutoInstall` instead
+     */
+    xvfbAutoInstall?: boolean
+    /**
+     * @deprecated Use `displayServerAutoInstallMode` instead
+     */
+    xvfbAutoInstallMode?: 'root' | 'sudo'
+    /**
+     * @deprecated Use `displayServerAutoInstallCommand` instead
+     */
+    xvfbAutoInstallCommand?: string | string[]
+    /**
+     * @deprecated Use `displayServerMaxRetries` instead
+     */
+    xvfbMaxRetries?: number
+    /**
+     * @deprecated Use `displayServerRetryDelay` instead
+     */
+    xvfbRetryDelay?: number
 }
 
 export interface TSConfigPathsOptions {

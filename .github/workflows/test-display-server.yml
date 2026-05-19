@@ -1,0 +1,169 @@
+name: Display Server Tests
+
+on:
+  workflow_call:
+    # Make this a reusable workflow, no value needed
+    # https://docs.github.com/en/actions/using-workflows/reusing-workflows
+
+jobs:
+  display-server-e2e-tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Ubuntu scenarios - 4 variants
+          - distro: ubuntu
+            version: "24.04"
+            scenario: wayland-autoinstall
+            dockerfile: ubuntu-wayland-autoinstall.dockerfile
+            test: base
+          - distro: ubuntu
+            version: "24.04"
+            scenario: wayland
+            dockerfile: ubuntu-wayland.dockerfile
+            test: existing
+          - distro: ubuntu
+            version: "24.04"
+            scenario: xvfb-autoinstall
+            dockerfile: ubuntu-xvfb-autoinstall.dockerfile
+            test: base
+          - distro: ubuntu
+            version: "24.04"
+            scenario: xvfb
+            dockerfile: ubuntu-xvfb.dockerfile
+            test: existing
+          # The "runner" scenarios cover the daemon path end-to-end:
+          # LocalRunner.initialize() starts a real Xvfb/Weston daemon, sets
+          # DISPLAY / WAYLAND_DISPLAY on process.env, forks a worker, and a
+          # real Chrome session is created. This replaces the old "launcher"
+          # scenarios (which tested the now-removed DisplayServerLauncher
+          # service against the same daemon code path).
+          - distro: ubuntu
+            version: "24.04"
+            scenario: xvfb-runner
+            dockerfile: ubuntu-xvfb.dockerfile
+            test: runner
+          - distro: ubuntu
+            version: "24.04"
+            scenario: wayland-runner
+            dockerfile: ubuntu-wayland.dockerfile
+            test: runner
+
+          # Other distros - pre-installed only
+          - distro: fedora
+            version: "43"
+            scenario: wayland
+            dockerfile: fedora.dockerfile
+            test: existing
+          - distro: debian
+            version: "13"
+            scenario: wayland
+            dockerfile: debian.dockerfile
+            test: existing
+          - distro: centos-stream
+            version: "10"
+            scenario: wayland
+            dockerfile: centos-stream.dockerfile
+            test: existing
+          - distro: alpine
+            version: "3.22"
+            scenario: xvfb
+            dockerfile: alpine.dockerfile
+            test: existing
+          - distro: arch
+            version: "latest"
+            scenario: wayland
+            dockerfile: arch.dockerfile
+            test: existing
+          - distro: suse
+            version: "16.0"
+            scenario: wayland
+            dockerfile: suse.dockerfile
+            test: existing
+          - distro: void
+            version: "latest"
+            scenario: wayland
+            dockerfile: void.dockerfile
+            test: existing
+
+    name: "Display Server Tests: ${{ matrix.distro }}:${{ matrix.version }} (${{ matrix.scenario }})"
+
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: 🧑‍🔧 Get Core Dependencies
+        uses: ./.github/workflows/actions/get-core-dependencies
+
+      - name: Download Build Archive
+        uses: ./.github/workflows/actions/download-archive
+        with:
+          name: webdriverio
+          path: .
+          filename: webdriverio-build.zip
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build test container
+        run: |
+          docker build \
+            -f e2e/wdio/display-server/docker/${{ matrix.dockerfile }} \
+            -t display-server-test:${{ matrix.distro }}-${{ matrix.scenario }} \
+            e2e/wdio/display-server/docker/
+
+      - name: Run Display Server E2E tests in container
+        run: |
+          # Copy built packages and test files to container
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            -e CI=true \
+            -e NODE_ENV=test \
+            -e WDIO_LOG_LEVEL=debug \
+            display-server-test:${{ matrix.distro }}-${{ matrix.scenario }} \
+            bash -c "
+              set -e
+              set -o pipefail
+
+              # Fix permissions for testuser to access workspace
+              sudo chown -R testuser:testuser /workspace/
+              sudo chmod -R 755 /workspace/
+
+              # Install dependencies in container (pnpm already installed in Docker image)
+              pnpm install --frozen-lockfile
+
+              # Run the appropriate E2E test based on scenario
+              cd e2e && pnpm test:display-server:${{ matrix.test }}
+            "
+
+      - name: Display logs on failure
+        if: failure()
+        run: |
+          echo "=== Test failed, displaying diagnostic logs ==="
+
+          # Show WDIO-generated log files
+          if [ -f e2e/wdio/display-server/logs/wdio.log ]; then
+            echo "=== WDIO Main Log ==="
+            cat e2e/wdio/display-server/logs/wdio.log
+          fi
+
+          if [ -f e2e/wdio/display-server/logs/wdio-0-0.log ]; then
+            echo "=== WDIO Worker Log ==="
+            cat e2e/wdio/display-server/logs/wdio-0-0.log
+          fi
+
+          if [ -f e2e/wdio/display-server/logs/wdio-0-0-chromedriver.log ]; then
+            echo "=== Chromedriver Log ==="
+            cat e2e/wdio/display-server/logs/wdio-0-0-chromedriver.log
+          fi
+
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        if: failure()
+        with:
+          name: display-server-e2e-logs-${{ matrix.distro }}-${{ matrix.version }}-${{ matrix.scenario }}
+          path: |
+            e2e/wdio/display-server/logs/
+            e2e/wdio/display-server/screenshots/
