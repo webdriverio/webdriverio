@@ -96,6 +96,29 @@ export async function startDisplayDaemonFromConfig(
 
     let stopped = false
     let signalHandler: (() => void) | null = null
+    let exitHandler: (() => void) | null = null
+
+    const restoreEnv = (): void => {
+        for (const key of envKeys) {
+            if (key in savedEnv) {
+                process.env[key] = savedEnv[key]
+            } else {
+                delete process.env[key]
+            }
+        }
+    }
+
+    const deregisterHandlers = (): void => {
+        if (signalHandler) {
+            process.off('SIGINT', signalHandler)
+            process.off('SIGTERM', signalHandler)
+            signalHandler = null
+        }
+        if (exitHandler) {
+            process.off('exit', exitHandler)
+            exitHandler = null
+        }
+    }
 
     const stop = async (): Promise<void> => {
         if (stopped) {
@@ -105,32 +128,42 @@ export async function startDisplayDaemonFromConfig(
         try {
             await daemon.stop()
         } finally {
-            for (const key of envKeys) {
-                if (key in savedEnv) {
-                    process.env[key] = savedEnv[key]
-                } else {
-                    delete process.env[key]
-                }
-            }
-            if (signalHandler) {
-                process.off('SIGINT', signalHandler)
-                process.off('SIGTERM', signalHandler)
-                process.off('exit', signalHandler)
-                signalHandler = null
-            }
+            restoreEnv()
+            deregisterHandlers()
         }
     }
 
-    // Best-effort sync cleanup on signals / exit. Node's `exit` listeners must
-    // be synchronous; for SIGINT/SIGTERM the process may exit before the
-    // promise settles, but the daemon child receives SIGTERM/SIGKILL inside
-    // `daemon.stop()` synchronously enough to terminate.
+    // Split handlers by what Node's lifecycle permits:
+    //
+    // - SIGINT / SIGTERM are received while the event loop is still running,
+    //   so we can do the full async `stop()` (await graceful child exit,
+    //   await rm of the runtime dir) before the process actually goes away.
+    //
+    // - 'exit' fires when the process is about to terminate; listeners are
+    //   synchronous and any async work scheduled inside them is abandoned.
+    //   Use the daemon's `stopSync()` so the child is killed via SIGKILL and
+    //   runtime files are removed via `rmSync` before Node tears down.
     signalHandler = () => {
         void stop()
     }
+    exitHandler = () => {
+        if (stopped) {
+            return
+        }
+        stopped = true
+        try {
+            daemon.stopSync()
+        } catch {
+            // 'exit' listeners must never throw — Node will abort the process
+            // with an uncaught exception otherwise.
+        }
+        restoreEnv()
+        // Don't deregisterHandlers() — we're exiting; removing listeners
+        // costs nothing and may race with Node's own teardown.
+    }
     process.once('SIGINT', signalHandler)
     process.once('SIGTERM', signalHandler)
-    process.once('exit', signalHandler)
+    process.once('exit', exitHandler)
 
     return { stop }
 }

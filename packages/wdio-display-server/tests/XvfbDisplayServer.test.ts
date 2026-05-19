@@ -8,6 +8,7 @@ const mockReaddir = vi.hoisted(() => vi.fn())
 
 vi.mock('node:child_process', () => ({
     exec: vi.fn(),
+    execFile: vi.fn(),
     spawn: mockSpawn,
 }))
 
@@ -211,6 +212,38 @@ describe('XvfbDisplayServer', () => {
                 { stdio: 'ignore' }
             )
             expect(daemon.env.DISPLAY).toBe(':99')
+        })
+
+        it('exposes a synchronous stopSync() that SIGKILLs the Xvfb process', async () => {
+            const proc = new FakeProc()
+            mockSpawn.mockReturnValue(proc)
+            mockAccess.mockResolvedValue(undefined)
+
+            const server = new XvfbDisplayServer()
+            const daemon = await server.startDaemon()
+
+            daemon.stopSync()
+
+            // 'exit' listeners can't await — sync SIGKILL is the only thing
+            // that guarantees the Xvfb child is gone before Node tears down.
+            expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
+        })
+
+        it('stopSync() is idempotent across stop() and itself', async () => {
+            const proc = new FakeProc()
+            mockSpawn.mockReturnValue(proc)
+            mockAccess.mockResolvedValue(undefined)
+
+            const server = new XvfbDisplayServer()
+            const daemon = await server.startDaemon()
+
+            daemon.stopSync()
+            daemon.stopSync()
+            await daemon.stop()
+
+            // Only the first stopSync() should have killed the process; the
+            // second stopSync() and the subsequent stop() are no-ops.
+            expect(proc.kill).toHaveBeenCalledTimes(1)
         })
 
         it('publishes GDK_BACKEND=x11 and ELECTRON_OZONE_PLATFORM_HINT=x11 in daemon env (Wayland-host fallback)', async () => {

@@ -50,6 +50,7 @@ const fakeWaylandServer = (stopSpy = vi.fn().mockResolvedValue(undefined)): Disp
             ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
         },
         stop: stopSpy,
+        stopSync: vi.fn(),
     }),
 })
 
@@ -63,6 +64,7 @@ const fakeXvfbServer = (stopSpy = vi.fn().mockResolvedValue(undefined)): Display
     startDaemon: async () => ({
         env: { DISPLAY: ':99' },
         stop: stopSpy,
+        stopSync: vi.fn(),
     }),
 })
 
@@ -175,6 +177,43 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         expect(stopSpy).not.toHaveBeenCalled()
     })
 
+    it('the registered exit listener uses stopSync (sync cleanup, not the abandonable async stop)', async () => {
+        const stopSpy = vi.fn().mockResolvedValue(undefined)
+        const stopSyncSpy = vi.fn()
+        const server: DisplayServer = {
+            name: 'xvfb',
+            isAvailable: async () => true,
+            install: async () => true,
+            getEnvironment: () => ({}),
+            getProcessWrapper: () => null,
+            getChromeFlags: () => [],
+            startDaemon: async () => ({
+                env: { DISPLAY: ':99' },
+                stop: stopSpy,
+                stopSync: stopSyncSpy,
+            }),
+        }
+        const manager = makeManager(server)
+
+        const daemon = await startDisplayDaemonFromConfig(
+            {} as WebdriverIO.Config,
+            [] as never,
+            manager,
+        )
+        expect(daemon).not.toBeNull()
+        expect(process.env.DISPLAY).toBe(':99')
+
+        // Fire the exit listener directly. Node's docs say async work scheduled
+        // here is abandoned, so the daemon's cleanup must be synchronous.
+        process.emit('exit', 0)
+
+        expect(stopSyncSpy).toHaveBeenCalledTimes(1)
+        // Async path was NOT used — important because `void daemon.stop()` in
+        // an exit listener would leave the daemon process running.
+        expect(stopSpy).not.toHaveBeenCalled()
+        expect(process.env.DISPLAY).toBeUndefined()
+    })
+
     it('stop() restores a prior DISPLAY value rather than deleting it', async () => {
         // Simulate the daemon mutating a key that already had a value (rare but
         // possible if user sets a partial env before init for some reason).
@@ -186,6 +225,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
             startDaemon: async () => ({
                 env: { DISPLAY: ':99', NODE_ENV: 'daemon-set' },
                 stop: stopSpy,
+                stopSync: vi.fn(),
             }),
         }
         const manager = makeManager(server)

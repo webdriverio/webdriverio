@@ -1,10 +1,11 @@
-import { exec } from 'node:child_process'
+import { exec, execFile } from 'node:child_process'
 import { access } from 'node:fs/promises'
 import { promisify } from 'node:util'
 import type logger from '@wdio/logger'
 import type { DisplayServerInstallOptions } from './types.js'
 
 const execAsync = promisify(exec)
+const execFileAsync = promisify(execFile)
 
 /**
  * Poll for a Unix socket file at `path` to appear, up to `timeoutMs`. Used by
@@ -78,9 +79,24 @@ export async function installViaPackageManager({
     log.info(`Attempting to install ${name}...`)
 
     if (options?.command) {
-        const command = Array.isArray(options.command) ? options.command.join(' ') : options.command
         try {
-            await execAsync(command, { timeout: 240000 })
+            if (Array.isArray(options.command)) {
+                // Array form is treated as a true argv vector — each element
+                // is passed verbatim to the spawned program, no shell. Joining
+                // with spaces and shell-exec'ing (the old behaviour) would
+                // have interpreted any `;`, `&&`, `$()`, backticks, quotes,
+                // etc. in user-supplied elements as shell syntax.
+                const [bin, ...args] = options.command
+                if (!bin) {
+                    log.error(`Failed to install ${name}: options.command array is empty`)
+                    return false
+                }
+                await execFileAsync(bin, args, { timeout: 240000 })
+            } else {
+                // String form is the explicit "give me a shell" path: the
+                // caller wrote a shell command, so we honour shell semantics.
+                await execAsync(options.command, { timeout: 240000 })
+            }
             log.info(`${name} installed successfully using custom command`)
             return true
         } catch (error) {
@@ -96,13 +112,14 @@ export async function installViaPackageManager({
         return false
     }
 
-    let command = packageCommands[packageManager]
+    const command = packageCommands[packageManager]
+    let sudoWrap = false
 
     if (options?.mode === 'sudo') {
         if (process.getuid && process.getuid() !== 0) {
             try {
-                await execAsync('which sudo')
-                command = `sudo -n sh -c "${command}"`
+                await execFileAsync('which', ['sudo'])
+                sudoWrap = true
             } catch {
                 log.warn('sudo not available, attempting install without sudo')
             }
@@ -115,7 +132,15 @@ export async function installViaPackageManager({
     }
 
     try {
-        await execAsync(command, { timeout: 240000 })
+        // sudoWrap branch: execFile passes `command` as a single argv element
+        // to `sh -c`, so even if `command` ever picks up quotes / backticks /
+        // `$()` those stay inside the inner shell's string instead of being
+        // interpolated into our own argv. (Today the table values are
+        // hardcoded and safe, but the old `sudo -n sh -c "${command}"`
+        // pattern was a string-concat footgun waiting on a future edit.)
+        await (sudoWrap
+            ? execFileAsync('sudo', ['-n', 'sh', '-c', command], { timeout: 240000 })
+            : execAsync(command, { timeout: 240000 }))
         log.info(`${name} installed successfully`)
         return true
     } catch (error) {

@@ -1,4 +1,5 @@
 import { exec, spawn } from 'node:child_process'
+import { rmSync } from 'node:fs'
 import { mkdir, rm } from 'node:fs/promises'
 import { promisify } from 'node:util'
 import logger from '@wdio/logger'
@@ -139,6 +140,26 @@ export class WaylandDisplayServer implements DisplayServer {
             await rm(runtimeDir, { recursive: true, force: true }).catch(() => {})
         }
 
+        const stopSync = (): void => {
+            if (stopped) {
+                return
+            }
+            stopped = true
+            // 'exit' listeners are synchronous; we have no chance to wait for
+            // graceful shutdown. Go straight to SIGKILL so the child is gone
+            // by the time Node tears down, and use the sync rm so the
+            // runtime dir actually disappears (the async `rm` from `stop()`
+            // would be abandoned mid-flight here).
+            try {
+                if (proc.exitCode === null && proc.signalCode === null) {
+                    proc.kill('SIGKILL')
+                }
+            } catch { /* ignore — process may already be gone */ }
+            try {
+                rmSync(runtimeDir, { recursive: true, force: true })
+            } catch { /* ignore — best-effort */ }
+        }
+
         return {
             env: {
                 WAYLAND_DISPLAY: socketName,
@@ -146,6 +167,7 @@ export class WaylandDisplayServer implements DisplayServer {
                 ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
             },
             stop,
+            stopSync,
         }
     }
 

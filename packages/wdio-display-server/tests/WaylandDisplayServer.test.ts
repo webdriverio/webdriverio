@@ -9,11 +9,18 @@ const mockRm = vi.hoisted(() => vi.fn())
 
 vi.mock('node:child_process', () => ({
     exec: vi.fn(),
+    execFile: vi.fn(),
     spawn: mockSpawn,
 }))
 
 vi.mock('node:util', () => ({
     promisify: vi.fn(() => mockExecAsync),
+}))
+
+const mockRmSync = vi.hoisted(() => vi.fn())
+
+vi.mock('node:fs', () => ({
+    rmSync: mockRmSync,
 }))
 
 vi.mock('node:fs/promises', () => ({
@@ -137,13 +144,13 @@ describe('WaylandDisplayServer', () => {
             expect(mockExecAsync).not.toHaveBeenCalledWith('which apt-get')
         })
 
-        it('joins array custom commands with spaces', async () => {
+        it('runs array-form custom commands via execFile (no shell)', async () => {
             mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
             const server = new WaylandDisplayServer()
 
             await server.install({ command: ['apt', 'install', 'weston'] })
 
-            expect(mockExecAsync).toHaveBeenCalledWith('apt install weston', { timeout: 240000 })
+            expect(mockExecAsync).toHaveBeenCalledWith('apt', ['install', 'weston'], { timeout: 240000 })
         })
 
         it('returns false when custom command fails', async () => {
@@ -305,6 +312,43 @@ describe('WaylandDisplayServer', () => {
             proc.kill.mockClear()
             await daemon.stop()
             expect(proc.kill).not.toHaveBeenCalled()
+            expect(mockRm).not.toHaveBeenCalled()
+        })
+
+        it('daemon.stopSync() SIGKILLs the process and rmSyncs the runtime dir', async () => {
+            const proc = new FakeProc()
+            mockSpawn.mockReturnValue(proc)
+            mockAccess.mockResolvedValue(undefined)
+
+            const server = new WaylandDisplayServer()
+            const daemon = await server.startDaemon()
+            const runtimeDir = daemon.env.XDG_RUNTIME_DIR
+
+            daemon.stopSync()
+
+            // 'exit' listeners can't await — sync SIGKILL is the only thing
+            // that guarantees the Weston child is gone, and rmSync is the
+            // only fs call that completes before Node tears down.
+            expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
+            expect(mockRmSync).toHaveBeenCalledWith(runtimeDir, { recursive: true, force: true })
+        })
+
+        it('daemon.stopSync() is idempotent across stop() and itself', async () => {
+            const proc = new FakeProc()
+            mockSpawn.mockReturnValue(proc)
+            mockAccess.mockResolvedValue(undefined)
+
+            const server = new WaylandDisplayServer()
+            const daemon = await server.startDaemon()
+
+            daemon.stopSync()
+            daemon.stopSync()
+            await daemon.stop()
+
+            // First stopSync did the kill + rmSync; subsequent calls are no-ops.
+            expect(proc.kill).toHaveBeenCalledTimes(1)
+            expect(mockRmSync).toHaveBeenCalledTimes(1)
+            // stop() short-circuits when stopped is already true → no async rm.
             expect(mockRm).not.toHaveBeenCalled()
         })
 

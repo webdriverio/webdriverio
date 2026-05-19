@@ -1,14 +1,28 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 const mockExecAsync = vi.hoisted(() => vi.fn())
+const mockExecFileAsync = vi.hoisted(() => vi.fn())
+const mockExecFn = vi.hoisted(() => Symbol('mock-exec'))
+const mockExecFileFn = vi.hoisted(() => Symbol('mock-execFile'))
 const mockAccess = vi.hoisted(() => vi.fn())
 
 vi.mock('node:child_process', () => ({
-    exec: vi.fn(),
+    // Stand-in identities — `promisify(exec)` and `promisify(execFile)` are
+    // routed to the right mock below by matching against these symbols.
+    exec: mockExecFn,
+    execFile: mockExecFileFn,
 }))
 
 vi.mock('node:util', () => ({
-    promisify: vi.fn(() => mockExecAsync),
+    promisify: vi.fn((fn: unknown) => {
+        if (fn === mockExecFn) {
+            return mockExecAsync
+        }
+        if (fn === mockExecFileFn) {
+            return mockExecFileAsync
+        }
+        throw new Error('promisify mock: unexpected fn')
+    }),
 }))
 
 vi.mock('node:fs/promises', () => ({
@@ -205,8 +219,8 @@ describe('installViaPackageManager', () => {
         expect(mockExecAsync).toHaveBeenCalledTimes(1) // no `which X` probes
     })
 
-    it('joins array custom commands with spaces', async () => {
-        mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
+    it('runs array-form custom commands via execFile (no shell) — `bin` + argv', async () => {
+        mockExecFileAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
 
         await installViaPackageManager({
             name: 'Foo',
@@ -215,7 +229,24 @@ describe('installViaPackageManager', () => {
             options: { command: ['apt', 'install', 'foo'] },
         })
 
-        expect(mockExecAsync).toHaveBeenCalledWith('apt install foo', { timeout: 240000 })
+        // Crucially this is NOT `mockExecAsync(...)` — array form must avoid
+        // the shell so a malicious element like `'foo; rm -rf /'` would be
+        // passed as a single argv token to `apt`, not interpreted as `;`.
+        expect(mockExecFileAsync).toHaveBeenCalledWith('apt', ['install', 'foo'], { timeout: 240000 })
+        expect(mockExecAsync).not.toHaveBeenCalled()
+    })
+
+    it('returns false when array-form custom command is empty', async () => {
+        const ok = await installViaPackageManager({
+            name: 'Foo',
+            packageCommands,
+            log: makeLogger(),
+            options: { command: [] },
+        })
+
+        expect(ok).toBe(false)
+        expect(mockExecAsync).not.toHaveBeenCalled()
+        expect(mockExecFileAsync).not.toHaveBeenCalled()
     })
 
     it('returns false when custom command fails', async () => {
@@ -297,12 +328,12 @@ describe('installViaPackageManager', () => {
     })
 
     describe('mode: "sudo"', () => {
-        it('wraps with `sudo -n sh -c "..."` when non-root and sudo is on PATH', async () => {
+        it('wraps with execFile(sudo, [-n, sh, -c, command]) when non-root and sudo is on PATH', async () => {
             ;(process as any).getuid = vi.fn().mockReturnValue(1000)
-            mockExecAsync
-                .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // detect
-                .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' })    // which sudo
-                .mockResolvedValueOnce({ stdout: 'ok', stderr: '' })               // install
+            mockExecAsync.mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // detect PM
+            mockExecFileAsync
+                .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' })            // which sudo
+                .mockResolvedValueOnce({ stdout: 'ok', stderr: '' })                       // sudo install
 
             const ok = await installViaPackageManager({
                 name: 'Foo',
@@ -312,8 +343,13 @@ describe('installViaPackageManager', () => {
             })
 
             expect(ok).toBe(true)
-            expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo -n sh -c "apt install -y foo"',
+            // The command string is the inner-shell payload — passed as one
+            // argv element to /bin/sh, so even if the table value contained
+            // shell metacharacters they'd stay inside that single token
+            // instead of being interpolated into our argv.
+            expect(mockExecFileAsync).toHaveBeenCalledWith(
+                'sudo',
+                ['-n', 'sh', '-c', 'apt install -y foo'],
                 { timeout: 240000 }
             )
         })
@@ -321,9 +357,9 @@ describe('installViaPackageManager', () => {
         it('attempts install without sudo wrapping when sudo is missing', async () => {
             ;(process as any).getuid = vi.fn().mockReturnValue(1000)
             mockExecAsync
-                .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' })
-                .mockRejectedValueOnce(new Error('no sudo'))
-                .mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
+                .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' })   // detect PM
+                .mockResolvedValueOnce({ stdout: 'ok', stderr: '' })                 // install
+            mockExecFileAsync.mockRejectedValueOnce(new Error('no sudo'))            // which sudo fails
 
             const ok = await installViaPackageManager({
                 name: 'Foo',
@@ -350,7 +386,7 @@ describe('installViaPackageManager', () => {
             })
 
             expect(mockExecAsync).toHaveBeenCalledWith('apt install -y foo', { timeout: 240000 })
-            expect(mockExecAsync).not.toHaveBeenCalledWith('which sudo')
+            expect(mockExecFileAsync).not.toHaveBeenCalled()
         })
     })
 

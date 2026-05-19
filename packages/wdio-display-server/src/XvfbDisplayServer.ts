@@ -160,6 +160,24 @@ export class XvfbDisplayServer implements DisplayServer {
             })
         }
 
+        const stopSync = (): void => {
+            if (stopped) {
+                return
+            }
+            stopped = true
+            XvfbDisplayServer.reservedDisplays.delete(displayNum)
+            // 'exit' listeners are synchronous; SIGKILL guarantees the child
+            // is gone immediately (there's no chance to wait for graceful
+            // shutdown). Xvfb has no runtime dir to clean up — the X socket
+            // under /tmp/.X11-unix/X<n> is left behind regardless and will be
+            // reused on next start (X server gracefully overwrites stale ones).
+            try {
+                if (proc.exitCode === null && proc.signalCode === null) {
+                    proc.kill('SIGKILL')
+                }
+            } catch { /* ignore — process may already be gone */ }
+        }
+
         // Force GDK / Electron / Chromium toolkits to the X11 backend. If the
         // caller's environment had `GDK_BACKEND=wayland,x11` (common on Wayland
         // desktops) or `ELECTRON_OZONE_PLATFORM_HINT=wayland`, GTK/Electron
@@ -173,6 +191,7 @@ export class XvfbDisplayServer implements DisplayServer {
                 ELECTRON_OZONE_PLATFORM_HINT: 'x11',
             },
             stop,
+            stopSync,
         }
     }
 

@@ -6,7 +6,8 @@ const mockPlatform = vi.hoisted(() => vi.fn())
 
 // Mock all the modules before importing anything else
 vi.mock('node:child_process', () => ({
-    exec: vi.fn()
+    exec: vi.fn(),
+    execFile: vi.fn()
 }))
 
 vi.mock('node:util', () => ({
@@ -333,9 +334,10 @@ describe('XvfbManager', () => {
                 expect(result).toBe(true)
                 expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
                 expect(mockExecAsync).toHaveBeenCalledWith('which apt-get')
-                expect(mockExecAsync).toHaveBeenCalledWith('which sudo')
+                expect(mockExecAsync).toHaveBeenCalledWith('which', ['sudo'])
                 expect(mockExecAsync).toHaveBeenCalledWith(
-                    'sudo -n sh -c "DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb"',
+                    'sudo',
+                    ['-n', 'sh', '-c', 'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb'],
                     { timeout: 240000 }
                 )
             })
@@ -465,7 +467,7 @@ describe('XvfbManager', () => {
                     expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
                     expect(mockExecAsync).toHaveBeenCalledWith('which apt-get')
                     expect(mockExecAsync).toHaveBeenCalledWith('which dnf')
-                    expect(mockExecAsync).toHaveBeenCalledWith('which sudo')
+                    expect(mockExecAsync).toHaveBeenCalledWith('which', ['sudo'])
                 })
 
                 it('should handle unsupported package managers gracefully', async () => {
@@ -508,7 +510,7 @@ describe('XvfbManager', () => {
 
                 const result = await manager.init()
                 expect(result).toBe(true)
-                expect(mockExecAsync).toHaveBeenCalledWith('which sudo')
+                expect(mockExecAsync).toHaveBeenCalledWith('which', ['sudo'])
                 // Install runs without sudo prefix
                 expect(mockExecAsync).toHaveBeenCalledWith(
                     'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
@@ -553,7 +555,7 @@ describe('XvfbManager', () => {
                 const result = await manager.init()
                 expect(result).toBe(false)
                 // no sudo check, no install
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which sudo')
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['sudo'])
             })
 
             it("should not use sudo prefix when in 'sudo' mode but running as root", async () => {
@@ -593,7 +595,7 @@ describe('XvfbManager', () => {
 
                 const result = await manager.init()
                 expect(result).toBe(true)
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which sudo')
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['sudo'])
                 expect(mockExecAsync).toHaveBeenCalledWith('echo install', { timeout: 240000 })
             })
 
@@ -643,7 +645,7 @@ describe('XvfbManager', () => {
                 expect(result).toBe(false)
                 expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
                 // sudo check still skipped (mode is 'root', not 'sudo')
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which sudo')
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['sudo'])
                 // install command never runs because the root-mode check returns false first
                 expect(mockExecAsync).not.toHaveBeenCalledWith(
                     'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
@@ -695,7 +697,8 @@ describe('XvfbManager', () => {
                 const result = await manager.init()
                 expect(result).toBe(true)
                 expect(mockExecAsync).toHaveBeenCalledWith(
-                    'custom install command',
+                    'custom',
+                    ['install', 'command'],
                     { timeout: 240000 }
                 )
             })
@@ -718,7 +721,7 @@ describe('XvfbManager', () => {
 
                 const result = await manager.init()
                 expect(result).toBe(true)
-                expect(mockExecAsync).toHaveBeenCalledWith('which sudo')
+                expect(mockExecAsync).toHaveBeenCalledWith('which', ['sudo'])
             })
         })
     })
