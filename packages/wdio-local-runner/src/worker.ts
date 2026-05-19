@@ -117,10 +117,6 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
 
         log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
 
-        // Plain fork() — DISPLAY / WAYLAND_DISPLAY (if any) is already on
-        // process.env, set by LocalRunner.initialize()'s daemon. The child
-        // inherits via runnerEnv (which is Object.assign'd from process.env
-        // above) and there's no per-worker display-server wrapping to do.
         const childProcess = this.childProcess = fork(
             path.join(__dirname, 'run.js'),
             argv,

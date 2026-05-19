@@ -85,15 +85,9 @@ export class XvfbDisplayServer implements DisplayServer {
     }
 
     getChromeFlags(): string[] {
-        // Force the X11 ozone backend. On hosts that *also* have a Wayland
-        // session running (e.g. a developer on a Wayland desktop using
-        // `displayServer: 'xvfb'` to reproduce a CI failure), Chromium /
-        // Electron otherwise auto-detect Wayland and try to connect to the
-        // host's compositor — which we've explicitly unhooked from. Forcing
-        // x11 makes the daemon authoritative.
-        //
-        // On clean CI runners (no Wayland session at all), the flag is a
-        // harmless no-op because x11 is what Chromium would pick anyway.
+        // Forces the X11 ozone backend so a Wayland-host caller using
+        // `displayServer: 'xvfb'` doesn't have Chromium try the host's
+        // compositor instead of our Xvfb. No-op on Wayland-less CI.
         return ['--ozone-platform=x11']
     }
 
@@ -166,24 +160,20 @@ export class XvfbDisplayServer implements DisplayServer {
             }
             stopped = true
             XvfbDisplayServer.reservedDisplays.delete(displayNum)
-            // 'exit' listeners are synchronous; SIGKILL guarantees the child
-            // is gone immediately (there's no chance to wait for graceful
-            // shutdown). Xvfb has no runtime dir to clean up — the X socket
-            // under /tmp/.X11-unix/X<n> is left behind regardless and will be
-            // reused on next start (X server gracefully overwrites stale ones).
+            // 'exit' is sync — no chance to await graceful shutdown, so SIGKILL.
+            // The X socket under /tmp/.X11-unix/X<n> is left behind and the
+            // X server overwrites stale ones on next start.
             try {
                 if (proc.exitCode === null && proc.signalCode === null) {
                     proc.kill('SIGKILL')
                 }
-            } catch { /* ignore — process may already be gone */ }
+            } catch { /* process may already be gone */ }
         }
 
-        // Force GDK / Electron / Chromium toolkits to the X11 backend. If the
-        // caller's environment had `GDK_BACKEND=wayland,x11` (common on Wayland
-        // desktops) or `ELECTRON_OZONE_PLATFORM_HINT=wayland`, GTK/Electron
-        // would otherwise try Wayland first, fail to find a compositor (we're
-        // running Xvfb, not Weston), and exit before producing a window — which
-        // surfaces to wdio as `session not created: Chrome instance exited`.
+        // Force GTK/Electron to X11. Without these, a Wayland-host's inherited
+        // `GDK_BACKEND=wayland,x11` makes them try Wayland first, fail (we're
+        // running Xvfb), and surface as `session not created: Chrome instance
+        // exited`.
         return {
             env: {
                 DISPLAY: display,

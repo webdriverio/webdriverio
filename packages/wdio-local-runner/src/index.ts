@@ -33,25 +33,16 @@ export default class LocalRunner {
         private _options: never,
         protected config: WebdriverIO.Config
     ) {
-        // Manager is still used per-worker for Wayland Chrome-flag injection
-        // (--ozone-platform=wayland) — separate concern from the daemon, which
-        // is what actually provides DISPLAY / WAYLAND_DISPLAY.
+        // Manager handles per-worker Chrome / Edge / Electron flag injection;
+        // the daemon (started in initialize()) handles the env vars themselves.
         this.displayServerManager = new DisplayServerManager(optionsFromConfig(this.config))
     }
 
     /**
-     * Initialize the local runner. Starts a persistent Xvfb/Weston daemon when
-     * the user's config requests one (`displayServer`, `displayServerEnabled`),
-     * and publishes the daemon's env onto `process.env` so any subsequently
-     * `fork()`ed worker — and any child process spawned from a service's
-     * `onPrepare` hook (e.g. `tauri-driver`) — inherits the display.
-     *
-     * This runs at `wdio-cli/launcher.ts` step `runner.initialize()`, which is
-     * sequenced **before** `runServiceHook('onPrepare', ...)` (parallel).
-     * That ordering is the whole point of doing daemon startup here rather
-     * than in a service: services' `onPrepare` hooks race each other under
-     * `Promise.all`, so a launcher-as-service can't reliably win the race
-     * against a sibling service that spawns its driver in `onPrepare`.
+     * Start a persistent Xvfb/Weston daemon (if the config requests one) and
+     * publish its env onto `process.env` so workers — and any child process
+     * spawned from a service's `onPrepare` (e.g. `tauri-driver`) — inherit
+     * the display. Runs before any service `onPrepare`.
      */
     async initialize() {
         const capabilities = this.config.capabilities as Capabilities.TestrunnerCapabilities | undefined
@@ -70,9 +61,8 @@ export default class LocalRunner {
     }
 
     async run({ command, args, ...workerOptions }: RunArgs) {
-        // Wayland Chrome flag injection is per-capability and must happen for
-        // every worker — `initialize()`'s daemon already set the env vars; this
-        // step adds `--ozone-platform=wayland` (etc.) to chromeOptions.args.
+        // Per-worker `--ozone-platform=...` injection (env vars were set in
+        // initialize()).
         this.displayServerManager.injectDisplayFlags(workerOptions.caps)
 
         /**

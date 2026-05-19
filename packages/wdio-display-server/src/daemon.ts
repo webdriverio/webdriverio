@@ -30,29 +30,22 @@ function daemonOptionsFromConfig(config: WebdriverIO.Config): ResolvedDaemonOpti
 
 /**
  * Start a persistent display-server daemon (Wayland/Weston or Xvfb) and
- * publish its env (`DISPLAY` / `WAYLAND_DISPLAY` / `XDG_RUNTIME_DIR` / ...)
- * onto `process.env`, so that **any** subsequently `fork()`ed or `spawn()`ed
- * child — including drivers spawned from a service's `onPrepare` — inherits
- * the display.
+ * publish its env onto `process.env`, so any subsequently `fork()`ed or
+ * `spawn()`ed child — including drivers spawned from a service's `onPrepare` —
+ * inherits the display.
  *
  * Returns `null` (no-op) when:
  *  - not Linux,
- *  - `displayServerEnabled === false` (or its legacy alias `autoXvfb: false`),
- *  - the configured `displayServer` is unselectable (`shouldRun() === false`),
- *  - or `process.env.DISPLAY` / `process.env.WAYLAND_DISPLAY` is already set
- *    (someone wrapped us with `xvfb-run`, or we're running on a real desktop
- *    session). In that case downstream children already see a display via the
- *    inherited env; starting our own daemon would only be a duplicate.
+ *  - `displayServerEnabled` is false,
+ *  - `shouldRun()` says no, or
+ *  - `DISPLAY` / `WAYLAND_DISPLAY` is already on `process.env` (children
+ *    inherit it; a duplicate daemon would be wasted work).
  *
- * Intended to be called from a `Runner`'s `initialize()` hook (see
- * `@wdio/local-runner`), which runs **before** any service `onPrepare` —
- * fixing the ordering race that the previous `DisplayServerLauncher` service
- * (`onPrepare`-based) couldn't avoid because `runServiceHook` invokes service
- * hooks in parallel via `Promise.all`.
+ * Intended to be called from a `Runner`'s `initialize()` (which runs before
+ * any service `onPrepare`).
  *
- * @param manager Optional pre-constructed manager; if omitted, one is built
- *   from `optionsFromConfig(config)`. Tests inject a manager to avoid actual
- *   Xvfb/Weston spawns.
+ * @param manager Optional pre-constructed manager; tests inject one to avoid
+ *   real Xvfb/Weston spawns.
  */
 export async function startDisplayDaemonFromConfig(
     config: WebdriverIO.Config,
@@ -81,19 +74,14 @@ export async function startDisplayDaemonFromConfig(
     }
 
     const daemonOptions: DisplayDaemonOptions = daemonOptionsFromConfig(config)
-    // Wrap the actual daemon spawn with the manager's retry policy
-    // (`displayServerMaxRetries` / `displayServerRetryDelay`, defaulting to
-    // 3 attempts with progressive backoff). Daemon startup is the failure
-    // mode most likely to be transient on CI — port collisions, slow
-    // socket creation, momentary fs hiccups under XDG_RUNTIME_DIR — and
-    // not applying the configured retries here would silently ignore the
-    // user's configuration.
+    // Spawn is the most transient failure mode (port collisions, slow socket,
+    // fs hiccups); apply the manager's configured retry policy.
     const daemon: DisplayDaemon = await manager.executeWithRetry(
         () => server.startDaemon(daemonOptions),
         `${server.name} daemon startup`,
     )
 
-    // Record any keys we're about to overwrite so stop() can restore them.
+    // Capture pre-existing values so stop() can restore them.
     const envKeys = Object.keys(daemon.env)
     const savedEnv: Record<string, string> = {}
     for (const key of envKeys) {
@@ -143,16 +131,9 @@ export async function startDisplayDaemonFromConfig(
         }
     }
 
-    // Split handlers by what Node's lifecycle permits:
-    //
-    // - SIGINT / SIGTERM are received while the event loop is still running,
-    //   so we can do the full async `stop()` (await graceful child exit,
-    //   await rm of the runtime dir) before the process actually goes away.
-    //
-    // - 'exit' fires when the process is about to terminate; listeners are
-    //   synchronous and any async work scheduled inside them is abandoned.
-    //   Use the daemon's `stopSync()` so the child is killed via SIGKILL and
-    //   runtime files are removed via `rmSync` before Node tears down.
+    // SIGINT/SIGTERM run with the event loop alive — full async stop() is fine.
+    // 'exit' listeners are sync; async work is abandoned, so go through
+    // daemon.stopSync() for SIGKILL + rmSync before Node tears down.
     signalHandler = () => {
         void stop()
     }
@@ -163,13 +144,9 @@ export async function startDisplayDaemonFromConfig(
         stopped = true
         try {
             daemon.stopSync()
-        } catch {
-            // 'exit' listeners must never throw — Node will abort the process
-            // with an uncaught exception otherwise.
-        }
+        } catch { /* swallow — 'exit' listeners must not throw */ }
         restoreEnv()
-        // Don't deregisterHandlers() — we're exiting; removing listeners
-        // costs nothing and may race with Node's own teardown.
+        // No deregisterHandlers() — we're exiting anyway.
     }
     process.once('SIGINT', signalHandler)
     process.once('SIGTERM', signalHandler)

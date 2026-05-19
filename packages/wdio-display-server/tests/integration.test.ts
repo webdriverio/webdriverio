@@ -71,16 +71,11 @@ const fakeXvfbServer = (stopSpy = vi.fn().mockResolvedValue(undefined)): Display
 })
 
 /**
- * Integration coverage: real {@link startDisplayDaemonFromConfig} + real
- * fork() of a Node child + real env propagation. Sits between the
- * heavily-mocked unit tests (which don't actually fork) and the Linux-only
- * e2e suite (which requires Weston/Xvfb to be installed in CI). A fake
- * DisplayServer lets the same path be exercised on every platform.
- *
- * The invariant this test locks down is the whole point of the redesign:
- * after startDisplayDaemonFromConfig() returns, process.env carries the
- * display vars, and any subsequently-forked child inherits them. This is
- * what makes a service's onPrepare-spawned driver (e.g. tauri-driver) work.
+ * Real `startDisplayDaemonFromConfig` + real `fork()` + real env propagation.
+ * Sits between the mocked unit tests (no real fork) and the Linux-only e2e
+ * (requires Weston/Xvfb on the host). A fake DisplayServer lets the same
+ * path run on every platform, locking down the invariant that downstream
+ * `fork()`ed children inherit the daemon's env.
  */
 describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
     let savedEnv: NodeJS.ProcessEnv
@@ -181,9 +176,6 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
 
     it('routes daemon startup through manager.executeWithRetry so the configured retry policy applies', async () => {
         // Flaky-spawn simulation: first two attempts throw, third succeeds.
-        // Without the retry wrap, startDisplayDaemonFromConfig would surface
-        // the first failure and never recover — silently ignoring the user's
-        // displayServerMaxRetries / displayServerRetryDelay config.
         const startSpy = vi.fn()
             .mockRejectedValueOnce(new Error('Xvfb spawn flake #1'))
             .mockRejectedValueOnce(new Error('Xvfb spawn flake #2'))
@@ -202,9 +194,6 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
             getChromeFlags: () => [],
             startDaemon: startSpy,
         }
-        // Real retry policy: try up to 3 times, with the inner fn invoked
-        // each attempt. This is what `DisplayServerManager.executeWithRetry`
-        // does in production.
         const manager = {
             shouldRun: () => true,
             init: vi.fn().mockResolvedValue(true),
@@ -270,7 +259,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
             startDisplayDaemonFromConfig({} as WebdriverIO.Config, [] as never, manager),
         ).rejects.toBe(finalError)
         expect(startSpy).toHaveBeenCalledTimes(3)
-        // Env wasn't mutated because we never reached the Object.assign step
+        // Threw before the Object.assign step, so env stays untouched.
         expect(process.env.DISPLAY).toBeUndefined()
     })
 

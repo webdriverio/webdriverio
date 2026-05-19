@@ -81,11 +81,7 @@ export async function installViaPackageManager({
     if (options?.command) {
         try {
             if (Array.isArray(options.command)) {
-                // Array form is treated as a true argv vector — each element
-                // is passed verbatim to the spawned program, no shell. Joining
-                // with spaces and shell-exec'ing (the old behaviour) would
-                // have interpreted any `;`, `&&`, `$()`, backticks, quotes,
-                // etc. in user-supplied elements as shell syntax.
+                // Array form = argv vector, no shell interpolation.
                 const [bin, ...args] = options.command
                 if (!bin) {
                     log.error(`Failed to install ${name}: options.command array is empty`)
@@ -93,8 +89,7 @@ export async function installViaPackageManager({
                 }
                 await execFileAsync(bin, args, { timeout: 240000 })
             } else {
-                // String form is the explicit "give me a shell" path: the
-                // caller wrote a shell command, so we honour shell semantics.
+                // String form = caller wants a shell.
                 await execAsync(options.command, { timeout: 240000 })
             }
             log.info(`${name} installed successfully using custom command`)
@@ -132,12 +127,9 @@ export async function installViaPackageManager({
     }
 
     try {
-        // sudoWrap branch: execFile passes `command` as a single argv element
-        // to `sh -c`, so even if `command` ever picks up quotes / backticks /
-        // `$()` those stay inside the inner shell's string instead of being
-        // interpolated into our own argv. (Today the table values are
-        // hardcoded and safe, but the old `sudo -n sh -c "${command}"`
-        // pattern was a string-concat footgun waiting on a future edit.)
+        // sudo path: pass `command` as a single argv element to sh -c, so any
+        // shell metachars stay inside the inner shell rather than being
+        // re-tokenised by an outer one.
         await (sudoWrap
             ? execFileAsync('sudo', ['-n', 'sh', '-c', command], { timeout: 240000 })
             : execAsync(command, { timeout: 240000 }))

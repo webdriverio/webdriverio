@@ -44,13 +44,9 @@ export interface DisplayDaemon {
     stop(): Promise<void>
 
     /**
-     * Best-effort **synchronous** cleanup, intended for use inside Node's
-     * `'exit'` event handler — where any async work scheduled by the listener
-     * is abandoned before it completes. Implementations should:
-     *   - send a sync signal to the daemon child (`proc.kill('SIGKILL')` is
-     *     fine here since we have no chance to wait for graceful exit), and
-     *   - synchronously remove any runtime files (`rmSync(..., {force: true})`).
-     *
+     * Best-effort **synchronous** cleanup for Node's `'exit'` listener, where
+     * async work is abandoned. Implementations should `proc.kill('SIGKILL')`
+     * (no chance to await graceful exit) and `rmSync` any runtime files.
      * Must be safe to call multiple times and after `stop()`.
      */
     stopSync(): void
