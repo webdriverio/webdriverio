@@ -125,8 +125,9 @@ export async function installViaPackageManager({
 }
 
 /**
- * Generic exponential-backoff retry helper. Used by DisplayProcessFactory to
- * retry worker process creation when the display server is flaky.
+ * Generic exponential-backoff retry helper. Used by DisplayServerManager to
+ * retry display-server availability / daemon-start operations when the
+ * underlying tool (Xvfb / Weston) is flaky on its first attempt.
  *
  * Lives in utils because it's a generic retry policy that doesn't reach into
  * any display-server state — DisplayServerManager.executeWithRetry is a thin

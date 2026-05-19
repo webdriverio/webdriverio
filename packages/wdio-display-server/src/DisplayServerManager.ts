@@ -267,8 +267,8 @@ export class DisplayServerManager {
      */
     #setupDisplayEnvironment(displayServer: DisplayServer, capabilities?: Capabilities.ResolvedTestrunnerCapabilities): void {
         // Inject Chrome flags for Wayland if needed.
-        // Env vars are set by the caller (launcher.ts or DisplayProcessFactory)
-        // only after the daemon socket is ready, to avoid a brief window where
+        // Env vars are set by the caller (startDisplayDaemonFromConfig) only
+        // after the daemon socket is ready, to avoid a brief window where
         // child processes inherit a display address with no server behind it.
         if (displayServer.name === 'wayland' && capabilities) {
             this.#injectWaylandChromeFlags(capabilities)
@@ -384,10 +384,11 @@ export class DisplayServerManager {
      * Triggers when either:
      *   - this manager selected Wayland during init(), OR
      *   - process.env.WAYLAND_DISPLAY is already set by an external party
-     *     (e.g. DisplayServerLauncher's onPrepare hook). In that case
-     *     shouldRun()/init() short-circuited and #displayServer is null,
-     *     but Chrome workers still need --ozone-platform=wayland so they
-     *     don't fall back to a missing X11 server on a Wayland-only host.
+     *     (e.g. the runner-level daemon set up by startDisplayDaemonFromConfig,
+     *     or an outer `xvfb-run`/Weston wrapper). In that case shouldRun()/init()
+     *     short-circuited and #displayServer is null, but Chrome workers still
+     *     need --ozone-platform=wayland so they don't fall back to a missing
+     *     X11 server on a Wayland-only host.
      */
     injectDisplayFlags(capabilities: Capabilities.ResolvedTestrunnerCapabilities): void {
         if (!capabilities) {

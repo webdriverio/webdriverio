@@ -1,7 +1,12 @@
 import logger from '@wdio/logger'
 import { WritableStreamBuffer } from 'stream-buffers'
-import { DisplayServerManager, optionsFromConfig } from '@wdio/display-server'
-import type { Workers } from '@wdio/types'
+import {
+    DisplayServerManager,
+    optionsFromConfig,
+    startDisplayDaemonFromConfig,
+    type RunningDaemon,
+} from '@wdio/display-server'
+import type { Capabilities, Workers } from '@wdio/types'
 
 import WorkerInstance from './worker.js'
 import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants.js'
@@ -18,8 +23,8 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 
 export default class LocalRunner {
     workerPool: Record<string, WorkerInstance> = {}
-    private displayServerInitPromise: Promise<void> | null = null
     private displayServerManager: DisplayServerManager
+    private daemon: RunningDaemon | null = null
 
     stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
     stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
@@ -28,17 +33,36 @@ export default class LocalRunner {
         private _options: never,
         protected config: WebdriverIO.Config
     ) {
-        // Map config → display-server options. The mapping (and its legacy
-        // xvfb* / autoXvfb aliases) lives in @wdio/display-server so this
-        // file doesn't need to know about either vocabulary.
+        // Manager is still used per-worker for Wayland Chrome-flag injection
+        // (--ozone-platform=wayland) — separate concern from the daemon, which
+        // is what actually provides DISPLAY / WAYLAND_DISPLAY.
         this.displayServerManager = new DisplayServerManager(optionsFromConfig(this.config))
     }
 
     /**
-     * initialize local runner environment
+     * Initialize the local runner. Starts a persistent Xvfb/Weston daemon when
+     * the user's config requests one (`displayServer`, `displayServerEnabled`),
+     * and publishes the daemon's env onto `process.env` so any subsequently
+     * `fork()`ed worker — and any child process spawned from a service's
+     * `onPrepare` hook (e.g. `tauri-driver`) — inherits the display.
+     *
+     * This runs at `wdio-cli/launcher.ts` step `runner.initialize()`, which is
+     * sequenced **before** `runServiceHook('onPrepare', ...)` (parallel).
+     * That ordering is the whole point of doing daemon startup here rather
+     * than in a service: services' `onPrepare` hooks race each other under
+     * `Promise.all`, so a launcher-as-service can't reliably win the race
+     * against a sibling service that spawns its driver in `onPrepare`.
      */
     async initialize() {
-        // XVFB initialization is handled lazily during first worker creation, to access capabilities for headless detection
+        const capabilities = this.config.capabilities as Capabilities.TestrunnerCapabilities | undefined
+        this.daemon = await startDisplayDaemonFromConfig(
+            this.config,
+            capabilities ?? ([] as unknown as Capabilities.TestrunnerCapabilities),
+            this.displayServerManager,
+        )
+        if (this.daemon) {
+            log.info('Display server daemon initialized for this run')
+        }
     }
 
     getWorkerCount() {
@@ -46,10 +70,9 @@ export default class LocalRunner {
     }
 
     async run({ command, args, ...workerOptions }: RunArgs) {
-        // All concurrent run() calls share one init promise so none advance until init settles
-        this.displayServerInitPromise ??= this.initializeDisplayServer(workerOptions)
-        await this.displayServerInitPromise
-        // Inject Wayland Chrome flags per-worker — init() only runs for the first worker's caps
+        // Wayland Chrome flag injection is per-capability and must happen for
+        // every worker — `initialize()`'s daemon already set the env vars; this
+        // step adds `--ozone-platform=wayland` (etc.) to chromeOptions.args.
         this.displayServerManager.injectDisplayFlags(workerOptions.caps)
 
         /**
@@ -66,31 +89,10 @@ export default class LocalRunner {
             workerOptions,
             this.stdout,
             this.stderr,
-            this.displayServerManager
         )
         this.workerPool[workerOptions.cid] = worker
         await worker.postMessage(command, args)
         return worker
-    }
-
-    /**
-     * Initialize display server with capability-aware detection
-     */
-    private async initializeDisplayServer(workerOptions: Workers.WorkerRunPayload) {
-        // Initialize display server if needed for headless testing
-        try {
-            const capabilities = workerOptions.caps
-            const displayServerReady = await this.displayServerManager.init(capabilities)
-            if (displayServerReady) {
-                const server = this.displayServerManager.getDisplayServer()
-                log.info(`${server?.name || 'Display server'} is ready for use`)
-            }
-        } catch (error) {
-            log.warn(
-                'Failed to initialize display server, continuing without virtual display:',
-                error
-            )
-        }
     }
 
     /**
@@ -172,9 +174,12 @@ export default class LocalRunner {
             }, 250)
         })
 
-        if (this.displayServerManager.shouldRun()) {
-            const server = this.displayServerManager.getDisplayServer()
-            log.info(`${server?.name || 'Display server'} cleanup handled automatically`)
+        if (this.daemon) {
+            try {
+                await this.daemon.stop()
+            } finally {
+                this.daemon = null
+            }
         }
 
         return shutdownResult

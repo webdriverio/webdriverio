@@ -1,4 +1,5 @@
 import path from 'node:path'
+import type * as ChildProcessModule from 'node:child_process'
 import { expect, test, vi, beforeEach } from 'vitest'
 
 import type * as DisplayServerModule from '@wdio/display-server'
@@ -15,28 +16,39 @@ vi.mock(
     () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger'))
 )
 
-vi.mock('@wdio/display-server', async () => {
-    const childProcessMock = {
-        on: vi.fn(),
-        send: vi.fn(),
-        kill: vi.fn(),
-    }
+const childProcessMock = {
+    on: vi.fn(),
+    send: vi.fn(),
+    kill: vi.fn(),
+    stdout: { pipe: vi.fn() },
+    stderr: { pipe: vi.fn() },
+}
 
+vi.mock('node:child_process', async (importOriginal) => {
+    const actual = await importOriginal<typeof ChildProcessModule>()
+    return {
+        ...actual,
+        fork: vi.fn().mockImplementation(() => childProcessMock),
+    }
+})
+
+vi.mock('@wdio/display-server', async () => {
     // Use the real optionsFromConfig so the mapping under test runs through;
     // mock only the runtime classes that would otherwise pull in display-server
     // side-effects (logger init, fs probes, etc.).
     const actual = await vi.importActual<typeof DisplayServerModule>('@wdio/display-server')
     return {
         ...actual,
-        DisplayProcessFactory: vi.fn().mockImplementation(() => ({
-            createWorkerProcess: vi.fn().mockResolvedValue(childProcessMock)
-        })),
         DisplayServerManager: vi.fn().mockImplementation(() => ({
             init: vi.fn().mockResolvedValue(true),
             shouldRun: vi.fn().mockReturnValue(true),
             injectDisplayFlags: vi.fn(),
             getDisplayServer: vi.fn().mockReturnValue(null),
         })),
+        // The daemon-start path lives in startDisplayDaemonFromConfig now.
+        // Default to "no daemon needed" (null) so non-daemon tests don't have
+        // to mock around the eager initialize().
+        startDisplayDaemonFromConfig: vi.fn().mockResolvedValue(null),
         default: vi.fn()
     }
 })
@@ -371,103 +383,47 @@ test('should avoid shutting down if worker is not busy', async () => {
     expect(await runner.initialize()).toBe(undefined)
 })
 
-test('should initialize display server lazily during first run when needed', async () => {
+test('initialize() starts the display server daemon when one is needed', async () => {
+    const displayServer = await import('@wdio/display-server')
+    const stopSpy = vi.fn().mockResolvedValue(undefined)
+    vi.mocked(displayServer.startDisplayDaemonFromConfig).mockResolvedValueOnce({ stop: stopSpy })
+
     const runner = new LocalRunner({} as never, { autoXvfb: true } as any)
-
-    const mockInit = vi.fn().mockResolvedValue(true)
-    const mockInjectDisplayFlags = vi.fn()
-    runner['displayServerManager'] = {
-        init: mockInit,
-        injectDisplayFlags: mockInjectDisplayFlags,
-        shouldRun: vi.fn().mockReturnValue(true),
-        getDisplayServer: vi.fn().mockReturnValue(null),
-    } as any
-
-    // initialize() is a no-op — display server starts lazily on first run()
     await runner.initialize()
-    expect(mockInit).not.toHaveBeenCalled()
 
-    await runner.run({
-        cid: '0-1',
-        command: 'run',
-        configFile: '/path/to/wdio.conf.js',
-        args: {},
-        caps: { 'goog:chromeOptions': { args: ['--headless'] } },
-        specs: ['/foo/bar.test.js'],
-        execArgv: [],
-        retries: 0,
-    })
-
-    expect(mockInit).toHaveBeenCalledWith({ 'goog:chromeOptions': { args: ['--headless'] } })
+    expect(displayServer.startDisplayDaemonFromConfig).toHaveBeenCalledTimes(1)
 })
 
-test('should swallow display server init errors and continue', async () => {
+test('initialize() is a no-op when startDisplayDaemonFromConfig returns null', async () => {
+    const displayServer = await import('@wdio/display-server')
+    vi.mocked(displayServer.startDisplayDaemonFromConfig).mockResolvedValueOnce(null)
+
     const runner = new LocalRunner({} as never, { autoXvfb: true } as any)
+    await runner.initialize()
 
-    const mockInit = vi.fn().mockRejectedValue(new Error('boom'))
-    runner['displayServerManager'] = {
-        init: mockInit,
-        injectDisplayFlags: vi.fn(),
-        shouldRun: vi.fn().mockReturnValue(false),
-        getDisplayServer: vi.fn().mockReturnValue(null),
-    } as any
-
-    await expect(runner.run({
-        cid: '0-3',
-        command: 'run',
-        configFile: '/path/to/wdio.conf.js',
-        args: {},
-        caps: {},
-        specs: ['/foo/bar.test.js'],
-        execArgv: [],
-        retries: 0,
-    })).resolves.toBeDefined()
-    expect(mockInit).toHaveBeenCalled()
+    expect(displayServer.startDisplayDaemonFromConfig).toHaveBeenCalledTimes(1)
+    // No daemon was started, so shutdown shouldn't try to stop anything.
+    await runner.shutdown()
 })
 
-test('should only initialize display server once across multiple runs', async () => {
+test('shutdown() stops the daemon when one was started in initialize()', async () => {
+    const displayServer = await import('@wdio/display-server')
+    const stopSpy = vi.fn().mockResolvedValue(undefined)
+    vi.mocked(displayServer.startDisplayDaemonFromConfig).mockResolvedValueOnce({ stop: stopSpy })
+
     const runner = new LocalRunner({} as never, { autoXvfb: true } as any)
+    await runner.initialize()
+    await runner.shutdown()
 
-    const mockInit = vi.fn().mockResolvedValue(true)
-    runner['displayServerManager'] = {
-        init: mockInit,
-        injectDisplayFlags: vi.fn(),
-        shouldRun: vi.fn().mockReturnValue(true),
-        getDisplayServer: vi.fn().mockReturnValue(null),
-    } as any
-
-    await runner.run({
-        cid: '0-4',
-        command: 'run',
-        configFile: '/path/to/wdio.conf.js',
-        args: {},
-        caps: {},
-        specs: ['/foo/bar1.test.js'],
-        execArgv: [],
-        retries: 0,
-    })
-
-    await runner.run({
-        cid: '0-5',
-        command: 'run',
-        configFile: '/path/to/wdio.conf.js',
-        args: {},
-        caps: {},
-        specs: ['/foo/bar2.test.js'],
-        execArgv: [],
-        retries: 0,
-    } as any)
-
-    expect(mockInit).toHaveBeenCalledTimes(1)
+    expect(stopSpy).toHaveBeenCalledTimes(1)
 })
 
-test('injects display flags per worker after the first init', async () => {
+test('run() injects display flags per worker (independent of daemon state)', async () => {
     const runner = new LocalRunner({} as never, { autoXvfb: true } as any)
 
-    const mockInit = vi.fn().mockResolvedValue(true)
     const mockInject = vi.fn()
     runner['displayServerManager'] = {
-        init: mockInit,
+        init: vi.fn().mockResolvedValue(true),
         injectDisplayFlags: mockInject,
         shouldRun: vi.fn().mockReturnValue(true),
         getDisplayServer: vi.fn().mockReturnValue(null),
@@ -497,54 +453,11 @@ test('injects display flags per worker after the first init', async () => {
         retries: 0,
     })
 
-    // init() only fires for the first worker; injectDisplayFlags fires for every worker
-    expect(mockInit).toHaveBeenCalledTimes(1)
+    // injectDisplayFlags fires per worker so Chrome/Edge get
+    // --ozone-platform=wayland on every spec when Wayland is in play.
     expect(mockInject).toHaveBeenCalledTimes(2)
     expect(mockInject).toHaveBeenNthCalledWith(1, caps1)
     expect(mockInject).toHaveBeenNthCalledWith(2, caps2)
-})
-
-test('should handle display server operations with existing workers', async () => {
-    const runner = new LocalRunner(
-        {} as never,
-        {
-            outputDir: '/foo/bar',
-            runnerEnv: { FORCE_COLOR: 1 },
-            autoXvfb: true,
-            xvfbAutoInstall: undefined,
-            xvfbAutoInstallMode: undefined,
-            xvfbAutoInstallCommand: undefined
-        } as any
-    )
-
-    const mockInit = vi.fn().mockResolvedValue(true)
-    const mockShouldRun = vi.fn().mockReturnValue(true)
-    runner['displayServerManager'] = {
-        init: mockInit,
-        shouldRun: mockShouldRun,
-        injectDisplayFlags: vi.fn(),
-        getDisplayServer: vi.fn().mockReturnValue(null),
-    } as any
-
-    const worker = await runner.run({
-        cid: '0-9',
-        command: 'run',
-        configFile: '/path/to/wdio.conf.js',
-        args: {},
-        caps: {},
-        specs: ['/foo/bar.test.js'],
-        execArgv: [],
-        retries: 0,
-    })
-    worker['_handleMessage']({ name: 'ready' } as any)
-
-    setTimeout(() => {
-        worker.isBusy = false
-    }, 100)
-
-    await runner.shutdown()
-
-    expect(mockInit).toHaveBeenCalled()
 })
 
 test('should pass xvfbAutoInstall:true to DisplayServerManager', async () => {

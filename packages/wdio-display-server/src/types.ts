@@ -1,5 +1,3 @@
-import type { ChildProcess } from 'node:child_process'
-
 /**
  * Options for display server installation
  */
@@ -179,23 +177,3 @@ export interface DisplayServerOptions {
     xvfbRetryDelay?: number
 }
 
-/**
- * Interface for creating worker processes
- */
-export interface ProcessCreator {
-    createWorkerProcess(
-        scriptPath: string,
-        args: string[],
-        options: ProcessCreationOptions
-    ): Promise<ChildProcess>
-}
-
-/**
- * Options for process creation
- */
-export interface ProcessCreationOptions {
-    cwd?: string
-    env?: Record<string, string>
-    execArgv?: string[]
-    stdio?: ('inherit' | 'pipe' | 'ignore' | 'ipc')[]
-}

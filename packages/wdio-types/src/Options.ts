@@ -376,6 +376,21 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * @default 'auto'
      */
     displayServer?: 'auto' | 'wayland' | 'xvfb'
+    /**
+     * Screen width in pixels for the display-server daemon.
+     * @default 1920
+     */
+    displayServerWidth?: number
+    /**
+     * Screen height in pixels for the display-server daemon.
+     * @default 1080
+     */
+    displayServerHeight?: number
+    /**
+     * Color depth for the display-server daemon (Xvfb only; ignored by Wayland).
+     * @default 24
+     */
+    displayServerDepth?: number
     // framework options
     /**
      * Mocha specific options

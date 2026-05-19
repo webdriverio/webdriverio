@@ -36,7 +36,6 @@
     "test:display-server": "wdio ./wdio/display-server/wdio.conf.ts",
     "test:display-server:base": "wdio ./wdio/display-server/wdio.conf.ts --spec base-install.e2e.ts",
     "test:display-server:existing": "wdio ./wdio/display-server/wdio.conf.ts --spec existing-display-server.e2e.ts",
-    "test:display-server:launcher": "wdio ./wdio/display-server/wdio.conf.ts --spec launcher.e2e.ts",
     "test:display-server:runner": "wdio ./wdio/display-server/wdio.runner.conf.ts",
     "verifyCoverage": "test -d ./browser-runner/coverage"
   },

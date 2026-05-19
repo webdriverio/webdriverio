@@ -34,16 +34,12 @@ jobs:
             scenario: xvfb
             dockerfile: ubuntu-xvfb.dockerfile
             test: existing
-          - distro: ubuntu
-            version: "24.04"
-            scenario: xvfb-launcher
-            dockerfile: ubuntu-xvfb.dockerfile
-            test: launcher
-          - distro: ubuntu
-            version: "24.04"
-            scenario: wayland-launcher
-            dockerfile: ubuntu-wayland.dockerfile
-            test: launcher
+          # The "runner" scenarios cover the daemon path end-to-end:
+          # LocalRunner.initialize() starts a real Xvfb/Weston daemon, sets
+          # DISPLAY / WAYLAND_DISPLAY on process.env, forks a worker, and a
+          # real Chrome session is created. This replaces the old "launcher"
+          # scenarios (which tested the now-removed DisplayServerLauncher
+          # service against the same daemon code path).
           - distro: ubuntu
             version: "24.04"
             scenario: xvfb-runner

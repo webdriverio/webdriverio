@@ -2,9 +2,9 @@
  * Worker-side shim for the integration test. Reads a fixed set of env vars
  * and writes them to stdout as a single-line JSON blob, then exits.
  *
- * The integration test forks this script via DisplayProcessFactory and asserts
- * that the daemon env merged in DisplayProcessFactory propagates into the
- * forked child's process.env.
+ * The integration test forks this script after startDisplayDaemonFromConfig
+ * has run and asserts that the daemon env applied to process.env propagates
+ * to the forked child via normal env inheritance.
  */
 const data = JSON.stringify({
     WAYLAND_DISPLAY: process.env.WAYLAND_DISPLAY ?? null,

@@ -4,14 +4,15 @@ import path from 'node:path'
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 /**
- * Exercises the full LocalRunner ↔ DisplayServerManager ↔ DisplayProcessFactory
- * integration: a real wdio worker is forked by the runner, the display-server
- * daemon is provisioned around it, and Chrome is driven *without* --headless so
- * the daemon-backed display is required for the session to succeed.
+ * Exercises the full LocalRunner ↔ startDisplayDaemonFromConfig integration:
+ * the runner starts a real Xvfb/Weston daemon in `initialize()`, publishes
+ * DISPLAY / WAYLAND_DISPLAY on `process.env`, then forks a wdio worker that
+ * launches Chrome *without* --headless — so the daemon-backed display is
+ * required for the session to succeed.
  *
- * Distinct from wdio.conf.ts which runs the existing/base/launcher specs with
- * autoXvfb:false (those tests drive DisplayServerManager directly and use a
- * --headless Chrome that doesn't need the display).
+ * Distinct from wdio.conf.ts which runs the existing/base specs with
+ * `autoXvfb: false` (those tests drive DisplayServerManager directly and use
+ * a --headless Chrome that doesn't need the display).
  */
 export const config: WebdriverIO.Config = {
     specs: [

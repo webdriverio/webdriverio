@@ -7,6 +7,7 @@
  */
 import path from 'node:path'
 import type { ChildProcess } from 'node:child_process'
+import type * as ChildProcessModule from 'node:child_process'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 import type * as DisplayServerModule from '@wdio/display-server'
@@ -32,27 +33,34 @@ vi.mock(
     () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger'))
 )
 
+vi.mock('node:child_process', async (importOriginal) => {
+    const actual = await importOriginal<typeof ChildProcessModule>()
+    return {
+        ...actual,
+        // fork() returns a fresh mock per worker so the cleanup test can spy
+        // on `kill` and the IPC `send` for each child independently.
+        fork: vi.fn().mockImplementation(() => ({
+            on: vi.fn(),
+            send: vi.fn(),
+            kill: vi.fn(),
+            pid: 12345,
+            stdout: { pipe: vi.fn() },
+            stderr: { pipe: vi.fn() },
+        })),
+    }
+})
+
 vi.mock('@wdio/display-server', async () => {
     const actual = await vi.importActual<typeof DisplayServerModule>('@wdio/display-server')
     return {
         ...actual,
-        DisplayProcessFactory: vi.fn().mockImplementation(() => ({
-            createWorkerProcess: vi.fn().mockImplementation(() => {
-                // Create a fresh mock for each process
-                return Promise.resolve({
-                    on: vi.fn(),
-                    send: vi.fn(),
-                    kill: vi.fn(),
-                    pid: 12345,
-                })
-            })
-        })),
         DisplayServerManager: vi.fn().mockImplementation(() => ({
             init: vi.fn().mockResolvedValue(true),
             shouldRun: vi.fn().mockReturnValue(true),
             injectDisplayFlags: vi.fn(),
             getDisplayServer: vi.fn().mockReturnValue(null),
         })),
+        startDisplayDaemonFromConfig: vi.fn().mockResolvedValue(null),
         default: vi.fn()
     }
 })

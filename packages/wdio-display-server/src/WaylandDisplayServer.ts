@@ -52,8 +52,9 @@ export class WaylandDisplayServer implements DisplayServer {
 
     getProcessWrapper(): string[] | null {
         // Weston doesn't exec its child, so it cannot be used as a process
-        // wrapper without breaking the IPC fd. Workers use startDaemon()+fork()
-        // instead (handled by DisplayProcessFactory).
+        // wrapper without breaking the IPC fd. Daemon mode (one persistent
+        // Weston started by the Runner, env propagated via process.env) is the
+        // only supported integration path — see startDisplayDaemonFromConfig.
         return null
     }
 

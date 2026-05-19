@@ -1,9 +1,8 @@
 import url from 'node:url'
 import path from 'node:path'
+import { fork, type ChildProcess } from 'node:child_process'
 import { EventEmitter } from 'node:events'
-import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
-import { DisplayProcessFactory, type DisplayServerManager } from '@wdio/display-server'
 import type { Workers } from '@wdio/types'
 import type { ReplConfig } from '@wdio/repl'
 
@@ -45,7 +44,6 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     sessionId?: string
     server?: Record<string, string>
     logsAggregator: string[] = []
-    #processFactory: DisplayProcessFactory
 
     instances?: Record<string, { sessionId: string }>
     isMultiremote?: boolean
@@ -66,14 +64,12 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
      * @param  {string[]} specs       list of paths to test files to run in this worker
      * @param  {number}   retries     number of retries remaining
      * @param  {object}   execArgv    execution arguments for the test run
-     * @param  {DisplayServerManager} displayServerManager configured DisplayServerManager instance
      */
     constructor(
         config: WebdriverIO.Config,
         { cid, configFile, caps, specs, execArgv, retries }: Workers.WorkerRunPayload,
         stdout: WritableStreamBuffer,
         stderr: WritableStreamBuffer,
-        displayServerManager: DisplayServerManager
     ) {
         super()
         this.cid = cid
@@ -86,7 +82,6 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         this.retries = retries
         this.stdout = stdout
         this.stderr = stderr
-        this.#processFactory = new DisplayProcessFactory(displayServerManager)
 
         this.isReady = new Promise((resolve) => { this.isReadyResolver = resolve })
         this.isSetup = new Promise((resolve) => { this.isSetupResolver = resolve })
@@ -122,8 +117,11 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
 
         log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
 
-        // Use ProcessFactory to create the appropriate process
-        const childProcess = this.childProcess = await this.#processFactory.createWorkerProcess(
+        // Plain fork() — DISPLAY / WAYLAND_DISPLAY (if any) is already on
+        // process.env, set by LocalRunner.initialize()'s daemon. The child
+        // inherits via runnerEnv (which is Object.assign'd from process.env
+        // above) and there's no per-worker display-server wrapping to do.
+        const childProcess = this.childProcess = fork(
             path.join(__dirname, 'run.js'),
             argv,
             {

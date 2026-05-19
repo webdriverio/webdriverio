@@ -21,41 +21,42 @@ npm install @wdio/display-server
 
 **Most users don't need to install this package directly** — it's pulled in automatically by services that require a display server (e.g. `@wdio/local-runner`).
 
-### Launcher Service (for Tauri and other `onPrepare`-driven services)
+### Enabling daemon mode
 
-The automatic integration above wraps each WDIO **worker process** with `xvfb-run`,
-which works for services whose drivers run inside workers (e.g. Electron). It does
-**not** help services that spawn their driver from the **launcher process** during
-`onPrepare` — by then the worker hasn't started yet, so wrapping comes too late.
-Tauri's `tauri-driver` is the canonical example.
+`@wdio/local-runner` calls `startDisplayDaemonFromConfig` during its
+`initialize()` hook — which runs **before** any service's `onPrepare`. This
+ordering is the key property: by the time any service (e.g.
+`@wdio/tauri-service`) forks its WebDriver driver, `DISPLAY` and/or
+`WAYLAND_DISPLAY` are already on `process.env`, and the driver inherits them
+via normal env propagation. The daemon outlives all workers and is stopped on
+`runner.shutdown()`.
 
-For these cases, register the launcher service explicitly. It starts a long-lived
-Xvfb (or Weston) daemon in `onPrepare`, sets `DISPLAY` / `WAYLAND_DISPLAY` on
-`process.env`, and any child process spawned afterward inherits the display via
-normal env propagation.
+To opt in, set `displayServer` at the **config root** — no service registration
+needed:
 
-```js
+```ts
 // wdio.conf.ts
-import { launcher as DisplayServerLauncher } from "@wdio/display-server";
-
 export const config = {
-    services: [
-        // Register the display launcher BEFORE any service that spawns a
-        // driver in onPrepare — service hooks run in declaration order.
-        [DisplayServerLauncher, {
-            displayServer: 'auto', // 'auto' | 'wayland' | 'xvfb'
-            autoInstall: false,
-            // Optional daemon screen geometry:
-            // width: 1920, height: 1080, depth: 24,
-        }],
-        ['@wdio/tauri-service', { driverProvider: 'official' }],
-    ],
-};
+    displayServer: 'auto',          // 'auto' | 'wayland' | 'xvfb'
+    displayServerAutoInstall: false,
+    // Optional daemon screen geometry:
+    // displayServerWidth: 1920,
+    // displayServerHeight: 1080,
+    // displayServerDepth: 24,        // Xvfb only
+    services: [['@wdio/tauri-service', { driverProvider: 'official' }]],
+}
 ```
 
-The launcher is a no-op outside Linux, when `enabled: false`, or when `DISPLAY`
-/ `WAYLAND_DISPLAY` is already set (e.g. by `xvfb-run` at the CI level).
-On `onComplete`, the daemon is stopped and its runtime files removed.
+The daemon is a no-op outside Linux, when `displayServerEnabled: false`, or
+when `DISPLAY` / `WAYLAND_DISPLAY` is already set (e.g. by `xvfb-run` at the
+CI level — in which case downstream children already see a display via the
+inherited env).
+
+> **Why config-root rather than a service?** WDIO services' `onPrepare` hooks
+> run in parallel via `Promise.all`, so a launcher-service can't guarantee its
+> daemon is ready before a sibling service forks its driver. Living in the
+> Runner's `initialize()` sidesteps that race entirely — see
+> `wdio-cli/src/launcher.ts:106` for the sequencing.
 
 ### Manual Usage (Advanced)
 
@@ -108,8 +109,8 @@ interface DisplayServer {
     isAvailable(): Promise<boolean>;
     install(options?: DisplayServerInstallOptions): Promise<boolean>;
     getEnvironment(): Record<string, string>;
-    getProcessWrapper(): string[] | null;
     getChromeFlags(): string[];
+    startDaemon(options?: DisplayDaemonOptions): Promise<DisplayDaemon>;
 }
 ```
 

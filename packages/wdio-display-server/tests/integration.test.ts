@@ -1,11 +1,12 @@
-import { vi, describe, it, expect } from 'vitest'
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { fork } from 'node:child_process'
 import path from 'node:path'
 import url from 'node:url'
 import type { ChildProcess } from 'node:child_process'
 
-import { DisplayProcessFactory } from '../src/DisplayProcessFactory.js'
 import type { DisplayServer } from '../src/types.js'
 import type { DisplayServerManager } from '../src/DisplayServerManager.js'
+import { startDisplayDaemonFromConfig } from '../src/daemon.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const shimPath = path.join(__dirname, 'fixtures', 'env-echo.mjs')
@@ -28,116 +29,176 @@ const collectStdout = (proc: ChildProcess): Promise<string> => new Promise((reso
     proc.on('exit', () => resolve(out))
 })
 
+const makeManager = (server: DisplayServer | null, shouldRun = true) => ({
+    shouldRun: () => shouldRun,
+    init: vi.fn().mockResolvedValue(server !== null),
+    getDisplayServer: () => server,
+    injectDisplayFlags: vi.fn(),
+}) as unknown as DisplayServerManager
+
+const fakeWaylandServer = (stopSpy = vi.fn().mockResolvedValue(undefined)): DisplayServer => ({
+    name: 'wayland',
+    isAvailable: async () => true,
+    install: async () => true,
+    getEnvironment: () => ({}),
+    getProcessWrapper: () => null,
+    getChromeFlags: () => [],
+    startDaemon: async () => ({
+        env: {
+            WAYLAND_DISPLAY: 'wayland-test',
+            XDG_RUNTIME_DIR: '/tmp/wdio-test-runtime',
+            ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
+        },
+        stop: stopSpy,
+    }),
+})
+
+const fakeXvfbServer = (stopSpy = vi.fn().mockResolvedValue(undefined)): DisplayServer => ({
+    name: 'xvfb',
+    isAvailable: async () => true,
+    install: async () => true,
+    getEnvironment: () => ({}),
+    getProcessWrapper: () => null,
+    getChromeFlags: () => [],
+    startDaemon: async () => ({
+        env: { DISPLAY: ':99' },
+        stop: stopSpy,
+    }),
+})
+
 /**
- * Integration coverage: real DisplayProcessFactory + real fork() of a Node
- * child + real env propagation. Sits between the heavily-mocked unit tests
- * (which don't actually fork) and the Linux-only e2e suite (which requires
- * Weston/Xvfb to be installed in CI). A fake DisplayServer lets the same path
- * be exercised on every platform — so failures show up on every PR matrix
- * rather than only when the e2e job runs.
+ * Integration coverage: real {@link startDisplayDaemonFromConfig} + real
+ * fork() of a Node child + real env propagation. Sits between the
+ * heavily-mocked unit tests (which don't actually fork) and the Linux-only
+ * e2e suite (which requires Weston/Xvfb to be installed in CI). A fake
+ * DisplayServer lets the same path be exercised on every platform.
+ *
+ * The invariant this test locks down is the whole point of the redesign:
+ * after startDisplayDaemonFromConfig() returns, process.env carries the
+ * display vars, and any subsequently-forked child inherits them. This is
+ * what makes a service's onPrepare-spawned driver (e.g. tauri-driver) work.
  */
-describe('integration: DisplayProcessFactory ↔ real fork', () => {
-    it('Wayland path: forks the worker and merges daemon env into the child', async () => {
+describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
+    let savedEnv: NodeJS.ProcessEnv
+
+    beforeEach(() => {
+        savedEnv = { ...process.env }
+        delete process.env.DISPLAY
+        delete process.env.WAYLAND_DISPLAY
+        delete process.env.XDG_RUNTIME_DIR
+        delete process.env.ELECTRON_OZONE_PLATFORM_HINT
+    })
+
+    afterEach(() => {
+        process.env = savedEnv
+    })
+
+    it('Wayland: forks a child after init() and the child inherits the daemon env', async () => {
         const stopSpy = vi.fn().mockResolvedValue(undefined)
-        const fakeServer: DisplayServer = {
-            name: 'wayland',
-            isAvailable: async () => true,
-            install: async () => true,
-            getEnvironment: () => ({}),
-            getProcessWrapper: () => null,
-            getChromeFlags: () => [],
-            startDaemon: async () => ({
-                env: {
-                    WAYLAND_DISPLAY: 'wayland-test',
-                    XDG_RUNTIME_DIR: '/tmp/wdio-test-runtime',
-                    ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
-                },
-                stop: stopSpy,
-            }),
-        }
-        const manager = {
-            shouldRun: () => true,
-            getDisplayServer: () => fakeServer,
-            executeWithRetry: async (fn: () => Promise<unknown>) => fn(),
-        } as unknown as DisplayServerManager
+        const manager = makeManager(fakeWaylandServer(stopSpy))
 
-        const factory = new DisplayProcessFactory(manager)
-        const child = await factory.createWorkerProcess(shimPath, [], {
-            cwd: __dirname,
-            env: { NODE_ENV: 'integration', PATH: process.env.PATH } as Record<string, string>,
-            stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
-        })
+        const daemon = await startDisplayDaemonFromConfig(
+            {} as WebdriverIO.Config,
+            [] as never,
+            manager,
+        )
+        expect(daemon).not.toBeNull()
+        expect(process.env.WAYLAND_DISPLAY).toBe('wayland-test')
+        expect(process.env.XDG_RUNTIME_DIR).toBe('/tmp/wdio-test-runtime')
 
+        // Real fork — child inherits process.env transitively
+        const child = fork(shimPath, [], { stdio: ['ignore', 'pipe', 'pipe', 'ipc'] })
         const stdout = await collectStdout(child)
         const env = JSON.parse(stdout.trim())
         expect(env.WAYLAND_DISPLAY).toBe('wayland-test')
         expect(env.XDG_RUNTIME_DIR).toBe('/tmp/wdio-test-runtime')
         expect(env.ELECTRON_OZONE_PLATFORM_HINT).toBe('wayland')
-        expect(env.NODE_ENV).toBe('integration')
 
-        // daemon.stop() must fire on child exit
-        await new Promise((r) => setImmediate(r))
+        // stop() reverses both the daemon and the env mutation
+        await daemon!.stop()
         expect(stopSpy).toHaveBeenCalledTimes(1)
+        expect(process.env.WAYLAND_DISPLAY).toBeUndefined()
+        expect(process.env.XDG_RUNTIME_DIR).toBeUndefined()
+        expect(process.env.ELECTRON_OZONE_PLATFORM_HINT).toBeUndefined()
     })
 
-    it('regular fork path: child inherits the caller env, untouched', async () => {
-        const manager = {
-            shouldRun: () => false,
-            getDisplayServer: () => null,
-            executeWithRetry: async (fn: () => Promise<unknown>) => fn(),
-        } as unknown as DisplayServerManager
+    it('Xvfb: same invariant — DISPLAY visible on process.env and inherited by fork()', async () => {
+        const stopSpy = vi.fn().mockResolvedValue(undefined)
+        const manager = makeManager(fakeXvfbServer(stopSpy))
 
-        const factory = new DisplayProcessFactory(manager)
-        const child = await factory.createWorkerProcess(shimPath, [], {
-            cwd: __dirname,
-            env: { NODE_ENV: 'plain-fork', PATH: process.env.PATH } as Record<string, string>,
-            stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
-        })
+        const daemon = await startDisplayDaemonFromConfig(
+            {} as WebdriverIO.Config,
+            [] as never,
+            manager,
+        )
+        expect(daemon).not.toBeNull()
+        expect(process.env.DISPLAY).toBe(':99')
 
+        const child = fork(shimPath, [], { stdio: ['ignore', 'pipe', 'pipe', 'ipc'] })
         const stdout = await collectStdout(child)
         const env = JSON.parse(stdout.trim())
-        expect(env.NODE_ENV).toBe('plain-fork')
-        expect(env.WAYLAND_DISPLAY).toBeNull()
-        expect(env.XDG_RUNTIME_DIR).toBeNull()
+        expect(env.DISPLAY).toBe(':99')
+
+        await daemon!.stop()
+        expect(stopSpy).toHaveBeenCalledTimes(1)
+        expect(process.env.DISPLAY).toBeUndefined()
     })
 
-    it('Wayland path: stops the daemon even if fork() throws synchronously', async () => {
+    it('No-op when DISPLAY is already set (someone wrapped us with xvfb-run)', async () => {
+        process.env.DISPLAY = ':42'
         const stopSpy = vi.fn().mockResolvedValue(undefined)
-        const fakeServer: DisplayServer = {
-            name: 'wayland',
-            isAvailable: async () => true,
-            install: async () => true,
-            getEnvironment: () => ({}),
-            getProcessWrapper: () => null,
-            getChromeFlags: () => [],
+        const manager = makeManager(fakeWaylandServer(stopSpy))
+
+        const daemon = await startDisplayDaemonFromConfig(
+            {} as WebdriverIO.Config,
+            [] as never,
+            manager,
+        )
+        expect(daemon).toBeNull()
+        // Original DISPLAY untouched
+        expect(process.env.DISPLAY).toBe(':42')
+        // No daemon spun up → nothing to stop
+        expect(stopSpy).not.toHaveBeenCalled()
+    })
+
+    it('No-op when manager.shouldRun() returns false (non-Linux, disabled, etc.)', async () => {
+        const stopSpy = vi.fn().mockResolvedValue(undefined)
+        const manager = makeManager(fakeWaylandServer(stopSpy), /* shouldRun */ false)
+
+        const daemon = await startDisplayDaemonFromConfig(
+            {} as WebdriverIO.Config,
+            [] as never,
+            manager,
+        )
+        expect(daemon).toBeNull()
+        expect(process.env.WAYLAND_DISPLAY).toBeUndefined()
+        expect(stopSpy).not.toHaveBeenCalled()
+    })
+
+    it('stop() restores a prior DISPLAY value rather than deleting it', async () => {
+        // Simulate the daemon mutating a key that already had a value (rare but
+        // possible if user sets a partial env before init for some reason).
+        process.env.NODE_ENV = 'preserved'
+        const stopSpy = vi.fn().mockResolvedValue(undefined)
+        // Server whose env includes a key that's already in process.env
+        const server: DisplayServer = {
+            ...fakeXvfbServer(stopSpy),
             startDaemon: async () => ({
-                env: { WAYLAND_DISPLAY: 'wayland-test' },
+                env: { DISPLAY: ':99', NODE_ENV: 'daemon-set' },
                 stop: stopSpy,
             }),
         }
-        const manager = {
-            shouldRun: () => true,
-            getDisplayServer: () => fakeServer,
-            executeWithRetry: async (fn: () => Promise<unknown>) => fn(),
-        } as unknown as DisplayServerManager
+        const manager = makeManager(server)
 
-        const factory = new DisplayProcessFactory(manager)
+        const daemon = await startDisplayDaemonFromConfig(
+            {} as WebdriverIO.Config,
+            [] as never,
+            manager,
+        )
+        expect(process.env.NODE_ENV).toBe('daemon-set')
 
-        // Point at a script that doesn't exist; fork itself doesn't synchronously
-        // throw for missing files (the child emits an exit code), so instead we
-        // force the failure path by passing an invalid cwd which makes fork
-        // throw synchronously.
-        await expect(
-            factory.createWorkerProcess('/nonexistent/script.js', [], {
-                cwd: '\0invalid-cwd-with-null-byte',
-                env: process.env as Record<string, string>,
-                stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
-            })
-        ).rejects.toBeInstanceOf(Error)
-
-        // Even though fork() blew up, daemon.stop() must have been invoked
-        // to release the daemon we started before the fork attempt.
-        await new Promise((r) => setImmediate(r))
-        expect(stopSpy).toHaveBeenCalledTimes(1)
+        await daemon!.stop()
+        expect(process.env.NODE_ENV).toBe('preserved')
+        expect(process.env.DISPLAY).toBeUndefined()
     })
 })
