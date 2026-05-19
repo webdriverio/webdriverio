@@ -172,20 +172,24 @@ describe('XvfbDisplayServer', () => {
         })
     })
 
-    describe('getEnvironment / getProcessWrapper / getChromeFlags', () => {
-        it('getEnvironment returns {} (xvfb-run sets DISPLAY post-exec)', () => {
+    describe('getEnvironment', () => {
+        it('returns {} (xvfb-run sets DISPLAY post-exec)', () => {
             expect(new XvfbDisplayServer().getEnvironment()).toEqual({})
         })
+    })
 
-        it('getProcessWrapper returns xvfb-run with --auto-servernum --', () => {
+    describe('getProcessWrapper', () => {
+        it('returns xvfb-run with --auto-servernum --', () => {
             expect(new XvfbDisplayServer().getProcessWrapper()).toEqual([
                 'xvfb-run',
                 '--auto-servernum',
                 '--',
             ])
         })
+    })
 
-        it('getChromeFlags returns --ozone-platform=x11 (authoritative against a Wayland-host bleed-through)', () => {
+    describe('getChromeFlags', () => {
+        it('returns --ozone-platform=x11 (authoritative against a Wayland-host bleed-through)', () => {
             expect(new XvfbDisplayServer().getChromeFlags()).toEqual(['--ozone-platform=x11'])
         })
     })
@@ -212,38 +216,6 @@ describe('XvfbDisplayServer', () => {
                 { stdio: 'ignore' }
             )
             expect(daemon.env.DISPLAY).toBe(':99')
-        })
-
-        it('exposes a synchronous stopSync() that SIGKILLs the Xvfb process', async () => {
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
-
-            const server = new XvfbDisplayServer()
-            const daemon = await server.startDaemon()
-
-            daemon.stopSync()
-
-            // 'exit' listeners can't await — sync SIGKILL is the only thing
-            // that guarantees the Xvfb child is gone before Node tears down.
-            expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
-        })
-
-        it('stopSync() is idempotent across stop() and itself', async () => {
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
-
-            const server = new XvfbDisplayServer()
-            const daemon = await server.startDaemon()
-
-            daemon.stopSync()
-            daemon.stopSync()
-            await daemon.stop()
-
-            // Only the first stopSync() should have killed the process; the
-            // second stopSync() and the subsequent stop() are no-ops.
-            expect(proc.kill).toHaveBeenCalledTimes(1)
         })
 
         it('publishes GDK_BACKEND=x11 and ELECTRON_OZONE_PLATFORM_HINT=x11 in daemon env (Wayland-host fallback)', async () => {
@@ -294,48 +266,84 @@ describe('XvfbDisplayServer', () => {
             expect((XvfbDisplayServer as any).reservedDisplays.has(99)).toBe(false)
         })
 
-        it('daemon.stop() sends SIGTERM, releases the reservation, and is idempotent', async () => {
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
+        describe('daemon.stop()', () => {
+            it('sends SIGTERM, releases the reservation, and is idempotent', async () => {
+                const proc = new FakeProc()
+                mockSpawn.mockReturnValue(proc)
+                mockAccess.mockResolvedValue(undefined)
 
-            const server = new XvfbDisplayServer()
-            const daemon = await server.startDaemon()
+                const server = new XvfbDisplayServer()
+                const daemon = await server.startDaemon()
 
-            expect((XvfbDisplayServer as any).reservedDisplays.has(99)).toBe(true)
+                expect((XvfbDisplayServer as any).reservedDisplays.has(99)).toBe(true)
 
-            const stopPromise = daemon.stop()
-            await new Promise((r) => setImmediate(r))
-            proc.emit('exit', 0, null)
-            await stopPromise
+                const stopPromise = daemon.stop()
+                await new Promise((r) => setImmediate(r))
+                proc.emit('exit', 0, null)
+                await stopPromise
 
-            expect(proc.kill).toHaveBeenCalledWith('SIGTERM')
-            expect((XvfbDisplayServer as any).reservedDisplays.has(99)).toBe(false)
+                expect(proc.kill).toHaveBeenCalledWith('SIGTERM')
+                expect((XvfbDisplayServer as any).reservedDisplays.has(99)).toBe(false)
 
-            proc.kill.mockClear()
-            await daemon.stop()
-            expect(proc.kill).not.toHaveBeenCalled()
+                proc.kill.mockClear()
+                await daemon.stop()
+                expect(proc.kill).not.toHaveBeenCalled()
+            })
+
+            it('escalates to SIGKILL when SIGTERM does not terminate within 1s', async () => {
+                vi.useFakeTimers()
+                const proc = new FakeProc()
+                mockSpawn.mockReturnValue(proc)
+                mockAccess.mockResolvedValue(undefined)
+
+                const server = new XvfbDisplayServer()
+                const daemon = await server.startDaemon()
+
+                proc.kill = vi.fn(() => false) as any
+                ;(proc as any).exitCode = null
+
+                const stopPromise = daemon.stop()
+                await vi.advanceTimersByTimeAsync(1000)
+                await stopPromise
+
+                expect(proc.kill).toHaveBeenCalledWith('SIGTERM')
+                expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
+                vi.useRealTimers()
+            })
         })
 
-        it('daemon.stop() escalates to SIGKILL when SIGTERM does not terminate within 1s', async () => {
-            vi.useFakeTimers()
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
+        describe('daemon.stopSync()', () => {
+            it('SIGKILLs the Xvfb child synchronously', async () => {
+                const proc = new FakeProc()
+                mockSpawn.mockReturnValue(proc)
+                mockAccess.mockResolvedValue(undefined)
 
-            const server = new XvfbDisplayServer()
-            const daemon = await server.startDaemon()
+                const server = new XvfbDisplayServer()
+                const daemon = await server.startDaemon()
 
-            proc.kill = vi.fn(() => false) as any
-            ;(proc as any).exitCode = null
+                daemon.stopSync()
 
-            const stopPromise = daemon.stop()
-            await vi.advanceTimersByTimeAsync(1000)
-            await stopPromise
+                // 'exit' listeners can't await — sync SIGKILL is the only thing
+                // that guarantees the Xvfb child is gone before Node tears down.
+                expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
+            })
 
-            expect(proc.kill).toHaveBeenCalledWith('SIGTERM')
-            expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
-            vi.useRealTimers()
+            it('is idempotent across stop() and itself', async () => {
+                const proc = new FakeProc()
+                mockSpawn.mockReturnValue(proc)
+                mockAccess.mockResolvedValue(undefined)
+
+                const server = new XvfbDisplayServer()
+                const daemon = await server.startDaemon()
+
+                daemon.stopSync()
+                daemon.stopSync()
+                await daemon.stop()
+
+                // Only the first stopSync() should have killed the process; the
+                // second stopSync() and the subsequent stop() are no-ops.
+                expect(proc.kill).toHaveBeenCalledTimes(1)
+            })
         })
     })
 

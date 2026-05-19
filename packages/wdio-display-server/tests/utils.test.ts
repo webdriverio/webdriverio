@@ -219,7 +219,7 @@ describe('installViaPackageManager', () => {
         expect(mockExecAsync).toHaveBeenCalledTimes(1) // no `which X` probes
     })
 
-    it('runs array-form custom commands via execFile (no shell) — `bin` + argv', async () => {
+    it('runs an array-form custom command via execFile so each element is a true argv token', async () => {
         mockExecFileAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
 
         await installViaPackageManager({
@@ -236,7 +236,7 @@ describe('installViaPackageManager', () => {
         expect(mockExecAsync).not.toHaveBeenCalled()
     })
 
-    it('returns false when array-form custom command is empty', async () => {
+    it('returns false when an array-form custom command is empty', async () => {
         const ok = await installViaPackageManager({
             name: 'Foo',
             packageCommands,
@@ -328,7 +328,7 @@ describe('installViaPackageManager', () => {
     })
 
     describe('mode: "sudo"', () => {
-        it('wraps with execFile(sudo, [-n, sh, -c, command]) when non-root and sudo is on PATH', async () => {
+        it('runs `sudo -n sh -c <cmd>` via execFile when non-root and sudo is on PATH', async () => {
             ;(process as any).getuid = vi.fn().mockReturnValue(1000)
             mockExecAsync.mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // detect PM
             mockExecFileAsync

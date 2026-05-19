@@ -1167,13 +1167,19 @@ const displayServerSmoke = async () => {
     try {
         const pkg = await import('@wdio/display-server')
         assert.ok(pkg.DisplayServerManager, 'DisplayServerManager export missing')
-        assert.ok(pkg.DisplayProcessFactory, 'DisplayProcessFactory export missing')
         assert.ok(pkg.WaylandDisplayServer, 'WaylandDisplayServer export missing')
         assert.ok(pkg.XvfbDisplayServer, 'XvfbDisplayServer export missing')
         assert.ok(pkg.displayServer, 'displayServer singleton proxy missing')
+        assert.strictEqual(typeof pkg.startDisplayDaemonFromConfig, 'function',
+            'startDisplayDaemonFromConfig export missing — runner integration uses this')
+        assert.strictEqual(typeof pkg.optionsFromConfig, 'function',
+            'optionsFromConfig export missing')
 
-        const launcherPkg = await import('@wdio/display-server/launcher')
-        assert.ok(launcherPkg.default, 'launcher default export missing')
+        // Legacy aliases preserved for v9 → v10 compatibility (see exports in
+        // src/index.ts). The runner doesn't use these but external consumers
+        // coming from @wdio/xvfb might still import them.
+        assert.ok(pkg.XvfbManager, 'XvfbManager legacy alias missing')
+        assert.ok(pkg.xvfb, 'xvfb legacy singleton alias missing')
 
         const mgr = new pkg.DisplayServerManager()
         const should = mgr.shouldRun()
@@ -1188,9 +1194,6 @@ const displayServerSmoke = async () => {
         const disabled = new pkg.DisplayServerManager({ enabled: false })
         assert.strictEqual(disabled.shouldRun(), false,
             'enabled:false must override platform/env')
-
-        // Factory construction without daemon side-effects
-        assert.ok(new pkg.DisplayProcessFactory(mgr))
 
         // Lazy singleton proxy must not throw on access
         assert.strictEqual(typeof pkg.displayServer.shouldRun, 'function')

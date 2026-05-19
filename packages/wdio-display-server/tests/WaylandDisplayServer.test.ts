@@ -144,7 +144,7 @@ describe('WaylandDisplayServer', () => {
             expect(mockExecAsync).not.toHaveBeenCalledWith('which apt-get')
         })
 
-        it('runs array-form custom commands via execFile (no shell)', async () => {
+        it('runs an array-form custom command via execFile so each element is a true argv token', async () => {
             mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
             const server = new WaylandDisplayServer()
 
@@ -287,92 +287,96 @@ describe('WaylandDisplayServer', () => {
             await expect(startPromise).rejects.toThrow(/Weston process error: spawn failed/)
         })
 
-        it('daemon.stop() sends SIGTERM, removes the runtime dir, and is idempotent', async () => {
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
+        describe('daemon.stop()', () => {
+            it('sends SIGTERM, removes the runtime dir, and is idempotent', async () => {
+                const proc = new FakeProc()
+                mockSpawn.mockReturnValue(proc)
+                mockAccess.mockResolvedValue(undefined)
 
-            const server = new WaylandDisplayServer()
-            const daemon = await server.startDaemon()
+                const server = new WaylandDisplayServer()
+                const daemon = await server.startDaemon()
 
-            const stopPromise = daemon.stop()
-            // Let the stop() handler attach its 'exit' listener before we emit.
-            await new Promise((r) => setImmediate(r))
-            proc.emit('exit', 0, null)
-            await stopPromise
+                const stopPromise = daemon.stop()
+                // Let the stop() handler attach its 'exit' listener before we emit.
+                await new Promise((r) => setImmediate(r))
+                proc.emit('exit', 0, null)
+                await stopPromise
 
-            expect(proc.kill).toHaveBeenCalledWith('SIGTERM')
-            expect(mockRm).toHaveBeenCalledWith(
-                expect.stringMatching(/^\/tmp\/wdio-wayland-/),
-                { recursive: true, force: true }
-            )
+                expect(proc.kill).toHaveBeenCalledWith('SIGTERM')
+                expect(mockRm).toHaveBeenCalledWith(
+                    expect.stringMatching(/^\/tmp\/wdio-wayland-/),
+                    { recursive: true, force: true }
+                )
 
-            // Second stop() is a no-op
-            mockRm.mockClear()
-            proc.kill.mockClear()
-            await daemon.stop()
-            expect(proc.kill).not.toHaveBeenCalled()
-            expect(mockRm).not.toHaveBeenCalled()
+                // Second stop() is a no-op
+                mockRm.mockClear()
+                proc.kill.mockClear()
+                await daemon.stop()
+                expect(proc.kill).not.toHaveBeenCalled()
+                expect(mockRm).not.toHaveBeenCalled()
+            })
+
+            it('escalates to SIGKILL if SIGTERM does not terminate within 1s', async () => {
+                vi.useFakeTimers()
+                const proc = new FakeProc()
+                mockSpawn.mockReturnValue(proc)
+                mockAccess.mockResolvedValue(undefined)
+
+                const server = new WaylandDisplayServer()
+                const daemon = await server.startDaemon()
+
+                // SIGTERM stays "alive" — never emit 'exit'. We need exitCode=null
+                // so the SIGKILL escalation path runs.
+                proc.kill = vi.fn(() => false) as any
+                ;(proc as any).exitCode = null
+
+                const stopPromise = daemon.stop()
+                await vi.advanceTimersByTimeAsync(1000)
+                await stopPromise
+
+                expect(proc.kill).toHaveBeenCalledWith('SIGTERM')
+                expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
+                vi.useRealTimers()
+            })
         })
 
-        it('daemon.stopSync() SIGKILLs the process and rmSyncs the runtime dir', async () => {
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
+        describe('daemon.stopSync()', () => {
+            it('SIGKILLs the Weston child and rmSyncs the runtime dir', async () => {
+                const proc = new FakeProc()
+                mockSpawn.mockReturnValue(proc)
+                mockAccess.mockResolvedValue(undefined)
 
-            const server = new WaylandDisplayServer()
-            const daemon = await server.startDaemon()
-            const runtimeDir = daemon.env.XDG_RUNTIME_DIR
+                const server = new WaylandDisplayServer()
+                const daemon = await server.startDaemon()
+                const runtimeDir = daemon.env.XDG_RUNTIME_DIR
 
-            daemon.stopSync()
+                daemon.stopSync()
 
-            // 'exit' listeners can't await — sync SIGKILL is the only thing
-            // that guarantees the Weston child is gone, and rmSync is the
-            // only fs call that completes before Node tears down.
-            expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
-            expect(mockRmSync).toHaveBeenCalledWith(runtimeDir, { recursive: true, force: true })
-        })
+                // 'exit' listeners can't await — sync SIGKILL is the only thing
+                // that guarantees the Weston child is gone, and rmSync is the
+                // only fs call that completes before Node tears down.
+                expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
+                expect(mockRmSync).toHaveBeenCalledWith(runtimeDir, { recursive: true, force: true })
+            })
 
-        it('daemon.stopSync() is idempotent across stop() and itself', async () => {
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
+            it('is idempotent across stop() and itself', async () => {
+                const proc = new FakeProc()
+                mockSpawn.mockReturnValue(proc)
+                mockAccess.mockResolvedValue(undefined)
 
-            const server = new WaylandDisplayServer()
-            const daemon = await server.startDaemon()
+                const server = new WaylandDisplayServer()
+                const daemon = await server.startDaemon()
 
-            daemon.stopSync()
-            daemon.stopSync()
-            await daemon.stop()
+                daemon.stopSync()
+                daemon.stopSync()
+                await daemon.stop()
 
-            // First stopSync did the kill + rmSync; subsequent calls are no-ops.
-            expect(proc.kill).toHaveBeenCalledTimes(1)
-            expect(mockRmSync).toHaveBeenCalledTimes(1)
-            // stop() short-circuits when stopped is already true → no async rm.
-            expect(mockRm).not.toHaveBeenCalled()
-        })
-
-        it('daemon.stop() escalates to SIGKILL if SIGTERM does not terminate within 1s', async () => {
-            vi.useFakeTimers()
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
-
-            const server = new WaylandDisplayServer()
-            const daemon = await server.startDaemon()
-
-            // SIGTERM stays "alive" — never emit 'exit'. We need exitCode=null
-            // so the SIGKILL escalation path runs.
-            proc.kill = vi.fn(() => false) as any
-            ;(proc as any).exitCode = null
-
-            const stopPromise = daemon.stop()
-            await vi.advanceTimersByTimeAsync(1000)
-            await stopPromise
-
-            expect(proc.kill).toHaveBeenCalledWith('SIGTERM')
-            expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
-            vi.useRealTimers()
+                // First stopSync did the kill + rmSync; subsequent calls are no-ops.
+                expect(proc.kill).toHaveBeenCalledTimes(1)
+                expect(mockRmSync).toHaveBeenCalledTimes(1)
+                // stop() short-circuits when stopped is already true → no async rm.
+                expect(mockRm).not.toHaveBeenCalled()
+            })
         })
     })
 

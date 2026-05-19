@@ -95,7 +95,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         process.env = savedEnv
     })
 
-    it('Wayland: forks a child after init() and the child inherits the daemon env', async () => {
+    it('publishes Wayland env to process.env and a real fork()ed child inherits it', async () => {
         const stopSpy = vi.fn().mockResolvedValue(undefined)
         const manager = makeManager(fakeWaylandServer(stopSpy))
 
@@ -124,7 +124,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         expect(process.env.ELECTRON_OZONE_PLATFORM_HINT).toBeUndefined()
     })
 
-    it('Xvfb: same invariant — DISPLAY visible on process.env and inherited by fork()', async () => {
+    it('publishes Xvfb DISPLAY to process.env and a real fork()ed child inherits it', async () => {
         const stopSpy = vi.fn().mockResolvedValue(undefined)
         const manager = makeManager(fakeXvfbServer(stopSpy))
 
@@ -146,7 +146,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         expect(process.env.DISPLAY).toBeUndefined()
     })
 
-    it('No-op when DISPLAY is already set (someone wrapped us with xvfb-run)', async () => {
+    it('returns null when DISPLAY is already set (someone wrapped us with xvfb-run)', async () => {
         process.env.DISPLAY = ':42'
         const stopSpy = vi.fn().mockResolvedValue(undefined)
         const manager = makeManager(fakeWaylandServer(stopSpy))
@@ -163,7 +163,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         expect(stopSpy).not.toHaveBeenCalled()
     })
 
-    it('No-op when manager.shouldRun() returns false (non-Linux, disabled, etc.)', async () => {
+    it('returns null when manager.shouldRun() returns false (non-Linux, disabled, etc.)', async () => {
         const stopSpy = vi.fn().mockResolvedValue(undefined)
         const manager = makeManager(fakeWaylandServer(stopSpy), /* shouldRun */ false)
 
@@ -177,7 +177,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         expect(stopSpy).not.toHaveBeenCalled()
     })
 
-    it('the registered exit listener uses stopSync (sync cleanup, not the abandonable async stop)', async () => {
+    it('registers an exit listener that uses stopSync, not the abandonable async stop', async () => {
         const stopSpy = vi.fn().mockResolvedValue(undefined)
         const stopSyncSpy = vi.fn()
         const server: DisplayServer = {
@@ -214,7 +214,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         expect(process.env.DISPLAY).toBeUndefined()
     })
 
-    it('stop() restores a prior DISPLAY value rather than deleting it', async () => {
+    it('restores any prior process.env value the daemon overwrote, rather than deleting it', async () => {
         // Simulate the daemon mutating a key that already had a value (rare but
         // possible if user sets a partial env before init for some reason).
         process.env.NODE_ENV = 'preserved'

@@ -383,7 +383,7 @@ test('should avoid shutting down if worker is not busy', async () => {
     expect(await runner.initialize()).toBe(undefined)
 })
 
-test('initialize() starts the display server daemon when one is needed', async () => {
+test('starts a display-server daemon during initialize() when one is needed', async () => {
     const displayServer = await import('@wdio/display-server')
     const stopSpy = vi.fn().mockResolvedValue(undefined)
     vi.mocked(displayServer.startDisplayDaemonFromConfig).mockResolvedValueOnce({ stop: stopSpy })
@@ -394,7 +394,7 @@ test('initialize() starts the display server daemon when one is needed', async (
     expect(displayServer.startDisplayDaemonFromConfig).toHaveBeenCalledTimes(1)
 })
 
-test('initialize() is a no-op when startDisplayDaemonFromConfig returns null', async () => {
+test('shuts down cleanly when startDisplayDaemonFromConfig returns null', async () => {
     const displayServer = await import('@wdio/display-server')
     vi.mocked(displayServer.startDisplayDaemonFromConfig).mockResolvedValueOnce(null)
 
@@ -406,7 +406,7 @@ test('initialize() is a no-op when startDisplayDaemonFromConfig returns null', a
     await runner.shutdown()
 })
 
-test('shutdown() stops the daemon when one was started in initialize()', async () => {
+test('stops the daemon during shutdown() when one was started in initialize()', async () => {
     const displayServer = await import('@wdio/display-server')
     const stopSpy = vi.fn().mockResolvedValue(undefined)
     vi.mocked(displayServer.startDisplayDaemonFromConfig).mockResolvedValueOnce({ stop: stopSpy })
@@ -418,7 +418,7 @@ test('shutdown() stops the daemon when one was started in initialize()', async (
     expect(stopSpy).toHaveBeenCalledTimes(1)
 })
 
-test('run() injects display flags per worker (independent of daemon state)', async () => {
+test('injects display flags into every spawned worker (independent of daemon state)', async () => {
     const runner = new LocalRunner({} as never, { autoXvfb: true } as any)
 
     const mockInject = vi.fn()
