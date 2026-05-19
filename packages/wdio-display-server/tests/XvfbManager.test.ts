@@ -34,6 +34,7 @@ const { DisplayServerManager: XvfbManager } = await import('../src/DisplayServer
 
 describe('XvfbManager', () => {
     let manager: InstanceType<typeof XvfbManager>
+    let savedWaylandDisplay: string | undefined
 
     beforeEach(() => {
         vi.clearAllMocks()
@@ -47,12 +48,18 @@ describe('XvfbManager', () => {
 
         manager = new XvfbManager({ displayServer: 'xvfb' })
 
-        // Reset environment
+        // Reset environment — clear both display vars so shouldRun() behaves as
+        // if running headless, regardless of whether the host is a Wayland session.
         delete process.env.DISPLAY
+        savedWaylandDisplay = process.env.WAYLAND_DISPLAY
+        delete process.env.WAYLAND_DISPLAY
         mockPlatform.mockReturnValue('linux')
     })
 
     afterEach(() => {
+        if (savedWaylandDisplay !== undefined) {
+            process.env.WAYLAND_DISPLAY = savedWaylandDisplay
+        }
         vi.restoreAllMocks()
     })
 
