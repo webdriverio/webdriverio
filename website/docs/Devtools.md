@@ -3,7 +3,7 @@ id: devtools
 title: DevTools
 ---
 
-DevTools is a powerful browser-based debugging interface for visualizing, controlling, and inspecting your test executions in real-time. It works with both **WebdriverIO** and **Nightwatch.js** — same backend, same UI, same capture infrastructure.
+DevTools is a powerful browser-based debugging interface for visualizing, controlling, and inspecting your test executions in real-time. It works with **WebdriverIO**, **Nightwatch.js**, and **Selenium WebDriver** (any runner) — same backend, same UI, same capture infrastructure.
 
 ## What It Provides
 
@@ -24,3 +24,4 @@ DevTools is a powerful browser-based debugging interface for visualizing, contro
 
 - **[WebDriverIO](/docs/devtools/wdio)** - Use `@wdio/devtools-service` with Mocha, Jasmine, or Cucumber
 - **[Nightwatch](/docs/devtools/nightwatch)** - Use `@wdio/nightwatch-devtools` with zero test code changes
+- **[Selenium](/docs/devtools/selenium)** - Use `@wdio/selenium-devtools` with Mocha, Jest, Cucumber, or plain Node scripts
