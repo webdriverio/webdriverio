@@ -34,6 +34,8 @@ const makeManager = (server: DisplayServer | null, shouldRun = true) => ({
     init: vi.fn().mockResolvedValue(server !== null),
     getDisplayServer: () => server,
     injectDisplayFlags: vi.fn(),
+    // Pass-through by default; specific tests override to assert retry policy
+    executeWithRetry: vi.fn(async (fn: () => Promise<unknown>) => fn()),
 }) as unknown as DisplayServerManager
 
 const fakeWaylandServer = (stopSpy = vi.fn().mockResolvedValue(undefined)): DisplayServer => ({
@@ -175,6 +177,101 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         expect(daemon).toBeNull()
         expect(process.env.WAYLAND_DISPLAY).toBeUndefined()
         expect(stopSpy).not.toHaveBeenCalled()
+    })
+
+    it('routes daemon startup through manager.executeWithRetry so the configured retry policy applies', async () => {
+        // Flaky-spawn simulation: first two attempts throw, third succeeds.
+        // Without the retry wrap, startDisplayDaemonFromConfig would surface
+        // the first failure and never recover — silently ignoring the user's
+        // displayServerMaxRetries / displayServerRetryDelay config.
+        const startSpy = vi.fn()
+            .mockRejectedValueOnce(new Error('Xvfb spawn flake #1'))
+            .mockRejectedValueOnce(new Error('Xvfb spawn flake #2'))
+            .mockResolvedValueOnce({
+                env: { DISPLAY: ':99' },
+                stop: vi.fn().mockResolvedValue(undefined),
+                stopSync: vi.fn(),
+            })
+
+        const server: DisplayServer = {
+            name: 'xvfb',
+            isAvailable: async () => true,
+            install: async () => true,
+            getEnvironment: () => ({}),
+            getProcessWrapper: () => null,
+            getChromeFlags: () => [],
+            startDaemon: startSpy,
+        }
+        // Real retry policy: try up to 3 times, with the inner fn invoked
+        // each attempt. This is what `DisplayServerManager.executeWithRetry`
+        // does in production.
+        const manager = {
+            shouldRun: () => true,
+            init: vi.fn().mockResolvedValue(true),
+            getDisplayServer: () => server,
+            injectDisplayFlags: vi.fn(),
+            executeWithRetry: vi.fn(async (fn: () => Promise<unknown>) => {
+                let lastError: unknown
+                for (let i = 0; i < 3; i++) {
+                    try {
+                        return await fn()
+                    } catch (err) {
+                        lastError = err
+                    }
+                }
+                throw lastError
+            }),
+        } as unknown as DisplayServerManager
+
+        const daemon = await startDisplayDaemonFromConfig(
+            {} as WebdriverIO.Config,
+            [] as never,
+            manager,
+        )
+
+        expect(daemon).not.toBeNull()
+        expect(startSpy).toHaveBeenCalledTimes(3)
+        expect(process.env.DISPLAY).toBe(':99')
+
+        await daemon!.stop()
+    })
+
+    it('surfaces the last error when daemon startup exhausts every retry', async () => {
+        const finalError = new Error('Xvfb spawn flake #final')
+        const startSpy = vi.fn().mockRejectedValue(finalError)
+        const server: DisplayServer = {
+            name: 'xvfb',
+            isAvailable: async () => true,
+            install: async () => true,
+            getEnvironment: () => ({}),
+            getProcessWrapper: () => null,
+            getChromeFlags: () => [],
+            startDaemon: startSpy,
+        }
+        const manager = {
+            shouldRun: () => true,
+            init: vi.fn().mockResolvedValue(true),
+            getDisplayServer: () => server,
+            injectDisplayFlags: vi.fn(),
+            executeWithRetry: vi.fn(async (fn: () => Promise<unknown>) => {
+                let lastError: unknown
+                for (let i = 0; i < 3; i++) {
+                    try {
+                        return await fn()
+                    } catch (err) {
+                        lastError = err
+                    }
+                }
+                throw lastError
+            }),
+        } as unknown as DisplayServerManager
+
+        await expect(
+            startDisplayDaemonFromConfig({} as WebdriverIO.Config, [] as never, manager),
+        ).rejects.toBe(finalError)
+        expect(startSpy).toHaveBeenCalledTimes(3)
+        // Env wasn't mutated because we never reached the Object.assign step
+        expect(process.env.DISPLAY).toBeUndefined()
     })
 
     it('registers an exit listener that uses stopSync, not the abandonable async stop', async () => {

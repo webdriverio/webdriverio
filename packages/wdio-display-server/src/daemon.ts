@@ -81,7 +81,17 @@ export async function startDisplayDaemonFromConfig(
     }
 
     const daemonOptions: DisplayDaemonOptions = daemonOptionsFromConfig(config)
-    const daemon: DisplayDaemon = await server.startDaemon(daemonOptions)
+    // Wrap the actual daemon spawn with the manager's retry policy
+    // (`displayServerMaxRetries` / `displayServerRetryDelay`, defaulting to
+    // 3 attempts with progressive backoff). Daemon startup is the failure
+    // mode most likely to be transient on CI — port collisions, slow
+    // socket creation, momentary fs hiccups under XDG_RUNTIME_DIR — and
+    // not applying the configured retries here would silently ignore the
+    // user's configuration.
+    const daemon: DisplayDaemon = await manager.executeWithRetry(
+        () => server.startDaemon(daemonOptions),
+        `${server.name} daemon startup`,
+    )
 
     // Record any keys we're about to overwrite so stop() can restore them.
     const envKeys = Object.keys(daemon.env)
