@@ -55,15 +55,6 @@ export async function detectPackageManager(): Promise<string> {
  * Install a display server binary via the system package manager. Shared by
  * WaylandDisplayServer and XvfbDisplayServer, which each contribute only their
  * own per-package-manager command table and human-readable name.
- *
- * Behaviour:
- * - If `options.command` is provided, run it verbatim and return early.
- * - Otherwise pick a command from `packageCommands` based on detected PM.
- * - Honour `options.mode`:
- *   - `'sudo'`: when non-root and `sudo` is on PATH, wrap with
- *     `sudo -n sh -c "<cmd>"`; when sudo is missing, log a warning and
- *     attempt the install without elevation.
- *   - `'root'`: bail if not running as root.
  */
 export async function installViaPackageManager({
     name,

@@ -80,7 +80,6 @@ export class XvfbDisplayServer implements DisplayServer {
     }
 
     getProcessWrapper(): string[] | null {
-        // Wrap process with xvfb-run
         return ['xvfb-run', '--auto-servernum', '--']
     }
 
@@ -160,9 +159,8 @@ export class XvfbDisplayServer implements DisplayServer {
             }
             stopped = true
             XvfbDisplayServer.reservedDisplays.delete(displayNum)
-            // 'exit' is sync — no chance to await graceful shutdown, so SIGKILL.
-            // The X socket under /tmp/.X11-unix/X<n> is left behind and the
-            // X server overwrites stale ones on next start.
+            // No rm equivalent: the X socket under /tmp/.X11-unix/X<n> is
+            // left behind, and the X server overwrites stale ones on next start.
             try {
                 if (proc.exitCode === null && proc.signalCode === null) {
                     proc.kill('SIGKILL')

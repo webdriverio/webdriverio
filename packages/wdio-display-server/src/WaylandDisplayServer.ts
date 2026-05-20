@@ -53,7 +53,6 @@ export class WaylandDisplayServer implements DisplayServer {
 
     getProcessWrapper(): string[] | null {
         // Weston doesn't exec its child, so wrapping breaks Node's IPC fd.
-        // Daemon mode is the only supported integration path.
         return null
     }
 
@@ -143,8 +142,6 @@ export class WaylandDisplayServer implements DisplayServer {
                 return
             }
             stopped = true
-            // 'exit' is sync — no graceful wait, so SIGKILL and rmSync so the
-            // child is gone and the runtime dir cleaned up before teardown.
             try {
                 if (proc.exitCode === null && proc.signalCode === null) {
                     proc.kill('SIGKILL')
