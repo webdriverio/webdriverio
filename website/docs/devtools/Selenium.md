@@ -26,8 +26,7 @@ import { Builder, By, until } from 'selenium-webdriver'
 import { DevTools } from '@wdio/selenium-devtools'
 
 DevTools.configure({
-  screencast: { enabled: true, quality: 70, maxWidth: 1280, maxHeight: 720 },
-  headless: true
+  screencast: { enabled: true, quality: 70, maxWidth: 1280, maxHeight: 720 }
 })
 
 describe('smoke test', function () {
@@ -67,8 +66,7 @@ import { DevTools } from '@wdio/selenium-devtools'
 import { Builder, By, until } from 'selenium-webdriver'
 
 DevTools.configure({
-  screencast: { enabled: true, quality: 70, maxWidth: 1280, maxHeight: 720 },
-  headless: true
+  screencast: { enabled: true, quality: 70, maxWidth: 1280, maxHeight: 720 }
 })
 
 describe('login flow', () => {
@@ -124,8 +122,7 @@ Cucumber's split layout means three small files — one to load the plugin, one 
 import { DevTools } from '@wdio/selenium-devtools'
 
 DevTools.configure({
-  screencast: { enabled: true, quality: 70, maxWidth: 1280, maxHeight: 720 },
-  headless: true
+  screencast: { enabled: true, quality: 70, maxWidth: 1280, maxHeight: 720 }
 })
 ```
 
@@ -243,10 +240,12 @@ node tests/google.test.js
 DevTools.configure({
   port: 3000,
   hostname: 'localhost',
-  headless: true,
+  headless: false,
   openUi: true
 })
 ```
+
+> **For CI**, set both `headless: true` (hide the test browser) and `openUi: false` (don't try to open the dashboard window — CI environments have no display). The backend keeps running on the configured port so you can still open the UI later if needed.
 
 ## Public API
 
