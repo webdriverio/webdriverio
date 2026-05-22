@@ -6,6 +6,8 @@ import type { WritableStreamBuffer } from 'stream-buffers'
 import { ProcessFactory, type XvfbManager } from '@wdio/xvfb'
 import type { Workers } from '@wdio/types'
 import type { ReplConfig } from '@wdio/repl'
+import { createServerRpc } from '@wdio/rpc'
+import type { ClientFunctions, ServerFunctions } from '@wdio/rpc'
 
 import logger from '@wdio/logger'
 
@@ -90,6 +92,36 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
 
         this.isReady = new Promise((resolve) => { this.isReadyResolver = resolve })
         this.isSetup = new Promise((resolve) => { this.isSetupResolver = resolve })
+
+        createServerRpc<ClientFunctions, ServerFunctions>(
+            {
+                post: (msg) => this.childProcess?.send(msg as Parameters<NonNullable<typeof this.childProcess>['send']>[0]),
+                on: (fn) => this.on('message', fn as (...args: unknown[]) => void),
+            },
+            {
+                sessionMetadata: (data) => {
+                    this.isSetupResolver(true)
+                    if (this.retries === -1 && data.specFileRetries) {
+                        this.retries = data.specFileRetries - 1
+                    }
+                    if (data.isMultiremote) {
+                        Object.assign(this, data)
+                    } else {
+                        this.sessionId = data.sessionId
+                        this.capabilities = data.capabilities as WebdriverIO.Capabilities
+                        Object.assign(this.config, data)
+                    }
+                },
+                sessionStarted: () => {},
+                sessionEnded: () => {},
+                snapshotResults: () => {},
+                printFailureMessage: () => {},
+                errorMessage: () => {},
+                testFrameworkInitMessage: () => {},
+                workerEvent: () => {},
+                workerResponse: () => {},
+            }
+        )
     }
 
     /**
@@ -178,7 +210,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
 
         /**
          * store sessionId and connection data to worker instance
-         * handles both legacy process.send format and birpc sessionMetadata calls
+         * Note: birpc sessionMetadata is handled via createServerRpc in the constructor
          */
         if (payload.name === 'sessionStarted') {
             this.isSetupResolver(true)
@@ -191,23 +223,6 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
                 this.sessionId = payload.content.sessionId
                 this.capabilities = payload.content.capabilities
                 Object.assign(this.config, payload.content)
-            }
-        }
-
-        const birpcPayload = payload as unknown as { t: string, m: string, a: Record<string, unknown>[] }
-        if (birpcPayload.t === 'q' && birpcPayload.m === 'sessionMetadata') {
-            const data = birpcPayload.a?.[0]
-            if (!data) { return }
-            this.isSetupResolver(true)
-            if (this.retries === -1 && data.specFileRetries) {
-                this.retries = data.specFileRetries - 1
-            }
-            if (data.isMultiremote) {
-                Object.assign(this, data)
-            } else {
-                this.sessionId = data.sessionId
-                this.capabilities = data.capabilities
-                Object.assign(this.config, data)
             }
         }
 
