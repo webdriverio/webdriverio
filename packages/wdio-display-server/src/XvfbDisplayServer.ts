@@ -130,27 +130,29 @@ export class XvfbDisplayServer implements DisplayServer {
         proc.removeListener('exit', onExit)
         proc.removeListener('error', onError)
 
-        let stopped = false
-        const stop = async (): Promise<void> => {
-            if (stopped) {
-                return
+        let stopPromise: Promise<void> | null = null
+        const stop = (): Promise<void> => {
+            if (stopPromise) {
+                return stopPromise
             }
-            stopped = true
             XvfbDisplayServer.reservedDisplays.delete(displayNum)
-            this.log.info(`Stopping Xvfb daemon on ${display}`)
-            proc.kill('SIGTERM')
-            await new Promise<void>((resolve) => {
-                const timer = setTimeout(() => {
-                    if (proc.exitCode === null && proc.signalCode === null) {
-                        proc.kill('SIGKILL')
-                    }
-                    resolve()
-                }, 1000)
-                proc.once('exit', () => {
-                    clearTimeout(timer)
-                    resolve()
+            stopPromise = (async () => {
+                this.log.info(`Stopping Xvfb daemon on ${display}`)
+                proc.kill('SIGTERM')
+                await new Promise<void>((resolve) => {
+                    const timer = setTimeout(() => {
+                        if (proc.exitCode === null && proc.signalCode === null) {
+                            proc.kill('SIGKILL')
+                        }
+                        resolve()
+                    }, 1000)
+                    proc.once('exit', () => {
+                        clearTimeout(timer)
+                        resolve()
+                    })
                 })
-            })
+            })()
+            return stopPromise
         }
 
         const stopSync = (): void => {
