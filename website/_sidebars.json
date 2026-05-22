@@ -121,6 +121,15 @@
             "id": "devtools/nightwatch"
           },
           "items": []
+        },
+        {
+          "type": "category",
+          "label": "Selenium",
+          "link": {
+            "type": "doc",
+            "id": "devtools/selenium"
+          },
+          "items": []
         }
       ]
     },
