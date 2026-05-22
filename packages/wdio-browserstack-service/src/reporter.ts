@@ -11,6 +11,8 @@ import type { CurrentRunInfo, StdLog } from './types.js'
 import type { BrowserstackConfig, TestData, TestMeta } from './types.js'
 import {
     getCloudProvider,
+    isLoadTestingSession,
+    getLtsSessionId,
     o11yClassErrorHandler,
     getGitMetaData,
     removeAnsiColors,
@@ -281,15 +283,24 @@ class _TestReporter extends WDIOReporter {
         if (eventType.startsWith('TestRun') || eventType === 'HookRunStarted') {
             /* istanbul ignore next */
             const cloudProvider = getCloudProvider({ options: { hostname: this._config?.hostname } } as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser)
+            // LTS: override session_id with the pod-iteration LTS env id and
+            // tag product='loadTesting' so TestHub o11y classifier resolves
+            // test_run.origin=LoadTesting. Same logic as insights-handler
+            // getIntegrationsObject() — this path covers the REST reporter
+            // event flow that fires alongside the gRPC AutomationSession
+            // path. Mirrors py-sdk 0efca1ae + a245a814.
+            const ltsActive = isLoadTestingSession()
+            const ltsSessionId = ltsActive ? getLtsSessionId() : ''
             testData.integrations = {}
             /* istanbul ignore next */
             testData.integrations[cloudProvider] = {
                 capabilities: this._capabilities,
-                session_id: this._sessionId,
+                session_id: (ltsActive && ltsSessionId) ? ltsSessionId : this._sessionId,
                 browser: this._capabilities?.browserName,
                 browser_version: this._capabilities?.browserVersion,
                 platform: this._capabilities?.platformName,
-                platform_version: getPlatformVersion(this._capabilities, this._userCaps as WebdriverIO.Capabilities)
+                platform_version: getPlatformVersion(this._capabilities, this._userCaps as WebdriverIO.Capabilities),
+                ...(ltsActive ? { product: 'loadTesting' } : {})
             }
         }
 

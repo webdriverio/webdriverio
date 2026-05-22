@@ -18,6 +18,8 @@ import {
     getUniqueIdentifier,
     getUniqueIdentifierForCucumber,
     isBrowserstackSession,
+    isLoadTestingSession,
+    getLtsSessionId,
     isScreenshotCommand,
     isUndefined,
     o11yClassErrorHandler,
@@ -939,13 +941,21 @@ class _InsightsHandler {
         BStackLogger.debug(`Driver capabilities used for integration object: ${JSON.stringify(caps)}`)
         BStackLogger.debug(`User capabilities used for integration object: ${JSON.stringify(this._userCaps)}`)
 
+        // LTS: override session_id with the pod-iteration LTS env id and
+        // force product='loadTesting' so TestHub's o11y classifier resolves
+        // test_run.origin=LoadTesting. Mirrors py-sdk 0efca1ae (session_id
+        // override at event-emission layer) + a245a814 (product=loadTesting
+        // tag on AutomationSession). Non-LTS runs see zero behavior change.
+        const ltsActive = isLoadTestingSession()
+        const ltsSessionId = ltsActive ? getLtsSessionId() : ''
+
         return {
             capabilities: caps,
-            session_id: sessionId,
+            session_id: (ltsActive && ltsSessionId) ? ltsSessionId : sessionId,
             browser: caps?.browserName,
             browser_version: caps?.browserVersion,
             platform: caps?.platformName,
-            product: this._platformMeta?.product,
+            product: ltsActive ? 'loadTesting' : this._platformMeta?.product,
             platform_version: getPlatformVersion(caps, this._userCaps as WebdriverIO.Capabilities)
         }
     }

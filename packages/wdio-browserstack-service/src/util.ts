@@ -1028,7 +1028,36 @@ export function getUniqueIdentifierForCucumber(world: ITestCaseHookParameter): s
     return world.pickle.uri + '_' + world.pickle.astNodeIds.join(',')
 }
 
+// Load Testing Service (LTS) gating helpers — mirror of bstack_utils/helper.py
+// is_load_testing_session() / get_lts_session_id() in browserstack-python-sdk
+// (branch LTS-tra-python-support). LTS pod-iterations export
+// BROWSERSTACK_LTS_SESSION_ID before invoking the test runner; presence of
+// that env var is the single source of truth for "this run is an LTS pod
+// iteration". Optional BROWSERSTACK_LTS=true|1 lets the runner opt-in without
+// supplying a session id (useful for local repro).
+export function isLoadTestingSession(): boolean {
+    if (process.env.BROWSERSTACK_LTS_SESSION_ID) {
+        return true
+    }
+    const flag = process.env.BROWSERSTACK_LTS
+    return flag === 'true' || flag === '1'
+}
+
+export function getLtsSessionId(): string {
+    return process.env.BROWSERSTACK_LTS_SESSION_ID || ''
+}
+
 export function getCloudProvider(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser): string {
+    // LTS pod-iterations run against a local hub (localhost:4444), so the
+    // hostname check below would resolve to 'unknown_grid' and TestHub's
+    // o11y classifier would land the row with origin=UnknownGrid and
+    // session_hashed_id=NULL. Force 'browserstack' under LTS so events flow
+    // through the integrations.browserstack.* path. Mirror of py-sdk
+    // 3af3bba6 (LTS pytest: override AutomationSession.provider to
+    // 'browserstack' so TestHub records origin=LoadTesting).
+    if (isLoadTestingSession()) {
+        return 'browserstack'
+    }
     if (browser && 'instances' in browser) {
         // Loop through all instances
         for (const instanceName of browser.instances) {

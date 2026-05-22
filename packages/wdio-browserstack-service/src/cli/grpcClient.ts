@@ -300,8 +300,17 @@ export class GrpcClient {
             }
             const { platformIndex, testFrameworkName, testFrameworkVersion, testFrameworkState, testHookState, testUuid, automationSessions, capabilities, executionContext } = data
             const sessions = automationSessions.map((automationSession) => {
+                // LTS: pass through optional product field so testHubModule's
+                // ltsActive override (sets product='loadTesting' on the
+                // AutomationSession) actually reaches the binary via the
+                // gRPC TestSessionEvent payload. Without this passthrough
+                // the binary's makeIntegrations falls back to 'automate'
+                // and test_run.origin lands as Automate instead of
+                // LoadTesting. Mirror of py-sdk a245a814 +
+                // browserstack-binary's existing s?.product read.
                 return AutomationSessionConstructor.create({
                     provider: automationSession.provider,
+                    product: automationSession.product,
                     frameworkName: automationSession.frameworkName,
                     frameworkVersion: automationSession.frameworkVersion,
                     frameworkSessionId: automationSession.frameworkSessionId,
