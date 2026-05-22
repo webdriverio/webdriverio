@@ -1,45 +1,39 @@
 import { createBirpc } from 'birpc'
 import type { ServerFunctions, ClientFunctions } from './types.js'
-
-export interface RpcOptions {
-    timeout?: number
-    retries?: number
-    onError?: (error: Error) => void
-}
+import type { RpcOptions } from './createClientRpc.js'
+import type { RpcTransport } from './transport.js'
+import { resolveTransport } from './transport.js'
 
 export function createServerRpc<
     ClientFn extends object = ClientFunctions,
     ServerFn extends object = ServerFunctions
 >(
+    transport: RpcTransport,
     exposed: Partial<ServerFn>,
     options: RpcOptions = {}
 ) {
     const { onError } = options
+    const channel = resolveTransport(transport)
 
     return createBirpc<ClientFn, ServerFn>(
         exposed as ServerFn,
         {
             post: (msg: unknown) => {
-                if (!process.send) {
-                    const error = new Error('process.send not available - RPC communication disabled')
+                try {
+                    channel.post(msg)
+                } catch (err) {
+                    const error = err instanceof Error ? err : new Error('Failed to send RPC message')
                     onError?.(error)
                     throw error
-                }
-                try {
-                    process.send(msg)
-                } catch (error) {
-                    const rpcError = error instanceof Error ? error : new Error('Failed to send RPC message')
-                    onError?.(rpcError)
-                    throw rpcError
                 }
             },
             on: (fn: (msg: unknown) => void) => {
                 try {
-                    process.on('message', fn)
-                } catch (error) {
-                    const rpcError = error instanceof Error ? error : new Error('Failed to register RPC message handler')
-                    onError?.(rpcError)
-                    throw rpcError
+                    channel.on(fn)
+                } catch (err) {
+                    const error = err instanceof Error ? err : new Error('Failed to register RPC message handler')
+                    onError?.(error)
+                    throw error
                 }
             },
         }

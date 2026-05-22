@@ -25,31 +25,30 @@ vi.mock('@wdio/rpc', () => {
 describe('ServerWorkerCommunicator', () => {
     it('should register server and worker', () => {
         const server: any = { onBrowserEvent: vi.fn() }
-        const worker: any = { on: vi.fn() }
+        const worker: any = { cid: '0-0', childProcess: { send: vi.fn() }, on: vi.fn() }
         const communicator = new ServerWorkerCommunicator({} as any)
         communicator.register(server, worker)
         expect(server.onBrowserEvent).toBeCalledTimes(1)
         expect(createServerRpc).toBeCalledTimes(1)
     })
 
-    it('should store session info on sessionStarted', async () => {
+    it('should store session info on sessionMetadata', async () => {
         const server: any = { onBrowserEvent: vi.fn() }
-        const worker: any = {}
+        const worker: any = { cid: '0-1', childProcess: { send: vi.fn() }, on: vi.fn() }
 
         const rpcHandlers: any = {}
-        vi.mocked(createServerRpc).mockImplementation((handlers) => Object.assign(rpcHandlers, handlers))
+        vi.mocked(createServerRpc).mockImplementation((_transport, handlers) => Object.assign(rpcHandlers, handlers))
 
         const communicator = new ServerWorkerCommunicator({ mochaOpts: { timeout: 1000 } } as any)
         communicator.register(server, worker)
 
         expect(SESSIONS.size).toBe(0)
-        await rpcHandlers.sessionStarted({
-            cid: '0-1',
-            content: {
-                capabilities: { platform: 'iOS' },
-                sessionId: 'abc123',
-                injectGlobals: true
-            }
+        await rpcHandlers.sessionMetadata({
+            capabilities: { platform: 'iOS' },
+            sessionId: 'abc123',
+            injectGlobals: true,
+            isW3C: true,
+            isMultiremote: false
         })
 
         expect(SESSIONS.size).toBe(1)
@@ -60,12 +59,15 @@ describe('ServerWorkerCommunicator', () => {
         SESSIONS.set('0-2', { sessionId: 'xyz' } as any)
 
         const rpcHandlers: any = {}
-        vi.mocked(createServerRpc).mockImplementation((handlers) => Object.assign(rpcHandlers, handlers))
+        vi.mocked(createServerRpc).mockImplementation((_transport, handlers) => Object.assign(rpcHandlers, handlers))
 
         const communicator = new ServerWorkerCommunicator({} as any)
-        communicator.register({ onBrowserEvent: vi.fn() } as any, {} as any)
+        communicator.register(
+            { onBrowserEvent: vi.fn() } as any,
+            { cid: '0-2', childProcess: { send: vi.fn() }, on: vi.fn() } as any
+        )
 
-        await rpcHandlers.sessionEnded({ cid: '0-2' })
+        await rpcHandlers.sessionEnded()
         expect(SESSIONS.has('0-2')).toBe(false)
     })
 
@@ -79,10 +81,13 @@ describe('ServerWorkerCommunicator', () => {
         } as any)
 
         const rpcHandlers: any = {}
-        vi.mocked(createServerRpc).mockImplementation((handlers) => Object.assign(rpcHandlers, handlers))
+        vi.mocked(createServerRpc).mockImplementation((_transport, handlers) => Object.assign(rpcHandlers, handlers))
 
         const communicator = new ServerWorkerCommunicator({} as any)
-        communicator.register({ onBrowserEvent: vi.fn() } as any, {} as any)
+        communicator.register(
+            { onBrowserEvent: vi.fn() } as any,
+            { cid: '0-0', childProcess: { send: vi.fn() }, on: vi.fn() } as any
+        )
 
         await rpcHandlers.workerEvent({
             args: { type: WS_MESSAGE_TYPES.coverageMap, value: {} }
@@ -97,10 +102,10 @@ describe('ServerWorkerCommunicator', () => {
         const server = {
             onBrowserEvent: vi.fn()
         }
-        const worker = { postMessage: vi.fn() }
+        const worker = { cid: '0-3', postMessage: vi.fn(), childProcess: { send: vi.fn() }, on: vi.fn() }
 
         const rpcHandlers: any = {}
-        vi.mocked(createServerRpc).mockImplementation((handlers) => Object.assign(rpcHandlers, handlers))
+        vi.mocked(createServerRpc).mockImplementation((_transport, handlers) => Object.assign(rpcHandlers, handlers))
 
         const communicator = new ServerWorkerCommunicator({} as any)
         communicator.register(server as any, worker as any)
@@ -140,10 +145,10 @@ describe('ServerWorkerCommunicator', () => {
         const server = {
             onBrowserEvent: vi.fn()
         }
-        const worker = { postMessage: vi.fn() }
+        const worker = { cid: '0-0', postMessage: vi.fn(), childProcess: { send: vi.fn() }, on: vi.fn() }
         const rpcHandlers: any = {}
 
-        vi.mocked(createServerRpc).mockImplementation((handlers) => Object.assign(rpcHandlers, handlers))
+        vi.mocked(createServerRpc).mockImplementation((_transport, handlers) => Object.assign(rpcHandlers, handlers))
 
         const communicator = new ServerWorkerCommunicator({} as any)
         communicator.register(server as any, worker as any)

@@ -51,7 +51,7 @@ export default class Runner extends EventEmitter {
         this._configParser = new ConfigParser(configFile, args)
         this._cid = cid
         this._specs = specs
-        this._rpc = createClientRpc({})
+        this._rpc = createClientRpc('process', {})
 
         /**
          * add config file

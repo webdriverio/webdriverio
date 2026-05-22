@@ -35,7 +35,7 @@ describe('createServerRpc', () => {
             someFn: vi.fn()
         }
 
-        createServerRpc(exposed)
+        createServerRpc('process', exposed)
 
         expect(mockedCreateBirpc).toHaveBeenCalledTimes(1)
 
@@ -48,7 +48,7 @@ describe('createServerRpc', () => {
 
     it('should call process.send in post', () => {
         const exposed = {}
-        createServerRpc(exposed)
+        createServerRpc('process', exposed)
         const [, handlers] = mockedCreateBirpc.mock.calls[0]
 
         handlers.post('server message')
@@ -59,7 +59,7 @@ describe('createServerRpc', () => {
         const exposed = {}
         const fn = vi.fn()
 
-        createServerRpc(exposed)
+        createServerRpc('process', exposed)
         const [, handlers] = mockedCreateBirpc.mock.calls[0]
 
         handlers.on(fn)
@@ -75,14 +75,14 @@ describe('createServerRpc', () => {
 
         const exposed = {}
         const [_, handlers] = (() => {
-            createServerRpc(exposed, { onError })
+            createServerRpc('process', exposed, { onError })
             return mockedCreateBirpc.mock.calls[0]
         })()
 
-        expect(() => handlers.post('test message')).toThrow('process.send not available - RPC communication disabled')
+        expect(() => handlers.post('test message')).toThrow('process.send not available — RPC communication disabled')
         expect(onError).toHaveBeenCalledWith(
             expect.objectContaining({
-                message: 'process.send not available - RPC communication disabled'
+                message: 'process.send not available — RPC communication disabled'
             })
         )
     })
@@ -95,7 +95,7 @@ describe('createServerRpc', () => {
 
         const exposed = {}
         const [_, handlers] = (() => {
-            createServerRpc(exposed, { onError })
+            createServerRpc('process', exposed, { onError })
             return mockedCreateBirpc.mock.calls[0]
         })()
 
@@ -115,7 +115,7 @@ describe('createServerRpc', () => {
 
         const exposed = {}
         const [_, handlers] = (() => {
-            createServerRpc(exposed, { onError })
+            createServerRpc('process', exposed, { onError })
             return mockedCreateBirpc.mock.calls[0]
         })()
 
@@ -136,12 +136,29 @@ describe('createServerRpc', () => {
             onError: vi.fn()
         }
 
-        createServerRpc(exposed, options)
+        createServerRpc('process', exposed, options)
 
         expect(mockedCreateBirpc).toHaveBeenCalledTimes(1)
         const [exposedArg, handlers] = mockedCreateBirpc.mock.calls[0]
         expect(exposedArg).toEqual(exposed)
         expect(typeof handlers.post).toBe('function')
         expect(typeof handlers.on).toBe('function')
+    })
+
+    it('should use a custom transport channel', () => {
+        const customPost = vi.fn()
+        const customOn = vi.fn()
+        const transport = { post: customPost, on: customOn }
+        const exposed = {}
+
+        createServerRpc(transport, exposed)
+
+        const [, handlers] = mockedCreateBirpc.mock.calls[0]
+        handlers.post('hello')
+        expect(customPost).toHaveBeenCalledWith('hello')
+
+        const fn = vi.fn()
+        handlers.on(fn)
+        expect(customOn).toHaveBeenCalledWith(fn)
     })
 })

@@ -34,7 +34,7 @@ describe('RPC Performance Tests', () => {
 
             // Create RPC instances rapidly
             for (let i = 0; i < messageCount; i++) {
-                createServerRpc(serverHandlers)
+                createServerRpc('process', serverHandlers)
             }
 
             const endTime = performance.now()
@@ -57,7 +57,7 @@ describe('RPC Performance Tests', () => {
                     sessionStarted: vi.fn(),
                     sessionEnded: vi.fn()
                 }
-                const rpc = createServerRpc(handlers)
+                const rpc = createServerRpc('process', handlers)
                 connections.push({ rpc, handlers })
             }
 
@@ -76,7 +76,7 @@ describe('RPC Performance Tests', () => {
                 sessionMetadata: vi.fn()
             }
 
-            const serverRpc = createServerRpc(serverHandlers)
+            const serverRpc = createServerRpc('process', serverHandlers)
 
             // Create a large payload
             const largeCapabilities = {
@@ -141,7 +141,7 @@ describe('RPC Performance Tests', () => {
 
             // Create RPC instances with error handling
             for (let i = 0; i < errorCount; i++) {
-                createServerRpc(serverHandlers, { onError })
+                createServerRpc('process', serverHandlers, { onError })
             }
 
             const endTime = performance.now()
@@ -166,8 +166,8 @@ describe('RPC Performance Tests', () => {
             // Create many RPC instances to test memory efficiency
             const instances = []
             for (let i = 0; i < 500; i++) {
-                instances.push(createServerRpc(serverHandlers))
-                instances.push(createClientRpc(clientHandlers))
+                instances.push(createServerRpc('process', serverHandlers))
+                instances.push(createClientRpc('process', clientHandlers))
             }
 
             expect(instances).toHaveLength(1000)

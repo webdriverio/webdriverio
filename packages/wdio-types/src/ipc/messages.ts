@@ -1,4 +1,5 @@
-import type { Options, Capabilities } from '@wdio/types'
+import type * as Options from '../Options.js'
+import type * as Capabilities from '../Capabilities.js'
 import type { BrowserData, SnapshotResultMessage, SessionEndedMessage } from '../Runner.js'
 
 export enum IPC_MESSAGE_TYPES {
@@ -92,8 +93,7 @@ export interface SessionMetadata {
 }
 
 export interface SessionStartedMessagePayload {
-    origin: 'worker'
-    name: 'sessionStarted'
+    cid?: string
     content: {
         sessionId: string
         isW3C: boolean
@@ -105,8 +105,7 @@ export interface SessionStartedMessagePayload {
         isMultiremote: boolean
         injectGlobals: boolean
         capabilities: WebdriverIO.Capabilities
-    },
-    cid?: string
+    }
 }
 
 interface ReadyEvent {
