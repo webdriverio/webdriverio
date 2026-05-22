@@ -477,7 +477,6 @@ describe('wdio-runner', () => {
             )
         })
 
-
     })
 
     describe('_initSession', () => {

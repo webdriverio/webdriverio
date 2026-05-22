@@ -12,7 +12,7 @@ import type * as CustomCommands from './CustomCommands.js'
 export type { Event, TestState, LogMessage, WDIOErrorEvent, BrowserData } from './Runner.js'
 export { IPC_MESSAGE_TYPES, type IPCMessage, type AnyIPCMessage, type IPCMessageValue } from './ipc/messages.js'
 export { WS_MESSAGE_TYPES, type WSMessage, type AnyWSMessage, type WSMessageValue } from './ws/messages.js'
-export type { Automation, Capabilities, Options, Services, Frameworks, Reporters, Workers }
+export type { Automation, Capabilities, Options, Services, Frameworks, Reporters, Workers, CustomCommands }
 
 export type JsonPrimitive = string | number | boolean | null
 export type JsonObject = { [x: string]: JsonPrimitive | JsonObject | JsonArray }
