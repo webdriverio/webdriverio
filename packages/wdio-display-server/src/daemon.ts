@@ -92,7 +92,12 @@ export async function startDisplayDaemonFromConfig(
     Object.assign(process.env, daemon.env)
     log.info(`Daemon ready (${server.name}); env: ${JSON.stringify(daemon.env)}`)
 
-    let stopped = false
+    // Memoize the in-flight stop promise (rather than a sync `stopped` flag) so
+    // the exit listener can still run daemon.stopSync() while an async stop() is
+    // mid-flight. Without this, a SIGINT racing onComplete would set the flag,
+    // exit would fire before the async stop resolved, and the exit handler would
+    // bail out — orphaning the Weston/Xvfb child.
+    let stopPromise: Promise<void> | null = null
     let signalHandler: (() => void) | null = null
     let exitHandler: (() => void) | null = null
 
@@ -118,30 +123,30 @@ export async function startDisplayDaemonFromConfig(
         }
     }
 
-    const stop = async (): Promise<void> => {
-        if (stopped) {
-            return
+    const stop = (): Promise<void> => {
+        if (stopPromise) {
+            return stopPromise
         }
-        stopped = true
-        try {
-            await daemon.stop()
-        } finally {
-            restoreEnv()
-            deregisterHandlers()
-        }
+        stopPromise = (async () => {
+            try {
+                await daemon.stop()
+            } finally {
+                restoreEnv()
+                deregisterHandlers()
+            }
+        })()
+        return stopPromise
     }
 
     // SIGINT/SIGTERM run with the event loop alive — full async stop() is fine.
-    // 'exit' listeners are sync; async work is abandoned, so go through
-    // daemon.stopSync() for SIGKILL + rmSync before Node tears down.
+    // 'exit' listeners are sync; async work is abandoned, so unconditionally
+    // call daemon.stopSync() for SIGKILL + rmSync before Node tears down. The
+    // display-server layer guards stopSync() against re-entry, so this is safe
+    // even when async stop() already completed.
     signalHandler = () => {
         void stop()
     }
     exitHandler = () => {
-        if (stopped) {
-            return
-        }
-        stopped = true
         try {
             daemon.stopSync()
         } catch { /* swallow — 'exit' listeners must not throw */ }

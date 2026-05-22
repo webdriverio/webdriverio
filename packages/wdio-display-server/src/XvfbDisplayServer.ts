@@ -130,8 +130,16 @@ export class XvfbDisplayServer implements DisplayServer {
         proc.removeListener('exit', onExit)
         proc.removeListener('error', onError)
 
+        // syncDone short-circuits stop() so a prior stopSync() (sync teardown
+        // during process exit) isn't undone by a redundant async cleanup, while
+        // still allowing stopSync() to run when an async stop() is mid-flight —
+        // otherwise an exit fired while stop() is awaiting would orphan the child.
         let stopPromise: Promise<void> | null = null
+        let syncDone = false
         const stop = (): Promise<void> => {
+            if (syncDone) {
+                return Promise.resolve()
+            }
             if (stopPromise) {
                 return stopPromise
             }
@@ -156,10 +164,10 @@ export class XvfbDisplayServer implements DisplayServer {
         }
 
         const stopSync = (): void => {
-            if (stopped) {
+            if (syncDone) {
                 return
             }
-            stopped = true
+            syncDone = true
             XvfbDisplayServer.reservedDisplays.delete(displayNum)
             // No rm equivalent: the X socket under /tmp/.X11-unix/X<n> is
             // left behind, and the X server overwrites stale ones on next start.
