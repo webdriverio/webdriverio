@@ -129,19 +129,24 @@ export class WaylandDisplayServer implements DisplayServer {
             }
             stopPromise = (async () => {
                 this.log.info(`Stopping Weston daemon on ${socketName}`)
-                proc.kill('SIGTERM')
-                await new Promise<void>((resolve) => {
-                    const timer = setTimeout(() => {
-                        if (proc.exitCode === null && proc.signalCode === null) {
-                            proc.kill('SIGKILL')
-                        }
-                        resolve()
-                    }, 1000)
-                    proc.once('exit', () => {
-                        clearTimeout(timer)
-                        resolve()
+                // Skip the SIGTERM + wait when proc has already exited;
+                // `once('exit', …)` is one-shot and would never fire, forcing
+                // the full 1s timeout before we proceed to rm().
+                if (proc.exitCode === null && proc.signalCode === null) {
+                    proc.kill('SIGTERM')
+                    await new Promise<void>((resolve) => {
+                        const timer = setTimeout(() => {
+                            if (proc.exitCode === null && proc.signalCode === null) {
+                                proc.kill('SIGKILL')
+                            }
+                            resolve()
+                        }, 1000)
+                        proc.once('exit', () => {
+                            clearTimeout(timer)
+                            resolve()
+                        })
                     })
-                })
+                }
                 await rm(runtimeDir, { recursive: true, force: true }).catch(() => {})
             })()
             return stopPromise
