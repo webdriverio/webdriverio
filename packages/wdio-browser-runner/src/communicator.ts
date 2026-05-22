@@ -46,10 +46,22 @@ export class ServerWorkerCommunicator {
         const { cid } = worker
         server.onBrowserEvent((data, client) => this.#onBrowserEvent(data, client, worker))
 
+        let cleanupRpcListener: (() => void) | undefined
+
         createServerRpc<ClientFunctions, ServerFunctions>(
             {
-                post: (msg) => worker.childProcess?.send(msg as Parameters<typeof worker.childProcess.send>[0]),
-                on: (fn) => worker.on('message', fn as (...args: unknown[]) => void),
+                post: (msg) => {
+                    if (!worker.childProcess) {
+                        const error = new Error(`Unable to send RPC message for worker ${cid}: childProcess is not available`)
+                        log.error(error.message)
+                        throw error
+                    }
+                    worker.childProcess.send(msg as Parameters<typeof worker.childProcess.send>[0])
+                },
+                on: (fn) => {
+                    worker.on('message', fn as (...args: unknown[]) => void)
+                    cleanupRpcListener = () => worker.off('message', fn as (...args: unknown[]) => void)
+                },
             },
             {
                 sessionMetadata: (data: IPCMessageValue[typeof IPC_MESSAGE_TYPES.sessionMetadataMessage]) => {
@@ -64,7 +76,9 @@ export class ServerWorkerCommunicator {
                     }
                 },
                 sessionEnded: () => {
+                    cleanupRpcListener?.()
                     SESSIONS.delete(cid)
+                    this.#customCommands.delete(cid)
                 },
                 workerEvent: async ({ args }) => {
                     if (isWSMessage(args, WS_MESSAGE_TYPES.coverageMap)) {
@@ -92,11 +106,11 @@ export class ServerWorkerCommunicator {
                     this.#pendingMessages.delete(id)
                     msg.client.send(WDIO_EVENT_NAME, message)
                 },
-                sessionStarted: () => {},
-                snapshotResults: () => {},
-                printFailureMessage: () => {},
-                testFrameworkInitMessage: () => {},
-                errorMessage: () => {}
+                sessionStarted: () => log.debug(`worker ${cid} sessionStarted event is ignored in the browser-runner parent process`),
+                snapshotResults: () => log.debug(`worker ${cid} snapshotResults event is ignored in the browser-runner parent process`),
+                printFailureMessage: () => log.debug(`worker ${cid} printFailureMessage event is ignored in the browser-runner parent process`),
+                testFrameworkInitMessage: () => log.debug(`worker ${cid} testFrameworkInitMessage event is ignored in the browser-runner parent process`),
+                errorMessage: (data) => log.error(`Worker ${cid} reported an error`, data)
             }
         )
     }

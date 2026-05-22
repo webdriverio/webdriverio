@@ -76,6 +76,25 @@ describe('handleMessage', () => {
         expect(worker.instances).toEqual({ foo: { sessionId: 'abc123' } })
         expect(worker.isMultiremote).toEqual(true)
     })
+
+    it('does not override existing session info when sessionStarted follows sessionMetadata', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        worker.sessionId = 'abc123'
+        worker.capabilities = { platform: 'iOS' } as any
+
+        const payload = {
+            name: 'sessionStarted',
+            content: {
+                sessionId: 'abc999',
+                capabilities: { platform: 'android' }
+            }
+        }
+
+        worker['_handleMessage'](payload as unknown as Workers.WorkerMessage)
+
+        expect(worker.sessionId).toBe('abc123')
+        expect(worker.capabilities).toEqual({ platform: 'iOS' })
+    })
 })
 
 describe('handleError', () => {

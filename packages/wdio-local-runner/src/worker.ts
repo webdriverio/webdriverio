@@ -100,6 +100,9 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             },
             {
                 sessionMetadata: (data) => {
+                    if (this.sessionId || this.instances || this.isMultiremote) {
+                        return
+                    }
                     this.isSetupResolver(true)
                     if (this.retries === -1 && data.specFileRetries) {
                         this.retries = data.specFileRetries - 1
@@ -213,6 +216,9 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
          * Note: birpc sessionMetadata is handled via createServerRpc in the constructor
          */
         if (payload.name === 'sessionStarted') {
+            if (this.sessionId || this.instances || this.isMultiremote) {
+                return
+            }
             this.isSetupResolver(true)
             if (this.retries === -1 && payload.specFileRetries) {
                 this.retries = payload.specFileRetries - 1
