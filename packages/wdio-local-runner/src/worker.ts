@@ -178,6 +178,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
 
         /**
          * store sessionId and connection data to worker instance
+         * handles both legacy process.send format and birpc sessionMetadata calls
          */
         if (payload.name === 'sessionStarted') {
             this.isSetupResolver(true)
@@ -190,6 +191,23 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
                 this.sessionId = payload.content.sessionId
                 this.capabilities = payload.content.capabilities
                 Object.assign(this.config, payload.content)
+            }
+        }
+
+        const birpcPayload = payload as unknown as { t: string, m: string, a: Record<string, unknown>[] }
+        if (birpcPayload.t === 'q' && birpcPayload.m === 'sessionMetadata') {
+            const data = birpcPayload.a?.[0]
+            if (!data) { return }
+            this.isSetupResolver(true)
+            if (this.retries === -1 && data.specFileRetries) {
+                this.retries = data.specFileRetries - 1
+            }
+            if (data.isMultiremote) {
+                Object.assign(this, data)
+            } else {
+                this.sessionId = data.sessionId
+                this.capabilities = data.capabilities
+                Object.assign(this.config, data)
             }
         }
 

@@ -2,7 +2,6 @@ import path from 'node:path'
 import { describe, expect, it, vi, test, afterEach } from 'vitest'
 
 import BaseReporter from '../src/reporter.js'
-import { IPC_MESSAGE_TYPES } from '@wdio/types'
 
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -238,18 +237,15 @@ describe('BaseReporter', () => {
         expect(workingReporterInstance.emit).toBeCalledTimes(1)
         expect(process.send).toBeCalledTimes(1)
         expect(process.send).toHaveBeenCalledWith(expect.objectContaining({
-            type: IPC_MESSAGE_TYPES.errorMessage,
-            value: expect.objectContaining({
-                origin: 'reporter',
-                name: 'printFailureMessage',
-                content: expect.objectContaining({
-                    cid: '0-0',
-                    error: expect.objectContaining({
-                        message: 'Reporter throws an error',
-                        stack: expect.stringContaining('Error: Reporter throws an error\n    at DotReporter.<anonymous>')
-                    }),
-                    fullTitle: 'reporter DotReporter'
-                })
+            origin: 'reporter',
+            name: 'printFailureMessage',
+            content: expect.objectContaining({
+                cid: '0-0',
+                error: expect.objectContaining({
+                    message: 'Reporter throws an error',
+                    stack: expect.stringContaining('Error: Reporter throws an error\n    at DotReporter.<anonymous>')
+                }),
+                fullTitle: 'reporter DotReporter'
             })
         }))
     })

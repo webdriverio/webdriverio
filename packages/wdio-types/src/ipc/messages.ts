@@ -90,6 +90,7 @@ export interface SessionMetadata {
     capabilities: WebdriverIO.Capabilities
     injectGlobals?: boolean
     headers?: Record<string, string>
+    specFileRetries?: number
 }
 
 export interface SessionStartedMessagePayload {
