@@ -298,7 +298,8 @@ export class DisplayServerManager {
             caps['goog:chromeOptions'] = { args: [] }
             chromeOptions = caps['goog:chromeOptions']
         }
-        if (!edgeOptions && caps.browserName === 'msedge') {
+        // Selenium accepts both 'MicrosoftEdge' (W3C canonical) and 'msedge'.
+        if (!edgeOptions && (caps.browserName === 'MicrosoftEdge' || caps.browserName === 'msedge')) {
             caps['ms:edgeOptions'] = { args: [] }
             edgeOptions = caps['ms:edgeOptions']
         }

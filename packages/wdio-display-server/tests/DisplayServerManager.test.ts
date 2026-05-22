@@ -296,6 +296,20 @@ describe('DisplayServerManager (gap coverage)', () => {
             ])
         })
 
+        it('injects Wayland flags into bare MicrosoftEdge capabilities', async () => {
+            mockWayland.isAvailable.mockResolvedValue(true)
+            const mgr = new DisplayServerManager({ displayServer: 'wayland' })
+            await mgr.init()
+
+            const caps = { browserName: 'MicrosoftEdge' } as WebdriverIO.Capabilities
+            mgr.injectDisplayFlags(caps as never)
+
+            expect(caps['ms:edgeOptions']?.args).toEqual([
+                '--ozone-platform=wayland',
+                '--enable-features=UseOzonePlatform',
+            ])
+        })
+
         it('injects Wayland flags into Electron appArgs as well as Chrome args', async () => {
             mockWayland.isAvailable.mockResolvedValue(true)
             const mgr = new DisplayServerManager({ displayServer: 'wayland' })
