@@ -10,7 +10,7 @@ import { parse as parseCDDL, type PropertyReference, type Property } from 'cddl'
 
 import downloadSpec from './downloadSpec.js'
 import type { CddlType } from './utils.js'
-import { findGroupByName, writeFile } from './utils.js'
+import { backfillCrossCddlRefs, findGroupByName, writeFile } from './utils.js'
 import { BASE_PROTOCOL_SPEC, CDDL_PARSE_ERROR_MESSAGE } from './constants.js'
 
 const b = types.builders
@@ -31,23 +31,32 @@ if (!hasNewSpec) {
 }
 
 const cddlTypes: CddlType[] = ['local', 'remote']
-const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
+const asts = cddlTypes.map((type) => {
     const cddlPath = path.join(__dirname, 'cddl', `${type}.cddl`)
-
-    let ast
     try {
-        ast = parseCDDL(cddlPath)
+        return parseCDDL(cddlPath)
     } catch (err) {
         console.error(util.format(CDDL_PARSE_ERROR_MESSAGE, `Failed to parse ${type}.cddl: ${(err as Error).stack}`))
         process.exit(0)
     }
+})
+const [astLocal, astRemote] = asts
 
-    const cddl = transform(ast, { useUnknown: true })
+/**
+ * The CDDL spec sometimes references shared type aliases (e.g.
+ * `browsingContext.Screencast = text`) only from `local.cddl` even though
+ * `remote.cddl` consumes them. Backfill missing references in each direction
+ * from the other AST before transforming so neither output has dangling types.
+ */
+backfillCrossCddlRefs(astRemote, astLocal)
+backfillCrossCddlRefs(astLocal, astRemote)
+
+await Promise.all(cddlTypes.map(async (type, i) => {
+    const cddl = transform(asts[i], { useUnknown: true })
     await writeFile(
         path.resolve(__dirname, '..', '..', 'packages', 'webdriver', 'src', 'bidi', `${type}Types.ts`),
         cddl
     )
-    return ast
 }))
 
 const code = `
