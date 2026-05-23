@@ -31,6 +31,11 @@ describe('getProductMap', () => {
         }
         expect(productMap).toEqual(expectedProductMap)
     })
+
+    it('should coerce unset accessibility to false', () => {
+        const productMap = utils.getProductMap({ ...config, accessibility: undefined } as any)
+        expect(productMap.accessibility).toBe(false)
+    })
 })
 
 describe('shouldProcessEventForTesthub', () => {
