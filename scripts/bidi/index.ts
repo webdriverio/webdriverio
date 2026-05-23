@@ -11,7 +11,7 @@ import { parse as parseCDDL, type PropertyReference, type Property } from 'cddl'
 import downloadSpec from './downloadSpec.js'
 import type { CddlType } from './utils.js'
 import { backfillCrossCddlRefs, findGroupByName, writeFile } from './utils.js'
-import { BASE_PROTOCOL_SPEC, CDDL_PARSE_ERROR_MESSAGE } from './constants.js'
+import { BASE_PROTOCOL_SPEC, CDDL_PARSE_ERROR_MESSAGE, REMOTE_TYPE_DEPRECATIONS } from './constants.js'
 
 const b = types.builders
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
@@ -52,7 +52,10 @@ backfillCrossCddlRefs(astRemote, astLocal)
 backfillCrossCddlRefs(astLocal, astRemote)
 
 await Promise.all(cddlTypes.map(async (type, i) => {
-    const cddl = transform(asts[i], { useUnknown: true })
+    let cddl = transform(asts[i], { useUnknown: true })
+    if (type === 'remote') {
+        cddl += REMOTE_TYPE_DEPRECATIONS
+    }
     await writeFile(
         path.resolve(__dirname, '..', '..', 'packages', 'webdriver', 'src', 'bidi', `${type}Types.ts`),
         cddl
