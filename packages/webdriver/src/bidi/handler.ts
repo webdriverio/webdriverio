@@ -379,6 +379,36 @@ export class BidiHandler extends BidiCore {
     }
 
     /**
+     * WebDriver Bidi command to send command method "browsingContext.startScreencast" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-browsingContext-startScreencast
+     * @param params `remote.BrowsingContextStartScreencastParameters` {@link https://w3c.github.io/webdriver-bidi/#command-browsingContext-startScreencast | command parameter}
+     * @returns `Promise<local.BrowsingContextStartScreencastResult>`
+     **/
+    async browsingContextStartScreencast(params: remote.BrowsingContextStartScreencastParameters): Promise<local.BrowsingContextStartScreencastResult> {
+        const result = await this.send({
+            method: 'browsingContext.startScreencast',
+            params
+        })
+
+        return result.result as local.BrowsingContextStartScreencastResult
+    }
+
+    /**
+     * WebDriver Bidi command to send command method "browsingContext.stopScreencast" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-browsingContext-stopScreencast
+     * @param params `remote.BrowsingContextStopScreencastParameters` {@link https://w3c.github.io/webdriver-bidi/#command-browsingContext-stopScreencast | command parameter}
+     * @returns `Promise<local.BrowsingContextStopScreencastResult>`
+     **/
+    async browsingContextStopScreencast(params: remote.BrowsingContextStopScreencastParameters): Promise<local.BrowsingContextStopScreencastResult> {
+        const result = await this.send({
+            method: 'browsingContext.stopScreencast',
+            params
+        })
+
+        return result.result as local.BrowsingContextStopScreencastResult
+    }
+
+    /**
      * WebDriver Bidi command to send command method "browsingContext.traverseHistory" with parameters.
      * @url https://w3c.github.io/webdriver-bidi/#command-browsingContext-traverseHistory
      * @param params `remote.BrowsingContextTraverseHistoryParameters` {@link https://w3c.github.io/webdriver-bidi/#command-browsingContext-traverseHistory | command parameter}
