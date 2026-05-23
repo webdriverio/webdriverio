@@ -36,6 +36,11 @@ describe('getProductMap', () => {
         const productMap = utils.getProductMap({ ...config, accessibility: undefined } as any)
         expect(productMap.accessibility).toBe(false)
     })
+
+    it('should preserve explicit accessibility: true', () => {
+        const productMap = utils.getProductMap({ ...config, accessibility: true } as any)
+        expect(productMap.accessibility).toBe(true)
+    })
 })
 
 describe('shouldProcessEventForTesthub', () => {
