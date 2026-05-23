@@ -56,6 +56,22 @@ export const GENERATED_FILE_COMMENT = `/**
  * ./scripts/bidi/**
  */`
 
+/**
+ * Aliases that the WebDriver BiDi CDDL spec has renamed but that we keep
+ * around as deprecated re-exports so consumers can migrate without an immediate
+ * break. Appended to the generated `remoteTypes.ts` after CDDL transformation.
+ *
+ * When promoting one of these to a breaking change (typically at a major
+ * version), delete the corresponding entry here and update any code/tests that
+ * still rely on the old name.
+ */
+export const REMOTE_TYPE_DEPRECATIONS = `
+/**
+ * @deprecated Use SessionSubscribeParameters instead, will be removed in v10.
+ */
+export interface SessionSubscriptionRequest extends SessionSubscribeParameters {}
+`
+
 export const CDDL_PARSE_ERROR_MESSAGE = `
 ====================
 CDDL PARSING FAILED!

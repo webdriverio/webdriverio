@@ -534,6 +534,46 @@ const protocol = {
             }
         }
     },
+    "browsingContext.startScreencast": {
+        "socket": {
+            "command": "browsingContextStartScreencast",
+            "description": "WebDriver Bidi command to send command method \"browsingContext.startScreencast\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-startScreencast",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.BrowsingContextStartScreencastParameters`",
+                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  mimeType?: string;<br />  streamOptions?: BrowsingContextMediaStreamOptions;<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowsingContextStartScreencastResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     screencast: BrowsingContextScreencast;\n     path: string;\n   }\n   ```"
+            }
+        }
+    },
+    "browsingContext.stopScreencast": {
+        "socket": {
+            "command": "browsingContextStopScreencast",
+            "description": "WebDriver Bidi command to send command method \"browsingContext.stopScreencast\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-stopScreencast",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.BrowsingContextStopScreencastParameters`",
+                    "description": "<pre>\\{<br />  screencast: BrowsingContextScreencast;<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowsingContextStopScreencastResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     path: string;\n     error?: string;\n   }\n   ```"
+            }
+        }
+    },
     "browsingContext.traverseHistory": {
         "socket": {
             "command": "browsingContextTraverseHistory",
