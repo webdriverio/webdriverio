@@ -13,7 +13,7 @@ export interface Errors {
     errors: ErrorType[]
 }
 
-export const getProductMap = (config: BrowserStackConfig): { [key: string]: boolean | undefined } => {
+export const getProductMap = (config: BrowserStackConfig): { [key: string]: boolean } => {
     // LTS runs explicitly disable Automate (browserstackAutomation: false)
     // and route to the LTS internal hub instead of the Automate cloud hub.
     // Keeping automate=true here causes builds to land in TestHub with
@@ -22,7 +22,7 @@ export const getProductMap = (config: BrowserStackConfig): { [key: string]: bool
     const lts = isLoadTestingSession()
     return {
         observability: config.testObservability.enabled,
-        accessibility: config.accessibility,
+        accessibility: config.accessibility === true,
         percy: config.percy,
         automate: lts ? false : config.automate,
         app_automate: config.appAutomate,
@@ -81,6 +81,10 @@ export const logBuildError = (error: Errors | null, product: string = ''): void 
 }
 
 export const getProductMapForBuildStartCall = (config: BrowserStackConfig, accessibilityAutomation?: boolean): { [key: string]: boolean | undefined } => {
+    // Keeps the looser `boolean | undefined` return type (vs the stricter
+    // `boolean` return on getProductMap) because launchTestSession callers
+    // still distinguish "accessibility flag was unset on the yaml" from
+    // "accessibility flag was explicitly false" via the undefined sentinel.
     // See getProductMap above — same LTS-gated automate=false so the
     // build-start payload aligns with production binary-CLI LTS builds
     // (source: TO,LTS) instead of TO,AUT,LTS. Mirror of py-sdk ea53d914.
