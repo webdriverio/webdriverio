@@ -396,6 +396,10 @@ describe('hasAppAutomateCapability', () => {
         expect(hasAppAutomateCapability({ 'bstack:options': { app: 'bs://xyz' } } as any)).toBe(true)
     })
 
+    it('returns true when appium:options.app is set', () => {
+        expect(hasAppAutomateCapability({ 'appium:options': { app: 'bs://xyz' } } as any)).toBe(true)
+    })
+
     it('returns false for browser-only caps', () => {
         expect(hasAppAutomateCapability({ browserName: 'chrome' } as any)).toBe(false)
     })
@@ -444,6 +448,16 @@ describe('hasAnyAppAutomateCapability', () => {
     it('returns true when alwaysMatch carries an app cap', () => {
         const caps = [
             { alwaysMatch: { 'appium:app': 'bs://abc' }, firstMatch: [] },
+        ]
+        expect(hasAnyAppAutomateCapability(caps as any)).toBe(true)
+    })
+
+    it('returns true when only a firstMatch entry carries an app cap', () => {
+        const caps = [
+            {
+                alwaysMatch: { platformName: 'iOS' },
+                firstMatch: [{ 'appium:app': 'bs://abc' }],
+            },
         ]
         expect(hasAnyAppAutomateCapability(caps as any)).toBe(true)
     })

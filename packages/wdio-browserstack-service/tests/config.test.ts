@@ -74,6 +74,23 @@ describe('BrowserStackConfig appAutomate detection', () => {
         expect(cfg.appAutomate).toBe(true)
     })
 
+    it('marks app_automate when only a W3C firstMatch entry carries an app cap', () => {
+        const cfg = new BrowserStackConfig(baseOptions, baseConfig, [
+            {
+                alwaysMatch: { platformName: 'iOS' },
+                firstMatch: [{ 'appium:app': 'bs://abc' }],
+            },
+        ] as any)
+        expect(cfg.appAutomate).toBe(true)
+    })
+
+    it('marks app_automate when caps use nested appium:options.app', () => {
+        const cfg = new BrowserStackConfig(baseOptions, baseConfig, [
+            { platformName: 'iOS', 'appium:options': { app: 'bs://abc' } },
+        ] as any)
+        expect(cfg.appAutomate).toBe(true)
+    })
+
     it('still marks automate when capabilities omit any app signal', () => {
         const cfg = new BrowserStackConfig(baseOptions, baseConfig, [
             { browserName: 'chrome' },

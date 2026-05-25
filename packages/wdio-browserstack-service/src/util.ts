@@ -1360,6 +1360,12 @@ export function hasAppAutomateCapability(cap?: WebdriverIO.Capabilities): boolea
     if (bstackOptions && !isUndefined(bstackOptions.app)) {
         return true
     }
+    // Match the worker-side detection in service.ts/_isAppAutomate(): `appium:options.app`
+    // is a valid Appium-style nested location for the app capability.
+    const appiumOptions = record['appium:options'] as Record<string, unknown> | undefined
+    if (appiumOptions && !isUndefined(appiumOptions.app)) {
+        return true
+    }
     return false
 }
 
@@ -1374,7 +1380,14 @@ export function hasAnyAppAutomateCapability(capabilities?: Capabilities.Testrunn
                 continue
             }
             if ('alwaysMatch' in entry) {
-                flat.push((entry as { alwaysMatch: WebdriverIO.Capabilities }).alwaysMatch)
+                const w3cEntry = entry as {
+                    alwaysMatch: WebdriverIO.Capabilities
+                    firstMatch?: WebdriverIO.Capabilities[]
+                }
+                flat.push(w3cEntry.alwaysMatch)
+                if (Array.isArray(w3cEntry.firstMatch)) {
+                    flat.push(...w3cEntry.firstMatch)
+                }
                 continue
             }
             const values = Object.values(entry)
