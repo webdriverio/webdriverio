@@ -54,6 +54,8 @@ import {
     getAppA11yResults,
     isMultiRemoteCaps,
     getTestPlanId,
+    hasAppAutomateCapability,
+    hasAnyAppAutomateCapability,
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
 import PerformanceTester from '../src/instrumentation/performance/performance-tester.js'
@@ -370,6 +372,85 @@ describe('isMultiRemoteCaps', () => {
             }
         ]
         expect(isMultiRemoteCaps(capsWithNull as any)).toBe(false)
+    })
+})
+
+describe('hasAppAutomateCapability', () => {
+    it('returns true when appium:app is set', () => {
+        expect(hasAppAutomateCapability({ 'appium:app': 'bs://abc' } as any)).toBe(true)
+    })
+
+    it('returns true when appium:bundleId is set', () => {
+        expect(hasAppAutomateCapability({ 'appium:bundleId': 'com.example.app' } as any)).toBe(true)
+    })
+
+    it('returns true when appium:appPackage is set', () => {
+        expect(hasAppAutomateCapability({ 'appium:appPackage': 'com.example' } as any)).toBe(true)
+    })
+
+    it('returns true when appium:appActivity is set', () => {
+        expect(hasAppAutomateCapability({ 'appium:appActivity': '.MainActivity' } as any)).toBe(true)
+    })
+
+    it('returns true when bstack:options.app is set', () => {
+        expect(hasAppAutomateCapability({ 'bstack:options': { app: 'bs://xyz' } } as any)).toBe(true)
+    })
+
+    it('returns false for browser-only caps', () => {
+        expect(hasAppAutomateCapability({ browserName: 'chrome' } as any)).toBe(false)
+    })
+
+    it('returns false for empty/undefined input', () => {
+        expect(hasAppAutomateCapability(undefined)).toBe(false)
+        expect(hasAppAutomateCapability({} as any)).toBe(false)
+    })
+
+    it('returns false when appium:app is an empty string', () => {
+        expect(hasAppAutomateCapability({ 'appium:app': '' } as any)).toBe(false)
+    })
+})
+
+describe('hasAnyAppAutomateCapability', () => {
+    it('returns true for a flat array containing an app cap', () => {
+        const caps = [
+            { browserName: 'chrome' },
+            { platformName: 'iOS', 'appium:app': 'bs://abc' },
+        ]
+        expect(hasAnyAppAutomateCapability(caps as any)).toBe(true)
+    })
+
+    it('returns false for a flat array of browser-only caps', () => {
+        expect(hasAnyAppAutomateCapability([{ browserName: 'chrome' }] as any)).toBe(false)
+    })
+
+    it('returns true for parallel multiremote with an app cap', () => {
+        const caps = [
+            {
+                phone: { capabilities: { platformName: 'iOS', 'appium:app': 'bs://abc' } },
+                browser: { capabilities: { browserName: 'chrome' } },
+            },
+        ]
+        expect(hasAnyAppAutomateCapability(caps as any)).toBe(true)
+    })
+
+    it('returns true for regular multiremote with an app cap', () => {
+        const caps = {
+            phone: { capabilities: { 'appium:bundleId': 'com.example' } },
+            browser: { capabilities: { browserName: 'chrome' } },
+        }
+        expect(hasAnyAppAutomateCapability(caps as any)).toBe(true)
+    })
+
+    it('returns true when alwaysMatch carries an app cap', () => {
+        const caps = [
+            { alwaysMatch: { 'appium:app': 'bs://abc' }, firstMatch: [] },
+        ]
+        expect(hasAnyAppAutomateCapability(caps as any)).toBe(true)
+    })
+
+    it('returns false for undefined/empty input', () => {
+        expect(hasAnyAppAutomateCapability(undefined)).toBe(false)
+        expect(hasAnyAppAutomateCapability([] as any)).toBe(false)
     })
 })
 

@@ -1,14 +1,18 @@
 import type { AppConfig, BrowserstackConfig } from './types.js'
-import type { Options } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
 import { v4 as uuidv4 } from 'uuid'
 import TestOpsConfig from './testOps/testOpsConfig.js'
-import { isUndefined } from './util.js'
+import { hasAnyAppAutomateCapability, isUndefined } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
 
 class BrowserStackConfig {
-    static getInstance(options?: BrowserstackConfig & Options.Testrunner, config?: Options.Testrunner): BrowserStackConfig {
+    static getInstance(
+        options?: BrowserstackConfig & Options.Testrunner,
+        config?: Options.Testrunner,
+        capabilities?: Capabilities.TestrunnerCapabilities,
+    ): BrowserStackConfig {
         if (!this._instance && options && config) {
-            this._instance = new BrowserStackConfig(options, config)
+            this._instance = new BrowserStackConfig(options, config, capabilities)
         }
         return this._instance
     }
@@ -31,7 +35,11 @@ class BrowserStackConfig {
     public isPercyAutoEnabled = false
     public sdkRunID: string
 
-    constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {
+    constructor(
+        options: BrowserstackConfig & Options.Testrunner,
+        config: Options.Testrunner,
+        capabilities?: Capabilities.TestrunnerCapabilities,
+    ) {
         this.framework = config.framework
         this.userName = config.user
         this.accessKey = config.key
@@ -39,7 +47,7 @@ class BrowserStackConfig {
         this.percy = options.percy || false
         this.accessibility = options.accessibility
         this.app = options.app
-        this.appAutomate = !isUndefined(options.app)
+        this.appAutomate = !isUndefined(options.app) || hasAnyAppAutomateCapability(capabilities)
         this.automate = !this.appAutomate
         this.buildIdentifier = options.buildIdentifier
         this.sdkRunID = uuidv4()

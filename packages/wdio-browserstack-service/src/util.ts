@@ -1336,6 +1336,70 @@ export function isFalse(value?: unknown) {
     return (value + '').toLowerCase() === 'false'
 }
 
+// Capability keys that unambiguously indicate an App Automate (Appium) session.
+// Presence of any of these on a capability means the session targets a mobile app,
+// not a browser, regardless of whether the service was configured with `app`.
+export const APP_AUTOMATE_CAPABILITY_KEYS = [
+    'appium:app',
+    'appium:bundleId',
+    'appium:appPackage',
+    'appium:appActivity',
+] as const
+
+export function hasAppAutomateCapability(cap?: WebdriverIO.Capabilities): boolean {
+    if (!cap || typeof cap !== 'object') {
+        return false
+    }
+    const record = cap as Record<string, unknown>
+    for (const key of APP_AUTOMATE_CAPABILITY_KEYS) {
+        if (!isUndefined(record[key])) {
+            return true
+        }
+    }
+    const bstackOptions = record['bstack:options'] as Record<string, unknown> | undefined
+    if (bstackOptions && !isUndefined(bstackOptions.app)) {
+        return true
+    }
+    return false
+}
+
+export function hasAnyAppAutomateCapability(capabilities?: Capabilities.TestrunnerCapabilities): boolean {
+    if (!capabilities) {
+        return false
+    }
+    const flat: WebdriverIO.Capabilities[] = []
+    if (Array.isArray(capabilities)) {
+        for (const entry of capabilities) {
+            if (!entry || typeof entry !== 'object') {
+                continue
+            }
+            if ('alwaysMatch' in entry) {
+                flat.push((entry as { alwaysMatch: WebdriverIO.Capabilities }).alwaysMatch)
+                continue
+            }
+            const values = Object.values(entry)
+            const isParallelMultiremote = values.length > 0 && values.every(
+                v => v !== null && typeof v === 'object' && (v as { capabilities?: unknown }).capabilities
+            )
+            if (isParallelMultiremote) {
+                for (const v of values) {
+                    flat.push((v as { capabilities: WebdriverIO.Capabilities }).capabilities)
+                }
+            } else {
+                flat.push(entry as WebdriverIO.Capabilities)
+            }
+        }
+    } else {
+        for (const v of Object.values(capabilities)) {
+            const inner = (v as { capabilities?: WebdriverIO.Capabilities }).capabilities
+            if (inner) {
+                flat.push(inner)
+            }
+        }
+    }
+    return flat.some(hasAppAutomateCapability)
+}
+
 export function frameworkSupportsHook(hook: string, framework?: string) {
     if (framework === 'mocha' && (hook === 'before' || hook === 'after' || hook === 'beforeEach' || hook === 'afterEach')) {
         return true
