@@ -1356,10 +1356,6 @@ export function hasAppAutomateCapability(cap?: WebdriverIO.Capabilities): boolea
             return true
         }
     }
-    const bstackOptions = record['bstack:options'] as Record<string, unknown> | undefined
-    if (bstackOptions && !isUndefined(bstackOptions.app)) {
-        return true
-    }
     // Match the worker-side detection in service.ts/_isAppAutomate(): `appium:options.app`
     // is a valid Appium-style nested location for the app capability.
     const appiumOptions = record['appium:options'] as Record<string, unknown> | undefined

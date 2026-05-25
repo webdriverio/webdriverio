@@ -392,10 +392,6 @@ describe('hasAppAutomateCapability', () => {
         expect(hasAppAutomateCapability({ 'appium:appActivity': '.MainActivity' } as any)).toBe(true)
     })
 
-    it('returns true when bstack:options.app is set', () => {
-        expect(hasAppAutomateCapability({ 'bstack:options': { app: 'bs://xyz' } } as any)).toBe(true)
-    })
-
     it('returns true when appium:options.app is set', () => {
         expect(hasAppAutomateCapability({ 'appium:options': { app: 'bs://xyz' } } as any)).toBe(true)
     })
