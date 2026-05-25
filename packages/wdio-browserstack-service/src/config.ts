@@ -2,8 +2,63 @@ import type { AppConfig, BrowserstackConfig } from './types.js'
 import type { Capabilities, Options } from '@wdio/types'
 import { v4 as uuidv4 } from 'uuid'
 import TestOpsConfig from './testOps/testOpsConfig.js'
-import { hasAnyAppAutomateCapability, isUndefined } from './util.js'
+import { isUndefined } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
+
+const APP_AUTOMATE_CAP_KEYS = ['appium:app', 'appium:bundleId', 'appium:appPackage', 'appium:appActivity'] as const
+
+function hasAppCap(cap: WebdriverIO.Capabilities | undefined): boolean {
+    if (!cap || typeof cap !== 'object') {
+        return false
+    }
+    const record = cap as Record<string, unknown>
+    if (APP_AUTOMATE_CAP_KEYS.some(key => !isUndefined(record[key]))) {
+        return true
+    }
+    const appiumOptions = record['appium:options'] as Record<string, unknown> | undefined
+    return !!(appiumOptions && !isUndefined(appiumOptions.app))
+}
+
+function detectAppAutomate(capabilities?: Capabilities.TestrunnerCapabilities): boolean {
+    if (!capabilities) {
+        return false
+    }
+    const flat: WebdriverIO.Capabilities[] = []
+    if (Array.isArray(capabilities)) {
+        for (const entry of capabilities) {
+            if (!entry || typeof entry !== 'object') {
+                continue
+            }
+            if ('alwaysMatch' in entry) {
+                const w3c = entry as { alwaysMatch: WebdriverIO.Capabilities; firstMatch?: WebdriverIO.Capabilities[] }
+                flat.push(w3c.alwaysMatch)
+                if (Array.isArray(w3c.firstMatch)) {
+                    flat.push(...w3c.firstMatch)
+                }
+                continue
+            }
+            const values = Object.values(entry)
+            const isParallelMultiremote = values.length > 0 && values.every(
+                v => v !== null && typeof v === 'object' && (v as { capabilities?: unknown }).capabilities
+            )
+            if (isParallelMultiremote) {
+                for (const v of values) {
+                    flat.push((v as { capabilities: WebdriverIO.Capabilities }).capabilities)
+                }
+            } else {
+                flat.push(entry as WebdriverIO.Capabilities)
+            }
+        }
+    } else {
+        for (const v of Object.values(capabilities)) {
+            const inner = (v as { capabilities?: WebdriverIO.Capabilities }).capabilities
+            if (inner) {
+                flat.push(inner)
+            }
+        }
+    }
+    return flat.some(hasAppCap)
+}
 
 class BrowserStackConfig {
     static getInstance(
@@ -47,7 +102,7 @@ class BrowserStackConfig {
         this.percy = options.percy || false
         this.accessibility = options.accessibility
         this.app = options.app
-        this.appAutomate = !isUndefined(options.app) || hasAnyAppAutomateCapability(capabilities)
+        this.appAutomate = !isUndefined(options.app) || detectAppAutomate(capabilities)
         this.automate = !this.appAutomate
         this.buildIdentifier = options.buildIdentifier
         this.sdkRunID = uuidv4()
