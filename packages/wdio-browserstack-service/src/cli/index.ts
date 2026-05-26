@@ -116,42 +116,8 @@ export class BrowserstackCLI {
         const redactedStartResponse = JSON.parse(JSON.stringify(response))
         CrashReporter.recursivelyRedactKeysFromObject(redactedStartResponse, ['user', 'username', 'key', 'accesskey', 'password'])
         BStackLogger.debug(`start: startBinSession response=${JSON.stringify(redactedStartResponse)}`)
-        this.logBuildErrors(response)
         this.loadModules(response)
         this.isMainConnected = true
-    }
-
-    /**
-     * If the binary surfaced any build errors via testhub.errors, log each
-     * message so the user sees the actionable cause before any downstream
-     * bootstrap error. The binary writes the field as a JSON-encoded
-     * { [errorKey]: { message, type } } map, where `type` is `'error'` for
-     * hard failures and `'info'` for advisory entries (e.g. ACCESS_DENIED
-     * is tagged info). Each entry is emitted at the matching log level.
-     */
-    private logBuildErrors(response: StartBinSessionResponse) {
-        const rawErrors = response.testhub?.errors
-        if (!rawErrors || !rawErrors.length) {
-            return
-        }
-        try {
-            const text = typeof rawErrors === 'string'
-                ? rawErrors
-                : Buffer.from(rawErrors).toString('utf8')
-            const parsed: Record<string, { message?: string, type?: string }> = JSON.parse(text)
-            for (const entry of Object.values(parsed)) {
-                if (!entry || !entry.message) {
-                    continue
-                }
-                if (entry.type === 'info') {
-                    this.logger.info(entry.message)
-                } else {
-                    this.logger.error(entry.message)
-                }
-            }
-        } catch {
-            // testhub.errors is best-effort; ignore parse failures
-        }
     }
 
     /**
@@ -164,6 +130,22 @@ export class BrowserstackCLI {
         this.logger.info(`loadModules: binSessionId=${this.binSessionId}`)
 
         this.setConfig(startBinResponse)
+
+        // Surface any build errors the binary populated on testhub.errors
+        // BEFORE the config.apis dereference below. On auth failure the
+        // binary returns an empty/degenerate config, so reporting errors
+        // here ensures the user sees the actionable cause (e.g. invalid
+        // credentials) instead of only a downstream TypeError.
+        this.logBuildErrors(startBinResponse)
+
+        // If the binary couldn't authenticate enough to populate apis,
+        // short-circuit with a clean error rather than letting
+        // updateURLSForGRR crash with a confusing TypeError. The build
+        // errors logged above already explained the cause.
+        if (!this.config?.apis) {
+            throw new Error('BrowserStack binary returned an incomplete config; see preceding build errors.')
+        }
+
         APIUtils.updateURLSForGRR(this.config.apis as GRRUrls)
 
         this.setupTestFramework()
@@ -190,18 +172,6 @@ export class BrowserstackCLI {
                 this.modules[ObservabilityModule.MODULE_NAME] = new ObservabilityModule(startBinResponse.observability)
             }
 
-            if (startBinResponse.testhub.errors && startBinResponse.testhub.errors.length > 0) {
-                try {
-                    const errors = JSON.parse(Buffer.from(startBinResponse.testhub.errors).toString())
-                    for (const [code, detail] of Object.entries(errors)) {
-                        const { message } = detail as { message: string; type: string }
-                        BStackLogger.error(`[Build] ${code}: ${message}`)
-                    }
-                } catch (e) {
-                    BStackLogger.debug(`Failed to parse testhub errors: ${e}`)
-                }
-            }
-
             this.modules[TestHubModule.MODULE_NAME] = new TestHubModule(startBinResponse.testhub)
 
             if (startBinResponse.accessibility?.success){
@@ -216,6 +186,29 @@ export class BrowserstackCLI {
             this.modules[PercyModule.MODULE_NAME] = new PercyModule(startBinResponse.percy)
         }
         this.configureModules()
+    }
+
+    /**
+     * Log any build errors the binary reported via testhub.errors. The
+     * field is a JSON-encoded { [errorKey]: { message, type } } map. Called
+     * early in loadModules so the user sees the actionable cause (e.g.
+     * invalid credentials) before any downstream bootstrap step that
+     * depends on a fully populated config.
+     */
+    private logBuildErrors(startBinResponse: StartBinSessionResponse) {
+        const rawErrors = startBinResponse.testhub?.errors
+        if (!rawErrors || !rawErrors.length) {
+            return
+        }
+        try {
+            const errors = JSON.parse(Buffer.from(rawErrors).toString())
+            for (const [code, detail] of Object.entries(errors)) {
+                const { message } = detail as { message: string; type: string }
+                BStackLogger.error(`[Build] ${code}: ${message}`)
+            }
+        } catch (e) {
+            BStackLogger.debug(`Failed to parse testhub errors: ${e}`)
+        }
     }
 
     /**
