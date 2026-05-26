@@ -116,8 +116,36 @@ export class BrowserstackCLI {
         const redactedStartResponse = JSON.parse(JSON.stringify(response))
         CrashReporter.recursivelyRedactKeysFromObject(redactedStartResponse, ['user', 'username', 'key', 'accesskey', 'password'])
         BStackLogger.debug(`start: startBinSession response=${JSON.stringify(redactedStartResponse)}`)
+        this.logCredentialErrors(response)
         this.loadModules(response)
         this.isMainConnected = true
+    }
+
+    /**
+     * If the binary surfaced a credential failure via testhub.errors,
+     * log the message so the user sees the auth cause before any
+     * downstream bootstrap error.
+     */
+    private logCredentialErrors(response: StartBinSessionResponse) {
+        const rawErrors = response.testhub?.errors
+        if (!rawErrors || !rawErrors.length) {
+            return
+        }
+        try {
+            const text = typeof rawErrors === 'string'
+                ? rawErrors
+                : Buffer.from(rawErrors).toString('utf8')
+            const parsed = JSON.parse(text)
+            const credKeys = ['ERROR_INVALID_CREDENTIALS', 'ERROR_ACCESS_DENIED']
+            for (const key of credKeys) {
+                if (parsed[key] && parsed[key].message) {
+                    this.logger.error(parsed[key].message)
+                    return
+                }
+            }
+        } catch {
+            // testhub.errors is best-effort; ignore parse failures
+        }
     }
 
     /**
