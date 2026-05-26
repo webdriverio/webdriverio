@@ -16,6 +16,7 @@ import {
     removeAnsiColors,
     getHookType,
     getPlatformVersion,
+    getResolvedDeviceName,
     isObjectEmpty,
     generateHashCodeFromFields
 } from './util.js'
@@ -282,6 +283,13 @@ class _TestReporter extends WDIOReporter {
             /* istanbul ignore next */
             const cloudProvider = getCloudProvider({ options: { hostname: this._config?.hostname } } as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser)
             testData.integrations = {}
+            // For Appium / App-Automate, server-resolved fields like `deviceModel`
+            // live on the live driver session, not on `this._capabilities`
+            // (which carries the runner's requested caps). Pass the live caps
+            // first so the resolver prefers the Appium response.
+            const liveBrowserCaps = (globalThis as unknown as {
+                browser?: { capabilities?: WebdriverIO.Capabilities }
+            })?.browser?.capabilities
             /* istanbul ignore next */
             testData.integrations[cloudProvider] = {
                 capabilities: this._capabilities,
@@ -290,7 +298,7 @@ class _TestReporter extends WDIOReporter {
                 browser_version: this._capabilities?.browserVersion,
                 platform: this._capabilities?.platformName,
                 platform_version: getPlatformVersion(this._capabilities, this._userCaps as WebdriverIO.Capabilities),
-                device: this.getResolvedDeviceName(this._capabilities)
+                device: getResolvedDeviceName(liveBrowserCaps, this._capabilities)
             }
         }
 
@@ -316,29 +324,6 @@ class _TestReporter extends WDIOReporter {
         }
 
         return testData
-    }
-
-    private getResolvedDeviceName (caps: WebdriverIO.Capabilities | undefined) {
-        // For Appium / app-automate, `caps` here is the runner's requested capabilities and
-        // omits the server-side resolved fields. Prefer the live driver session
-        // (globalThis.browser.capabilities) where the Appium server-resolved fields
-        // like `deviceModel` are populated; fall back to requested caps.
-        const liveCaps = (globalThis as unknown as { browser?: { capabilities?: unknown } })
-            ?.browser?.capabilities as Record<string, unknown> | undefined
-        const requestedCaps = caps as unknown as Record<string, unknown> | undefined
-        const bstackOptions = (requestedCaps?.['bstack:options']
-            || liveCaps?.['bstack:options']) as Record<string, unknown> | undefined
-        return (
-            (liveCaps?.['deviceModel'] as string | undefined)
-            || (liveCaps?.['appium:deviceModel'] as string | undefined)
-            || (requestedCaps?.['deviceModel'] as string | undefined)
-            || (requestedCaps?.['appium:deviceModel'] as string | undefined)
-            || (bstackOptions?.['deviceName'] as string | undefined)
-            || (requestedCaps?.['appium:deviceName'] as string | undefined)
-            || (liveCaps?.['appium:deviceName'] as string | undefined)
-            || (requestedCaps?.['deviceName'] as string | undefined)
-            || (liveCaps?.['deviceName'] as string | undefined)
-        )
     }
 }
 // https://github.com/microsoft/TypeScript/issues/6543
