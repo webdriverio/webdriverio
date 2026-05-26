@@ -290,8 +290,10 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
                 await this.isSetup
             }
 
-            this.childProcess!.send(cmd)
-        })
+            if (this.childProcess) {
+                this.childProcess.send(cmd)
+            }
+        }).catch((err) => log.error(`Failed to send command to worker ${this.cid}: ${err.message}`))
         this.isBusy = true
     }
 }

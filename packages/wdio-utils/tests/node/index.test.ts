@@ -388,6 +388,50 @@ describe('startWebDriver', () => {
         )
     })
 
+    it('should skip desktop Firefox download and binary injection when androidPackage is set', async () => {
+        const { setupPuppeteerBrowser } = await import('../../src/node/utils.js')
+        vi.mocked(setupPuppeteerBrowser).mockClear()
+
+        const params = {
+            capabilities: {
+                browserName: 'firefox',
+                'moz:firefoxOptions': {
+                    androidPackage: 'org.mozilla.fenix',
+                    androidDeviceSerial: 'emulator-5554'
+                }
+            } as any
+        }
+        const res = await startWebDriver(params)
+        expect(res).toBe('geckodriver')
+        expect(setupPuppeteerBrowser).not.toBeCalled()
+        expect(params.capabilities['moz:firefoxOptions']).not.toHaveProperty('binary')
+        expect(params.capabilities['moz:firefoxOptions'].androidPackage).toBe('org.mozilla.fenix')
+        expect(startGeckodriver).toBeCalledTimes(1)
+    })
+
+    it('should skip desktop Chrome download and binary injection when androidPackage is set', async () => {
+        const { setupPuppeteerBrowser } = await import('../../src/node/utils.js')
+        vi.mocked(setupPuppeteerBrowser).mockClear()
+        vi.mocked(cp.spawn).mockClear()
+
+        const params = {
+            capabilities: {
+                browserName: 'chrome',
+                'wdio:chromedriverOptions': { binary: '/my/chromedriver' },
+                'goog:chromeOptions': {
+                    androidPackage: 'com.android.chrome',
+                    androidDeviceSerial: 'emulator-5554'
+                }
+            } as any
+        }
+        const res = await startWebDriver(params)
+        expect(Boolean(res?.stdout)).toBe(true)
+        expect(setupPuppeteerBrowser).not.toBeCalled()
+        expect(params.capabilities['goog:chromeOptions']).not.toHaveProperty('binary')
+        expect(params.capabilities['goog:chromeOptions'].androidPackage).toBe('com.android.chrome')
+        expect(cp.spawn).toBeCalledTimes(1)
+    })
+
     it('should not start or download driver for appium capabilities', async () => {
         const options = {
             hostname: 'localhost',

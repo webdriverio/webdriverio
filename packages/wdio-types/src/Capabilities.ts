@@ -476,6 +476,20 @@ export interface ChromeOptions {
      * to <webview> elements, include "webview" in this list.
      */
     windowTypes?: string[]
+    /**
+     * The package name of the Chrome browser to run on Android (e.g. 'com.android.chrome').
+     * When set, chromedriver will connect to the browser on Android over ADB
+     * instead of launching a desktop Chrome.
+     */
+    androidPackage?: string
+    /**
+     * Serial number of the Android device to use (as reported by `adb devices`).
+     */
+    androidDeviceSerial?: string
+    /**
+     * The activity name for the Android activity to launch.
+     */
+    androidActivity?: string
 }
 
 /**
@@ -501,6 +515,20 @@ export interface FirefoxOptions {
     prefs?: {
         [name: string]: string[] | string | number | boolean
     }
+    /**
+     * The package name of the Firefox browser to run on Android (e.g. 'org.mozilla.fenix').
+     * When set, geckodriver will connect to Firefox on Android over ADB
+     * instead of launching a desktop Firefox.
+     */
+    androidPackage?: string
+    /**
+     * Serial number of the Android device to use (as reported by `adb devices`).
+     */
+    androidDeviceSerial?: string
+    /**
+     * The activity name for the Android activity to launch.
+     */
+    androidActivity?: string
 }
 
 // Aerokube Selenoid specific

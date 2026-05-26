@@ -13,7 +13,6 @@ import type { GitRepoInfo } from 'git-repo-info'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import type { ColorName } from 'chalk'
-import { FormData } from 'formdata-node'
 import { performance } from 'node:perf_hooks'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
@@ -36,6 +35,7 @@ import {
     BROWSERSTACK_TESTHUB_UUID,
     PERF_MEASUREMENT_ENV,
     RERUN_ENV,
+    BROWSERSTACK_TEST_PLAN_ID,
     MAX_GIT_META_DATA_SIZE_IN_BYTES,
     GIT_META_DATA_TRUNCATED,
     APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
@@ -50,7 +50,6 @@ import TestOpsConfig from './testOps/testOpsConfig.js'
 import type { StartBinSessionResponse } from '@browserstack/wdio-browserstack-service'
 import APIUtils from './cli/apiUtils.js'
 import { create } from 'tar'
-import { fileFromPath } from 'formdata-node/file-from-path'
 
 import AccessibilityScripts from './scripts/accessibility-scripts.js'
 
@@ -365,7 +364,7 @@ export const processLaunchBuildResponse = (response: LaunchResponse, options: Br
     processAccessibilityResponse(response, options)
 }
 
-export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation: boolean | null) {
+export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation?: boolean) {
     const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
     launchBuildUsage.triggered()
 
@@ -403,7 +402,10 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         },
         product_map: getProductMapForBuildStartCall(bStackConfig, accessibilityAutomation),
         config: {},
-        test_orchestration: OrchestrationUtils.getInstance(config)?.getBuildStartData() || {}
+        test_orchestration: OrchestrationUtils.getInstance(config)?.getBuildStartData() || {},
+        test_management: {
+            test_plan_id: getTestPlanId(options)
+        }
     }
 
     if (accessibilityAutomation && (isTurboScale(options) || data.browserstackAutomation === false)){
@@ -435,6 +437,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         const jsonResponse: LaunchResponse = await response.json()
         delete data?.accessibility?.settings?.includeEncodedExtension
         BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(jsonResponse)}`)
+        BStackLogger.debug(`Test Plan Id sent in request: ${getTestPlanId(options)}`)
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
         if (jsonResponse.jwt) {
             process.env[BROWSERSTACK_TESTHUB_JWT] = jsonResponse.jwt
@@ -1283,6 +1286,26 @@ export function getObservabilityBuildTags(options: BrowserstackConfig & Options.
     return []
 }
 
+export function getTestPlanId(options: BrowserstackConfig & Options.Testrunner): string | undefined {
+    if (process.env[BROWSERSTACK_TEST_PLAN_ID]) {
+        return process.env[BROWSERSTACK_TEST_PLAN_ID]
+    }
+    const CLI_ARG = '--browserstack.testManagementOptions.testPlanId'
+    const argIndex = process.argv.indexOf(CLI_ARG)
+    if (argIndex !== -1 && process.argv[argIndex + 1]) {
+        return process.argv[argIndex + 1]
+    }
+    const argWithEquals = process.argv.find((arg) => arg.startsWith(`${CLI_ARG}=`))
+    if (argWithEquals) {
+        return argWithEquals.split('=')[1]
+    }
+    const testPlanId = options.testManagementOptions?.testPlanId
+    if (typeof testPlanId === 'string' && testPlanId.trim().length > 0) {
+        return testPlanId.trim()
+    }
+    return undefined
+}
+
 export function getBrowserStackUser(config: Options.Testrunner) {
     if (process.env.BROWSERSTACK_USERNAME) {
         return process.env.BROWSERSTACK_USERNAME as string
@@ -1366,8 +1389,19 @@ export function getFailureObject(error: string|Error) {
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export async function uploadLogs(user: string | undefined, key: string | undefined, clientBuildUuid: string) {
+    // Manual instrumentation: tag every return path on the SDK_UPLOAD_LOGS event so
+    // the metric identifies the specific reason logs were not uploaded (no creds,
+    // per-file copy failure, upload no-response, exception). measureWrapper would
+    // otherwise mark all non-throwing paths as success.
+    const eventName = PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS
+    let success = true
+    let failure: string | undefined
+    PerformanceTester.start(eventName)
+
     try {
         if (!user || !key) {
+            success = false
+            failure = 'skipped: missing_credentials'
             BStackLogger.debug('Uploading logs failed due to no credentials')
             return
         }
@@ -1381,11 +1415,22 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
             CLI_DEBUG_LOGS_FILE,
         ].filter(f => fs.existsSync(f))
 
-        const copiedFileNames = []
+        const copiedFileNames: string[] = []
+        const archiveAddFailures: string[] = []
         for (const f of filesToArchive) {
-            const dest = path.join(tmpDir, path.basename(f))
-            fs.copyFileSync(f, dest)
-            copiedFileNames.push(path.basename(f))
+            try {
+                const dest = path.join(tmpDir, path.basename(f))
+                fs.copyFileSync(f, dest)
+                copiedFileNames.push(path.basename(f))
+            } catch (copyErr) {
+                const msg = (copyErr as Error)?.message || String(copyErr)
+                archiveAddFailures.push(`${path.basename(f)}: ${msg}`)
+            }
+        }
+
+        if (archiveAddFailures.length > 0 && failure === undefined) {
+            success = false
+            failure = `archive_add_failed [${archiveAddFailures.length}]: ${archiveAddFailures.join('; ')}`.substring(0, 300)
         }
 
         await create(
@@ -1409,7 +1454,10 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
         })
 
         const formData = new FormData()
-        const file = await fileFromPath(tarGzPath)
+        // openAsBlob returns a Blob backed by a file descriptor — undici streams
+        // from disk during the upload instead of materialising the full archive
+        // in V8 heap (which readFileSync + new Blob([Buffer]) would do twice).
+        const file = await fs.openAsBlob(tarGzPath, { type: 'application/x-gzip' })
         formData.append('data', file, 'logs.tar.gz')
         formData.append('clientBuildUuid', clientBuildUuid)
 
@@ -1439,10 +1487,26 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
             fs.unlinkSync(CLI_DEBUG_LOGS_FILE)
         }
 
+        if (!response) {
+            // nodeRequest swallows errors for the log-upload path and returns undefined;
+            // record the silent upload failure on the metric.
+            success = false
+            failure = 'upload_no_response'
+        } else if (response.status && response.status !== 'success') {
+            // Server-side rejection (e.g. "File not attached") — response is truthy
+            // but the upload didn't actually land.
+            success = false
+            failure = `upload_status: ${response.status}${response.message ? ' - ' + String(response.message).slice(0, 200) : ''}`
+        }
+
         return response
     } catch (error) {
+        success = false
+        failure = `uploadLogs exception: ${getErrorString(error)}`
         BStackLogger.error(`Error while uploading logs: ${getErrorString(error)}`)
         return null
+    } finally {
+        PerformanceTester.end(eventName, success, failure)
     }
 }
 
@@ -1899,4 +1963,3 @@ export function isMultiRemoteCaps(capabilities: Capabilities.TestrunnerCapabilit
         Object.values(cap).every(c => c !== null && typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities)
     )
 }
-

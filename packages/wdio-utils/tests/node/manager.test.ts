@@ -379,6 +379,44 @@ describe('setupBrowser', () => {
         })
     })
 
+    test('should skip setupPuppeteerBrowser for Firefox with androidPackage', async () => {
+        vi.mocked(setupPuppeteerBrowser).mockClear()
+        await setupBrowser({}, [{
+            browserName: 'firefox',
+            browserVersion: '5'
+        }, {
+            browserName: 'firefox',
+            'moz:firefoxOptions': {
+                androidPackage: 'org.mozilla.fenix',
+                androidDeviceSerial: 'emulator-5554'
+            }
+        }])
+        expect(setupPuppeteerBrowser).toBeCalledTimes(1)
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
+            browserName: 'firefox',
+            browserVersion: '5'
+        })
+    })
+
+    test('should skip setupPuppeteerBrowser for Chrome with androidPackage', async () => {
+        vi.mocked(setupPuppeteerBrowser).mockClear()
+        await setupBrowser({}, [{
+            browserName: 'chrome',
+            browserVersion: '1'
+        }, {
+            browserName: 'chrome',
+            'goog:chromeOptions': {
+                androidPackage: 'com.android.chrome',
+                androidDeviceSerial: 'emulator-5554'
+            }
+        }])
+        expect(setupPuppeteerBrowser).toBeCalledTimes(1)
+        expect(setupPuppeteerBrowser).toBeCalledWith('/foo/bar', {
+            browserName: 'chrome',
+            browserVersion: '1'
+        })
+    })
+
     test('with multiremote capabilities series', async () => {
         await setupBrowser({}, [{
             browserA: {

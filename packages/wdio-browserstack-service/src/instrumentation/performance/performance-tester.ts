@@ -316,6 +316,11 @@ export default class PerformanceTester {
     static end(event: string, success = true, failure?: string | unknown, details = {}) {
         performance.mark(event + '-end')
         performance.measure(event, event + '-start', event + '-end')
+        // Clear the start-mark guard so a subsequent start(event) for the same
+        // event actually marks a new start. Without this, start() short-circuits
+        // and the next end() measures from the original start mark — inflated
+        // durations in telemetry on every call after the first.
+        delete this.eventsMap[event + '-start']
         this.details[event] = Object.assign({ success, failure: util.format(failure) }, Object.assign(Object.assign({
             clientWorkerId: PerformanceTester.getClientWorkerId(),
             worker: PerformanceTester.getProcessId(),

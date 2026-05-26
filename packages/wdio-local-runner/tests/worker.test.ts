@@ -201,4 +201,24 @@ describe('postMessage', () => {
         await worker.isReady
         expect(worker.childProcess!.send).toBeCalledTimes(1)
     })
+
+    it('should not throw unhandled rejection when worker is killed before isReady resolves', async () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        worker.childProcess = { send: vi.fn(), kill: vi.fn() } as any
+
+        // postMessage queues send behind isReady (not yet resolved)
+        const postMsgPromise = worker.postMessage('test-message', {})
+
+        // kill() deletes childProcess before isReady resolves
+        worker.kill()
+
+        // resolve isReady — the .then() callback now fires with no childProcess
+        worker.isReadyResolver(true)
+
+        // postMessage itself should resolve without throwing
+        await expect(postMsgPromise).resolves.toBeUndefined()
+
+        // and no unhandled rejection — the send is safely skipped
+        await worker.isReady
+    })
 })
