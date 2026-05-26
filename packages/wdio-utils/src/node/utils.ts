@@ -214,6 +214,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
          * verify that we have a valid Chrome/Firefox browser installed
          */
         if (browserVersion) {
+            log.info(`Using pre-installed ${browserName} v${browserVersion}${executablePath ? ` from ${executablePath}` : ''}`)
             return {
                 executablePath,
                 browserVersion

@@ -7,40 +7,42 @@ import { buildLinkRewriter, type PageProps } from './docsUtils.js'
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 /**
- * Source files in `packages/electron-service/docs/` of the wdio-desktop-mobile
+ * Source files in `packages/tauri-service/docs/` of the wdio-desktop-mobile
  * monorepo, keyed by the docusaurus `id` they should be published under.
  */
 const allDocs: Record<string, PageProps> = {
+    'quick-start': { sourcePath: 'quick-start.md', title: 'Quick Start' },
     configuration: { sourcePath: 'configuration.md', title: 'Configuration' },
-    api: { sourcePath: 'electron-apis.md', title: 'Accessing Electron APIs' },
-    'api-reference': { sourcePath: 'api-reference.md', title: 'API Reference' },
-    'standalone': { sourcePath: 'standalone-mode.md', title: 'Standalone Mode' },
-    'window-management': { sourcePath: 'window-management.md', title: 'Window Management' },
+    api: { sourcePath: 'api-reference.md', title: 'API Reference' },
+    'plugin-setup': { sourcePath: 'plugin-setup.md', title: 'Plugin Setup' },
+    'platform-support': { sourcePath: 'platform-support.md', title: 'Platform Support' },
+    'usage-examples': { sourcePath: 'usage-examples.md', title: 'Usage Examples' },
+    'log-forwarding': { sourcePath: 'log-forwarding.md', title: 'Log Forwarding' },
+    'edge-webdriver-windows': { sourcePath: 'edge-webdriver-windows.md', title: 'Edge WebDriver on Windows' },
     'deeplink-testing': { sourcePath: 'deeplink-testing.md', title: 'Deeplink Testing' },
-    debugging: { sourcePath: 'debugging.md', title: 'Debugging' },
-    'common-issues': { sourcePath: 'common-issues.md', title: 'Common Issues' }
+    'crabnebula-setup': { sourcePath: 'crabnebula-setup.md', title: 'CrabNebula Setup' },
+    troubleshooting: { sourcePath: 'troubleshooting.md', title: 'Troubleshooting' }
 }
 
 const GITHUB_REPO = 'webdriverio/desktop-mobile'
 const GITHUB_URL = `https://raw.githubusercontent.com/${GITHUB_REPO}`
 const DOCS_SHA = '37081c940a4528df3bf1994d9a5391d33a8775d5'
-const DOCS_SOURCE_DIR = 'packages/electron-service/docs'
-const WEBSITE_DOCS_PATH = ['website', 'docs', 'desktop-testing', 'electron']
-const PUBLISHED_URL_PREFIX = '/docs/desktop-testing/electron'
+const DOCS_SOURCE_DIR = 'packages/tauri-service/docs'
+const WEBSITE_DOCS_PATH = ['website', 'docs', 'desktop-testing', 'tauri']
+const PUBLISHED_URL_PREFIX = '/docs/desktop-testing/tauri'
 
-export async function generateElectronDocs () {
+export async function generateTauriDocs () {
     const basePath = path.join(__dirname, '..', '..')
-    const electronDocsPath = path.join(basePath, ...WEBSITE_DOCS_PATH)
-    await fs.mkdir(electronDocsPath, { recursive: true })
+    const tauriDocsPath = path.join(basePath, ...WEBSITE_DOCS_PATH)
+    await fs.mkdir(tauriDocsPath, { recursive: true })
 
     const rewriteLinks = buildLinkRewriter(allDocs, PUBLISHED_URL_PREFIX)
 
     for (const [id, { sourcePath, title }] of Object.entries(allDocs)) {
-        const newDocsPath = path.join(electronDocsPath, `${id}.md`)
+        const newDocsPath = path.join(tauriDocsPath, `${id}.md`)
         const remotePath = `${DOCS_SOURCE_DIR}/${sourcePath}`
         const raw = await downloadFromGitHub(GITHUB_URL, DOCS_SHA, remotePath)
 
-        // Drop the source's first H1 heading (Docusaurus uses front-matter title)
         const stripped = raw.replace(/^#[^\n]*\n+/, '')
 
         const sourceFileDir = path.posix.dirname(remotePath)
@@ -49,6 +51,7 @@ export async function generateElectronDocs () {
             return `https://raw.githubusercontent.com/${GITHUB_REPO}/${DOCS_SHA}/${resolved}`
         }
 
+        let inCodeBlock = false
         const transformed = rewriteLinks(stripped)
             // Rewrite repo-relative image paths in markdown syntax to absolute raw GitHub URLs
             .replace(
@@ -62,6 +65,12 @@ export async function generateElectronDocs () {
                 (_match, prefix: string, relativePath: string) =>
                     `${prefix}${resolveRelativePath(relativePath)}`
             )
+            // Escape TypeScript generic angle brackets in plain text to prevent MDX parse errors
+            .split('\n').map((line) => {
+                if (/^```/.test(line)) { inCodeBlock = !inCodeBlock }
+                if (inCodeBlock) { return line }
+                return line.replace(/<([A-Z][a-zA-Z0-9]+)>/g, '\\<$1>')
+            }).join('\n')
 
         await fs.writeFile(newDocsPath, `---
 id: ${id}

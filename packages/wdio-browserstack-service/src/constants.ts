@@ -23,8 +23,7 @@ export const VALID_APP_EXTENSION = [
 export const DEFAULT_OPTIONS: Partial<BrowserstackConfig> = {
     setSessionName: true,
     setSessionStatus: true,
-    testObservability: true,
-    accessibility: false
+    testObservability: true
 }
 
 export const consoleHolder: typeof console = Object.assign({}, console)
@@ -142,6 +141,9 @@ export const GIT_META_DATA_TRUNCATED = '...[TRUNCATED]'
 
 // CLI related constants
 export const CLI_STOP_TIMEOUT = 5000 // 5 seconds
+export const BINARY_BUSY_ERROR_CODES = ['ETXTBSY', 'EBUSY']
+export const MAX_SPAWN_RETRIES = 3
+export const SPAWN_RETRY_DELAY_MS = 1000
 export const WDIO_NAMING_PREFIX = 'WebdriverIO-'
 export const PERF_METRICS_WAIT_TIME = 2000
 
@@ -190,4 +192,3 @@ export const MODULE_HOOK_EVENTS = {
     APPAUTOMATE_ON_START: 'MODULE_APPAUTOMATE_ON_START',
     APPAUTOMATE_ON_DRIVER_INIT: 'MODULE_APPAUTOMATE_ON_DRIVER_INIT',
 } as const
-
