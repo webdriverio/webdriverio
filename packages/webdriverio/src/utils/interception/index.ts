@@ -22,6 +22,10 @@ interface Overwrite {
     abort?: boolean
 }
 
+type RequestWithPostData<T extends local.NetworkBeforeRequestSentParameters | Response> = T & {
+    postData?: string
+}
+
 /**
  * Network interception class based on a WebDriver Bidi implementation.
  *
@@ -40,6 +44,7 @@ export default class WebDriverInterception {
     #respondOverwrites: Overwrite[] = []
     #calls: Response[] = []
     #overwrittenResponseBodies = new Map<string, remote.NetworkBytesValue>()
+    #requestPostData = new Map<string, string>()
 
     constructor(
         pattern: URLPattern,
@@ -77,7 +82,7 @@ export default class WebDriverInterception {
             try {
                 if (browser.options.maxSpyCollectedBodySize !== 0) {
                     await browser.networkAddDataCollector({
-                        dataTypes: ['response'],
+                        dataTypes: ['request', 'response'],
                         maxEncodedDataSize: typeof browser.options.maxSpyCollectedBodySize === 'number'
                             ? browser.options.maxSpyCollectedBodySize
                             : DEFAULT_SPY_COLLECTED_BODY_SIZE
@@ -148,6 +153,19 @@ export default class WebDriverInterception {
             return
         }
 
+        if (this.#filterOptions.postData) {
+            return this.#handleBeforeRequestSentWithPostData(request)
+        }
+
+        return this.#continueBeforeRequestSent(request)
+    }
+
+    async #handleBeforeRequestSentWithPostData(request: local.NetworkBeforeRequestSentParameters) {
+        await this.#populateRequestPostData(request)
+        return this.#continueBeforeRequestSent(request)
+    }
+
+    #continueBeforeRequestSent(request: local.NetworkBeforeRequestSentParameters) {
         /**
          * check if request matches filter option and do nothing if not
          */
@@ -200,6 +218,8 @@ export default class WebDriverInterception {
             }
             return
         }
+
+        this.#attachPostData(request)
 
         /**
          * continue mock if not matching filter
@@ -260,14 +280,19 @@ export default class WebDriverInterception {
     async #handleResponseCompleted(request: Response) {
         /**
          * don't do anything if:
-         * - request is not matching the pattern or filter options
+         * - request is not matching the pattern
          * - data collection is disabled
          */
         if (
             this.#browser.options.maxSpyCollectedBodySize === 0 ||
-            !this.#pattern.test(request.request.url) ||
-            !this.#matchesFilterOptions(request)
+            !this.#pattern.test(request.request.url)
         ) {
+            return
+        }
+
+        await this.#populateRequestPostData(request)
+
+        if (!this.#matchesFilterOptions(request)) {
             return
         }
 
@@ -283,6 +308,7 @@ export default class WebDriverInterception {
             if (bytes) {
                 const call = this.#calls.find((call) => call.request.request === request.request.request)
                 if (call) {
+                    this.#attachPostData(call)
                     call.body = bytes.value
                 }
             }
@@ -319,6 +345,41 @@ export default class WebDriverInterception {
             return null
         }
         return Buffer.from(body.value, 'base64')
+    }
+
+    #attachPostData<T extends local.NetworkBeforeRequestSentParameters | Response>(request: T): RequestWithPostData<T> {
+        const requestWithPostData = request as RequestWithPostData<T>
+        const postData = this.#requestPostData.get(request.request.request)
+        if (postData !== undefined) {
+            requestWithPostData.postData = postData
+        }
+        return requestWithPostData
+    }
+
+    async #populateRequestPostData<T extends local.NetworkBeforeRequestSentParameters | Response>(request: T): Promise<RequestWithPostData<T>> {
+        const requestWithPostData = this.#attachPostData(request)
+        if (
+            requestWithPostData.postData !== undefined ||
+            this.#browser.options.maxSpyCollectedBodySize === 0
+        ) {
+            return requestWithPostData
+        }
+
+        try {
+            const { bytes } = await this.#browser.networkGetData({
+                request: request.request.request,
+                dataType: 'request'
+            })
+
+            if (bytes) {
+                requestWithPostData.postData = bytes.value
+                this.#requestPostData.set(request.request.request, bytes.value)
+            }
+        } catch (err: unknown) {
+            log.debug(`Failed to get request body for ${request.request.request}: ${(err as Error).message}`)
+        }
+
+        return requestWithPostData
     }
 
     /**
@@ -370,6 +431,13 @@ export default class WebDriverInterception {
                 })
         }
 
+        if (isRequestMatching && this.#filterOptions.postData) {
+            const { postData } = request as RequestWithPostData<T>
+            isRequestMatching = typeof this.#filterOptions.postData === 'function'
+                ? this.#filterOptions.postData(postData)
+                : postData === this.#filterOptions.postData
+        }
+
         if (isRequestMatching && this.#filterOptions.responseHeaders && 'response' in request) {
             isRequestMatching = typeof this.#filterOptions.responseHeaders === 'function'
                 ? this.#filterOptions.responseHeaders(request.response.headers.reduce((acc, { name, value }) => {
@@ -419,6 +487,7 @@ export default class WebDriverInterception {
     clear() {
         this.#calls = []
         this.#overwrittenResponseBodies.clear()
+        this.#requestPostData.clear()
         return this
     }
 
