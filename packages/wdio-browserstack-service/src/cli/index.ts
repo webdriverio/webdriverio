@@ -116,17 +116,20 @@ export class BrowserstackCLI {
         const redactedStartResponse = JSON.parse(JSON.stringify(response))
         CrashReporter.recursivelyRedactKeysFromObject(redactedStartResponse, ['user', 'username', 'key', 'accesskey', 'password'])
         BStackLogger.debug(`start: startBinSession response=${JSON.stringify(redactedStartResponse)}`)
-        this.logCredentialErrors(response)
+        this.logBuildErrors(response)
         this.loadModules(response)
         this.isMainConnected = true
     }
 
     /**
-     * If the binary surfaced a credential failure via testhub.errors,
-     * log the message so the user sees the auth cause before any
-     * downstream bootstrap error.
+     * If the binary surfaced any build errors via testhub.errors, log each
+     * message so the user sees the actionable cause before any downstream
+     * bootstrap error. The binary writes the field as a JSON-encoded
+     * { [errorKey]: { message, type } } map, where `type` is `'error'` for
+     * hard failures and `'info'` for advisory entries (e.g. ACCESS_DENIED
+     * is tagged info). Each entry is emitted at the matching log level.
      */
-    private logCredentialErrors(response: StartBinSessionResponse) {
+    private logBuildErrors(response: StartBinSessionResponse) {
         const rawErrors = response.testhub?.errors
         if (!rawErrors || !rawErrors.length) {
             return
@@ -135,12 +138,15 @@ export class BrowserstackCLI {
             const text = typeof rawErrors === 'string'
                 ? rawErrors
                 : Buffer.from(rawErrors).toString('utf8')
-            const parsed = JSON.parse(text)
-            const credKeys = ['ERROR_INVALID_CREDENTIALS', 'ERROR_ACCESS_DENIED']
-            for (const key of credKeys) {
-                if (parsed[key] && parsed[key].message) {
-                    this.logger.error(parsed[key].message)
-                    return
+            const parsed: Record<string, { message?: string, type?: string }> = JSON.parse(text)
+            for (const entry of Object.values(parsed)) {
+                if (!entry || !entry.message) {
+                    continue
+                }
+                if (entry.type === 'info') {
+                    this.logger.info(entry.message)
+                } else {
+                    this.logger.error(entry.message)
                 }
             }
         } catch {
