@@ -584,6 +584,55 @@ describe('WebDriverInterception', () => {
         expect(mock.calls[0].postData).toBe('request-body')
     })
 
+    it('should skip request postData lookup when cheaper responseCompleted filters do not match', async () => {
+        const browser = getResponseCollectionBrowserMock()
+
+        await WebDriverInterception.initiate('http://test.com/**', {
+            method: 'POST'
+        }, browser)
+        const request = getResponseCollectionRequestStub()
+
+        browser.emit('network.responseCompleted', { ...request, isBlocked: false })
+
+        await waitForAsyncHandlers()
+
+        expect(browser.networkGetData).not.toHaveBeenCalled()
+    })
+
+    it('should evict cached request postData after responseCompleted attaches it to a call', async () => {
+        const requestBodies = ['first-request-body', 'second-request-body']
+        const browser = getResponseCollectionBrowserMock({}, {
+            networkGetData: vi.fn().mockImplementation(({ dataType }) => Promise.resolve({
+                bytes: {
+                    type: 'string',
+                    value: dataType === 'request' ? requestBodies.shift() : 'response-body'
+                }
+            }))
+        })
+
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+        const firstRequest = getResponseCollectionRequestStub()
+
+        browser.emit('network.responseStarted', firstRequest)
+        browser.emit('network.responseCompleted', { ...firstRequest, isBlocked: false })
+
+        await waitForAsyncHandlers()
+
+        const secondRequest = getResponseCollectionRequestStub()
+
+        browser.emit('network.responseStarted', secondRequest)
+        browser.emit('network.responseCompleted', { ...secondRequest, isBlocked: false })
+
+        await waitForAsyncHandlers()
+
+        const requestBodyCalls = vi.mocked(browser.networkGetData).mock.calls
+            .filter(([params]) => params.dataType === 'request')
+
+        expect(requestBodyCalls).toHaveLength(2)
+        expect(mock.calls[0].postData).toBe('first-request-body')
+        expect(mock.calls[1].postData).toBe('second-request-body')
+    })
+
     it('should filter requests by postData', async () => {
         const browser = getResponseCollectionBrowserMock()
 

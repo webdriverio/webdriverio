@@ -290,10 +290,19 @@ export default class WebDriverInterception {
             return
         }
 
-        await this.#populateRequestPostData(request)
-
-        if (!this.#matchesFilterOptions(request)) {
+        if (!this.#matchesFilterOptions(request, { includePostData: false })) {
             return
+        }
+
+        const requestWithPostData = await this.#populateRequestPostData(request)
+        if (!this.#matchesPostDataFilter(requestWithPostData)) {
+            this.#requestPostData.delete(request.request.request)
+            return
+        }
+
+        const call = this.#getCall(request.request.request)
+        if (call) {
+            this.#attachPostData(call)
         }
 
         /**
@@ -306,14 +315,14 @@ export default class WebDriverInterception {
             })
 
             if (bytes) {
-                const call = this.#calls.find((call) => call.request.request === request.request.request)
                 if (call) {
-                    this.#attachPostData(call)
                     call.body = bytes.value
                 }
             }
         } catch (err: unknown) {
             log.debug(`Failed to get response body for ${request.request.request}: ${(err as Error).message}`)
+        } finally {
+            this.#requestPostData.delete(request.request.request)
         }
     }
 
@@ -399,12 +408,34 @@ export default class WebDriverInterception {
         return this.#overwrittenResponseBodies
     }
 
+    #getCall(requestId: string) {
+        for (let index = this.#calls.length - 1; index >= 0; index--) {
+            const call = this.#calls[index]
+            if (call.request.request === requestId) {
+                return call
+            }
+        }
+    }
+
     #isRequestMatching<T extends local.NetworkBeforeRequestSentParameters | Response>(request: T) {
         const matches = this.#pattern && this.#pattern.test(request.request.url)
         return request.isBlocked && matches
     }
 
-    #matchesFilterOptions<T extends local.NetworkBeforeRequestSentParameters | Response>(request: T) {
+    #matchesPostDataFilter<T extends local.NetworkBeforeRequestSentParameters | Response>(request: RequestWithPostData<T>) {
+        if (!this.#filterOptions.postData) {
+            return true
+        }
+
+        return typeof this.#filterOptions.postData === 'function'
+            ? this.#filterOptions.postData(request.postData)
+            : request.postData === this.#filterOptions.postData
+    }
+
+    #matchesFilterOptions<T extends local.NetworkBeforeRequestSentParameters | Response>(
+        request: T,
+        { includePostData = true }: { includePostData?: boolean } = {}
+    ) {
         let isRequestMatching = true
 
         if (isRequestMatching && this.#filterOptions.method) {
@@ -431,11 +462,8 @@ export default class WebDriverInterception {
                 })
         }
 
-        if (isRequestMatching && this.#filterOptions.postData) {
-            const { postData } = request as RequestWithPostData<T>
-            isRequestMatching = typeof this.#filterOptions.postData === 'function'
-                ? this.#filterOptions.postData(postData)
-                : postData === this.#filterOptions.postData
+        if (isRequestMatching && includePostData) {
+            isRequestMatching = this.#matchesPostDataFilter(request as RequestWithPostData<T>)
         }
 
         if (isRequestMatching && this.#filterOptions.responseHeaders && 'response' in request) {
