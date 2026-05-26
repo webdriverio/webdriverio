@@ -946,8 +946,22 @@ class _InsightsHandler {
             browser_version: caps?.browserVersion,
             platform: caps?.platformName,
             product: this._platformMeta?.product,
-            platform_version: getPlatformVersion(caps, this._userCaps as WebdriverIO.Capabilities)
+            platform_version: getPlatformVersion(caps, this._userCaps as WebdriverIO.Capabilities),
+            device: this.getResolvedDeviceName(caps)
         }
+    }
+
+    private getResolvedDeviceName (caps: WebdriverIO.Capabilities | undefined) {
+        if (!caps) {return undefined}
+        const anyCaps = caps as unknown as Record<string, unknown>
+        const bstackOptions = anyCaps['bstack:options'] as Record<string, unknown> | undefined
+        return (
+            (anyCaps['deviceModel'] as string | undefined)
+            || (anyCaps['appium:deviceModel'] as string | undefined)
+            || (bstackOptions?.['deviceName'] as string | undefined)
+            || (anyCaps['appium:deviceName'] as string | undefined)
+            || (anyCaps['deviceName'] as string | undefined)
+        )
     }
 
     private getIdentifier (test: Frameworks.Test | ITestCaseHookParameter) {
