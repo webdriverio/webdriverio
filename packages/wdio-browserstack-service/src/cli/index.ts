@@ -140,10 +140,16 @@ export class BrowserstackCLI {
 
         // If the binary couldn't authenticate enough to populate apis,
         // short-circuit with a clean error rather than letting
-        // updateURLSForGRR crash with a confusing TypeError. The build
-        // errors logged above already explained the cause.
+        // updateURLSForGRR crash with a confusing TypeError. The wording
+        // stands on its own — an older binary may not report any build
+        // errors, in which case there is no preceding [Build] line to
+        // point to.
         if (!this.config?.apis) {
-            throw new Error('BrowserStack binary returned an incomplete config; see preceding build errors.')
+            throw new Error(
+                'BrowserStack binary returned an incomplete config — this usually indicates invalid '
+                + 'BrowserStack credentials or that the binary failed to reach BrowserStack. '
+                + 'Check any preceding [Build] errors for details.'
+            )
         }
 
         APIUtils.updateURLSForGRR(this.config.apis as GRRUrls)
