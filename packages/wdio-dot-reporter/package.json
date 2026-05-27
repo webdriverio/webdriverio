@@ -32,7 +32,7 @@
   "dependencies": {
     "@wdio/reporter": "workspace:*",
     "@wdio/types": "workspace:*",
-    "chalk": "^5.0.1"
+    "chalk": "^5.6.2"
   },
   "devDependencies": {
     "@types/tmp": "^0.2.3",

@@ -37,7 +37,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "chalk": "^5.1.2",
+    "chalk": "^5.6.2",
     "loglevel": "^1.6.0",
     "loglevel-plugin-prefix": "^0.8.4",
     "safe-regex2": "^5.0.0",
