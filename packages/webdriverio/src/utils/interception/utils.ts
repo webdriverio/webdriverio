@@ -17,7 +17,7 @@ export function parseOverwrite<
     const result: Overwrite<T> = {} as unknown as Overwrite<T>
     if ('body' in overwrite && overwrite.body) {
         const bodyOverwrite = typeof overwrite.body === 'function'
-            ? overwrite.body(request as local.NetworkBeforeRequestSentParameters)
+            ? overwrite.body(request as local.NetworkBeforeRequestSentParameters & local.NetworkResponseCompletedParameters)
             : overwrite.body
         result.body = (bodyOverwrite?.type === 'string' || bodyOverwrite?.type === 'base64')
             ? bodyOverwrite
@@ -28,7 +28,7 @@ export function parseOverwrite<
 
     if ('headers' in overwrite) {
         const headersOverwrite = typeof overwrite.headers === 'function'
-            ? overwrite.headers(request as local.NetworkBeforeRequestSentParameters)
+            ? overwrite.headers(request as local.NetworkBeforeRequestSentParameters & local.NetworkResponseCompletedParameters)
             : overwrite.headers
         result.headers = Object.entries(headersOverwrite || {}).map(([name, value]) => ({
             name,
@@ -38,7 +38,7 @@ export function parseOverwrite<
 
     if ('cookies' in overwrite && overwrite.cookies) {
         const cookieOverwrite = typeof overwrite.cookies === 'function'
-            ? overwrite.cookies(request as local.NetworkBeforeRequestSentParameters) || []
+            ? overwrite.cookies(request as local.NetworkBeforeRequestSentParameters & local.NetworkResponseCompletedParameters) || []
             : overwrite.cookies
         result.cookies = cookieOverwrite.map((cookie) => ({
             name: cookie.name,
