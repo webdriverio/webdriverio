@@ -114,7 +114,7 @@ export default class ConfigParser {
                     applyHeadlessFlag(cap as WebdriverIO.Capabilities, headless)
                 }
             } else if (this._capabilities && typeof this._capabilities === 'object') {
-                log.warn('--headless flag is not supported with object-style capabilities, use array format instead')
+                applyHeadlessFlag(this._capabilities as unknown as WebdriverIO.Capabilities, headless)
             }
         }
 

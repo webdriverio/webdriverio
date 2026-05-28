@@ -13,13 +13,25 @@ export function applyHeadlessFlag(caps: WebdriverIO.Capabilities, headless: bool
     const target = (caps as { alwaysMatch?: WebdriverIO.Capabilities }).alwaysMatch || caps
     const browser = (target.browserName || '').toLowerCase()
 
+    // Multiremote: object whose values are individual capability objects
+    if (!browser && !('alwaysMatch' in caps)) {
+        for (const key of Object.keys(caps)) {
+            const val = (caps as Record<string, unknown>)[key]
+            if (val && typeof val === 'object' && (val as WebdriverIO.Capabilities).browserName) {
+                applyHeadlessFlag(val as WebdriverIO.Capabilities, headless)
+            }
+        }
+        return caps
+    }
+
     if (browser === 'chrome' || browser === 'chromium') {
         const opts = (target['goog:chromeOptions'] as { args?: string[] }) || {}
         const args = opts.args || []
+        const alreadyHasHeadless = args.some((a: string) => a === '--headless' || a === 'headless' || a.startsWith('--headless='))
         target['goog:chromeOptions'] = {
             ...opts,
             args: headless
-                ? Array.from(new Set([...args, '--headless', '--disable-gpu']))
+                ? Array.from(new Set([...args, ...(alreadyHasHeadless ? [] : ['--headless']), '--disable-gpu']))
                 : args.filter((a: string) => a !== '--headless' && a !== 'headless' && !a.startsWith('--headless='))
         }
     } else if (browser === 'firefox') {
