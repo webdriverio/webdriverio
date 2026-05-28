@@ -68,21 +68,15 @@ describe('BrowserstackCLI bootstrap error surfacing', () => {
         })
     })
 
-    describe('loadModules apis-missing guard', () => {
-        it('throws a self-contained error when setConfig leaves config.apis undefined', () => {
-            // setConfig parses response.config; an empty JSON object is valid
-            // but leaves config.apis missing — the same shape the binary
-            // returns on auth failure.
-            const response = {
-                binSessionId: 'b1',
-                config: '{}'
-            } as any
-            expect(() => instance.loadModules(response)).toThrowError(
-                /BrowserStack binary returned an incomplete config/
-            )
-        })
-
-        it('logs preceding build errors BEFORE throwing on the apis-missing guard', () => {
+    describe('loadModules integration', () => {
+        it('logs build errors BEFORE the downstream apis dereference fails', () => {
+            // On an auth-failure response the binary returns an empty
+            // config string. setConfig parses it as `{}`, leaving
+            // this.config.apis undefined, so APIUtils.updateURLSForGRR
+            // throws a TypeError when it dereferences `apis.automate`.
+            // The PR's invariant is that the [Build] error line is
+            // logged BEFORE that downstream throw, so the user sees the
+            // actionable cause first.
             const errors = {
                 ERROR_ACCESS_DENIED: { message: 'Access to BrowserStack denied due to incorrect credentials.', type: 'info' }
             }
@@ -91,36 +85,12 @@ describe('BrowserstackCLI bootstrap error surfacing', () => {
                 config: '{}',
                 testhub: { errors: Buffer.from(JSON.stringify(errors)) }
             } as any
-            expect(() => instance.loadModules(response)).toThrowError(/incomplete config/)
-            expect(loggerErrorSpy).toHaveBeenCalledWith('[Build] ERROR_ACCESS_DENIED: Access to BrowserStack denied due to incorrect credentials.')
-        })
-
-        it('does not throw the apis-missing error when setConfig parses a config with apis present', () => {
-            // Stub the downstream modules so loadModules doesn't try to
-            // initialize them — we only want to confirm the guard does NOT
-            // fire when apis is present. Any later setup failure is
-            // unrelated to the guard we're testing.
-            const config = {
-                apis: {
-                    automate: { api: 'https://api.browserstack.com' },
-                    appAutomate: { api: 'https://api.browserstack.com' },
-                    percy: { api: 'https://percy.io' },
-                    appAccessibility: { api: 'https://a11y.browserstack.com' },
-                    observability: { api: 'https://observability.browserstack.com', upload: '' },
-                    edsInstrumentation: { api: '' }
-                }
-            }
-            const response = {
-                binSessionId: 'b1',
-                config: JSON.stringify(config)
-            } as any
-            // Best-effort: loadModules may still throw further on, but the
-            // thrown error must NOT be the apis-missing guard text.
             try {
                 instance.loadModules(response)
-            } catch (err: any) {
-                expect(err.message).not.toMatch(/incomplete config/)
+            } catch {
+                // expected — updateURLSForGRR throws on missing apis
             }
+            expect(loggerErrorSpy).toHaveBeenCalledWith('[Build] ERROR_ACCESS_DENIED: Access to BrowserStack denied due to incorrect credentials.')
         })
     })
 })

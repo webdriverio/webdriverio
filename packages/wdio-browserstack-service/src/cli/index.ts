@@ -135,22 +135,8 @@ export class BrowserstackCLI {
         // BEFORE the config.apis dereference below. On auth failure the
         // binary returns an empty/degenerate config, so reporting errors
         // here ensures the user sees the actionable cause (e.g. invalid
-        // credentials) instead of only a downstream TypeError.
+        // credentials) before any downstream error.
         this.logBuildErrors(startBinResponse)
-
-        // If the binary couldn't authenticate enough to populate apis,
-        // short-circuit with a clean error rather than letting
-        // updateURLSForGRR crash with a confusing TypeError. The wording
-        // stands on its own — an older binary may not report any build
-        // errors, in which case there is no preceding [Build] line to
-        // point to.
-        if (!this.config?.apis) {
-            throw new Error(
-                'BrowserStack binary returned an incomplete config — this usually indicates invalid '
-                + 'BrowserStack credentials or that the binary failed to reach BrowserStack. '
-                + 'Check any preceding [Build] errors for details.'
-            )
-        }
 
         APIUtils.updateURLSForGRR(this.config.apis as GRRUrls)
 
