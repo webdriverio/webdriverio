@@ -1,9 +1,11 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { temporaryDirectory } from 'tempy'
 import { ReporterRuntime } from 'allure-js-commons/sdk/reporter'
 import { FileSystemWriter } from 'allure-js-commons/sdk/reporter'
 import { AllureReportState } from '../src/state.js'
-import { clean } from './helpers/wdio-allure-helper.js'
+import { clean, getResultFiles } from './helpers/wdio-allure-helper.js'
 
 describe('state', () => {
     const outputDir = temporaryDirectory()
@@ -100,6 +102,69 @@ describe('state', () => {
     describe('without current file', () => {
         it('returns undefined instead of package label', () => {
             expect(state.hasPendingHook).toBe(false)
+        })
+    })
+
+    describe('global errors', () => {
+        it('writes globals file when global_error is sent outside of any test', async () => {
+            state.pushRuntimeMessage({
+                type: 'global_error',
+                data: { message: 'something went wrong', trace: 'Error: something went wrong\n  at foo.ts:1' }
+            })
+            await state.processRuntimeMessage()
+
+            const globalsFiles = getResultFiles(outputDir, [/-globals\.json$/])
+            expect(globalsFiles).toHaveLength(1)
+
+            const content = JSON.parse(fs.readFileSync(path.join(outputDir, globalsFiles[0]), 'utf-8'))
+            expect(content.errors).toHaveLength(1)
+            expect(content.errors[0]).toMatchObject({
+                message: 'something went wrong',
+                trace: 'Error: something went wrong\n  at foo.ts:1'
+            })
+            expect(content.attachments).toHaveLength(0)
+        })
+
+        it('writes globals file when global_error is sent during an active test', async () => {
+            state.pushRuntimeMessage({ type: 'allure:suite:start', data: { name: 'suite' } })
+            state.pushRuntimeMessage({ type: 'allure:test:start', data: { name: 'test', start: Date.now() } })
+            state.pushRuntimeMessage({
+                type: 'global_error',
+                data: { message: 'global failure' }
+            })
+            state.pushRuntimeMessage({ type: 'allure:test:end', data: { status: 'passed' as any } })
+            state.pushRuntimeMessage({ type: 'allure:suite:end', data: {} })
+            await state.processRuntimeMessage()
+
+            const globalsFiles = getResultFiles(outputDir, [/-globals\.json$/])
+            expect(globalsFiles).toHaveLength(1)
+
+            const content = JSON.parse(fs.readFileSync(path.join(outputDir, globalsFiles[0]), 'utf-8'))
+            expect(content.errors[0]).toMatchObject({ message: 'global failure' })
+        })
+    })
+
+    describe('global attachments', () => {
+        it('writes globals file when global_attachment_content is sent outside of any test', async () => {
+            const content = Buffer.from('attachment body', 'utf8')
+            state.pushRuntimeMessage({
+                type: 'global_attachment_content',
+                data: {
+                    name: 'my attachment',
+                    content: content.toString('base64'),
+                    encoding: 'base64',
+                    contentType: 'text/plain',
+                }
+            })
+            await state.processRuntimeMessage()
+
+            const globalsFiles = getResultFiles(outputDir, [/-globals\.json$/])
+            expect(globalsFiles).toHaveLength(1)
+
+            const parsed = JSON.parse(fs.readFileSync(path.join(outputDir, globalsFiles[0]), 'utf-8'))
+            expect(parsed.attachments).toHaveLength(1)
+            expect(parsed.attachments[0]).toMatchObject({ name: 'my attachment', type: 'text/plain' })
+            expect(parsed.errors).toHaveLength(0)
         })
     })
 })
