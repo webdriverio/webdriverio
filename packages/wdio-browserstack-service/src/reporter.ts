@@ -281,16 +281,19 @@ class _TestReporter extends WDIOReporter {
         }
 
         if (eventType.startsWith('TestRun') || eventType === 'HookRunStarted') {
-            /* istanbul ignore next */
-            const cloudProvider = getCloudProvider({ options: { hostname: this._config?.hostname } } as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser)
-            // LTS: override session_id with the pod-iteration LTS env id and
-            // tag product='loadTesting' so TestHub o11y classifier resolves
-            // test_run.origin=LoadTesting. Same logic as insights-handler
-            // getIntegrationsObject() — this path covers the REST reporter
-            // event flow that fires alongside the gRPC AutomationSession
-            // path. Mirrors py-sdk 0efca1ae + a245a814.
+            // LTS pod-iterations run against a local Selenium hub, so the
+            // hostname-based check in getCloudProvider would resolve to
+            // 'unknown_grid' and TestHub's o11y classifier would land the row
+            // with origin=UnknownGrid. Force 'browserstack' here ONLY in the
+            // reporter path — getCloudProvider stays untouched so Automate
+            // guards (markSessionName/Status, KEY_IS_BROWSERSTACK_HUB) keep
+            // their original semantics under LTS.
             const ltsActive = isLoadTestingSession()
             const ltsSessionId = ltsActive ? getLtsSessionId() : ''
+            /* istanbul ignore next */
+            const cloudProvider = ltsActive
+                ? 'browserstack'
+                : getCloudProvider({ options: { hostname: this._config?.hostname } } as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser)
             testData.integrations = {}
             /* istanbul ignore next */
             testData.integrations[cloudProvider] = {

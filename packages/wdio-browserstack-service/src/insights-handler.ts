@@ -375,7 +375,8 @@ class _InsightsHandler {
         if (eventType === 'HookRunStarted') {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
-                const provider = getCloudProvider(this._browser)
+                // LTS reporter override (see getCloudProvider note in util.ts)
+                const provider = isLoadTestingSession() ? 'browserstack' : getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
             }
         }
@@ -714,7 +715,8 @@ class _InsightsHandler {
         if ((eventType === 'TestRunFinished' || eventType === 'HookRunFinished') && results) {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
-                const provider = getCloudProvider(this._browser)
+                // LTS reporter override (see getCloudProvider note in util.ts)
+                const provider = isLoadTestingSession() ? 'browserstack' : getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
             }
             const { error, passed } = results
@@ -739,7 +741,8 @@ class _InsightsHandler {
         if (eventType === 'TestRunStarted' || eventType === 'TestRunSkipped' || eventType === 'HookRunStarted') {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
-                const provider = getCloudProvider(this._browser)
+                // LTS reporter override (see getCloudProvider note in util.ts)
+                const provider = isLoadTestingSession() ? 'browserstack' : getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
             }
         }
@@ -849,7 +852,8 @@ class _InsightsHandler {
         if (eventType === 'TestRunStarted' || eventType === 'TestRunSkipped') {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
-                const provider = getCloudProvider(this._browser)
+                // LTS reporter override (see getCloudProvider note in util.ts)
+                const provider = isLoadTestingSession() ? 'browserstack' : getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
             }
         }
@@ -916,7 +920,8 @@ class _InsightsHandler {
         const integrationsData: Record<string, IntegrationObject> = {}
 
         if (this._browser && this._platformMeta) {
-            const provider = getCloudProvider(this._browser) as keyof IntegrationObject
+            // LTS reporter override (see getCloudProvider note in util.ts)
+            const provider = (isLoadTestingSession() ? 'browserstack' : getCloudProvider(this._browser)) as keyof IntegrationObject
             integrationsData[provider] = this.getIntegrationsObject()
         }
 

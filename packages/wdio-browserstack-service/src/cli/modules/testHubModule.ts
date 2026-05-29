@@ -183,18 +183,20 @@ export default class TestHubModule extends BaseModule {
             }
 
             this.logger.debug(`sendTestSessionEvent: instance iteration ${JSON.stringify(autoInstances)}`)
+            // LTS: BLU runner pods route through a local Selenium hub
+            // so KEY_IS_BROWSERSTACK_HUB resolves to false — without
+            // this gate the AutomationSession lands with provider=
+            // unknown_grid and TestHub's o11y classifier sets
+            // test_run.origin=UnknownGrid. Mirrors py-sdk 3af3bba6
+            // (force provider='browserstack' + product='loadTesting'
+            // under LTS) and 0efca1ae (override frameworkSessionId
+            // with the LTS pod-iteration env id).
+            // Hoisted above the loop — env vars are stable for the
+            // process lifetime, no need to re-read per iteration.
+            const ltsActive = isLoadTestingSession()
+            const ltsSessionId = ltsActive ? getLtsSessionId() : ''
             // Process automation instances
             for (const autoInstance of autoInstances) {
-                // LTS: BLU runner pods route through a local Selenium hub
-                // so KEY_IS_BROWSERSTACK_HUB resolves to false — without
-                // this gate the AutomationSession lands with provider=
-                // unknown_grid and TestHub's o11y classifier sets
-                // test_run.origin=UnknownGrid. Mirrors py-sdk 3af3bba6
-                // (force provider='browserstack' + product='loadTesting'
-                // under LTS) and 0efca1ae (override frameworkSessionId
-                // with the LTS pod-iteration env id).
-                const ltsActive = isLoadTestingSession()
-                const ltsSessionId = ltsActive ? getLtsSessionId() : ''
                 const sessionProvider = ltsActive
                     ? 'browserstack'
                     : (AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_IS_BROWSERSTACK_HUB) as boolean

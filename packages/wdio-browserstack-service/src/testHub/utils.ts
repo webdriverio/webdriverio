@@ -19,6 +19,10 @@ export const getProductMap = (config: BrowserStackConfig): { [key: string]: bool
     // Keeping automate=true here causes builds to land in TestHub with
     // source=TO,AUT,LTS instead of the expected TO,LTS that production
     // (binary-CLI-managed) LTS builds carry. Mirror of py-sdk ea53d914.
+    //
+    // Only emit the `lts` key when actually LTS — keeps the non-LTS
+    // payload byte-identical to pre-PR shape so backends with strict
+    // unknown-key validation aren't surprised.
     const lts = isLoadTestingSession()
     return {
         observability: config.testObservability.enabled,
@@ -26,7 +30,7 @@ export const getProductMap = (config: BrowserStackConfig): { [key: string]: bool
         percy: config.percy,
         automate: lts ? false : config.automate,
         app_automate: config.appAutomate,
-        lts
+        ...(lts ? { lts: true } : {})
     }
 }
 
@@ -88,6 +92,8 @@ export const getProductMapForBuildStartCall = (config: BrowserStackConfig, acces
     // See getProductMap above — same LTS-gated automate=false so the
     // build-start payload aligns with production binary-CLI LTS builds
     // (source: TO,LTS) instead of TO,AUT,LTS. Mirror of py-sdk ea53d914.
+    //
+    // Only emit the `lts` key when actually LTS (see getProductMap note).
     const lts = isLoadTestingSession()
     return {
         observability: config.testObservability.enabled,
@@ -95,6 +101,6 @@ export const getProductMapForBuildStartCall = (config: BrowserStackConfig, acces
         percy: config.percy,
         automate: lts ? false : config.automate,
         app_automate: config.appAutomate,
-        lts
+        ...(lts ? { lts: true } : {})
     }
 }
