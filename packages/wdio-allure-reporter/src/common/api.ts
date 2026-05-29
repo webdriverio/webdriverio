@@ -1,4 +1,4 @@
-import type { StepContext } from 'allure-js-commons'
+import type { StepContext, StatusDetails } from 'allure-js-commons'
 import {
     allureId,
     attachment as allureAttachment,
@@ -7,6 +7,9 @@ import {
     descriptionHtml,
     epic,
     feature,
+    globalAttachment as allureGlobalAttachment,
+    globalAttachmentPath as allureGlobalAttachmentPath,
+    globalError as allureGlobalError,
     historyId,
     issue,
     label,
@@ -222,6 +225,38 @@ export async function addArgument (name: string, value: string) {
 }
 
 /**
+ * Add a global error to the report (not tied to any specific test)
+ * @name addGlobalError
+ * @param {StatusDetails} details - error details with optional message and trace
+ */
+export async function addGlobalError(details: StatusDetails) {
+    await allureGlobalError(details)
+}
+
+/**
+ * Add a global attachment to the report (not tied to any specific test)
+ * @name addGlobalAttachment
+ * @param {string} name - attachment name
+ * @param {string | Buffer} content - attachment content
+ * @param {string} contentType - attachment MIME type
+ */
+export async function addGlobalAttachment(name: string, content: string | Buffer, contentType: string) {
+    const buf = Buffer.isBuffer(content) ? content : Buffer.from(content as string, 'utf8')
+    await allureGlobalAttachment(name, buf, { contentType })
+}
+
+/**
+ * Add a global attachment from a file path to the report (not tied to any specific test)
+ * @name addGlobalAttachmentFromPath
+ * @param {string} name - attachment name
+ * @param {string} path - path to the file
+ * @param {string} contentType - attachment MIME type
+ */
+export async function addGlobalAttachmentFromPath(name: string, path: string, contentType: string) {
+    await allureGlobalAttachmentPath(name, path, { contentType })
+}
+
+/**
  * Add history id to the test, which won't be re-calculated in the end
  * @name addHistoryId
  * @param {string} id - history id
@@ -335,6 +370,9 @@ export default {
     addEnvironment,
     addDescription,
     addAttachment,
+    addGlobalError,
+    addGlobalAttachment,
+    addGlobalAttachmentFromPath,
     startStep,
     endStep,
     addStep,
