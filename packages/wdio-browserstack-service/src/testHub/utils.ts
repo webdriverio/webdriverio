@@ -14,24 +14,24 @@ export interface Errors {
 }
 
 export const getProductMap = (config: BrowserStackConfig): { [key: string]: boolean } => {
-    // LTS runs explicitly disable Automate (browserstackAutomation: false)
-    // and route to the LTS internal hub instead of the Automate cloud hub.
-    // Keeping automate=true here causes builds to land in TestHub with
-    // source=TO,AUT,LTS instead of the expected TO,LTS that production
-    // (binary-CLI-managed) LTS builds carry. Mirror of py-sdk ea53d914.
-    //
-    // Only emit the `lts` key when actually LTS — keeps the non-LTS
-    // payload byte-identical to pre-PR shape so backends with strict
-    // unknown-key validation aren't surprised.
+    // LTS gating: under LTS, automate is forced false (LTS builds route to
+    // the LTS internal hub; keeping automate=true tags TestHub source as
+    // TO,AUT,LTS instead of TO,LTS — see py-sdk ea53d914). The `lts` key
+    // itself is only emitted under LTS so non-LTS payloads stay byte-
+    // identical to the pre-LTS-PR shape (avoids surprising any backend with
+    // strict unknown-key validation).
     const lts = isLoadTestingSession()
-    return {
-        observability: config.testObservability.enabled,
-        accessibility: config.accessibility === true,
-        percy: config.percy,
-        automate: lts ? false : config.automate,
-        app_automate: config.appAutomate,
-        ...(lts ? { lts: true } : {})
+    const entries: [string, boolean | undefined][] = [
+        ['observability', config.testObservability.enabled],
+        ['accessibility', config.accessibility],
+        ['percy', config.percy],
+        ['automate', lts ? false : config.automate],
+        ['app_automate', config.appAutomate],
+    ]
+    if (lts) {
+        entries.push(['lts', true])
     }
+    return Object.fromEntries(entries.filter(([, v]) => v !== null)) as { [key: string]: boolean }
 }
 
 export const shouldProcessEventForTesthub = (eventType: string): boolean => {
@@ -84,23 +84,22 @@ export const logBuildError = (error: Errors | null, product: string = ''): void 
     }
 }
 
-export const getProductMapForBuildStartCall = (config: BrowserStackConfig, accessibilityAutomation?: boolean): { [key: string]: boolean | undefined } => {
-    // Keeps the looser `boolean | undefined` return type (vs the stricter
-    // `boolean` return on getProductMap) because launchTestSession callers
-    // still distinguish "accessibility flag was unset on the yaml" from
-    // "accessibility flag was explicitly false" via the undefined sentinel.
-    // See getProductMap above — same LTS-gated automate=false so the
-    // build-start payload aligns with production binary-CLI LTS builds
-    // (source: TO,LTS) instead of TO,AUT,LTS. Mirror of py-sdk ea53d914.
-    //
-    // Only emit the `lts` key when actually LTS (see getProductMap note).
+export const getProductMapForBuildStartCall = (config: BrowserStackConfig, accessibilityAutomation?: boolean | null): { [key: string]: boolean } => {
+    // LTS gating: under LTS, automate is forced false (LTS builds route to
+    // the LTS internal hub; keeping automate=true tags TestHub source as
+    // TO,AUT,LTS instead of TO,LTS — see py-sdk ea53d914). The `lts` key
+    // itself is only emitted under LTS to keep non-LTS payloads byte-
+    // identical to the pre-LTS-PR shape.
     const lts = isLoadTestingSession()
-    return {
-        observability: config.testObservability.enabled,
-        accessibility: accessibilityAutomation,
-        percy: config.percy,
-        automate: lts ? false : config.automate,
-        app_automate: config.appAutomate,
-        ...(lts ? { lts: true } : {})
+    const entries: [string, boolean | undefined | null][] = [
+        ['observability', config.testObservability.enabled],
+        ['accessibility', accessibilityAutomation],
+        ['percy', config.percy],
+        ['automate', lts ? false : config.automate],
+        ['app_automate', config.appAutomate],
+    ]
+    if (lts) {
+        entries.push(['lts', true])
     }
+    return Object.fromEntries(entries.filter(([, v]) => v !== null)) as { [key: string]: boolean }
 }
