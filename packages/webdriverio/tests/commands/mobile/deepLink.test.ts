@@ -52,6 +52,68 @@ describe('deepLink test', () => {
         })
     })
 
+    it('should pass waitForLaunch=false to mobile:deepLink on Android', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                platformName: 'Android',
+            } as any
+        })
+
+        const executeSpy = vi.spyOn(browser, 'execute')
+
+        await browser.deepLink('wdio://drag', 'com.wdio.app', false)
+
+        expect(executeSpy).toHaveBeenCalledWith('mobile:deepLink', {
+            url: 'wdio://drag',
+            package: 'com.wdio.app',
+            waitForLaunch: false,
+        })
+    })
+
+    it('should pass waitForLaunch=true to mobile:deepLink on Android', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                platformName: 'Android',
+            } as any
+        })
+
+        const executeSpy = vi.spyOn(browser, 'execute')
+
+        await browser.deepLink('wdio://drag', 'com.wdio.app', true)
+
+        expect(executeSpy).toHaveBeenCalledWith('mobile:deepLink', {
+            url: 'wdio://drag',
+            package: 'com.wdio.app',
+            waitForLaunch: true,
+        })
+    })
+
+    it('should NOT pass waitForLaunch to mobile:deepLink on iOS', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                platformName: 'iOS',
+            } as any
+        })
+
+        const executeSpy = vi.spyOn(browser, 'execute')
+
+        await browser.deepLink('wdio://drag', 'com.wdio.app', false)
+
+        expect(executeSpy).toHaveBeenCalledWith('mobile:deepLink', {
+            url: 'wdio://drag',
+            bundleId: 'com.wdio.app'
+        })
+    })
+
     it('should throw an error for non-mobile platforms', async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',

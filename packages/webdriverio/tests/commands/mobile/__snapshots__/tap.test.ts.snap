@@ -102,7 +102,7 @@ exports[`screen tap test > should call the action command for mobile web when a 
       "type": "pointerUp",
     },
   ],
-  "id": "action1",
+  "id": "pointer1",
   "parameters": {
     "pointerType": "touch",
   },

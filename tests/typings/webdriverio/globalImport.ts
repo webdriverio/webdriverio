@@ -1,5 +1,5 @@
 import { expectType } from 'tsd'
-import { $, $$, browser, driver, multiremotebrowser } from '@wdio/globals'
+import { $, $$, browser, driver, multiRemoteBrowser } from '@wdio/globals'
 import { fn, spyOn, mock, unmock, mocked } from '@wdio/browser-runner'
 
 ;(async () => {
@@ -18,7 +18,7 @@ import { fn, spyOn, mock, unmock, mocked } from '@wdio/browser-runner'
     const anotherTitle = await driver.getTitle()
     expectType<string>(anotherTitle)
 
-    const multiTitle = await multiremotebrowser.getTitle()
+    const multiTitle = await multiRemoteBrowser.getTitle()
     expectType<string[]>(multiTitle)
 
     expectType<Function>(fn)

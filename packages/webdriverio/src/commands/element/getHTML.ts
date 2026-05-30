@@ -63,11 +63,11 @@ const SHADOW_ID_ATTR = `[${SHADOW_ID_ATTR_NAME}]`
  *
  * @alias element.getHTML
  * @param {GetHTMLOptions} options                    command options
- * @param {Boolean=}       options.includeSelectorTag if true it includes the selector element tag (default: `true`)
- * @param {Boolean=}       options.pierceShadowRoot   if true it includes content of the shadow roots of all web components in the DOM (default: `true`)
- * @param {Boolean=}       options.removeCommentNodes if true it removes all comment nodes from the HTML, e.g. `<!--?lit$206212805$--><!--?lit$206212805$-->` (default: `true`)
- * @param {Boolean=}       options.prettify           if true, the html output will be prettified (default: `true`)
- * @return {String}  the HTML of the specified element
+ * @param {boolean=}       options.includeSelectorTag if true it includes the selector element tag (default: `true`)
+ * @param {boolean=}       options.pierceShadowRoot   if true it includes content of the shadow roots of all web components in the DOM (default: `true`)
+ * @param {boolean=}       options.removeCommentNodes if true it removes all comment nodes from the HTML, e.g. `<!--?lit$206212805$--><!--?lit$206212805$-->` (default: `true`)
+ * @param {boolean=}       options.prettify           if true, the html output will be prettified (default: `true`)
+ * @return {Promise}  the HTML of the specified element (as a string)
  * @uses action/selectorExecute
  * @type property
  *
@@ -75,7 +75,7 @@ const SHADOW_ID_ATTR = `[${SHADOW_ID_ATTR_NAME}]`
 export async function getHTML(
     this: WebdriverIO.Element,
     options: GetHTMLOptions = {}
-) {
+): Promise<string> {
     const browser = getBrowserObject(this)
 
     /**
@@ -141,9 +141,8 @@ export async function getHTML(
         /**
          * then get the HTML of the element and its shadow roots
          */
-        const { html, shadowElementHTML } = await browser.execute(
+        const { html, shadowElementHTML } = await this.execute(
             getHTMLShadowScript,
-            { [ELEMENT_KEY]: this.elementId } as unknown as HTMLElement,
             includeSelectorTag,
             elementsWithShadowRootAndIdVerified
         )
@@ -202,7 +201,7 @@ function populateHTML (
  * @param options command options
  * @returns a string with the cleaned up HTML
  */
-function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): string {
+export function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): string {
     /**
      * delete data-wdio-shadow-id attribute as it contains random ids that
      * can cause failures when taking a snapshot of a Shadow DOM element
@@ -216,12 +215,31 @@ function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): st
         for (const elemToRemove of (options.excludeElements || [])) {
             $(elemToRemove).remove()
         }
+
+        /**
+         * Remove HTML comments using Cheerio's built-in functionality
+         * This is more secure and reliable than regex-based removal
+         */
+        if (options.removeCommentNodes) {
+            // Find all comment nodes and remove them
+            $('*').contents().filter(function() {
+                return this.type === 'comment'
+            }).remove()
+        }
     }
 
     let returnHTML = isCheerioObject ? $('body').html() as string : $
-    if (options.removeCommentNodes) {
-        returnHTML = returnHTML?.replace(/<!--[\s\S]*?-->/g, '')
+
+    /**
+     * Fallback regex-based comment removal for string input
+     * Only used when we don't have a Cheerio object
+     */
+    if (!isCheerioObject && options.removeCommentNodes && returnHTML) {
+        // Use a simpler, safer regex that avoids catastrophic backtracking
+        // This regex matches complete HTML comments only
+        returnHTML = returnHTML.replace(/<!--[\s\S]*?-->/g, '')
     }
+
     return options.prettify
         ? prettifyFn(returnHTML)
         : returnHTML

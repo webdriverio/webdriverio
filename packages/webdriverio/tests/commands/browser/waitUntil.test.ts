@@ -133,7 +133,9 @@ describe('waitUntil', () => {
         }
     })
 
-    it('Should use default timeout setting from config if passed in value is not a number', async () => {
+    it('Should use default timeout setting from config if passed in value is not a number', {
+        timeout: 10_000
+    }, async () => {
         let error
         let val
         // @ts-ignore uses expect-webdriverio

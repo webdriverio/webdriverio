@@ -123,6 +123,7 @@ Options:
 --mochaOpts           Mocha options
 --jasmineOpts         Jasmine options
 --cucumberOpts        Cucumber options
+--tsConfigPath        Custom path for `tsconfig.json` or use wdio config's [tsConfigPath setting](/docs/configurationfile)
 ```
 
 > Note: Autocompiling can be easily controlled with `tsx` ENV Vars. See also the [TypeScript documentation](/docs/typescript).

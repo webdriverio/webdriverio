@@ -90,7 +90,7 @@ describe('waitForDisplayed', () => {
             expect(err.message).toBe(`element ("#foo") still not displayed within viewport after ${timeout}ms`)
         }
 
-        expect(elem.isDisplayed).toBeCalledWith({ withinViewport: true })
+        expect(elem.isDisplayed).toBeCalledWith({ withinViewport: true, contentVisibilityAuto: true, opacityProperty: true, visibilityProperty: true })
     })
 
     it('should not call isDisplayed and return false if never found', async () => {

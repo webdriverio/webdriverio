@@ -1,5 +1,13 @@
 // Snapshot v1
 
+exports[`Supports snapshot testing > it can take a file snapshot 1`] = `
+{
+  "deep": {
+    "foo": "bar",
+  },
+}
+`;
+
 exports[`Using Snapshot matcher in Cucumber works > I use the snapshot matcher 1`] = `
 {
   "foo": "bar",

@@ -39,6 +39,7 @@ Mock objects provide various commands, listed in the `mock` section, that allow 
 - [`respond`](/docs/api/mock/respond)
 - [`respondOnce`](/docs/api/mock/respondOnce)
 - [`restore`](/docs/api/mock/restore)
+- [`waitForResponse`](/docs/api/mock/waitForResponse)
 
 ## Events
 

@@ -6,6 +6,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 // @ts-expect-error mock feature
 import { Local, mockStart } from 'browserstack-local'
 import logger from '@wdio/logger'
+import { SevereServiceError } from 'webdriverio'
 import type { Capabilities, Options } from '@wdio/types'
 
 import BrowserstackLauncher from '../src/launcher.js'
@@ -62,7 +63,6 @@ vi.spyOn(thUtils, 'getProductMap').mockImplementation(() => {
 const pkg = await vi.importActual('../package.json') as any
 const log = logger('test')
 const error = new Error('I\'m an error!')
-const sleep = (ms: number = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
 beforeEach(() => {
     vi.clearAllMocks()
@@ -94,7 +94,6 @@ describe('onPrepare', () => {
         })
         await service.onPrepare(config, caps)
 
-        expect(log.info).toHaveBeenNthCalledWith(1, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
@@ -110,7 +109,6 @@ describe('onPrepare', () => {
         })
         await service.onPrepare(config, caps)
 
-        expect(log.info).toHaveBeenNthCalledWith(1, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
@@ -566,15 +564,11 @@ describe('onPrepare', () => {
     })
 
     it('should successfully resolve if local.start is successful', async () => {
-        const logInfoMock = vi.spyOn(log, 'info')
         const options: BrowserstackConfig = { browserstackLocal: true }
         const service = new BrowserstackLauncher(options as any, caps, config)
 
         await service.onPrepare(config, caps)
         expect(service.browserstackLocal?.start).toHaveBeenCalled()
-        await sleep(100)
-        expect(logInfoMock.mock.calls[1][0])
-            .toContain('Browserstack Local successfully started after')
     })
 
     it('should correctly set up this-binding for local.start', async () => {
@@ -621,13 +615,14 @@ describe('onPrepare', () => {
 })
 
 describe('onComplete', () => {
-    it('should do nothing if browserstack local is turned on, but not running', () => {
+    it('should do nothing if browserstack local is turned on, but not running', async () => {
         const service = new BrowserstackLauncher({} as any, [{}] as any, {} as any)
         service.browserstackLocal = new Local()
         const BrowserstackLocalIsRunningSpy = vi.spyOn(service.browserstackLocal, 'isRunning')
         BrowserstackLocalIsRunningSpy.mockImplementationOnce(() => false)
-        service.onComplete()
+        await service.onComplete()
         expect(service.browserstackLocal.stop).not.toHaveBeenCalled()
+        expect(BrowserstackLocalIsRunningSpy).toHaveBeenCalledOnce()
     })
 
     it('should kill the process if forcedStop is true', async () => {
@@ -644,6 +639,11 @@ describe('onComplete', () => {
     it('should reject with an error, if local.stop throws an error', () => {
         const service = new BrowserstackLauncher({} as any, [{ browserName: '' }] as any, {} as any)
         service.browserstackLocal = new Local()
+
+        // Ensure isRunning returns true for this instance
+        const BrowserstackLocalIsRunningSpy = vi.spyOn(service.browserstackLocal, 'isRunning')
+        BrowserstackLocalIsRunningSpy.mockImplementationOnce(() => true)
+
         const BrowserstackLocalStopSpy = vi.spyOn(service.browserstackLocal, 'stop')
         BrowserstackLocalStopSpy.mockImplementationOnce((cb) => cb(error))
         return expect(service.onComplete()).rejects.toThrow(error)
@@ -804,7 +804,7 @@ describe('_updateCaps', () => {
         const capabilities = 1
 
         expect(() => service._updateCaps(capabilities as any, 'local'))
-            .toThrow(TypeError('Capabilities should be an object or Array!'))
+            .toThrow(new SevereServiceError('Capabilities should be an object or Array!'))
     })
 
     it('should update the local cap in capabilities', () => {
@@ -944,6 +944,32 @@ describe('_updateObjectTypeCaps', () => {
         expect(caps.chromeBrowser.capabilities).toEqual({ 'browserstack.wdioService': pkg.version, 'browserstack.accessibilityOptions': { includeIssueType: { bestPractice: true, needsReview: true } } })
     })
 
+    it('should set chromeOptions if capType is goog:chromeOptions and no existing options are present', () => {
+        const value = { args: ['--disable-gpu'] }
+        vi.spyOn(utils, 'validateCapsWithNonBstackA11y').mockImplementation(() => true)
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+        service._updateObjectTypeCaps(caps, 'goog:chromeOptions', value)
+        expect(caps[0]['goog:chromeOptions']).toEqual(value)
+    })
+
+    it('should merge chromeOptions if capType is goog:chromeOptions and value is provided', () => {
+        const caps: any = [{ 'goog:chromeOptions': { args: ['--headless'] } }]
+        const value = { args: ['--disable-gpu'] }
+        vi.spyOn(utils, 'validateCapsWithNonBstackA11y').mockImplementation(() => true)
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+        service._updateObjectTypeCaps(caps, 'goog:chromeOptions', value)
+        expect(caps[0]['goog:chromeOptions']).toEqual({ args: ['--headless', '--disable-gpu'] })
+    })
+
+    it('should update goog:chromeOptions in caps object if value is provided', () => {
+        const caps = { chromeBrowser: { capabilities: { 'goog:chromeOptions': { args: ['--headless'] }, 'bstack:options': {} } } }
+        const value = { args: ['--disable-gpu'] }
+        vi.spyOn(utils, 'validateCapsWithNonBstackA11y').mockImplementation(() => true)
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+        service._updateObjectTypeCaps(caps, 'goog:chromeOptions', value)
+        expect(caps.chromeBrowser.capabilities['goog:chromeOptions']).toEqual({ args: ['--headless', '--disable-gpu'] })
+    })
+
     it('should delete accessibilityOptions in caps array if value not passed in _updateObjectTypeCaps', () => {
         const caps = [{ 'bstack:options': { accessibilityOptions: { wcagVersion: 'wcag2a' } } }]
         const service = new BrowserstackLauncher(options as any, caps as any, config)
@@ -974,6 +1000,56 @@ describe('_updateObjectTypeCaps', () => {
 
         service._updateObjectTypeCaps(caps, 'accessibilityOptions')
         expect(caps[0]).toEqual({ 'browserstack.wdioService': pkg.version })
+    })
+})
+
+describe('_removeCliOnlyCapabilityOptions', () => {
+    const options: BrowserstackConfig = {}
+    const config = {
+        user: 'foobaruser',
+        key: '12345678901234567890',
+        capabilities: []
+    }
+
+    it('should remove testManagementOptions from bstack:options in caps array', () => {
+        const caps: any = [{ 'bstack:options': { testManagementOptions: { testPlanId: 'tp-1' }, buildName: 'my-build' } }]
+        const service = new BrowserstackLauncher(options as any, caps, config)
+
+        service['_removeCliOnlyCapabilityOptions'](caps)
+        expect(caps[0]['bstack:options'].testManagementOptions).toBeUndefined()
+        expect(caps[0]['bstack:options'].buildName).toBe('my-build')
+    })
+
+    it('should remove testManagementOptions from bstack:options in multiremote caps', () => {
+        const caps: any = { chromeBrowser: { capabilities: { 'bstack:options': { testManagementOptions: { testPlanId: 'tp-1' } } } } }
+        const service = new BrowserstackLauncher(options as any, caps, config)
+
+        service['_removeCliOnlyCapabilityOptions'](caps)
+        expect(caps.chromeBrowser.capabilities['bstack:options'].testManagementOptions).toBeUndefined()
+    })
+
+    it('should remove legacy browserstack.testManagementOptions from caps array', () => {
+        const caps: any = [{ 'browserstack.testManagementOptions': { testPlanId: 'tp-1' } }]
+        const service = new BrowserstackLauncher(options as any, caps, config)
+
+        service['_removeCliOnlyCapabilityOptions'](caps)
+        expect(caps[0]['browserstack.testManagementOptions']).toBeUndefined()
+    })
+
+    it('should handle caps array without testManagementOptions gracefully', () => {
+        const caps: any = [{ 'bstack:options': { buildName: 'my-build' } }]
+        const service = new BrowserstackLauncher(options as any, caps, config)
+
+        expect(() => service['_removeCliOnlyCapabilityOptions'](caps)).not.toThrow()
+        expect(caps[0]['bstack:options'].buildName).toBe('my-build')
+    })
+
+    it('should handle alwaysMatch caps', () => {
+        const caps: any = [{ alwaysMatch: { 'bstack:options': { testManagementOptions: { testPlanId: 'tp-1' } } } }]
+        const service = new BrowserstackLauncher(options as any, caps, config)
+
+        service['_removeCliOnlyCapabilityOptions'](caps)
+        expect(caps[0].alwaysMatch['bstack:options'].testManagementOptions).toBeUndefined()
     })
 })
 

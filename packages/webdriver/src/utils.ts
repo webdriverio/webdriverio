@@ -1,8 +1,8 @@
 import type { EventEmitter } from 'node:events'
 import { deepmergeCustom } from 'deepmerge-ts'
 
-import logger from '@wdio/logger'
-import type { Protocol } from '@wdio/protocols'
+import logger, { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
+import type { CommandEndpoint, Protocol } from '@wdio/protocols'
 import {
     WebDriverProtocol, MJsonWProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
@@ -14,10 +14,30 @@ import command from './command.js'
 import { environment } from './environment.js'
 import { BidiHandler } from './bidi/handler.js'
 import type { Event } from './bidi/localTypes.js'
-import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig } from './types.js'
+import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig, CommandRuntimeOptions } from './types.js'
 
 const log = logger('webdriver')
 const deepmerge = deepmergeCustom({ mergeArrays: false })
+
+function deepEqual(a: unknown, b: unknown): boolean {
+    if (a === b) {
+        return true
+    }
+    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
+        return false
+    }
+    const keysA = Object.keys(a)
+    const keysB = Object.keys(b)
+    if (keysA.length !== keysB.length) {
+        return false
+    }
+    for (const key of keysA) {
+        if (!keysB.includes(key) || !deepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key])) {
+            return false
+        }
+    }
+    return true
+}
 
 const BROWSER_DRIVER_ERRORS = [
     'unknown command: wd/hub/session', // chromedriver
@@ -79,6 +99,56 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
     }
 
     validateCapabilities(capabilities.alwaysMatch)
+
+    /**
+     * remove overlapping keys in firstMatch that are already defined in alwaysMatch
+     * to avoid errors in Selenium Grid
+     */
+    const keysToNormalize = new Set(Object.keys(capabilities.alwaysMatch))
+    if (capabilities.firstMatch) {
+        capabilities.firstMatch.forEach((match) => {
+            Object.keys(match).forEach((key) => keysToNormalize.add(key))
+        })
+
+        for (const key of keysToNormalize) {
+            const alwaysVal = (capabilities.alwaysMatch as Record<string, unknown>)[key]
+
+            /**
+             * if the key is not in alwaysMatch, we don't need to do anything
+             */
+            if (alwaysVal === undefined) {
+                continue
+            }
+            const hasConflict = capabilities.firstMatch.some((match) =>
+                (key in match) && !deepEqual((match as Record<string, unknown>)[key], alwaysVal)
+            )
+
+            if (hasConflict) {
+                /**
+                  * The key is defined in alwaysMatch but overridden in at least one firstMatch.
+                  * We must remove it from alwaysMatch and ensure it is present in all firstMatch entries,
+                  * preserving the specific overrides.
+                  */
+                delete (capabilities.alwaysMatch as Record<string, unknown>)[key]
+                capabilities.firstMatch.forEach((match) => {
+                    if (!(key in match)) {
+                        (match as Record<string, unknown>)[key] = alwaysVal
+                    }
+                })
+            } else {
+                /**
+                  * No conflict: the key is either missing in firstMatch or identical to alwaysMatch.
+                  * Safely remove it from firstMatch to avoid overlap errors.
+                  */
+                capabilities.firstMatch.forEach((match) => {
+                    if (key in match) {
+                        delete (match as Record<string, unknown>)[key]
+                    }
+                })
+            }
+        }
+    }
+
     const sessionRequest = new environment.value.Request(
         'POST',
         '/session',
@@ -376,7 +446,7 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
             '\nIf you use a grid server ' + w3cCapMessage
     }
 
-    if (err.message.includes('failed serving request POST /wd/hub/session: Unauthorized') && params.hostname?.endsWith('saucelabs.com')) {
+    if (err.message.includes('failed serving request POST /wd/hub/session: Unauthorized') && (params.hostname === 'saucelabs.com' || params.hostname?.endsWith('.saucelabs.com'))) {
         return 'Session request was not authorized because you either did provide a wrong access key or tried to run ' +
             'in a region that has not been enabled for your user. If have registered a free trial account it is connected ' +
             'to a specific region. Ensure this region is set in your configuration (https://webdriver.io/docs/options.html#region).'
@@ -400,7 +470,7 @@ export function initiateBidi (
     /**
      * don't connect and stale unit tests when the websocket url is set to a dummy value
      */
-    const isUnitTesting = process.env.WDIO_UNIT_TESTS
+    const isUnitTesting = environment.value.variables.WDIO_UNIT_TESTS
     if (isUnitTesting) {
         log.info('Skip connecting to WebDriver Bidi interface due to unit tests')
         return {
@@ -443,7 +513,7 @@ export function initiateBidi (
     }
 }
 
-export function parseBidiMessage (this: EventEmitter, data: Buffer) {
+export function parseBidiMessage (this: EventEmitter, data: ArrayBuffer) {
     try {
         const payload: Event = JSON.parse(data.toString())
         if (payload.type !== 'event') {
@@ -453,5 +523,53 @@ export function parseBidiMessage (this: EventEmitter, data: Buffer) {
         this.emit(payload.method as string, payload.params)
     } catch (err) {
         log.error(`Failed parse WebDriver Bidi message: ${(err as Error).message}`)
+    }
+}
+
+/**
+ * Masks the `text` parameter in a WebDriver command if masking is enabled in the options.
+ *
+ * - If `options.mask` is not set or the command does not have a `text` parameter, returns the original body and args.
+ * - If masking is enabled and a `text` parameter is present and non-empty, replaces its value with the mask in both the body and args.
+ *
+ * @param {CommandEndpoint} commandInfo - The command endpoint metadata, including parameters and variables.
+ * @param {CommandRuntimeOptions} options - Runtime options for the command, including the `mask` flag.
+ * @param {Record<string, unknown>} body - The request body object to potentially mask.
+ * @param {unknown[]} args - The arguments array to potentially mask.
+ * @returns {{
+ *   maskedBody: Record<string, unknown>,
+ *   maskedArgs: unknown[],
+ *   isMasked: boolean
+ * }} An object containing the (possibly) masked body and args, and a flag indicating if masking was applied.
+ */
+export function mask(commandInfo: CommandEndpoint, options: CommandRuntimeOptions, body: Record<string, unknown>, args: unknown[]) {
+    const unmaskedResult = { maskedBody: body, maskedArgs: args, isMasked: false }
+    if (!options.mask) {
+        return unmaskedResult
+    }
+
+    const textValueParamIndex = commandInfo.parameters.findIndex((param) => param.name === 'text')
+    if (textValueParamIndex === -1 ) {
+        return unmaskedResult
+    }
+
+    const textValueIndexInArgs = (commandInfo.variables?.length ?? 0) + textValueParamIndex
+    const text = args[textValueIndexInArgs]
+    if (typeof text !== 'string' || !text) {
+        return unmaskedResult
+    }
+
+    const maskedBody = {
+        ...body,
+        text: SENSITIVE_DATA_REPLACER
+    } satisfies Record<string, unknown> as Record<string, unknown>
+
+    const textValueArgsIndex = textValueParamIndex + (commandInfo.variables?.length ?? 0)
+    const maskedArgs = args.slice(0, textValueArgsIndex).concat(SENSITIVE_DATA_REPLACER).concat(args.slice(textValueArgsIndex + 1))
+
+    return {
+        maskedBody,
+        maskedArgs,
+        isMasked: true,
     }
 }

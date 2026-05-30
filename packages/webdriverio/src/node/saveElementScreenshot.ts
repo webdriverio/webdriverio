@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises'
+import path from 'node:path'
 
-import { getAbsoluteFilepath, assertDirectoryExists } from './utils.js'
+import { assertDirectoryExists } from './utils.js'
 
 /**
  *
@@ -31,7 +32,7 @@ export async function saveElementScreenshot (
         throw new Error('saveScreenshot expects a filepath of type string and ".png" file ending')
     }
 
-    const absoluteFilepath = getAbsoluteFilepath(filepath)
+    const absoluteFilepath = path.resolve(filepath)
     await assertDirectoryExists(absoluteFilepath)
 
     const screenBuffer = await this.takeElementScreenshot(this.elementId)

@@ -1,5 +1,6 @@
 import os from 'node:os'
 import fs from 'node:fs'
+import process from 'node:process'
 
 import { downloadFile } from './node/downloadFile.js'
 import { savePDF } from './node/savePDF.js'
@@ -10,7 +11,7 @@ import { saveElementScreenshot } from './node/saveElementScreenshot.js'
 
 export * from './index.js'
 
-import { environment } from './environment.js'
+import { environment, type EnvironmentVariables } from './environment.js'
 
 environment.value = {
     osType: () => os.type(),
@@ -21,4 +22,5 @@ environment.value = {
     uploadFile,
     saveScreenshot,
     saveElementScreenshot,
+    variables: process.env as EnvironmentVariables
 }

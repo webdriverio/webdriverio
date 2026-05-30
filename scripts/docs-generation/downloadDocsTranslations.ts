@@ -12,7 +12,7 @@ const REPO_NAME = 'i18n'
 
 const GITHUB_TOKEN = process.env.GITHUB_AUTH
 if (!GITHUB_TOKEN) {
-    throw new Error('GITHUB_AUTH is not set')
+    throw new Error('GITHUB_AUTH is not set (hint: set GITHUB_AUTH envVar from `gh auth token` command)')
 }
 
 const IGNORE_FILES = ['src', 'package.json', 'package-lock.json', 'README.md', 'LICENSE', 'tsconfig.json']

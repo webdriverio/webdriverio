@@ -1,5 +1,11 @@
 [
   {
+    "packageName": "@wdio/devtools-service",
+    "title": "DevTools (Test Debugging & Visualization)",
+    "githubUrl": "https://github.com/webdriverio/devtools",
+    "npmUrl": "https://www.npmjs.com/package/@wdio/devtools-service"
+  },
+  {
     "packageName": "@wdio/visual-service",
     "title": "Image Comparison (Visual Regression Testing)",
     "githubUrl": "https://github.com/webdriverio/visual-testing",
@@ -30,10 +36,18 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-intercept-service"
   },
   {
-    "packageName": "wdio-electron-service",
+    "packageName": "@wdio/electron-service",
     "title": "Electron",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-electron-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-electron-service"
+    "location": "packages/electron-service/README.md",
+    "githubUrl": "https://github.com/webdriverio/desktop-mobile",
+    "npmUrl": "https://www.npmjs.com/package/@wdio/electron-service"
+  },
+  {
+    "packageName": "@wdio/tauri-service",
+    "title": "Tauri",
+    "location": "packages/tauri-service/README.md",
+    "githubUrl": "https://github.com/webdriverio/desktop-mobile",
+    "npmUrl": "https://www.npmjs.com/package/@wdio/tauri-service"
   },
   {
     "packageName": "wdio-gmail-service",
@@ -90,8 +104,15 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-slack-service"
   },
   {
+    "packageName": "@tvlabs/wdio-service",
+    "title": "TV Labs",
+    "branch": "main",
+    "githubUrl": "https://github.com/tv-labs/wdio-tvlabs-service/",
+    "npmUrl": "https://www.npmjs.com/package/@tvlabs/wdio-service"
+  },
+  {
     "packageName": "wdio-lambdatest-service",
-    "title": "LambdaTest",
+    "title": "TestMu AI (Formerly LambdaTest)",
     "branch": "master",
     "githubUrl": "https://github.com/LambdaTest/wdio-lambdatest-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-lambdatest-service"
@@ -212,5 +233,17 @@
     "title": "QUnit",
     "githubUrl": "https://github.com/mauriciolauffer/wdio-qunit-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-qunit-service"
+  },
+  {
+    "packageName": "wdio-obsidian-service",
+    "title": "Obsidian Plugin Testing",
+    "githubUrl": "https://github.com/jesse-r-s-hines/wdio-obsidian-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-obsidian-service"
+  },
+  {
+    "packageName": "wdio-camera-service",
+    "title": "Camera Service",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-camera-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-camera-service"
   }
 ]

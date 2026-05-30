@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { validateConfig } from '../src/utils.js'
+import { HOOK_DEFINITION } from '@wdio/utils'
 
 describe('validateConfig', () => {
     it('should throw if required config is missing', () => {
@@ -90,5 +91,25 @@ describe('validateConfig', () => {
             logLevel: 'info',
             foo: 'bar'
         })
+    })
+
+    it('should accept arrays of functions for hooks', () => {
+        const hookFn = () => {}
+
+        expect(() => validateConfig({
+            afterCommand: HOOK_DEFINITION
+        }, {
+            afterCommand: [hookFn]
+        })).not.toThrow()
+    })
+
+    it('should reject single function hooks in validation (must be array)', () => {
+        const hookFn = () => {}
+
+        expect(() => validateConfig({
+            afterCommand: HOOK_DEFINITION
+        }, {
+            afterCommand: hookFn
+        })).toThrow(/Expected option "afterCommand" to be type of object but was function/)
     })
 })

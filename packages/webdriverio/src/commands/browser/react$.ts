@@ -52,7 +52,7 @@ export async function react$ (
     this: WebdriverIO.Browser,
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}
-) {
+): Promise<WebdriverIO.Element> {
     await this.executeScript(resqScript.toString(), [])
     await this.execute(waitToLoadReact)
     const res = await this.execute(

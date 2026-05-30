@@ -63,10 +63,7 @@
     "message": "YouTube",
     "description": "The label of footer link with label=YouTube linking to https://youtube.com/@webdriverio"
   },
-  "copyright": {
-    "message": "Copyright © 2025 OpenJS Foundation",
-    "description": "The footer copyright"
-  },
+
   "logo.alt": {
     "message": "OpenJS Foundation Logo",
     "description": "The alt text of footer logo"

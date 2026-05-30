@@ -295,7 +295,7 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
     'sauce:visual'?: SauceLabsVisualCapabilities
     // Experitest Access Keys
     'experitest:accessKey'?: string
-    //LambdaTest w3c specific
+    //TestMu AI (Formerly LambdaTest) w3c specific
     'LT:Options'?: LambdaTestCapabilities
     // LT w3c specific as "officially" documented
     'lt:options'?: LambdaTestCapabilities
@@ -476,6 +476,20 @@ export interface ChromeOptions {
      * to <webview> elements, include "webview" in this list.
      */
     windowTypes?: string[]
+    /**
+     * The package name of the Chrome browser to run on Android (e.g. 'com.android.chrome').
+     * When set, chromedriver will connect to the browser on Android over ADB
+     * instead of launching a desktop Chrome.
+     */
+    androidPackage?: string
+    /**
+     * Serial number of the Android device to use (as reported by `adb devices`).
+     */
+    androidDeviceSerial?: string
+    /**
+     * The activity name for the Android activity to launch.
+     */
+    androidActivity?: string
 }
 
 /**
@@ -501,6 +515,20 @@ export interface FirefoxOptions {
     prefs?: {
         [name: string]: string[] | string | number | boolean
     }
+    /**
+     * The package name of the Firefox browser to run on Android (e.g. 'org.mozilla.fenix').
+     * When set, geckodriver will connect to Firefox on Android over ADB
+     * instead of launching a desktop Firefox.
+     */
+    androidPackage?: string
+    /**
+     * Serial number of the Android device to use (as reported by `adb devices`).
+     */
+    androidDeviceSerial?: string
+    /**
+     * The activity name for the Android activity to launch.
+     */
+    androidActivity?: string
 }
 
 // Aerokube Selenoid specific
@@ -549,7 +577,7 @@ export interface EdgeCapabilities {
 /**
  * Appium General W3C Capabilities
  *
- * @see https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/
+ * @see https://appium.io/docs/en/latest/guides/caps/
  */
 export interface AppiumCapabilities {
     /**
@@ -592,7 +620,7 @@ export interface AppiumCapabilities {
     'appium:deviceName'?: string
     /**
      * The absolute local path or remote http URL to a .ipa file (IOS), .app folder (IOS Simulator), .apk file (Android)
-     * or [.apks file (Android App Bundle)](https://appium.github.io/appium.io/docs/en/writing-running-appium/android/android-appbundle/index.html),
+     * or [.apks file (Android App Bundle)](https://github.com/appium/appium-uiautomator2-driver/blob/master/docs/android-appbundle.md),
      * or a .zip file containing one of these.
      *
      * Appium will attempt to install this app binary on the appropriate device first.
@@ -636,7 +664,7 @@ export interface AppiumCapabilities {
      */
     'appium:appTopLevelWindow'?: string
     /**
-     * https://appium.io/docs/en/2.11/guides/settings/#initializing-settings-via-capabilities
+     * https://appium.io/docs/en/latest/guides/settings/#initializing-settings-via-capabilities
      */
     'appium:settings'?: Record<string, any>
 }
@@ -644,7 +672,7 @@ export interface AppiumCapabilities {
 /**
  * Appium Android Only Capabilities
  *
- * @see https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/#android-only
+ * @see https://github.com/appium/appium-uiautomator2-driver#capabilities
  */
 export interface AppiumAndroidCapabilities {
     'appium:appiumVersion'?: string
@@ -746,7 +774,7 @@ export interface AppiumAndroidCapabilities {
 /**
  * Appium xcuitest Capabilities
  *
- * @see https://github.com/appium/appium-xcuitest-driver
+ * @see https://appium.github.io/appium-xcuitest-driver/latest/reference/capabilities/
  */
 export interface AppiumXCUITestCapabilities {
     'appium:platformName'?: string
@@ -854,6 +882,7 @@ export interface AppiumXCUITestCapabilities {
     'appium:otherApps'?: string | string[]
     'appium:includeSafariInWebviews'?: boolean
     'appium:additionalWebviewBundleIds'?: Array<string>
+    'appium:webviewAtomWaitTimeout'?: number
     'appium:webviewConnectTimeout'?: number
     'appium:iosSimulatorLogsPredicate'?: string
     'appium:appPushTimeout'?: number
@@ -1492,9 +1521,9 @@ export interface LambdaTestCapabilities {
     visual?: boolean
     video?: boolean
     /**
-     * Test locally hosted websites on LambdaTest.
+     * Test locally hosted websites on TestMu AI (Formerly LambdaTest).
      * To enable access to the local machine you need to setup the
-     * LambdaTest Tunnel (https://www.lambdatest.com/support/docs/testing-locally-hosted-pages).
+     * TestMu AI Tunnel (https://www.testmuai.com/support/docs/testing-locally-hosted-pages/).
      */
     tunnel?: boolean
     tunnelName?: string

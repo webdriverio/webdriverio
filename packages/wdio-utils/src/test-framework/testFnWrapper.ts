@@ -10,9 +10,9 @@ import type {
 
 declare global {
     // Firstly variable '_wdioDynamicJasmineResultErrorList' gets reference to test result in packages/wdio-jasmine-framework/src/index.ts and then used here in wdio-utils/ as workaround for Jasmine
-    // eslint-disable-next-line no-var, @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     var _wdioDynamicJasmineResultErrorList: any | undefined
-    // eslint-disable-next-line no-var, @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     var _jasmineTestResult: any | undefined
 }
 
@@ -89,6 +89,7 @@ export const testFrameworkFnWrapper = async function (
     let result
     let error
     let skip = false
+    let autoSkipError: unknown
 
     const testStart = Date.now()
     try {
@@ -116,6 +117,7 @@ export const testFrameworkFnWrapper = async function (
             error = err
         } else {
             skip = true
+            autoSkipError = _err
         }
     }
     const duration = Date.now() - testStart
@@ -137,6 +139,9 @@ export const testFrameworkFnWrapper = async function (
 
     if (error && !error.matcherName) {
         throw error
+    }
+    if (skip && autoSkipError) {
+        throw autoSkipError
     }
     return result
 }

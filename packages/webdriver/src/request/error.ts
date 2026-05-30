@@ -79,6 +79,12 @@ export class WebDriverRequestError extends WebDriverError {
                 : 'Request failed with error code ' + errorCode
         }
 
+        if (typeof err.cause === 'object' && err.cause) {
+            this.statusCode = 'statusCode' in err.cause && typeof err.cause.statusCode === 'number'
+                ? err.cause.statusCode : undefined
+            this.body = 'body' in err.cause ? err.cause.body : undefined
+        }
+
         this.message = this.computeErrorMessage()
     }
 }

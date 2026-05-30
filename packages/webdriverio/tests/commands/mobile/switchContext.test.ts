@@ -295,4 +295,55 @@ describe('switchContext test', () => {
         getCurrentPackageSpy.mockRestore()
         switchAppiumContextSpy.mockRestore()
     })
+
+    it('should find a matching context when using a custom appIdentifier', async () => {
+        logSpy = vi.spyOn(log, 'info')
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                platformName: 'Android',
+            } as any
+        })
+        const getContextsSpy = vi.spyOn(browser, 'getContexts').mockResolvedValue(androidContexts)
+        const switchAppiumContextSpy = vi.spyOn(browser, 'switchAppiumContext')
+        const switchToWindowSpy = vi.spyOn(browser, 'switchToWindow')
+
+        // Use appIdentifier to search in a different app than the active one
+        await browser.switchContext({
+            appIdentifier: 'com.otherApp',
+            title: 'Other Apps',
+        })
+        expect(getContextsSpy).toHaveBeenCalledTimes(1)
+        expect(logSpy).toHaveBeenCalledWith('WebdriverIO found a matching context:', JSON.stringify(androidContexts[2], null, 2))
+        expect(switchAppiumContextSpy).toHaveBeenCalledWith('WEBVIEW_com.otherApp')
+        expect(switchToWindowSpy).toHaveBeenCalledWith(androidContexts[2].webviewPageId)
+
+        logSpy.mockRestore()
+        getContextsSpy.mockRestore()
+        switchAppiumContextSpy.mockRestore()
+        switchToWindowSpy.mockRestore()
+    })
+
+    it('should throw an error when the provided appIdentifier does not match any context', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                platformName: 'Android',
+            } as any
+        })
+        const getContextsSpy = vi.spyOn(browser, 'getContexts').mockResolvedValue(androidContexts)
+        const switchAppiumContextSpy = vi.spyOn(browser, 'switchAppiumContext')
+
+        await expect(browser.switchContext({
+            appIdentifier: 'com.nonexistent.app',
+            title: 'Some Title',
+        })).rejects.toThrowErrorMatchingSnapshot()
+
+        getContextsSpy.mockRestore()
+        switchAppiumContextSpy.mockRestore()
+    })
 })

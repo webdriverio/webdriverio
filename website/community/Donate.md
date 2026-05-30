@@ -17,7 +17,7 @@ We want to be transparent in the way we accept expenses to the collective. Every
 
 If you host an event that has a speaker talking about using WebdriverIO and it's features you can expense up to __$100__. Reimbursement requirements for event expenses include:
 
-- You or the event account must share the project on social media (Twitter, Facebook or LinkedIn) at least 3x
+- You or the event account must share the project on social media (𝕏, Facebook or LinkedIn) at least 3x
 - The event page must have the WebdriverIO logo and a link to the project page in your meetup description
 - You must use the funds for qualified event expenses such as food, beverage, room or equipment rental.
 - You must submit receipts with your reimbursement request.
@@ -38,6 +38,6 @@ If you have done development work on any of the repositories within the GitHub W
 
 If you are a member of the [Technical Steering Committee team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee) you are eligible to expense flights and hotel accommodations for travel to conferences or meetups as part of a speaking engagement on WebdriverIO, not paid by the event itself or a company. You may expense up to $500. Reimbursement requirements for travel expenses include:
 
-- You must send out a post from your main social media account (e.g. Twitter, LinkedIn or personal blog) thanking all contributors of the collective after the event took place.
+- You must send out a post from your main social media account (e.g. 𝕏, LinkedIn or personal blog) thanking all contributors of the collective after the event took place.
 - You must use the funds for qualified travel expenses such as ground or air transportation to the event and hotel accomodations.
 - You must submit receipts with your reimbursement request.

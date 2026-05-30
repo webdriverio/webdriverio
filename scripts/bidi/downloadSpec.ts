@@ -9,6 +9,37 @@ import { Readable } from 'node:stream'
 import unzipper, { type Entry } from 'unzipper'
 import { Octokit } from '@octokit/rest'
 
+/**
+ * Validates and sanitizes a file path from a zip entry to prevent directory traversal attacks
+ * @param entryPath - The path from the zip entry
+ * @param targetDir - The target directory for extraction
+ * @returns The safe path for extraction, or null if the path is invalid
+ */
+function validateZipEntryPath(entryPath: string, targetDir: string): string | void {
+    // Normalize the entry path and remove any leading slashes
+    const normalizedPath = path.normalize(entryPath).replace(/^[/\\]+/, '')
+
+    // Check for directory traversal attempts
+    if (normalizedPath.includes('..') || path.isAbsolute(normalizedPath)) {
+        console.warn(`Skipping potentially dangerous path: ${entryPath}`)
+        return
+    }
+
+    // Construct the full target path
+    const fullPath = path.join(targetDir, normalizedPath)
+
+    // Ensure the resolved path is still within the target directory
+    const resolvedPath = path.resolve(fullPath)
+    const resolvedTargetDir = path.resolve(targetDir)
+
+    if (!resolvedPath.startsWith(resolvedTargetDir + path.sep) && resolvedPath !== resolvedTargetDir) {
+        console.warn(`Path traversal attempt detected: ${entryPath}`)
+        return
+    }
+
+    return fullPath
+}
+
 const MAIN_BRANCH = 'main'
 
 export default async function downloadSpec (page = 1) {
@@ -75,7 +106,14 @@ export default async function downloadSpec (page = 1) {
     ]
 
     stream.on('entry', async (entry: Entry) => {
-        const unzippedFilePath = path.join(targetDir, entry.path)
+        // Validate the entry path to prevent directory traversal attacks
+        const unzippedFilePath = validateZipEntryPath(entry.path, targetDir)
+        if (!unzippedFilePath) {
+            // Skip entries with invalid paths
+            entry.autodrain()
+            return
+        }
+
         if (entry.type === 'Directory') {
             return
         }

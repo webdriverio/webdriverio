@@ -25,6 +25,7 @@ export interface RequestEventHandler {
     onResponse?: (ev: RequestEndEvent) => void
     onRetry?: (ev: RequestRetryEvent) => void
     onPerformance?: (ev: RequestPerformanceEvent) => void
+    onLogData?: (ev: BodyInit) => void
 }
 
 export type RequestStartEvent = RequestInit

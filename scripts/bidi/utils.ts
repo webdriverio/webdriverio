@@ -1,6 +1,9 @@
 import fs from 'node:fs/promises'
 
 import { GENERATED_FILE_COMMENT } from './constants.js'
+import type { Assignment, Group } from 'cddl'
+
+export type CddlType = 'local' | 'remote'
 
 /**
  * write generated ts file so it
@@ -15,4 +18,8 @@ export async function writeFile (filePath: string, content: string) {
         filePath,
         GENERATED_FILE_COMMENT + '\n\n' + content.replace(/\r\n/g, '\n')
     )
+}
+
+export function findGroupByName (ast: Assignment[], name: string): Group | undefined {
+    return ast.find((a: Assignment): a is Group => a.Type === 'group' && a.Name === name)
 }

@@ -1,13 +1,14 @@
 import type { Capabilities, Options } from '@wdio/types'
 
-import { BSTACK_SERVICE_VERSION, DATA_ENDPOINT, BROWSERSTACK_TESTHUB_UUID } from './constants.js'
+import { BSTACK_SERVICE_VERSION, BROWSERSTACK_TESTHUB_UUID, WDIO_NAMING_PREFIX } from './constants.js'
 import type { BrowserstackConfig, CredentialsForCrashReportUpload, UserConfigforReporting } from './types.js'
 import { DEFAULT_REQUEST_CONFIG, getObservabilityKey, getObservabilityUser } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
+import APIUtils from './cli/apiUtils.js'
 
 import { _fetch as fetch } from './fetchWrapper.js'
 
-type Dict = Record<string, string>
+type Dict = Record<string, unknown>
 
 export default class CrashReporter {
     /* User test config for build run minus PII */
@@ -64,7 +65,7 @@ export default class CrashReporter {
         const data = {
             hashed_id: process.env[BROWSERSTACK_TESTHUB_UUID],
             observability_version: {
-                frameworkName: 'WebdriverIO-' + (this.userConfigForReporting.framework || 'null'),
+                frameworkName: WDIO_NAMING_PREFIX + (this.userConfigForReporting.framework || 'null'),
                 sdkVersion: BSTACK_SERVICE_VERSION
             },
             exception: {
@@ -73,7 +74,7 @@ export default class CrashReporter {
             },
             config: this.userConfigForReporting
         }
-        const url = `${DATA_ENDPOINT}/api/v1/analytics`
+        const url = `${APIUtils.DATA_ENDPOINT}/api/v1/analytics`
 
         const encodedAuth = Buffer.from(`${this.credentialsForCrashReportUpload.username}:${this.credentialsForCrashReportUpload.password}`, 'utf8').toString('base64')
         const headers: Record<string, string> = {
@@ -88,7 +89,13 @@ export default class CrashReporter {
         })
 
         if (response.ok) {
-            BStackLogger.debug(`[Crash_Report_Upload] Success response: ${JSON.stringify(await response.json())}`)
+            let body = await response.text()
+            try {
+                body = JSON.stringify(JSON.parse(body))
+            } catch {
+                // Response is not JSON, use text as-is
+            }
+            BStackLogger.debug(`[Crash_Report_Upload] Success response: ${body}`)
         } else {
             BStackLogger.error(`[Crash_Report_Upload] Failed due to ${response.body}`)
         }
@@ -104,8 +111,18 @@ export default class CrashReporter {
             for (const prop in obj) {
                 if (keys.includes(prop.toLowerCase())) {
                     obj[prop] = '[REDACTED]'
-                } else if (typeof obj[prop] === 'object') {
-                    this.recursivelyRedactKeysFromObject(obj[prop], keys)
+                } else if (typeof obj[prop] === 'object' && obj[prop] !== null) {
+                    this.recursivelyRedactKeysFromObject(obj[prop] as Dict | Array<Dict>, keys)
+                } else if (typeof obj[prop] === 'string') {
+                    try {
+                        const parsed = JSON.parse(obj[prop] as string)
+                        if (typeof parsed === 'object' && parsed !== null) {
+                            this.recursivelyRedactKeysFromObject(parsed as Dict | Array<Dict>, keys)
+                            obj[prop] = JSON.stringify(parsed)
+                        }
+                    } catch {
+                        // Not valid JSON, leave as-is
+                    }
                 }
             }
         }
@@ -136,6 +153,8 @@ export default class CrashReporter {
                     for (let idx = 1; idx < serviceArray.length; idx++) {
                         this.deletePIIKeysFromObject(serviceArray[idx])
                         if (serviceArray[idx]) {
+                            // Handle both new testReportingOptions and legacy testObservabilityOptions
+                            this.deletePIIKeysFromObject(serviceArray[idx].testReportingOptions)
                             this.deletePIIKeysFromObject(serviceArray[idx].testObservabilityOptions)
                         }
                     }

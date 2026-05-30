@@ -52,7 +52,7 @@ export async function saveScreenshot (
     this: WebdriverIO.Browser,
     filepath: string,
     options?: SaveScreenshotOptions
-) {
+): Promise<Buffer<ArrayBuffer>> {
     /**
      * run command implementation based on given environment
      */

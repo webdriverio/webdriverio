@@ -1,9 +1,9 @@
 import url from 'node:url'
 import path from 'node:path'
-import child from 'node:child_process'
 import { EventEmitter } from 'node:events'
 import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
+import { ProcessFactory, type XvfbManager } from '@wdio/xvfb'
 import type { Workers } from '@wdio/types'
 import type { ReplConfig } from '@wdio/repl'
 
@@ -45,6 +45,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     sessionId?: string
     server?: Record<string, string>
     logsAggregator: string[] = []
+    #processFactory: ProcessFactory
 
     instances?: Record<string, { sessionId: string }>
     isMultiremote?: boolean
@@ -65,12 +66,14 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
      * @param  {string[]} specs       list of paths to test files to run in this worker
      * @param  {number}   retries     number of retries remaining
      * @param  {object}   execArgv    execution arguments for the test run
+     * @param  {XvfbManager} xvfbManager configured XvfbManager instance
      */
     constructor(
         config: WebdriverIO.Config,
         { cid, configFile, caps, specs, execArgv, retries }: Workers.WorkerRunPayload,
         stdout: WritableStreamBuffer,
-        stderr: WritableStreamBuffer
+        stderr: WritableStreamBuffer,
+        xvfbManager: XvfbManager
     ) {
         super()
         this.cid = cid
@@ -83,6 +86,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         this.retries = retries
         this.stdout = stdout
         this.stderr = stderr
+        this.#processFactory = new ProcessFactory(xvfbManager)
 
         this.isReady = new Promise((resolve) => { this.isReadyResolver = resolve })
         this.isSetup = new Promise((resolve) => { this.isSetupResolver = resolve })
@@ -91,7 +95,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     /**
      * spawns process to kick of wdio-runner
      */
-    startProcess() {
+    async startProcess() {
         const { cid, execArgv } = this
         const argv = process.argv.slice(2)
 
@@ -103,7 +107,12 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         })
 
         if (this.config.outputDir) {
-            runnerEnv.WDIO_LOG_PATH = path.join(this.config.outputDir, `wdio-${cid}.log`)
+            let logFileRunner = `wdio-${cid}.log`
+            if (this.specs.length && this.specs[0]) {
+                const specBaseName = path.basename(this.specs[0], path.extname(this.specs[0]))
+                logFileRunner = `${specBaseName}-${cid}.log`
+            }
+            runnerEnv.WDIO_LOG_PATH = path.join(this.config.outputDir, logFileRunner)
         }
 
         /**
@@ -112,12 +121,18 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         runnerEnv.NODE_OPTIONS = process.env.NODE_OPTIONS + ' ' + (runnerEnv.NODE_OPTIONS || '')
 
         log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
-        const childProcess = this.childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
-            cwd: process.cwd(),
-            env: runnerEnv,
-            execArgv,
-            stdio: ['inherit', 'pipe', 'pipe', 'ipc']
-        })
+
+        // Use ProcessFactory to create the appropriate process
+        const childProcess = this.childProcess = await this.#processFactory.createWorkerProcess(
+            path.join(__dirname, 'run.js'),
+            argv,
+            {
+                cwd: process.cwd(),
+                env: runnerEnv,
+                execArgv,
+                stdio: ['inherit', 'pipe', 'pipe', 'ipc']
+            }
+        )
 
         childProcess.on('message', this._handleMessage.bind(this))
         childProcess.on('error', this._handleError.bind(this))
@@ -166,6 +181,9 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
          */
         if (payload.name === 'sessionStarted') {
             this.isSetupResolver(true)
+            if (this.retries === -1 && payload.specFileRetries) {
+                this.retries = payload.specFileRetries - 1
+            }
             if (payload.content.isMultiremote) {
                 Object.assign(this, payload.content)
             } else {
@@ -222,11 +240,35 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     }
 
     /**
+     * Forcefully kill the worker process.
+     * This is used when a worker doesn't respond to graceful shutdown
+     * (e.g., when a test times out with pending async operations).
+     *
+     * @param signal - The signal to send (default: 'SIGTERM', use 'SIGKILL' for force kill)
+     */
+    kill(signal: NodeJS.Signals = 'SIGTERM'): void {
+        if (!this.childProcess) {
+            log.debug(`Worker ${this.cid} has no child process to kill`)
+            return
+        }
+
+        log.info(`Killing worker ${this.cid} with ${signal}`)
+        try {
+            this.childProcess.kill(signal)
+        } catch (err) {
+            log.warn(`Failed to kill worker ${this.cid}:`, err)
+        }
+        delete this.childProcess
+        this.isBusy = false
+        this.isKilled = true
+    }
+
+    /**
      * sends message to sub process to execute functions in wdio-runner
      * @param  command  method to run in wdio-runner
      * @param  args     arguments for functions to call
      */
-    postMessage (command: string, args: Workers.WorkerMessageArgs, requiresSetup = false): void {
+    async postMessage (command: string, args: Workers.WorkerMessageArgs, requiresSetup = false): Promise<void> {
         const { cid, configFile, capabilities, specs, retries, isBusy } = this
 
         if (isBusy && !ACCEPTABLE_BUSY_COMMANDS.includes(command)) {
@@ -238,7 +280,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
          * closes after running its job
          */
         if (!this.childProcess) {
-            this.childProcess = this.startProcess()
+            this.childProcess = await this.startProcess()
         }
 
         const cmd: Workers.WorkerCommand = { cid, command, configFile, args, caps: capabilities, specs, retries }
@@ -248,8 +290,10 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
                 await this.isSetup
             }
 
-            this.childProcess!.send(cmd)
-        })
+            if (this.childProcess) {
+                this.childProcess.send(cmd)
+            }
+        }).catch((err) => log.error(`Failed to send command to worker ${this.cid}: ${err.message}`))
         this.isBusy = true
     }
 }

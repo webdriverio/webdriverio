@@ -1068,6 +1068,81 @@ test('setAnnotation for VDC and RDC with multi remote', async () => {
     expect(browserChromeC.executeScript).toBeCalledWith('sauce:context=foo', [])
 })
 
+test('beforeTest should not throw if fullName is undefined (Jasmine hook)', async () => {
+    const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
+    service['_browser'] = browser
+    service['_suiteTitle'] = 'Jasmine__TopLevel__Suite'
+
+    // Simulate a test object that lacks fullName, which reportedly happens in some Jasmine hooks
+    const testObj = {
+        description: 'some test',
+        // fullName is missing or undefined
+    } as any
+
+    // This should NOT throw "TypeError: Cannot read properties of undefined (reading 'slice')" anymore
+    await expect(service.beforeTest(testObj)).resolves.not.toThrow()
+})
+
+test('beforeTest should fallback to title if description is missing in fullName (Jasmine)', async () => {
+    const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
+    service['_browser'] = browser
+    service['_suiteTitle'] = 'Jasmine__TopLevel__Suite'
+
+    const testObj = {
+        fullName: 'My Suite My Test',
+        description: undefined, // description missing
+        title: 'My Test'
+    } as any
+
+    await service.beforeTest(testObj)
+    // Fallback to test.title or keep existing suite title if extraction fails
+    expect(service['_suiteTitle']).toBe('My Test')
+})
+
+test('beforeTest should fallback to title if description is not found in fullName (Jasmine)', async () => {
+    const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
+    service['_browser'] = browser
+    service['_suiteTitle'] = 'Jasmine__TopLevel__Suite'
+
+    const testObj = {
+        fullName: 'My Suite My Test',
+        description: 'Other Test', // description not in fullName
+        title: 'My Test'
+    } as any
+
+    await service.beforeTest(testObj)
+    expect(service['_suiteTitle']).toBe('My Test')
+})
+
+test('beforeTest should keep existing suite title if extraction fails and no test title (Jasmine)', async () => {
+    const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
+    service['_browser'] = browser
+    service['_suiteTitle'] = 'Jasmine__TopLevel__Suite'
+
+    const testObj = {
+        fullName: 'My Suite My Test',
+        description: 'Other Test',
+        // no title
+    } as any
+
+    await service.beforeTest(testObj)
+    expect(service['_suiteTitle']).toBe('Jasmine__TopLevel__Suite')
+})
+
+test('beforeTest should correctly extract suite title when description is present (Jasmine Happy Path)', async () => {
+    const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
+    service['_browser'] = browser
+    service['_suiteTitle'] = 'Jasmine__TopLevel__Suite'
+
+    const testObj = {
+        fullName: 'My Suite My Test',
+        description: 'My Test'
+    } as any
+
+    await service.beforeTest(testObj)
+    expect(service['_suiteTitle']).toBe('My Suite')
+})
+
 afterEach(() => {
     // @ts-ignore
     browser = undefined

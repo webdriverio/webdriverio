@@ -17,7 +17,7 @@ export const setPort = (port: number) => {
      * set as the launcher is called after user hooks. In this case we need
      * to wait until it is set and flush all messages.
      */
-    baseUrlResolve(`http://localhost:${port}`)
+    baseUrlResolve(`http://127.0.0.1:${port}`)
     isBaseUrlReady = true
 }
 

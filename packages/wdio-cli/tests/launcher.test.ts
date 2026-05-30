@@ -16,17 +16,27 @@ vi.mock('node:fs/promises', () => ({
     }
 }))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
+vi.mock('@wdio/utils/node', () => ({
+    setupDriver: vi.fn(),
+    setupBrowser: vi.fn()
+}))
 vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
 vi.mock('@wdio/config/node', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config/node')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../src/interface', () => ({
     default: class {
+        totalWorkerCnt: number
+        hasAnsiSupport = true
         emit = vi.fn()
         on = vi.fn()
         sigintTrigger = vi.fn()
         onMessage = vi.fn()
         logHookError = vi.fn()
         finalise = vi.fn()
+
+        constructor (_config: WebdriverIO.Config, totalWorkerCnt: number) {
+            this.totalWorkerCnt = totalWorkerCnt
+        }
     }
 }))
 
@@ -50,6 +60,38 @@ describe('launcher', () => {
 
     it('should have default for the argv parameter', () => {
         expect(launcher['_args']).toEqual({})
+    })
+
+    it('should calculate total worker count after onPrepare added specs', async () => {
+        const localLauncher = new Launcher('./') as any
+        const onPrepare = vi.fn((config: any) => {
+            config.specs.push('./dynamic.test.js')
+        })
+        const config: any = {
+            runnerEnv: {},
+            shard: { current: 1, total: 1 },
+            runner: 'local',
+            outputDir: './tempDir',
+            maxInstances: 1,
+            specs: [],
+            onPrepare: [onPrepare],
+            onComplete: [],
+            onWorkerStart: [],
+            onWorkerEnd: []
+        }
+
+        localLauncher.configParser.getConfig = vi.fn().mockReturnValue(config)
+        localLauncher.configParser.getCapabilities = vi.fn().mockReturnValue([{ browserName: 'chrome' }])
+        const getSpecs = vi.fn().mockImplementation(() => config.specs)
+        localLauncher.configParser.getSpecs = getSpecs
+
+        localLauncher._runMode = vi.fn().mockResolvedValue(0)
+        await localLauncher.run()
+
+        expect(onPrepare).toHaveBeenCalledTimes(1)
+        expect(getSpecs).toHaveBeenCalledTimes(1)
+        expect(onPrepare.mock.invocationCallOrder[0]).toBeLessThan(getSpecs.mock.invocationCallOrder[0])
+        expect(localLauncher.interface.totalWorkerCnt).toBe(1)
     })
 
     describe('capabilities', () => {
@@ -107,7 +149,7 @@ describe('launcher', () => {
             )
 
             expect(launcher['_schedule']).toHaveLength(1)
-            expect(launcher['_schedule'][0].specs[0].retries).toBe(2)
+            expect(launcher['_schedule'][0].specs[0].retries).toBe(-1)
 
             expect(typeof launcher['_resolve']).toBe('function')
             expect(launcher['_runSpecs']).toBeCalledTimes(1)
@@ -126,8 +168,8 @@ describe('launcher', () => {
             )
 
             expect(launcher['_schedule']).toHaveLength(2)
-            expect(launcher['_schedule'][0].specs[0].retries).toBe(2)
-            expect(launcher['_schedule'][1].specs[0].retries).toBe(2)
+            expect(launcher['_schedule'][0].specs[0].retries).toBe(-1)
+            expect(launcher['_schedule'][1].specs[0].retries).toBe(-1)
 
             expect(typeof launcher['_resolve']).toBe('function')
             expect(launcher['_runSpecs']).toBeCalledTimes(1)
@@ -142,7 +184,7 @@ describe('launcher', () => {
             )
 
             expect(launcher['_schedule']).toHaveLength(1)
-            expect(launcher['_schedule'][0].specs[0].retries).toBe(2)
+            expect(launcher['_schedule'][0].specs[0].retries).toBe(-1)
 
             expect(typeof launcher['_resolve']).toBe('function')
             expect(launcher['_runSpecs']).toBeCalledTimes(1)
@@ -157,7 +199,7 @@ describe('launcher', () => {
             )
 
             expect(launcher['_schedule']).toHaveLength(1)
-            expect(launcher['_schedule'][0].specs[0].retries).toBe(2)
+            expect(launcher['_schedule'][0].specs[0].retries).toBe(-1)
 
             expect(typeof launcher['_resolve']).toBe('function')
             expect(launcher['_runSpecs']).toBeCalledTimes(1)
@@ -183,7 +225,7 @@ describe('launcher', () => {
             )
 
             expect(launcher['_schedule']).toHaveLength(1)
-            expect(launcher['_schedule'][0].specs[0].retries).toBe(3)
+            expect(launcher['_schedule'][0].specs[0].retries).toBe(-1)
             expect(launcher['_schedule'][0].availableInstances).toBe(4)
 
             expect(launcher['_runSpecs']).toBeCalledTimes(1)
@@ -209,6 +251,36 @@ describe('launcher', () => {
             expect(launcher['_schedule']).toHaveLength(2)
             expect(launcher['_schedule'][0].availableInstances).toBe(11)
             expect(launcher['_schedule'][1].availableInstances).toBe(22)
+        })
+
+        it('should apply default maxInstancesPerCapability for dynamically added capabilities without wdio:maxInstances', () => {
+            launcher['_runSpecs'] = vi.fn()
+            launcher['_runMode'](
+                { specs: ['./'], specFileRetries: 2 } as any,
+                [
+                    { browserName: 'chrome', platformName: 'Android' },
+                    { browserName: 'chrome', platformName: 'iOS' }
+                ]
+            )
+
+            expect(launcher['_schedule']).toHaveLength(2)
+            expect(launcher['_schedule'][0].availableInstances).toBe(100)
+            expect(launcher['_schedule'][1].availableInstances).toBe(100)
+        })
+
+        it('should apply config maxInstancesPerCapability for dynamically added capabilities', () => {
+            launcher['_runSpecs'] = vi.fn()
+            launcher['_runMode'](
+                { specs: ['./'], maxInstancesPerCapability: 2 } as any,
+                [
+                    { browserName: 'chrome', platformName: 'Android' },
+                    { browserName: 'chrome', platformName: 'iOS' }
+                ]
+            )
+
+            expect(launcher['_schedule']).toHaveLength(2)
+            expect(launcher['_schedule'][0].availableInstances).toBe(2)
+            expect(launcher['_schedule'][1].availableInstances).toBe(2)
         })
     })
 
@@ -322,8 +394,10 @@ describe('launcher', () => {
     describe('exitHandler', () => {
         it('should do nothing if no callback is given', () => {
             launcher['_hasTriggeredExitRoutine'] = false
-            launcher.runner = { shutdown: vi.fn()
-                .mockReturnValue(Promise.resolve()) } as any
+            launcher.runner = {
+                shutdown: vi.fn()
+                    .mockReturnValue(Promise.resolve())
+            } as any
 
             launcher['_exitHandler']()
 
@@ -394,9 +468,11 @@ describe('launcher', () => {
             ]
             // Mock the return value of getSpecs so we are not doing cross
             // module testing
-            launcher.configParser = { getSpecs: vi.fn().mockReturnValue(
-                ['/a.js', ['/b.js', '/c.js', '/d.js'], '/e.js']
-            ) } as any
+            launcher.configParser = {
+                getSpecs: vi.fn().mockReturnValue(
+                    ['/a.js', ['/b.js', '/c.js', '/d.js'], '/e.js']
+                )
+            } as any
             expect(launcher['_formatSpecs'](capabilities as any, specFileRetries)).toStrictEqual(expected)
         })
     })
@@ -407,18 +483,22 @@ describe('launcher', () => {
         })
 
         it('should not start running anything if exit routine is triggered', () => {
-            launcher.configParser = { getConfig: vi.fn().mockReturnValue({
-                maxInstances: 100
-            }) } as any
+            launcher.configParser = {
+                getConfig: vi.fn().mockReturnValue({
+                    maxInstances: 100
+                })
+            } as any
             launcher['_hasTriggeredExitRoutine'] = true
             expect(launcher['_runSpecs']()).toBe(true)
             expect(launcher['_startInstance']).toBeCalledTimes(0)
         })
 
         it('should run all specs', () => {
-            launcher.configParser = { getConfig: vi.fn().mockReturnValue({
-                maxInstances: 100
-            }) } as any
+            launcher.configParser = {
+                getConfig: vi.fn().mockReturnValue({
+                    maxInstances: 100
+                })
+            } as any
             launcher['_schedule'] = [{
                 cid: 0,
                 caps: { browserName: 'chrome' },
@@ -453,9 +533,11 @@ describe('launcher', () => {
         })
 
         it('should run arrayed specs in a single instance', () => {
-            launcher.configParser = { getConfig: vi.fn().mockReturnValue({
-                maxInstances: 100
-            }) } as any
+            launcher.configParser = {
+                getConfig: vi.fn().mockReturnValue({
+                    maxInstances: 100
+                })
+            } as any
             launcher['_schedule'] = [{
                 cid: 0,
                 caps: { browserName: 'chrome' },
@@ -491,10 +573,12 @@ describe('launcher', () => {
 
         it('should not run anything if runner failed', () => {
             launcher['_runnerFailed'] = 2
-            launcher.configParser = { getConfig: vi.fn().mockReturnValue({
-                maxInstances: 100,
-                bail: 1
-            }) } as any
+            launcher.configParser = {
+                getConfig: vi.fn().mockReturnValue({
+                    maxInstances: 100,
+                    bail: 1
+                })
+            } as any
             launcher['_schedule'] = [{
                 cid: 0,
                 caps: { browserName: 'chrome' },
@@ -523,9 +607,11 @@ describe('launcher', () => {
         })
 
         it('should run as much as maxInstances allows', () => {
-            launcher.configParser = { getConfig: vi.fn().mockReturnValue({
-                maxInstances: 5
-            }) } as any
+            launcher.configParser = {
+                getConfig: vi.fn().mockReturnValue({
+                    maxInstances: 5
+                })
+            } as any
             launcher['_schedule'] = [{
                 cid: 0,
                 caps: { browserName: 'chrome' },
@@ -554,9 +640,11 @@ describe('launcher', () => {
         })
 
         it('should not allow to schedule more runner if no instances are available', () => {
-            launcher.configParser = { getConfig: vi.fn().mockReturnValue({
-                maxInstances: 100
-            }) } as any
+            launcher.configParser = {
+                getConfig: vi.fn().mockReturnValue({
+                    maxInstances: 100
+                })
+            } as any
             launcher['_schedule'] = [{
                 cid: 0,
                 caps: { browserName: 'chrome' },
@@ -591,9 +679,11 @@ describe('launcher', () => {
         })
 
         it('should not run if all specs were executed', () => {
-            launcher.configParser = { getConfig: vi.fn().mockReturnValue({
-                maxInstances: 100
-            }) } as any
+            launcher.configParser = {
+                getConfig: vi.fn().mockReturnValue({
+                    maxInstances: 100
+                })
+            } as any
             launcher['_schedule'] = [{
                 cid: 0,
                 caps: { browserName: 'chrome' },
@@ -661,7 +751,7 @@ describe('launcher', () => {
                     args: `--inspect=${hostname}:50000`,
                 }
             })
-            const onWorkerStartMock = vi.fn().mockImplementation((_runnerId, caps)=>{
+            const onWorkerStartMock = vi.fn().mockImplementation((_runnerId, caps) => {
                 caps['goog:chromeOptions'] = {
                     args: `--inspect=${hostname}:50000`
                 }
@@ -696,11 +786,13 @@ describe('launcher', () => {
             const caps = {
                 browserName: 'chrome'
             }
-            launcher.configParser = { getConfig: vi.fn().mockReturnValue({
-                onWorkerStart: onWorkerStartMock,
-                specFileRetries: 2,
-                specFileRetriesDelay: 0.01
-            }) } as any
+            launcher.configParser = {
+                getConfig: vi.fn().mockReturnValue({
+                    onWorkerStart: onWorkerStartMock,
+                    specFileRetries: 2,
+                    specFileRetriesDelay: 0.01
+                })
+            } as any
             launcher['_args'].hostname = '127.0.0.3'
 
             await launcher['_startInstance'](
@@ -728,11 +820,13 @@ describe('launcher', () => {
             const caps = {
                 browserName: 'chrome'
             }
-            launcher.configParser = { getConfig: vi.fn().mockReturnValue({
-                onWorkerStart: onWorkerStartMock,
-                specFileRetries: 4,
-                specFileRetriesDelay: 0.01
-            }) } as any
+            launcher.configParser = {
+                getConfig: vi.fn().mockReturnValue({
+                    onWorkerStart: onWorkerStartMock,
+                    specFileRetries: 4,
+                    specFileRetriesDelay: 0.01
+                })
+            } as any
             launcher['_args'].hostname = '127.0.0.4'
 
             await launcher['_startInstance'](

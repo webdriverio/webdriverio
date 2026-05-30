@@ -35,6 +35,8 @@ import type { ActiveAppInfo } from '../../types.js'
  * @uses protocol/execute
  * @type utility
  * @skipUsage
+ *
+ * @support ["ios","android"]
  */
 export async function relaunchActiveApp(
     this: WebdriverIO.Browser

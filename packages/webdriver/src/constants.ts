@@ -141,8 +141,20 @@ export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
     cacheDir: {
         type: 'string',
         default: environment.value.variables.WEBDRIVER_CACHE_DIR
+    },
+    /**
+     * Mask sensitive data in logs by replacing matching string or all captured groups for the provided regular expressions as string
+     */
+    maskingPatterns: {
+        type: 'string',
+        default : undefined,
     }
 }
 
 export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 export const SHADOW_ELEMENT_KEY = 'shadow-6066-11e4-a52e-4f735466cecf'
+
+export const BASE_64_REGEX = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$/
+export const BASE_64_SAFE_STRING_TO_PROCESS_LENGTH = 200_000
+
+export const APPIUM_MASKING_HEADER = { 'x-appium-is-sensitive': 'true' }

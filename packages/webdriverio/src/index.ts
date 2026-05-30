@@ -14,9 +14,11 @@ import { getProtocolDriver } from './utils/driver.js'
 import { WDIO_DEFAULTS, Key as KeyConstant } from './constants.js'
 import { getPrototype, addLocatorStrategyHandler, isStub } from './utils/index.js'
 import { registerSessionManager } from './session/index.js'
+import { environment } from './environment.js'
 
-import type { AttachOptions } from './types.js'
+import type { AttachOptions, CustomCommandOptions } from './types.js'
 import type * as elementCommands from './commands/element.js'
+import { IMPLICIT_WAIT_EXCLUSION_LIST } from './middlewares.js'
 
 export * from './types.js'
 export const Key = KeyConstant
@@ -35,11 +37,11 @@ export const SevereServiceError = SevereServiceErrorImport
  * @return browser object with sessionId
  * @see <a href="https://webdriver.io/docs/typescript">Typescript setup</a>
  */
-export const remote = async function(
+export const remote = async function (
     params: Capabilities.WebdriverIOConfig,
     remoteModifier?: (client: WebDriverTypes.Client, options: Capabilities.WebdriverIOConfig) => WebDriverTypes.Client
 ): Promise<WebdriverIO.Browser> {
-    const keysToKeep = Object.keys(process.env.WDIO_WORKER_ID ? params : DEFAULTS) as (keyof Capabilities.WebdriverIOConfig)[]
+    const keysToKeep = Object.keys(environment.value.variables.WDIO_WORKER_ID ? params : DEFAULTS) as (keyof Capabilities.WebdriverIOConfig)[]
     const config = validateConfig<Capabilities.WebdriverIOConfig>(WDIO_DEFAULTS, params, keysToKeep)
 
     await enableFileLogging(config.outputDir)
@@ -62,25 +64,25 @@ export const remote = async function(
 
     const { Driver, options } = await getProtocolDriver({ ...params, ...config })
     const prototype = getPrototype('browser')
-    const instance = await Driver.newSession(options, modifier, prototype, wrapCommand) as WebdriverIO.Browser
+    const instance = await Driver.newSession(options, modifier, prototype, wrapCommand, IMPLICIT_WAIT_EXCLUSION_LIST) as WebdriverIO.Browser
 
     /**
      * we need to overwrite the original addCommand and overwriteCommand
      */
     if ((params as Options.Testrunner).framework && !isStub(params.automationProtocol)) {
-        const origAddCommand = instance.addCommand.bind(instance) as typeof instance.addCommand
-        instance.addCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => (
-            origAddCommand(name, fn, attachToElement)
-        )
-
-        const origOverwriteCommand = instance.overwriteCommand.bind(instance) as typeof instance.overwriteCommand
-        instance.overwriteCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => (
-            origOverwriteCommand<keyof typeof elementCommands, any, any>(name, fn, attachToElement)
-        )
+        instance.addCommand = instance.addCommand.bind(instance)
+        instance.overwriteCommand = instance.overwriteCommand.bind(instance)
     }
 
     instance.addLocatorStrategy = addLocatorStrategyHandler(instance)
-    await registerSessionManager(instance)
+
+    /**
+     * protocol stub sessions are used before the real session starts (e.g. spec filtering).
+     * They don't have full command coverage, so skip session manager initialization.
+     */
+    if (!isStub(options.automationProtocol)) {
+        await registerSessionManager(instance)
+    }
     return instance
 }
 
@@ -90,8 +92,9 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
      */
     const params: Capabilities.WebdriverIOConfig & { requestedCapabilities: Capabilities.RequestedStandaloneCapabilities } = {
         automationProtocol: 'webdriver',
-        ...attachOptions,
         ...detectBackend(attachOptions.options),
+        ...attachOptions.options,
+        ...attachOptions,
         capabilities: attachOptions.capabilities || {},
         requestedCapabilities: attachOptions.requestedCapabilities || {}
     }
@@ -178,22 +181,28 @@ export const multiremote = async function (
      */
     if (!isStub(automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
-        driver.addCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => {
-            driver.instances.forEach(instance =>
-                driver.getInstance(instance).addCommand(name, fn, attachToElement)
+        driver.addCommand = function (name: string, fn: any, attachToElementOrOptions?: boolean | CustomCommandOptions<boolean>): void {
+            const options: CustomCommandOptions<boolean> = (typeof attachToElementOrOptions === 'object' && attachToElementOrOptions !== null)
+                ? attachToElementOrOptions
+                : { attachToElement: attachToElementOrOptions } satisfies CustomCommandOptions<boolean>
+
+            driver.instances.forEach(instanceName =>
+                driver.getInstance(instanceName).addCommand(name, fn, options)
             )
 
             return origAddCommand(
                 name,
                 fn,
-                attachToElement,
-                Object.getPrototypeOf(multibrowser.baseInstance),
-                multibrowser.instances
+                {
+                    attachToElement: options.attachToElement,
+                    proto: Object.getPrototypeOf(multibrowser.baseInstance),
+                    instances: multibrowser.instances
+                }
             )
         }
 
         const origOverwriteCommand = driver.overwriteCommand.bind(driver) as typeof driver.overwriteCommand
-        driver.overwriteCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => {
+        driver.overwriteCommand = (name, fn, attachToElement) => {
             return origOverwriteCommand<keyof typeof elementCommands, any, any>(
                 name,
                 fn,
@@ -207,4 +216,3 @@ export const multiremote = async function (
     driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
     return driver
 }
-

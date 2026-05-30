@@ -64,21 +64,21 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
 ### 🥇 Gold
 
 <ImageSwitcher
-    lightImageSrc="/img/sponsors/route4me.svg"
-    darkImageSrc="/img/sponsors/route4me.svg"
-    alt="Route4Me"
-    link="https://www.route4me.com/"
+    lightImageSrc="/img/sponsors/jetify_black.png"
+    darkImageSrc="/img/sponsors/jetify_white.png"
+    alt="Jetify"
+    link="https://www.jetify.com/"
     width="250"
     target="_blank"
     style={{ marginRight: '20px', position: 'relative', top: '8px' }}
 />
 
 <ImageSwitcher
-    lightImageSrc="/img/sponsors/lambdatest_black.svg"
-    darkImageSrc="/img/sponsors/lambdatest_white.svg"
-    alt="Lambdatest"
+    lightImageSrc="/img/sponsors/testmu_ai_black.svg"
+    darkImageSrc="/img/sponsors/testmu_ai_white.svg"
+    alt="TestMu AI (Formerly LambdaTest)"
     target="_blank"
-    link="https://www.lambdatest.com/"
+    link="https://www.testmuai.com/"
     width="250"
 />
 
@@ -93,6 +93,15 @@ Become a [Gold Sponsor](https://opencollective.com/webdriverio/contribute/gold-s
     darkImageSrc="/img/sponsors/testingbot.svg"
     alt="TestingBot"
     link="https://testingbot.com/"
+    width="150"
+    target="_blank"
+/>
+
+<ImageSwitcher
+    lightImageSrc="/img/sponsors/sap.png"
+    darkImageSrc="/img/sponsors/sap.png"
+    alt="SAP"
+    link="https://www.sap.com/"
     width="150"
     target="_blank"
 />
@@ -137,4 +146,14 @@ We are grateful for the support of all our sponsors! Here are some of the compan
     link="https://saucelabs.com/"
     width="150"
     target="_blank"
+/>
+
+<ImageSwitcher
+    lightImageSrc="/img/sponsors/route4me.svg"
+    darkImageSrc="/img/sponsors/route4me.svg"
+    alt="Route4Me"
+    link="https://www.route4me.com/"
+    width="250"
+    target="_blank"
+    style={{ marginRight: '20px', position: 'relative', top: '8px' }}
 />

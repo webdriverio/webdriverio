@@ -1,6 +1,6 @@
 import path from 'node:path'
-import type { Mock, VitestUtils } from 'vitest'
-import { beforeEach, expect, describe, it, afterEach, vi, beforeAll } from 'vitest'
+import type { Mock } from 'vitest'
+import { beforeEach, expect, describe, it, afterEach, vi } from 'vitest'
 import logger from '@wdio/logger'
 import { MobileScrollDirection, remote } from '../../../src/index.js'
 

@@ -190,6 +190,18 @@ class JunitReporter extends WDIOReporter {
                 const output = this._getStandardOutput(step)
                 stepsOutput += output ? stepEmoji + ' ' + step.title : stepEmoji + ' ' + step.title + '\n' + output
             }
+
+            // Add properties for each step (Cucumber steps are tests in the scenario)
+            for (const stepKey of Object.keys(scenario.tests)) {
+                if (stepKey === 'undefined') {
+                    continue
+                }
+                const step = scenario.tests[stepKey as any]
+                for (const propName of Object.keys(this._testToAdditionalInformation[step.uid]?.properties ?? {})) {
+                    testCase.property(propName, this._testToAdditionalInformation[step.uid].properties[propName])
+                }
+            }
+
             testCase.standardOutput(`\n${stepsOutput}\n`)
         }
         return builder
@@ -297,6 +309,7 @@ class JunitReporter extends WDIOReporter {
             this._packageName = this.options.packageName || runner.sanitizedCapabilities
         }
         const isCucumberFrameworkRunner = runner.config.framework === 'cucumber'
+            || Object.values(this.suites).some((suite) => suite.type === 'feature' || suite.type === 'scenario')
         if (isCucumberFrameworkRunner) {
             this._packageName = `CucumberJUnitReport-${this._packageName}`
             this._suiteTitleLabel = 'featureName'
@@ -321,14 +334,19 @@ class JunitReporter extends WDIOReporter {
         const suiteKeys = Object.keys(this.suites)
 
         if (suiteKeys.length === 0) {
-            const error = this.runnerStat?.error ?? 'No tests found'
             /**
              * Because this function gets called twice for Cucumber, this conditional is to ensure that
              * Cucumber and Mocha generate the same Junit report for empty suites. Otherwise, Cucumber reporter
              * would generate two <testsuite>.
              */
             if (!isCucumberFrameworkRunner || (isCucumberFrameworkRunner && type === 'feature')) {
-                return builder.testSuite().testCase().className('').name('').failure(error)
+                // Only create a test case if there was an actual error
+                // When no tests match filters (e.g., Cucumber tags), we should not report any tests
+                if (this.runnerStat?.error) {
+                    const testCase = builder.testSuite().testCase().className('').name('')
+                    return testCase.failure(this.runnerStat.error)
+                }
+                return builder
             }
         }
 

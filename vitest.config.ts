@@ -4,6 +4,10 @@ export default defineConfig({
     test: {
         dangerouslyIgnoreUnhandledErrors: true,
         include: ['packages/**/*.test.ts'],
+        typecheck: {
+            enabled: true,
+            ignoreSourceErrors : true
+        },
         /**
          * not to ESM ported packages
          */
@@ -13,6 +17,9 @@ export default defineConfig({
         env: {
             WDIO_SKIP_DRIVER_SETUP: '1'
         },
+        // This is a measure to address Vitest errors.
+        // See also: https://github.com/vitest-dev/vitest/discussions/6511
+        pool: 'threads',
         coverage: {
             enabled: false,
             provider: 'v8',
@@ -21,6 +28,7 @@ export default defineConfig({
                 '**/build/**',
                 '**/cjs/*.ts',
                 '**/*.test.ts',
+                '**/*.test-d.ts',
                 'packages/webdriver/src/bidi/handler.ts'
             ],
             watermarks: {
@@ -32,6 +40,7 @@ export default defineConfig({
         },
         setupFiles: [
             '__mocks__/fetch.ts'
-        ]
+        ],
+        testTimeout: 30000
     }
 })

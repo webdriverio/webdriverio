@@ -72,9 +72,9 @@ export const config = {
         },
         coverage: {
             enabled: true,
-            // we skip some tests on Mac, therefor lower coverage treshold
+            // we skip some tests on Mac, therefore lower coverage threshold
             /**
-             * Todo(@christian-bromann): set treshold back to 100
+             * Todo(@christian-bromann): set threshold back to 100
              */
             functions: isMac ? 60 : 80
         }

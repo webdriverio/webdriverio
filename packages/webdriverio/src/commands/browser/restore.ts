@@ -34,7 +34,7 @@ import { restoreFunctions } from '../../constants.js'
 export async function restore (
     this: WebdriverIO.Browser,
     scopes?: SupportedScopes | SupportedScopes[]
-) {
+): Promise<void> {
     const scopeArray = !scopes || Array.isArray(scopes) ? scopes : [scopes]
     const instanceRestoreFunctions = restoreFunctions.get(this)
     if (!instanceRestoreFunctions) {

@@ -48,4 +48,52 @@ describe('waitForExists', () => {
         })
         expect(vi.mocked(elem.waitUntil).mock.calls).toMatchSnapshot()
     })
+
+    it('should maintain elementId for shadow element', async () => {
+        const elem = await browser.$('#foo')
+        const shadowElem = await elem.shadow$('#bar')
+        const isExistingSpy = vi.spyOn(shadowElem, 'isExisting').mockResolvedValue(true)
+
+        expect(shadowElem.elementId).toBe('some-shadow-sub-elem-321')
+        await shadowElem.waitForExist({ timeout })
+        expect(shadowElem.elementId).toBe('some-shadow-sub-elem-321')
+        expect(isExistingSpy).toHaveBeenCalledTimes(1)
+    })
+
+    it('should not swap elementId for indexed elements returned from $$', async () => {
+        const elems = await browser.$$('iframe')
+        const elem = elems[1]
+
+        vi.spyOn(elem, 'isExisting').mockResolvedValue(true)
+        vi.spyOn(elem, 'waitUntil').mockImplementation(async (cond) => cond())
+
+        const $$Spy = vi.spyOn(browser, '$$')
+        const $Spy = vi.spyOn(browser, '$')
+
+        expect(elem.index).toBe(1)
+        expect(elem.elementId).toBe('some-elem-456')
+
+        await elem.waitForExist({ timeout })
+
+        expect(elem.elementId).toBe('some-elem-456')
+        expect($Spy).not.toHaveBeenCalled()
+    })
+
+    it('should not swap elementId for indexed elements returned from $$ when accessed via chainable index', async () => {
+        const $$Spy = vi.spyOn(browser, '$$')
+        const $Spy = vi.spyOn(browser, '$')
+
+        const elem = await browser.$$('iframe')[1]
+
+        vi.spyOn(elem, 'isExisting').mockResolvedValue(true)
+        vi.spyOn(elem, 'waitUntil').mockImplementation(async (cond) => cond())
+
+        expect(elem.index).toBe(1)
+        expect(elem.elementId).toBe('some-elem-456')
+
+        await elem.waitForExist({ timeout })
+
+        expect(elem.elementId).toBe('some-elem-456')
+        expect($Spy).not.toHaveBeenCalled()
+    })
 })

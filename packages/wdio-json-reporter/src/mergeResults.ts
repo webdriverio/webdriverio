@@ -1,5 +1,8 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
+
+import safeRegexTest from 'safe-regex2'
+
 import type { ResultSet } from './types.js'
 
 const DEFAULT_FILENAME = 'wdio-merged.json'
@@ -28,7 +31,25 @@ export default async function mergeResults(
 }
 
 async function getDataFromFiles (dir: string, filePattern: string | RegExp) {
-    const fileNames = (await fs.readdir(dir)).filter((file) => file.match(filePattern))
+    let safePattern: RegExp
+
+    if (filePattern instanceof RegExp) {
+        // For existing RegExp objects, test them for safety
+        safePattern = safeRegexTest(filePattern) ? filePattern : /\.json$/
+    } else if (typeof filePattern === 'string') {
+        try {
+            // Test the created RegExp for safety
+            safePattern = safeRegexTest(filePattern) ? new RegExp(filePattern) : /\.json$/
+        } catch {
+            // If the pattern syntax is invalid, fall back to a safe default
+            safePattern = /\.json$/
+        }
+    } else {
+        // If pattern is unsafe or invalid, use a safe default
+        safePattern = /\.json$/
+    }
+
+    const fileNames = (await fs.readdir(dir)).filter((file) => file.match(safePattern))
     const data: unknown[] = []
 
     await Promise.all(fileNames.map(async (fileName) => {

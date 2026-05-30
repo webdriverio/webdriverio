@@ -53,6 +53,10 @@ class Timer {
             this._timeoutId = setTimeout(this._tick.bind(this), this._delay)
         }
 
+        if (this._wasConditionExecuted()) {
+            return
+        }
+
         this._mainTimeoutId = setTimeout(() => {
             /**
              * make sure that condition was executed at least once

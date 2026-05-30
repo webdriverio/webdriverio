@@ -108,7 +108,9 @@ tests/.retry_succeeded
 website/docs/Contribute.md
 website/community/Resources.md
 website/docs/desktop-testing/electron/
+website/docs/desktop-testing/tauri/
 scripts/bidi/cddl
+temp_extract/
 browserstack.err
 e2e/tailwind.config.js
 packages/webdriverio/.chrome
@@ -120,3 +122,8 @@ website/events.json
 e2e/wdio/headless/*.png
 website/i18n/*
 !website/i18n/en
+
+
+.pnpm-store
+
+e2e/wdio/wdio-chrome-*

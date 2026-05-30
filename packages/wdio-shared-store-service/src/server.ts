@@ -112,7 +112,7 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
      * > an arbitrary unused port, which can be retrieved by using `server.address().port`
      * https://nodejs.org/api/net.html#net_server_listen_port_host_backlog_callback
      */
-    app.listen(0, (err: Error) => {
+    app.listen(0, '127.0.0.1', (err: Error) => {
         /* istanbul ignore next */
         if (err) {
             return reject(err)

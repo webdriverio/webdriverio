@@ -38,5 +38,7 @@
  * @param {DragAndDropOptions=}             options           dragAndDrop command options
  * @param {Number=}                         options.duration  how long the drag should take place
  * @mobileElement
+ *
+ * @support ["ios","android"]
  */
 // actual implementation is located in packages/webdriverio/src/element/dragAndDrop.ts

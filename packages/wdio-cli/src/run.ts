@@ -29,6 +29,7 @@ export default async function run() {
         .example('wdio run wdio.conf.js --spec ./tests/e2e/a.feature:5', 'Run scenario by line number')
         .example('wdio run wdio.conf.js --spec ./tests/e2e/a.feature:5:10', 'Run scenarios by line number')
         .example('wdio run wdio.conf.js --spec ./tests/e2e/a.feature:5:10 --spec ./test/e2e/b.feature', 'Run scenarios by line number in single feature and another complete feature')
+        .example('wdio run wdio.conf.js --tsConfigPath=./configs/bdd-tsconfig.json', 'Run suite with tsx using custom tsconfig.json')
         .example('wdio install reporter spec', 'Install @wdio/spec-reporter')
         .example('wdio repl chrome -u <SAUCE_USERNAME> -k <SAUCE_ACCESS_KEY>', 'Run repl in Sauce Labs cloud')
         .updateStrings({ 'Commands:': `${DESCRIPTION.join('\n')}\n\nCommands:` })

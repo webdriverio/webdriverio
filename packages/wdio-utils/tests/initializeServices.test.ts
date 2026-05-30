@@ -9,10 +9,14 @@ import { initializeLauncherService, initializeWorkerService } from '../src/initi
 import { safeImport } from '../src/utils.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('../src/utils.js', () => ({
-    safeImport: vi.fn(),
-    isAbsolute: vi.fn().mockReturnValue(true)
-}))
+vi.mock('../src/utils.js', async (importActual) => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+    const actual = await importActual<typeof import('../src/utils.js')>()
+    return {
+        ...actual,
+        safeImport: vi.fn(),
+        isAbsolute: vi.fn().mockReturnValue(true) }
+})
 const log = logger('test')
 
 interface TestLauncherService extends Services.ServiceInstance {

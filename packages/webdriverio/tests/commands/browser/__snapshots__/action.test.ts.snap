@@ -16,7 +16,7 @@ exports[`action command > resolves not resolved wdio elements in pointer action 
           "y": 0,
         },
       ],
-      "id": "action2",
+      "id": "pointer1",
       "parameters": {
         "pointerType": "mouse",
       },
@@ -43,7 +43,7 @@ exports[`action command > resolves not resolved wdio elements in wheel action 1`
           "y": 0,
         },
       ],
-      "id": "action3",
+      "id": "wheel1",
       "parameters": {},
       "type": "wheel",
     },

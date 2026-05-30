@@ -15,18 +15,18 @@ vi.mock('fs/promises')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('saveScreenshot', () => {
-    let getAbsoluteFilepathSpy: MockInstance
+    let pathResolveSpy: MockInstance
     let assertDirectoryExistsSpy: MockInstance
     const writeFileSyncSpy = vi.spyOn(fs, 'writeFile')
 
     beforeEach(() => {
-        getAbsoluteFilepathSpy = vi.spyOn(utils, 'getAbsoluteFilepath')
+        pathResolveSpy = vi.spyOn(path, 'resolve')
         assertDirectoryExistsSpy = vi.spyOn(utils, 'assertDirectoryExists')
         vi.spyOn(fs, 'access').mockResolvedValue()
     })
 
     afterEach(() => {
-        getAbsoluteFilepathSpy.mockClear()
+        pathResolveSpy.mockClear()
         assertDirectoryExistsSpy.mockClear()
         writeFileSyncSpy.mockClear()
     })
@@ -43,12 +43,13 @@ describe('saveScreenshot', () => {
         const screenshot = await elem.saveScreenshot('./packages/bar.png')
 
         // get path
-        expect(getAbsoluteFilepathSpy).toHaveBeenCalledTimes(1)
-        expect(getAbsoluteFilepathSpy).toHaveBeenCalledWith('./packages/bar.png')
+        expect(pathResolveSpy).toHaveBeenCalledWith('./packages/bar.png')
+
+        const resolvedPath = path.resolve('./packages/bar.png')
 
         // assert directory
         expect(assertDirectoryExistsSpy).toHaveBeenCalledTimes(1)
-        expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value)
+        expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(resolvedPath)
 
         // request
         expect(vi.mocked(fetch).mock.calls[2][1]!.method).toBe('GET')
@@ -59,7 +60,7 @@ describe('saveScreenshot', () => {
 
         // write to file
         expect(writeFileSyncSpy).toHaveBeenCalledTimes(1)
-        expect(writeFileSyncSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value, expect.any(Buffer))
+        expect(writeFileSyncSpy).toHaveBeenCalledWith(resolvedPath, expect.any(Buffer))
     })
 
     it('should fail if no filename provided', async () => {

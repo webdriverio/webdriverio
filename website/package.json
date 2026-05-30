@@ -5,7 +5,7 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "cd ../ && npm run generate:bidi && npm run docs:generate && cd website && docusaurus start",
-    "build": "docusaurus build",
+    "build": "docusaurus clear && docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "serve": "docusaurus serve",
@@ -13,16 +13,16 @@
     "translate": "docusaurus write-translations"
   },
   "dependencies": {
-    "@docusaurus/core": "^3.5.2",
-    "@docusaurus/module-type-aliases": "^3.5.2",
-    "@docusaurus/plugin-client-redirects": "^3.5.2",
-    "@docusaurus/plugin-google-analytics": "^3.5.2",
-    "@docusaurus/plugin-ideal-image": "^3.5.2",
-    "@docusaurus/plugin-pwa": "^3.5.2",
-    "@docusaurus/preset-classic": "^3.5.2",
-    "@docusaurus/remark-plugin-npm2yarn": "^3.5.2",
-    "@docusaurus/theme-search-algolia": "^3.5.2",
-    "@docusaurus/tsconfig": "^3.5.2",
+    "@docusaurus/core": "^3.9.2",
+    "@docusaurus/module-type-aliases": "^3.9.2",
+    "@docusaurus/plugin-client-redirects": "^3.9.2",
+    "@docusaurus/plugin-google-analytics": "^3.9.2",
+    "@docusaurus/plugin-ideal-image": "^3.9.2",
+    "@docusaurus/plugin-pwa": "^3.9.2",
+    "@docusaurus/preset-classic": "^3.9.2",
+    "@docusaurus/remark-plugin-npm2yarn": "^3.9.2",
+    "@docusaurus/theme-search-algolia": "^3.9.2",
+    "@docusaurus/tsconfig": "^3.9.2",
     "@mdx-js/react": "^3.0.1",
     "@mendable/search": "^0.0.206",
     "@tsconfig/docusaurus": "^2.0.3",
@@ -51,7 +51,7 @@
     ]
   },
   "devDependencies": {
-    "@docusaurus/theme-common": "^3.5.2",
+    "@docusaurus/theme-common": "^3.9.2",
     "babel-loader": "^9.1.3"
   }
 }

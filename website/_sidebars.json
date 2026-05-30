@@ -63,7 +63,8 @@
         "pageobjects",
         "debugging",
         "repl",
-        "record"
+        "record",
+        "security"
       ]
     },
     {
@@ -76,6 +77,7 @@
       "items": [
         "configurationfile",
         "runner",
+        "headless-and-xvfb",
         "frameworks",
         "assertion",
         "organizingsuites",
@@ -85,6 +87,50 @@
         "watcher",
         "customreporter",
         "customservices"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "DevTools",
+      "link": {
+        "type": "doc",
+        "id": "devtools"
+      },
+      "items": [
+        {
+          "type": "category",
+          "label": "WebDriverIO",
+          "link": {
+            "type": "doc",
+            "id": "devtools/wdio"
+          },
+          "items": [
+            "devtools/wdio/interactive-test-rerunning",
+            "devtools/wdio/multi-framework-support",
+            "devtools/wdio/console-logs",
+            "devtools/wdio/network-logs",
+            "devtools/wdio/testlens",
+            "devtools/wdio/screencast"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Nightwatch",
+          "link": {
+            "type": "doc",
+            "id": "devtools/nightwatch"
+          },
+          "items": []
+        },
+        {
+          "type": "category",
+          "label": "Selenium",
+          "link": {
+            "type": "doc",
+            "id": "devtools/selenium"
+          },
+          "items": []
+        }
       ]
     },
     {
@@ -103,8 +149,33 @@
           "items": [
             "desktop-testing/electron/configuration",
             "desktop-testing/electron/api",
-            "desktop-testing/electron/mocking",
-            "desktop-testing/electron/standalone"
+            "desktop-testing/electron/api-reference",
+            "desktop-testing/electron/window-management",
+            "desktop-testing/electron/deeplink-testing",
+            "desktop-testing/electron/standalone",
+            "desktop-testing/electron/debugging",
+            "desktop-testing/electron/common-issues"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Tauri",
+          "link": {
+            "type": "doc",
+            "id": "desktop-testing/tauri"
+          },
+          "items": [
+            "desktop-testing/tauri/quick-start",
+            "desktop-testing/tauri/configuration",
+            "desktop-testing/tauri/api",
+            "desktop-testing/tauri/plugin-setup",
+            "desktop-testing/tauri/platform-support",
+            "desktop-testing/tauri/usage-examples",
+            "desktop-testing/tauri/log-forwarding",
+            "desktop-testing/tauri/edge-webdriver-windows",
+            "desktop-testing/tauri/deeplink-testing",
+            "desktop-testing/tauri/crabnebula-setup",
+            "desktop-testing/tauri/troubleshooting"
           ]
         }
       ]
@@ -147,7 +218,8 @@
       "label": "Accessibility Testing",
       "items": [
         "accessibility-testing/axe-core",
-        "accessibility-testing/browserstack"
+        "accessibility-testing/browserstack",
+        "accessibility-testing/testmuai"
       ]
     },
     {
@@ -206,6 +278,11 @@
         },
         {
           "type": "doc",
+          "id": "visual-testing/integrate-with-smartui",
+          "label": "SmartUI"
+        },
+        {
+          "type": "doc",
           "id": "visual-testing/argos",
           "label": "Argos"
         },
@@ -214,6 +291,20 @@
       "link": {
         "type": "doc",
         "id": "visual-testing"
+      }
+    },
+    {
+      "type": "category",
+      "label": "MCP",
+      "items": [
+        "mcp/tools",
+        "mcp/selectors",
+        "mcp/configuration",
+        "mcp/faq"
+      ],
+      "link": {
+        "type": "doc",
+        "id": "mcp"
       }
     },
     {

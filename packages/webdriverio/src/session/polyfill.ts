@@ -3,6 +3,7 @@ import type { local } from 'webdriver'
 
 import { SessionManager } from './session.js'
 import { createFunctionDeclarationFromString } from '../utils/index.js'
+import { polyfillFn } from '../scripts/polyfill.js'
 
 export function getPolyfillManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, PolyfillManager)
@@ -11,30 +12,14 @@ export function getPolyfillManager(browser: WebdriverIO.Browser) {
 const log = logger('webdriverio:PolyfillManager')
 
 /**
- * A polyfill to set `__name` to the global scope which is needed for WebdriverIO to properly
- * execute custom (preload) scripts. When using `tsx` Esbuild runs some optimizations which
- * assume that the file contains these global variables. This is a workaround until this issue
- * is fixed.
- *
- * @see https://github.com/evanw/esbuild/issues/2605
- */
-export const polyfillFn = function webdriverioPolyfill () {
-    const __defProp = Object.defineProperty
-    const __name = function (target: unknown, value: unknown) {
-        return __defProp(target, 'name', { value: value, configurable: true })
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const __globalThis = (typeof globalThis === 'object' && globalThis) || (typeof window === 'object' && window) as any
-    __globalThis.__name = __name
-}
-
-/**
  * This class is responsible for setting polyfill scripts in the browser.
  */
 export class PolyfillManager extends SessionManager {
     #initialize: Promise<boolean>
     #browser: WebdriverIO.Browser
     #scriptsRegisteredInContexts: Set<string> = new Set()
+
+    #registerScriptsListener = this.#registerScripts.bind(this)
 
     constructor(browser: WebdriverIO.Browser) {
         super(browser, PolyfillManager.name)
@@ -49,7 +34,7 @@ export class PolyfillManager extends SessionManager {
         }
 
         // start listening for browsingContext.contextCreated
-        this.#browser.on('browsingContext.contextCreated', this.#registerScripts.bind(this))
+        this.#browser.on('browsingContext.contextCreated', this.#registerScriptsListener)
 
         /**
          * apply polyfill script for upcoming as well as current execution context
@@ -67,7 +52,7 @@ export class PolyfillManager extends SessionManager {
     removeListeners() {
         super.removeListeners()
         // stop listening for browsingContext.contextCreated
-        this.#browser.off('browsingContext.contextCreated', this.#registerScripts.bind(this))
+        this.#browser.off('browsingContext.contextCreated', this.#registerScriptsListener)
     }
 
     #registerScripts (context: Pick<local.BrowsingContextInfo, 'context' | 'parent'>) {

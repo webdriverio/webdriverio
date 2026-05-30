@@ -7,13 +7,14 @@ import type * as Reporters from './Reporters.js'
 import type * as Frameworks from './Frameworks.js'
 import type * as Workers from './Workers.js'
 import type * as Network from './Network.js'
+import type * as CustomCommands from './CustomCommands.js'
 
 /**
  * exported constant values
  */
 export { MESSAGE_TYPES } from './Workers.js'
 
-export type { Automation, Capabilities, Options, Services, Frameworks, Reporters, Workers }
+export type { Automation, Capabilities, Options, Services, Frameworks, Reporters, Workers, CustomCommands }
 
 export type JsonPrimitive = string | number | boolean | null
 export type JsonObject = { [x: string]: JsonPrimitive | JsonObject | JsonArray }

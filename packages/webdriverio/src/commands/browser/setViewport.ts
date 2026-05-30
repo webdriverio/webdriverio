@@ -36,7 +36,7 @@ export interface SetViewportOptions {
 export async function setViewport(
     this: WebdriverIO.Browser,
     options: SetViewportOptions
-) {
+): Promise<void> {
     /**
      * type check
      */

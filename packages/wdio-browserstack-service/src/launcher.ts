@@ -22,7 +22,10 @@ import {
     BROWSERSTACK_TESTHUB_UUID,
     VALID_APP_EXTENSION,
     BROWSERSTACK_PERCY,
-    BROWSERSTACK_OBSERVABILITY
+    BROWSERSTACK_OBSERVABILITY,
+    WDIO_NAMING_PREFIX,
+    BROWSERSTACK_TEST_REPORTING,
+    TEST_REPORTING_PROJECT_NAME
 } from './constants.js'
 import {
     launchTestSession,
@@ -39,6 +42,10 @@ import {
     ObjectsAreEqual, getBasicAuthHeader,
     isValidCapsForHealing,
     getBooleanValueFromString,
+    validateCapsWithNonBstackA11y,
+    mergeChromeOptions,
+    isValidEnabledValue,
+    isMultiRemoteCaps
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -50,7 +57,9 @@ import { sendFinish, sendStart } from './instrumentation/funnelInstrumentation.j
 import AiHandler from './ai-handler.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
-
+import { BrowserstackCLI } from './cli/index.js'
+import { CLIUtils } from './cli/cliUtils.js'
+import accessibilityScripts from './scripts/accessibility-scripts.js'
 import { _fetch as fetch } from './fetchWrapper.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
@@ -64,7 +73,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _projectName?: string
     private _buildTag?: string
     private _buildIdentifier?: string
-    private _accessibilityAutomation?: boolean | null = null
+    private _accessibilityAutomation?: boolean
     private _percy?: Percy
     private _percyBestPlatformCaps?: WebdriverIO.Capabilities
     private readonly browserStackConfig: BrowserStackConfig
@@ -81,7 +90,38 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (!this._config) {
             this._config = _options
         }
-        this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config)
+
+        //normalizing testReporting config and env variables
+        if (!isUndefined(_options.testReporting)){
+            _options.testObservability = _options.testReporting
+        }
+
+        if (!isUndefined(_options.testReportingOptions)){
+            _options.testObservabilityOptions = _options.testReportingOptions
+        }
+
+        if (!isUndefined(process.env[BROWSERSTACK_TEST_REPORTING])){
+            process.env[BROWSERSTACK_OBSERVABILITY] = process.env[BROWSERSTACK_TEST_REPORTING]
+        }
+
+        if (!isUndefined(process.env[TEST_REPORTING_PROJECT_NAME])){
+            process.env.TEST_OBSERVABILITY_PROJECT_NAME = process.env[TEST_REPORTING_PROJECT_NAME]
+        }
+
+        if (!isUndefined(process.env.TEST_REPORTING_BUILD_NAME)) {
+            process.env.TEST_OBSERVABILITY_BUILD_NAME = process.env.TEST_REPORTING_BUILD_NAME
+        }
+
+        if (!isUndefined(process.env.TEST_REPORTING_BUILD_TAG)) {
+            process.env.TEST_OBSERVABILITY_BUILD_TAG = process.env.TEST_REPORTING_BUILD_TAG
+        }
+
+        this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config, capabilities)
+        BStackLogger.debug(`_options data: ${JSON.stringify(_options)}`)
+        BStackLogger.debug(`webdriver capabilities data: ${JSON.stringify(capabilities)}`)
+        const configCopy = JSON.parse(JSON.stringify(_config))
+        CrashReporter.recursivelyRedactKeysFromObject(configCopy, ['user', 'username', 'key', 'accesskey', 'password'])
+        BStackLogger.debug(`_config data: ${JSON.stringify(configCopy)}`)
         if (Array.isArray(capabilities)) {
             capabilities
                 .flatMap((c) => {
@@ -111,7 +151,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             }
                         }
 
-                        // Need this details for sending data to Observability
+                        // Need this details for sending data to Test Reporting and Analytics
                         this._buildIdentifier = capability['browserstack.buildIdentifier']?.toString()
                         // @ts-expect-error ToDo: fix invalid cap
                         this._buildName = capability.build?.toString()
@@ -170,9 +210,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (!isUndefined(this._options.accessibility)) {
             this._accessibilityAutomation ||= isTrue(this._options.accessibility)
         }
-        this._options.accessibility = this._accessibilityAutomation as boolean
+        this._options.accessibility = this._accessibilityAutomation
 
-        // by default observability will be true unless specified as false
+        // Default is true unless explicitly set to false
         this._options.testObservability = this._options.testObservability !== false
 
         if (this._options.testObservability
@@ -205,8 +245,88 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_PRE_TEST)
     async onPrepare (config: Options.Testrunner, capabilities: Capabilities.TestrunnerCapabilities | WebdriverIO.Capabilities) {
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.INIT)
+
         // Send Funnel start request
         await sendStart(this.browserStackConfig)
+
+        // Convert glob patterns in specs to resolved relative paths
+        if (config.specs && Array.isArray(config.specs) && isValidEnabledValue(this._options.testOrchestrationOptions?.runSmartSelection?.enabled)) {
+            try {
+                // Import glob for expanding file patterns
+                const glob = (await import('glob')).sync
+                const path = await import('node:path')
+
+                // Use ConfigParser.getFilePaths equivalent logic to expand specs
+                const expandedSpecs: string[] = []
+                for (const specPattern of config.specs) {
+                    if (typeof specPattern === 'string') {
+                        if (specPattern.startsWith('file://')) {
+                            expandedSpecs.push(specPattern)
+                            continue
+                        }
+
+                        // Expand glob pattern to relative paths
+                        const pattern = specPattern.replace(/\\/g, '/')
+                        // Use config.rootDir which is set to the config file's directory
+                        const rootDir = config.rootDir || process.cwd()
+                        // Get current working directory for final relative path calculation
+                        const cwd = process.cwd()
+
+                        const filenames = glob(pattern, {
+                            cwd: rootDir,
+                            matchBase: true
+                        }) || []
+
+                        // Convert paths to be relative to the current working directory (where command is run)
+                        filenames
+                            .forEach((filename: string) => {
+                                let absolutePath = filename
+
+                                // If filename is not absolute, resolve it relative to rootDir (config file's directory)
+                                if (!path.isAbsolute(filename)) {
+                                    absolutePath = path.resolve(rootDir, filename)
+                                }
+
+                                // Make path relative to current working directory
+                                let relativePath = path.relative(cwd, absolutePath)
+
+                                // Normalize path separators for consistency (Windows compatibility)
+                                relativePath = relativePath.replace(/\\/g, '/')
+
+                                expandedSpecs.push(relativePath)
+                            })
+                    }
+                }
+
+                if (expandedSpecs.length > 0) {
+                    BStackLogger.info(`Expanded specs from glob patterns to ${expandedSpecs.length} files`)
+                    config.specs = expandedSpecs
+                }
+            } catch (error) {
+                BStackLogger.error(`Failed to expand spec patterns: ${error}`)
+            }
+        }
+
+        try {
+            // Detect if multi-remote and disable CLI for those sessions
+            const isMultiremote = isMultiRemoteCaps(capabilities as Capabilities.TestrunnerCapabilities)
+            process.env.BROWSERSTACK_IS_MULTIREMOTE = String(isMultiremote)
+
+            if (CLIUtils.checkCLISupportedFrameworks(config.framework) && !isMultiremote) {
+                PerformanceTester.start(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.START)
+                CLIUtils.setFrameworkDetail(WDIO_NAMING_PREFIX + config.framework, 'WebdriverIO')
+                const binconfig = CLIUtils.getBinConfig(config, capabilities as Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedStandaloneCapabilities[], this._options, this._buildTag)
+                await BrowserstackCLI.getInstance().bootstrap(this._options, config, binconfig)
+                BStackLogger.debug(`Is CLI running ${BrowserstackCLI.getInstance().isRunning()}`)
+                PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.START)
+            }
+        } catch (err) {
+            BStackLogger.error(`Error while starting CLI ${err}`)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.START, false, format(err))
+        }
+
+        PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.INIT)
 
         // Setting up healing for those sessions where we don't add the service version capability as it indicates that the session is not being run on BrowserStack
         if (!shouldAddServiceVersion(this._config, this._options.testObservability, capabilities as Capabilities.BrowserStackCapabilities)) {
@@ -236,32 +356,34 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
          * Upload app to BrowserStack if valid file path to app is given.
          * Update app value of capability directly if app_url, custom_id, shareable_id is given
          */
-        if (!this._options.app) {
-            BStackLogger.debug('app is not defined in browserstack-service config, skipping ...')
-        } else {
-            let app: App = {}
-            const appConfig: AppConfig | string = this._options.app
+        if (!BrowserstackCLI.getInstance().isRunning()) {
+            if (!this._options.app) {
+                BStackLogger.debug('app is not defined in browserstack-service config, skipping ...')
+            } else {
+                let app: App = {}
+                const appConfig: AppConfig | string = this._options.app
 
-            try {
-                app = await this._validateApp(appConfig)
-            } catch (error: unknown){
-                throw new SevereServiceError((error as Error).message)
-            }
-
-            if (VALID_APP_EXTENSION.includes(path.extname(app.app!))){
-                if (fs.existsSync(app.app!)) {
-                    const data: AppUploadResponse = await this._uploadApp(app)
-                    BStackLogger.info(`app upload completed: ${JSON.stringify(data)}`)
-                    app.app = data.app_url
-                } else if (app.customId){
-                    app.app = app.customId
-                } else {
-                    throw new SevereServiceError(`[Invalid app path] app path ${app.app} is not correct, Provide correct path to app under test`)
+                try {
+                    app = await this._validateApp(appConfig)
+                } catch (error: unknown){
+                    throw new SevereServiceError((error as Error).message)
                 }
-            }
 
-            BStackLogger.info(`Using app: ${app.app}`)
-            this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'app', app.app)
+                if (VALID_APP_EXTENSION.includes(path.extname(app.app!))){
+                    if (fs.existsSync(app.app!)) {
+                        const data: AppUploadResponse = await this._uploadApp(app)
+                        BStackLogger.info(`app upload completed: ${JSON.stringify(data)}`)
+                        app.app = data.app_url
+                    } else if (app.customId){
+                        app.app = app.customId
+                    } else {
+                        throw new SevereServiceError(`[Invalid app path] app path ${app.app} is not correct, Provide correct path to app under test`)
+                    }
+                }
+
+                BStackLogger.info(`Using app: ${app.app}`)
+                this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'app', app.app)
+            }
         }
 
         /**
@@ -284,7 +406,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
 
         let buildStartResponse = null
-        if (this._options.testObservability || this._accessibilityAutomation || shouldSetupPercy) {
+        if (!BrowserstackCLI.getInstance().isRunning() && (this._options.testObservability || this._accessibilityAutomation || shouldSetupPercy)) {
             BStackLogger.debug('Sending launch start event')
 
             buildStartResponse = await launchTestSession(this._options, this._config, {
@@ -295,8 +417,15 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 buildIdentifier: this._buildIdentifier
             }, this.browserStackConfig, this._accessibilityAutomation)
         }
+
+        //added checks for Accessibility running on non-bstack infra
+        if (isAccessibilityAutomationSession(this._accessibilityAutomation) && (process.env.BROWSERSTACK_TURBOSCALE || !shouldAddServiceVersion(this._config, this._options.testObservability))){
+            const overrideOptions: Partial<Capabilities.ChromeOptions> = accessibilityScripts.ChromeExtension
+            this._updateObjectTypeCaps(capabilities, 'goog:chromeOptions', overrideOptions)
+        }
+
         if (buildStartResponse?.accessibility) {
-            if (this._accessibilityAutomation === null) {
+            if (isUndefined(this._accessibilityAutomation)) {
                 this.browserStackConfig.accessibility = buildStartResponse.accessibility.success as boolean
                 this._accessibilityAutomation = buildStartResponse.accessibility.success as boolean
                 this._options.accessibility = buildStartResponse.accessibility.success as boolean
@@ -306,7 +435,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             }
         }
 
-        this.browserStackConfig.accessibility = this._accessibilityAutomation as boolean
+        this.browserStackConfig.accessibility = this._accessibilityAutomation
 
         if (this._accessibilityAutomation && this._options.accessibilityOptions) {
             const filteredOpts = Object.keys(this._options.accessibilityOptions)
@@ -322,6 +451,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         } else if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
             this._updateObjectTypeCaps(capabilities as Capabilities.TestrunnerCapabilities, 'accessibilityOptions', {})
         }
+
+        this._removeCliOnlyCapabilityOptions(capabilities as Capabilities.TestrunnerCapabilities)
 
         if (shouldSetupPercy) {
             try {
@@ -339,6 +470,63 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'testhubBuildUuid')
         this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'buildProductMap')
+
+        if (isValidEnabledValue(this._options.testOrchestrationOptions?.runSmartSelection?.enabled)){
+        // Helper function to convert specs from cwd-relative to rootDir-relative
+            const convertToRootDirRelative = (specs: string[]): string[] => {
+                const rootDir = config.rootDir || process.cwd()
+                const cwd = process.cwd()
+
+                return specs.map((spec: string) => {
+                    if (typeof spec !== 'string') {
+                        return spec
+                    }
+                    // Convert from cwd-relative to absolute
+                    const absolutePath = path.isAbsolute(spec) ? spec : path.resolve(cwd, spec)
+                    // Then make it relative to rootDir (config file's directory)
+                    const relativePath = path.relative(rootDir, absolutePath)
+                    // Normalize path separators
+                    return relativePath.replace(/\\/g, '/')
+                })
+            }
+
+            // Apply test orchestration if enabled
+            try {
+            // Import dynamically to avoid circular dependencies
+                const { applyOrchestrationIfEnabled } = await import('./testorchestration/apply-orchestration.js')
+
+                if (config.specs && config.specs.length > 0 && this._options.testObservability && isValidEnabledValue(this._options.testOrchestrationOptions?.runSmartSelection?.enabled)) {
+                    BStackLogger.info('Applying test orchestration')
+
+                    // Ensure we're passing string[] to applyOrchestrationIfEnabled
+                    const specs = (config.specs as string[]).filter(spec => typeof spec === 'string')
+                    console.log(`Specs before orchestration: ${specs}`)
+
+                    const orderedSpecs = await applyOrchestrationIfEnabled(specs, this._options)
+                    console.log(`Specs after orchestration before conversion: ${orderedSpecs}`)
+
+                    // Use ordered specs if available, otherwise use original specs
+                    const specsToConvert = orderedSpecs && orderedSpecs.length > 0 ? orderedSpecs : specs
+                    config.specs = convertToRootDirRelative(specsToConvert)
+
+                    console.log(`Specs after orchestration: ${config.specs}`)
+                    BStackLogger.info('Test specs updated with orchestrated order')
+                }
+            } catch (error) {
+                BStackLogger.error(`Error applying test orchestration: ${error}`)
+                // On error, we still need to convert specs from cwd-relative to rootDir-relative
+                if (config.specs && config.specs.length > 0) {
+                    const specs = (config.specs as string[]).filter(spec => typeof spec === 'string')
+                    config.specs = convertToRootDirRelative(specs)
+                    BStackLogger.debug(`Specs converted back to rootDir-relative after error: ${config.specs}`)
+                }
+            }
+        }
+
+        // local binary will be handled by CLI
+        if (BrowserstackCLI.getInstance().isRunning()) {
+            return
+        }
 
         if (!this._options.browserstackLocal) {
             return BStackLogger.info('browserstackLocal is not enabled - skipping...')
@@ -392,32 +580,56 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP)
     async onComplete () {
-        BStackLogger.debug('Inside OnComplete hook..')
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP)
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_ON_STOP)
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.STOP)
 
-        BStackLogger.debug('Sending stop launch event')
-        await stopBuildUpstream()
-        if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
-            console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
-        }
-        this.browserStackConfig.testObservability.buildStopped = true
-
-        await PerformanceTester.stopAndGenerate('performance-launcher.html')
-        if (process.env[PERF_MEASUREMENT_ENV]) {
-            PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
-
-            if (!process.env.START_TIME) {
-                return
-            }
-            const duration = (new Date()).getTime() - (new Date(process.env.START_TIME)).getTime()
-            BStackLogger.info(`Total duration is ${duration / 1000} s`)
-        }
-
-        BStackLogger.info(`BrowserStack service run ended for id: ${this.browserStackConfig?.sdkRunID} testhub id: ${TestOpsConfig.getInstance()?.buildHashedId}`)
-        await sendFinish(this.browserStackConfig)
         try {
-            await this._uploadServiceLogs()
+            const isCLIEnabled = BrowserstackCLI.getInstance().isRunning()
+            BStackLogger.debug('Inside OnComplete hook..')
+            BStackLogger.debug('Sending stop launch event')
+            try {
+                await (isCLIEnabled ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
+                PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.STOP)
+            } catch (err) {
+                BStackLogger.error(`Error while stopping CLI ${err}`)
+                PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.STOP, false, format(err))
+            }
+            if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
+                console.log(`\nVisit https://automation.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
+            }
+            this.browserStackConfig.testObservability.buildStopped = true
+
+            await PerformanceTester.stopAndGenerate('performance-launcher.html')
+            if (process.env[PERF_MEASUREMENT_ENV]) {
+                PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
+
+                if (!process.env.START_TIME) {
+                    return
+                }
+                const duration = (new Date()).getTime() - (new Date(process.env.START_TIME)).getTime()
+                BStackLogger.info(`Total duration is ${duration / 1000} s`)
+            }
+
+            BStackLogger.info(`BrowserStack service run ended for id: ${this.browserStackConfig?.sdkRunID} testhub id: ${TestOpsConfig.getInstance()?.buildHashedId}`)
+            await sendFinish(this.browserStackConfig, isCLIEnabled)
+            try {
+                PerformanceTester.start(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_SEND_LOGS)
+                await this._uploadServiceLogs()
+                PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_SEND_LOGS)
+            } catch (error) {
+                BStackLogger.debug(`Failed to upload BrowserStack WDIO Service logs ${error}`)
+                PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_SEND_LOGS, false, format(error))
+            }
+
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_ON_STOP)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP)
+            await PerformanceTester.stopAndGenerate('performance-launcher.html')
         } catch (error) {
-            BStackLogger.debug(`Failed to upload BrowserStack WDIO Service logs ${error}`)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_ON_STOP, false, format(error))
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP, false, format(error))
+            await PerformanceTester.stopAndGenerate('performance-launcher.html')
+            BStackLogger.error(`Error in onComplete hook: ${error}`)
         }
 
         BStackLogger.clearLogger()
@@ -427,12 +639,19 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             PercyLogger.clearLogger()
         }
 
+        // local binary will be handled by CLI
+        if (BrowserstackCLI.getInstance().isRunning()) {
+            return
+        }
+
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
         }
 
         if (this._options.forcedStop) {
-            return process.kill(this.browserstackLocal.pid as number)
+            const pid = this.browserstackLocal.pid as number
+            process.kill(pid)
+            return pid
         }
 
         let timer: NodeJS.Timeout
@@ -512,7 +731,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         const form = new FormData()
         if (app.app) {
             const fileName = path.basename(app.app)
-            const fileBlob = new Blob([await readFile(app.app)])
+            const fileBuffer = await readFile(app.app)
+            const fileBlob = new Blob([new Uint8Array(fileBuffer)])
             form.append('file', fileBlob, fileName)
         }
         if (app.customId) {
@@ -565,6 +785,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     async _uploadServiceLogs() {
+        // uploadLogs records the SDK_UPLOAD_LOGS event with status/failure for every
+        // return path (no creds, archive failure, upload no-response, exception), so
+        // measureWrapper is no longer needed here.
         const clientBuildUuid = this._getClientBuildUuid()
         const response = await uploadLogs(getBrowserStackUser(this._config), getBrowserStackKey(this._config), clientBuildUuid)
         if (response) {
@@ -573,7 +796,42 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
-    _updateObjectTypeCaps(capabilities?: Capabilities.TestrunnerCapabilities, capType?: string, value?: { [key: string]: unknown }) {
+    private _removeCliOnlyCapabilityOptions(capabilities?: Capabilities.TestrunnerCapabilities | WebdriverIO.Capabilities) {
+        if (!capabilities || typeof capabilities !== 'object') {
+            return
+        }
+
+        const strip = (capability: WebdriverIO.Capabilities) => {
+            const capabilityRecord = capability as Record<string, unknown>
+            const bstackOptions = capabilityRecord['bstack:options'] as Record<string, unknown> | undefined
+            if (bstackOptions && typeof bstackOptions === 'object') {
+                NOT_ALLOWED_KEYS_IN_CAPS.forEach(key => delete bstackOptions[key])
+            }
+            NOT_ALLOWED_KEYS_IN_CAPS.forEach(key => delete capabilityRecord[`browserstack.${key}`])
+
+            const alwaysMatch = (capability as WebdriverIO.Capabilities & { alwaysMatch?: WebdriverIO.Capabilities }).alwaysMatch
+            if (alwaysMatch && typeof alwaysMatch === 'object') {
+                strip(alwaysMatch)
+            }
+        }
+
+        if (Array.isArray(capabilities)) {
+            capabilities
+                .flatMap((c) => {
+                    if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
+                        return Object.values(c).map((o) => o.capabilities) as WebdriverIO.Capabilities[]
+                    }
+                    return c as WebdriverIO.Capabilities
+                })
+                .forEach(strip)
+        } else {
+            Object.entries(capabilities as Capabilities.RequestedMultiremoteCapabilities).forEach(([, caps]) => {
+                strip(caps.capabilities as WebdriverIO.Capabilities)
+            })
+        }
+    }
+
+    _updateObjectTypeCaps(capabilities?: Capabilities.TestrunnerCapabilities | WebdriverIO.Capabilities, capType?: string, value?: { [key: string]: unknown }) {
         try {
             if (Array.isArray(capabilities)) {
                 capabilities
@@ -588,6 +846,19 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         return c as WebdriverIO.Capabilities
                     })
                     .forEach((capability: WebdriverIO.Capabilities) => {
+                        if (
+                            validateCapsWithNonBstackA11y(capability.browserName, capability.browserVersion) &&
+                            capType === 'goog:chromeOptions' && value
+                        ) {
+                            const chromeOptions =  capability['goog:chromeOptions'] as unknown as Capabilities.ChromeOptions
+                            if (chromeOptions){
+                                const finalChromeOptions = mergeChromeOptions(chromeOptions, value)
+                                capability['goog:chromeOptions'] = finalChromeOptions
+                            } else {
+                                capability['goog:chromeOptions'] = value
+                            }
+                            return
+                        }
                         if (!capability['bstack:options']) {
                             const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
                             if (extensionCaps.length) {
@@ -622,6 +893,22 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     })
             } else if (typeof capabilities === 'object') {
                 Object.entries(capabilities as Capabilities.RequestedMultiremoteCapabilities).forEach(([, caps]) => {
+                    if (
+                        validateCapsWithNonBstackA11y(
+                            (caps.capabilities as WebdriverIO.Capabilities).browserName,
+                            (caps.capabilities as WebdriverIO.Capabilities).browserVersion
+                        ) &&
+                        capType === 'goog:chromeOptions' && value
+                    ) {
+                        const chromeOptions = (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] as unknown as Capabilities.ChromeOptions
+                        if (chromeOptions) {
+                            const finalChromeOptions = mergeChromeOptions(chromeOptions, value);
+                            (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] = finalChromeOptions
+                        } else {
+                            (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] = value
+                        }
+                        return
+                    }
                     if (!(caps.capabilities as WebdriverIO.Capabilities)['bstack:options']) {
                         const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                         if (extensionCaps.length) {

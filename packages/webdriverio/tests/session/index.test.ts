@@ -47,6 +47,7 @@ describe('webdriverio session manager', () => {
         expect(getShadowRootManager).not.toBeCalledWith(browser)
         expect(getNetworkManager).not.toBeCalledWith(browser)
         expect(getDialogManager).not.toBeCalledWith(browser)
-        expect(getContextManager).not.toBeCalledWith(browser)
+        // ContextManager is always registered for caching current window handle
+        expect(getContextManager).toBeCalledWith(browser)
     })
 })

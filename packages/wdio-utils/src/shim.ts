@@ -38,7 +38,7 @@ interface WebdriverIOInstance extends Services.Hooks {
     [i: number]: WebdriverIOInstance
 }
 
-export async function executeHooksWithArgs<T> (this: unknown, hookName: string, hooks: Function | Function[] = [], args: unknown[] = []): Promise<(T | Error)[]> {
+export async function executeHooksWithArgs<T>(this: unknown, hookName: string, hooks: Function | Function[] = [], args: unknown[] = []): Promise<(T | Error)[]> {
     /**
      * make sure hooks are an array of functions
      */
@@ -147,7 +147,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
         return commandResult
     }
 
-    function wrapElementFn (promise: Promise<WebdriverIO.Browser>, cmd: Function, args: unknown[], prevInnerArgs?: { prop: string | number, args: unknown[] }): unknown {
+    function wrapElementFn(promise: Promise<WebdriverIO.Browser>, cmd: Function, args: unknown[], prevInnerArgs?: { prop: string | number, args: unknown[] }): unknown {
         return new Proxy(
             Promise.resolve(promise).then((ctx: WebdriverIO.Browser) => cmd.call(ctx, ...args)),
             {
@@ -155,11 +155,11 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                     /**
                      * handle symbols, e.g. async iterators
                      */
-                    if (typeof prop === 'symbol'|| prop === 'entries') {
+                    if (typeof prop === 'symbol' || prop === 'entries') {
                         return () => ({
                             i: 0,
                             target,
-                            async next () {
+                            async next() {
                                 const elems = await this.target
                                 if (!Array.isArray(elems)) {
                                     throw new Error('Can not iterate over non array')
@@ -239,13 +239,13 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                      * ```
                      */
                     if (commandName.endsWith('$$') && typeof iterators[prop as keyof typeof iterators] === 'function') {
-                        return (mapIterator: Function) => wrapElementFn(
+                        return (...iteratorArgs: [Function, ...unknown[]]) => wrapElementFn(
                             target,
-                            function (this: never, mapIterator: Function) {
+                            function (this: never, ...iteratorArgs: [Function, ...unknown[]]) {
                                 // @ts-ignore
-                                return iterators[prop](this, mapIterator)
+                                return iterators[prop](this, ...iteratorArgs)
                             },
-                            [mapIterator]
+                            iteratorArgs
                         )
                     }
 
@@ -352,8 +352,17 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
  * @param  {number}   timeout    The maximum time (in milliseconds) to wait for the function to complete
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-export async function executeAsync(this: WebdriverIOInstance, fn: Function, retries: Frameworks.TestRetries, args: unknown[] = [], timeout: number = 20000): Promise<unknown> {
+export async function executeAsync(
+    this: WebdriverIOInstance,
+    fn: Function,
+    retries: Frameworks.TestRetries,
+    args: unknown[] = [],
+    timeout: number = 20000
+): Promise<unknown> {
     this.wdioRetries = retries.attempts
+
+    let done = false
+    let timer: ReturnType<typeof setTimeout> | undefined
 
     try {
         /**
@@ -362,16 +371,18 @@ export async function executeAsync(this: WebdriverIOInstance, fn: Function, retr
          * window of time for an operation to complete before triggering a timeout. This approach ensures that test results are handled
          * properly without affecting the overall test execution timing.
          */
-        // @ts-expect-error
-        const _timeout = (this?._runnable?._timeout || globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL || timeout) - TIME_BUFFER
+        // @ts-expect-error - _runnable is set by Mocha/Jasmine at runtime
+        const runnableTimeout = this?._runnable?._timeout
+        // @ts-expect-error - jasmine is set by Jasmine at runtime
+        const frameworkTimeout = runnableTimeout ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
+        const _timeout = (frameworkTimeout ?? timeout) - TIME_BUFFER
         /**
          * Executes the function with specified timeout and returns the result, or throws an error if the timeout is exceeded.
          */
-        let done = false
         const result = await Promise.race([
             fn.apply(this, args),
             new Promise<void>((resolve, reject) => {
-                setTimeout(() => {
+                timer = setTimeout(() => {
                     if (done) {
                         resolve()
                     } else {
@@ -381,6 +392,9 @@ export async function executeAsync(this: WebdriverIOInstance, fn: Function, retr
             })
         ])
         done = true
+        if (timer) {
+            clearTimeout(timer)
+        }
 
         if (result !== null && typeof result === 'object' && 'finally' in result && typeof result.finally === 'function') {
             result.catch((err: unknown) => err)
@@ -388,9 +402,16 @@ export async function executeAsync(this: WebdriverIOInstance, fn: Function, retr
 
         return await result
     } catch (err) {
+        done = true
+        /**
+         * ensure we don't leak the timeout timer into follow-up retries
+         */
+        if (timer) {
+            clearTimeout(timer)
+        }
         if (retries.limit > retries.attempts) {
             retries.attempts++
-            return await executeAsync.call(this, fn, retries, args)
+            return await executeAsync.call(this, fn, retries, args, timeout)
         }
 
         throw err

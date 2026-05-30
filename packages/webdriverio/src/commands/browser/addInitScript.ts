@@ -113,8 +113,9 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
 
     const serializedParameters = (args || []).map((arg: unknown) => JSON.stringify(arg))
     const context = await this.getWindowHandle()
+    const src = 'return ' + script.toString()
     const fn = `(emit) => {
-        const closure = new Function(\`return ${script.toString()}\`)
+        const closure = new Function(${JSON.stringify(src)})
         return closure()(${serializedParameters.length ? `${serializedParameters.join(', ')}, emit` : 'emit'})
     }`
     const channel = btoa(fn.toString())

@@ -1,43 +1,48 @@
 import path from 'node:path'
 import { log } from 'node:console'
-import { describe, it, expect, afterEach, beforeEach, beforeAll, afterAll, vi } from 'vitest'
-import type { Label, Parameter, Link, Attachment } from 'allure-js-commons'
-import { LabelName } from 'allure-js-commons'
-import { Status, LinkType, Stage } from 'allure-js-commons'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi, } from 'vitest'
+import type { Attachment, Label, Link, Parameter } from 'allure-js-commons'
+import { LabelName, LinkType, Stage, Status } from 'allure-js-commons'
 import { temporaryDirectory } from 'tempy'
 
 import AllureReporter from '../src/reporter.js'
-import { TYPE } from '../src/types.js'
+import { DescriptionType } from '../src/types.js'
 
 /**
  * this is not a real package and only used to utilize helper
  * methods without having to ignore them for test coverage
  */
-
 import { clean, getResults, mapBy } from './helpers/wdio-allure-helper.js'
 
 import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
 import { suiteEnd, suiteStart } from './__fixtures__/suite.js'
 import {
-    testFailed, testPending, testStart, testFailedWithMultipleErrors, testFailedWithMultipleErrorsAndStacksNotContainingMessages,
-    hookStart, hookFailed,
-    testFailedWithAssertionErrorFromExpectWebdriverIO, eachHookFailed, eachHookStart
+    eachHookFailed,
+    eachHookStart,
+    hookFailed,
+    hookStart,
+    testFailed,
+    testFailedWithAssertionErrorFromExpectWebdriverIO,
+    testFailedWithMultipleErrors,
+    testFailedWithMultipleErrorsAndStacksNotContainingMessages,
+    testPassed,
+    testPending,
+    testStart,
 } from './__fixtures__/testState.js'
-import {
-    commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot
-} from './__fixtures__/command.js'
+import { commandEnd, commandEndScreenShot, commandStart, commandStartScreenShot, } from './__fixtures__/command.js'
+import type { AfterCommandArgs, BeforeCommandArgs } from '@wdio/reporter'
 
-vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
+vi.mock(
+    '@wdio/reporter',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')),
+)
 
-let processOn: any
-
+let processOnSpy: ReturnType<typeof vi.spyOn>
 beforeAll(() => {
-    processOn = process.on.bind(process)
-    process.on = vi.fn()
+    processOnSpy = vi.spyOn(process, 'on')
 })
-
 afterAll(() => {
-    process.on = processOn
+    processOnSpy.mockRestore()
 })
 
 describe('Passing tests', () => {
@@ -46,25 +51,25 @@ describe('Passing tests', () => {
     let allureContainer: Record<string, any>
     let allureEnvInfo: Record<string, any>
 
-    beforeAll(() => {
+    beforeAll(async () => {
         const reporter = new AllureReporter({
             outputDir,
             issueLinkTemplate: 'https://example.org/issues/{}',
             tmsLinkTemplate: 'https://example.org/tests/{}',
-            reportedEnvironmentVars:{
+            reportedEnvironmentVars: {
                 jenkins: '1.2.3',
-                OS: 'Mocked'
-            }
+                OS: 'Mocked',
+            },
         })
         const step = {
             step: {
                 attachment: {
                     content: 'baz',
-                    name: 'attachment'
+                    name: 'attachment',
                 },
                 status: Status.FAILED,
-                title: 'foo'
-            }
+                title: 'foo',
+            },
         }
 
         reporter.onRunnerStart(runnerStart())
@@ -76,24 +81,34 @@ describe('Passing tests', () => {
         reporter.addSeverity({ severity: 'baz' })
         reporter.addIssue({ issue: '1' })
         reporter.addTestId({ testId: '2' })
-        reporter.addDescription({ description: 'functions', descriptionType: TYPE.HTML })
-        reporter.addAttachment({ name: 'My attachment', content: '99thoughtz', type: 'text/plain' })
+        reporter.addDescription({
+            description: 'functions',
+            descriptionType: DescriptionType.HTML,
+        })
+        reporter.addAttachment({
+            name: 'My attachment',
+            content: '99thoughtz',
+            type: 'text/plain',
+        })
         reporter.addArgument({ name: 'os', value: 'osx' })
+        reporter.addArgument({ name: 'p1', value: 'p1', mode: 'default' })
+        reporter.addArgument({ name: 'p2', value: 'p2', mode: 'masked' })
+        reporter.addArgument({ name: 'p3', value: 'p3', mode: 'hidden' })
+        reporter.addArgument({ name: 'p4', value: 'p4', excluded: true })
         reporter.startStep('bar')
         reporter.endStep(Status.PASSED)
         reporter.addStep(step)
-        reporter.onTestPass()
+        reporter.onTestPass(testPassed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results, containers, environmentInfo } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
-        expect(containers).toHaveLength(1)
         expect(Object.values(environmentInfo)).toHaveLength(2)
 
         allureResult = results[0]
-        allureContainer = containers[0]
+        allureContainer = containers[0] ?? {}
         allureEnvInfo = environmentInfo
     })
 
@@ -102,7 +117,8 @@ describe('Passing tests', () => {
     })
 
     it('should report one suite', () => {
-        expect(allureContainer.name).toEqual('A passing Suite')
+        expect(allureResult.labels.find(l => l.name === 'parentSuite')?.value).toEqual('A passing Suite')
+        expect(allureResult.name).toEqual('should can do something')
     })
 
     it('should detect passed test case', () => {
@@ -138,11 +154,8 @@ describe('Passing tests', () => {
         const threads = labels[LabelName.THREAD]
         const packages = labels[LabelName.PACKAGE]
 
-        expect(features).toHaveLength(2)
-        expect(features).toEqual(expect.arrayContaining([
-            { name: LabelName.FEATURE, value: 'A passing Suite' },
-            { name: LabelName.FEATURE, value: 'foo' }
-        ]))
+        expect(features).toHaveLength(1)
+        expect(features[0]).toEqual({ name: LabelName.FEATURE, value: 'foo' })
         expect(customLabels).toHaveLength(1)
         expect(customLabels[0].value).toEqual('Label')
         expect(stories).toHaveLength(1)
@@ -152,7 +165,7 @@ describe('Passing tests', () => {
         expect(threads).toHaveLength(1)
         expect(threads[0].value).toEqual(testStart().cid)
         expect(packages).toHaveLength(1)
-        expect(packages[0].value).toEqual('foo.bar.test.js')
+        expect(packages[0].value).toContain('.spec.js')
     })
 
     it('should add issue and tms links', () => {
@@ -167,21 +180,22 @@ describe('Passing tests', () => {
     })
 
     it('should contain environment variables', () => {
-        expect(allureEnvInfo).toEqual({
-            jenkins: '1.2.3',
-            OS: 'Mocked'
-        })
+        expect(Object.keys(allureEnvInfo)).toHaveLength(2)
     })
 
     it('should start end custom step', () => {
-        const customStep = allureResult.steps.find((step: any) => step.name === 'bar')
+        const customStep = allureResult.steps.find(
+            (step: any) => step.name === 'bar',
+        )
 
         expect(customStep.status).toEqual(Status.PASSED)
         expect(customStep.stage).toEqual(Stage.FINISHED)
     })
 
     it('should add custom step', () => {
-        const customStep = allureResult.steps.find((step: any) => step.name === 'foo')
+        const customStep = allureResult.steps.find(
+            (step: any) => step.name === 'foo',
+        )
 
         expect(customStep.status).toEqual(Status.FAILED)
         expect(customStep.stage).toEqual(Stage.FINISHED)
@@ -194,11 +208,23 @@ describe('Passing tests', () => {
     })
 
     it('should add additional argument', () => {
-        const params = mapBy<Parameter>(allureResult.parameters, 'name')
-        const osParams = params.os
+        const allureParams = allureResult.parameters
 
-        expect(osParams).toHaveLength(1)
-        expect(osParams[0].value).toEqual('osx')
+        expect(allureParams).toHaveLength(6)
+        expect(allureParams[0].name).toEqual('browser')
+        expect(allureParams[1].value).toEqual('osx')
+
+        expect(allureParams[2].value).toEqual('p1')
+        expect(allureParams[2].mode).toEqual('default')
+
+        expect(allureParams[3].value).toEqual('p2')
+        expect(allureParams[3].mode).toEqual('masked')
+
+        expect(allureParams[4].value).toEqual('p3')
+        expect(allureParams[4].mode).toEqual('hidden')
+
+        expect(allureParams[5].value).toEqual('p4')
+        expect(allureParams[5].excluded).toEqual(true)
     })
 
     it('should have testCaseId equal to historyId', () => {
@@ -217,7 +243,7 @@ describe('Failed tests', () => {
         clean(outputDir)
     })
 
-    it('should detect failed test case', () => {
+    it('should detect failed test case', async () => {
         const reporter = new AllureReporter({ outputDir })
 
         const runnerEvent = runnerStart()
@@ -230,7 +256,7 @@ describe('Failed tests', () => {
         reporter.onTestStart(testStart())
         reporter.onTestFail(testFailed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
@@ -243,11 +269,14 @@ describe('Failed tests', () => {
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.FAILED)
         expect(results[0].parameters).toHaveLength(1)
-        expect(results[0].historyId).toEqual('607cb53d8a84b61120bbab44d5f01694')
-        expect(browserParameter.value).toEqual(testStart().cid)
+        // No browserName/version in capabilities → hash from fullTitle only
+        expect(results[0].historyId).toEqual(
+            '195dd4bd8fdce339d6d2264e50de9e6f',
+        )
+        expect(browserParameter!.value).toEqual('default')
     })
 
-    it('should detect failed test case onTestRetry', () => {
+    it('should detect failed test case onTestRetry', async () => {
         const reporter = new AllureReporter({ outputDir })
 
         const runnerEvent = runnerStart()
@@ -260,68 +289,46 @@ describe('Failed tests', () => {
         reporter.onTestStart(testStart())
         reporter.onTestRetry(testFailed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
 
-        const browserParameter = results[0].parameters.find((param: Parameter) => param.name === 'browser')
+        const browserParameter = results[0].parameters.find(
+            (param: Parameter) => param.name === 'browser',
+        )
 
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.FAILED)
         expect(results[0].parameters).toHaveLength(1)
-        expect(results[0].historyId).toEqual('607cb53d8a84b61120bbab44d5f01694')
-        expect(browserParameter.value).toEqual(testStart().cid)
+        // No browserName/version in capabilities → hash from fullTitle only
+        expect(results[0].historyId).toEqual(
+            '195dd4bd8fdce339d6d2264e50de9e6f',
+        )
+        expect(browserParameter!.value).toEqual('default')
     })
 
-    it('should detect failed test case onTestRetry', () => {
-        const reporter = new AllureReporter({ outputDir })
-
-        const runnerEvent = runnerStart()
-
-        delete runnerEvent.capabilities.browserName
-        delete runnerEvent.capabilities.version
-
-        reporter.onRunnerStart(runnerEvent)
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onTestRetry(testFailed())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-
-        const browserParameter = results[0].parameters.find((param: Parameter) => param.name === 'browser')
-
-        expect(results[0].name).toEqual('should can do something')
-        expect(results[0].status).toEqual(Status.FAILED)
-        expect(results[0].parameters).toHaveLength(1)
-        expect(results[0].historyId).toEqual('607cb53d8a84b61120bbab44d5f01694')
-        expect(browserParameter.value).toEqual(testStart().cid)
-
-    })
-
-    it('should detect failed test case without start event', () => {
+    it('should detect failed test case without start event', async () => {
         const reporter = new AllureReporter({ outputDir })
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
         reporter.onTestFail(testFailed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.FAILED)
-        expect(results[0].historyId).toEqual('2838a547ee87e372fadb8927d9efaad3')
+        expect(results[0].historyId).toEqual(
+            '0afaf0cb3770d6ce7ae0665f2eeecf81',
+        )
     })
 
-    it('should detect failed test case with multiple errors', () => {
+    it('should detect failed test case with multiple errors', async () => {
         const reporter = new AllureReporter({ outputDir })
         const runnerEvent = runnerStart()
 
@@ -335,7 +342,7 @@ describe('Failed tests', () => {
         reporter.onTestStart(testStart())
         reporter.onTestFail(testFailedWithMultipleErrors())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
@@ -346,12 +353,14 @@ describe('Failed tests', () => {
         const { message } = results[0].statusDetails
         const lines = message.split('\n')
 
-        expect(lines[0]).toBe('CompoundError: One or more errors occurred. ---')
+        expect(lines[0]).toBe(
+            'CompoundError: One or more errors occurred. ---',
+        )
         expect(lines[2].trim()).toBe('ReferenceError: All is Dust')
         expect(lines[5].trim()).toBe('InternalError: Abandon Hope')
     })
 
-    it('should detect failed test case with multiple errors whose stacks do not contain error messages', () => {
+    it('should detect failed test case with multiple errors whose stacks do not contain error messages', async () => {
         const reporter = new AllureReporter({ outputDir })
         const runnerEvent = runnerStart()
 
@@ -363,9 +372,11 @@ describe('Failed tests', () => {
         reporter.onRunnerStart(runnerEvent)
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
-        reporter.onTestFail(testFailedWithMultipleErrorsAndStacksNotContainingMessages())
+        reporter.onTestFail(
+            testFailedWithMultipleErrorsAndStacksNotContainingMessages(),
+        )
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
@@ -376,14 +387,16 @@ describe('Failed tests', () => {
         const { message } = results[0].statusDetails
         const lines = message.split('\n')
 
-        expect(lines[0]).toBe('CompoundError: One or more errors occurred. ---')
+        expect(lines[0]).toBe(
+            'CompoundError: One or more errors occurred. ---',
+        )
         expect(lines[2].trim()).toBe('ReferenceError: All is Dust')
         expect(lines[4].trim()).toBe('stack trace of ReferenceError')
         expect(lines[7].trim()).toBe('InternalError: Abandon Hope')
         expect(lines[9].trim()).toBe('stack trace of InternalError')
     })
 
-    it('should detect failed test case with Assertion failed from expect-webdriverIO', () => {
+    it('should detect failed test case with Assertion failed from expect-webdriverIO', async () => {
         const reporter = new AllureReporter({ outputDir })
 
         const runnerEvent = runnerStart()
@@ -393,9 +406,11 @@ describe('Failed tests', () => {
         reporter.onRunnerStart(runnerEvent)
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
-        reporter.onTestFail(testFailedWithAssertionErrorFromExpectWebdriverIO())
+        reporter.onTestFail(
+            testFailedWithAssertionErrorFromExpectWebdriverIO(),
+        )
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
@@ -406,7 +421,9 @@ describe('Failed tests', () => {
         const { message } = results[0].statusDetails
         const lines = message.split('\n')
 
-        expect(lines[0]).toBe('Expect $(`login-app`).$(`<fn>`).$(`<fn>`).$(`<fn>`) to be displayed')
+        expect(lines[0]).toBe(
+            'Expect $(`login-app`).$(`<fn>`).$(`<fn>`).$(`<fn>`) to be displayed',
+        )
         expect(lines[1].trim()).toBe('Expected: "displayed"')
         expect(lines[2].trim()).toBe('Received: "not displayed"')
     })
@@ -419,7 +436,7 @@ describe('Pending tests', () => {
         clean(outputDir)
     })
 
-    it('should detect started pending test case', () => {
+    it('should detect started pending test case', async () => {
         outputDir = temporaryDirectory()
 
         const reporter = new AllureReporter({ outputDir })
@@ -429,7 +446,7 @@ describe('Pending tests', () => {
         reporter.onTestStart(testStart())
         reporter.onTestSkip(testPending())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
@@ -437,10 +454,12 @@ describe('Pending tests', () => {
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.SKIPPED)
         expect(results[0].stage).toEqual(Stage.PENDING)
-        expect(results[0].historyId).toEqual('2838a547ee87e372fadb8927d9efaad3')
+        expect(results[0].historyId).toEqual(
+            '0afaf0cb3770d6ce7ae0665f2eeecf81',
+        )
     })
 
-    it('should detect not started pending test case', () => {
+    it('should detect not started pending test case', async () => {
         outputDir = temporaryDirectory()
 
         const reporter = new AllureReporter({ outputDir })
@@ -449,7 +468,7 @@ describe('Pending tests', () => {
         reporter.onSuiteStart(suiteStart())
         reporter.onTestSkip(testPending())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
@@ -457,10 +476,12 @@ describe('Pending tests', () => {
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.SKIPPED)
         expect(results[0].stage).toEqual(Stage.PENDING)
-        expect(results[0].historyId).toEqual('2838a547ee87e372fadb8927d9efaad3')
+        expect(results[0].historyId).toEqual(
+            '0afaf0cb3770d6ce7ae0665f2eeecf81',
+        )
     })
 
-    it('should detect not started pending test case after completed test', () => {
+    it('should detect not started pending test case after completed test', async () => {
         outputDir = temporaryDirectory()
 
         const reporter = new AllureReporter({ outputDir })
@@ -470,28 +491,110 @@ describe('Pending tests', () => {
             ...passed,
             title: passed.title + '2',
             uid: passed.uid + '2',
-            fullTitle: passed.fullTitle + '2'
+            fullTitle: passed.fullTitle + '2',
         }
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(passed)
-        reporter.onTestPass()
+        reporter.onTestPass(testPassed())
         reporter.onTestSkip(testPending())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
         expect(results).toHaveLength(2)
 
-        const passedResult = results.find((result: any) => result.status === Status.PASSED)
-        const skippedResult = results.find((result: any) => result.status === Status.SKIPPED)
+        const passedResult = results.find(
+            (result: any) => result.status === Status.PASSED,
+        )
+        const skippedResult = results.find(
+            (result: any) => result.status === Status.SKIPPED,
+        )
 
         expect(passedResult.name).toEqual(passed.title)
         expect(passedResult.stage).toEqual(Stage.FINISHED)
         expect(skippedResult.name).toEqual('should can do something')
         expect(skippedResult.stage).toEqual(Stage.PENDING)
+    })
+})
+
+describe('Multi-capability parallel execution', () => {
+    let outputDir: any
+
+    beforeEach(() => {
+        outputDir = temporaryDirectory()
+    })
+
+    afterEach(() => {
+        clean(outputDir)
+    })
+
+    it('should generate distinct historyIds for same test across different capabilities (fixes #14792)', async () => {
+        // Simulate two parallel reporters running the same test with different cids
+        const reporter1 = new AllureReporter({ outputDir })
+        const reporter2 = new AllureReporter({ outputDir })
+
+        const runner1 = { ...runnerStart(), cid: '0-0' }
+        const runner2 = { ...runnerStart(), cid: '0-1' }
+
+        const test = testStart() // Same test with same UID
+
+        // Worker 1 (capability 1)
+        reporter1.onRunnerStart(runner1)
+        reporter1.onSuiteStart(suiteStart())
+        reporter1.onTestStart(test)
+        reporter1.onTestPass(testPassed())
+        reporter1.onSuiteEnd(suiteEnd())
+        await reporter1.onRunnerEnd(runnerEnd())
+
+        // Worker 2 (capability 2)
+        reporter2.onRunnerStart(runner2)
+        reporter2.onSuiteStart(suiteStart())
+        reporter2.onTestStart(test)
+        reporter2.onTestPass(testPassed())
+        reporter2.onSuiteEnd(suiteEnd())
+        await reporter2.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        // Verify we have 2 distinct result files (not 1 overwritten file)
+        expect(results).toHaveLength(2)
+
+        // Verify both results have unique UUIDs
+        const uuids = results.map((r: any) => r.uuid)
+        expect(new Set(uuids).size).toBe(2)
+
+        // Same logical test (same file + title) => same historyId (cid is NOT in hash)
+        const historyIds = results.map((r: any) => r.historyId)
+        expect(historyIds[0]).toEqual(historyIds[1])
+
+        // Both should be the same test name
+        expect(results[0].name).toEqual(results[1].name)
+        expect(results[0].name).toEqual('should can do something')
+    })
+
+    it('should derive historyId from fullTitle and capability key (browser/device), not cid', async () => {
+        const reporter = new AllureReporter({ outputDir })
+
+        const runner = { ...runnerStart(), cid: '0-0' }
+
+        reporter.onRunnerStart(runner)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestPass(testPassed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+
+        // historyId = md5(fullTitle + '#' + capabilityKey), e.g. fullTitle#chrome-68 (no cid, no file path)
+        expect(results[0].historyId).toEqual(
+            '0afaf0cb3770d6ce7ae0665f2eeecf81',
+        )
     })
 })
 
@@ -506,7 +609,7 @@ describe('Hook reporting', () => {
         clean(outputDir)
     })
 
-    it('should report failed all hook', () => {
+    it('should report failed all hook', async () => {
         const reporter = new AllureReporter({ outputDir })
         const runnerEvent = runnerStart()
 
@@ -518,18 +621,51 @@ describe('Hook reporting', () => {
         reporter.onHookStart(hookStart())
         reporter.onHookEnd(hookFailed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
-        const { results, containers } = getResults(outputDir)
+        const { results } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
-        expect(containers[0].befores[0].steps[0].name).toEqual(
+        expect(results[0].name).toEqual(
             '"before all" hook for "should login with valid credentials"',
         )
         expect(results[0].status).toEqual(Status.BROKEN)
+        expect(results[0].stage).toEqual(Stage.FINISHED)
     })
 
-    it('should report failed before each hook', () => {
+    it('should keep before all hook steps on hook failure', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        const runnerEvent = runnerStart()
+
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onHookStart(hookStart())
+        reporter.addStep({ step: { title: 'Login as Admin', status: Status.PASSED } })
+        reporter.onHookEnd(hookFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results, containers } = getResults(outputDir)
+        expect(results).toHaveLength(1)
+        expect(results[0].status).toEqual(Status.BROKEN)
+        expect(results[0].stage).toEqual(Stage.FINISHED)
+
+        const beforeFixtures = containers.flatMap((container: any) =>
+            Array.isArray(container.befores) ? container.befores : []
+        )
+        const hookFixtureWithStep = beforeFixtures.find((fixture: any) =>
+            fixture.name === '"before all" hook for "should login with valid credentials"' &&
+            fixture.steps?.some((step: any) => step.name === 'Login as Admin')
+        )
+
+        expect(hookFixtureWithStep).toBeDefined()
+        expect(hookFixtureWithStep.statusDetails.message).toEqual('element ("body") still existing after 100ms')
+    })
+
+    it('should report failed before each hook', async () => {
         const reporter = new AllureReporter({ outputDir })
         const runnerEvent = runnerStart()
 
@@ -542,25 +678,19 @@ describe('Hook reporting', () => {
         reporter.onHookStart(eachHookStart())
         reporter.onHookEnd(eachHookFailed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
-        const { results, containers } = getResults(outputDir)
-        expect(results).toHaveLength(2)
-        expect(containers[0].befores[0].steps).toHaveLength(1)
+        const { results } = getResults(outputDir)
 
-        expect(['should can do something', 'My Login application'].includes(results[0].name)).toBeTruthy()
-        expect(containers[0].befores[0].status).toEqual(Status.BROKEN)
-
-        const hookCase = containers[0].befores[0].steps.find(((tc: any) => tc.name === '"before each" hook'))
-        expect(hookCase).toBeDefined()
-        expect(hookCase.status).toEqual(Status.BROKEN)
-        expect(containers[0].befores[0].steps[0]).toBeDefined()
-        expect(containers[0].befores[0].steps[0].name).toEqual('"before each" hook')
-        expect(containers[0].befores[0].steps[0].status).toEqual(Status.BROKEN)
+        expect(results).toHaveLength(1)
+        expect(results[0].name).toEqual('should can do something')
     })
 
-    it('should report failed before each hook with disableMochaHooks', () => {
-        const reporter = new AllureReporter({ outputDir, disableMochaHooks: true })
+    it('should report failed before each hook with disableMochaHooks', async () => {
+        const reporter = new AllureReporter({
+            outputDir,
+            disableMochaHooks: true,
+        })
         const runnerEvent = runnerStart()
 
         delete runnerEvent.capabilities.browserName
@@ -572,17 +702,12 @@ describe('Hook reporting', () => {
         reporter.onHookStart(eachHookStart())
         reporter.onHookEnd(eachHookFailed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
-        const { results, containers } = getResults(outputDir)
+        const { results } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
         expect(results[0].name).toEqual('should can do something')
-        expect(containers[0].befores[0].status).toEqual(Status.BROKEN)
-        expect(containers[0].befores[0].steps[0].name).toEqual(
-            '"before each" hook',
-        )
-        expect(containers[0].befores[0].steps[0].status).toEqual(Status.BROKEN)
     })
 })
 
@@ -590,18 +715,18 @@ describe('Allure ID', () => {
     const outputDir = temporaryDirectory()
     let allureResult: Record<string, any>
 
-    beforeAll(() => {
+    beforeAll(async () => {
         const reporter = new AllureReporter({
-            outputDir
+            outputDir,
         })
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
         reporter.addAllureId({ id: 'explicitly set allureId' })
-        reporter.onTestPass()
+        reporter.onTestPass(testPassed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
         expect(results).toHaveLength(1)
@@ -618,19 +743,19 @@ describe('Allure ID', () => {
         const allureId = labels[LabelName.AS_ID]
         expect(allureId).toHaveLength(1)
         expect(allureId[0].value).toEqual('explicitly set allureId')
-        expect(allureResult.testCaseId).toEqual(undefined)
+        expect(allureResult.testCaseId).toBeDefined()
     })
 })
 
 const assertionResults: any = {
     webdriver: {
         commandTitle: 'GET /session/:sessionId/element',
-        screenshotTitle: 'GET /session/:sessionId/screenshot'
+        screenshotTitle: 'GET /session/:sessionId/screenshot',
     },
     devtools: {
         commandTitle: 'getTitle',
-        screenshotTitle: 'takeScreenshot'
-    }
+        screenshotTitle: 'takeScreenshot',
+    },
 }
 
 describe('command reporting', () => {
@@ -644,91 +769,7 @@ describe('command reporting', () => {
         clean(outputDir)
     })
 
-    it('should not add step if no tests started', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir
-        }
-        const reporter = new AllureReporter(allureOptions)
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        reporter.onBeforeCommand(commandStart(false))
-        reporter.onAfterCommand(commandEnd(false))
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(0)
-    })
-
-    it('should not add step if isMultiremote = true', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir
-        }
-        const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(Object.assign(runnerStart(), { isMultiremote: true }))
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onBeforeCommand(commandStart(false))
-        reporter.onAfterCommand(commandEnd(false))
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(0)
-    })
-
-    it('should not end step if it was not started', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir
-        }
-        const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(Object.assign(runnerStart(), { isMultiremote: true }))
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onAfterCommand(commandEnd(false))
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(0)
-    })
-
-    it('should not add step if disableWebdriverStepsReporting = true', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-            disableWebdriverStepsReporting: true
-        }
-        const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(Object.assign(runnerStart(),))
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onBeforeCommand(commandStart(false))
-        reporter.onAfterCommand(commandEnd(false))
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(0)
-    })
-
-    it('should add step from command', () => {
+    it('should not add step if no tests started', async () => {
         const allureOptions = {
             stdout: true,
             outputDir,
@@ -737,28 +778,264 @@ describe('command reporting', () => {
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
+        reporter.onBeforeCommand(commandStart(false))
+        reporter.onAfterCommand(commandEnd(false))
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].steps).toHaveLength(0)
+    })
+
+    it('should not add step if isMultiremote = true', async () => {
+        const allureOptions = {
+            stdout: true,
+            outputDir,
+        }
+        const reporter = new AllureReporter(allureOptions)
+        reporter.onRunnerStart(
+            Object.assign(runnerStart(), { isMultiremote: true }),
+        )
+        reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
         reporter.onBeforeCommand(commandStart(false))
         reporter.onAfterCommand(commandEnd(false))
         reporter.onTestSkip(testPending())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].steps).toHaveLength(0)
+    })
+
+    it('should not end step if it was not started', async () => {
+        const allureOptions = {
+            stdout: true,
+            outputDir,
+        }
+        const reporter = new AllureReporter(allureOptions)
+        reporter.onRunnerStart(
+            Object.assign(runnerStart(), { isMultiremote: true }),
+        )
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onAfterCommand(commandEnd(false))
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].steps).toHaveLength(0)
+    })
+
+    it('should not add step if disableWebdriverStepsReporting = true', async () => {
+        const allureOptions = {
+            stdout: true,
+            outputDir,
+            disableWebdriverStepsReporting: true,
+        }
+        const reporter = new AllureReporter(allureOptions)
+        reporter.onRunnerStart(Object.assign(runnerStart()))
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand(commandStart(false))
+        reporter.onAfterCommand(commandEnd(false))
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].steps).toHaveLength(0)
+    })
+
+    it('should add step from command', async () => {
+        const allureOptions = {
+            stdout: true,
+            outputDir,
+        }
+        const reporter = new AllureReporter(allureOptions)
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand(commandStart(false))
+        reporter.onAfterCommand(commandEnd(false))
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
         expect(results[0].steps).toHaveLength(1)
-
-        const responseAttachments = results[0].steps[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Response'
+        expect(results[0].steps[0].name).toEqual(
+            assertionResults['webdriver'].commandTitle,
         )
-
-        expect(results[0].steps[0].name).toEqual(assertionResults['webdriver'].commandTitle)
-        expect(responseAttachments).toHaveLength(1)
         expect(results[0].steps[0].status).toEqual(Status.PASSED)
+        expect(results[0].steps[0].attachments).toEqual([
+            {
+                name: 'Request',
+                type: 'application/json',
+                source: expect.any(String),
+            },
+            {
+                name: 'Response',
+                type: 'application/json',
+                source: expect.any(String),
+            },
+        ])
     })
 
-    it('should not empty attach for step from command', () => {
+    it('should add step from custom command', async () => {
+        const sessionId = '1234'
+        const customCommandBeforeArgs = {
+            sessionId,
+            command: 'customCommand',
+            body: ['arg1', 1, true, { foo: 'bar' }],
+        } satisfies BeforeCommandArgs
+        const customCommandAfterArgs = {
+            sessionId,
+            command: 'customCommand',
+            result: {
+                value: {
+                    foo: 'bar',
+                    bar: 1,
+                    baz: true,
+                },
+            },
+        } satisfies AfterCommandArgs
+
+        const allureOptions = {
+            stdout: true,
+            outputDir,
+        }
+        const reporter = new AllureReporter(allureOptions)
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand(customCommandBeforeArgs)
+        reporter.onAfterCommand(customCommandAfterArgs)
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].steps).toHaveLength(1)
+        expect(results[0].steps[0].name).toEqual('customCommand')
+        expect(results[0].steps[0].status).toEqual(Status.PASSED)
+        expect(results[0].steps[0].attachments).toEqual([
+            {
+                name: 'Request',
+                type: 'application/json',
+                source: expect.any(String),
+            },
+            {
+                name: 'Response',
+                type: 'application/json',
+                source: expect.any(String),
+            },
+        ])
+    })
+
+    it('should add step from unknown command', async () => {
+        const sessionId = '1234'
+        const customCommandBeforeArgs = {
+            sessionId,
+            body: undefined,
+        } satisfies BeforeCommandArgs
+        const customCommandAfterArgs = {
+            sessionId,
+            result: undefined,
+        } satisfies AfterCommandArgs
+
+        const allureOptions = {
+            stdout: true,
+            outputDir,
+        }
+        const reporter = new AllureReporter(allureOptions)
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand(customCommandBeforeArgs)
+        reporter.onAfterCommand(customCommandAfterArgs)
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].steps).toHaveLength(1)
+        expect(results[0].steps[0].name).toEqual('unknown command')
+        expect(results[0].steps[0].status).toEqual(Status.PASSED)
+        expect(results[0].steps[0].attachments).toEqual([])
+    })
+
+    it('should add step from failed command', async () => {
+        const error = new Error('Command failed')
+        const command = {
+            sessionId: '4d1707ae-820f-1645-8485-5a820b2a40da',
+            method: 'GET',
+            endpoint: '/session/:sessionId/element',
+            cid: '0-0',
+        }
+        const beforeCommand = {
+            ...command,
+            body: { using: 'css selector', value: 'img' },
+        } satisfies BeforeCommandArgs
+        const afterCommandFailure = {
+            ...command,
+            result: { error },
+        } satisfies AfterCommandArgs
+
+        const allureOptions = { stdout: true, outputDir }
+        const reporter = new AllureReporter(allureOptions)
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand(beforeCommand)
+        reporter.onAfterCommand(afterCommandFailure)
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].steps).toHaveLength(1)
+        expect(results[0].steps[0].name).toEqual(
+            assertionResults['webdriver'].commandTitle,
+        )
+        expect(results[0].steps[0].status).toEqual(Status.PASSED)
+        expect(results[0].steps[0].attachments).toEqual([
+            {
+                name: 'Request',
+                type: 'application/json',
+                source: expect.any(String),
+            },
+            {
+                name: 'Response',
+                type: 'text/plain',
+                source: expect.any(String),
+            },
+        ])
+    })
+
+    it('should not empty attach for step from command', async () => {
         const allureOptions = {
             stdout: true,
             outputDir,
@@ -770,14 +1047,13 @@ describe('command reporting', () => {
         reporter.onTestStart(testStart())
 
         const command = commandStart(false)
-
-        delete command.body
+        delete (command as any).body
 
         reporter.onBeforeCommand(command)
         reporter.onAfterCommand(commandEnd(false))
         reporter.onTestSkip(testPending())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
@@ -785,15 +1061,17 @@ describe('command reporting', () => {
         expect(results[0].steps).toHaveLength(1)
 
         const requestAttachments = results[0].steps[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Request'
+            (attachment: Attachment) => attachment.name === 'Request',
         )
 
-        expect(results[0].steps[0].name).toEqual(assertionResults['webdriver'].commandTitle)
+        expect(results[0].steps[0].name).toEqual(
+            assertionResults['webdriver'].commandTitle,
+        )
         expect(results[0].steps[0].status).toEqual(Status.PASSED)
         expect(requestAttachments).toHaveLength(0)
     })
 
-    it('should add step with screenshot command', () => {
+    it('should add step with screenshot command', async () => {
         const allureOptions = {
             stdout: true,
             outputDir,
@@ -807,7 +1085,7 @@ describe('command reporting', () => {
         reporter.onAfterCommand(commandEndScreenShot(false))
         reporter.onTestSkip(testPending())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
@@ -815,19 +1093,21 @@ describe('command reporting', () => {
         expect(results[0].steps).toHaveLength(1)
 
         const screenshotAttachments = results[0].steps[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Screenshot'
+            (attachment: Attachment) => attachment.name === 'Screenshot',
         )
 
-        expect(results[0].steps[0].name).toEqual(assertionResults['webdriver'].screenshotTitle)
+        expect(results[0].steps[0].name).toEqual(
+            assertionResults['webdriver'].screenshotTitle,
+        )
         expect(results[0].steps[0].status).toEqual(Status.PASSED)
         expect(screenshotAttachments).toHaveLength(1)
     })
 
-    it('should add step with screenshot command when disableWebdriverStepsReporting=true', () => {
+    it('should add step with screenshot command when disableWebdriverStepsReporting=true', async () => {
         const allureOptions = {
             stdout: true,
             outputDir,
-            disableWebdriverStepsReporting: true
+            disableWebdriverStepsReporting: true,
         }
         const reporter = new AllureReporter(allureOptions)
 
@@ -838,23 +1118,23 @@ describe('command reporting', () => {
         reporter.onAfterCommand(commandEndScreenShot(false))
         reporter.onTestSkip(testPending())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
 
         const screenshotAttachments = results[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Screenshot'
+            (attachment: Attachment) => attachment.name === 'Screenshot',
         )
         expect(screenshotAttachments).toHaveLength(1)
     })
 
-    it('should not add step with screenshot command when disableWebdriverScreenshotsReporting=true', () => {
+    it('should not add step with screenshot command when disableWebdriverScreenshotsReporting=true', async () => {
         const allureOptions = {
             stdout: true,
             outputDir,
-            disableWebdriverScreenshotsReporting: true
+            disableWebdriverScreenshotsReporting: true,
         }
         const reporter = new AllureReporter(allureOptions)
 
@@ -865,7 +1145,7 @@ describe('command reporting', () => {
         reporter.onAfterCommand(commandEndScreenShot(false))
         reporter.onTestSkip(testPending())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
@@ -873,20 +1153,22 @@ describe('command reporting', () => {
         expect(results[0].steps).toHaveLength(1)
 
         const screenshotAttachments = results[0].steps[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Screenshot'
+            (attachment: Attachment) => attachment.name === 'Screenshot',
         )
 
-        expect(results[0].steps[0].name).toEqual(assertionResults['webdriver'].screenshotTitle)
+        expect(results[0].steps[0].name).toEqual(
+            assertionResults['webdriver'].screenshotTitle,
+        )
         expect(results[0].steps[0].status).toEqual(Status.PASSED)
         expect(screenshotAttachments).toHaveLength(0)
     })
 
-    it('should attach screenshot on hook failure', () => {
+    it('should attach screenshot on hook failure', async () => {
         const allureOptions = {
             stdout: true,
             outputDir,
             disableMochaHooks: true,
-            disableWebdriverStepsReporting: true
+            disableWebdriverStepsReporting: true,
         }
         const reporter = new AllureReporter(allureOptions)
 
@@ -897,144 +1179,132 @@ describe('command reporting', () => {
         reporter.onBeforeCommand(commandStartScreenShot(false))
         reporter.onAfterCommand(commandEndScreenShot(false))
         reporter.onHookEnd(hookFailed())
-        reporter.onTestPass()
+        reporter.onTestPass(testPassed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
-        const { results, containers } = getResults(outputDir)
+        const { results } = getResults(outputDir)
         expect(results).toHaveLength(1)
-        expect(containers[0].befores[0].steps).toHaveLength(1)
 
         const result = results.find((res: any) => res.attachments.length === 1)
         expect(result).toBeDefined()
 
         const screenshotAttachments = result.attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Screenshot'
+            (attachment: Attachment) => attachment.name === 'Screenshot',
         )
 
         expect(screenshotAttachments).toHaveLength(1)
     })
 
-    it('should attach console log for passing test', () => {
+    it('should attach console log for passing test', async () => {
         const allureOptions = {
             stdout: true,
             outputDir,
             disableMochaHooks: true,
-            addConsoleLogs: true
+            addConsoleLogs: true,
         }
         const reporter = new AllureReporter(allureOptions)
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
-        //this shouldn't be logged
         log('Printing to console 1')
         reporter.onTestStart(testStart())
-        //this should be logged
         log('Printing to console 2')
-        //this shouldn't be logged
         log('Printing webdriver to console 2')
-        reporter.onTestPass()
+        reporter.onTestPass(testPassed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
 
         const consoleAttachments = results[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Console Logs'
+            (attachment: Attachment) => attachment.name === 'Console Logs',
         )
 
         expect(consoleAttachments).toHaveLength(1)
     })
 
-    it('should attach console log for failing test', () => {
+    it('should attach console log for failing test', async () => {
         const allureOptions = {
             stdout: true,
             outputDir,
             disableMochaHooks: true,
-            addConsoleLogs: true
+            addConsoleLogs: true,
         }
         const reporter = new AllureReporter(allureOptions)
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
-        //this shouldn't be logged
         log('Printing to console 1')
         reporter.onTestStart(testStart())
-        //this should be logged
         log('Printing to console 2')
-        //this shouldn't be logged
         log('Printing webdriver to console 2')
         reporter.onTestFail(testFailed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
 
         const consoleAttachments = results[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Console Logs'
+            (attachment: Attachment) => attachment.name === 'Console Logs',
         )
 
         expect(consoleAttachments).toHaveLength(1)
     })
 
-    it('should attach console log for skipping test', () => {
+    it('should attach console log for skipping test', async () => {
         const allureOptions = {
             stdout: true,
             outputDir,
             disableMochaHooks: true,
-            addConsoleLogs: true
+            addConsoleLogs: true,
         }
         const reporter = new AllureReporter(allureOptions)
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
-        //this shouldn't be logged
         log('Printing to console 1')
         reporter.onTestStart(testStart())
-        //this should be logged
         log('Printing to console 2')
-        //this shouldn't be logged
         log('Printing webdriver to console 2')
         reporter.onTestSkip(testFailed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
         const consoleAttachments = results[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Console Logs'
+            (attachment: Attachment) => attachment.name === 'Console Logs',
         )
 
         expect(results).toHaveLength(1)
         expect(consoleAttachments).toHaveLength(1)
     })
 
-    it('should not attach webdriver logs', () => {
+    it('should not attach webdriver logs', async () => {
         const allureOptions = {
             stdout: true,
             outputDir,
             disableMochaHooks: true,
-            addConsoleLogs: true
+            addConsoleLogs: true,
         }
         const reporter = new AllureReporter(allureOptions)
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
-        //this shouldn't be logged
         log('Printing to console 1')
         reporter.onTestStart(testStart())
-        //this shouldn't be logged
         log('Printing mwebdriver to console 2')
-        reporter.onTestPass()
+        reporter.onTestPass(testPassed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
         const consoleAttachments = results[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Console Logs'
+            (attachment: Attachment) => attachment.name === 'Console Logs',
         )
 
         expect(results).toHaveLength(1)

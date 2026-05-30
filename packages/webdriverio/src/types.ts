@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { EventEmitter } from 'node:events'
 import type { remote, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, EventMap } from 'webdriver'
-import type { Capabilities, Options, ThenArg } from '@wdio/types'
-import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
+import type { Capabilities, Options, ThenArg, CustomCommands } from '@wdio/types'
+import type { ElementReference, ProtocolCommands, RectReturn } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 
 import type { Dialog as DialogImport } from './session/dialog.js'
@@ -36,8 +36,14 @@ type ChainablePrototype = {
 }
 
 type AsyncElementProto = {
-    [K in keyof Omit<$ElementCommands, keyof ChainablePrototype>]: OmitThisParameter<$ElementCommands[K]>
-} & ChainablePrototype
+    [K in keyof Omit<$ElementCommands, keyof ChainablePrototype | 'getSize' | 'getLocation'>]: OmitThisParameter<$ElementCommands[K]>
+} & ChainablePrototype & {
+    // Fixed typings for getSize and getLocation since `OmitThisParameter` does not support overloads
+    getSize(prop: keyof RectReturn): Promise<number>
+    getSize(): Promise<ElementCommands.Size>
+    getLocation(prop: keyof ElementCommands.Location): Promise<number>
+    getLocation(): Promise<ElementCommands.Location>
+}
 
 interface ChainablePromiseBaseElement {
     /**
@@ -189,7 +195,7 @@ type AddCommandFnScoped<
     InstanceType = WebdriverIO.Browser,
     IsElement extends boolean = false
 > = (
-    this: IsElement extends true ? Element : InstanceType,
+    this: IsElement extends true ? WebdriverIO.Element : InstanceType,
     ...args: any[]
 ) => any
 
@@ -201,7 +207,7 @@ type OverwriteCommandFnScoped<
     IsElement extends boolean = false
 > = (
     this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
-    origCommand: (...args: any[]) => IsElement extends true ? $ElementCommands[ElementKey] : $BrowserCommands[BrowserKey],
+    originalCommand: IsElement extends true ? OmitThisParameter<$ElementCommands[ElementKey]> : OmitThisParameter<$BrowserCommands[BrowserKey]>,
     ...args: any[]
 ) => Promise<any>
 
@@ -210,21 +216,70 @@ type OverwriteCommandFn<
     BrowserKey extends keyof $BrowserCommands,
     IsElement extends boolean = false
 > = (
-    origCommand: (...args: any[]) => IsElement extends true ? $ElementCommands[ElementKey] : $BrowserCommands[BrowserKey],
+    this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
+    originalCommand: IsElement extends true ? OmitThisParameter<$ElementCommands[ElementKey]> : OmitThisParameter<$BrowserCommands[BrowserKey]>,
     ...args: any[]
 ) => Promise<any>
 
 export type CustomLocatorReturnValue = HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>
+
+export type Instances = CustomCommands.Instances
+export type CustomCommandOptions<IsElement extends boolean> = CustomCommands.CustomCommandOptions<IsElement>
+export type AddCommandFunction<IsElement extends boolean, T = any, Instance = WebdriverIO.Browser> = IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn
+
 export interface CustomInstanceCommands<T> {
+
     /**
+     * @deprecated use option object as 3rd parameter
      * add command to `browser` or `element` scope
      */
-    addCommand<IsElement extends boolean = false>(
+    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
         name: string,
-        func: AddCommandFn | AddCommandFnScoped<T, IsElement>,
-        attachToElement?: IsElement,
+        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
+        attachToElement: IsElement,
         proto?: Record<string, any>,
-        instances?: Record<string, WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+        instances?: Record<string, Instances>,
+    ): void;
+
+    /**
+     * @deprecated use option object as 3rd parameter
+     * add command to `browser` or `element` scope
+     */
+    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
+        name: string,
+        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
+        attachToElement: IsElement,
+        proto: Record<string, any>,
+        instances?: Record<string, Instances>,
+    ): void;
+
+    /**
+     * @deprecated use option object as 3rd parameter
+     * add command to `browser` or `element` scope
+     */
+    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
+        name: string,
+        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
+        attachToElement: IsElement,
+        proto: Record<string, any>,
+        instances: Record<string, Instances>,
+    ): void;
+
+    /**
+     * add command to `browser`
+     */
+    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
+        name: string,
+        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
+    ): void;
+
+    /**
+     * add command to `browser` or to an `element` when using options.attachToElement to true
+     */
+    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
+        name: string,
+        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
+        options?: CustomCommands.CustomCommandOptions<IsElement>
     ): void;
 
     /**
@@ -232,10 +287,10 @@ export interface CustomInstanceCommands<T> {
      */
     overwriteCommand<ElementKey extends keyof $ElementCommands, BrowserKey extends keyof $BrowserCommands, IsElement extends boolean = false>(
         name: IsElement extends true ? ElementKey : BrowserKey,
-        func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement> | OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement>,
+        func: IsElement extends true ? OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement> : OverwriteCommandFn<ElementKey, BrowserKey, IsElement>,
         attachToElement?: IsElement,
         proto?: Record<string, any>,
-        instances?: Record<string, WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+        instances?: Record<string, Instances>
     ): void;
 
     /**
@@ -604,6 +659,7 @@ export type GetContextsOptions = {
     isAndroidWebviewVisible?: boolean;
     returnAndroidDescriptionData?: boolean;
     returnDetailedContexts?: boolean;
+    waitForWebviewMs?: number;
 }
 
 export type ActiveAppInfo = {
@@ -675,6 +731,29 @@ export interface SaveScreenshotOptions {
         width: number
         height: number
     }
+}
+
+export type TransformElement<T> =
+    T extends WebdriverIO.Element ? HTMLElement :
+        T extends ChainablePromiseElement ? HTMLElement :
+            T extends WebdriverIO.Element[] ? HTMLElement[] :
+                T extends ChainablePromiseArray ? HTMLElement[] :
+                    T extends [infer First, ...infer Rest] ? [TransformElement<First>, ...TransformElement<Rest>] :
+                        T extends Array<infer U> ? Array<TransformElement<U>> :
+                            T
+
+export type TransformReturn<T> =
+    T extends HTMLElement ? WebdriverIO.Element :
+        T extends HTMLElement[] ? WebdriverIO.Element[] :
+            T extends [infer First, ...infer Rest] ? [TransformReturn<First>, ...TransformReturn<Rest>] :
+                T extends Array<infer U> ? Array<TransformReturn<U>> :
+                    T
+
+/**
+ * Additional options outside of the WebDriver spec, exclusively for WebdriverIO, only for runtime, and not sent to Appium
+ */
+export interface InputOptions {
+    mask?: boolean
 }
 
 declare global {

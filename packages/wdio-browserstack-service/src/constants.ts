@@ -1,5 +1,5 @@
 import type { BrowserstackConfig } from './types.js'
-import pkg from '../package.json' assert { type: 'json' }
+import pkg from '../package.json' with { type: 'json' }
 
 const bstackServiceVersion = pkg.version
 
@@ -23,8 +23,7 @@ export const VALID_APP_EXTENSION = [
 export const DEFAULT_OPTIONS: Partial<BrowserstackConfig> = {
     setSessionName: true,
     setSessionStatus: true,
-    testObservability: true,
-    accessibility: false
+    testObservability: true
 }
 
 export const consoleHolder: typeof console = Object.assign({}, console)
@@ -43,9 +42,11 @@ export const DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS = 5000 // 5s
 export const DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS = 100 // 100ms
 export const BSTACK_SERVICE_VERSION = bstackServiceVersion
 
-export const NOT_ALLOWED_KEYS_IN_CAPS = ['includeTagsInTestingScope', 'excludeTagsInTestingScope']
+export const NOT_ALLOWED_KEYS_IN_CAPS = ['includeTagsInTestingScope', 'excludeTagsInTestingScope', 'testManagementOptions']
+export const BROWSERSTACK_TEST_PLAN_ID = 'BROWSERSTACK_TEST_PLAN_ID'
 
 export const LOGS_FILE = 'logs/bstack-wdio-service.log'
+export const CLI_DEBUG_LOGS_FILE = 'log/sdk-cli-debug.log'
 export const UPLOAD_LOGS_ADDRESS = 'https://upload-observability.browserstack.com'
 export const UPLOAD_LOGS_ENDPOINT = 'client-logs/upload'
 
@@ -82,6 +83,10 @@ export const TCG_INFO = {
     tcgUrl: TCG_URL,
 }
 
+// Smart Selection Mode Constants
+export const SMART_SELECTION_MODE_RELEVANT_FIRST = 'relevantFirst'
+export const SMART_SELECTION_MODE_RELEVANT_ONLY = 'relevantOnly'
+
 // Env variables - Define all the env variable constants over here
 
 // To store the JWT token returned the session launch
@@ -117,8 +122,15 @@ export const BROWSERSTACK_PERCY = 'BROWSERSTACK_PERCY'
 // Whether session is a accessibility session
 export const BROWSERSTACK_ACCESSIBILITY = 'BROWSERSTACK_ACCESSIBILITY'
 
-// Whether session is a observability session
+// Whether session is a test reporting session
 export const BROWSERSTACK_OBSERVABILITY = 'BROWSERSTACK_OBSERVABILITY'
+
+// New Test Reporting and Analytics environment variables
+export const BROWSERSTACK_TEST_REPORTING = 'BROWSERSTACK_TEST_REPORTING'
+export const BROWSERSTACK_TEST_REPORTING_DEBUG = 'BROWSERSTACK_TEST_REPORTING_DEBUG'
+export const TEST_REPORTING_BUILD_TAG = 'TEST_REPORTING_BUILD_TAG'
+export const TEST_REPORTING_PROJECT_NAME = 'TEST_REPORTING_PROJECT_NAME'
+export const TEST_REPORTING_BUILD_NAME = 'TEST_REPORTING_BUILD_NAME'
 
 // Maximum size of VCS info which is allowed
 export const MAX_GIT_META_DATA_SIZE_IN_BYTES = 64 * 1024
@@ -127,3 +139,56 @@ export const MAX_GIT_META_DATA_SIZE_IN_BYTES = 64 * 1024
 */
 export const GIT_META_DATA_TRUNCATED = '...[TRUNCATED]'
 
+// CLI related constants
+export const CLI_STOP_TIMEOUT = 5000 // 5 seconds
+export const BINARY_BUSY_ERROR_CODES = ['ETXTBSY', 'EBUSY']
+export const MAX_SPAWN_RETRIES = 3
+export const SPAWN_RETRY_DELAY_MS = 1000
+export const WDIO_NAMING_PREFIX = 'WebdriverIO-'
+export const PERF_METRICS_WAIT_TIME = 2000
+
+// API Endpoint constants
+export const UPDATED_CLI_ENDPOINT = 'sdk/v1/update_cli'
+
+/**
+ * Module Hook Events - Performance event names for module lifecycle tracking
+ * Used by module-hook-tracker.ts to instrument module initialization and cleanup
+ */
+export const MODULE_HOOK_EVENTS = {
+    // Instrumentation module
+    INSTRUMENTATION_ON_START: 'MODULE_INSTRUMENTATION_ON_START',
+    INSTRUMENTATION_ON_STOP: 'MODULE_INSTRUMENTATION_ON_STOP',
+
+    // TestHub module
+    TESTHUB_ON_START: 'MODULE_TESTHUB_ON_START',
+    TESTHUB_ON_STOP: 'MODULE_TESTHUB_ON_STOP',
+
+    // Observability module
+    OBSERVABILITY_ON_START: 'MODULE_OBSERVABILITY_ON_START',
+    OBSERVABILITY_ON_STOP: 'MODULE_OBSERVABILITY_ON_STOP',
+
+    // Percy module
+    PERCY_ON_START: 'MODULE_PERCY_ON_START',
+    PERCY_ON_STOP: 'MODULE_PERCY_ON_STOP',
+
+    // Accessibility module
+    ACCESSIBILITY_ON_START: 'MODULE_ACCESSIBILITY_ON_START',
+    ACCESSIBILITY_ON_STOP: 'MODULE_ACCESSIBILITY_ON_STOP',
+    ACCESSIBILITY_ON_DRIVER_INIT: 'MODULE_ACCESSIBILITY_ON_DRIVER_INIT',
+
+    // AI module
+    AI_ON_START: 'MODULE_AI_ON_START',
+    AI_ON_STOP: 'MODULE_AI_ON_STOP',
+    AI_BEFORE_SESSION: 'MODULE_AI_BEFORE_SESSION',
+    AI_ON_DRIVER_INIT: 'MODULE_AI_ON_DRIVER_INIT',
+
+    // Local testing module
+    LOCAL_ON_START: 'MODULE_LOCAL_ON_START',
+    LOCAL_ON_STOP: 'MODULE_LOCAL_ON_STOP',
+    LOCAL_INIT_SESSION: 'MODULE_LOCAL_INIT_SESSION',
+    LOCAL_ON_DRIVER_INIT: 'MODULE_LOCAL_ON_DRIVER_INIT',
+
+    // App Automate module
+    APPAUTOMATE_ON_START: 'MODULE_APPAUTOMATE_ON_START',
+    APPAUTOMATE_ON_DRIVER_INIT: 'MODULE_APPAUTOMATE_ON_DRIVER_INIT',
+} as const

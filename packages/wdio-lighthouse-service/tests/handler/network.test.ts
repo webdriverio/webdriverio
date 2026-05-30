@@ -4,7 +4,7 @@ import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connect
 
 import NetworkHandler from '../../src/handler/network.js'
 
-import eventLog from '../__fixtures__/events.json' assert { type: 'json' }
+import eventLog from '../__fixtures__/events.json' with { type: 'json' }
 
 vi.mock('puppeteer-core/lib/esm/puppeteer/common/Connection.js')
 

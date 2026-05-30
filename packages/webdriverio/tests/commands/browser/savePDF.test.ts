@@ -8,12 +8,17 @@ import * as utils from '../../../src/node/utils.js'
 import '../../../src/node.js'
 
 vi.mock('fs')
+vi.mock('fs/promises', () => ({
+    default: {
+        access: vi.fn().mockResolvedValue({})
+    }
+}))
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('savePDF', () => {
     let browser: WebdriverIO.Browser
-    let getAbsoluteFilepathSpy: MockInstance
+    let pathResolveSpy: MockInstance
     let assertDirectoryExistsSpy: MockInstance
     let writeFileSyncSpy: MockInstance
 
@@ -24,13 +29,13 @@ describe('savePDF', () => {
                 browserName: 'foobar'
             }
         })
-        getAbsoluteFilepathSpy = vi.spyOn(utils, 'getAbsoluteFilepath')
+        pathResolveSpy = vi.spyOn(path, 'resolve')
         assertDirectoryExistsSpy = vi.spyOn(utils, 'assertDirectoryExists')
         writeFileSyncSpy = vi.spyOn(fs, 'writeFileSync')
     })
 
     afterEach(() => {
-        getAbsoluteFilepathSpy.mockClear()
+        pathResolveSpy.mockClear()
         assertDirectoryExistsSpy.mockClear()
         writeFileSyncSpy.mockClear()
     })
@@ -39,12 +44,12 @@ describe('savePDF', () => {
         let screenshot = await browser.savePDF('./packages/bar.pdf')
 
         // get path
-        expect(getAbsoluteFilepathSpy).toHaveBeenCalledTimes(1)
-        expect(getAbsoluteFilepathSpy).toHaveBeenCalledWith('./packages/bar.pdf')
+        expect(pathResolveSpy).toHaveBeenCalledTimes(1)
+        expect(pathResolveSpy).toHaveBeenCalledWith('./packages/bar.pdf')
 
         // assert directory
         expect(assertDirectoryExistsSpy).toHaveBeenCalledTimes(1)
-        expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value)
+        expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(pathResolveSpy.mock.results[0].value)
 
         // request
         expect(vi.mocked(fetch).mock.calls[1][1]!.method).toBe('POST')
@@ -55,7 +60,7 @@ describe('savePDF', () => {
 
         // write to file
         expect(writeFileSyncSpy).toHaveBeenCalledTimes(1)
-        expect(writeFileSyncSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value, expect.any(Buffer))
+        expect(writeFileSyncSpy).toHaveBeenCalledWith(pathResolveSpy.mock.results[0].value, expect.any(Buffer))
 
         screenshot = await browser.savePDF('./packages/bar.pdf', {
             orientation: 'landscape',

@@ -13,7 +13,7 @@ const organizationName = 'webdriverio' // Usually your GitHub org/user name.
 const projectName = 'webdriverio' // Usually your repo name.
 const branch = 'main'
 const repoUrl = `https://github.com/${organizationName}/${projectName}`
-const twitterUrl = `https://twitter.com/${projectName}`
+const xUrl = `https://x.com/${projectName}`
 const youtubeUrl = `https://youtube.com/@${projectName}`
 const discordUrl = 'https://discord.webdriver.io/'
 const wdioLogo = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iNjRweCIgaGVpZ2h0PSI2NHB4IiB2aWV3Qm94PSIwIDAgNjQgNjQiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8dGl0bGU+TG9nbyBSZWd1bGFyPC90aXRsZT4KICAgIDxnIGlkPSJMb2dvLVJlZ3VsYXIiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPgogICAgICAgIDxyZWN0IGlkPSJSZWN0YW5nbGUiIGZpbGw9IiNFQTU5MDYiIHg9IjAiIHk9IjAiIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjUiPjwvcmVjdD4KICAgICAgICA8cGF0aCBkPSJNOCwxNiBMOCw0OCBMNiw0OCBMNiwxNiBMOCwxNiBaIE00MywxNiBDNTEuODM2NTU2LDE2IDU5LDIzLjE2MzQ0NCA1OSwzMiBDNTksNDAuODM2NTU2IDUxLjgzNjU1Niw0OCA0Myw0OCBDMzQuMTYzNDQ0LDQ4IDI3LDQwLjgzNjU1NiAyNywzMiBDMjcsMjMuMTYzNDQ0IDM0LjE2MzQ0NCwxNiA0MywxNiBaIE0yNywxNiBMMTQuMTA2LDQ3Ljk5OTIwNzggTDExLjk5OSw0Ny45OTkyMDc4IEwyNC44OTQsMTYgTDI3LDE2IFogTTQzLDE4IEMzNS4yNjgwMTM1LDE4IDI5LDI0LjI2ODAxMzUgMjksMzIgQzI5LDM5LjczMTk4NjUgMzUuMjY4MDEzNSw0NiA0Myw0NiBDNTAuNzMxOTg2NSw0NiA1NywzOS43MzE5ODY1IDU3LDMyIEM1NywyNC4yNjgwMTM1IDUwLjczMTk4NjUsMTggNDMsMTggWiIgaWQ9IkNvbWJpbmVkLVNoYXBlIiBmaWxsPSIjRkZGRkZGIj48L3BhdGg+CiAgICA8L2c+Cjwvc3ZnPg=='
@@ -25,10 +25,14 @@ const config: Config = {
     url: 'https://webdriver.io',
     baseUrl: '/',
     onBrokenLinks: 'throw',
-    onBrokenMarkdownLinks: 'throw',
     favicon: 'img/favicon.png',
     organizationName: 'webdriverio',
     projectName: 'webdriverio',
+    markdown: {
+        hooks: {
+            onBrokenMarkdownLinks: 'throw',
+        },
+    },
     customFields: {
         repoUrl,
         mendableAnonKey
@@ -40,11 +44,11 @@ const config: Config = {
             'ar',
             'de',
             'es',
-            'fa',
+            // 'fa', => 3 backticks are added on line 5 which breaks the markdown parser
             'fr',
             'hi',
             'it',
-            'ja',
+            // 'ja', => links will break, they are also translated
             'ko',
             'pl',
             'pt',
@@ -135,10 +139,10 @@ const config: Config = {
                 className: 'header-github-link',
                 'aria-label': 'GitHub repository',
             }, {
-                href: twitterUrl,
+                href: xUrl,
                 position: 'right',
                 className: 'header-twitter-link',
-                'aria-label': '@webdriverio on Twitter',
+                'aria-label': '@webdriverio on 𝕏',
             }, {
                 href: youtubeUrl,
                 position: 'right',
@@ -180,8 +184,8 @@ const config: Config = {
                     label: 'Slack',
                     href: 'https://seleniumhq.slack.com/join/shared_invite/zt-f7jwg1n7-RVw4v4sMA7Zjufira_~EVw#/'
                 }, {
-                    label: 'Twitter',
-                    href: 'https://twitter.com/webdriverio',
+                    label: '𝕏',
+                    href: 'https://x.com/webdriverio',
                 }],
             }, {
                 title: 'More',
@@ -212,7 +216,14 @@ const config: Config = {
                 src: 'https://raw.githubusercontent.com/openjs-foundation/artwork/main/openjs_foundation/openjs_foundation-logo-horizontal-color-dark_background.svg',
                 href: 'https://openjsf.org/'
             },
-            copyright: `Copyright © ${new Date().getFullYear()} OpenJS Foundation`,
+            copyright: `
+              <p>
+                Copyright ${new Date().getFullYear()} <a href="https://openjsf.org">OpenJS Foundation</a> and WebdriverIO contributors. All rights reserved. The <a href="https://openjsf.org">OpenJS Foundation</a> has registered trademarks and uses trademarks. For a list of trademarks of the <a href="https://openjsf.org">OpenJS Foundation</a>, please see our <a href="https://trademark-policy.openjsf.org/">Trademark Policy</a> and <a href="https://trademark-list.openjsf.org/">Trademark List</a>. Trademarks and logos not indicated on the <a href="https://trademark-list.openjsf.org">list of OpenJS Foundation trademarks</a> are trademarks&trade; or registered&reg; trademarks of their respective holders. Use of them does not imply any affiliation with or endorsement by them.
+              </p>
+              <p>
+                <a href="https://openjsf.org/">The OpenJS Foundation</a> | <a href="https://terms-of-use.openjsf.org/">Terms of Use</a> | <a href="https://privacy-policy.openjsf.org/">Privacy Policy</a> | <a href="https://bylaws.openjsf.org/">Bylaws</a> | <a href="https://code-of-conduct.openjsf.org/">Code of Conduct</a> | <a href="https://trademark-policy.openjsf.org/">Trademark Policy</a> | <a href="https://trademark-list.openjsf.org/">Trademark List</a> | <a href="https://www.linuxfoundation.org/cookies/">Cookie Policy</a>
+              </p>
+            `,
         },
         codeblock: {
             showRunmeLink: true,
@@ -278,6 +289,9 @@ const config: Config = {
                 }, {
                     from: '/docs/clioptions',
                     to: '/docs/testrunner'
+                }, {
+                    from: '/docs/devtools-service',
+                    to: '/docs/wdio-devtools-service'
                 }]
             }
         ],

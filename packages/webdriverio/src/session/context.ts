@@ -3,6 +3,7 @@ import logger from '@wdio/logger'
 
 import { SessionManager } from './session.js'
 import { getMobileContext, getNativeContext } from '../utils/mobile.js'
+import { environment } from '../environment.js'
 
 const log = logger('webdriverio:context')
 const COMMANDS_REQUIRING_RESET = ['deleteSession', 'refresh', 'switchToParentFrame']
@@ -24,6 +25,11 @@ export class ContextManager extends SessionManager {
     #mobileContext?: string
     #isNativeContext: boolean
     #getContextSupport = true
+    #currentWindowHandle?: string
+    #onCommandResultBidiAndClassicListener: (event: { command: string, result: unknown, body: unknown }) => void
+    #onCommandListener: (event: { command: string, body: unknown }) => void
+    #onCommandResultMobileListener: (event: { command: string, result: unknown }) => void
+    #navigationStartedListener: (nav: local.BrowsingContextNavigationInfo) => void
 
     constructor(browser: WebdriverIO.Browser) {
         super(browser, ContextManager.name)
@@ -36,11 +42,16 @@ export class ContextManager extends SessionManager {
             isNativeContext: this.#isNativeContext
         })
 
+        this.#onCommandResultBidiAndClassicListener = this.#onCommandResultBidiAndClassic.bind(this)
+        this.#onCommandListener = this.#onCommand.bind(this)
+        this.#onCommandResultMobileListener = this.#onCommandResultMobile.bind(this)
+        this.#navigationStartedListener = this.#navigationStarted.bind(this)
+
         /**
          * Listens for the 'closeWindow' browser command to handle context changes.
          * (classic + bidi)
          */
-        this.#browser.on('result', this.#onCommandResultBidiAndClassic.bind(this))
+        this.#browser.on('result', this.#onCommandResultBidiAndClassicListener)
 
         // only listen to command events if we are in a bidi session or a mobile session
         // Adding the check for mobile in the `this.isEnabled()` method breaking the method and throws
@@ -53,13 +64,13 @@ export class ContextManager extends SessionManager {
          * Listens for the 'switchToWindow' browser command to handle context changes.
          * Updates the browsingContext with the context passed in 'switchToWindow'.
          */
-        this.#browser.on('command', this.#onCommand.bind(this))
+        this.#browser.on('command', this.#onCommandListener)
 
         /**
          * Listens for the 'closeWindow' browser command to handle context changes.
          */
         if (this.#browser.isMobile) {
-            this.#browser.on('result', this.#onCommandResultMobile.bind(this))
+            this.#browser.on('result', this.#onCommandResultMobileListener)
         } else {
             /**
              * Listen to the 'browsingContext.navigationStarted' event to handle context changes
@@ -68,58 +79,87 @@ export class ContextManager extends SessionManager {
             this.#browser.sessionSubscribe({
                 events: ['browsingContext.navigationStarted']
             })
-            this.#browser.on('browsingContext.navigationStarted', async (nav) => {
-                /**
-                 * no need to do anything as we navigate within the same context
-                 */
-                if (!this.#currentContext || nav.context === this.#currentContext) {
-                    return
-                }
-
-                /**
-                 * a navigation event may have changed the tree structure, so we need to get the
-                 * current tree and see if our context is still there, if not, we need to reset
-                 * the context to the first context in the tree.
-                 */
-                const { contexts } = await this.#browser.browsingContextGetTree({})
-                /**
-                 * check if the context is still in the tree, if not, switch to...
-                 */
-                const hasContext = this.findContext(this.#currentContext, contexts, 'byContextId')
-                /**
-                 * ...the context we are navigating to
-                 */
-                const newContext = contexts.find((context) => context.context === nav.context)
-                if (!hasContext && newContext) {
-                    this.setCurrentContext(newContext.context)
-                    this.#browser.switchToWindow(this.#currentContext)
-                    return
-                }
-            })
+            this.#browser.on('browsingContext.navigationStarted', this.#navigationStartedListener)
         }
     }
 
     removeListeners(): void {
         super.removeListeners()
-        this.#browser.off('result', this.#onCommandResultBidiAndClassic.bind(this))
-        this.#browser.off('command', this.#onCommand.bind(this))
+        this.#browser.off('result', this.#onCommandResultBidiAndClassicListener)
+        this.#browser.off('command', this.#onCommandListener)
         if (this.#browser.isMobile) {
-            this.#browser.off('result', this.#onCommandResultMobile.bind(this))
+            this.#browser.off('result', this.#onCommandResultMobileListener)
+        } else {
+            this.#browser.off('browsingContext.navigationStarted', this.#navigationStartedListener)
         }
     }
 
-    #onCommandResultBidiAndClassic(event: { command: string, result: unknown }) {
+    async #navigationStarted(nav: local.BrowsingContextNavigationInfo) {
+        /**
+         * no need to do anything as we navigate within the same context
+         */
+        if (!this.#currentContext || nav.context === this.#currentContext) {
+            return
+        }
+
+        /**
+         * a navigation event may have changed the tree structure, so we need to get the
+         * current tree and see if our context is still there, if not, we need to reset
+         * the context to the first context in the tree.
+         */
+        const { contexts } = await this.#browser.browsingContextGetTree({})
+        /**
+         * check if the context is still in the tree, if not, switch to...
+         */
+        const hasContext = this.findContext(this.#currentContext, contexts, 'byContextId')
+        /**
+         * ...the context we are navigating to
+         */
+        const newContext = contexts.find((context) => context.context === nav.context)
+        if (!hasContext && newContext) {
+            this.setCurrentContext(newContext.context)
+            await this.#browser.switchToWindow(this.#currentContext)
+            return
+        }
+    }
+
+    #onCommandResultBidiAndClassic(event: { command: string, result: unknown, body: unknown }) {
         /**
          * the `closeWindow` command returns:
          *   > the result of running the remote end steps for the Get Window Handles command, with session, URL variables and parameters.
          */
         if (event.command === 'closeWindow') {
-            const windowHandles = (event.result as { value: string[] }).value
+            // Clear cached window handle
+            this.#currentWindowHandle = undefined
+
+            const windowHandles = (event.result as { value?: string[] }).value || []
             if (windowHandles.length === 0) {
                 throw new Error('All window handles were removed, causing WebdriverIO to close the session.')
             }
             this.#currentContext = windowHandles[0]
             return this.#browser.switchToWindow(this.#currentContext)
+        }
+
+        /**
+         * Update current window handle when 'getWindowHandle' succeeds
+         */
+        if (event.command === 'getWindowHandle') {
+            const windowHandle = (event.result as { value?: string }).value || undefined
+            this.#currentWindowHandle = windowHandle
+        }
+
+        /**
+         * the `closeWindow` command returns:
+         *  > the body of the Close Window command request, including the window handle it's switching to.
+         *  > the result of the Close Window command, either an error object on failure, or null data on success.
+         */
+        if (event.command === 'switchToWindow') {
+            const err = (event.result as { error?: unknown }).error || undefined
+            // Only update current window handle when 'switchToWindow' has no error
+            if (!err) {
+                const windowHandle = (event.body as { handle?: string }).handle || undefined
+                this.#currentWindowHandle = windowHandle
+            }
         }
     }
 
@@ -187,7 +227,7 @@ export class ContextManager extends SessionManager {
         /**
          * don't run this in unit tests
          */
-        if (process.env.WDIO_UNIT_TESTS) {
+        if (environment.value.variables.WDIO_UNIT_TESTS) {
             return ''
         }
 
@@ -241,6 +281,23 @@ export class ContextManager extends SessionManager {
             return this.initialize()
         }
         return this.#currentContext
+    }
+
+    /**
+     * Sets the cached current window handle value.
+     * @param handle current window handle to set
+     */
+    setCurrentWindowHandle (handle?: string) {
+        this.#currentWindowHandle = handle
+    }
+
+    /**
+     * Returns the cached window handle.
+     *
+     * @returns the current window handle, or undefined if the current window is closed.
+     */
+    getCurrentWindowHandle() {
+        return this.#currentWindowHandle
     }
 
     get isNativeContext() {

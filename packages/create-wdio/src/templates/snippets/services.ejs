@@ -1,0 +1,37 @@
+services: [<%- answers.services.map((service) => {
+    if (service === 'electron') {
+        return /*js*/`'electron'`
+    } else if (service === 'tauri') {
+        const providerMap = {
+            'Official tauri-driver (cross-platform, Cargo-installed)': 'official',
+            'CrabNebula tauri-driver (managed cloud / drop-in)': 'crabnebula',
+            'Embedded driver via tauri-plugin-wdio-webdriver crate': 'embedded',
+        }
+        const provider = providerMap[answers.rawAnswers.tauriDriverProvider] ?? 'official'
+        const binaryLine = answers.rawAnswers.tauriAppBinaryPath
+            ? `\n            appBinaryPath: ${JSON.stringify(answers.rawAnswers.tauriAppBinaryPath)},`
+            : ''
+        return /*js*/`[
+        'tauri',
+        {
+            driverProvider: '${provider}',${binaryLine}
+            // see https://webdriver.io/docs/desktop-testing/tauri/configuration for all options
+        }
+    ]`
+    } else if (service === 'tauri-plugin') {
+        return /*js*/`'tauri-plugin'`
+    } else if (service === 'sauce' && answers.useSauceConnect) {
+        return /*js*/`[
+        'sauce',
+        {
+            sauceConnect: true,
+            sauceConnectOpts: {
+                // add Sauce Connect Options if needed
+                // see more at https://docs.saucelabs.com/dev/cli/sauce-connect-5/
+            }
+        }
+    ]`
+    }
+
+    return `'${service}'`
+}).join(', ') %>],

@@ -26,7 +26,37 @@ export interface TestObservabilityOptions {
     projectName?: string,
     buildTag?: string[],
     user?: string,
+    key?: string,
+    /**
+     * When set to true, hook failures will not influence the test status.
+     * Tests will be marked as "passed" if all test steps pass, even if hooks fail.
+     * When set to false or not set (default), hook failures will mark tests as "failed".
+     * @default false
+     */
+    ignoreHooksStatus?: boolean
+}
+
+// New interface for Test Reporting and Analytics (same structure as TestObservabilityOptions for backward compatibility)
+export interface TestReportingOptions {
+    buildName?: string,
+    projectName?: string,
+    buildTag?: string[],
+    user?: string,
     key?: string
+}
+
+export interface TestManagementOptions {
+    testPlanId?: string,
+}
+
+export interface RunSmartSelectionOptions {
+    enabled?: boolean,
+    mode?: string,
+    source?: string | string[]
+}
+
+export interface TestOrchestrationOptions {
+    runSmartSelection?: RunSmartSelectionOptions
 }
 
 export interface BrowserstackOptions extends Options.Testrunner {
@@ -42,17 +72,36 @@ export interface BrowserstackConfig {
      */
     buildIdentifier?: string;
     /**
-     * Set this to true to enable BrowserStack Test Observability which will collect test related data
+     * Set this to true to enable BrowserStack Test Reporting and Analytics which will collect test related data
      * (name, hierarchy, status, error stack trace, file name and hierarchy), test commands, etc.
-     * and show all the data in a meaningful manner in BrowserStack Test Observability dashboards for faster test debugging and better insights.
+     * and show all the data in a meaningful manner in BrowserStack Test Reporting and Analytics dashboards for faster test debugging and better insights.
      * @default true
+     * @deprecated Use testReporting instead
      */
     testObservability?: boolean;
     /**
-     * Set the Test Observability related config options under this key.
+     * Set this to true to enable BrowserStack Test Reporting and Analytics which will collect test related data
+     * (name, hierarchy, status, error stack trace, file name and hierarchy), test commands, etc.
+     * and show all the data in a meaningful manner in BrowserStack Test Reporting and Analytics dashboards for faster test debugging and better insights.
+     * @default true
+     */
+    testReporting?: boolean;
+    /**
+     * Set the Test Reporting and Analytics related config options under this key.
      * For e.g. buildName, projectName, BrowserStack access credentials, etc.
+     * @deprecated Use testReportingOptions instead
      */
     testObservabilityOptions?: TestObservabilityOptions;
+    /**
+     * Set the Test Reporting and Analytics related config options under this key.
+     * For e.g. buildName, projectName, BrowserStack access credentials, etc.
+     */
+    testReportingOptions?: TestReportingOptions;
+    /**
+     * Set the Test Management related config options under this key.
+     * Currently supports testPlanId.
+     */
+    testManagementOptions?: TestManagementOptions;
     /**
      * Set this to true to enable BrowserStack Percy which will take screenshots
      * and snapshots for your tests run on Browserstack
@@ -158,11 +207,21 @@ export interface BrowserstackConfig {
      * @default false
     */
     turboScale?: boolean;
+    /**
+     * Set this to true to enable enterprise whitelisting
+     * @default false
+    */
+    ipWhiteListing?: boolean;
     selfHeal?: boolean;
+    /**
+     * Set the Test Orchestration related config options under this key.
+     * For e.g. runSmartSelection configurations, etc.
+     */
+    testOrchestrationOptions?: TestOrchestrationOptions;
 }
 
 /**
- * Observability types
+ * Test Reporting and Analytics types
  */
 export interface PlatformMeta {
     sessionId?: string,
@@ -370,7 +429,7 @@ export interface EventProperties {
     productMap: { [key: string]: boolean }
     product: string[]
     framework?: string
-    pollingTimeout?: string,
+    pollingTimeout?: string
     productUsage?: {
         testObservability: {
             events: {
@@ -384,6 +443,7 @@ export interface EventProperties {
             }
         }
     }
+    isCLIEnabled?: boolean
 }
 
 export interface FunnelData {

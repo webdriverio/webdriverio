@@ -4,11 +4,13 @@ import logger from '@wdio/logger'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
+import type { Instances } from 'webdriverio'
 import { attach } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import { setOptions, SnapshotService } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
+import type { CustomStubCommand, CustomStubCommandWithOptions, LegacyCustomStubCommand } from '../src/types.js'
 
 vi.mock('fs/promises', async (orig) => ({
     ...(await orig()) as any,
@@ -18,6 +20,7 @@ vi.mock('util')
 vi.mock('expect-webdriverio', () => ({
     setOptions: vi.fn(),
     expect: vi.fn(),
+    SoftAssertionService: vi.fn(),
     SnapshotService: {
         initiate: vi.fn().mockReturnValue({
             results: ['foobar']
@@ -347,6 +350,41 @@ describe('wdio-runner', () => {
             // browser session is started
             expect(runner['_reporter']?.caps).toEqual(caps)
         })
+
+        it('should call afterSession hook when session initialization fails', async () => {
+            const afterSessionHook = vi.fn()
+            const runner = new WDIORunner()
+            const caps = { browserName: '123' }
+            const specs = ['foobar']
+            const config: any = {
+                framework: 'testNoFailures',
+                reporters: [],
+                beforeSession: [],
+                after: [],
+                afterSession: [afterSessionHook],
+                runner: 'local'
+            }
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            runner['_shutdown'] = vi.fn().mockReturnValue('_shutdown')
+            runner['_initSession'] = vi.fn().mockReturnValue(null)
+
+            await runner.run({
+                args: { reporters: [] },
+                cid: '0-0',
+                caps,
+                specs,
+                configFile: '/foo/bar',
+                retries: 0
+            })
+
+            // afterSession must run to allow services to clean up resources
+            // allocated during beforeSession, even when browser init fails
+            expect(executeHooksWithArgs).toBeCalledWith(
+                'afterSession',
+                [afterSessionHook],
+                expect.any(Array)
+            )
+        })
     })
 
     describe('_initSession', () => {
@@ -427,14 +465,50 @@ describe('wdio-runner', () => {
             expect(setOptions).toBeCalledTimes(1)
         })
 
-        it('transfers custom commands from old instance to new one', async () => {
+        it('transfers custom element commands with options object from old instance to new one', async () => {
             const runner = new WDIORunner()
+            const myCustomFunction = () => {}
+            const options = { attachToElement: true, disableElementImplicitWait: true }
+            const customCommands: CustomStubCommandWithOptions[] = [['myCustomCommandName', myCustomFunction, options]]
+
+            runner['_browser'] = { customCommands } as any
+            const browser = await runner['_startSession']({} as any, {} as any)
+
+            expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction, options)
+        })
+
+        it('transfers custom element commands with deprecated positional args from old instance to new one', async () => {
+            const runner = new WDIORunner()
+            const myCustomFunction = () => {}
+            const proto = { foo: 'bar' }
+            const instances: Record<string, Instances> = { baz: 'qux' as unknown as Instances }
+            const customCommands: LegacyCustomStubCommand[] = [['myCustomCommandName', myCustomFunction, true, proto, instances]]
+
+            runner['_browser'] = { customCommands } as any
+            const browser = await runner['_startSession']({} as any, {} as any)
+
+            expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction, true, proto, instances)
+        })
+
+        it('transfers browser custom commands from old instance to new one', async () => {
+            const runner = new WDIORunner()
+            const myCustomFunction = () => {}
+            const customCommands: CustomStubCommand[] = [['myCustomCommandName', myCustomFunction]]
+
+            runner['_browser'] = { customCommands } as any
+            const browser = await runner['_startSession']({} as any, {} as any)
+
+            expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction)
+        })
+
+        it('transfers overwritten commands from old instance to new one', async () => {
+            const runner = new WDIORunner()
+
             runner['_browser'] = {
-                customCommands: [[1, 2, 3]],
                 overwrittenCommands: [[3, 2, 1]]
             } as any
             const browser = await runner['_startSession']({} as any, {} as any)
-            expect(browser?.addCommand).toBeCalledWith(1, 2, 3)
+
             expect(browser?.overwriteCommand).toBeCalledWith(3, 2, 1)
         })
     })

@@ -4,9 +4,6 @@ import os from 'node:os'
 import path from 'node:path'
 import { rimraf } from 'rimraf'
 import type { Attachment, TestResult } from 'allure-js-commons'
-import { AllureGroup, AllureTest, AllureStep } from 'allure-js-commons'
-// eslint-disable-next-line
-import AllureReporter from '../../src/reporter.js'
 
 export function parseEnvInfo (info: string): Record<string, any> {
     return info.split(os.EOL).reduce((acc, line) => {
@@ -33,7 +30,8 @@ export function getAllAttachments(test: TestResult): Attachment[] {
 }
 
 export function getResults (resultsDir: any) {
-    const results = getResultFiles(resultsDir, [/-result\.json$/]).map((file) => {
+    const resultFiles = getResultFiles(resultsDir, [/-result\.json$/])
+    const results = resultFiles.map((file) => {
         const fileContent = fs.readFileSync(path.join(resultsDir, file), 'utf-8')
 
         return JSON.parse(fileContent)
@@ -68,18 +66,6 @@ export function getResultFiles (resultsDir: any, patterns: RegExp[]) {
 
 export function clean (resultsDir: any) {
     return rimraf.sync(resultsDir)
-}
-
-export function getSuitesFromReporter(reporter: AllureReporter): AllureGroup[] {
-    return reporter._runningUnits.filter(unit => unit instanceof AllureGroup) as AllureGroup[]
-}
-
-export function getTestsFromReporter(reporter: AllureReporter): AllureTest[] {
-    return reporter._runningUnits.filter(unit => unit instanceof AllureTest) as AllureTest[]
-}
-
-export function getStepsFromReporter(reporter: AllureReporter): AllureStep[] {
-    return reporter._runningUnits.filter(unit => unit instanceof AllureStep) as AllureStep[]
 }
 
 export function mapBy<T>(arr: T[], key: keyof T): Record<any, T[]> {

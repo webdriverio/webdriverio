@@ -10,6 +10,22 @@ import type { Options, Workers } from '@wdio/types'
 import type { RunCommandArguments } from '../src/types.js'
 import Watcher from '../src/watcher.js'
 
+/**
+ * Helper to create cross-platform absolute paths for testing.
+ * On Windows: C:\foo\bar, on Unix: /foo/bar
+ */
+const testPath = (...segments: string[]) => {
+    if (os.platform() === 'win32') {
+        return path.join('C:', ...segments)
+    }
+    return '/' + segments.join('/')
+}
+
+/**
+ * Helper to create file:// URIs from a path (cross-platform)
+ */
+const toFileUrl = (filePath: string) => url.pathToFileURL(filePath).href
+
 vi.mock('chokidar')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
@@ -29,7 +45,7 @@ vi.mock('../src/launcher', async () => {
 
         initialize = vi.fn()
 
-        constructor (configFile: string, args: LauncherMockRunCommandArguments) {
+        constructor(configFile: string, args: LauncherMockRunCommandArguments) {
             this.configParser = new ConfigParser(configFile)
             this.configParser.addConfigFile(configFile)
             this.configParser.merge(args)
@@ -60,7 +76,7 @@ class WorkerMock extends EventEmitter implements Workers.Worker {
     isBusy: boolean
     postMessage = vi.fn()
 
-    constructor ({ cid, specs, sessionId, isBusy = false }: WorkerMockRunPayload) {
+    constructor({ cid, specs, sessionId, isBusy = false }: WorkerMockRunPayload) {
         super()
         this.cid = cid || `${Math.random()}`
         this.specs = specs.map((spec) => Array.isArray(spec)
@@ -163,11 +179,8 @@ describe('watcher', () => {
     })
 
     it('should run initial suite when starting watching', async () => {
-        // skip for Windows
-        if (os.platform() === 'win32') {
-            return
-        }
-
+        const fooPath = testPath('foo')
+        const barPath = testPath('bar')
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'] = {
@@ -179,7 +192,7 @@ describe('watcher', () => {
             configParser: {
                 getConfig: vi.fn().mockReturnValue({ filesToWatch: ['./foobar'] }),
                 initialize: vi.fn(),
-                getSpecs: vi.fn().mockReturnValue(['file:///foo', 'file:///bar']),
+                getSpecs: vi.fn().mockReturnValue([toFileUrl(fooPath), toFileUrl(barPath)]),
                 getCapabilities: vi.fn().mockReturnValue([{ browserName: 'chrome' }])
             },
             runner: {
@@ -191,16 +204,58 @@ describe('watcher', () => {
         await watcher.watch()
 
         expect(chokidar.watch).toHaveBeenCalledTimes(2)
-        expect(chokidar.watch).toBeCalledWith(['/foo', '/bar'], expect.any(Object))
-        expect(chokidar.watch).toBeCalledWith([expect.stringContaining('/foobar')], expect.any(Object))
+        expect(chokidar.watch).toBeCalledWith([fooPath, barPath], expect.any(Object))
+        expect(chokidar.watch).toBeCalledWith([expect.stringContaining('foobar')], expect.any(Object))
 
     })
 
+    it('should pass absolute file paths (not file:// URIs) to chokidar for filesToWatch', async () => {
+        const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
+        const watcher = new Watcher(wdioConf, {})
+        watcher['_launcher'] = {
+            run: vi.fn(),
+            initialize: vi.fn(),
+            interface: {
+                finalise: vi.fn()
+            },
+            configParser: {
+                getConfig: vi.fn().mockReturnValue({ filesToWatch: ['./relative/path', '/absolute/path'] }),
+                initialize: vi.fn(),
+                getSpecs: vi.fn().mockReturnValue([]),
+                getCapabilities: vi.fn().mockReturnValue([{ browserName: 'chrome' }])
+            },
+            runner: {
+                workerPool: {
+                    '0-0': new WorkerMock({ specs: ['./tests/test1.js'] })
+                }
+            }
+        } as any
+        await watcher.watch()
+
+        // Find the chokidar.watch call for filesToWatch
+        const calls = vi.mocked(chokidar.watch).mock.calls
+        const filesToWatchCall = calls.find(call => {
+            const watchedPaths = call[0] as string[]
+            return watchedPaths.some(p => p.includes('path'))
+        })
+
+        expect(filesToWatchCall).toBeDefined()
+        const watchedPaths = filesToWatchCall![0] as string[]
+
+        // Verify no file:// URIs are passed to chokidar (fix for issue #14685)
+        watchedPaths.forEach(p => {
+            expect(p.startsWith('file://')).toBe(false)
+        })
+
+        // Verify paths are absolute
+        watchedPaths.forEach(p => {
+            expect(path.isAbsolute(p)).toBe(true)
+        })
+    })
+
     it('should run initial suite when starting watching with grouped specs', async () => {
-        // skip for Windows
-        if (os.platform() === 'win32') {
-            return
-        }
+        const fooPath = testPath('foo')
+        const barPath = testPath('bar')
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'] = {
@@ -212,12 +267,12 @@ describe('watcher', () => {
             configParser: {
                 getConfig: vi.fn().mockReturnValue({ filesToWatch: [] }),
                 initialize: vi.fn(),
-                getSpecs: vi.fn().mockReturnValue(['file:///foo', 'file:///bar']),
+                getSpecs: vi.fn().mockReturnValue([toFileUrl(fooPath), toFileUrl(barPath)]),
                 getCapabilities: vi.fn().mockReturnValue([{ browserName: 'chrome' }])
             },
             runner: {
                 workerPool: {
-                    '0-0': new WorkerMock(<WorkerMockRunPayload>{ specs: ['/a.js', ['/b.js', '/c.js', '/d.js'], 'e.js'] })
+                    '0-0': new WorkerMock(<WorkerMockRunPayload>{ specs: [testPath('a.js'), [testPath('b.js'), testPath('c.js'), testPath('d.js')], 'e.js'] })
                 }
             }
         } as any
@@ -227,10 +282,9 @@ describe('watcher', () => {
     })
 
     it('should run also watch `filesToWatch` files', async () => {
-        // skip for Windows
-        if (os.platform() === 'win32') {
-            return
-        }
+        const fooPath = testPath('foo')
+        const barPath = testPath('bar')
+        const fooBarPath = testPath('foo', 'bar')
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'] = {
@@ -240,9 +294,9 @@ describe('watcher', () => {
                 finalise: vi.fn()
             },
             configParser: {
-                getConfig: vi.fn().mockReturnValue({ filesToWatch: ['/foo/bar'] }),
+                getConfig: vi.fn().mockReturnValue({ filesToWatch: [fooBarPath] }),
                 initialize: vi.fn(),
-                getSpecs: vi.fn().mockReturnValue(['file:///foo', 'file:///bar']),
+                getSpecs: vi.fn().mockReturnValue([toFileUrl(fooPath), toFileUrl(barPath)]),
                 getCapabilities: vi.fn().mockReturnValue([{ browserName: 'chrome' }])
             },
             runner: {
@@ -269,10 +323,12 @@ describe('watcher', () => {
     })
 
     it('should call run with modifed path when a new file was changed or added', async () => {
-        // skip for Windows
-        if (os.platform() === 'win32') {
-            return
-        }
+        const fooPath = testPath('foo')
+        const barPath = testPath('bar')
+        const fooBarPath = testPath('foo', 'bar')
+        const somePath = testPath('some', 'path.js')
+        const someOtherPath = testPath('some', 'other', 'path.js')
+        const someAnotherPath = testPath('some', 'another', 'path.js')
 
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
@@ -283,9 +339,9 @@ describe('watcher', () => {
                 finalise: vi.fn()
             },
             configParser: {
-                getConfig: vi.fn().mockReturnValue({ filesToWatch: ['/foo/bar'] }),
+                getConfig: vi.fn().mockReturnValue({ filesToWatch: [fooBarPath] }),
                 initialize: vi.fn(),
-                getSpecs: vi.fn().mockReturnValue(['file:///foo', 'file:///bar']),
+                getSpecs: vi.fn().mockReturnValue([toFileUrl(fooPath), toFileUrl(barPath)]),
                 getCapabilities: vi.fn().mockReturnValue([{ browserName: 'chrome' }])
             },
             runner: {
@@ -298,15 +354,15 @@ describe('watcher', () => {
         await watcher.watch()
 
         // @ts-ignore mock feature
-        vi.mocked(chokidar.on).mock.calls[0][1]('/some/path.js')
+        vi.mocked(chokidar.on).mock.calls[0][1](somePath)
         // @ts-ignore mock feature
-        vi.mocked(chokidar.on).mock.calls[1][1]('/some/other/path.js')
+        vi.mocked(chokidar.on).mock.calls[1][1](someOtherPath)
         // @ts-ignore mock feature
-        vi.mocked(chokidar.on).mock.calls[2][1]('/some/another/path.js')
+        vi.mocked(chokidar.on).mock.calls[2][1](someAnotherPath)
         // @ts-ignore mock feature
-        vi.mocked(chokidar.on).mock.calls[3][1]('/some/another/path.js')
-        expect(watcher.run).toHaveBeenNthCalledWith(1, { spec: ['file:///some/path.js'] })
-        expect(watcher.run).toHaveBeenNthCalledWith(2, { spec: ['file:///some/other/path.js'] })
+        vi.mocked(chokidar.on).mock.calls[3][1](someAnotherPath)
+        expect(watcher.run).toHaveBeenNthCalledWith(1, { spec: [toFileUrl(somePath)] })
+        expect(watcher.run).toHaveBeenNthCalledWith(2, { spec: [toFileUrl(someOtherPath)] })
         expect(watcher.run).toHaveBeenNthCalledWith(3, {})
         expect(watcher.run).toHaveBeenNthCalledWith(4, {})
     })
@@ -332,56 +388,57 @@ describe('watcher', () => {
     })
 
     it('should run workers on existing session', () => {
-        // skip for Windows
-        if (os.platform() === 'win32') {
-            return
-        }
+        const fooBarPath = testPath('foo', 'bar.js')
+        const fooBar2Path = testPath('foo', 'bar2.js')
+        const barFooPath = testPath('bar', 'foo.js')
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'].runner!.workerPool = {
             // @ts-ignore mock feature
-            '0-0': new WorkerMock({ cid: '0-0', specs: ['/foo/bar.js'] }),
-            '0-1': new WorkerMock({ cid: '0-1', specs: ['/foo/bar2.js'], isBusy: true }),
+            '0-0': new WorkerMock({ cid: '0-0', specs: [fooBarPath] }),
+            '0-1': new WorkerMock({ cid: '0-1', specs: [fooBar2Path], isBusy: true }),
             // @ts-ignore mock feature
-            '1-0': new WorkerMock({ cid: '1-0', specs: ['/bar/foo.js'] })
+            '1-0': new WorkerMock({ cid: '1-0', specs: [barFooPath] })
         }
         watcher['_launcher'].interface!.emit = vi.fn()
-        watcher.run({ spec: 'file:///foo/bar.js' } as any)
+        watcher.run({ spec: toFileUrl(fooBarPath) } as any)
         expect(watcher['_launcher'].interface!.emit).toHaveBeenCalledWith('job:start', {
             cid: '0-0',
             caps: { browserName: 'chrome' },
-            specs: ['file:///foo/bar.js']
+            specs: [toFileUrl(fooBarPath)]
         })
 
         const { postMessage, sessionId } = watcher['_launcher'].runner!.workerPool['0-0']
         expect(postMessage).toHaveBeenCalledWith('run', {
             sessionId,
-            spec: 'file:///foo/bar.js',
+            spec: toFileUrl(fooBarPath),
             baseUrl: 'http://localhost:1234'
         })
         expect(watcher['_launcher'].interface!.totalWorkerCnt).toBe(1)
     })
 
     it('should not clean if no watcher is running', () => {
+        const fooBarPath = testPath('foo', 'bar.js')
+        const fooBar2Path = testPath('foo', 'bar2.js')
+        const barFooPath = testPath('bar', 'foo.js')
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'].runner!.workerPool = {
             // @ts-ignore mock feature
-            '0-0': new WorkerMock({ cid: '0-0', specs: ['/foo/bar.js'] }),
-            '0-1': new WorkerMock({ cid: '0-1', specs: ['/foo/bar2.js'], isBusy: true }),
+            '0-0': new WorkerMock({ cid: '0-0', specs: [fooBarPath] }),
+            '0-1': new WorkerMock({ cid: '0-1', specs: [fooBar2Path], isBusy: true }),
             // @ts-ignore mock feature
-            '1-0': new WorkerMock({ cid: '1-0', specs: ['/bar/foo.js'] })
+            '1-0': new WorkerMock({ cid: '1-0', specs: [barFooPath] })
         }
         watcher['_launcher'].interface!.emit = vi.fn()
-        watcher.run({ spec: '/foo/bar2.js' } as any)
+        watcher.run({ spec: fooBar2Path } as any)
         expect(watcher['_launcher'].interface!.emit).toHaveBeenCalledTimes(0)
     })
 
     it('should run all tests if `filesToWatch` entry was changed', () => {
-        // skip for Windows
-        if (os.platform() === 'win32') {
-            return
-        }
+        const fooBarPath = testPath('foo', 'bar.js')
+        const fooBar2Path = testPath('foo', 'bar2.js')
+        const barFooPath = testPath('bar', 'foo.js')
 
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
@@ -389,10 +446,10 @@ describe('watcher', () => {
         watcher.cleanUp = vi.fn()
         watcher['_launcher'].runner!.workerPool = {
             // @ts-ignore mock feature
-            '0-0': new WorkerMock({ cid: '0-0', specs: ['/foo/bar.js'] }),
-            '0-1': new WorkerMock({ cid: '0-1', specs: ['/foo/bar2.js'], isBusy: true }),
+            '0-0': new WorkerMock({ cid: '0-0', specs: [fooBarPath] }),
+            '0-1': new WorkerMock({ cid: '0-1', specs: [fooBar2Path], isBusy: true }),
             // @ts-ignore mock feature
-            '1-0': new WorkerMock({ cid: '1-0', specs: ['/bar/foo.js'] })
+            '1-0': new WorkerMock({ cid: '1-0', specs: [barFooPath] })
         }
         watcher.run()
 
@@ -405,7 +462,8 @@ describe('watcher', () => {
         expect(watcher['_launcher'].interface!.emit).toHaveBeenCalledWith('job:start', {
             cid: '0-0',
             caps: { browserName: 'chrome' },
-            specs: ['file:///foo/bar.js'] })
+            specs: [toFileUrl(fooBarPath)]
+        })
 
         const worker10 = watcher['_launcher'].runner!.workerPool['0-0']
         expect(worker10.postMessage).toHaveBeenCalledWith(
@@ -414,17 +472,16 @@ describe('watcher', () => {
         expect(watcher['_launcher'].interface!.emit).toHaveBeenCalledWith('job:start', {
             cid: '1-0',
             caps: { browserName: 'chrome' },
-            specs: ['file:///bar/foo.js'] })
+            specs: [toFileUrl(barFooPath)]
+        })
     })
 
     it('should re-run all specs when the --spec command line option is set and a filesToWatch file is added or changed', async () => {
-        // skip for Windows
-        if (os.platform() === 'win32') {
-            return
-        }
-        const spec = ['/some/path.js', '/some/other/path.js']
-        const someOtherExcludedPath = '/some/other/excluded/path.js'
-        const filesToWatch = ['/some/another/path.js']
+        const fooPath = testPath('foo')
+        const barPath = testPath('bar')
+        const spec = [testPath('some', 'path.js'), testPath('some', 'other', 'path.js')]
+        const someOtherExcludedPath = testPath('some', 'other', 'excluded', 'path.js')
+        const filesToWatch = [testPath('some', 'another', 'path.js')]
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'] = {
@@ -438,7 +495,7 @@ describe('watcher', () => {
             configParser: {
                 getConfig: vi.fn().mockReturnValue({ filesToWatch }),
                 initialize: vi.fn(),
-                getSpecs: vi.fn().mockReturnValue(['file:///foo', 'file:///bar']),
+                getSpecs: vi.fn().mockReturnValue([toFileUrl(fooPath), toFileUrl(barPath)]),
                 getCapabilities: vi.fn().mockReturnValue([{ browserName: 'chrome' }])
             },
             runner: {
@@ -455,13 +512,13 @@ describe('watcher', () => {
 
         // @ts-ignore mock feature
         vi.mocked(chokidar.on).mock.calls[0][1](spec[0])
-        expect(runSpy).toHaveBeenNthCalledWith(1, { spec: [`file://${spec[0]}`] })
+        expect(runSpy).toHaveBeenNthCalledWith(1, { spec: [toFileUrl(spec[0])] })
         expect(emitSpy).toHaveBeenCalledTimes(1) // Only one Worker called
 
         vi.mocked(emitSpy).mockClear()
         // @ts-ignore mock feature
         vi.mocked(chokidar.on).mock.calls[1][1](someOtherExcludedPath)
-        expect(runSpy).toHaveBeenNthCalledWith(2, { spec: [`file://${someOtherExcludedPath}`] })
+        expect(runSpy).toHaveBeenNthCalledWith(2, { spec: [toFileUrl(someOtherExcludedPath)] })
         expect(emitSpy).not.toHaveBeenCalled() // No Workers called
 
         vi.mocked(emitSpy).mockClear()
@@ -478,14 +535,11 @@ describe('watcher', () => {
     })
 
     it('should re-run all specs, with grouped specs, when the --spec command line option is set and a filesToWatch file is added or changed', async () => {
-        // skip for Windows
-        if (os.platform() === 'win32') {
-            return
-        }
-
-        const spec = ['/a.js', ['/b.js', '/c.js', '/d.js']]
-        const someOtherExcludedPath = '/some/other/excluded/path.js'
-        const filesToWatch = ['/some/another/path.js']
+        const fooPath = testPath('foo')
+        const barPath = testPath('bar')
+        const spec = [testPath('a.js'), [testPath('b.js'), testPath('c.js'), testPath('d.js')]]
+        const someOtherExcludedPath = testPath('some', 'other', 'excluded', 'path.js')
+        const filesToWatch = [testPath('some', 'another', 'path.js')]
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         // @ts-ignore
@@ -500,7 +554,7 @@ describe('watcher', () => {
             configParser: {
                 getConfig: vi.fn().mockReturnValue({ filesToWatch }),
                 initialize: vi.fn(),
-                getSpecs: vi.fn().mockReturnValue(['file:///foo', 'file:///bar']),
+                getSpecs: vi.fn().mockReturnValue([toFileUrl(fooPath), toFileUrl(barPath)]),
                 getCapabilities: vi.fn().mockReturnValue([{ browserName: 'chrome' }])
             },
             runner: {
@@ -517,13 +571,13 @@ describe('watcher', () => {
 
         // @ts-ignore mock feature
         vi.mocked(chokidar.on).mock.calls[0][1](spec[0])
-        expect(runSpy).toHaveBeenNthCalledWith(1, { spec: [`file://${spec[0]}`] })
+        expect(runSpy).toHaveBeenNthCalledWith(1, { spec: [toFileUrl(spec[0] as string)] })
         expect(emitSpy).toHaveBeenCalledTimes(1) // Only one Worker called
 
         vi.mocked(emitSpy).mockClear()
         // @ts-ignore mock feature
         vi.mocked(chokidar.on).mock.calls[1][1](someOtherExcludedPath)
-        expect(runSpy).toHaveBeenNthCalledWith(2, { spec: [`file://${someOtherExcludedPath}`] })
+        expect(runSpy).toHaveBeenNthCalledWith(2, { spec: [toFileUrl(someOtherExcludedPath)] })
         expect(emitSpy).not.toHaveBeenCalled() // No Workers called
 
         vi.mocked(emitSpy).mockClear()

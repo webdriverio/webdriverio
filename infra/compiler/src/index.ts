@@ -44,7 +44,7 @@ const packages = (
                 url.pathToFileURL(
                     path.resolve(rootDir, 'packages', project, 'package.json')
                 ).href,
-                { assert: { type: 'json' } }
+                { with: { type: 'json' } }
             )
             return [project, pkg.default]
         })
@@ -60,7 +60,7 @@ const packages = (
  */
 const esmPlugins: Record<string, Plugin[]> = {
     '@wdio/protocols': [generateTypes()],
-    '@wdio/cli': [copyEJSTemplates()],
+    'create-wdio': [copyEJSTemplates('create-wdio')],
     'webdriverio': [externalScripts()]
 }
 /**

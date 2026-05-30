@@ -18,7 +18,14 @@ interface Sequence {
     value?: string
 }
 
-let actionIds = 0
+/**
+ * Separate counters for each action type to ensure W3C WebDriver compliance.
+ * According to the spec, each input source ID must always map to the same action type
+ * throughout the session duration.
+ */
+let keyActionIds = 0
+let pointerActionIds = 0
+let wheelActionIds = 0
 
 export default class BaseAction {
     #id: string
@@ -27,18 +34,41 @@ export default class BaseAction {
     #instance: WebdriverIO.Browser
     protected sequence: Sequence[] = []
 
-    constructor (
+    constructor(
         protected instance: WebdriverIO.Browser,
         type: ActionType,
         params?: BaseActionParams
     ) {
         this.#instance = instance
-        this.#id = params?.id || `action${++actionIds}`
+
+        /**
+         * Generate type-specific IDs to prevent conflicts when mixing action types.
+         * This ensures compliance with W3C WebDriver spec which requires each input
+         * source ID to consistently map to the same action type.
+         */
+        if (params?.id) {
+            this.#id = params.id
+        } else {
+            switch (type) {
+            case 'key':
+                this.#id = `key${++keyActionIds}`
+                break
+            case 'pointer':
+                this.#id = `pointer${++pointerActionIds}`
+                break
+            case 'wheel':
+                this.#id = `wheel${++wheelActionIds}`
+                break
+            default:
+                this.#id = `action${type}`
+            }
+        }
+
         this.#type = type
         this.#parameters = params?.parameters || {}
     }
 
-    toJSON () {
+    toJSON() {
         return {
             id: this.#id,
             type: this.#type,
@@ -51,7 +81,7 @@ export default class BaseAction {
      * Inserts a pause action for the specified device, ensuring it idles for a tick.
      * @param duration idle time of tick
      */
-    pause (duration: number) {
+    pause(duration: number) {
         this.sequence.push({ type: 'pause', duration })
         return this
     }
@@ -60,7 +90,7 @@ export default class BaseAction {
      * Perform action sequence
      * @param skipRelease set to true if `releaseActions` command should not be invoked
      */
-    async perform (skipRelease = false) {
+    async perform(skipRelease = false) {
         /**
          * transform chainable / not resolved elements into WDIO elements
          */

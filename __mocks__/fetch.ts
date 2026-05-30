@@ -106,6 +106,7 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     ) {
         sessionResponse.capabilities.app = 'mockApp'
         delete sessionResponse.capabilities.browserName
+        delete sessionResponse.capabilities.browserVersion
     }
 
     if (
@@ -152,6 +153,9 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
 
         if (body.capabilities.alwaysMatch.platformName && body.capabilities.alwaysMatch.platformName.includes('iOS')) {
             value.capabilities.platformName = 'iOS'
+        }
+        if (body.capabilities.alwaysMatch.platformName && body.capabilities.alwaysMatch.platformName.includes('Android')) {
+            value.capabilities.platformName = 'Android'
         }
 
         break
@@ -480,6 +484,35 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         return Response.json({}, {
             status: 400,
             headers: { foo: 'bar' }
+        })
+    }
+
+    /**
+     * simulate failing response with HTML
+     */
+    if (uri.pathname === '/failing-html') {
+        ++requestMock.retryCnt
+
+        /**
+         * success this request if you retry 3 times
+         */
+        if (requestMock.retryCnt > 3) {
+            const response = { value: 'caught-html' }
+
+            return Response.json(response, {
+                status: 200,
+                headers: { foo: 'bar' }
+            })
+        }
+
+        return new Response('<html>\n' +
+            '<head><title>504 Gateway Time-out</title></head>\n' +
+            '<body>\n' +
+            '<center><h1>504 Gateway Time-out</h1></center>\n' +
+            '</body>\n' +
+            '</html>', {
+            status: 504,
+            headers: { 'Content-Type': 'text/html' }
         })
     }
 

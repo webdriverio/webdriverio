@@ -5,16 +5,31 @@ import { checkUnicode } from '../../utils/index.js'
 /**
  *
  * Send a sequence of key strokes to the "active" element. You can make an input element active by just clicking
- * on it. To use characters like "Left arrow" or "Back space", import the `Key` object from the WebdriverIO package.
+ * on it. To use special characters like "ArrowLeft", "Enter", or "Backspace", import the `Key` object from the WebdriverIO package:
  *
- * Modifier like `Control`, `Shift`, `Alt` and `Command` will stay pressed throughout the sequence and will be released
+ * ```js
+ * import { Key } from 'webdriverio'
+ * ```
+ *
+ * The `Key` object provides constants for all special keys including:
+ * - Navigation: `Key.ArrowLeft`, `Key.ArrowUp`, `Key.ArrowRight`, `Key.ArrowDown`, `Key.PageUp`, `Key.PageDown`, `Key.Home`, `Key.End`
+ * - Editing: `Key.Enter`, `Key.Tab`, `Key.Backspace`, `Key.Delete`, `Key.Insert`
+ * - Modifiers: `Key.Ctrl` (cross-platform), `Key.Shift`, `Key.Alt`, `Key.Control`, `Key.Command`
+ * - Function keys: `Key.F1` through `Key.F12`
+ * - Numpad: `Key.Numpad0` through `Key.Numpad9`, `Key.Multiply`, `Key.Add`, `Key.Subtract`, `Key.Divide`
+ * - And more: `Key.Escape`, `Key.Space`, `Key.Clear`, `Key.Pause`, etc.
+ *
+ * See the [Key API docs](/docs/api/modules#key) for a complete list.
+ *
+ * Modifier keys like `Control`, `Shift`, `Alt` and `Command` will stay pressed throughout the sequence and will be released
  * at the end. Modifying a click requires you to use the WebDriver Actions API through the
  * [performActions](https://webdriver.io/docs/api/webdriver#performactions) method.
  *
- * :::info
+ * :::info Cross-Platform Modifier
  *
- * Control keys differ based on the operating system the browser is running on, e.g. MacOS: `Command` and Windows: `Control`.
- * WebdriverIO provides a cross browser modifier control key called `Ctrl` (see example below).
+ * The `Key.Ctrl` constant provides a convenient way to use the "control" modifier across different operating systems.
+ * On macOS, it maps to the `Command` key, while on Windows and Linux it maps to the `Control` key.
+ * This is useful for keyboard shortcuts like select-all (`[Key.Ctrl, 'a']`), copy, or paste.
  *
  * :::
  *
@@ -26,7 +41,7 @@ import { checkUnicode } from '../../utils/index.js'
 export async function keys (
     this: WebdriverIO.Browser,
     value: string | string[]
-) {
+): Promise<void> {
     let keySequence: string[] = []
 
     /**

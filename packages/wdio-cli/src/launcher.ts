@@ -2,7 +2,7 @@ import exitHook from 'async-exit-hook'
 import { resolve } from 'import-meta-resolve'
 
 import logger from '@wdio/logger'
-import { validateConfig } from '@wdio/config'
+import { validateConfig, DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
 import { initializePlugin, initializeLauncherService, sleep, enableFileLogging } from '@wdio/utils'
 import { setupDriver, setupBrowser } from '@wdio/utils/node'
@@ -74,33 +74,13 @@ class Launcher {
 
         const capabilities = this.configParser.getCapabilities()
         this.isParallelMultiremote = Array.isArray(capabilities) &&
+            capabilities.length > 0 &&
             capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities))
         this.isMultiremote = this.isParallelMultiremote || !Array.isArray(capabilities)
         validateConfig(TESTRUNNER_DEFAULTS, { ...config, capabilities })
 
         await enableFileLogging(config.outputDir)
         logger.setLogLevelsConfig(config.logLevels, config.logLevel)
-
-        /**
-         * For Parallel-Multiremote, only get the specs and excludes from the first object
-         */
-        const totalWorkerCnt = Array.isArray(capabilities)
-            ? capabilities
-                .map((c) => {
-                    if (this.isParallelMultiremote) {
-                        const keys = Object.keys(c as Capabilities.RequestedMultiremoteCapabilities)
-                        const caps = (c as Capabilities.RequestedMultiremoteCapabilities)[keys[0]].capabilities as WebdriverIO.Capabilities
-                        return this.configParser.getSpecs(caps['wdio:specs'], caps['wdio:exclude']).length
-                    }
-                    const standaloneCaps = c as Capabilities.RequestedStandaloneCapabilities
-                    const cap = 'alwaysMatch' in standaloneCaps ? standaloneCaps.alwaysMatch : standaloneCaps
-                    return this.configParser.getSpecs(cap['wdio:specs'], cap['wdio:exclude']).length
-                })
-                .reduce((a, b) => a + b, 0)
-            : 1
-
-        this.interface = new CLInterface(config, totalWorkerCnt, this._isWatchMode)
-        config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport).toString()
 
         const [runnerName, runnerOptions] = Array.isArray(config.runner) ? config.runner : [config.runner, {} as WebdriverIO.BrowserRunnerOptions]
         const Runner = (await initializePlugin(runnerName, 'runner') as Services.RunnerPlugin).default
@@ -133,6 +113,27 @@ class Launcher {
             await runServiceHook(this._launcher, 'onPrepare', config, caps)
 
             /**
+             * For Parallel-Multiremote, only get the specs and excludes from the first object
+             */
+            const totalWorkerCnt = Array.isArray(capabilities)
+                ? capabilities
+                    .map((c) => {
+                        if (this.isParallelMultiremote) {
+                            const keys = Object.keys(c as Capabilities.RequestedMultiremoteCapabilities)
+                            const caps = (c as Capabilities.RequestedMultiremoteCapabilities)[keys[0]].capabilities as WebdriverIO.Capabilities
+                            return this.configParser.getSpecs(caps['wdio:specs'], caps['wdio:exclude']).length
+                        }
+                        const standaloneCaps = c as Capabilities.RequestedStandaloneCapabilities
+                        const cap = 'alwaysMatch' in standaloneCaps ? standaloneCaps.alwaysMatch : standaloneCaps
+                        return this.configParser.getSpecs(cap['wdio:specs'], cap['wdio:exclude']).length
+                    })
+                    .reduce((a, b) => a + b, 0)
+                : 1
+
+            this.interface = new CLInterface(config, totalWorkerCnt, this._isWatchMode)
+            config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport).toString()
+
+            /**
              * pre-configure necessary driver for worker threads
              */
             await Promise.all([
@@ -158,7 +159,9 @@ class Launcher {
         }
 
         if (error) {
-            this.interface.logHookError(error)
+            if (this.interface) {
+                this.interface.logHookError(error)
+            }
             throw error
         }
 
@@ -168,7 +171,7 @@ class Launcher {
     /**
      * initialize launcher by loading `tsx` if needed
      */
-    async initialize () {
+    async initialize() {
         /**
          * only initialize once
          */
@@ -214,13 +217,13 @@ class Launcher {
      * a user can use plugin service, e.g. shared store service is still
      * available running hooks in this order
      */
-    async #runOnCompleteHook (
+    async #runOnCompleteHook(
         config: Required<WebdriverIO.Config>,
         caps: Capabilities.TestrunnerCapabilities,
         exitCode: number
     ): Promise<number> {
         log.info('Run onComplete hook')
-        const onCompleteResults = await runOnCompleteHook(config.onComplete!, config, caps, exitCode, this.interface!.result)
+        const onCompleteResults = await runOnCompleteHook(config.onComplete!, config, caps, exitCode, this.interface?.result || { finished: 0, passed: 0, retries: 0, failed: 0 })
         if (this._launcher) {
             await runServiceHook(this._launcher, 'onComplete', exitCode, config, caps)
         }
@@ -257,9 +260,10 @@ class Launcher {
         }
 
         /**
-         * avoid retries in watch mode
+         * Avoid retries in watch mode. Otherwise, initialize with -1 which is "unknown". It will be updated when the
+         * worker ends (this allows the value to be read from the config after the beforeSession hook has run).
          */
-        const specFileRetries = this._isWatchMode ? 0 : config.specFileRetries
+        const specFileRetries = this._isWatchMode ? 0 : -1
 
         /**
          * schedule test runs
@@ -286,7 +290,7 @@ class Launcher {
                  */
                 const availableInstances = this.isParallelMultiremote ? config.maxInstances || 1 : config.runner === 'browser'
                     ? 1
-                    : (capabilities as WebdriverIO.Capabilities)['wdio:maxInstances'] || config.maxInstancesPerCapability
+                    : (capabilities as WebdriverIO.Capabilities)['wdio:maxInstances'] || config.maxInstancesPerCapability || DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE
 
                 this._schedule.push({
                     cid: cid++,

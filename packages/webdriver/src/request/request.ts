@@ -1,8 +1,6 @@
 import logger from '@wdio/logger'
-import { transformCommandLogResult, sleep } from '@wdio/utils'
+import { sleep } from '@wdio/utils'
 import type { Options } from '@wdio/types'
-
-import { type RequestInit as UndiciRequestInit } from 'undici'
 
 import  { WebDriverResponseError, WebDriverRequestError } from './error.js'
 import { RETRYABLE_STATUS_CODES, RETRYABLE_ERROR_CODES } from './constants.js'
@@ -83,8 +81,8 @@ export abstract class WebDriverRequest {
          * only apply body property if existing
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
-            const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
-            requestOptions.body = this.body as unknown as BodyInit
+            requestOptions.body = JSON.stringify(this.body)
+            const contentLength = new TextEncoder().encode(requestOptions.body).length
             requestHeaders.set('Content-Length', `${contentLength}`)
         }
 
@@ -126,22 +124,8 @@ export abstract class WebDriverRequest {
 
     protected async _libRequest (url: URL, opts: RequestInit): Promise<Options.RequestLibResponse> {
         try {
-
-            const dispatcher = (opts as UndiciRequestInit).dispatcher
-
-            const response = await this.fetch(url, {
-                method: opts.method,
-                body: JSON.stringify(opts.body),
-                headers: opts.headers as Record<string, string>,
-                signal: opts.signal,
-                redirect: opts.redirect,
-                ...(dispatcher ? { dispatcher } : {})
-            })
-
-            return {
-                statusCode: response.status,
-                body: await response.json() ?? {},
-            } satisfies Options.RequestLibResponse
+            const response = await this.fetch(url, opts)
+            return await this.parseResponse(response)
         } catch (err) {
             if (!(err instanceof Error)) {
                 throw new WebDriverRequestError(
@@ -155,6 +139,23 @@ export abstract class WebDriverRequest {
         }
     }
 
+    private async parseResponse (response: Response): Promise<Options.RequestLibResponse> {
+        const rawBody = await response.text()
+        try {
+            return {
+                statusCode: response.status,
+                body: rawBody ? JSON.parse(rawBody) : {},
+            } satisfies Options.RequestLibResponse
+        } catch {
+            throw new Error(`Could not parse response body: "${rawBody}"`, {
+                cause: {
+                    statusCode: response.status,
+                    body: rawBody
+                }
+            })
+        }
+    }
+
     protected async _request (
         url: URL,
         fullRequestOptions: RequestInit,
@@ -165,7 +166,7 @@ export abstract class WebDriverRequest {
         log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
 
         if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
-            log.info('DATA', transformCommandLogResult(fullRequestOptions.body))
+            this.eventHandler.onLogData?.(fullRequestOptions.body)
         }
 
         const { ...requestLibOptions } = fullRequestOptions

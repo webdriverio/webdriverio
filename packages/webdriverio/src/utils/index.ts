@@ -113,7 +113,7 @@ export const getElementFromResponse = (res?: ElementReference) => {
     return null
 }
 
-function sanitizeCSS (value?: string) {
+function sanitizeCSS(value?: string) {
     /* istanbul ignore next */
     if (!value) {
         return value
@@ -128,7 +128,7 @@ function sanitizeCSS (value?: string) {
  * @param  {string} cssProperty      name of css property to parse
  * @return {object}                  parsed css property
  */
-export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
+export function parseCSS(cssPropertyValue: string, cssProperty?: string) {
     const parsedValue: ParsedCSSValue = {
         property: cssProperty,
         value: cssPropertyValue.toLowerCase().trim(),
@@ -185,7 +185,7 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
  * @param  {string} value  text
  * @return {Array}         set of characters or unicode symbols
  */
-export function checkUnicode (value: string) {
+export function checkUnicode(value: string) {
     /**
      * "Ctrl" key is specially handled based on OS in action class
      */
@@ -203,7 +203,7 @@ export function checkUnicode (value: string) {
     return [UNICODE_CHARACTERS[value as keyof typeof UNICODE_CHARACTERS]]
 }
 
-function fetchElementByJSFunction (
+function fetchElementByJSFunction(
     selector: ElementFunction,
     scope: WebdriverIO.Browser | WebdriverIO.Element,
     referenceId?: string
@@ -225,15 +225,15 @@ function fetchElementByJSFunction (
     return getBrowserObject(scope).executeScript(`return (${script}).apply(null, arguments)`, args)
 }
 
-export function isElement (o: Selector){
+export function isElement(o: Selector) {
     return (
         typeof HTMLElement === 'object'
             ? o instanceof HTMLElement
-            : o && typeof o === 'object' && o !== null && (o as HTMLElement).nodeType === 1 && typeof (o as HTMLElement).nodeName==='string'
+            : o && typeof o === 'object' && o !== null && (o as HTMLElement).nodeType === 1 && typeof (o as HTMLElement).nodeName === 'string'
     )
 }
 
-export function isStaleElementError (err: Error) {
+export function isStaleElementError(err: Error) {
     return (
         // Chrome
         err.message.includes('stale element reference') ||
@@ -255,7 +255,7 @@ export function isStaleElementError (err: Error) {
  * @param shadowRootId shadow root id that was inspected
  * @returns a function to handle the result of a shadow root inspection
  */
-export function elementPromiseHandler <T extends object>(handle: string, shadowRootManager: ShadowRootManager, shadowRootId?: string) {
+export function elementPromiseHandler<T extends object>(handle: string, shadowRootManager: ShadowRootManager, shadowRootId?: string) {
     return (el: T | Error) => {
         const errorString = 'error' in el && typeof el.error === 'string'
             ? el.error
@@ -276,7 +276,7 @@ export function elementPromiseHandler <T extends object>(handle: string, shadowR
     }
 }
 
-export function transformClassicToBidiSelector (using: string, value: string): remote.BrowsingContextCssLocator | remote.BrowsingContextXPathLocator | remote.BrowsingContextInnerTextLocator {
+export function transformClassicToBidiSelector(using: string, value: string): remote.BrowsingContextCssLocator | remote.BrowsingContextXPathLocator | remote.BrowsingContextInnerTextLocator {
     if (using === 'css selector' || using === 'tag name') {
         return { type: 'css', value }
     }
@@ -306,7 +306,7 @@ export function transformClassicToBidiSelector (using: string, value: string): r
 export async function findDeepElement(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
-): Promise<ElementReference | Error> {
+): Promise<ElementReference | undefined> {
     const browser = getBrowserObject(this)
     const shadowRootManager = getShadowRootManager(browser)
     const contextManager = getContextManager(browser)
@@ -317,6 +317,16 @@ export async function findDeepElement(
         (this as WebdriverIO.Element).elementId
     )
     const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+
+    /**
+     * if we are using a relative xpath selector and we have a parent element
+     * we need to fall back to the regular WebDriver Classic command as BiDi
+     * does not support relative xpath selectors with a start node
+     */
+    if (using === 'xpath' && (value.startsWith('./') || value.startsWith('..')) && (this as WebdriverIO.Element).elementId) {
+        return this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value)
+    }
+
     const locator = transformClassicToBidiSelector(using, value)
 
     /**
@@ -336,6 +346,25 @@ export async function findDeepElement(
         nodes = returnUniqueNodes(nodes)
 
         if (!(this as WebdriverIO.Element).elementId) {
+            /**
+             * When searching via shadow root startNodes, validate that returned
+             * elements are connected to the live DOM. In SPAs using client-side
+             * routing, stale shadow root entries can cause browsingContextLocateNodes
+             * to return references to elements in detached DOM trees.
+             */
+            if (shadowRoots.length > 0 && nodes.length > 0) {
+                for (const node of nodes) {
+                    try {
+                        const connected = await browser.execute((el: Element) => el.isConnected, node as unknown as HTMLElement)
+                        if (connected) { return node }
+                        shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+                    } catch {
+                        shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+                    }
+                }
+                log.warn(`All ${nodes.length} BiDi results for "${value}" are detached, removed stale entries from shadow root tree`)
+                return undefined
+            }
             return nodes[0]
         }
 
@@ -343,14 +372,35 @@ export async function findDeepElement(
          * determine if node is within tree of current element
          */
         const scopedNodes = await Promise.all(nodes.map(async (node) => {
-            const isIn = await browser.execute(
-                elementContains,
-                { [ELEMENT_KEY]: (this as WebdriverIO.Element).elementId } as unknown as HTMLElement,
-                node as unknown as HTMLElement
-            )
-            return [isIn, node]
-        })).then((elems) => elems.filter(([isIn]) => isIn).map(([, elem]) => elem))
+            try {
+                const isIn = await browser.execute(
+                    elementContains,
+                    { [ELEMENT_KEY]: (this as WebdriverIO.Element).elementId } as unknown as HTMLElement,
+                    node as unknown as HTMLElement
+                )
+                return [isIn, node]
+            } catch {
+                // Element reference may be stale from detached shadow root, skip
+                return [false, node]
+            }
+        })).then((elems) => elems.filter(([isIn]) => isIn).map(([, elem]) => elem)) as ExtendedElementReference[]
 
+        /**
+         * Validate that the first scoped node is connected to the live DOM
+         */
+        for (const node of scopedNodes) {
+            try {
+                const connected = await browser.execute((el: Element) => el.isConnected, node as unknown as HTMLElement)
+                if (connected) { return node }
+                shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+            } catch {
+                shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+            }
+        }
+        if (scopedNodes.length > 0) {
+            log.warn(`All ${scopedNodes.length} scoped BiDi results for "${value}" are detached, removed stale entries from shadow root tree`)
+            return undefined
+        }
         return scopedNodes[0]
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
@@ -359,11 +409,7 @@ export async function findDeepElement(
             : browser.findElement(using, value)
     })
 
-    if (!deepElementResult) {
-        return new Error(`Couldn't find element with selector "${selector}"`)
-    }
-
-    return deepElementResult as ElementReference
+    return deepElementResult
 }
 
 /**
@@ -387,6 +433,16 @@ export async function findDeepElements(
         (this as WebdriverIO.Element).elementId
     )
     const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+
+    /**
+     * if we are using a relative xpath selector and we have a parent element
+     * we need to fall back to the regular WebDriver Classic command as BiDi
+     * does not support relative xpath selectors with a start node
+     */
+    if (using === 'xpath' && (value.startsWith('./') || value.startsWith('..')) && (this as WebdriverIO.Element).elementId) {
+        return this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value)
+    }
+
     const locator = transformClassicToBidiSelector(using, value)
 
     /**
@@ -407,6 +463,28 @@ export async function findDeepElements(
         nodes = returnUniqueNodes(nodes)
 
         if (!(this as WebdriverIO.Element).elementId) {
+            /**
+             * When searching via shadow root startNodes, filter out stale elements
+             * from detached DOM trees (common in SPA client-side navigation).
+             */
+            if (shadowRoots.length > 0 && nodes.length > 0) {
+                const validNodes: ExtendedElementReference[] = []
+                for (const node of nodes) {
+                    try {
+                        const connected = await browser.execute((el: Element) => el.isConnected, node as unknown as HTMLElement)
+                        if (connected) {
+                            validNodes.push(node)
+                        } else {
+                            shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+                        }
+                    } catch {
+                        shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+                    }
+                }
+                if (validNodes.length > 0) { return validNodes }
+                // All BiDi results are detached, fall back to Classic WebDriver
+                return []
+            }
             return nodes
         }
 
@@ -414,14 +492,39 @@ export async function findDeepElements(
          * determine if node is within tree of current element
          */
         const scopedNodes = await Promise.all(nodes.map(async (node) => {
-            const isIn = await browser.execute(
-                elementContains,
-                { [ELEMENT_KEY]: (this as WebdriverIO.Element).elementId } as unknown as HTMLElement,
-                node as unknown as HTMLElement
-            )
-            return [isIn, node]
+            try {
+                const isIn = await browser.execute(
+                    elementContains,
+                    { [ELEMENT_KEY]: (this as WebdriverIO.Element).elementId } as unknown as HTMLElement,
+                    node as unknown as HTMLElement
+                )
+                return [isIn, node]
+            } catch {
+                // Element reference may be stale from detached shadow root, skip
+                return [false, node]
+            }
         })).then((elems) => elems.filter(([isIn]) => isIn).map(([, elem]) => elem))
 
+        /**
+         * Filter out detached scoped nodes
+         */
+        const connectedScopedNodes: (boolean | ElementReference)[][] = []
+        for (const node of scopedNodes) {
+            try {
+                const connected = await browser.execute((el: Element) => el.isConnected, node as unknown as HTMLElement)
+                if (connected) {
+                    connectedScopedNodes.push(node as unknown as (boolean | ElementReference)[])
+                } else {
+                    shadowRootManager.deleteShadowRoot((node as unknown as Record<string, string>)[ELEMENT_KEY], context)
+                }
+            } catch {
+                shadowRootManager.deleteShadowRoot((node as unknown as Record<string, string>)[ELEMENT_KEY], context)
+            }
+        }
+        if (connectedScopedNodes.length > 0) { return connectedScopedNodes }
+        if (scopedNodes.length > 0) {
+            return []
+        }
         return scopedNodes
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
@@ -459,7 +562,9 @@ export async function findElement(
      * - and we are not in an iframe (because it is currently not supported to locate nodes in an iframe via Bidi)
      */
     if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR) && !shadowRootManager.isWithinFrame()) {
-        return findDeepElement.call(this, selector)
+        const notFoundError = new Error(`Couldn't find element with selector "${selector}"`)
+        const elem = await findDeepElement.call(this, selector)
+        return getElementFromResponse(elem) ? elem : notFoundError
     }
 
     /**
@@ -600,7 +705,7 @@ export async function findElements(
  * Strip element object and return w3c and jsonwp compatible keys
  */
 export function verifyArgsAndStripIfElement(args: unknown) {
-    function verify (arg: unknown) {
+    function verify(arg: unknown) {
         if (arg && typeof arg === 'object' && arg.constructor.name === 'Element') {
             const elem = arg as WebdriverIO.Element
             if (!elem.elementId) {
@@ -669,7 +774,7 @@ export async function getElementRect(scope: WebdriverIO.Element) {
  * @param  {Boolean} [retryCheck=false] true if an url was already check and still failed with fix applied
  * @return {string}                     fixed url
  */
-export function validateUrl (url: string, origError?: Error): string {
+export function validateUrl(url: string, origError?: Error): string {
     try {
         const urlObject = new URL(url)
         return urlObject.href
@@ -685,7 +790,7 @@ export function validateUrl (url: string, origError?: Error): string {
     }
 }
 
-export async function hasElementId (element: WebdriverIO.Element) {
+export async function hasElementId(element: WebdriverIO.Element) {
     /*
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
      */
@@ -801,7 +906,7 @@ export const containsHeaderObject = (
     return true
 }
 
-export function createFunctionDeclarationFromString (userScript: Function | string) {
+export function createFunctionDeclarationFromString(userScript: Function | string) {
     if (typeof userScript === 'string') {
         return `(${SCRIPT_PREFIX}function () {\n${userScript.toString()}\n}${SCRIPT_SUFFIX}).apply(this, arguments);`
     }

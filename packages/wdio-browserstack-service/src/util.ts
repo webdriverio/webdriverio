@@ -1,4 +1,4 @@
-import { hostname, platform, type, version, arch } from 'node:os'
+import { hostname, platform, type, version, arch, tmpdir } from 'node:os'
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import zlib from 'node:zlib'
@@ -13,21 +13,18 @@ import type { GitRepoInfo } from 'git-repo-info'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import type { ColorName } from 'chalk'
-import { FormData } from 'formdata-node'
 import { performance } from 'node:perf_hooks'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 import { logBuildError, handleErrorForObservability, handleErrorForAccessibility, getProductMapForBuildStartCall } from './testHub/utils.js'
 import type BrowserStackConfig from './config.js'
+import { OrchestrationUtils } from './testorchestration/testorcherstrationutils.js'
 import type { Errors } from './testHub/utils.js'
-
 import type { UserConfig, UploadType, BrowserstackConfig, BrowserstackOptions, LaunchResponse } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import {
     BROWSER_DESCRIPTION,
-    DATA_ENDPOINT,
-    UPLOAD_LOGS_ADDRESS,
     UPLOAD_LOGS_ENDPOINT,
     consoleHolder,
     TESTOPS_BUILD_COMPLETED_ENV,
@@ -38,16 +35,21 @@ import {
     BROWSERSTACK_TESTHUB_UUID,
     PERF_MEASUREMENT_ENV,
     RERUN_ENV,
+    BROWSERSTACK_TEST_PLAN_ID,
     MAX_GIT_META_DATA_SIZE_IN_BYTES,
     GIT_META_DATA_TRUNCATED,
-    APP_ALLY_ENDPOINT,
     APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
     APP_ALLY_ISSUES_ENDPOINT,
+    CLI_DEBUG_LOGS_FILE,
+    WDIO_NAMING_PREFIX
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
 import UsageStats from './testOps/usageStats.js'
 import TestOpsConfig from './testOps/testOpsConfig.js'
+import type { StartBinSessionResponse } from '@browserstack/wdio-browserstack-service'
+import APIUtils from './cli/apiUtils.js'
+import { create } from 'tar'
 
 import AccessibilityScripts from './scripts/accessibility-scripts.js'
 
@@ -310,15 +312,17 @@ export const jsonifyAccessibilityArray = (
     valueName: keyof DataElement
 ): Record<string, unknown> => {
     const result: Record<string, unknown> = {}
-    dataArray.forEach((element: Record<string, string>) => {
-        result[element[keyName]] = element[valueName]
+    dataArray.forEach((element: Record<string, unknown>) => {
+        result[element[keyName] as string] = element[valueName]
     })
     return result
 }
 
-export const  processAccessibilityResponse = (response: LaunchResponse) => {
+export const processAccessibilityResponse = (response: LaunchResponse | StartBinSessionResponse, options: BrowserstackConfig & Options.Testrunner) => {
     if (!response.accessibility) {
-        handleErrorForAccessibility(null)
+        if (options.accessibility === true) {
+            handleErrorForAccessibility(null)
+        }
         return
     }
     if (!response.accessibility.success) {
@@ -327,10 +331,12 @@ export const  processAccessibilityResponse = (response: LaunchResponse) => {
     }
 
     if (response.accessibility.options) {
-        const { accessibilityToken, pollingTimeout, scannerVersion } = jsonifyAccessibilityArray(response.accessibility.options.capabilities, 'name', 'value')
+        const { accessibilityToken, pollingTimeout, scannerVersion } = jsonifyAccessibilityArray(response.accessibility.options.capabilities as Array<Record<string, unknown>>, 'name', 'value')
+        const result = jsonifyAccessibilityArray(response.accessibility.options.capabilities as Array<Record<string, unknown>>, 'name', 'value')
         const scriptsJson = {
-            'scripts': jsonifyAccessibilityArray(response.accessibility.options.scripts, 'name', 'command'),
-            'commands': response.accessibility.options.commandsToWrap.commands
+            'scripts': jsonifyAccessibilityArray(response.accessibility.options.scripts as Array<Record<string, unknown>>, 'name', 'command'),
+            'commands': response.accessibility.options.commandsToWrap?.commands ?? [],
+            'nonBStackInfraA11yChromeOptions': result['goog:chromeOptions']
         }
         if (scannerVersion) {
             process.env.BSTACK_A11Y_SCANNER_VERSION = scannerVersion as string
@@ -355,10 +361,10 @@ export const processLaunchBuildResponse = (response: LaunchResponse, options: Br
     if (options.testObservability) {
         processTestObservabilityResponse(response)
     }
-    processAccessibilityResponse(response)
+    processAccessibilityResponse(response, options)
 }
 
-export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation: boolean | null) {
+export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation?: boolean) {
     const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
     launchBuildUsage.triggered()
 
@@ -385,7 +391,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         },
         browserstackAutomation: shouldAddServiceVersion(config, options.testObservability),
         framework_details: {
-            frameworkName: 'WebdriverIO-' + config.framework,
+            frameworkName: WDIO_NAMING_PREFIX + config.framework,
             frameworkVersion: bsConfig.bstackServiceVersion,
             sdkVersion: bsConfig.bstackServiceVersion,
             language: 'ECMAScript',
@@ -395,7 +401,16 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
             }
         },
         product_map: getProductMapForBuildStartCall(bStackConfig, accessibilityAutomation),
-        config: {}
+        config: {},
+        test_orchestration: OrchestrationUtils.getInstance(config)?.getBuildStartData() || {},
+        test_management: {
+            test_plan_id: getTestPlanId(options)
+        }
+    }
+
+    if (accessibilityAutomation && (isTurboScale(options) || data.browserstackAutomation === false)){
+        data.accessibility.settings ??= {}
+        data.accessibility.settings['includeEncodedExtension'] = true
     }
 
     try {
@@ -408,7 +423,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
     data.config = CrashReporter.userConfigForReporting
 
     try {
-        const url = `${DATA_ENDPOINT}/api/v2/builds`
+        const url = `${APIUtils.DATA_ENDPOINT}/api/v2/builds`
         const encodedAuth = Buffer.from(`${getObservabilityUser(options, config)}:${getObservabilityKey(options, config)}`, 'utf8').toString('base64')
         const headers: Record<string, string> = {
             ...DEFAULT_REQUEST_CONFIG.headers,
@@ -420,7 +435,9 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
             body: JSON.stringify(data)
         })
         const jsonResponse: LaunchResponse = await response.json()
+        delete data?.accessibility?.settings?.includeEncodedExtension
         BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(jsonResponse)}`)
+        BStackLogger.debug(`Test Plan Id sent in request: ${getTestPlanId(options)}`)
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
         if (jsonResponse.jwt) {
             process.env[BROWSERSTACK_TESTHUB_JWT] = jsonResponse.jwt
@@ -486,6 +503,20 @@ export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: st
     return false
 }
 
+export const validateCapsWithNonBstackA11y = (browserName?: string | undefined, browserVersion?:string | undefined )  => {
+
+    if (browserName?.toLowerCase() !== 'chrome') {
+        BStackLogger.warn('Accessibility Automation will run only on Chrome browsers.')
+        return false
+    }
+    if (!isUndefined(browserVersion) && !(browserVersion === 'latest' || parseFloat(browserVersion + '') > 100)) {
+        BStackLogger.warn('Accessibility Automation will run only on Chrome browser version greater than 100.')
+        return false
+    }
+    return true
+
+}
+
 export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, testTitle: string, accessibilityOptions?: { [key: string]: string; }, world?: { [key: string]: unknown; }, isCucumber?: boolean ) => {
     try {
         const includeTags = Array.isArray(accessibilityOptions?.includeTagsInTestingScope) ? accessibilityOptions?.includeTagsInTestingScope : []
@@ -538,23 +569,20 @@ export const formatString = (template: (string | null), ...values: (string | nul
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const _getParamsForAppAccessibility = ( commandName?: string ): { thTestRunUuid: any, thBuildUuid: any, thJwtToken: any, authHeader: any, scanTimestamp: number, method: string | undefined  } => {
+export const _getParamsForAppAccessibility = ( commandName?: string, testName?: string ): { thTestRunUuid: any, thBuildUuid: any, thJwtToken: any, authHeader: any, scanTimestamp: number, method: string | undefined, testName: string | undefined  } => {
     return {
         'thTestRunUuid': process.env.TEST_ANALYTICS_ID,
         'thBuildUuid': process.env.BROWSERSTACK_TESTHUB_UUID,
         'thJwtToken': process.env.BROWSERSTACK_TESTHUB_JWT,
         'authHeader': process.env.BSTACK_A11Y_JWT,
         'scanTimestamp': Date.now(),
-        'method': commandName
+        'method': commandName,
+        'testName': testName
     }
 }
 
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-export const performA11yScan = async (isAppAutomate: boolean, browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, commandName?: string) : Promise<{ [key: string]: any; } | undefined> => {
-    if (!isBrowserStackSession) {
-        BStackLogger.warn('Not a BrowserStack Automate session, cannot perform Accessibility scan.')
-        return // since we are running only on Automate as of now
-    }
+export const performA11yScan = async (isAppAutomate: boolean, browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string,  commandName?: string, testName?: string,) : Promise<{ [key: string]: any; } | undefined> => {
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
         BStackLogger.warn('Not an Accessibility Automation session, cannot perform Accessibility scan.')
@@ -563,7 +591,7 @@ export const performA11yScan = async (isAppAutomate: boolean, browser: Webdriver
 
     try {
         if (isAppAccessibilityAutomationSession(isAccessibility, isAppAutomate)) {
-            const results: unknown = await (browser as WebdriverIO.Browser).execute(formatString(AccessibilityScripts.performScan, JSON.stringify(_getParamsForAppAccessibility(commandName))) as string, {})
+            const results: unknown = await (browser as WebdriverIO.Browser).execute(formatString(AccessibilityScripts.performScan, JSON.stringify(_getParamsForAppAccessibility(commandName, testName))) as string, {})
             BStackLogger.debug(util.format(results as string))
             return ( results as { [key: string]: any; } | undefined )
         }
@@ -580,10 +608,6 @@ export const performA11yScan = async (isAppAutomate: boolean, browser: Webdriver
 }
 
 export const getA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: any; }>> => {
-    if (!isBrowserStackSession) {
-        BStackLogger.warn('Not a BrowserStack Automate session, cannot retrieve Accessibility results.')
-        return [] // since we are running only on Automate as of now
-    }
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
         BStackLogger.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results.')
@@ -606,7 +630,7 @@ export const getA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_E
     }
 })
 
-export const getAppA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<Array<{ [key: string]: any; }>> => {
+export const getAppA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS, async (isAppAutomate: boolean, browser: WebdriverIO.Browser,  testName: string, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<Array<{ [key: string]: any; }>> => {
     if (!isBrowserStackSession) {
         return [] // since we are running only on Automate as of now
     }
@@ -617,8 +641,8 @@ export const getAppA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SD
     }
 
     try {
-        const apiUrl = `${APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_ENDPOINT}`
-        const apiRespone = await getAppA11yResultResponse(apiUrl, isAppAutomate, browser, isBrowserStackSession, isAccessibility, sessionId)
+        const apiUrl = `${APIUtils.APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_ENDPOINT}`
+        const apiRespone = await getAppA11yResultResponse(apiUrl, isAppAutomate, browser, testName, isBrowserStackSession, isAccessibility, sessionId)
         const result = apiRespone?.data?.data?.issues
         BStackLogger.debug(`Polling Result: ${JSON.stringify(result)}`)
         return result
@@ -629,7 +653,7 @@ export const getAppA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SD
     }
 })
 
-export const getAppA11yResultsSummary = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS_SUMMARY, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<{ [key: string]: any; }> => {
+export const getAppA11yResultsSummary = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS_SUMMARY, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, testName: string, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<{ [key: string]: any; }> => {
     if (!isBrowserStackSession) {
         return {} // since we are running only on Automate as of now
     }
@@ -640,8 +664,8 @@ export const getAppA11yResultsSummary = PerformanceTester.measureWrapper(PERFORM
     }
 
     try {
-        const apiUrl = `${APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_SUMMARY_ENDPOINT}`
-        const apiRespone = await getAppA11yResultResponse(apiUrl, isAppAutomate, browser, isBrowserStackSession, isAccessibility, sessionId)
+        const apiUrl = `${APIUtils.APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_SUMMARY_ENDPOINT}`
+        const apiRespone = await getAppA11yResultResponse(apiUrl, isAppAutomate, browser, testName, isBrowserStackSession, isAccessibility, sessionId)
         const result = apiRespone?.data?.data?.summary
         BStackLogger.debug(`Polling Result: ${JSON.stringify(result)}`)
         return result
@@ -651,9 +675,9 @@ export const getAppA11yResultsSummary = PerformanceTester.measureWrapper(PERFORM
     }
 })
 
-const getAppA11yResultResponse = async (apiUrl: string, isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<PollingResult> => {
+const getAppA11yResultResponse = async (apiUrl: string, isAppAutomate: boolean, browser: WebdriverIO.Browser, testName: string, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<PollingResult> => {
     BStackLogger.debug('Performing scan before getting results summary')
-    await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
+    await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility, undefined, testName)
     const upperTimeLimit = process.env.BSTACK_A11Y_POLLING_TIMEOUT ? Date.now() + parseInt(process.env.BSTACK_A11Y_POLLING_TIMEOUT) * 1000 : Date.now() + 30000
     const params = { test_run_uuid: process.env.TEST_ANALYTICS_ID, session_id: sessionId, timestamp: Date.now() } // Query params to pass
     const header = { Authorization: `Bearer ${process.env.BSTACK_A11Y_JWT}` }
@@ -663,9 +687,6 @@ const getAppA11yResultResponse = async (apiUrl: string, isAppAutomate: boolean, 
 }
 
 export const getA11yResultsSummary = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS_SUMMARY, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<{ [key: string]: any; }> => {
-    if (!isBrowserStackSession) {
-        return {} // since we are running only on Automate as of now
-    }
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
         BStackLogger.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results summary.')
@@ -711,7 +732,7 @@ export const stopBuildUpstream = PerformanceTester.measureWrapper(PERFORMANCE_SD
     }
 
     try {
-        const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]}/stop`
+        const url = `${APIUtils.DATA_ENDPOINT}/api/v1/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]}/stop`
         const response = await fetch(url, {
             method: 'PUT',
             headers: {
@@ -841,7 +862,7 @@ export function getCiInfo () {
     if (env.AZURE_HTTP_USER_AGENT && env.TF_BUILD) {
         return {
             name: 'Azure CI',
-            build_url: `${env.SYSTEM_TEAMFOUNDATIONSERVERURI}${env.SYSTEM_TEAMPROJECT}/_build/results?buildId=${env.BUILD_BUILDID}`,
+            build_url: `${env.SYSTEM_TEAMFOUNDATIONSERVERURI}${env.SYSTEM_TEAMPROJECTID}`,
             job_name: env.BUILD_BUILDID,
             build_number: env.BUILD_BUILDID
         }
@@ -1008,7 +1029,15 @@ export function getUniqueIdentifierForCucumber(world: ITestCaseHookParameter): s
 }
 
 export function getCloudProvider(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser): string {
-    if (browser.options && browser.options.hostname && browser.options.hostname.includes('browserstack')) {
+    if (browser && 'instances' in browser) {
+        // Loop through all instances
+        for (const instanceName of browser.instances) {
+            const instance = (browser as any)[instanceName] as WebdriverIO.Browser
+            if (instance.options && instance.options.hostname && instance.options.hostname.includes('browserstack')) {
+                return 'browserstack'
+            }
+        }
+    } else if (browser.options && browser.options.hostname && browser.options.hostname.includes('browserstack')) { // Single browser instance
         return 'browserstack'
     }
     return 'unknown_grid'
@@ -1117,7 +1146,7 @@ export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrun
     // In case hostname is not present anywhere in the config, it returns true by default as hostname is not a mandatory parameter in the config
 
     const isBrowserstack = (str: string ): boolean => {
-        return str.includes('browserstack.com')
+        return str === 'browserstack.com' || str.endsWith('.browserstack.com')
     }
 
     if ((config.hostname) && !isBrowserstack(config.hostname)) {
@@ -1188,7 +1217,7 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
     }
 
     try {
-        const url = `${DATA_ENDPOINT}/${eventUrl}`
+        const url = `${APIUtils.DATA_ENDPOINT}/${eventUrl}`
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -1199,7 +1228,7 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
         })
         BStackLogger.debug(`[${kind}] Success response: ${JSON.stringify(await response.json())}`)
     } catch (error) {
-        BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)
+        BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST REPORTING AND ANALYTICS : ${error}`)
         throw new Error('Exception in request ' + error)
     }
 }
@@ -1257,6 +1286,26 @@ export function getObservabilityBuildTags(options: BrowserstackConfig & Options.
     return []
 }
 
+export function getTestPlanId(options: BrowserstackConfig & Options.Testrunner): string | undefined {
+    if (process.env[BROWSERSTACK_TEST_PLAN_ID]) {
+        return process.env[BROWSERSTACK_TEST_PLAN_ID]
+    }
+    const CLI_ARG = '--browserstack.testManagementOptions.testPlanId'
+    const argIndex = process.argv.indexOf(CLI_ARG)
+    if (argIndex !== -1 && process.argv[argIndex + 1]) {
+        return process.argv[argIndex + 1]
+    }
+    const argWithEquals = process.argv.find((arg) => arg.startsWith(`${CLI_ARG}=`))
+    if (argWithEquals) {
+        return argWithEquals.split('=')[1]
+    }
+    const testPlanId = options.testManagementOptions?.testPlanId
+    if (typeof testPlanId === 'string' && testPlanId.trim().length > 0) {
+        return testPlanId.trim()
+    }
+    return undefined
+}
+
 export function getBrowserStackUser(config: Options.Testrunner) {
     if (process.env.BROWSERSTACK_USERNAME) {
         return process.env.BROWSERSTACK_USERNAME as string
@@ -1281,6 +1330,10 @@ export function isUndefined(value: unknown) {
 
 export function isTrue(value?: unknown) {
     return (value + '').toLowerCase() === 'true'
+}
+
+export function isFalse(value?: unknown) {
+    return (value + '').toLowerCase() === 'false'
 }
 
 export function frameworkSupportsHook(hook: string, framework?: string) {
@@ -1336,43 +1389,124 @@ export function getFailureObject(error: string|Error) {
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export async function uploadLogs(user: string | undefined, key: string | undefined, clientBuildUuid: string) {
-    if (!user || !key) {
-        BStackLogger.debug('Uploading logs failed due to no credentials')
-        return
-    }
+    // Manual instrumentation: tag every return path on the SDK_UPLOAD_LOGS event so
+    // the metric identifies the specific reason logs were not uploaded (no creds,
+    // per-file copy failure, upload no-response, exception). measureWrapper would
+    // otherwise mark all non-throwing paths as success.
+    const eventName = PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS
+    let success = true
+    let failure: string | undefined
+    PerformanceTester.start(eventName)
 
     try {
-        const fileContent = await fs.promises.readFile(BStackLogger.logFilePath)
-        const uploadAddress = UPLOAD_LOGS_ADDRESS
-        const compressed = await new Promise<Buffer>((resolve, reject) => {
-            zlib.gzip(fileContent, { level: 1 }, (err, result) => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(result)
-                }
-            })
+        if (!user || !key) {
+            success = false
+            failure = 'skipped: missing_credentials'
+            BStackLogger.debug('Uploading logs failed due to no credentials')
+            return
+        }
+
+        const tmpDir = tmpdir()
+        const tarPath = path.join(tmpDir, 'logs.tar')
+        const tarGzPath = path.join(tmpDir, 'logs.tar.gz')
+
+        const filesToArchive = [
+            BStackLogger.logFilePath,
+            CLI_DEBUG_LOGS_FILE,
+        ].filter(f => fs.existsSync(f))
+
+        const copiedFileNames: string[] = []
+        const archiveAddFailures: string[] = []
+        for (const f of filesToArchive) {
+            try {
+                const dest = path.join(tmpDir, path.basename(f))
+                fs.copyFileSync(f, dest)
+                copiedFileNames.push(path.basename(f))
+            } catch (copyErr) {
+                const msg = (copyErr as Error)?.message || String(copyErr)
+                archiveAddFailures.push(`${path.basename(f)}: ${msg}`)
+            }
+        }
+
+        if (archiveAddFailures.length > 0 && failure === undefined) {
+            success = false
+            failure = `archive_add_failed [${archiveAddFailures.length}]: ${archiveAddFailures.join('; ')}`.substring(0, 300)
+        }
+
+        await create(
+            {
+                file: tarPath,
+                cwd: tmpDir,
+                portable: true,
+                noDirRecurse: true
+            },
+            copiedFileNames
+        )
+
+        await new Promise<void>((resolve, reject) => {
+            const source = fs.createReadStream(tarPath)
+            const dest = fs.createWriteStream(tarGzPath)
+            const gzip = zlib.createGzip({ level: 1 })
+
+            source.pipe(gzip).pipe(dest)
+            dest.on('finish', resolve)
+            dest.on('error', reject)
         })
+
         const formData = new FormData()
-        formData.append('data', new Blob([compressed]), 'logs.gz')
+        // openAsBlob returns a Blob backed by a file descriptor — undici streams
+        // from disk during the upload instead of materialising the full archive
+        // in V8 heap (which readFileSync + new Blob([Buffer]) would do twice).
+        const file = await fs.openAsBlob(tarGzPath, { type: 'application/x-gzip' })
+        formData.append('data', file, 'logs.tar.gz')
         formData.append('clientBuildUuid', clientBuildUuid)
 
+        const auth = Buffer.from(`${user}:${key}`).toString('base64')
         const requestOptions: RequestInit = {
-            method: 'POST',
-            body: formData as unknown as BodyInit,
+            body: formData as BodyInit,
             headers: {
-                'Authorization': getBasicAuthHeader(user, key)
+                'Authorization': `Basic ${auth}`
             }
-        } satisfies RequestInit
+        }
 
         const response = await nodeRequest(
-            'POST', UPLOAD_LOGS_ENDPOINT, requestOptions, uploadAddress
+            'POST', UPLOAD_LOGS_ENDPOINT, requestOptions, APIUtils.UPLOAD_LOGS_ADDRESS
         )
+
+        fs.unlinkSync(tarPath)
+        fs.unlinkSync(tarGzPath)
+        for (const f of copiedFileNames) {
+            const filePath = path.join(tmpDir, f)
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath)
+            }
+        }
+
+        // Delete the SDK CLI log file after upload
+        if (fs.existsSync(CLI_DEBUG_LOGS_FILE)) {
+            fs.unlinkSync(CLI_DEBUG_LOGS_FILE)
+        }
+
+        if (!response) {
+            // nodeRequest swallows errors for the log-upload path and returns undefined;
+            // record the silent upload failure on the metric.
+            success = false
+            failure = 'upload_no_response'
+        } else if (response.status && response.status !== 'success') {
+            // Server-side rejection (e.g. "File not attached") — response is truthy
+            // but the upload didn't actually land.
+            success = false
+            failure = `upload_status: ${response.status}${response.message ? ' - ' + String(response.message).slice(0, 200) : ''}`
+        }
 
         return response
     } catch (error) {
-        BStackLogger.debug(`Error in uploading logs: ${error}`)
-        throw error
+        success = false
+        failure = `uploadLogs exception: ${getErrorString(error)}`
+        BStackLogger.error(`Error while uploading logs: ${getErrorString(error)}`)
+        return null
+    } finally {
+        PerformanceTester.end(eventName, success, failure)
     }
 }
 
@@ -1640,3 +1774,192 @@ export function getBooleanValueFromString(value: string | undefined): boolean {
     return ['true'].includes(value.trim().toLowerCase())
 }
 
+/**
+ * Checks if a key is safe to use for object property assignment to prevent prototype pollution
+ * @param key - The key to check
+ * @returns true if the key is safe, false otherwise
+ */
+function isSafeKey(key: string): boolean {
+    const dangerousKeys = ['__proto__', 'constructor', 'prototype']
+    return !dangerousKeys.includes(key)
+}
+
+/**
+ * Validate boolean value from mixed types (boolean or string)
+ * Only accepts true boolean or string "true" (case insensitive)
+ */
+export function isValidEnabledValue(value: boolean | string | undefined): boolean {
+    if (value === undefined || value === null) {
+        return false
+    }
+    if (typeof value === 'boolean') {
+        return value === true
+    }
+    if (typeof value === 'string') {
+        return getBooleanValueFromString(value)
+    }
+    return false
+}
+
+export function mergeDeep(target: Record<string, any>, ...sources: any[]): Record<string, any> {
+    if (!sources.length) {return target}
+    const source = sources.shift()
+
+    if (isObject(target) && isObject(source)) {
+        for (const key in source) {
+            // Skip dangerous keys that could lead to prototype pollution
+            if (!isSafeKey(key)) {
+                continue
+            }
+
+            const sourceValue = source[key]
+            const targetValue = target[key]
+
+            if (isObject(sourceValue)) {
+                if (!targetValue || !isObject(targetValue)) {
+                    target[key] = {}
+                }
+                mergeDeep(target[key], sourceValue)
+            } else {
+                target[key] = sourceValue
+            }
+        }
+    }
+
+    return mergeDeep(target, ...sources)
+}
+
+export function mergeChromeOptions(base: Capabilities.ChromeOptions, override: Partial<Capabilities.ChromeOptions>): Capabilities.ChromeOptions {
+    const merged: Capabilities.ChromeOptions = { ...base }
+
+    if (override.args) {
+        merged.args = [...(base.args || []), ...override.args]
+    }
+
+    if (override.extensions) {
+        merged.extensions = [...(base.extensions || []), ...override.extensions]
+    }
+
+    if (override.prefs) {
+        merged.prefs = mergeDeep({ ...(base.prefs || {}) }, override.prefs)
+    }
+    return merged
+}
+
+export function isNullOrEmpty(string: any): boolean {
+    return !string || string.trim() === ''
+}
+
+export function isHash(entity: any) {
+    return Boolean(entity && typeof(entity) === 'object' && !Array.isArray(entity))
+}
+
+export function nestedKeyValue(hash: any, keys: Array<string>) {
+    return keys.reduce((hash, key) => (isHash(hash) ? hash[key] : undefined), hash)
+}
+
+export function removeDir(dir: string) {
+    const list = fs.readdirSync(dir)
+    for (let i = 0; i < list.length; i++) {
+        const filename = path.join(dir, list[i])
+        const stat = fs.statSync(filename)
+
+        if (filename === '.' || filename === '..') {
+            // pass these files
+        } else if (stat.isDirectory()) {
+            // rmdir recursively
+            removeDir(filename)
+        } else {
+            // rm filename
+            fs.unlinkSync(filename)
+        }
+    }
+    fs.rmdirSync(dir)
+}
+
+export function createDir(dir: string) {
+    if (fs.existsSync(dir)){
+        removeDir(dir)
+    }
+    fs.mkdirSync(dir, { recursive: true })
+}
+
+export function isWritable(dirPath: string): boolean {
+    try {
+        fs.accessSync(dirPath, fs.constants.W_OK)
+        return true
+    } catch {
+        return false
+    }
+}
+
+export function setReadWriteAccess(dirPath: string) {
+    try {
+        fs.chmodSync(dirPath, 0o666)
+        BStackLogger.debug(`Directory ${dirPath} is now read/write accessible.`)
+    } catch (err: any) {
+        BStackLogger.error(`Failed to set directory access: ${err.stack}`)
+    }
+}
+
+export function getMochaTestHierarchy(test: Frameworks.Test) {
+    const value: string[] = []
+    if (test.ctx && test.ctx.test) {
+        // If we already have the parent object, utilize it else get from context
+        let parent = typeof test.parent === 'object' ? test.parent : test.ctx.test.parent
+        while (parent && parent.title !== '') {
+            value.push(parent.title)
+            parent = parent.parent
+        }
+    } else if (test.description && test.fullName) {
+        // for Jasmine
+        value.push(test.description)
+        value.push(test.fullName.replace(new RegExp(' ' + test.description + '$'), ''))
+    }
+    return value.reverse()
+}
+
+export const performO11ySync = async (browser: WebdriverIO.Browser) => {
+    if (isBrowserstackSession(browser)) {
+        await browser.execute(`browserstack_executor: ${JSON.stringify({
+            action: 'annotate',
+            arguments: {
+                data: `ObservabilitySync:${Date.now()}`,
+                level: 'debug'
+            }
+        })}`)
+    }
+}
+
+/**
+ * Checks if the capabilities represent a multiremote configuration
+ * @param capabilities - The capabilities to check
+ * @returns true if capabilities represent any multiremote configuration (regular or parallel)
+ *
+ * @example
+ * Regular multiremote (object):
+ * { browserA: { capabilities: {...} }, browserB: { capabilities: {...} } }
+ *
+ * Parallel multiremote (array with nested structure):
+ * [{ browserA: { capabilities: {...} }, browserB: { capabilities: {...} } }]
+ *
+ * Regular capabilities (array):
+ * [{ browserName: 'chrome', ... }]
+ */
+export function isMultiRemoteCaps(capabilities: Capabilities.TestrunnerCapabilities): boolean {
+    // Regular multiremote is an object (not array)
+    if (!Array.isArray(capabilities)) {
+        return true
+    }
+
+    // Empty array is not multiremote
+    if (capabilities.length === 0) {
+        return false
+    }
+
+    // Parallel multiremote is an array with nested capabilities structure
+    return capabilities.every(cap =>
+        Object.values(cap).length > 0 &&
+        Object.values(cap).every(c => c !== null && typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities)
+    )
+}

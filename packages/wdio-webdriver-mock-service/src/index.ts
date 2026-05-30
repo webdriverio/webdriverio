@@ -124,7 +124,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
 
         this._mock.command.findElement().times(1).reply(404, NO_SUCH_ELEMENT)
         this._mock.command.findElement().times(2).reply(200, { value: elemResponse })
-        this._mock.command.executeScript(ELEMENT_ID).once().reply(200, { value: true })
+        this._mock.command.executeScript(ELEMENT_ID).times(2).reply(200, { value: true })
     }
 
     staleElementRefetchScenario() {
@@ -237,7 +237,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         const elemResponse = { [ELEM_PROP]: ELEMENT_ID }
         this._mock.command.findElement().once().reply(200, { value: elemResponse })
         this._mock.command.executeScript(ELEMENT_ID).times(4).reply(200, { value: false })
-        this._mock.command.executeScript(ELEMENT_ID).once().reply(200, { value: true })
+        this._mock.command.executeScript(ELEMENT_ID).times(2).reply(200, { value: true })
     }
 
     cucumberScenario() {

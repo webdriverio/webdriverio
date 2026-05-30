@@ -18,6 +18,8 @@ Feature: Example feature
         Then  I should fail once but pass on the second run
 
     @skip(browserName="chrome")
+    @skip(browserName=["firefox","safari",/^i.+explorer$/])
+    @skip(browserName="edge";platformName=/(windows\s?[0-9]{2,}|linux|mac.*)/i)
     Scenario: Skipped... should never be executed
         Then  this test should fail
 
@@ -57,3 +59,7 @@ Feature: Example feature
     Scenario: Using Snapshot matcher in Cucumber works
         # Test is simply to make sure snapshot matcher doesn't fail
         When I use the snapshot matcher
+
+    Scenario: Supports snapshot testing
+        Then it can take a file snapshot
+        And  it can take an inline snapshot

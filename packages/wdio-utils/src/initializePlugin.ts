@@ -1,6 +1,8 @@
 import type { Services } from '@wdio/types'
 
-import { safeImport, isAbsolute } from './utils.js'
+import { safeImport, isAbsolute, REG_EXP_WINDOWS_ABS_PATH, SLASH } from './utils.js'
+
+const FILE_PROTOCOL = 'file://'
 
 /**
  * initialize WebdriverIO compliant plugins like reporter or services in the following way:
@@ -13,7 +15,8 @@ export default async function initializePlugin (name: string, type?: string): Pr
      * directly import packages that are scoped or start with an absolute path
      */
     if (name[0] === '@' || isAbsolute(name)) {
-        const service = await safeImport(name)
+        const fileUrl = name[0] === '@' ? name : ensureFileURL(name)
+        const service = await safeImport(fileUrl)
 
         if (service) {
             return service
@@ -45,4 +48,22 @@ export default async function initializePlugin (name: string, type?: string): Pr
         `"@wdio/${name.toLowerCase()}-${type}" nor as community package ` +
         `"wdio-${name.toLowerCase()}-${type}". Please make sure you have it installed!`
     )
+}
+
+function ensureFileURL(path:string) {
+    if (path.startsWith(FILE_PROTOCOL)) {
+        return path
+    }
+
+    // Windows drive path
+    if (REG_EXP_WINDOWS_ABS_PATH.test(path)) {
+        return `${FILE_PROTOCOL}/${path.replace(/\\/g, '/')}`
+    }
+
+    // Unix absolute path
+    if (path.startsWith(SLASH)) {
+        return `${FILE_PROTOCOL}${path}`
+    }
+
+    return path
 }

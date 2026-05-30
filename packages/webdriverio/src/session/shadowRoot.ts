@@ -21,8 +21,13 @@ export class ShadowRootManager extends SessionManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #shadowRoots = new Map<string, ShadowRootTree>()
+    #currentDocumentIds = new Map<string, string>()
     #documentElement?: remote.ScriptNodeRemoteValue
     #frameDepth = 0
+
+    #handleLogEntryListener = this.handleLogEntry.bind(this)
+    #commandResultHandlerListener = this.#commandResultHandler.bind(this)
+    #handleBidiCommandListener = this.#handleBidiCommand.bind(this)
 
     constructor(browser: WebdriverIO.Browser) {
         super(browser, ShadowRootManager.name)
@@ -42,9 +47,9 @@ export class ShadowRootManager extends SessionManager {
         this.#initialize = this.#browser.sessionSubscribe({
             events: ['log.entryAdded', 'browsingContext.navigationStarted']
         }).then(() => true, () => false)
-        this.#browser.on('log.entryAdded', this.handleLogEntry.bind(this))
-        this.#browser.on('result', this.#commandResultHandler.bind(this))
-        this.#browser.on('bidiCommand', this.#handleBidiCommand.bind(this))
+        this.#browser.on('log.entryAdded', this.#handleLogEntryListener)
+        this.#browser.on('result', this.#commandResultHandlerListener)
+        this.#browser.on('bidiCommand', this.#handleBidiCommandListener)
         this.#browser.scriptAddPreloadScript({
             functionDeclaration: customElementWrapper.toString()
         })
@@ -52,9 +57,9 @@ export class ShadowRootManager extends SessionManager {
 
     removeListeners(): void {
         super.removeListeners()
-        this.#browser.off('log.entryAdded', this.handleLogEntry.bind(this))
-        this.#browser.off('result', this.#commandResultHandler.bind(this))
-        this.#browser.off('bidiCommand', this.#handleBidiCommand.bind(this))
+        this.#browser.off('log.entryAdded', this.#handleLogEntryListener)
+        this.#browser.off('result', this.#commandResultHandlerListener)
+        this.#browser.off('bidiCommand', this.#handleBidiCommandListener)
     }
 
     async initialize () {
@@ -70,6 +75,7 @@ export class ShadowRootManager extends SessionManager {
         }
         const params = command.params as remote.BrowsingContextNavigateParameters
         this.#shadowRoots.delete(params.context)
+        this.#currentDocumentIds.delete(params.context)
     }
 
     /**
@@ -122,6 +128,25 @@ export class ShadowRootManager extends SessionManager {
         const eventType = args[1].value
         if (eventType === 'newShadowRoot' && args[2].type === 'node' && args[3].type === 'node') {
             const [/* [WDIO] */, /* newShadowRoot */, shadowElem, rootElem, isDocument, documentElement] = args
+
+            /**
+             * Detect document ID changes from sharedId format: f.<frameId>.d.<documentId>.e.<elementId>
+             * When the document changes (full navigation), purge the old tree to prevent unbounded growth.
+             */
+            const ctxId = logEntry.source.context
+            if (shadowElem.sharedId) {
+                const docMatch = shadowElem.sharedId.match(/\.d\.([A-F0-9]+)\./)
+                if (docMatch) {
+                    const newDocId = docMatch[1]
+                    const currentDocId = this.#currentDocumentIds.get(ctxId)
+                    if (currentDocId && currentDocId !== newDocId) {
+                        log.info(`Document changed in context ${ctxId}: ${currentDocId} -> ${newDocId}, purging ${this.#shadowRoots.get(ctxId)?.flat().length ?? 0} stale shadow roots`)
+                        this.#shadowRoots.delete(ctxId)
+                    }
+                    this.#currentDocumentIds.set(ctxId, newDocId)
+                }
+            }
+
             if (!this.#shadowRoots.has(logEntry.source.context)) {
                 /**
                  * initiate shadow tree for context
@@ -183,7 +208,16 @@ export class ShadowRootManager extends SessionManager {
             return
         }
 
-        if (eventType === 'removeShadowRoot' && args[2].type === 'node' && args[2].sharedId) {
+        if (eventType === 'removeShadowRoot' && args[2].type === 'node') {
+            if (!args[2].sharedId) {
+                /**
+                 * If the element was already garbage collected or detached (common in SPA
+                 * client-side navigation where the entire DOM is reconstructed), the BiDi
+                 * event may not include a sharedId. Log a warning and return gracefully
+                 * instead of throwing.
+                 */
+                return log.warn('Received removeShadowRoot event without sharedId, element may have been garbage collected')
+            }
             const tree = this.#shadowRoots.get(logEntry.source.context)
             if (!tree) {
                 return
@@ -297,6 +331,11 @@ export class ShadowRootTree {
         }
 
         if (scope instanceof ShadowRootTree) {
+            for (const child of this.children) {
+                if (child.element === scope.element) {
+                    return
+                }
+            }
             this.children.add(scope)
             return
         }
@@ -308,7 +347,7 @@ export class ShadowRootTree {
         if (typeof scope === 'string' && treeArg instanceof ShadowRootTree) {
             const tree = this.find(scope) || this.findByShadowId(scope)
             if (!tree) {
-                throw new Error(`Couldn't find element with id ${scope}`)
+                return
             }
 
             tree.addShadowElement(treeArg)

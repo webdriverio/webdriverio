@@ -82,3 +82,90 @@ describe('BStackLogger Log methods', () => {
     })
 })
 
+describe('redactCredentials', () => {
+    it('should redact userName in JSON-style key:value', () => {
+        const logInfoMock = vi.spyOn(log, 'info')
+        BStackLogger.info('config: {"userName": "myUser123"}')
+        expect(logInfoMock).toHaveBeenCalledWith('config: {"userName": ""}')
+    })
+
+    it('should redact accessKey in JSON-style key:value', () => {
+        const logInfoMock = vi.spyOn(log, 'info')
+        BStackLogger.info('config: {"accessKey": "secretKey456"}')
+        expect(logInfoMock).toHaveBeenCalledWith('config: {"accessKey": ""}')
+    })
+
+    it('should redact username in key=value format', () => {
+        const logInfoMock = vi.spyOn(log, 'info')
+        BStackLogger.info('config: username=myUser123, other=value')
+        expect(logInfoMock).toHaveBeenCalledWith('config: username=, other=value')
+    })
+
+    it('should redact accesskey in key=value format (case insensitive)', () => {
+        const logInfoMock = vi.spyOn(log, 'info')
+        BStackLogger.info('config: accesskey=secretKey456, other=value')
+        expect(logInfoMock).toHaveBeenCalledWith('config: accesskey=, other=value')
+    })
+
+    it('should redact credentials in URL query parameters', () => {
+        const logInfoMock = vi.spyOn(log, 'info')
+        BStackLogger.info('url: https://hub.browserstack.com?other=val&username=myUser')
+        expect(logInfoMock).toHaveBeenCalledWith('url: https://hub.browserstack.com?other=val&username=')
+    })
+
+    it('should redact user and key fields', () => {
+        const logInfoMock = vi.spyOn(log, 'info')
+        BStackLogger.info('config: {"user": "myUser123", "key": "myKey456"}')
+        expect(logInfoMock).toHaveBeenCalledWith('config: {"user": "", "key": ""}')
+    })
+
+    it('should redact multiple credentials in the same message', () => {
+        const logInfoMock = vi.spyOn(log, 'info')
+        BStackLogger.info('{"userName": "user1", "accessKey": "key1"}')
+        expect(logInfoMock).toHaveBeenCalledWith('{"userName": "", "accessKey": ""}')
+    })
+
+    it('should not modify messages without credentials', () => {
+        const logInfoMock = vi.spyOn(log, 'info')
+        BStackLogger.info('No sensitive data here')
+        expect(logInfoMock).toHaveBeenCalledWith('No sensitive data here')
+    })
+
+    it('should redact credentials through all log levels', () => {
+        const msg = '{"userName": "user1", "accessKey": "key1"}'
+        const expected = '{"userName": "", "accessKey": ""}'
+
+        const infoMock = vi.spyOn(log, 'info')
+        BStackLogger.info(msg)
+        expect(infoMock).toHaveBeenCalledWith(expected)
+
+        const errorMock = vi.spyOn(log, 'error')
+        BStackLogger.error(msg)
+        expect(errorMock).toHaveBeenCalledWith(expected)
+
+        const debugMock = vi.spyOn(log, 'debug')
+        BStackLogger.debug(msg)
+        expect(debugMock).toHaveBeenCalledWith(expected)
+
+        const warnMock = vi.spyOn(log, 'warn')
+        BStackLogger.warn(msg)
+        expect(warnMock).toHaveBeenCalledWith(expected)
+
+        const traceMock = vi.spyOn(log, 'trace')
+        BStackLogger.trace(msg)
+        expect(traceMock).toHaveBeenCalledWith(expected)
+    })
+
+    it('should redact credentials with single quotes', () => {
+        const logInfoMock = vi.spyOn(log, 'info')
+        BStackLogger.info("config: {'userName': 'myUser123'}")
+        expect(logInfoMock).toHaveBeenCalledWith("config: {'userName': ''}")
+    })
+
+    it('should redact credentials without quotes around key', () => {
+        const logInfoMock = vi.spyOn(log, 'info')
+        BStackLogger.info('config: userName: myUser123, done')
+        expect(logInfoMock).toHaveBeenCalledWith('config: userName: , done')
+    })
+})
+

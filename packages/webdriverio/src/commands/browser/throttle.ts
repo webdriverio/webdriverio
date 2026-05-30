@@ -10,7 +10,7 @@ const log = logger('webdriverio:throttle')
 export async function throttle (
     this: WebdriverIO.Browser,
     params: ThrottleOptions
-) {
+): Promise<void> {
     log.warn('Command "throttle" is deprecated and will be removed with the next major version release! Use `throttleNetwork` instead.')
     const browser = getBrowserObject(this)
     await browser.throttleNetwork(params)

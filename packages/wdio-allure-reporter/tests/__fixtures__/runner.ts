@@ -1,14 +1,16 @@
 import type { RunnerStats } from '@wdio/reporter'
 
+export const cid = () => '0-0'
+
 const runner =  (): RunnerStats => ({
     type: 'runner',
     start: '2018-05-14T15:17:18.901Z',
     _duration: 0,
-    cid: '0-0',
+    cid: cid(),
     capabilities: { browserName: 'chrome', version: '68' }, // session capabilities
     sanitizedCapabilities: 'chrome.66_0_3359_170.linux',
     config: { capabilities: { browserName: 'chrome' } }, // user capabilities
-    specs: ['/tmp/user/spec.js']
+    specs: ['/tmp/user/spec.js'],
 } as any)
 
 export function runnerStart() {

@@ -5,22 +5,25 @@ import fs from 'node:fs'
 import UsageStats, { type UsageStat } from '../testOps/usageStats.js'
 import { BStackLogger } from '../bstackLogger.js'
 import type BrowserStackConfig from '../config.js'
-import { BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
+import { BSTACK_SERVICE_VERSION, WDIO_NAMING_PREFIX } from '../constants.js'
 import { getDataFromWorkers } from '../data-store.js'
 import { getProductMap } from '../testHub/utils.js'
 import fetchWrap from '../fetchWrapper.js'
 import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
 import type { FunnelData, EventProperties } from '../types.js'
 import TestOpsConfig from '../testOps/testOpsConfig.js'
+import APIUtils from '../cli/apiUtils.js'
+import PerformanceTester from './performance/performance-tester.js'
+import { EVENTS } from './performance/constants.js'
 
-async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig) {
+async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig, isCLIEnabled = false) {
     if (!config.userName || !config.accessKey) {
         BStackLogger.debug('username/accesskey not passed')
         return
     }
 
     try {
-        const data = buildEventData(eventType, config)
+        const data = buildEventData(eventType, config, isCLIEnabled)
         await fireFunnelRequest(data)
         BStackLogger.debug('Funnel event success')
         config.sentFunnelData()
@@ -30,15 +33,32 @@ async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig
 }
 
 export async function sendStart(config: BrowserStackConfig) {
-    await fireFunnelTestEvent('SDKTestAttempted', config)
+
+    // Track funnel test attempted event
+    PerformanceTester.start(EVENTS.SDK_FUNNEL_TEST_ATTEMPTED)
+    try {
+        await fireFunnelTestEvent('SDKTestAttempted', config)
+        PerformanceTester.end(EVENTS.SDK_FUNNEL_TEST_ATTEMPTED, true)
+    } catch (error) {
+        PerformanceTester.end(EVENTS.SDK_FUNNEL_TEST_ATTEMPTED, false, error)
+        throw error
+    }
 }
 
-export async function sendFinish(config: BrowserStackConfig) {
-    await fireFunnelTestEvent('SDKTestSuccessful', config)
+export async function sendFinish(config: BrowserStackConfig, isCLIEnabled = false) {
+    // Track funnel test successful event
+    PerformanceTester.start(EVENTS.SDK_FUNNEL_TEST_SUCCESSFUL)
+    try {
+        await fireFunnelTestEvent('SDKTestSuccessful', config, isCLIEnabled)
+        PerformanceTester.end(EVENTS.SDK_FUNNEL_TEST_SUCCESSFUL, true)
+    } catch (error) {
+        PerformanceTester.end(EVENTS.SDK_FUNNEL_TEST_SUCCESSFUL, false, error)
+        throw error
+    }
 }
 
-export function saveFunnelData(eventType: string, config: BrowserStackConfig): string {
-    const data = buildEventData(eventType, config)
+export function saveFunnelData(eventType: string, config: BrowserStackConfig, isCLIEnabled = false): string {
+    const data = buildEventData(eventType, config, isCLIEnabled)
 
     BStackLogger.ensureLogsFolder()
     const filePath = path.join(BStackLogger.logFolderPath, 'funnelData.json')
@@ -66,7 +86,7 @@ export async function fireFunnelRequest(data: FunnelData): Promise<void> {
     BStackLogger.debug('Sending SDK event with data ' + util.inspect(data, { depth: 6 }))
 
     const encodedAuth = Buffer.from(`${userName}:${accessKey}`, 'utf8').toString('base64')
-    const response = await fetchWrap(FUNNEL_INSTRUMENTATION_URL, {
+    const response = await fetchWrap(APIUtils.FUNNEL_INSTRUMENTATION_URL, {
         method: 'POST',
         headers: {
             'content-type': 'application/json',
@@ -101,7 +121,7 @@ function getProductList(config: BrowserStackConfig) {
     return products
 }
 
-function buildEventData(eventType: string, config: BrowserStackConfig) {
+function buildEventData(eventType: string, config: BrowserStackConfig, isCLIEnabled = false) {
     const eventProperties: EventProperties = {
         // Framework Details
         sdkRunId: config?.sdkRunID,
@@ -124,7 +144,10 @@ function buildEventData(eventType: string, config: BrowserStackConfig) {
         product: getProductList(config),
 
         // framework details
-        framework: config.framework
+        framework: config.framework,
+
+        // CLI Details
+        isCLIEnabled: isCLIEnabled
     }
 
     if (eventType === 'SDKTestSuccessful') {
@@ -140,7 +163,7 @@ function buildEventData(eventType: string, config: BrowserStackConfig) {
         userName: config.userName,
         accessKey: config.accessKey,
         event_type: eventType,
-        detectedFramework: 'WebdriverIO-' + config.framework,
+        detectedFramework: WDIO_NAMING_PREFIX + config.framework,
         event_properties: eventProperties
     } as unknown as FunnelData
 
@@ -157,7 +180,7 @@ function getLanguageFramework(framework?: string) {
 }
 
 function getReferrer(framework?: string) {
-    const fullName = framework ? 'WebdriverIO-' + framework : 'WebdriverIO'
+    const fullName = framework ? WDIO_NAMING_PREFIX + framework : 'WebdriverIO'
     return `${fullName}/${BSTACK_SERVICE_VERSION}`
 }
 

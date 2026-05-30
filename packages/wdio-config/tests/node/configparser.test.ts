@@ -1,7 +1,7 @@
 import url from 'node:url'
 import path from 'node:path'
 
-import { vi, describe, it, expect,  } from 'vitest'
+import { vi, describe, it, expect, } from 'vitest'
 
 import ConfigParser from '../../src/node/ConfigParser.js'
 import type { MockFileContent } from '../lib/MockFileContentBuilder.js'
@@ -27,7 +27,7 @@ const INDEX_PATH = path.resolve(__dirname, '..', '..', 'src', 'index.ts')
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-class CustomServiceOrReporter {}
+class CustomServiceOrReporter { }
 
 /**
  * Entirely in memory config structure to avoid reading the file system at all
@@ -196,22 +196,22 @@ describe('ConfigParser', () => {
 
         it('should throw if config file does not exist (absolute path)', async () => {
             const configParser = await ConfigParserForTest()
-            expect(() => configParser['addConfigFile'](path.resolve(__dirname, 'foobar.conf.ts'))).rejects.toThrow()
+            await expect(() => configParser['addConfigFile'](path.resolve(__dirname, 'foobar.conf.ts'))).rejects.toThrow()
         })
 
         it('should throw if config file does not exist (relative path)', async () => {
             const configParser = await ConfigParserForTest()
-            expect(() => configParser['addConfigFile']('foobar.conf.ts')).rejects.toThrow()
+            await expect(() => configParser['addConfigFile']('foobar.conf.ts')).rejects.toThrow()
         })
 
         it('should throw if config file is not a config file (absolute path)', async () => {
             const configParser = await ConfigParserForTest()
-            expect(() => configParser['addConfigFile'](path.resolve(FIXTURES_PATH, 'test-a.feature'))).rejects.toThrow()
+            await expect(() => configParser['addConfigFile'](path.resolve(FIXTURES_PATH, 'test-a.feature'))).rejects.toThrow()
         })
 
         it('should throw if config file is not a config file (relative path)', async () => {
             const configParser = await ConfigParserForTest()
-            expect(() => configParser['addConfigFile']('test-a.feature')).rejects.toThrow()
+            await expect(() => configParser['addConfigFile']('test-a.feature')).rejects.toThrow()
         })
     })
 
@@ -456,17 +456,20 @@ describe('ConfigParser', () => {
             expect(configParser.getSpecs()).toHaveLength(4)
         })
 
-        it('should overwrite config and capabilities exclude if piped into cli command', async () => {
+        it('should not overwrite config and capabilities exclude if piped into cli command', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize()
             expect(configParser.getSpecs()).toHaveLength(3)
 
             configParser['merge']({ exclude: [FIXTURES_CONF] })
+
             const specs = configParser.getSpecs([FIXTURES_CONF, FIXTURES_CONF_RDC], [FIXTURES_CONF_RDC])
-            expect(specs).toEqual([FIXTURES_CONF_RDC])
+
+            // FIXTURES_CONF is in the exclude so this expects empty
+            expect(specs).toEqual([])
         })
 
-        it('should overwrite config and capabilities exclude if piped into cli command with suite', async () => {
+        it('should not overwrite config and capabilities exclude if piped into cli command with suite', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             const requireLibPath = path.join(__dirname, 'FileSystemPathService.test.ts')
             const configParserPath = path.join(__dirname, 'configparser.test.ts')
@@ -482,9 +485,7 @@ describe('ConfigParser', () => {
             // set capability 'specs' and 'exclude'
             const specs = configParser.getSpecs([configParserPath, requireLibPath], [configParserPath])
 
-            // validate that only the cli exclude is taken into account and the 'configparser' test is not removed
-            expect(specs).toHaveLength(1)
-            expect(specs).toContain(configParserPath)
+            expect(specs).toHaveLength(0)
         })
 
         it('should overwrite specs w/ wdio:specs files from capabilitoes', async () => {
@@ -500,7 +501,7 @@ describe('ConfigParser', () => {
             const configParser = await ConfigParserForTest(FIXTURES_PREFIX_CONF)
             const prefixedTestFile = path.resolve(FIXTURES_PATH, 'prefix-test-01.ts')
             const excludedTestFile = path.resolve(FIXTURES_PATH, 'prefix-test-02.ts')
-            await configParser.initialize({ 'wdio:specs': [prefixedTestFile], 'wdio:exclude' : [excludedTestFile] })
+            await configParser.initialize({ 'wdio:specs': [prefixedTestFile], 'wdio:exclude': [excludedTestFile] })
 
             const specs = configParser.getSpecs([prefixedTestFile, excludedTestFile])
             expect(specs).not.toContain(excludedTestFile)
@@ -680,9 +681,6 @@ describe('ConfigParser', () => {
             const requireLibPath = path.join(__dirname, 'FileSystemPathService.test.ts')
             const getSpecs = () => configParser.getSpecs([INDEX_PATH], [requireLibPath])
 
-            // verify that the capability exclude was ignored since
-            // config exclude takes precedence over capability exclude
-            expect(getSpecs()).toContain(requireLibPath)
             expect(getSpecs()).toContain(configParserPath)
 
             // verify that the capability exclude is applied successfully
@@ -916,6 +914,50 @@ describe('ConfigParser', () => {
             expect(Array.isArray(filePaths[0])).toBe(true)
             expect(filePaths[0].length).toBe(4)
             expect(filePaths[0][0]).not.toContain('*')
+        })
+    })
+
+    describe('suite exclusion via --exclude', () => {
+        it('should exclude a suite by name', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ suite: ['unit', 'mobile'], exclude: ['mobile'] })
+
+            const specs = configParser.getSpecs()
+            expect(specs).toContain(path.join(__dirname, 'configparser.test.ts'))
+            expect(specs).not.toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
+        })
+
+        it('should still exclude spec patterns (backward compatibility)', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ exclude: ['configparser'] })
+
+            const specs = configParser.getSpecs()
+            expect(specs).not.toContain(path.join(__dirname, 'configparser.test.ts'))
+        })
+
+        it('should handle mixed suite and spec exclusions', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ suite: ['unit', 'mobile'], exclude: ['mobile', 'configparser'] })
+
+            const specs = configParser.getSpecs()
+            expect(specs).not.toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
+            expect(specs).not.toContain(path.join(__dirname, 'configparser.test.ts'))
+        })
+
+        it('should give suite exclusion precedence over --suite', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ suite: ['unit'], exclude: ['unit'] })
+
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(0)
+        })
+
+        it('should not treat file extensions as suite names', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ suite: ['unit'], exclude: ['unit.ts'] })
+
+            const specs = configParser.getSpecs()
+            expect(specs).toContain(path.join(__dirname, 'configparser.test.ts'))
         })
     })
 

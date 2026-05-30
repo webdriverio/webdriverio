@@ -9,7 +9,7 @@ The following global objects are set if not configured otherwise:
 
 - `browser`: WebdriverIO Browser object
 - `driver`: alias to browser (used when running mobile tests)
-- `multiremotebrowser`: alias to browser or driver but only set for Multiremote sessions
+- `multiRemoteBrowser`: alias to browser or driver but only set for Multiremote sessions
 - `$`: command to fetch an element (see more in API docs)
 - `$$`: command to fetch elements (see more in API docs)
 - `expect`: assertion framework for WebdriverIO (see API docs)

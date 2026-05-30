@@ -6,7 +6,7 @@ import type { Capabilities, Options, Reporters, Services } from '@wdio/types'
 
 import FileSystemPathService from './FileSystemPathService.js'
 import { makeRelativeToCWD } from './utils.js'
-import { removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray } from '../utils.js'
+import { removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray, applyHeadlessFlag } from '../utils.js'
 import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_CONFIG_EXPORT } from '../constants.js'
 
 import type { PathService } from '../types.js'
@@ -23,6 +23,7 @@ type ImportedConfigModule = ESMImport | DefaultImport
 interface TestrunnerOptionsWithParameters extends Options.Testrunner {
     watch?: boolean
     coverage?: boolean
+    headless?: boolean
     spec?: string[]
     suite?: string[]
     repeat?: number
@@ -103,6 +104,20 @@ export default class ConfigParser {
             }
         }
 
+        /**
+         * Apply --headless CLI flag: inject or strip headless args from all capabilities
+         */
+        if (typeof this._initialConfig.headless === 'boolean') {
+            const headless = this._initialConfig.headless
+            if (Array.isArray(this._capabilities)) {
+                for (const cap of this._capabilities) {
+                    applyHeadlessFlag(cap as WebdriverIO.Capabilities, headless)
+                }
+            } else if (this._capabilities && typeof this._capabilities === 'object') {
+                applyHeadlessFlag(this._capabilities as unknown as WebdriverIO.Capabilities, headless)
+            }
+        }
+
         this.#isInitialised = true
     }
 
@@ -164,7 +179,9 @@ export default class ConfigParser {
              */
             delete this._config.watch
         } catch (e: unknown) {
-            log.error(`Failed loading configuration file: ${filePath}:`, (e as Error).message)
+            if (!filename.endsWith('&log_errors=false')) {
+                log.error(`Failed loading configuration file: ${filePath}:`, (e as Error).message)
+            }
             throw e
         }
     }
@@ -298,14 +315,27 @@ export default class ConfigParser {
         // when CLI --spec is explicitly specified, this._config.specs contains the filtered
         // specs matching the passed pattern else the specs defined inside the config are returned
         let specs = ConfigParser.getFilePaths(this._config.specs!, this._config.rootDir, this._pathService)
-        let exclude = allKeywordsContainPath(this._config.exclude!)
-            ? ConfigParser.getFilePaths(this._config.exclude!, this._config.rootDir, this._pathService)
-            : this._config.exclude || []
+
+        // Partition exclude list into suite exclusions vs spec exclusions
+        // Suite exclusions are items that match a defined suite name and don't look like file paths
+        const configSuiteNames = Object.keys(this._config.suites || {})
+        const excludeSuites: string[] = []
+        const excludeSpecPatterns: string[] = []
+        for (const item of this._config.exclude || []) {
+            if (!isSpecPattern(item) && configSuiteNames.includes(item)) {
+                excludeSuites.push(item)
+            } else {
+                excludeSpecPatterns.push(item)
+            }
+        }
+
+        let exclude = allKeywordsContainPath(excludeSpecPatterns)
+            ? ConfigParser.getFilePaths(excludeSpecPatterns, this._config.rootDir, this._pathService)
+            : excludeSpecPatterns
         const suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
-        // only use capability excludes if (CLI) --exclude or config exclude are not defined
-        if (Array.isArray(capExclude) && exclude.length === 0) {
-            exclude = ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)
+        if (Array.isArray(capExclude)) {
+            exclude = [...exclude, ...ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)]
         }
 
         // only use capability specs if (CLI) --spec is not defined
@@ -317,6 +347,11 @@ export default class ConfigParser {
         if (suites.length > 0) {
             let suiteSpecs: Spec[] = []
             for (const suiteName of suites) {
+                // Skip suites that are excluded via --exclude
+                if (excludeSuites.includes(suiteName)) {
+                    log.info(`Suite "${suiteName}" excluded via --exclude`)
+                    continue
+                }
                 const suite = this._config.suites?.[suiteName]
                 if (!suite) {
                     log.warn(`No suite was found with name "${suiteName}"`)
@@ -326,8 +361,10 @@ export default class ConfigParser {
                 }
             }
 
-            if (suiteSpecs.length === 0) {
-                throw new Error(`The suite(s) "${suites.join('", "')}" you specified don't exist ` +
+            // Check if all requested suites were excluded
+            const nonExcludedSuites = suites.filter(s => !excludeSuites.includes(s))
+            if (suiteSpecs.length === 0 && nonExcludedSuites.length > 0) {
+                throw new Error(`The suite(s) "${nonExcludedSuites.join('", "')}" you specified don't exist ` +
                     'in your config file or doesn\'t contain any files!')
             }
 
@@ -544,12 +581,30 @@ function allKeywordsContainPath(excludedSpecList: string[]) {
     return excludedSpecList.every(val => val.includes('/') || val.includes('\\') || val.includes('*'))
 }
 
+/**
+ * Determines if a string looks like a spec file path or glob pattern.
+ * Used to distinguish between suite names and file patterns in --exclude.
+ * @param str - The string to check
+ * @returns true if the string looks like a file path or glob pattern
+ */
+function isSpecPattern(str: string): boolean {
+    // Contains path separators or glob wildcards
+    if (/[/\\*?]/.test(str)) {
+        return true
+    }
+    // Ends with common test file extensions
+    if (/\.(js|ts|mjs|cjs|es6|feature)$/i.test(str)) {
+        return true
+    }
+    return false
+}
+
 function filterEmptyArrayItems(specList: Spec[]) {
-    return specList.filter(item=>(Array.isArray(item) && item.length) || !Array.isArray(item))
+    return specList.filter(item => (Array.isArray(item) && item.length) || !Array.isArray(item))
 }
 
 function filterDublicationArrayItems(specList: Spec[]) {
-    return [...new Set(specList.map(item=> Array.isArray(item) ? [...new Set(item)] : item))]
+    return [...new Set(specList.map(item => Array.isArray(item) ? [...new Set(item)] : item))]
 }
 
 function isValidRegex(expression: string) {
@@ -560,4 +615,3 @@ function isValidRegex(expression: string) {
         return false
     }
 }
-

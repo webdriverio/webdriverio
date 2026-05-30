@@ -28,7 +28,7 @@ import { environment } from '../../environment.js'
 export async function saveRecordingScreen (
     this: WebdriverIO.Browser,
     filepath: string
-) {
+): Promise<Buffer<ArrayBuffer>> {
     /**
      * run command implementation based on given environment
      */

@@ -26,11 +26,12 @@ While the amount of fixed defined capabilities is very low, everyone can provide
 - `sauce:options`: [Sauce Labs](https://docs.saucelabs.com/dev/test-configuration-options/#w3c-webdriver-browser-capabilities--optional)
 - `bstack:options`: [BrowserStack](https://www.browserstack.com/docs/automate/selenium/organize-tests)
 - `tb:options`: [TestingBot](https://testingbot.com/support/other/test-options)
+- `LT:Options`: [LambdaTest](https://www.lambdatest.com/support/docs/webdriverio-with-selenium-running-webdriverio-automation-scripts-on-lambdatest-selenium-grid/)
 - and many more...
 
 ### Automation Engine Capability Extensions
 
-- `appium:xxx`: [Appium](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/)
+- `appium:xxx`: [Appium](https://appium.io/docs/en/latest/guides/caps/)
 - `selenoid:xxx`: [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 - and many more...
 
@@ -68,7 +69,7 @@ Type: `(String | String[])[]`
 
 #### `wdio:exclude`
 
-Exclude specs from test execution for that browser/capability. Same as the [regular `exclude` configuration option](configuration#exclude), but specific to the browser/capability. Takes precedence over `exclude`.
+Exclude specs from test execution for that browser/capability. Same as the [regular `exclude` configuration option](configuration#exclude), but specific to the browser/capability. Excludes after the global `exclude` configuration option is applied.
 
 Type: `String[]`
 
