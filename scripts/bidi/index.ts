@@ -45,8 +45,8 @@ const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
     let cddl = transform(ast, { useUnknown: true })
 
     if (type === 'remote') {
-        // TODO to remove when CDDL generate date from webdriver-bidi are after May 26th
-        const remoteTypesPatch = `\
+        // TODO to remove when CDDL generation date from webdriver-bidi are after May 26th
+        const remoteTypesPatch = `\n
 // Fix merged but CDDL not yet updated. See https://github.com/w3c/webdriver-bidi/pull/1126
 export type BrowsingContextScreencast = string
 `
