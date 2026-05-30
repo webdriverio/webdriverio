@@ -129,8 +129,6 @@ for (const assignment of astRemote) {
             .replaceAll('\n', '<br />')
             .replaceAll('*', '\\*')
             .replaceAll('|', '&#124;')
-            .replaceAll('{', '\\{')
-            .replaceAll('}', '\\}')
 
     const commandReturnAST = astLocal.find((a) => a.Name === (responseType?.Name || 'EmptyResult'))
     const commandReturnTS = commandReturnAST ? transform([commandReturnAST]) : ''
@@ -149,7 +147,7 @@ for (const assignment of astRemote) {
                 type: `\`${paramType}\``,
 
                 description: paramExample
-                    ? `<pre>${paramExample}</pre>`
+                    ? `<pre>\\${paramExample.slice(0, -1)}\\}</pre>`
                     : '<pre>\\{\\}</pre>',
                 required: true
             }],

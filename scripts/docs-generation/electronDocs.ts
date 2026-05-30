@@ -43,24 +43,12 @@ export async function generateElectronDocs () {
         // Drop the source's first H1 heading (Docusaurus uses front-matter title)
         const stripped = raw.replace(/^#[^\n]*\n+/, '')
 
-        const sourceFileDir = path.posix.dirname(remotePath)
-        const resolveRelativePath = (relativePath: string) => {
-            const resolved = path.posix.normalize(`${sourceFileDir}/${relativePath}`)
-            return `https://raw.githubusercontent.com/${GITHUB_REPO}/${DOCS_SHA}/${resolved}`
-        }
-
         const transformed = rewriteLinks(stripped)
-            // Rewrite repo-relative image paths in markdown syntax to absolute raw GitHub URLs
+            // Rewrite repo-relative image paths (e.g. ../assets/foo.png) to absolute raw URLs
             .replace(
-                /!\[([^\]]*)\]\(((?:\.\.\/)+[^\s)"']+)((?:\s+'[^']*')?)\)/g,
-                (_match, alt: string, relativePath: string, title: string) =>
-                    `![${alt}](${resolveRelativePath(relativePath)}${title})`
-            )
-            // Rewrite repo-relative image paths in HTML src attributes to absolute raw GitHub URLs
-            .replace(
-                /(src=")((?:\.\.\/)+[^\s"]+)/g,
-                (_match, prefix: string, relativePath: string) =>
-                    `${prefix}${resolveRelativePath(relativePath)}`
+                /(\]|src=")(\.\.\/)+(assets\/[\w./-]+)/g,
+                (_match, prefix: string, _dots: string, assetPath: string) =>
+                    `${prefix}https://raw.githubusercontent.com/${GITHUB_REPO}/${DOCS_SHA}/${DOCS_SOURCE_DIR}/${assetPath}`
             )
 
         await fs.writeFile(newDocsPath, `---

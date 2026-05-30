@@ -45,32 +45,12 @@ export async function generateTauriDocs () {
 
         const stripped = raw.replace(/^#[^\n]*\n+/, '')
 
-        const sourceFileDir = path.posix.dirname(remotePath)
-        const resolveRelativePath = (relativePath: string) => {
-            const resolved = path.posix.normalize(`${sourceFileDir}/${relativePath}`)
-            return `https://raw.githubusercontent.com/${GITHUB_REPO}/${DOCS_SHA}/${resolved}`
-        }
-
-        let inCodeBlock = false
         const transformed = rewriteLinks(stripped)
-            // Rewrite repo-relative image paths in markdown syntax to absolute raw GitHub URLs
             .replace(
-                /!\[([^\]]*)\]\(((?:\.\.\/)+[^\s)"']+)((?:\s+'[^']*')?)\)/g,
-                (_match, alt: string, relativePath: string, title: string) =>
-                    `![${alt}](${resolveRelativePath(relativePath)}${title})`
+                /(\]|src=")(\.\.\/)+(assets\/[\w./-]+)/g,
+                (_match, prefix: string, _dots: string, assetPath: string) =>
+                    `${prefix}https://raw.githubusercontent.com/${GITHUB_REPO}/${DOCS_SHA}/${DOCS_SOURCE_DIR}/${assetPath}`
             )
-            // Rewrite repo-relative image paths in HTML src attributes to absolute raw GitHub URLs
-            .replace(
-                /(src=")((?:\.\.\/)+[^\s"]+)/g,
-                (_match, prefix: string, relativePath: string) =>
-                    `${prefix}${resolveRelativePath(relativePath)}`
-            )
-            // Escape TypeScript generic angle brackets in plain text to prevent MDX parse errors
-            .split('\n').map((line) => {
-                if (/^```/.test(line)) { inCodeBlock = !inCodeBlock }
-                if (inCodeBlock) { return line }
-                return line.replace(/<([A-Z][a-zA-Z0-9]+)>/g, '\\<$1>')
-            }).join('\n')
 
         await fs.writeFile(newDocsPath, `---
 id: ${id}
