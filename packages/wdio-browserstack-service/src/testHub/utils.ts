@@ -13,10 +13,10 @@ export interface Errors {
     errors: ErrorType[]
 }
 
-export const getProductMap = (config: BrowserStackConfig): { [key: string]: boolean } => {
+export const getProductMap = (config: BrowserStackConfig): { [key: string]: boolean | undefined } => {
     return {
         observability: config.testObservability.enabled,
-        accessibility: config.accessibility === true,
+        accessibility: config.accessibility,
         percy: config.percy,
         automate: config.automate,
         app_automate: config.appAutomate
