@@ -221,7 +221,7 @@ export interface BrowserDownloadBehaviorDenied {
     type: 'denied';
 }
 
-export type BrowsingContextCommand = BrowsingContextActivate | BrowsingContextCaptureScreenshot | BrowsingContextClose | BrowsingContextCreate | BrowsingContextGetTree | BrowsingContextHandleUserPrompt | BrowsingContextLocateNodes | BrowsingContextNavigate | BrowsingContextPrint | BrowsingContextReload | BrowsingContextSetBypassCsp | BrowsingContextSetViewport | BrowsingContextTraverseHistory
+export type BrowsingContextCommand = BrowsingContextActivate | BrowsingContextCaptureScreenshot | BrowsingContextClose | BrowsingContextCreate | BrowsingContextGetTree | BrowsingContextHandleUserPrompt | BrowsingContextLocateNodes | BrowsingContextNavigate | BrowsingContextPrint | BrowsingContextReload | BrowsingContextSetBypassCsp | BrowsingContextSetViewport | BrowsingContextStartScreencast | BrowsingContextStopScreencast | BrowsingContextTraverseHistory
 export type BrowsingContextBrowsingContext = string
 export type BrowsingContextLocator = BrowsingContextAccessibilityLocator | BrowsingContextCssLocator | BrowsingContextContextLocator | BrowsingContextInnerTextLocator | BrowsingContextXPathLocator
 
@@ -259,6 +259,7 @@ export interface BrowsingContextXPathLocator {
 }
 
 export type BrowsingContextNavigation = string
+export type BrowsingContextDownload = string
 export type BrowsingContextReadinessState = 'none' | 'interactive' | 'complete'
 export type BrowsingContextUserPromptType = 'alert' | 'beforeunload' | 'confirm' | 'prompt'
 
@@ -469,6 +470,37 @@ export interface BrowsingContextSetViewportParameters {
 export interface BrowsingContextViewport {
     width: JsUint;
     height: JsUint;
+}
+
+export interface BrowsingContextStartScreencast {
+    method: 'browsingContext.startScreencast';
+    params: BrowsingContextStartScreencastParameters;
+}
+
+export interface BrowsingContextStartScreencastParameters {
+    context: BrowsingContextBrowsingContext;
+    mimeType?: string;
+    streamOptions?: BrowsingContextMediaStreamOptions;
+}
+
+export interface BrowsingContextMediaStreamOptions {
+    video?: BrowsingContextMediaTrackConstraints;
+    audio?: boolean;
+}
+
+export interface BrowsingContextMediaTrackConstraints {
+    width?: JsUint;
+    height?: JsUint;
+    frameRate?: JsUint;
+}
+
+export interface BrowsingContextStopScreencast {
+    method: 'browsingContext.stopScreencast';
+    params: BrowsingContextStopScreencastParameters;
+}
+
+export interface BrowsingContextStopScreencastParameters {
+    screencast: BrowsingContextScreencast;
 }
 
 export interface BrowsingContextTraverseHistory {

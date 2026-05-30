@@ -40,7 +40,7 @@ export type EventData = BrowsingContextEvent | InputEvent | LogEvent | NetworkEv
 export type Extensible = Record<string, unknown>
 export type JsInt = number
 export type JsUint = number
-export type ErrorCode = 'invalid argument' | 'invalid selector' | 'invalid session id' | 'invalid web extension' | 'move target out of bounds' | 'no such alert' | 'no such network collector' | 'no such element' | 'no such frame' | 'no such handle' | 'no such history entry' | 'no such intercept' | 'no such network data' | 'no such node' | 'no such request' | 'no such script' | 'no such storage partition' | 'no such user context' | 'no such web extension' | 'session not created' | 'unable to capture screen' | 'unable to close browser' | 'unable to set cookie' | 'unable to set file input' | 'unavailable network data' | 'underspecified storage partition' | 'unknown command' | 'unknown error' | 'unsupported operation'
+export type ErrorCode = 'invalid argument' | 'invalid selector' | 'invalid session id' | 'invalid web extension' | 'move target out of bounds' | 'no such alert' | 'no such network collector' | 'no such element' | 'no such frame' | 'no such handle' | 'no such history entry' | 'no such intercept' | 'no such network data' | 'no such node' | 'no such request' | 'no such screencast' | 'no such script' | 'no such storage partition' | 'no such user context' | 'no such web extension' | 'session not created' | 'unable to capture screen' | 'unable to close browser' | 'unable to set cookie' | 'unable to set file input' | 'unavailable network data' | 'underspecified storage partition' | 'unknown command' | 'unknown error' | 'unsupported operation'
 export type SessionResult = SessionEndResult | SessionNewResult | SessionStatusResult | SessionSubscribeResult | SessionUnsubscribeResult
 
 export interface SessionCapabilitiesRequest {
@@ -160,7 +160,7 @@ export interface BrowserGetUserContextsResult {
 export type BrowserRemoveUserContextResult = EmptyResult
 export type BrowserSetClientWindowStateResult = BrowserClientWindowInfo
 export type BrowserSetDownloadBehaviorResult = EmptyResult
-export type BrowsingContextResult = BrowsingContextActivateResult | BrowsingContextCaptureScreenshotResult | BrowsingContextCloseResult | BrowsingContextCreateResult | BrowsingContextGetTreeResult | BrowsingContextHandleUserPromptResult | BrowsingContextLocateNodesResult | BrowsingContextNavigateResult | BrowsingContextPrintResult | BrowsingContextReloadResult | BrowsingContextSetBypassCspResult | BrowsingContextSetViewportResult | BrowsingContextTraverseHistoryResult
+export type BrowsingContextResult = BrowsingContextActivateResult | BrowsingContextCaptureScreenshotResult | BrowsingContextCloseResult | BrowsingContextCreateResult | BrowsingContextGetTreeResult | BrowsingContextHandleUserPromptResult | BrowsingContextLocateNodesResult | BrowsingContextNavigateResult | BrowsingContextPrintResult | BrowsingContextReloadResult | BrowsingContextSetBypassCspResult | BrowsingContextSetViewportResult | BrowsingContextStartScreencastResult | BrowsingContextStopScreencastResult | BrowsingContextTraverseHistoryResult
 export type BrowsingContextEvent = BrowsingContextContextCreated | BrowsingContextContextDestroyed | BrowsingContextDomContentLoaded | BrowsingContextDownloadEnd | BrowsingContextDownloadWillBegin | BrowsingContextFragmentNavigated | BrowsingContextHistoryUpdated | BrowsingContextLoad | BrowsingContextNavigationAborted | BrowsingContextNavigationCommitted | BrowsingContextNavigationFailed | BrowsingContextNavigationStarted | BrowsingContextUserPromptClosed | BrowsingContextUserPromptOpened
 export type BrowsingContextBrowsingContext = string
 export type BrowsingContextInfoList = BrowsingContextInfo[]
@@ -211,6 +211,7 @@ export interface BrowsingContextXPathLocator {
 }
 
 export type BrowsingContextNavigation = string
+export type BrowsingContextDownload = string
 
 export interface BrowsingContextBaseNavigationInfo {
     context: BrowsingContextBrowsingContext;
@@ -257,6 +258,19 @@ export interface BrowsingContextPrintResult {
 export type BrowsingContextReloadResult = BrowsingContextNavigateResult
 export type BrowsingContextSetBypassCspResult = EmptyResult
 export type BrowsingContextSetViewportResult = EmptyResult
+
+export interface BrowsingContextStartScreencastResult {
+    screencast: BrowsingContextScreencast;
+    path: string;
+}
+
+export type BrowsingContextScreencast = string
+
+export interface BrowsingContextStopScreencastResult {
+    path: string;
+    error?: string;
+}
+
 export type BrowsingContextTraverseHistoryResult = EmptyResult
 
 export interface BrowsingContextContextCreated {
@@ -307,6 +321,7 @@ export interface BrowsingContextDownloadWillBegin {
 }
 
 export type BrowsingContextDownloadWillBeginParams = BrowsingContextBaseNavigationInfo & {
+    download: BrowsingContextDownload;
     suggestedFilename: string;
 }
 
@@ -319,10 +334,12 @@ export type BrowsingContextDownloadEndParams = (BrowsingContextDownloadCanceledP
 
 export type BrowsingContextDownloadCanceledParams = BrowsingContextBaseNavigationInfo & {
     status: 'canceled';
+    download: BrowsingContextDownload;
 }
 
 export type BrowsingContextDownloadCompleteParams = BrowsingContextBaseNavigationInfo & {
     status: 'complete';
+    download: BrowsingContextDownload;
     filepath: string | null;
 }
 

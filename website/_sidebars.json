@@ -182,6 +182,17 @@
     },
     {
       "type": "category",
+      "label": "Mobile",
+      "link": {
+        "type": "doc",
+        "id": "mobile/flutter"
+      },
+      "items": [
+        "mobile/flutter"
+      ]
+    },
+    {
+      "type": "category",
       "label": "Component Testing",
       "link": {
         "type": "doc",
