@@ -168,17 +168,13 @@ export default class WdioMochaTestFramework extends TestFramework {
 
     loadTestResult(instance: TestFrameworkInstance, args: Record<string, unknown>) {
         const results = args.result as Frameworks.TestResult
-        const { error, passed, skipped } = results
+        const { error, passed } = results
         let result = 'passed'
         let failure: Array<unknown>|null = null
         let failureReason: string|null = null
         let failureType: string|null = null
         if (!passed) {
-            if (skipped) {
-                result = 'skipped'
-            } else {
-                result = (error && error.message && error.message.includes('sync skip; aborting execution')) ? 'ignore' : 'failed'
-            }
+            result = (error && error.message && error.message.includes('sync skip; aborting execution')) ? 'ignore' : 'failed'
             if (error && result !== 'skipped') {
                 failure = [{ backtrace: [removeAnsiColors(error.message), removeAnsiColors(error.stack || '')] }] // add all errors here
                 failureReason = removeAnsiColors(error.message)
