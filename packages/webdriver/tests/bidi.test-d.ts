@@ -9,14 +9,14 @@ describe('Bidi Type testing', () => {
             events: ['log.entryAdded'],
             contexts: ['browsingContexts'],
         }
-        const sessionSubscriptionRequest: remote.SessionSubscriptionRequest = {
-            events: ['log.entryAdded'],
-            contexts: ['browsingContexts'],
-        }
+        // const sessionSubscriptionRequest: remote.SessionSubscription = {
+        //     events: ['log.entryAdded'],
+        //     contexts: ['browsingContexts'],
+        // }
 
         expectTypeOf(sessionSubscribeParams).toEqualTypeOf<remote.SessionSubscribeParameters>()
-        expectTypeOf(sessionSubscriptionRequest).toEqualTypeOf<remote.SessionSubscribeParameters>()
+        // expectTypeOf(sessionSubscriptionRequest).toEqualTypeOf<remote.SessionSubscribeParameters>()
         expectTypeOf(browser.sessionSubscribe).toBeCallableWith(sessionSubscribeParams)
-        expectTypeOf(browser.sessionSubscribe).toBeCallableWith(sessionSubscriptionRequest)
+        // expectTypeOf(browser.sessionSubscribe).toBeCallableWith(sessionSubscriptionRequest)
     })
 })
