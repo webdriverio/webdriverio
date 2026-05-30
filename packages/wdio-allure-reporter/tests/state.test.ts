@@ -166,5 +166,29 @@ describe('state', () => {
             expect(parsed.attachments[0]).toMatchObject({ name: 'my attachment', type: 'text/plain' })
             expect(parsed.errors).toHaveLength(0)
         })
+
+        it('writes globals file when global_attachment_path is sent outside of any test', async () => {
+            fs.mkdirSync(outputDir, { recursive: true })
+            const tmpFile = path.join(outputDir, 'fixture.txt')
+            fs.writeFileSync(tmpFile, 'file content', 'utf-8')
+
+            state.pushRuntimeMessage({
+                type: 'global_attachment_path',
+                data: {
+                    name: 'my file attachment',
+                    path: tmpFile,
+                    contentType: 'text/plain',
+                }
+            })
+            await state.processRuntimeMessage()
+
+            const globalsFiles = getResultFiles(outputDir, [/-globals\.json$/])
+            expect(globalsFiles).toHaveLength(1)
+
+            const parsed = JSON.parse(fs.readFileSync(path.join(outputDir, globalsFiles[0]), 'utf-8'))
+            expect(parsed.attachments).toHaveLength(1)
+            expect(parsed.attachments[0]).toMatchObject({ name: 'my file attachment', type: 'text/plain' })
+            expect(parsed.errors).toHaveLength(0)
+        })
     })
 })
