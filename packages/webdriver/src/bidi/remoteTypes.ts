@@ -1564,5 +1564,7 @@ export interface WebExtensionUninstall {
 
 export interface WebExtensionUninstallParameters {
     extension: WebExtensionExtension;
-}// Fix merged but CDDL not yet updated. See https://github.com/w3c/webdriver-bidi/pull/1126
+}
+
+// Fix merged but CDDL not yet updated. See https://github.com/w3c/webdriver-bidi/pull/1126
 export type BrowsingContextScreencast = string
