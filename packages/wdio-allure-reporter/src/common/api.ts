@@ -240,7 +240,7 @@ export async function addGlobalError(details: StatusDetails) {
  * @param {string | Buffer} content - attachment content
  * @param {string} contentType - attachment MIME type
  */
-export async function addGlobalAttachment(name: string, content: string | Buffer, contentType: string) {
+export async function addGlobalAttachment(name: string, content: string | Buffer, contentType: ContentType | string = ContentType.TEXT) {
     const buf = Buffer.isBuffer(content) ? content : Buffer.from(content as string, 'utf8')
     await allureGlobalAttachment(name, buf, { contentType })
 }
@@ -250,9 +250,9 @@ export async function addGlobalAttachment(name: string, content: string | Buffer
  * @name addGlobalAttachmentFromPath
  * @param {string} name - attachment name
  * @param {string} path - path to the file
- * @param {string} contentType - attachment MIME type
+ * @param {string} [contentType='text/plain'] - attachment MIME type
  */
-export async function addGlobalAttachmentFromPath(name: string, path: string, contentType: string) {
+export async function addGlobalAttachmentFromPath(name: string, path: string, contentType: ContentType | string = ContentType.TEXT) {
     await allureGlobalAttachmentPath(name, path, { contentType })
 }
 
