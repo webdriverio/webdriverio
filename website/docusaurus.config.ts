@@ -289,9 +289,6 @@ const config: Config = {
                 }, {
                     from: '/docs/clioptions',
                     to: '/docs/testrunner'
-                }, {
-                    from: '/docs/devtools-service',
-                    to: '/docs/wdio-devtools-service'
                 }]
             }
         ],
