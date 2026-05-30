@@ -122,13 +122,6 @@ __Did you build a WebdriverIO service or reporter?__ That's awesome! Please add 
 - [@wdio/testingbot-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) - A WebdriverIO service that provides a better integration into TestingBot
 - [@wdio/devtools-service](https://github.com/webdriverio/devtools/tree/main) - A WebdriverIO service that provides browser devtools for debugging, visualizing, and controlling test executions in real-time with live browser preview, test rerun capabilities, and comprehensive execution insights
 
-### DevTools Adapters
-
-Adapters that bring the WebdriverIO DevTools UI to test suites running outside WebdriverIO. These are not WDIO services — they integrate directly with their host runner.
-
-- [@wdio/nightwatch-devtools](https://github.com/webdriverio/devtools/tree/main/packages/nightwatch-devtools) - Nightwatch.js adapter for WebdriverIO DevTools — same visual debugging UI with zero test code changes
-- [@wdio/selenium-devtools](https://github.com/webdriverio/devtools/tree/main/packages/selenium-devtools) - Selenium WebDriver adapter for WebdriverIO DevTools — runner-agnostic (Mocha, Jest, Cucumber, or plain Node scripts)
-
 ### Runner
 
 - [@wdio/local-runner](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-local-runner) - A WebdriverIO runner to run tests locally

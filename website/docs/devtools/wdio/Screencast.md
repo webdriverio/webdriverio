@@ -5,7 +5,7 @@ title: Session Screencast
 
 Records browser sessions as `.webm` videos. Videos are displayed in the DevTools UI alongside the snapshot and DOM mutation views.
 
-> **Note:** Screencast recording is supported for **WebdriverIO** and **[Selenium WebDriver](/docs/devtools/selenium)** today. Nightwatch.js support is planned for a future release.
+> **Note:** Screencast recording is currently supported for **WebdriverIO only**. Nightwatch.js support is planned for a future release.
 
 ## Demo
 
