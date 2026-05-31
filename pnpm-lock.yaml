@@ -1582,12 +1582,12 @@ importers:
 
   packages/webdriverio:
     dependencies:
+      '@sinonjs/fake-timers':
+        specifier: ~14.0.0
+        version: 14.0.0
       '@types/node':
         specifier: ^20.11.30
         version: 20.19.37
-      '@types/sinonjs__fake-timers':
-        specifier: ~8.1.5
-        version: 8.1.5
       '@wdio/config':
         specifier: workspace:*
         version: link:../wdio-config
@@ -1658,9 +1658,6 @@ importers:
         specifier: workspace:*
         version: link:../webdriver
     devDependencies:
-      '@sinonjs/fake-timers':
-        specifier: ~14.0.0
-        version: 14.0.0
       '@types/archiver':
         specifier: ^6.0.2
         version: 6.0.3
