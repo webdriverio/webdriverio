@@ -74,9 +74,9 @@
     "safe-stable-stringify": "^2.4.3"
   },
   "dependencies": {
-    "@sinonjs/fake-timers": "~14.0.0",
+    "@sinonjs/fake-timers": "^14.0.0",
     "@types/node": "^20.11.30",
-    "@types/sinonjs__fake-timers": "~8.1.5",
+    "@types/sinonjs__fake-timers": "^8.1.5",
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/protocols": "workspace:*",
