@@ -1586,7 +1586,7 @@ importers:
         specifier: ^20.11.30
         version: 20.19.37
       '@types/sinonjs__fake-timers':
-        specifier: ^8.1.5
+        specifier: ~8.1.5
         version: 8.1.5
       '@wdio/config':
         specifier: workspace:*
@@ -1659,7 +1659,7 @@ importers:
         version: link:../webdriver
     devDependencies:
       '@sinonjs/fake-timers':
-        specifier: ^14.0.0
+        specifier: ~14.0.0
         version: 14.0.0
       '@types/archiver':
         specifier: ^6.0.2
