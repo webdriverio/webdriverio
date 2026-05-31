@@ -64,6 +64,13 @@ const esmPlugins: Record<string, Plugin[]> = {
     'webdriverio': [externalScripts()]
 }
 /**
+ * ESM-only dependencies that need to be bundled into the CJS build
+ * instead of being externalized (since they can't be require()'d)
+ */
+const cjsBundledDeps: Record<string, string[]> = {
+    '@wdio/logger': ['chalk', 'strip-ansi']
+}
+/**
  * plugins for the cjs build
  */
 const cjsPlugins: Record<string, Plugin[]> = {}
@@ -155,9 +162,13 @@ const configs = packages.map(([packageDir, pkg]) => {
 
         if (typeof exp.require === 'string') {
             const requireSource = (exp.requireSource as string | undefined) || source
+            const bundled = cjsBundledDeps[pkg.name!] || []
+            const cjsExternal = bundled.length
+                ? getExternal(pkg).filter((dep) => !bundled.some((b) => dep === b || dep.startsWith(b + '/')))
+                : getExternal(pkg)
             const cjsBuild: BuildOptions = {
                 ...baseConfig,
-                external: getExternal(pkg),
+                external: cjsExternal,
                 entryPoints: [path.resolve(absWorkingDir, requireSource)],
                 platform: 'node',
                 format: 'cjs',
