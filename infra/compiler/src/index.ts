@@ -162,10 +162,10 @@ const configs = packages.map(([packageDir, pkg]) => {
 
         if (typeof exp.require === 'string') {
             const requireSource = (exp.requireSource as string | undefined) || source
-            const bundled = cjsBundledDeps[pkg.name!] || []
-            const cjsExternal = bundled.length
-                ? getExternal(pkg).filter((dep) => !bundled.some((b) => dep === b || dep.startsWith(b + '/')))
-                : getExternal(pkg)
+
+            const bundled = cjsBundledDeps[pkg.name] ?? []
+            const cjsExternal = getExternal(pkg).filter((dep) => !bundled.some((b) => dep === b || dep.startsWith(b + '/')))
+
             const cjsBuild: BuildOptions = {
                 ...baseConfig,
                 external: cjsExternal,
