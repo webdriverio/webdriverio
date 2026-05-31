@@ -1583,14 +1583,11 @@ importers:
   packages/webdriverio:
     dependencies:
       '@sinonjs/fake-timers':
-        specifier: ~14.0.0
+        specifier: ^14.0.0
         version: 14.0.0
       '@types/node':
         specifier: ^20.11.30
         version: 20.19.37
-      '@types/sinonjs__fake-timers':
-        specifier: ~8.1.5
-        version: 8.1.5
       '@wdio/config':
         specifier: workspace:*
         version: link:../wdio-config
@@ -1673,6 +1670,9 @@ importers:
       '@types/lodash.zip':
         specifier: ^4.2.9
         version: 4.2.9
+      '@types/sinonjs__fake-timers':
+        specifier: ^8.1.5
+        version: 8.1.5
       puppeteer-core:
         specifier: ^24.12.1
         version: 24.34.0
