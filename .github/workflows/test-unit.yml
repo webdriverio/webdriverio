@@ -14,10 +14,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['20', '22', '24']
+        # Pinning node 24 to 24.15 to exclude node 24.16 that hangs on unzip wiht pupetteer
+        node: ['20', '22', '24.15']
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
-        exclude:
-          - node: 24.16
     runs-on: ${{ matrix.os }}
     steps:
       - name: ⬇️ Checkout Code
