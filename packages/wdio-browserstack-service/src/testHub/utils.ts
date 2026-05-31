@@ -16,7 +16,7 @@ export interface Errors {
 export const getProductMap = (config: BrowserStackConfig): { [key: string]: boolean } => {
     const entries: [string, boolean | undefined][] = [
         ['observability', config.testObservability.enabled],
-        ['accessibility', config.accessibility],
+        ['accessibility', !!config.accessibility],
         ['percy', config.percy],
         ['automate', config.automate],
         ['app_automate', config.appAutomate],
