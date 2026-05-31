@@ -1,7 +1,7 @@
 const assert = require('node:assert')
 const path = require('node:path')
 
-import logger from '@wdio/logger'
+const logger = require('@wdio/logger').default
 
 describe('a cjs test file', () => {
     it('should pass', () => {
@@ -14,9 +14,8 @@ describe('a cjs test file', () => {
             password: 'SuperSecretPassword!'
         }
 
-        // logging as per https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-logger:
-        const log = logger('My Login Test')
-        log.info('logging in with user:', user)
+        const log = logger('cjs-logging-test')
+        log.info('logging', user)
     })
 })
 
