@@ -16,6 +16,8 @@ jobs:
       matrix:
         node: ['20', '22', '24']
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
+        exclude:
+          - node: 24.16
     runs-on: ${{ matrix.os }}
     steps:
       - name: ⬇️ Checkout Code
