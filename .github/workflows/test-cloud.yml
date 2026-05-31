@@ -10,7 +10,8 @@ jobs:
     name: Cloud Connection Tests
     permissions:
       contents: read
-    runs-on: 'ubuntu-latest'
+    # Workaround while waiting for 24.04 to be fixed with node 24.16 & puppeteer hanging on unzipping
+    runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/main'
     steps:
       - name: ⬇️ Checkout Code

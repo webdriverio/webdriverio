@@ -116,7 +116,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             process.env.TEST_OBSERVABILITY_BUILD_TAG = process.env.TEST_REPORTING_BUILD_TAG
         }
 
-        this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config)
+        this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config, capabilities)
         BStackLogger.debug(`_options data: ${JSON.stringify(_options)}`)
         BStackLogger.debug(`webdriver capabilities data: ${JSON.stringify(capabilities)}`)
         const configCopy = JSON.parse(JSON.stringify(_config))
