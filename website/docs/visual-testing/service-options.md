@@ -24,25 +24,117 @@ export const config = {
 };
 ```
 
-## Default Options
+# Default Options
 
-### `addressBarShadowPadding`
+## Screenshot capture
 
--   **Type:** `number`
--   **Mandatory:** No
--   **Default:** `6`
--   **Supported Application Contexts:** Web
+---
 
-The padding needs to be added to the address bar on iOS and Android to do a proper cutout of the viewport.
-
-### `autoElementScroll`
+### `hideScrollBars`
 
 -   **Type:** `boolean`
 -   **Mandatory:** No
 -   **Default:** `true`
 -   **Supported Application Contexts:** Web, Hybrid App (Webview)
 
-This option allows you to disable the automatic scrolling of the element into the view when an element screenshot is created.
+Hide scrollbars in the application. If set to true all scrollbars will be disabled before taking a screenshot. This is set to default `true` to prevent extra issues.
+
+### `disableBlinkingCursor`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `false`
+-   **Supported Application Contexts:** Web, Hybrid App (Webview)
+
+En/Disable all `input`, `textarea`, `[contenteditable]` caret "blinking" in the application. If set to `true` the caret will be set to `transparent` before taking a screenshot
+and reset when done
+
+### `disableCSSAnimation`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `false`
+-   **Supported Application Contexts:** Web, Hybrid App (Webview)
+
+En/Disable all CSS animations in the application. If set to `true` all animations will be disabled before taking a screenshot
+and reset when done
+
+### `enableLayoutTesting`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `false`
+-   **Supported Application Contexts:** Web
+
+This will hide all text on a page so only the layout will be used for comparison. Hiding will be done by adding the style `'color': 'transparent !important'` to **each** element.
+
+For the output see [Test Output](/docs/visual-testing/test-output#enablelayouttesting)
+
+:::info
+By using this flag each element that contains text (so not only `p, h1, h2, h3, h4, h5, h6, span, a, li`, but also `div|button|..`) will get this property. There is **no** option to tailor this.
+:::
+
+### `ignoreRegionPadding`
+
+-   **Type:** `number`
+-   **Mandatory:** No
+-   **Default:** `1`
+-   **Supported Application Contexts:** Web, Hybrid App (Webview)
+
+Padding in device pixels added to each side of ignore regions, making each region 2× this value wider and taller. This helps avoid 1 px boundary differences that can appear on high-DPR displays or with the BiDi screenshot protocol. Set to `0` to disable.
+
+### `waitForFontsLoaded`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `true`
+-   **Supported Application Contexts:** Web, Hybrid App (Webview)
+
+Fonts, including third-party fonts, can be loaded synchronously or asynchronously. Asynchronous loading means that fonts might load after WebdriverIO determines that a page has fully loaded. To prevent font rendering issues, this module, by default, will wait for all fonts to be loaded before taking a screenshot.
+
+## Full-page screenshots
+
+---
+
+### `userBasedFullPageScreenshot`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `false`
+-   **Supported Application Contexts:** Web, Hybrid App (Webview) **Introduced in visual-service@7.0.0**
+
+By default, full-page screenshots on desktop web are captured using the WebDriver BiDi protocol, which enables fast, stable, and consistent screenshots without scrolling.
+When userBasedFullPageScreenshot is set to true, the screenshot process simulates a real user: scrolling through the page, capturing viewport-sized screenshots, and stitching them together. This method is useful for pages with lazy-loaded content or dynamic rendering that depends on scroll position.
+
+Use this option if your page relies on content loading while scrolling or if you want to preserve the behavior of older screenshot methods.
+
+### `fullPageScrollTimeout`
+
+-   **Type:** `number`
+-   **Mandatory:** No
+-   **Default:** `1500`
+-   **Supported Application Contexts:** Web
+
+The timeout in milliseconds to wait after a scroll. This might help identify pages with lazy loading.
+
+:::info
+
+This will only work when the service/method option `userBasedFullPageScreenshot` is set to `true`, see also [`userBasedFullPageScreenshot`](/docs/visual-testing/service-options#userbasedbullpagescreenshot)
+
+:::
+
+## Mobile & device
+
+---
+
+### `isHybridApp`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `false`
+-   **Supported Application Contexts:** Hybrid App (Webview)
+
+Set this to `true` when testing a hybrid app (a native shell with one or more embedded webviews). This adjusts how the module handles status bar and address bar cutouts for webview-based screens, falling back to safe defaults when native device rectangle data is unavailable.
 
 ### `addIOSBezelCorners`
 
@@ -88,28 +180,27 @@ This can only be done when the device name **CAN** automatically be determined a
 -   iPad Pro (12.9-inch) 5th Generation: `ipadpro129`
 :::
 
-### `autoSaveBaseline`
+### `addressBarShadowPadding`
 
--   **Type:** `boolean`
+-   **Type:** `number`
 -   **Mandatory:** No
--   **Default:** `true`
--   **Supported Application Contexts:** Web, Hybrid App (Webview), Native App
+-   **Default:** `6`
+-   **Supported Application Contexts:** Web
 
-If no baseline image is found during the comparison the image is automatically copied to the baseline folder.
+The padding needs to be added to the address bar on iOS and Android to do a proper cutout of the viewport.
 
-### `alwaysSaveActualImage`
+### `toolBarShadowPadding`
 
--   **Type:** `boolean`
+-   **Type:** `number`
 -   **Mandatory:** No
--   **Default:** `true`
--   **Supported Application Contexts:** All
+-   **Default:** `6` for Android and `15` for iOS (`6` by default and `9` will be added automatically for the possible home bar on iPhones with a notch or iPads that have a home bar)
+-   **Supported Application Contexts:** Web
 
-When setting this option to `false` it will:
+The padding which needs to be added to the toolbar bar on iOS and Android to do a proper cutout of the viewport.
 
-- not save the actual image when there is **no** difference
-- not store the jsonreport file when `createJsonReportFiles` is set to `true`. It will also show a warning in the logs that `createJsonReportFiles` is disabled
+## File & folder management
 
-This should create a better performance because no files are writting to the system and should make sure that there's not a lot of noise in the `actual` folder.
+---
 
 ### `baselineFolder`
 
@@ -133,6 +224,29 @@ The directory that will hold all the baseline images that are used during the co
 }
 ```
 
+### `screenshotPath`
+
+-   **Type:** `string | () => string`
+-   **Default:** `.tmp/`
+-   **Mandatory:** no
+-   **Supported Application Contexts:** Web, Hybrid App (Webview), Native App
+
+The directory that will hold all the actual/different screenshots. If not set, the default value will be used. A function that
+returns a string can also be used to set the screenshotPath value:
+
+```js
+{
+    screenshotPath: path.join(process.cwd(), 'foo', 'bar', 'screenshotPath')
+},
+// OR
+{
+    screenshotPath: () => {
+        // Do some magic here
+        return path.join(process.cwd(), 'foo', 'bar', 'screenshotPath');
+    }
+}
+```
+
 ### `clearRuntimeFolder`
 
 -   **Type:** `boolean`
@@ -145,6 +259,93 @@ Delete runtime folder (`actual` & `diff) on initialization
 :::info NOTE
 This will only work when the [`screenshotPath`](#screenshotpath) is set through the plugin options, and **WILL NOT WORK** when you set the folders in the methods
 :::
+
+### `savePerInstance`
+
+-   **Type:** `boolean`
+-   **Default:** `false`
+-   **Mandatory:** no
+-   **Supported Application Contexts:** Web, Hybrid App (Webview), Native App
+
+Save the images per instance in a separate folder so for example all Chrome screenshots will be saved in a Chrome folder like `desktop_chrome`.
+
+### `formatImageName`
+
+-   **Type:** `string`
+-   **Mandatory:** No
+-   **Default:** `{tag}-{browserName}-{width}x{height}-dpr-{dpr}`
+-   **Supported Application Contexts:** Web, Hybrid App (Webview), Native App
+
+The name of the saved images can be customized by passing the parameter `formatImageName` with a format string like:
+
+```sh
+{tag}-{browserName}-{width}x{height}-dpr-{dpr}
+```
+
+The following variables can be passed to format the string and will automatically be read from the instance capabilities.
+If they can't be determined the defaults will be used.
+
+-   `browserName`: The name of the browser in the provided capabilities
+-   `browserVersion`: The version of the browser provided in the capabilities
+-   `deviceName`: The device name from the capabilities
+-   `dpr`: The device pixel ratio
+-   `height`: The height of the screen
+-   `logName`: The logName from capabilities
+-   `mobile`: This will add `_app`, or the browser name after the `deviceName` to distinguish app screenshots from browser screenshots
+-   `platformName`: The name of the platform in the provided capabilities
+-   `platformVersion`: The version of the platform provided in the capabilities
+-   `tag`: The tag that is provided in the methods that is being called
+-   `width`: The width of the screen
+
+:::info
+
+You can not provide custom paths/folders in the `formatImageName`. If you want to change the path then please check changing the following options:
+
+- [`baselineFolder`](/docs/visual-testing/service-options#baselinefolder)
+- [`screenshotPath`](/docs/visual-testing/service-options#screenshotpath)
+- [`folderOptions`](/docs/visual-testing/method-options#folder-options) per method
+
+:::
+
+## Baseline & save behavior
+
+---
+
+### `autoSaveBaseline`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `true`
+-   **Supported Application Contexts:** Web, Hybrid App (Webview), Native App
+
+If no baseline image is found during the comparison the image is automatically copied to the baseline folder.
+
+### `autoElementScroll`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `true`
+-   **Supported Application Contexts:** Web, Hybrid App (Webview)
+
+This option allows you to disable the automatic scrolling of the element into the view when an element screenshot is created.
+
+### `alwaysSaveActualImage`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `true`
+-   **Supported Application Contexts:** All
+
+When setting this option to `false` it will:
+
+- not save the actual image when there is **no** difference
+- not store the jsonreport file when `createJsonReportFiles` is set to `true`. It will also show a warning in the logs that `createJsonReportFiles` is disabled
+
+This should create a better performance because no files are writting to the system and should make sure that there's not a lot of noise in the `actual` folder.
+
+## Reporting
+
+---
 
 ### `createJsonReportFiles` **(NEW)**
 
@@ -271,102 +472,18 @@ The report data will give you the opportunity to build your own visual report wi
 You need to use `@wdio/visual-testing` version `5.2.0` or higher
 :::
 
-### `disableBlinkingCursor`
-
--   **Type:** `boolean`
--   **Mandatory:** No
--   **Default:** `false`
--   **Supported Application Contexts:** Web, Hybrid App (Webview)
-
-En/Disable all `input`, `textarea`, `[contenteditable]` caret "blinking" in the application. If set to `true` the caret will be set to `transparent` before taking a screenshot
-and reset when done
-
-### `disableCSSAnimation`
-
--   **Type:** `boolean`
--   **Mandatory:** No
--   **Default:** `false`
--   **Supported Application Contexts:** Web, Hybrid App (Webview)
-
-En/Disable all CSS animations in the application. If set to `true` all animations will be disabled before taking a screenshot
-and reset when done
-
-### `enableLayoutTesting`
-
--   **Type:** `boolean`
--   **Mandatory:** No
--   **Default:** `false`
--   **Supported Application Contexts:** Web
-
-This will hide all text on a page so only the layout will be used for comparison. Hiding will be done by adding the style `'color': 'transparent !important'` to **each** element.
-
-For the output see [Test Output](/docs/visual-testing/test-output#enablelayouttesting)
-
-:::info
-By using this flag each element that contains text (so not only `p, h1, h2, h3, h4, h5, h6, span, a, li`, but also `div|button|..`) will get this property. There is **no** option to tailor this.
-:::
-
-### `formatImageName`
-
--   **Type:** `string`
--   **Mandatory:** No
--   **Default:** `{tag}-{browserName}-{width}x{height}-dpr-{dpr}`
--   **Supported Application Contexts:** Web, Hybrid App (Webview), Native App
-
-The name of the saved images can be customized by passing the parameter `formatImageName` with a format string like:
-
-```sh
-{tag}-{browserName}-{width}x{height}-dpr-{dpr}
-```
-
-The following variables can be passed to format the string and will automatically be read from the instance capabilities.
-If they can't be determined the defaults will be used.
-
--   `browserName`: The name of the browser in the provided capabilities
--   `browserVersion`: The version of the browser provided in the capabilities
--   `deviceName`: The device name from the capabilities
--   `dpr`: The device pixel ratio
--   `height`: The height of the screen
--   `logName`: The logName from capabilities
--   `mobile`: This will add `_app`, or the browser name after the `deviceName` to distinguish app screenshots from browser screenshots
--   `platformName`: The name of the platform in the provided capabilities
--   `platformVersion`: The version of the platform provided in the capabilities
--   `tag`: The tag that is provided in the methods that is being called
--   `width`: The width of the screen
-
-:::info
-
-You can not provide custom paths/folders in the `formatImageName`. If you want to change the path then please check changing the following options:
-
-- [`baselineFolder`](/docs/visual-testing/service-options#baselinefolder)
-- [`screenshotPath`](/docs/visual-testing/service-options#screenshotpath)
-- [`folderOptions`](/docs/visual-testing/method-options#folder-options) per method
-
-:::
-
-### `fullPageScrollTimeout`
+### `diffPixelBoundingBoxProximity`
 
 -   **Type:** `number`
 -   **Mandatory:** No
--   **Default:** `1500`
--   **Supported Application Contexts:** Web
+-   **Default:** `5`
+-   **Supported Application Contexts:** Web, Hybrid App (Webview), Native App
 
-The timeout in milliseconds to wait after a scroll. This might help identify pages with lazy loading.
+The pixel proximity used to group diff pixels together in the JSON report generated by [`createJsonReportFiles`](#createjsonreportfiles). Higher values group more pixels into fewer bounding boxes; lower values produce more accurate but more numerous boxes.
 
-:::info
+## General
 
-This will only work when the service/method option `userBasedFullPageScreenshot` is set to `true`, see also [`userBasedFullPageScreenshot`](/docs/visual-testing/service-options#userbasedbullpagescreenshot)
-
-:::
-
-### `hideScrollBars`
-
--   **Type:** `boolean`
--   **Mandatory:** No
--   **Default:** `true`
--   **Supported Application Contexts:** Web, Hybrid App (Webview)
-
-Hide scrollbars in the application. If set to true all scrollbars will be disabled before taking a screenshot. This is set to default `true` to prevent extra issues.
+---
 
 ### `logLevel`
 
@@ -378,68 +495,6 @@ Hide scrollbars in the application. If set to true all scrollbars will be disabl
 Adds extra logs, options are `debug | info | warn | silent`
 
 Errors are always logged to the console.
-
-### `savePerInstance`
-
--   **Type:** `boolean`
--   **Default:** `false`
--   **Mandatory:** no
--   **Supported Application Contexts:** Web, Hybrid App (Webview), Native App
-
-Save the images per instance in a separate folder so for example all Chrome screenshots will be saved in a Chrome folder like `desktop_chrome`.
-
-### `screenshotPath`
-
--   **Type:** `string | () => string`
--   **Default:** `.tmp/`
--   **Mandatory:** no
--   **Supported Application Contexts:** Web, Hybrid App (Webview), Native App
-
-The directory that will hold all the actual/different screenshots. If not set, the default value will be used. A function that
-returns a string can also be used to set the screenshotPath value:
-
-```js
-{
-    screenshotPath: path.join(process.cwd(), 'foo', 'bar', 'screenshotPath')
-},
-// OR
-{
-    screenshotPath: () => {
-        // Do some magic here
-        return path.join(process.cwd(), 'foo', 'bar', 'screenshotPath');
-    }
-}
-```
-
-### `toolBarShadowPadding`
-
--   **Type:** `number`
--   **Mandatory:** No
--   **Default:** `6` for Android and `15` for iOS (`6` by default and `9` will be added automatically for the possible home bar on iPhones with a notch or iPads that have a home bar)
--   **Supported Application Contexts:** Web
-
-The padding which needs to be added to the toolbar bar on iOS and Android to do a proper cutout of the viewport.
-
-### `userBasedFullPageScreenshot`
-
--   **Type:** `boolean`
--   **Mandatory:** No
--   **Default:** `false`
--   **Supported Application Contexts:** Web, Hybrid App (Webview) **Introduced in visual-service@7.0.0**
-
-By default, full-page screenshots on desktop web are captured using the WebDriver BiDi protocol, which enables fast, stable, and consistent screenshots without scrolling.
-When userBasedFullPageScreenshot is set to true, the screenshot process simulates a real user: scrolling through the page, capturing viewport-sized screenshots, and stitching them together. This method is useful for pages with lazy-loaded content or dynamic rendering that depends on scroll position.
-
-Use this option if your page relies on content loading while scrolling or if you want to preserve the behavior of older screenshot methods.
-
-### `waitForFontsLoaded`
-
--   **Type:** `boolean`
--   **Mandatory:** No
--   **Default:** `true`
--   **Supported Application Contexts:** Web, Hybrid App (Webview)
-
-Fonts, including third-party fonts, can be loaded synchronously or asynchronously. Asynchronous loading means that fonts might load after WebdriverIO determines that a page has fully loaded. To prevent font rendering issues, this module, by default, will wait for all fonts to be loaded before taking a screenshot.
 
 ## Tabbable Options
 
