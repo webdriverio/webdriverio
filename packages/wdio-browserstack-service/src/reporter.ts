@@ -16,6 +16,7 @@ import {
     removeAnsiColors,
     getHookType,
     getPlatformVersion,
+    getResolvedDeviceName,
     isObjectEmpty,
     generateHashCodeFromFields
 } from './util.js'
@@ -282,6 +283,16 @@ class _TestReporter extends WDIOReporter {
             /* istanbul ignore next */
             const cloudProvider = getCloudProvider({ options: { hostname: this._config?.hostname } } as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser)
             testData.integrations = {}
+            // For Appium / App-Automate, server-resolved fields like `deviceModel`
+            // live on the live driver session. The user-requested input caps —
+            // including the `bstack:options.deviceName` regex — live on
+            // `this._userCaps`. Pass live caps first (resolved) and userCaps
+            // second (regex/input-cap fallback) so the resolver never has to
+            // fall back to `this._capabilities` (negotiated runner caps,
+            // which may omit bstack:options).
+            const liveBrowserCaps = (globalThis as unknown as {
+                browser?: { capabilities?: WebdriverIO.Capabilities }
+            })?.browser?.capabilities
             /* istanbul ignore next */
             testData.integrations[cloudProvider] = {
                 capabilities: this._capabilities,
@@ -289,7 +300,8 @@ class _TestReporter extends WDIOReporter {
                 browser: this._capabilities?.browserName,
                 browser_version: this._capabilities?.browserVersion,
                 platform: this._capabilities?.platformName,
-                platform_version: getPlatformVersion(this._capabilities, this._userCaps as WebdriverIO.Capabilities)
+                platform_version: getPlatformVersion(this._capabilities, this._userCaps as WebdriverIO.Capabilities),
+                device: getResolvedDeviceName(liveBrowserCaps, this._userCaps as WebdriverIO.Capabilities)
             }
         }
 
