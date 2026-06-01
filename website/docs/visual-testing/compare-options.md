@@ -76,7 +76,7 @@ Scales 2 images to the same size before execution of comparison. Highly recommen
 ### `blockOutStatusBar`
 
 -   **Type:** `boolean`
--   **Default:** `false`
+-   **Default:** `true`
 -   **Mandatory:** no
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting. This is **Mobile only**_
 
@@ -85,7 +85,7 @@ Automatically block out the status and address bar during comparisons. This prev
 ### `blockOutToolBar`
 
 -   **Type:** `boolean`
--   **Default:** `false`
+-   **Default:** `true`
 -   **Mandatory:** no
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting. This is **Mobile only**_
 
@@ -94,7 +94,7 @@ Automatically block out the toolbar.
 ### `blockOutSideBar`
 
 -   **Type:** `boolean`
--   **Default:** `false`
+-   **Default:** `true`
 -   **Mandatory:** no
 -   **Remark:** _Can only be used for `checkScreen()`. It will override the plugin setting. This is **iPad only**_
 
