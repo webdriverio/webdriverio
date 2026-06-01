@@ -23,7 +23,7 @@ Methods options are the options that can be set per [method](./methods). If the 
 
 ---
 
-#### `hideScrollBars`
+### `hideScrollBars`
 
 - **Type:** `boolean`
 - **Mandatory:** No
