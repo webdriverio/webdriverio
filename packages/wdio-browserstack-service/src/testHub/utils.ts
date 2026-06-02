@@ -35,6 +35,18 @@ export const getProductMap = (config: BrowserStackConfig): { [key: string]: bool
 }
 
 export const shouldProcessEventForTesthub = (eventType: string): boolean => {
+    // LTS short-circuit: when running as an LTS load test (BROWSERSTACK_LTS=true
+    // for local repro, or BROWSERSTACK_LTS_SESSION_ID set by the pod), TestHub
+    // event emission must always flow regardless of the observability /
+    // accessibility / percy env flags. Pod runs do export
+    // BROWSERSTACK_OBSERVABILITY, but the local-repro flag path doesn't
+    // guarantee it — without this short-circuit, getProductMap correctly
+    // emits lts: true while every onTestStart / onTestEnd / onHookStart
+    // silently no-ops. Mirror of the unconditional LTS event flow in py-sdk's
+    // should_send_event_for_testhub() (PR #993).
+    if (isLoadTestingSession()) {
+        return true
+    }
     if (isTrue(process.env[BROWSERSTACK_OBSERVABILITY])) {
         return true
     }

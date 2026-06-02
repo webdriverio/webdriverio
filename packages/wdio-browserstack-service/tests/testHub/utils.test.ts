@@ -70,6 +70,24 @@ describe('shouldProcessEventForTesthub', () => {
         delete process.env['BROWSERSTACK_OBSERVABILITY']
         delete process.env['BROWSERSTACK_ACCESSIBILITY']
         delete process.env['BROWSERSTACK_PERCY']
+        delete process.env['BROWSERSTACK_LTS']
+        delete process.env['BROWSERSTACK_LTS_SESSION_ID']
+    })
+
+    it('should return true when LTS opt-in flag is set (no obs/a11y/percy env vars)', () => {
+        // LTS local-repro path: BROWSERSTACK_LTS=true without the
+        // BROWSERSTACK_OBSERVABILITY env var that LTS pods normally export.
+        // Without the LTS short-circuit, every event silently no-ops.
+        process.env['BROWSERSTACK_LTS'] = 'true'
+        expect(utils.shouldProcessEventForTesthub('TestRunStarted')).to.equal(true)
+        expect(utils.shouldProcessEventForTesthub('HookRunFinished')).to.equal(true)
+        expect(utils.shouldProcessEventForTesthub('LogCreated')).to.equal(true)
+        expect(utils.shouldProcessEventForTesthub('CBTSessionCreated')).to.equal(true)
+    })
+
+    it('should return true when LTS_SESSION_ID is set (pod-managed LTS run)', () => {
+        process.env['BROWSERSTACK_LTS_SESSION_ID'] = 'lts-pod-iter-1'
+        expect(utils.shouldProcessEventForTesthub('TestRunStarted')).to.equal(true)
     })
 
     it('should return true when only observability is', () => {

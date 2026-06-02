@@ -203,10 +203,20 @@ export default class TestHubModule extends BaseModule {
                         ? 'browserstack'
                         : 'unknown_grid')
 
-                const driverFrameworkSessionId = AutomationFramework.getState(
-                    autoInstance,
-                    AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID,
-                ).toString()
+                // Null-safe: under LTS the local-Selenium AutomationFrameworkInstance
+                // may not have KEY_FRAMEWORK_SESSION_ID populated yet (the binary's
+                // hub assigns sessionId later than KEY_IS_BROWSERSTACK_HUB). Without
+                // the guard, AutomationFramework.getState returns undefined and the
+                // chained .toString() throws TypeError before the (ltsActive &&
+                // ltsSessionId) ternary on line 215 has a chance to fall through to
+                // ltsSessionId. Default to '' so the ternary path stays untouched
+                // and the non-LTS fall-through is still safe.
+                const driverFrameworkSessionId = (
+                    AutomationFramework.getState(
+                        autoInstance,
+                        AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID,
+                    )?.toString() ?? ''
+                )
 
                 const automationSession: AutomationSession = {
                     provider: sessionProvider,
