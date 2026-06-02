@@ -1,5 +1,7 @@
 import { fetch as undiciFetch, type RequestInit as UndiciRequestInit, ProxyAgent } from 'undici'
 
+import { getMergedCa } from './caCert.js'
+
 export class ResponseError extends Error {
     public response: Response
     constructor(message: string, res: Response) {
@@ -25,9 +27,15 @@ export function _fetch(input: RequestInfo | URL, init?: RequestInit) {
         const request = new Request(input)
         const url = new URL(request.url)
         if (!noProxy.some((str) => url.hostname.endsWith(str))) {
+            // SDK-5953: when a customer CA is configured, trust it on the proxy tunnel's
+            // upstream TLS too (the global dispatcher is bypassed when a dispatcher is set).
+            const ca = getMergedCa()
+            const proxyAgent = ca
+                ? new ProxyAgent({ uri: proxyUrl, requestTls: { ca } })
+                : new ProxyAgent(proxyUrl)
             return undiciFetch(
                 request.url,
-                { ...(init as UndiciRequestInit), dispatcher: new ProxyAgent(proxyUrl) },
+                { ...(init as UndiciRequestInit), dispatcher: proxyAgent },
             ) as unknown as Promise<Response>
         }
     }

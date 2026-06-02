@@ -49,6 +49,7 @@ import {
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
+import { configureCaCertificate } from './caCert.js'
 import { PercyLogger } from './Percy/PercyLogger.js'
 import type Percy from './Percy/Percy.js'
 import BrowserStackConfig from './config.js'
@@ -86,6 +87,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         BStackLogger.clearLogFile()
         PercyLogger.clearLogFile()
         setupExitHandlers()
+        // SDK-5953: trust the customer CA (proxyCaCertificate / BROWSERSTACK_EXTRA_CA_CERTS)
+        // for all outbound HTTPS (undici fetch) before any request fires. Merged with system roots.
+        configureCaCertificate(this._options)
         // added to maintain backward compatibility with webdriverIO v5
         if (!this._config) {
             this._config = _options
