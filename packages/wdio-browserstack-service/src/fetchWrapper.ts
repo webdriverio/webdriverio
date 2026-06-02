@@ -1,5 +1,7 @@
 import { fetch as undiciFetch, type RequestInit as UndiciRequestInit, ProxyAgent, Agent, type Dispatcher } from 'undici'
 
+import { getMergedCa } from './caCert.js'
+
 export class ResponseError extends Error {
     public response: Response
     constructor(message: string, res: Response) {
@@ -25,18 +27,32 @@ export interface FetchOptions {
     connectTimeoutMs?: number
 }
 
-// Dispatchers are relatively expensive to build and hold a connection pool, so we
-// cache one per (proxy, connectTimeout) combination instead of creating a new one
-// on every request.
+// Dispatchers are relatively expensive to build and hold a connection pool, so we cache one per
+// (proxy, connectTimeout, hasCa) combination instead of creating a new one on every request.
+// SDK-5953: when a customer `proxyCaCertificate` is configured, an explicit dispatcher bypasses the
+// global one installed in caCert.ts, so the merged CA (system roots + customer cert) must be applied
+// here too — on the proxy tunnel's upstream TLS (`requestTls.ca`) and on a direct `Agent`
+// (`connect.ca`). `hasCa` is a sufficient cache discriminator since the merged CA is process-stable.
 const dispatcherCache = new Map<string, Dispatcher>()
 
-function getDispatcher(proxyUrl: string | undefined, connectTimeoutMs: number): Dispatcher {
-    const key = `${proxyUrl ?? 'direct'}:${connectTimeoutMs}`
+function getDispatcher(proxyUrl: string | undefined, connectTimeoutMs?: number): Dispatcher {
+    const ca = getMergedCa()
+    const key = `${proxyUrl ?? 'direct'}:${connectTimeoutMs ?? 'default'}:${ca ? 'ca' : 'noca'}`
     let dispatcher = dispatcherCache.get(key)
     if (!dispatcher) {
-        dispatcher = proxyUrl
-            ? new ProxyAgent({ uri: proxyUrl, connect: { timeout: connectTimeoutMs } })
-            : new Agent({ connect: { timeout: connectTimeoutMs } })
+        const connect: { timeout?: number, ca?: string[] } = {}
+        if (connectTimeoutMs) {
+            connect.timeout = connectTimeoutMs
+        }
+        if (proxyUrl) {
+            // requestTls.ca = upstream (through-tunnel) TLS, which the inspecting proxy re-signs.
+            dispatcher = new ProxyAgent({ uri: proxyUrl, connect, ...(ca ? { requestTls: { ca } } : {}) })
+        } else {
+            if (ca) {
+                connect.ca = ca
+            }
+            dispatcher = new Agent({ connect })
+        }
         dispatcherCache.set(key, dispatcher)
     }
     return dispatcher
@@ -60,9 +76,10 @@ export function _fetch(input: RequestInfo | URL, init?: RequestInit, options?: F
         const request = new Request(input)
         const url = new URL(request.url)
         if (!noProxy.some((str) => url.hostname.endsWith(str))) {
-            const dispatcher = connectTimeoutMs
-                ? getDispatcher(proxyUrl, connectTimeoutMs)
-                : new ProxyAgent(proxyUrl)
+            // Always route the proxy tunnel through getDispatcher: an explicit dispatcher bypasses
+            // the global one, so its upstream TLS must trust the customer CA (SDK-5953). getDispatcher
+            // also applies connectTimeoutMs when provided and caches the agent per key.
+            const dispatcher = getDispatcher(proxyUrl, connectTimeoutMs)
             return undiciFetch(
                 request.url,
                 { ...(init as UndiciRequestInit), dispatcher },
@@ -71,7 +88,8 @@ export function _fetch(input: RequestInfo | URL, init?: RequestInit, options?: F
     }
     // Without a proxy, global fetch's connect timeout is fixed at 10s and cannot be
     // overridden, so when a caller needs a larger one we go through undici directly
-    // with a custom Agent. The default path is left untouched.
+    // with a custom Agent (which also carries the custom CA when configured). The default
+    // path is left untouched — non-proxy fetch already trusts the CA via the global dispatcher.
     if (connectTimeoutMs) {
         return undiciFetch(
             new Request(input).url,
