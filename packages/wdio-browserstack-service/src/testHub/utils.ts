@@ -23,7 +23,7 @@ export const getProductMap = (config: BrowserStackConfig): { [key: string]: bool
     const lts = isLoadTestingSession()
     const entries: [string, boolean | undefined][] = [
         ['observability', config.testObservability.enabled],
-        ['accessibility', config.accessibility],
+        ['accessibility', !!config.accessibility],
         ['percy', config.percy],
         ['automate', lts ? false : config.automate],
         ['app_automate', config.appAutomate],

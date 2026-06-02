@@ -14,6 +14,7 @@ import {
     getCloudProvider, getFailureObject,
     getGitMetaData,
     getHookType, getPlatformVersion,
+    getResolvedDeviceName,
     getScenarioExamples,
     getUniqueIdentifier,
     getUniqueIdentifierForCucumber,
@@ -979,7 +980,8 @@ class _InsightsHandler {
             browser_version: caps?.browserVersion,
             platform: caps?.platformName,
             product: this._ltsActive ? 'loadTesting' : this._platformMeta?.product,
-            platform_version: getPlatformVersion(caps, this._userCaps as WebdriverIO.Capabilities)
+            platform_version: getPlatformVersion(caps, this._userCaps as WebdriverIO.Capabilities),
+            device: getResolvedDeviceName(caps, this._userCaps as WebdriverIO.Capabilities)
         }
     }
 
