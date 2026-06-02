@@ -959,6 +959,80 @@ describe('afterTest', () => {
     })
 })
 
+describe('afterTest timed-out-test correlation', () => {
+    /**
+     * Reproduces the orphan: a mocha test hangs past the timeout, mocha advances its internal
+     * pointer to the NEXT test, and the wdio adapter snapshots that (wrong) test for the afterTest
+     * payload. The service must still finish the test that actually started (the oldest open one),
+     * not the mislabelled one — otherwise the timed-out test is never finished and is orphaned.
+     */
+    it('finishes the oldest open test even when afterTest is given the next test', async () => {
+        service = new BrowserstackService(
+            { testObservability: true } as any,
+            [] as any,
+            { user: 'foo', key: 'bar', framework: 'mocha' } as any
+        )
+        const finished: string[] = []
+        const insightsHandler = {
+            beforeTest: vi.fn(),
+            afterTest: vi.fn((test: any) => { finished.push(test.title) })
+        }
+        service['_insightsHandler'] = insightsHandler as any
+
+        const timedOut = { title: 'P0 hangs', parent: 'suite' }
+        const next = { title: 'P1 sibling', parent: 'suite' }
+
+        // P0 starts. P0 then times out; mocha hands afterTest the NEXT test (P1) by mistake.
+        await service.beforeTest(timedOut as any)
+        await service.afterTest(
+            next as any,
+            undefined as never,
+            { passed: false, error: { message: 'Timeout' }, duration: 1, retries: { attempts: 0, limit: 0 } } as any
+        )
+
+        // The finish must be attributed to P0 (the test that actually started), not the stale P1.
+        expect(insightsHandler.afterTest).toHaveBeenCalledTimes(1)
+        expect(insightsHandler.afterTest.mock.calls[0][0].title).toBe('P0 hangs')
+        expect(finished).toEqual(['P0 hangs'])
+    })
+
+    it('passes the identity through unchanged in the healthy (correctly-labelled) case', async () => {
+        service = new BrowserstackService(
+            { testObservability: true } as any,
+            [] as any,
+            { user: 'foo', key: 'bar', framework: 'mocha' } as any
+        )
+        const insightsHandler = { beforeTest: vi.fn(), afterTest: vi.fn() }
+        service['_insightsHandler'] = insightsHandler as any
+
+        const t = { title: 'clean', parent: 'suite' }
+        await service.beforeTest(t as any)
+        await service.afterTest(
+            t as any,
+            undefined as never,
+            { passed: true, duration: 1, retries: { attempts: 0, limit: 0 } } as any
+        )
+
+        expect(insightsHandler.afterTest.mock.calls[0][0].title).toBe('clean')
+        // FIFO is drained, so a subsequent afterTest with an empty FIFO must fall back to its arg.
+        expect(service['_openMochaTests']).toHaveLength(0)
+    })
+
+    it('does not correlate for non-mocha frameworks (FIFO stays empty)', async () => {
+        service = new BrowserstackService(
+            { testObservability: true } as any,
+            [] as any,
+            { user: 'foo', key: 'bar', framework: 'jasmine' } as any
+        )
+        const insightsHandler = { beforeTest: vi.fn(), afterTest: vi.fn() }
+        service['_insightsHandler'] = insightsHandler as any
+
+        const t = { title: 'jasmine test', fullName: 'jasmine test', description: 'jasmine test' }
+        await service.beforeTest(t as any)
+        expect(service['_openMochaTests']).toHaveLength(0)
+    })
+})
+
 describe('afterScenario', () => {
     it('should increment failure reasons on non-passing statuses (strict mode off)', () => {
         service = new BrowserstackService({ testObservability: false } as any, [] as any,

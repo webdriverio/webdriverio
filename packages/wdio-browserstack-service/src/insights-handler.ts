@@ -409,6 +409,13 @@ class _InsightsHandler {
         }
         this.flushCBTDataQueue()
         const testData = this.getRunData(test, 'TestRunFinished', result)
+        // never emit a finish with a null/undefined uuid — the backend cannot match it to
+        // a TestRunStarted, leaving the started test orphaned (status_stats in_progress). The FIFO
+        // correlation in service.ts should prevent this; this guard is defence-in-depth.
+        if (!testData.uuid) {
+            BStackLogger.warn(`Skipping TestRunFinished for '${getUniqueIdentifier(test, this._framework)}' — resolved uuid is missing; not emitting an unmatched finish.`)
+            return
+        }
         this.listener.testFinished(testData)
         const testFinishHashCode = generateHashCodeFromFields(
             [
@@ -681,7 +688,10 @@ class _InsightsHandler {
 
     private getRunData (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
         const fullTitle = getUniqueIdentifier(test, this._framework)
-        const testMetaData = this._tests[fullTitle]
+        // never let a missing meta entry crash the finish (which would silently drop the
+        // event and orphan the test). A start always seeds this._tests[fullTitle]; if it is absent
+        // here the identity was mislabelled upstream — degrade gracefully with an empty meta.
+        const testMetaData = this._tests[fullTitle] || ({} as TestMeta)
 
         const filename = test.file || this._suiteFile
         this.currentTestId = testMetaData.uuid
