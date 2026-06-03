@@ -1,8 +1,25 @@
 import { setGlobalDispatcher, Agent } from 'undici'
 import tls from 'node:tls'
 import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
 import { BStackLogger } from './bstackLogger.js'
+
+// Convert a DER (binary) certificate Buffer to a PEM string (base64, 64-char lines).
+function derToPem(der: Buffer): string {
+    const b64 = der.toString('base64').replace(/(.{64})/g, '$1\n')
+    return `-----BEGIN CERTIFICATE-----\n${b64}${b64.endsWith('\n') ? '' : '\n'}-----END CERTIFICATE-----\n`
+}
+
+// Read a customer CA Buffer into an array of PEM cert strings, supporting BOTH PEM
+// (single or multi-cert bundle) and DER (binary) — any extension (.pem/.crt/.cer/.der).
+function loadCaCertsAsPem(buf: Buffer): string[] {
+    if (buf.includes('-----BEGIN CERTIFICATE-----')) {
+        return buf.toString('utf8').match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g) || []
+    }
+    return [derToPem(buf)] // DER (binary) single cert
+}
 
 /*
  * SDK-5953: trust a customer-provided CA certificate for SSL-inspecting corporate
@@ -59,13 +76,27 @@ export function configureCaCertificate(options?: { proxyCaCertificate?: string }
         if (!certPath) {
             return
         }
-        const caPem = fs.readFileSync(certPath, 'utf8')
-        mergedCa = [...tls.rootCertificates, caPem]
-        // Covers every global fetch() call in this process (undici-backed). Merge, not replace.
+        const buf = fs.readFileSync(certPath)
+        const isPem = buf.includes('-----BEGIN CERTIFICATE-----')
+        const pemCerts = loadCaCertsAsPem(buf)
+        if (!pemCerts.length) {
+            BStackLogger.warn(`proxyCaCertificate: no certificate found in ${certPath}; falling back to system trust store.`)
+            return
+        }
+        // Merge (not replace) the customer cert(s) with Node's default roots. Covers every
+        // global fetch() call in this process (undici) + the fetchWrapper ProxyAgent tunnel.
+        mergedCa = [...tls.rootCertificates, ...pemCerts]
         setGlobalDispatcher(new Agent({ connect: { ca: mergedCa } }))
-        // Child Node processes (e.g. the detached cleanup spawn) inherit and trust it at startup.
+        // Child Node processes (e.g. the detached cleanup spawn) inherit NODE_EXTRA_CA_CERTS and
+        // trust it at startup. It must be a PEM file: reuse the customer's path when already PEM,
+        // else write a PEM-converted copy (Node can't load a raw DER through that var).
         if (!process.env.NODE_EXTRA_CA_CERTS) {
-            process.env.NODE_EXTRA_CA_CERTS = certPath
+            let nodeExtra = certPath
+            if (!isPem) {
+                nodeExtra = path.join(os.tmpdir(), `browserstack_sdk_ca_${process.pid}.pem`)
+                fs.writeFileSync(nodeExtra, pemCerts.join(''))
+            }
+            process.env.NODE_EXTRA_CA_CERTS = nodeExtra
         }
         configured = true
         BStackLogger.info(`proxyCaCertificate: trusting custom CA from ${certPath} (merged with system roots).`)
