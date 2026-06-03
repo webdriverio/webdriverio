@@ -497,7 +497,7 @@ describe('beforeTest', () => {
 
         it('update test data', async () => {
             await insightsHandler.beforeTest({ parent: 'parent', title: 'test' } as any)
-            expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
+            expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z', kind: 'test', name: 'test', scopes: [], fileName: undefined } })
             expect(insightsHandler['getRunData']).toBeCalledTimes(1)
         })
     })
@@ -537,7 +537,7 @@ describe('beforeHook', () => {
 
         it('update hook data', async () => {
             await insightsHandler.beforeHook({ parent: 'parent', title: 'test' } as any, {} as any)
-            expect(insightsHandler['_tests']).toEqual({ 'parent - test': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
+            expect(insightsHandler['_tests']).toEqual({ 'parent - test': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z', kind: 'hook', name: 'test', scopes: [], fileName: undefined } })
             expect(insightsHandler['getRunData']).toBeCalledTimes(1)
         })
     })

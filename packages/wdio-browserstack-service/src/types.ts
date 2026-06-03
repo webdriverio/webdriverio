@@ -241,7 +241,16 @@ export interface TestMeta {
     scenario?: { name: string },
     examples?: string[],
     hookType?: string,
-    testRunId?: string
+    testRunId?: string,
+    // Explicitly records whether this entry is a hook or a test so a teardown sweep can emit the
+    // correct synthetic finish event without re-deriving the kind from the title. Tagged at
+    // beforeHook/beforeTest time. Only used for the mocha never-finished sweep.
+    kind?: 'hook' | 'test',
+    // Identity captured at start time so the sweep can build a terminal finish payload without the
+    // live framework test object (which is gone by teardown).
+    name?: string,
+    scopes?: string[],
+    fileName?: string
 }
 
 export interface CurrentRunInfo {

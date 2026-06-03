@@ -52,6 +52,8 @@ vi.mock('../src/instrumentation/performance/performance-tester.js', () => ({
         end: vi.fn(),
         startMonitoring: vi.fn(),
         measureWrapper: vi.fn().mockImplementation((_name: string, fn: Function) => fn),
+        stopAndGenerate: vi.fn().mockResolvedValue(undefined),
+        calculateTimes: vi.fn(),
         Measure: vi.fn().mockImplementation(() => (_target: any, _propertyKey: string, descriptor: PropertyDescriptor) => descriptor),
         browser: undefined,
         scenarioThatRan: [],
@@ -1030,6 +1032,95 @@ describe('afterTest timed-out-test correlation', () => {
         const t = { title: 'jasmine test', fullName: 'jasmine test', description: 'jasmine test' }
         await service.beforeTest(t as any)
         expect(service['_openMochaTests']).toHaveLength(0)
+    })
+})
+
+describe('teardown sweep of unfinished test/hook entries', () => {
+    const mochaBrowser = {
+        sessionId: 'session123',
+        config: {},
+        capabilities: { browserName: 'chrome' },
+        execute: vi.fn(),
+        on: vi.fn(),
+    } as any
+
+    it('emits exactly one synthetic HookRunFinished with the stashed hookUUID for an unfinished hook', async () => {
+        const handler = new InsightsHandler(mochaBrowser, 'mocha')
+        const hookFinishedSpy = vi.spyOn(handler['listener'], 'hookFinished').mockImplementation(() => {})
+        const hookStartedSpy = vi.spyOn(handler['listener'], 'hookStarted').mockImplementation(() => {})
+
+        const hook = { title: 'before each hook', parent: { title: 'suite' }, type: 'hook' } as any
+        await handler.beforeHook(hook, {})
+        // intentionally no afterHook -> entry stays unfinished
+        expect(hookStartedSpy).toHaveBeenCalledTimes(1)
+
+        const stashedUuid = handler['_tests']['suite - before each hook'].uuid
+
+        await handler.sweepUnfinished()
+
+        expect(hookFinishedSpy).toHaveBeenCalledTimes(1)
+        const emitted = hookFinishedSpy.mock.calls[0][0]
+        expect(emitted.uuid).toBe(stashedUuid)
+        expect(emitted.type).toBe('hook')
+        expect(emitted.result).toBe('failed')
+        expect(emitted.finished_at).toBeDefined()
+    })
+
+    it('emits a synthetic TestRunFinished with the stashed uuid for an unfinished test', async () => {
+        const handler = new InsightsHandler(mochaBrowser, 'mocha')
+        const testFinishedSpy = vi.spyOn(handler['listener'], 'testFinished').mockImplementation(() => {})
+        vi.spyOn(handler['listener'], 'testStarted').mockImplementation(() => {})
+
+        const test = { title: 'a hanging test', parent: { title: 'suite' }, type: 'test' } as any
+        await handler.beforeTest(test)
+        // intentionally no afterTest -> entry stays unfinished
+        const stashedUuid = handler['_tests']['suite - a hanging test'].uuid
+
+        await handler.sweepUnfinished()
+
+        expect(testFinishedSpy).toHaveBeenCalledTimes(1)
+        const emitted = testFinishedSpy.mock.calls[0][0]
+        expect(emitted.uuid).toBe(stashedUuid)
+        expect(emitted.type).toBe('test')
+        expect(emitted.result).toBe('failed')
+    })
+
+    it('does not re-finish an entry that already completed', async () => {
+        const handler = new InsightsHandler(mochaBrowser, 'mocha')
+        const testFinishedSpy = vi.spyOn(handler['listener'], 'testFinished').mockImplementation(() => {})
+        vi.spyOn(handler['listener'], 'testStarted').mockImplementation(() => {})
+
+        const test = { title: 'completed test', parent: { title: 'suite' }, type: 'test' } as any
+        await handler.beforeTest(test)
+        // simulate a normal finish having stamped finishedAt
+        handler['_tests']['suite - completed test'].finishedAt = (new Date()).toISOString()
+
+        await handler.sweepUnfinished()
+        expect(testFinishedSpy).not.toHaveBeenCalled()
+    })
+
+    it('runs the sweep before onWorkerEnd / batcher teardown in service.after()', async () => {
+        service = new BrowserstackService(
+            { testObservability: true } as any,
+            [] as any,
+            { user: 'foo', key: 'bar', framework: 'mocha' } as any
+        )
+        const order: string[] = []
+        const insightsHandler = {
+            sweepUnfinished: vi.fn(async () => { order.push('sweep') })
+        }
+        service['_insightsHandler'] = insightsHandler as any
+
+        const ListenerModule = await import('../src/testOps/listener.js')
+        const onWorkerEndSpy = vi
+            .spyOn(ListenerModule.default.getInstance(), 'onWorkerEnd')
+            .mockImplementation(async () => { order.push('onWorkerEnd'); return undefined as any })
+
+        await service.after(0)
+
+        expect(insightsHandler.sweepUnfinished).toHaveBeenCalledTimes(1)
+        expect(order).toEqual(['sweep', 'onWorkerEnd'])
+        onWorkerEndSpy.mockRestore()
     })
 })
 

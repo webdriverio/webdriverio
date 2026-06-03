@@ -23,6 +23,17 @@ const ELEMENT_RETURN_COMMANDS = ['getElement', 'getElements']
 const TIME_BUFFER = 3
 
 /**
+ * Floor applied to a mocha hook's effective timeout when the hook timeout is disabled or unset
+ * (0/undefined). With a disabled hook timeout the runnable timeout resolves to 0, the race timer
+ * below would be armed at `0 - TIME_BUFFER` (a non-positive delay) and never act as a real guard,
+ * so a never-returning hook would hang without ever settling and never emit its after-hook. The
+ * floor guarantees the race always has a finite, firing timer. It is intentionally large so a
+ * legitimately slow setup hook is not cut short; an EXPLICIT non-zero hook timeout is always
+ * honoured unchanged and is never lowered to this value.
+ */
+export const DEFAULT_HOOK_TIMEOUT = 20000
+
+/**
  * we have to mock the WebdriverIO.Browser and WebdriverIO.MultiRemoteBrowser type
  * here as this package can't access it given it is a dependency of webdriverio
  */
@@ -357,7 +368,8 @@ export async function executeAsync(
     fn: Function,
     retries: Frameworks.TestRetries,
     args: unknown[] = [],
-    timeout: number = 20000
+    timeout: number = 20000,
+    hookTimeoutFloor?: number
 ): Promise<unknown> {
     this.wdioRetries = retries.attempts
 
@@ -374,7 +386,19 @@ export async function executeAsync(
         // @ts-expect-error - _runnable is set by Mocha/Jasmine at runtime
         const runnableTimeout = this?._runnable?._timeout
         // @ts-expect-error - jasmine is set by Jasmine at runtime
-        const frameworkTimeout = runnableTimeout ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
+        let frameworkTimeout = runnableTimeout ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
+        /**
+         * Hook-only safety floor. A mocha hook with timeouts disabled resolves `runnableTimeout`
+         * to 0, which would arm the race timer below at a non-positive delay and let a
+         * never-returning hook hang forever without emitting its after-hook. When a floor is
+         * supplied (only the hook-wrapping path does so) AND the resolved timeout is falsy
+         * (0/undefined/NaN — i.e. effectively disabled), raise it to the floor so the race always
+         * has a firing timer. An explicit, non-zero hook timeout is left untouched and is never
+         * shortened by this floor.
+         */
+        if (hookTimeoutFloor && !frameworkTimeout) {
+            frameworkTimeout = hookTimeoutFloor
+        }
         const _timeout = (frameworkTimeout ?? timeout) - TIME_BUFFER
         /**
          * Executes the function with specified timeout and returns the result, or throws an error if the timeout is exceeded.
@@ -411,7 +435,7 @@ export async function executeAsync(
         }
         if (retries.limit > retries.attempts) {
             retries.attempts++
-            return await executeAsync.call(this, fn, retries, args, timeout)
+            return await executeAsync.call(this, fn, retries, args, timeout, hookTimeoutFloor)
         }
 
         throw err

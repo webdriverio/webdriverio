@@ -269,7 +269,13 @@ class _InsightsHandler {
 
         this._tests[fullTitle] = {
             uuid: hookUUID,
-            startedAt: (new Date()).toISOString()
+            startedAt: (new Date()).toISOString(),
+            // Tag as a hook and stash identity so a teardown sweep can synthesise a terminal
+            // HookRunFinished if this hook never returns (e.g. a hang with timeouts disabled).
+            kind: 'hook',
+            name: test.title || test.description,
+            scopes: this.getHierarchy(test),
+            fileName: test.file || this._suiteFile
         }
         this.setCurrentHook({ uuid: hookUUID })
         this.attachHookData(context, hookUUID)
@@ -393,7 +399,13 @@ class _InsightsHandler {
         const fullTitle = getUniqueIdentifier(test, this._framework)
         this._tests[fullTitle] = {
             uuid,
-            startedAt: (new Date()).toISOString()
+            startedAt: (new Date()).toISOString(),
+            // Tag as a test and stash identity so a teardown sweep can synthesise a terminal
+            // TestRunFinished if this test never reaches afterTest (e.g. mocha advanced past a hang).
+            kind: 'test',
+            name: test.title || test.description,
+            scopes: this.getHierarchy(test),
+            fileName: test.file || this._suiteFile
         }
         this.listener.testStarted(this.getRunData(test, 'TestRunStarted'))
     }
@@ -430,6 +442,99 @@ class _InsightsHandler {
             ]
         )
         TestReporter.hashCodeToHandleTestSkip[testFinishHashCode] = testData.uuid ?? ''
+    }
+
+    /**
+     * Teardown safety net: synthesise a terminal finish for any started-but-unfinished
+     * test/hook so the backend closes the entity instead of leaving it in_progress and
+     * letting the build watchdog inflate the duration.
+     *
+     * Scoped to mocha. Cucumber hooks are keyed differently (getCucumberHookUniqueId) and
+     * their lifecycle differs, so they are intentionally left out here — closing them safely
+     * would need cucumber-specific keying and is a known gap for a follow-up.
+     *
+     * Each entry was tagged with kind at start time so we emit HookRunFinished for hooks and
+     * TestRunFinished for tests without re-deriving the kind from the title. Entries without a
+     * uuid are skipped (same null-uuid guard as afterTest): a finish the backend can't match to a
+     * start is worse than none. The result is marked failed/incomplete via getFailureObject so the
+     * entity lands in a terminal state rather than pending.
+     */
+    public async sweepUnfinished() {
+        if (this._framework !== 'mocha') {
+            return
+        }
+
+        for (const fullTitle of Object.keys(this._tests)) {
+            const meta = this._tests[fullTitle]
+            // Already finished, or no kind tag (cucumber/legacy entry) — nothing to sweep.
+            if (!meta || meta.finishedAt || (meta.kind !== 'hook' && meta.kind !== 'test')) {
+                continue
+            }
+            // Only sweep entries that actually started.
+            if (!meta.startedAt) {
+                continue
+            }
+            // Never emit a finish with a missing uuid — the backend cannot match it to a start,
+            // which would orphan the entity rather than close it.
+            if (!meta.uuid) {
+                BStackLogger.warn('Skipping synthetic finish for ' + fullTitle + ' — stashed uuid is missing.')
+                continue
+            }
+
+            try {
+                meta.finishedAt = (new Date()).toISOString()
+                const testData = this.buildSweepFinishData(fullTitle, meta)
+
+                if (meta.kind === 'hook') {
+                    this.listener.hookFinished(testData)
+                } else {
+                    this.listener.testFinished(testData)
+                }
+                BStackLogger.debug('Emitted synthetic ' + (meta.kind === 'hook' ? 'HookRunFinished' : 'TestRunFinished') + ' for unfinished ' + fullTitle + '.')
+            } catch (err) {
+                BStackLogger.debug('Exception while sweeping unfinished ' + fullTitle + ': ' + err)
+            }
+        }
+    }
+
+    /**
+     * Build a terminal (failed/incomplete) finish payload for a swept entry directly from the
+     * stashed TestMeta, since the live framework test object is no longer available at teardown.
+     */
+    private buildSweepFinishData(fullTitle: string, meta: TestMeta): TestData {
+        const filename = meta.fileName
+        const testData: TestData = {
+            uuid: meta.uuid,
+            type: meta.kind === 'hook' ? 'hook' : 'test',
+            name: meta.name,
+            body: {
+                lang: 'webdriverio',
+                code: null
+            },
+            scope: fullTitle,
+            scopes: meta.scopes,
+            identifier: fullTitle,
+            file_name: filename ? path.relative(process.cwd(), filename) : undefined,
+            location: filename ? path.relative(process.cwd(), filename) : undefined,
+            vc_filepath: (this._gitConfigPath && filename) ? path.relative(this._gitConfigPath, filename) : undefined,
+            started_at: meta.startedAt,
+            finished_at: meta.finishedAt,
+            framework: this._framework,
+            result: 'failed',
+            ...getFailureObject(new Error('Test/hook did not finish before the session ended (incomplete).'))
+        }
+
+        testData.integrations = {}
+        if (this._browser && this._platformMeta) {
+            const provider = getCloudProvider(this._browser)
+            testData.integrations[provider] = this.getIntegrationsObject()
+        }
+
+        if (meta.kind === 'hook') {
+            testData.hook_type = meta.name ? getHookType(meta.name.toLowerCase()) : 'undefined'
+        }
+
+        return testData
     }
 
     /**

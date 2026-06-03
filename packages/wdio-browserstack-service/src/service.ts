@@ -582,6 +582,17 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 }
             })()
 
+            // Teardown safety net: close any started-but-unfinished test/hook with a synthetic
+            // finish so the backend does not orphan them to the build watchdog (which would inflate
+            // the reported duration). This MUST run before onWorkerEnd, which shuts the event
+            // batcher down inside teardown; events enqueued after that are dropped. Wrapped so a
+            // sweep failure never breaks the session teardown.
+            try {
+                await this._insightsHandler?.sweepUnfinished()
+            } catch (sweepErr) {
+                BStackLogger.debug("Exception in sweepUnfinished during after(): " + util.format(sweepErr))
+            }
+
             // Track Listener cleanup
             PerformanceTester.start(EVENTS.SDK_LISTENER_WORKER_END)
             await Listener.getInstance().onWorkerEnd()
