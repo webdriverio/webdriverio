@@ -5,7 +5,7 @@ title: Session Screencast
 
 Records browser sessions as `.webm` videos. Videos are displayed in the DevTools UI alongside the snapshot and DOM mutation views.
 
-> **Note:** Screencast recording is supported for **WebdriverIO** and **[Selenium WebDriver](/docs/devtools/selenium)** today. Nightwatch.js support is planned for a future release.
+Available across all three adapters — **WebdriverIO**, **[Selenium WebDriver](/docs/devtools/selenium)**, and **[Nightwatch.js](/docs/devtools/nightwatch#screencast)**. The capture mode differs per framework (CDP push where possible, polling otherwise — see [Browser Support](#browser-support) below).
 
 ## Demo
 
@@ -71,11 +71,27 @@ No configuration change is needed to switch modes — the service detects browse
 - Leading blank frames (captured before the first URL navigation) are automatically trimmed so videos begin at the first meaningful page action.
 - If `browser.reloadSession()` is called mid-run, the service finalises the current recording and starts a fresh one for the new session. Each session produces its own `.webm` file.
 - When multiple recordings exist, the DevTools UI shows a **Recording N** dropdown to switch between them.
-- Output files are written to the directory containing `wdio.conf.ts` (WDIO's `rootDir`) or `outputDir` if explicitly configured.
+
+### Where output files land
+
+The directory each adapter picks is slightly different — they all share the same resolver in `@wdio/devtools-core` but feed it different inputs:
+
+| Adapter | Output location |
+|---|---|
+| **WebdriverIO** | `outputDir` if explicitly set in `wdio.conf.ts`, otherwise `rootDir` (the dir containing the config). Avoid setting `outputDir` just to control video paths — WDIO redirects worker logs there too. |
+| **Selenium** | Directory of the test file that just ran, falling back to `process.cwd()`. |
+| **Nightwatch** | Directory of the test file, falling back to the directory containing `nightwatch.conf.*`, then `process.cwd()`. |
+
+Directories under `node_modules/` are skipped on the Selenium/Nightwatch path so symlinked workspaces don't dump videos into a dependency folder.
 
 ## Output Files
 
-| File | Description |
-|---|---|
-| `wdio-trace-{sessionId}.json` | Full trace: DOM mutations, commands, screenshots, console logs, network requests |
-| `wdio-video-{sessionId}.webm` | Screencast video (only produced when `screencast.enabled: true`) |
+Filenames are adapter-specific (the framework name appears in the prefix), but the shape is the same:
+
+| Adapter | Trace JSON | Screencast video |
+|---|---|---|
+| WebdriverIO | `wdio-trace-{sessionId}.json` | `wdio-video-{sessionId}.webm` |
+| Selenium | — | `selenium-video-{sessionId}.webm` |
+| Nightwatch | — | `nightwatch-video-{sessionId}.webm` |
+
+The trace JSON is currently produced by WDIO only; Selenium and Nightwatch stream the same data live to the dashboard but don't write a snapshot file today. The video is produced by every adapter when `screencast.enabled: true`.
