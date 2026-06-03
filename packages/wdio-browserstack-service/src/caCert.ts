@@ -93,8 +93,18 @@ export function configureCaCertificate(options?: { proxyCaCertificate?: string }
         if (!process.env.NODE_EXTRA_CA_CERTS) {
             let nodeExtra = certPath
             if (!isPem) {
-                nodeExtra = path.join(os.tmpdir(), `browserstack_sdk_ca_${process.pid}.pem`)
-                fs.writeFileSync(nodeExtra, pemCerts.join(''))
+                // Write the PEM-converted trust anchor into a fresh, owner-only temp dir
+                // (random name via mkdtemp) with mode 0600 + O_EXCL/O_NOFOLLOW. A predictable
+                // path in a world-writable tmpdir would let a local attacker pre-plant or
+                // symlink-race the file the process is about to TRUST as a CA.
+                const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'browserstack_sdk_ca_'))
+                nodeExtra = path.join(tmpDir, 'ca.pem')
+                const fd = fs.openSync(nodeExtra, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | (fs.constants.O_NOFOLLOW || 0), 0o600)
+                try {
+                    fs.writeFileSync(fd, pemCerts.join(''))
+                } finally {
+                    fs.closeSync(fd)
+                }
             }
             process.env.NODE_EXTRA_CA_CERTS = nodeExtra
         }
