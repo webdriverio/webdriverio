@@ -590,7 +590,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             try {
                 await this._insightsHandler?.sweepUnfinished()
             } catch (sweepErr) {
-                BStackLogger.debug("Exception in sweepUnfinished during after(): " + util.format(sweepErr))
+                BStackLogger.debug('Exception in sweepUnfinished during after(): ' + util.format(sweepErr))
             }
 
             // Track Listener cleanup
