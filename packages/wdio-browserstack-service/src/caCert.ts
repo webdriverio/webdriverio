@@ -86,10 +86,19 @@ export function configureCaCertificate(options?: { proxyCaCertificate?: string }
         // Merge (not replace) the customer cert(s) with Node's default roots. Covers every
         // global fetch() call in this process (undici) + the fetchWrapper ProxyAgent tunnel.
         mergedCa = [...tls.rootCertificates, ...pemCerts]
+        // NOTE: setGlobalDispatcher REPLACES (not extends) the process-wide undici dispatcher.
+        // Safe here because we merge with the system roots, so every fetch() in the process still
+        // validates public endpoints (and still rejects the MITM cert when no custom CA is set).
+        // Trade-off: if something had already installed a custom global dispatcher (tuned
+        // timeouts/pools, interceptors), that config is discarded — the idiomatic undici approach.
         setGlobalDispatcher(new Agent({ connect: { ca: mergedCa } }))
         // Child Node processes (e.g. the detached cleanup spawn) inherit NODE_EXTRA_CA_CERTS and
         // trust it at startup. It must be a PEM file: reuse the customer's path when already PEM,
         // else write a PEM-converted copy (Node can't load a raw DER through that var).
+        // SCOPE: NODE_EXTRA_CA_CERTS is Node-only — it covers this service's outbound HTTPS and
+        // detached Node children, but NOT the BrowserStack Local (Go) binary, which has its own
+        // proxy flags (--proxy-host, etc.). proxyCaCertificate intentionally covers the service's
+        // egress, not the Local tunnel binary (consistent with the Java agent's tool-scope).
         if (!process.env.NODE_EXTRA_CA_CERTS) {
             let nodeExtra = certPath
             if (!isPem) {
