@@ -19,6 +19,12 @@ Run the following command in the root of your project to add the required develo
 npm install --save-dev @wdio/cli @wdio/appium-service appium appium-flutter-finder
 ```
 
+After installing the Node.js dependencies, install the Appium 2 Flutter driver as well:
+
+```bash
+appium driver install flutter
+```
+
 Installed packages:
 
 - `@wdio/cli`: The command-line interface for managing WebdriverIO configuration, test suites, and test execution.

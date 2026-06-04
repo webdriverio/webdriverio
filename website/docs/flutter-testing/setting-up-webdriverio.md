@@ -3,15 +3,13 @@ id: setting-up-webdriverio
 title: Setting up WebdriverIO in your environment
 ---
 
-# Setting up WebdriverIO in your environment
-
 The `wdio.conf.js` file is the core of any WebdriverIO project. This is where we define where tests will run, which test frameworks to use, and the necessary `capabilities` for Appium to correctly initialize the Flutter application.
 
-⚠️ IMPORTANT API WARNING
-
+:::warning
 The `appium-flutter-driver` operates differently from traditional native drivers (such as `UiAutomator2` or `XCUITest`). It communicates with Flutter's test extension (`flutter_driver`) through a customized protocol. Because of this, standard native automation commands might not work the same way or may strictly require using `appium-flutter-finder`.
 
 To fully understand the limitations, supported commands, and protocol extensions, refer to the tool's official repository: [Appium Flutter Driver on GitHub.](https://github.com/appium/appium-flutter-driver)
+:::
 
 ### Capabilities Configuration (Android & iOS)
 

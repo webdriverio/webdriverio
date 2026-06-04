@@ -5,9 +5,11 @@ title: Preparing the Flutter App
 
 For WebdriverIO and Appium to successfully inspect and interact with internal elements inside the Flutter Canvas, the application must expose a communication channel. This is achieved by enabling Flutter's native test extension directly within the application's source code.
 
+> Flutter's current recommended testing path for new apps is the `integration_test` package. This guide still uses the legacy `flutter_driver` extension because the Appium Flutter Driver integrates with that test hook.
+
 ### Configuring `pubspec.yaml`
 
-The automation extension is part of the `flutter_driver` package, which is built into the Flutter SDK. It must be explicitly declared under the development dependencies section (`dev_dependencies`).
+The automation extension used here is part of the legacy `flutter_driver` API. It must be explicitly declared under the development dependencies section (`dev_dependencies`).
 
 Open your Flutter project's `pubspec.yaml` file and add the following configuration:
 ```yaml
@@ -30,7 +32,7 @@ To boot up the instrumentation server that responds to commands sent by Webdrive
 
 Here is how the structure of your `lib/main.dart` file should look:
 
-```Dart
+```dart
 import 'package:flutter/material.dart';
 // 1. Import the Flutter driver extension package
 import 'package:flutter_driver/driver_extension.dart';
@@ -62,4 +64,4 @@ class MyApp extends StatelessWidget {
 
 ### Official Reference Documentation
 
-o learn more about component exposure mechanics and `enableFlutterDriverExtension()`, refer to the official [Flutter API Reference](https://api.flutter.dev/flutter/flutter_driver_extension/enableFlutterDriverExtension.html). For the current modern testing standards, see the [Integration Testing Guide](https://docs.flutter.dev/testing/integration-tests).
+To learn more about component exposure mechanics and `enableFlutterDriverExtension()`, refer to the official [Flutter API Reference](https://api.flutter.dev/flutter/flutter_driver_extension/enableFlutterDriverExtension.html). For the current modern testing standards, see the [Integration Testing Guide](https://docs.flutter.dev/testing/integration-tests).
