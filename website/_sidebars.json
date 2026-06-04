@@ -258,7 +258,8 @@
           "label": "Options",
           "items": [
             "visual-testing/service-options",
-            "visual-testing/method-options"
+            "visual-testing/method-options",
+            "visual-testing/compare-options"
           ]
         },
         "visual-testing/test-output",
