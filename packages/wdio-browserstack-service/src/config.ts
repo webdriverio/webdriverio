@@ -65,9 +65,10 @@ class BrowserStackConfig {
         options?: BrowserstackConfig & Options.Testrunner,
         config?: Options.Testrunner,
         capabilities?: Capabilities.TestrunnerCapabilities,
+        isBrowserStackInfra?: boolean,
     ): BrowserStackConfig {
         if (!this._instance && options && config) {
-            this._instance = new BrowserStackConfig(options, config, capabilities)
+            this._instance = new BrowserStackConfig(options, config, capabilities, isBrowserStackInfra)
         }
         return this._instance
     }
@@ -94,6 +95,7 @@ class BrowserStackConfig {
         options: BrowserstackConfig & Options.Testrunner,
         config: Options.Testrunner,
         capabilities?: Capabilities.TestrunnerCapabilities,
+        isBrowserStackInfra: boolean = true,
     ) {
         this.framework = config.framework
         this.userName = config.user
@@ -102,8 +104,12 @@ class BrowserStackConfig {
         this.percy = options.percy || false
         this.accessibility = options.accessibility
         this.app = options.app
-        this.appAutomate = !isUndefined(options.app) || detectAppAutomate(capabilities)
-        this.automate = !this.appAutomate
+        // `automate`/`app_automate` describe a BrowserStack-hosted run. When the session
+        // runs on an external (non-BrowserStack) grid — e.g. Test Observability only, with
+        // credentials inside testObservabilityOptions — neither should be set, otherwise the
+        // build is reported with origin `Automate` even though it never touched BrowserStack.
+        this.appAutomate = isBrowserStackInfra && (!isUndefined(options.app) || detectAppAutomate(capabilities))
+        this.automate = isBrowserStackInfra && !this.appAutomate
         this.buildIdentifier = options.buildIdentifier
         this.sdkRunID = uuidv4()
         BStackLogger.info(`BrowserStack service started with id: ${this.sdkRunID}`)
