@@ -5,6 +5,7 @@ import path from 'node:path'
 
 import { downloadFromGitHub } from '../utils/index.js'
 import { buildPreface } from '../utils/helpers.js'
+import { sanitizeHtmlForMdx } from './docsUtils.js'
 
 import reporters3rdParty from './3rd-party/reporters.json' with { type: 'json' }
 import services3rdParty from './3rd-party/services.json' with { type: 'json' }
@@ -174,17 +175,9 @@ function normalizeDoc(readme: string, githubUrl: string, branch: string, preface
         readmeArr = [docsFixes[packageName](readmeArr.join('\n'))]
     }
 
-    return [...preface, ...repoInfo, ...readmeArr]
-        .join('\n')
-        /**
-         * Normalize void HTML elements so they parse as MDX/JSX. External READMEs
-         * often use HTML5 syntax (<br>, <img ...>, even invalid <img ...></img>)
-         * which breaks Docusaurus.
-         */
-        // 1. drop stray closing tags for void elements (e.g. `</img>`)
-        .replace(/<\/(img|br|hr|input|source|col|area|base|wbr|embed|track)>/g, '')
-        // 2. self-close opening void tags; idempotent on already-closed forms
-        .replace(/<(img|br|hr|input|source|col|area|base|wbr|embed|track)\b([^>]*?)\s*\/?>/g, '<$1$2 />')
+    return sanitizeHtmlForMdx(
+        [...preface, ...repoInfo, ...readmeArr].join('\n')
+    )
 }
 
 /**
