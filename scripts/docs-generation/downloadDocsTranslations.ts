@@ -31,7 +31,12 @@ export function downloadDocsTranslations() {
  * Add entries here whenever a doc restructure breaks translated pages.
  */
 async function applyTranslationFixes(i18nPath: string) {
-    const locales = await fs.readdir(i18nPath).catch(() => [] as string[])
+    const locales = await fs.readdir(i18nPath).catch((err: NodeJS.ErrnoException) => {
+        if (err.code === 'ENOENT') {
+            return [] as string[]
+        }
+        throw err
+    })
 
     for (const locale of locales) {
         const contentPath = path.join(i18nPath, locale, 'docusaurus-plugin-content-docs', 'current')
@@ -49,7 +54,12 @@ async function applyTranslationFixes(i18nPath: string) {
                 await fs.writeFile(devtoolsPath, fixed)
                 console.log(`Applied devtools link fix to ${locale}/Devtools.md`)
             }
-        } catch { /* file may not exist for this locale */ }
+        } catch (err) {
+            // ignore missing translation file for this locale; rethrow real errors
+            if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+                throw err
+            }
+        }
 
         // Fix: Electron.md links to /mocking page which no longer exists — point to
         // /api-reference instead (matches the English source's "how to mock" link)
@@ -64,7 +74,12 @@ async function applyTranslationFixes(i18nPath: string) {
                 await fs.writeFile(electronPath, fixed)
                 console.log(`Applied electron mocking link fix to ${locale}/desktop-testing/Electron.md`)
             }
-        } catch { /* file may not exist for this locale */ }
+        } catch (err) {
+            // ignore missing translation file for this locale; rethrow real errors
+            if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+                throw err
+            }
+        }
     }
 }
 
