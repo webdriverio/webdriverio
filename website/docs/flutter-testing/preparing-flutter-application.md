@@ -64,4 +64,4 @@ class MyApp extends StatelessWidget {
 
 ### Official Reference Documentation
 
-To learn more about component exposure mechanics and `enableFlutterDriverExtension()`, refer to the official [Flutter API Reference](https://api.flutter.dev/flutter/flutter_driver_extension/enableFlutterDriverExtension.html). For the current modern testing standards, see the [Integration Testing Guide](https://docs.flutter.dev/testing/integration-tests).
+To learn more about component exposure mechanics and `enableFlutterDriverExtension()`, refer to the official [Flutter API Reference](https://api.flutter.dev/flutter/flutter_driver_extension/enableFlutterDriverExtension.html). The `appium-flutter-driver` still supports this legacy protocol, but Flutter's recommended modern path is the [Integration Testing Guide](https://docs.flutter.dev/testing/integration-tests).
