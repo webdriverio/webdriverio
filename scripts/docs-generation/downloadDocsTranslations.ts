@@ -24,6 +24,50 @@ export function downloadDocsTranslations() {
     return downloadAndExtractRepo(REPO_OWNER, REPO_NAME)
 }
 
+/**
+ * Patches known stale links in translated i18n files that become broken when English
+ * source docs are restructured but translations haven't been updated yet.
+ *
+ * Add entries here whenever a doc restructure breaks translated pages.
+ */
+async function applyTranslationFixes(i18nPath: string) {
+    const locales = await fs.readdir(i18nPath).catch(() => [] as string[])
+
+    for (const locale of locales) {
+        const contentPath = path.join(i18nPath, locale, 'docusaurus-plugin-content-docs', 'current')
+
+        // Fix: Devtools.md links missing wdio/ prefix after devtools section was restructured
+        // Old: devtools/interactive-test-rerunning  New: devtools/wdio/interactive-test-rerunning
+        const devtoolsPath = path.join(contentPath, 'Devtools.md')
+        try {
+            const content = await fs.readFile(devtoolsPath, 'utf-8')
+            const fixed = content.replace(
+                /\(devtools\/(interactive-test-rerunning|multi-framework-support|console-logs|network-logs|testlens|screencast)\)/g,
+                '(devtools/wdio/$1)'
+            )
+            if (fixed !== content) {
+                await fs.writeFile(devtoolsPath, fixed)
+                console.log(`Applied devtools link fix to ${locale}/Devtools.md`)
+            }
+        } catch { /* file may not exist for this locale */ }
+
+        // Fix: Electron.md links to /mocking page which no longer exists — point to
+        // /api-reference instead (matches the English source's "how to mock" link)
+        const electronPath = path.join(contentPath, 'desktop-testing', 'Electron.md')
+        try {
+            const content = await fs.readFile(electronPath, 'utf-8')
+            const fixed = content.replace(
+                /\/docs\/desktop-testing\/electron\/mocking/g,
+                '/docs/desktop-testing/electron/api-reference'
+            )
+            if (fixed !== content) {
+                await fs.writeFile(electronPath, fixed)
+                console.log(`Applied electron mocking link fix to ${locale}/desktop-testing/Electron.md`)
+            }
+        } catch { /* file may not exist for this locale */ }
+    }
+}
+
 async function downloadAndExtractRepo(owner: string, repo: string, branch?: string) {
     // Step 1: Determine default branch if not specified
     if (!branch) {
@@ -98,6 +142,7 @@ async function downloadAndExtractRepo(owner: string, repo: string, branch?: stri
         }
 
         console.log(`Repository extracted to ${finalExtractPath}`)
+        await applyTranslationFixes(finalExtractPath)
     } finally {
         // Clean up temp directory
         try {
