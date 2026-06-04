@@ -176,7 +176,12 @@ function normalizeDoc(readme: string, githubUrl: string, branch: string, preface
 
     return [...preface, ...repoInfo, ...readmeArr]
         .join('\n')
-        .replace(/<br>/g, '<br />')
+        /**
+         * Self-close void HTML elements that must be self-closing in MDX/JSX.
+         * External READMEs often use HTML5 syntax (<br>, <img ...>, <hr>) which
+         * breaks Docusaurus. Normalizes both unclosed and already-closed forms.
+         */
+        .replace(/<(img|br|hr|input|source|col|area|base|wbr|embed|track)\b([^>]*?)\s*\/?>/g, '<$1$2 />')
 }
 
 /**
