@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import type { Dirent } from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
 import unzipper from 'unzipper'
@@ -31,12 +32,14 @@ export function downloadDocsTranslations() {
  * Add entries here whenever a doc restructure breaks translated pages.
  */
 async function applyTranslationFixes(i18nPath: string) {
-    const locales = await fs.readdir(i18nPath).catch((err: NodeJS.ErrnoException) => {
+    const entries = await fs.readdir(i18nPath, { withFileTypes: true }).catch((err: NodeJS.ErrnoException) => {
         if (err.code === 'ENOENT') {
-            return [] as string[]
+            return [] as Dirent[]
         }
         throw err
     })
+    // only iterate locale directories; ignore stray files (e.g. .gitkeep, config)
+    const locales = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
     for (const locale of locales) {
         const contentPath = path.join(i18nPath, locale, 'docusaurus-plugin-content-docs', 'current')
@@ -47,8 +50,8 @@ async function applyTranslationFixes(i18nPath: string) {
         try {
             const content = await fs.readFile(devtoolsPath, 'utf-8')
             const fixed = content.replace(
-                /\(devtools\/(interactive-test-rerunning|multi-framework-support|console-logs|network-logs|testlens|screencast)\)/g,
-                '(devtools/wdio/$1)'
+                /\(devtools\/(interactive-test-rerunning|multi-framework-support|console-logs|network-logs|testlens|screencast)([^)]*)\)/g,
+                '(devtools/wdio/$1$2)'
             )
             if (fixed !== content) {
                 await fs.writeFile(devtoolsPath, fixed)
