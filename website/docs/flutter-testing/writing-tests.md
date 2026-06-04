@@ -79,7 +79,7 @@ describe('Flutter Redirects Flow', () => {
 })
 ```
 
-### Example C — Interacting with Dialogs (Changing the context)
+### Example C — Interacting with Dialogs (Flutter context)
 
 ```js
 // change_context.spec.js
@@ -115,7 +115,7 @@ describe('Flutter Change Context Flow', () => {
 To ensure your recent Dart code and Key changes are visible to the tests, always follow these steps:
 
 ```bash
-flutter build apk -t test_driver/main.dart --debug
+flutter build apk -t lib/main_e2e.dart --debug
 npx wdio run wdio.conf.js
 ```
 
