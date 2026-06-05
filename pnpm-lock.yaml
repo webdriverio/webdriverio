@@ -276,6 +276,9 @@ importers:
       '@wdio/local-runner':
         specifier: workspace:*
         version: link:../packages/wdio-local-runner
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../packages/wdio-logger
       '@wdio/mocha-framework':
         specifier: workspace:*
         version: link:../packages/wdio-mocha-framework

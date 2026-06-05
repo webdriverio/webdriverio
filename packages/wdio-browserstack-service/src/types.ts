@@ -375,6 +375,7 @@ export interface IntegrationObject {
     platform?: string
     product?: string
     platform_version?: string
+    device?: string
 }
 
 interface TestCodeBody {
