@@ -18,7 +18,7 @@ You can automate:
 -   **iOS apps** - on simulators or real devices
 -   **Android apps** - on emulators or real devices
 -   **Hybrid apps** - switching between native and web contexts
--   **Cloud devices** - via BrowserStack browser and App Automate
+-   **Cloud devices** - via BrowserStack, Sauce Labs, and LambdaTest device clouds
 
 ### Do I need to write code?
 
@@ -113,7 +113,7 @@ Screenshots are automatically optimized:
 
 ### Can I interact with iframes?
 
-Currently, the MCP server operates on the main document. iframe interaction may be added in future versions.
+Yes. Use the `switch_frame` tool to switch into an iframe by CSS or XPath selector. All subsequent `click_element`, `set_value`, and `get_elements` calls operate within the switched frame. Omit the selector to switch back to the top-level frame. Iframes must be from the same origin as the main page.
 
 ### Can I execute custom JavaScript?
 
@@ -393,7 +393,7 @@ This optimization reduces processing time and ensures Claude can handle the imag
 ### What are the current limitations?
 
 -   **Single session:** Only one browser/app at a time
--   **iframe support:** Limited support for iframes
+-   **iframe support:** Same-origin iframes are supported via `switch_frame`; cross-origin iframes are not accessible due to browser security restrictions
 -   **File uploads:** Not directly supported via tools
 -   **Audio/Video:** Cannot interact with media playback
 -   **Browser extensions:** Not supported
@@ -410,7 +410,7 @@ WebdriverIO MCP is designed for interactive AI-assisted automation. For producti
 
 The MCP server runs locally on your machine. All automation happens through local browser/Appium connections. No data is sent to external servers beyond what you explicitly navigate to.
 
-When using HTTP transport mode (`--http`), the server defaults to only accepting connections from `localhost` — use `--allowedHosts` and `--allowedOrigins` to control access. See [Transport](./transport) for details.
+When using HTTP transport mode (`--http`), the server defaults to only accepting connections from `localhost`; use `--allowedHosts` and `--allowedOrigins` to control access. See [Transport](./transport) for details.
 
 ### Can Claude access my passwords?
 

@@ -338,9 +338,9 @@ android=new UiSelector().text("Submit")
 3. Click on elements to see all available attributes
 4. Use the "Search for element" feature to test selectors
 
-### Using `get_visible_elements`
+### Using `get_elements`
 
-The MCP server's `get_visible_elements` tool returns multiple selector strategies for each element:
+The MCP server's `get_elements` tool returns multiple selector strategies for each element:
 
 ```
 Ask: "Get all visible elements on the screen"
@@ -391,4 +391,4 @@ Get accessibility tree filtered to button and link roles
 Get accessibility tree with limit 50 and offset 50
 ```
 
-This is useful when `get_visible_elements` doesn't return expected elements, as it queries the browser's native accessibility API.
+This is useful when `get_elements` doesn't return expected elements, as it queries the browser's native accessibility API.

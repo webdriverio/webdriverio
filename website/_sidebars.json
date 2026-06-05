@@ -301,7 +301,7 @@
       "items": [
         "mcp/configuration",
         "mcp/transport",
-        "mcp/browserstack",
+        "mcp/cloud-providers",
         "mcp/selectors",
         "mcp/tools",
         "mcp/resources",

@@ -3,14 +3,14 @@ id: resources
 title: Resources
 ---
 
-MCP resources provide read-only access to live session state. Unlike tools, resources are pulled by the AI model at will — they don't execute actions. All resources use the `wdio://` URI scheme.
+MCP resources provide read-only access to live session state. Unlike tools, resources are pulled by the AI model at will; they don't execute actions. All resources use the `wdio://` URI scheme.
 
 ## When to use resources vs tools
 
 - **Resources** — ambient state that changes as you interact: current elements, screenshot, cookies, accessibility tree. Read them before acting to understand what's on screen.
 - **Tools** — actions that change state: click, navigate, set value.
 
-Prefer `wdio://session/current/elements` over `get_screenshot` for element discovery — it returns ready-to-use selectors and costs far fewer tokens.
+Prefer `wdio://session/current/elements` over `get_screenshot` for element discovery; it returns ready-to-use selectors and costs far fewer tokens.
 
 ---
 
@@ -45,7 +45,7 @@ JSON step log for the currently active session. Contains all recorded automation
 
 ### `wdio://session/current/code`
 
-Generated WebdriverIO JavaScript for the currently active session. Auto-generated from recorded steps — paste into a WebdriverIO test file to replay the session.
+Generated WebdriverIO JavaScript for the currently active session. Auto-generated from recorded steps. Paste into a WebdriverIO test file to replay the session.
 
 ---
 
@@ -75,7 +75,7 @@ For advanced filtering (viewport-only, containers, bounding boxes, pagination), 
 
 ### `wdio://session/current/accessibility`
 
-Accessibility tree for the current page. Returns all nodes by default with role, name, selector, and state attributes. Browser-only — on mobile, use `wdio://session/current/elements`.
+Accessibility tree for the current page. Returns all nodes by default with role, name, selector, and state attributes. Browser-only. On mobile, use `wdio://session/current/elements`.
 
 ```json
 {
@@ -192,17 +192,33 @@ Current device geolocation override set by `set_geolocation`.
 
 ---
 
-### `wdio://session/current/capabilities`
+### `wdio://session/current/logs`
 
-Raw capabilities returned by the WebDriver or Appium server for the current session. Use for debugging — shows the actual values the driver accepted, including defaults applied by BrowserStack or Appium.
+Session logs for the current session. Returns browser console messages and JavaScript exceptions (Chromium sessions), logcat output (Android), or crash/syslog (iOS).
+
+```json
+{
+  "type": "browser",
+  "logs": [
+    { "level": "SEVERE", "message": "Uncaught TypeError: ...", "source": "javascript" },
+    { "level": "INFO", "message": "Page loaded", "source": "console" }
+  ]
+}
+```
 
 ---
 
-## BrowserStack
+### `wdio://session/current/capabilities`
+
+Raw capabilities returned by the WebDriver or Appium server for the current session. Use for debugging; shows the actual values the driver accepted, including defaults applied by the cloud provider or Appium.
+
+---
+
+## Cloud Providers
 
 ### `wdio://browserstack/local-binary`
 
-Platform-specific download URL and daemon setup instructions for BrowserStack Local binary. Read this before using `browserstackLocal: true` in `start_session` — it contains the exact commands for your OS and architecture.
+Platform-specific download URL and daemon setup instructions for BrowserStack Local binary. Read this before using `tunnel: true` or `tunnel: "external"` with `provider: "browserstack"`; it contains the exact commands for your OS and architecture.
 
 ```json
 {
@@ -214,6 +230,46 @@ Platform-specific download URL and daemon setup instructions for BrowserStack Lo
     "start": "./BrowserStackLocal --key YOUR_KEY",
     "stop": "...",
     "status": "..."
+  }
+}
+```
+
+---
+
+### `wdio://saucelabs/local-binary`
+
+Platform-specific download URL and daemon setup instructions for Sauce Connect Proxy. Read this before using `tunnel: "external"` with `provider: "saucelabs"`; for `tunnel: true` the SDK auto-manages Sauce Connect.
+
+```json
+{
+  "platform": "Linux",
+  "arch": "x64",
+  "downloadUrl": "https://saucelabs.com/downloads/sc-4.9.2-linux.tar.gz",
+  "setup": ["step 1", "step 2", "step 3", "step 4"],
+  "commands": {
+    "start": "./sc -u YOUR_USERNAME -k YOUR_ACCESS_KEY --region eu-central-1",
+    "stop": "./sc --stop",
+    "status": "./sc --status"
+  }
+}
+```
+
+---
+
+### `wdio://testmu/local-binary`
+
+Platform-specific download URL and daemon setup instructions for LambdaTest Tunnel. Read this before using `tunnel: true` with `provider: "testmu"`; the tunnel daemon must be started before the session.
+
+```json
+{
+  "platform": "Linux",
+  "arch": "x64",
+  "downloadUrl": "https://downloads.lambdatest.com/tunnel/v4/linux/64bit/LT_Linux.zip",
+  "setup": ["step 1", "step 2", "step 3", "step 4"],
+  "commands": {
+    "start": "./LT --user YOUR_USERNAME --key YOUR_ACCESS_KEY",
+    "stop": "./LT --user YOUR_USERNAME --key YOUR_ACCESS_KEY --stop",
+    "status": "./LT --status"
   }
 }
 ```

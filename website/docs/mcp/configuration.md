@@ -11,7 +11,7 @@ The MCP server is configured through the configuration files or commands.
 
 ### Basic Configuration
 
-Edit your MCP configuration file (e.g. `./.mcp.json`) and add the following::
+Edit your MCP configuration file (e.g. `./.mcp.json`) and add the following:
 
 ```json
 {
@@ -28,7 +28,7 @@ Edit your MCP configuration file (e.g. `./.mcp.json`) and add the following::
 
 ## Session Options
 
-All session options are passed to the `start_session` tool. There is a single unified tool for browser and mobile sessions — the `platform` parameter determines the session type.
+All session options are passed to the `start_session` tool. There is a single unified tool for browser and mobile sessions; the `platform` parameter determines the session type.
 
 ### Common Options
 
@@ -41,11 +41,11 @@ The platform to automate.
 
 #### `provider`
 
--   **Type:** `"local" | "browserstack"`
+-   **Type:** `"local" | "browserstack" | "saucelabs" | "testmu"`
 -   **Mandatory:** No
 -   **Default:** `"local"`
 
-Where the session runs. Use `"browserstack"` for cloud devices — requires `BROWSERSTACK_USERNAME` and `BROWSERSTACK_ACCESS_KEY` environment variables. See [BrowserStack](./browserstack) for details.
+Where the session runs. Use a cloud provider name for remote devices; each requires its own environment variables. See [Cloud Providers](./cloud-providers) for details.
 
 ---
 
@@ -66,14 +66,14 @@ Browser to launch.
 -   **Mandatory:** No
 -   **Default:** `"latest"`
 
-Browser version. BrowserStack only.
+Browser version. Cloud providers only (default: latest).
 
 ### `os` / `osVersion`
 
 -   **Type:** `string`
 -   **Mandatory:** No
 
-Operating system for BrowserStack browser sessions. Examples: `os: "Windows"`, `osVersion: "11"` or `os: "OS X"`, `osVersion: "Sequoia"`.
+Operating system for cloud provider browser sessions. Examples: `os: "Windows"`, `osVersion: "11"` or `os: "OS X"`, `osVersion: "Sequoia"`.
 
 ### `headless`
 
@@ -186,7 +186,7 @@ Either `appPath` must be provided, or `noReset: true` to connect to an already-r
 -   **Type:** `string`
 -   **Mandatory:** No
 
-BrowserStack app URL (`bs://...`) or `customId`. Used instead of `appPath` for BrowserStack App Automate sessions.
+Cloud provider app URL (`bs://...` for BrowserStack, `storage:filename=` for Sauce Labs, `lt://...` for LambdaTest) or `customId`. Used instead of `appPath` for cloud mobile sessions.
 
 ### `appWaitActivity`
 
@@ -282,27 +282,62 @@ Appium server connection. Defaults to `{ host: "127.0.0.1", port: 4723, path: "/
 
 ---
 
-## BrowserStack Options
+## Cloud Provider Options
 
-### `browserstackLocal`
+### Credentials
+
+Each cloud provider requires its own environment variables:
+
+| Provider | Username Variable | Access Key Variable |
+|----------|-------------------|---------------------|
+| BrowserStack | `BROWSERSTACK_USERNAME` | `BROWSERSTACK_ACCESS_KEY` |
+| Sauce Labs | `SAUCE_USERNAME` | `SAUCE_ACCESS_KEY` |
+| LambdaTest (TestMu) | `TESTMU_USERNAME` | `TESTMU_ACCESS_KEY` |
+
+Set these before starting the MCP server.
+
+### `region`
+
+-   **Type:** `"us-west-1" | "eu-central-1" | "apac-southeast-1"`
+-   **Mandatory:** No
+-   **Default:** `"eu-central-1"`
+
+Sauce Labs data center region. Ignored for other providers.
+
+### `tunnel`
 
 -   **Type:** `boolean | "external"`
 -   **Mandatory:** No
 -   **Default:** `false`
 
-Enable BrowserStack Local tunnel for accessing localhost from BrowserStack devices.
+Enable local tunnel routing for cloud provider sessions (accessing localhost, staging environments, internal services).
 
 -   `true` — Auto-start the tunnel before the session and stop it on close
--   `"external"` — Tunnel already running externally; set `local: true` in capabilities only
+-   `"external"` — Tunnel already running externally; sets provider-appropriate flags only
 
-Before using `true`, read `wdio://browserstack/local-binary` for setup instructions specific to your OS and architecture.
+Before using `true`, read the provider's local-binary resource (`wdio://browserstack/local-binary`, `wdio://saucelabs/local-binary`, or `wdio://testmu/local-binary`) for setup instructions specific to your OS and architecture.
+
+### `tunnelName`
+
+-   **Type:** `string`
+-   **Mandatory:** No
+
+Tunnel identifier name. Required when `tunnel: "external"` to match the running tunnel. When `tunnel: true`, a unique name is auto-generated if not provided.
 
 ### `reporting`
 
 -   **Type:** `{ project?: string; build?: string; session?: string }`
 -   **Mandatory:** No
 
-BrowserStack Automate session labels visible in the dashboard.
+Cloud provider session labels visible in the provider's dashboard. Works identically across BrowserStack, Sauce Labs, and LambdaTest.
+
+### `trace`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `false`
+
+Enable trace recording. Produces a Playwright-compatible `.trace` zip file saved to `.trace/` on `close_session`. View traces at [player.vibium.dev](https://player.vibium.dev).
 
 ---
 
@@ -453,7 +488,7 @@ The MCP server operates with a **single-session model**:
 
 -   **XML page source parsing** uses only 2 HTTP calls (vs 600+ for traditional element queries)
 -   **Accessibility ID selectors** are fastest and most reliable
--   **XPath selectors** are slowest — use only as a last resort
+-   **XPath selectors** are slowest; use only as a last resort
 -   **Pagination** (`limit` and `offset`) reduces token usage for screens with many elements
 
 ### Token Usage Tips

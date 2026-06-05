@@ -63,7 +63,7 @@ npx @wdio/mcp --http \
 
 **`--allowedOrigins`** — Controls which browser origins can make cross-origin requests (CORS). By default, no browser origins are allowed. This blocks access from arbitrary websites while still allowing non-browser clients (CLI tools, API clients). Set to `*` to allow all origins, or list specific origins.
 
-Requests from non-browser clients (no `Origin` header) are not subject to the CORS check — only `--allowedHosts` applies.
+Requests from non-browser clients (no `Origin` header) are not subject to the CORS check; only `--allowedHosts` applies.
 
 ---
 
@@ -106,4 +106,4 @@ Each HTTP request creates a fresh MCP server instance. This means:
 - Multiple clients can connect simultaneously (each gets an independent MCP session).
 - Session state (the active browser/app) is shared via global state, not transport state.
 
-There is no mutex — requests are handled concurrently. MCP protocol statefulness (initialize → tool calls) is handled per-request.
+There is no mutex; requests are handled concurrently. MCP protocol statefulness (initialize → tool calls) is handled per-request.

@@ -3,22 +3,22 @@ id: tools
 title: Tools
 ---
 
-The WebdriverIO MCP server exposes 28 tools organized by function. Tools marked **browser-only** require a `platform: "browser"` session. Tools marked **mobile-only** require `platform: "ios"` or `platform: "android"`.
+The WebdriverIO MCP server exposes 29 tools organized by function. Tools marked **browser-only** require a `platform: "browser"` session. Tools marked **mobile-only** require `platform: "ios"` or `platform: "android"`.
 
 ## Session Management
 
 ### `start_session`
 
-Starts a new browser or mobile automation session. Only one active session at a time — starting a new one closes the existing one.
+Starts a new browser or mobile automation session. Only one active session at a time; starting a new one closes the existing one.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `platform` | `"browser" \| "ios" \| "android"` | ✓ | — | Session platform |
-| `provider` | `"local" \| "browserstack"` | — | `"local"` | Session provider |
+| `provider` | `"local" \| "browserstack" \| "saucelabs" \| "testmu"` | — | `"local"` | Session provider |
 | `browser` | `"chrome" \| "firefox" \| "edge" \| "safari"` | browser only | — | Browser to launch |
-| `browserVersion` | string | — | latest | Browser version (BrowserStack only) |
-| `os` | string | — | — | OS for BrowserStack browser (e.g. `"Windows"`, `"OS X"`) |
-| `osVersion` | string | — | — | OS version for BrowserStack browser (e.g. `"11"`, `"Sequoia"`) |
+| `browserVersion` | string | — | latest | Browser version (cloud providers only, default: latest) |
+| `os` | string | — | — | Operating system (cloud providers only, e.g. `"Windows"`, `"OS X"`) |
+| `osVersion` | string | — | — | OS version (cloud providers only, e.g. `"11"`, `"Sequoia"`) |
 | `headless` | boolean | — | `true` | Run browser headlessly |
 | `windowWidth` | number | — | `1920` | Browser window width (400–3840) |
 | `windowHeight` | number | — | `1080` | Browser window height (400–2160) |
@@ -26,7 +26,7 @@ Starts a new browser or mobile automation session. Only one active session at a 
 | `deviceName` | string | mobile only | — | Device/emulator/simulator name |
 | `platformVersion` | string | — | — | OS version (e.g. `"17.0"`, `"14"`) |
 | `appPath` | string | — | — | Path to `.app` / `.apk` / `.ipa` |
-| `app` | string | — | — | BrowserStack app URL (`bs://...`) or custom_id |
+| `app` | string | — | — | App URL (`bs://...` for BrowserStack, `storage:filename=` for Sauce Labs, `lt://...` for LambdaTest) or custom_id |
 | `automationName` | `"XCUITest" \| "UiAutomator2"` | — | auto | Automation driver |
 | `autoGrantPermissions` | boolean | — | `true` | Auto-grant app permissions |
 | `autoAcceptAlerts` | boolean | — | `true` | Auto-accept alerts |
@@ -39,8 +39,11 @@ Starts a new browser or mobile automation session. Only one active session at a 
 | `attach` | boolean | — | `false` | Attach to existing Chrome via CDP |
 | `attachConfig` | object | — | — | CDP connection: `{ port: 9222, host: "localhost" }` |
 | `appiumConfig` | object | — | — | Appium server: `{ host, port, path }` |
-| `browserstackLocal` | `boolean \| "external"` | — | `false` | BrowserStack Local tunnel (`true` = auto-start, `"external"` = already running) |
-| `reporting` | object | — | — | BrowserStack labels: `{ project, build, session }` |
+| `tunnel` | `boolean \| "external"` | — | `false` | Local tunnel routing (cloud providers). `true` = auto-start, `"external"` = tunnel already running externally |
+| `reporting` | object | — | — | Cloud provider reporting labels: `{ project, build, session }` |
+| `trace` | boolean | — | `false` | Enable trace recording — produces a Playwright-compatible `.trace` zip |
+| `region` | `"us-west-1" \| "eu-central-1" \| "apac-southeast-1"` | — | `"eu-central-1"` | Sauce Labs data center region |
+| `tunnelName` | string | — | — | Tunnel identifier name (required for `tunnel: "external"`) |
 | `capabilities` | object | — | — | Additional raw capabilities to merge |
 
 ```
@@ -52,6 +55,15 @@ start_session({ platform: "ios", deviceName: "iPhone 16", platformVersion: "18.0
 
 // BrowserStack Android
 start_session({ platform: "android", provider: "browserstack", deviceName: "Samsung Galaxy S24", app: "bs://abc123" })
+
+// Sauce Labs iOS
+start_session({ platform: "ios", provider: "saucelabs", deviceName: "iPhone 15", platformVersion: "17.0", app: "storage:filename=MyApp.ipa" })
+
+// LambdaTest browser
+start_session({ platform: "browser", provider: "testmu", browser: "chrome", os: "Windows", osVersion: "11" })
+
+// Cloud provider with tunnel
+start_session({ platform: "browser", provider: "browserstack", browser: "chrome", tunnel: true })
 
 // Attach to existing Chrome (after launch_chrome)
 start_session({ platform: "browser", browser: "chrome", attach: true })
@@ -75,7 +87,7 @@ Sessions started with `noReset: true` auto-detach by default.
 
 Prepares a Chrome instance with remote debugging enabled so `start_session({ attach: true })` can connect. Two modes:
 
-- `newInstance` (default): opens Chrome alongside your existing one using a separate profile directory — your current session is untouched.
+- `newInstance` (default): opens Chrome alongside your existing one using a separate profile directory; your current session is untouched.
 - `freshSession`: launches Chrome with an empty profile (no cookies, no logins). Use `copyProfileFiles: true` to carry over cookies and logins.
 
 | Parameter | Type | Required | Default | Description |
@@ -121,11 +133,32 @@ Provide either `handle` or `index`. Get handles from `get_tabs` or `wdio://sessi
 
 ---
 
+### `switch_frame`
+
+Switches WebDriver frame context into an iframe by CSS/XPath selector, or back to top-level if selector is omitted. Changes persist; all subsequent `click_element`, `set_value`, `get_elements` calls operate within the switched frame until you switch back. Waits up to 5s for the iframe. **Browser-only.**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `selector` | string | — | CSS/XPath selector for the iframe element. Omit to switch back to the top-level frame. |
+
+```
+// Switch into an iframe
+switch_frame({ selector: "#my-iframe" })
+
+// Interact with elements inside the iframe
+click_element({ selector: "button.submit" })
+
+// Switch back to top-level
+switch_frame()
+```
+
+---
+
 ## Element Interaction
 
 ### `click_element`
 
-Waits for an element to exist, scrolls it into view, and clicks it. Works on browser and mobile. On iOS, prefer `tap_element` — `click_element` is sometimes ignored by the native layer.
+Waits for an element to exist, scrolls it into view, and clicks it. Works on browser and mobile. On iOS, prefer `tap_element`; `click_element` is sometimes ignored by the native layer.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
@@ -193,7 +226,7 @@ Returns the page accessibility tree with roles, names, and selectors. Supports f
 
 Takes a screenshot of the current page or screen. Returns a base64-encoded image, automatically resized and compressed to stay within model context limits (max 1 MB, max 2000px).
 
-No parameters. Prefer `wdio://session/current/elements` over screenshots for element discovery — it's faster and uses far fewer tokens. Use screenshots for visual verification or debugging layout.
+No parameters. Prefer `wdio://session/current/elements` over screenshots for element discovery; it's faster and uses far fewer tokens. Use screenshots for visual verification or debugging layout.
 
 ---
 
@@ -240,7 +273,7 @@ Deletes all cookies or a specific cookie by name. **Browser-only.**
 
 ### `tap_element`
 
-Calls `element.tap()` on a matched element or taps at absolute screen coordinates. Use on iOS when `click_element` is ignored — tap is the native gesture iOS responds to. **Mobile-only.**
+Calls `element.tap()` on a matched element or taps at absolute screen coordinates. Use on iOS when `click_element` is ignored; tap is the native gesture iOS responds to. **Mobile-only.**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -407,25 +440,43 @@ execute_script({ script: "mobile: deepLink", args: [{ url: "myapp://route", bund
 
 ---
 
-## BrowserStack
+## Cloud Providers
 
 ### `list_apps`
 
-Lists apps uploaded to BrowserStack App Automate. Reads `BROWSERSTACK_USERNAME` and `BROWSERSTACK_ACCESS_KEY` from environment.
+Lists apps uploaded to a cloud provider (BrowserStack App Automate, Sauce Labs App Storage, or LambdaTest TestMu). Reads provider-specific credentials from environment.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
+| `provider` | `"browserstack" \| "saucelabs" \| "testmu"` | ✓ | — | Cloud provider |
 | `sortBy` | `"app_name" \| "uploaded_at"` | — | `"uploaded_at"` | Sort order |
-| `organizationWide` | boolean | — | `false` | List all org uploads (not just your own) |
-| `limit` | number | — | `20` | Max results (only applies when `organizationWide: true`) |
+| `organizationWide` | boolean | — | `false` | (BrowserStack only) List all org uploads |
+| `limit` | number | — | `20` | Max results |
+| `region` | `"us-west-1" \| "eu-central-1" \| "apac-southeast-1"` | — | `"eu-central-1"` | Sauce Labs region |
+
+```
+// List all three providers
+list_apps({ provider: "browserstack" })
+list_apps({ provider: "saucelabs", region: "us-west-1" })
+list_apps({ provider: "testmu" })
+```
 
 ---
 
 ### `upload_app`
 
-Uploads a local `.apk` or `.ipa` to BrowserStack App Automate. Returns a `bs://` URL for use in `start_session`.
+Uploads a local `.apk` or `.ipa` to a cloud provider (BrowserStack, Sauce Labs, or LambdaTest). Returns the app URL for use in `start_session`.
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `path` | string | ✓ | Absolute path to the `.apk` or `.ipa` file |
-| `customId` | string | — | Optional custom ID for referencing the app later |
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `provider` | `"browserstack" \| "saucelabs" \| "testmu"` | ✓ | — | Cloud provider |
+| `path` | string | ✓ | — | Absolute path to the `.apk` or `.ipa` file |
+| `customId` | string | — | — | Optional custom ID for referencing the app later |
+| `region` | `"us-west-1" \| "eu-central-1" \| "apac-southeast-1"` | — | `"eu-central-1"` | Sauce Labs region |
+
+```
+// Upload to each provider
+upload_app({ provider: "browserstack", path: "/path/to/app.apk" })
+upload_app({ provider: "saucelabs", path: "/path/to/app.ipa", region: "us-west-1" })
+upload_app({ provider: "testmu", path: "/path/to/app.apk" })
+```

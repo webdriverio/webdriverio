@@ -15,10 +15,10 @@ WebdriverIO MCP is a **Model Context Protocol (MCP) server** that enables AI ass
 
 It provides a unified interface for:
 
--   🖥️ **Desktop Browsers** (Chrome, Firefox, Edge, Safari — headed or headless)
+-   🖥️ **Desktop Browsers** (Chrome, Firefox, Edge, Safari, headed or headless)
 -   📱 **Native Mobile Apps** (iOS Simulators / Android Emulators / Real Devices via Appium)
 -   📳 **Hybrid Mobile Apps** (Native + WebView context switching via Appium)
--   ☁️ **Cloud Devices** (BrowserStack browser and App Automate)
+-   ☁️ **Cloud Devices** (BrowserStack, Sauce Labs, LambdaTest real device and browser clouds)
 
 through the [`@wdio/mcp`](https://www.npmjs.com/package/@wdio/mcp) package.
 
@@ -136,15 +136,15 @@ Ask Claude to automate mobile apps:
 | **Permissions** | Automatic permission and alert handling |
 | **Script Execution** | Execute Appium mobile commands (pressKey, deepLink, shell, etc.) |
 
-### BrowserStack Cloud
+### Cloud Providers
 
 | Feature | Description |
 |---------|-------------|
-| **Browser Sessions** | Run browser sessions on BrowserStack Automate (Windows + macOS) |
-| **Mobile Sessions** | Run app sessions on real devices via BrowserStack App Automate |
-| **App Management** | Upload `.apk`/`.ipa` files; list previously uploaded apps |
-| **Local Tunnel** | Auto-manage BrowserStack Local binary for accessing localhost |
-| **Reporting** | Tag sessions with project/build/session labels |
+| **Browser Sessions** | Run browser sessions on BrowserStack Automate, Sauce Labs, or LambdaTest (Windows, macOS, Linux) |
+| **Mobile Sessions** | Run app sessions on real devices via BrowserStack App Automate, Sauce Labs, or LambdaTest |
+| **App Management** | Upload `.apk`/`.ipa` files; list previously uploaded apps across all three providers |
+| **Local Tunnel** | Auto-manage provider-specific tunnel binaries for accessing localhost |
+| **Reporting** | Tag sessions with project/build/session labels (works identically across all providers) |
 
 ## Prerequisites
 
@@ -218,8 +218,8 @@ WebdriverIO MCP acts as a bridge between AI assistants and browser/mobile automa
                     ┌──────────────────────────────┼──────────────────────────────┐
                     │                              │                              │
             ┌───────▼───────┐             ┌───────▼───────┐             ┌───────▼───────┐
-            │    Browser    │             │    Appium     │             │  BrowserStack  │
-            │ (local/CDP)   │             │  (iOS/Android)│             │    Cloud       │
+            │    Browser    │             │    Appium     │             │   Cloud        │
+            │ (local/CDP)   │             │  (iOS/Android)│             │   Providers    │
             └───────────────┘             └───────────────┘             └───────────────┘
 ```
 
@@ -291,16 +291,17 @@ android=new UiSelector().text("Login")
 
 ## Available Tools
 
-The MCP server provides 28 tools for browser and mobile automation. See [Tools](./mcp/tools) for the complete reference.
+The MCP server provides 29 tools for browser and mobile automation. See [Tools](./mcp/tools) for the complete reference.
 
 | Tool | Platform | Description |
 |------|----------|-------------|
-| `start_session` | all | Start a browser or mobile session (local or BrowserStack) |
+| `start_session` | all | Start a browser or mobile session (local or cloud provider) |
 | `close_session` | all | Close or detach from the current session |
 | `launch_chrome` | browser | Open Chrome with remote debugging for CDP attach |
 | `navigate` | browser | Load a URL in the current tab |
 | `get_tabs` | browser | List all open tabs |
 | `switch_tab` | browser | Focus a tab by handle or index |
+| `switch_frame` | browser | Switch into an iframe by selector, or back to top-level |
 | `click_element` | browser | Click an element |
 | `set_value` | all | Type text into an input |
 | `scroll` | browser | Scroll the page up or down |
@@ -321,8 +322,8 @@ The MCP server provides 28 tools for browser and mobile automation. See [Tools](
 | `hide_keyboard` | mobile | Dismiss the software keyboard |
 | `set_geolocation` | all | Override device GPS coordinates |
 | `get_app_state` | mobile | Get app lifecycle state |
-| `list_apps` | browserstack | List uploaded BrowserStack apps |
-| `upload_app` | browserstack | Upload an `.apk`/`.ipa` to BrowserStack |
+| `list_apps` | cloud | List uploaded apps (BrowserStack, Sauce Labs, LambdaTest) |
+| `upload_app` | cloud | Upload an `.apk`/`.ipa` to a cloud provider |
 
 ## MCP Resources
 
@@ -340,12 +341,15 @@ In addition to tools, the server exposes live session state as MCP resources. Se
 | `wdio://session/current/context` | Active mobile context |
 | `wdio://session/current/app-state/{bundleId}` | Mobile app lifecycle state |
 | `wdio://session/current/geolocation` | Current GPS override |
+| `wdio://session/current/logs` | Session logs (browser console, logcat, crashlog) |
 | `wdio://session/current/capabilities` | Raw WebDriver capabilities |
 | `wdio://session/current/code` | Generated WebdriverIO JS |
 | `wdio://session/current/steps` | Session step log |
 | `wdio://session/{sessionId}/code` | Generated JS for past session |
 | `wdio://session/{sessionId}/steps` | Steps for past session |
 | `wdio://browserstack/local-binary` | BrowserStack Local setup instructions |
+| `wdio://saucelabs/local-binary` | Sauce Connect Proxy setup instructions |
+| `wdio://testmu/local-binary` | LambdaTest Tunnel setup instructions |
 
 ## Automatic Handling
 
@@ -444,7 +448,7 @@ All tools are designed with robust error handling:
 -   [Selectors Guide](./mcp/selectors) - Selector syntax documentation
 -   [Configuration](./mcp/configuration) - Configuration options
 -   [Transport](./mcp/transport) - HTTP transport setup
--   [BrowserStack](./mcp/browserstack) - BrowserStack cloud integration
+-   [Cloud Providers](./mcp/cloud-providers) - BrowserStack, Sauce Labs, and LambdaTest cloud integration
 -   [FAQ](./mcp/faq) - Frequently asked questions
 -   [GitHub Repository](https://github.com/webdriverio/mcp) - Source code and issues
 -   [NPM Package](https://www.npmjs.com/package/@wdio/mcp) - Package on npm
