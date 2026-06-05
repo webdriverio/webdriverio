@@ -209,6 +209,12 @@ describe('startWebDriver', () => {
     })
 
     it('should set the supported edge driver CDN before downloading edge driver', async () => {
+        await expect(setupEdgedriver('/foo/bar/cache', '148.0.3967.96')).resolves.toBe('/foo/bar/edgedriver')
+        expect(downloadEdgedriver).toBeCalledWith('148.0.3967.96', '/foo/bar/cache')
+        expect(process.env.EDGEDRIVER_CDNURL).toBe(DEFAULT_EDGEDRIVER_CDN_URL)
+    })
+
+    it('should replace the deprecated edge driver CDN before downloading edge driver', async () => {
         process.env.EDGEDRIVER_CDNURL = 'https://msedgedriver.azureedge.net/'
         await expect(setupEdgedriver('/foo/bar/cache', '148.0.3967.96')).resolves.toBe('/foo/bar/edgedriver')
         expect(downloadEdgedriver).toBeCalledWith('148.0.3967.96', '/foo/bar/cache')
