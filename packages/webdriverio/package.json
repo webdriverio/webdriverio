@@ -70,12 +70,11 @@
     "@types/aria-query": "^5.0.4",
     "@types/lodash.clonedeep": "^4.5.9",
     "@types/lodash.zip": "^4.2.9",
-    "@types/sinonjs__fake-timers": "^8.1.5",
     "puppeteer-core": "^24.12.1",
     "safe-stable-stringify": "^2.4.3"
   },
   "dependencies": {
-    "@sinonjs/fake-timers": "^14.0.0",
+    "@types/sinonjs__fake-timers": "^8.1.5",
     "@types/node": "^20.11.30",
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",
@@ -102,10 +101,14 @@
     "webdriver": "workspace:*"
   },
   "peerDependencies": {
-    "puppeteer-core": ">=22.x || <=24.x"
+    "puppeteer-core": ">=22.x || <=24.x",
+    "@sinonjs/fake-timers": "^14.0.0"
   },
   "peerDependenciesMeta": {
     "puppeteer-core": {
+      "optional": true
+    },
+    "@sinonjs/fake-timers": {
       "optional": true
     }
   }
