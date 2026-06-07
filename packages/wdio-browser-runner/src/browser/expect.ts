@@ -106,7 +106,10 @@ function createMatcher (matcherName: string) {
             selector?: unknown
         }
         if (expectRequest.element && 'selector' in expectRequest.element) {
-            delete (expectRequest.element as SerializableElement).selector
+            const el = expectRequest.element as SerializableElement
+            if (typeof el.selector !== 'string') {
+                delete el.selector
+            }
         }
 
         /**
