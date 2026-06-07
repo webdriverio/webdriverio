@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { WS_MESSAGE_TYPES, type Workers } from '@wdio/types'
+import { WS_MESSAGE_TYPES, type CustomCommands, type Workers } from '@wdio/types'
 import _mitt from 'mitt'
 
 import { commandCallStructure, overwriteElementCommands } from './utils.js'

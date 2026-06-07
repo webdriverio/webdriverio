@@ -1483,9 +1483,15 @@ importers:
 
   packages/wdio-types:
     dependencies:
+      '@types/istanbul-lib-coverage':
+        specifier: ^2.0.6
+        version: 2.0.6
       '@types/node':
         specifier: ^20.1.0
         version: 20.19.37
+      istanbul-lib-coverage:
+        specifier: ^3.2.2
+        version: 3.2.2
 
   packages/wdio-utils:
     dependencies:
@@ -23066,7 +23072,7 @@ snapshots:
 
   '@wdio/globals@9.27.1(expect-webdriverio@5.6.5)(webdriverio@9.27.1(puppeteer-core@24.34.0))':
     dependencies:
-      expect-webdriverio: 5.6.5(@wdio/globals@9.27.1)(@wdio/logger@packages+wdio-logger)(webdriverio@9.27.1(puppeteer-core@24.34.0))
+      expect-webdriverio: 5.6.5(@wdio/globals@9.27.1)(@wdio/logger@9.18.0)(webdriverio@9.27.1(puppeteer-core@24.34.0))
       webdriverio: 9.27.1(puppeteer-core@24.34.0)
 
   '@wdio/logger@9.16.2':

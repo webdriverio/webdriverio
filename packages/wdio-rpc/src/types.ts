@@ -1,8 +1,21 @@
 // ───────────────────────────────────────────────
 // Birpc-Compatible RPC Interfaces (Simplified)
 // ───────────────────────────────────────────────
-import type { IPCMessageValue, IPC_MESSAGE_TYPES, WSMessage } from '@wdio/types'
+import type { IPCMessageValue, IPC_MESSAGE_TYPES, WSMessage, AnyWSMessage } from '@wdio/types'
 import type { WS_MESSAGE_TYPES, WSMessageValue } from '@wdio/types'
+
+/**
+ * Request forwarded from the parent process to a worker carrying a browser
+ * WebSocket message. `id` is the communicator-level correlation id used to
+ * route the worker response back to the originating WebSocket client. It is
+ * intentionally kept separate from any id contained within `message.value`
+ * (the browser payload id), so worker responses are routed to the correct
+ * client regardless of the browser-side payload id.
+ */
+export interface WorkerRequest {
+    id: number
+    message: AnyWSMessage
+}
 
 /**
  * Functions exposed by the test runner process (server).
@@ -21,19 +34,17 @@ export interface ServerFunctions {
 }
 
 /*
- * Functions exposed by the test environment (client).
- * These can be called by the main runner.
+ * Functions exposed by the test environment (client / worker process).
+ * These are called by the main runner / browser-runner communicator.
+ *
+ * Browser → worker requests that expect a response (command, hook, expect and
+ * expect-matchers requests) are forwarded through `workerRequest`. The worker
+ * replies via the `workerResponse` server function using the correlation id.
+ * `consoleMessage` and `browserTestResult` are fire-and-forget browser events
+ * that do not expect a response.
  */
 export interface ClientFunctions {
+    workerRequest(data: WorkerRequest): void
     consoleMessage(data: WSMessageValue[typeof WS_MESSAGE_TYPES.consoleMessage]): void
-    commandResponseMessage(data: WSMessageValue[typeof WS_MESSAGE_TYPES.commandResponseMessage]): void
-    hookResultMessage(data: WSMessageValue[typeof WS_MESSAGE_TYPES.hookResultMessage]): void
-    expectResponseMessage(data: WSMessageValue[typeof WS_MESSAGE_TYPES.expectResponseMessage]): void
-    coverageMap(data: WSMessageValue[typeof WS_MESSAGE_TYPES.coverageMap]): void
-    runCommand(data: WSMessageValue[typeof WS_MESSAGE_TYPES.commandRequestMessage]): Promise<unknown>
-    triggerHook(data: WSMessageValue[typeof WS_MESSAGE_TYPES.hookTriggerMessage]): Promise<unknown>
-    expectRequest(data: WSMessageValue[typeof WS_MESSAGE_TYPES.expectRequestMessage]): Promise<unknown>
-    expectMatchersRequest(data: WSMessageValue[typeof WS_MESSAGE_TYPES.expectMatchersResponse]):  void
     browserTestResult(data: WSMessageValue[typeof WS_MESSAGE_TYPES.browserTestResult]): void
-
 }

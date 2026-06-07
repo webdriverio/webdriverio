@@ -32,7 +32,7 @@ describe('RPC Integration Tests', () => {
 
             const clientHandlers: Partial<ClientFunctions> = {
                 consoleMessage: vi.fn(),
-                runCommand: vi.fn(),
+                workerRequest: vi.fn(),
             }
 
             expect(() => createServerRpc('process', serverHandlers)).not.toThrow()

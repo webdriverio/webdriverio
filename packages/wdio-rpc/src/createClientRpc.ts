@@ -5,6 +5,12 @@ import { resolveTransport } from './transport.js'
 
 export interface RpcOptions {
     onError?: (error: Error) => void
+    /**
+     * names of remote functions that should be invoked as fire-and-forget
+     * events (no response awaited). Useful when more than one peer listens on
+     * the same channel and only one of them implements the function.
+     */
+    eventNames?: string[]
 }
 
 export function createClientRpc<
@@ -15,12 +21,13 @@ export function createClientRpc<
     exposed: Partial<ClientFn>,
     options: RpcOptions = {}
 ) {
-    const { onError } = options
+    const { onError, eventNames } = options
     const channel = resolveTransport(transport)
 
     return createBirpc<ServerFn, ClientFn>(
         exposed as ClientFn,
         {
+            eventNames: eventNames as (keyof ServerFn)[] | undefined,
             post: (msg: unknown) => {
                 try {
                     channel.post(msg)
@@ -39,6 +46,7 @@ export function createClientRpc<
                     throw error
                 }
             },
+            off: (fn: (msg: unknown) => void) => channel.off?.(fn),
         }
     )
 }

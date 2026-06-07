@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Mock } from 'vitest'
+import { WS_MESSAGE_TYPES } from '@wdio/types'
+import type { ClientFunctions } from '@wdio/rpc'
 import BrowserFramework from '../src/browser.js'
 import { browser } from '@wdio/globals'
 import type BaseReporter from '../src/reporter.js'
@@ -8,8 +10,11 @@ import WDIORunner from '../src/index.js'
 import * as rpcModule from '@wdio/rpc'
 
 const mockRpc = {
-    errorMessage: vi.fn()
+    errorMessage: vi.fn(),
+    workerResponse: vi.fn()
 }
+
+let capturedClientHandlers: Partial<ClientFunctions> | undefined
 
 vi.mock('@wdio/logger', () => {
     const logMock = {
@@ -58,7 +63,14 @@ describe('BrowserFramework', () => {
 
     beforeEach(() => {
         vi.clearAllMocks()
-        vi.spyOn(rpcModule, 'createClientRpc').mockReturnValue(mockRpc as any)
+        capturedClientHandlers = undefined
+        vi.spyOn(rpcModule, 'createClientRpc').mockImplementation((_transport: any, handlers: any) => {
+            // only capture the browser-runner client handlers (skip the empty runner client)
+            if (handlers && handlers.workerRequest) {
+                capturedClientHandlers = handlers
+            }
+            return mockRpc as any
+        })
         ;(browser.setCookies as Mock).mockResolvedValue(undefined)
         framework = new BrowserFramework('cid123', mockConfig as any, ['spec1.js'], mockReporter)
     })
@@ -98,5 +110,62 @@ describe('BrowserFramework', () => {
 
         expect(browser.url).not.toHaveBeenCalled()
         expect(mockRpc.errorMessage).not.toHaveBeenCalledWith(expect.anything())
+    })
+
+    describe('workerRequest dispatch', () => {
+        it('answers an expectMatchersRequest with the list of available matchers', () => {
+            capturedClientHandlers!.workerRequest!({
+                id: 5,
+                message: { type: WS_MESSAGE_TYPES.expectMatchersRequest, value: {} }
+            } as any)
+
+            expect(mockRpc.workerResponse).toHaveBeenCalledTimes(1)
+            const arg = mockRpc.workerResponse.mock.calls[0][0]
+            expect(arg.args.id).toBe(5)
+            expect(arg.args.message.type).toBe(WS_MESSAGE_TYPES.expectMatchersResponse)
+            expect(Array.isArray(arg.args.message.value.matchers)).toBe(true)
+        })
+
+        it('dispatches a command request and keeps the communicator id separate from the payload id', async () => {
+            await capturedClientHandlers!.workerRequest!({
+                id: 42,
+                message: {
+                    type: WS_MESSAGE_TYPES.commandRequestMessage,
+                    value: { id: 7, cid: 'cid123', commandName: 'notARealCommand', args: [] }
+                }
+            } as any)
+
+            expect(mockRpc.workerResponse).toHaveBeenCalledTimes(1)
+            const arg = mockRpc.workerResponse.mock.calls[0][0]
+            // communicator-level correlation id
+            expect(arg.args.id).toBe(42)
+            expect(arg.args.message.type).toBe(WS_MESSAGE_TYPES.commandResponseMessage)
+            // browser payload id is preserved within the response value
+            expect(arg.args.message.value.id).toBe(7)
+        })
+
+        it('dispatches a hook trigger and returns a hook result', async () => {
+            await capturedClientHandlers!.workerRequest!({
+                id: 3,
+                message: {
+                    type: WS_MESSAGE_TYPES.hookTriggerMessage,
+                    value: { id: 1, cid: 'cid123', name: 'beforeTest', args: [] }
+                }
+            } as any)
+
+            expect(mockRpc.workerResponse).toHaveBeenCalledTimes(1)
+            const arg = mockRpc.workerResponse.mock.calls[0][0]
+            expect(arg.args.id).toBe(3)
+            expect(arg.args.message.type).toBe(WS_MESSAGE_TYPES.hookResultMessage)
+            expect(arg.args.message.value.id).toBe(1)
+        })
+
+        it('warns on an unknown worker request type', () => {
+            capturedClientHandlers!.workerRequest!({
+                id: 1,
+                message: { type: -1, value: {} }
+            } as any)
+            expect(mockRpc.workerResponse).not.toHaveBeenCalled()
+        })
     })
 })

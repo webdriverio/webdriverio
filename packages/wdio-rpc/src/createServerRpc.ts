@@ -12,12 +12,13 @@ export function createServerRpc<
     exposed: Partial<ServerFn>,
     options: RpcOptions = {}
 ) {
-    const { onError } = options
+    const { onError, eventNames } = options
     const channel = resolveTransport(transport)
 
     return createBirpc<ClientFn, ServerFn>(
         exposed as ServerFn,
         {
+            eventNames: eventNames as (keyof ClientFn)[] | undefined,
             post: (msg: unknown) => {
                 try {
                     channel.post(msg)
@@ -36,6 +37,7 @@ export function createServerRpc<
                     throw error
                 }
             },
+            off: (fn: (msg: unknown) => void) => channel.off?.(fn),
         }
     )
 }

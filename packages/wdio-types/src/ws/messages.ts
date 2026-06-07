@@ -27,7 +27,7 @@ export type WSMessageValue = {
     [WS_MESSAGE_TYPES.hookResultMessage]: HookResultEvent
     [WS_MESSAGE_TYPES.expectRequestMessage]: ExpectRequestEvent
     [WS_MESSAGE_TYPES.expectResponseMessage]: ExpectResponseEvent
-    [WS_MESSAGE_TYPES.expectMatchersRequest]: never
+    [WS_MESSAGE_TYPES.expectMatchersRequest]: ExpectMatchersRequest
     [WS_MESSAGE_TYPES.expectMatchersResponse]: ExpectMatchersResponse
     [WS_MESSAGE_TYPES.coverageMap]: CoverageMapData
     [WS_MESSAGE_TYPES.customCommand]: CustomCommandEvent
@@ -93,6 +93,15 @@ interface ExpectResponseEvent {
     id: number;
     pass: boolean;
     message: string
+}
+
+/**
+ * request sent by the browser to ask the worker for the list of available
+ * `expect-webdriverio` matchers. It carries no payload today but is modeled as
+ * an object (rather than `never`) so it can travel through the typed transport.
+ */
+interface ExpectMatchersRequest {
+    cid?: string
 }
 
 interface ExpectMatchersResponse {

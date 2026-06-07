@@ -4,9 +4,9 @@ import path from 'node:path'
 import type { ChainablePromiseArray } from 'webdriverio'
 import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
-import { executeHooksWithArgs } from '@wdio/utils'
 import { matchers } from 'expect-webdriverio'
 import { ELEMENT_KEY } from 'webdriver'
+import { executeHooksWithArgs, isWSMessage } from '@wdio/utils'
 import type {
     AnyWSMessage,
     LogMessage,
@@ -57,12 +57,9 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     ) {
         // listen on testrunner events
         this._rpc = createClientRpc<ServerFunctions, ClientFunctions>('process', {
-            triggerHook: (data) => this.#handleHook(data.id, data),
+            workerRequest: ({ id, message }) => this.#handleWorkerRequest(id, message),
             consoleMessage: (data) => this.#handleConsole(data),
-            runCommand: (data) => this.#handleCommand(data.id, data),
-            expectRequest: (data) => this.#handleExpectation(data.id, data),
-            browserTestResult: (data) => this.#handleTestFinish(data),
-            expectMatchersRequest: (data) => this.#expectMatcherResponse(data)
+            browserTestResult: (data) => this.#handleTestFinish(data)
         })
 
         const [, runnerOptions] = Array.isArray(_config.runner) ? _config.runner : []
@@ -248,12 +245,38 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         return this.#sendWorkerResponse(id, this.#hookResponse({ id: payload.id, error }))
     }
 
-    #expectMatcherResponse (value: WSMessageValue[WS_MESSAGE_TYPES.expectMatchersResponse])
-        : WSMessage<WS_MESSAGE_TYPES.expectMatchersResponse> {
-        return {
-            type: WS_MESSAGE_TYPES.expectMatchersResponse,
-            value
+    /**
+     * dispatch a browser WebSocket request forwarded by the communicator to the
+     * matching worker handler. The communicator-level `id` is used to correlate
+     * the response back to the originating WebSocket client and is intentionally
+     * kept separate from the browser payload id (`message.value.id`).
+     */
+    #handleWorkerRequest (id: number, message: AnyWSMessage) {
+        if (isWSMessage(message, WS_MESSAGE_TYPES.commandRequestMessage)) {
+            return this.#handleCommand(id, message.value)
         }
+        if (isWSMessage(message, WS_MESSAGE_TYPES.hookTriggerMessage)) {
+            return this.#handleHook(id, message.value)
+        }
+        if (isWSMessage(message, WS_MESSAGE_TYPES.expectRequestMessage)) {
+            return this.#handleExpectation(id, message.value)
+        }
+        if (isWSMessage(message, WS_MESSAGE_TYPES.expectMatchersRequest)) {
+            return this.#handleExpectMatchers(id)
+        }
+
+        log.warn(`Received unknown worker request message with type "${message.type}"`)
+    }
+
+    /**
+     * respond with the list of available `expect-webdriverio` matchers so the
+     * browser can register matcher proxies
+     */
+    #handleExpectMatchers (id: number) {
+        return this.#sendWorkerResponse(id, {
+            type: WS_MESSAGE_TYPES.expectMatchersResponse,
+            value: { matchers: [...matchers.keys()] }
+        })
     }
 
     #hookResponse (value: WSMessageValue[WS_MESSAGE_TYPES.hookResultMessage])
@@ -386,21 +409,22 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
 
         try {
-            let context: WebdriverIO.Browser | ChainablePromiseElement | ChainablePromiseElement[] |ChainablePromiseArray
+            let context: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.ElementArray | ChainablePromiseElement | ChainablePromiseArray | string
 
             if (payload.element) {
                 if (Array.isArray(payload.element)) {
                     // Element is an array, assume it's a selector list and resolve it with $$.
                     context = await browser.$$(payload.element)
                 } else {
-                    const elementId = await payload.element.elementId
+                    const element = payload.element as WebdriverIO.Element
+                    const elementId = await element.elementId
                     /**
                      * If the element has already been resolved (i.e., it has an elementId),
                      * we can reuse it directly. Otherwise, we attempt to resolve it via its selector.
                      */
                     context = elementId
-                        ? await browser.$(payload.element)
-                        : await browser.$(await payload.element.selector)
+                        ? await browser.$(element)
+                        : await browser.$(await element.selector)
                 }
             } else {
                 // Fallback to provided context or global browser
