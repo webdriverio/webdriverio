@@ -12,6 +12,16 @@ import { EVENTS as PerformanceEvents } from '../../src/instrumentation/performan
 import type { Options } from '@wdio/types'
 import type { BrowserstackConfig, BrowserstackOptions } from '../../src/types.js'
 import APIUtils from '../../src/cli/apiUtils.js'
+import type * as FetchWrapperModule from '../../src/fetchWrapper.js'
+
+// CLI network calls go through fetchWrapper._fetch (which uses a custom undici
+// dispatcher for the connect-timeout override), not the global fetch, so we mock
+// that boundary. Other fetchWrapper exports are preserved.
+const mockFetch = vi.hoisted(() => vi.fn())
+vi.mock('../../src/fetchWrapper.js', async (importOriginal) => {
+    const actual = await importOriginal<typeof FetchWrapperModule>()
+    return { ...actual, _fetch: mockFetch }
+})
 
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
 bstackLoggerSpy.mockImplementation(() => {})
@@ -523,7 +533,7 @@ describe('CLIUtils', () => {
             vi.resetAllMocks()
 
             // Mock fetch to return a mock response
-            global.fetch = vi.fn().mockResolvedValue({
+            mockFetch.mockResolvedValue({
                 json: vi.fn().mockResolvedValue({ status: 'success' })
             })
         })
@@ -539,30 +549,33 @@ describe('CLIUtils', () => {
             }
 
             const mockJsonResponse = { updated_cli_version: '2.0.0' }
-            global.fetch = vi.fn().mockResolvedValue({
+            mockFetch.mockResolvedValue({
                 json: vi.fn().mockResolvedValue(mockJsonResponse)
             })
 
             await CLIUtils.requestToUpdateCLI(queryParams, mockConfig)
 
-            expect(global.fetch).toHaveBeenCalledWith(
+            expect(mockFetch).toHaveBeenCalledWith(
                 expect.stringContaining('param1=value1'),
                 expect.objectContaining({
                     method: 'GET',
                     headers: expect.objectContaining({
                         Authorization: expect.stringContaining('Basic')
                     })
-                })
+                }),
+                // connect-timeout override is always supplied for CLI calls (SDK-6152)
+                expect.objectContaining({ connectTimeoutMs: expect.any(Number) })
             )
-            expect(global.fetch).toHaveBeenCalledWith(
+            expect(mockFetch).toHaveBeenCalledWith(
                 expect.stringContaining('param2=value2'),
+                expect.any(Object),
                 expect.any(Object)
             )
         })
 
         it('returns response from fetch', async () => {
             const mockResponse = { updated_cli_version: '2.0.0' }
-            global.fetch = vi.fn().mockResolvedValue({
+            mockFetch.mockResolvedValue({
                 json: vi.fn().mockResolvedValue(mockResponse)
             })
 
@@ -571,13 +584,55 @@ describe('CLIUtils', () => {
             expect(result).toEqual(mockResponse)
         })
 
-        it('handles errors from fetch', async () => {
+        it('handles errors from fetch after exhausting retries', async () => {
             const mockError = new Error('Network error')
-            global.fetch = vi.fn().mockRejectedValue(mockError)
+            mockFetch.mockRejectedValue(mockError)
 
             await expect(CLIUtils.requestToUpdateCLI({}, mockConfig))
                 .rejects
                 .toThrow('Network error')
+        })
+    })
+
+    describe('fetchWithRetry', () => {
+        beforeEach(() => {
+            vi.resetAllMocks()
+        })
+
+        it('passes the CLI connect-timeout override through to _fetch', async () => {
+            const res = { ok: true } as unknown as Response
+            mockFetch.mockResolvedValue(res)
+
+            const result = await CLIUtils.fetchWithRetry('https://example.com', { method: 'GET' }, 'test')
+
+            expect(result).toBe(res)
+            expect(mockFetch).toHaveBeenCalledTimes(1)
+            expect(mockFetch).toHaveBeenCalledWith(
+                'https://example.com',
+                { method: 'GET' },
+                expect.objectContaining({ connectTimeoutMs: expect.any(Number) })
+            )
+        })
+
+        it('retries on transient failure and then succeeds', async () => {
+            const res = { ok: true } as unknown as Response
+            mockFetch
+                .mockRejectedValueOnce(new Error('connect fail'))
+                .mockResolvedValueOnce(res)
+
+            const result = await CLIUtils.fetchWithRetry('https://example.com', {}, 'test')
+
+            expect(result).toBe(res)
+            expect(mockFetch).toHaveBeenCalledTimes(2)
+        })
+
+        it('throws the last error after exhausting all attempts', async () => {
+            mockFetch.mockRejectedValue(new Error('always fails'))
+
+            await expect(CLIUtils.fetchWithRetry('https://example.com', {}, 'test'))
+                .rejects
+                .toThrow('always fails')
+            expect(mockFetch).toHaveBeenCalledTimes(3)
         })
     })
 
