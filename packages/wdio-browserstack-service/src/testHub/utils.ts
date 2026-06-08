@@ -13,14 +13,15 @@ export interface Errors {
     errors: ErrorType[]
 }
 
-export const getProductMap = (config: BrowserStackConfig): { [key: string]: boolean | undefined } => {
-    return {
-        observability: config.testObservability.enabled,
-        accessibility: config.accessibility,
-        percy: config.percy,
-        automate: config.automate,
-        app_automate: config.appAutomate
-    }
+export const getProductMap = (config: BrowserStackConfig): { [key: string]: boolean } => {
+    const entries: [string, boolean | undefined][] = [
+        ['observability', config.testObservability.enabled],
+        ['accessibility', !!config.accessibility],
+        ['percy', config.percy],
+        ['automate', config.automate],
+        ['app_automate', config.appAutomate],
+    ]
+    return Object.fromEntries(entries.filter(([, v]) => v !== null)) as { [key: string]: boolean }
 }
 
 export const shouldProcessEventForTesthub = (eventType: string): boolean => {
@@ -73,12 +74,13 @@ export const logBuildError = (error: Errors | null, product: string = ''): void 
     }
 }
 
-export const getProductMapForBuildStartCall = (config: BrowserStackConfig, accessibilityAutomation?: boolean): { [key: string]: boolean | undefined } => {
-    return {
-        observability: config.testObservability.enabled,
-        accessibility: accessibilityAutomation,
-        percy: config.percy,
-        automate: config.automate,
-        app_automate: config.appAutomate
-    }
+export const getProductMapForBuildStartCall = (config: BrowserStackConfig, accessibilityAutomation?: boolean | null): { [key: string]: boolean } => {
+    const entries: [string, boolean | undefined | null][] = [
+        ['observability', config.testObservability.enabled],
+        ['accessibility', accessibilityAutomation],
+        ['percy', config.percy],
+        ['automate', config.automate],
+        ['app_automate', config.appAutomate],
+    ]
+    return Object.fromEntries(entries.filter(([, v]) => v !== null)) as { [key: string]: boolean }
 }

@@ -364,7 +364,7 @@ export const processLaunchBuildResponse = (response: LaunchResponse, options: Br
     processAccessibilityResponse(response, options)
 }
 
-export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation: boolean | null) {
+export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation?: boolean) {
     const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
     launchBuildUsage.triggered()
 
@@ -1549,6 +1549,77 @@ export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(c
         } else if (userCaps[key as keyof WebdriverIO.Capabilities]) {
             BStackLogger.debug(`Got ${key} from user caps`)
             return String(userCaps[key as keyof WebdriverIO.Capabilities])
+        }
+    }
+    return undefined
+})
+
+/**
+ * Resolve a stable, human-readable device identifier for the
+ * `device` field on test_run integrations payloads.
+ *
+ * TestHub dedupes test_runs by a hash that includes `device`. For
+ * App-Automate flows that pass a regex device request (e.g. `.*Pixel.*`)
+ * across multiple platforms, the SDK previously sent the input regex
+ * string, causing two parallel sessions on physically different devices
+ * to collide on the hash and merge. This helper prefers the Appium
+ * server-resolved fields (`deviceModel` / `appium:deviceModel`) before
+ * falling back to the requested capabilities.
+ *
+ * Multiremote: `driverCaps` for a `MultiRemoteBrowser` is a map of
+ * `{instanceName: WebdriverIO.Capabilities, …}` rather than flat caps;
+ * the helper detects that shape and walks each instance.
+ *
+ * @param driverCaps - live driver capabilities (`browser.capabilities`)
+ *                     where Appium server-resolved fields are populated
+ * @param requestedCaps - user-requested capabilities (runner caps / yml)
+ *                        used as a fallback
+ */
+export const getResolvedDeviceName = o11yErrorHandler(function getResolvedDeviceName(
+    driverCaps?: WebdriverIO.Capabilities | Record<string, { capabilities?: WebdriverIO.Capabilities }>,
+    requestedCaps?: WebdriverIO.Capabilities | Record<string, { capabilities?: WebdriverIO.Capabilities }>,
+): string | undefined {
+    const flattenMultiremote = (
+        caps: WebdriverIO.Capabilities | Record<string, { capabilities?: WebdriverIO.Capabilities }> | undefined,
+    ): WebdriverIO.Capabilities[] => {
+        if (!caps) {return []}
+        const obj = caps as Record<string, unknown>
+        if (obj['deviceModel'] || obj['appium:deviceModel'] || obj['deviceName'] || obj['bstack:options']) {
+            // looks like flat caps
+            return [caps as WebdriverIO.Capabilities]
+        }
+        // looks like a multiremote map: {instanceName: {capabilities: {...}}}
+        return Object.values(obj)
+            .filter((v): v is { capabilities?: WebdriverIO.Capabilities } =>
+                v !== null && typeof v === 'object' && 'capabilities' in (v as object))
+            .map(v => v.capabilities as WebdriverIO.Capabilities)
+            .filter(Boolean)
+    }
+
+    const sources: WebdriverIO.Capabilities[] = [
+        ...flattenMultiremote(driverCaps),
+        ...flattenMultiremote(requestedCaps),
+    ]
+    if (!sources.length) {return undefined}
+
+    const pickString = (obj: Record<string, unknown> | undefined, key: string): string | undefined => {
+        const v = obj?.[key]
+        return typeof v === 'string' && v.length > 0 ? v : undefined
+    }
+    // Precedence: prefer Appium server-resolved deviceModel; fall back through
+    // requested cap variants. `bstack:options.deviceName` is the user's regex
+    // for App-Automate runs, kept as a fallback for the non-resolved case.
+    const paths: Array<(c: Record<string, unknown>) => string | undefined> = [
+        c => pickString(c, 'deviceModel'),
+        c => pickString(c, 'appium:deviceModel'),
+        c => pickString(c['bstack:options'] as Record<string, unknown> | undefined, 'deviceName'),
+        c => pickString(c, 'appium:deviceName'),
+        c => pickString(c, 'deviceName'),
+    ]
+    for (const path of paths) {
+        for (const src of sources) {
+            const v = path(src as unknown as Record<string, unknown>)
+            if (v) {return v}
         }
     }
     return undefined

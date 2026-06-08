@@ -97,10 +97,10 @@ importers:
         version: 8.0.0
       cddl:
         specifier: ^0.14.5
-        version: 0.14.5
+        version: 0.14.10
       cddl2ts:
         specifier: ^0.4.1
-        version: 0.4.1
+        version: 0.4.5
       chalk:
         specifier: ^5.4.1
         version: 5.6.2
@@ -276,6 +276,9 @@ importers:
       '@wdio/local-runner':
         specifier: workspace:*
         version: link:../packages/wdio-local-runner
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../packages/wdio-logger
       '@wdio/mocha-framework':
         specifier: workspace:*
         version: link:../packages/wdio-mocha-framework
@@ -449,7 +452,7 @@ importers:
         version: 5.2.4(vite@5.4.21(@types/node@25.3.5)(terser@5.43.1))(vue@3.5.29(typescript@5.9.3))
       expect-webdriverio:
         specifier: ^5.6.5
-        version: 5.6.5(@wdio/globals@9.27.1)(@wdio/logger@9.18.0)(webdriverio@9.27.1(puppeteer-core@24.34.0))
+        version: 5.6.5(@wdio/globals@9.27.2)(@wdio/logger@9.18.0)(webdriverio@9.27.2(puppeteer-core@24.34.0))
       mocha:
         specifier: ^10.2.0
         version: 10.8.2
@@ -557,7 +560,7 @@ importers:
         version: 9.39.4(jiti@2.6.1)
       expect-webdriverio:
         specifier: ^5.6.5
-        version: 5.6.5(@wdio/globals@9.27.1)(@wdio/logger@9.18.0)(webdriverio@9.27.1(puppeteer-core@24.34.0))
+        version: 5.6.5(@wdio/globals@9.27.2)(@wdio/logger@9.18.0)(webdriverio@9.27.2(puppeteer-core@24.34.0))
       globals:
         specifier: ^16.5.0
         version: 16.5.0
@@ -809,10 +812,10 @@ importers:
         version: 11.1.0
       tar:
         specifier: ^7.5.11
-        version: 7.5.13
+        version: 7.5.15
       undici:
         specifier: ^6.24.0
-        version: 6.24.1
+        version: 6.26.0
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
@@ -1030,7 +1033,7 @@ importers:
     dependencies:
       expect-webdriverio:
         specifier: ^5.6.5
-        version: 5.6.5(@wdio/globals@9.27.1)(@wdio/logger@9.18.0)(webdriverio@9.16.2(puppeteer-core@24.34.0))
+        version: 5.6.5(@wdio/globals@9.27.2)(@wdio/logger@9.18.0)(webdriverio@9.16.2(puppeteer-core@24.34.0))
       webdriverio:
         specifier: ^9.0.0
         version: 9.16.2(puppeteer-core@24.34.0)
@@ -1186,7 +1189,7 @@ importers:
         version: 4.0.0
       expect-webdriverio:
         specifier: ^5.6.5
-        version: 5.6.5(@wdio/globals@9.27.1)(@wdio/logger@packages+wdio-logger)(webdriverio@9.27.1(puppeteer-core@24.34.0))
+        version: 5.6.5(@wdio/globals@9.27.2)(@wdio/logger@packages+wdio-logger)(webdriverio@9.27.2(puppeteer-core@24.34.0))
       split2:
         specifier: ^4.1.0
         version: 4.2.0
@@ -1714,6 +1717,27 @@ importers:
       safe-stable-stringify:
         specifier: ^2.4.3
         version: 2.5.0
+
+  test-headless-flag:
+    devDependencies:
+      '@wdio/cli':
+        specifier: workspace:*
+        version: link:../packages/wdio-cli
+      '@wdio/local-runner':
+        specifier: workspace:*
+        version: link:../packages/wdio-local-runner
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../packages/wdio-mocha-framework
+      '@wdio/spec-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-spec-reporter
+      expect-webdriverio:
+        specifier: ^5.6.5
+        version: 5.6.5(@wdio/globals@9.27.2)(@wdio/logger@9.18.0)(webdriverio@packages+webdriverio)
+      webdriverio:
+        specifier: workspace:*
+        version: link:../packages/webdriverio
 
   tests:
     dependencies:
@@ -7009,8 +7033,8 @@ packages:
     resolution: {integrity: sha512-rcHu0eG16rSEmHL0sEKDcr/vYFmGhQ5GOlmlx54r+1sgh6sf136q+kth4169s16XqviWGW3LjZbUfpTK29pGtw==}
     engines: {node: '>=18.20.0'}
 
-  '@wdio/config@9.27.1':
-    resolution: {integrity: sha512-QVfSCqcpMfVum9KlpxgjaLlSLXkc53UQ2CPJU+IUVBp8LkbSyeX972HQS8V9Hnn6vSPE1dYScItg7wblnJ8RQg==}
+  '@wdio/config@9.27.2':
+    resolution: {integrity: sha512-d31AMKrqADuKdw7F3025Aeunboska402xmbkdXpOKp3W8gwXcC/y9xorMNM1Z6/wYr+DDFBYXn9AgbaURPQ8gQ==}
     engines: {node: '>=18.20.0'}
 
   '@wdio/dot-reporter@9.16.2':
@@ -7027,8 +7051,8 @@ packages:
       expect-webdriverio: ^5.3.2
       webdriverio: ^9.0.0
 
-  '@wdio/globals@9.27.1':
-    resolution: {integrity: sha512-jm6gTQ6Qo3EOBY6PA09U/5Pf17WLEJM1/lTfhc6jzLFE770EuhuhbuphqrInH0hVR9WMyWtSZQ+LRCcLfcmOPQ==}
+  '@wdio/globals@9.27.2':
+    resolution: {integrity: sha512-Rx9bqD4/8iR3CNPMWYxywQSCqsR/WGwIYT2Q0uUmrvPxOdYFridDEhVRGO32kQ55UM5+JXzXppxgwGLRQ60fJg==}
     engines: {node: '>=18.20.0'}
     peerDependencies:
       expect-webdriverio: ^5.6.5
@@ -7048,8 +7072,8 @@ packages:
   '@wdio/protocols@9.24.0':
     resolution: {integrity: sha512-ozQKYddBLT4TRvU9J+fGrhVUtx3iDAe+KNCJcTDMFMxNSdDMR2xFQdNp8HLHypspk58oXTYCvz6ZYjySthhqsw==}
 
-  '@wdio/protocols@9.27.1':
-    resolution: {integrity: sha512-Ril46AmySoiYX9nuKqFr3SNJqquU3VmF9FzSndQlDib0G3oA4pYx9wcBXvdvkFxRjjmFwQDzmvztKrssAHymgw==}
+  '@wdio/protocols@9.27.2':
+    resolution: {integrity: sha512-aek2972uzuoSG5yHLhtFpd463qeB4PklYXbJd7Ta44yKinol+akdPZUc9AQJC9Fxz6kBzxHAp2nfYuppxm+Pqg==}
 
   '@wdio/repl@9.16.2':
     resolution: {integrity: sha512-FLTF0VL6+o5BSTCO7yLSXocm3kUnu31zYwzdsz4n9s5YWt83sCtzGZlZpt7TaTzb3jVUfxuHNQDTb8UMkCu0lQ==}
@@ -7074,8 +7098,8 @@ packages:
     resolution: {integrity: sha512-PYYunNl8Uq1r8YMJAK6ReRy/V/XIrCSyj5cpCtR5EqCL6heETOORFj7gt4uPnzidfgbtMBcCru0LgjjlMiH1UQ==}
     engines: {node: '>=18.20.0'}
 
-  '@wdio/types@9.27.1':
-    resolution: {integrity: sha512-EHBNCvLmvpYerln4mb/OBxzKtnavL2wdenjhwuYjzkZMOWHgm/uLXH6sLThM0y6DIbCU72Asth16fo1eDcsofA==}
+  '@wdio/types@9.27.2':
+    resolution: {integrity: sha512-nBUq2juoaaibrOacn/cZ5IjZvJa6ZAHlh1B4UjMxOVcd7kzZyXJjfwAP3vNnboK4dyCLHyKLM+TpfFMmoO59OQ==}
     engines: {node: '>=18.20.0'}
 
   '@wdio/utils@9.16.2':
@@ -7086,8 +7110,8 @@ packages:
     resolution: {integrity: sha512-6WhtzC5SNCGRBTkaObX6A07Ofnnyyf+TQH/d/fuhZRqvBknrP4AMMZF+PFxGl1fwdySWdBn+gV2QLE+52Byowg==}
     engines: {node: '>=18.20.0'}
 
-  '@wdio/utils@9.27.1':
-    resolution: {integrity: sha512-s2w1tFrvmpdkZ33LYsIw4ONRdWIIm4MxkyIuibbcG1ILV5fFMS9rU59csHuWIM0KhJoEoLU+fzE3ze9O7TpWhw==}
+  '@wdio/utils@9.27.2':
+    resolution: {integrity: sha512-QANs93jABp4BfCrX3Vhmrt5usWz2Zo6F6H1hL1+/ibxwG3qYod68PRQIGssoV2Elhql3IUk6o8iRGTDqV0SmIg==}
     engines: {node: '>=18.20.0'}
 
   '@webassemblyjs/ast@1.14.1':
@@ -7138,7 +7162,6 @@ packages:
   '@xmldom/xmldom@0.9.8':
     resolution: {integrity: sha512-p96FSY54r+WJ50FIOsCOjyj/wavs8921hG5+kVMmZgKcvIKxMXHTrjNJvRgWa/zuX3B6t2lijLNFaOyuxUH+2A==}
     engines: {node: '>=14.6'}
-    deprecated: this version has critical issues, please update to the latest version
 
   '@xtuc/ieee754@1.2.0':
     resolution: {integrity: sha512-DX8nKgqcGwsc0eJSqYt5lwP4DH5FlHnmuWWBRy7X0NcaGR0ZtuyeESgMwTYVEtxmsNGY+qit4QYT/MIYTOTPeA==}
@@ -7849,12 +7872,12 @@ packages:
   ccount@2.0.1:
     resolution: {integrity: sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==}
 
-  cddl2ts@0.4.1:
-    resolution: {integrity: sha512-27wq7kJXUjgUDd4CVvuuf7+zFJ0azyJjVgEK8e/ekPn8HMAkbhnpS/VSS962D7J9TmAsD0cq6NA/ADXhiihclg==}
+  cddl2ts@0.4.5:
+    resolution: {integrity: sha512-xdmTUhVEO9im/smQdMhxpBeqSL1WWmYR/gU4IThK4tYRZGYNHdejjwJ18R+Wr1UuZQSPguJ16JBBoawMNnCXzw==}
     hasBin: true
 
-  cddl@0.14.5:
-    resolution: {integrity: sha512-Pvio1zMYXtcs0Oiw42aYVrLmvb4ItpJt22BDP0v7BzBCTMX6xXf7JIXW9p6B0VYAHvz4ONJjzLzcfn+j2IoItw==}
+  cddl@0.14.10:
+    resolution: {integrity: sha512-39AA+spVL1Vgp01pkVkMUXhAR9xq1tx93DNDuKciqzX6Ws9NFwEYCjmDv151KuMXq9b4EXD5C7k8s2KX48O4aA==}
     hasBin: true
 
   chai@5.2.0:
@@ -14325,8 +14348,8 @@ packages:
     engines: {node: '>=10'}
     deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
-  tar@7.5.13:
-    resolution: {integrity: sha512-tOG/7GyXpFevhXVh8jOPJrmtRpOTsYqUIkVdVooZYJS/z8WhfQUX8RJILmeuJNinGAMSu1veBr4asSHFt5/hng==}
+  tar@7.5.15:
+    resolution: {integrity: sha512-dzGK0boVlC4W5QFuQN1EFSl3bIDYsk7Tj40U6eIBnK2k/8ml7TZ5agbI5j5+qnoVcAA+rNtBml8SEiLxZpNqRQ==}
     engines: {node: '>=18'}
 
   tar@7.5.8:
@@ -14756,8 +14779,8 @@ packages:
     resolution: {integrity: sha512-VfQPToRA5FZs/qJxLIinmU59u0r7LXqoJkCzinq3ckNJp3vKEh7jTWN589YQ5+aoAC/TGRLyJLCPKcLQbM8r9g==}
     engines: {node: '>=18.17'}
 
-  undici@6.24.1:
-    resolution: {integrity: sha512-sC+b0tB1whOCzbtlx20fx3WgCXwkW627p4EA9uM+/tNNPkSS+eSEld6pAs9nDv7WbY1UUljBMYPtu9BCOrCWKA==}
+  undici@6.26.0:
+    resolution: {integrity: sha512-4yqz8a3n5HmGTlsbADNtr/dJlhkh/55Rq798G6ibiULcXbDtaLpTl1pvdqcbFfeoj3iSi52lePFM7h9H21cw/A==}
     engines: {node: '>=18.17'}
 
   undici@7.18.2:
@@ -14950,7 +14973,6 @@ packages:
 
   uuid@10.0.0:
     resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
-    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@11.1.0:
@@ -14959,17 +14981,15 @@ packages:
 
   uuid@3.3.2:
     resolution: {integrity: sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==}
-    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+    deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
     hasBin: true
 
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
-    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
-    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   validate-npm-package-license@3.0.4:
@@ -15216,8 +15236,8 @@ packages:
     resolution: {integrity: sha512-2R31Ey83NzMsafkl4hdFq6GlIBvOODQMkueLjeRqYAITu3QCYiq9oqBdnWA6CdePuV4dbKlYsKRX0mwMiPclDA==}
     engines: {node: '>=18.20.0'}
 
-  webdriver@9.27.1:
-    resolution: {integrity: sha512-vr6h+RNQ75O2cofgVrdupGxtKjPEBaBYx/lHCHe0giJfAK01oL0U/yrOksJi7kmpev/daN93ldFPhlIlmWtv8Q==}
+  webdriver@9.27.2:
+    resolution: {integrity: sha512-m7JrZucyOa+VMojsKrZSIE7lsl2RtLk2VqqOe7aWtlmRnBQs33/AaaHIY8FJNe2NKfM1rRSEv87GP2zjLUzyog==}
     engines: {node: '>=18.20.0'}
 
   webdriverio@9.16.2:
@@ -15238,8 +15258,8 @@ packages:
       puppeteer-core:
         optional: true
 
-  webdriverio@9.27.1:
-    resolution: {integrity: sha512-iPaIU/DluYY7zfLiwXDdoLU/6ZW8eup4PNwQikrCzTfvH/ITllRhFUe6NRDTEEePSxxRTeXAn9nehCs98xWGVA==}
+  webdriverio@9.27.2:
+    resolution: {integrity: sha512-kNRTYomUY8ujhPn+eIxru9eQJP1BMmb4JfIdFt8m9mAPxkdNKJScRHSj77/x8yV2a4wKP0lefYfFtK77B+qzfA==}
     engines: {node: '>=18.20.0'}
     peerDependencies:
       puppeteer-core: '>=22.x || <=24.x'
@@ -16473,7 +16493,7 @@ snapshots:
 
   '@babel/generator@7.28.5':
     dependencies:
-      '@babel/parser': 7.28.5
+      '@babel/parser': 7.29.0
       '@babel/types': 7.28.5
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
@@ -17853,7 +17873,7 @@ snapshots:
   '@babel/template@7.27.2':
     dependencies:
       '@babel/code-frame': 7.27.1
-      '@babel/parser': 7.28.5
+      '@babel/parser': 7.29.0
       '@babel/types': 7.28.5
 
   '@babel/template@7.28.6':
@@ -17879,7 +17899,7 @@ snapshots:
       '@babel/code-frame': 7.27.1
       '@babel/generator': 7.28.5
       '@babel/helper-globals': 7.28.0
-      '@babel/parser': 7.28.5
+      '@babel/parser': 7.29.0
       '@babel/template': 7.27.2
       '@babel/types': 7.28.5
       debug: 4.4.3
@@ -18206,7 +18226,7 @@ snapshots:
       '@cucumber/ci-environment': 10.0.1
       '@cucumber/cucumber-expressions': 17.1.0
       '@cucumber/gherkin': 28.0.0
-      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)
+      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@26.0.1))(@cucumber/messages@24.1.0)
       '@cucumber/gherkin-utils': 9.0.0
       '@cucumber/html-formatter': 21.6.0(@cucumber/messages@24.1.0)
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -18246,7 +18266,7 @@ snapshots:
       yaml: 2.8.0
       yup: 1.2.0
 
-  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)':
+  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@26.0.1))(@cucumber/messages@24.1.0)':
     dependencies:
       '@cucumber/gherkin': 28.0.0
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -22070,7 +22090,7 @@ snapshots:
 
   '@types/babel__template@7.4.4':
     dependencies:
-      '@babel/parser': 7.27.7
+      '@babel/parser': 7.29.0
       '@babel/types': 7.27.7
 
   '@types/babel__traverse@7.20.7':
@@ -22424,7 +22444,7 @@ snapshots:
 
   '@types/tar@7.0.87':
     dependencies:
-      tar: 7.5.13
+      tar: 7.5.15
 
   '@types/testing-library__jest-dom@5.14.9':
     dependencies:
@@ -23018,11 +23038,11 @@ snapshots:
       - react-native-b4a
       - supports-color
 
-  '@wdio/config@9.27.1':
+  '@wdio/config@9.27.2':
     dependencies:
       '@wdio/logger': 9.18.0
-      '@wdio/types': 9.27.1
-      '@wdio/utils': 9.27.1
+      '@wdio/types': 9.27.2
+      '@wdio/utils': 9.27.2
       deepmerge-ts: 7.1.5
       glob: 10.5.0
       import-meta-resolve: 4.2.0
@@ -23065,15 +23085,20 @@ snapshots:
       expect-webdriverio: 5.6.5(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
       webdriverio: 9.16.2(puppeteer-core@24.34.0)
 
-  '@wdio/globals@9.27.1(expect-webdriverio@5.6.5)(webdriverio@9.16.2(puppeteer-core@24.34.0))':
+  '@wdio/globals@9.27.2(expect-webdriverio@5.6.5)(webdriverio@9.16.2(puppeteer-core@24.34.0))':
     dependencies:
-      expect-webdriverio: 5.6.5(@wdio/globals@9.27.1)(@wdio/logger@9.18.0)(webdriverio@9.16.2(puppeteer-core@24.34.0))
+      expect-webdriverio: 5.6.5(@wdio/globals@9.27.2)(@wdio/logger@9.18.0)(webdriverio@9.16.2(puppeteer-core@24.34.0))
       webdriverio: 9.16.2(puppeteer-core@24.34.0)
 
-  '@wdio/globals@9.27.1(expect-webdriverio@5.6.5)(webdriverio@9.27.1(puppeteer-core@24.34.0))':
+  '@wdio/globals@9.27.2(expect-webdriverio@5.6.5)(webdriverio@9.27.2(puppeteer-core@24.34.0))':
     dependencies:
-      expect-webdriverio: 5.6.5(@wdio/globals@9.27.1)(@wdio/logger@9.18.0)(webdriverio@9.27.1(puppeteer-core@24.34.0))
-      webdriverio: 9.27.1(puppeteer-core@24.34.0)
+      expect-webdriverio: 5.6.5(@wdio/globals@9.27.2)(@wdio/logger@9.18.0)(webdriverio@9.27.2(puppeteer-core@24.34.0))
+      webdriverio: 9.27.2(puppeteer-core@24.34.0)
+
+  '@wdio/globals@9.27.2(expect-webdriverio@5.6.5)(webdriverio@packages+webdriverio)':
+    dependencies:
+      expect-webdriverio: 5.6.5(@wdio/globals@9.27.2)(@wdio/logger@9.18.0)(webdriverio@packages+webdriverio)
+      webdriverio: link:packages/webdriverio
 
   '@wdio/logger@9.16.2':
     dependencies:
@@ -23094,7 +23119,7 @@ snapshots:
 
   '@wdio/protocols@9.24.0': {}
 
-  '@wdio/protocols@9.27.1': {}
+  '@wdio/protocols@9.27.2': {}
 
   '@wdio/repl@9.16.2':
     dependencies:
@@ -23136,7 +23161,7 @@ snapshots:
     dependencies:
       '@types/node': 20.19.37
 
-  '@wdio/types@9.27.1':
+  '@wdio/types@9.27.2':
     dependencies:
       '@types/node': 20.19.37
 
@@ -23182,11 +23207,11 @@ snapshots:
       - react-native-b4a
       - supports-color
 
-  '@wdio/utils@9.27.1':
+  '@wdio/utils@9.27.2':
     dependencies:
       '@puppeteer/browsers': 2.13.0
       '@wdio/logger': 9.18.0
-      '@wdio/types': 9.27.1
+      '@wdio/types': 9.27.2
       decamelize: 6.0.1
       deepmerge-ts: 7.1.5
       edgedriver: 6.3.0
@@ -24100,15 +24125,15 @@ snapshots:
 
   ccount@2.0.1: {}
 
-  cddl2ts@0.4.1:
+  cddl2ts@0.4.5:
     dependencies:
       '@babel/parser': 7.29.0
       camelcase: 9.0.0
-      cddl: 0.14.5
+      cddl: 0.14.10
       recast: 0.23.11
       yargs: 18.0.0
 
-  cddl@0.14.5:
+  cddl@0.14.10:
     dependencies:
       yargs: 18.0.0
 
@@ -25928,35 +25953,45 @@ snapshots:
 
   expect-type@1.2.1: {}
 
-  expect-webdriverio@5.6.5(@wdio/globals@9.27.1)(@wdio/logger@9.18.0)(webdriverio@9.16.2(puppeteer-core@24.34.0)):
+  expect-webdriverio@5.6.5(@wdio/globals@9.27.2)(@wdio/logger@9.18.0)(webdriverio@9.16.2(puppeteer-core@24.34.0)):
     dependencies:
       '@vitest/snapshot': 4.0.16
-      '@wdio/globals': 9.27.1(expect-webdriverio@5.6.5)(webdriverio@9.16.2(puppeteer-core@24.34.0))
+      '@wdio/globals': 9.27.2(expect-webdriverio@5.6.5)(webdriverio@9.16.2(puppeteer-core@24.34.0))
       '@wdio/logger': 9.18.0
       deep-eql: 5.0.2
       expect: 30.2.0
       jest-matcher-utils: 30.2.0
       webdriverio: 9.16.2(puppeteer-core@24.34.0)
 
-  expect-webdriverio@5.6.5(@wdio/globals@9.27.1)(@wdio/logger@9.18.0)(webdriverio@9.27.1(puppeteer-core@24.34.0)):
+  expect-webdriverio@5.6.5(@wdio/globals@9.27.2)(@wdio/logger@9.18.0)(webdriverio@9.27.2(puppeteer-core@24.34.0)):
     dependencies:
       '@vitest/snapshot': 4.0.16
-      '@wdio/globals': 9.27.1(expect-webdriverio@5.6.5)(webdriverio@9.27.1(puppeteer-core@24.34.0))
+      '@wdio/globals': 9.27.2(expect-webdriverio@5.6.5)(webdriverio@9.27.2(puppeteer-core@24.34.0))
       '@wdio/logger': 9.18.0
       deep-eql: 5.0.2
       expect: 30.2.0
       jest-matcher-utils: 30.2.0
-      webdriverio: 9.27.1(puppeteer-core@24.34.0)
+      webdriverio: 9.27.2(puppeteer-core@24.34.0)
 
-  expect-webdriverio@5.6.5(@wdio/globals@9.27.1)(@wdio/logger@packages+wdio-logger)(webdriverio@9.27.1(puppeteer-core@24.34.0)):
+  expect-webdriverio@5.6.5(@wdio/globals@9.27.2)(@wdio/logger@9.18.0)(webdriverio@packages+webdriverio):
     dependencies:
       '@vitest/snapshot': 4.0.16
-      '@wdio/globals': 9.27.1(expect-webdriverio@5.6.5)(webdriverio@9.27.1(puppeteer-core@24.34.0))
+      '@wdio/globals': 9.27.2(expect-webdriverio@5.6.5)(webdriverio@packages+webdriverio)
+      '@wdio/logger': 9.18.0
+      deep-eql: 5.0.2
+      expect: 30.2.0
+      jest-matcher-utils: 30.2.0
+      webdriverio: link:packages/webdriverio
+
+  expect-webdriverio@5.6.5(@wdio/globals@9.27.2)(@wdio/logger@packages+wdio-logger)(webdriverio@9.27.2(puppeteer-core@24.34.0)):
+    dependencies:
+      '@vitest/snapshot': 4.0.16
+      '@wdio/globals': 9.27.2(expect-webdriverio@5.6.5)(webdriverio@9.27.2(puppeteer-core@24.34.0))
       '@wdio/logger': link:packages/wdio-logger
       deep-eql: 5.0.2
       expect: 30.2.0
       jest-matcher-utils: 30.2.0
-      webdriverio: 9.27.1(puppeteer-core@24.34.0)
+      webdriverio: 9.27.2(puppeteer-core@24.34.0)
 
   expect-webdriverio@5.6.5(@wdio/globals@packages+wdio-globals)(@wdio/logger@9.18.0)(webdriverio@packages+webdriverio):
     dependencies:
@@ -29223,7 +29258,7 @@ snapshots:
       nopt: 9.0.0
       proc-log: 6.1.0
       semver: 7.7.2
-      tar: 7.5.13
+      tar: 7.5.15
       tinyglobby: 0.2.15
       which: 6.0.1
     transitivePeerDependencies:
@@ -29702,7 +29737,7 @@ snapshots:
       promise-retry: 2.0.1
       sigstore: 4.1.0
       ssri: 12.0.0
-      tar: 7.5.13
+      tar: 7.5.15
     transitivePeerDependencies:
       - supports-color
 
@@ -29724,7 +29759,7 @@ snapshots:
       proc-log: 6.1.0
       sigstore: 4.1.0
       ssri: 13.0.1
-      tar: 7.5.13
+      tar: 7.5.15
     transitivePeerDependencies:
       - supports-color
 
@@ -32112,7 +32147,7 @@ snapshots:
       mkdirp: 1.0.4
       yallist: 4.0.0
 
-  tar@7.5.13:
+  tar@7.5.15:
     dependencies:
       '@isaacs/fs-minipass': 4.0.1
       chownr: 3.0.0
@@ -32514,7 +32549,7 @@ snapshots:
 
   undici@6.23.0: {}
 
-  undici@6.24.1: {}
+  undici@6.26.0: {}
 
   undici@7.18.2: {}
 
@@ -33068,7 +33103,7 @@ snapshots:
       '@wdio/utils': 9.24.0
       deepmerge-ts: 7.1.5
       https-proxy-agent: 7.0.6
-      undici: 6.24.1
+      undici: 6.26.0
       ws: 8.19.0
     transitivePeerDependencies:
       - bare-abort-controller
@@ -33078,18 +33113,18 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  webdriver@9.27.1:
+  webdriver@9.27.2:
     dependencies:
       '@types/node': 20.19.37
       '@types/ws': 8.18.1
-      '@wdio/config': 9.27.1
+      '@wdio/config': 9.27.2
       '@wdio/logger': 9.18.0
-      '@wdio/protocols': 9.27.1
-      '@wdio/types': 9.27.1
-      '@wdio/utils': 9.27.1
+      '@wdio/protocols': 9.27.2
+      '@wdio/types': 9.27.2
+      '@wdio/utils': 9.27.2
       deepmerge-ts: 7.1.5
       https-proxy-agent: 7.0.6
-      undici: 6.24.1
+      undici: 6.26.0
       ws: 8.19.0
     transitivePeerDependencies:
       - bare-abort-controller
@@ -33172,16 +33207,16 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  webdriverio@9.27.1(puppeteer-core@24.34.0):
+  webdriverio@9.27.2(puppeteer-core@24.34.0):
     dependencies:
       '@types/node': 20.19.37
       '@types/sinonjs__fake-timers': 8.1.5
-      '@wdio/config': 9.27.1
+      '@wdio/config': 9.27.2
       '@wdio/logger': 9.18.0
-      '@wdio/protocols': 9.27.1
+      '@wdio/protocols': 9.27.2
       '@wdio/repl': 9.16.2
-      '@wdio/types': 9.27.1
-      '@wdio/utils': 9.27.1
+      '@wdio/types': 9.27.2
+      '@wdio/utils': 9.27.2
       archiver: 7.0.1
       aria-query: 5.3.2
       cheerio: 1.1.2
@@ -33198,7 +33233,7 @@ snapshots:
       rgb2hex: 0.2.5
       serialize-error: 12.0.0
       urlpattern-polyfill: 10.1.0
-      webdriver: 9.27.1
+      webdriver: 9.27.2
     optionalDependencies:
       puppeteer-core: 24.34.0
     transitivePeerDependencies:
