@@ -157,6 +157,12 @@ function buildEventData(eventType: string, config: BrowserStackConfig, isCLIEnab
         if (process.env.BSTACK_A11Y_POLLING_TIMEOUT) {
             eventProperties.pollingTimeout = process.env.BSTACK_A11Y_POLLING_TIMEOUT as string
         }
+        // If any worker called browser.reloadSession(), mark the build so the
+        // session-linking dashboard can exclude its (expected) reload-orphaned sessions.
+        const reloadHappened = workerData.some((worker) => (worker as { reloadHappened?: boolean }).reloadHappened === true)
+        if (reloadHappened) {
+            eventProperties.finishedMetadata = { reason: 'session_reloaded' }
+        }
     }
 
     return {
