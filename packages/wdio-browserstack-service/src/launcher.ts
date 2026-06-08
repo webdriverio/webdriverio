@@ -117,7 +117,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             process.env.TEST_OBSERVABILITY_BUILD_TAG = process.env.TEST_REPORTING_BUILD_TAG
         }
 
-        const isBrowserStackInfra = isBrowserstackInfra(_config as BrowserstackConfig & Options.Testrunner)
+        // Pass `capabilities` so per-capability `hostname` overrides are honored too (e.g. a
+        // multi-remote config where only some capabilities target an external grid), mirroring
+        // the `shouldAddServiceVersion`/`isBrowserstackInfra` usage elsewhere in this package.
+        const isBrowserStackInfra = isBrowserstackInfra(_config as BrowserstackConfig & Options.Testrunner, capabilities as Capabilities.BrowserStackCapabilities)
         this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config, capabilities, isBrowserStackInfra)
         BStackLogger.debug(`_options data: ${JSON.stringify(_options)}`)
         BStackLogger.debug(`webdriver capabilities data: ${JSON.stringify(capabilities)}`)
