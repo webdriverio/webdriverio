@@ -92,6 +92,13 @@ export function configureCaCertificate(options?: { proxyCaCertificate?: string }
         // Trade-off: if something had already installed a custom global dispatcher (tuned
         // timeouts/pools, interceptors), that config is discarded — the idiomatic undici approach.
         setGlobalDispatcher(new Agent({ connect: { ca: mergedCa } }))
+        // The custom CA is now trusted for this process's undici fetch — the primary effect is
+        // done, so mark configured BEFORE the secondary NODE_EXTRA_CA_CERTS export below. This
+        // stops a failure in that best-effort export from (a) being logged as a total "setup
+        // failed / falling back to system trust store" when the dispatcher is in fact active, and
+        // (b) leaving `configured` false so a later call re-installs the global dispatcher.
+        configured = true
+        BStackLogger.info(`proxyCaCertificate: trusting custom CA from ${certPath} (merged with system roots).`)
         // Child Node processes (e.g. the detached cleanup spawn) inherit NODE_EXTRA_CA_CERTS and
         // trust it at startup. It must be a PEM file: reuse the customer's path when already PEM,
         // else write a PEM-converted copy (Node can't load a raw DER through that var).
@@ -99,26 +106,30 @@ export function configureCaCertificate(options?: { proxyCaCertificate?: string }
         // detached Node children, but NOT the BrowserStack Local (Go) binary, which has its own
         // proxy flags (--proxy-host, etc.). proxyCaCertificate intentionally covers the service's
         // egress, not the Local tunnel binary (consistent with the Java agent's tool-scope).
-        if (!process.env.NODE_EXTRA_CA_CERTS) {
-            let nodeExtra = certPath
-            if (!isPem) {
-                // Write the PEM-converted trust anchor into a fresh, owner-only temp dir
-                // (random name via mkdtemp) with mode 0600 + O_EXCL/O_NOFOLLOW. A predictable
-                // path in a world-writable tmpdir would let a local attacker pre-plant or
-                // symlink-race the file the process is about to TRUST as a CA.
-                const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'browserstack_sdk_ca_'))
-                nodeExtra = path.join(tmpDir, 'ca.pem')
-                const fd = fs.openSync(nodeExtra, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | (fs.constants.O_NOFOLLOW || 0), 0o600)
-                try {
-                    fs.writeFileSync(fd, pemCerts.join(''))
-                } finally {
-                    fs.closeSync(fd)
+        // Best-effort + scoped: a failure here only affects detached children, not this process
+        // (which already trusts the CA via the global dispatcher installed above).
+        try {
+            if (!process.env.NODE_EXTRA_CA_CERTS) {
+                let nodeExtra = certPath
+                if (!isPem) {
+                    // Write the PEM-converted trust anchor into a fresh, owner-only temp dir
+                    // (random name via mkdtemp) with mode 0600 + O_EXCL/O_NOFOLLOW. A predictable
+                    // path in a world-writable tmpdir would let a local attacker pre-plant or
+                    // symlink-race the file the process is about to TRUST as a CA.
+                    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'browserstack_sdk_ca_'))
+                    nodeExtra = path.join(tmpDir, 'ca.pem')
+                    const fd = fs.openSync(nodeExtra, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | (fs.constants.O_NOFOLLOW || 0), 0o600)
+                    try {
+                        fs.writeFileSync(fd, pemCerts.join(''))
+                    } finally {
+                        fs.closeSync(fd)
+                    }
                 }
+                process.env.NODE_EXTRA_CA_CERTS = nodeExtra
             }
-            process.env.NODE_EXTRA_CA_CERTS = nodeExtra
+        } catch (e) {
+            BStackLogger.warn(`proxyCaCertificate: CA is trusted for this process, but exporting NODE_EXTRA_CA_CERTS for detached child processes failed (children may not trust the custom CA): ${(e as Error).message}`)
         }
-        configured = true
-        BStackLogger.info(`proxyCaCertificate: trusting custom CA from ${certPath} (merged with system roots).`)
     } catch (e) {
         BStackLogger.warn(`proxyCaCertificate: setup failed, falling back to system trust store: ${(e as Error).message}`)
     }
