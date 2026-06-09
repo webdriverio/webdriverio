@@ -159,7 +159,8 @@ function buildEventData(eventType: string, config: BrowserStackConfig, isCLIEnab
         }
         // If any worker called browser.reloadSession(), mark the build so the
         // session-linking dashboard can exclude its (expected) reload-orphaned sessions.
-        const reloadHappened = workerData.some((worker) => (worker as { reloadHappened?: boolean }).reloadHappened === true)
+        type WorkerRecord = { reloadHappened?: boolean; usageStats?: unknown }
+        const reloadHappened = workerData.some((worker) => (worker as WorkerRecord).reloadHappened === true)
         if (reloadHappened) {
             eventProperties.finishedMetadata = { reason: 'session_reloaded' }
         }
