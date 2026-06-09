@@ -76,6 +76,20 @@ export const EDS_URL = 'https://eds.browserstack.com'
 
 export const SUPPORTED_BROWSERS_FOR_AI = ['chrome', 'microsoftedge', 'firefox']
 
+export const SUPPORTED_BROWSERS_FOR_ACCESSIBILITY = ['chrome', 'chromefortesting', 'safari']
+
+export const MIN_BROWSER_VERSIONS_A11Y = {
+    chrome: 95,
+    chromefortesting: 141,
+    safari: 18.4
+} as const
+
+export const MIN_BROWSER_VERSIONS_A11Y_NON_BSTACK = {
+    chrome: 100,
+    chromefortesting: 141,
+    safari: 18.4
+} as const
+
 export const TCG_URL = 'https://tcg.browserstack.com'
 
 export const TCG_INFO = {
