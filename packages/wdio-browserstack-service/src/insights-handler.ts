@@ -19,6 +19,8 @@ import {
     getUniqueIdentifier,
     getUniqueIdentifierForCucumber,
     isBrowserstackSession,
+    isLoadTestingSession,
+    getLtsSessionId,
     isScreenshotCommand,
     isUndefined,
     o11yClassErrorHandler,
@@ -65,12 +67,32 @@ class _InsightsHandler {
     public currentTestId: string | undefined
     public cbtQueue: Array<CBTData> = []
 
+    // LTS gates cached at construction. Env vars are stable for the JVM/process
+    // lifetime — recomputing on every event was 6 process.env reads per test
+    // event (5 inline ternaries across getRunData/cucumber paths + 1 in
+    // getIntegrationsObject). Cache once + reuse.
+    private readonly _ltsActive: boolean
+    private readonly _ltsSessionId: string
+
     constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, private _framework?: string, _userCaps?: Capabilities.ResolvedTestrunnerCapabilities, _options?: BrowserstackConfig & BrowserstackOptions) {
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
         const sessionId = (this._browser as WebdriverIO.Browser).sessionId
 
         this._userCaps = _userCaps
         this._options = _options
+
+        this._ltsActive = isLoadTestingSession()
+        this._ltsSessionId = this._ltsActive ? getLtsSessionId() : ''
+        // One-time misconfig warning: BROWSERSTACK_LTS=true is the documented
+        // local-repro opt-in flag, but without BROWSERSTACK_LTS_SESSION_ID
+        // (which the LTS pod infrastructure normally injects), event emission
+        // will pair product='loadTesting' with the WebDriver-assigned
+        // session_id rather than the pod-iteration id. Backend won't be able
+        // to correlate the row to an LTS pod iteration. Surface the
+        // misconfiguration once instead of silently shipping mismatched rows.
+        if (this._ltsActive && !this._ltsSessionId) {
+            BStackLogger.warn('LTS active (BROWSERSTACK_LTS=true) but BROWSERSTACK_LTS_SESSION_ID is not set — event payload will pair product=loadTesting with WebDriver-assigned session_id rather than the pod-iteration id. Set BROWSERSTACK_LTS_SESSION_ID to silence this warning.')
+        }
 
         this._platformMeta = {
             browserName: caps?.browserName,
@@ -374,7 +396,8 @@ class _InsightsHandler {
         if (eventType === 'HookRunStarted') {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
-                const provider = getCloudProvider(this._browser)
+                // LTS reporter override (see getCloudProvider note in util.ts)
+                const provider = this._ltsActive ? 'browserstack' : getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
             }
         }
@@ -713,7 +736,8 @@ class _InsightsHandler {
         if ((eventType === 'TestRunFinished' || eventType === 'HookRunFinished') && results) {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
-                const provider = getCloudProvider(this._browser)
+                // LTS reporter override (see getCloudProvider note in util.ts)
+                const provider = this._ltsActive ? 'browserstack' : getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
             }
             const { error, passed } = results
@@ -738,7 +762,8 @@ class _InsightsHandler {
         if (eventType === 'TestRunStarted' || eventType === 'TestRunSkipped' || eventType === 'HookRunStarted') {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
-                const provider = getCloudProvider(this._browser)
+                // LTS reporter override (see getCloudProvider note in util.ts)
+                const provider = this._ltsActive ? 'browserstack' : getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
             }
         }
@@ -848,7 +873,8 @@ class _InsightsHandler {
         if (eventType === 'TestRunStarted' || eventType === 'TestRunSkipped') {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
-                const provider = getCloudProvider(this._browser)
+                // LTS reporter override (see getCloudProvider note in util.ts)
+                const provider = this._ltsActive ? 'browserstack' : getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
             }
         }
@@ -915,7 +941,8 @@ class _InsightsHandler {
         const integrationsData: Record<string, IntegrationObject> = {}
 
         if (this._browser && this._platformMeta) {
-            const provider = getCloudProvider(this._browser) as keyof IntegrationObject
+            // LTS reporter override (see getCloudProvider note in util.ts)
+            const provider = (this._ltsActive ? 'browserstack' : getCloudProvider(this._browser)) as keyof IntegrationObject
             integrationsData[provider] = this.getIntegrationsObject()
         }
 
@@ -940,13 +967,19 @@ class _InsightsHandler {
         BStackLogger.debug(`Driver capabilities used for integration object: ${JSON.stringify(caps)}`)
         BStackLogger.debug(`User capabilities used for integration object: ${JSON.stringify(this._userCaps)}`)
 
+        // LTS: override session_id with the pod-iteration LTS env id and
+        // force product='loadTesting' so TestHub's o11y classifier resolves
+        // test_run.origin=LoadTesting. Mirrors py-sdk 0efca1ae (session_id
+        // override at event-emission layer) + a245a814 (product=loadTesting
+        // tag on AutomationSession). Non-LTS runs see zero behavior change.
+        // ltsActive + ltsSessionId are cached at construction (see constructor).
         return {
             capabilities: caps,
-            session_id: sessionId,
+            session_id: (this._ltsActive && this._ltsSessionId) ? this._ltsSessionId : sessionId,
             browser: caps?.browserName,
             browser_version: caps?.browserVersion,
             platform: caps?.platformName,
-            product: this._platformMeta?.product,
+            product: this._ltsActive ? 'loadTesting' : this._platformMeta?.product,
             platform_version: getPlatformVersion(caps, this._userCaps as WebdriverIO.Capabilities),
             device: getResolvedDeviceName(caps, this._userCaps as WebdriverIO.Capabilities)
         }
