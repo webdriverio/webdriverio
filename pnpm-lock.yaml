@@ -276,6 +276,9 @@ importers:
       '@wdio/local-runner':
         specifier: workspace:*
         version: link:../packages/wdio-local-runner
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../packages/wdio-logger
       '@wdio/mocha-framework':
         specifier: workspace:*
         version: link:../packages/wdio-mocha-framework
@@ -16509,7 +16512,7 @@ snapshots:
   '@babel/helper-module-imports@7.27.1':
     dependencies:
       '@babel/traverse': 7.28.5
-      '@babel/types': 7.28.5
+      '@babel/types': 7.29.0
     transitivePeerDependencies:
       - supports-color
 
@@ -29764,7 +29767,7 @@ snapshots:
   path-scurry@1.11.1:
     dependencies:
       lru-cache: 10.4.3
-      minipass: 7.1.2
+      minipass: 7.1.3
 
   path-scurry@2.0.1:
     dependencies:

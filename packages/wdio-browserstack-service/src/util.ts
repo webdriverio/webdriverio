@@ -41,7 +41,10 @@ import {
     APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
     APP_ALLY_ISSUES_ENDPOINT,
     CLI_DEBUG_LOGS_FILE,
-    WDIO_NAMING_PREFIX
+    WDIO_NAMING_PREFIX,
+    MIN_BROWSER_VERSIONS_A11Y,
+    MIN_BROWSER_VERSIONS_A11Y_NON_BSTACK,
+    SUPPORTED_BROWSERS_FOR_ACCESSIBILITY
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -482,20 +485,44 @@ export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: st
             return false
         }
 
-        if (platformMeta?.browser_name?.toLowerCase() !== 'chrome') {
-            BStackLogger.warn('Accessibility Automation will run only on Chrome browsers.')
-            return false
-        }
+        const browserName = platformMeta?.browser_name?.toLowerCase()
         const browserVersion = platformMeta?.browser_version
-        if ( !isUndefined(browserVersion) && !(browserVersion === 'latest' || parseFloat(browserVersion + '') > 94)) {
-            BStackLogger.warn('Accessibility Automation will run only on Chrome browser version greater than 94.')
+
+        const validBrowsers = SUPPORTED_BROWSERS_FOR_ACCESSIBILITY
+        if (!browserName || !validBrowsers.includes(browserName)) {
+            BStackLogger.warn(`Accessibility Automation supports Chrome 95+, Chrome for Testing 141+, and Safari 18.4+. Current browser: ${browserName}`)
             return false
         }
 
-        if (chromeOptions?.args?.includes('--headless')) {
-            BStackLogger.warn('Accessibility Automation will not run on legacy headless mode. Switch to new headless mode or avoid using headless mode.')
-            return false
+        if (browserName === 'chrome' || browserName === 'chromefortesting') {
+            const minVersion = MIN_BROWSER_VERSIONS_A11Y[browserName as keyof typeof MIN_BROWSER_VERSIONS_A11Y]
+            if (browserVersion && browserVersion !== 'latest') {
+                const version = parseInt(browserVersion.toString().split('.')[0] || '0', 10)
+                if (version < minVersion) {
+                    BStackLogger.warn(`Accessibility Automation requires ${browserName === 'chrome' ? 'Chrome' : 'Chrome for Testing'} version ${minVersion} or higher.`)
+                    return false
+                }
+            }
+
+            if (chromeOptions?.args?.includes('--headless')) {
+                BStackLogger.warn('Accessibility Automation will not run on legacy headless mode. Switch to new headless mode or avoid using headless mode.')
+                return false
+            }
         }
+
+        // Safari validation
+        if (browserName === 'safari') {
+            if (browserVersion && browserVersion !== 'latest') {
+                const [currentMajor = 0, currentMinor = 0] = browserVersion.toString().split('.').map(Number)
+                const [requiredMajor = 0, requiredMinor = 0] = MIN_BROWSER_VERSIONS_A11Y.safari.toString().split('.').map(Number)
+
+                if (currentMajor < requiredMajor || (currentMajor === requiredMajor && currentMinor < requiredMinor)) {
+                    BStackLogger.warn(`Accessibility Automation requires Safari version ${MIN_BROWSER_VERSIONS_A11Y.safari} or higher.`)
+                    return false
+                }
+            }
+        }
+
         return true
     } catch (error) {
         BStackLogger.debug(`Exception in checking capabilities compatibility with Accessibility. Error: ${error}`)
@@ -503,18 +530,47 @@ export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: st
     return false
 }
 
-export const validateCapsWithNonBstackA11y = (browserName?: string | undefined, browserVersion?:string | undefined )  => {
+export const validateCapsWithNonBstackA11y = (browserName?: string | undefined, browserVersion?:string | undefined)  => {
+    try {
+        const browser = browserName?.toLowerCase()
 
-    if (browserName?.toLowerCase() !== 'chrome') {
-        BStackLogger.warn('Accessibility Automation will run only on Chrome browsers.')
-        return false
-    }
-    if (!isUndefined(browserVersion) && !(browserVersion === 'latest' || parseFloat(browserVersion + '') > 100)) {
-        BStackLogger.warn('Accessibility Automation will run only on Chrome browser version greater than 100.')
-        return false
-    }
-    return true
+        // Support Chrome, Chrome for Testing (ChromeForTesting), and Safari on non-BrowserStack infrastructure
+        const validBrowsers = ['chrome', 'chromefortesting', 'safari']
+        if (!browser || !validBrowsers.includes(browser)) {
+            BStackLogger.warn('Accessibility Automation on non-BrowserStack infrastructure supports Chrome 100+, Chrome for Testing 141+, and Safari 18.4+.')
+            return false
+        }
 
+        // Chrome/Chrome for Testing validation
+        if (browser === 'chrome' || browser === 'chromefortesting') {
+            const minVersion = MIN_BROWSER_VERSIONS_A11Y_NON_BSTACK[browser as keyof typeof MIN_BROWSER_VERSIONS_A11Y_NON_BSTACK]
+            if (browserVersion && browserVersion !== 'latest') {
+                const version = parseInt(browserVersion.toString().split('.')[0] || '0', 10)
+                if (version < minVersion) {
+                    BStackLogger.warn(`Accessibility Automation requires ${browser === 'chrome' ? 'Chrome' : 'Chrome for Testing'} version ${minVersion}+ on non-BrowserStack infrastructure.`)
+                    return false
+                }
+            }
+        }
+
+        // Safari validation
+        if (browser === 'safari') {
+            if (browserVersion && browserVersion !== 'latest') {
+                const [currentMajor = 0, currentMinor = 0] = browserVersion.toString().split('.').map(Number)
+                const [requiredMajor = 0, requiredMinor = 0] = MIN_BROWSER_VERSIONS_A11Y_NON_BSTACK.safari.toString().split('.').map(Number)
+
+                if (currentMajor < requiredMajor || (currentMajor === requiredMajor && currentMinor < requiredMinor)) {
+                    BStackLogger.warn(`Accessibility Automation requires Safari version ${MIN_BROWSER_VERSIONS_A11Y_NON_BSTACK.safari}+ on non-BrowserStack infrastructure.`)
+                    return false
+                }
+            }
+        }
+
+        return true
+    } catch (error) {
+        BStackLogger.debug(`Exception in checking capabilities compatibility with Accessibility. Error: ${error}`)
+    }
+    return false
 }
 
 export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, testTitle: string, accessibilityOptions?: { [key: string]: string; }, world?: { [key: string]: unknown; }, isCucumber?: boolean ) => {
@@ -1549,6 +1605,77 @@ export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(c
         } else if (userCaps[key as keyof WebdriverIO.Capabilities]) {
             BStackLogger.debug(`Got ${key} from user caps`)
             return String(userCaps[key as keyof WebdriverIO.Capabilities])
+        }
+    }
+    return undefined
+})
+
+/**
+ * Resolve a stable, human-readable device identifier for the
+ * `device` field on test_run integrations payloads.
+ *
+ * TestHub dedupes test_runs by a hash that includes `device`. For
+ * App-Automate flows that pass a regex device request (e.g. `.*Pixel.*`)
+ * across multiple platforms, the SDK previously sent the input regex
+ * string, causing two parallel sessions on physically different devices
+ * to collide on the hash and merge. This helper prefers the Appium
+ * server-resolved fields (`deviceModel` / `appium:deviceModel`) before
+ * falling back to the requested capabilities.
+ *
+ * Multiremote: `driverCaps` for a `MultiRemoteBrowser` is a map of
+ * `{instanceName: WebdriverIO.Capabilities, …}` rather than flat caps;
+ * the helper detects that shape and walks each instance.
+ *
+ * @param driverCaps - live driver capabilities (`browser.capabilities`)
+ *                     where Appium server-resolved fields are populated
+ * @param requestedCaps - user-requested capabilities (runner caps / yml)
+ *                        used as a fallback
+ */
+export const getResolvedDeviceName = o11yErrorHandler(function getResolvedDeviceName(
+    driverCaps?: WebdriverIO.Capabilities | Record<string, { capabilities?: WebdriverIO.Capabilities }>,
+    requestedCaps?: WebdriverIO.Capabilities | Record<string, { capabilities?: WebdriverIO.Capabilities }>,
+): string | undefined {
+    const flattenMultiremote = (
+        caps: WebdriverIO.Capabilities | Record<string, { capabilities?: WebdriverIO.Capabilities }> | undefined,
+    ): WebdriverIO.Capabilities[] => {
+        if (!caps) {return []}
+        const obj = caps as Record<string, unknown>
+        if (obj['deviceModel'] || obj['appium:deviceModel'] || obj['deviceName'] || obj['bstack:options']) {
+            // looks like flat caps
+            return [caps as WebdriverIO.Capabilities]
+        }
+        // looks like a multiremote map: {instanceName: {capabilities: {...}}}
+        return Object.values(obj)
+            .filter((v): v is { capabilities?: WebdriverIO.Capabilities } =>
+                v !== null && typeof v === 'object' && 'capabilities' in (v as object))
+            .map(v => v.capabilities as WebdriverIO.Capabilities)
+            .filter(Boolean)
+    }
+
+    const sources: WebdriverIO.Capabilities[] = [
+        ...flattenMultiremote(driverCaps),
+        ...flattenMultiremote(requestedCaps),
+    ]
+    if (!sources.length) {return undefined}
+
+    const pickString = (obj: Record<string, unknown> | undefined, key: string): string | undefined => {
+        const v = obj?.[key]
+        return typeof v === 'string' && v.length > 0 ? v : undefined
+    }
+    // Precedence: prefer Appium server-resolved deviceModel; fall back through
+    // requested cap variants. `bstack:options.deviceName` is the user's regex
+    // for App-Automate runs, kept as a fallback for the non-resolved case.
+    const paths: Array<(c: Record<string, unknown>) => string | undefined> = [
+        c => pickString(c, 'deviceModel'),
+        c => pickString(c, 'appium:deviceModel'),
+        c => pickString(c['bstack:options'] as Record<string, unknown> | undefined, 'deviceName'),
+        c => pickString(c, 'appium:deviceName'),
+        c => pickString(c, 'deviceName'),
+    ]
+    for (const path of paths) {
+        for (const src of sources) {
+            const v = path(src as unknown as Record<string, unknown>)
+            if (v) {return v}
         }
     }
     return undefined

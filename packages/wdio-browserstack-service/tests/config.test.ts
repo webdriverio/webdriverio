@@ -55,3 +55,33 @@ describe('BrowserStackConfig appAutomate detection', () => {
         expect(cfg.appAutomate).toBe(true)
     })
 })
+
+describe('BrowserStackConfig isBrowserStackInfra gating', () => {
+    beforeEach(() => {
+        ;(BrowserStackConfig as any)._instance = undefined
+    })
+
+    it('marks neither automate nor app_automate for a web run on an external (non-BrowserStack) grid', () => {
+        const cfg = new BrowserStackConfig(baseOptions, baseConfig, [
+            { browserName: 'chrome' },
+        ] as any, false)
+        expect(cfg.automate).toBe(false)
+        expect(cfg.appAutomate).toBe(false)
+    })
+
+    it('does not mark app_automate from app caps when not on BrowserStack infra', () => {
+        const cfg = new BrowserStackConfig(baseOptions, baseConfig, [
+            { platformName: 'iOS', 'appium:app': 'bs://xyz' },
+        ] as any, false)
+        expect(cfg.appAutomate).toBe(false)
+        expect(cfg.automate).toBe(false)
+    })
+
+    it('keeps automate true for a web run on BrowserStack infra', () => {
+        const cfg = new BrowserStackConfig(baseOptions, baseConfig, [
+            { browserName: 'chrome' },
+        ] as any, true)
+        expect(cfg.automate).toBe(true)
+        expect(cfg.appAutomate).toBe(false)
+    })
+})
