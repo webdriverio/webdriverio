@@ -14,6 +14,7 @@ import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cu
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
 import { DEFAULT_OPTIONS, NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV } from './constants.js'
+import { configureCaCertificate } from './caCert.js'
 import CrashReporter from './crash-reporter.js'
 import AccessibilityHandler from './accessibility-handler.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -72,6 +73,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         private _config: Options.Testrunner
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
+        // SDK-5953: trust the customer CA (proxyCaCertificate / BROWSERSTACK_EXTRA_CA_CERTS)
+        // for all outbound HTTPS (undici fetch) in the worker process. Merged with system roots.
+        configureCaCertificate(this._options)
         // added to maintain backward compatibility with webdriverIO v5
         if (!this._config) {
             this._config = this._options
