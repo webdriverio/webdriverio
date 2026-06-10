@@ -252,6 +252,30 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     if (BrowserstackCLI.getInstance().isRunning()) {
                         await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.POST, { browser: this._browser, hubUrl: this._config.hostname })
                         this._insightsHandler.setGitConfigPath()
+                        /**
+                         * SDK-6277: register the command/result listeners in the CLI/binary flow too,
+                         * so the user's saveScreenshot()/takeScreenshot() command result is captured and
+                         * forwarded for screenshot-on-failure. Without this the screenshot is dropped in v8.
+                         * (browserCommand routes the screenshot over gRPC in CLI mode — see insights-handler.)
+                         */
+                        this._browser.on('command', async (command) => {
+                            if (shouldProcessEventForTesthub('')) {
+                                this._insightsHandler?.browserCommand(
+                                    'client:beforeCommand',
+                                    Object.assign(command, { sessionId }),
+                                    this._currentTest
+                                )
+                            }
+                        })
+                        this._browser.on('result', (result) => {
+                            if (shouldProcessEventForTesthub('')) {
+                                this._insightsHandler?.browserCommand(
+                                    'client:afterCommand',
+                                    Object.assign(result, { sessionId }),
+                                    this._currentTest
+                                )
+                            }
+                        })
                         PerformanceTester.end(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.PRE_INITIALIZE)
                         return
                     }

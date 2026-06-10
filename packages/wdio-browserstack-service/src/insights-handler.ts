@@ -573,12 +573,34 @@ class _InsightsHandler {
         const body = 'body' in args ? args.body : undefined
         const result = 'result' in args ? args.result : undefined
         if (Boolean(process.env[TESTOPS_SCREENSHOT_ENV]) && isScreenshotCommand(args) && result?.value) {
-            await this.listener.onScreenshot([{
-                test_run_uuid: testMeta.uuid,
-                timestamp: new Date().toISOString(),
-                message: result.value,
-                kind: 'TEST_SCREENSHOT'
-            }])
+            /**
+             * SDK-6277: in the CLI/binary (v8) flow, forward the screenshot to the binary over gRPC
+             * as a TEST_SCREENSHOT log. The binary uploads it via its own authorized testhub session.
+             * The direct-HTTP listener.onScreenshot() path 401s in CLI mode (the worker's binary-issued
+             * JWT is not valid for direct collector POSTs).
+             */
+            await (BrowserstackCLI.getInstance().isRunning()
+                ? BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.LOG, HookState.POST, {
+                    logEntry: {
+                        kind: 'TEST_SCREENSHOT',
+                        message: result.value,
+                        timestamp: new Date().toISOString()
+                    }
+                })
+                : this.listener.onScreenshot([{
+                    test_run_uuid: testMeta.uuid,
+                    timestamp: new Date().toISOString(),
+                    message: result.value,
+                    kind: 'TEST_SCREENSHOT'
+                }]))
+        }
+
+        if (BrowserstackCLI.getInstance().isRunning()) {
+            /**
+             * SDK-6277: in CLI mode the binary captures command/network logs itself; the service only
+             * forwards the screenshot above. The direct-HTTP per-command logCreated() path 401s here.
+             */
+            return
         }
 
         const requestData = this._commands[dataKey]
