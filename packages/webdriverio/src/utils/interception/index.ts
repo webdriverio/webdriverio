@@ -46,7 +46,7 @@ export default class WebDriverInterception {
     #overwrittenResponseBodies = new Map<string, remote.NetworkBytesValue>()
     #requestPostData = new Map<string, string>()
     #isCollectingNetworkData: boolean
-    #isResponseCollected = false
+    #hasOneResponseCollected = false
 
     constructor(
         pattern: URLPattern,
@@ -283,7 +283,7 @@ export default class WebDriverInterception {
         }).catch(this.#handleNetworkProvideResponseError)
     }
 
-    async #handleResponseCompleted(request: Response) {
+    async #handleResponseCompleted(response: Response) {
         /**
          * don't do anything if:
          * - request is not matching the pattern
@@ -291,45 +291,42 @@ export default class WebDriverInterception {
          */
         if (
             this.#browser.options.maxSpyCollectedBodySize === 0 ||
-            !this.#pattern.test(request.request.url)
+            !this.#pattern.test(response.request.url) ||
+            !this.#matchesFilterOptions(response, { includePostData: false })
         ) {
             return
         }
 
-        if (!this.#matchesFilterOptions(request, { includePostData: false })) {
-            return
-        }
-
-        const requestWithPostData = await this.#populateRequestPostData(request)
+        const requestWithPostData = await this.#populateRequestPostData(response)
         if (!this.#matchesPostDataFilter(requestWithPostData)) {
-            this.#requestPostData.delete(request.request.request)
+            this.#requestPostData.delete(response.request.request)
             return
         }
 
-        const call = this.#getCall(request.request.request)
-        if (call) {
-            this.#attachPostData(call)
+        const call = this.#getCall(response.request.request)
+        if (!call) {
+            return
         }
+
+        this.#attachPostData(call)
 
         /**
          * try populate response body
          */
         try {
             const { bytes } = await this.#browser.networkGetData({
-                request: request.request.request,
+                request: response.request.request,
                 dataType: 'response'
             })
 
             if (bytes) {
-                if (call) {
-                    call.body = bytes.value
-                }
+                call.body = bytes.value
             }
         } catch (err: unknown) {
-            log.debug(`Failed to get response body for ${request.request.request}: ${(err as Error).message}`)
+            log.debug(`Failed to get response body for ${response.request.request}: ${(err as Error).message}`)
         } finally {
-            this.#isResponseCollected = true
-            this.#requestPostData.delete(request.request.request)
+            this.#hasOneResponseCollected = true
+            this.#requestPostData.delete(response.request.request)
         }
     }
 
@@ -518,7 +515,7 @@ export default class WebDriverInterception {
 
     get hasAtLeastOneResponseReceived(): boolean {
         const isResponseReceived = this.calls && this.calls.length > 0
-        return isResponseReceived && (!this.#isCollectingNetworkData || this.#isResponseCollected)
+        return isResponseReceived && (!this.#isCollectingNetworkData || this.#hasOneResponseCollected)
     }
 
     /**
@@ -528,7 +525,7 @@ export default class WebDriverInterception {
         this.#calls = []
         this.#overwrittenResponseBodies.clear()
         this.#requestPostData.clear()
-        this.#isResponseCollected = false
+        this.#hasOneResponseCollected = false
         return this
     }
 
