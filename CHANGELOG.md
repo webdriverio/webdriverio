@@ -23,6 +23,29 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.28.0 (2026-06-10)
+
+#### :bug: Bug Fix
+* [#15291](https://github.com/webdriverio/webdriverio/pull/15291) fix: logger not cjs compliant ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :house: Internal
+* Other
+  * [#15292](https://github.com/webdriverio/webdriverio/pull/15292) ci: Fix unzip hangs issue with node 24.16 ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-browserstack-service`, `wdio-protocols`, `webdriver`
+  * [#15283](https://github.com/webdriverio/webdriverio/pull/15283) fix: main pipeline failures & browserStack `config.accessibility` & more ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### Committers: 9
+- Aakash Hotchandani ([@AakashHotchandani](https://github.com/AakashHotchandani))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- JinHyuk Sung ([@sjh9714](https://github.com/sjh9714))
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Noritaka Kobayashi ([@noritaka1166](https://github.com/noritaka1166))
+- Vishnu Vardhan ([@vishnuv688](https://github.com/vishnuv688))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@harshit-browserstack](https://github.com/harshit-browserstack)
+
+
 ## v9.27.2 (2026-05-26)
 
 #### :rocket: New Feature
