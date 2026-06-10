@@ -3,7 +3,7 @@ id: nightwatch
 title: Nightwatch DevTools
 ---
 
-Nightwatch adapter for [WebdriverIO DevTools](https://github.com/webdriverio/devtools) — brings the same visual debugging UI to your Nightwatch test suite with zero test code changes.
+Nightwatch adapter for [WebdriverIO DevTools](https://github.com/webdriverio/devtools) - brings the same visual debugging UI to your Nightwatch test suite with zero test code changes.
 
 ## Installation
 
@@ -35,7 +35,7 @@ module.exports = {
 }
 ```
 
-Run your tests as normal — the DevTools UI opens automatically in a new browser window:
+Run your tests as normal - the DevTools UI opens automatically in a new browser window:
 
 ```bash
 nightwatch
@@ -111,7 +111,7 @@ globals: nightwatchDevtools({
 | `enabled` | `boolean` | `false` | Master switch. |
 | `pollIntervalMs` | `number` | `200` | Screenshot interval (ms). Lower = smoother video, more WebDriver round-trips. 200 ms ≈ 5 fps. |
 | `captureFormat` | `'jpeg' \| 'png'` | `'jpeg'` | Frame format. WebDriver screenshots are always PNG, so this only affects the encoded output. |
-| `maxWidth` / `maxHeight` / `quality` | — | — | CDP-only options, ignored in polling mode. Listed for shape compatibility with the WDIO/Selenium adapters. |
+| `maxWidth` / `maxHeight` / `quality` | - | - | CDP-only options, ignored in polling mode. Listed for shape compatibility with the WDIO/Selenium adapters. |
 
 **Prerequisites:** `fluent-ffmpeg` (already a runtime dep of the package) plus the `ffmpeg` binary on PATH. macOS: `brew install ffmpeg`. Linux: `apt install ffmpeg`. Without ffmpeg the recorder still runs but the encode step logs a warning and skips writing the file.
 
@@ -121,7 +121,7 @@ For the full screencast feature reference (browser support, output paths across 
 
 ## BiDi capture (opt-in)
 
-Enable WebDriver BiDi capture for browser console messages, JS exceptions, and network requests. Equivalent to the path selenium-devtools uses — both adapters share the same attach logic in `@wdio/devtools-core`.
+Enable WebDriver BiDi capture for browser console messages, JS exceptions, and network requests. Equivalent to the path selenium-devtools uses - both adapters share the same attach logic in `@wdio/devtools-core`.
 
 ```js
 globals: nightwatchDevtools({
@@ -164,6 +164,7 @@ pnpm example
 The Nightwatch adapter provides the same DevTools UI experience:
 
 - **[Interactive Test Rerunning & Visualization](/docs/devtools/wdio/interactive-test-rerunning)** - Real-time browser previews with test rerunning
+- **[Preserve & Rerun (Compare)](/docs/devtools/wdio/preserve-and-rerun)** - Snapshot a failing test, rerun it, and diff the two runs side-by-side
 - **[Console Logs](/docs/devtools/wdio/console-logs)** - Capture and inspect browser console output
 - **[Network Logs](/docs/devtools/wdio/network-logs)** - Monitor API calls and network activity
 - **[TestLens](/docs/devtools/wdio/testlens)** - Navigate to source code with intelligent code navigation
@@ -171,7 +172,7 @@ The Nightwatch adapter provides the same DevTools UI experience:
 
 ### Preserve & Rerun (Compare)
 
-Available for Nightwatch — same dashboard UI as WebdriverIO. The "compare with rerun" flow snapshots the failing run, re-launches the test with `DEVTOOLS_RERUN_LABEL` set (the plugin filters down to just that test name on the rerun), and the dashboard shows the two runs side-by-side aligned by command.
+Fully supported on Nightwatch - same dashboard UI as WebdriverIO. The flow snapshots the failing run, re-launches the test with `DEVTOOLS_RERUN_LABEL` set (the plugin filters down to just that test name on the rerun), and shows the two runs side-by-side aligned by command. See the [Preserve & Rerun page](/docs/devtools/wdio/preserve-and-rerun) for the full feature reference.
 
 ## Limitations
 
@@ -185,4 +186,4 @@ Nightwatch does not provide the same depth of framework hooks as WebdriverIO, so
 | Delayed result availability | Test results are only finalised in `afterEach`, not available mid-test. |
 | Screencast in polling mode only | Unlike WDIO (CDP push via `browser.getPuppeteer()`) and Selenium (CDP push via `driver.createCDPConnection`), Nightwatch lacks a stable CDP escape hatch, so frames are captured by polling `browser.takeScreenshot()`. Works on every browser Nightwatch supports; small per-frame cost proportional to the polling interval. |
 
-Overall feature parity with the WebdriverIO DevTools service is approximately **80–90%**.
+Overall feature parity with the WebdriverIO DevTools service is approximately **80-90%**.

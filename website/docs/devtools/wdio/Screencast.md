@@ -5,7 +5,7 @@ title: Session Screencast
 
 Records browser sessions as `.webm` videos. Videos are displayed in the DevTools UI alongside the snapshot and DOM mutation views.
 
-Available across all three adapters — **WebdriverIO**, **[Selenium WebDriver](/docs/devtools/selenium)**, and **[Nightwatch.js](/docs/devtools/nightwatch#screencast)**. The capture mode differs per framework (CDP push where possible, polling otherwise — see [Browser Support](#browser-support) below).
+Available across all three adapters - **WebdriverIO**, **[Selenium WebDriver](/docs/devtools/selenium)**, and **[Nightwatch.js](/docs/devtools/nightwatch#screencast)**. The capture mode differs per framework (CDP push where possible, polling otherwise - see [Browser Support](#browser-support) below).
 
 ## Demo
 
@@ -16,7 +16,7 @@ Available across all three adapters — **WebdriverIO**, **[Selenium WebDriver](
 Screencast encoding requires **ffmpeg** on `PATH` and the `fluent-ffmpeg` package:
 
 ```sh
-# Install ffmpeg — https://ffmpeg.org/download.html
+# Install ffmpeg - https://ffmpeg.org/download.html
 brew install ffmpeg        # macOS
 sudo apt install ffmpeg    # Ubuntu/Debian
 
@@ -48,10 +48,10 @@ services: [
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `enabled` | `boolean` | `false` | Enable session recording |
-| `captureFormat` | `'jpeg' \| 'png'` | `'jpeg'` | Frame image format. **Chrome/Chromium only** — controls the format Chrome sends over CDP. Ignored in polling mode (Firefox, Safari) where screenshots are always PNG. Does not affect the output video container, which is always `.webm` |
-| `quality` | `number` | `70` | JPEG compression quality 0–100. Only applies in Chrome/Chromium CDP mode with `captureFormat: 'jpeg'` |
-| `maxWidth` | `number` | `1280` | Maximum frame width in pixels. **Chrome/Chromium only** — Chrome scales frames before sending over CDP. Ignored in polling mode |
-| `maxHeight` | `number` | `720` | Maximum frame height in pixels. **Chrome/Chromium only** — same as above |
+| `captureFormat` | `'jpeg' \| 'png'` | `'jpeg'` | Frame image format. **Chrome/Chromium only** - controls the format Chrome sends over CDP. Ignored in polling mode (Firefox, Safari) where screenshots are always PNG. Does not affect the output video container, which is always `.webm` |
+| `quality` | `number` | `70` | JPEG compression quality 0-100. Only applies in Chrome/Chromium CDP mode with `captureFormat: 'jpeg'` |
+| `maxWidth` | `number` | `1280` | Maximum frame width in pixels. **Chrome/Chromium only** - Chrome scales frames before sending over CDP. Ignored in polling mode |
+| `maxHeight` | `number` | `720` | Maximum frame height in pixels. **Chrome/Chromium only** - same as above |
 | `pollIntervalMs` | `number` | `200` | Screenshot interval in milliseconds for non-Chrome browsers (polling mode). Lower = smoother video but more WebDriver round-trips during test execution |
 
 ## Browser Support
@@ -60,10 +60,10 @@ Recording works across all major browsers using automatic mode selection:
 
 | Browser | Mode | Notes |
 |---|---|---|
-| Chrome / Chromium / Edge | **CDP push** | Chrome pushes frames over the DevTools Protocol. Efficient — no impact on test command timing |
+| Chrome / Chromium / Edge | **CDP push** | Chrome pushes frames over the DevTools Protocol. Efficient - no impact on test command timing |
 | Firefox / Safari / others | **BiDi polling** | Falls back to calling `browser.takeScreenshot()` at `pollIntervalMs` intervals. Works wherever WebDriver screenshots are supported; adds a small overhead proportional to the interval |
 
-No configuration change is needed to switch modes — the service detects browser capabilities automatically and logs which mode is active.
+No configuration change is needed to switch modes - the service detects browser capabilities automatically and logs which mode is active.
 
 ## Behaviour
 
@@ -74,11 +74,11 @@ No configuration change is needed to switch modes — the service detects browse
 
 ### Where output files land
 
-The directory each adapter picks is slightly different — they all share the same resolver in `@wdio/devtools-core` but feed it different inputs:
+The directory each adapter picks is slightly different - they all share the same resolver in `@wdio/devtools-core` but feed it different inputs:
 
 | Adapter | Output location |
 |---|---|
-| **WebdriverIO** | `outputDir` if explicitly set in `wdio.conf.ts`, otherwise `rootDir` (the dir containing the config). Avoid setting `outputDir` just to control video paths — WDIO redirects worker logs there too. |
+| **WebdriverIO** | `outputDir` if explicitly set in `wdio.conf.ts`, otherwise `rootDir` (the dir containing the config). Avoid setting `outputDir` just to control video paths - WDIO redirects worker logs there too. |
 | **Selenium** | Directory of the test file that just ran, falling back to `process.cwd()`. |
 | **Nightwatch** | Directory of the test file, falling back to the directory containing `nightwatch.conf.*`, then `process.cwd()`. |
 
@@ -91,7 +91,7 @@ Filenames are adapter-specific (the framework name appears in the prefix), but t
 | Adapter | Trace JSON | Screencast video |
 |---|---|---|
 | WebdriverIO | `wdio-trace-{sessionId}.json` | `wdio-video-{sessionId}.webm` |
-| Selenium | — | `selenium-video-{sessionId}.webm` |
-| Nightwatch | — | `nightwatch-video-{sessionId}.webm` |
+| Selenium | - | `selenium-video-{sessionId}.webm` |
+| Nightwatch | - | `nightwatch-video-{sessionId}.webm` |
 
 The trace JSON is currently produced by WDIO only; Selenium and Nightwatch stream the same data live to the dashboard but don't write a snapshot file today. The video is produced by every adapter when `screencast.enabled: true`.
