@@ -110,7 +110,7 @@ globals: nightwatchDevtools({
 |--------|------|---------|-------|
 | `enabled` | `boolean` | `false` | Master switch. |
 | `pollIntervalMs` | `number` | `200` | Screenshot interval (ms). Lower = smoother video, more WebDriver round-trips. 200 ms ≈ 5 fps. |
-| `captureFormat` | `'jpeg' \| 'png'` | `'jpeg'` | Frame format. WebDriver screenshots are always PNG, so this only affects the encoded output. |
+| `captureFormat` | `'jpeg' \| 'png'` | `'jpeg'` | Per-frame pixel format handed to the ffmpeg encoder before the final `.webm` mux. In polling mode the source screenshots are always captured as PNG, so this does **not** change the capture - only the format the encoder receives per frame. |
 | `maxWidth` / `maxHeight` / `quality` | - | - | CDP-only options, ignored in polling mode. Listed for shape compatibility with the WDIO/Selenium adapters. |
 
 **Prerequisites:** `fluent-ffmpeg` (already a runtime dep of the package) plus the `ffmpeg` binary on PATH. macOS: `brew install ffmpeg`. Linux: `apt install ffmpeg`. Without ffmpeg the recorder still runs but the encode step logs a warning and skips writing the file.
@@ -172,7 +172,7 @@ The Nightwatch adapter provides the same DevTools UI experience:
 
 ### Preserve & Rerun (Compare)
 
-Fully supported on Nightwatch - same dashboard UI as WebdriverIO. The flow snapshots the failing run, re-launches the test with `DEVTOOLS_RERUN_LABEL` set (the plugin filters down to just that test name on the rerun), and shows the two runs side-by-side aligned by command. See the [Preserve & Rerun page](/docs/devtools/wdio/preserve-and-rerun) for the full feature reference.
+Fully supported on Nightwatch - same dashboard UI as WebdriverIO. The flow snapshots the failing run, re-launches just that test, and shows the two runs side-by-side aligned by command. See the [Preserve & Rerun page](/docs/devtools/wdio/preserve-and-rerun) for the full feature reference.
 
 ## Limitations
 
