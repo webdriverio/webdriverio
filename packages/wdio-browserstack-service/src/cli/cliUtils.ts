@@ -43,6 +43,15 @@ const CLI_LOCK_POLL_MS = 1000
 const CLI_DOWNLOAD_TIMEOUT_MS = 5 * 60 * 1000
 const CLI_DOWNLOAD_TMP_PREFIX = 'downloaded_file_'
 const CLI_DOWNLOAD_TMP_SUFFIX = '.zip'
+// Connection-establishment timeout for CLI network calls (update_cli + binary
+// download). Node's global fetch hard-codes this at 10s and it is NOT overridable
+// via AbortSignal, so a slow TLS/TCP handshake in a constrained/containerised CI
+// network (e.g. Kubernetes pods) aborts with UND_ERR_CONNECT_TIMEOUT even though
+// the endpoint is healthy (SDK-6152). Routed through a custom undici dispatcher.
+// Overridable via env for tuning.
+const CLI_CONNECT_TIMEOUT_MS = Number(process.env.BROWSERSTACK_CLI_CONNECT_TIMEOUT_MS) || 60 * 1000
+const CLI_FETCH_MAX_ATTEMPTS = 3
+const CLI_FETCH_RETRY_BASE_DELAY_MS = 500
 
 export class CLIUtils {
     static automationFrameworkDetail = {}
@@ -199,7 +208,9 @@ export class CLIUtils {
             logger.debug(`Resolved binary path: ${finalBinaryPath}`)
             return finalBinaryPath
         } catch (err) {
-            logger.debug(
+            // Surface at warn (not debug) so a failed CLI setup is visible instead of
+            // the run exiting silently with no results (SDK-6152).
+            logger.warn(
                 `Error in setting up cli path directory, Exception: ${util.format(err)}`,
             )
         }
@@ -412,6 +423,39 @@ export class CLIUtils {
         }
     }
 
+    /**
+     * fetch wrapper for CLI network calls that (a) raises undici's connect timeout
+     * above the non-overridable 10s default of global fetch and (b) retries a few
+     * times with linear backoff on transient connection failures. Both are needed
+     * for reliability in constrained CI/containerised networks (SDK-6152).
+     */
+    static fetchWithRetry = async (
+        input: string,
+        init: RequestInit,
+        label: string,
+    ): Promise<Response> => {
+        let lastError: unknown
+        for (let attempt = 1; attempt <= CLI_FETCH_MAX_ATTEMPTS; attempt++) {
+            try {
+                return await fetch(input, init, { connectTimeoutMs: CLI_CONNECT_TIMEOUT_MS })
+            } catch (err) {
+                lastError = err
+                const reason =
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (err as any)?.cause?.code || (err as any)?.code || (err as Error)?.message
+                logger.warn(
+                    `${label} attempt ${attempt}/${CLI_FETCH_MAX_ATTEMPTS} failed: ${reason}`,
+                )
+                if (attempt < CLI_FETCH_MAX_ATTEMPTS) {
+                    await new Promise((resolve) =>
+                        setTimeout(resolve, CLI_FETCH_RETRY_BASE_DELAY_MS * attempt),
+                    )
+                }
+            }
+        }
+        throw lastError
+    }
+
     static requestToUpdateCLI = async (
         queryParams: Record<string, string>,
         config: Options.Testrunner,
@@ -423,9 +467,10 @@ export class CLIUtils {
                 Authorization: `Basic ${Buffer.from(`${getBrowserStackUser(config)}:${getBrowserStackKey(config)}`).toString('base64')}`,
             },
         }
-        const response = await fetch(
+        const response = await this.fetchWithRetry(
             `${APIUtils.BROWSERSTACK_AUTOMATE_API_URL}/${UPDATED_CLI_ENDPOINT}?${params.toString()}`,
             requestInit,
+            'update_cli request',
         )
         const jsonResponse = await response.json()
         logger.debug(`response ${JSON.stringify(jsonResponse)}`)
@@ -662,9 +707,11 @@ export class CLIUtils {
                     )
                     let response: Response
                     try {
-                        response = await fetch(binDownloadUrl, {
-                            signal: abortController.signal,
-                        })
+                        response = await fetch(
+                            binDownloadUrl,
+                            { signal: abortController.signal },
+                            { connectTimeoutMs: CLI_CONNECT_TIMEOUT_MS },
+                        )
                     } finally {
                         clearTimeout(timeout)
                     }
