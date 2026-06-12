@@ -50,6 +50,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _scenariosThatRan: string[] = []
     private _lastScenarioName?: string  // Track last scenario for preferScenarioName feature
     private _scenariosRanCount: number = 0  // Count of non-skipped scenarios
+    private _reloadHappened: boolean = false  // Set when browser.reloadSession() is called; surfaced as finishedMetadata on SDKTestSuccessful so reload-orphaned builds can be excluded from session-linking
     private _failureStatuses: string[] = ['failed', 'ambiguous', 'undefined', 'unknown']
     private _browser?: WebdriverIO.Browser
     private _suiteTitle?: string
@@ -647,6 +648,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
             return Promise.resolve()
         }
 
+        this._reloadHappened = true
+
         const { setSessionName, setSessionStatus } = this._options
         const ignoreHooksStatus = this._options.testObservabilityOptions?.ignoreHooksStatus === true
 
@@ -866,7 +869,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     private saveWorkerData() {
         saveWorkerData({
-            usageStats: UsageStats.getInstance().getDataToSave()
+            usageStats: UsageStats.getInstance().getDataToSave(),
+            reloadHappened: this._reloadHappened
         })
     }
 }

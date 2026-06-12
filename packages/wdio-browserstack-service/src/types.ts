@@ -452,6 +452,9 @@ export interface EventProperties {
         }
     }
     isCLIEnabled?: boolean
+    finishedMetadata?: {
+        reason: string
+    }
 }
 
 export interface FunnelData {
