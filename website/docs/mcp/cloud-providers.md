@@ -3,13 +3,14 @@ id: cloud-providers
 title: Cloud Providers
 ---
 
-The WebdriverIO MCP server has native support for running browser and mobile automation sessions on cloud device farms. No local drivers, emulators, or simulators required. Three providers are supported:
+The WebdriverIO MCP server has native support for running browser and mobile automation sessions on cloud device farms. No local drivers, emulators, or simulators required. Four providers are supported:
 
 - **BrowserStack** — [Automate](https://www.browserstack.com/automate) (browsers) and [App Automate](https://www.browserstack.com/app-automate) (mobile apps)
 - **Sauce Labs** — [Sauce Labs](https://saucelabs.com) real device cloud and virtual browsers
-- **LambdaTest (TestMu)** — [LambdaTest](https://www.lambdatest.com) real device and browser cloud
+- **TestMu (formerly LambdaTest)** — [TestMu](https://www.lambdatest.com) real device and browser cloud
+- **TestingBot** — [TestingBot](https://testingbot.com) real device cloud and browser grid
 
-All three providers share the same workflow: set credentials, optionally upload a mobile app, then call `start_session` with the provider name. Reporting labels, tunnel configuration, and mobile app lifecycle are identical across providers.
+All four providers share the same workflow: set credentials, optionally upload a mobile app, then call `start_session` with the provider name. Reporting labels, tunnel configuration, and mobile app lifecycle are identical across providers.
 
 ## Prerequisites
 
@@ -24,16 +25,21 @@ export BROWSERSTACK_ACCESS_KEY="your_access_key"
 export SAUCE_USERNAME="your_username"
 export SAUCE_ACCESS_KEY="your_access_key"
 
-# LambdaTest (TestMu)
+# TestMu
 export TESTMU_USERNAME="your_username"
 export TESTMU_ACCESS_KEY="your_access_key"
+
+# TestingBot
+export TESTINGBOT_KEY="your_key"
+export TESTINGBOT_SECRET="your_secret"
 ```
 
 | Provider | Username Variable | Access Key Variable | Where to find |
 |----------|-------------------|---------------------|---------------|
 | BrowserStack | `BROWSERSTACK_USERNAME` | `BROWSERSTACK_ACCESS_KEY` | [Account settings](https://www.browserstack.com/accounts/settings) |
 | Sauce Labs | `SAUCE_USERNAME` | `SAUCE_ACCESS_KEY` | [User settings](https://app.saucelabs.com/user-settings) |
-| LambdaTest | `TESTMU_USERNAME` | `TESTMU_ACCESS_KEY` | [Account settings](https://accounts.lambdatest.com/detail/profile) |
+| TestMu | `TESTMU_USERNAME` | `TESTMU_ACCESS_KEY` | [Account settings](https://accounts.lambdatest.com/detail/profile) |
+| TestingBot | `TESTINGBOT_KEY` | `TESTINGBOT_SECRET` | [Account settings](https://testingbot.com/membership) |
 
 ---
 
@@ -62,13 +68,23 @@ start_session({
   osVersion: "Sequoia"
 })
 
-// LambdaTest — Linux + Firefox
+// TestMu — Linux + Firefox
 start_session({
   provider: "testmu",
   platform: "browser",
   browser: "firefox",
   browserVersion: "latest",
   os: "Linux"
+})
+
+// TestingBot — Windows + Chrome
+start_session({
+  provider: "testingbot",
+  platform: "browser",
+  browser: "chrome",
+  browserVersion: "latest",
+  os: "Windows",
+  osVersion: "11"
 })
 ```
 
@@ -101,12 +117,14 @@ The mobile workflow has three steps, identical across all providers:
 upload_app({ provider: "browserstack", path: "/absolute/path/to/app.apk" })
 upload_app({ provider: "saucelabs", path: "/path/to/app.ipa" })
 upload_app({ provider: "testmu", path: "/path/to/app.apk" })
+upload_app({ provider: "testingbot", path: "/path/to/app.apk" })
 ```
 
 Each returns an app reference you'll use in `start_session`:
 - BrowserStack: `bs://abc123...`
 - Sauce Labs: `storage:filename=MyApp.ipa`
-- LambdaTest: `lt://abc123...`
+- TestMu: `lt://abc123...`
+- TestingBot: `https://api.testingbot.com/v1/storage/<app_url>`
 
 You can optionally set a `customId` for stable references across uploads:
 
@@ -122,6 +140,7 @@ For Sauce Labs, add `region` to match your storage region (default `"eu-central-
 list_apps({ provider: "browserstack" })
 list_apps({ provider: "saucelabs" })
 list_apps({ provider: "testmu" })
+list_apps({ provider: "testingbot" })
 ```
 
 Optional parameters for all providers:
@@ -153,13 +172,22 @@ start_session({
   app: "storage:filename=MyApp.ipa"
 })
 
-// LambdaTest — Android
+// TestMu — Android
 start_session({
   provider: "testmu",
   platform: "android",
   deviceName: "Samsung Galaxy S24",
   platformVersion: "14.0",
   app: "lt://abc123..."
+})
+
+// TestingBot — Android
+start_session({
+  provider: "testingbot",
+  platform: "android",
+  deviceName: "Samsung Galaxy S24",
+  platformVersion: "14.0",
+  app: "<app_url from upload_app>"
 })
 ```
 
@@ -189,6 +217,7 @@ Before your first session with `tunnel: true`, the MCP server handles downloadin
 - `wdio://browserstack/local-binary`
 - `wdio://saucelabs/local-binary`
 - `wdio://testmu/local-binary`
+- `wdio://testingbot/local-binary`
 
 The tunnel stops automatically when you close the session.
 
@@ -215,6 +244,7 @@ If you prefer to run the tunnel manually, read the setup instructions from the M
 ```
 // Read setup instructions (from your AI client)
 wdio://saucelabs/local-binary
+wdio://testingbot/local-binary
 ```
 
 Each resource returns the download URL, platform-specific commands, and daemon instructions.
@@ -241,7 +271,8 @@ start_session({
 Sessions appear in the provider's dashboard under the specified project and build:
 - BrowserStack: [Automate dashboard](https://automate.browserstack.com)
 - Sauce Labs: [Test results](https://app.saucelabs.com/dashboard/builds)
-- LambdaTest: [Automation dashboard](https://automation.lambdatest.com)
+- TestMu: [Automation dashboard](https://automation.lambdatest.com)
+- TestingBot: [Test results](https://testingbot.com/members)
 
 ---
 
@@ -258,9 +289,18 @@ Sessions appear in the provider's dashboard under the specified project and buil
 - Mobile sessions support `automationName` (`"XCUITest"` or `"UiAutomator2"`); defaults are sensible per platform.
 - Sauce Connect tunnel is auto-managed via the `saucelabs` npm package. No external binary needed for `tunnel: true`.
 
-### LambdaTest (TestMu)
+### TestMu
 
 - Provider name is `"testmu"` in `start_session`, `list_apps`, and `upload_app`.
 - Browser sessions connect to `hub.lambdatest.com`; mobile sessions connect to `mobile-hub.lambdatest.com`; this is handled automatically.
 - Tunnel is auto-managed via the `@lambdatest/node-tunnel` npm package.
 - Mobile app management fetches both Android and iOS apps via separate API calls, then merges the results.
+
+### TestingBot
+
+- Provider name is `"testingbot"` in `start_session`, `list_apps`, and `upload_app`.
+- Browser and mobile sessions both connect to `hub.testingbot.com` on port 443 (handled automatically).
+- Credentials use `TESTINGBOT_KEY` and `TESTINGBOT_SECRET` (not a username/access-key pair like the other providers).
+- Tunnel is auto-managed via the `testingbot-tunnel-launcher` npm package (requires Java 11+).
+- No region parameter — TestingBot's hub is global.
+- Mobile browser/emulator mode is supported: set `platform: "android"` or `"ios"` with a `browser` name (e.g., `"chrome"`) instead of `app`.

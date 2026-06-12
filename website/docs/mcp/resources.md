@@ -258,7 +258,7 @@ Platform-specific download URL and daemon setup instructions for Sauce Connect P
 
 ### `wdio://testmu/local-binary`
 
-Platform-specific download URL and daemon setup instructions for LambdaTest Tunnel. Read this before using `tunnel: true` with `provider: "testmu"`; the tunnel daemon must be started before the session.
+Platform-specific download URL and daemon setup instructions for TestMu Tunnel. Only needed for `tunnel: "external"` with `provider: "testmu"` — for `tunnel: true` the SDK auto-manages the tunnel via `@lambdatest/node-tunnel`.
 
 ```json
 {
@@ -270,6 +270,29 @@ Platform-specific download URL and daemon setup instructions for LambdaTest Tunn
     "start": "./LT --user YOUR_USERNAME --key YOUR_ACCESS_KEY",
     "stop": "./LT --user YOUR_USERNAME --key YOUR_ACCESS_KEY --stop",
     "status": "./LT --status"
+  }
+}
+```
+
+---
+
+### `wdio://testingbot/local-binary`
+
+Download URL and daemon setup instructions for TestingBot Tunnel. The tunnel is a cross-platform Java JAR (requires Java 11+). Only needed for `tunnel: "external"` with `provider: "testingbot"` — for `tunnel: true` the SDK auto-manages the tunnel via `testingbot-tunnel-launcher`.
+
+```json
+{
+  "requirement": "MUST start the TestingBot Tunnel BEFORE calling start_session with tunnel: \"external\".",
+  "runtime": "Java 11+ (17 LTS recommended)",
+  "downloadUrl": "https://testingbot.com/downloads/testingbot-tunnel.zip",
+  "setup": [
+    "1. Download: curl -O https://testingbot.com/downloads/testingbot-tunnel.zip",
+    "2. Unzip: unzip testingbot-tunnel.zip",
+    "3. Start: java -jar testingbot-tunnel.jar YOUR_KEY YOUR_SECRET"
+  ],
+  "commands": {
+    "start": "java -jar testingbot-tunnel.jar YOUR_KEY YOUR_SECRET",
+    "stop": "Press Ctrl+C in the tunnel terminal, or kill the java process."
   }
 }
 ```

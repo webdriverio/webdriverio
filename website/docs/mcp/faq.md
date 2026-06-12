@@ -18,7 +18,7 @@ You can automate:
 -   **iOS apps** - on simulators or real devices
 -   **Android apps** - on emulators or real devices
 -   **Hybrid apps** - switching between native and web contexts
--   **Cloud devices** - via BrowserStack, Sauce Labs, and LambdaTest device clouds
+-   **Cloud devices** - via BrowserStack, Sauce Labs, TestMu, and TestingBot device clouds
 
 ### Do I need to write code?
 

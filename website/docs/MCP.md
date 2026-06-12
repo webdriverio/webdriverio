@@ -18,7 +18,7 @@ It provides a unified interface for:
 -   🖥️ **Desktop Browsers** (Chrome, Firefox, Edge, Safari, headed or headless)
 -   📱 **Native Mobile Apps** (iOS Simulators / Android Emulators / Real Devices via Appium)
 -   📳 **Hybrid Mobile Apps** (Native + WebView context switching via Appium)
--   ☁️ **Cloud Devices** (BrowserStack, Sauce Labs, LambdaTest real device and browser clouds)
+-   ☁️ **Cloud Devices** (BrowserStack, Sauce Labs, TestMu real device and browser clouds)
 
 through the [`@wdio/mcp`](https://www.npmjs.com/package/@wdio/mcp) package.
 
@@ -140,9 +140,9 @@ Ask Claude to automate mobile apps:
 
 | Feature | Description |
 |---------|-------------|
-| **Browser Sessions** | Run browser sessions on BrowserStack Automate, Sauce Labs, or LambdaTest (Windows, macOS, Linux) |
-| **Mobile Sessions** | Run app sessions on real devices via BrowserStack App Automate, Sauce Labs, or LambdaTest |
-| **App Management** | Upload `.apk`/`.ipa` files; list previously uploaded apps across all three providers |
+| **Browser Sessions** | Run browser sessions on BrowserStack, Sauce Labs, TestMu, or TestingBot (Windows, macOS, Linux) |
+| **Mobile Sessions** | Run app sessions on real devices via BrowserStack, Sauce Labs, TestMu, or TestingBot |
+| **App Management** | Upload `.apk`/`.ipa` files; list previously uploaded apps across all four providers |
 | **Local Tunnel** | Auto-manage provider-specific tunnel binaries for accessing localhost |
 | **Reporting** | Tag sessions with project/build/session labels (works identically across all providers) |
 
@@ -322,7 +322,7 @@ The MCP server provides 29 tools for browser and mobile automation. See [Tools](
 | `hide_keyboard` | mobile | Dismiss the software keyboard |
 | `set_geolocation` | all | Override device GPS coordinates |
 | `get_app_state` | mobile | Get app lifecycle state |
-| `list_apps` | cloud | List uploaded apps (BrowserStack, Sauce Labs, LambdaTest) |
+| `list_apps` | cloud | List uploaded apps (BrowserStack, Sauce Labs, TestMu, TestingBot) |
 | `upload_app` | cloud | Upload an `.apk`/`.ipa` to a cloud provider |
 
 ## MCP Resources
@@ -349,7 +349,8 @@ In addition to tools, the server exposes live session state as MCP resources. Se
 | `wdio://session/{sessionId}/steps` | Steps for past session |
 | `wdio://browserstack/local-binary` | BrowserStack Local setup instructions |
 | `wdio://saucelabs/local-binary` | Sauce Connect Proxy setup instructions |
-| `wdio://testmu/local-binary` | LambdaTest Tunnel setup instructions |
+| `wdio://testmu/local-binary` | TestMu Tunnel setup instructions |
+| `wdio://testingbot/local-binary` | TestingBot Tunnel setup instructions |
 
 ## Automatic Handling
 
@@ -448,7 +449,7 @@ All tools are designed with robust error handling:
 -   [Selectors Guide](./mcp/selectors) - Selector syntax documentation
 -   [Configuration](./mcp/configuration) - Configuration options
 -   [Transport](./mcp/transport) - HTTP transport setup
--   [Cloud Providers](./mcp/cloud-providers) - BrowserStack, Sauce Labs, and LambdaTest cloud integration
+-   [Cloud Providers](./mcp/cloud-providers) - BrowserStack, Sauce Labs, TestMu, and TestingBot cloud integration
 -   [FAQ](./mcp/faq) - Frequently asked questions
 -   [GitHub Repository](https://github.com/webdriverio/mcp) - Source code and issues
 -   [NPM Package](https://www.npmjs.com/package/@wdio/mcp) - Package on npm

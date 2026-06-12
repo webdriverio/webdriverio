@@ -14,7 +14,7 @@ Starts a new browser or mobile automation session. Only one active session at a 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `platform` | `"browser" \| "ios" \| "android"` | ✓ | — | Session platform |
-| `provider` | `"local" \| "browserstack" \| "saucelabs" \| "testmu"` | — | `"local"` | Session provider |
+| `provider` | `"local" \| "browserstack" \| "saucelabs" \| "testmu" \| "testingbot"` | — | `"local"` | Session provider |
 | `browser` | `"chrome" \| "firefox" \| "edge" \| "safari"` | browser only | — | Browser to launch |
 | `browserVersion` | string | — | latest | Browser version (cloud providers only, default: latest) |
 | `os` | string | — | — | Operating system (cloud providers only, e.g. `"Windows"`, `"OS X"`) |
@@ -26,7 +26,7 @@ Starts a new browser or mobile automation session. Only one active session at a 
 | `deviceName` | string | mobile only | — | Device/emulator/simulator name |
 | `platformVersion` | string | — | — | OS version (e.g. `"17.0"`, `"14"`) |
 | `appPath` | string | — | — | Path to `.app` / `.apk` / `.ipa` |
-| `app` | string | — | — | App URL (`bs://...` for BrowserStack, `storage:filename=` for Sauce Labs, `lt://...` for LambdaTest) or custom_id |
+| `app` | string | — | — | App URL (`bs://...` for BrowserStack, `storage:filename=` for Sauce Labs, `lt://...` for TestMu, TestingBot app_url) or custom_id |
 | `automationName` | `"XCUITest" \| "UiAutomator2"` | — | auto | Automation driver |
 | `autoGrantPermissions` | boolean | — | `true` | Auto-grant app permissions |
 | `autoAcceptAlerts` | boolean | — | `true` | Auto-accept alerts |
@@ -59,8 +59,11 @@ start_session({ platform: "android", provider: "browserstack", deviceName: "Sams
 // Sauce Labs iOS
 start_session({ platform: "ios", provider: "saucelabs", deviceName: "iPhone 15", platformVersion: "17.0", app: "storage:filename=MyApp.ipa" })
 
-// LambdaTest browser
+// TestMu browser
 start_session({ platform: "browser", provider: "testmu", browser: "chrome", os: "Windows", osVersion: "11" })
+
+// TestingBot browser
+start_session({ platform: "browser", provider: "testingbot", browser: "chrome", os: "Windows", osVersion: "11" })
 
 // Cloud provider with tunnel
 start_session({ platform: "browser", provider: "browserstack", browser: "chrome", tunnel: true })
@@ -444,32 +447,33 @@ execute_script({ script: "mobile: deepLink", args: [{ url: "myapp://route", bund
 
 ### `list_apps`
 
-Lists apps uploaded to a cloud provider (BrowserStack App Automate, Sauce Labs App Storage, or LambdaTest TestMu). Reads provider-specific credentials from environment.
+Lists apps uploaded to a cloud provider (BrowserStack App Automate, Sauce Labs App Storage, TestMu, or TestingBot Storage). Reads provider-specific credentials from environment.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `provider` | `"browserstack" \| "saucelabs" \| "testmu"` | ✓ | — | Cloud provider |
+| `provider` | `"browserstack" \| "saucelabs" \| "testmu" \| "testingbot"` | ✓ | — | Cloud provider |
 | `sortBy` | `"app_name" \| "uploaded_at"` | — | `"uploaded_at"` | Sort order |
 | `organizationWide` | boolean | — | `false` | (BrowserStack only) List all org uploads |
 | `limit` | number | — | `20` | Max results |
 | `region` | `"us-west-1" \| "eu-central-1" \| "apac-southeast-1"` | — | `"eu-central-1"` | Sauce Labs region |
 
 ```
-// List all three providers
+// List all four providers
 list_apps({ provider: "browserstack" })
 list_apps({ provider: "saucelabs", region: "us-west-1" })
 list_apps({ provider: "testmu" })
+list_apps({ provider: "testingbot" })
 ```
 
 ---
 
 ### `upload_app`
 
-Uploads a local `.apk` or `.ipa` to a cloud provider (BrowserStack, Sauce Labs, or LambdaTest). Returns the app URL for use in `start_session`.
+Uploads a local `.apk` or `.ipa` to a cloud provider (BrowserStack, Sauce Labs, TestMu, or TestingBot). Returns the app URL for use in `start_session`.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `provider` | `"browserstack" \| "saucelabs" \| "testmu"` | ✓ | — | Cloud provider |
+| `provider` | `"browserstack" \| "saucelabs" \| "testmu" \| "testingbot"` | ✓ | — | Cloud provider |
 | `path` | string | ✓ | — | Absolute path to the `.apk` or `.ipa` file |
 | `customId` | string | — | — | Optional custom ID for referencing the app later |
 | `region` | `"us-west-1" \| "eu-central-1" \| "apac-southeast-1"` | — | `"eu-central-1"` | Sauce Labs region |
@@ -479,4 +483,5 @@ Uploads a local `.apk` or `.ipa` to a cloud provider (BrowserStack, Sauce Labs, 
 upload_app({ provider: "browserstack", path: "/path/to/app.apk" })
 upload_app({ provider: "saucelabs", path: "/path/to/app.ipa", region: "us-west-1" })
 upload_app({ provider: "testmu", path: "/path/to/app.apk" })
+upload_app({ provider: "testingbot", path: "/path/to/app.apk" })
 ```

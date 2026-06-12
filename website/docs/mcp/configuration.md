@@ -41,7 +41,7 @@ The platform to automate.
 
 #### `provider`
 
--   **Type:** `"local" | "browserstack" | "saucelabs" | "testmu"`
+-   **Type:** `"local" | "browserstack" | "saucelabs" | "testmu" | "testingbot"`
 -   **Mandatory:** No
 -   **Default:** `"local"`
 
@@ -186,7 +186,7 @@ Either `appPath` must be provided, or `noReset: true` to connect to an already-r
 -   **Type:** `string`
 -   **Mandatory:** No
 
-Cloud provider app URL (`bs://...` for BrowserStack, `storage:filename=` for Sauce Labs, `lt://...` for LambdaTest) or `customId`. Used instead of `appPath` for cloud mobile sessions.
+Cloud provider app URL (`bs://...` for BrowserStack, `storage:filename=` for Sauce Labs, `lt://...` for TestMu, TestingBot app_url) or `customId`. Used instead of `appPath` for cloud mobile sessions.
 
 ### `appWaitActivity`
 
@@ -292,7 +292,8 @@ Each cloud provider requires its own environment variables:
 |----------|-------------------|---------------------|
 | BrowserStack | `BROWSERSTACK_USERNAME` | `BROWSERSTACK_ACCESS_KEY` |
 | Sauce Labs | `SAUCE_USERNAME` | `SAUCE_ACCESS_KEY` |
-| LambdaTest (TestMu) | `TESTMU_USERNAME` | `TESTMU_ACCESS_KEY` |
+| TestMu | `TESTMU_USERNAME` | `TESTMU_ACCESS_KEY` |
+| TestingBot | `TESTINGBOT_KEY` | `TESTINGBOT_SECRET` |
 
 Set these before starting the MCP server.
 
@@ -315,7 +316,7 @@ Enable local tunnel routing for cloud provider sessions (accessing localhost, st
 -   `true` — Auto-start the tunnel before the session and stop it on close
 -   `"external"` — Tunnel already running externally; sets provider-appropriate flags only
 
-Before using `true`, read the provider's local-binary resource (`wdio://browserstack/local-binary`, `wdio://saucelabs/local-binary`, or `wdio://testmu/local-binary`) for setup instructions specific to your OS and architecture.
+Before using `true`, read the provider's local-binary resource (`wdio://browserstack/local-binary`, `wdio://saucelabs/local-binary`, `wdio://testmu/local-binary`, or `wdio://testingbot/local-binary`) for setup instructions specific to your OS and architecture.
 
 ### `tunnelName`
 
@@ -329,7 +330,7 @@ Tunnel identifier name. Required when `tunnel: "external"` to match the running 
 -   **Type:** `{ project?: string; build?: string; session?: string }`
 -   **Mandatory:** No
 
-Cloud provider session labels visible in the provider's dashboard. Works identically across BrowserStack, Sauce Labs, and LambdaTest.
+Cloud provider session labels visible in the provider's dashboard. Works identically across BrowserStack, Sauce Labs, TestMu, and TestingBot.
 
 ### `trace`
 
