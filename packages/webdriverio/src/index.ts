@@ -187,7 +187,7 @@ export const multiremote = async function (
                 : { attachToElement: attachToElementOrOptions } satisfies CustomCommandOptions<boolean>
 
             driver.instances.forEach(instanceName =>
-                driver.getInstance(instanceName).addCommand(name, fn, options)
+                driver.getInstance(instanceName)!.addCommand(name, fn, options)
             )
 
             return origAddCommand(

@@ -112,7 +112,7 @@ export default class DevToolsService implements Services.ServiceInstance {
          */
         const browsers = Object.keys(this._browser).includes('sessionId') ?
             [this._browser] :
-            (this._browser as WebdriverIO.MultiRemoteBrowser).instances.map(i => (this._browser as WebdriverIO.MultiRemoteBrowser).getInstance(i))
+            (this._browser as WebdriverIO.MultiRemoteBrowser).instances.map(i => (this._browser as WebdriverIO.MultiRemoteBrowser).getInstance(i)!)
 
         for (const browser of browsers) {
             const puppeteer = await (browser as WebdriverIO.Browser).getPuppeteer().catch(() => undefined) as unknown as PuppeteerBrowser
