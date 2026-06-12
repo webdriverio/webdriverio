@@ -302,7 +302,17 @@ class _InsightsHandler {
         }
 
         this.setCurrentHook({ uuid: this._tests[fullTitle].uuid, finished: true })
-        this.listener.hookFinished(this.getRunData(test, 'HookRunFinished', result))
+        const hookData = this.getRunData(test, 'HookRunFinished', result)
+        // never emit a finish with a null/undefined uuid — the backend cannot match it to a
+        // HookRunStarted, leaving the hook orphaned. Same guard as afterTest: a missing entry
+        // (mislabelled identity upstream) degrades getRunData to an empty meta with no uuid.
+        // The skip-propagation below seeds its own fresh uuids per skipped test, so it stays
+        // outside the guard.
+        if (hookData.uuid) {
+            this.listener.hookFinished(hookData)
+        } else {
+            BStackLogger.warn(`Skipping HookRunFinished for '${fullTitle}' — resolved uuid is missing; not emitting an unmatched finish.`)
+        }
 
         const hookType = getHookType(test.title)
         /*
@@ -481,18 +491,26 @@ class _InsightsHandler {
                 continue
             }
 
+            // Stamp the finish time into a local and build the payload from it. We only mark the
+            // stashed meta as finished AFTER the listener call succeeds — if the emit throws, the
+            // entry must stay unfinished so a later pass does not skip (and silently re-orphan) the
+            // exact entity this sweep exists to close.
+            const finishedAt = (new Date()).toISOString()
             try {
-                meta.finishedAt = (new Date()).toISOString()
-                const testData = this.buildSweepFinishData(fullTitle, meta)
+                const testData = this.buildSweepFinishData(fullTitle, meta, finishedAt)
 
                 if (meta.kind === 'hook') {
                     this.listener.hookFinished(testData)
                 } else {
                     this.listener.testFinished(testData)
                 }
+                meta.finishedAt = finishedAt
                 BStackLogger.debug('Emitted synthetic ' + (meta.kind === 'hook' ? 'HookRunFinished' : 'TestRunFinished') + ' for unfinished ' + fullTitle + '.')
             } catch (err) {
-                BStackLogger.debug('Exception while sweeping unfinished ' + fullTitle + ': ' + err)
+                // A failed emit means the orphan is still open — that is a persisted orphan, so warn.
+                // The entry is left unstamped on purpose; per-item isolation keeps the loop sweeping
+                // the remaining entries.
+                BStackLogger.warn('Failed to emit synthetic finish while sweeping unfinished ' + fullTitle + ': ' + err)
             }
         }
     }
@@ -501,7 +519,7 @@ class _InsightsHandler {
      * Build a terminal (failed/incomplete) finish payload for a swept entry directly from the
      * stashed TestMeta, since the live framework test object is no longer available at teardown.
      */
-    private buildSweepFinishData(fullTitle: string, meta: TestMeta): TestData {
+    private buildSweepFinishData(fullTitle: string, meta: TestMeta, finishedAt: string): TestData {
         const filename = meta.fileName
         const testData: TestData = {
             uuid: meta.uuid,
@@ -518,10 +536,13 @@ class _InsightsHandler {
             location: filename ? path.relative(process.cwd(), filename) : undefined,
             vc_filepath: (this._gitConfigPath && filename) ? path.relative(this._gitConfigPath, filename) : undefined,
             started_at: meta.startedAt,
-            finished_at: meta.finishedAt,
+            finished_at: finishedAt,
             framework: this._framework,
-            result: 'failed',
-            ...getFailureObject(new Error('Test/hook did not finish before the session ended (incomplete).'))
+            // getFailureObject only returns failure/failure_reason/failure_type — never a result
+            // key — but set result AFTER the spread so the synthetic 'failed' status stays
+            // authoritative even if that ever changes.
+            ...getFailureObject(new Error('Test/hook did not finish before the session ended (incomplete).')),
+            result: 'failed'
         }
 
         testData.integrations = {}

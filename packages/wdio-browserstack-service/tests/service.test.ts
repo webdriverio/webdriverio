@@ -1122,6 +1122,52 @@ describe('teardown sweep of unfinished test/hook entries', () => {
         expect(order).toEqual(['sweep', 'onWorkerEnd'])
         onWorkerEndSpy.mockRestore()
     })
+
+    it('leaves an entry unfinished and warns when the listener throws, and still sweeps the rest', async () => {
+        const handler = new InsightsHandler(mochaBrowser, 'mocha')
+        vi.spyOn(handler['listener'], 'testStarted').mockImplementation(() => {})
+        const warnSpy = vi.spyOn(bstackLogger.BStackLogger, 'warn').mockImplementation(() => {})
+
+        const first = { title: 'throws on finish', parent: { title: 'suite' }, type: 'test' } as any
+        const second = { title: 'sweeps fine', parent: { title: 'suite' }, type: 'test' } as any
+        await handler.beforeTest(first)
+        await handler.beforeTest(second)
+
+        const testFinishedSpy = vi.spyOn(handler['listener'], 'testFinished').mockImplementation((data: any) => {
+            if (data.identifier === 'suite - throws on finish') {
+                throw new Error('listener boom')
+            }
+        })
+
+        await handler.sweepUnfinished()
+
+        // the throwing entry must stay unfinished so a later pass does not skip (re-orphan) it
+        expect(handler['_tests']['suite - throws on finish'].finishedAt).toBeUndefined()
+        // per-item isolation: the second entry is still swept and stamped
+        expect(handler['_tests']['suite - sweeps fine'].finishedAt).toBeDefined()
+        // the failed emit is surfaced at warn, not debug
+        expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to emit synthetic finish while sweeping unfinished suite - throws on finish'))
+        expect(testFinishedSpy).toHaveBeenCalledTimes(2)
+
+        warnSpy.mockRestore()
+    })
+
+    it('drains _openMochaTests and _cliTestUuids after the sweep in after()', async () => {
+        service = new BrowserstackService(
+            { testObservability: true } as any,
+            [] as any,
+            { user: 'foo', key: 'bar', framework: 'mocha' } as any
+        )
+        service['_insightsHandler'] = { sweepUnfinished: vi.fn(async () => {}) } as any
+        // simulate stale FIFO/uuid state from a timeout cycle where afterTest never drained them
+        service['_openMochaTests'] = [{ title: 'hung test' } as any]
+        service['_cliTestUuids'] = new Map([['suite - hung test', 'uuid-1']])
+
+        await service.after(0)
+
+        expect(service['_openMochaTests']).toHaveLength(0)
+        expect(service['_cliTestUuids'].size).toBe(0)
+    })
 })
 
 describe('afterScenario', () => {

@@ -584,6 +584,26 @@ describe('afterHook', () => {
             expect(insightsHandler['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z', } })
             expect(insightsHandler['getRunData']).toBeCalledTimes(1)
         })
+
+        it('emits HookRunFinished when getRunData resolves a uuid', async () => {
+            insightsHandler['_tests'] = { 'test title': { uuid: 'hook-uuid' } }
+            vi.mocked(insightsHandler['getRunData']).mockReturnValueOnce({ uuid: 'hook-uuid' } as any)
+            const hookFinishedSpy = vi.spyOn(insightsHandler['listener'], 'hookFinished').mockImplementation(() => { return [] as any })
+            await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any)
+            expect(hookFinishedSpy).toBeCalledTimes(1)
+        })
+
+        it('skips the HookRunFinished emit and warns when the resolved uuid is missing', async () => {
+            insightsHandler['_tests'] = { 'test title': { finishedAt: '2020-01-01T00:00:00.000Z' } }
+            // mislabelled identity -> empty meta -> no uuid on the run data
+            vi.mocked(insightsHandler['getRunData']).mockReturnValueOnce({ uuid: undefined } as any)
+            const hookFinishedSpy = vi.spyOn(insightsHandler['listener'], 'hookFinished').mockImplementation(() => { return [] as any })
+            const warnSpy = vi.spyOn(bstackLogger.BStackLogger, 'warn').mockImplementation(() => {})
+            await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any)
+            expect(hookFinishedSpy).not.toBeCalled()
+            expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Skipping HookRunFinished'))
+            warnSpy.mockRestore()
+        })
     })
 
     describe('cucumber', () => {

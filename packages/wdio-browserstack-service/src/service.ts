@@ -492,7 +492,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 }
             }
             await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.LOG_REPORT, HookState.POST, { test, result: results })
-            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { test, result: results, suiteTite: this._suiteTitle })
+            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { test, result: results, suiteTitle: this._suiteTitle })
             return
         }
 
@@ -592,6 +592,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
             } catch (sweepErr) {
                 BStackLogger.debug('Exception in sweepUnfinished during after(): ' + util.format(sweepErr))
             }
+            // The sweep closes the _tests entries, but the FIFO (_openMochaTests) and the
+            // CLI uuid snapshots (_cliTestUuids) are only drained in afterTest — the callback that
+            // never fired for the tests the sweep just handled. Clear them here at per-worker
+            // teardown so stale entries from a timeout cycle cannot make a later
+            // _resolveFinishedMochaTest dequeue the wrong test. Safe to clear: this runs after the
+            // sweep, no further afterTest will consume them in this worker.
+            this._openMochaTests.length = 0
+            this._cliTestUuids.clear()
 
             // Track Listener cleanup
             PerformanceTester.start(EVENTS.SDK_LISTENER_WORKER_END)
