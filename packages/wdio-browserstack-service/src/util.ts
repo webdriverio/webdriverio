@@ -126,7 +126,7 @@ export function getBrowserCapabilities(browser: WebdriverIO.Browser | WebdriverI
     }
 
     const multiCaps = caps as Capabilities.RequestedMultiremoteCapabilities
-    const globalCap = browserName && browser.getInstance(browserName) ? browser.getInstance(browserName).capabilities : {}
+    const globalCap = browserName && browser.getInstance(browserName) ? browser.getInstance(browserName)!.capabilities : {}
     const cap = browserName && multiCaps[browserName] ? multiCaps[browserName].capabilities : {}
     return { ...globalCap, ...cap } as WebdriverIO.Capabilities
 }
