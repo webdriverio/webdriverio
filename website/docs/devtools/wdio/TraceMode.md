@@ -22,6 +22,8 @@ services: [
 ]
 ```
 
+A complete, copy-pasteable reference config ships at [`examples/wdio/wdio.trace.conf.ts`](https://github.com/webdriverio/devtools/blob/main/examples/wdio/wdio.trace.conf.ts).
+
 Selenium and Nightwatch ship the same trace pipeline — see their adapter pages for framework-specific enable syntax: [Selenium](/docs/devtools/selenium#trace-mode) · [Nightwatch](/docs/devtools/nightwatch#trace-mode).
 
 ## What's inside the artifact
@@ -44,7 +46,7 @@ Commands are filtered through an allow-list before they produce trace entries. E
 - `setValue` / `sendKeys` → `Element.fill`
 - `submit`, `clear`, `selectByVisibleText`, …
 
-Internal commands like `findElement`, `waitUntil`, `executeScript` are deliberately excluded — they don't represent user-facing intent and would noise up the timeline. The full allow-list lives in `@wdio/devtools-core/action-mapping.ts`.
+Internal commands like `findElement`, `waitUntil`, `executeScript` are deliberately excluded — they don't represent user-facing intent and would noise up the timeline. The full allow-list lives in [`@wdio/devtools-core/action-mapping.ts`](https://github.com/webdriverio/devtools/blob/main/packages/core/src/action-mapping.ts).
 
 ## Output format — `traceFormat`
 
@@ -67,7 +69,7 @@ Trace mode detects mobile sessions via `platformName: 'android' | 'ios'` (case-i
 - **Mobile web** (Chrome on Android, Safari on iOS): same DOM-based snapshot pipeline as desktop.
 - **Native mobile**: the page-injected DOM scripts are guarded off; `getPageSource()` is used to grab the Appium XML tree, which feeds the snapshot serializer instead.
 
-The trace's `context-options` records `title: 'android — <deviceName>'` / `'ios — <deviceName>'` so the viewer labels frames correctly. A reference WDIO config for Android Chrome via Appium ships at `examples/wdio/wdio.mobile.conf.ts`.
+The trace's `context-options` records `title: 'android — <deviceName>'` / `'ios — <deviceName>'` so the viewer labels frames correctly. A reference WDIO config for Android Chrome via Appium ships at [`examples/wdio/wdio.mobile.conf.ts`](https://github.com/webdriverio/devtools/blob/main/examples/wdio/wdio.mobile.conf.ts).
 
 ## What trace mode skips
 
@@ -93,4 +95,4 @@ The Playwright trace viewer renders:
 
 For LLM / agent consumption, read `transcript.md` directly — it's a tight Markdown rendering of the actions with selectors and values.
 
-The trace pipeline (action-mapping, snapshot serializers, NDJSON writer, zip / directory writer) is shared across adapters via `@wdio/devtools-core`, so the artifact shape is identical no matter which adapter produced it.
+The trace pipeline (action-mapping, snapshot serializers, NDJSON writer, zip / directory writer) is shared across adapters via [`@wdio/devtools-core`](https://github.com/webdriverio/devtools/tree/main/packages/core), so the artifact shape is identical no matter which adapter produced it.
