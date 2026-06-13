@@ -9,7 +9,6 @@
       "@wdio/globals/types",
       "@wdio/allure-reporter",
       "@wdio/appium-service",
-      "@wdio/browserstack-service",
       "@wdio/devtools-service",
       "@wdio/crossbrowsertesting-service",
       "@wdio/firefox-profile-service",
