@@ -4,11 +4,14 @@ import path from 'node:path'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
+const isLinux = process.platform === 'linux'
+
 /**
  * with this config file we verify that the `webdriverio` package can spin
  * up the necessary browser runner without needing a service anymore.
  */
 export const config: WebdriverIO.Config = {
+
     /**
      * specify test files
      */
@@ -26,13 +29,6 @@ export const config: WebdriverIO.Config = {
         'goog:chromeOptions': {
             args: ['headless', 'disable-gpu']
         }
-    // }, {
-    //     browserName: 'chrome',
-    //     browserVersion: 'canary',
-    //     webSocketUrl: true,
-    //     'goog:chromeOptions': {
-    //         args: ['headless', 'disable-gpu']
-    //     }
     }, {
         browserName: 'firefox',
         webSocketUrl: true,
@@ -43,7 +39,12 @@ export const config: WebdriverIO.Config = {
         browserName: 'edge',
         webSocketUrl: true,
         'ms:edgeOptions': {
-            args: ['headless', 'disable-gpu']
+            args: [
+                'headless'
+                , 'disable-gpu',
+                // Having `WebDriverError: session not created: Chrome instance exited` on ubuntu without it!
+                ...(isLinux ? ['no-sandbox'] : [])
+            ]
         }
     }],
 
@@ -81,22 +82,6 @@ if (os.platform() === 'darwin') {
 //         webSocketUrl: true,
 //         'goog:chromeOptions': {
 //             args: ['headless', 'disable-gpu']
-//         }
-//     })
-// }
-
-/**
- * latest Firefox 124.0a1 is not available on Linux
- * Disable FF nightly tests due to WebDriver Bidi command "browsingContext.navigate" failed with error: unknown error
- * @see https://bugzilla.mozilla.org/show_bug.cgi?id=1908515
- */
-// if (os.platform() === 'win32' || os.platform() === 'darwin') {
-//     config.capabilities.push({
-//         browserName: 'firefox',
-//         webSocketUrl: true,
-//         browserVersion: 'latest',
-//         'moz:firefoxOptions': {
-//             args: ['-headless']
 //         }
 //     })
 // }
