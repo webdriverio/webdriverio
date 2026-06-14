@@ -5,6 +5,7 @@ import path from 'node:path'
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const isLinux = os.platform() === 'linux'
+const isApple = os.platform() === 'darwin'
 
 /**
  * with this config file we verify that the `webdriverio` package can spin
@@ -23,30 +24,46 @@ export const config: WebdriverIO.Config = {
     /**
      * capabilities
      */
-    capabilities: [{
-        browserName: 'chrome',
-        webSocketUrl: true,
-        'goog:chromeOptions': {
-            args: ['headless', 'disable-gpu']
-        }
-    }, {
-        browserName: 'firefox',
-        webSocketUrl: true,
-        'moz:firefoxOptions': {
-            args: ['-headless']
-        }
-    }, {
-        browserName: 'edge',
-        webSocketUrl: true,
-        'ms:edgeOptions': {
-            args: [
-                'headless',
-                'disable-gpu',
-                // Having `WebDriverError: session not created: Chrome instance exited` on ubuntu without it!
-                ...(isLinux ? ['no-sandbox'] : [])
-            ]
-        }
-    }],
+    capabilities: [
+        {
+            browserName: 'chrome',
+            webSocketUrl: true,
+            'goog:chromeOptions': {
+                args: ['headless', 'disable-gpu']
+            }
+        },
+        {
+            browserName: 'firefox',
+            webSocketUrl: true,
+            'moz:firefoxOptions': {
+                args: ['-headless']
+            }
+        },
+        {
+            browserName: 'edge',
+            webSocketUrl: true,
+            'ms:edgeOptions': {
+                args: [
+                    'headless',
+                    'disable-gpu',
+                    // Having `WebDriverError: session not created: Chrome instance exited` on ubuntu without it!
+                    ...(isLinux ? ['no-sandbox'] : [])
+                ]
+            },
+        },
+        {
+            browserName: 'chromium',
+            webSocketUrl: true,
+            'goog:chromeOptions': {
+                args: ['headless', 'disable-gpu']
+            }
+        },
+        ...(isApple ? [{
+        // Not yet supported, safari use classic WebDriver for now.
+        // webSocketUrl: true,
+            browserName: 'safari'
+        }] : [])
+    ],
 
     /**
      * test configurations
@@ -62,26 +79,3 @@ export const config: WebdriverIO.Config = {
         timeout: 60000
     }
 }
-
-if (os.platform() === 'darwin') {
-    config.capabilities.push({
-        // Not yet supported, safari use classic WebDriver for now.
-        // webSocketUrl: true,
-        browserName: 'safari'
-    })
-}
-
-/**
- * Disable these tests as they started failing, due to:
- *   > WebDriver Bidi command "browsingContext.navigate" failed with error:
- *     unknown error - net::ERR_BLOCKED_BY_CLIENT
- */
-// if (os.platform() !== 'win32') {
-//     config.capabilities.push({
-//         browserName: 'chromium',
-//         webSocketUrl: true,
-//         'goog:chromeOptions': {
-//             args: ['headless', 'disable-gpu']
-//         }
-//     })
-// }
