@@ -56,7 +56,13 @@ export const config: WebdriverIO.Config = {
             browserName: 'chromium',
             webSocketUrl: true,
             'goog:chromeOptions': {
-                args: ['headless', 'disable-gpu']
+                args: [
+                    'headless',
+                    'disable-gpu',
+                    // Having `WebDriverError: session not created: Chrome instance exited` since ubuntu 22.04 to 24.04, since the below is no more wrapped by default.
+                    // See https://github.com/webdriverio/webdriverio/issues/14168.
+                    ...(isLinux ? ['no-sandbox'] : [])
+                ]
             }
         },
         ...(isApple ? [{
