@@ -106,6 +106,7 @@
           },
           "items": [
             "devtools/wdio/interactive-test-rerunning",
+            "devtools/wdio/preserve-and-rerun",
             "devtools/wdio/multi-framework-support",
             "devtools/wdio/console-logs",
             "devtools/wdio/network-logs",
@@ -119,6 +120,15 @@
           "link": {
             "type": "doc",
             "id": "devtools/nightwatch"
+          },
+          "items": []
+        },
+        {
+          "type": "category",
+          "label": "Selenium",
+          "link": {
+            "type": "doc",
+            "id": "devtools/selenium"
           },
           "items": []
         }
@@ -249,7 +259,8 @@
           "label": "Options",
           "items": [
             "visual-testing/service-options",
-            "visual-testing/method-options"
+            "visual-testing/method-options",
+            "visual-testing/compare-options"
           ]
         },
         "visual-testing/test-output",
@@ -288,9 +299,12 @@
       "type": "category",
       "label": "MCP",
       "items": [
-        "mcp/tools",
-        "mcp/selectors",
         "mcp/configuration",
+        "mcp/transport",
+        "mcp/cloud-providers",
+        "mcp/selectors",
+        "mcp/tools",
+        "mcp/resources",
         "mcp/faq"
       ],
       "link": {

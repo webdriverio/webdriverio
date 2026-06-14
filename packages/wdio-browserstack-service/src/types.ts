@@ -65,6 +65,13 @@ export interface BrowserstackOptions extends Options.Testrunner {
 
 export interface BrowserstackConfig {
     /**
+     * Absolute path to a CA certificate (PEM, single cert or bundle) to trust for outbound
+     * HTTPS when behind an SSL-inspecting corporate proxy (Zscaler/Netskope/Forcepoint).
+     * Overridable via the `BROWSERSTACK_EXTRA_CA_CERTS` env var. Merged with the system
+     * trust store (never replaces it).
+     */
+    proxyCaCertificate?: string;
+    /**
      *`buildIdentifier` is a unique id to differentiate every execution that gets appended to
      * buildName. Choose your buildIdentifier format from the available expressions:
      * ${BUILD_NUMBER} (Default): Generates an incremental counter with every execution
@@ -375,6 +382,7 @@ export interface IntegrationObject {
     platform?: string
     product?: string
     platform_version?: string
+    device?: string
 }
 
 interface TestCodeBody {
@@ -444,6 +452,9 @@ export interface EventProperties {
         }
     }
     isCLIEnabled?: boolean
+    finishedMetadata?: {
+        reason: string
+    }
 }
 
 export interface FunnelData {

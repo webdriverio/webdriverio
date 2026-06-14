@@ -17,7 +17,30 @@ Methods options are the options that can be set per [method](./methods). If the 
 
 :::
 
-## Save Options
+# Save Options
+
+## Display & rendering
+
+---
+
+### `hideScrollBars`
+
+- **Type:** `boolean`
+- **Mandatory:** No
+- **Default:** `true`
+- **Used with:** All [methods](./methods)
+- **Supported Application Contexts:** Web, Hybrid App (Webview)
+
+Hide scrollbar(s) in the application. If set to true all scrollbar(s) will be disabled before taking a screenshot. This is set to default `true` to prevent extra issues.
+
+```typescript
+await browser.saveScreen(
+    'sample-tag',
+    {
+        hideScrollBars: false
+    }
+)
+```
 
 ### `disableBlinkingCursor`
 
@@ -59,26 +82,6 @@ await browser.saveScreen(
 )
 ```
 
-### `enableLegacyScreenshotMethod`
-
-- **Type:** `boolean`
-- **Mandatory:** No
-- **Default:** `false`
-- **Used with:** All [methods](./methods)
-- **Supported Application Contexts:** Web, Hybrid App (Webview)
-
-Use this option to switch back to the "older" screenshot method based on the W3C-WebDriver protocol. This can be helpful if your tests rely on existing baseline images or if you're running in environments that don’t fully support the newer BiDi-based screenshots.
-Note that enabling this may produce screenshots with slightly different resolution or quality.
-
-```typescript
-await browser.saveScreen(
-    'sample-tag',
-    {
-        enableLegacyScreenshotMethod: true
-    }
-)
-```
-
 ### `enableLayoutTesting`
 
 - **Type:** `boolean`
@@ -104,7 +107,46 @@ await browser.saveScreen(
 )
 ```
 
-### `hideScrollBars`
+### `enableLegacyScreenshotMethod`
+
+- **Type:** `boolean`
+- **Mandatory:** No
+- **Default:** `false`
+- **Used with:** All [methods](./methods)
+- **Supported Application Contexts:** Web, Hybrid App (Webview)
+
+Use this option to switch back to the "older" screenshot method based on the W3C-WebDriver protocol. This can be helpful if your tests rely on existing baseline images or if you're running in environments that don't fully support the newer BiDi-based screenshots.
+Note that enabling this may produce screenshots with slightly different resolution or quality.
+
+```typescript
+await browser.saveScreen(
+    'sample-tag',
+    {
+        enableLegacyScreenshotMethod: true
+    }
+)
+```
+
+### `ignoreRegionPadding`
+
+- **Type:** `number`
+- **Mandatory:** No
+- **Default:** `1`
+- **Used with:** All [methods](./methods)
+- **Supported Application Contexts:** Web, Hybrid App (Webview)
+
+Padding in device pixels added to each side of ignore regions, making each region 2× this value wider and taller. This helps avoid 1 px boundary differences that can appear on high-DPR displays or with the BiDi screenshot protocol. Set to `0` to disable.
+
+```typescript
+await browser.saveScreen(
+    'sample-tag',
+    {
+        ignoreRegionPadding: 0
+    }
+)
+```
+
+### `waitForFontsLoaded`
 
 - **Type:** `boolean`
 - **Mandatory:** No
@@ -112,16 +154,20 @@ await browser.saveScreen(
 - **Used with:** All [methods](./methods)
 - **Supported Application Contexts:** Web, Hybrid App (Webview)
 
-Hide scrollbar(s) in the application. If set to true all scrollbar(s) will be disabled before taking a screenshot. This is set to default `true` to prevent extra issues.
+Fonts, including third-party fonts, can be loaded synchronously or asynchronously. Asynchronous loading means that fonts might load after WebdriverIO determines that a page has fully loaded. To prevent font rendering issues, this module, by default, will wait for all fonts to be loaded before taking a screenshot.
 
 ```typescript
 await browser.saveScreen(
     'sample-tag',
     {
-        hideScrollBars: false
+        waitForFontsLoaded: true
     }
 )
 ```
+
+## Element visibility
+
+---
 
 ### `hideElements`
 
@@ -165,6 +211,10 @@ await browser.saveScreen(
 )
 ```
 
+## Element-specific
+
+---
+
 ### `resizeDimensions`
 
 - **Type:** `object`
@@ -189,6 +239,33 @@ await browser.saveElement(
 )
 ```
 
+### `biDiOrigin`
+
+- **Type:** `'document' | 'viewport'`
+- **Mandatory:** No
+- **Default:** `'document'`
+- **Used with:** Only for [`saveElement`](./methods#saveelement) or [`checkElement`](./methods#checkelement)
+- **Supported Application Contexts:** Web, Hybrid App (Webview)
+
+BiDi-only option that controls which coordinate origin is used when capturing element screenshots via the WebDriver BiDi protocol.
+
+- `'document'` _(default)_: renders the document layout. Works for any element position but does **not** capture composited layers (e.g. scrollbars, fixed/sticky overlays, `will-change` elements).
+- `'viewport'`: captures the composited frame as painted, including scrollbars and overlays. Requires the element to be **fully visible** in the viewport, throws a descriptive error when the element is outside or larger than the viewport.
+
+```typescript
+await browser.saveElement(
+    await $('#my-element'),
+    'sample-tag',
+    {
+        biDiOrigin: 'viewport'
+    }
+)
+```
+
+## Full-page specific
+
+---
+
 ### `userBasedFullPageScreenshot`
 
 - **Type:** `boolean`
@@ -198,7 +275,7 @@ await browser.saveElement(
 - **Supported Application Contexts:** Web, Hybrid App (Webview)
 
 When set to `true`, this option enables the **scroll-and-stitch strategy** to capture full-page screenshots.
-Instead of using the browser’s native screenshot capabilities, it scrolls through the page manually and stitches multiple screenshots together.
+Instead of using the browser's native screenshot capabilities, it scrolls through the page manually and stitches multiple screenshots together.
 This method is especially useful for pages with **lazy-loaded content** or complex layouts that require scrolling to fully render.
 
 ```typescript
@@ -255,28 +332,32 @@ await browser.saveFullPageScreen(
 )
 ```
 
-### `waitForFontsLoaded`
+# Compare (Check) Options
+
+Compare options are options that influence the way the comparison, by [ResembleJS](https://github.com/Huddle/Resemble.js) is being executed.
+
+## Visual sensitivity
+
+---
+
+### `ignoreColors`
 
 - **Type:** `boolean`
+- **Default:** `false`
 - **Mandatory:** No
-- **Default:** `true`
-- **Used with:** All [methods](./methods)
-- **Supported Application Contexts:** Web, Hybrid App (Webview)
+- **Used with:** All [Check methods](./methods#check-methods)
+- **Supported Application Contexts:** All
 
-Fonts, including third-party fonts, can be loaded synchronously or asynchronously. Asynchronous loading means that fonts might load after WebdriverIO determines that a page has fully loaded. To prevent font rendering issues, this module, by default, will wait for all fonts to be loaded before taking a screenshot.
+Even though the images are in color, the comparison will compare 2 black/white images
 
 ```typescript
-await browser.saveScreen(
+await browser.checkScreen(
     'sample-tag',
     {
-        waitForFontsLoaded: true
+        ignoreColors: true
     }
 )
 ```
-
-## Compare (Check) Options
-
-Compare options are options that influence the way the comparison, by [ResembleJS](https://github.com/Huddle/Resemble.js) is being executed.
 
 ### `ignoreAlpha`
 
@@ -297,63 +378,6 @@ await browser.checkScreen(
 )
 ```
 
-### `blockOutSideBar`
-
-- **Type:** `boolean`
-- **Default:** `true`
-- **Mandatory:** No
-- **Used with:** _Can only be used for `checkScreen()`. This is **iPad only**_
-- **Supported Application Contexts:** All
-
-Automatically block out the sidebar for iPads in landscape mode during comparisons. This prevents failures on the tab/private/bookmark native component.
-
-```typescript
-await browser.checkScreen(
-    'sample-tag',
-    {
-        blockOutSideBar: true
-    }
-)
-```
-
-### `blockOutStatusBar`
-
-- **Type:** `boolean`
-- **Default:** `true`
-- **Mandatory:** No
-- **Used with:** _This is **Mobile only**_
-- **Supported Application Contexts:** Hybrid (native part) and Native Apps
-
-Automatically block out the status and address bar during comparisons. This prevents failures on time, wifi or battery status.
-
-```typescript
-await browser.checkScreen(
-    'sample-tag',
-    {
-        blockOutStatusBar: true
-    }
-)
-```
-
-### `blockOutToolBar`
-
-- **Type:** `boolean`
-- **Default:** `true`
-- **Mandatory:** No
-- **Used with:** _This is **Mobile only**_
-- **Supported Application Contexts:** Hybrid (native part) and Native Apps
-
-Automatically block out the toolbar.
-
-```typescript
-await browser.checkScreen(
-    'sample-tag',
-    {
-        blockOutToolBar: true
-    }
-)
-```
-
 ### `ignoreAntialiasing`
 
 - **Type:** `boolean`
@@ -369,25 +393,6 @@ await browser.checkScreen(
     'sample-tag',
     {
         ignoreAntialiasing: true
-    }
-)
-```
-
-### `ignoreColors`
-
-- **Type:** `boolean`
-- **Default:** `false`
-- **Mandatory:** No
-- **Used with:** All [Check methods](./methods#check-methods)
-- **Supported Application Contexts:** All
-
-Even though the images are in color, the comparison will compare 2 black/white images
-
-```typescript
-await browser.checkScreen(
-    'sample-tag',
-    {
-        ignoreColors: true
     }
 )
 ```
@@ -429,6 +434,143 @@ await browser.checkScreen(
     }
 )
 ```
+
+### `scaleImagesToSameSize`
+
+- **Type:** `boolean`
+- **Default:** `false`
+- **Mandatory:** No
+- **Used with:** All [Check methods](./methods#check-methods)
+- **Supported Application Contexts:** All
+
+Scales 2 images to the same size before execution of comparison. Highly recommended to enable `ignoreAntialiasing` and `ignoreAlpha`
+
+```typescript
+await browser.checkScreen(
+    'sample-tag',
+    {
+        scaleImagesToSameSize: true
+    }
+)
+```
+
+## Mobile block-outs
+
+---
+
+### `blockOutStatusBar`
+
+- **Type:** `boolean`
+- **Default:** `true`
+- **Mandatory:** No
+- **Used with:** _This is **Mobile only**_
+- **Supported Application Contexts:** Hybrid (native part) and Native Apps
+
+Automatically block out the status and address bar during comparisons. This prevents failures on time, wifi or battery status.
+
+```typescript
+await browser.checkScreen(
+    'sample-tag',
+    {
+        blockOutStatusBar: true
+    }
+)
+```
+
+### `blockOutToolBar`
+
+- **Type:** `boolean`
+- **Default:** `true`
+- **Mandatory:** No
+- **Used with:** _This is **Mobile only**_
+- **Supported Application Contexts:** Hybrid (native part) and Native Apps
+
+Automatically block out the toolbar.
+
+```typescript
+await browser.checkScreen(
+    'sample-tag',
+    {
+        blockOutToolBar: true
+    }
+)
+```
+
+### `blockOutSideBar`
+
+- **Type:** `boolean`
+- **Default:** `true`
+- **Mandatory:** No
+- **Used with:** _Can only be used for `checkScreen()`. This is **iPad only**_
+- **Supported Application Contexts:** All
+
+Automatically block out the sidebar for iPads in landscape mode during comparisons. This prevents failures on the tab/private/bookmark native component.
+
+```typescript
+await browser.checkScreen(
+    'sample-tag',
+    {
+        blockOutSideBar: true
+    }
+)
+```
+
+## Region handling
+
+---
+
+### `blockOut`
+
+- **Type:** `array`
+- **Mandatory:** No
+- **Used with:** All [Check methods](./methods#check-methods)
+- **Supported Application Contexts:** All
+
+An array of rectangular areas to block out before comparison. Each entry must be an object with `x`, `y`, `width`, and `height` values (in pixels). The blocked-out areas are painted over before the diff is calculated, preventing those regions from contributing to the mismatch percentage.
+
+```typescript
+await browser.checkScreen(
+    'sample-tag',
+    {
+        blockOut: [
+            { x: 0, y: 0, width: 100, height: 50 },
+            { x: 300, y: 200, width: 80, height: 80 },
+        ]
+    }
+)
+```
+
+### `ignore`
+
+- **Type:** `array`
+- **Mandatory:** No
+- **Used with:** Only with the `checkScreen`-method, **NOT** with the `checkElement`-method
+- **Supported Application Contexts:** Native App
+
+This method will automatically blockout elements or an area on a screen based on an array of elements or an object of `x|y|width|height`.
+
+```typescript
+await browser.checkScreen(
+    'sample-tag',
+    {
+        ignore: [
+            $('~element-1'),
+            await $('~element-2'),
+            {
+                x: 150,
+                y: 250,
+                width: 100,
+                height: 100,
+            }
+        ]
+    }
+)
+```
+
+## Results & reporting
+
+---
+
 
 ### `rawMisMatchPercentage`
 
@@ -487,73 +629,28 @@ await browser.checkScreen(
 )
 ```
 
-### `largeImageThreshold`
+### `diffPixelBoundingBoxProximity`
 
 - **Type:** `number`
-- **Default:** `0`
+- **Default:** `5`
 - **Mandatory:** No
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
 
-Comparing large images can lead to performance issues.
-When providing a number for the number of pixels here (higher than 0), the comparison algorithm skips pixels when the image width or height is larger than `largeImageThreshold` pixels.
+The pixel proximity used to group diff pixels together in JSON reports. Higher values group more pixels into fewer bounding boxes; lower values produce more accurate but more numerous boxes. Only relevant when [`createJsonReportFiles`](/docs/visual-testing/service-options#createjsonreportfiles) is enabled.
 
 ```typescript
 await browser.checkScreen(
     'sample-tag',
     {
-        largeImageThreshold: 1500
+        diffPixelBoundingBoxProximity: 10
     }
 )
 ```
 
-### `scaleImagesToSameSize`
+# Folder options
 
-- **Type:** `boolean`
-- **Default:** `false`
-- **Mandatory:** No
-- **Used with:** All [Check methods](./methods#check-methods)
-- **Supported Application Contexts:** All
-
-Scales 2 images to the same size before execution of comparison. Highly recommended to enable `ignoreAntialiasing` and `ignoreAlpha`
-
-```typescript
-await browser.checkScreen(
-    'sample-tag',
-    {
-        scaleImagesToSameSize: true
-    }
-)
-```
-
-### `ignore`
-
-- **Type:** `array`
-- **Mandatory:** No
-- **Used with:** Only with the `checkScreen`-method, **NOT** with the `checkElement`-method
-- **Supported Application Contexts:** Native App
-
-This method will automatically blockout elements or an area on a screen based on an array of elements or an object of `x|y|width|height`.
-
-```typescript
-await browser.checkScreen(
-    'sample-tag',
-    {
-        ignore: [
-            $('~element-1'),
-            await $('~element-2'),
-            {
-                x: 150,
-                y: 250,
-                width: 100,
-                height: 100,
-            }
-        ]
-    }
-)
-```
-
-## Folder options
+---
 
 The baseline folder and screenshot folders(actual, diff) are options that can be set during the instantiation of the plugin or method. To set the folder options on a particular method, pass in folder options to the methods option object. This can be used for:
 

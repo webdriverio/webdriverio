@@ -33,6 +33,7 @@ import {
     stopBuildUpstream,
     getCiInfo,
     isBStackSession,
+    isBrowserstackInfra,
     isUndefined,
     isAccessibilityAutomationSession,
     isTrue,
@@ -49,6 +50,7 @@ import {
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
+import { configureCaCertificate } from './caCert.js'
 import { PercyLogger } from './Percy/PercyLogger.js'
 import type Percy from './Percy/Percy.js'
 import BrowserStackConfig from './config.js'
@@ -73,7 +75,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _projectName?: string
     private _buildTag?: string
     private _buildIdentifier?: string
-    private _accessibilityAutomation?: boolean | null = null
+    private _accessibilityAutomation?: boolean
     private _percy?: Percy
     private _percyBestPlatformCaps?: WebdriverIO.Capabilities
     private readonly browserStackConfig: BrowserStackConfig
@@ -86,6 +88,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         BStackLogger.clearLogFile()
         PercyLogger.clearLogFile()
         setupExitHandlers()
+        // SDK-5953: trust the customer CA (proxyCaCertificate / BROWSERSTACK_EXTRA_CA_CERTS)
+        // for all outbound HTTPS (undici fetch) before any request fires. Merged with system roots.
+        configureCaCertificate(this._options)
         // added to maintain backward compatibility with webdriverIO v5
         if (!this._config) {
             this._config = _options
@@ -116,7 +121,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             process.env.TEST_OBSERVABILITY_BUILD_TAG = process.env.TEST_REPORTING_BUILD_TAG
         }
 
-        this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config)
+        // Pass `capabilities` so per-capability `hostname` overrides are honored too (e.g. a
+        // multi-remote config where only some capabilities target an external grid), mirroring
+        // the `shouldAddServiceVersion`/`isBrowserstackInfra` usage elsewhere in this package.
+        const isBrowserStackInfra = isBrowserstackInfra(_config as BrowserstackConfig & Options.Testrunner, capabilities as Capabilities.BrowserStackCapabilities)
+        this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config, capabilities, isBrowserStackInfra)
         BStackLogger.debug(`_options data: ${JSON.stringify(_options)}`)
         BStackLogger.debug(`webdriver capabilities data: ${JSON.stringify(capabilities)}`)
         const configCopy = JSON.parse(JSON.stringify(_config))
@@ -210,7 +219,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (!isUndefined(this._options.accessibility)) {
             this._accessibilityAutomation ||= isTrue(this._options.accessibility)
         }
-        this._options.accessibility = this._accessibilityAutomation as boolean
+        this._options.accessibility = this._accessibilityAutomation
 
         // Default is true unless explicitly set to false
         this._options.testObservability = this._options.testObservability !== false
@@ -425,7 +434,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         if (buildStartResponse?.accessibility) {
-            if (this._accessibilityAutomation === null) {
+            if (isUndefined(this._accessibilityAutomation)) {
                 this.browserStackConfig.accessibility = buildStartResponse.accessibility.success as boolean
                 this._accessibilityAutomation = buildStartResponse.accessibility.success as boolean
                 this._options.accessibility = buildStartResponse.accessibility.success as boolean
@@ -435,7 +444,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             }
         }
 
-        this.browserStackConfig.accessibility = this._accessibilityAutomation as boolean
+        this.browserStackConfig.accessibility = this._accessibilityAutomation
 
         if (this._accessibilityAutomation && this._options.accessibilityOptions) {
             const filteredOpts = Object.keys(this._options.accessibilityOptions)

@@ -23,8 +23,7 @@ export const VALID_APP_EXTENSION = [
 export const DEFAULT_OPTIONS: Partial<BrowserstackConfig> = {
     setSessionName: true,
     setSessionStatus: true,
-    testObservability: true,
-    accessibility: false
+    testObservability: true
 }
 
 export const consoleHolder: typeof console = Object.assign({}, console)
@@ -76,6 +75,20 @@ export const FUNNEL_INSTRUMENTATION_URL = 'https://api.browserstack.com/sdk/v1/e
 export const EDS_URL = 'https://eds.browserstack.com'
 
 export const SUPPORTED_BROWSERS_FOR_AI = ['chrome', 'microsoftedge', 'firefox']
+
+export const SUPPORTED_BROWSERS_FOR_ACCESSIBILITY = ['chrome', 'chromefortesting', 'safari']
+
+export const MIN_BROWSER_VERSIONS_A11Y = {
+    chrome: 95,
+    chromefortesting: 141,
+    safari: 18.4
+} as const
+
+export const MIN_BROWSER_VERSIONS_A11Y_NON_BSTACK = {
+    chrome: 100,
+    chromefortesting: 141,
+    safari: 18.4
+} as const
 
 export const TCG_URL = 'https://tcg.browserstack.com'
 
@@ -193,4 +206,3 @@ export const MODULE_HOOK_EVENTS = {
     APPAUTOMATE_ON_START: 'MODULE_APPAUTOMATE_ON_START',
     APPAUTOMATE_ON_DRIVER_INIT: 'MODULE_APPAUTOMATE_ON_DRIVER_INIT',
 } as const
-

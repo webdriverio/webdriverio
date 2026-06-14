@@ -1,6 +1,82 @@
 import { describe, it, expect } from 'vitest'
 
-import { isCloudCapability, removeLineNumbers, validObjectOrArray } from '../src/utils.js'
+import { isCloudCapability, removeLineNumbers, validObjectOrArray, applyHeadlessFlag } from '../src/utils.js'
+
+describe('applyHeadlessFlag', () => {
+    it('should add headless flags for Chrome', () => {
+        const caps = { browserName: 'chrome', 'goog:chromeOptions': { args: ['--foo'] } }
+        expect(applyHeadlessFlag(caps, true)).toEqual({
+            browserName: 'chrome',
+            'goog:chromeOptions': { args: ['--foo', '--headless', '--disable-gpu'] }
+        })
+    })
+
+    it('should strip headless flags for Chrome', () => {
+        const caps = { browserName: 'chrome', 'goog:chromeOptions': { args: ['--foo', '--headless=new', 'headless', '--disable-gpu'] } }
+        expect(applyHeadlessFlag(caps, false)).toEqual({
+            browserName: 'chrome',
+            'goog:chromeOptions': { args: ['--foo', '--disable-gpu'] }
+        })
+    })
+
+    it('should add headless flag for Firefox', () => {
+        const caps = { browserName: 'firefox', 'moz:firefoxOptions': { args: ['-foo'] } }
+        expect(applyHeadlessFlag(caps, true)).toEqual({
+            browserName: 'firefox',
+            'moz:firefoxOptions': { args: ['-foo', '-headless'] }
+        })
+    })
+
+    it('should strip headless flag for Firefox', () => {
+        const caps = { browserName: 'firefox', 'moz:firefoxOptions': { args: ['-foo', '-headless', '--headless'] } }
+        expect(applyHeadlessFlag(caps, false)).toEqual({
+            browserName: 'firefox',
+            'moz:firefoxOptions': { args: ['-foo'] }
+        })
+    })
+
+    it('should work with Microsoft Edge', () => {
+        const caps = { browserName: 'microsoftedge', 'ms:edgeOptions': { args: ['--foo'] } }
+        expect(applyHeadlessFlag(caps, true)).toEqual({
+            browserName: 'microsoftedge',
+            'ms:edgeOptions': { args: ['--foo', '--headless'] }
+        })
+    })
+
+    it('should handle W3C alwaysMatch capabilities', () => {
+        const caps = { alwaysMatch: { browserName: 'chrome', 'goog:chromeOptions': { args: ['--foo'] } }, firstMatch: [] }
+        applyHeadlessFlag(caps as any, true)
+        expect(caps.alwaysMatch['goog:chromeOptions']).toEqual({ args: ['--foo', '--headless', '--disable-gpu'] })
+    })
+
+    it('should not add duplicate headless flags when --headless=new is already present for Chrome', () => {
+        const caps = { browserName: 'chrome', 'goog:chromeOptions': { args: ['--foo', '--headless=new'] } }
+        expect(applyHeadlessFlag(caps, true)).toEqual({
+            browserName: 'chrome',
+            'goog:chromeOptions': { args: ['--foo', '--headless=new', '--disable-gpu'] }
+        })
+    })
+
+    it('should apply headless flag to multiremote/object-style capabilities', () => {
+        const caps: any = {
+            chromeBrowser: {
+                browserName: 'chrome',
+                'goog:chromeOptions': { args: ['--foo'] }
+            },
+            firefoxBrowser: {
+                browserName: 'firefox',
+                'moz:firefoxOptions': { args: ['-foo'] }
+            }
+        }
+        applyHeadlessFlag(caps, true)
+        expect(caps.chromeBrowser['goog:chromeOptions']).toEqual({
+            args: ['--foo', '--headless', '--disable-gpu']
+        })
+        expect(caps.firefoxBrowser['moz:firefoxOptions']).toEqual({
+            args: ['-foo', '-headless']
+        })
+    })
+})
 
 describe('utils', () => {
     describe('removeLineNumbers', () => {

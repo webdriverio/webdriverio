@@ -43,6 +43,7 @@ const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
     }
 
     const cddl = transform(ast, { useUnknown: true })
+
     await writeFile(
         path.resolve(__dirname, '..', '..', 'packages', 'webdriver', 'src', 'bidi', `${type}Types.ts`),
         cddl

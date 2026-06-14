@@ -14,6 +14,7 @@ import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cu
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
 import { DEFAULT_OPTIONS, NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV } from './constants.js'
+import { configureCaCertificate } from './caCert.js'
 import CrashReporter from './crash-reporter.js'
 import AccessibilityHandler from './accessibility-handler.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -49,6 +50,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _scenariosThatRan: string[] = []
     private _lastScenarioName?: string  // Track last scenario for preferScenarioName feature
     private _scenariosRanCount: number = 0  // Count of non-skipped scenarios
+    private _reloadHappened: boolean = false  // Set when browser.reloadSession() is called; surfaced as finishedMetadata on SDKTestSuccessful so reload-orphaned builds can be excluded from session-linking
     private _failureStatuses: string[] = ['failed', 'ambiguous', 'undefined', 'unknown']
     private _browser?: WebdriverIO.Browser
     private _suiteTitle?: string
@@ -72,6 +74,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         private _config: Options.Testrunner
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
+        // SDK-5953: trust the customer CA (proxyCaCertificate / BROWSERSTACK_EXTRA_CA_CERTS)
+        // for all outbound HTTPS (undici fetch) in the worker process. Merged with system roots.
+        configureCaCertificate(this._options)
         // added to maintain backward compatibility with webdriverIO v5
         if (!this._config) {
             this._config = this._options
@@ -402,8 +407,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'afterTest' })
     async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
         this._specsRan = true
-        const { error, passed } = results
-        if (!passed) {
+        const { error, passed, skipped } = results
+        if (!passed && !skipped) {
             const testError = (error && error.message) || 'Unknown Error'
             this._failReasons.push(testError)
 
@@ -643,6 +648,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
             return Promise.resolve()
         }
 
+        this._reloadHappened = true
+
         const { setSessionName, setSessionStatus } = this._options
         const ignoreHooksStatus = this._options.testObservabilityOptions?.ignoreHooksStatus === true
 
@@ -862,7 +869,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     private saveWorkerData() {
         saveWorkerData({
-            usageStats: UsageStats.getInstance().getDataToSave()
+            usageStats: UsageStats.getInstance().getDataToSave(),
+            reloadHappened: this._reloadHappened
         })
     }
 }
