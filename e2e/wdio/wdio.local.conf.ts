@@ -40,8 +40,8 @@ export const config: WebdriverIO.Config = {
         webSocketUrl: true,
         'ms:edgeOptions': {
             args: [
-                'headless'
-                , 'disable-gpu',
+                'headless',
+                'disable-gpu',
                 // Having `WebDriverError: session not created: Chrome instance exited` on ubuntu without it!
                 ...(isLinux ? ['no-sandbox'] : [])
             ]
