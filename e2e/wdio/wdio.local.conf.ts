@@ -4,7 +4,7 @@ import path from 'node:path'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
-const isLinux = process.platform === 'linux'
+const isLinux = os.platform() === 'linux'
 
 /**
  * with this config file we verify that the `webdriverio` package can spin
