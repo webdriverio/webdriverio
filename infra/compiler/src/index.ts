@@ -211,10 +211,12 @@ const configs = packages.map(([packageDir, pkg]) => {
                 entryPoints: [path.resolve(absWorkingDir, browserSource)],
                 platform: 'browser',
                 format: 'esm',
+                // Starting esbuild 0.28.1, we should also upgrade to safari14.1. TODO in v10 since this is breaking!
                 target: ['es2021', 'chrome90', 'edge90', 'firefox90', 'safari12'],
                 plugins: [],
                 supported: {
-                    'top-level-await': true //browsers can handle top-level-await features
+                    'top-level-await': true, //browsers can handle top-level-await features
+                    'destructuring': true, // TODO remove in v10: Required since esbuild 0.28.1, otherwise esbuild generates invalid code for destructured imports/exports
                 }
             }
 
