@@ -6,6 +6,7 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const isLinux = os.platform() === 'linux'
 const isApple = os.platform() === 'darwin'
+const isWindows = os.platform() === 'win32'
 
 /**
  * with this config file we verify that the `webdriverio` package can spin
@@ -52,7 +53,7 @@ export const config: WebdriverIO.Config = {
                 ]
             },
         },
-        {
+        ...(!isWindows ? [{
             browserName: 'chromium',
             webSocketUrl: true,
             'goog:chromeOptions': {
@@ -64,7 +65,7 @@ export const config: WebdriverIO.Config = {
                     ...(isLinux ? ['no-sandbox'] : [])
                 ]
             }
-        },
+        }] : []),
         ...(isApple ? [{
         // Not yet supported, safari use classic WebDriver for now.
         // webSocketUrl: true,
