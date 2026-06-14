@@ -53,6 +53,7 @@ export const config: WebdriverIO.Config = {
                 ]
             },
         },
+        // Excluding Chromium on Windows due to `Error: chromium is not available on Windows.`
         ...(!isWindows ? [{
             browserName: 'chromium',
             webSocketUrl: true,
@@ -67,8 +68,8 @@ export const config: WebdriverIO.Config = {
             }
         }] : []),
         ...(isApple ? [{
-        // Not yet supported, safari use classic WebDriver for now.
-        // webSocketUrl: true,
+            // Not yet supported, safari use classic WebDriver for now.
+            // webSocketUrl: true,
             browserName: 'safari'
         }] : [])
     ],
