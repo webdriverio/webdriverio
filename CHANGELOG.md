@@ -23,6 +23,63 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.28.0 (2026-06-10)
+
+#### :bug: Bug Fix
+* [#15291](https://github.com/webdriverio/webdriverio/pull/15291) fix: logger not cjs compliant ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :house: Internal
+* Other
+  * [#15292](https://github.com/webdriverio/webdriverio/pull/15292) ci: Fix unzip hangs issue with node 24.16 ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-browserstack-service`, `wdio-protocols`, `webdriver`
+  * [#15283](https://github.com/webdriverio/webdriverio/pull/15283) fix: main pipeline failures & browserStack `config.accessibility` & more ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### Committers: 9
+- Aakash Hotchandani ([@AakashHotchandani](https://github.com/AakashHotchandani))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- JinHyuk Sung ([@sjh9714](https://github.com/sjh9714))
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Noritaka Kobayashi ([@noritaka1166](https://github.com/noritaka1166))
+- Vishnu Vardhan ([@vishnuv688](https://github.com/vishnuv688))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@harshit-browserstack](https://github.com/harshit-browserstack)
+
+
+## v9.27.2 (2026-05-26)
+
+#### :rocket: New Feature
+* `create-wdio`, `wdio-xvfb`
+  * [#15235](https://github.com/webdriverio/webdriverio/pull/15235) feat(create-wdio): migrate to @wdio/electron-service and add Tauri service ([@goosewobbler](https://github.com/goosewobbler))
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#15246](https://github.com/webdriverio/webdriverio/pull/15246) fix: resolve etxtbsy issue(file busy error) at spawn ([@shivamku-BS](https://github.com/shivamku-BS))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`, `wdio-types`
+  * [#15232](https://github.com/webdriverio/webdriverio/pull/15232) Honouring the skipped status ([@Bhargavi-BS](https://github.com/Bhargavi-BS))
+* `wdio-browserstack-service`
+  * [#15215](https://github.com/webdriverio/webdriverio/pull/15215) fix(browserstack-service): omit unset accessibility config ([@kbrooks](https://github.com/kbrooks))
+  * [#15201](https://github.com/webdriverio/webdriverio/pull/15201) Update gRPC message limit in WDIO-v9 to 20 MB ([@xxshubhamxx](https://github.com/xxshubhamxx))
+
+#### :memo: Documentation
+* [#15255](https://github.com/webdriverio/webdriverio/pull/15255) Selenium devtools doc ([@vishnuv688](https://github.com/vishnuv688))
+
+#### Committers: 11
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- Kyle Brooks ([@kbrooks](https://github.com/kbrooks))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Shivam Kumar ([@shivamku-BS](https://github.com/shivamku-BS))
+- Shubham Garg ([@xxshubhamxx](https://github.com/xxshubhamxx))
+- Vishnu Vardhan ([@vishnuv688](https://github.com/vishnuv688))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- YASH JAIN ([@osho-20](https://github.com/osho-20))
+- [@goosewobbler](https://github.com/goosewobbler)
+- bhargavi vaidya ([@Bhargavi-BS](https://github.com/Bhargavi-BS))
+
+
 ## v9.27.1 (2026-04-30)
 
 #### :eyeglasses: Spec Compliancy

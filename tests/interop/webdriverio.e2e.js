@@ -11,6 +11,7 @@ const { remote, attach, multiremote, Key, SevereServiceError } = require('webdri
     const client = await remote({
         capabilities: {
             browserName: 'chrome',
+            browserVersion: 'stable',
             'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
         }
     })

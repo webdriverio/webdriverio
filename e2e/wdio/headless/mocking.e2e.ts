@@ -111,10 +111,8 @@ describe('network mocking', () => {
 
         await browser.url('https://guinea-pig.webdriver.io/')
 
-        await browser.waitUntil(() => mock.calls[0]?.body !== undefined, {
-            timeoutMsg: 'Expected response body to be populated',
-            timeout: 5000
-        })
+        await mock.waitForResponse()
+
         expect(mock.calls[0].body).toContain('<title>WebdriverJS Testpage</title>')
     })
 
