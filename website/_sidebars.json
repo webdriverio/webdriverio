@@ -106,6 +106,7 @@
           },
           "items": [
             "devtools/wdio/interactive-test-rerunning",
+            "devtools/wdio/preserve-and-rerun",
             "devtools/wdio/multi-framework-support",
             "devtools/wdio/console-logs",
             "devtools/wdio/network-logs",
@@ -298,9 +299,12 @@
       "type": "category",
       "label": "MCP",
       "items": [
-        "mcp/tools",
-        "mcp/selectors",
         "mcp/configuration",
+        "mcp/transport",
+        "mcp/cloud-providers",
+        "mcp/selectors",
+        "mcp/tools",
+        "mcp/resources",
         "mcp/faq"
       ],
       "link": {

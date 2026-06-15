@@ -20,9 +20,6 @@
     <a href="https://bestpractices.coreinfrastructure.org/en/projects/5589">
         <img alt="OpenSSF Best Practices" src="https://bestpractices.coreinfrastructure.org/projects/5589/badge">
     </a>
-    <a title="Crowdin" target="_blank" href="https://translate.webdriver.io/project/webdriver-io">
-        <img src="https://badges.crowdin.net/webdriver-io/localized.svg">
-    </a>
     <br />
     <a href="https://discord.webdriver.io">
         <img alt="Support Channel" src="https://img.shields.io/discord/1097401827202445382?color=%234FB898&label=Join%20us%20on%20Discord">
