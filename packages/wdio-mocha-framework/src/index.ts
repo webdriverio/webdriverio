@@ -147,8 +147,22 @@ class MochaAdapter {
                 'WebDriver Bidi. This may be because "wdio:enforceWebDriverClassic" is enabled ' +
                 'or the browser does not support Bidi. Falling back to sequential execution.'
             )
-            // fall through to the sequential mocha.run() at the end
-        } else {
+            return this._runSequential(mocha)
+        }
+
+        const reqCaps = (browser as Record<string, unknown>).requestedCapabilities as Record<string, unknown> | undefined
+        const sessCaps = browser.capabilities as Record<string, unknown> | undefined
+        if (reqCaps?.['wdio:experimentalBiDiCommands'] !== true && sessCaps?.['wdio:experimentalBiDiCommands'] !== true) {
+            log.warn(
+                'parallelMode: "contexts" requires \'wdio:experimentalBiDiCommands\': true ' +
+                'to be set in capabilities. Without it, element commands use classic protocol ' +
+                'which cannot target Bidi-created browsing contexts. ' +
+                'Falling back to sequential execution.'
+            )
+            return this._runSequential(mocha)
+        }
+
+        {
             await executeHooksWithArgs('beforeSuite', this._config.beforeSuite as Function, [
                 { type: 'beforeSuite', payload: mocha.suite.suites[0] }
             ])
@@ -171,9 +185,6 @@ class MochaAdapter {
 
             return failures
         }
-
-        // Fall through to sequential path (Bidi not available)
-        return this._runSequential(mocha)
     }
 
     private async _runSequential(mocha: Mocha) {
