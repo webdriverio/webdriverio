@@ -335,6 +335,15 @@ export class AllureReportState {
                 break
             }
 
+            if (
+                message.type === 'global_error' ||
+                message.type === 'global_attachment_content' ||
+                message.type === 'global_attachment_path'
+            ) {
+                this.allureRuntime.applyRuntimeMessages('', [message])
+                continue
+            }
+
             const hookUuid = this._fixturesStack.at(-1)
             const target = hookUuid ?? this._currentTestUuid
 
