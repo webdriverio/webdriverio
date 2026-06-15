@@ -42,36 +42,24 @@ interface CollectedTest {
 export function collectTests(suite: Suite): CollectedTest[] {
     const tests: CollectedTest[] = []
 
-    // Collect root-level tests (it() blocks directly in describe, not nested)
+    // Collect tests at this level with this suite's own hooks
+    const beforeEachHooks = (suite as unknown as { _beforeEach?: Function[] })._beforeEach || []
+    const afterEachHooks = (suite as unknown as { _afterEach?: Function[] })._afterEach || []
+
     for (const test of suite.tests) {
         tests.push({
             title: test.title,
             fullTitle: test.fullTitle(),
             fn: (test as unknown as { fn?: Function }).fn || (() => {}),
             parentTitle: suite.title,
-            _beforeEach: [],
-            _afterEach: [],
+            _beforeEach: beforeEachHooks,
+            _afterEach: afterEachHooks,
             file: test.file || undefined
         })
     }
 
+    // Recurse into child suites
     for (const s of suite.suites) {
-        const beforeEachHooks = (s as unknown as { _beforeEach?: Function[] })._beforeEach || []
-        const afterEachHooks = (s as unknown as { _afterEach?: Function[] })._afterEach || []
-
-        for (const test of s.tests) {
-            tests.push({
-                title: test.title,
-                fullTitle: test.fullTitle(),
-                fn: (test as unknown as { fn?: Function }).fn || (() => {}),
-                parentTitle: s.title,
-                _beforeEach: beforeEachHooks,
-                _afterEach: afterEachHooks,
-                file: test.file || undefined
-            })
-        }
-
-        // Recurse into nested suites
         tests.push(...collectTests(s))
     }
 
