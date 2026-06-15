@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks'
 import type { local } from 'webdriver'
 import logger from '@wdio/logger'
 
@@ -7,6 +8,35 @@ import { environment } from '../environment.js'
 
 const log = logger('webdriverio:context')
 const COMMANDS_REQUIRING_RESET = ['deleteSession', 'refresh', 'switchToParentFrame']
+
+/**
+ * Per-test context override for parallel it() execution.
+ *
+ * When tests run in parallel (each in its own browsing context), the
+ * framework sets a context ID here via `AsyncLocalStorage.run()`.
+ * `getCurrentContext()` checks this first, so every command
+ * (url, $, click, setValue, getText, etc.) automatically targets
+ * the correct browsing context.
+ *
+ * Outside parallel execution (sequential mode), the store is empty
+ * and behavior falls back to the session-global `#currentContext`.
+ */
+/** Key used to expose the parallel context store on the browser instance. */
+export const PARALLEL_CONTEXT_STORE_KEY = '__parallelContextStore'
+
+const parallelContextStore = new AsyncLocalStorage<string>()
+
+/**
+ * Returns the parallel context store. The framework uses this to
+ * create per-test scopes:
+ *
+ *   parallelContextStore.run(contextId, async () => {
+ *       await test.fn()  // all commands target contextId
+ *   })
+ */
+export function getParallelContextStore() {
+    return parallelContextStore
+}
 
 export function getContextManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, ContextManager)
@@ -35,6 +65,13 @@ export class ContextManager extends SessionManager {
         super(browser, ContextManager.name)
         this.#browser = browser
         const capabilities = this.#browser.capabilities
+        /**
+         * Expose the parallel context store on the browser instance so
+         * the Mocha framework adapter can access it without importing
+         * from 'webdriverio' (which would create a dependency cycle).
+         */
+        ;(browser as Record<string, unknown>)[PARALLEL_CONTEXT_STORE_KEY] = parallelContextStore
+
         this.#isNativeContext = getNativeContext({ capabilities, isMobile: this.#browser.isMobile })
         this.#mobileContext = getMobileContext({
             capabilities,
@@ -277,6 +314,18 @@ export class ContextManager extends SessionManager {
     }
 
     async getCurrentContext () {
+        /**
+         * If a parallel test scope is active, return that test's
+         * assigned context instead of the session-global one.
+         * This is the ONLY change needed to make ALL commands
+         * (url, $, click, setValue, getText, etc.) work correctly
+         * in parallel mode — no Proxy, no per-command special-casing.
+         */
+        const parallelCtx = parallelContextStore.getStore()
+        if (parallelCtx) {
+            return parallelCtx
+        }
+
         if (!this.#currentContext) {
             return this.initialize()
         }

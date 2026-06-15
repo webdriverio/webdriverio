@@ -21,6 +21,7 @@ import type * as elementCommands from './commands/element.js'
 import { IMPLICIT_WAIT_EXCLUSION_LIST } from './middlewares.js'
 
 export * from './types.js'
+export { PARALLEL_CONTEXT_STORE_KEY } from './session/context.js'
 export const Key = KeyConstant
 export const SevereServiceError = SevereServiceErrorImport
 

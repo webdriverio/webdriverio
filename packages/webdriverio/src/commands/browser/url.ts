@@ -175,6 +175,55 @@ export async function url (
         const context = await contextManager.getCurrentContext()
 
         /**
+         * Map classic pageLoadStrategy to Bidi wait states.
+         */
+        const classicPageLoadStrategy = this.capabilities.pageLoadStrategy === 'none'
+            ? 'none'
+            : this.capabilities.pageLoadStrategy === 'normal'
+                ? 'complete'
+                : this.capabilities.pageLoadStrategy === 'eager'
+                    ? 'interactive'
+                    : undefined
+
+        const wait = options.wait === 'networkIdle'
+            ? 'complete'
+            : options.wait || classicPageLoadStrategy || DEFAULT_WAIT_STATE
+
+        /**
+         * Serialize Bidi navigations per browser instance to avoid
+         * "navigation canceled by concurrent navigation" errors from
+         * Chrome when parallel tests navigate different contexts
+         * simultaneously.
+         *
+         * Other commands ($, click, getText, etc.) are unaffected
+         * and continue to run truly concurrently.
+         *
+         * @see https://github.com/w3c/webdriver-bidi/issues/878
+         */
+        const m = ((this as Record<string, unknown>).__navMutex as Promise<void>) || Promise.resolve()
+        const navigate = () => this.browsingContextNavigate({ context, url: path, wait })
+        // Chain onto the mutex (both resolve/reject → don't stall on failure)
+        const chained = m.then(navigate, navigate)
+        ;(this as Record<string, unknown>).__navMutex = chained
+        const navigation = await chained.catch(async (err: Error) => {
+            /**
+             * Rare: concurrent navigation error despite mutex.
+             * Fall back to classic navigateTo with explicit window switch.
+             */
+            if (
+                err.message.includes('navigation canceled by concurrent navigation') ||
+                err.message.includes('failed with error: unknown error') ||
+                err.message.includes('no such frame')
+            ) {
+                await this.switchToWindow(context)
+                return this.navigateTo(validateUrl(path))
+            }
+            throw err
+        })
+
+        let mock: WebdriverIO.Mock | undefined
+
+        /**
          * set up preload script if `onBeforeLoad` option is provided
          */
         if (options.onBeforeLoad) {
@@ -192,52 +241,10 @@ export async function url (
             }
         }
 
-        let mock: WebdriverIO.Mock | undefined
         if (options.headers) {
             mock = await this.mock(path)
             mock.requestOnce({ headers: options.headers })
         }
-
-        /**
-         * WebDriver Classic allowed to provide a `pageLoadStrategy` capability.
-         * To ensure backwards combatibility, we need to map the `pageLoadStrategy`
-         * to the WebDriver Bidi spec.
-         *
-         * see https://www.w3.org/TR/webdriver2/#navigation
-         */
-        const classicPageLoadStrategy = this.capabilities.pageLoadStrategy === 'none'
-            ? 'none'
-            : this.capabilities.pageLoadStrategy === 'normal'
-                ? 'complete'
-                : this.capabilities.pageLoadStrategy === 'eager'
-                    ? 'interactive'
-                    : undefined
-
-        const wait = options.wait === 'networkIdle'
-            ? 'complete'
-            : options.wait || classicPageLoadStrategy || DEFAULT_WAIT_STATE
-        const navigation = await this.browsingContextNavigate({
-            context,
-            url: path,
-            wait
-        }).catch((err) => {
-            /**
-             * It seems that WebDriver Bidi runs into issue with concurrent navigation.
-             * @see https://github.com/w3c/webdriver-bidi/issues/878
-             */
-            if (
-                // Chrome error message
-                err.message.includes('navigation canceled by concurrent navigation') ||
-                // Firefox error message
-                err.message.includes('failed with error: unknown error') ||
-                // Race condition where the context is destroyed before navigation
-                err.message.includes('no such frame')
-            ) {
-                return this.navigateTo(validateUrl(path))
-            }
-
-            throw err
-        })
 
         if (mock) {
             await mock.restore()

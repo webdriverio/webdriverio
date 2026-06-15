@@ -1,5 +1,6 @@
 import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
+import { getContextManager } from '../../session/context.js'
 
 export type ActionType = 'key' | 'pointer' | 'wheel'
 export type KeyActionType = 'mouse' | 'pen' | 'touch'
@@ -118,7 +119,16 @@ export default class BaseAction {
             seq.origin = { [ELEMENT_KEY]: seq.origin[ELEMENT_KEY] }
         }
 
-        await this.#instance.performActions([this.toJSON()])
+        if (this.#instance.isBidi) {
+            const cm = getContextManager(this.#instance as unknown as WebdriverIO.Browser)
+            const ctx = await cm.getCurrentContext()
+            await (this.#instance as unknown as Record<string, Function>).inputPerformActions({
+                context: ctx,
+                actions: [this.toJSON()]
+            })
+        } else {
+            await this.#instance.performActions([this.toJSON()])
+        }
         if (!skipRelease) {
             await this.#instance.releaseActions()
         }
