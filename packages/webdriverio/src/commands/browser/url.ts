@@ -200,16 +200,7 @@ export async function url (
          *
          * @see https://github.com/w3c/webdriver-bidi/issues/878
          */
-        const m = ((this as Record<string, unknown>).__navMutex as Promise<void>) || Promise.resolve()
-        const navigate = () => this.browsingContextNavigate({ context, url: path, wait })
-        // Chain onto the mutex (both resolve/reject → don't stall on failure)
-        const chained = m.then(navigate, navigate)
-        ;(this as Record<string, unknown>).__navMutex = chained
-        const navigation = await chained.catch(async (err: Error) => {
-            /**
-             * Rare: concurrent navigation error despite mutex.
-             * Fall back to classic navigateTo with explicit window switch.
-             */
+        const navigation = await this.browsingContextNavigate({ context, url: path, wait }).catch(async (err: Error) => {
             if (
                 err.message.includes('navigation canceled by concurrent navigation') ||
                 err.message.includes('failed with error: unknown error') ||
