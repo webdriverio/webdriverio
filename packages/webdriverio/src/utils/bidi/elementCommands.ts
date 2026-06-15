@@ -14,12 +14,9 @@
 import { ELEMENT_KEY } from 'webdriver'
 import { getBrowserObject } from '@wdio/utils'
 
-/** Check if the experimental Bidi commands capability is enabled. */
+/** Check if the experimental Bidi commands capability is enabled (cached on first access). */
 export function isBidiCommandsEnabled(browser: WebdriverIO.Browser): boolean {
-    const reqCaps = browser.requestedCapabilities as Record<string, unknown> | undefined
-    if (reqCaps?.['wdio:experimentalBiDiCommands'] === true) { return true }
-    const sessCaps = browser.capabilities as Record<string, unknown> | undefined
-    return sessCaps?.['wdio:experimentalBiDiCommands'] === true
+    return (browser as Record<string, unknown>).__bidiCommandsEnabled === true
 }
 
 /** Pass the raw element reference to browser.execute() so LocalValue.getArgument

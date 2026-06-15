@@ -66,11 +66,17 @@ export class ContextManager extends SessionManager {
         this.#browser = browser
         const capabilities = this.#browser.capabilities
         /**
-         * Expose the parallel context store on the browser instance so
-         * the Mocha framework adapter can access it without importing
-         * from 'webdriverio' (which would create a dependency cycle).
+         * Expose the parallel context store and experimental Bidi flag
+         * on the browser instance so the Mocha framework adapter can
+         * access them without importing from 'webdriverio'.
          */
         ;(browser as Record<string, unknown>)[PARALLEL_CONTEXT_STORE_KEY] = parallelContextStore
+        // Cache the capability flag so per-command checks are O(1)
+        const reqCaps = browser.requestedCapabilities as Record<string, unknown> | undefined
+        const sessCaps = browser.capabilities as Record<string, unknown> | undefined
+        ;(browser as Record<string, unknown>).__bidiCommandsEnabled = !!(
+            reqCaps?.['wdio:experimentalBiDiCommands'] || sessCaps?.['wdio:experimentalBiDiCommands']
+        )
 
         this.#isNativeContext = getNativeContext({ capabilities, isMobile: this.#browser.isMobile })
         this.#mobileContext = getMobileContext({

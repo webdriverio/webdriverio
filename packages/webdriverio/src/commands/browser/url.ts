@@ -189,17 +189,6 @@ export async function url (
             ? 'complete'
             : options.wait || classicPageLoadStrategy || DEFAULT_WAIT_STATE
 
-        /**
-         * Serialize Bidi navigations per browser instance to avoid
-         * "navigation canceled by concurrent navigation" errors from
-         * Chrome when parallel tests navigate different contexts
-         * simultaneously.
-         *
-         * Other commands ($, click, getText, etc.) are unaffected
-         * and continue to run truly concurrently.
-         *
-         * @see https://github.com/w3c/webdriver-bidi/issues/878
-         */
         const navigation = await this.browsingContextNavigate({ context, url: path, wait }).catch(async (err: Error) => {
             if (
                 err.message.includes('navigation canceled by concurrent navigation') ||

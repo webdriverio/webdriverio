@@ -1,9 +1,7 @@
-import { getBrowserObject } from '@wdio/utils'
-import { bidiClick } from '../../utils/bidi/elementCommands.js'
-import { isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 import logger from '@wdio/logger'
 
 import { getBrowserObject } from '@wdio/utils'
+import { bidiClick, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 import { buttonValue } from '../../utils/actions/index.js'
 import type { ClickOptions } from '../../types.js'
 

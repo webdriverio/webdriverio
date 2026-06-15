@@ -150,9 +150,7 @@ class MochaAdapter {
             return this._runSequential(mocha)
         }
 
-        const reqCaps = (browser as Record<string, unknown>).requestedCapabilities as Record<string, unknown> | undefined
-        const sessCaps = browser.capabilities as Record<string, unknown> | undefined
-        if (reqCaps?.['wdio:experimentalBiDiCommands'] !== true && sessCaps?.['wdio:experimentalBiDiCommands'] !== true) {
+        if ((browser as Record<string, unknown>).__bidiCommandsEnabled !== true) {
             log.warn(
                 'parallelMode: "contexts" requires \'wdio:experimentalBiDiCommands\': true ' +
                 'to be set in capabilities. Without it, element commands use classic protocol ' +
