@@ -584,6 +584,7 @@ class _InsightsHandler {
                     logEntry: {
                         kind: 'TEST_SCREENSHOT',
                         message: result.value,
+                        level: 'INFO',
                         timestamp: new Date().toISOString()
                     }
                 })
