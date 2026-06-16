@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 
 import { getBrowserObject } from '@wdio/utils'
-import { bidiClick, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
+import { isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 import { buttonValue } from '../../utils/actions/index.js'
 import type { ClickOptions } from '../../types.js'
 
@@ -120,7 +120,7 @@ export function click(
 
     const browser = getBrowserObject(this) as WebdriverIO.Browser
     if (browser.isBidi && isBidiCommandsEnabled(browser)) {
-        return bidiClick(this)
+        return actionClick(this, {})
     }
 
     return elementClick(this)
