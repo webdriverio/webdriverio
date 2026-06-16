@@ -157,7 +157,7 @@ async function getElementCSSValue(
 ): Promise<string> {
     const browser = getBrowserObject(elem) as WebdriverIO.Browser
     if (isBidiCommandsEnabled(browser)) {
-        return bidiGetCSSProperty(elem, cssProperty) as Promise<string>
+        return bidiGetCSSProperty(elem, cssProperty)
     }
     return elem.getElementCSSValue(elem.elementId, cssProperty)
 }
