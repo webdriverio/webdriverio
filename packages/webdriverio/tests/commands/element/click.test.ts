@@ -129,11 +129,9 @@ describe('click test', () => {
         expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions[0].actions[0].y)
             .toBe(15)
         expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions[0].actions[2])
-            .toStrictEqual({ type: 'pause', duration: 0 })
+            .toStrictEqual({ type: 'pointerUp', button: 2 })
         expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions[0].actions[1])
             .toMatchSnapshot()
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions[0].actions[3])
-            .toStrictEqual({ type: 'pointerUp', button: 2 })
     })
 
     it('should to send a duration to execute a longPress on a mobile device', async () => {
