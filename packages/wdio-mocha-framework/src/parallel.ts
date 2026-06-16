@@ -52,13 +52,26 @@ interface CollectedTest {
 /**
  * Recursively walk the Mocha suite tree and collect all test
  * definitions with their associated hooks.
+ *
+ * @param suite       The root suite to walk.
+ * @param parentBeforeEach  Hooks inherited from ancestor suites (outermost first).
+ * @param parentAfterEach   Hooks inherited from ancestor suites (outermost first).
  */
-export function collectTests(suite: Suite): CollectedTest[] {
+export function collectTests(
+    suite: Suite,
+    parentBeforeEach: Function[] = [],
+    parentAfterEach: Function[] = []
+): CollectedTest[] {
     const tests: CollectedTest[] = []
 
-    // Collect tests at this level with this suite's own hooks
-    const beforeEachHooks = (suite as unknown as { _beforeEach?: Function[] })._beforeEach || []
-    const afterEachHooks = (suite as unknown as { _afterEach?: Function[] })._afterEach || []
+    // Merge parent hooks with this suite's own hooks.
+    // beforeEach: outer-to-inner (parent hooks first)
+    // afterEach:  inner-to-outer (child hooks first, then parent hooks)
+    const ownBeforeEach = (suite as unknown as { _beforeEach?: Function[] })._beforeEach || []
+    const ownAfterEach = (suite as unknown as { _afterEach?: Function[] })._afterEach || []
+
+    const mergedBeforeEach = [...parentBeforeEach, ...ownBeforeEach]
+    const mergedAfterEach = [...ownAfterEach, ...parentAfterEach]
 
     for (const test of suite.tests) {
         tests.push({
@@ -66,18 +79,55 @@ export function collectTests(suite: Suite): CollectedTest[] {
             fullTitle: test.fullTitle(),
             fn: (test as unknown as { fn?: Function }).fn || (() => {}),
             parentTitle: suite.title,
-            _beforeEach: beforeEachHooks,
-            _afterEach: afterEachHooks,
+            _beforeEach: mergedBeforeEach,
+            _afterEach: mergedAfterEach,
             file: test.file || undefined
         })
     }
 
-    // Recurse into child suites
+    // Recurse into child suites, passing merged hooks as the new parent set.
+    // Use mergedBeforeEach/mergedAfterEach so grandchildren inherit all ancestors.
     for (const s of suite.suites) {
-        tests.push(...collectTests(s))
+        tests.push(...collectTests(s, mergedBeforeEach, mergedAfterEach))
     }
 
     return tests
+}
+
+/**
+ * Walk the suite tree and collect _beforeAll / _afterAll hooks.
+ * Returns hooks in execution order: _beforeAll outermost-first,
+ * _afterAll innermost-first (reverse of collection).
+ */
+function collectSuiteLevelHooks(suite: Suite): {
+    beforeAll: Function[]
+    afterAll: Function[]
+} {
+    const beforeAll: Function[] = []
+    const afterAll: Function[] = []
+
+    const walk = (s: Suite) => {
+        const hooks = s as unknown as { _beforeAll?: Function[], _afterAll?: Function[] }
+        if (hooks._beforeAll) {
+            beforeAll.push(...hooks._beforeAll)
+        }
+        if (hooks._afterAll) {
+            // Collect in walk order; will reverse at the end for inner-to-outer
+            afterAll.push(...hooks._afterAll)
+        }
+        for (const child of s.suites) {
+            walk(child)
+        }
+    }
+    walk(suite)
+
+    return {
+        beforeAll,
+        // afterAll runs innermost-first in Mocha. Since we collected in
+        // outermost-first order, reverse so deepest suite's afterAll
+        // runs before its parent's.
+        afterAll: afterAll.reverse()
+    }
 }
 
 // ============================================================
@@ -174,6 +224,12 @@ export async function runParallelTests(
     const tests = collectTests(mochaSuite)
     if (tests.length === 0) { log.info('No tests found for parallel execution.'); return 0 }
 
+    // --- Suite-level _beforeAll hooks (outermost-first) ---
+    const { beforeAll, afterAll } = collectSuiteLevelHooks(mochaSuite)
+    for (const hook of beforeAll) {
+        await hook.call({})
+    }
+
     log.info(`[Parallel] Collected ${tests.length} tests. Pre-allocating browsing contexts...`)
     const allocStart = Date.now()
 
@@ -195,22 +251,29 @@ export async function runParallelTests(
             return parallelStore.run(contextId, async () => {
                 const testStart = Date.now()
                 emitTestStart(reporter, test, cid, specs, uid)
+                let passed = false
+                let caughtError: Error | undefined
                 try {
                     for (const hook of test._beforeEach) { await hook.call({}) }
                     const fn = test.fn as (this: unknown) => Promise<void>
                     await fn.call({})
-                    for (const hook of test._afterEach) { await hook.call({}) }
-                    const duration = Date.now() - testStart
+                    passed = true
+                } catch (err) {
+                    caughtError = err instanceof Error ? err : new Error(String(err))
+                }
+                // Always run afterEach hooks, even on beforeEach/test failure.
+                for (const hook of test._afterEach) {
+                    try { await hook.call({}) } catch { /* suppress hook errors */ }
+                }
+                const duration = Date.now() - testStart
+                if (passed) {
                     emitTestPass(reporter, test, cid, specs, uid, duration)
                     return { status: 'passed' as const, name: test.title, duration }
-                } catch (err) {
-                    const duration = Date.now() - testStart
-                    const error = err instanceof Error ? err : new Error(String(err))
-                    emitTestFail(reporter, test, cid, specs, uid, duration, error)
-                    return { status: 'failed' as const, name: test.title, duration, error: error.message }
-                } finally {
-                    await bidi.browsingContextClose!({ context: contextId }).catch(() => { /* ignore cleanup errors */ })
                 }
+                emitTestFail(reporter, test, cid, specs, uid, duration, caughtError!)
+                return { status: 'failed' as const, name: test.title, duration, error: caughtError!.message }
+            }).finally(async () => {
+                await bidi.browsingContextClose!({ context: contextId }).catch(() => { /* ignore cleanup errors */ })
             })
         })
     )
@@ -218,6 +281,11 @@ export async function runParallelTests(
     const totalDuration = Date.now() - runStart
     const passed = results.filter(r => r.status === 'fulfilled' && r.value.status === 'passed').length
     const failed = tests.length - passed
+
+    // --- Suite-level _afterAll hooks (innermost-first) ---
+    for (const hook of afterAll) {
+        await hook.call({})
+    }
 
     log.info(
         `[Parallel] ${tests.length} tests: ${passed} passed, ${failed} failed in ${totalDuration}ms`
