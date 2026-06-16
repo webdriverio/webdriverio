@@ -38,6 +38,14 @@ export const SevereServiceError = SevereServiceErrorImport
  * browser-level getters.
  */
 function applyBidiBrowserOverwrites(browser: WebdriverIO.Browser) {
+    /**
+     * Skip in unit tests — the browser object is a Vitest mock without a real
+     * session, overwriteCommand chain, or ContextManager backing store.
+     */
+    if (environment.value.variables.WDIO_UNIT_TESTS) {
+        return
+    }
+
     const contextManager = getContextManager(browser)
     const overwrite = browser.overwriteCommand.bind(browser) as (name: string, fn: Function) => void
 

@@ -19,9 +19,7 @@ vi.mock('../../../src/session/networkManager.js', () => ({
 vi.mock('../../../src/session/context.js', () => ({
     getContextManager: vi.fn().mockImplementation(() => ({
         initialize: vi.fn(),
-        getCurrentContext: vi.fn().mockResolvedValue({
-            context: '123'
-        }),
+        getCurrentContext: vi.fn().mockResolvedValue('123'),
         getContext: vi.fn().mockResolvedValue({})
     }))
 }))
@@ -126,7 +124,7 @@ describe('url', () => {
             const req = await browser.url('http://google.com')
             expect(browsingContextNavigate).toBeCalledTimes(1)
             expect(browsingContextNavigate).toBeCalledWith({
-                context: { context: '123' },
+                context: '123',
                 url: 'http://google.com/',
                 wait: 'complete'
             })
