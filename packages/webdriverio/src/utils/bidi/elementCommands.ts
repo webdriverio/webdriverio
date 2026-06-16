@@ -218,6 +218,76 @@ export function bidiGetTagName(element: WebdriverIO.Element): Promise<string> {
     return exec(element, function (el) { return el.tagName.toLowerCase() }) as Promise<string>
 }
 
+export function bidiGetProperty(element: WebdriverIO.Element, property: string): Promise<unknown> {
+    return exec(element, function (el, prop) { return el[prop] }, property)
+}
+
+/**
+ * Returns the raw computed CSS value.  The caller (`parseCSS`) handles
+ * color conversion, unit parsing, and shorthand expansion — same as
+ * the classic protocol path.
+ */
+export function bidiGetCSSProperty(element: WebdriverIO.Element, cssProperty: string): Promise<string> {
+    return exec(element, function (el, prop) {
+        return window.getComputedStyle(el)[prop]
+    }, cssProperty) as Promise<string>
+}
+
+// ── Select ─────────────────────────────────────────────────
+
+/**
+ * Select an <option> by its visible text.  Uses browser.execute() to
+ * set option.selected directly — options inside a <select> dropdown
+ * are never visible, so clicking them via the Actions API would fail
+ * with "element not interactable".
+ */
+export function bidiSelectByVisibleText(element: WebdriverIO.Element, text: string): Promise<void> {
+    return exec(element, function (selectEl, targetText) {
+        const options = selectEl.options
+        for (let i = 0; i < options.length; i++) {
+            const opt = options[i]
+            const displayText = (opt.textContent || '').trim().replace(/\s+/, ' ')
+            if (displayText === targetText) {
+                opt.selected = true
+                selectEl.dispatchEvent(new Event('change', { bubbles: true }))
+                return
+            }
+        }
+    }, text)
+}
+
+/**
+ * Select an <option> by attribute value.  Checks both the HTML
+ * attribute (getAttribute) and the DOM property — they can diverge
+ * (e.g. option.value vs option.getAttribute('value')).
+ */
+export function bidiSelectByAttribute(element: WebdriverIO.Element, attribute: string, value: string): Promise<void> {
+    return exec(element, function (selectEl, attr, val) {
+        const options = selectEl.options
+        for (let i = 0; i < options.length; i++) {
+            const opt = options[i]
+            if (opt.getAttribute(attr) === val || opt[attr] === val) {
+                opt.selected = true
+                selectEl.dispatchEvent(new Event('change', { bubbles: true }))
+                return
+            }
+        }
+    }, attribute, value)
+}
+
+/**
+ * Select an <option> by index.
+ */
+export function bidiSelectByIndex(element: WebdriverIO.Element, index: number): Promise<void> {
+    return exec(element, function (selectEl, idx) {
+        const option = selectEl.options[idx]
+        if (option) {
+            option.selected = true
+            selectEl.dispatchEvent(new Event('change', { bubbles: true }))
+        }
+    }, index)
+}
+
 export function bidiIsSelected(element: WebdriverIO.Element): Promise<boolean> {
     return exec(element, function (el) {
         return !!(el.selected || el.checked)
