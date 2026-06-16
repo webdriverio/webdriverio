@@ -284,7 +284,8 @@ export interface TestData {
     meta?: TestMeta,
     tags?: string[],
     test_run_id?: string,
-    product_map?: {}
+    product_map?: {},
+    custom_metadata?: { [key: string]: { field_type: string, values: string[] } }
 }
 
 export interface UserConfig {
