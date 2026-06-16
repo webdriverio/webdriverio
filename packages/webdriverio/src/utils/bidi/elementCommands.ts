@@ -17,7 +17,7 @@ import { getBrowserObject } from '@wdio/utils'
 /** Check if the experimental Bidi commands capability is enabled.  Merges the
  *  `browser.isBidi` check so callers don't need to test both separately. */
 export function isBidiCommandsEnabled(browser: WebdriverIO.Browser): boolean {
-    return browser.isBidi && (browser as unknown as Record<string, unknown>).__bidiCommandsEnabled === true
+    return !!(browser.isBidi && (browser as unknown as Record<string, unknown>).__bidiCommandsEnabled === true)
 }
 
 /** Pass the raw element reference to browser.execute() so LocalValue.getArgument
@@ -25,7 +25,8 @@ export function isBidiCommandsEnabled(browser: WebdriverIO.Browser): boolean {
  *  element to avoid the O(d) parent-chain traversal on repeat calls. */
 function exec<T>(
     element: WebdriverIO.Element,
-    fn: (...args: unknown[]) => T,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    fn: (...args: any[]) => T,
     ...args: unknown[]
 ): Promise<T> {
     const el = element as unknown as Record<string, unknown>
@@ -127,7 +128,7 @@ export function bidiGetValue(element: WebdriverIO.Element): Promise<string> {
  */
 export function bidiGetAttribute(element: WebdriverIO.Element, name: string): Promise<string | null> {
     return exec(element, function (el, attrName) {
-        const BOOLEAN_PROPS = [
+        const BOOLEAN_PROPS = new Set([
             'allowfullscreen', 'allowpaymentrequest', 'allowusermedia', 'async',
             'autofocus', 'autoplay', 'checked', 'compact', 'complete', 'controls',
             'declare', 'default', 'defaultchecked', 'defaultselected', 'defer',
@@ -137,24 +138,8 @@ export function bidiGetAttribute(element: WebdriverIO.Element, name: string): Pr
             'open', 'paused', 'playsinline', 'pubdate', 'readonly', 'required',
             'reversed', 'scoped', 'seamless', 'seeking', 'selected', 'truespeed',
             'typemustmatch', 'willvalidate'
-        ]
+        ])
         const PROP_ALIASES = { 'class': 'className', 'readonly': 'readOnly' }
-
-        function isSelectable(elem) {
-            if (elem.tagName === 'OPTION') { return true }
-            if (elem.tagName === 'INPUT') {
-                const t = (elem.type || '').toLowerCase()
-                return t === 'checkbox' || t === 'radio'
-            }
-            return false
-        }
-
-        function isSelected(elem) {
-            if (elem.tagName === 'OPTION') { return elem.selected }
-            const t = (elem.type || '').toLowerCase()
-            if (t === 'checkbox' || t === 'radio') { return elem.checked }
-            return false
-        }
 
         const n = attrName.toLowerCase()
 
@@ -166,8 +151,12 @@ export function bidiGetAttribute(element: WebdriverIO.Element, name: string): Pr
         }
 
         // 2. selected/checked on selectable elements → boolean normalization
-        if ((n === 'selected' || n === 'checked') && isSelectable(el)) {
-            return isSelected(el) ? 'true' : null
+        if (n === 'selected' || n === 'checked') {
+            const isOpt = el.tagName === 'OPTION'
+            const isCheckable = el.tagName === 'INPUT' && ((el.type || '').toLowerCase() === 'checkbox' || (el.type || '').toLowerCase() === 'radio')
+            if (isOpt || isCheckable) {
+                return (isOpt ? el.selected : el.checked) ? 'true' : null
+            }
         }
 
         // 3. href on <a> / src on <img> → resolved URL (property, not literal attribute)
@@ -190,8 +179,8 @@ export function bidiGetAttribute(element: WebdriverIO.Element, name: string): Pr
         }
 
         // 5. Boolean properties → 'true' or null
-        const propName = PROP_ALIASES[n] || n
-        if (BOOLEAN_PROPS.indexOf(n) !== -1) {
+        const propName = (PROP_ALIASES as Record<string, string>)[n] || n
+        if (BOOLEAN_PROPS.has(n)) {
             const hasAttr = el.getAttribute(n) !== null
             const propVal = el[propName]
             return (hasAttr || !!propVal) ? 'true' : null

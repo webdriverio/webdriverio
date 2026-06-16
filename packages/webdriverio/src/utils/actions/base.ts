@@ -119,11 +119,11 @@ export default class BaseAction {
             }
 
             const sharedId = seq.origin[ELEMENT_KEY] as string
-            seq.origin = this.#instance.isBidi
-                // Bidi input.performActions expects { type: 'element', element: { sharedId } }
+            // Bidi (input.performActions) and classic (performActions) use
+            // incompatible element reference formats — cast through any.
+            seq.origin = (this.#instance.isBidi
                 ? { type: 'element', element: { sharedId } }
-                // Classic protocol expects { 'element-6066-...': sharedId }
-                : { [ELEMENT_KEY]: sharedId }
+                : { [ELEMENT_KEY]: sharedId }) as typeof seq.origin
         }
 
         if (this.#instance.isBidi) {

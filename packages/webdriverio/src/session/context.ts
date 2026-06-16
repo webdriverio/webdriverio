@@ -70,11 +70,11 @@ export class ContextManager extends SessionManager {
          * on the browser instance so the Mocha framework adapter can
          * access them without importing from 'webdriverio'.
          */
-        ;(browser as Record<string, unknown>)[PARALLEL_CONTEXT_STORE_KEY] = parallelContextStore
+        ;(browser as unknown as Record<string, unknown>)[PARALLEL_CONTEXT_STORE_KEY] = parallelContextStore
         // Cache the capability flag so per-command checks are O(1)
-        const reqCaps = browser.requestedCapabilities as Record<string, unknown> | undefined
-        const sessCaps = browser.capabilities as Record<string, unknown> | undefined
-        ;(browser as Record<string, unknown>).__bidiCommandsEnabled = !!(
+        const reqCaps = browser.requestedCapabilities as unknown as Record<string, unknown> | undefined
+        const sessCaps = browser.capabilities as unknown as Record<string, unknown> | undefined
+        ;(browser as unknown as Record<string, unknown>).__bidiCommandsEnabled = !!(
             reqCaps?.['wdio:experimentalBiDiCommands'] || sessCaps?.['wdio:experimentalBiDiCommands']
         )
 

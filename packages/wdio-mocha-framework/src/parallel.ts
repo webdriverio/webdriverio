@@ -21,6 +21,20 @@ import type { EventEmitter } from 'node:events'
 
 const log = logger('@wdio/mocha-framework:parallel')
 
+/**
+ * Bidi-aware browser subset.  These members are added at runtime by the
+ * webdriverio package and are NOT declared on the minimal Browser stub
+ * in @wdio/types.  The mocha-framework adapter does not import from
+ * webdriverio (to avoid a circular dependency), so we declare the shape
+ * we need here.
+ */
+interface ParallelBrowser extends WebdriverIO.Browser {
+    isBidi: boolean
+    __parallelContextStore?: AsyncLocalStorage<string>
+    browsingContextCreate?(params: { type: string }): Promise<{ context: string }>
+    browsingContextClose?(params: { context: string }): Promise<void>
+}
+
 interface CollectedTest {
     title: string
     fullTitle: string
@@ -129,12 +143,13 @@ async function preallocateContexts(
     browser: WebdriverIO.Browser,
     count: number
 ): Promise<string[]> {
+    const bidi = browser as ParallelBrowser
     const contexts = await Promise.all(
         Array.from({ length: count }, () =>
-            browser.browsingContextCreate({ type: 'tab' })
+            bidi.browsingContextCreate!({ type: 'tab' })
         )
     )
-    return contexts.map(c => c.context)
+    return contexts.map((c: { context: string }) => c.context)
 }
 
 // ============================================================
@@ -148,7 +163,8 @@ export async function runParallelTests(
     cid: string,
     specs: string[]
 ): Promise<number> {
-    if (!browser.isBidi) {
+    const bidi = browser as ParallelBrowser
+    if (!bidi.isBidi) {
         throw new Error(
             'Parallel mode (parallelMode: "contexts") requires a WebDriver Bidi session. '
             + 'Ensure your capabilities enable Bidi.'
@@ -165,7 +181,7 @@ export async function runParallelTests(
 
     log.info(`[Parallel] ${contexts.length} contexts created in ${Date.now() - allocStart}ms`)
 
-    const parallelStore = (browser as Record<string, unknown>).__parallelContextStore as AsyncLocalStorage<string>
+    const parallelStore = (browser as ParallelBrowser).__parallelContextStore as AsyncLocalStorage<string>
     if (!parallelStore) {
         throw new Error('Parallel context store not found on browser.')
     }
@@ -193,7 +209,7 @@ export async function runParallelTests(
                     emitTestFail(reporter, test, cid, specs, uid, duration, error)
                     return { status: 'failed' as const, name: test.title, duration, error: error.message }
                 } finally {
-                    await browser.browsingContextClose({ context: contextId }).catch(() => { /* ignore cleanup errors */ })
+                    await bidi.browsingContextClose!({ context: contextId }).catch(() => { /* ignore cleanup errors */ })
                 }
             })
         })
