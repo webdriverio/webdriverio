@@ -1,6 +1,6 @@
 /// <reference path="./@types/bstack-service-types.d.ts" />
 import InsightsHandler from './insights-handler.js'
-import { CustomTagAccumulator, parseCommaSeparatedValues } from './customTags.js'
+import { CustomTagAccumulator } from './customTags.js'
 import type { CustomMetadata } from './customTags.js'
 import { o11yClassErrorHandler } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -51,7 +51,7 @@ class _CustomTagsHandler {
                         BStackLogger.warn(`setCustomTags: no usable values parsed from "${value}"; ignoring call`)
                         return
                     }
-                    BStackLogger.debug(`setCustomTags: recorded key=${key} values=${JSON.stringify(parseCommaSeparatedValues(value))} for test=${testUuid}`)
+                    BStackLogger.debug(`setCustomTags: recorded key=${key} value="${value}" for test=${testUuid}`)
                 } catch (error) {
                     BStackLogger.warn(`setCustomTags: error while recording custom tags: ${error}`)
                 }
