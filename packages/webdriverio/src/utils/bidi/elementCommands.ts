@@ -32,16 +32,6 @@ function exec<T>(
     return browser.execute(fn, rawEl, ...args) as Promise<T>
 }
 
-// ── Actions ──────────────────────────────────────────────
-
-export function bidiClick(element: WebdriverIO.Element): Promise<void> {
-    return exec(element, function (el) {
-        if (el.disabled) { throw new Error('element not interactable: element is disabled') }
-        el.scrollIntoView({ block: 'center', inline: 'center' })
-        el.click()
-    })
-}
-
 export function bidiClearValue(element: WebdriverIO.Element): Promise<void> {
     return exec(element, function (el) {
         el.focus()

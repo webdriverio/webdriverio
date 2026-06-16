@@ -83,7 +83,9 @@ export default class BaseAction {
      * @param duration idle time of tick
      */
     pause(duration: number) {
-        this.sequence.push({ type: 'pause', duration })
+        if (duration > 0) {
+            this.sequence.push({ type: 'pause', duration })
+        }
         return this
     }
 
@@ -116,7 +118,12 @@ export default class BaseAction {
                 throw new Error(`Couldn't find element for "${seq.type}" action sequence`)
             }
 
-            seq.origin = { [ELEMENT_KEY]: seq.origin[ELEMENT_KEY] }
+            const sharedId = seq.origin[ELEMENT_KEY] as string
+            seq.origin = this.#instance.isBidi
+                // Bidi input.performActions expects { type: 'element', element: { sharedId } }
+                ? { type: 'element', element: { sharedId } }
+                // Classic protocol expects { 'element-6066-...': sharedId }
+                : { [ELEMENT_KEY]: sharedId }
         }
 
         if (this.#instance.isBidi) {
