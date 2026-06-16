@@ -1,6 +1,5 @@
 import { getBrowserObject } from '@wdio/utils'
-import { bidiClearValue } from '../../utils/bidi/elementCommands.js'
-import { isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
+import { bidiClearValue, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 /**
  *
  * Clear the value of an input or textarea element. Make sure you can interact with the
@@ -29,7 +28,7 @@ import { isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
  */
 export function clearValue (this: WebdriverIO.Element) {
     const browser = getBrowserObject(this) as WebdriverIO.Browser
-    if (browser.isBidi && isBidiCommandsEnabled(browser)) {
+    if (isBidiCommandsEnabled(browser)) {
         return bidiClearValue(this)
     }
     return this.elementClear(this.elementId)

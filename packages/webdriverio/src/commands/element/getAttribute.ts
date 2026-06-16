@@ -1,6 +1,5 @@
 import { getBrowserObject } from '@wdio/utils'
-import { bidiGetAttribute } from '../../utils/bidi/elementCommands.js'
-import { isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
+import { bidiGetAttribute, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 /**
  *
  * Get an attribute from a DOM-element based on the attribute name.
@@ -32,7 +31,7 @@ export function getAttribute (
     attributeName: string
 ) {
     const browser = getBrowserObject(this) as WebdriverIO.Browser
-    if (browser.isBidi && isBidiCommandsEnabled(browser)) {
+    if (isBidiCommandsEnabled(browser)) {
         return bidiGetAttribute(this, attributeName)
     }
     return this.getElementAttribute(this.elementId, attributeName)

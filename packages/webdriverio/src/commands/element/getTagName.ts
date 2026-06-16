@@ -26,7 +26,7 @@ import { bidiGetTagName, isBidiCommandsEnabled } from '../../utils/bidi/elementC
 
 export function getTagName (this: WebdriverIO.Element) {
     const browser = getBrowserObject(this) as WebdriverIO.Browser
-    if (browser.isBidi && isBidiCommandsEnabled(browser)) {
+    if (isBidiCommandsEnabled(browser)) {
         return bidiGetTagName(this)
     }
     return this.getElementTagName(this.elementId)

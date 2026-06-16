@@ -160,29 +160,19 @@ class MochaAdapter {
             return this._runSequential(mocha)
         }
 
-        {
-            await executeHooksWithArgs('beforeSuite', this._config.beforeSuite as Function, [
-                { type: 'beforeSuite', payload: mocha.suite.suites[0] }
-            ])
+        await executeHooksWithArgs('beforeSuite', this._config.beforeSuite as Function, [
+            { type: 'beforeSuite', payload: mocha.suite.suites[0] }
+        ])
 
-            const failures = await runParallelTests(
-                mocha.suite, browser, this._reporter, this._cid, this._specs
-            )
+        const failures = await runParallelTests(
+            mocha.suite, browser, this._reporter, this._cid, this._specs
+        )
 
-            await executeHooksWithArgs('afterSuite', this._config.afterSuite as Function, [
-                { type: 'afterSuite', payload: mocha.suite.suites[0] }
-            ])
+        await executeHooksWithArgs('afterSuite', this._config.afterSuite as Function, [
+            { type: 'afterSuite', payload: mocha.suite.suites[0] }
+        ])
 
-            await executeHooksWithArgs('after', this._config.after as Function, [
-                failures || this._specLoadError, this._capabilities, this._specs
-            ])
-
-            if (this._specLoadError) {
-                throw this._specLoadError
-            }
-
-            return failures
-        }
+        return this._finalize(failures)
     }
 
     private async _runSequential(mocha: Mocha) {
@@ -201,14 +191,19 @@ class MochaAdapter {
             this._runner.suite.beforeAll(this.wrapHook('beforeSuite'))
             this._runner.suite.afterAll(this.wrapHook('afterSuite'))
         })
+        return this._finalize(result, runtimeError)
+    }
+
+    /**
+     * Shared teardown: emit 'after' hook, then conditionally throw stored errors.
+     */
+    private async _finalize(result: number, error?: Error) {
         await executeHooksWithArgs('after', this._config.after as Function, [
-            runtimeError || this._specLoadError || result, this._capabilities, this._specs
+            error || this._specLoadError || result, this._capabilities, this._specs
         ])
-
-        if (runtimeError || this._specLoadError) {
-            throw runtimeError || this._specLoadError
+        if (error || this._specLoadError) {
+            throw error || this._specLoadError
         }
-
         return result
     }
 
