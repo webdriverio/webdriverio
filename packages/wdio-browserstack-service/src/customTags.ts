@@ -1,5 +1,5 @@
 /**
- * Shared helpers for one-to-many custom-tag (Test-Case-ID) tagging.
+ * Helpers for one-to-many custom-tag (Test-Case-ID) tagging.
  *
  * Both runtime paths (CLI/gRPC module + legacy listener handler) funnel through
  * the same tokenizer + merge engine so they produce an identical `custom_metadata`
