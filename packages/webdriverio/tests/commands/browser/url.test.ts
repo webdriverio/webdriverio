@@ -149,6 +149,28 @@ describe('url', () => {
             expect(addInitScript).toBeCalledWith(expect.any(Function))
         })
 
+        it('should call addInitScript BEFORE navigation so onBeforeLoad takes effect', async () => {
+            await browser.url('http://google.com', {
+                onBeforeLoad: () => {
+                    // stub — just need the option to be present
+                }
+            })
+            // Verify ordering: addInitScript must be called before browsingContextNavigate
+            const initOrder = addInitScript.mock.invocationCallOrder[0]
+            const navOrder = browsingContextNavigate.mock.invocationCallOrder[0]
+            expect(initOrder).toBeLessThan(navOrder)
+        })
+
+        it('should call mock BEFORE navigation so headers take effect', async () => {
+            await browser.url('http://google.com', {
+                headers: { 'X-Custom': 'value' }
+            })
+            // Verify ordering: mock must be called before browsingContextNavigate
+            const mockOrder = mock.mock.invocationCallOrder[0]
+            const navOrder = browsingContextNavigate.mock.invocationCallOrder[0]
+            expect(mockOrder).toBeLessThan(navOrder)
+        })
+
         it('supports to pass auth credentials', async () => {
             await browser.url('http://google.com', {
                 auth: {

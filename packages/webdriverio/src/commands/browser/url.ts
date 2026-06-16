@@ -189,23 +189,11 @@ export async function url (
             ? 'complete'
             : options.wait || classicPageLoadStrategy || DEFAULT_WAIT_STATE
 
-        const navigation = await this.browsingContextNavigate({ context, url: path, wait }).catch(async (err: Error) => {
-            if (
-                err.message.includes('navigation canceled by concurrent navigation') ||
-                err.message.includes('failed with error: unknown error') ||
-                err.message.includes('no such frame')
-            ) {
-                await this.switchToWindow(context)
-                await this.navigateTo(validateUrl(path))
-                return // fallback to classic navigation — skip Bidi post-nav work
-            }
-            throw err
-        })
-
         let mock: WebdriverIO.Mock | undefined
 
         /**
-         * set up preload script if `onBeforeLoad` option is provided
+         * set up preload script if `onBeforeLoad` option is provided.
+         * Must happen BEFORE navigation so the script runs during page load.
          */
         if (options.onBeforeLoad) {
             if (typeof options.onBeforeLoad !== 'function') {
@@ -226,6 +214,19 @@ export async function url (
             mock = await this.mock(path)
             mock.requestOnce({ headers: options.headers })
         }
+
+        const navigation = await this.browsingContextNavigate({ context, url: path, wait }).catch(async (err: Error) => {
+            if (
+                err.message.includes('navigation canceled by concurrent navigation') ||
+                err.message.includes('failed with error: unknown error') ||
+                err.message.includes('no such frame')
+            ) {
+                await this.switchToWindow(context)
+                await this.navigateTo(validateUrl(path))
+                return // fallback to classic navigation — skip Bidi post-nav work
+            }
+            throw err
+        })
 
         if (mock) {
             await mock.restore()
