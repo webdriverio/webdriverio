@@ -1,5 +1,6 @@
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Options as BSOptions } from 'browserstack-local'
+import type { CustomMetadata } from './customTags.js'
 
 export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<unknown>
 
@@ -285,7 +286,7 @@ export interface TestData {
     tags?: string[],
     test_run_id?: string,
     product_map?: {},
-    custom_metadata?: { [key: string]: { field_type: string, values: string[] } }
+    custom_metadata?: CustomMetadata
 }
 
 export interface UserConfig {
