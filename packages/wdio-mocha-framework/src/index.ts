@@ -133,7 +133,7 @@ class MochaAdapter {
     }
 
     private async _runParallelMode(mocha: Mocha) {
-        const browser = (globalThis as Record<string, unknown>).browser as WebdriverIO.Browser
+        const browser = (globalThis as Record<string, unknown>).browser as WebdriverIO.Browser & { isBidi: boolean; __bidiCommandsEnabled?: boolean }
         if (!browser) {
             throw new Error(
                 'Parallel mode requires a browser instance. ' +
@@ -150,7 +150,7 @@ class MochaAdapter {
             return this._runSequential(mocha)
         }
 
-        if ((browser as Record<string, unknown>).__bidiCommandsEnabled !== true) {
+        if (browser.__bidiCommandsEnabled !== true) {
             log.warn(
                 'parallelMode: "contexts" requires \'wdio:experimentalBiDiCommands\': true ' +
                 'to be set in capabilities. Without it, element commands use classic protocol ' +
