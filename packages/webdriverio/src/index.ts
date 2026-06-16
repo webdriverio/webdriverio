@@ -14,6 +14,7 @@ import { getProtocolDriver } from './utils/driver.js'
 import { WDIO_DEFAULTS, Key as KeyConstant } from './constants.js'
 import { getPrototype, addLocatorStrategyHandler, isStub } from './utils/index.js'
 import { registerSessionManager } from './session/index.js'
+import { getContextManager } from './session/context.js'
 import { environment } from './environment.js'
 
 import type { AttachOptions, CustomCommandOptions } from './types.js'
@@ -24,6 +25,57 @@ export * from './types.js'
 export { PARALLEL_CONTEXT_STORE_KEY } from './session/context.js'
 export const Key = KeyConstant
 export const SevereServiceError = SevereServiceErrorImport
+
+/**
+ * Install Bidi-aware overwrites for protocol commands that need Bidi-specific
+ * mechanisms.  Each overwrite checks `this.isBidi` at call time: the Bidi path
+ * uses a Bidi-only API (script.evaluate, browsingContext.getTree), while the
+ * non-Bidi fallback calls `origCommand()` — the untouched protocol endpoint —
+ * so mock services and classic WebDriver keep working without any changes.
+ *
+ * Centralising these overwrites here (rather than in separate command files)
+ * makes it easier to spot and manage Bidi-vs-classic inconsistencies across
+ * browser-level getters.
+ */
+function applyBidiBrowserOverwrites(browser: WebdriverIO.Browser) {
+    const contextManager = getContextManager(browser)
+    const overwrite = browser.overwriteCommand.bind(browser) as (name: string, fn: Function) => void
+
+    overwrite('getTitle', async function (this: WebdriverIO.Browser, origCommand: () => Promise<string>) {
+        if (this.isBidi) {
+            const context = await contextManager.getCurrentContext()
+            const result = await this.scriptEvaluate({
+                expression: 'document.title',
+                target: { context },
+                awaitPromise: false
+            })
+            return (result as { result: { value: string } }).result?.value || ''
+        }
+        return origCommand()
+    })
+
+    overwrite('getUrl', async function (this: WebdriverIO.Browser, origCommand: () => Promise<string>) {
+        if (this.isBidi) {
+            const context = await contextManager.getCurrentContext()
+            const tree = await this.browsingContextGetTree({ root: context })
+            return tree.contexts[0]?.url || ''
+        }
+        return origCommand()
+    })
+
+    overwrite('getPageSource', async function (this: WebdriverIO.Browser, origCommand: () => Promise<string>) {
+        if (this.isBidi) {
+            const context = await contextManager.getCurrentContext()
+            const result = await this.scriptEvaluate({
+                expression: 'document.documentElement.outerHTML',
+                target: { context },
+                awaitPromise: false
+            })
+            return (result as { result: { value: string } }).result?.value || ''
+        }
+        return origCommand()
+    })
+}
 
 /**
  * A method to create a new session with WebdriverIO.
@@ -84,6 +136,9 @@ export const remote = async function (
     if (!isStub(options.automationProtocol)) {
         await registerSessionManager(instance)
     }
+
+    applyBidiBrowserOverwrites(instance)
+
     return instance
 }
 
@@ -117,6 +172,9 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
         await (driver['_bidiHandler'] as WebDriverTypes.BidiHandler).waitForConnected()
     }
     await registerSessionManager(driver)
+
+    applyBidiBrowserOverwrites(driver)
+
     return driver
 }
 
