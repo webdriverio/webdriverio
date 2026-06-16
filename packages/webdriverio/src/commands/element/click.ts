@@ -119,7 +119,7 @@ export function click(
     }
 
     const browser = getBrowserObject(this) as WebdriverIO.Browser
-    if (browser.isBidi && isBidiCommandsEnabled(browser)) {
+    if (isBidiCommandsEnabled(browser)) {
         return actionClick(this, {})
     }
 

@@ -196,7 +196,8 @@ export async function url (
                 err.message.includes('no such frame')
             ) {
                 await this.switchToWindow(context)
-                return this.navigateTo(validateUrl(path))
+                await this.navigateTo(validateUrl(path))
+                return // fallback to classic navigation — skip Bidi post-nav work
             }
             throw err
         })

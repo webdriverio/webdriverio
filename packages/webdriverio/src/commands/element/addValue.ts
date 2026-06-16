@@ -1,6 +1,5 @@
 import { getBrowserObject } from '@wdio/utils'
-import { bidiAddValue } from '../../utils/bidi/elementCommands.js'
-import { isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
+import { bidiAddValue, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 import type { InputOptions } from '../../types.js'
 import { CommandRuntimeOptions } from 'webdriver'
 
@@ -52,7 +51,7 @@ export function addValue (
     }
 
     const browser = getBrowserObject(this) as WebdriverIO.Browser
-    if (browser.isBidi && isBidiCommandsEnabled(browser)) {
+    if (isBidiCommandsEnabled(browser)) {
         return bidiAddValue(this, value.toString())
     }
 

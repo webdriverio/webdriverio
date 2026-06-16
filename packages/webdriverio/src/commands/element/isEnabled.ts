@@ -1,6 +1,5 @@
 import { getBrowserObject } from '@wdio/utils'
-import { bidiIsEnabled } from '../../utils/bidi/elementCommands.js'
-import { isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
+import { bidiIsEnabled, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 /**
  *
  * Return true or false if the selected DOM-element is enabled.
@@ -35,7 +34,7 @@ import { isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
  */
 export function isEnabled (this: WebdriverIO.Element) {
     const browser = getBrowserObject(this) as WebdriverIO.Browser
-    if (browser.isBidi && isBidiCommandsEnabled(browser)) {
+    if (isBidiCommandsEnabled(browser)) {
         return bidiIsEnabled(this)
     }
     return this.isElementEnabled(this.elementId)

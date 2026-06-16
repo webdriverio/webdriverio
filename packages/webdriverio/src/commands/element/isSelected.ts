@@ -1,6 +1,5 @@
 import { getBrowserObject } from '@wdio/utils'
-import { bidiIsSelected } from '../../utils/bidi/elementCommands.js'
-import { isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
+import { bidiIsSelected, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 /**
  *
  * Will return true or false whether or not an `<option>` or `<input>` element of type
@@ -32,7 +31,7 @@ import { isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
  */
 export function isSelected (this: WebdriverIO.Element) {
     const browser = getBrowserObject(this) as WebdriverIO.Browser
-    if (browser.isBidi && isBidiCommandsEnabled(browser)) {
+    if (isBidiCommandsEnabled(browser)) {
         return bidiIsSelected(this)
     }
     return this.isElementSelected(this.elementId)
