@@ -110,7 +110,7 @@ jobs:
           filename: webdriverio-build.zip
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build test container
         run: |
@@ -169,7 +169,7 @@ jobs:
             cat e2e/wdio/xvfb/logs/wdio-0-0-chromedriver.log
           fi
 
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
           name: xvfb-e2e-logs-${{ matrix.distro }}-${{ matrix.version }}-${{ matrix.scenario }}
