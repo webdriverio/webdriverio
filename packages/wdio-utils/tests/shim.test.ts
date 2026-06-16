@@ -107,8 +107,8 @@ describe('executeAsync', () => {
         vi.useFakeTimers()
         try {
             // _runnable._timeout = 0 means the hook timeout is disabled. Without a floor the race
-            // timer would be armed at 0 - TIME_BUFFER (non-positive) and never guard the hook.
-            // With a floor the hook gets room to finish.
+            // timer would be armed at 0 - TIME_BUFFER (= -3ms); Node clamps that to ~1ms and FIRES,
+            // prematurely killing the deliberately-untimed hook. With a floor the hook gets room to finish.
             const scope = { _runnable: { _timeout: 0 } }
             const fn = () => new Promise((resolve) => setTimeout(() => resolve('finished'), 1000))
             // pass the floor as the 6th arg (hookTimeoutFloor); 20000 > 1000 so the fn resolves first.

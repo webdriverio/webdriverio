@@ -23,15 +23,23 @@ const ELEMENT_RETURN_COMMANDS = ['getElement', 'getElements']
 const TIME_BUFFER = 3
 
 /**
- * Floor applied to a mocha hook's effective timeout when the hook timeout is disabled or unset
- * (0/undefined). With a disabled hook timeout the runnable timeout resolves to 0, the race timer
- * below would be armed at `0 - TIME_BUFFER` (a non-positive delay) and never act as a real guard,
- * so a never-returning hook would hang without ever settling and never emit its after-hook. The
- * floor guarantees the race always has a finite, firing timer. It is intentionally large so a
- * legitimately slow setup hook is not cut short; an EXPLICIT non-zero hook timeout is always
- * honoured unchanged and is never lowered to this value.
+ * Floor applied to a mocha hook whose timeout has been DISABLED (`this.timeout(0)` ->
+ * `runnable._timeout === 0`). Without a floor the race timer below is armed at
+ * `0 - TIME_BUFFER` (= -3ms); Node clamps a non-positive `setTimeout` delay to ~1ms and FIRES it,
+ * so the timer would prematurely kill a hook the author deliberately marked as untimed - e.g. a
+ * healthy slow setup hook (device provisioning, large downloads). The floor replaces that ~1ms
+ * delay with a finite-but-generous one so a deliberately-untimed hook is given room to finish.
+ * It is orthogonal to orphan-prevention. An EXPLICIT non-zero hook timeout is always honoured
+ * unchanged and is never lowered to this value.
+ *
+ * Why a named constant and not a config-derived value: at this layer the only mocha-supplied
+ * timeout is `runnable._timeout`, which in the disabled case is exactly the `0` being floored;
+ * `mochaOpts.timeout` is not threaded down here, and the `timeout` parameter defaults to this same
+ * value for a mocha hook. There is no cleanly-reachable larger config to derive from, so a single
+ * documented constant is used. 20s is large enough that a legitimately slow setup hook is not cut
+ * short while still bounding a genuinely never-returning one.
  */
-export const DEFAULT_HOOK_TIMEOUT = 20000
+export const DEFAULT_DISABLED_HOOK_TIMEOUT = 20000
 
 /**
  * we have to mock the WebdriverIO.Browser and WebdriverIO.MultiRemoteBrowser type
@@ -389,12 +397,13 @@ export async function executeAsync(
         let frameworkTimeout = runnableTimeout ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
         /**
          * Hook-only safety floor. A mocha hook with timeouts disabled resolves `runnableTimeout`
-         * to 0, which would arm the race timer below at a non-positive delay and let a
-         * never-returning hook hang forever without emitting its after-hook. When a floor is
-         * supplied (only the hook-wrapping path does so) AND the resolved timeout is falsy
-         * (0/undefined/NaN — i.e. effectively disabled), raise it to the floor so the race always
-         * has a firing timer. An explicit, non-zero hook timeout is left untouched and is never
-         * shortened by this floor.
+         * to 0, so `_timeout` below becomes `0 - TIME_BUFFER` (-3ms); Node clamps that to ~1ms and
+         * the race timer FIRES, prematurely killing a hook the author deliberately marked untimed
+         * (e.g. a slow but healthy provisioning/download setup hook). When a floor is supplied
+         * (only the hook-wrapping path does so) AND the resolved timeout is falsy (0/undefined/NaN
+         * — i.e. effectively disabled), raise it to the floor so a deliberately-untimed hook gets a
+         * finite-but-generous window instead of being cut at ~1ms. An explicit, non-zero hook
+         * timeout is left untouched and is never shortened by this floor.
          */
         if (hookTimeoutFloor && !frameworkTimeout) {
             frameworkTimeout = hookTimeoutFloor

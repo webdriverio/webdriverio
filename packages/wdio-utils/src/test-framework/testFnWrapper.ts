@@ -1,5 +1,5 @@
 import { logHookError } from './errorHandler.js'
-import { executeHooksWithArgs, executeAsync, DEFAULT_HOOK_TIMEOUT } from '../shim.js'
+import { executeHooksWithArgs, executeAsync, DEFAULT_DISABLED_HOOK_TIMEOUT } from '../shim.js'
 
 import type {
     WrapperMethods,
@@ -109,12 +109,15 @@ export const testFrameworkFnWrapper = async function (
 
     const testStart = Date.now()
     /**
-     * Hooks (not tests) get a finite timeout floor so a disabled/unset mocha hook timeout cannot
-     * leave the race timer unarmed and hang a never-returning hook without emitting its after-hook.
-     * Scoping the floor to the Hook path here keeps an explicit hook timeout (and any test timeout)
-     * honoured unchanged; executeAsync only applies the floor when the effective timeout is falsy.
+     * Hooks (not tests) get a finite timeout floor for the DISABLED-timeout case only. A mocha hook
+     * with `this.timeout(0)` resolves its runnable timeout to 0, which executeAsync would otherwise
+     * arm as a ~1ms race timer (Node clamps the negative `0 - TIME_BUFFER` delay and fires it),
+     * prematurely killing a hook the author deliberately marked untimed (e.g. a slow but healthy
+     * provisioning/download setup hook). Scoping the floor to the Hook path here keeps an explicit
+     * hook timeout (and any test timeout) honoured unchanged; executeAsync only applies the floor
+     * when the effective timeout is falsy. This is orthogonal to orphan-prevention.
      */
-    const hookTimeoutFloor = type === 'Hook' ? DEFAULT_HOOK_TIMEOUT : undefined
+    const hookTimeoutFloor = type === 'Hook' ? DEFAULT_DISABLED_HOOK_TIMEOUT : undefined
     try {
         result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout, hookTimeoutFloor)
         if (globalThis._jasmineTestResult !== undefined) {
@@ -151,6 +154,11 @@ export const testFrameworkFnWrapper = async function (
      * the `{...context.test, parent}` object that may have gone stale post-await) but re-read the
      * live `context` (index 1) so anything the after-hook derives from the live framework context
      * stays current. If `afterFnArgs` was undefined we fall back to an empty args array.
+     *
+     * `identitySnapshot` and `liveAfterArgs` both come from the same `afterFnArgs` callback, so when
+     * it is a function they share the same 2-tuple shape — `slice(1)` can never drop a context that
+     * was present; and when it is not a function both are absent (`undefined`/`[]`), so this branch
+     * is not taken and no context is lost.
      */
     const liveAfterArgs = typeof afterFnArgs === 'function' ? afterFnArgs(this) : []
     const afterArgs = (identitySnapshot && identitySnapshot.length > 0)

@@ -443,6 +443,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
      * advanced mocha's internal pointer so the `test` argument names the NEXT test. We dequeue the
      * FIFO front and use it; if its identity matches the passed `test` (the common, healthy case)
      * nothing changes. The FIFO is only consulted for mocha; other frameworks pass through.
+     *
+     * Why a blind oldest-open shift and NOT an identity-keyed lookup: the passed `test`'s identity is
+     * unreliable precisely in the timeout case this FIFO exists to fix — on a timeout mocha advances
+     * `context.test` to the next test before the late afterTest fires, so an identity-keyed lookup
+     * would match (and remove) the WRONG queued entry and defeat the correction. The FIFO cannot
+     * desync because push (beforeTest) and shift (here, in afterTest) are coupled one-to-one within a
+     * single testFnWrapper execution per test. Do not replace this with an identity match.
      */
     private _resolveFinishedMochaTest(test: Frameworks.Test): Frameworks.Test {
         if (this._config.framework !== 'mocha' || this._openMochaTests.length === 0) {

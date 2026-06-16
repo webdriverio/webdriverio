@@ -1033,6 +1033,66 @@ describe('afterTest timed-out-test correlation', () => {
         await service.beforeTest(t as any)
         expect(service['_openMochaTests']).toHaveLength(0)
     })
+
+    /**
+     * The FIFO must stay balanced under retries. beforeTest/afterTest are driven by testFnWrapper
+     * (one beforeTest + one afterTest per wrapper invocation), not by mocha reporter events: a
+     * mocha-native retry re-invokes the wrapper per attempt, so each attempt is its own
+     * push (beforeTest) + shift (afterTest) pair. Across a fail-fail-pass sequence the open depth
+     * must therefore return to its baseline after every attempt and never accumulate residue, so a
+     * later, unrelated test cannot dequeue a leftover entry from a retried predecessor.
+     */
+    it('keeps the FIFO balanced across retry attempts', async () => {
+        service = new BrowserstackService(
+            { testObservability: true } as any,
+            [] as any,
+            { user: 'foo', key: 'bar', framework: 'mocha' } as any
+        )
+        const finished: { title: string, passed: boolean }[] = []
+        const insightsHandler = {
+            beforeTest: vi.fn(),
+            afterTest: vi.fn((test: any, results: any) => {
+                finished.push({ title: test.title, passed: results.passed })
+            })
+        }
+        service['_insightsHandler'] = insightsHandler as any
+
+        const baseline = service['_openMochaTests'].length
+        const retried = { title: 'flaky test', parent: 'suite' }
+
+        // Three testFnWrapper invocations for the SAME test: fail, fail, then pass on the 3rd attempt.
+        const attempts = [
+            { passed: false, error: { message: 'boom' }, duration: 1, retries: { attempts: 0, limit: 2 } },
+            { passed: false, error: { message: 'boom' }, duration: 1, retries: { attempts: 1, limit: 2 } },
+            { passed: true, duration: 1, retries: { attempts: 2, limit: 2 } }
+        ]
+        for (const results of attempts) {
+            await service.beforeTest(retried as any)
+            // each push must be matched by exactly one shift; mid-attempt the depth rises by one.
+            expect(service['_openMochaTests']).toHaveLength(baseline + 1)
+            await service.afterTest(retried as any, undefined as never, results as any)
+            // after the attempt completes the depth is back to baseline — no residue accumulates.
+            expect(service['_openMochaTests']).toHaveLength(baseline)
+        }
+
+        // A following, unrelated test sees an empty FIFO and is correlated to itself, not to leftovers.
+        const nextTest = { title: 'next test', parent: 'suite' }
+        await service.beforeTest(nextTest as any)
+        await service.afterTest(
+            nextTest as any,
+            undefined as never,
+            { passed: true, duration: 1, retries: { attempts: 0, limit: 0 } } as any
+        )
+        expect(service['_openMochaTests']).toHaveLength(baseline)
+
+        // Every finish correlated to the right test: 3 attempts of the retried test, then the next one.
+        expect(finished).toEqual([
+            { title: 'flaky test', passed: false },
+            { title: 'flaky test', passed: false },
+            { title: 'flaky test', passed: true },
+            { title: 'next test', passed: true }
+        ])
+    })
 })
 
 describe('teardown sweep of unfinished test/hook entries', () => {
