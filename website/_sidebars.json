@@ -111,7 +111,8 @@
             "devtools/wdio/console-logs",
             "devtools/wdio/network-logs",
             "devtools/wdio/testlens",
-            "devtools/wdio/screencast"
+            "devtools/wdio/screencast",
+            "devtools/wdio/trace-mode"
           ]
         },
         {
