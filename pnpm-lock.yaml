@@ -824,7 +824,7 @@ importers:
         version: 4.9.0
       yauzl:
         specifier: ^3.0.0
-        version: 3.2.0
+        version: 3.2.1
     devDependencies:
       '@types/node':
         specifier: ^20.1.0
@@ -15092,8 +15092,16 @@ packages:
     resolution: {integrity: sha512-4yqz8a3n5HmGTlsbADNtr/dJlhkh/55Rq798G6ibiULcXbDtaLpTl1pvdqcbFfeoj3iSi52lePFM7h9H21cw/A==}
     engines: {node: '>=18.17'}
 
+  undici@6.27.0:
+    resolution: {integrity: sha512-YmfV3YnEDzXRC5lZ2jWtWWHKGUm1zIt8AhesR1tens+HTNv+YZlN/dp6G727LOvMJ8xjP9Be7Y2Sdr96LDm+pg==}
+    engines: {node: '>=18.17'}
+
   undici@7.27.2:
     resolution: {integrity: sha512-uZsKNuzQxDMUY6M3pIMvy5tvlGmtq8XJ2oLAkfRKGNu+1VQAIvLy2xIVG5ATZl5wDXl/tddByAWCizRbOme+TA==}
+    engines: {node: '>=20.18.1'}
+
+  undici@7.28.0:
+    resolution: {integrity: sha512-cRZYrTDwWznlnRiPjggAGxZXanty6M8RV1ff8Wm4LWXBp7/IG8v5DnOm74DtUBp9OONpK75YlPnIjQqX0dBDtA==}
     engines: {node: '>=20.18.1'}
 
   unicode-canonical-property-names-ecmascript@2.0.1:
@@ -15933,8 +15941,8 @@ packages:
   yauzl@2.10.0:
     resolution: {integrity: sha512-p4a9I6X6nu6IhoGmBqAcbJy1mlC4j27vEPZX9F4L4/vZT3Lyq1VkFHw/V/PUcB9Buo+DG3iHkT0x3Qya58zc3g==}
 
-  yauzl@3.2.0:
-    resolution: {integrity: sha512-Ow9nuGZE+qp1u4JIPvg+uCiUr7xGQWdff7JQSk5VGYTAZMDe2q8lxJ10ygv10qmSj031Ty/6FNJpLO4o1Sgc+w==}
+  yauzl@3.2.1:
+    resolution: {integrity: sha512-k1isifdbpNSFEHFJ1ZY4YDewv0IH9FR61lDetaRMD3j2ae3bIXGV+7c+LHCqtQGofSd8PIyV4X6+dHMAnSr60A==}
     engines: {node: '>=12'}
 
   yazl@2.5.1:
@@ -24597,7 +24605,7 @@ snapshots:
       parse5: 7.3.0
       parse5-htmlparser2-tree-adapter: 7.1.0
       parse5-parser-stream: 7.1.2
-      undici: 7.27.2
+      undici: 7.28.0
       whatwg-mimetype: 4.0.0
 
   chokidar@3.6.0:
@@ -33131,7 +33139,11 @@ snapshots:
 
   undici@6.26.0: {}
 
+  undici@6.27.0: {}
+
   undici@7.27.2: {}
+
+  undici@7.28.0: {}
 
   unicode-canonical-property-names-ecmascript@2.0.1: {}
 
@@ -33635,7 +33647,7 @@ snapshots:
       '@wdio/utils': 9.28.0
       deepmerge-ts: 7.1.5
       https-proxy-agent: 7.0.6
-      undici: 6.26.0
+      undici: 6.27.0
       ws: 8.21.0
     transitivePeerDependencies:
       - bare-abort-controller
@@ -34232,7 +34244,7 @@ snapshots:
       buffer-crc32: 0.2.13
       fd-slicer: 1.1.0
 
-  yauzl@3.2.0:
+  yauzl@3.2.1:
     dependencies:
       buffer-crc32: 0.2.13
       pend: 1.2.0
