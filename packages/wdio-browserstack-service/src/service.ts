@@ -225,26 +225,17 @@ export default class BrowserstackService implements Services.ServiceInstance {
         PerformanceTester.scenarioThatRan = this._scenariosThatRan
 
         if (this._browser) {
-            // redirect browserstack_executor calls from BiDi(execute) WebSocket to HTTP/S(executeScript)
-            if (this._browser.isMultiremote) {
-                const multiRemoteBrowser = this._browser as unknown as WebdriverIO.MultiRemoteBrowser
-                Object.keys(this._caps).forEach((browserName) => {
-                    const instance = multiRemoteBrowser.getInstance(browserName)
-                    instance.overwriteCommand('execute', async (originalExecute, script, ...args) => {
-                        if (typeof script === 'string' && script.startsWith('browserstack_executor:')) {
-                            return instance.executeScript(script, [])
-                        }
-                        return originalExecute(script, ...args)
+            try {
+                if (this._browser.isMultiremote) {
+                    const multiRemoteBrowser = this._browser as unknown as WebdriverIO.MultiRemoteBrowser
+                    Object.keys(this._caps).forEach((browserName) => {
+                        this._routeBidiExecutorToHttp(multiRemoteBrowser.getInstance(browserName))
                     })
-                })
-            } else {
-                const browser = this._browser as WebdriverIO.Browser
-                browser.overwriteCommand('execute', async (originalExecute, script, ...args) => {
-                    if (typeof script === 'string' && script.startsWith('browserstack_executor:')) {
-                        return browser.executeScript(script, [])
-                    }
-                    return originalExecute(script, ...args)
-                })
+                } else {
+                    this._routeBidiExecutorToHttp(this._browser as WebdriverIO.Browser)
+                }
+            } catch (err) {
+                BStackLogger.warn(`Failed to patch execute for BiDi browserstack_executor routing; executor commands may not work in BiDi sessions: ${err}`)
             }
 
             try {
@@ -737,6 +728,19 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 : `Update job with sessionId ${sessionId}`
             )
             return this._update(sessionId, requestBody)
+        })
+    }
+
+    _routeBidiExecutorToHttp (browser: WebdriverIO.Browser) {
+        if (!browser.isBidi) {
+            return
+        }
+
+        browser.overwriteCommand('execute', async (originalExecute, script, ...args) => {
+            if (typeof script === 'string' && script.startsWith('browserstack_executor:')) {
+                return browser.executeScript(script, args)
+            }
+            return originalExecute(script, ...args)
         })
     }
 
