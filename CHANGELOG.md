@@ -23,6 +23,30 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.29.0 (2026-06-18)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#15293](https://github.com/webdriverio/webdriverio/pull/15293) fix: make `waitForResponse` wait for networkCollector's response ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-utils`
+  * [#15305](https://github.com/webdriverio/webdriverio/pull/15305) fix(wdio-utils): use supported EdgeDriver CDN ([@cyphercodes](https://github.com/cyphercodes))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#15316](https://github.com/webdriverio/webdriverio/pull/15316) Fix/wdio reloadsession finishedmetadata ([@shivamku-BS](https://github.com/shivamku-BS))
+
+#### :house: Internal
+* [#15320](https://github.com/webdriverio/webdriverio/pull/15320) ci: fix ubuntu e2e failures ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### Committers: 6
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Rayan Salhab ([@cyphercodes](https://github.com/cyphercodes))
+- Shivam Kumar ([@shivamku-BS](https://github.com/shivamku-BS))
+- Vince Graics ([@Winify](https://github.com/Winify))
+- Vishnu Vardhan ([@vishnuv688](https://github.com/vishnuv688))
+
+
 ## v9.28.0 (2026-06-10)
 
 #### :bug: Bug Fix
