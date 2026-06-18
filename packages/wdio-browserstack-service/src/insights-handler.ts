@@ -432,8 +432,9 @@ class _InsightsHandler {
         this.flushCBTDataQueue()
         const testData = this.getRunData(test, 'TestRunFinished', result)
         // never emit a finish with a null/undefined uuid — the backend cannot match it to
-        // a TestRunStarted, leaving the started test orphaned (status_stats in_progress). The FIFO
-        // correlation in service.ts should prevent this; this guard is defence-in-depth.
+        // a TestRunStarted, leaving the started test orphaned (status_stats in_progress). The
+        // snapshotted-identity correlation in service.ts (afterTest trusts originalTest) should
+        // prevent this; this guard is defence-in-depth.
         if (!testData.uuid) {
             BStackLogger.warn(`Skipping TestRunFinished for '${getUniqueIdentifier(test, this._framework)}' — resolved uuid is missing; not emitting an unmatched finish.`)
             return
@@ -476,7 +477,14 @@ class _InsightsHandler {
 
         for (const fullTitle of Object.keys(this._tests)) {
             const meta = this._tests[fullTitle]
-            // Already finished, or no kind tag (cucumber/legacy entry) — nothing to sweep.
+            // Already finished, or no kind tag — nothing to sweep.
+            //
+            // Kind-less entries are CLI/gRPC-path tests seeded by setTestData (cucumber/legacy
+            // entries are also kind-less and skipped for the same reason). A CLI-path test's
+            // test_run lifecycle is owned by the binary (trackEvent -> gRPC -> stopBinSession), NOT
+            // the JS listener pipeline this sweep emits on. Sweeping them would double-emit a finish
+            // on a transport that never opened them, so they are correctly skipped here. Any genuine
+            // CLI-path orphan is a binary-side concern.
             if (!meta || meta.finishedAt || (meta.kind !== 'hook' && meta.kind !== 'test')) {
                 continue
             }

@@ -1,5 +1,5 @@
 import { logHookError } from './errorHandler.js'
-import { executeHooksWithArgs, executeAsync, DEFAULT_DISABLED_HOOK_TIMEOUT } from '../shim.js'
+import { executeHooksWithArgs, executeAsync } from '../shim.js'
 
 import type {
     WrapperMethods,
@@ -108,18 +108,8 @@ export const testFrameworkFnWrapper = async function (
     let autoSkipError: unknown
 
     const testStart = Date.now()
-    /**
-     * Hooks (not tests) get a finite timeout floor for the DISABLED-timeout case only. A mocha hook
-     * with `this.timeout(0)` resolves its runnable timeout to 0, which executeAsync would otherwise
-     * arm as a ~1ms race timer (Node clamps the negative `0 - TIME_BUFFER` delay and fires it),
-     * prematurely killing a hook the author deliberately marked untimed (e.g. a slow but healthy
-     * provisioning/download setup hook). Scoping the floor to the Hook path here keeps an explicit
-     * hook timeout (and any test timeout) honoured unchanged; executeAsync only applies the floor
-     * when the effective timeout is falsy. This is orthogonal to orphan-prevention.
-     */
-    const hookTimeoutFloor = type === 'Hook' ? DEFAULT_DISABLED_HOOK_TIMEOUT : undefined
     try {
-        result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout, hookTimeoutFloor)
+        result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout)
         if (globalThis._jasmineTestResult !== undefined) {
             result = globalThis._jasmineTestResult
             globalThis._jasmineTestResult = undefined

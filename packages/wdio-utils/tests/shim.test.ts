@@ -103,39 +103,6 @@ describe('executeAsync', () => {
         expect(result).toBe('ok')
     })
 
-    it('floors a disabled (0) hook timeout to the provided floor so the race timer is finite', async () => {
-        vi.useFakeTimers()
-        try {
-            // _runnable._timeout = 0 means the hook timeout is disabled. Without a floor the race
-            // timer would be armed at 0 - TIME_BUFFER (= -3ms); Node clamps that to ~1ms and FIRES,
-            // prematurely killing the deliberately-untimed hook. With a floor the hook gets room to finish.
-            const scope = { _runnable: { _timeout: 0 } }
-            const fn = () => new Promise((resolve) => setTimeout(() => resolve('finished'), 1000))
-            // pass the floor as the 6th arg (hookTimeoutFloor); 20000 > 1000 so the fn resolves first.
-            const resultPromise = executeAsync.call(scope as any, fn, { attempts: 0, limit: 0 }, [], 20000, 20000)
-            await vi.advanceTimersByTimeAsync(1000)
-            await expect(resultPromise).resolves.toBe('finished')
-        } finally {
-            vi.useRealTimers()
-        }
-    })
-
-    it('does NOT floor an explicit non-zero hook timeout (honours the framework value)', async () => {
-        vi.useFakeTimers()
-        try {
-            // An explicit 100ms hook timeout must be honoured even though a much larger floor is
-            // supplied: a fn that takes 1000ms must still time out at ~100ms, not wait for the floor.
-            const scope = { _runnable: { _timeout: 100 } }
-            const fn = () => new Promise((resolve) => setTimeout(() => resolve('too slow'), 1000))
-            const resultPromise = executeAsync.call(scope as any, fn, { attempts: 0, limit: 0 }, [], 20000, 20000)
-                .catch((err: Error) => err.message)
-            await vi.advanceTimersByTimeAsync(100)
-            await expect(resultPromise).resolves.toBe('Timeout')
-        } finally {
-            vi.useRealTimers()
-        }
-    })
-
     it('should retry', async () => {
         let attempts = 0
         const retryFunction = () => {

@@ -60,17 +60,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _observability
     private _currentTest?: Frameworks.Test | ITestCaseHookParameter
     /**
-     * FIFO of tests that have started (`beforeTest`) but not yet finished (`afterTest`)
-     * within this worker. Mocha runs tests sequentially per worker and completes them in start
-     * order, but when a test hangs past the mocha timeout, mocha advances its internal
-     * `runner.test`/`context.test` pointer to the NEXT test before the wdio adapter snapshots the
-     * `afterTest` payload — so the `test` argument we receive on `afterTest` can identify the wrong
-     * (next) test. We resolve the finish to the oldest still-open test from this FIFO instead of
-     * trusting that (possibly stale) label, which keeps the timed-out test from being orphaned on
-     * both the legacy in-process path and the CLI/gRPC path.
-     */
-    private _openMochaTests: Frameworks.Test[] = []
-    /**
      * CLI/gRPC path: map of test identity -> the test_uuid minted for it at
      * INIT_TEST/PRE. The CLI mints a fresh uuid into a SINGLE mutable per-worker tracked instance
      * (`trackWdioMochaInstance` overwrites `TestFramework.instances[ctxId]` wholesale on every
@@ -79,8 +68,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
      * afterTest POST fires, so the POST would carry the wrong (next) test's uuid and the binary
      * would close the wrong test_run — orphaning the hung one. We snapshot each test's uuid here,
      * keyed by the same identity the legacy `_tests` map uses, and at afterTest we restore the
-     * resolved (oldest-open) test's uuid onto the tracked instance before the POST so it closes the
-     * correct test_run.
+     * finishing test's minted uuid onto the tracked instance before the POST so it closes the
+     * correct test_run. The finishing identity is `originalTest` (already snapshotted pre-await by
+     * the testFnWrapper, so it is the timed-out runnable's own identity, not the next test's).
      */
     private _cliTestUuids: Map<string, string> = new Map()
     private _insightsHandler?: InsightsHandler
@@ -397,11 +387,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeTest' })
     async beforeTest (test: Frameworks.Test) {
         this._currentTest = test
-        // record the start of this test so a later, possibly mislabelled afterTest
-        // can be correlated back to it (mocha finishes tests in start order within a worker).
-        if (this._config.framework === 'mocha') {
-            this._openMochaTests.push(test)
-        }
         let suiteTitle = this._suiteTitle
 
         if (test.fullName) {
@@ -435,40 +420,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._insightsHandler?.beforeTest(test)
     }
 
-    /**
-     * resolve the test that is actually finishing now.
-     *
-     * Mocha completes tests in start order within a worker, so the oldest test still open in our
-     * FIFO is the one whose afterTest is firing — even when a hang past the mocha timeout has
-     * advanced mocha's internal pointer so the `test` argument names the NEXT test. We dequeue the
-     * FIFO front and use it; if its identity matches the passed `test` (the common, healthy case)
-     * nothing changes. The FIFO is only consulted for mocha; other frameworks pass through.
-     *
-     * Why a blind oldest-open shift and NOT an identity-keyed lookup: the passed `test`'s identity is
-     * unreliable precisely in the timeout case this FIFO exists to fix — on a timeout mocha advances
-     * `context.test` to the next test before the late afterTest fires, so an identity-keyed lookup
-     * would match (and remove) the WRONG queued entry and defeat the correction. The FIFO cannot
-     * desync because push (beforeTest) and shift (here, in afterTest) are coupled one-to-one within a
-     * single testFnWrapper execution per test. Do not replace this with an identity match.
-     */
-    private _resolveFinishedMochaTest(test: Frameworks.Test): Frameworks.Test {
-        if (this._config.framework !== 'mocha' || this._openMochaTests.length === 0) {
-            return test
-        }
-        const oldestOpen = this._openMochaTests.shift() as Frameworks.Test
-        if (oldestOpen !== test) {
-            BStackLogger.debug(
-                `afterTest received a mislabelled test ('${test?.title}'); ` +
-                `correlating finish to the oldest open test ('${oldestOpen?.title}') instead.`
-            )
-        }
-        return oldestOpen
-    }
-
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'afterTest' })
     async afterTest(originalTest: Frameworks.Test, context: never, results: Frameworks.TestResult) {
-        // correct a possibly-stale test identity before it reaches either reporting path.
-        const test = this._resolveFinishedMochaTest(originalTest)
+        // `originalTest` is the identity the testFnWrapper snapshotted BEFORE awaiting the spec body,
+        // so on a timeout it is the runnable that actually started (not the next test mocha advanced
+        // its pointer to). Trust it directly as the finishing test for both reporting paths.
+        const test = originalTest
         this._specsRan = true
         const { error, passed, skipped } = results
         if (!passed && !skipped) {
@@ -482,8 +439,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (BrowserstackCLI.getInstance().isRunning()) {
             // the CLI test-finish reads test_uuid from the single mutable per-worker
             // tracked instance, which a later INIT_TEST may have overwritten with the NEXT test's
-            // uuid. `test` has already been corrected to the oldest-open (actually-finishing) test
-            // by _resolveFinishedMochaTest above; restore THAT test's minted uuid onto the tracked
+            // uuid. `test` is `originalTest` — already the correct (timed-out) identity, snapshotted
+            // pre-await by the testFnWrapper — so restore THAT test's minted uuid onto the tracked
             // instance so the POST carries it and the binary closes the correct test_run. Without
             // this, the finish would carry the next test's uuid and orphan the finishing one.
             if (this._config.framework === 'mocha') {
@@ -599,13 +556,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
             } catch (sweepErr) {
                 BStackLogger.debug('Exception in sweepUnfinished during after(): ' + util.format(sweepErr))
             }
-            // The sweep closes the _tests entries, but the FIFO (_openMochaTests) and the
-            // CLI uuid snapshots (_cliTestUuids) are only drained in afterTest — the callback that
-            // never fired for the tests the sweep just handled. Clear them here at per-worker
-            // teardown so stale entries from a timeout cycle cannot make a later
-            // _resolveFinishedMochaTest dequeue the wrong test. Safe to clear: this runs after the
-            // sweep, no further afterTest will consume them in this worker.
-            this._openMochaTests.length = 0
+            // The sweep closes the _tests entries, but the CLI uuid snapshots (_cliTestUuids) are
+            // only drained in afterTest — the callback that never fires for a test the sweep just
+            // handled (e.g. one that timed out). Clear them here at per-worker teardown so stale
+            // snapshots cannot leak across the worker. Safe to clear: this runs after the sweep and
+            // no further afterTest will consume them in this worker.
             this._cliTestUuids.clear()
 
             // Track Listener cleanup

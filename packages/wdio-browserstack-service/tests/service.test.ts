@@ -8,6 +8,8 @@ import * as utils from '../src/util.js'
 import InsightsHandler from '../src/insights-handler.js'
 import * as bstackLogger from '../src/bstackLogger.js'
 import { BrowserstackCLI } from '../src/cli/index.js'
+import TestFramework from '../src/cli/frameworks/testFramework.js'
+import { TestFrameworkConstants } from '../src/cli/frameworks/constants/testFrameworkConstants.js'
 
 const jasmineSuiteTitle = 'Jasmine__TopLevel__Suite'
 const sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -963,12 +965,16 @@ describe('afterTest', () => {
 
 describe('afterTest timed-out-test correlation', () => {
     /**
-     * Reproduces the orphan: a mocha test hangs past the timeout, mocha advances its internal
-     * pointer to the NEXT test, and the wdio adapter snapshots that (wrong) test for the afterTest
-     * payload. The service must still finish the test that actually started (the oldest open one),
-     * not the mislabelled one — otherwise the timed-out test is never finished and is orphaned.
+     * afterTest trusts `originalTest` directly as the finishing identity. On a timeout the wdio
+     * adapter would otherwise read a stale `context.test` (mocha advances its internal pointer to
+     * the NEXT test before the late afterTest fires), but the testFnWrapper snapshots the runnable
+     * identity BEFORE awaiting the spec body, so the identity already reaching afterTest as
+     * `originalTest` is the timed-out runnable's OWN identity, not the next test's. The
+     * upstream-snapshot proof lives in wdio-utils' testFnWrapper-async.test.ts ('emits the
+     * after-hook with the identity captured BEFORE the await'); here we just assert afterTest
+     * forwards that identity unchanged so the timed-out test is finished, not orphaned.
      */
-    it('finishes the oldest open test even when afterTest is given the next test', async () => {
+    it('finishes the test it is given (originalTest) even when that finish is a timeout', async () => {
         service = new BrowserstackService(
             { testObservability: true } as any,
             [] as any,
@@ -981,18 +987,17 @@ describe('afterTest timed-out-test correlation', () => {
         }
         service['_insightsHandler'] = insightsHandler as any
 
+        // The snapshotted identity of the runnable that actually started (and then timed out).
         const timedOut = { title: 'P0 hangs', parent: 'suite' }
-        const next = { title: 'P1 sibling', parent: 'suite' }
 
-        // P0 starts. P0 then times out; mocha hands afterTest the NEXT test (P1) by mistake.
         await service.beforeTest(timedOut as any)
         await service.afterTest(
-            next as any,
+            timedOut as any,
             undefined as never,
             { passed: false, error: { message: 'Timeout' }, duration: 1, retries: { attempts: 0, limit: 0 } } as any
         )
 
-        // The finish must be attributed to P0 (the test that actually started), not the stale P1.
+        // The finish carries P0's identity (its own uuid downstream), so the timed-out test is finished.
         expect(insightsHandler.afterTest).toHaveBeenCalledTimes(1)
         expect(insightsHandler.afterTest.mock.calls[0][0].title).toBe('P0 hangs')
         expect(finished).toEqual(['P0 hangs'])
@@ -1016,82 +1021,53 @@ describe('afterTest timed-out-test correlation', () => {
         )
 
         expect(insightsHandler.afterTest.mock.calls[0][0].title).toBe('clean')
-        // FIFO is drained, so a subsequent afterTest with an empty FIFO must fall back to its arg.
-        expect(service['_openMochaTests']).toHaveLength(0)
-    })
-
-    it('does not correlate for non-mocha frameworks (FIFO stays empty)', async () => {
-        service = new BrowserstackService(
-            { testObservability: true } as any,
-            [] as any,
-            { user: 'foo', key: 'bar', framework: 'jasmine' } as any
-        )
-        const insightsHandler = { beforeTest: vi.fn(), afterTest: vi.fn() }
-        service['_insightsHandler'] = insightsHandler as any
-
-        const t = { title: 'jasmine test', fullName: 'jasmine test', description: 'jasmine test' }
-        await service.beforeTest(t as any)
-        expect(service['_openMochaTests']).toHaveLength(0)
     })
 
     /**
-     * The FIFO must stay balanced under retries. beforeTest/afterTest are driven by testFnWrapper
-     * (one beforeTest + one afterTest per wrapper invocation), not by mocha reporter events: a
-     * mocha-native retry re-invokes the wrapper per attempt, so each attempt is its own
-     * push (beforeTest) + shift (afterTest) pair. Across a fail-fail-pass sequence the open depth
-     * must therefore return to its baseline after every attempt and never accumulate residue, so a
-     * later, unrelated test cannot dequeue a leftover entry from a retried predecessor.
+     * CLI/gRPC path. The CLI test-finish reads test_uuid from a single mutable per-worker tracked
+     * instance that a later INIT_TEST overwrites with the NEXT test's uuid. afterTest restores the
+     * finishing test's uuid by keying _cliTestUuids off getUniqueIdentifier(originalTest) — so the
+     * timed-out test's finish carries ITS uuid, not the next test's. P0 mints uuid-P0; P1's
+     * INIT_TEST overwrites the tracked slot; afterTest(P0) must restore uuid-P0.
      */
-    it('keeps the FIFO balanced across retry attempts', async () => {
+    it('CLI path: restores the finishing test\'s uuid keyed by getUniqueIdentifier(originalTest)', async () => {
         service = new BrowserstackService(
             { testObservability: true } as any,
             [] as any,
             { user: 'foo', key: 'bar', framework: 'mocha' } as any
         )
-        const finished: { title: string, passed: boolean }[] = []
-        const insightsHandler = {
-            beforeTest: vi.fn(),
-            afterTest: vi.fn((test: any, results: any) => {
-                finished.push({ title: test.title, passed: results.passed })
-            })
+
+        const cliGetInstanceSpy = vi.spyOn(BrowserstackCLI, 'getInstance').mockReturnValue({
+            isRunning: () => true,
+            getTestFramework: () => ({ trackEvent: vi.fn().mockResolvedValue(undefined) })
+        } as any)
+        const getTrackedInstanceSpy = vi.spyOn(TestFramework, 'getTrackedInstance').mockReturnValue({} as any)
+        const setStateSpy = vi.spyOn(TestFramework, 'setState').mockReturnValue(undefined as any)
+
+        try {
+            // P0 started and timed out; the snapshotted identity that reaches afterTest is P0's own.
+            const originalTest = { title: 'P0 hangs', parent: 'suite' }
+            // P0's minted uuid was snapshotted in beforeTest, keyed by its identity. (P1's INIT_TEST
+            // has since overwritten the single tracked slot, which is exactly why we restore here.)
+            const key = utils.getUniqueIdentifier(originalTest as any, 'mocha')
+            service['_cliTestUuids'] = new Map([[key, 'uuid-P0']])
+
+            await service.afterTest(
+                originalTest as any,
+                undefined as never,
+                { passed: false, error: { message: 'Timeout' }, duration: 1, retries: { attempts: 0, limit: 0 } } as any
+            )
+
+            // The restore keyed off getUniqueIdentifier(originalTest), so uuid-P0 (not the next
+            // test's uuid) is written back onto the tracked instance before the finish POST.
+            expect(setStateSpy).toHaveBeenCalledWith(expect.anything(), TestFrameworkConstants.KEY_TEST_UUID, 'uuid-P0')
+            // and the consumed entry is cleaned up so the per-worker map does not grow.
+            expect(service['_cliTestUuids'].has(key)).toBe(false)
+        } finally {
+            cliGetInstanceSpy.mockRestore()
+            getTrackedInstanceSpy.mockRestore()
+            setStateSpy.mockRestore()
         }
-        service['_insightsHandler'] = insightsHandler as any
-
-        const baseline = service['_openMochaTests'].length
-        const retried = { title: 'flaky test', parent: 'suite' }
-
-        // Three testFnWrapper invocations for the SAME test: fail, fail, then pass on the 3rd attempt.
-        const attempts = [
-            { passed: false, error: { message: 'boom' }, duration: 1, retries: { attempts: 0, limit: 2 } },
-            { passed: false, error: { message: 'boom' }, duration: 1, retries: { attempts: 1, limit: 2 } },
-            { passed: true, duration: 1, retries: { attempts: 2, limit: 2 } }
-        ]
-        for (const results of attempts) {
-            await service.beforeTest(retried as any)
-            // each push must be matched by exactly one shift; mid-attempt the depth rises by one.
-            expect(service['_openMochaTests']).toHaveLength(baseline + 1)
-            await service.afterTest(retried as any, undefined as never, results as any)
-            // after the attempt completes the depth is back to baseline — no residue accumulates.
-            expect(service['_openMochaTests']).toHaveLength(baseline)
-        }
-
-        // A following, unrelated test sees an empty FIFO and is correlated to itself, not to leftovers.
-        const nextTest = { title: 'next test', parent: 'suite' }
-        await service.beforeTest(nextTest as any)
-        await service.afterTest(
-            nextTest as any,
-            undefined as never,
-            { passed: true, duration: 1, retries: { attempts: 0, limit: 0 } } as any
-        )
-        expect(service['_openMochaTests']).toHaveLength(baseline)
-
-        // Every finish correlated to the right test: 3 attempts of the retried test, then the next one.
-        expect(finished).toEqual([
-            { title: 'flaky test', passed: false },
-            { title: 'flaky test', passed: false },
-            { title: 'flaky test', passed: true },
-            { title: 'next test', passed: true }
-        ])
     })
 })
 
@@ -1212,20 +1188,18 @@ describe('teardown sweep of unfinished test/hook entries', () => {
         warnSpy.mockRestore()
     })
 
-    it('drains _openMochaTests and _cliTestUuids after the sweep in after()', async () => {
+    it('drains _cliTestUuids after the sweep in after()', async () => {
         service = new BrowserstackService(
             { testObservability: true } as any,
             [] as any,
             { user: 'foo', key: 'bar', framework: 'mocha' } as any
         )
         service['_insightsHandler'] = { sweepUnfinished: vi.fn(async () => {}) } as any
-        // simulate stale FIFO/uuid state from a timeout cycle where afterTest never drained them
-        service['_openMochaTests'] = [{ title: 'hung test' } as any]
+        // simulate a stale uuid snapshot from a timeout cycle where afterTest never drained it
         service['_cliTestUuids'] = new Map([['suite - hung test', 'uuid-1']])
 
         await service.after(0)
 
-        expect(service['_openMochaTests']).toHaveLength(0)
         expect(service['_cliTestUuids'].size).toBe(0)
     })
 })
