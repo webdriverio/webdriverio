@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@types/async-exit-hook": "^2.0.0",
-    "@types/stream-buffers": "^3.0.4"
+    "@types/stream-buffers": "^3.0.8"
   },
   "publishConfig": {
     "access": "public"
