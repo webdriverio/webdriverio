@@ -44,6 +44,7 @@ import { TestFrameworkState } from './cli/states/testFrameworkState.js'
 import { HookState } from './cli/states/hookState.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
+import CustomTagsHandler from './custom-tags-handler.js'
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
@@ -732,6 +733,15 @@ class _InsightsHandler {
             testData.duration_in_ms = results.duration
             if (this._hooks[fullTitle]) {
                 testData.hooks = this._hooks[fullTitle]
+            }
+
+            // Drain any custom tags (multi Test-Case-ID) recorded for this test via
+            // browser.setCustomTags on the legacy/listener path. Keyed on the test
+            // uuid (the same uuid set in beforeTest / setTestData). The accumulator
+            // already completed union+dedupe SDK-side; the binary is pass-through.
+            const customMetadata = CustomTagsHandler.drain(testMetaData.uuid)
+            if (customMetadata && Object.keys(customMetadata).length > 0) {
+                testData.custom_metadata = customMetadata
             }
         }
 

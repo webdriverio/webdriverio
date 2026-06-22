@@ -17,6 +17,7 @@ import { DEFAULT_OPTIONS, NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV } from 
 import { configureCaCertificate } from './caCert.js'
 import CrashReporter from './crash-reporter.js'
 import AccessibilityHandler from './accessibility-handler.js'
+import CustomTagsHandler from './custom-tags-handler.js'
 import { BStackLogger } from './bstackLogger.js'
 import PercyHandler from './Percy/Percy-Handler.js'
 import Listener from './testOps/listener.js'
@@ -63,6 +64,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _insightsHandler?: InsightsHandler
     private _accessibility
     private _accessibilityHandler?: AccessibilityHandler
+    private _customTagsHandler?: CustomTagsHandler
     private _percy
     private _percyCaptureMode: string | undefined = undefined
     private _percyHandler?: PercyHandler
@@ -270,6 +272,25 @@ export default class BrowserstackService implements Services.ServiceInstance {
                         return
                     }
                     await this._insightsHandler.before()
+                }
+
+                /**
+                 * register custom-tag (multi Test-Case-ID) browser method on the
+                 * legacy/listener path. The CLI/gRPC path registers it via
+                 * CustomTagsModule.onBeforeExecute instead (both handlers' before()
+                 * are skipped when the binary is up).
+                 */
+                if (!BrowserstackCLI.getInstance().isRunning()) {
+                    try {
+                        this._customTagsHandler = new CustomTagsHandler(
+                            this._browser,
+                            this._caps,
+                            this._config.framework
+                        )
+                        this._customTagsHandler.before()
+                    } catch (err) {
+                        BStackLogger.error(`[Custom Tags] Error registering setCustomTags: ${err}`)
+                    }
                 }
 
                 /**

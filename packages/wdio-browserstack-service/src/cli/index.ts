@@ -19,6 +19,7 @@ import WdioMochaTestFramework from './frameworks/wdioMochaTestFramework.js'
 import WdioAutomationFramework from './frameworks/wdioAutomationFramework.js'
 import WebdriverIOModule from './modules/webdriverIOModule.js'
 import AccessibilityModule from './modules/accessibilityModule.js'
+import CustomTagsModule from './modules/customTagsModule.js'
 import { isTurboScale, processAccessibilityResponse, shouldAddServiceVersion } from '../util.js'
 import ObservabilityModule from './modules/observabilityModule.js'
 import type { BrowserstackConfig, BrowserstackOptions, LaunchResponse } from '../types.js'
@@ -165,6 +166,10 @@ export class BrowserstackCLI {
             }
 
             this.modules[TestHubModule.MODULE_NAME] = new TestHubModule(startBinResponse.testhub)
+
+            // Custom-tag (multi Test-Case-ID) tagging rides the per-test event_json
+            // to TestHub, so it is gated on the testhub pipeline being active.
+            this.modules[CustomTagsModule.MODULE_NAME] = new CustomTagsModule()
 
             if (startBinResponse.accessibility?.success){
                 process.env[BROWSERSTACK_ACCESSIBILITY] = 'true'
