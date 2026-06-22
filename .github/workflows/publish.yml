@@ -24,7 +24,7 @@ env:
 jobs:
   authorize:
     name: Authorize Actor
-    uses: ./.github/workflows/authorize.yml
+    uses: ./.github/workflows/authorize-publisher.yml
     secrets: inherit
   release:
     permissions:
