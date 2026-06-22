@@ -460,7 +460,7 @@ export function getBidiRequestOptions (
     strictSSL: boolean = true,
     headers?: Record<string, string>
 ): ClientOptions {
-    const bidiReqOpts: ClientOptions = { followRedirects: true }
+    const bidiReqOpts: ClientOptions = { followRedirects: true, maxRedirects: 10 }
     if (!strictSSL) {
         bidiReqOpts.rejectUnauthorized = false
     }
