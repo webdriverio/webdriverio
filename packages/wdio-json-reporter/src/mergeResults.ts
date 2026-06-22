@@ -21,11 +21,9 @@ export default async function mergeResults(
     const rawData = await getDataFromFiles(dir, filePattern)
     const mergedResults = mergeData(rawData)
 
-    if (customFileName) {
-        const fileName = customFileName || DEFAULT_FILENAME
-        const filePath = path.join(dir, fileName)
-        await fs.writeFile(filePath, JSON.stringify(mergedResults))
-    }
+    const fileName = customFileName || DEFAULT_FILENAME
+    const filePath = path.join(dir, fileName)
+    await fs.writeFile(filePath, JSON.stringify(mergedResults))
 
     return mergedResults
 }
