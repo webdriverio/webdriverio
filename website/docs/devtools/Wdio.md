@@ -69,6 +69,7 @@ Explore the WebDriverIO DevTools features in detail:
 - **[Multi-Framework Support](/docs/devtools/wdio/multi-framework-support)** - Works with Mocha, Jasmine, and Cucumber
 - **[Console Logs](/docs/devtools/wdio/console-logs)** - Capture and inspect browser console output
 - **[Network Logs](/docs/devtools/wdio/network-logs)** - Monitor API calls and network activity
+- **[Metadata](/docs/devtools/wdio/metadata)** - Session capabilities, environment, and timing per browser session
 - **[TestLens](/docs/devtools/wdio/testlens)** - Navigate to source code with intelligent code navigation
 - **[Session Screencast](/docs/devtools/wdio/screencast)** - Automatic video recording of browser sessions
 - **[Trace Mode](/docs/devtools/wdio/trace-mode)** - Headless capture path producing a portable `trace.zip` artifact (no UI window); supports `zip` and `ndjson-directory` output formats, viewable in `playwright show-trace`
