@@ -164,18 +164,23 @@ async function preallocateContexts(
     count: number
 ): Promise<string[]> {
     const bidi = browser as ParallelBrowser
-    if (typeof bidi.browsingContextCreate !== 'function') {
-        throw new Error(
-            'browsingContextCreate is not available on the browser instance. ' +
-            'Ensure the browser session supports WebDriver Bidi.'
-        )
-    }
-    const contexts = await Promise.all(
+    const results = await Promise.allSettled(
         Array.from({ length: count }, () =>
-            bidi.browsingContextCreate!({ type: 'tab' })
+            bidi.browsingContextCreate({ type: 'tab' })
         )
     )
-    return contexts.map((c: { context: string }) => c.context)
+    const failed = results.filter((r) => r.status === 'rejected')
+    if (failed.length > 0) {
+        // Close any successfully-created contexts before throwing
+        const created = results
+            .filter((r): r is PromiseFulfilledResult<{ context: string }> => r.status === 'fulfilled')
+            .map((r) => r.value.context)
+        await Promise.allSettled(
+            created.map((ctx) => bidi.browsingContextClose({ context: ctx }).catch(() => {}))
+        )
+        throw (failed[0] as PromiseRejectedResult).reason
+    }
+    return (results as PromiseFulfilledResult<{ context: string }>[]).map((r) => r.value.context)
 }
 
 // ============================================================
@@ -451,14 +456,12 @@ async function runBatch(
 
                 return { status, name: pickle.name, duration }
             }).finally(async () => {
-                if (typeof bidi.browsingContextClose === 'function') {
-                    await bidi.browsingContextClose({ context: contextId })
-                        .catch((err) => {
-                            log.debug(
-                                `Cleanup error closing context ${contextId}: ${(err as Error).message}`
-                            )
-                        })
-                }
+                await bidi.browsingContextClose({ context: contextId })
+                    .catch((err) => {
+                        log.debug(
+                            `Cleanup error closing context ${contextId}: ${(err as Error).message}`
+                        )
+                    })
             })
         })
     )
@@ -511,11 +514,6 @@ export async function runParallelCucumber(params: {
         `[Parallel] Collected ${allPickles.length} scenarios across ${featureGroups.length} feature(s). ` +
         `Batch size: ${batchSize}, max contexts: ${maxContexts}`
     )
-
-    // --- 3. Pre-allocate batch-sized contexts ---
-    const allocStart = Date.now()
-    const contexts = await preallocateContexts(browser, batchSize)
-    log.info(`[Parallel] ${contexts.length} contexts created in ${Date.now() - allocStart}ms`)
 
     const parallelStore = bidi.__parallelContextStore as AsyncLocalStorage<string>
     if (!parallelStore) {
@@ -579,6 +577,13 @@ export async function runParallelCucumber(params: {
 
     for (let batchStart = 0; batchStart < allPickles.length; batchStart += batchSize) {
         const batchEnd = Math.min(batchStart + batchSize, allPickles.length)
+        const currentBatchSize = batchEnd - batchStart
+
+        // Pre-allocate fresh contexts for this batch (closed per-scenario in runBatch)
+        const allocStart = Date.now()
+        const contexts = await preallocateContexts(browser, currentBatchSize)
+        log.info(`[Parallel] ${contexts.length} contexts created in ${Date.now() - allocStart}ms`)
+
         const batch: { pickle: messages.Pickle; group: FeatureGroup; index: number; contextId: string }[] = []
 
         for (let i = batchStart; i < batchEnd; i++) {

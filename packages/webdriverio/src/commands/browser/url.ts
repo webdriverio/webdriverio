@@ -221,9 +221,9 @@ export async function url (
                 err.message.includes('failed with error: unknown error') ||
                 err.message.includes('no such frame')
             ) {
-                await this.switchToWindow(context)
-                await this.navigateTo(validateUrl(path))
-                return // fallback to classic navigation — skip Bidi post-nav work
+                // Retry with wait:none — avoids Classic switchToWindow race
+                // in parallel mode (switchToWindow mutates session-global state)
+                return this.browsingContextNavigate({ context, url: path, wait: 'none' })
             }
             throw err
         })

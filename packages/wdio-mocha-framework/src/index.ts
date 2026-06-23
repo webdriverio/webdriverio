@@ -164,15 +164,22 @@ class MochaAdapter {
             { type: 'beforeSuite', payload: mocha.suite.suites[0] }
         ])
 
-        const failures = await runParallelTests(
-            mocha.suite, browser, this._reporter, this._cid, this._specs
-        )
+        let failures: number
+        let runtimeError: Error | undefined
+        try {
+            failures = await runParallelTests(
+                mocha.suite, browser, this._reporter, this._cid, this._specs
+            )
+        } catch (err) {
+            runtimeError = err as Error
+            failures = 1
+        }
 
         await executeHooksWithArgs('afterSuite', this._config.afterSuite as Function, [
             { type: 'afterSuite', payload: mocha.suite.suites[0] }
         ])
 
-        return this._finalize(failures)
+        return this._finalize(failures, runtimeError)
     }
 
     private async _runSequential(mocha: Mocha) {

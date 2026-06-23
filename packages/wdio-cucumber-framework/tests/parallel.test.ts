@@ -297,26 +297,6 @@ describe('runParallelCucumber', () => {
         ).rejects.toThrow('Parallel context store not found')
     })
 
-    test('throws when browsingContextCreate is not available', async () => {
-        const browser = mockBrowser()
-        delete (browser as Record<string, unknown>).browsingContextCreate
-
-        const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['scenario a'])
-
-        await expect(
-            runParallelCucumber({
-                browser: browser as unknown as WebdriverIO.Browser,
-                reporter,
-                eventEmitter,
-                cid: '0-0',
-                specs: ['/test/foo.feature'],
-                gherkinDocuments: [doc],
-                supportCodeLibrary: mockSupportCodeLibrary(),
-                cucumberOpts: defaultCucumberOpts(),
-            })
-        ).rejects.toThrow('browsingContextCreate is not available')
-    })
-
     test('skips pickles with no assembled test case', async () => {
         const browser = mockBrowser({ contexts: ['ctx-0'] })
         const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['scenario a'])
@@ -422,7 +402,7 @@ describe('runParallelCucumber', () => {
 
     // ---- Concurrency limiting ----
 
-    test('respects maxParallelContexts cap', async () => {
+    test('allocates fresh contexts per batch respecting maxParallelContexts', async () => {
         const browser = mockBrowser({
             contexts: ['ctx-0', 'ctx-1', 'ctx-2', 'ctx-3', 'ctx-4'],
         })
@@ -439,8 +419,8 @@ describe('runParallelCucumber', () => {
             cucumberOpts: defaultCucumberOpts({ maxParallelContexts: 2 }),
         })
 
-        // Only 2 contexts allocated (batch size = 2, reused across batches)
-        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(2)
+        // 4 scenarios with batch size 2 → 2 batches, each allocates 2 fresh contexts = 4 total
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(4)
     })
 
     test('processes all scenarios even when batched', async () => {

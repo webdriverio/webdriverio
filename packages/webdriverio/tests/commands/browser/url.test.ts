@@ -189,14 +189,22 @@ describe('url', () => {
             expect(mockMock.restore).toBeCalledTimes(1)
         })
 
-        it('should fallback to url on concurrent navigation', async () => {
+        it('should retry with wait:none on concurrent navigation', async () => {
+            let callCount = 0
             browsingContextNavigate.mockImplementation((async () => {
-                throw new Error('navigation canceled by concurrent navigation')
+                callCount++
+                if (callCount === 1) {
+                    throw new Error('navigation canceled by concurrent navigation')
+                }
+                return { navigation: 'nav-1' }
             }) as any)
             await browser.url('http://google.com')
-            expect(browsingContextNavigate).toBeCalledTimes(1)
-            expect(url).toBeCalledTimes(1)
-            expect(url).toBeCalledWith('http://google.com')
+            expect(browsingContextNavigate).toBeCalledTimes(2)
+            // Retry uses wait:none to avoid triggering concurrent navigation again
+            expect(browsingContextNavigate).toHaveBeenNthCalledWith(2, expect.objectContaining({
+                url: 'http://google.com/',
+                wait: 'none'
+            }))
         })
 
         it('should throw error if navigation fails', async () => {
