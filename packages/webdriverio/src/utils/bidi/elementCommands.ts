@@ -235,7 +235,7 @@ export function bidiSelectByVisibleText(element: WebdriverIO.Element, text: stri
         const options = selectEl.options
         for (let i = 0; i < options.length; i++) {
             const opt = options[i]
-            const displayText = (opt.textContent || '').trim().replace(/\s+/, ' ')
+            const displayText = (opt.textContent || '').trim().replace(/\s+/g, ' ')
             if (displayText === targetText) {
                 opt.selected = true
                 selectEl.dispatchEvent(new Event('change', { bubbles: true }))
