@@ -96,9 +96,14 @@ export function bidiAddValue(element: WebdriverIO.Element, value: string): Promi
         }
 
         const v = el.value
-        const s = el.selectionStart ?? v.length
-        const e2 = el.selectionEnd ?? v.length
-        // contentEditable: append via textContent; form controls: splice into value
+        const vLen = typeof v === 'string' ? v.length : 0
+        // Only use selectionStart/End when they are actual numbers.  Both null
+        // (form element, no active selection) and undefined (contentEditable
+        // div, property absent) fall back to vLen.  The original !== null check
+        // treated undefined as a real value, causing doubled content.
+        const s = typeof el.selectionStart === 'number' ? el.selectionStart : vLen
+        const e2 = typeof el.selectionEnd === 'number' ? el.selectionEnd : vLen
+        // contentEditable: splice into textContent; form controls: splice into value
         if (el.isContentEditable) {
             el.textContent = (el.textContent || '').substring(0, s) + val + (el.textContent || '').substring(e2)
         } else {
