@@ -52,6 +52,16 @@ const require_ = createRequire(import.meta.url)
 // Types for Cucumber internal modules (loaded via createRequire)
 // ============================================================
 
+/**
+ * Whether the Cucumber internal modules needed for parallel execution
+ * were loaded successfully.  These modules live under
+ * `@cucumber/cucumber/lib/runtime/*` and are NOT part of Cucumber's
+ * public API — they can move or be renamed in any release.
+ */
+let parallelModulesAvailable = true
+
+// ============================================================
+
 /** Maps pickle IDs to assembled TestCase objects. */
 interface IAssembledTestCases {
     [pickleId: string]: messages.TestCase
@@ -83,7 +93,6 @@ interface IRuntimeOptions {
 }
 
 interface INewTestCaseRunnerOptions {
-    workerId?: string
     eventBroadcaster: EventEmitter
     stopwatch: IStopwatch
     gherkinDocument: messages.GherkinDocument
@@ -122,37 +131,56 @@ interface SupportCodeLibrary {
 // Load Cucumber internal modules via CJS require
 // ============================================================
 
-const {
-    assembleTestCases,
-}: {
-    assembleTestCases: (opts: IAssembleTestCasesOptions) => Promise<IAssembledTestCases>
-} = require_('@cucumber/cucumber/lib/runtime/assemble_test_cases')
+let assembleTestCases: (opts: IAssembleTestCasesOptions) => Promise<IAssembledTestCases>
+let createStopwatch: (base?: messages.Duration) => IStopwatch
+let retriesForPickle: (pickle: messages.Pickle, options: IRuntimeOptions) => number
+let makeRunTestRunHooks: (
+    dryRun: boolean,
+    defaultTimeout: number,
+    worldParameters: Record<string, unknown>,
+    errorMessage: (name: string, location: string) => string
+) => (definitions: TestRunHookDefinition[], name: string) => Promise<void>
+let TestCaseRunner: { new (options: INewTestCaseRunnerOptions): TestCaseRunnerInstance }
 
-const {
-    create: createStopwatch,
-}: {
-    create: (base?: messages.Duration) => IStopwatch
-} = require_('@cucumber/cucumber/lib/runtime/stopwatch')
+try {
+    ;({ assembleTestCases } = require_('@cucumber/cucumber/lib/runtime/assemble_test_cases') as {
+        assembleTestCases: (opts: IAssembleTestCasesOptions) => Promise<IAssembledTestCases>
+    })
 
-const {
-    retriesForPickle,
-}: {
-    retriesForPickle: (pickle: messages.Pickle, options: IRuntimeOptions) => number
-} = require_('@cucumber/cucumber/lib/runtime/helpers')
+    ;({ create: createStopwatch } = require_('@cucumber/cucumber/lib/runtime/stopwatch') as {
+        create: (base?: messages.Duration) => IStopwatch
+    })
 
-const {
-    makeRunTestRunHooks,
-}: {
-    makeRunTestRunHooks: (
-        dryRun: boolean,
-        defaultTimeout: number,
-        worldParameters: Record<string, unknown>,
-        errorMessage: (name: string, location: string) => string
-    ) => (definitions: TestRunHookDefinition[], name: string) => Promise<void>
-} = require_('@cucumber/cucumber/lib/runtime/run_test_run_hooks')
+    ;({ retriesForPickle } = require_('@cucumber/cucumber/lib/runtime/helpers') as {
+        retriesForPickle: (pickle: messages.Pickle, options: IRuntimeOptions) => number
+    })
 
-const TestCaseRunner = require_('@cucumber/cucumber/lib/runtime/test_case_runner').default as {
-    new (options: INewTestCaseRunnerOptions): TestCaseRunnerInstance
+    ;({ makeRunTestRunHooks } = require_('@cucumber/cucumber/lib/runtime/run_test_run_hooks') as {
+        makeRunTestRunHooks: (
+            dryRun: boolean,
+            defaultTimeout: number,
+            worldParameters: Record<string, unknown>,
+            errorMessage: (name: string, location: string) => string
+        ) => (definitions: TestRunHookDefinition[], name: string) => Promise<void>
+    })
+
+    TestCaseRunner = require_('@cucumber/cucumber/lib/runtime/test_case_runner').default as {
+        new (options: INewTestCaseRunnerOptions): TestCaseRunnerInstance
+    }
+} catch (err) {
+    parallelModulesAvailable = false
+    const reqErr = err as Error & { code?: string }
+    log.warn(
+        `Failed to load Cucumber internal modules required for parallel mode: ${reqErr.message}. ` +
+        'This typically means the installed version of @cucumber/cucumber has changed its internal ' +
+        'module layout. Parallel mode (parallelMode: \'contexts\') will not be available. ' +
+        'Falling back to sequential execution.\n' +
+        `Module resolution error: ${reqErr.code || 'unknown'}`
+    )
+}
+
+export function isParallelAvailable(): boolean {
+    return parallelModulesAvailable
 }
 
 // ============================================================
@@ -176,7 +204,9 @@ async function preallocateContexts(
             .filter((r): r is PromiseFulfilledResult<{ context: string }> => r.status === 'fulfilled')
             .map((r) => r.value.context)
         await Promise.allSettled(
-            created.map((ctx) => bidi.browsingContextClose({ context: ctx }).catch(() => {}))
+            created.map((ctx) => bidi.browsingContextClose({ context: ctx }).catch(
+                (err) => { log.warn(`[Parallel] preallocate rollback: failed to close context ${ctx}: ${(err as Error).message}`) }
+            ))
         )
         throw (failed[0] as PromiseRejectedResult).reason
     }
@@ -245,6 +275,44 @@ function emitSuiteEvent(
 }
 
 // ============================================================
+// Feature-level helpers
+// ============================================================
+
+async function runFeatureHooks(
+    eventEmitter: EventEmitter,
+    runHooks: ReturnType<typeof makeRunTestRunHooks>,
+    groups: FeatureGroup[],
+    hookDefinitions: TestRunHookDefinition[],
+    hookName: string
+): Promise<void> {
+    for (const group of groups) {
+        eventEmitter.emit('getHookParams', {
+            uri: group.uri,
+            feature: group.gherkinDocument.feature,
+        })
+        try {
+            await runHooks(hookDefinitions, hookName)
+        } catch (err) {
+            log.error(
+                `${hookName} hook failed for "${group.uri}": ${(err as Error).message}`
+            )
+        }
+    }
+}
+
+function emitFeatureSuiteEvents(
+    reporter: EventEmitter,
+    cid: string,
+    specs: string[],
+    groups: FeatureGroup[],
+    event: 'suite:start' | 'suite:end'
+): void {
+    for (const group of groups) {
+        emitSuiteEvent(reporter, cid, specs, group, event)
+    }
+}
+
+// ============================================================
 // Per-scenario envelope → WDIO reporter translator
 // ============================================================
 
@@ -299,84 +367,87 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams) {
         })
     }
 
-    broadcaster.on('envelope', (envelope: messages.Envelope) => {
-        if (envelope.testCaseStarted) {
-            testStart = new Date()
+    const onTestCaseStarted = (_started: messages.TestCaseStarted) => {
+        testStart = new Date()
 
-            const reporterScenario = { ...pickle, id: scenarioUID } as unknown as messages.Pickle & { rule?: string }
-            reporterScenario.rule = getRule(feature, pickle.astNodeIds[0])
+        const reporterScenario = { ...pickle, id: scenarioUID } as unknown as messages.Pickle & { rule?: string }
+        reporterScenario.rule = getRule(feature, pickle.astNodeIds[0])
 
-            const payload = {
-                uid: scenarioUID,
-                title: getTitle(pickle, cucumberOpts.tagsInTitle),
-                parent: getFeatureId(uri, feature),
-                type: 'scenario',
-                description: getScenarioDescription(feature, pickle.astNodeIds[0]),
-                file: uri,
-                tags: pickle.tags,
-                rule: reporterScenario.rule,
-                cid,
-                specs,
-            }
-            reporter.emit(
-                scenarioLevel ? 'test:start' : 'suite:start',
-                formatMessage({ payload })
-            )
-        } else if (envelope.testStepStarted && !scenarioLevel) {
-            const info = stepLookup.get(envelope.testStepStarted.testStepId)
-            if (!info) { return }
-
-            const step = info.pickleStep || { id: envelope.testStepStarted.testStepId, text: '' } as messages.PickleStep
-            const type = info.isHook ? 'hook' : getStepType({ id: step.id, hookId: info.isHook ? 'hook' : undefined } as unknown as messages.TestStep)
-
-            const payload = buildStepPayload(
-                uri, feature, pickle, step as ReporterStep, { type }
-            )
-            reporter.emit(
-                `${type}:start`,
-                formatMessage({ payload })
-            )
-        } else if (envelope.testStepFinished && !scenarioLevel) {
-            const info = stepLookup.get(envelope.testStepFinished.testStepId)
-            if (!info) { return }
-
-            const result = envelope.testStepFinished.testStepResult
-            const step = info.pickleStep || { id: envelope.testStepFinished.testStepId, text: '' } as messages.PickleStep
-            const type = info.isHook ? 'hook' : getStepType({ id: step.id, hookId: info.isHook ? 'hook' : undefined } as unknown as messages.TestStep)
-
-            if (type === 'hook') {
-                let error: Error | undefined
-                if (result.message) {
-                    error = new Error(result.message.split('\n')[0])
-                    error.stack = result.message
-                }
-                const payload = buildStepPayload(uri, feature, pickle, step as ReporterStep, {
-                    type: 'hook',
-                    state: result.status,
-                    error,
-                    duration: testStart ? Date.now() - testStart.getTime() : 0,
-                })
-                reporter.emit('hook:end', formatMessage({ payload }))
-            } else {
-                const state = convertStatus(result.status)
-                const error = result.message ? new Error(result.message) : undefined
-                const duration = testStart ? Date.now() - testStart.getTime() : 0
-                const passed = ['pass', 'skip', 'pending'].includes(state)
-
-                const payload = buildStepPayload(uri, feature, pickle, step as ReporterStep, {
-                    type: 'step',
-                    state,
-                    error,
-                    duration,
-                    passed,
-                })
-                reporter.emit(`test:${state}`, formatMessage({ payload }))
-                // Emit test:end after every step result so reporters can finalize timing.
-                reporter.emit('test:end', { ...formatMessage({ payload }), passed })
-            }
+        const payload = {
+            uid: scenarioUID,
+            title: getTitle(pickle, cucumberOpts.tagsInTitle),
+            parent: getFeatureId(uri, feature),
+            type: 'scenario',
+            description: getScenarioDescription(feature, pickle.astNodeIds[0]),
+            file: uri,
+            tags: pickle.tags,
+            rule: reporterScenario.rule,
+            cid,
+            specs,
         }
-        // testCaseFinished is emitted by TestCaseRunner at the end, but the
-        // raw status is returned from runner.run() — no need to extract it here.
+        reporter.emit(
+            scenarioLevel ? 'test:start' : 'suite:start',
+            formatMessage({ payload })
+        )
+    }
+
+    const onTestStepStarted = (started: messages.TestStepStarted) => {
+        if (scenarioLevel) { return }
+        const info = stepLookup.get(started.testStepId)
+        if (!info) { return }
+
+        const step = info.pickleStep || { id: started.testStepId, text: '' } as messages.PickleStep
+        const type = info.isHook ? 'hook' : getStepType({ id: step.id, hookId: info.isHook ? 'hook' : undefined } as unknown as messages.TestStep)
+
+        const payload = buildStepPayload(uri, feature, pickle, step as ReporterStep, { type })
+        reporter.emit(`${type}:start`, formatMessage({ payload }))
+    }
+
+    const onTestStepFinished = (finished: messages.TestStepFinished) => {
+        if (scenarioLevel) { return }
+        const info = stepLookup.get(finished.testStepId)
+        if (!info) { return }
+
+        const result = finished.testStepResult
+        const step = info.pickleStep || { id: finished.testStepId, text: '' } as messages.PickleStep
+        const type = info.isHook ? 'hook' : getStepType({ id: step.id, hookId: info.isHook ? 'hook' : undefined } as unknown as messages.TestStep)
+
+        if (type === 'hook') {
+            let error: Error | undefined
+            if (result.message) {
+                error = new Error(result.message.split('\n')[0])
+                error.stack = result.message
+            }
+            const payload = buildStepPayload(uri, feature, pickle, step as ReporterStep, {
+                type: 'hook',
+                state: result.status,
+                error,
+                duration: testStart ? Date.now() - testStart.getTime() : 0,
+            })
+            reporter.emit('hook:end', formatMessage({ payload }))
+            return
+        }
+
+        const state = convertStatus(result.status)
+        const error = result.message ? new Error(result.message) : undefined
+        const duration = testStart ? Date.now() - testStart.getTime() : 0
+        const passed = ['pass', 'skip', 'pending'].includes(state)
+
+        const payload = buildStepPayload(uri, feature, pickle, step as ReporterStep, {
+            type: 'step',
+            state,
+            error,
+            duration,
+            passed,
+        })
+        reporter.emit(`test:${state}`, formatMessage({ payload }))
+        reporter.emit('test:end', { ...formatMessage({ payload }), passed })
+    }
+
+    broadcaster.on('envelope', (envelope: messages.Envelope) => {
+        if (envelope.testCaseStarted) { return onTestCaseStarted(envelope.testCaseStarted) }
+        if (envelope.testStepStarted) { return onTestStepStarted(envelope.testStepStarted) }
+        if (envelope.testStepFinished) { return onTestStepFinished(envelope.testStepFinished) }
     })
 }
 
@@ -481,6 +552,14 @@ export async function runParallelCucumber(params: {
     supportCodeLibrary: SupportCodeLibrary
     cucumberOpts: Required<CucumberOptions>
 }): Promise<number> {
+    if (!isParallelAvailable()) {
+        throw new Error(
+            'Cucumber parallel mode is not available because internal Cucumber modules ' +
+            'could not be loaded. This is likely due to a version mismatch with @cucumber/cucumber. ' +
+            'Check the logs for the specific module resolution error.'
+        )
+    }
+
     const {
         browser, reporter, eventEmitter, cid, specs,
         gherkinDocuments, supportCodeLibrary, cucumberOpts,
@@ -520,7 +599,6 @@ export async function runParallelCucumber(params: {
         throw new Error('Parallel context store not found on browser instance.')
     }
 
-    // --- 4. Run BeforeAll hooks (beforeFeature) per feature ---
     const runHooks = makeRunTestRunHooks(
         false,
         supportCodeLibrary.defaultTimeout,
@@ -529,27 +607,10 @@ export async function runParallelCucumber(params: {
             `Hook "${hookName}" errored at ${location}`
     )
 
-    for (const group of featureGroups) {
-        eventEmitter.emit('getHookParams', {
-            uri: group.uri,
-            feature: group.gherkinDocument.feature,
-        })
-        try {
-            await runHooks(
-                supportCodeLibrary.beforeTestRunHookDefinitions,
-                'a BeforeAll'
-            )
-        } catch (err) {
-            log.error(
-                `BeforeAll hook failed for "${group.uri}": ${(err as Error).message}`
-            )
-        }
-    }
+    await runFeatureHooks(eventEmitter, runHooks, featureGroups,
+        supportCodeLibrary.beforeTestRunHookDefinitions, 'a BeforeAll')
 
-    // Emit feature suite:start events
-    for (const group of featureGroups) {
-        emitSuiteEvent(reporter, cid, specs, group, 'suite:start')
-    }
+    emitFeatureSuiteEvents(reporter, cid, specs, featureGroups, 'suite:start')
 
     // --- 5. Assemble test cases ---
     const assembleBroadcaster = new EventEmitter()
@@ -620,28 +681,10 @@ export async function runParallelCucumber(params: {
 
     const totalDuration = Date.now() - runStart
 
-    // Emit feature suite:end events (reverse order)
-    for (const group of [...featureGroups].reverse()) {
-        emitSuiteEvent(reporter, cid, specs, group, 'suite:end')
-    }
+    emitFeatureSuiteEvents(reporter, cid, specs, [...featureGroups].reverse(), 'suite:end')
 
-    // --- 8. Run AfterAll hooks (afterFeature) per feature (reverse) ---
-    for (const group of [...featureGroups].reverse()) {
-        eventEmitter.emit('getHookParams', {
-            uri: group.uri,
-            feature: group.gherkinDocument.feature,
-        })
-        try {
-            await runHooks(
-                supportCodeLibrary.afterTestRunHookDefinitions,
-                'an AfterAll'
-            )
-        } catch (err) {
-            log.error(
-                `AfterAll hook failed for "${group.uri}": ${(err as Error).message}`
-            )
-        }
-    }
+    await runFeatureHooks(eventEmitter, runHooks, [...featureGroups].reverse(),
+        supportCodeLibrary.afterTestRunHookDefinitions, 'an AfterAll')
 
     let passed = 0, failed = 0
     for (const r of allResults) {

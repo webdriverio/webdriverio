@@ -17,6 +17,7 @@ import { registerSessionManager } from './session/index.js'
 import { getContextManager } from './session/context.js'
 import { environment } from './environment.js'
 
+import { isBidiCommandsEnabled } from './utils/bidi/elementCommands.js'
 import type { AttachOptions, CustomCommandOptions } from './types.js'
 import type * as elementCommands from './commands/element.js'
 import { IMPLICIT_WAIT_EXCLUSION_LIST } from './middlewares.js'
@@ -28,10 +29,16 @@ export const SevereServiceError = SevereServiceErrorImport
 
 /**
  * Install Bidi-aware overwrites for protocol commands that need Bidi-specific
- * mechanisms.  Each overwrite checks `this.isBidi` at call time: the Bidi path
- * uses a Bidi-only API (script.evaluate, browsingContext.getTree), while the
- * non-Bidi fallback calls `origCommand()` — the untouched protocol endpoint —
- * so mock services and classic WebDriver keep working without any changes.
+ * mechanisms.  Each overwrite checks `isBidiCommandsEnabled(this)` at call time:
+ * the Bidi path uses a Bidi-only API (script.evaluate, browsingContext.getTree),
+ * while the non-Bidi fallback calls `origCommand()` — the untouched protocol
+ * endpoint — so mock services and classic WebDriver keep working without any
+ * changes.
+ *
+ * The `isBidiCommandsEnabled` gate requires both `browser.isBidi` AND the
+ * `'wdio:experimentalBiDiCommands': true` capability flag.  Mock sessions
+ * (which are Bidi-capable but don't set the experimental flag) fall through
+ * to the classic `origCommand()` path.
  *
  * Centralising these overwrites here (rather than in separate command files)
  * makes it easier to spot and manage Bidi-vs-classic inconsistencies across
@@ -50,7 +57,7 @@ function applyBidiBrowserOverwrites(browser: WebdriverIO.Browser) {
     const overwrite = browser.overwriteCommand.bind(browser) as (name: string, fn: Function) => void
 
     overwrite('getTitle', async function (this: WebdriverIO.Browser, origCommand: () => Promise<string>) {
-        if (this.isBidi) {
+        if (isBidiCommandsEnabled(this)) {
             const context = await contextManager.getCurrentContext()
             const result = await this.scriptEvaluate({
                 expression: 'document.title',
@@ -63,7 +70,7 @@ function applyBidiBrowserOverwrites(browser: WebdriverIO.Browser) {
     })
 
     overwrite('getUrl', async function (this: WebdriverIO.Browser, origCommand: () => Promise<string>) {
-        if (this.isBidi) {
+        if (isBidiCommandsEnabled(this)) {
             const context = await contextManager.getCurrentContext()
             const tree = await this.browsingContextGetTree({ root: context })
             return tree.contexts[0]?.url || ''
@@ -72,7 +79,7 @@ function applyBidiBrowserOverwrites(browser: WebdriverIO.Browser) {
     })
 
     overwrite('getPageSource', async function (this: WebdriverIO.Browser, origCommand: () => Promise<string>) {
-        if (this.isBidi) {
+        if (isBidiCommandsEnabled(this)) {
             const context = await contextManager.getCurrentContext()
             const result = await this.scriptEvaluate({
                 expression: 'document.documentElement.outerHTML',

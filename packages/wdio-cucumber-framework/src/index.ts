@@ -312,16 +312,24 @@ export class CucumberAdapter {
         // Parse Gherkin documents from filtered specs
         const gherkinDocuments = this.getGherkinDocuments([this._specs])
 
-        return runParallelCucumber({
-            browser,
-            reporter: this._reporter,
-            eventEmitter: this._eventEmitter,
-            cid: this._cid,
-            specs: this._specs,
-            gherkinDocuments,
-            supportCodeLibrary,
-            cucumberOpts: this._cucumberOpts,
-        })
+        try {
+            return await runParallelCucumber({
+                browser,
+                reporter: this._reporter,
+                eventEmitter: this._eventEmitter,
+                cid: this._cid,
+                specs: this._specs,
+                gherkinDocuments,
+                supportCodeLibrary,
+                cucumberOpts: this._cucumberOpts,
+            })
+        } catch (err) {
+            log.warn(
+                `Parallel Cucumber execution failed: ${(err as Error).message}. ` +
+                'Falling back to sequential execution.'
+            )
+            return this._runSequential(supportCodeLibrary)
+        }
     }
 
     /**

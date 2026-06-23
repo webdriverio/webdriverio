@@ -14,6 +14,7 @@
  * @module parallel
  */
 
+import os from 'node:os'
 import type { AsyncLocalStorage } from 'node:async_hooks'
 import type { Suite } from 'mocha'
 import logger from '@wdio/logger'
@@ -45,89 +46,100 @@ interface CollectedTest {
     file: string | undefined
 }
 
+interface CollectedSuite {
+    title: string
+    fullTitle: string
+    file: string | undefined
+    /** index into the suites array for reverse-order suite:end emission */
+    depth: number
+}
+
 // ============================================================
-// Suite tree walker
+// Suite tree walker — collects everything in a single pass
 // ============================================================
 
-/**
- * Recursively walk the Mocha suite tree and collect all test
- * definitions with their associated hooks.
- *
- * @param suite       The root suite to walk.
- * @param parentBeforeEach  Hooks inherited from ancestor suites (outermost first).
- * @param parentAfterEach   Hooks inherited from ancestor suites (outermost first).
- */
-export function collectTests(
-    suite: Suite,
-    parentBeforeEach: Function[] = [],
-    parentAfterEach: Function[] = []
-): CollectedTest[] {
-    const tests: CollectedTest[] = []
-
-    // Merge parent hooks with this suite's own hooks.
-    // beforeEach: outer-to-inner (parent hooks first)
-    // afterEach:  inner-to-outer (child hooks first, then parent hooks)
-    const ownBeforeEach = (suite as unknown as { _beforeEach?: Function[] })._beforeEach || []
-    const ownAfterEach = (suite as unknown as { _afterEach?: Function[] })._afterEach || []
-
-    const mergedBeforeEach = [...parentBeforeEach, ...ownBeforeEach]
-    const mergedAfterEach = [...ownAfterEach, ...parentAfterEach]
-
-    for (const test of suite.tests) {
-        tests.push({
-            title: test.title,
-            fullTitle: test.fullTitle(),
-            fn: (test as unknown as { fn?: Function }).fn || (() => {}),
-            parentTitle: suite.title,
-            _beforeEach: mergedBeforeEach,
-            _afterEach: mergedAfterEach,
-            file: test.file || undefined
-        })
-    }
-
-    // Recurse into child suites, passing merged hooks as the new parent set.
-    // Use mergedBeforeEach/mergedAfterEach so grandchildren inherit all ancestors.
-    for (const s of suite.suites) {
-        tests.push(...collectTests(s, mergedBeforeEach, mergedAfterEach))
-    }
-
-    return tests
+interface SuiteCollection {
+    tests: CollectedTest[]
+    beforeAll: Function[]
+    afterAll: Function[]  // innermost-first order
+    suites: CollectedSuite[]
 }
 
 /**
- * Walk the suite tree and collect _beforeAll / _afterAll hooks.
- * Returns hooks in execution order: _beforeAll outermost-first,
- * _afterAll innermost-first (reverse of collection).
+ * Walk the Mocha suite tree once, collecting tests (with inherited hooks),
+ * beforeAll/afterAll hooks, and nested suite metadata for reporter events.
  */
-function collectSuiteLevelHooks(suite: Suite): {
-    beforeAll: Function[]
-    afterAll: Function[]
-} {
+function collectAll(suite: Suite): SuiteCollection {
+    const tests: CollectedTest[] = []
     const beforeAll: Function[] = []
     const afterAll: Function[] = []
+    const suites: CollectedSuite[] = []
+    let nextDepth = 0
 
-    const walk = (s: Suite) => {
-        const hooks = s as unknown as { _beforeAll?: Function[], _afterAll?: Function[] }
-        if (hooks._beforeAll) {
-            beforeAll.push(...hooks._beforeAll)
+    const walk = (s: Suite, parentBeforeEach: Function[], parentAfterEach: Function[], depth: number) => {
+        const ownBeforeEach = (s as unknown as { _beforeEach?: Function[] })._beforeEach || []
+        const ownAfterEach = (s as unknown as { _afterEach?: Function[] })._afterEach || []
+        const ownBeforeAll = (s as unknown as { _beforeAll?: Function[] })._beforeAll
+        const ownAfterAll = (s as unknown as { _afterAll?: Function[] })._afterAll
+
+        const mergedBeforeEach = [...parentBeforeEach, ...ownBeforeEach]
+        const mergedAfterEach = [...ownAfterEach, ...parentAfterEach]
+
+        // Tests at this level
+        for (const test of s.tests) {
+            tests.push({
+                title: test.title,
+                fullTitle: test.fullTitle(),
+                fn: (test as unknown as { fn?: Function }).fn || (() => {}),
+                parentTitle: s.title,
+                _beforeEach: mergedBeforeEach,
+                _afterEach: mergedAfterEach,
+                file: test.file || undefined
+            })
         }
-        if (hooks._afterAll) {
-            // Collect in walk order; will reverse at the end for inner-to-outer
-            afterAll.push(...hooks._afterAll)
+
+        // Suite metadata (skip root)
+        if (depth > 0) {
+            suites.push({
+                title: s.title,
+                fullTitle: typeof s.fullTitle === 'function' ? s.fullTitle() : s.title,
+                file: (s as unknown as { file?: string }).file,
+                depth: nextDepth++
+            })
         }
+
+        // beforeAll / afterAll hooks at this level
+        if (ownBeforeAll) { beforeAll.push(...ownBeforeAll) }
+        if (ownAfterAll) { afterAll.push(...ownAfterAll) }
+
+        // Recurse into children
         for (const child of s.suites) {
-            walk(child)
+            walk(child, mergedBeforeEach, mergedAfterEach, depth + 1)
         }
     }
-    walk(suite)
+
+    walk(suite, [], [], 0)
 
     return {
+        tests,
         beforeAll,
-        // afterAll runs innermost-first in Mocha. Since we collected in
-        // outermost-first order, reverse so deepest suite's afterAll
-        // runs before its parent's.
-        afterAll: afterAll.reverse()
+        // afterAll runs innermost-first in Mocha
+        afterAll: afterAll.reverse(),
+        suites
     }
+}
+
+/**
+ * Recursively walk the Mocha suite tree and collect all test
+ * definitions with their associated hooks.  Kept as a public
+ * export for tests; delegates to the single-pass {@link collectAll}.
+ */
+export function collectTests(
+    suite: Suite,
+    _parentBeforeEach: Function[] = [],
+    _parentAfterEach: Function[] = []
+): CollectedTest[] {
+    return collectAll(suite).tests
 }
 
 // ============================================================
@@ -185,6 +197,32 @@ function emitTestFail(
     reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid), duration, passed: false, error: errorPayload })
 }
 
+function emitSuiteStart(reporter: EventEmitter, suite: CollectedSuite, cid: string, specs: string[], uid: string) {
+    reporter.emit('suite:start', {
+        type: 'suite:start',
+        cid,
+        specs,
+        uid,
+        title: suite.title,
+        fullTitle: suite.fullTitle,
+        parent: '',
+        file: suite.file || specs[0]
+    })
+}
+
+function emitSuiteEnd(reporter: EventEmitter, suite: CollectedSuite, cid: string, specs: string[], uid: string) {
+    reporter.emit('suite:end', {
+        type: 'suite:end',
+        cid,
+        specs,
+        uid,
+        title: suite.title,
+        fullTitle: suite.fullTitle,
+        parent: '',
+        file: suite.file || specs[0]
+    })
+}
+
 /**
  * Call a Mocha hook or test function (which may be a plain Function in tests
  * or a Mocha Runnable instance at runtime). Mocha Runnable instances store the
@@ -223,7 +261,9 @@ async function preallocateContexts(
             .filter((r): r is PromiseFulfilledResult<{ context: string }> => r.status === 'fulfilled')
             .map((r) => r.value.context)
         await Promise.allSettled(
-            created.map((ctx) => bidi.browsingContextClose!({ context: ctx }).catch(() => {}))
+            created.map((ctx) => bidi.browsingContextClose!({ context: ctx }).catch(
+                (err) => { log.warn(`[Parallel] preallocate rollback: failed to close context ${ctx}: ${(err as Error).message}`) }
+            ))
         )
         throw (failed[0] as PromiseRejectedResult).reason
     }
@@ -235,6 +275,54 @@ interface TestRunResult {
     name: string
     duration: number
     error?: string
+}
+
+// ============================================================
+// Per-test execution
+// ============================================================
+
+async function runOneTest(
+    test: CollectedTest,
+    contextId: string,
+    cid: string,
+    specs: string[],
+    uid: string,
+    reporter: EventEmitter,
+    parallelStore: AsyncLocalStorage<string>,
+    bidi: ParallelBrowser
+): Promise<TestRunResult> {
+    return parallelStore.run(contextId, async () => {
+        const testStart = Date.now()
+        emitTestStart(reporter, test, cid, specs, uid)
+        let passed = false
+        let caughtError: Error | undefined
+        try {
+            for (const hook of test._beforeEach) { await callHook(hook, test.title) }
+            await callHook(test.fn, test.title)
+            passed = true
+        } catch (err) {
+            caughtError = err instanceof Error ? err : new Error(String(err))
+        }
+        // Always run afterEach hooks, even on beforeEach/test failure.
+        for (const hook of test._afterEach) {
+            try {
+                await callHook(hook, test.title)
+            } catch (hookErr) {
+                log.warn(`[Parallel] afterEach hook failed for "${test.title}": ${(hookErr as Error).message}`)
+            }
+        }
+        const duration = Date.now() - testStart
+        if (passed) {
+            emitTestPass(reporter, test, cid, specs, uid, duration)
+            return { status: 'passed' as const, name: test.title, duration }
+        }
+        emitTestFail(reporter, test, cid, specs, uid, duration, caughtError!)
+        return { status: 'failed' as const, name: test.title, duration, error: caughtError!.message }
+    }).finally(async () => {
+        await bidi.browsingContextClose!({ context: contextId }).catch(
+            (err) => { log.debug(`[Parallel] cleanup: failed to close context ${contextId}: ${(err as Error).message}`) }
+        )
+    })
 }
 
 // ============================================================
@@ -257,13 +345,17 @@ export async function runParallelTests(
         )
     }
 
-    const tests = collectTests(mochaSuite)
+    const { tests, beforeAll, afterAll, suites } = collectAll(mochaSuite)
     if (tests.length === 0) { log.info('No tests found for parallel execution.'); return 0 }
 
     // --- Suite-level _beforeAll hooks (outermost-first) ---
-    const { beforeAll, afterAll } = collectSuiteLevelHooks(mochaSuite)
     for (const hook of beforeAll) {
         await callHook(hook)
+    }
+
+    // --- Emit suite:start for nested describe blocks ---
+    for (const s of suites) {
+        emitSuiteStart(reporter, s, cid, specs, `suite-${cid}-${s.depth}`)
     }
 
     const parallelStore = (browser as ParallelBrowser).__parallelContextStore as AsyncLocalStorage<string>
@@ -271,7 +363,7 @@ export async function runParallelTests(
         throw new Error('Parallel context store not found on browser.')
     }
 
-    const maxContexts = Math.max(1, maxParallelContexts || 1)
+    const maxContexts = Math.max(1, maxParallelContexts || os.cpus().length)
     const batchSize = Math.min(maxContexts, tests.length)
     const runStart = Date.now()
     const allResults: PromiseSettledResult<TestRunResult>[] = []
@@ -291,39 +383,13 @@ export async function runParallelTests(
         log.info(`[Parallel] ${contexts.length} contexts created in ${Date.now() - allocStart}ms`)
 
         const batchResults = await Promise.allSettled(
-            tests.slice(batchStart, batchEnd).map(async (test, i) => {
-                const contextId = contexts[i]
-                const uid = `test-${cid}-${batchStart + i}`
-
-                return parallelStore.run(contextId, async () => {
-                    const testStart = Date.now()
-                    emitTestStart(reporter, test, cid, specs, uid)
-                    let passed = false
-                    let caughtError: Error | undefined
-                    try {
-                        for (const hook of test._beforeEach) { await callHook(hook, test.title) }
-                        const fn = test.fn as (this: unknown) => Promise<void>
-                        const ctx = { test: { title: test.title, parent: { title: '' } } }
-                        await fn.call(ctx)
-                        passed = true
-                    } catch (err) {
-                        caughtError = err instanceof Error ? err : new Error(String(err))
-                    }
-                    // Always run afterEach hooks, even on beforeEach/test failure.
-                    for (const hook of test._afterEach) {
-                        try { await callHook(hook, test.title) } catch { /* suppress hook errors */ }
-                    }
-                    const duration = Date.now() - testStart
-                    if (passed) {
-                        emitTestPass(reporter, test, cid, specs, uid, duration)
-                        return { status: 'passed' as const, name: test.title, duration }
-                    }
-                    emitTestFail(reporter, test, cid, specs, uid, duration, caughtError!)
-                    return { status: 'failed' as const, name: test.title, duration, error: caughtError!.message }
-                }).finally(async () => {
-                    await bidi.browsingContextClose!({ context: contextId }).catch(() => { /* ignore cleanup errors */ })
-                })
-            })
+            tests.slice(batchStart, batchEnd).map((test, i) =>
+                runOneTest(
+                    test, contexts[i], cid, specs,
+                    `test-${cid}-${batchStart + i}`,
+                    reporter, parallelStore, bidi
+                )
+            )
         )
         allResults.push(...batchResults)
     }
@@ -331,6 +397,11 @@ export async function runParallelTests(
     const totalDuration = Date.now() - runStart
     const passed = allResults.filter(r => r.status === 'fulfilled' && r.value.status === 'passed').length
     const failed = tests.length - passed
+
+    // --- Emit suite:end for nested describe blocks (reverse order) ---
+    for (const s of [...suites].reverse()) {
+        emitSuiteEnd(reporter, s, cid, specs, `suite-${cid}-${s.depth}`)
+    }
 
     // --- Suite-level _afterAll hooks (innermost-first) ---
     for (const hook of afterAll) {
