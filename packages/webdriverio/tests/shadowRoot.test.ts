@@ -6,7 +6,7 @@ const defaultBrowser = {
     sessionId: '123',
     sessionSubscribe: vi.fn().mockResolvedValue({}),
     on: vi.fn(),
-    scriptAddPreloadScript: vi.fn(),
+    scriptAddPreloadScript: vi.fn().mockResolvedValue({}),
     capabilities: {}
 }
 
