@@ -168,7 +168,8 @@ class MochaAdapter {
         let runtimeError: Error | undefined
         try {
             failures = await runParallelTests(
-                mocha.suite, browser, this._reporter, this._cid, this._specs
+                mocha.suite, browser, this._reporter, this._cid, this._specs,
+                this._config.mochaOpts.maxParallelContexts
             )
         } catch (err) {
             runtimeError = err as Error

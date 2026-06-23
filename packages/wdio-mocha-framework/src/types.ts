@@ -16,6 +16,14 @@ export interface MochaOpts {
     parallelMode?: 'contexts'
 
     /**
+     * Maximum number of browsing contexts (tabs) to use in parallel.
+     * Tests are processed in batches of this size. Higher values
+     * increase parallelism but also resource usage.
+     * @default os.cpus().length
+     */
+    maxParallelContexts?: number
+
+    /**
      * The `require` option is useful when you want to add or extend some
      * basic functionality (WebdriverIO framework option).
      */

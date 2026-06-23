@@ -285,4 +285,23 @@ describe('runParallelTests — suite hooks', () => {
         expect(callOrder.indexOf('afterAll')).toBeGreaterThan(callOrder.indexOf('test1'))
         expect(callOrder.indexOf('afterAll')).toBeGreaterThan(callOrder.indexOf('test2'))
     })
+
+    test('batches tests respecting maxParallelContexts with fresh contexts per batch', async () => {
+        const testFns = Array.from({ length: 6 }, (_, i) =>
+            vi.fn().mockResolvedValue(undefined)
+        )
+        const suite = mockSuite('root', {
+            tests: testFns.map((fn, i) => mockTest(`test${i}`, fn)),
+        })
+
+        const browser = mockBrowser({
+            contexts: ['ctx-a', 'ctx-b', 'ctx-c', 'ctx-d', 'ctx-e', 'ctx-f'],
+        })
+
+        // maxParallelContexts=2, 6 tests → 3 batches × 2 contexts = 6 create calls
+        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 2)
+
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(6)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(6)
+    })
 })

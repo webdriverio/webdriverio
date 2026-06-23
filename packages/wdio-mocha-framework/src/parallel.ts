@@ -185,6 +185,23 @@ function emitTestFail(
     reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid), duration, passed: false, error: errorPayload })
 }
 
+/**
+ * Call a Mocha hook or test function (which may be a plain Function in tests
+ * or a Mocha Runnable instance at runtime). Mocha Runnable instances store the
+ * actual function under `.fn`.
+ *
+ * The WDIO mocha adapter wraps test/hook functions with WDIO hooks via
+ * `wrapGlobalTestMethod`. Those wrappers expect `this` to be a Mocha Context
+ * with `this.test` set. Provide a minimal context so they don't crash on
+ * `this.test` access.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function callHook(hook: any, testTitle?: string): Promise<unknown> {
+    const fn: Function = typeof hook.fn === 'function' ? hook.fn : hook
+    const ctx = { test: testTitle ? { title: testTitle, parent: { title: '' } } : undefined }
+    return Promise.resolve(fn.call(ctx))
+}
+
 // ============================================================
 // Context pre-allocation
 // ============================================================
@@ -213,6 +230,13 @@ async function preallocateContexts(
     return (results as PromiseFulfilledResult<{ context: string }>[]).map((r) => r.value.context)
 }
 
+interface TestRunResult {
+    status: 'passed' | 'failed'
+    name: string
+    duration: number
+    error?: string
+}
+
 // ============================================================
 // Main entry point — replaces mocha.run()
 // ============================================================
@@ -222,7 +246,8 @@ export async function runParallelTests(
     browser: WebdriverIO.Browser,
     reporter: EventEmitter,
     cid: string,
-    specs: string[]
+    specs: string[],
+    maxParallelContexts?: number
 ): Promise<number> {
     const bidi = browser as ParallelBrowser
     if (!bidi.isBidi) {
@@ -238,64 +263,78 @@ export async function runParallelTests(
     // --- Suite-level _beforeAll hooks (outermost-first) ---
     const { beforeAll, afterAll } = collectSuiteLevelHooks(mochaSuite)
     for (const hook of beforeAll) {
-        await hook.call({})
+        await callHook(hook)
     }
-
-    log.info(`[Parallel] Collected ${tests.length} tests. Pre-allocating browsing contexts...`)
-    const allocStart = Date.now()
-
-    const contexts = await preallocateContexts(browser, tests.length)
-
-    log.info(`[Parallel] ${contexts.length} contexts created in ${Date.now() - allocStart}ms`)
 
     const parallelStore = (browser as ParallelBrowser).__parallelContextStore as AsyncLocalStorage<string>
     if (!parallelStore) {
         throw new Error('Parallel context store not found on browser.')
     }
+
+    const maxContexts = Math.max(1, maxParallelContexts || 1)
+    const batchSize = Math.min(maxContexts, tests.length)
     const runStart = Date.now()
+    const allResults: PromiseSettledResult<TestRunResult>[] = []
 
-    const results = await Promise.allSettled(
-        tests.map(async (test, i) => {
-            const contextId = contexts[i]
-            const uid = `test-${cid}-${i}`
-
-            return parallelStore.run(contextId, async () => {
-                const testStart = Date.now()
-                emitTestStart(reporter, test, cid, specs, uid)
-                let passed = false
-                let caughtError: Error | undefined
-                try {
-                    for (const hook of test._beforeEach) { await hook.call({}) }
-                    const fn = test.fn as (this: unknown) => Promise<void>
-                    await fn.call({})
-                    passed = true
-                } catch (err) {
-                    caughtError = err instanceof Error ? err : new Error(String(err))
-                }
-                // Always run afterEach hooks, even on beforeEach/test failure.
-                for (const hook of test._afterEach) {
-                    try { await hook.call({}) } catch { /* suppress hook errors */ }
-                }
-                const duration = Date.now() - testStart
-                if (passed) {
-                    emitTestPass(reporter, test, cid, specs, uid, duration)
-                    return { status: 'passed' as const, name: test.title, duration }
-                }
-                emitTestFail(reporter, test, cid, specs, uid, duration, caughtError!)
-                return { status: 'failed' as const, name: test.title, duration, error: caughtError!.message }
-            }).finally(async () => {
-                await bidi.browsingContextClose!({ context: contextId }).catch(() => { /* ignore cleanup errors */ })
-            })
-        })
+    log.info(
+        `[Parallel] Collected ${tests.length} tests. ` +
+        `Batch size: ${batchSize}, max contexts: ${maxContexts}`
     )
 
+    // --- Run tests in batches ---
+    for (let batchStart = 0; batchStart < tests.length; batchStart += batchSize) {
+        const batchEnd = Math.min(batchStart + batchSize, tests.length)
+        const currentBatchSize = batchEnd - batchStart
+
+        const allocStart = Date.now()
+        const contexts = await preallocateContexts(browser, currentBatchSize)
+        log.info(`[Parallel] ${contexts.length} contexts created in ${Date.now() - allocStart}ms`)
+
+        const batchResults = await Promise.allSettled(
+            tests.slice(batchStart, batchEnd).map(async (test, i) => {
+                const contextId = contexts[i]
+                const uid = `test-${cid}-${batchStart + i}`
+
+                return parallelStore.run(contextId, async () => {
+                    const testStart = Date.now()
+                    emitTestStart(reporter, test, cid, specs, uid)
+                    let passed = false
+                    let caughtError: Error | undefined
+                    try {
+                        for (const hook of test._beforeEach) { await callHook(hook, test.title) }
+                        const fn = test.fn as (this: unknown) => Promise<void>
+                        const ctx = { test: { title: test.title, parent: { title: '' } } }
+                        await fn.call(ctx)
+                        passed = true
+                    } catch (err) {
+                        caughtError = err instanceof Error ? err : new Error(String(err))
+                    }
+                    // Always run afterEach hooks, even on beforeEach/test failure.
+                    for (const hook of test._afterEach) {
+                        try { await callHook(hook, test.title) } catch { /* suppress hook errors */ }
+                    }
+                    const duration = Date.now() - testStart
+                    if (passed) {
+                        emitTestPass(reporter, test, cid, specs, uid, duration)
+                        return { status: 'passed' as const, name: test.title, duration }
+                    }
+                    emitTestFail(reporter, test, cid, specs, uid, duration, caughtError!)
+                    return { status: 'failed' as const, name: test.title, duration, error: caughtError!.message }
+                }).finally(async () => {
+                    await bidi.browsingContextClose!({ context: contextId }).catch(() => { /* ignore cleanup errors */ })
+                })
+            })
+        )
+        allResults.push(...batchResults)
+    }
+
     const totalDuration = Date.now() - runStart
-    const passed = results.filter(r => r.status === 'fulfilled' && r.value.status === 'passed').length
+    const passed = allResults.filter(r => r.status === 'fulfilled' && r.value.status === 'passed').length
     const failed = tests.length - passed
 
     // --- Suite-level _afterAll hooks (innermost-first) ---
     for (const hook of afterAll) {
-        await hook.call({})
+        await callHook(hook)
     }
 
     log.info(
