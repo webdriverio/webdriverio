@@ -96,8 +96,8 @@ export function bidiAddValue(element: WebdriverIO.Element, value: string): Promi
         }
 
         const v = el.value
-        const s = el.selectionStart !== null ? el.selectionStart : v.length
-        const e2 = el.selectionEnd !== null ? el.selectionEnd : v.length
+        const s = el.selectionStart ?? v.length
+        const e2 = el.selectionEnd ?? v.length
         // contentEditable: append via textContent; form controls: splice into value
         if (el.isContentEditable) {
             el.textContent = (el.textContent || '').substring(0, s) + val + (el.textContent || '').substring(e2)

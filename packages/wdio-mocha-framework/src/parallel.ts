@@ -194,12 +194,23 @@ async function preallocateContexts(
     count: number
 ): Promise<string[]> {
     const bidi = browser as ParallelBrowser
-    const contexts = await Promise.all(
+    const results = await Promise.allSettled(
         Array.from({ length: count }, () =>
             bidi.browsingContextCreate!({ type: 'tab' })
         )
     )
-    return contexts.map((c: { context: string }) => c.context)
+    const failed = results.filter((r) => r.status === 'rejected')
+    if (failed.length > 0) {
+        // Close any successfully-created contexts before throwing
+        const created = results
+            .filter((r): r is PromiseFulfilledResult<{ context: string }> => r.status === 'fulfilled')
+            .map((r) => r.value.context)
+        await Promise.allSettled(
+            created.map((ctx) => bidi.browsingContextClose!({ context: ctx }).catch(() => {}))
+        )
+        throw (failed[0] as PromiseRejectedResult).reason
+    }
+    return (results as PromiseFulfilledResult<{ context: string }>[]).map((r) => r.value.context)
 }
 
 // ============================================================

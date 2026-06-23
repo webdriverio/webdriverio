@@ -18,8 +18,8 @@ export interface ParallelBrowser extends WebdriverIO.Browser {
     __bidiCommandsEnabled?: boolean
     requestedCapabilities: Record<string, unknown>
     capabilities: Record<string, unknown>
-    browsingContextCreate?(params: { type: string }): Promise<{ context: string }>
-    browsingContextClose?(params: { context: string }): Promise<void>
+    browsingContextCreate(params: { type: string }): Promise<{ context: string }>
+    browsingContextClose(params: { context: string }): Promise<void>
 }
 
 export interface CucumberOptions {
