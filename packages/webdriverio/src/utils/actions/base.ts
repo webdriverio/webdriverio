@@ -137,7 +137,13 @@ export default class BaseAction {
             await this.#instance.performActions([this.toJSON()])
         }
         if (!skipRelease) {
-            await this.#instance.releaseActions()
+            if (this.#instance.isBidi) {
+                const cm = getContextManager(this.#instance as unknown as WebdriverIO.Browser)
+                const ctx = await cm.getCurrentContext()
+                await (this.#instance as unknown as Record<string, Function>).inputReleaseActions({ context: ctx })
+            } else {
+                await this.#instance.releaseActions()
+            }
         }
     }
 }
