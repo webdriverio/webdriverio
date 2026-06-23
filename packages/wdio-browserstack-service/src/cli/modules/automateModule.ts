@@ -100,14 +100,14 @@ export default class AutomateModule extends BaseModule {
     async onAfterTest(args: Record<string, unknown>) {
         this.logger.debug('onAfterTest: inside automate module after test hook!')
         const instace = args.instance as TestFrameworkInstance
-        const { error, passed } = args.result as { error: Error | null, passed: boolean }
+        const { error, passed, skipped } = args.result as { error: Error | null, passed: boolean, skipped?: boolean }
         const _failReasons: string[] = []
 
-        if (!passed) {
+        if (!passed && !skipped) {
             _failReasons.push((error && error.message) || 'Unknown Error')
         }
 
-        const status = passed ? 'passed' : 'failed'
+        const status = passed || skipped ? 'passed' : 'failed'
         const reason = _failReasons.length > 0 ? _failReasons.join('\n') : undefined
 
         const autoInstance = AutomationFramework.getTrackedInstance()

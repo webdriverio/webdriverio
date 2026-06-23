@@ -13,9 +13,11 @@ import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction } from 
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
-import { DEFAULT_OPTIONS, PERF_MEASUREMENT_ENV } from './constants.js'
+import { DEFAULT_OPTIONS, NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV } from './constants.js'
+import { configureCaCertificate } from './caCert.js'
 import CrashReporter from './crash-reporter.js'
 import AccessibilityHandler from './accessibility-handler.js'
+import CustomTagsHandler from './custom-tags-handler.js'
 import { BStackLogger } from './bstackLogger.js'
 import PercyHandler from './Percy/Percy-Handler.js'
 import Listener from './testOps/listener.js'
@@ -49,6 +51,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _scenariosThatRan: string[] = []
     private _lastScenarioName?: string  // Track last scenario for preferScenarioName feature
     private _scenariosRanCount: number = 0  // Count of non-skipped scenarios
+    private _reloadHappened: boolean = false  // Set when browser.reloadSession() is called; surfaced as finishedMetadata on SDKTestSuccessful so reload-orphaned builds can be excluded from session-linking
     private _failureStatuses: string[] = ['failed', 'ambiguous', 'undefined', 'unknown']
     private _browser?: WebdriverIO.Browser
     private _suiteTitle?: string
@@ -61,6 +64,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _insightsHandler?: InsightsHandler
     private _accessibility
     private _accessibilityHandler?: AccessibilityHandler
+    private _customTagsHandler?: CustomTagsHandler
     private _percy
     private _percyCaptureMode: string | undefined = undefined
     private _percyHandler?: PercyHandler
@@ -72,6 +76,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         private _config: Options.Testrunner
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
+        // SDK-5953: trust the customer CA (proxyCaCertificate / BROWSERSTACK_EXTRA_CA_CERTS)
+        // for all outbound HTTPS (undici fetch) in the worker process. Merged with system roots.
+        configureCaCertificate(this._options)
         // added to maintain backward compatibility with webdriverIO v5
         if (!this._config) {
             this._config = this._options
@@ -150,11 +157,22 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_FIND_NEAREST_HUB, false, 'Hub URL not found')
                 }
             }
-            if (BrowserstackCLI.getInstance().isRunning()) {
-                await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps: capabilities })
-                const instance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
-                const caps = AutomationFramework.getState(instance, AutomationFrameworkConstants.KEY_CAPABILITIES)
-                Object.assign(capabilities, caps)
+            try {
+                if (BrowserstackCLI.getInstance().isRunning()) {
+                    await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps: capabilities })
+                    const instance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
+                    const caps = AutomationFramework.getState(instance, AutomationFrameworkConstants.KEY_CAPABILITIES)
+                    Object.assign(capabilities, caps)
+
+                    // Strip CLI-only options that BrowserStack hub doesn't accept
+                    const bstackOptions = (capabilities as Record<string, unknown>)['bstack:options'] as Record<string, unknown> | undefined
+                    if (bstackOptions && typeof bstackOptions === 'object') {
+                        NOT_ALLOWED_KEYS_IN_CAPS.forEach(key => delete bstackOptions[key])
+                    }
+                    NOT_ALLOWED_KEYS_IN_CAPS.forEach(key => delete (capabilities as Record<string, unknown>)[`browserstack.${key}`])
+                }
+            } catch (err) {
+                BStackLogger.error(`Error while tracking automation framework event: ${err}`)
             }
         } catch (err) {
             BStackLogger.error(`Error while connecting to Browserstack CLI: ${err}`)
@@ -254,6 +272,25 @@ export default class BrowserstackService implements Services.ServiceInstance {
                         return
                     }
                     await this._insightsHandler.before()
+                }
+
+                /**
+                 * register custom-tag (multi Test-Case-ID) browser method on the
+                 * legacy/listener path. The CLI/gRPC path registers it via
+                 * CustomTagsModule.onBeforeExecute instead (both handlers' before()
+                 * are skipped when the binary is up).
+                 */
+                if (!BrowserstackCLI.getInstance().isRunning()) {
+                    try {
+                        this._customTagsHandler = new CustomTagsHandler(
+                            this._browser,
+                            this._caps,
+                            this._config.framework
+                        )
+                        this._customTagsHandler.before()
+                    } catch (err) {
+                        BStackLogger.error(`[Custom Tags] Error registering setCustomTags: ${err}`)
+                    }
                 }
 
                 /**
@@ -391,8 +428,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'afterTest' })
     async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
         this._specsRan = true
-        const { error, passed } = results
-        if (!passed) {
+        const { error, passed, skipped } = results
+        if (!passed && !skipped) {
             const testError = (error && error.message) || 'Unknown Error'
             this._failReasons.push(testError)
 
@@ -632,6 +669,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
             return Promise.resolve()
         }
 
+        this._reloadHappened = true
+
         const { setSessionName, setSessionStatus } = this._options
         const ignoreHooksStatus = this._options.testObservabilityOptions?.ignoreHooksStatus === true
 
@@ -851,7 +890,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     private saveWorkerData() {
         saveWorkerData({
-            usageStats: UsageStats.getInstance().getDataToSave()
+            usageStats: UsageStats.getInstance().getDataToSave(),
+            reloadHappened: this._reloadHappened
         })
     }
 }
