@@ -1,4 +1,4 @@
-name: Build WebdriverIO
+name: Authorize Technical Steering Committee Only
 
 on:
   workflow_call:

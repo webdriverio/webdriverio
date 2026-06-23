@@ -1,4 +1,4 @@
-name: Build WebdriverIO
+name: Authorize Team Publisher Only
 
 on:
   workflow_call:
