@@ -38,6 +38,7 @@ const mockCanDownload = vi.mocked((await import('@puppeteer/browsers')).canDownl
 
 describe('setupChromedriver', () => {
     const originalArch = process.arch
+    const originalPlatform = process.platform
 
     beforeEach(() => {
         vi.clearAllMocks()
@@ -54,7 +55,11 @@ describe('setupChromedriver', () => {
     })
 
     afterEach(() => {
-        Object.defineProperty(process, 'arch', { value: originalArch })
+        // Restore both arch and platform (tests mutate each), and keep them
+        // configurable so a later test's defineProperty doesn't throw — otherwise
+        // suite-ordering flakiness creeps in as cases are added.
+        Object.defineProperty(process, 'arch', { value: originalArch, configurable: true })
+        Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true })
     })
 
     describe('automatic platform-based fallback', () => {
