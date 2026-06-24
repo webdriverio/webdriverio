@@ -365,7 +365,9 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
         // Use Electron provider with Electron version
         providers = [new ElectronChromedriverProvider()]
         buildId = electronVersion
-        log.info(`Using Electron provider with Electron v${buildId} (Chromium ${chromiumVersion})`)
+        // Only mention the Chromium version when it was actually provided, otherwise
+        // the message reads "(Chromium undefined)" for the electronVersion-only path.
+        log.info(`Using Electron provider with Electron v${buildId}${chromiumVersion ? ` (Chromium ${chromiumVersion})` : ''}`)
     } else if (chromiumVersion || needsAlternativeProvider) {
         // Use Electron provider with Chromium version OR for unsupported platforms
         providers = [new ElectronChromedriverProvider()]
