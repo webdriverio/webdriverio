@@ -103,7 +103,6 @@ export interface DisplayServer {
 export interface DisplayServerOptions {
     /**
      * Explicitly enable/disable display server usage
-     * Maps from legacy option: autoXvfb
      * @default true
      */
     enabled?: boolean
@@ -119,7 +118,6 @@ export interface DisplayServerOptions {
 
     /**
      * Enable automatic installation of display server packages if missing
-     * Maps from legacy option: xvfbAutoInstall
      * @default false
      */
     autoInstall?: boolean
@@ -128,27 +126,23 @@ export interface DisplayServerOptions {
      * Mode for automatic installation
      * - 'root': install only if running as root (no sudo)
      * - 'sudo': allow non-interactive sudo when not root
-     * Maps from legacy option: xvfbAutoInstallMode
      * @default 'sudo'
      */
     autoInstallMode?: 'root' | 'sudo'
 
     /**
      * Custom installation command to use instead of built-in detection
-     * Maps from legacy option: xvfbAutoInstallCommand
      */
     autoInstallCommand?: string | string[]
 
     /**
      * Number of retry attempts for display server startup failures
-     * Maps from legacy option: xvfbMaxRetries
      * @default 3
      */
     maxRetries?: number
 
     /**
      * Base delay between retries in milliseconds (progressive: delay × attempt)
-     * Maps from legacy option: xvfbRetryDelay
      * @default 1000
      */
     retryDelay?: number
@@ -157,31 +151,5 @@ export interface DisplayServerOptions {
      * Force display server to run even on non-Linux systems (for testing)
      */
     force?: boolean
-
-    // Legacy option aliases for backward compatibility
-    /**
-     * @deprecated Use `enabled` instead
-     */
-    autoXvfb?: boolean
-    /**
-     * @deprecated Use `autoInstall` instead
-     */
-    xvfbAutoInstall?: boolean
-    /**
-     * @deprecated Use `autoInstallMode` instead
-     */
-    xvfbAutoInstallMode?: 'root' | 'sudo'
-    /**
-     * @deprecated Use `autoInstallCommand` instead
-     */
-    xvfbAutoInstallCommand?: string | string[]
-    /**
-     * @deprecated Use `maxRetries` instead
-     */
-    xvfbMaxRetries?: number
-    /**
-     * @deprecated Use `retryDelay` instead
-     */
-    xvfbRetryDelay?: number
 }
 

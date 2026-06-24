@@ -78,10 +78,7 @@ describe('Worker Cleanup', () => {
             {
                 outputDir: '/foo/bar',
                 runnerEnv: { FORCE_COLOR: 1 },
-                autoXvfb: true,
-                xvfbAutoInstall: undefined,
-                xvfbAutoInstallMode: undefined,
-                xvfbAutoInstallCommand: undefined
+                displayServerEnabled: true
             } as any
         )
 

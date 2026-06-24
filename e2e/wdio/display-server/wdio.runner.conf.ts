@@ -11,8 +11,8 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
  * required for the session to succeed.
  *
  * Distinct from wdio.conf.ts which runs the existing/base specs with
- * `autoXvfb: false` (those tests drive DisplayServerManager directly and use
- * a --headless Chrome that doesn't need the display).
+ * `displayServerEnabled: false` (those tests drive DisplayServerManager directly
+ * and use a --headless Chrome that doesn't need the display).
  */
 export const config: WebdriverIO.Config = {
     specs: [

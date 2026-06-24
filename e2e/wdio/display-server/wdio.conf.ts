@@ -46,13 +46,13 @@ export const config: WebdriverIO.Config = {
     runner: 'local',
 
     /**
-     * Disable automatic xvfb initialization so tests can control it manually
+     * Disable automatic display-server initialization so tests can control it manually
      */
-    autoXvfb: false,
+    displayServerEnabled: false,
     /**
-     * Do not auto-install xvfb by default; tests will enable it when needed
+     * Do not auto-install the display server by default; tests will enable it when needed
      */
-    xvfbAutoInstall: false,
+    displayServerAutoInstall: false,
 
     /**
      * Reporters

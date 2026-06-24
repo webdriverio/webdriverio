@@ -410,26 +410,6 @@ describe('optionsFromConfig', () => {
         })
     })
 
-    it('forwards legacy xvfb* / autoXvfb aliases unchanged so the manager can apply precedence', () => {
-        const result = optionsFromConfig({
-            autoXvfb: false,
-            xvfbAutoInstall: 'sudo',
-            xvfbAutoInstallMode: 'root',
-            xvfbAutoInstallCommand: ['my', 'cmd'],
-            xvfbMaxRetries: 7,
-            xvfbRetryDelay: 500,
-        } as never)
-
-        expect(result).toMatchObject({
-            autoXvfb: false,
-            xvfbAutoInstall: 'sudo',
-            xvfbAutoInstallMode: 'root',
-            xvfbAutoInstallCommand: ['my', 'cmd'],
-            xvfbMaxRetries: 7,
-            xvfbRetryDelay: 500,
-        })
-    })
-
     it('returns undefined values for keys absent from the config (DisplayServerManager fills defaults)', () => {
         const result = optionsFromConfig({} as never)
 
@@ -438,6 +418,6 @@ describe('optionsFromConfig', () => {
         expect(result.displayServer).toBeUndefined()
         expect(result.autoInstall).toBeUndefined()
         expect(result.maxRetries).toBeUndefined()
-        expect(result.xvfbAutoInstall).toBeUndefined()
+        expect(result.retryDelay).toBeUndefined()
     })
 })

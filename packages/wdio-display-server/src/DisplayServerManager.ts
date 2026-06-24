@@ -65,27 +65,18 @@ function forEachBrowserCapability(
 }
 
 /**
- * Map a WebdriverIO config to the corresponding DisplayServerOptions. Pulls
- * out both the modern `displayServer*` keys and the legacy `xvfb*` / `autoXvfb`
- * aliases so callers (e.g. LocalRunner) don't have to know about either
- * vocabulary — the DisplayServerManager constructor handles the precedence
- * + deprecation warnings.
+ * Map a WebdriverIO config to the corresponding DisplayServerOptions, so callers
+ * (e.g. LocalRunner) don't have to know the option vocabulary.
  */
 export function optionsFromConfig(config: WebdriverIO.Config): DisplayServerOptions {
     return {
         enabled: config.displayServerEnabled,
-        autoXvfb: config.autoXvfb,
         displayServer: config.displayServer,
         autoInstall: config.displayServerAutoInstall,
-        xvfbAutoInstall: config.xvfbAutoInstall,
         autoInstallMode: config.displayServerAutoInstallMode,
-        xvfbAutoInstallMode: config.xvfbAutoInstallMode,
         autoInstallCommand: config.displayServerAutoInstallCommand,
-        xvfbAutoInstallCommand: config.xvfbAutoInstallCommand,
         maxRetries: config.displayServerMaxRetries,
-        xvfbMaxRetries: config.xvfbMaxRetries,
         retryDelay: config.displayServerRetryDelay,
-        xvfbRetryDelay: config.xvfbRetryDelay,
     }
 }
 
@@ -103,38 +94,15 @@ export class DisplayServerManager {
     #initialized = false
 
     constructor(options: DisplayServerOptions = {}) {
-        // Support both old and new option names
-        this.#enabled = options.enabled ?? options.autoXvfb ?? true
+        this.#enabled = options.enabled ?? true
         this.#displayServerPreference = options.displayServer ?? 'auto'
-        this.#autoInstall = options.autoInstall ?? options.xvfbAutoInstall ?? false
-        this.#autoInstallMode = options.autoInstallMode ?? options.xvfbAutoInstallMode ?? 'sudo'
-        this.#autoInstallCommand = options.autoInstallCommand ?? options.xvfbAutoInstallCommand
-        this.#maxRetries = options.maxRetries ?? options.xvfbMaxRetries ?? 3
-        this.#retryDelay = options.retryDelay ?? options.xvfbRetryDelay ?? 1000
+        this.#autoInstall = options.autoInstall ?? false
+        this.#autoInstallMode = options.autoInstallMode ?? 'sudo'
+        this.#autoInstallCommand = options.autoInstallCommand
+        this.#maxRetries = options.maxRetries ?? 3
+        this.#retryDelay = options.retryDelay ?? 1000
         this.#force = options.force ?? false
         this.#log = logger('@wdio/display-server')
-
-        // Log deprecation warnings. These reference the public wdio.conf.ts
-        // property names (displayServer*), not the internal option names, so a
-        // user following the warning edits the correct config key.
-        if (options.autoXvfb !== undefined) {
-            this.#log.warn('DEPRECATED: autoXvfb is deprecated, use displayServerEnabled instead')
-        }
-        if (options.xvfbAutoInstall !== undefined) {
-            this.#log.warn('DEPRECATED: xvfbAutoInstall is deprecated, use displayServerAutoInstall instead')
-        }
-        if (options.xvfbAutoInstallMode !== undefined) {
-            this.#log.warn('DEPRECATED: xvfbAutoInstallMode is deprecated, use displayServerAutoInstallMode instead')
-        }
-        if (options.xvfbAutoInstallCommand !== undefined) {
-            this.#log.warn('DEPRECATED: xvfbAutoInstallCommand is deprecated, use displayServerAutoInstallCommand instead')
-        }
-        if (options.xvfbMaxRetries !== undefined) {
-            this.#log.warn('DEPRECATED: xvfbMaxRetries is deprecated, use displayServerMaxRetries instead')
-        }
-        if (options.xvfbRetryDelay !== undefined) {
-            this.#log.warn('DEPRECATED: xvfbRetryDelay is deprecated, use displayServerRetryDelay instead')
-        }
     }
 
     /**
@@ -436,10 +404,8 @@ export class DisplayServerManager {
 
     /**
      * Retry a function with this manager's configured maxRetries/retryDelay.
-     * Thin facade over the generic helper in utils.ts; kept here as a method
-     * because (a) it lets the factory continue calling `manager.executeWithRetry`
-     * without knowing the retry config, and (b) the legacy XvfbManager export
-     * surface expects this method.
+     * Thin facade over the generic helper in utils.ts; kept as a method so callers
+     * (e.g. the daemon entry point) can retry without knowing the retry config.
      */
     async executeWithRetry<T>(
         commandFn: () => Promise<T>,

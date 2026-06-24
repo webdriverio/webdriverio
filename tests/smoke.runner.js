@@ -1175,12 +1175,6 @@ const displayServerSmoke = async () => {
         assert.strictEqual(typeof pkg.optionsFromConfig, 'function',
             'optionsFromConfig export missing')
 
-        // Legacy aliases preserved for v9 → v10 compatibility (see exports in
-        // src/index.ts). The runner doesn't use these but external consumers
-        // coming from @wdio/xvfb might still import them.
-        assert.ok(pkg.XvfbManager, 'XvfbManager legacy alias missing')
-        assert.ok(pkg.xvfb, 'xvfb legacy singleton alias missing')
-
         const mgr = new pkg.DisplayServerManager()
         const should = mgr.shouldRun()
         if (process.platform === 'linux') {

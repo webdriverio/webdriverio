@@ -408,31 +408,6 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * TSX custom TSConfig path
      */
     tsConfigPath?: string
-    // Legacy option aliases for backward compatibility
-    /**
-     * @deprecated Use `displayServerEnabled` instead
-     */
-    autoXvfb?: boolean
-    /**
-     * @deprecated Use `displayServerAutoInstall` instead
-     */
-    xvfbAutoInstall?: boolean
-    /**
-     * @deprecated Use `displayServerAutoInstallMode` instead
-     */
-    xvfbAutoInstallMode?: 'root' | 'sudo'
-    /**
-     * @deprecated Use `displayServerAutoInstallCommand` instead
-     */
-    xvfbAutoInstallCommand?: string | string[]
-    /**
-     * @deprecated Use `displayServerMaxRetries` instead
-     */
-    xvfbMaxRetries?: number
-    /**
-     * @deprecated Use `displayServerRetryDelay` instead
-     */
-    xvfbRetryDelay?: number
 }
 
 export interface TSConfigPathsOptions {
