@@ -107,15 +107,13 @@ export const config: WebdriverIO.Config = {
 ```
 
 :::info
-
 Minimum required version:
  - WDIO v9.15.0
-
 :::
 
 :::warning
-
 For secrets passed via the command line, masking may fail because the wdio.conf.ts file is parsed later in the execution cycle. Using environment variables for these cases is highly recommended and much safer.
+:::
 
 #### Disable WDIO Loggers
 
