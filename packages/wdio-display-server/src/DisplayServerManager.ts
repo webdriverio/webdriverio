@@ -114,24 +114,26 @@ export class DisplayServerManager {
         this.#force = options.force ?? false
         this.#log = logger('@wdio/display-server')
 
-        // Log deprecation warnings
+        // Log deprecation warnings. These reference the public wdio.conf.ts
+        // property names (displayServer*), not the internal option names, so a
+        // user following the warning edits the correct config key.
         if (options.autoXvfb !== undefined) {
-            this.#log.warn('DEPRECATED: autoXvfb is deprecated, use enabled instead')
+            this.#log.warn('DEPRECATED: autoXvfb is deprecated, use displayServerEnabled instead')
         }
         if (options.xvfbAutoInstall !== undefined) {
-            this.#log.warn('DEPRECATED: xvfbAutoInstall is deprecated, use autoInstall instead')
+            this.#log.warn('DEPRECATED: xvfbAutoInstall is deprecated, use displayServerAutoInstall instead')
         }
         if (options.xvfbAutoInstallMode !== undefined) {
-            this.#log.warn('DEPRECATED: xvfbAutoInstallMode is deprecated, use autoInstallMode instead')
+            this.#log.warn('DEPRECATED: xvfbAutoInstallMode is deprecated, use displayServerAutoInstallMode instead')
         }
         if (options.xvfbAutoInstallCommand !== undefined) {
-            this.#log.warn('DEPRECATED: xvfbAutoInstallCommand is deprecated, use autoInstallCommand instead')
+            this.#log.warn('DEPRECATED: xvfbAutoInstallCommand is deprecated, use displayServerAutoInstallCommand instead')
         }
         if (options.xvfbMaxRetries !== undefined) {
-            this.#log.warn('DEPRECATED: xvfbMaxRetries is deprecated, use maxRetries instead')
+            this.#log.warn('DEPRECATED: xvfbMaxRetries is deprecated, use displayServerMaxRetries instead')
         }
         if (options.xvfbRetryDelay !== undefined) {
-            this.#log.warn('DEPRECATED: xvfbRetryDelay is deprecated, use retryDelay instead')
+            this.#log.warn('DEPRECATED: xvfbRetryDelay is deprecated, use displayServerRetryDelay instead')
         }
     }
 
