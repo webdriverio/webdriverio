@@ -82,10 +82,12 @@ describe('setupChromedriver', () => {
                 browserName: 'chrome'
             })
 
-            // Should call resolveBuildId to get actual version from "stable"
+            // Should call resolveBuildId to get the actual version from "stable",
+            // probing a CfT-served platform (LINUX) rather than the ARM target which
+            // CfT has no Chrome binaries for — we only need the version number here.
             expect(mockResolveBuildId).toHaveBeenCalledWith(
                 Browser.CHROME,
-                BrowserPlatform.LINUX_ARM,
+                BrowserPlatform.LINUX,
                 'stable'
             )
 

@@ -377,9 +377,13 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
         let detectedVersion = chromiumVersion || driverVersion || getBuildIdByChromePath(await locateChromeSafely())
 
         if (!detectedVersion && needsAlternativeProvider) {
-            // No Chrome detected - resolve "stable" from Chrome for Testing to get actual version
+            // No Chrome detected - resolve "stable" from Chrome for Testing to get the
+            // version number. Probe with BrowserPlatform.LINUX (always served by CfT)
+            // rather than `platform`: this branch only runs on platforms CfT has no
+            // Chrome binaries for (Linux/Windows ARM64), so probing `platform` would
+            // throw. We only need the version string to map to an Electron release.
             log.info('No Chrome installation detected. Resolving latest stable version...')
-            detectedVersion = await resolveBuildId(Browser.CHROME, platform, ChromeReleaseChannel.STABLE)
+            detectedVersion = await resolveBuildId(Browser.CHROME, BrowserPlatform.LINUX, ChromeReleaseChannel.STABLE)
         }
 
         buildId = detectedVersion || ChromeReleaseChannel.STABLE
