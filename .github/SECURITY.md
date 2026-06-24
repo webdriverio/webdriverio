@@ -579,8 +579,6 @@ export const config = {
 }
 ```
 
-:::warning
-
 For secrets passed via the command line, masking may fail because the wdio.conf.ts file is parsed later in the execution cycle. Using environment variables for these cases is highly recommended and much safer.
 
 **Environment Variable Configuration:**
