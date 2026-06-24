@@ -3,9 +3,9 @@ id: selenium
 title: Selenium DevTools
 ---
 
-Selenium WebDriver adapter for [WebdriverIO DevTools](https://github.com/webdriverio/devtools) — brings the same visual debugging UI to any `selenium-webdriver` test, regardless of the test runner.
+Selenium WebDriver adapter for [WebdriverIO DevTools](https://github.com/webdriverio/devtools) - brings the same visual debugging UI to any `selenium-webdriver` test, regardless of the test runner.
 
-Works with **Mocha**, **Jest**, **Cucumber**, or plain `node script.js` — the plugin auto-detects the runner and wires test boundaries accordingly. No changes to your test code are needed beyond a single import.
+Works with **Mocha**, **Jest**, **Cucumber**, or plain `node script.js` - the plugin auto-detects the runner and wires test boundaries accordingly. No changes to your test code are needed beyond a single import.
 
 ## Installation
 
@@ -114,9 +114,9 @@ NODE_OPTIONS=--experimental-vm-modules jest --config jest.config.json
 
 ### Cucumber
 
-Cucumber's split layout means three small files — one to load the plugin, one for World/hooks, and one for step definitions.
+Cucumber's split layout means three small files - one to load the plugin, one for World/hooks, and one for step definitions.
 
-`features/support/setup.js` — load the plugin and configure once:
+`features/support/setup.js` - load the plugin and configure once:
 
 ```js
 import { DevTools } from '@wdio/selenium-devtools'
@@ -126,7 +126,7 @@ DevTools.configure({
 })
 ```
 
-`features/support/world.js` — driver lifecycle:
+`features/support/world.js` - driver lifecycle:
 
 ```js
 import {
@@ -161,7 +161,7 @@ After(async function () {
 })
 ```
 
-`cucumber.json` — wire the setup file in **first** so the plugin patches Selenium before any step runs:
+`cucumber.json` - wire the setup file in **first** so the plugin patches Selenium before any step runs:
 
 ```json
 {
@@ -198,7 +198,7 @@ DevTools.configure({
 })
 
 async function run () {
-  DevTools.startTest('search Google for Selenium')   // optional — names the test row
+  DevTools.startTest('search Google for Selenium')   // optional - names the test row
 
   const driver = await new Builder().forBrowser('chrome').build()
   try {
@@ -222,7 +222,7 @@ run()
 node tests/google.test.js
 ```
 
-> Only use `startTest` / `endTest` for plain Node scripts. Under Mocha / Jest / Cucumber the plugin already knows when each test starts and ends — calling these manually would create duplicate rows.
+> Only use `startTest` / `endTest` for plain Node scripts. Under Mocha / Jest / Cucumber the plugin already knows when each test starts and ends - calling these manually would create duplicate rows.
 
 ## Configuration Options
 
@@ -235,6 +235,8 @@ node tests/google.test.js
 | `headless` | `boolean` | `false` | Run the **test** browser headless (injects `--headless=old`). The DevTools UI window is unaffected. |
 | `screencast` | `ScreencastOptions` | `{ enabled: false }` | Per-session `.webm` video recording. Options match the [WebdriverIO Screencast](/docs/devtools/wdio/screencast) page. |
 | `rerunCommand` | `string` | auto | Command template for per-test rerun. `{{testName}}` is substituted. Auto-derived from runner argv if omitted. |
+| `mode` | `'live' \| 'trace'` | `'live'` | `live` opens the DevTools UI; `trace` skips it and writes a portable artifact instead. See [Trace Mode](/docs/devtools/wdio/trace-mode). Overrides `openUi`. |
+| `traceFormat` | `'zip' \| 'ndjson-directory'` | `'zip'` | Trace artifact layout. Only applies when `mode: 'trace'`. |
 
 ```js
 DevTools.configure({
@@ -245,7 +247,20 @@ DevTools.configure({
 })
 ```
 
-> **For CI**, set both `headless: true` (hide the test browser) and `openUi: false` (don't try to open the dashboard window — CI environments have no display). The backend keeps running on the configured port so you can still open the UI later if needed.
+> **For CI**, set both `headless: true` (hide the test browser) and `openUi: false` (don't try to open the dashboard window - CI environments have no display). The backend keeps running on the configured port so you can still open the UI later if needed.
+
+## Trace mode
+
+Headless capture path — no DevTools UI window opens. At session end the adapter writes a portable `trace-<sessionId>.zip` (or directory) next to the test file, with the same shape as the WebdriverIO trace artifact.
+
+```js
+DevTools.configure({
+  mode: 'trace',
+  traceFormat: 'ndjson-directory'  // optional; default 'zip'
+})
+```
+
+The backend port-bind, UI window, and `screencast` option are all skipped in trace mode. For the full feature reference (artifact contents, viewer, mobile testing, when to pick `zip` vs `ndjson-directory`), see the [Trace Mode page](/docs/devtools/wdio/trace-mode).
 
 ## Public API
 
@@ -257,7 +272,7 @@ DevTools.startTest(name, meta?)      // mark a named test boundary (plain Node s
 DevTools.endTest('passed'|'failed'|'skipped'|'pending')
 ```
 
-Under Mocha / Jest / Cucumber the plugin auto-hooks the runner's lifecycle, so you don't need `startTest` / `endTest` manually — calling them would create duplicate rows.
+Under Mocha / Jest / Cucumber the plugin auto-hooks the runner's lifecycle, so you don't need `startTest` / `endTest` manually - calling them would create duplicate rows.
 
 ## Examples
 
@@ -283,18 +298,20 @@ pnpm example:mocha
 The Selenium adapter provides the same DevTools UI experience:
 
 - **[Interactive Test Rerunning & Visualization](/docs/devtools/wdio/interactive-test-rerunning)** - Real-time browser previews with test rerunning
+- **[Preserve & Rerun (Compare)](/docs/devtools/wdio/preserve-and-rerun)** - Snapshot a failing test, rerun it, and diff the two runs side-by-side
 - **[Console Logs](/docs/devtools/wdio/console-logs)** - Capture and inspect browser console output
 - **[Network Logs](/docs/devtools/wdio/network-logs)** - Monitor API calls and network activity
 - **[TestLens](/docs/devtools/wdio/testlens)** - Navigate to source code with intelligent code navigation
 - **[Session Screencast](/docs/devtools/wdio/screencast)** - Automatic video recording of browser sessions
+- **[Trace Mode](/docs/devtools/wdio/trace-mode)** - Headless capture path producing a portable `trace.zip` artifact (no UI window)
 
 ## How It Works
 
 The plugin patches `selenium-webdriver`'s `Builder`, `WebDriver`, and `WebElement` prototypes at import time:
 
-- **`Builder.build()`** — after construction, the driver is registered with the session capturer and the DevTools backend is started in a detached child process.
-- **Every public `WebDriver` / `WebElement` method** — wrapped with command capture (args + result + screenshot + call source).
-- **`WebDriver.quit()`** — an awaited cleanup hook flushes screencast encoding, WebSocket buffer, and final metadata before the original quit runs.
+- **`Builder.build()`** - after construction, the driver is registered with the session capturer and the DevTools backend is started in a detached child process.
+- **Every public `WebDriver` / `WebElement` method** - wrapped with command capture (args + result + screenshot + call source).
+- **`WebDriver.quit()`** - an awaited cleanup hook flushes screencast encoding, WebSocket buffer, and final metadata before the original quit runs.
 
 When BiDi is available (Chrome ≥114), console logs, JavaScript exceptions, and network events stream directly via the Selenium BiDi handlers. Otherwise the plugin falls back to an injected browser-side collector script.
 

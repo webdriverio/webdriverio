@@ -1,5 +1,6 @@
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Options as BSOptions } from 'browserstack-local'
+import type { CustomMetadata } from './customTags.js'
 
 export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<unknown>
 
@@ -64,6 +65,13 @@ export interface BrowserstackOptions extends Options.Testrunner {
 }
 
 export interface BrowserstackConfig {
+    /**
+     * Absolute path to a CA certificate (PEM, single cert or bundle) to trust for outbound
+     * HTTPS when behind an SSL-inspecting corporate proxy (Zscaler/Netskope/Forcepoint).
+     * Overridable via the `BROWSERSTACK_EXTRA_CA_CERTS` env var. Merged with the system
+     * trust store (never replaces it).
+     */
+    proxyCaCertificate?: string;
     /**
      *`buildIdentifier` is a unique id to differentiate every execution that gets appended to
      * buildName. Choose your buildIdentifier format from the available expressions:
@@ -277,7 +285,8 @@ export interface TestData {
     meta?: TestMeta,
     tags?: string[],
     test_run_id?: string,
-    product_map?: {}
+    product_map?: {},
+    custom_metadata?: CustomMetadata
 }
 
 export interface UserConfig {
@@ -375,6 +384,7 @@ export interface IntegrationObject {
     platform?: string
     product?: string
     platform_version?: string
+    device?: string
 }
 
 interface TestCodeBody {
@@ -444,6 +454,9 @@ export interface EventProperties {
         }
     }
     isCLIEnabled?: boolean
+    finishedMetadata?: {
+        reason: string
+    }
 }
 
 export interface FunnelData {

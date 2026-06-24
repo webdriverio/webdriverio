@@ -1,6 +1,6 @@
 {
   "name": "@wdio/display-server",
-  "version": "9.27.2",
+  "version": "9.29.0",
   "description": "A standalone utility to manage display servers (Wayland/Xvfb) for headless testing",
   "author": "WebdriverIO Team",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-display-server",

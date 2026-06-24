@@ -59,23 +59,23 @@ jobs:
     uses: ./.github/workflows/test-launch.yml
 
   cloud_tests:
-    name: E2E Tests
+    name: Cloud E2E Tests
     needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
     uses: ./.github/workflows/test-cloud.yml
     secrets: inherit
 
   testrunner_tests:
-    name: E2E Tests
+    name: Testrunner E2E Tests
     needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
     uses: ./.github/workflows/test-testrunner.yml
 
   multiremote_tests:
-    name: E2E Tests
+    name: Multiremote E2E Tests
     needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
     uses: ./.github/workflows/test-multiremote.yml
 
   standalone_tests:
-    name: E2E Tests
+    name: Standalone E2E Tests
     needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
     uses: ./.github/workflows/test-standalone.yml
 

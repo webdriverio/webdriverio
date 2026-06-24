@@ -386,20 +386,25 @@ export async function findDeepElement(
         })).then((elems) => elems.filter(([isIn]) => isIn).map(([, elem]) => elem)) as ExtendedElementReference[]
 
         /**
-         * Validate that the first scoped node is connected to the live DOM
+         * Validate that the first scoped node is connected to the live DOM.
+         * Only needed when shadow roots are involved — regular DOM elements
+         * (e.g. <option> inside <select>) may not have resolvable BiDi sharedId
+         * references for script execution, causing false "stale" detection.
          */
-        for (const node of scopedNodes) {
-            try {
-                const connected = await browser.execute((el: Element) => el.isConnected, node as unknown as HTMLElement)
-                if (connected) { return node }
-                shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
-            } catch {
-                shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+        if (shadowRoots.length > 0) {
+            for (const node of scopedNodes) {
+                try {
+                    const connected = await browser.execute((el: Element) => el.isConnected, node as unknown as HTMLElement)
+                    if (connected) { return node }
+                    shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+                } catch {
+                    shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+                }
             }
-        }
-        if (scopedNodes.length > 0) {
-            log.warn(`All ${scopedNodes.length} scoped BiDi results for "${value}" are detached, removed stale entries from shadow root tree`)
-            return undefined
+            if (scopedNodes.length > 0) {
+                log.warn(`All ${scopedNodes.length} scoped BiDi results for "${value}" are detached, removed stale entries from shadow root tree`)
+                return undefined
+            }
         }
         return scopedNodes[0]
     }, (err) => {
@@ -506,24 +511,29 @@ export async function findDeepElements(
         })).then((elems) => elems.filter(([isIn]) => isIn).map(([, elem]) => elem))
 
         /**
-         * Filter out detached scoped nodes
+         * Filter out detached scoped nodes. Only needed when shadow roots are
+         * involved — regular DOM elements (e.g. <option> inside <select>) may
+         * not have resolvable BiDi sharedId references for script execution,
+         * causing false "stale" detection and an empty result.
          */
-        const connectedScopedNodes: (boolean | ElementReference)[][] = []
-        for (const node of scopedNodes) {
-            try {
-                const connected = await browser.execute((el: Element) => el.isConnected, node as unknown as HTMLElement)
-                if (connected) {
-                    connectedScopedNodes.push(node as unknown as (boolean | ElementReference)[])
-                } else {
+        if (shadowRoots.length > 0) {
+            const connectedScopedNodes: ExtendedElementReference[] = []
+            for (const node of scopedNodes) {
+                try {
+                    const connected = await browser.execute((el: Element) => el.isConnected, node as unknown as HTMLElement)
+                    if (connected) {
+                        connectedScopedNodes.push(node as ExtendedElementReference)
+                    } else {
+                        shadowRootManager.deleteShadowRoot((node as unknown as Record<string, string>)[ELEMENT_KEY], context)
+                    }
+                } catch {
                     shadowRootManager.deleteShadowRoot((node as unknown as Record<string, string>)[ELEMENT_KEY], context)
                 }
-            } catch {
-                shadowRootManager.deleteShadowRoot((node as unknown as Record<string, string>)[ELEMENT_KEY], context)
             }
-        }
-        if (connectedScopedNodes.length > 0) { return connectedScopedNodes }
-        if (scopedNodes.length > 0) {
-            return []
+            if (connectedScopedNodes.length > 0) { return connectedScopedNodes }
+            if (scopedNodes.length > 0) {
+                return []
+            }
         }
         return scopedNodes
     }, (err) => {

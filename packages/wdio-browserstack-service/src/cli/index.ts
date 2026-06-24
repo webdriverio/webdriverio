@@ -19,6 +19,7 @@ import WdioMochaTestFramework from './frameworks/wdioMochaTestFramework.js'
 import WdioAutomationFramework from './frameworks/wdioAutomationFramework.js'
 import WebdriverIOModule from './modules/webdriverIOModule.js'
 import AccessibilityModule from './modules/accessibilityModule.js'
+import CustomTagsModule from './modules/customTagsModule.js'
 import { isTurboScale, processAccessibilityResponse, shouldAddServiceVersion } from '../util.js'
 import ObservabilityModule from './modules/observabilityModule.js'
 import type { BrowserstackConfig, BrowserstackOptions, LaunchResponse } from '../types.js'
@@ -130,6 +131,14 @@ export class BrowserstackCLI {
         this.logger.info(`loadModules: binSessionId=${this.binSessionId}`)
 
         this.setConfig(startBinResponse)
+
+        // Surface any build errors the binary populated on testhub.errors
+        // BEFORE the config.apis dereference below. On auth failure the
+        // binary returns an empty/degenerate config, so reporting errors
+        // here ensures the user sees the actionable cause (e.g. invalid
+        // credentials) before any downstream error.
+        this.logBuildErrors(startBinResponse)
+
         APIUtils.updateURLSForGRR(this.config.apis as GRRUrls)
 
         this.setupTestFramework()
@@ -156,19 +165,11 @@ export class BrowserstackCLI {
                 this.modules[ObservabilityModule.MODULE_NAME] = new ObservabilityModule(startBinResponse.observability)
             }
 
-            if (startBinResponse.testhub.errors && startBinResponse.testhub.errors.length > 0) {
-                try {
-                    const errors = JSON.parse(Buffer.from(startBinResponse.testhub.errors).toString())
-                    for (const [code, detail] of Object.entries(errors)) {
-                        const { message } = detail as { message: string; type: string }
-                        BStackLogger.error(`[Build] ${code}: ${message}`)
-                    }
-                } catch (e) {
-                    BStackLogger.debug(`Failed to parse testhub errors: ${e}`)
-                }
-            }
-
             this.modules[TestHubModule.MODULE_NAME] = new TestHubModule(startBinResponse.testhub)
+
+            // Custom-tag (multi Test-Case-ID) tagging rides the per-test event_json
+            // to TestHub, so it is gated on the testhub pipeline being active.
+            this.modules[CustomTagsModule.MODULE_NAME] = new CustomTagsModule()
 
             if (startBinResponse.accessibility?.success){
                 process.env[BROWSERSTACK_ACCESSIBILITY] = 'true'
@@ -182,6 +183,29 @@ export class BrowserstackCLI {
             this.modules[PercyModule.MODULE_NAME] = new PercyModule(startBinResponse.percy)
         }
         this.configureModules()
+    }
+
+    /**
+     * Log any build errors the binary reported via testhub.errors. The
+     * field is a JSON-encoded { [errorKey]: { message, type } } map. Called
+     * early in loadModules so the user sees the actionable cause (e.g.
+     * invalid credentials) before any downstream bootstrap step that
+     * depends on a fully populated config.
+     */
+    private logBuildErrors(startBinResponse: StartBinSessionResponse) {
+        const rawErrors = startBinResponse.testhub?.errors
+        if (!rawErrors || !rawErrors.length) {
+            return
+        }
+        try {
+            const errors = JSON.parse(Buffer.from(rawErrors).toString())
+            for (const [code, detail] of Object.entries(errors)) {
+                const { message } = detail as { message: string; type: string }
+                BStackLogger.error(`[Build] ${code}: ${message}`)
+            }
+        } catch (e) {
+            BStackLogger.debug(`Failed to parse testhub errors: ${e}`)
+        }
     }
 
     /**

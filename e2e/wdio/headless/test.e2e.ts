@@ -10,6 +10,7 @@ import { imageSize } from 'image-size'
 import type { InputOptions } from 'webdriverio'
 import type { remote } from 'webdriver'
 import type { SameSiteOptions } from '../../../packages/wdio-protocols/build/types.js'
+import logger from '@wdio/logger'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -944,6 +945,15 @@ describe('main suite 1', () => {
                     'value': '101112',
                 }
             ])
+        })
+    })
+
+    describe('Logger', () => {
+        it('should be able to log easily', async () => {
+            const user = { name: 'tomsmith', password: 'SuperSecretPassword!' }
+
+            const log = logger('My Login Test')
+            log.info('logging in with user:', user)
         })
     })
 })
