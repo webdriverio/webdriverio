@@ -5,6 +5,7 @@ const mockExecAsync = vi.hoisted(() => vi.fn())
 const mockSpawn = vi.hoisted(() => vi.fn())
 const mockAccess = vi.hoisted(() => vi.fn())
 const mockReaddir = vi.hoisted(() => vi.fn())
+const mockReadFile = vi.hoisted(() => vi.fn())
 
 vi.mock('node:child_process', () => ({
     exec: vi.fn(),
@@ -19,6 +20,7 @@ vi.mock('node:util', () => ({
 vi.mock('node:fs/promises', () => ({
     access: mockAccess,
     readdir: mockReaddir,
+    readFile: mockReadFile,
 }))
 
 // Sequence execAsync responses so the real detectPackageManager (called by
@@ -79,6 +81,8 @@ describe('XvfbDisplayServer', () => {
         vi.clearAllMocks()
         clearReservedDisplays()
         mockReaddir.mockResolvedValue([])
+        // Default: /etc/os-release reads as non-CentOS-10 so checkIsCentOS10() is false.
+        mockReadFile.mockResolvedValue('')
     })
 
     afterEach(() => {
@@ -87,20 +91,17 @@ describe('XvfbDisplayServer', () => {
 
     describe('isAvailable', () => {
         it('returns false when /etc/os-release identifies CentOS Stream 10', async () => {
-            mockExecAsync.mockResolvedValueOnce({
-                stdout: 'NAME="CentOS Stream"\nVERSION_ID="10"\n',
-                stderr: '',
-            })
+            mockReadFile.mockResolvedValueOnce('NAME="CentOS Stream"\nVERSION_ID="10"\n')
 
             const server = new XvfbDisplayServer()
             expect(await server.isAvailable()).toBe(false)
             // Must not even probe for xvfb-run after CentOS 10 detection
-            expect(mockExecAsync).toHaveBeenCalledTimes(1)
+            expect(mockExecAsync).not.toHaveBeenCalled()
         })
 
         it('returns true when both xvfb-run and Xvfb are on PATH', async () => {
+            // mockReadFile defaults to '' (not CentOS) from beforeEach
             mockExecAsync
-                .mockRejectedValueOnce(new Error('not centos')) // cat /etc/os-release
                 .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 .mockResolvedValueOnce({ stdout: '/usr/bin/Xvfb', stderr: '' })
 
@@ -110,7 +111,6 @@ describe('XvfbDisplayServer', () => {
 
         it('returns false when xvfb-run is on PATH but Xvfb is missing', async () => {
             mockExecAsync
-                .mockRejectedValueOnce(new Error('not centos'))
                 .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 .mockRejectedValueOnce(new Error('no Xvfb'))
 
@@ -119,11 +119,8 @@ describe('XvfbDisplayServer', () => {
         })
 
         it('returns false when /etc/os-release shows a different CentOS Stream version', async () => {
+            mockReadFile.mockResolvedValueOnce('NAME="CentOS Stream"\nVERSION_ID="9"\n')
             mockExecAsync
-                .mockResolvedValueOnce({
-                    stdout: 'NAME="CentOS Stream"\nVERSION_ID="9"\n',
-                    stderr: '',
-                })
                 .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 .mockResolvedValueOnce({ stdout: '/usr/bin/Xvfb', stderr: '' })
 
@@ -136,10 +133,7 @@ describe('XvfbDisplayServer', () => {
     describe('install', () => {
         it('returns false immediately when CentOS 10 was detected by a prior isAvailable()', async () => {
             // Trigger CentOS 10 detection
-            mockExecAsync.mockResolvedValueOnce({
-                stdout: 'NAME="CentOS Stream"\nVERSION_ID="10"\n',
-                stderr: '',
-            })
+            mockReadFile.mockResolvedValueOnce('NAME="CentOS Stream"\nVERSION_ID="10"\n')
             const server = new XvfbDisplayServer()
             await server.isAvailable()
 

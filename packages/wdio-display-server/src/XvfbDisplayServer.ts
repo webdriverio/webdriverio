@@ -1,5 +1,5 @@
 import { exec, spawn } from 'node:child_process'
-import { readdir } from 'node:fs/promises'
+import { readdir, readFile } from 'node:fs/promises'
 import { promisify } from 'node:util'
 import logger from '@wdio/logger'
 import type {
@@ -43,8 +43,9 @@ export class XvfbDisplayServer implements DisplayServer {
 
     private async checkIsCentOS10(): Promise<boolean> {
         try {
-            const { stdout } = await execAsync('cat /etc/os-release')
-            return stdout.includes('CentOS Stream') && stdout.includes('VERSION_ID="10"')
+            // Read the file directly instead of shelling out to `cat` for a fixed path.
+            const content = await readFile('/etc/os-release', 'utf-8')
+            return content.includes('CentOS Stream') && content.includes('VERSION_ID="10"')
         } catch {
             return false
         }
@@ -121,7 +122,9 @@ export class XvfbDisplayServer implements DisplayServer {
         } catch (err) {
             proc.removeListener('exit', onExit)
             proc.removeListener('error', onError)
-            if (!proc.killed) {
+            // proc.killed only reflects that a signal was sent, not that the process
+            // exited; guard on exitCode/signalCode so a still-running Xvfb is torn down.
+            if (proc.exitCode === null && proc.signalCode === null) {
                 proc.kill('SIGTERM')
             }
             XvfbDisplayServer.reservedDisplays.delete(displayNum)

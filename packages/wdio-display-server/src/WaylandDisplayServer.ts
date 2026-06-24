@@ -105,7 +105,9 @@ export class WaylandDisplayServer implements DisplayServer {
         } catch (err) {
             proc.removeListener('exit', onExit)
             proc.removeListener('error', onError)
-            if (!proc.killed) {
+            // proc.killed only reflects that a signal was sent, not that the process
+            // exited; guard on exitCode/signalCode so a still-running Weston is torn down.
+            if (proc.exitCode === null && proc.signalCode === null) {
                 proc.kill('SIGTERM')
             }
             await rm(runtimeDir, { recursive: true, force: true }).catch(() => {})

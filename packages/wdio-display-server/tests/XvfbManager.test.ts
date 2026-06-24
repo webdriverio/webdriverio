@@ -3,6 +3,7 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 // Use vi.hoisted to ensure mocks are set up before imports
 const mockExecAsync = vi.hoisted(() => vi.fn())
 const mockPlatform = vi.hoisted(() => vi.fn())
+const mockReadFile = vi.hoisted(() => vi.fn())
 
 // Mock all the modules before importing anything else
 vi.mock('node:child_process', () => ({
@@ -12,6 +13,14 @@ vi.mock('node:child_process', () => ({
 
 vi.mock('node:util', () => ({
     promisify: vi.fn(() => mockExecAsync)
+}))
+
+vi.mock('node:fs/promises', () => ({
+    // checkIsCentOS10() reads /etc/os-release directly; readdir/access are stubbed
+    // for the paths that aren't exercised by these manager-level tests.
+    readFile: mockReadFile,
+    readdir: vi.fn(),
+    access: vi.fn(),
 }))
 
 vi.mock('node:os', () => ({
@@ -40,12 +49,11 @@ describe('XvfbManager', () => {
     beforeEach(() => {
         vi.clearAllMocks()
 
-        // XvfbDisplayServer.isAvailable() probes `cat /etc/os-release` first
-        // for CentOS Stream 10 detection. Pre-queue a rejection so each test's
-        // sequential mock chain (.mockResolvedValueOnce / .mockRejectedValueOnce)
-        // can stay aligned with `which xvfb-run`, `which apt-get`, etc. as if
-        // the CentOS check were absent. A rejection means "not CentOS Stream 10".
-        mockExecAsync.mockImplementationOnce(() => Promise.reject(new Error('not centos')))
+        // XvfbDisplayServer.isAvailable() reads /etc/os-release first for CentOS
+        // Stream 10 detection. A rejected read means "not CentOS Stream 10", so each
+        // test's sequential execAsync chain stays aligned with `which xvfb-run`,
+        // `which apt-get`, etc. without the CentOS check consuming a slot.
+        mockReadFile.mockRejectedValue(new Error('not centos'))
 
         manager = new XvfbManager({ displayServer: 'xvfb' })
 
@@ -333,7 +341,7 @@ describe('XvfbManager', () => {
 
                 expect(result).toBe(true)
                 expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
-                expect(mockExecAsync).toHaveBeenCalledWith('which apt-get')
+                expect(mockExecAsync).toHaveBeenCalledWith('which', ['apt-get'])
                 expect(mockExecAsync).toHaveBeenCalledWith('which', ['sudo'])
                 expect(mockExecAsync).toHaveBeenCalledWith(
                     'sudo',
@@ -359,13 +367,13 @@ describe('XvfbManager', () => {
                 // Should only check for xvfb-run
                 expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
                 // And should not attempt any package manager detection or install
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which apt-get')
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which dnf')
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which yum')
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which zypper')
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which pacman')
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which apk')
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which xbps-install')
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['apt-get'])
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['dnf'])
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['yum'])
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['zypper'])
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['pacman'])
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['apk'])
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['xbps-install'])
             })
 
             describe('cross-distribution support', () => {
@@ -389,7 +397,7 @@ describe('XvfbManager', () => {
 
                     await manager.init()
 
-                    expect(mockExecAsync).toHaveBeenCalledWith('which apt-get')
+                    expect(mockExecAsync).toHaveBeenCalledWith('which', ['apt-get'])
                     expect(mockExecAsync).toHaveBeenCalledWith(
                         'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
                         { timeout: 240000 }
@@ -413,7 +421,7 @@ describe('XvfbManager', () => {
 
                     await manager.init()
 
-                    expect(mockExecAsync).toHaveBeenCalledWith('which dnf')
+                    expect(mockExecAsync).toHaveBeenCalledWith('which', ['dnf'])
                     expect(mockExecAsync).toHaveBeenCalledWith(
                         'dnf -y makecache && dnf -y install xorg-x11-server-Xvfb xorg-x11-server-utils',
                         { timeout: 240000 }
@@ -440,7 +448,7 @@ describe('XvfbManager', () => {
 
                     await manager.init()
 
-                    expect(mockExecAsync).toHaveBeenCalledWith('which pacman')
+                    expect(mockExecAsync).toHaveBeenCalledWith('which', ['pacman'])
                     expect(mockExecAsync).toHaveBeenCalledWith(
                         'pacman -Sy --noconfirm xorg-server-xvfb',
                         { timeout: 240000 }
@@ -465,8 +473,8 @@ describe('XvfbManager', () => {
                     await manager.init()
 
                     expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
-                    expect(mockExecAsync).toHaveBeenCalledWith('which apt-get')
-                    expect(mockExecAsync).toHaveBeenCalledWith('which dnf')
+                    expect(mockExecAsync).toHaveBeenCalledWith('which', ['apt-get'])
+                    expect(mockExecAsync).toHaveBeenCalledWith('which', ['dnf'])
                     expect(mockExecAsync).toHaveBeenCalledWith('which', ['sudo'])
                 })
 

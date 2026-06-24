@@ -41,7 +41,9 @@ export async function detectPackageManager(): Promise<string> {
 
     for (const { command, name } of packageManagers) {
         try {
-            await execAsync(`which ${command}`)
+            // execFile (no shell) for the hardcoded probe — matches the `which sudo`
+            // check below and avoids an unnecessary shell for a fixed command name.
+            await execFileAsync('which', [command])
             return name
         } catch {
             // Continue to next
