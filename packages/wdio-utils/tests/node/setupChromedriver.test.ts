@@ -25,7 +25,8 @@ vi.mock('@puppeteer/browsers', async () => {
         ...actual,
         install: vi.fn(),
         resolveBuildId: vi.fn(),
-        detectBrowserPlatform: vi.fn()
+        detectBrowserPlatform: vi.fn(),
+        canDownload: vi.fn()
     }
 })
 
@@ -33,6 +34,7 @@ vi.mock('@puppeteer/browsers', async () => {
 const mockInstall = vi.mocked((await import('@puppeteer/browsers')).install)
 const mockResolveBuildId = vi.mocked((await import('@puppeteer/browsers')).resolveBuildId)
 const mockDetectBrowserPlatform = vi.mocked((await import('@puppeteer/browsers')).detectBrowserPlatform)
+const mockCanDownload = vi.mocked((await import('@puppeteer/browsers')).canDownload)
 
 describe('setupChromedriver', () => {
     const originalArch = process.arch
@@ -47,6 +49,8 @@ describe('setupChromedriver', () => {
             path: '/cache/chromedriver'
         })
         mockResolveBuildId.mockResolvedValue('130.0.6723.58')
+        // Default: the exact build is downloadable from Chrome for Testing.
+        mockCanDownload.mockResolvedValue(true)
     })
 
     afterEach(() => {
@@ -254,6 +258,45 @@ describe('setupChromedriver', () => {
         })
     })
 
+    describe('standard path (no Electron provider)', () => {
+        it('falls back to a known-good major build when the exact Chromedriver is not downloadable', async () => {
+            // macOS x64 → standard Chrome-for-Testing path (no alternative provider).
+            Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true })
+            mockDetectBrowserPlatform.mockReturnValue(BrowserPlatform.MAC)
+            mockCanDownload.mockResolvedValue(false) // exact build not on CfT
+            mockResolveBuildId
+                .mockResolvedValueOnce('130.0.6723.99') // exact resolve for requested version
+                .mockResolvedValueOnce('130.0.6723.0')  // known-good build for the major
+
+            await setupChromedriver('/cache', '130.0.6723.99', { browserName: 'chrome' })
+
+            expect(mockCanDownload).toHaveBeenCalled()
+            // Resolved a known-good build for the Chrome major (130)
+            expect(mockResolveBuildId).toHaveBeenLastCalledWith(
+                Browser.CHROMEDRIVER,
+                BrowserPlatform.MAC,
+                '130'
+            )
+            const installCall = mockInstall.mock.calls[0][0]
+            expect(installCall.buildId).toBe('130.0.6723.0')
+            // Standard path never uses the Electron provider
+            expect(installCall.providers).toBeUndefined()
+        })
+
+        it('throws a clear error when no known-good major build can be resolved', async () => {
+            Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true })
+            mockDetectBrowserPlatform.mockReturnValue(BrowserPlatform.MAC)
+            mockCanDownload.mockResolvedValue(false)
+            mockResolveBuildId
+                .mockResolvedValueOnce('130.0.6723.99') // exact
+                .mockResolvedValueOnce(undefined as never) // no known-good build
+
+            await expect(
+                setupChromedriver('/cache', '130.0.6723.99', { browserName: 'chrome' })
+            ).rejects.toThrow(/known good Chromedriver/)
+        })
+    })
+
     describe('error handling', () => {
         it('should fall back to a Chrome-for-Testing build when the Electron download fails on a supported platform', async () => {
             // macOS is served by Chrome for Testing, so the catch-block fallback applies.
@@ -288,6 +331,11 @@ describe('setupChromedriver', () => {
                 BrowserPlatform.MAC,
                 expect.anything()
             )
+            // The fallback build was resolved against CfT, so it must download directly
+            // from CfT (no Electron provider). _install retries once, so the fallback
+            // attempt is the third install call.
+            const fallbackInstallCall = mockInstall.mock.calls[2][0]
+            expect(fallbackInstallCall.providers).toBeUndefined()
         })
 
         it('should throw a combined error if both the Electron download and the fallback fail on a supported platform', async () => {

@@ -398,6 +398,19 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
         // Use standard Chrome chromedriver logic (no Electron provider)
         const version = driverVersion || getBuildIdByChromePath(await locateChromeSafely()) || ChromeReleaseChannel.STABLE
         buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
+        // If Chrome for Testing has no binary for this exact build, fall back to the
+        // newest known-good build for the same Chrome major. Restores the pre-refactor
+        // safety net that the standard (non-Electron) path relied on.
+        const canDownloadExact = await canDownload({ cacheDir, buildId, platform, browser: Browser.CHROMEDRIVER, unpack: true })
+        if (!canDownloadExact) {
+            const major = getMajorVersionFromString(version)
+            log.warn(`Chromedriver v${buildId} not available, resolving a known good version for major v${major}...`)
+            const knownGood = await resolveBuildId(Browser.CHROMEDRIVER, platform, major)
+            if (!knownGood) {
+                throw new Error(`Couldn't resolve a known good Chromedriver for major v${major} (requested v${version})`)
+            }
+            buildId = knownGood
+        }
         log.info(`Using standard Chrome chromedriver logic, resolved buildId=${buildId}`)
     }
 
@@ -431,7 +444,10 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
             if (fallbackBuildId !== buildId) {
                 log.info(`Trying fallback Chromedriver v${fallbackBuildId}`)
                 try {
-                    installedBrowser = await _install({ ...installOptions, buildId: fallbackBuildId })
+                    // fallbackBuildId was resolved against Chrome for Testing, so download
+                    // it directly from CfT (drop the Electron provider) instead of
+                    // re-mapping a CfT build id through the Electron release index.
+                    installedBrowser = await _install({ ...installOptions, buildId: fallbackBuildId, providers: undefined })
                     log.info(`Chromedriver v${fallbackBuildId} is ready`)
                     buildId = fallbackBuildId
                 } catch (fallbackError) {
