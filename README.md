@@ -20,9 +20,6 @@
     <a href="https://bestpractices.coreinfrastructure.org/en/projects/5589">
         <img alt="OpenSSF Best Practices" src="https://bestpractices.coreinfrastructure.org/projects/5589/badge">
     </a>
-    <a title="Crowdin" target="_blank" href="https://translate.webdriver.io/project/webdriver-io">
-        <img src="https://badges.crowdin.net/webdriver-io/localized.svg">
-    </a>
     <br />
     <a href="https://discord.webdriver.io">
         <img alt="Support Channel" src="https://img.shields.io/discord/1097401827202445382?color=%234FB898&label=Join%20us%20on%20Discord">
@@ -121,6 +118,13 @@ __Did you build a WebdriverIO service or reporter?__ That's awesome! Please add 
 - [@wdio/shared-store-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-shared-store-service) - A WebdriverIO service to exchange data across processes
 - [@wdio/testingbot-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) - A WebdriverIO service that provides a better integration into TestingBot
 - [@wdio/devtools-service](https://github.com/webdriverio/devtools/tree/main) - A WebdriverIO service that provides browser devtools for debugging, visualizing, and controlling test executions in real-time with live browser preview, test rerun capabilities, and comprehensive execution insights
+
+### DevTools Adapters
+
+Adapters that bring the WebdriverIO DevTools UI to test suites running outside WebdriverIO. These are not WDIO services — they integrate directly with their host runner.
+
+- [@wdio/nightwatch-devtools](https://github.com/webdriverio/devtools/tree/main/packages/nightwatch-devtools) - Nightwatch.js adapter for WebdriverIO DevTools — same visual debugging UI with zero test code changes
+- [@wdio/selenium-devtools](https://github.com/webdriverio/devtools/tree/main/packages/selenium-devtools) - Selenium WebDriver adapter for WebdriverIO DevTools — runner-agnostic (Mocha, Jest, Cucumber, or plain Node scripts)
 
 ### Runner
 

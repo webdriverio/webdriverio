@@ -302,6 +302,13 @@ Default interval for all `waitFor*` commands to check if an expected state (e.g.
 Type: `Number`<br />
 Default: `100`
 
+### maxSpyCollectedBodySize
+
+Maximum size of the response body (in bytes) that can be returned when using the [`mock`](/docs/api/browser/mock) command. Use `0` to disable data collection of the spied payload.
+
+Type: `Number`<br />
+Default: `10485760` (10MB)
+
 ### region
 
 If running on Sauce Labs, you can choose to run tests between different data centers: US or EU.

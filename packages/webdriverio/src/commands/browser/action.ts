@@ -43,14 +43,15 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
  * #### Special Characters
  *
  * If you like to use special characters like e.g. `Control`, `Page Up` or `Shift`, make sure to import the
- * [`Key`](https://github.com/webdriverio/webdriverio/blob/main/packages/webdriverio/src/constants.ts#L352-L417) object
- * from the `webdriverio` package like so:
+ * [`Key`](/docs/api/modules#key) object from the `webdriverio` package like so:
  *
  * ```ts
  * import { Key } from 'webdriverio'
  * ```
  *
- * The object allows you to access the unicode representation of the desired special character.
+ * The `Key` object provides constants for all special keys including `Key.Ctrl` (cross-platform), `Key.Enter`,
+ * `Key.Tab`, `Key.ArrowLeft`, arrow keys, function keys, and more. See the [Key API docs](/docs/api/modules#key)
+ * for a complete list.
  *
  * ### Pointer input source
  *

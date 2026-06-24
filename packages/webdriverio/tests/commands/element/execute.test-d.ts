@@ -5,8 +5,8 @@ test('properly transforms element arguments', async () => {
     const browser = await remote({
         capabilities: {}
     })
-    const elem = await browser.$('body')
-    const result = await elem.execute((el, a, b, c, d) => {
+    const elem = await browser.$('body').getElement()
+    const result = await elem.execute((el, a: number, b: string, c: boolean, d: HTMLElement) => {
         expectTypeOf(el).toEqualTypeOf<HTMLElement>()
         expectTypeOf(a).toEqualTypeOf<number>()
         expectTypeOf(b).toEqualTypeOf<string>()

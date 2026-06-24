@@ -41,6 +41,7 @@ export interface TestResult {
     retries: TestRetries
     exception: string
     status: string
+    skipped?: boolean
 }
 
 export interface Results {

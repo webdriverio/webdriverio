@@ -329,9 +329,47 @@ export default class AllureReporter extends WDIOReporter {
         this._pushRuntimeMessage({ type: 'allure:hook:end', data: { status, statusDetails, stop, duration } })
     }
 
+    /**
+     * Stable key from current capabilities (browser/device + version) for hash.
+     * Must NOT include cid. Used to make historyId unique per environment.
+     */
+    private _getCapabilityKey(): string {
+        if (this._isMultiremote) { return 'multiremote' }
+        const capsUnknown: unknown = this._capabilities
+        const browserName = getStringField(capsUnknown, 'browserName')
+        const device = getStringField(capsUnknown, 'device')
+        const desired: Record<string, unknown> | undefined = ((): Record<string, unknown> | undefined => {
+            const maybe = (capsUnknown as Record<string, unknown>)?.['desired']
+            return isRecord(maybe) ? maybe : undefined
+        })()
+        const deviceName =
+            getStringField(desired, 'deviceName') ||
+            getStringField(desired, 'appium:deviceName') ||
+            getStringField(capsUnknown, 'deviceName') ||
+            getStringField(capsUnknown, 'appium:deviceName')
+        let targetName = device || browserName || deviceName || ''
+        const desiredPlatformVersion = getStringField(desired, 'appium:platformVersion')
+        if (desired && deviceName && desiredPlatformVersion) {
+            targetName = `${device || deviceName} ${desiredPlatformVersion}`
+        }
+        const version =
+            getStringField(capsUnknown, 'os_version') ||
+            getStringField(capsUnknown, 'osVersion') ||
+            getStringField(capsUnknown, 'browserVersion') ||
+            getStringField(capsUnknown, 'version') ||
+            getStringField(capsUnknown, 'appium:platformVersion') ||
+            ''
+        return version ? `${targetName}-${version}`.trim() : targetName.trim()
+    }
+
+    /**
+     * Emits historyId (and testCaseId) from full title and capability key (browser/device from test run).
+     * Must NOT include cid or file path: cid varies between runs; user asked for no filesystem.
+     */
     private _emitHistoryIdsFrom(fullTitleForHash: string): void {
-        const cid = this._currentCid()
-        const legacy = this._md5(`${fullTitleForHash}#${cid}`)
+        const capKey = this._getCapabilityKey()
+        const input = capKey ? `${fullTitleForHash}#${capKey}` : fullTitleForHash
+        const legacy = this._md5(input)
         this._pushRuntimeMessage({ type: 'metadata', data: { historyId: legacy, testCaseId: legacy } })
     }
 
@@ -644,11 +682,70 @@ export default class AllureReporter extends WDIOReporter {
         })
     }
 
-    onSuiteRetry(_suite: SuiteStats): void {
+    onSuiteRetry(suite: SuiteStats): void {
+        const cid = this._currentCid()
+
+        // Mark the first attempt as a retried result so Allure displays it under the "Retries" tab
         this._pushRuntimeMessage({
             type: 'metadata',
             data: { labels: [{ name: LabelName.TAG, value: 'retried' }] },
         })
+
+        // Determine the status of the first (failed) attempt from its accumulated step/hook stats
+        suite.hooks = (suite.hooks || []).map((h: HookStats) => {
+            h.state = h.state || AllureStatusEnum.PASSED
+            return h
+        })
+        const suiteChildren = [...(suite.tests || []), ...(suite.hooks || [])]
+        const isSkipped =
+            suiteChildren.length > 0 &&
+            (suite.tests || []).every((t: TestStats) => [AllureStatusEnum.SKIPPED].includes(t.state as AllureStatus)) &&
+            (suite.hooks || []).every((h: HookStats) => [AllureStatusEnum.PASSED, AllureStatusEnum.SKIPPED].includes(h.state as AllureStatus))
+        const failed = suiteChildren.find((i) => i.state === AllureStatusEnum.FAILED)
+        const status = isSkipped
+            ? AllureStatusEnum.SKIPPED
+            : failed ? getTestStatus(failed) : AllureStatusEnum.FAILED
+        const error = failed ? getErrorFromFailedTest(failed) : undefined
+
+        // Close attempt #1 as a proper (failed/skipped) result
+        this._attachLogs()
+        this._endTest({
+            stage: isSkipped ? AllureStage.PENDING : AllureStage.FINISHED,
+            status,
+            statusDetails: error ? { message: error.message, trace: error.stack } : undefined,
+            stop: Date.now(),
+        })
+
+        // Open a fresh Allure test for the retry attempt.
+        // Sharing the same historyId is intentional: Allure uses it to group
+        // separate result files as retry attempts of the same scenario.
+        this._consoleOutput = ''
+        this._startTest({ name: suite.title, start: Date.now() })
+        this._currentLeafTitleByCid.set(cid, suite.title)
+        const fullTitleForHash = this._mochaFullTitle(cid, suite.title)
+        this._emitHistoryIdsFrom(fullTitleForHash)
+
+        const fullName = toFullName(this._pkgByCid.get(cid)!, fullTitleForHash)
+        this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName, fullTitle: fullTitleForHash } })
+
+        this._emitBaseLabels(cid)
+
+        convertSuiteTagsToLabels(suite?.tags || []).forEach((lbl) => {
+            switch (lbl.name) {
+            case 'issue':
+                label('issue', lbl.value)
+                break
+            case 'testId':
+                label('testId', lbl.value)
+                break
+            default:
+                label(lbl.name, lbl.value)
+            }
+        })
+
+        if (suite.description) {
+            description(suite.description)
+        }
     }
 
     private _inCucumberStepMode(exec: TestStats | HookStats | SuiteStats): boolean {
@@ -679,6 +776,23 @@ export default class AllureReporter extends WDIOReporter {
         if (this._inCucumberStepMode(test)) {
             this._handleCucumberStepStart(test as TestStats)
             return
+        }
+
+        // Detect a scenarioLevelReporter retry: test:start fires again for a scenario while
+        // a previous scenario test is still open (because testCaseFinished was skipped for
+        // the willBeRetried=true attempt).  End the first attempt explicitly so Allure
+        // generates a separate result file for it before opening the retry result.
+        if (getType(test) === 'scenario' && this._hasPendingTest) {
+            this._pushRuntimeMessage({
+                type: 'metadata',
+                data: { labels: [{ name: LabelName.TAG, value: 'retried' }] },
+            })
+            this._attachLogs()
+            this._endTest({
+                stage: AllureStage.FINISHED,
+                status: AllureStatusEnum.FAILED,
+                stop: Date.now(),
+            })
         }
 
         const cid = this._currentCid()

@@ -58,6 +58,7 @@ export default function (docfile: {
     let tagCustomType = ''
     let tagMobileElement = false
     let tagSkipUsage = false
+    let tagSupport: string[] | undefined
     let returns
 
     for (const tag of javadoc.tags) {
@@ -150,6 +151,15 @@ export default function (docfile: {
         }
         case 'skipUsage': {
             tagSkipUsage = true
+            break
+        }
+        case 'support': {
+            try {
+                const parsed = JSON.parse(source[0].source.split('@support')[1].trim())
+                tagSupport = Array.isArray(parsed) ? parsed : Object.keys(parsed)
+            } catch {
+                // ignore malformed support tag
+            }
             break
         }
         case 'author': {
@@ -307,6 +317,7 @@ export default function (docfile: {
         isMockScope : scope === 'mock',
         isDialogScope : scope === 'dialog',
         isClockScope : scope === 'clock',
+        support: tagSupport,
     }
 
     return commandDescription

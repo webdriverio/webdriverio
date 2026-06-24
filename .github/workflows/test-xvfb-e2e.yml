@@ -7,8 +7,8 @@ on:
 
 jobs:
   xvfb-e2e-tests:
-    runs-on: ubuntu-latest
-
+    # Workaround while waiting for 24.04 to be fixed with node 24.16 & puppeteer hanging on unzipping
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -35,11 +35,11 @@ jobs:
 
           # Alpine scenarios
           - distro: alpine
-            version: "3.20"
+            version: "3.23"
             scenario: base
             dockerfile: alpine-base.dockerfile
           - distro: alpine
-            version: "3.20"
+            version: "3.23"
             scenario: with-xvfb
             dockerfile: alpine-with-xvfb.dockerfile
 
@@ -97,7 +97,7 @@ jobs:
 
     steps:
       - name: ⬇️ Checkout Code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: 🧑‍🔧 Get Core Dependencies
         uses: ./.github/workflows/actions/get-core-dependencies

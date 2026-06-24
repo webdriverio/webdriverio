@@ -3,76 +3,28 @@ id: devtools
 title: DevTools
 ---
 
-The DevTools service provides a powerful browser-based debugging interface for WebdriverIO test executions. It allows you to visualize, debug, and control your tests in real-time through an interactive web application.
+DevTools is a powerful browser-based debugging interface for visualizing, controlling, and inspecting your test executions in real-time. It works with **WebdriverIO**, **Nightwatch.js**, and **Selenium WebDriver** (any runner) — same backend, same UI, same capture infrastructure.
 
-## Overview
+## What It Provides
 
-This service enables you to:
-
-- **Rerun tests selectively** - Click on any test case or suite to re-execute it instantly
-- **Debug visually** - See live browser previews with automatic screenshots
+- **Rerun tests selectively** - Click on any test case or suite to re-execute it instantly ([details](/docs/devtools/wdio/interactive-test-rerunning))
+- **Preserve & Rerun (Compare)** - Snapshot a failing test, rerun it, and diff the two runs side-by-side aligned by command ([details](/docs/devtools/wdio/preserve-and-rerun))
+- **Debug visually** - See live browser previews with automatic screenshots after each command
 - **Track execution** - View detailed command logs with timestamps and results
-- **Monitor network & console** - Inspect API calls and JavaScript logs
-- **Navigate to code** - Jump directly to test source files
-
-## Installation
-
-Install the service as a dev dependency:
-
-```sh
-npm install --save-dev @wdio/devtools-service
-```
-
-## Configuration
-
-Add the service to your WebDriverIO configuration:
-
-```js
-// wdio.conf.js
-export const config = {
-    // ...
-    services: ['devtools'],
-    // ...
-};
-```
-
-### Service Options
-
-Configure the DevTools service with these options:
-
-```js
-// wdio.conf.js
-export const config = {
-    // ...
-    services: [
-        ['devtools', {
-            port: 3000,      // Port for the devtools UI (default: 3000)
-        }]
-    ],
-    // ...
-};
-```
-
-#### Options
-
-- **port** (number, default: `3000`) - Port number for the devtools UI server
+- **Monitor network & console** - Inspect API calls and JavaScript logs ([network](/docs/devtools/wdio/network-logs) · [console](/docs/devtools/wdio/console-logs))
+- **Navigate to code** - Jump directly to test source files with TestLens ([details](/docs/devtools/wdio/testlens))
+- **Record sessions** - Continuous `.webm` video of the browser, per session ([details](/docs/devtools/wdio/screencast))
+- **Trace mode** - Headless capture path producing a portable `trace.zip` artifact for offline replay or agentic consumption ([details](/docs/devtools/wdio/trace-mode))
 
 ## How It Works
 
-When you run your WebdriverIO tests with the DevTools service enabled:
+1. Start your tests as normal
+2. DevTools automatically opens a browser window at `http://localhost:3000`
+3. The UI shows test hierarchy, browser preview, command timeline, and logs in real-time
+4. After tests complete, click any test to rerun it individually in the same browser session
 
-1. The service opens a browser window at `http://localhost:3000` (configurable)
-2. Your tests execute normally while the DevTools UI displays real-time updates
-3. The UI shows test hierarchy, browser preview, command timeline, and logs
-4. After tests complete, you can click any test to rerun it individually
-5. Tests rerun in the same browser session for faster debugging
+## Choose Your Framework
 
-## Features
-
-Explore the DevTools features in detail:
-
-- **[Interactive Test Rerunning & Visualization](devtools/interactive-test-rerunning)** - Real-time browser previews with test rerunning
-- **[Multi-Framework Support](devtools/multi-framework-support)** - Works with Mocha, Jasmine, and Cucumber
-- **[Console Logs](devtools/console-logs)** - Capture and inspect browser console output
-- **[Network Logs](devtools/network-logs)** - Monitor API calls and network activity
-- **[TestLens](devtools/testlens)** - Navigate to source code with intelligent code navigation
+- **[WebDriverIO](/docs/devtools/wdio)** - Use `@wdio/devtools-service` with Mocha, Jasmine, or Cucumber
+- **[Nightwatch](/docs/devtools/nightwatch)** - Use `@wdio/nightwatch-devtools` with zero test code changes
+- **[Selenium](/docs/devtools/selenium)** - Use `@wdio/selenium-devtools` with Mocha, Jest, Cucumber, or plain Node scripts

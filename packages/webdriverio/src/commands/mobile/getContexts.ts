@@ -171,6 +171,8 @@ const log = logger('webdriver')
  * @param {boolean=}            options.returnAndroidDescriptionData        By default, no Android Webview (Chrome) description description data. If you want to get all data, you can set this to `true`. Default is `false` (optional). <br />By enabling this option you will get extra data in the response, see the `description.data.test.js` for more information. <br /><strong>ANDROID-ONLY</strong>
  * @param {number=}             options.waitForWebviewMs                    The time in milliseconds to wait for webviews to become available before returning contexts. This parameter is passed directly to the Appium `mobile: getContexts` command. Default is `0` ms (optional). <br /><strong>ANDROID-ONLY</strong> <br />This is useful when you know that a webview is loading but needs additional time to become available. This option works at the Appium level, before WebdriverIO's retry logic (`androidWebviewConnectionRetryTime` and `androidWebviewConnectTimeout`) is applied.
  * @skipUsage
+ *
+ * @support ["ios","android"]
  */
 export async function getContexts(
     this: WebdriverIO.Browser,

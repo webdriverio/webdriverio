@@ -14,14 +14,21 @@ export class BStackLogger {
     public static logFolderPath = path.join(process.cwd(), 'logs')
     private static logFileStream: fs.WriteStream | null
 
+    private static redactCredentials(logMessage: string): string {
+        return logMessage
+            .replace(/(["']?(?:username|userName|accesskey|accessKey|user|key)["']?\s*[:=]\s*["']?)([^"'\s,}]+)/gi, '$1')
+            .replace(/([?&](?:username|userName|access_key|accesskey|accessKey|user|key)=)([^&#\s]+)/gi, '$1')
+    }
+
     static logToFile(logMessage: string, logLevel: string) {
         try {
+            const redactedMessage = this.redactCredentials(logMessage)
             if (!this.logFileStream) {
                 this.ensureLogsFolder()
                 this.logFileStream = fs.createWriteStream(this.logFilePath, { flags: 'a' })
             }
             if (this.logFileStream && this.logFileStream.writable) {
-                this.logFileStream.write(this.formatLog(logMessage, logLevel))
+                this.logFileStream.write(this.formatLog(redactedMessage, logLevel))
             }
         } catch (error) {
             log.debug(`Failed to log to file. Error ${error}`)
@@ -33,32 +40,37 @@ export class BStackLogger {
     }
 
     public static info(message: string) {
-        this.logToFile(message, 'info')
-        log.info(message)
+        const redactedMessage = this.redactCredentials(message)
+        this.logToFile(redactedMessage, 'info')
+        log.info(redactedMessage)
     }
 
     public static error(message: string) {
-        this.logToFile(message, 'error')
-        log.error(message)
+        const redactedMessage = this.redactCredentials(message)
+        this.logToFile(redactedMessage, 'error')
+        log.error(redactedMessage)
     }
 
     public static debug(message: string, param?: unknown) {
-        this.logToFile(message, 'debug')
+        const redactedMessage = this.redactCredentials(message)
+        this.logToFile(redactedMessage, 'debug')
         if (param) {
-            log.debug(message, param)
+            log.debug(redactedMessage, param)
         } else {
-            log.debug(message)
+            log.debug(redactedMessage)
         }
     }
 
     public static warn(message: string) {
-        this.logToFile(message, 'warn')
-        log.warn(message)
+        const redactedMessage = this.redactCredentials(message)
+        this.logToFile(redactedMessage, 'warn')
+        log.warn(redactedMessage)
     }
 
     public static trace(message: string) {
-        this.logToFile(message, 'trace')
-        log.trace(message)
+        const redactedMessage = this.redactCredentials(message)
+        this.logToFile(redactedMessage, 'trace')
+        log.trace(redactedMessage)
     }
 
     public static clearLogger() {

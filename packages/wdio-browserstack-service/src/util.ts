@@ -13,7 +13,6 @@ import type { GitRepoInfo } from 'git-repo-info'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import type { ColorName } from 'chalk'
-import { FormData } from 'formdata-node'
 import { performance } from 'node:perf_hooks'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
@@ -36,12 +35,16 @@ import {
     BROWSERSTACK_TESTHUB_UUID,
     PERF_MEASUREMENT_ENV,
     RERUN_ENV,
+    BROWSERSTACK_TEST_PLAN_ID,
     MAX_GIT_META_DATA_SIZE_IN_BYTES,
     GIT_META_DATA_TRUNCATED,
     APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
     APP_ALLY_ISSUES_ENDPOINT,
     CLI_DEBUG_LOGS_FILE,
-    WDIO_NAMING_PREFIX
+    WDIO_NAMING_PREFIX,
+    MIN_BROWSER_VERSIONS_A11Y,
+    MIN_BROWSER_VERSIONS_A11Y_NON_BSTACK,
+    SUPPORTED_BROWSERS_FOR_ACCESSIBILITY
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -50,7 +53,6 @@ import TestOpsConfig from './testOps/testOpsConfig.js'
 import type { StartBinSessionResponse } from '@browserstack/wdio-browserstack-service'
 import APIUtils from './cli/apiUtils.js'
 import { create } from 'tar'
-import { fileFromPath } from 'formdata-node/file-from-path'
 
 import AccessibilityScripts from './scripts/accessibility-scripts.js'
 
@@ -365,7 +367,7 @@ export const processLaunchBuildResponse = (response: LaunchResponse, options: Br
     processAccessibilityResponse(response, options)
 }
 
-export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation: boolean | null) {
+export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation?: boolean) {
     const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
     launchBuildUsage.triggered()
 
@@ -403,7 +405,10 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         },
         product_map: getProductMapForBuildStartCall(bStackConfig, accessibilityAutomation),
         config: {},
-        test_orchestration: OrchestrationUtils.getInstance(config)?.getBuildStartData() || {}
+        test_orchestration: OrchestrationUtils.getInstance(config)?.getBuildStartData() || {},
+        test_management: {
+            test_plan_id: getTestPlanId(options)
+        }
     }
 
     if (accessibilityAutomation && (isTurboScale(options) || data.browserstackAutomation === false)){
@@ -435,6 +440,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         const jsonResponse: LaunchResponse = await response.json()
         delete data?.accessibility?.settings?.includeEncodedExtension
         BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(jsonResponse)}`)
+        BStackLogger.debug(`Test Plan Id sent in request: ${getTestPlanId(options)}`)
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
         if (jsonResponse.jwt) {
             process.env[BROWSERSTACK_TESTHUB_JWT] = jsonResponse.jwt
@@ -479,20 +485,44 @@ export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: st
             return false
         }
 
-        if (platformMeta?.browser_name?.toLowerCase() !== 'chrome') {
-            BStackLogger.warn('Accessibility Automation will run only on Chrome browsers.')
-            return false
-        }
+        const browserName = platformMeta?.browser_name?.toLowerCase()
         const browserVersion = platformMeta?.browser_version
-        if ( !isUndefined(browserVersion) && !(browserVersion === 'latest' || parseFloat(browserVersion + '') > 94)) {
-            BStackLogger.warn('Accessibility Automation will run only on Chrome browser version greater than 94.')
+
+        const validBrowsers = SUPPORTED_BROWSERS_FOR_ACCESSIBILITY
+        if (!browserName || !validBrowsers.includes(browserName)) {
+            BStackLogger.warn(`Accessibility Automation supports Chrome 95+, Chrome for Testing 141+, and Safari 18.4+. Current browser: ${browserName}`)
             return false
         }
 
-        if (chromeOptions?.args?.includes('--headless')) {
-            BStackLogger.warn('Accessibility Automation will not run on legacy headless mode. Switch to new headless mode or avoid using headless mode.')
-            return false
+        if (browserName === 'chrome' || browserName === 'chromefortesting') {
+            const minVersion = MIN_BROWSER_VERSIONS_A11Y[browserName as keyof typeof MIN_BROWSER_VERSIONS_A11Y]
+            if (browserVersion && browserVersion !== 'latest') {
+                const version = parseInt(browserVersion.toString().split('.')[0] || '0', 10)
+                if (version < minVersion) {
+                    BStackLogger.warn(`Accessibility Automation requires ${browserName === 'chrome' ? 'Chrome' : 'Chrome for Testing'} version ${minVersion} or higher.`)
+                    return false
+                }
+            }
+
+            if (chromeOptions?.args?.includes('--headless')) {
+                BStackLogger.warn('Accessibility Automation will not run on legacy headless mode. Switch to new headless mode or avoid using headless mode.')
+                return false
+            }
         }
+
+        // Safari validation
+        if (browserName === 'safari') {
+            if (browserVersion && browserVersion !== 'latest') {
+                const [currentMajor = 0, currentMinor = 0] = browserVersion.toString().split('.').map(Number)
+                const [requiredMajor = 0, requiredMinor = 0] = MIN_BROWSER_VERSIONS_A11Y.safari.toString().split('.').map(Number)
+
+                if (currentMajor < requiredMajor || (currentMajor === requiredMajor && currentMinor < requiredMinor)) {
+                    BStackLogger.warn(`Accessibility Automation requires Safari version ${MIN_BROWSER_VERSIONS_A11Y.safari} or higher.`)
+                    return false
+                }
+            }
+        }
+
         return true
     } catch (error) {
         BStackLogger.debug(`Exception in checking capabilities compatibility with Accessibility. Error: ${error}`)
@@ -500,18 +530,47 @@ export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: st
     return false
 }
 
-export const validateCapsWithNonBstackA11y = (browserName?: string | undefined, browserVersion?:string | undefined )  => {
+export const validateCapsWithNonBstackA11y = (browserName?: string | undefined, browserVersion?:string | undefined)  => {
+    try {
+        const browser = browserName?.toLowerCase()
 
-    if (browserName?.toLowerCase() !== 'chrome') {
-        BStackLogger.warn('Accessibility Automation will run only on Chrome browsers.')
-        return false
-    }
-    if (!isUndefined(browserVersion) && !(browserVersion === 'latest' || parseFloat(browserVersion + '') > 100)) {
-        BStackLogger.warn('Accessibility Automation will run only on Chrome browser version greater than 100.')
-        return false
-    }
-    return true
+        // Support Chrome, Chrome for Testing (ChromeForTesting), and Safari on non-BrowserStack infrastructure
+        const validBrowsers = ['chrome', 'chromefortesting', 'safari']
+        if (!browser || !validBrowsers.includes(browser)) {
+            BStackLogger.warn('Accessibility Automation on non-BrowserStack infrastructure supports Chrome 100+, Chrome for Testing 141+, and Safari 18.4+.')
+            return false
+        }
 
+        // Chrome/Chrome for Testing validation
+        if (browser === 'chrome' || browser === 'chromefortesting') {
+            const minVersion = MIN_BROWSER_VERSIONS_A11Y_NON_BSTACK[browser as keyof typeof MIN_BROWSER_VERSIONS_A11Y_NON_BSTACK]
+            if (browserVersion && browserVersion !== 'latest') {
+                const version = parseInt(browserVersion.toString().split('.')[0] || '0', 10)
+                if (version < minVersion) {
+                    BStackLogger.warn(`Accessibility Automation requires ${browser === 'chrome' ? 'Chrome' : 'Chrome for Testing'} version ${minVersion}+ on non-BrowserStack infrastructure.`)
+                    return false
+                }
+            }
+        }
+
+        // Safari validation
+        if (browser === 'safari') {
+            if (browserVersion && browserVersion !== 'latest') {
+                const [currentMajor = 0, currentMinor = 0] = browserVersion.toString().split('.').map(Number)
+                const [requiredMajor = 0, requiredMinor = 0] = MIN_BROWSER_VERSIONS_A11Y_NON_BSTACK.safari.toString().split('.').map(Number)
+
+                if (currentMajor < requiredMajor || (currentMajor === requiredMajor && currentMinor < requiredMinor)) {
+                    BStackLogger.warn(`Accessibility Automation requires Safari version ${MIN_BROWSER_VERSIONS_A11Y_NON_BSTACK.safari}+ on non-BrowserStack infrastructure.`)
+                    return false
+                }
+            }
+        }
+
+        return true
+    } catch (error) {
+        BStackLogger.debug(`Exception in checking capabilities compatibility with Accessibility. Error: ${error}`)
+    }
+    return false
 }
 
 export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, testTitle: string, accessibilityOptions?: { [key: string]: string; }, world?: { [key: string]: unknown; }, isCucumber?: boolean ) => {
@@ -1283,6 +1342,26 @@ export function getObservabilityBuildTags(options: BrowserstackConfig & Options.
     return []
 }
 
+export function getTestPlanId(options: BrowserstackConfig & Options.Testrunner): string | undefined {
+    if (process.env[BROWSERSTACK_TEST_PLAN_ID]) {
+        return process.env[BROWSERSTACK_TEST_PLAN_ID]
+    }
+    const CLI_ARG = '--browserstack.testManagementOptions.testPlanId'
+    const argIndex = process.argv.indexOf(CLI_ARG)
+    if (argIndex !== -1 && process.argv[argIndex + 1]) {
+        return process.argv[argIndex + 1]
+    }
+    const argWithEquals = process.argv.find((arg) => arg.startsWith(`${CLI_ARG}=`))
+    if (argWithEquals) {
+        return argWithEquals.split('=')[1]
+    }
+    const testPlanId = options.testManagementOptions?.testPlanId
+    if (typeof testPlanId === 'string' && testPlanId.trim().length > 0) {
+        return testPlanId.trim()
+    }
+    return undefined
+}
+
 export function getBrowserStackUser(config: Options.Testrunner) {
     if (process.env.BROWSERSTACK_USERNAME) {
         return process.env.BROWSERSTACK_USERNAME as string
@@ -1366,8 +1445,19 @@ export function getFailureObject(error: string|Error) {
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export async function uploadLogs(user: string | undefined, key: string | undefined, clientBuildUuid: string) {
+    // Manual instrumentation: tag every return path on the SDK_UPLOAD_LOGS event so
+    // the metric identifies the specific reason logs were not uploaded (no creds,
+    // per-file copy failure, upload no-response, exception). measureWrapper would
+    // otherwise mark all non-throwing paths as success.
+    const eventName = PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS
+    let success = true
+    let failure: string | undefined
+    PerformanceTester.start(eventName)
+
     try {
         if (!user || !key) {
+            success = false
+            failure = 'skipped: missing_credentials'
             BStackLogger.debug('Uploading logs failed due to no credentials')
             return
         }
@@ -1381,11 +1471,22 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
             CLI_DEBUG_LOGS_FILE,
         ].filter(f => fs.existsSync(f))
 
-        const copiedFileNames = []
+        const copiedFileNames: string[] = []
+        const archiveAddFailures: string[] = []
         for (const f of filesToArchive) {
-            const dest = path.join(tmpDir, path.basename(f))
-            fs.copyFileSync(f, dest)
-            copiedFileNames.push(path.basename(f))
+            try {
+                const dest = path.join(tmpDir, path.basename(f))
+                fs.copyFileSync(f, dest)
+                copiedFileNames.push(path.basename(f))
+            } catch (copyErr) {
+                const msg = (copyErr as Error)?.message || String(copyErr)
+                archiveAddFailures.push(`${path.basename(f)}: ${msg}`)
+            }
+        }
+
+        if (archiveAddFailures.length > 0 && failure === undefined) {
+            success = false
+            failure = `archive_add_failed [${archiveAddFailures.length}]: ${archiveAddFailures.join('; ')}`.substring(0, 300)
         }
 
         await create(
@@ -1409,7 +1510,10 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
         })
 
         const formData = new FormData()
-        const file = await fileFromPath(tarGzPath)
+        // openAsBlob returns a Blob backed by a file descriptor — undici streams
+        // from disk during the upload instead of materialising the full archive
+        // in V8 heap (which readFileSync + new Blob([Buffer]) would do twice).
+        const file = await fs.openAsBlob(tarGzPath, { type: 'application/x-gzip' })
         formData.append('data', file, 'logs.tar.gz')
         formData.append('clientBuildUuid', clientBuildUuid)
 
@@ -1439,10 +1543,26 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
             fs.unlinkSync(CLI_DEBUG_LOGS_FILE)
         }
 
+        if (!response) {
+            // nodeRequest swallows errors for the log-upload path and returns undefined;
+            // record the silent upload failure on the metric.
+            success = false
+            failure = 'upload_no_response'
+        } else if (response.status && response.status !== 'success') {
+            // Server-side rejection (e.g. "File not attached") — response is truthy
+            // but the upload didn't actually land.
+            success = false
+            failure = `upload_status: ${response.status}${response.message ? ' - ' + String(response.message).slice(0, 200) : ''}`
+        }
+
         return response
     } catch (error) {
+        success = false
+        failure = `uploadLogs exception: ${getErrorString(error)}`
         BStackLogger.error(`Error while uploading logs: ${getErrorString(error)}`)
         return null
+    } finally {
+        PerformanceTester.end(eventName, success, failure)
     }
 }
 
@@ -1485,6 +1605,77 @@ export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(c
         } else if (userCaps[key as keyof WebdriverIO.Capabilities]) {
             BStackLogger.debug(`Got ${key} from user caps`)
             return String(userCaps[key as keyof WebdriverIO.Capabilities])
+        }
+    }
+    return undefined
+})
+
+/**
+ * Resolve a stable, human-readable device identifier for the
+ * `device` field on test_run integrations payloads.
+ *
+ * TestHub dedupes test_runs by a hash that includes `device`. For
+ * App-Automate flows that pass a regex device request (e.g. `.*Pixel.*`)
+ * across multiple platforms, the SDK previously sent the input regex
+ * string, causing two parallel sessions on physically different devices
+ * to collide on the hash and merge. This helper prefers the Appium
+ * server-resolved fields (`deviceModel` / `appium:deviceModel`) before
+ * falling back to the requested capabilities.
+ *
+ * Multiremote: `driverCaps` for a `MultiRemoteBrowser` is a map of
+ * `{instanceName: WebdriverIO.Capabilities, …}` rather than flat caps;
+ * the helper detects that shape and walks each instance.
+ *
+ * @param driverCaps - live driver capabilities (`browser.capabilities`)
+ *                     where Appium server-resolved fields are populated
+ * @param requestedCaps - user-requested capabilities (runner caps / yml)
+ *                        used as a fallback
+ */
+export const getResolvedDeviceName = o11yErrorHandler(function getResolvedDeviceName(
+    driverCaps?: WebdriverIO.Capabilities | Record<string, { capabilities?: WebdriverIO.Capabilities }>,
+    requestedCaps?: WebdriverIO.Capabilities | Record<string, { capabilities?: WebdriverIO.Capabilities }>,
+): string | undefined {
+    const flattenMultiremote = (
+        caps: WebdriverIO.Capabilities | Record<string, { capabilities?: WebdriverIO.Capabilities }> | undefined,
+    ): WebdriverIO.Capabilities[] => {
+        if (!caps) {return []}
+        const obj = caps as Record<string, unknown>
+        if (obj['deviceModel'] || obj['appium:deviceModel'] || obj['deviceName'] || obj['bstack:options']) {
+            // looks like flat caps
+            return [caps as WebdriverIO.Capabilities]
+        }
+        // looks like a multiremote map: {instanceName: {capabilities: {...}}}
+        return Object.values(obj)
+            .filter((v): v is { capabilities?: WebdriverIO.Capabilities } =>
+                v !== null && typeof v === 'object' && 'capabilities' in (v as object))
+            .map(v => v.capabilities as WebdriverIO.Capabilities)
+            .filter(Boolean)
+    }
+
+    const sources: WebdriverIO.Capabilities[] = [
+        ...flattenMultiremote(driverCaps),
+        ...flattenMultiremote(requestedCaps),
+    ]
+    if (!sources.length) {return undefined}
+
+    const pickString = (obj: Record<string, unknown> | undefined, key: string): string | undefined => {
+        const v = obj?.[key]
+        return typeof v === 'string' && v.length > 0 ? v : undefined
+    }
+    // Precedence: prefer Appium server-resolved deviceModel; fall back through
+    // requested cap variants. `bstack:options.deviceName` is the user's regex
+    // for App-Automate runs, kept as a fallback for the non-resolved case.
+    const paths: Array<(c: Record<string, unknown>) => string | undefined> = [
+        c => pickString(c, 'deviceModel'),
+        c => pickString(c, 'appium:deviceModel'),
+        c => pickString(c['bstack:options'] as Record<string, unknown> | undefined, 'deviceName'),
+        c => pickString(c, 'appium:deviceName'),
+        c => pickString(c, 'deviceName'),
+    ]
+    for (const path of paths) {
+        for (const src of sources) {
+            const v = path(src as unknown as Record<string, unknown>)
+            if (v) {return v}
         }
     }
     return undefined
@@ -1899,4 +2090,3 @@ export function isMultiRemoteCaps(capabilities: Capabilities.TestrunnerCapabilit
         Object.values(cap).every(c => c !== null && typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities)
     )
 }
-

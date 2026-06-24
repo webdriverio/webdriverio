@@ -1,4 +1,37 @@
+import logger from '@wdio/logger'
+
 import type { PinchAndZoomOptions } from '../types.js'
+
+const log = logger('webdriver')
+
+/**
+ * Returns true if the error indicates that the driver does not know about the
+ * requested `mobile:` execute method (old Appium 2 driver). Any other error
+ * (wrong params, device disconnected, etc.) should be re-thrown by the caller.
+ */
+export function isUnknownMethodError(err: unknown): boolean {
+    if (!(err instanceof Error)) {
+        return false
+    }
+    const msg = err.message.toLowerCase()
+    return msg.includes('unknown method') || msg.includes('unknown command')
+}
+
+/**
+ * Log a deprecation warning when a mobile command falls back to the legacy
+ * Appium protocol endpoint because the driver is too old to support the
+ * modern `mobile:` execute replacement.
+ *
+ * @param mobileCommand   e.g. `'mobile: lock'`
+ * @param protocolEndpoint  e.g. `'/appium/device/lock'`
+ */
+export function logAppiumDeprecationWarning(mobileCommand: string, protocolEndpoint: string): void {
+    log.warn(
+        `The \`${mobileCommand}\` execute method is not supported by your Appium driver. ` +
+        `Falling back to the deprecated \`${protocolEndpoint}\` protocol endpoint. ` +
+        `Please upgrade your Appium driver to a version that supports \`${mobileCommand}\`.`
+    )
+}
 
 export function getNativeContext({ capabilities, isMobile }:
 { capabilities: WebdriverIO.Capabilities, isMobile: boolean }

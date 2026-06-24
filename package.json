@@ -34,6 +34,7 @@
     "docs:deploy": "tsx ./scripts/updateDocs.ts",
     "eslint:fix": "eslint --fix packages examples scripts tests",
     "test": "run-s test:eslint test:ejslint test:typings test:unit:run test:smoke test:component",
+    "test:local": "run-s test:eslint test:ejslint test:typings test:unit:run",
     "test:depcheck": "tsx ./scripts/depcheck.ts",
     "test:eslint": "eslint --cache packages examples scripts tests",
     "test:ejslint": "ejslint packages/wdio-cli/src/templates/**/* packages/create-wdio/src/templates/**/*",
@@ -94,8 +95,8 @@
     "@wdio/eslint": "^0.1.2",
     "@wdio/repl": "workspace:*",
     "camelcase": "^8.0.0",
-    "cddl": "^0.12.0",
-    "cddl2ts": "^0.2.2",
+    "cddl": "^0.14.5",
+    "cddl2ts": "^0.4.1",
     "chalk": "^5.4.1",
     "cheerio": "1.1.2",
     "cli-highlight": "^2.1.11",
@@ -130,5 +131,10 @@
   },
   "engines": {
     "pnpm": ">=8.15.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "axios": "^1.13.5"
+    }
   }
 }

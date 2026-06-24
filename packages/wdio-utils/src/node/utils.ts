@@ -12,7 +12,6 @@ import {
     type InstallOptions, type BrowserProvider
 } from '@puppeteer/browsers'
 import { download as downloadGeckodriver } from 'geckodriver'
-import { download as downloadEdgedriver } from 'edgedriver'
 import { locateChrome, locateFirefox, locateApp } from 'locate-app'
 import type { EdgedriverParameters } from 'edgedriver'
 import type { Options } from '@wdio/types'
@@ -21,6 +20,15 @@ import { ElectronChromedriverProvider } from './electronChromedriverProvider.js'
 
 const log = logger('webdriver')
 const EXCLUDED_PARAMS = ['version', 'help']
+export const DEFAULT_EDGEDRIVER_CDN_URL = 'https://msedgedriver.microsoft.com'
+const LEGACY_EDGEDRIVER_CDN_URL = 'https://msedgedriver.azureedge.net'
+
+export function setDefaultEdgedriverCdnUrl () {
+    const edgedriverCdnUrl = process.env.EDGEDRIVER_CDNURL?.replace(/\/+$/, '')
+    if (!edgedriverCdnUrl || edgedriverCdnUrl === LEGACY_EDGEDRIVER_CDN_URL) {
+        process.env.EDGEDRIVER_CDNURL = DEFAULT_EDGEDRIVER_CDN_URL
+    }
+}
 
 /**
  * Helper utility to check file access
@@ -219,6 +227,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
          * verify that we have a valid Chrome/Firefox browser installed
          */
         if (browserVersion) {
+            log.info(`Using pre-installed ${browserName} v${browserVersion}${executablePath ? ` from ${executablePath}` : ''}`)
             return {
                 executablePath,
                 browserVersion
@@ -441,7 +450,9 @@ export function setupGeckodriver (cacheDir: string, driverVersion?: string) {
     return downloadGeckodriver(driverVersion, cacheDir)
 }
 
-export function setupEdgedriver (cacheDir: string, driverVersion?: string) {
+export async function setupEdgedriver (cacheDir: string, driverVersion?: string) {
+    setDefaultEdgedriverCdnUrl()
+    const { download: downloadEdgedriver } = await import('edgedriver')
     return downloadEdgedriver(driverVersion, cacheDir)
 }
 

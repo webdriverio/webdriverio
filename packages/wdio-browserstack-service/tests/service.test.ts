@@ -4,6 +4,7 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import logger from '@wdio/logger'
 
 import BrowserstackService from '../src/service.js'
+import { saveWorkerData } from '../src/data-store.js'
 import * as utils from '../src/util.js'
 import InsightsHandler from '../src/insights-handler.js'
 import * as bstackLogger from '../src/bstackLogger.js'
@@ -43,6 +44,18 @@ vi.mock('../src/performance-testing/index.js', () => ({
             // Return the original method unchanged
             return descriptor
         })
+    }
+}))
+
+vi.mock('../src/instrumentation/performance/performance-tester.js', () => ({
+    default: {
+        start: vi.fn(),
+        end: vi.fn(),
+        startMonitoring: vi.fn(),
+        measureWrapper: vi.fn().mockImplementation((_name: string, fn: Function) => fn),
+        Measure: vi.fn().mockImplementation(() => (_target: any, _propertyKey: string, descriptor: PropertyDescriptor) => descriptor),
+        browser: undefined,
+        scenarioThatRan: [],
     }
 }))
 
@@ -194,6 +207,28 @@ describe('onReload()', () => {
         })
         expect(service['_suiteTitle']).toEqual('my suite title')
     })
+
+    it('should flag the build as reloaded', async () => {
+        service['_browser'] = browser as WebdriverIO.Browser
+        expect(service['_reloadHappened']).toBe(false)
+        await service.onReload('1', '2')
+        expect(service['_reloadHappened']).toBe(true)
+    })
+
+    it('should not flag a reload when there is no browser object', async () => {
+        service['_browser'] = undefined
+        await service.onReload('1', '2')
+        expect(service['_reloadHappened']).toBe(false)
+    })
+
+    it('should persist the reload flag into worker data', async () => {
+        service['_browser'] = browser as WebdriverIO.Browser
+        await service.onReload('1', '2')
+        service['saveWorkerData']()
+        expect(vi.mocked(saveWorkerData)).toHaveBeenCalledWith(
+            expect.objectContaining({ reloadHappened: true })
+        )
+    })
 })
 
 describe('beforeSession', () => {
@@ -212,6 +247,7 @@ describe('beforeSession', () => {
             service.beforeSession({ key: 'bar' } as any)
             expect(service['_config']).toEqual({ user: 'NotSetUser', key: 'bar' })
         })
+
     })
 
     describe('testObservabilityOpts passed (legacy)', () => {

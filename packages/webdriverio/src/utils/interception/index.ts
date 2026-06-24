@@ -6,10 +6,12 @@ import { URLPattern } from 'urlpattern-polyfill'
 import Timer from '../Timer.js'
 import { parseOverwrite, getPatternParam } from './utils.js'
 import { SESSION_MOCKS } from '../../commands/browser/mock.js'
-import type { MockFilterOptions, RequestWithOptions, RespondWithOptions } from './types.js'
+import type { MockFilterOptions, RequestWithOptions, RespondWithOptions, Response } from './types.js'
 import type { WaitForOptions } from '../../types.js'
 
 const log = logger('WebDriverInterception')
+
+const DEFAULT_SPY_COLLECTED_BODY_SIZE = 10 * 1024 * 1024
 
 let hasSubscribedToEvents = false
 
@@ -18,6 +20,10 @@ interface Overwrite {
     overwrite?: RequestWithOptions | RespondWithOptions
     once?: boolean
     abort?: boolean
+}
+
+type RequestWithPostData<T extends local.NetworkBeforeRequestSentParameters | Response> = T & {
+    postData?: string
 }
 
 /**
@@ -36,25 +42,31 @@ export default class WebDriverInterception {
     #restored = false
     #requestOverwrites: Overwrite[] = []
     #respondOverwrites: Overwrite[] = []
-    #calls: local.NetworkResponseCompletedParameters[] = []
-    #responseBodies = new Map<string, remote.NetworkBytesValue>()
+    #calls: Response[] = []
+    #overwrittenResponseBodies = new Map<string, remote.NetworkBytesValue>()
+    #requestPostData = new Map<string, string>()
+    #isCollectingNetworkData: boolean
+    #hasOneResponseCollected = false
 
     constructor(
         pattern: URLPattern,
         mockId: string,
         filterOptions: MockFilterOptions,
-        browser: WebdriverIO.Browser
+        browser: WebdriverIO.Browser,
+        isCollectingNetworkData = false
     ) {
         this.#pattern = pattern
         this.#mockId = mockId
         this.#filterOptions = filterOptions
         this.#browser = browser
+        this.#isCollectingNetworkData = isCollectingNetworkData
 
         /**
          * attach network listener to this mock
          */
         browser.on('network.beforeRequestSent', this.#handleBeforeRequestSent.bind(this))
         browser.on('network.responseStarted', this.#handleResponseStarted.bind(this))
+        browser.on('network.responseCompleted', this.#handleResponseCompleted.bind(this))
     }
 
     static async initiate(
@@ -63,13 +75,29 @@ export default class WebDriverInterception {
         browser: WebdriverIO.Browser
     ) {
         const pattern = parseUrlPattern(url)
+        const isCollectingNetworkData = browser.options.maxSpyCollectedBodySize !== 0
+
         if (!hasSubscribedToEvents) {
             await browser.sessionSubscribe({
                 events: [
                     'network.beforeRequestSent',
-                    'network.responseStarted'
+                    'network.responseStarted',
+                    'network.responseCompleted'
                 ]
             })
+            try {
+                if (isCollectingNetworkData) {
+                    await browser.networkAddDataCollector({
+                        dataTypes: ['request', 'response'],
+                        maxEncodedDataSize: typeof browser.options.maxSpyCollectedBodySize === 'number'
+                            ? browser.options.maxSpyCollectedBodySize
+                            : DEFAULT_SPY_COLLECTED_BODY_SIZE
+                    })
+                }
+            } catch (error) {
+                // Log a warning instead of failing the test
+                log.warn(`[BiDi] network.addDataCollector not supported: ${(error as Error)?.message}`)
+            }
             log.info('subscribed to network events')
             hasSubscribedToEvents = true
         }
@@ -89,7 +117,7 @@ export default class WebDriverInterception {
             }]
         })
 
-        return new WebDriverInterception(pattern, interception.intercept, filterOptions, browser)
+        return new WebDriverInterception(pattern, interception.intercept, filterOptions, browser, isCollectingNetworkData)
     }
 
     #emit(event: string, args: unknown) {
@@ -131,6 +159,19 @@ export default class WebDriverInterception {
             return
         }
 
+        if (this.#filterOptions.postData) {
+            return this.#handleBeforeRequestSentWithPostData(request)
+        }
+
+        return this.#continueBeforeRequestSent(request)
+    }
+
+    async #handleBeforeRequestSentWithPostData(request: local.NetworkBeforeRequestSentParameters) {
+        await this.#populateRequestPostData(request)
+        return this.#continueBeforeRequestSent(request)
+    }
+
+    #continueBeforeRequestSent(request: local.NetworkBeforeRequestSentParameters) {
         /**
          * check if request matches filter option and do nothing if not
          */
@@ -165,7 +206,7 @@ export default class WebDriverInterception {
         })
     }
 
-    #handleResponseStarted(request: local.NetworkResponseCompletedParameters) {
+    #handleResponseStarted(request: Response) {
         /**
          * don't do anything if:
          * - request is not blocked
@@ -183,6 +224,8 @@ export default class WebDriverInterception {
             }
             return
         }
+
+        this.#attachPostData(request)
 
         /**
          * continue mock if not matching filter
@@ -223,7 +266,7 @@ export default class WebDriverInterception {
             this.#emit('overwrite', request)
             const responseData = parseOverwrite(overwrite, request)
             if (responseData.body) {
-                this.#responseBodies.set(request.request.request, responseData.body)
+                this.#overwrittenResponseBodies.set(request.request.request, responseData.body)
             }
             return this.#browser.networkProvideResponse({
                 request: request.request.request,
@@ -238,6 +281,53 @@ export default class WebDriverInterception {
         return this.#browser.networkProvideResponse({
             request: request.request.request
         }).catch(this.#handleNetworkProvideResponseError)
+    }
+
+    async #handleResponseCompleted(response: Response) {
+        /**
+         * don't do anything if:
+         * - request is not matching the pattern
+         * - data collection is disabled
+         */
+        if (
+            this.#browser.options.maxSpyCollectedBodySize === 0 ||
+            !this.#pattern.test(response.request.url) ||
+            !this.#matchesFilterOptions(response, { includePostData: false })
+        ) {
+            return
+        }
+
+        const requestWithPostData = await this.#populateRequestPostData(response)
+        if (!this.#matchesPostDataFilter(requestWithPostData)) {
+            this.#requestPostData.delete(response.request.request)
+            return
+        }
+
+        const call = this.#getCall(response.request.request)
+        if (!call) {
+            return
+        }
+
+        this.#attachPostData(call)
+
+        /**
+         * try populate response body
+         */
+        try {
+            const { bytes } = await this.#browser.networkGetData({
+                request: response.request.request,
+                dataType: 'response'
+            })
+
+            if (bytes) {
+                call.body = bytes.value
+            }
+        } catch (err: unknown) {
+            log.debug(`Failed to get response body for ${response.request.request}: ${(err as Error).message}`)
+        } finally {
+            this.#hasOneResponseCollected = true
+            this.#requestPostData.delete(response.request.request)
+        }
     }
 
     /**
@@ -259,7 +349,7 @@ export default class WebDriverInterception {
      * @returns {Buffer | null}   The binary data as a Buffer, or null if no matching binary response is found
      */
     getBinaryResponse(requestId: string): Buffer | null {
-        const body = this.#responseBodies.get(requestId)
+        const body = this.#overwrittenResponseBodies.get(requestId)
         if (body?.type !== 'base64') {
             return null
         }
@@ -270,11 +360,46 @@ export default class WebDriverInterception {
         return Buffer.from(body.value, 'base64')
     }
 
+    #attachPostData<T extends local.NetworkBeforeRequestSentParameters | Response>(request: T): RequestWithPostData<T> {
+        const requestWithPostData = request as RequestWithPostData<T>
+        const postData = this.#requestPostData.get(request.request.request)
+        if (postData !== undefined) {
+            requestWithPostData.postData = postData
+        }
+        return requestWithPostData
+    }
+
+    async #populateRequestPostData<T extends local.NetworkBeforeRequestSentParameters | Response>(request: T): Promise<RequestWithPostData<T>> {
+        const requestWithPostData = this.#attachPostData(request)
+        if (
+            requestWithPostData.postData !== undefined ||
+            this.#browser.options.maxSpyCollectedBodySize === 0
+        ) {
+            return requestWithPostData
+        }
+
+        try {
+            const { bytes } = await this.#browser.networkGetData({
+                request: request.request.request,
+                dataType: 'request'
+            })
+
+            if (bytes) {
+                requestWithPostData.postData = bytes.value
+                this.#requestPostData.set(request.request.request, bytes.value)
+            }
+        } catch (err: unknown) {
+            log.debug(`Failed to get request body for ${request.request.request}: ${(err as Error).message}`)
+        }
+
+        return requestWithPostData
+    }
+
     /**
      * Simulate a responseStarted event for testing purposes
      * @param request NetworkResponseCompletedParameters to simulate
      */
-    public simulateResponseStarted(request: local.NetworkResponseCompletedParameters): void {
+    public simulateResponseStarted(request: Response): void {
         try {
             this.#handleResponseStarted(request)
         } catch (e) {
@@ -284,15 +409,37 @@ export default class WebDriverInterception {
     }
 
     public debugResponseBodies(): Map<string, remote.NetworkBytesValue> {
-        return this.#responseBodies
+        return this.#overwrittenResponseBodies
     }
 
-    #isRequestMatching<T extends local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters>(request: T) {
+    #getCall(requestId: string) {
+        for (let index = this.#calls.length - 1; index >= 0; index--) {
+            const call = this.#calls[index]
+            if (call.request.request === requestId) {
+                return call
+            }
+        }
+    }
+
+    #isRequestMatching<T extends local.NetworkBeforeRequestSentParameters | Response>(request: T) {
         const matches = this.#pattern && this.#pattern.test(request.request.url)
         return request.isBlocked && matches
     }
 
-    #matchesFilterOptions<T extends local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters>(request: T) {
+    #matchesPostDataFilter<T extends local.NetworkBeforeRequestSentParameters | Response>(request: RequestWithPostData<T>) {
+        if (!this.#filterOptions.postData) {
+            return true
+        }
+
+        return typeof this.#filterOptions.postData === 'function'
+            ? this.#filterOptions.postData(request.postData)
+            : request.postData === this.#filterOptions.postData
+    }
+
+    #matchesFilterOptions<T extends local.NetworkBeforeRequestSentParameters | Response>(
+        request: T,
+        { includePostData = true }: { includePostData?: boolean } = {}
+    ) {
         let isRequestMatching = true
 
         if (isRequestMatching && this.#filterOptions.method) {
@@ -317,6 +464,10 @@ export default class WebDriverInterception {
                         ? header.value.value === value
                         : Buffer.from(header.value.value, 'base64').toString() === value
                 })
+        }
+
+        if (isRequestMatching && includePostData) {
+            isRequestMatching = this.#matchesPostDataFilter(request as RequestWithPostData<T>)
         }
 
         if (isRequestMatching && this.#filterOptions.responseHeaders && 'response' in request) {
@@ -358,8 +509,13 @@ export default class WebDriverInterception {
     /**
      * allows access to all requests made with given pattern
      */
-    get calls(): local.NetworkResponseCompletedParameters[] {
+    get calls(): Response[] {
         return this.#calls
+    }
+
+    get hasAtLeastOneResponseReceived(): boolean {
+        const isResponseReceived = this.calls && this.calls.length > 0
+        return isResponseReceived && (!this.#isCollectingNetworkData || this.#hasOneResponseCollected)
     }
 
     /**
@@ -367,7 +523,9 @@ export default class WebDriverInterception {
      */
     clear() {
         this.#calls = []
-        this.#responseBodies.clear()
+        this.#overwrittenResponseBodies.clear()
+        this.#requestPostData.clear()
+        this.#hasOneResponseCollected = false
         return this
     }
 
@@ -487,7 +645,7 @@ export default class WebDriverInterception {
     on(event: 'match', callback: (match: local.NetworkBeforeRequestSentParameters) => void): WebDriverInterception
     on(event: 'continue', callback: (requestId: string) => void): WebDriverInterception
     on(event: 'fail', callback: (requestId: string) => void): WebDriverInterception
-    on(event: 'overwrite', callback: (response: local.NetworkResponseCompletedParameters) => void): WebDriverInterception
+    on(event: 'overwrite', callback: (response: Response) => void): WebDriverInterception
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     on(event: string, callback: (...args: any[]) => void): WebDriverInterception {
         this.#addEventHandler(event, callback)
@@ -516,9 +674,8 @@ export default class WebDriverInterception {
             interval = this.#browser.options.waitforInterval as number
         }
 
-        /* istanbul ignore next */
-        const fn = async () => this.calls && (await this.calls).length > 0
-        const timer = new Timer(interval, timeout, fn, true) as unknown as Promise<boolean>
+        const isResponseReceived = () => this.hasAtLeastOneResponseReceived
+        const timer = new Timer(interval, timeout, isResponseReceived, true)
 
         return this.#browser.call(() => timer.catch((e) => {
             if (e.message === 'timeout') {

@@ -1,6 +1,6 @@
 type ExpectType = import('expect-webdriverio').Expect
 
-declare module NodeJS {
+declare namespace NodeJS {
     interface Global {
         /**
          * @deprecated Use `multiRemoteBrowser` instead.
