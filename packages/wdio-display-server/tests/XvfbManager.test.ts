@@ -38,8 +38,10 @@ vi.mock('@wdio/logger', () => ({
     }))
 }))
 
-// Import after mocks are set up. The class is now DisplayServerManager but the
-// legacy alias XvfbManager is preserved for back-compat in the package's index.
+// Import after mocks are set up. This suite predates the @wdio/xvfb ->
+// @wdio/display-server rename; it's kept under the legacy describe name for its
+// broad DisplayServerManager coverage. The class is imported directly and locally
+// aliased — there is no public XvfbManager export.
 const { DisplayServerManager: XvfbManager } = await import('../src/DisplayServerManager.js')
 
 describe('XvfbManager', () => {
