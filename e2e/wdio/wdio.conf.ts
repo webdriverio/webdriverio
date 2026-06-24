@@ -42,6 +42,15 @@ export const config: WebdriverIO.Config = {
 
     reporters: ['spec'],
 
+    /**
+     * Several headless specs load third-party sites (e.g. the-internet.herokuapp.com,
+     * guinea-pig.webdriver.io); a transient cold-start/network blip there fails the
+     * spec through no fault of WebdriverIO. Retry the whole spec file so a flaky
+     * external dependency doesn't redden the run. Matches wdio.local.conf.ts.
+     * (wdio-multiremote.conf.ts inherits this via `...baseConfig`.)
+     */
+    specFileRetries: 3,
+
     mochaOpts: {
         ui: 'bdd',
         timeout: 60000

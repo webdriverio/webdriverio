@@ -33,6 +33,12 @@ export const config: WebdriverIO.Config = {
 
     reporters: ['spec'],
 
+    /**
+     * Retry the whole spec file so a transient third-party-site blip (the headless
+     * specs load external pages) doesn't redden the run. Matches wdio.local.conf.ts.
+     */
+    specFileRetries: 3,
+
     mochaOpts: {
         ui: 'bdd',
         timeout: 60000
