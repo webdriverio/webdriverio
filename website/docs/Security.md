@@ -73,7 +73,7 @@ For example, if you are using a Cloud provider and use the info level, then most
 INFO @wdio/local-runner: Start worker 0-0 with arg: ./wdio.conf.ts --user=cloud_user --key=myCloudSecretExposedKey --spec myTest.test.ts
 ```
 
-To counter that we can pass the the regular expression `'--key=([^ ]*)'` and now in the logs you will see 
+To counter that we can pass the the regular expression `'--key=([^ ]*)'` and now in the logs you will see
 
 ```text
 INFO @wdio/local-runner: Start worker 0-0 with arg: ./wdio.conf.ts --user=cloud_user --key=**MASKED** --spec myTest.test.ts
@@ -113,6 +113,10 @@ Minimum required version:
 
 :::
 
+:::warning
+
+For secrets passed via the command line, masking may fail because the wdio.conf.ts file is parsed later in the execution cycle. Using environment variables for these cases is highly recommended and much safer.
+
 #### Disable WDIO Loggers
 
 Another way to block the logging of sensitive data is to lower or silence the log level or disable the logger.
@@ -143,7 +147,7 @@ Appium offers its masking solution; see [Log filter](https://appium.io/docs/en/l
  - It can be tricky to use their solution. One way if possible is to pass a token in your string like `@mask@` and use it as a regular expression
  - In some Appium versions, the values are also logged with each character comma-separated, so we need to be careful.
  - Unfortunately, BrowserStack does not support this solution, but it is still useful locally
- 
+
 Using the `@mask@` example previously mentioned, we can use the following JSON file named `appiumMaskLogFilters.json`
 ```json
 [
