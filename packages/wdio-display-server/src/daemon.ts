@@ -144,7 +144,9 @@ export async function startDisplayDaemonFromConfig(
     // display-server layer guards stopSync() against re-entry, so this is safe
     // even when async stop() already completed.
     signalHandler = () => {
-        void stop()
+        // stop() does its own cleanup in a finally; catch here only to avoid an
+        // unhandled rejection if daemon.stop() itself throws.
+        stop().catch((err) => log.error(`Failed to stop display daemon: ${err instanceof Error ? err.message : String(err)}`))
     }
     exitHandler = () => {
         try {

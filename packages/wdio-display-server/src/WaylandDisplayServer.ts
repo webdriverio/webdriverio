@@ -86,15 +86,23 @@ export class WaylandDisplayServer implements DisplayServer {
                 `--socket=${socketName}`,
             ],
             {
-                stdio: 'ignore',
+                // Capture stderr (stdin/stdout ignored) so a startup failure can be
+                // diagnosed — Weston is otherwise silent.
+                stdio: ['ignore', 'ignore', 'pipe'],
                 env: { ...process.env, XDG_RUNTIME_DIR: runtimeDir },
             }
         )
 
+        // Keep only the tail of stderr to bound memory; surfaced in the exit error.
+        let stderr = ''
+        proc.stderr?.on('data', (chunk) => {
+            stderr = (stderr + chunk.toString()).slice(-4096)
+        })
+
         let rejectExit!: (err: Error) => void
         const exitPromise = new Promise<never>((_, reject) => { rejectExit = reject })
         const onExit = (code: number | null, signal: NodeJS.Signals | null) =>
-            rejectExit(new Error(`Weston process exited unexpectedly (code=${code}, signal=${signal})`))
+            rejectExit(new Error(`Weston process exited unexpectedly (code=${code}, signal=${signal})${stderr ? `\n${stderr.trim()}` : ''}`))
         const onError = (err: Error) =>
             rejectExit(new Error(`Weston process error: ${err.message}`))
         proc.once('exit', onExit)

@@ -215,7 +215,7 @@ describe('XvfbDisplayServer', () => {
                     '-nolisten',
                     'tcp',
                 ]),
-                { stdio: 'ignore' }
+                { stdio: ['ignore', 'ignore', 'pipe'] }
             )
             expect(daemon.env.DISPLAY).toBe(':99')
         })
@@ -247,7 +247,7 @@ describe('XvfbDisplayServer', () => {
             expect(mockSpawn).toHaveBeenCalledWith(
                 'Xvfb',
                 expect.arrayContaining(['1920x1080x24']),
-                { stdio: 'ignore' }
+                { stdio: ['ignore', 'ignore', 'pipe'] }
             )
         })
 

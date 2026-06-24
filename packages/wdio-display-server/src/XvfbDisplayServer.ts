@@ -108,13 +108,21 @@ export class XvfbDisplayServer implements DisplayServer {
         const proc = spawn(
             'Xvfb',
             [display, '-screen', '0', `${width}x${height}x${depth}`, '-nolisten', 'tcp'],
-            { stdio: 'ignore' }
+            // Capture stderr (stdin/stdout ignored) so a startup failure can be
+            // diagnosed — Xvfb is otherwise silent.
+            { stdio: ['ignore', 'ignore', 'pipe'] }
         )
+
+        // Keep only the tail of stderr to bound memory; surfaced in the exit error.
+        let stderr = ''
+        proc.stderr?.on('data', (chunk) => {
+            stderr = (stderr + chunk.toString()).slice(-4096)
+        })
 
         let rejectExit!: (err: Error) => void
         const exitPromise = new Promise<never>((_, reject) => { rejectExit = reject })
         const onExit = (code: number | null, signal: NodeJS.Signals | null) =>
-            rejectExit(new Error(`Xvfb process exited unexpectedly (code=${code}, signal=${signal})`))
+            rejectExit(new Error(`Xvfb process exited unexpectedly (code=${code}, signal=${signal})${stderr ? `\n${stderr.trim()}` : ''}`))
         const onError = (err: Error) =>
             rejectExit(new Error(`Xvfb process error: ${err.message}`))
         proc.once('exit', onExit)

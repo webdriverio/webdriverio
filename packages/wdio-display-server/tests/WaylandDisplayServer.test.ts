@@ -231,7 +231,7 @@ describe('WaylandDisplayServer', () => {
                     expect.stringMatching(/^--socket=wayland-\d+$/),
                 ]),
                 expect.objectContaining({
-                    stdio: 'ignore',
+                    stdio: ['ignore', 'ignore', 'pipe'],
                     env: expect.objectContaining({
                         XDG_RUNTIME_DIR: expect.stringMatching(/^\/tmp\/wdio-wayland-/),
                     }),
