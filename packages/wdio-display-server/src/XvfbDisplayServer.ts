@@ -117,8 +117,11 @@ export class XvfbDisplayServer implements DisplayServer {
         proc.once('exit', onExit)
         proc.once('error', onError)
 
+        // Abort the socket poll once the race settles so it doesn't keep polling
+        // in the background when exitPromise (a premature crash) wins.
+        const socketWait = new AbortController()
         try {
-            await Promise.race([waitForSocket(socketPath, 10_000, 'Xvfb socket'), exitPromise])
+            await Promise.race([waitForSocket(socketPath, 10_000, 'Xvfb socket', socketWait.signal), exitPromise])
         } catch (err) {
             proc.removeListener('exit', onExit)
             proc.removeListener('error', onError)
@@ -129,6 +132,8 @@ export class XvfbDisplayServer implements DisplayServer {
             }
             XvfbDisplayServer.reservedDisplays.delete(displayNum)
             throw err
+        } finally {
+            socketWait.abort()
         }
         proc.removeListener('exit', onExit)
         proc.removeListener('error', onError)

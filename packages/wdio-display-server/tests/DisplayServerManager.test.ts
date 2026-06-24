@@ -72,6 +72,20 @@ describe('DisplayServerManager (gap coverage)', () => {
             expect(mockXvfb.isAvailable).not.toHaveBeenCalled()
         })
 
+        it('is idempotent: a second init() does not re-select or overwrite the display server', async () => {
+            mockXvfb.isAvailable.mockResolvedValue(true)
+            const mgr = new DisplayServerManager({ displayServer: 'xvfb' })
+
+            expect(await mgr.init()).toBe(true)
+            const selected = mgr.getDisplayServer()
+            expect(mockXvfb.isAvailable).toHaveBeenCalledTimes(1)
+
+            // Second init() must short-circuit rather than probe/select again
+            expect(await mgr.init()).toBe(true)
+            expect(mockXvfb.isAvailable).toHaveBeenCalledTimes(1)
+            expect(mgr.getDisplayServer()).toBe(selected)
+        })
+
         it('falls back to Xvfb when Wayland is unavailable', async () => {
             mockWayland.isAvailable.mockResolvedValue(false)
             mockXvfb.isAvailable.mockResolvedValue(true)

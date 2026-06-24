@@ -14,10 +14,16 @@ const execFileAsync = promisify(execFile)
  *
  * @param label - human-readable name used in the timeout error message
  *                (e.g. "Wayland socket", "Xvfb socket").
+ * @param signal - optional AbortSignal to stop polling early. Callers that race
+ *                 this against a process-exit promise abort it once the race is
+ *                 settled so the loop doesn't keep polling in the background.
  */
-export async function waitForSocket(path: string, timeoutMs: number, label = 'socket'): Promise<void> {
+export async function waitForSocket(path: string, timeoutMs: number, label = 'socket', signal?: AbortSignal): Promise<void> {
     const deadline = Date.now() + timeoutMs
     while (Date.now() < deadline) {
+        if (signal?.aborted) {
+            return
+        }
         try {
             await access(path)
             return

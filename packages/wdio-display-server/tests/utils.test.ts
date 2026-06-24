@@ -192,6 +192,19 @@ describe('waitForSocket', () => {
         await expect(waitForSocket('/tmp/sock', 100))
             .rejects.toThrow(/Timed out waiting for socket at/)
     })
+
+    it('resolves without polling when the abort signal is already aborted', async () => {
+        mockAccess.mockRejectedValue(new Error('ENOENT'))
+        const controller = new AbortController()
+        controller.abort()
+
+        // An aborted race (e.g. the daemon crashed) must stop the loop, not poll
+        // for the full timeout, and must not reject.
+        await expect(
+            waitForSocket('/tmp/sock', 10_000, 'socket', controller.signal)
+        ).resolves.toBeUndefined()
+        expect(mockAccess).not.toHaveBeenCalled()
+    })
 })
 
 describe('installViaPackageManager', () => {

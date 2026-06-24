@@ -174,6 +174,13 @@ export class DisplayServerManager {
     async init(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): Promise<boolean> {
         this.#log.info('DisplayServerManager.init() called')
 
+        // Idempotent: once a display server has been selected and prepared, a second
+        // init() must not re-run #selectDisplayServer() and overwrite #displayServer
+        // (which may already back a running daemon).
+        if (this.#initialized && this.#displayServer) {
+            return true
+        }
+
         if (!this.shouldRun(capabilities)) {
             this.#log.info('Display server not needed on current platform')
             return false
