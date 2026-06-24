@@ -1,7 +1,12 @@
 import logger from '@wdio/logger'
 import { WritableStreamBuffer } from 'stream-buffers'
-import { XvfbManager } from '@wdio/xvfb'
-import type { Workers } from '@wdio/types'
+import {
+    DisplayServerManager,
+    optionsFromConfig,
+    startDisplayDaemonFromConfig,
+    type RunningDaemon,
+} from '@wdio/display-server'
+import type { Capabilities, Workers } from '@wdio/types'
 
 import WorkerInstance from './worker.js'
 import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants.js'
@@ -18,8 +23,8 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 
 export default class LocalRunner {
     workerPool: Record<string, WorkerInstance> = {}
-    private xvfbInitialized = false
-    private xvfbManager: XvfbManager
+    private displayServerManager: DisplayServerManager
+    private daemon: RunningDaemon | null = null
 
     stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
     stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
@@ -28,22 +33,27 @@ export default class LocalRunner {
         private _options: never,
         protected config: WebdriverIO.Config
     ) {
-        // Initialize XvfbManager
-        this.xvfbManager = new XvfbManager({
-            enabled: this.config.autoXvfb !== false,
-            autoInstall: this.config.xvfbAutoInstall,
-            autoInstallMode: this.config.xvfbAutoInstallMode,
-            autoInstallCommand: this.config.xvfbAutoInstallCommand,
-            xvfbMaxRetries: this.config.xvfbMaxRetries,
-            xvfbRetryDelay: this.config.xvfbRetryDelay
-        })
+        // Manager handles per-worker Chrome / Edge / Electron flag injection;
+        // the daemon (started in initialize()) handles the env vars themselves.
+        this.displayServerManager = new DisplayServerManager(optionsFromConfig(this.config))
     }
 
     /**
-     * initialize local runner environment
+     * Start a persistent Xvfb/Weston daemon (if the config requests one) and
+     * publish its env onto `process.env` so workers — and any child process
+     * spawned from a service's `onPrepare` (e.g. `tauri-driver`) — inherit
+     * the display. Runs before any service `onPrepare`.
      */
     async initialize() {
-        // XVFB initialization is handled lazily during first worker creation, to access capabilities for headless detection
+        const capabilities = this.config.capabilities as Capabilities.TestrunnerCapabilities | undefined
+        this.daemon = await startDisplayDaemonFromConfig(
+            this.config,
+            capabilities ?? ([] as unknown as Capabilities.TestrunnerCapabilities),
+            this.displayServerManager,
+        )
+        if (this.daemon) {
+            log.info('Display server daemon initialized for this run')
+        }
     }
 
     getWorkerCount() {
@@ -51,11 +61,9 @@ export default class LocalRunner {
     }
 
     async run({ command, args, ...workerOptions }: RunArgs) {
-        // Initialize XVFB lazily on first worker creation
-        if (!this.xvfbInitialized) {
-            await this.initializeXvfb(workerOptions)
-            this.xvfbInitialized = true
-        }
+        // Per-worker `--ozone-platform=...` injection (env vars were set in
+        // initialize()).
+        this.displayServerManager.injectDisplayFlags(workerOptions.caps)
 
         /**
          * adjust max listeners on stdout/stderr when creating listeners
@@ -71,36 +79,10 @@ export default class LocalRunner {
             workerOptions,
             this.stdout,
             this.stderr,
-            this.xvfbManager
         )
         this.workerPool[workerOptions.cid] = worker
         await worker.postMessage(command, args)
         return worker
-    }
-
-    /**
-     * Initialize XVFB with capability-aware detection
-     */
-    private async initializeXvfb(workerOptions: Workers.WorkerRunPayload) {
-        // Skip Xvfb initialization if disabled
-        if (this.config.autoXvfb === false) {
-            log.info('Skipping automatic Xvfb initialization (disabled by config)')
-            return
-        }
-
-        // Initialize Xvfb if needed for headless testing
-        try {
-            const capabilities = workerOptions.caps
-            const xvfbInitialized = await this.xvfbManager.init(capabilities)
-            if (xvfbInitialized) {
-                log.info('Xvfb is ready for use')
-            }
-        } catch (error) {
-            log.warn(
-                'Failed to initialize Xvfb, continuing without virtual display:',
-                error
-            )
-        }
     }
 
     /**
@@ -182,9 +164,12 @@ export default class LocalRunner {
             }, 250)
         })
 
-        // Xvfb cleanup is handled automatically by xvfb-run
-        if (this.xvfbManager.shouldRun()) {
-            log.info('Xvfb cleanup handled automatically by xvfb-run')
+        if (this.daemon) {
+            try {
+                await this.daemon.stop()
+            } finally {
+                this.daemon = null
+            }
         }
 
         return shutdownResult
