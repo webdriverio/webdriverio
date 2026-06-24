@@ -53,7 +53,7 @@ describe('XvfbManager', () => {
 
         // XvfbDisplayServer.isAvailable() reads /etc/os-release first for CentOS
         // Stream 10 detection. A rejected read means "not CentOS Stream 10", so each
-        // test's sequential execAsync chain stays aligned with `which xvfb-run`,
+        // test's sequential execAsync chain stays aligned with `which Xvfb`,
         // `which apt-get`, etc. without the CentOS check consuming a slot.
         mockReadFile.mockRejectedValue(new Error('not centos'))
 
@@ -287,7 +287,7 @@ describe('XvfbManager', () => {
             const result = await manager.init()
 
             expect(result).toBe(true)
-            expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
+            expect(mockExecAsync).toHaveBeenCalledWith('which Xvfb')
         })
 
         it('should not setup when not needed', async () => {
@@ -325,9 +325,9 @@ describe('XvfbManager', () => {
 
         describe('autoInstall', () => {
             it('should install xvfb with sudo -n when allowed and available (non-root, apt)', async () => {
-                // Sequence in install(): which xvfb-run -> detectPackageManager (apt-get) -> which sudo -> run install
+                // Sequence in install(): which Xvfb -> detectPackageManager (apt-get) -> which sudo -> run install
                 mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run (initial)
+                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb (initial)
                     .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
                     .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' }) // which sudo
                     .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' }) // install
@@ -342,7 +342,7 @@ describe('XvfbManager', () => {
                 const result = await manager.init()
 
                 expect(result).toBe(true)
-                expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
+                expect(mockExecAsync).toHaveBeenCalledWith('which Xvfb')
                 expect(mockExecAsync).toHaveBeenCalledWith('which', ['apt-get'])
                 expect(mockExecAsync).toHaveBeenCalledWith('which', ['sudo'])
                 expect(mockExecAsync).toHaveBeenCalledWith(
@@ -367,7 +367,7 @@ describe('XvfbManager', () => {
 
                 expect(result).toBe(false)
                 // Should only check for xvfb-run
-                expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
+                expect(mockExecAsync).toHaveBeenCalledWith('which Xvfb')
                 // And should not attempt any package manager detection or install
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['apt-get'])
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['dnf'])
@@ -459,9 +459,9 @@ describe('XvfbManager', () => {
 
                 it('should detect dnf when apt-get is not available', async () => {
                     // New flow: detectPackageManager runs BEFORE sudo check inside install().
-                    // Order: which xvfb-run -> which apt-get (fail) -> which dnf (ok) -> which sudo -> install
+                    // Order: which Xvfb -> which apt-get (fail) -> which dnf (ok) -> which sudo -> install
                     mockExecAsync
-                        .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                        .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
                         .mockRejectedValueOnce(new Error('apt-get not found')) // which apt-get
                         .mockResolvedValueOnce({ stdout: '/usr/bin/dnf', stderr: '' }) // which dnf
                         .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' }) // which sudo
@@ -474,7 +474,7 @@ describe('XvfbManager', () => {
 
                     await manager.init()
 
-                    expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
+                    expect(mockExecAsync).toHaveBeenCalledWith('which Xvfb')
                     expect(mockExecAsync).toHaveBeenCalledWith('which', ['apt-get'])
                     expect(mockExecAsync).toHaveBeenCalledWith('which', ['dnf'])
                     expect(mockExecAsync).toHaveBeenCalledWith('which', ['sudo'])
@@ -484,7 +484,7 @@ describe('XvfbManager', () => {
                     // New behaviour: when no package manager is found, install() logs an
                     // error and returns false instead of throwing.
                     mockExecAsync
-                        .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                        .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
                         .mockRejectedValueOnce(new Error('apt-get not found')) // which apt-get
                         .mockRejectedValueOnce(new Error('dnf not found')) // which dnf
                         .mockRejectedValueOnce(new Error('yum not found')) // which yum
@@ -505,9 +505,9 @@ describe('XvfbManager', () => {
 
             it("should attempt install without sudo prefix in 'sudo' mode when sudo is not present (non-root)", async () => {
                 // New behaviour: missing sudo logs a warning and attempts install anyway,
-                // without the `sudo -n` prefix. Order: which xvfb-run -> which apt-get -> which sudo -> install
+                // without the `sudo -n` prefix. Order: which Xvfb -> which apt-get -> which sudo -> install
                 mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
                     .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
                     .mockRejectedValueOnce(new Error('sudo not found')) // which sudo
                     .mockResolvedValueOnce({ stdout: 'install ok', stderr: '' }) // install (no sudo)
@@ -530,7 +530,7 @@ describe('XvfbManager', () => {
 
             it('should treat empty object form as root-only: installs when root', async () => {
                 mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
                     .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
                     .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' }) // install
                     .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
@@ -552,7 +552,7 @@ describe('XvfbManager', () => {
 
             it('should treat empty object form as root-only: skips when not root', async () => {
                 mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
                     .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
 
                 // Mock getuid to return non-root (1000) - works on all platforms
@@ -570,7 +570,7 @@ describe('XvfbManager', () => {
 
             it("should not use sudo prefix when in 'sudo' mode but running as root", async () => {
                 mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
                     .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
                     .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' }) // install
                     .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
@@ -594,7 +594,7 @@ describe('XvfbManager', () => {
                 // New behaviour: when a custom autoInstallCommand is provided, install()
                 // runs it verbatim without the sudo / PM-detection prelude.
                 mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
                     .mockResolvedValueOnce({ stdout: 'ok', stderr: '' }) // run custom
 
                 ;(process as any).getuid = vi.fn().mockReturnValue(1000)
@@ -611,7 +611,7 @@ describe('XvfbManager', () => {
 
             it('should handle zypper install flags (root)', async () => {
                 mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
                     .mockRejectedValueOnce(new Error('apt-get not found'))
                     .mockRejectedValueOnce(new Error('dnf not found'))
                     .mockRejectedValueOnce(new Error('yum not found'))
@@ -642,7 +642,7 @@ describe('XvfbManager', () => {
                 // New flow: detectPackageManager runs before the root/sudo check, so
                 // `which apt-get` *is* called even though install ultimately bails out.
                 mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
                     .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
 
                 ;(process as any).getuid = vi.fn().mockReturnValue(1000)
@@ -653,7 +653,7 @@ describe('XvfbManager', () => {
 
                 const result = await manager.init()
                 expect(result).toBe(false)
-                expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
+                expect(mockExecAsync).toHaveBeenCalledWith('which Xvfb')
                 // sudo check still skipped (mode is 'root', not 'sudo')
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['sudo'])
                 // install command never runs because the root-mode check returns false first
@@ -665,7 +665,7 @@ describe('XvfbManager', () => {
 
             it('should use custom install command as-is (no sudo prefix)', async () => {
                 mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run (initial)
+                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb (initial)
                     .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // PM detection still runs
                     .mockResolvedValueOnce({ stdout: 'custom ok', stderr: '' }) // install
                     .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
@@ -687,7 +687,7 @@ describe('XvfbManager', () => {
 
             it('should handle object format with array commands', async () => {
                 mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
                     .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' }) // which sudo
                     .mockResolvedValueOnce({ stdout: 'array command ok', stderr: '' }) // install
                     .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
@@ -715,7 +715,7 @@ describe('XvfbManager', () => {
 
             it('should handle object format with mode only (defaults to sudo behavior)', async () => {
                 mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
                     .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' }) // which sudo
                     .mockRejectedValueOnce(new Error('apt-get not found')) // which apt-get
                     .mockResolvedValueOnce({ stdout: '/usr/bin/dnf', stderr: '' }) // which dnf

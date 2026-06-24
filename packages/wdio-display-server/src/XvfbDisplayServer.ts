@@ -31,12 +31,15 @@ export class XvfbDisplayServer implements DisplayServer {
         }
 
         try {
-            await execAsync('which xvfb-run')
+            // Only Xvfb is required: the daemon spawns `Xvfb` directly (not the
+            // `xvfb-run` wrapper), so requiring xvfb-run would wrongly skip the
+            // daemon on systems that ship Xvfb without the xvfb-run script
+            // (e.g. minimal RPM installs of xorg-x11-server-Xvfb).
             await execAsync('which Xvfb')
-            this.log.info('xvfb-run and Xvfb found in PATH')
+            this.log.info('Xvfb found in PATH')
             return true
         } catch {
-            this.log.debug('xvfb-run or Xvfb not found')
+            this.log.debug('Xvfb not found')
             return false
         }
     }

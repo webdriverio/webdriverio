@@ -99,20 +99,30 @@ describe('XvfbDisplayServer', () => {
             expect(mockExecAsync).not.toHaveBeenCalled()
         })
 
-        it('returns true when both xvfb-run and Xvfb are on PATH', async () => {
+        it('returns true when Xvfb is on PATH', async () => {
             // mockReadFile defaults to '' (not CentOS) from beforeEach
-            mockExecAsync
-                .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run', stderr: '' })
-                .mockResolvedValueOnce({ stdout: '/usr/bin/Xvfb', stderr: '' })
+            mockExecAsync.mockResolvedValueOnce({ stdout: '/usr/bin/Xvfb', stderr: '' })
 
             const server = new XvfbDisplayServer()
             expect(await server.isAvailable()).toBe(true)
         })
 
-        it('returns false when xvfb-run is on PATH but Xvfb is missing', async () => {
-            mockExecAsync
-                .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run', stderr: '' })
-                .mockRejectedValueOnce(new Error('no Xvfb'))
+        it('returns true when Xvfb is present even though xvfb-run is missing', async () => {
+            // The daemon spawns Xvfb directly, so only Xvfb must be probed. This is the
+            // minimal-RPM case (xorg-x11-server-Xvfb without the xvfb-run script).
+            mockExecAsync.mockImplementation((cmd: string) =>
+                cmd === 'which Xvfb'
+                    ? Promise.resolve({ stdout: '/usr/bin/Xvfb', stderr: '' })
+                    : Promise.reject(new Error('not found'))
+            )
+
+            const server = new XvfbDisplayServer()
+            expect(await server.isAvailable()).toBe(true)
+            expect(mockExecAsync).not.toHaveBeenCalledWith('which xvfb-run')
+        })
+
+        it('returns false when Xvfb is missing', async () => {
+            mockExecAsync.mockRejectedValueOnce(new Error('no Xvfb'))
 
             const server = new XvfbDisplayServer()
             expect(await server.isAvailable()).toBe(false)
@@ -120,9 +130,7 @@ describe('XvfbDisplayServer', () => {
 
         it('returns false when /etc/os-release shows a different CentOS Stream version', async () => {
             mockReadFile.mockResolvedValueOnce('NAME="CentOS Stream"\nVERSION_ID="9"\n')
-            mockExecAsync
-                .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run', stderr: '' })
-                .mockResolvedValueOnce({ stdout: '/usr/bin/Xvfb', stderr: '' })
+            mockExecAsync.mockResolvedValueOnce({ stdout: '/usr/bin/Xvfb', stderr: '' })
 
             const server = new XvfbDisplayServer()
             // Not CentOS 10 → continues with the normal probe → available
