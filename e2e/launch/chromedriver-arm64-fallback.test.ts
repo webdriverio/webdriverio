@@ -171,48 +171,9 @@ describe('Chromedriver Linux ARM64 Fallback', () => {
     })
 })
 
-/**
- * Mock-based tests for platforms other than Linux ARM64
- * These verify the fallback logic without requiring actual ARM64 hardware
- */
-describe('Chromedriver ARM64 Fallback (mocked platform)', () => {
-    const originalPlatform = process.platform
-    const originalArch = process.arch
-
-    afterAll(() => {
-        // Restore original values
-        Object.defineProperty(process, 'platform', { value: originalPlatform })
-        Object.defineProperty(process, 'arch', { value: originalArch })
-    })
-
-    it('should trigger fallback when arch is arm64 and platform is linux', async () => {
-        // Mock Linux ARM64 environment
-        Object.defineProperty(process, 'platform', { value: 'linux', configurable: true })
-        Object.defineProperty(process, 'arch', { value: 'arm64', configurable: true })
-
-        // Import setupChromedriver to test the logic directly
-        const { setupChromedriver } = await import('../../packages/wdio-utils/src/node/utils.js')
-
-        // This should not throw and should use Electron provider
-        const result = await setupChromedriver('/tmp/cache', undefined, {
-            browserName: 'chrome'
-        })
-
-        expect(result).toHaveProperty('executablePath')
-        expect(result.executablePath).toBeTruthy()
-    }, 30000)
-
-    it('should NOT trigger fallback on x64 architecture', async () => {
-        Object.defineProperty(process, 'platform', { value: 'linux', configurable: true })
-        Object.defineProperty(process, 'arch', { value: 'x64', configurable: true })
-
-        const { setupChromedriver } = await import('../../packages/wdio-utils/src/node/utils.js')
-
-        // Should use standard Chrome for Testing, not Electron fallback
-        const result = await setupChromedriver('/tmp/cache', '130.0.6723.58', {
-            browserName: 'chrome'
-        })
-
-        expect(result).toHaveProperty('executablePath')
-    }, 30000)
-})
+// NOTE: platform-mocked fallback logic (ARM64 triggers the Electron provider, x64
+// does not) is covered without real network access by the unit suite — see
+// packages/wdio-utils/tests/node/setupChromedriver.test.ts ("should use Electron
+// provider on Linux ARM64…" and "should NOT use fallback on Linux x64"). Those
+// assertions intentionally live there rather than in this e2e file, which is
+// reserved for real browser sessions on actual ARM64 hardware.

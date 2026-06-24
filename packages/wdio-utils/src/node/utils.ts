@@ -409,7 +409,9 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
 
     try {
         installedBrowser = await _install(installOptions)
-        log.info(`Download of Chromedriver v${buildId} was successful`)
+        // "ready" rather than "downloaded": install() resolves from cache without
+        // a download when the build is already present.
+        log.info(`Chromedriver v${buildId} is ready`)
     } catch (error) {
         // If the primary download failed and we're using Electron, try a fallback version.
         // Skip this on platforms Chrome for Testing doesn't serve (e.g. Linux ARM64): the
@@ -424,7 +426,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
                 log.info(`Trying fallback Chromedriver v${fallbackBuildId}`)
                 try {
                     installedBrowser = await _install({ ...installOptions, buildId: fallbackBuildId })
-                    log.info(`Download of Chromedriver v${fallbackBuildId} was successful`)
+                    log.info(`Chromedriver v${fallbackBuildId} is ready`)
                     buildId = fallbackBuildId
                 } catch (fallbackError) {
                     log.error(`Fallback Chromedriver download also failed: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`)
