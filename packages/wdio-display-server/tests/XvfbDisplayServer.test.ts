@@ -160,7 +160,7 @@ describe('XvfbDisplayServer', () => {
             ['zypper', 'zypper --non-interactive refresh && zypper --non-interactive install -y xvfb-run'],
             ['pacman', 'pacman -Sy --noconfirm xorg-server-xvfb'],
             ['apk', 'apk update && apk add --no-cache xvfb-run'],
-            ['xbps', 'xbps-install -Sy xvfb'],
+            ['xbps', 'xbps-install -Sy xvfb-run'],
         ])('uses the correct install command for %s', async (pm, expectedCmd) => {
             queuePackageManagerDetection(pm)
             mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })

@@ -71,7 +71,7 @@ export class XvfbDisplayServer implements DisplayServer {
                 zypper: 'zypper --non-interactive refresh && zypper --non-interactive install -y xvfb-run',
                 pacman: 'pacman -Sy --noconfirm xorg-server-xvfb',
                 apk: 'apk update && apk add --no-cache xvfb-run',
-                xbps: 'xbps-install -Sy xvfb',
+                xbps: 'xbps-install -Sy xvfb-run',
             },
             log: this.log,
             options,
