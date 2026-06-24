@@ -411,8 +411,11 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
         installedBrowser = await _install(installOptions)
         log.info(`Download of Chromedriver v${buildId} was successful`)
     } catch (error) {
-        // If the primary download failed and we're using Electron, try a fallback version
-        if (chromiumVersion) {
+        // If the primary download failed and we're using Electron, try a fallback version.
+        // Skip this on platforms Chrome for Testing doesn't serve (e.g. Linux ARM64): the
+        // fallback resolves against the CfT API, which has no binaries there and would throw
+        // a confusing CfT error that masks the original Electron download failure.
+        if (chromiumVersion && !needsAlternativeProvider) {
             log.warn(`Chromedriver v${buildId} download failed, trying latest compatible version...`)
             const fallbackVersion = getMajorVersionFromString(chromiumVersion)
             const fallbackBuildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, fallbackVersion)

@@ -253,38 +253,45 @@ describe('setupChromedriver', () => {
     })
 
     describe('error handling', () => {
-        it('should handle fallback when primary download fails', async () => {
-            Object.defineProperty(process, 'arch', { value: 'arm64', configurable: true })
-            mockDetectBrowserPlatform.mockReturnValue(BrowserPlatform.LINUX)
-            mockResolveBuildId
-                .mockResolvedValueOnce('130.0.6723.58') // Initial stable resolution
-                .mockResolvedValueOnce('130.0.0.0')     // Fallback major version
+        it('should fall back to a Chrome-for-Testing build when the Electron download fails on a supported platform', async () => {
+            // macOS is served by Chrome for Testing, so the catch-block fallback applies.
+            // process.platform must be non-win32 here or isWindowsArm64 could flip the
+            // platform into the "needs alternative provider" bucket (state leaks between tests).
+            Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true })
+            mockDetectBrowserPlatform.mockReturnValue(BrowserPlatform.MAC)
+            mockResolveBuildId.mockResolvedValue('130.0.0.0') // Fallback resolves to a different build
 
+            // _install retries once internally, so the primary attempt is two rejections;
+            // the fallback attempt then succeeds on its first try.
             mockInstall
+                .mockRejectedValueOnce(new Error('Download failed'))
                 .mockRejectedValueOnce(new Error('Download failed'))
                 .mockResolvedValueOnce({
                     executablePath: '/path/to/chromedriver',
                     browser: Browser.CHROMEDRIVER,
                     buildId: '130.0.0.0',
-                    platform: BrowserPlatform.LINUX_ARM,
+                    platform: BrowserPlatform.MAC,
                     path: '/cache/chromedriver'
                 })
 
-            await setupChromedriver('/cache', undefined, {
+            const result = await setupChromedriver('/cache', undefined, {
                 browserName: 'chrome',
                 'wdio:chromiumVersion': '130.0.6723.58'
             })
 
-            // Should have tried twice
-            expect(mockInstall).toHaveBeenCalledTimes(2)
+            expect(result).toEqual({ executablePath: '/path/to/chromedriver' })
+            // The Chrome-for-Testing fallback path was exercised
+            expect(mockResolveBuildId).toHaveBeenCalledWith(
+                Browser.CHROMEDRIVER,
+                BrowserPlatform.MAC,
+                expect.anything()
+            )
         })
 
-        it('should throw if both primary and fallback fail', async () => {
-            Object.defineProperty(process, 'arch', { value: 'arm64', configurable: true })
-            mockDetectBrowserPlatform.mockReturnValue(BrowserPlatform.LINUX)
-            mockResolveBuildId
-                .mockResolvedValueOnce('130.0.6723.58')
-                .mockResolvedValueOnce('130.0.0.0')
+        it('should throw a combined error if both the Electron download and the fallback fail on a supported platform', async () => {
+            Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true })
+            mockDetectBrowserPlatform.mockReturnValue(BrowserPlatform.MAC)
+            mockResolveBuildId.mockResolvedValue('130.0.0.0')
 
             mockInstall.mockRejectedValue(new Error('Download failed'))
 
@@ -294,6 +301,29 @@ describe('setupChromedriver', () => {
                     'wdio:chromiumVersion': '130.0.6723.58'
                 })
             ).rejects.toThrow(/Couldn't download Chromedriver/)
+        })
+
+        it('should re-throw the original error on platforms Chrome for Testing does not serve', async () => {
+            // Linux ARM64 has no CfT Chromedriver, so there is no fallback to attempt: the
+            // original Electron download error must surface unchanged rather than being
+            // replaced by a confusing Chrome-for-Testing API error from the fallback path.
+            mockDetectBrowserPlatform.mockReturnValue(BrowserPlatform.LINUX_ARM)
+            mockResolveBuildId.mockResolvedValue('130.0.0.0')
+            mockInstall.mockRejectedValue(new Error('Download failed'))
+
+            await expect(
+                setupChromedriver('/cache', undefined, {
+                    browserName: 'chrome',
+                    'wdio:chromiumVersion': '130.0.6723.58'
+                })
+            ).rejects.toThrow('Download failed')
+
+            // No Chrome-for-Testing chromedriver resolution should be attempted on this platform
+            expect(mockResolveBuildId).not.toHaveBeenCalledWith(
+                Browser.CHROMEDRIVER,
+                expect.anything(),
+                expect.anything()
+            )
         })
     })
 

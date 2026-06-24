@@ -66,10 +66,12 @@ export interface ElectronChromedriverProviderOptions {
 // ============================================================================
 
 /**
- * Cache for Chromium → Electron version mapping.
- * Fetched from electronjs.org/headers/index.json on first use.
+ * Cache for the in-flight/resolved Chromium → Electron version mapping.
+ * Fetched from electronjs.org/headers/index.json on first use. Stored as the
+ * promise itself so concurrent callers (e.g. supports() and getDownloadUrl())
+ * share a single network request instead of each firing their own.
  */
-let chromiumToElectronCache: Record<string, string> | null = null
+let chromiumToElectronCache: Promise<Record<string, string>> | null = null
 
 /**
  * Resets the Chromium → Electron version mapping cache.
@@ -83,14 +85,20 @@ export function resetElectronMappingCache(): void {
  * Fetches the Electron releases list and builds a Chromium → Electron mapping.
  * This provides the most up-to-date version information.
  */
-async function fetchChromiumToElectronMapping(): Promise<Record<string, string>> {
+function fetchChromiumToElectronMapping(): Promise<Record<string, string>> {
     if (chromiumToElectronCache) {
         return chromiumToElectronCache
     }
 
-    try {
+    const pending = (async () => {
         log.debug('Fetching Electron releases for Chromium → Electron version mapping...')
         const response = await fetch('https://electronjs.org/headers/index.json')
+        // Guard against non-2xx responses (e.g. rate limiting) whose body may still
+        // parse as JSON — without this the reverse mapping would silently be built
+        // empty and cached for the process lifetime, never falling back to the package.
+        if (!response.ok) {
+            throw new Error(`Failed to fetch Electron releases: HTTP ${response.status} ${response.statusText}`)
+        }
         const releases = (await response.json()) as ElectronRelease[]
 
         // Build reverse mapping: Chromium version → Electron version
@@ -99,18 +107,33 @@ async function fetchChromiumToElectronMapping(): Promise<Record<string, string>>
             mapping[chrome] = version
         }
 
-        chromiumToElectronCache = mapping
         log.debug(`Fetched ${Object.keys(mapping).length} Electron release mappings`)
         return mapping
-    } catch (error) {
+    })()
+
+    // Cache the in-flight promise so concurrent callers share one request, but
+    // evict it on failure so a later call can retry instead of caching the error.
+    chromiumToElectronCache = pending
+    pending.catch((error) => {
         log.debug('Failed to fetch Electron releases:', error)
-        throw error
-    }
+        if (chromiumToElectronCache === pending) {
+            chromiumToElectronCache = null
+        }
+    })
+
+    return pending
 }
 
 // ============================================================================
 // Helper Functions
 // ============================================================================
+
+/**
+ * Lowest Chromium major version we expect to see. Chrome for Testing has shipped
+ * majors >= 100 since 2022 and the number only increases, so it's a stable lower
+ * bound for telling a 3-part Chromium id apart from a lower-numbered Electron one.
+ */
+const CHROMIUM_MIN_MAJOR_VERSION = 100
 
 /**
  * Maps BrowserPlatform to Electron release platform names.
@@ -146,8 +169,14 @@ function mapPlatformForElectron(platform: BrowserPlatform): string {
  * then falls back to the electron-to-chromium package.
  */
 async function resolveElectronVersion(buildId: string, versionMapping?: Record<string, string>): Promise<string | null> {
-    // If it looks like an Electron version (e.g., "33.2.1"), return as-is
-    if (/^\d+\.\d+\.\d+$/.test(buildId)) {
+    // Pass through bona fide Electron versions (3-part semver, e.g. "33.2.1").
+    // Chromium build IDs are 4-part ("130.0.6723.2"), so part-count usually
+    // separates the two — but a truncated 3-part Chromium id would slip through.
+    // Chromium majors have been >= 100 since 2022 and only climb, while Electron's
+    // are far lower, so a 3-part id whose major is in Chromium's range is treated
+    // as Chromium and sent through the mapping lookup below rather than passed on.
+    const electronVersionMatch = /^(\d+)\.\d+\.\d+$/.exec(buildId)
+    if (electronVersionMatch && Number(electronVersionMatch[1]) < CHROMIUM_MIN_MAJOR_VERSION) {
         return buildId
     }
 

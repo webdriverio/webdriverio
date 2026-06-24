@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { Browser, BrowserPlatform, type DownloadOptions } from '@puppeteer/browsers'
 import path from 'node:path'
 import { chromiumToElectron } from 'electron-to-chromium'
@@ -256,6 +256,130 @@ describe('ElectronChromedriverProvider', () => {
             const url = await downloader.getDownloadUrl(options)
 
             expect(url?.toString()).toContain('v33.1.0')
+        })
+
+        it('should treat a 3-part Chromium-range version as Chromium, not an Electron version', async () => {
+            // A bare 3-part id whose major sits in Chromium's range (>= 100) must be mapped
+            // via the lookup, not passed straight through as if it were an Electron version.
+            const realFetch = globalThis.fetch
+            globalThis.fetch = vi.fn().mockRejectedValue(new Error('offline')) as unknown as typeof fetch
+            vi.mocked(chromiumToElectron).mockReturnValue('33.0.0')
+
+            try {
+                const downloader = new ElectronChromedriverProvider()
+                const url = await downloader.getDownloadUrl({
+                    browser: Browser.CHROMEDRIVER,
+                    buildId: '130.0.6723',
+                    platform: BrowserPlatform.LINUX_ARM
+                })
+
+                expect(chromiumToElectron).toHaveBeenCalledWith('130.0.6723')
+                expect(url?.toString()).toContain('v33.0.0')
+                expect(url?.toString()).not.toContain('v130.0.6723')
+            } finally {
+                globalThis.fetch = realFetch
+            }
+        })
+    })
+
+    describe('electronjs.org mapping fetch', () => {
+        const realFetch = globalThis.fetch
+
+        afterEach(() => {
+            globalThis.fetch = realFetch
+        })
+
+        const okResponse = (body: unknown) => ({
+            ok: true,
+            status: 200,
+            statusText: 'OK',
+            json: async () => body
+        })
+
+        it('resolves a Chromium version from the fetched electronjs.org mapping', async () => {
+            globalThis.fetch = vi.fn().mockResolvedValue(
+                okResponse([{ chrome: '130.0.6723.2', version: '33.2.1' }])
+            ) as unknown as typeof fetch
+
+            const downloader = new ElectronChromedriverProvider()
+            const url = await downloader.getDownloadUrl({
+                browser: Browser.CHROMEDRIVER,
+                buildId: '130.0.6723.2',
+                platform: BrowserPlatform.LINUX_ARM
+            })
+
+            expect(url?.toString()).toContain('v33.2.1')
+            // The package fallback should not be needed when the fetch succeeds
+            expect(chromiumToElectron).not.toHaveBeenCalled()
+        })
+
+        it('falls back to the electron-to-chromium package on a non-2xx response', async () => {
+            globalThis.fetch = vi.fn().mockResolvedValue({
+                ok: false,
+                status: 429,
+                statusText: 'Too Many Requests',
+                // A rate-limit body can still parse as JSON; the ok check must run first
+                json: async () => ({ message: 'rate limited' })
+            }) as unknown as typeof fetch
+            vi.mocked(chromiumToElectron).mockReturnValue('33.0.0')
+
+            const downloader = new ElectronChromedriverProvider()
+            const url = await downloader.getDownloadUrl({
+                browser: Browser.CHROMEDRIVER,
+                buildId: '130.0.6723.2',
+                platform: BrowserPlatform.LINUX_ARM
+            })
+
+            expect(chromiumToElectron).toHaveBeenCalledWith('130.0.6723.2')
+            expect(url?.toString()).toContain('v33.0.0')
+        })
+
+        it('does not cache a failed fetch, so a later call retries', async () => {
+            const fetchMock = vi.fn()
+                .mockResolvedValueOnce({ ok: false, status: 503, statusText: 'Unavailable', json: async () => ({}) })
+                .mockResolvedValueOnce(okResponse([{ chrome: '130.0.6723.2', version: '33.2.1' }]))
+            globalThis.fetch = fetchMock as unknown as typeof fetch
+            vi.mocked(chromiumToElectron).mockReturnValue('33.0.0')
+
+            const downloader = new ElectronChromedriverProvider()
+            const options: DownloadOptions = {
+                browser: Browser.CHROMEDRIVER,
+                buildId: '130.0.6723.2',
+                platform: BrowserPlatform.LINUX_ARM
+            }
+
+            // First call: fetch fails → package fallback (v33.0.0)
+            const first = await downloader.getDownloadUrl(options)
+            expect(first?.toString()).toContain('v33.0.0')
+
+            // Second call: cache was evicted on failure, so the fetch is retried and now succeeds
+            const second = await downloader.getDownloadUrl(options)
+            expect(second?.toString()).toContain('v33.2.1')
+            expect(fetchMock).toHaveBeenCalledTimes(2)
+        })
+
+        it('shares a single in-flight fetch between concurrent supports() and getDownloadUrl()', async () => {
+            const fetchMock = vi.fn().mockResolvedValue(
+                okResponse([{ chrome: '130.0.6723.2', version: '33.2.1' }])
+            )
+            globalThis.fetch = fetchMock as unknown as typeof fetch
+
+            const downloader = new ElectronChromedriverProvider()
+            const options: DownloadOptions = {
+                browser: Browser.CHROMEDRIVER,
+                buildId: '130.0.6723.2',
+                platform: BrowserPlatform.LINUX_ARM
+            }
+
+            const [supported, url] = await Promise.all([
+                downloader.supports(options),
+                downloader.getDownloadUrl(options)
+            ])
+
+            expect(supported).toBe(true)
+            expect(url?.toString()).toContain('v33.2.1')
+            // Both code paths shared one network request rather than each firing its own
+            expect(fetchMock).toHaveBeenCalledTimes(1)
         })
     })
 })
