@@ -23,6 +23,32 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.29.1 (2026-06-26)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#15335](https://github.com/webdriverio/webdriverio/pull/15335) feat(browserstack-service): one-to-many Test-Case-ID tagging (setCust… ([@anish353](https://github.com/anish353))
+
+#### :bug: Bug Fix
+* `wdio-logger`
+  * [#15354](https://github.com/webdriverio/webdriverio/pull/15354) fix: Force logger build by adjusting security doc on pattern masking ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `webdriverio`
+  * [#15353](https://github.com/webdriverio/webdriverio/pull/15353) fix(webdriverio): skip isConnected check for non-shadow element scope in BiDi ([@mccmrunal](https://github.com/mccmrunal))
+
+#### :memo: Documentation
+* `wdio-logger`
+  * [#15354](https://github.com/webdriverio/webdriverio/pull/15354) fix: Force logger build by adjusting security doc on pattern masking ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* Other
+  * [#15341](https://github.com/webdriverio/webdriverio/pull/15341) docs(tracing): Add blog post for Tracing Mode in `devtools` service ([@Winify](https://github.com/Winify))
+
+#### Committers: 5
+- Anish Kumar Sinha ([@anish353](https://github.com/anish353))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Shubham Garg ([@xxshubhamxx](https://github.com/xxshubhamxx))
+- Vince Graics ([@Winify](https://github.com/Winify))
+
+
 ## v9.29.0 (2026-06-18)
 
 #### :bug: Bug Fix
