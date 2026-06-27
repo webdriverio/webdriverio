@@ -7,8 +7,7 @@ on:
 
 jobs:
   xvfb-e2e-tests:
-    # Workaround while waiting for 24.04 to be fixed with node 24.16 & puppeteer hanging on unzipping
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
