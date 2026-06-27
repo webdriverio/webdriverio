@@ -6,7 +6,7 @@ on:
 
 jobs:
   check-labels:
-    if: github.actor != 'dependabot[bot]'
+    if: github.actor != 'dependabot[bot]' && github.event.pull_request.state == 'open'
     runs-on: ubuntu-latest
     permissions: {}
     steps:
