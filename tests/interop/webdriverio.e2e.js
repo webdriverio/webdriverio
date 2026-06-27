@@ -15,7 +15,7 @@ const { remote, attach, multiremote, Key, SevereServiceError } = require('webdri
             browserVersion: 'stable',
             'goog:chromeOptions': {
                 args: [
-                    'headless',
+                    '--headless=new', '--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage',
                     'disable-gpu',
                     '--enable-logging',       // Enables Chrome's internal logging
                     '--v=1'                   // Sets Chrome's verbosity level to 1
