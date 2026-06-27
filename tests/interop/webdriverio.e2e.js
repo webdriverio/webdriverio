@@ -1,6 +1,6 @@
 const assert = require('node:assert')
 const { remote, attach, multiremote, Key, SevereServiceError } = require('webdriverio')
-const { os } = require('node:os')
+const os = require('node:os')
 
 const isLinux = os.platform() === 'linux'
 
@@ -26,10 +26,6 @@ const isLinux = os.platform() === 'linux'
                 ]
             }
         },
-        // Instructs WebDriver to capture driver-level logs
-        'wdio:chromedriverOptions': {
-            args: ['--verbose']
-        }
     })
 
     await client.url('https://www.google.com/ncr')
