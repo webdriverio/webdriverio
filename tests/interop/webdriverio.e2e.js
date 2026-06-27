@@ -1,5 +1,8 @@
 const assert = require('node:assert')
 const { remote, attach, multiremote, Key, SevereServiceError } = require('webdriverio')
+const { os } = require('node:os')
+
+const isLinux = os.platform() === 'linux'
 
 ;(async () => {
     assert.equal(typeof remote, 'function')
@@ -15,10 +18,11 @@ const { remote, attach, multiremote, Key, SevereServiceError } = require('webdri
             browserVersion: 'stable',
             'goog:chromeOptions': {
                 args: [
-                    '--headless=new', '--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage',
-                    'disable-gpu',
-                    '--enable-logging',       // Enables Chrome's internal logging
-                    '--v=1'                   // Sets Chrome's verbosity level to 1
+                    'headless', 'disable-gpu',
+                    // Having `WebDriverError: session not created: Chrome instance exited` since ubuntu 22.04 to 24.04, since the below is no more wrapped by default.
+                    // See https://github.com/webdriverio/webdriverio/issues/14168.
+                    ...(isLinux ? ['no-sandbox'] : [])
+
                 ]
             }
         },
