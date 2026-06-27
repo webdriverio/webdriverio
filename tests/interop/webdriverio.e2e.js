@@ -9,10 +9,22 @@ const { remote, attach, multiremote, Key, SevereServiceError } = require('webdri
     assert.equal(typeof SevereServiceError, 'function')
 
     const client = await remote({
+        logLevel: 'trace',
         capabilities: {
             browserName: 'chrome',
             browserVersion: 'stable',
-            'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
+            'goog:chromeOptions': {
+                args: [
+                    'headless',
+                    'disable-gpu',
+                    '--enable-logging',       // Enables Chrome's internal logging
+                    '--v=1'                   // Sets Chrome's verbosity level to 1
+                ]
+            }
+        },
+        // Instructs WebDriver to capture driver-level logs
+        'wdio:chromedriverOptions': {
+            args: ['--verbose']
         }
     })
 
