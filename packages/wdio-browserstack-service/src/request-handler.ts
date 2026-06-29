@@ -67,7 +67,14 @@ export default class RequestQueueHandler {
 
     callCallback = async (data: UploadType[], kind: string) => {
         BStackLogger.debug('calling callback with kind ' + kind)
-        await this.callback?.(data)
+        // SDK-6275: isolate per-batch failures so one failing upload never aborts
+        // the rest of the queue flush (notably the shutdown() drain loop, which
+        // awaits this for each batch and would otherwise stop on the first error).
+        try {
+            await this.callback?.(data)
+        } catch (e) {
+            BStackLogger.debug(`Exception while sending data batch (${kind}); continuing with remaining batches: ${e}`)
+        }
     }
 
     resetEventBatchPolling () {
