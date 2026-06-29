@@ -1,5 +1,6 @@
 import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
+import { getContextManager } from '../../session/context.js'
 
 export type ActionType = 'key' | 'pointer' | 'wheel'
 export type KeyActionType = 'mouse' | 'pen' | 'touch'
@@ -82,7 +83,9 @@ export default class BaseAction {
      * @param duration idle time of tick
      */
     pause(duration: number) {
-        this.sequence.push({ type: 'pause', duration })
+        if (duration > 0) {
+            this.sequence.push({ type: 'pause', duration })
+        }
         return this
     }
 
@@ -115,12 +118,32 @@ export default class BaseAction {
                 throw new Error(`Couldn't find element for "${seq.type}" action sequence`)
             }
 
-            seq.origin = { [ELEMENT_KEY]: seq.origin[ELEMENT_KEY] }
+            const sharedId = seq.origin[ELEMENT_KEY] as string
+            // Bidi (input.performActions) and classic (performActions) use
+            // incompatible element reference formats — cast through any.
+            seq.origin = (this.#instance.isBidi
+                ? { type: 'element', element: { sharedId } }
+                : { [ELEMENT_KEY]: sharedId }) as typeof seq.origin
         }
 
-        await this.#instance.performActions([this.toJSON()])
+        if (this.#instance.isBidi) {
+            const cm = getContextManager(this.#instance as unknown as WebdriverIO.Browser)
+            const ctx = await cm.getCurrentContext()
+            await (this.#instance as unknown as Record<string, Function>).inputPerformActions({
+                context: ctx,
+                actions: [this.toJSON()]
+            })
+        } else {
+            await this.#instance.performActions([this.toJSON()])
+        }
         if (!skipRelease) {
-            await this.#instance.releaseActions()
+            if (this.#instance.isBidi) {
+                const cm = getContextManager(this.#instance as unknown as WebdriverIO.Browser)
+                const ctx = await cm.getCurrentContext()
+                await (this.#instance as unknown as Record<string, Function>).inputReleaseActions({ context: ctx })
+            } else {
+                await this.#instance.releaseActions()
+            }
         }
     }
 }

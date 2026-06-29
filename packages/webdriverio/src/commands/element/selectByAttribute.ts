@@ -2,6 +2,8 @@ import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
 import { getElementFromResponse } from '../../utils/index.js'
+import { bidiSelectByAttribute, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
+import { getBrowserObject } from '@wdio/utils'
 
 /**
  *
@@ -49,6 +51,11 @@ export async function selectByAttribute (
     value = typeof value === 'number'
         ? value.toString()
         : value
+
+    const browser = getBrowserObject(this) as WebdriverIO.Browser
+    if (isBidiCommandsEnabled(browser)) {
+        return bidiSelectByAttribute(this, attribute, value)
+    }
 
     /**
     * find option elememnt using xpath

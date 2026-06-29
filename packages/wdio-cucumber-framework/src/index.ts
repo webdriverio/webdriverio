@@ -32,8 +32,10 @@ import { generateSkipTagsFromCapabilities, setUserHookNames } from './utils.js'
 import type {
     CucumberOptions,
     HookFunctionExtension as HookFunctionExtensionImport,
-    StepDefinitionOptions
+    StepDefinitionOptions,
+    ParallelBrowser,
 } from './types.js'
+import { runParallelCucumber } from './parallel.js'
 
 export const FILE_PROTOCOL = 'file://'
 
@@ -217,10 +219,8 @@ export class CucumberAdapter {
     }
 
     async run() {
-        let runtimeError
-        let result
-        let failedCount
-        let outStream
+        let runtimeError: unknown
+        let result: number
 
         try {
             await this.registerRequiredModules()
@@ -239,6 +239,111 @@ export class CucumberAdapter {
 
             const supportCodeLibrary = supportCodeLibraryBuilder.finalize()
 
+            result = this._cucumberOpts.parallelMode === 'contexts'
+                ? await this._runParallelMode(supportCodeLibrary)
+                : await this._runSequential(supportCodeLibrary)
+        } catch (err) {
+            runtimeError = err
+            result = 1
+        }
+
+        /**
+         * Run after hooks regardless of which path executed or whether
+         * it threw — pass the runtime error so hooks can inspect it.
+         */
+        await executeHooksWithArgs('after', this._config.after, [
+            runtimeError || result,
+            this._capabilities,
+            this._specs,
+        ])
+
+        /**
+         * In case the spec has a runtime error throw after the wdio hook
+         * so the runner can mark the worker as failed.
+         */
+        if (runtimeError) {
+            throw runtimeError
+        }
+
+        return result
+    }
+
+    /**
+     * Run scenarios in parallel within separate BiDi browsing contexts.
+     * Falls back to sequential mode if BiDi is not available.
+     *
+     * @throws if a runtime error occurs (errors are caught by run())
+     */
+    private async _runParallelMode(
+        supportCodeLibrary: Awaited<ReturnType<typeof supportCodeLibraryBuilder.finalize>>
+    ): Promise<number> {
+        const browser = (globalThis as Record<string, unknown>).browser as ParallelBrowser
+
+        if (!browser) {
+            throw new Error(
+                'Parallel mode (cucumberOpts.parallelMode: "contexts") requires ' +
+                'a browser instance to be on globalThis.'
+            )
+        }
+
+        const hasBidiCommands = !!(
+            browser.__bidiCommandsEnabled ||
+            (browser.requestedCapabilities as Record<string, unknown>)?.['wdio:experimentalBiDiCommands'] ||
+            (browser.capabilities as Record<string, unknown>)?.['wdio:experimentalBiDiCommands']
+        )
+
+        if (!browser.isBidi) {
+            log.warn(
+                'Parallel mode (cucumberOpts.parallelMode: "contexts") requires ' +
+                'a WebDriver Bidi session. Falling back to sequential execution.'
+            )
+            return this._runSequential(supportCodeLibrary)
+        }
+
+        if (!hasBidiCommands) {
+            log.warn(
+                'Parallel mode (cucumberOpts.parallelMode: "contexts") requires ' +
+                '"wdio:experimentalBiDiCommands" to be set in capabilities. ' +
+                'Falling back to sequential execution.'
+            )
+            return this._runSequential(supportCodeLibrary)
+        }
+
+        // Parse Gherkin documents from filtered specs
+        const gherkinDocuments = this.getGherkinDocuments([this._specs])
+
+        try {
+            return await runParallelCucumber({
+                browser,
+                reporter: this._reporter,
+                eventEmitter: this._eventEmitter,
+                cid: this._cid,
+                specs: this._specs,
+                gherkinDocuments,
+                supportCodeLibrary,
+                cucumberOpts: this._cucumberOpts,
+            })
+        } catch (err) {
+            log.warn(
+                `Parallel Cucumber execution failed: ${(err as Error).message}. ` +
+                'Falling back to sequential execution.'
+            )
+            return this._runSequential(supportCodeLibrary)
+        }
+    }
+
+    /**
+     * Run Cucumber in sequential mode.
+     *
+     * @throws if a runtime error occurs (errors are caught by run())
+     */
+    private async _runSequential(
+        supportCodeLibrary: Awaited<ReturnType<typeof supportCodeLibraryBuilder.finalize>>
+    ): Promise<number> {
+        let failedCount: number | undefined
+        let outStream: Writable | undefined
+
+        try {
             outStream = new Writable({
                 write(chunk, encoding, callback) {
                     callback()
@@ -268,36 +373,16 @@ export class CucumberAdapter {
                 environment
             )
 
-            result = success ? 0 : 1
+            let result = success ? 0 : 1
 
-            /**
-             * if we ignore undefined definitions we trust the reporter
-             * with the fail count
-             */
             if (this._cucumberOpts.ignoreUndefinedDefinitions && result) {
-                result = failedCount
+                result = failedCount as number
             }
-        } catch (err) {
-            runtimeError = err
-            result = 1
+
+            return result
         } finally {
             outStream?.end()
         }
-
-        await executeHooksWithArgs('after', this._config.after, [
-            runtimeError || result,
-            this._capabilities,
-            this._specs,
-        ])
-
-        /**
-         * in case the spec has a runtime error throw after the wdio hook
-         */
-        if (runtimeError) {
-            throw runtimeError
-        }
-
-        return result
     }
 
     /**

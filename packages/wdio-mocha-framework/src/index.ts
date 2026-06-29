@@ -12,6 +12,7 @@ import type { Services } from '@wdio/types'
 import { formatMessage, setupEnv } from './common.js'
 import { EVENTS, NOOP } from './constants.js'
 import type { MochaOpts as MochaOptsImport, FrameworkMessage, MochaError } from './types.js'
+import { runParallelTests } from './parallel.js'
 import type { EventEmitter } from 'node:events'
 
 const log = logger('@wdio/mocha-framework')
@@ -124,10 +125,69 @@ class MochaAdapter {
     async run () {
         const mocha = this._mocha!
 
-        let runtimeError
-        const result = await new Promise((resolve) => {
+        if (this._config.mochaOpts?.parallelMode === 'contexts') {
+            return this._runParallelMode(mocha)
+        }
+
+        return this._runSequential(mocha)
+    }
+
+    private async _runParallelMode(mocha: Mocha) {
+        const browser = (globalThis as Record<string, unknown>).browser as WebdriverIO.Browser & { isBidi: boolean; __bidiCommandsEnabled?: boolean }
+        if (!browser) {
+            throw new Error(
+                'Parallel mode requires a browser instance. ' +
+                'Ensure WebDriver session is initialized before tests run.'
+            )
+        }
+
+        if (!browser.isBidi) {
+            log.warn(
+                'parallelMode: "contexts" is set but the browser session does not support ' +
+                'WebDriver Bidi. This may be because "wdio:enforceWebDriverClassic" is enabled ' +
+                'or the browser does not support Bidi. Falling back to sequential execution.'
+            )
+            return this._runSequential(mocha)
+        }
+
+        if (browser.__bidiCommandsEnabled !== true) {
+            log.warn(
+                'parallelMode: "contexts" requires \'wdio:experimentalBiDiCommands\': true ' +
+                'to be set in capabilities. Without it, element commands use classic protocol ' +
+                'which cannot target Bidi-created browsing contexts. ' +
+                'Falling back to sequential execution.'
+            )
+            return this._runSequential(mocha)
+        }
+
+        await executeHooksWithArgs('beforeSuite', this._config.beforeSuite as Function, [
+            { type: 'beforeSuite', payload: mocha.suite.suites[0] }
+        ])
+
+        let failures: number
+        let runtimeError: Error | undefined
+        try {
+            failures = await runParallelTests(
+                mocha.suite, browser, this._reporter, this._cid, this._specs,
+                this._config.mochaOpts.maxParallelContexts
+            )
+        } catch (err) {
+            runtimeError = err as Error
+            failures = 1
+        }
+
+        await executeHooksWithArgs('afterSuite', this._config.afterSuite as Function, [
+            { type: 'afterSuite', payload: mocha.suite.suites[0] }
+        ])
+
+        return this._finalize(failures, runtimeError)
+    }
+
+    private async _runSequential(mocha: Mocha) {
+        let runtimeError: Error | undefined
+        const result = await new Promise<number>((resolve) => {
             try {
-                this._runner = mocha.run(resolve)
+                this._runner = mocha.run(resolve as (failures: number) => void)
             } catch (err) {
                 runtimeError = err as Error
                 return resolve(1)
@@ -139,15 +199,19 @@ class MochaAdapter {
             this._runner.suite.beforeAll(this.wrapHook('beforeSuite'))
             this._runner.suite.afterAll(this.wrapHook('afterSuite'))
         })
-        await executeHooksWithArgs('after', this._config.after as Function, [runtimeError || this._specLoadError || result, this._capabilities, this._specs])
+        return this._finalize(result, runtimeError)
+    }
 
-        /**
-         * in case the spec has a runtime error throw after the wdio hook
-         */
-        if (runtimeError || this._specLoadError) {
-            throw runtimeError || this._specLoadError
+    /**
+     * Shared teardown: emit 'after' hook, then conditionally throw stored errors.
+     */
+    private async _finalize(result: number, error?: Error) {
+        await executeHooksWithArgs('after', this._config.after as Function, [
+            error || this._specLoadError || result, this._capabilities, this._specs
+        ])
+        if (error || this._specLoadError) {
+            throw error || this._specLoadError
         }
-
         return result
     }
 

@@ -19,9 +19,7 @@ vi.mock('../../../src/session/networkManager.js', () => ({
 vi.mock('../../../src/session/context.js', () => ({
     getContextManager: vi.fn().mockImplementation(() => ({
         initialize: vi.fn(),
-        getCurrentContext: vi.fn().mockResolvedValue({
-            context: '123'
-        }),
+        getCurrentContext: vi.fn().mockResolvedValue('123'),
         getContext: vi.fn().mockResolvedValue({})
     }))
 }))
@@ -126,7 +124,7 @@ describe('url', () => {
             const req = await browser.url('http://google.com')
             expect(browsingContextNavigate).toBeCalledTimes(1)
             expect(browsingContextNavigate).toBeCalledWith({
-                context: { context: '123' },
+                context: '123',
                 url: 'http://google.com/',
                 wait: 'complete'
             })
@@ -151,6 +149,28 @@ describe('url', () => {
             expect(addInitScript).toBeCalledWith(expect.any(Function))
         })
 
+        it('should call addInitScript BEFORE navigation so onBeforeLoad takes effect', async () => {
+            await browser.url('http://google.com', {
+                onBeforeLoad: () => {
+                    // stub — just need the option to be present
+                }
+            })
+            // Verify ordering: addInitScript must be called before browsingContextNavigate
+            const initOrder = addInitScript.mock.invocationCallOrder[0]
+            const navOrder = browsingContextNavigate.mock.invocationCallOrder[0]
+            expect(initOrder).toBeLessThan(navOrder)
+        })
+
+        it('should call mock BEFORE navigation so headers take effect', async () => {
+            await browser.url('http://google.com', {
+                headers: { 'X-Custom': 'value' }
+            })
+            // Verify ordering: mock must be called before browsingContextNavigate
+            const mockOrder = mock.mock.invocationCallOrder[0]
+            const navOrder = browsingContextNavigate.mock.invocationCallOrder[0]
+            expect(mockOrder).toBeLessThan(navOrder)
+        })
+
         it('supports to pass auth credentials', async () => {
             await browser.url('http://google.com', {
                 auth: {
@@ -169,14 +189,22 @@ describe('url', () => {
             expect(mockMock.restore).toBeCalledTimes(1)
         })
 
-        it('should fallback to url on concurrent navigation', async () => {
+        it('should retry with wait:none on concurrent navigation', async () => {
+            let callCount = 0
             browsingContextNavigate.mockImplementation((async () => {
-                throw new Error('navigation canceled by concurrent navigation')
+                callCount++
+                if (callCount === 1) {
+                    throw new Error('navigation canceled by concurrent navigation')
+                }
+                return { navigation: 'nav-1' }
             }) as any)
             await browser.url('http://google.com')
-            expect(browsingContextNavigate).toBeCalledTimes(1)
-            expect(url).toBeCalledTimes(1)
-            expect(url).toBeCalledWith('http://google.com')
+            expect(browsingContextNavigate).toBeCalledTimes(2)
+            // Retry uses wait:none to avoid triggering concurrent navigation again
+            expect(browsingContextNavigate).toHaveBeenNthCalledWith(2, expect.objectContaining({
+                url: 'http://google.com/',
+                wait: 'none'
+            }))
         })
 
         it('should throw error if navigation fails', async () => {
