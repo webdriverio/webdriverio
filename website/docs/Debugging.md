@@ -161,3 +161,39 @@ await expect(elem).toBeDisplayed()
 ```
 Using these assertions, WebdriverIO will automatically wait until the condition matches. When asserting text this means that the element needs to exist and the text needs to be equal to the expected value.
 We talk more about this in our [Best Practices Guide](https://webdriver.io/docs/bestpractices#use-the-built-in-assertions).
+
+## Performance Profiling
+
+WebdriverIO allows you to capture performance profiles of your tests to identify bottlenecks in your test execution or memory leaks. This uses Node.js native profiling capabilities.
+
+### CPU Profiling
+
+To capture a CPU profile, you can use the `--cpu-prof` CLI flag or set `cpuProf: true` in your configuration.
+
+```bash
+npx wdio run wdio.conf.js --cpu-prof
+```
+
+This will generate a `.cpuprofile` file in the `./profiles` directory (default) for each worker process. You can load this file into **Chrome DevTools > Performance > Load Profile** to analyze the execution.
+
+### Heap Profiling
+
+To capture a Heap profile, use the `--heap-prof` CLI flag or set `heapProf: true` in your configuration.
+
+```bash
+npx wdio run wdio.conf.js --heap-prof
+```
+
+This generates a `.heapprofile` file in the `./profiles` directory (uses sampling heap profiler). You can load this into **Chrome DevTools > Memory > Load** to analyze memory usage.
+
+### Timing Metrics
+
+When profiling is enabled, WebdriverIO also automatically logs timing metrics for the setup, execution, and teardown phases of your test, helping you understand where time is being spent.
+
+```
+📊 Performance Metrics:
+────────────────────────────────────────
+  Setup:     1.25s
+  Execution: 3.42s
+  Teardown:  0.15s
+```
