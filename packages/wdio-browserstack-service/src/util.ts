@@ -2047,7 +2047,7 @@ export function getMochaTestHierarchy(test: Frameworks.Test) {
 }
 
 export const performO11ySync = async (browser: WebdriverIO.Browser) => {
-    if (isBrowserstackSession(browser)) {
+    if (isBrowserstackSession(browser) && !browser.isBidi) {
         await browser.execute(`browserstack_executor: ${JSON.stringify({
             action: 'annotate',
             arguments: {
