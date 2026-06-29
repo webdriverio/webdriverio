@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
-import { expect, setOptions, getConfig, matchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
+import { expect, setOptions, getConfig, wdioCustomMatchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
 import type { Browser, Selector } from 'webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
@@ -258,7 +258,7 @@ export default class Runner extends EventEmitter {
             const framework = (await initializePlugin(config.framework as string, 'framework')).default as unknown as TestFramework
             const frameworkInstance = await framework.init(cid, config, specs, capabilities, reporter)
             if (frameworkInstance.setupExpect) {
-                await frameworkInstance.setupExpect(expect, matchers, getConfig)
+                await frameworkInstance.setupExpect(expect, wdioCustomMatchers, getConfig)
             }
             return frameworkInstance
         }
