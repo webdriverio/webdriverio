@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { type CustomCommands, MESSAGE_TYPES, type Workers } from '@wdio/types'
+import { WS_MESSAGE_TYPES, type CustomCommands, type Workers } from '@wdio/types'
 import _mitt from 'mitt'
 
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
@@ -158,7 +158,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
                     origin: 'worker',
                     name: 'workerEvent',
                     args: {
-                        type: MESSAGE_TYPES.customCommand,
+                        type: WS_MESSAGE_TYPES.customCommand,
                         value: {
                             commandName: name,
                             cid: process.env.WDIO_WORKER_ID,

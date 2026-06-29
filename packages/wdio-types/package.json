@@ -32,6 +32,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@types/node": "^20.1.0"
+    "@types/istanbul-lib-coverage": "^2.0.6",
+    "@types/node": "^20.1.0",
+    "istanbul-lib-coverage": "^3.2.2"
   }
 }
