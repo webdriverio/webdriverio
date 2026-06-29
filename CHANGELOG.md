@@ -23,6 +23,79 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.29.1 (2026-06-26)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#15335](https://github.com/webdriverio/webdriverio/pull/15335) feat(browserstack-service): one-to-many Test-Case-ID tagging (setCust… ([@anish353](https://github.com/anish353))
+
+#### :bug: Bug Fix
+* `wdio-logger`
+  * [#15354](https://github.com/webdriverio/webdriverio/pull/15354) fix: Force logger build by adjusting security doc on pattern masking ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `webdriverio`
+  * [#15353](https://github.com/webdriverio/webdriverio/pull/15353) fix(webdriverio): skip isConnected check for non-shadow element scope in BiDi ([@mccmrunal](https://github.com/mccmrunal))
+
+#### :memo: Documentation
+* `wdio-logger`
+  * [#15354](https://github.com/webdriverio/webdriverio/pull/15354) fix: Force logger build by adjusting security doc on pattern masking ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* Other
+  * [#15341](https://github.com/webdriverio/webdriverio/pull/15341) docs(tracing): Add blog post for Tracing Mode in `devtools` service ([@Winify](https://github.com/Winify))
+
+#### Committers: 5
+- Anish Kumar Sinha ([@anish353](https://github.com/anish353))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Shubham Garg ([@xxshubhamxx](https://github.com/xxshubhamxx))
+- Vince Graics ([@Winify](https://github.com/Winify))
+
+
+## v9.29.0 (2026-06-18)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#15293](https://github.com/webdriverio/webdriverio/pull/15293) fix: make `waitForResponse` wait for networkCollector's response ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-utils`
+  * [#15305](https://github.com/webdriverio/webdriverio/pull/15305) fix(wdio-utils): use supported EdgeDriver CDN ([@cyphercodes](https://github.com/cyphercodes))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#15316](https://github.com/webdriverio/webdriverio/pull/15316) Fix/wdio reloadsession finishedmetadata ([@shivamku-BS](https://github.com/shivamku-BS))
+
+#### :house: Internal
+* [#15320](https://github.com/webdriverio/webdriverio/pull/15320) ci: fix ubuntu e2e failures ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### Committers: 6
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Rayan Salhab ([@cyphercodes](https://github.com/cyphercodes))
+- Shivam Kumar ([@shivamku-BS](https://github.com/shivamku-BS))
+- Vince Graics ([@Winify](https://github.com/Winify))
+- Vishnu Vardhan ([@vishnuv688](https://github.com/vishnuv688))
+
+
+## v9.28.0 (2026-06-10)
+
+#### :bug: Bug Fix
+* [#15291](https://github.com/webdriverio/webdriverio/pull/15291) fix: logger not cjs compliant ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :house: Internal
+* Other
+  * [#15292](https://github.com/webdriverio/webdriverio/pull/15292) ci: Fix unzip hangs issue with node 24.16 ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-browserstack-service`, `wdio-protocols`, `webdriver`
+  * [#15283](https://github.com/webdriverio/webdriverio/pull/15283) fix: main pipeline failures & browserStack `config.accessibility` & more ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### Committers: 9
+- Aakash Hotchandani ([@AakashHotchandani](https://github.com/AakashHotchandani))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- JinHyuk Sung ([@sjh9714](https://github.com/sjh9714))
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Noritaka Kobayashi ([@noritaka1166](https://github.com/noritaka1166))
+- Vishnu Vardhan ([@vishnuv688](https://github.com/vishnuv688))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@harshit-browserstack](https://github.com/harshit-browserstack)
+
+
 ## v9.27.2 (2026-05-26)
 
 #### :rocket: New Feature

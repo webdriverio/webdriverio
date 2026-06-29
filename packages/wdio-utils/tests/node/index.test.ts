@@ -9,10 +9,11 @@ import split2 from 'split2'
 import waitPort from 'wait-port'
 import { start as startSafaridriver } from 'safaridriver'
 import { start as startGeckodriver } from 'geckodriver'
-import { start as startEdgedriver } from 'edgedriver'
+import { start as startEdgedriver, download as downloadEdgedriver } from 'edgedriver'
 import { install } from '@puppeteer/browsers'
 
 import { startWebDriver } from '../../src/node/index.js'
+import { DEFAULT_EDGEDRIVER_CDN_URL, setupEdgedriver } from '../../src/node/utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../../src/constants.js'
 
 vi.mock('split2', () => ({ default: vi.fn() }))
@@ -62,6 +63,7 @@ vi.mock('safaridriver', () => ({
     })
 }))
 vi.mock('edgedriver', () => ({
+    download: vi.fn().mockResolvedValue('/foo/bar/edgedriver'),
     start: vi.fn().mockResolvedValue('edgedriver'),
     findEdgePath: vi.fn().mockReturnValue('/foo/bar/executable')
 }))
@@ -90,18 +92,27 @@ vi.mock('../../src/node/utils.js', async (actualMod) => ({
 
 describe('startWebDriver', () => {
     const WDIO_SKIP_DRIVER_SETUP = process.env.WDIO_SKIP_DRIVER_SETUP
+    const EDGEDRIVER_CDNURL = process.env.EDGEDRIVER_CDNURL
     beforeEach(() => {
         delete process.env.WDIO_SKIP_DRIVER_SETUP
+        delete process.env.EDGEDRIVER_CDNURL
         vi.mocked(install).mockClear()
         vi.mocked(fsp.access).mockClear()
         vi.mocked(fsp.mkdir).mockClear()
         vi.mocked(cp.spawn).mockClear()
         vi.mocked(startGeckodriver).mockClear()
+        vi.mocked(startEdgedriver).mockClear()
+        vi.mocked(downloadEdgedriver).mockClear()
         vi.mocked(fs.createWriteStream).mockClear()
     })
 
     afterEach(() => {
         process.env.WDIO_SKIP_DRIVER_SETUP = WDIO_SKIP_DRIVER_SETUP
+        if (EDGEDRIVER_CDNURL) {
+            process.env.EDGEDRIVER_CDNURL = EDGEDRIVER_CDNURL
+        } else {
+            delete process.env.EDGEDRIVER_CDNURL
+        }
     })
 
     it('should start safari driver', async () => {
@@ -165,6 +176,7 @@ describe('startWebDriver', () => {
     })
 
     it('should start edge driver', async () => {
+        process.env.EDGEDRIVER_CDNURL = 'https://msedgedriver.azureedge.net'
         const options = {
             capabilities: {
                 browserName: 'edge',
@@ -192,7 +204,21 @@ describe('startWebDriver', () => {
             cacheDir: expect.any(String),
             allowedIps: ['0.0.0.0'],
         })
+        expect(process.env.EDGEDRIVER_CDNURL).toBe(DEFAULT_EDGEDRIVER_CDN_URL)
         expect(options.capabilities.browserName).toBe('MicrosoftEdge')
+    })
+
+    it('should set the supported edge driver CDN before downloading edge driver', async () => {
+        await expect(setupEdgedriver('/foo/bar/cache', '148.0.3967.96')).resolves.toBe('/foo/bar/edgedriver')
+        expect(downloadEdgedriver).toBeCalledWith('148.0.3967.96', '/foo/bar/cache')
+        expect(process.env.EDGEDRIVER_CDNURL).toBe(DEFAULT_EDGEDRIVER_CDN_URL)
+    })
+
+    it('should replace the deprecated edge driver CDN before downloading edge driver', async () => {
+        process.env.EDGEDRIVER_CDNURL = 'https://msedgedriver.azureedge.net/'
+        await expect(setupEdgedriver('/foo/bar/cache', '148.0.3967.96')).resolves.toBe('/foo/bar/edgedriver')
+        expect(downloadEdgedriver).toBeCalledWith('148.0.3967.96', '/foo/bar/cache')
+        expect(process.env.EDGEDRIVER_CDNURL).toBe(DEFAULT_EDGEDRIVER_CDN_URL)
     })
 
     it('should start chrome driver', async () => {
