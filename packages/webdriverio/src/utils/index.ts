@@ -297,6 +297,36 @@ export function transformClassicToBidiSelector(using: string, value: string): re
 }
 
 /**
+ * Returns true when the connected Firefox browser is older than v150, which has a BiDi bug
+ * where browsingContext.locateNodes returns empty nodes for CSS root selectors (issue #15233).
+ */
+function isFirefoxBidiRootSelectorBug(browser: WebdriverIO.Browser): boolean {
+    if (!browser.isFirefox) { return false }
+    const version = browser.capabilities?.browserVersion ?? ''
+    const major = parseInt(version.match(/\d+/)?.[0] ?? '0', 10)
+    return !isNaN(major) && major > 0 && major < 150
+}
+
+/**
+ * Applies the Firefox < 150 BiDi root selector workaround: converts CSS 'html' / ':root'
+ * to the absolute XPath '/html' for unscoped top-level lookups only.
+ * '/html' is anchored to the document root, making it semantically equivalent to ':root'.
+ * '//html' is intentionally avoided as it matches html elements at any depth.
+ */
+function applyFirefoxRootSelectorWorkaround(
+    using: string,
+    value: string,
+    isScopedContext: boolean,
+    browser: WebdriverIO.Browser
+): { using: string, value: string } {
+    if (using === 'css selector' && (value === 'html' || value === ':root') &&
+        !isScopedContext && isFirefoxBidiRootSelectorBug(browser)) {
+        return { using: 'xpath', value: '/html' }
+    }
+    return { using, value }
+}
+
+/**
  * Parallel look up of a selector within multiple shadow roots
  * @param this WebdriverIO Browser or Element instance
  * @param selector selector to look up
@@ -316,7 +346,7 @@ export async function findDeepElement(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+    let { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
 
     /**
      * if we are using a relative xpath selector and we have a parent element
@@ -326,6 +356,9 @@ export async function findDeepElement(
     if (using === 'xpath' && (value.startsWith('./') || value.startsWith('..')) && (this as WebdriverIO.Element).elementId) {
         return this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value)
     }
+
+    const isScopedContext = shadowRoots.length > 0 || Boolean((this as WebdriverIO.Element).elementId)
+    ;({ using, value } = applyFirefoxRootSelectorWorkaround(using, value, isScopedContext, browser))
 
     const locator = transformClassicToBidiSelector(using, value)
 
@@ -437,7 +470,7 @@ export async function findDeepElements(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+    let { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
 
     /**
      * if we are using a relative xpath selector and we have a parent element
@@ -447,6 +480,9 @@ export async function findDeepElements(
     if (using === 'xpath' && (value.startsWith('./') || value.startsWith('..')) && (this as WebdriverIO.Element).elementId) {
         return this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value)
     }
+
+    const isScopedContext = shadowRoots.length > 0 || Boolean((this as WebdriverIO.Element).elementId)
+    ;({ using, value } = applyFirefoxRootSelectorWorkaround(using, value, isScopedContext, browser))
 
     const locator = transformClassicToBidiSelector(using, value)
 
