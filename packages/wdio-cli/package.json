@@ -9,7 +9,7 @@
     "wdio": "./bin/wdio.js"
   },
   "engines": {
-    "node": "^16.13 || >=18"
+    "node": ">=22"
   },
   "scripts": {
     "copy": "copyfiles -u 1 -V \"src/templates/**/*\" ./build/"

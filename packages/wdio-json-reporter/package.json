@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-json-reporter",
   "license": "MIT",
   "engines": {
-    "node": "^16.13 || >=18"
+    "node": ">=22"
   },
   "repository": {
     "type": "git",
