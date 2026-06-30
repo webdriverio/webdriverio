@@ -197,7 +197,8 @@ export const SUPPORTED_PACKAGES = {
         { name: 'robonut', value: 'wdio-robonut-service$--$robonut' },
         { name: 'qunit', value: 'wdio-qunit-service$--$qunit' },
         { name: 'roku', value: 'wdio-roku-service$--$roku' },
-        { name: 'obsidian', value: 'wdio-obsidian-service$--$obsidian' }
+        { name: 'obsidian', value: 'wdio-obsidian-service$--$obsidian' },
+        { name: 'tracelane', value: '@tracelane/wdio$--$@tracelane/wdio' }
     ]
 }
 

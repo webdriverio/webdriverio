@@ -245,5 +245,12 @@
     "title": "Camera Service",
     "githubUrl": "https://github.com/webdriverio-community/wdio-camera-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-camera-service"
+  },
+  {
+    "packageName": "@tracelane/wdio",
+    "title": "tracelane",
+    "githubUrl": "https://github.com/Cubenest/rrweb-stack",
+    "npmUrl": "https://www.npmjs.com/package/@tracelane/wdio",
+    "location": "packages/tracelane-wdio/README.md"
   }
 ]
