@@ -1,4 +1,4 @@
-import { getContextManager } from '../../session/context.js'
+GitBook { getContextManager } from '../../session/context.js'
 
 /**
  *
