@@ -36,6 +36,12 @@ export default class TestHubModule extends BaseModule {
         this.testhubConfig = testhubConfig
 
         TestFramework.registerObserver(TestFrameworkState.TEST, HookState.PRE, this.onBeforeTest.bind(this))
+        // SDK-6767: also (re)send the per-test session binding at TEST/POST. The PRE binding runs
+        // before a beforeTest/in-body browser.reloadSession() finalizes the session, so on its own it
+        // binds the stale (pre-reload) session — collapsing reloaded sessions. The POST binding lands
+        // after the reload; the binary does last-write-wins per test_run uuid, so each test links to
+        // the session it actually ran on.
+        TestFramework.registerObserver(TestFrameworkState.TEST, HookState.POST, this.onAfterTestSession.bind(this))
 
         Object.values(TestFrameworkState).forEach(state => {
             Object.values(HookState).forEach(hook => {
@@ -57,6 +63,16 @@ export default class TestHubModule extends BaseModule {
         const autoInstance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
         const instances = [autoInstance]
         args.autoInstance = instances
+        this.sendTestSessionEvent(args)
+    }
+
+    // SDK-6767: re-bind the per-test session at TEST/POST, after any beforeTest/in-body
+    // browser.reloadSession() has finalized the session. Pairs with the live-read in
+    // sendTestSessionEvent so the post-reload session overwrites the stale PRE binding.
+    onAfterTestSession(args: Record<string, unknown>) {
+        this.logger.debug('onAfterTestSession: re-binding per-test session at TEST/POST (post reloadSession)')
+        const autoInstance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
+        args.autoInstance = [autoInstance]
         this.sendTestSessionEvent(args)
     }
 
@@ -211,12 +227,26 @@ export default class TestHubModule extends BaseModule {
                 // ltsSessionId) ternary on line 215 has a chance to fall through to
                 // ltsSessionId. Default to '' so the ternary path stays untouched
                 // and the non-LTS fall-through is still safe.
-                const driverFrameworkSessionId = (
-                    AutomationFramework.getState(
-                        autoInstance,
-                        AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID,
-                    )?.toString() ?? ''
-                )
+                // SDK-6767: prefer the LIVE driver session id over the once-captured
+                // KEY_FRAMEWORK_SESSION_ID. The cached id is set at driver-create and goes stale after
+                // browser.reloadSession(), collapsing reloaded sessions onto the first. getDriver() is
+                // the same live handle used for capabilities above. Fall back to the cached state if the
+                // live read is unavailable (e.g. LTS local-Selenium instances without a live driver).
+                let driverFrameworkSessionId = ''
+                try {
+                    const liveDriver = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser | undefined
+                    driverFrameworkSessionId = liveDriver?.sessionId ? liveDriver.sessionId.toString() : ''
+                } catch (sessionErr) {
+                    this.logger.debug(`sendTestSessionEvent: live sessionId read failed, falling back to cached state: ${sessionErr}`)
+                }
+                if (!driverFrameworkSessionId) {
+                    driverFrameworkSessionId = (
+                        AutomationFramework.getState(
+                            autoInstance,
+                            AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID,
+                        )?.toString() ?? ''
+                    )
+                }
 
                 const automationSession: AutomationSession = {
                     provider: sessionProvider,
