@@ -60,7 +60,7 @@ Internal commands like `findElement`, `waitUntil`, `executeScript` are deliberat
 - **`zip`** (default) — single archive at `trace-<sessionId>.zip`.
 - **`ndjson-directory`** — same files unpacked into `trace-<sessionId>/`. One less unzip step for scripted or agentic consumers that want to grep / stream the NDJSON directly.
 
-Both formats render in `npx playwright show-trace <path>`.
+Both formats open in the first-party `show-trace` player (see [Viewing the artifact](#viewing-the-artifact)) and in `npx playwright show-trace <path>`.
 
 ## Mobile testing
 
@@ -76,9 +76,32 @@ The trace's `context-options` records `title: 'android — <deviceName>'` / `'io
 - **DevTools UI window** — no Chrome instance opens for the dashboard.
 - **Backend port-bind** — no localhost port is reserved (parity across all three adapters as of v1.2+).
 - **`screencast` option** — ignored even if configured. Trace mode embeds per-action JPEG frames inside the archive; the live-mode continuous `.webm` is a separate feature. A warning is logged: `trace mode: ignoring screencast option (live-mode feature)`.
-- **`wdio-trace-<sessionId>.json` dump** — the legacy monolithic JSON the WDIO live mode writes is not produced in trace mode. The trace artifact is the single output.
+- **`wdio-trace-<sessionId>.json` dump** — removed entirely. The legacy monolithic JSON the WDIO live mode used to write is gone; live mode now streams to the dashboard and writes nothing to disk, and the `trace.zip` is the single trace artifact.
 
 ## Viewing the artifact
+
+### `show-trace` — the first-party player
+
+Open a trace in the WebdriverIO DevTools UI itself:
+
+```sh
+show-trace trace-<sessionId>.zip          # bin on PATH after install
+npx show-trace trace-<sessionId>.zip      # or via npx
+pnpm show-trace trace-<sessionId>.zip     # from the devtools monorepo
+```
+
+The `show-trace` bin ships with each adapter (`@wdio/devtools-service`, `@wdio/nightwatch-devtools`, `@wdio/selenium-devtools`), so it's available in any project that installs one — no extra dependency. It boots the same DevTools UI in a dedicated **player** mode and opens it in your browser:
+
+- **Action list** (left) with the captured commands.
+- **Browser pane** showing the per-action page snapshot.
+- **Timeline** along the bottom — a screenshot filmstrip plus Actions / Network / Console tracks, a draggable playhead, and playback controls (play/pause, step, speed). Click a **Network** bar to open the request detail (headers, timing, status).
+- **Keyboard shortcuts** — `Space` play/pause, `←`/`→` step between actions, `Home`/`End` jump to first/last, `,`/`.` change speed, `/` focus filter, `?` show all shortcuts.
+
+> Accepts a `.zip` only. The same shortcuts work in the live dashboard (`←`/`→` walk the command list, `?` shows help).
+
+### `playwright show-trace`
+
+Because the format is a Playwright-compatible NDJSON schema, the same artifact also opens in the Playwright trace viewer:
 
 ```sh
 # Either a .zip or a directory works
