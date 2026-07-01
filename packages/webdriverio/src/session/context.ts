@@ -134,6 +134,9 @@ export class ContextManager extends SessionManager {
 
             const windowHandles = (event.result as { value?: string[] }).value || []
             if (windowHandles.length === 0) {
+                if (this.#browser.isMultiremoteBrowser) {
+                    return
+                }
                 throw new Error('All window handles were removed, causing WebdriverIO to close the session.')
             }
             this.#currentContext = windowHandles[0]

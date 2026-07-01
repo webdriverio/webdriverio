@@ -59,6 +59,15 @@ describe('ContextManager', () => {
         )
     })
 
+    it('does not throw when closeWindow returns empty handles for a multiremote browser instance', () => {
+        const { browser: mrBrowser, getListeners: getMrListeners } = createBrowserStub()
+        mrBrowser.isMultiremoteBrowser = true
+        getContextManager(mrBrowser)
+        const handler = getMrListeners().result![0]
+        expect(() => handler({ command: 'closeWindow', result: { value: [] } })).not.toThrow()
+        expect(mrBrowser.switchToWindow).not.toHaveBeenCalled()
+    })
+
     it('switches to the first remaining window handle when closing a window', () => {
         const resultHandlers = getListeners().result
         const handler = resultHandlers![0]
