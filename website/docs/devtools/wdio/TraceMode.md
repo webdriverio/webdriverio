@@ -60,7 +60,7 @@ Internal commands like `findElement`, `waitUntil`, `executeScript` are deliberat
 - **`zip`** (default) — single archive at `trace-<sessionId>.zip`.
 - **`ndjson-directory`** — same files unpacked into `trace-<sessionId>/`. One less unzip step for scripted or agentic consumers that want to grep / stream the NDJSON directly.
 
-Both formats open in the first-party `show-trace` player (see [Viewing the artifact](#viewing-the-artifact)) and in `npx playwright show-trace <path>`.
+The `zip` format open in the first-party `show-trace` player (see [Viewing the artifact](#viewing-the-artifact)) and in `npx playwright show-trace <path>`.
 
 ## Mobile testing
 
