@@ -117,14 +117,48 @@ describe('TestHubModule', () => {
                 expect.any(Function)
             )
 
-            // Should register for all test states and hook states (11*3) + 1 specific registration for onBeforeTest
-            const expectedCalls = Object.values(TestFrameworkState).length * Object.values(HookState).length + 1
+            // Should register for all test states and hook states (11*3) + 2 specific registrations:
+            // onBeforeTest (TEST/PRE) and onAfterTestSession (TEST/POST, SDK-6767 post-reload rebind)
+            const expectedCalls = Object.values(TestFrameworkState).length * Object.values(HookState).length + 2
             expect(TestFramework.registerObserver).toHaveBeenCalledTimes(expectedCalls)
+        })
+
+        it('should register a TEST/POST observer to re-bind the session after reload (SDK-6767)', () => {
+            registerObserverSpy.mockClear()
+            new TestHubModule(mockTesthubConfig)
+
+            expect(TestFramework.registerObserver).toHaveBeenCalledWith(
+                TestFrameworkState.TEST,
+                HookState.POST,
+                expect.any(Function)
+            )
         })
 
         it('should have correct module name', () => {
             expect(testHubModule.getModuleName()).toBe('TestHubModule')
             expect(TestHubModule.MODULE_NAME).toBe('TestHubModule')
+        })
+    })
+
+    describe('onAfterTestSession', () => {
+        it('should re-send the session event at TEST/POST for post-reload rebind (SDK-6767)', async () => {
+            const mockAutomationInstance = {
+                getRef: vi.fn(() => 'auto-ref'),
+                frameworkName: 'webdriverio',
+                frameworkVersion: '9.0.0'
+            }
+
+            vi.mocked(AutomationFramework.getTrackedInstance).mockReturnValue(mockAutomationInstance)
+            const sendTestSessionEventSpy = vi.spyOn(testHubModule, 'sendTestSessionEvent').mockResolvedValue()
+
+            const mockArgs = { test: { title: 'Test After Reload' } as Frameworks.Test }
+
+            await testHubModule.onAfterTestSession(mockArgs)
+
+            expect(sendTestSessionEventSpy).toHaveBeenCalledWith({
+                ...mockArgs,
+                autoInstance: [mockAutomationInstance]
+            })
         })
     })
 
@@ -379,6 +413,43 @@ describe('TestHubModule', () => {
                 platformIndex: 0,
                 capabilities: expect.any(Uint8Array)
             })
+        })
+
+        it('binds to the LIVE driver.sessionId, not the stale cached id (SDK-6767)', async () => {
+            const mockInstance = {
+                getCurrentTestState: vi.fn(() => TestFrameworkState.TEST),
+                getCurrentHookState: vi.fn(() => HookState.POST)
+            }
+            const mockAutomationInstance = {
+                getRef: vi.fn(() => 'auto-ref'),
+                frameworkName: 'webdriverio',
+                frameworkVersion: '9.0.0'
+            }
+
+            vi.mocked(TestFramework.getState).mockImplementation((instance, key) =>
+                key === TestFrameworkConstants.KEY_TEST_UUID ? 'test-uuid-123' : 'mocha'
+            )
+            // Cached state is STALE (the first session, captured once per worker and never refreshed)
+            vi.mocked(AutomationFramework.getState).mockImplementation((instance, key) => {
+                if (key === AutomationFrameworkConstants.KEY_IS_BROWSERSTACK_HUB) {
+                    return true
+                }
+                if (key === AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID) {
+                    return 'stale-first-session'
+                }
+                return 'default-value'
+            })
+            // Live driver reports the CURRENT (post-reload) session
+            vi.mocked(AutomationFramework.getDriver).mockReturnValue({
+                sessionId: 'live-current-session',
+                capabilities: { browserName: 'chrome' }
+            } as any)
+
+            await testHubModule.sendTestSessionEvent({ instance: mockInstance, autoInstance: [mockAutomationInstance] })
+
+            const sent = mockGrpcClient.testSessionEvent.mock.calls[0][0]
+            expect(sent.automationSessions[0].frameworkSessionId).toBe('live-current-session')
+            expect(sent.automationSessions[0].frameworkSessionId).not.toBe('stale-first-session')
         })
 
         it('should handle gRPC error and throw', async () => {
