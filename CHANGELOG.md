@@ -21,6 +21,32 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.48.3 (2026-07-01)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#14785](https://github.com/webdriverio/webdriverio/pull/14785) [WDIO CLI V8] Targeted scans ([@Pritishchugh22](https://github.com/Pritishchugh22))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#15217](https://github.com/webdriverio/webdriverio/pull/15217) feat: enhance gRPC client with message size limits ([@xxshubhamxx](https://github.com/xxshubhamxx))
+  * [#15146](https://github.com/webdriverio/webdriverio/pull/15146) fix: update exit signal for CLI process termination on Unix ([@xxshubhamxx](https://github.com/xxshubhamxx))
+  * [#15200](https://github.com/webdriverio/webdriverio/pull/15200) V8 Username accesskey redaction from automation logs ([@minavkaria-bs](https://github.com/minavkaria-bs))
+
+#### Committers: 11
+- Aakash Hotchandani ([@AakashHotchandani](https://github.com/AakashHotchandani))
+- Aditya Hirapara ([@AdityaHirapara](https://github.com/AdityaHirapara))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Minav Karia ([@minavkaria-bs](https://github.com/minavkaria-bs))
+- Pritish Chugh ([@Pritishchugh22](https://github.com/Pritishchugh22))
+- Shubham Garg ([@xxshubhamxx](https://github.com/xxshubhamxx))
+- YASH JAIN ([@osho-20](https://github.com/osho-20))
+- [@vipin-bs](https://github.com/vipin-bs)
+- bhargavi vaidya ([@Bhargavi-BS](https://github.com/Bhargavi-BS))
+
+
 ## v8.48.2 (2026-07-01)
 
 #### :rocket: New Feature
