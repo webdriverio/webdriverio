@@ -334,7 +334,7 @@ await browser.saveFullPageScreen(
 
 # Compare (Check) Options
 
-Compare options are options that influence the way the comparison, by [ResembleJS](https://github.com/Huddle/Resemble.js) is being executed.
+Compare options are options that influence the way the comparison is being executed.
 
 ## Visual sensitivity
 
@@ -695,4 +695,4 @@ Folder for the baseline image that is being used to compare against.
 - **Mandatory:** No
 - **Supported Application Contexts:** All
 
-Folder for the image difference rendered by ResembleJS.
+Folder for the image difference rendered during comparison.

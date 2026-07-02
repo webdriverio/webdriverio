@@ -7,7 +7,8 @@ import {
     getParentSuiteName,
     isBrowserstackSession,
     patchConsoleLogs,
-    isTrue
+    isTrue,
+    getUniqueIdentifier
 } from './util.js'
 import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
@@ -61,6 +62,20 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _specsRan: boolean = false
     private _observability
     private _currentTest?: Frameworks.Test | ITestCaseHookParameter
+    /**
+     * CLI/gRPC path: map of test identity -> the test_uuid minted for it at
+     * INIT_TEST/PRE. The CLI mints a fresh uuid into a SINGLE mutable per-worker tracked instance
+     * (`trackWdioMochaInstance` overwrites `TestFramework.instances[ctxId]` wholesale on every
+     * INIT_TEST), and the gRPC test-finish reads the uuid from that single slot. When a test hangs
+     * past the mocha timeout, the NEXT test's INIT_TEST overwrites the slot before the hung test's
+     * afterTest POST fires, so the POST would carry the wrong (next) test's uuid and the binary
+     * would close the wrong test_run — orphaning the hung one. We snapshot each test's uuid here,
+     * keyed by the same identity the legacy `_tests` map uses, and at afterTest we restore the
+     * finishing test's minted uuid onto the tracked instance before the POST so it closes the
+     * correct test_run. The finishing identity is `originalTest` (already snapshotted pre-await by
+     * the testFnWrapper, so it is the timed-out runnable's own identity, not the next test's).
+     */
+    private _cliTestUuids: Map<string, string> = new Map()
     private _insightsHandler?: InsightsHandler
     private _accessibility
     private _accessibilityHandler?: AccessibilityHandler
@@ -414,6 +429,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (BrowserstackCLI.getInstance().isRunning()) {
             await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.INIT_TEST, HookState.PRE, { test })
             const uuid = TestFramework.getState(TestFramework.getTrackedInstance(), TestFrameworkConstants.KEY_TEST_UUID)
+            // snapshot this test's freshly-minted uuid keyed by its identity, so a later
+            // afterTest can restore it even after a subsequent INIT_TEST has overwritten the single
+            // mutable tracked-instance slot. Keyed exactly like the legacy `_tests` map.
+            if (this._config.framework === 'mocha' && uuid) {
+                this._cliTestUuids.set(getUniqueIdentifier(test, this._config.framework), uuid as string)
+            }
             this._insightsHandler?.setTestData(test, uuid)
             await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.PRE, { test, suiteTitle })
             return
@@ -426,7 +447,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'afterTest' })
-    async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
+    async afterTest(originalTest: Frameworks.Test, context: never, results: Frameworks.TestResult) {
+        // `originalTest` is the identity the testFnWrapper snapshotted BEFORE awaiting the spec body,
+        // so on a timeout it is the runnable that actually started (not the next test mocha advanced
+        // its pointer to). Trust it directly as the finishing test for both reporting paths.
+        const test = originalTest
         this._specsRan = true
         const { error, passed, skipped } = results
         if (!passed && !skipped) {
@@ -438,8 +463,26 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         if (BrowserstackCLI.getInstance().isRunning()) {
+            // the CLI test-finish reads test_uuid from the single mutable per-worker
+            // tracked instance, which a later INIT_TEST may have overwritten with the NEXT test's
+            // uuid. `test` is `originalTest` — already the correct (timed-out) identity, snapshotted
+            // pre-await by the testFnWrapper — so restore THAT test's minted uuid onto the tracked
+            // instance so the POST carries it and the binary closes the correct test_run. Without
+            // this, the finish would carry the next test's uuid and orphan the finishing one.
+            if (this._config.framework === 'mocha') {
+                const identifier = getUniqueIdentifier(test, this._config.framework)
+                const resolvedUuid = this._cliTestUuids.get(identifier)
+                if (resolvedUuid) {
+                    const trackedInstance = TestFramework.getTrackedInstance()
+                    if (trackedInstance) {
+                        TestFramework.setState(trackedInstance, TestFrameworkConstants.KEY_TEST_UUID, resolvedUuid)
+                    }
+                    // Clean up so the per-worker map does not grow across the run.
+                    this._cliTestUuids.delete(identifier)
+                }
+            }
             await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.LOG_REPORT, HookState.POST, { test, result: results })
-            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { test, result: results, suiteTite: this._suiteTitle })
+            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { test, result: results, suiteTitle: this._suiteTitle })
             return
         }
 
@@ -528,6 +571,23 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     })
                 }
             })()
+
+            // Teardown safety net: close any started-but-unfinished test/hook with a synthetic
+            // finish so the backend does not orphan them to the build watchdog (which would inflate
+            // the reported duration). This MUST run before onWorkerEnd, which shuts the event
+            // batcher down inside teardown; events enqueued after that are dropped. Wrapped so a
+            // sweep failure never breaks the session teardown.
+            try {
+                await this._insightsHandler?.sweepUnfinished()
+            } catch (sweepErr) {
+                BStackLogger.debug('Exception in sweepUnfinished during after(): ' + util.format(sweepErr))
+            }
+            // The sweep closes the _tests entries, but the CLI uuid snapshots (_cliTestUuids) are
+            // only drained in afterTest — the callback that never fires for a test the sweep just
+            // handled (e.g. one that timed out). Clear them here at per-worker teardown so stale
+            // snapshots cannot leak across the worker. Safe to clear: this runs after the sweep and
+            // no further afterTest will consume them in this worker.
+            this._cliTestUuids.clear()
 
             // Track Listener cleanup
             PerformanceTester.start(EVENTS.SDK_LISTENER_WORKER_END)

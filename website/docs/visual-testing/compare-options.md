@@ -3,7 +3,7 @@ id: compare-options
 title: Compare Options
 ---
 
-Compare options are options that influence the way the comparison, by [ResembleJS](https://github.com/Huddle/Resemble.js) is being executed.
+Compare options are options that influence the way the comparison is being executed.
 
 :::info NOTE
 All compare options can be used during service instantiation or for each single `checkElement`,`checkScreen` and `checkFullPageScreen`. If a method option has the same key as an option that has been set during the instantiation of the service, then the method compare option will override the service compare option value.
@@ -48,7 +48,7 @@ Compare images and discard anti-aliasing.
 -   **Mandatory:** no
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
-Compare images and compare with `red = 16, green = 16, blue = 16, alpha = 16, minBrightness=16, maxBrightness=240`
+Compare images using a reduced sensitivity threshold (Pixelmatch threshold ≈ 0.063), tolerating minor color variation.
 
 ### `ignoreNothing`
 
@@ -57,7 +57,7 @@ Compare images and compare with `red = 16, green = 16, blue = 16, alpha = 16, mi
 -   **Mandatory:** no
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
-Compare images and compare with `red = 0, green = 0, blue = 0, alpha = 0, minBrightness=0, maxBrightness=255`
+Compare images using maximum sensitivity (Pixelmatch threshold = 0.0), flagging every perceptible pixel difference including anti-aliasing.
 
 ### `scaleImagesToSameSize`
 

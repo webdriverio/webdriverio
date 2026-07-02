@@ -11,6 +11,8 @@ import type { CurrentRunInfo, StdLog } from './types.js'
 import type { BrowserstackConfig, TestData, TestMeta } from './types.js'
 import {
     getCloudProvider,
+    isLoadTestingSession,
+    getLtsSessionId,
     o11yClassErrorHandler,
     getGitMetaData,
     removeAnsiColors,
@@ -280,8 +282,19 @@ class _TestReporter extends WDIOReporter {
         }
 
         if (eventType.startsWith('TestRun') || eventType === 'HookRunStarted') {
+            // LTS pod-iterations run against a local Selenium hub, so the
+            // hostname-based check in getCloudProvider would resolve to
+            // 'unknown_grid' and TestHub's o11y classifier would land the row
+            // with origin=UnknownGrid. Force 'browserstack' here ONLY in the
+            // reporter path — getCloudProvider stays untouched so Automate
+            // guards (markSessionName/Status, KEY_IS_BROWSERSTACK_HUB) keep
+            // their original semantics under LTS.
+            const ltsActive = isLoadTestingSession()
+            const ltsSessionId = ltsActive ? getLtsSessionId() : ''
             /* istanbul ignore next */
-            const cloudProvider = getCloudProvider({ options: { hostname: this._config?.hostname } } as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser)
+            const cloudProvider = ltsActive
+                ? 'browserstack'
+                : getCloudProvider({ options: { hostname: this._config?.hostname } } as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser)
             testData.integrations = {}
             // For Appium / App-Automate, server-resolved fields like `deviceModel`
             // live on the live driver session. The user-requested input caps —
@@ -296,12 +309,13 @@ class _TestReporter extends WDIOReporter {
             /* istanbul ignore next */
             testData.integrations[cloudProvider] = {
                 capabilities: this._capabilities,
-                session_id: this._sessionId,
+                session_id: (ltsActive && ltsSessionId) ? ltsSessionId : this._sessionId,
                 browser: this._capabilities?.browserName,
                 browser_version: this._capabilities?.browserVersion,
                 platform: this._capabilities?.platformName,
                 platform_version: getPlatformVersion(this._capabilities, this._userCaps as WebdriverIO.Capabilities),
-                device: getResolvedDeviceName(liveBrowserCaps, this._userCaps as WebdriverIO.Capabilities)
+                device: getResolvedDeviceName(liveBrowserCaps, this._userCaps as WebdriverIO.Capabilities),
+                ...(ltsActive ? { product: 'loadTesting' } : {})
             }
         }
 
