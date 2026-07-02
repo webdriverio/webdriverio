@@ -97,11 +97,11 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0
       cddl:
-        specifier: ^0.14.5
-        version: 0.14.10
+        specifier: ^0.21.0
+        version: 0.21.0
       cddl2ts:
-        specifier: ^0.4.1
-        version: 0.4.5
+        specifier: ^0.10.0
+        version: 0.10.0
       chalk:
         specifier: ^5.4.1
         version: 5.6.2
@@ -2711,11 +2711,6 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
 
-  '@babel/parser@7.29.0':
-    resolution: {integrity: sha512-IyDgFV5GeDUVX4YdF/3CPULtVGSXXMLh1xVIgdCgxApktqnQV0r7/8Nqthg+8YLGaAtdyIlo2qIdZrbCv4+7ww==}
-    engines: {node: '>=6.0.0'}
-    hasBin: true
-
   '@babel/parser@7.29.7':
     resolution: {integrity: sha512-hnORnjP/1P/zFEndoeX+n+t1RwWRJiJpM/jO7FW32Kn9r5+sJB2JWOdYo4L6k78j15eCwY3Gm/7364B1EMwtNg==}
     engines: {node: '>=6.0.0'}
@@ -3229,10 +3224,6 @@ packages:
 
   '@babel/types@7.28.5':
     resolution: {integrity: sha512-qQ5m48eI/MFLQ5PxQj4PFaprjyCTLI37ElWMmNs0K8Lk3dVeOdNpB3ks8jc7yM5CDmVC73eMVk/trk3fgmrUpA==}
-    engines: {node: '>=6.9.0'}
-
-  '@babel/types@7.29.0':
-    resolution: {integrity: sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A==}
     engines: {node: '>=6.9.0'}
 
   '@babel/types@7.29.7':
@@ -8092,12 +8083,12 @@ packages:
   ccount@2.0.1:
     resolution: {integrity: sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==}
 
-  cddl2ts@0.4.5:
-    resolution: {integrity: sha512-xdmTUhVEO9im/smQdMhxpBeqSL1WWmYR/gU4IThK4tYRZGYNHdejjwJ18R+Wr1UuZQSPguJ16JBBoawMNnCXzw==}
+  cddl2ts@0.10.0:
+    resolution: {integrity: sha512-YLLcOy+KeaOoVz62gR3009Ce30UM71R9zIverx+7vN3j9kjTLF6dsI2cYPfCNeHhd9/b/9HBYqxadU9u8bSFbA==}
     hasBin: true
 
-  cddl@0.14.10:
-    resolution: {integrity: sha512-39AA+spVL1Vgp01pkVkMUXhAR9xq1tx93DNDuKciqzX6Ws9NFwEYCjmDv151KuMXq9b4EXD5C7k8s2KX48O4aA==}
+  cddl@0.21.0:
+    resolution: {integrity: sha512-/2lnDcCA/7DRDChH2szAW4tKzZeqYFQKhw2nGqi6WqBr7N9mx2yObATLnc01pqG9pXJrw3auT1X5O58azNBTMQ==}
     hasBin: true
 
   chai@5.2.0:
@@ -16804,7 +16795,7 @@ snapshots:
 
   '@babel/generator@7.28.5':
     dependencies:
-      '@babel/parser': 7.29.0
+      '@babel/parser': 7.29.7
       '@babel/types': 7.28.5
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
@@ -16820,7 +16811,7 @@ snapshots:
 
   '@babel/helper-annotate-as-pure@7.27.3':
     dependencies:
-      '@babel/types': 7.27.7
+      '@babel/types': 7.29.7
 
   '@babel/helper-annotate-as-pure@7.29.7':
     dependencies:
@@ -16918,7 +16909,7 @@ snapshots:
   '@babel/helper-module-imports@7.27.1':
     dependencies:
       '@babel/traverse': 7.28.5
-      '@babel/types': 7.28.5
+      '@babel/types': 7.29.7
     transitivePeerDependencies:
       - supports-color
 
@@ -17046,10 +17037,6 @@ snapshots:
   '@babel/parser@7.28.5':
     dependencies:
       '@babel/types': 7.28.5
-
-  '@babel/parser@7.29.0':
-    dependencies:
-      '@babel/types': 7.29.0
 
   '@babel/parser@7.29.7':
     dependencies:
@@ -18193,7 +18180,7 @@ snapshots:
   '@babel/template@7.27.2':
     dependencies:
       '@babel/code-frame': 7.27.1
-      '@babel/parser': 7.29.0
+      '@babel/parser': 7.29.7
       '@babel/types': 7.28.5
 
   '@babel/template@7.29.7':
@@ -18219,7 +18206,7 @@ snapshots:
       '@babel/code-frame': 7.27.1
       '@babel/generator': 7.28.5
       '@babel/helper-globals': 7.28.0
-      '@babel/parser': 7.29.0
+      '@babel/parser': 7.29.7
       '@babel/template': 7.27.2
       '@babel/types': 7.28.5
       debug: 4.4.3(supports-color@7.2.0)
@@ -18244,11 +18231,6 @@ snapshots:
       '@babel/helper-validator-identifier': 7.27.1
 
   '@babel/types@7.28.5':
-    dependencies:
-      '@babel/helper-string-parser': 7.27.1
-      '@babel/helper-validator-identifier': 7.28.5
-
-  '@babel/types@7.29.0':
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
@@ -22451,7 +22433,7 @@ snapshots:
 
   '@types/babel__template@7.4.4':
     dependencies:
-      '@babel/parser': 7.29.0
+      '@babel/parser': 7.29.7
       '@babel/types': 7.27.7
 
   '@types/babel__traverse@7.20.7':
@@ -24573,16 +24555,17 @@ snapshots:
 
   ccount@2.0.1: {}
 
-  cddl2ts@0.4.5:
+  cddl2ts@0.10.0:
     dependencies:
-      '@babel/parser': 7.29.0
+      '@babel/parser': 7.29.7
       camelcase: 9.0.0
-      cddl: 0.14.10
+      cddl: 0.21.0
       recast: 0.23.11
       yargs: 18.0.0
 
-  cddl@0.14.10:
+  cddl@0.21.0:
     dependencies:
+      camelcase: 9.0.0
       yargs: 18.0.0
 
   chai@5.2.0:
