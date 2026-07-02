@@ -4,7 +4,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
 import { executeHooksWithArgs } from '@wdio/utils'
-import { matchers } from 'expect-webdriverio'
+import { wdioCustomMatchers } from 'expect-webdriverio'
 import { ELEMENT_KEY } from 'webdriver'
 import { type Workers, type Services, MESSAGE_TYPES } from '@wdio/types'
 
@@ -258,7 +258,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         if (message.type === MESSAGE_TYPES.expectMatchersRequest) {
             return this.#sendWorkerResponse(
                 id,
-                this.#expectMatcherResponse({ matchers: Array.from(matchers.keys()) })
+                this.#expectMatcherResponse({ matchers: Array.from(Object.keys(wdioCustomMatchers)) })
             )
         }
     }
@@ -399,9 +399,9 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
 
         /**
-         * find matcher, e.g. `toBeDisplayed` or `toHaveTitle`
+         * find wdio custom matcher, e.g. `toBeDisplayed` or `toHaveTitle`
          */
-        const matcher = matchers.get(payload.matcherName)
+        const matcher = wdioCustomMatchers[payload.matcherName]
         if (!matcher) {
             const message = `Couldn't find matcher with name "${payload.matcherName}"`
             return this.#sendWorkerResponse(id, this.#expectResponse({ id: payload.id, pass: false, message }))
