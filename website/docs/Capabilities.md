@@ -79,9 +79,52 @@ By default, WebdriverIO attempts to establish a WebDriver Bidi session. If you d
 
 Type: `boolean`
 
+#### `wdio:electronVersion`
+
+Specify the Electron version to use for downloading Chromedriver. When set, WebdriverIO will download Chromedriver from [Electron releases](https://github.com/electron/electron/releases) instead of Chrome for Testing. This is particularly useful for:
+
+- Testing Electron applications
+- Platforms where Chrome for Testing doesn't provide native binaries (e.g., Linux ARM64, Windows ARM64)
+
+On Linux ARM64 and Windows ARM64, if neither `wdio:electronVersion` nor `wdio:chromiumVersion` is set, WebdriverIO will automatically use Electron releases as a fallback since Chrome for Testing doesn't support these platforms natively.
+
+Type: `string`
+
+Example:
+```js
+{
+  browserName: 'chrome',
+  'wdio:electronVersion': '33.2.1'
+}
+```
+
+#### `wdio:chromiumVersion`
+
+Specify the Chromium version to use for downloading Chromedriver from Electron releases. When set, WebdriverIO will map the Chromium version to the corresponding Electron version and download from Electron releases.
+
+This is useful when you know the Chromium version but not the exact Electron version, or when testing non-Electron applications on platforms without Chrome for Testing support.
+
+Type: `string`
+
+Example:
+```js
+{
+  browserName: 'chrome',
+  'wdio:chromiumVersion': '130.0.6723.2'
+}
+```
+
+:::info ARM64 Platform Support
+
+On Linux ARM64 and Windows ARM64 systems, Chromedriver is automatically downloaded from Electron releases since Chrome for Testing doesn't provide native ARM64 binaries for these platforms. This happens automatically without any configuration required.
+
+If you want to specify a particular version, you can use either `wdio:electronVersion` or `wdio:chromiumVersion` capabilities.
+
+:::
+
 #### Common Driver Options
 
-While all driver offer different parameters for configuration, there are some common ones that WebdriverIO understand and uses for setting up your driver or browser:
+Whilst all drivers offer different parameters for configuration, there are some common ones that WebdriverIO understands and uses for setting up your driver or browser:
 
 ##### `cacheDir`
 

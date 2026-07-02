@@ -1468,8 +1468,8 @@ importers:
   packages/wdio-utils:
     dependencies:
       '@puppeteer/browsers':
-        specifier: ^2.2.0
-        version: 2.11.0
+        specifier: ^2.12.0
+        version: 2.13.2
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
@@ -1485,6 +1485,9 @@ importers:
       edgedriver:
         specifier: ^6.1.2
         version: 6.3.0
+      electron-to-chromium:
+        specifier: ^1.5.70
+        version: 1.5.372
       geckodriver:
         specifier: ^6.1.0
         version: 6.1.0
@@ -1509,6 +1512,10 @@ importers:
       wait-port:
         specifier: ^1.1.0
         version: 1.1.0
+    devDependencies:
+      '@types/electron-to-chromium':
+        specifier: ^1.5.0
+        version: 1.5.0
 
   packages/wdio-webdriver-mock-service:
     dependencies:
@@ -6600,6 +6607,9 @@ packages:
   '@types/ejs@3.1.5':
     resolution: {integrity: sha512-nv+GSx77ZtXiJzwKdsASqi+YQ5Z7vwHsTP0JY2SiQgjGckkBRKZnk8nIM+7oUZ1VCtuTz0+By4qVR7fqzp/Dfg==}
 
+  '@types/electron-to-chromium@1.5.0':
+    resolution: {integrity: sha512-DyruYlDaTi6RhdcarT+ppGNg+n2Jr+hvYLdF/RlJhAspSSFk5ptq+lcHgJZ/eQljH1xwZ5NE103oMJcjbDYnzw==}
+
   '@types/eslint-scope@3.7.7':
     resolution: {integrity: sha512-MzMFlSLBqNF2gcHWO0G1vP/YQyfvrxZ0bF+u7mzUdZ1/xK4A4sru+nraZz5i3iEIk1l1uyicaDVTB4QbbEkAYg==}
 
@@ -9137,9 +9147,6 @@ packages:
     engines: {node: '>=0.12.18'}
     hasBin: true
 
-  electron-to-chromium@1.5.267:
-    resolution: {integrity: sha512-0Drusm6MVRXSOJpGbaSVgcQsuB4hEkMpHXaVstcPmhu5LIedxs1xNK/nIxmQIU/RPC0+1/o0AVZfBTkTNJOdUw==}
-
   electron-to-chromium@1.5.372:
     resolution: {integrity: sha512-M3yhbAlilnwqC8D21t28UCDGHyitShTmmLRU/H+b74P6Ski16Nb9HONYEaVpMj/pwC7BEo5B95FpjODLCWbtfA==}
 
@@ -10090,7 +10097,7 @@ packages:
   git-semver-tags@5.0.1:
     resolution: {integrity: sha512-hIvOeZwRbQ+7YEUmCkHqo8FOLQZCEn18yevLHADlFPZY02KJGsu5FZt9YW/lybfK2uhWFI7Qg/07LekJiTv7iA==}
     engines: {node: '>=14'}
-    deprecated: This package is no longer maintained. For the JavaScript API, please use @conventional-changelog/git-client instead.
+    deprecated: Deprecated and no longer maintained. Use @conventional-changelog/git-client instead.
     hasBin: true
 
   git-up@7.0.0:
@@ -14433,9 +14440,6 @@ packages:
   streamx@2.22.1:
     resolution: {integrity: sha512-znKXEBxfatz2GBNK02kRnCXjV+AA4kjZIUxeWSr3UGirZMJfTE9uiwKHobnbgxWyL/JWro8tTq+vOqAK1/qbSA==}
 
-  streamx@2.23.0:
-    resolution: {integrity: sha512-kn+e44esVfn2Fa/O0CPFcex27fjIL6MkVae0Mm6q+E6f0hWv578YCERbv+4m02cjxvDsPKLnmxral/rR6lBMAg==}
-
   streamx@2.28.0:
     resolution: {integrity: sha512-1Yowhzjf0ivGMrTIkY9hav5TxobO9qIVqUE41fiCGMGgc3CLlf4MY+9AHmZqBWgDTue0fY9zWjYFVyf6Diuobw==}
 
@@ -18533,7 +18537,7 @@ snapshots:
       '@cucumber/ci-environment': 10.0.1
       '@cucumber/cucumber-expressions': 17.1.0
       '@cucumber/gherkin': 28.0.0
-      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@26.0.1))(@cucumber/messages@24.1.0)
+      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)
       '@cucumber/gherkin-utils': 9.0.0
       '@cucumber/html-formatter': 21.6.0(@cucumber/messages@24.1.0)
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -18573,7 +18577,7 @@ snapshots:
       yaml: 2.8.0
       yup: 1.2.0
 
-  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@26.0.1))(@cucumber/messages@24.1.0)':
+  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)':
     dependencies:
       '@cucumber/gherkin': 28.0.0
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -18802,6 +18806,7 @@ snapshots:
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - react-native-b4a
       - webpack
 
   '@docusaurus/mdx-loader@3.9.2(@swc/core@1.15.8)(acorn@8.17.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
@@ -19172,6 +19177,7 @@ snapshots:
       - debug
       - esbuild
       - lightningcss
+      - react-native-b4a
       - supports-color
       - typescript
       - uglify-js
@@ -20909,7 +20915,7 @@ snapshots:
 
   '@npmcli/fs@5.0.0':
     dependencies:
-      semver: 7.7.2
+      semver: 7.8.4
 
   '@npmcli/git@6.0.3':
     dependencies:
@@ -20919,7 +20925,7 @@ snapshots:
       npm-pick-manifest: 10.0.0
       proc-log: 5.0.0
       promise-retry: 2.0.1
-      semver: 7.7.2
+      semver: 7.8.4
       which: 5.0.0
 
   '@npmcli/git@7.0.2':
@@ -21458,6 +21464,7 @@ snapshots:
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - react-native-b4a
       - supports-color
 
   '@puppeteer/browsers@2.13.2':
@@ -22485,6 +22492,8 @@ snapshots:
 
   '@types/ejs@3.1.5': {}
 
+  '@types/electron-to-chromium@1.5.0': {}
+
   '@types/eslint-scope@3.7.7':
     dependencies:
       '@types/eslint': 9.6.1
@@ -23389,6 +23398,7 @@ snapshots:
       - bufferutil
       - expect-webdriverio
       - puppeteer-core
+      - react-native-b4a
       - supports-color
       - utf-8-validate
 
@@ -23403,6 +23413,7 @@ snapshots:
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - react-native-b4a
       - supports-color
 
   '@wdio/config@9.28.0':
@@ -23540,6 +23551,7 @@ snapshots:
       - bare-abort-controller
       - bare-buffer
       - bufferutil
+      - react-native-b4a
       - supports-color
       - utf-8-validate
 
@@ -23557,7 +23569,7 @@ snapshots:
 
   '@wdio/utils@9.16.2':
     dependencies:
-      '@puppeteer/browsers': 2.11.0
+      '@puppeteer/browsers': 2.13.2
       '@wdio/logger': 9.16.2
       '@wdio/types': 9.16.2
       decamelize: 6.0.0
@@ -23573,6 +23585,7 @@ snapshots:
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - react-native-b4a
       - supports-color
 
   '@wdio/utils@9.28.0':
@@ -24121,19 +24134,21 @@ snapshots:
 
   balanced-match@4.0.3: {}
 
-  bare-events@2.8.2: {}
+  bare-events@2.8.2:
+    optional: true
 
   bare-events@2.9.1: {}
 
   bare-fs@4.5.2:
     dependencies:
       bare-events: 2.8.2
-      bare-path: 3.0.0
+      bare-path: 3.0.1
       bare-stream: 2.7.0(bare-events@2.8.2)
       bare-url: 2.3.2
       fast-fifo: 1.3.2
     transitivePeerDependencies:
       - bare-abort-controller
+      - react-native-b4a
     optional: true
 
   bare-fs@4.7.2:
@@ -24173,16 +24188,17 @@ snapshots:
 
   bare-stream@2.7.0(bare-events@2.8.2):
     dependencies:
-      streamx: 2.23.0
+      streamx: 2.28.0
     optionalDependencies:
       bare-events: 2.8.2
     transitivePeerDependencies:
       - bare-abort-controller
+      - react-native-b4a
     optional: true
 
   bare-url@2.3.2:
     dependencies:
-      bare-path: 3.0.0
+      bare-path: 3.0.1
     optional: true
 
   bare-url@2.4.5:
@@ -24337,7 +24353,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.9.11
       caniuse-lite: 1.0.30001762
-      electron-to-chromium: 1.5.267
+      electron-to-chromium: 1.5.372
       node-releases: 2.0.27
       update-browserslist-db: 1.2.3(browserslist@4.28.1)
 
@@ -25012,7 +25028,7 @@ snapshots:
       handlebars: 4.7.9
       json-stringify-safe: 5.0.1
       meow: 8.1.2
-      semver: 7.7.2
+      semver: 7.8.4
       split: 1.0.1
 
   conventional-commits-filter@3.0.0:
@@ -25161,7 +25177,7 @@ snapshots:
       postcss-modules-scope: 3.2.1(postcss@8.5.6)
       postcss-modules-values: 4.0.0(postcss@8.5.6)
       postcss-value-parser: 4.2.0
-      semver: 7.7.4
+      semver: 7.8.4
     optionalDependencies:
       webpack: 5.99.9(@swc/core@1.15.8)
 
@@ -25702,8 +25718,6 @@ snapshots:
       jake: 10.9.2
 
   ejs@5.0.1: {}
-
-  electron-to-chromium@1.5.267: {}
 
   electron-to-chromium@1.5.372: {}
 
@@ -26351,7 +26365,7 @@ snapshots:
 
   events-universal@1.0.1:
     dependencies:
-      bare-events: 2.8.2
+      bare-events: 2.9.1
     transitivePeerDependencies:
       - bare-abort-controller
 
@@ -26914,11 +26928,12 @@ snapshots:
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
       node-fetch: 3.3.2
-      tar-fs: 3.1.1
+      tar-fs: 3.1.2
       which: 5.0.0
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - react-native-b4a
       - supports-color
 
   geckodriver@6.1.0:
@@ -26975,11 +26990,11 @@ snapshots:
 
   get-stream@4.1.0:
     dependencies:
-      pump: 3.0.3
+      pump: 3.0.4
 
   get-stream@5.2.0:
     dependencies:
-      pump: 3.0.3
+      pump: 3.0.4
 
   get-stream@6.0.0: {}
 
@@ -27034,7 +27049,7 @@ snapshots:
   git-semver-tags@5.0.1:
     dependencies:
       meow: 8.1.2
-      semver: 7.7.2
+      semver: 7.8.4
 
   git-up@7.0.0:
     dependencies:
@@ -29793,7 +29808,7 @@ snapshots:
       graceful-fs: 4.2.11
       nopt: 9.0.0
       proc-log: 6.1.0
-      semver: 7.7.2
+      semver: 7.8.4
       tar: 7.5.11
       tinyglobby: 0.2.17
       undici: 6.26.0
@@ -29847,7 +29862,7 @@ snapshots:
     dependencies:
       hosted-git-info: 4.1.0
       is-core-module: 2.16.2
-      semver: 7.7.2
+      semver: 7.8.4
       validate-npm-package-license: 3.0.4
 
   normalize-package-data@6.0.2:
@@ -29896,7 +29911,7 @@ snapshots:
     dependencies:
       hosted-git-info: 8.1.0
       proc-log: 5.0.0
-      semver: 7.7.2
+      semver: 7.8.4
       validate-npm-package-name: 6.0.2
 
   npm-package-arg@13.0.1:
@@ -29916,7 +29931,7 @@ snapshots:
       npm-install-checks: 7.1.2
       npm-normalize-package-bin: 4.0.0
       npm-package-arg: 12.0.2
-      semver: 7.7.2
+      semver: 7.8.4
 
   npm-pick-manifest@11.0.3:
     dependencies:
@@ -30326,7 +30341,7 @@ snapshots:
       got: 12.6.1
       registry-auth-token: 5.1.0
       registry-url: 6.0.1
-      semver: 7.7.4
+      semver: 7.8.4
 
   pacote@21.0.1:
     dependencies:
@@ -30778,7 +30793,7 @@ snapshots:
       cosmiconfig: 8.3.6(typescript@5.9.3)
       jiti: 1.21.7
       postcss: 8.5.6
-      semver: 7.7.4
+      semver: 7.8.4
       webpack: 5.99.9(@swc/core@1.15.8)
     transitivePeerDependencies:
       - typescript
@@ -31289,6 +31304,7 @@ snapshots:
       - bare-abort-controller
       - bare-buffer
       - bufferutil
+      - react-native-b4a
       - supports-color
       - utf-8-validate
 
@@ -32006,7 +32022,7 @@ snapshots:
 
   semver-diff@4.0.0:
     dependencies:
-      semver: 7.7.4
+      semver: 7.8.4
 
   semver@5.7.2: {}
 
@@ -32158,11 +32174,12 @@ snapshots:
       prebuild-install: 7.1.3
       semver: 7.8.4
       simple-get: 4.0.1
-      tar-fs: 3.1.1
+      tar-fs: 3.1.2
       tunnel-agent: 0.6.0
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - react-native-b4a
 
   shebang-command@2.0.0:
     dependencies:
@@ -32443,15 +32460,6 @@ snapshots:
     transitivePeerDependencies:
       - bare-abort-controller
 
-  streamx@2.23.0:
-    dependencies:
-      events-universal: 1.0.1
-      fast-fifo: 1.3.2
-      text-decoder: 1.2.3
-    transitivePeerDependencies:
-      - bare-abort-controller
-    optional: true
-
   streamx@2.28.0:
     dependencies:
       events-universal: 1.0.1
@@ -32715,7 +32723,7 @@ snapshots:
     dependencies:
       chownr: 1.1.4
       mkdirp-classic: 0.5.3
-      pump: 3.0.3
+      pump: 3.0.4
       tar-stream: 2.2.0
 
   tar-fs@3.1.1:
@@ -32728,6 +32736,7 @@ snapshots:
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - react-native-b4a
 
   tar-fs@3.1.2:
     dependencies:
@@ -33698,6 +33707,7 @@ snapshots:
       - bare-abort-controller
       - bare-buffer
       - bufferutil
+      - react-native-b4a
       - supports-color
       - utf-8-validate
 
@@ -33776,6 +33786,7 @@ snapshots:
       - bare-abort-controller
       - bare-buffer
       - bufferutil
+      - react-native-b4a
       - supports-color
       - utf-8-validate
 
