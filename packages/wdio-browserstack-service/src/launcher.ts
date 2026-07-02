@@ -46,7 +46,8 @@ import {
     validateCapsWithNonBstackA11y,
     mergeChromeOptions,
     isValidEnabledValue,
-    isMultiRemoteCaps
+    isMultiRemoteCaps,
+    validateSkipAppOverride
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -255,6 +256,15 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_PRE_TEST)
     async onPrepare (config: Options.Testrunner, capabilities: Capabilities.TestrunnerCapabilities | WebdriverIO.Capabilities) {
         PerformanceTester.start(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.INIT)
+
+        // skipAppOverride: emit the fixed warning once + handle the 3 edge cases before anything
+        // else. Runs once here in the launcher (main process). Edge-2 (explicit false + no app) is a
+        // deliberate pre-session config error, surfaced as SevereServiceError so the run aborts cleanly.
+        try {
+            validateSkipAppOverride(this._options)
+        } catch (error) {
+            throw new SevereServiceError((error as Error).message)
+        }
 
         // Send Funnel start request
         await sendStart(this.browserStackConfig)

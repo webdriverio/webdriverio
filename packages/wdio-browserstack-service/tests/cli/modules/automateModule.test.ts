@@ -35,7 +35,8 @@ vi.mock('../../../src/cli/cliLogger.js', () => ({
 }))
 
 vi.mock('../../../src/util.js', () => ({
-    isBrowserstackSession: vi.fn(() => true)
+    isBrowserstackSession: vi.fn(() => true),
+    isTrue: vi.fn((value) => (value + '').toLowerCase() === 'true')
 }))
 
 vi.mock('../../../src/instrumentation/performance/performance-tester.js', () => ({

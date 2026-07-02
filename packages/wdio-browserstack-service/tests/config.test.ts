@@ -54,6 +54,37 @@ describe('BrowserStackConfig appAutomate detection', () => {
         } as any)
         expect(cfg.appAutomate).toBe(true)
     })
+
+    it('marks app_automate when skipAppOverride is true even with no app and no app caps', () => {
+        const cfg = new BrowserStackConfig({ skipAppOverride: true } as any, baseConfig, [
+            { platformName: 'android', 'appium:deviceName': 'Samsung Galaxy S23 Ultra' },
+        ] as any)
+        expect(cfg.appAutomate).toBe(true)
+        expect(cfg.automate).toBe(false)
+    })
+
+    it('marks app_automate when skipAppOverride is the string "true" (3-state coercion)', () => {
+        const cfg = new BrowserStackConfig({ skipAppOverride: 'true' } as any, baseConfig, [
+            { platformName: 'android' },
+        ] as any)
+        expect(cfg.appAutomate).toBe(true)
+    })
+
+    it('does NOT force app_automate when skipAppOverride is false and caps are web-only', () => {
+        const cfg = new BrowserStackConfig({ skipAppOverride: false } as any, baseConfig, [
+            { browserName: 'chrome' },
+        ] as any)
+        expect(cfg.appAutomate).toBe(false)
+        expect(cfg.automate).toBe(true)
+    })
+
+    it('does not classify app_automate on an external grid even with skipAppOverride true', () => {
+        const cfg = new BrowserStackConfig({ skipAppOverride: true } as any, baseConfig, [
+            { platformName: 'android' },
+        ] as any, false)
+        expect(cfg.appAutomate).toBe(false)
+        expect(cfg.automate).toBe(false)
+    })
 })
 
 describe('BrowserStackConfig isBrowserStackInfra gating', () => {
