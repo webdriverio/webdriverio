@@ -402,6 +402,38 @@ describe('AutomateModule', () => {
         )
     })
 
+    it('routes markSessionName to the App Automate endpoint when skipAppOverride is true and no app is set', async () => {
+        (automateModule.config as any).app = undefined
+        ;(automateModule.config as any).skipAppOverride = true
+
+        vi.mocked(fetch).mockResolvedValue({
+            json: vi.fn().mockResolvedValue({ success: true })
+        } as any)
+
+        await automateModule.markSessionName('test-session-id', 'test-session-name', { user: 'testuser', key: 'testkey' })
+
+        expect(fetch).toHaveBeenCalledWith(
+            expect.stringContaining('app-automate/sessions'),
+            expect.any(Object)
+        )
+    })
+
+    it('routes markSessionStatus to the App Automate endpoint when skipAppOverride is true and no app is set', async () => {
+        (automateModule.config as any).app = undefined
+        ;(automateModule.config as any).skipAppOverride = true
+
+        vi.mocked(fetch).mockResolvedValue({
+            json: vi.fn().mockResolvedValue({ success: true })
+        } as any)
+
+        await automateModule.markSessionStatus('test-session-id', 'passed', undefined, { user: 'testuser', key: 'testkey' })
+
+        expect(fetch).toHaveBeenCalledWith(
+            expect.stringContaining('app-automate/sessions'),
+            expect.objectContaining({ method: 'PUT' })
+        )
+    })
+
     it('should handle onBeforeTest with skipSessionName enabled', async () => {
         const configWithSkip = {
             ...mockConfig,
