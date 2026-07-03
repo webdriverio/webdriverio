@@ -702,6 +702,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._printSessionURL()
     }
     _isAppAutomate(): boolean {
+        // `skipAppOverride: true` is an App Automate run where the app cap may be supplied by the
+        // user (or via BROWSERSTACK_APP_ID) rather than an injected `appium:app`. This worker-local
+        // check has no access to BrowserStackConfig, so honor the option directly — otherwise the
+        // session mis-routes to the Automate endpoint and a11y/insights misclassify.
+        if (isTrue(this._options.skipAppOverride)) {
+            return true
+        }
         const browserDesiredCapabilities = (this._browser?.capabilities ?? {}) as Capabilities.DesiredCapabilities
         const desiredCapabilities = (this._caps ?? {})  as Capabilities.DesiredCapabilities
         return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!(( desiredCapabilities as any)['appium:options']?.app)

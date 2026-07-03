@@ -1,7 +1,7 @@
 import type { AppConfig, BrowserstackConfig } from './types.js'
 import type { Options } from '@wdio/types'
 import TestOpsConfig from './testOps/testOpsConfig.js'
-import { isUndefined } from './util.js'
+import { isTrue, isUndefined } from './util.js'
 import { v4 as uuidv4 } from 'uuid'
 import { BStackLogger } from './bstackLogger.js'
 
@@ -40,7 +40,10 @@ class BrowserStackConfig {
         this.percy = options.percy || false
         this.accessibility = options.accessibility !== undefined ? options.accessibility : null
         this.app = options.app
-        this.appAutomate = !isUndefined(options.app)
+        // `skipAppOverride: true` marks an App Automate run even when no `app` is set — the user
+        // supplies the app themselves (driver cap / BROWSERSTACK_APP_ID), so classification must
+        // not depend on an app value being present. Mirrors isAppAutomateSession() in the Node SDK.
+        this.appAutomate = !isUndefined(options.app) || isTrue(options.skipAppOverride)
         this.automate = !this.appAutomate
         this.buildIdentifier = options.buildIdentifier
         this.sdkRunID = uuidv4()

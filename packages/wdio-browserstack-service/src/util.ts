@@ -1389,6 +1389,50 @@ export function isFalse(value?: any) {
     return (value + '').toLowerCase() === 'false'
 }
 
+/**
+ * skipAppOverride validation chokepoint — ported from the Node SDK's
+ * validateSkipAppOverride (helper.js) / Java BrowserStackJavaAgent.processAppOptions.
+ * Called ONCE from the launcher (main process, pre-session). Emits the fixed warning,
+ * handles the three edge cases, and clears the app on conflict so it is neither uploaded
+ * nor injected. There is NO Tier-2 branch: every WebdriverIO test framework
+ * (mocha/jasmine/cucumber) supports App Automate.
+ *
+ * Warning/edge strings are the locked cross-SDK contract (verbatim vs Java :636/643/651).
+ * Graceful: never throws except the deliberate edge-2 config error (explicit false + no app),
+ * which fires pre-session so the run aborts cleanly.
+ *
+ * Mutates `options.app` (edge-1). 3-state via isTrue/isFalse — never `!options.skipAppOverride`.
+ */
+export function validateSkipAppOverride(options?: BrowserstackConfig) {
+    if (isUndefined(options)) {
+        return
+    }
+
+    const skipAppOverride = (options as BrowserstackConfig).skipAppOverride
+    const alreadyWarned = isTrue(process.env.BROWSERSTACK_SKIP_APP_OVERRIDE_WARNED)
+
+    // Standard warning — fires whenever skipAppOverride is true, before any edge return.
+    if (isTrue(skipAppOverride) && !alreadyWarned) {
+        BStackLogger.warn('[BrowserStack] \'skipAppOverride: true\' is set. The SDK will treat this session as App Automate and will NOT manage app upload or inject app capabilities. If you intended to run an Automate (browser/website) session, remove \'skipAppOverride\' — leaving it set will cause Automate sessions to behave incorrectly.')
+        process.env.BROWSERSTACK_SKIP_APP_OVERRIDE_WARNED = 'true'
+    }
+
+    // Edge 1: app specified + skipAppOverride:true → warn, clear the app so it is not
+    // uploaded/injected, proceed App Automate.
+    if (isTrue(skipAppOverride) && !isUndefined((options as BrowserstackConfig).app)) {
+        BStackLogger.warn('Conflict detected. skipAppOverride: true is active; ignoring the app provided in the browserstack service options.')
+        ;(options as BrowserstackConfig).app = undefined
+        return
+    }
+
+    // Edge 2: app not specified + skipAppOverride explicitly false → pre-session config error.
+    if (isFalse(skipAppOverride) && isUndefined((options as BrowserstackConfig).app)) {
+        throw new Error('App capability is missing. When skipAppOverride is set to \'false\', a valid app capability (hash/shareable id/path/custom_id) must be provided.')
+    }
+
+    // Edge 3 (and default): unset + no app → unchanged behavior (no-op).
+}
+
 export function frameworkSupportsHook(hook: string, framework?: string) {
     if (framework === 'mocha' && (hook === 'before' || hook === 'after' || hook === 'beforeEach' || hook === 'afterEach')) {
         return true
