@@ -19,6 +19,8 @@ import {
     getUniqueIdentifier,
     getUniqueIdentifierForCucumber,
     isBrowserstackSession,
+    isLoadTestingSession,
+    getLtsSessionId,
     isScreenshotCommand,
     isUndefined,
     o11yClassErrorHandler,
@@ -66,12 +68,32 @@ class _InsightsHandler {
     public currentTestId: string | undefined
     public cbtQueue: Array<CBTData> = []
 
+    // LTS gates cached at construction. Env vars are stable for the JVM/process
+    // lifetime — recomputing on every event was 6 process.env reads per test
+    // event (5 inline ternaries across getRunData/cucumber paths + 1 in
+    // getIntegrationsObject). Cache once + reuse.
+    private readonly _ltsActive: boolean
+    private readonly _ltsSessionId: string
+
     constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, private _framework?: string, _userCaps?: Capabilities.ResolvedTestrunnerCapabilities, _options?: BrowserstackConfig & BrowserstackOptions) {
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
         const sessionId = (this._browser as WebdriverIO.Browser).sessionId
 
         this._userCaps = _userCaps
         this._options = _options
+
+        this._ltsActive = isLoadTestingSession()
+        this._ltsSessionId = this._ltsActive ? getLtsSessionId() : ''
+        // One-time misconfig warning: BROWSERSTACK_LTS=true is the documented
+        // local-repro opt-in flag, but without BROWSERSTACK_LTS_SESSION_ID
+        // (which the LTS pod infrastructure normally injects), event emission
+        // will pair product='loadTesting' with the WebDriver-assigned
+        // session_id rather than the pod-iteration id. Backend won't be able
+        // to correlate the row to an LTS pod iteration. Surface the
+        // misconfiguration once instead of silently shipping mismatched rows.
+        if (this._ltsActive && !this._ltsSessionId) {
+            BStackLogger.warn('LTS active (BROWSERSTACK_LTS=true) but BROWSERSTACK_LTS_SESSION_ID is not set — event payload will pair product=loadTesting with WebDriver-assigned session_id rather than the pod-iteration id. Set BROWSERSTACK_LTS_SESSION_ID to silence this warning.')
+        }
 
         this._platformMeta = {
             browserName: caps?.browserName,
@@ -270,7 +292,13 @@ class _InsightsHandler {
 
         this._tests[fullTitle] = {
             uuid: hookUUID,
-            startedAt: (new Date()).toISOString()
+            startedAt: (new Date()).toISOString(),
+            // Tag as a hook and stash identity so a teardown sweep can synthesise a terminal
+            // HookRunFinished if this hook never returns (e.g. a hang with timeouts disabled).
+            kind: 'hook',
+            name: test.title || test.description,
+            scopes: this.getHierarchy(test),
+            fileName: test.file || this._suiteFile
         }
         this.setCurrentHook({ uuid: hookUUID })
         this.attachHookData(context, hookUUID)
@@ -297,7 +325,17 @@ class _InsightsHandler {
         }
 
         this.setCurrentHook({ uuid: this._tests[fullTitle].uuid, finished: true })
-        this.listener.hookFinished(this.getRunData(test, 'HookRunFinished', result))
+        const hookData = this.getRunData(test, 'HookRunFinished', result)
+        // never emit a finish with a null/undefined uuid — the backend cannot match it to a
+        // HookRunStarted, leaving the hook orphaned. Same guard as afterTest: a missing entry
+        // (mislabelled identity upstream) degrades getRunData to an empty meta with no uuid.
+        // The skip-propagation below seeds its own fresh uuids per skipped test, so it stays
+        // outside the guard.
+        if (hookData.uuid) {
+            this.listener.hookFinished(hookData)
+        } else {
+            BStackLogger.warn(`Skipping HookRunFinished for '${fullTitle}' — resolved uuid is missing; not emitting an unmatched finish.`)
+        }
 
         const hookType = getHookType(test.title)
         /*
@@ -375,7 +413,8 @@ class _InsightsHandler {
         if (eventType === 'HookRunStarted') {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
-                const provider = getCloudProvider(this._browser)
+                // LTS reporter override (see getCloudProvider note in util.ts)
+                const provider = this._ltsActive ? 'browserstack' : getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
             }
         }
@@ -394,7 +433,13 @@ class _InsightsHandler {
         const fullTitle = getUniqueIdentifier(test, this._framework)
         this._tests[fullTitle] = {
             uuid,
-            startedAt: (new Date()).toISOString()
+            startedAt: (new Date()).toISOString(),
+            // Tag as a test and stash identity so a teardown sweep can synthesise a terminal
+            // TestRunFinished if this test never reaches afterTest (e.g. mocha advanced past a hang).
+            kind: 'test',
+            name: test.title || test.description,
+            scopes: this.getHierarchy(test),
+            fileName: test.file || this._suiteFile
         }
         this.listener.testStarted(this.getRunData(test, 'TestRunStarted'))
     }
@@ -410,6 +455,14 @@ class _InsightsHandler {
         }
         this.flushCBTDataQueue()
         const testData = this.getRunData(test, 'TestRunFinished', result)
+        // never emit a finish with a null/undefined uuid — the backend cannot match it to
+        // a TestRunStarted, leaving the started test orphaned (status_stats in_progress). The
+        // snapshotted-identity correlation in service.ts (afterTest trusts originalTest) should
+        // prevent this; this guard is defence-in-depth.
+        if (!testData.uuid) {
+            BStackLogger.warn(`Skipping TestRunFinished for '${getUniqueIdentifier(test, this._framework)}' — resolved uuid is missing; not emitting an unmatched finish.`)
+            return
+        }
         this.listener.testFinished(testData)
         const testFinishHashCode = generateHashCodeFromFields(
             [
@@ -424,6 +477,117 @@ class _InsightsHandler {
             ]
         )
         TestReporter.hashCodeToHandleTestSkip[testFinishHashCode] = testData.uuid ?? ''
+    }
+
+    /**
+     * Teardown safety net: synthesise a terminal finish for any started-but-unfinished
+     * test/hook so the backend closes the entity instead of leaving it in_progress and
+     * letting the build watchdog inflate the duration.
+     *
+     * Scoped to mocha. Cucumber hooks are keyed differently (getCucumberHookUniqueId) and
+     * their lifecycle differs, so they are intentionally left out here — closing them safely
+     * would need cucumber-specific keying and is a known gap for a follow-up.
+     *
+     * Each entry was tagged with kind at start time so we emit HookRunFinished for hooks and
+     * TestRunFinished for tests without re-deriving the kind from the title. Entries without a
+     * uuid are skipped (same null-uuid guard as afterTest): a finish the backend can't match to a
+     * start is worse than none. The result is marked failed/incomplete via getFailureObject so the
+     * entity lands in a terminal state rather than pending.
+     */
+    public async sweepUnfinished() {
+        if (this._framework !== 'mocha') {
+            return
+        }
+
+        for (const fullTitle of Object.keys(this._tests)) {
+            const meta = this._tests[fullTitle]
+            // Already finished, or no kind tag — nothing to sweep.
+            //
+            // Kind-less entries are CLI/gRPC-path tests seeded by setTestData (cucumber/legacy
+            // entries are also kind-less and skipped for the same reason). A CLI-path test's
+            // test_run lifecycle is owned by the binary (trackEvent -> gRPC -> stopBinSession), NOT
+            // the JS listener pipeline this sweep emits on. Sweeping them would double-emit a finish
+            // on a transport that never opened them, so they are correctly skipped here. Any genuine
+            // CLI-path orphan is a binary-side concern.
+            if (!meta || meta.finishedAt || (meta.kind !== 'hook' && meta.kind !== 'test')) {
+                continue
+            }
+            // Only sweep entries that actually started.
+            if (!meta.startedAt) {
+                continue
+            }
+            // Never emit a finish with a missing uuid — the backend cannot match it to a start,
+            // which would orphan the entity rather than close it.
+            if (!meta.uuid) {
+                BStackLogger.warn('Skipping synthetic finish for ' + fullTitle + ' — stashed uuid is missing.')
+                continue
+            }
+
+            // Stamp the finish time into a local and build the payload from it. We only mark the
+            // stashed meta as finished AFTER the listener call succeeds — if the emit throws, the
+            // entry must stay unfinished so a later pass does not skip (and silently re-orphan) the
+            // exact entity this sweep exists to close.
+            const finishedAt = (new Date()).toISOString()
+            try {
+                const testData = this.buildSweepFinishData(fullTitle, meta, finishedAt)
+
+                if (meta.kind === 'hook') {
+                    this.listener.hookFinished(testData)
+                } else {
+                    this.listener.testFinished(testData)
+                }
+                meta.finishedAt = finishedAt
+                BStackLogger.debug('Emitted synthetic ' + (meta.kind === 'hook' ? 'HookRunFinished' : 'TestRunFinished') + ' for unfinished ' + fullTitle + '.')
+            } catch (err) {
+                // A failed emit means the orphan is still open — that is a persisted orphan, so warn.
+                // The entry is left unstamped on purpose; per-item isolation keeps the loop sweeping
+                // the remaining entries.
+                BStackLogger.warn('Failed to emit synthetic finish while sweeping unfinished ' + fullTitle + ': ' + err)
+            }
+        }
+    }
+
+    /**
+     * Build a terminal (failed/incomplete) finish payload for a swept entry directly from the
+     * stashed TestMeta, since the live framework test object is no longer available at teardown.
+     */
+    private buildSweepFinishData(fullTitle: string, meta: TestMeta, finishedAt: string): TestData {
+        const filename = meta.fileName
+        const testData: TestData = {
+            uuid: meta.uuid,
+            type: meta.kind === 'hook' ? 'hook' : 'test',
+            name: meta.name,
+            body: {
+                lang: 'webdriverio',
+                code: null
+            },
+            scope: fullTitle,
+            scopes: meta.scopes,
+            identifier: fullTitle,
+            file_name: filename ? path.relative(process.cwd(), filename) : undefined,
+            location: filename ? path.relative(process.cwd(), filename) : undefined,
+            vc_filepath: (this._gitConfigPath && filename) ? path.relative(this._gitConfigPath, filename) : undefined,
+            started_at: meta.startedAt,
+            finished_at: finishedAt,
+            framework: this._framework,
+            // getFailureObject only returns failure/failure_reason/failure_type — never a result
+            // key — but set result AFTER the spread so the synthetic 'failed' status stays
+            // authoritative even if that ever changes.
+            ...getFailureObject(new Error('Test/hook did not finish before the session ended (incomplete).')),
+            result: 'failed'
+        }
+
+        testData.integrations = {}
+        if (this._browser && this._platformMeta) {
+            const provider = getCloudProvider(this._browser)
+            testData.integrations[provider] = this.getIntegrationsObject()
+        }
+
+        if (meta.kind === 'hook') {
+            testData.hook_type = meta.name ? getHookType(meta.name.toLowerCase()) : 'undefined'
+        }
+
+        return testData
     }
 
     /**
@@ -682,7 +846,10 @@ class _InsightsHandler {
 
     private getRunData (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
         const fullTitle = getUniqueIdentifier(test, this._framework)
-        const testMetaData = this._tests[fullTitle]
+        // never let a missing meta entry crash the finish (which would silently drop the
+        // event and orphan the test). A start always seeds this._tests[fullTitle]; if it is absent
+        // here the identity was mislabelled upstream — degrade gracefully with an empty meta.
+        const testMetaData = this._tests[fullTitle] || ({} as TestMeta)
 
         const filename = test.file || this._suiteFile
         this.currentTestId = testMetaData.uuid
@@ -714,7 +881,8 @@ class _InsightsHandler {
         if ((eventType === 'TestRunFinished' || eventType === 'HookRunFinished') && results) {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
-                const provider = getCloudProvider(this._browser)
+                // LTS reporter override (see getCloudProvider note in util.ts)
+                const provider = this._ltsActive ? 'browserstack' : getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
             }
             const { error, passed } = results
@@ -748,7 +916,8 @@ class _InsightsHandler {
         if (eventType === 'TestRunStarted' || eventType === 'TestRunSkipped' || eventType === 'HookRunStarted') {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
-                const provider = getCloudProvider(this._browser)
+                // LTS reporter override (see getCloudProvider note in util.ts)
+                const provider = this._ltsActive ? 'browserstack' : getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
             }
         }
@@ -858,7 +1027,8 @@ class _InsightsHandler {
         if (eventType === 'TestRunStarted' || eventType === 'TestRunSkipped') {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
-                const provider = getCloudProvider(this._browser)
+                // LTS reporter override (see getCloudProvider note in util.ts)
+                const provider = this._ltsActive ? 'browserstack' : getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
             }
         }
@@ -925,7 +1095,8 @@ class _InsightsHandler {
         const integrationsData: Record<string, IntegrationObject> = {}
 
         if (this._browser && this._platformMeta) {
-            const provider = getCloudProvider(this._browser) as keyof IntegrationObject
+            // LTS reporter override (see getCloudProvider note in util.ts)
+            const provider = (this._ltsActive ? 'browserstack' : getCloudProvider(this._browser)) as keyof IntegrationObject
             integrationsData[provider] = this.getIntegrationsObject()
         }
 
@@ -950,13 +1121,19 @@ class _InsightsHandler {
         BStackLogger.debug(`Driver capabilities used for integration object: ${JSON.stringify(caps)}`)
         BStackLogger.debug(`User capabilities used for integration object: ${JSON.stringify(this._userCaps)}`)
 
+        // LTS: override session_id with the pod-iteration LTS env id and
+        // force product='loadTesting' so TestHub's o11y classifier resolves
+        // test_run.origin=LoadTesting. Mirrors py-sdk 0efca1ae (session_id
+        // override at event-emission layer) + a245a814 (product=loadTesting
+        // tag on AutomationSession). Non-LTS runs see zero behavior change.
+        // ltsActive + ltsSessionId are cached at construction (see constructor).
         return {
             capabilities: caps,
-            session_id: sessionId,
+            session_id: (this._ltsActive && this._ltsSessionId) ? this._ltsSessionId : sessionId,
             browser: caps?.browserName,
             browser_version: caps?.browserVersion,
             platform: caps?.platformName,
-            product: this._platformMeta?.product,
+            product: this._ltsActive ? 'loadTesting' : this._platformMeta?.product,
             platform_version: getPlatformVersion(caps, this._userCaps as WebdriverIO.Capabilities),
             device: getResolvedDeviceName(caps, this._userCaps as WebdriverIO.Capabilities)
         }

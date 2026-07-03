@@ -401,9 +401,9 @@ export interface BrowsingContextPrintParameters {
     shrinkToFit?: boolean;
 }
 
-export // Minimum size is 1pt x 1pt. Conversion follows from
+// Minimum size is 1pt x 1pt. Conversion follows from
 // https://www.w3.org/TR/css3-values/#absolute-lengths
-interface BrowsingContextPrintMarginParameters {
+export interface BrowsingContextPrintMarginParameters {
     /**
    * @default 1
    */
@@ -480,10 +480,6 @@ export interface BrowsingContextStartScreencast {
 export interface BrowsingContextStartScreencastParameters {
     context: BrowsingContextBrowsingContext;
     mimeType?: string;
-    streamOptions?: BrowsingContextMediaStreamOptions;
-}
-
-export interface BrowsingContextMediaStreamOptions {
     video?: BrowsingContextMediaTrackConstraints;
     audio?: boolean;
 }
@@ -493,6 +489,8 @@ export interface BrowsingContextMediaTrackConstraints {
     height?: JsUint;
     frameRate?: JsUint;
 }
+
+export type BrowsingContextScreencast = string
 
 export interface BrowsingContextStopScreencast {
     method: 'browsingContext.stopScreencast';
@@ -1015,7 +1013,7 @@ export interface ScriptUndefinedValue {
 }
 
 export interface ScriptNullValue {
-    type: null;
+    type: 'null';
 }
 
 export interface ScriptStringValue {
@@ -1565,6 +1563,3 @@ export interface WebExtensionUninstall {
 export interface WebExtensionUninstallParameters {
     extension: WebExtensionExtension;
 }
-
-// Fix merged but CDDL not yet updated. See https://github.com/w3c/webdriver-bidi/pull/1126
-export type BrowsingContextScreencast = string

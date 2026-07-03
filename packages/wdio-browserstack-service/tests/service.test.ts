@@ -9,6 +9,8 @@ import * as utils from '../src/util.js'
 import InsightsHandler from '../src/insights-handler.js'
 import * as bstackLogger from '../src/bstackLogger.js'
 import { BrowserstackCLI } from '../src/cli/index.js'
+import TestFramework from '../src/cli/frameworks/testFramework.js'
+import { TestFrameworkConstants } from '../src/cli/frameworks/constants/testFrameworkConstants.js'
 
 const jasmineSuiteTitle = 'Jasmine__TopLevel__Suite'
 const sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -53,6 +55,8 @@ vi.mock('../src/instrumentation/performance/performance-tester.js', () => ({
         end: vi.fn(),
         startMonitoring: vi.fn(),
         measureWrapper: vi.fn().mockImplementation((_name: string, fn: Function) => fn),
+        stopAndGenerate: vi.fn().mockResolvedValue(undefined),
+        calculateTimes: vi.fn(),
         Measure: vi.fn().mockImplementation(() => (_target: any, _propertyKey: string, descriptor: PropertyDescriptor) => descriptor),
         browser: undefined,
         scenarioThatRan: [],
@@ -979,6 +983,247 @@ describe('afterTest', () => {
 
         expect(service['_fullTitle']).toBe('bar2 - foo2')
         expect(service['_failReasons']).toEqual([])
+    })
+})
+
+describe('afterTest timed-out-test correlation', () => {
+    /**
+     * afterTest trusts `originalTest` directly as the finishing identity. On a timeout the wdio
+     * adapter would otherwise read a stale `context.test` (mocha advances its internal pointer to
+     * the NEXT test before the late afterTest fires), but the testFnWrapper snapshots the runnable
+     * identity BEFORE awaiting the spec body, so the identity already reaching afterTest as
+     * `originalTest` is the timed-out runnable's OWN identity, not the next test's. The
+     * upstream-snapshot proof lives in wdio-utils' testFnWrapper-async.test.ts ('emits the
+     * after-hook with the identity captured BEFORE the await'); here we just assert afterTest
+     * forwards that identity unchanged so the timed-out test is finished, not orphaned.
+     */
+    it('finishes the test it is given (originalTest) even when that finish is a timeout', async () => {
+        service = new BrowserstackService(
+            { testObservability: true } as any,
+            [] as any,
+            { user: 'foo', key: 'bar', framework: 'mocha' } as any
+        )
+        const finished: string[] = []
+        const insightsHandler = {
+            beforeTest: vi.fn(),
+            afterTest: vi.fn((test: any) => { finished.push(test.title) })
+        }
+        service['_insightsHandler'] = insightsHandler as any
+
+        // The snapshotted identity of the runnable that actually started (and then timed out).
+        const timedOut = { title: 'P0 hangs', parent: 'suite' }
+
+        await service.beforeTest(timedOut as any)
+        await service.afterTest(
+            timedOut as any,
+            undefined as never,
+            { passed: false, error: { message: 'Timeout' }, duration: 1, retries: { attempts: 0, limit: 0 } } as any
+        )
+
+        // The finish carries P0's identity (its own uuid downstream), so the timed-out test is finished.
+        expect(insightsHandler.afterTest).toHaveBeenCalledTimes(1)
+        expect(insightsHandler.afterTest.mock.calls[0][0].title).toBe('P0 hangs')
+        expect(finished).toEqual(['P0 hangs'])
+    })
+
+    it('passes the identity through unchanged in the healthy (correctly-labelled) case', async () => {
+        service = new BrowserstackService(
+            { testObservability: true } as any,
+            [] as any,
+            { user: 'foo', key: 'bar', framework: 'mocha' } as any
+        )
+        const insightsHandler = { beforeTest: vi.fn(), afterTest: vi.fn() }
+        service['_insightsHandler'] = insightsHandler as any
+
+        const t = { title: 'clean', parent: 'suite' }
+        await service.beforeTest(t as any)
+        await service.afterTest(
+            t as any,
+            undefined as never,
+            { passed: true, duration: 1, retries: { attempts: 0, limit: 0 } } as any
+        )
+
+        expect(insightsHandler.afterTest.mock.calls[0][0].title).toBe('clean')
+    })
+
+    /**
+     * CLI/gRPC path. The CLI test-finish reads test_uuid from a single mutable per-worker tracked
+     * instance that a later INIT_TEST overwrites with the NEXT test's uuid. afterTest restores the
+     * finishing test's uuid by keying _cliTestUuids off getUniqueIdentifier(originalTest) — so the
+     * timed-out test's finish carries ITS uuid, not the next test's. P0 mints uuid-P0; P1's
+     * INIT_TEST overwrites the tracked slot; afterTest(P0) must restore uuid-P0.
+     */
+    it('CLI path: restores the finishing test\'s uuid keyed by getUniqueIdentifier(originalTest)', async () => {
+        service = new BrowserstackService(
+            { testObservability: true } as any,
+            [] as any,
+            { user: 'foo', key: 'bar', framework: 'mocha' } as any
+        )
+
+        const cliGetInstanceSpy = vi.spyOn(BrowserstackCLI, 'getInstance').mockReturnValue({
+            isRunning: () => true,
+            getTestFramework: () => ({ trackEvent: vi.fn().mockResolvedValue(undefined) })
+        } as any)
+        const getTrackedInstanceSpy = vi.spyOn(TestFramework, 'getTrackedInstance').mockReturnValue({} as any)
+        const setStateSpy = vi.spyOn(TestFramework, 'setState').mockReturnValue(undefined as any)
+
+        try {
+            // P0 started and timed out; the snapshotted identity that reaches afterTest is P0's own.
+            const originalTest = { title: 'P0 hangs', parent: 'suite' }
+            // P0's minted uuid was snapshotted in beforeTest, keyed by its identity. (P1's INIT_TEST
+            // has since overwritten the single tracked slot, which is exactly why we restore here.)
+            const key = utils.getUniqueIdentifier(originalTest as any, 'mocha')
+            service['_cliTestUuids'] = new Map([[key, 'uuid-P0']])
+
+            await service.afterTest(
+                originalTest as any,
+                undefined as never,
+                { passed: false, error: { message: 'Timeout' }, duration: 1, retries: { attempts: 0, limit: 0 } } as any
+            )
+
+            // The restore keyed off getUniqueIdentifier(originalTest), so uuid-P0 (not the next
+            // test's uuid) is written back onto the tracked instance before the finish POST.
+            expect(setStateSpy).toHaveBeenCalledWith(expect.anything(), TestFrameworkConstants.KEY_TEST_UUID, 'uuid-P0')
+            // and the consumed entry is cleaned up so the per-worker map does not grow.
+            expect(service['_cliTestUuids'].has(key)).toBe(false)
+        } finally {
+            cliGetInstanceSpy.mockRestore()
+            getTrackedInstanceSpy.mockRestore()
+            setStateSpy.mockRestore()
+        }
+    })
+})
+
+describe('teardown sweep of unfinished test/hook entries', () => {
+    const mochaBrowser = {
+        sessionId: 'session123',
+        config: {},
+        capabilities: { browserName: 'chrome' },
+        execute: vi.fn(),
+        on: vi.fn(),
+    } as any
+
+    it('emits exactly one synthetic HookRunFinished with the stashed hookUUID for an unfinished hook', async () => {
+        const handler = new InsightsHandler(mochaBrowser, 'mocha')
+        const hookFinishedSpy = vi.spyOn(handler['listener'], 'hookFinished').mockImplementation(() => {})
+        const hookStartedSpy = vi.spyOn(handler['listener'], 'hookStarted').mockImplementation(() => {})
+
+        const hook = { title: 'before each hook', parent: { title: 'suite' }, type: 'hook' } as any
+        await handler.beforeHook(hook, {})
+        // intentionally no afterHook -> entry stays unfinished
+        expect(hookStartedSpy).toHaveBeenCalledTimes(1)
+
+        const stashedUuid = handler['_tests']['suite - before each hook'].uuid
+
+        await handler.sweepUnfinished()
+
+        expect(hookFinishedSpy).toHaveBeenCalledTimes(1)
+        const emitted = hookFinishedSpy.mock.calls[0][0]
+        expect(emitted.uuid).toBe(stashedUuid)
+        expect(emitted.type).toBe('hook')
+        expect(emitted.result).toBe('failed')
+        expect(emitted.finished_at).toBeDefined()
+    })
+
+    it('emits a synthetic TestRunFinished with the stashed uuid for an unfinished test', async () => {
+        const handler = new InsightsHandler(mochaBrowser, 'mocha')
+        const testFinishedSpy = vi.spyOn(handler['listener'], 'testFinished').mockImplementation(() => {})
+        vi.spyOn(handler['listener'], 'testStarted').mockImplementation(() => {})
+
+        const test = { title: 'a hanging test', parent: { title: 'suite' }, type: 'test' } as any
+        await handler.beforeTest(test)
+        // intentionally no afterTest -> entry stays unfinished
+        const stashedUuid = handler['_tests']['suite - a hanging test'].uuid
+
+        await handler.sweepUnfinished()
+
+        expect(testFinishedSpy).toHaveBeenCalledTimes(1)
+        const emitted = testFinishedSpy.mock.calls[0][0]
+        expect(emitted.uuid).toBe(stashedUuid)
+        expect(emitted.type).toBe('test')
+        expect(emitted.result).toBe('failed')
+    })
+
+    it('does not re-finish an entry that already completed', async () => {
+        const handler = new InsightsHandler(mochaBrowser, 'mocha')
+        const testFinishedSpy = vi.spyOn(handler['listener'], 'testFinished').mockImplementation(() => {})
+        vi.spyOn(handler['listener'], 'testStarted').mockImplementation(() => {})
+
+        const test = { title: 'completed test', parent: { title: 'suite' }, type: 'test' } as any
+        await handler.beforeTest(test)
+        // simulate a normal finish having stamped finishedAt
+        handler['_tests']['suite - completed test'].finishedAt = (new Date()).toISOString()
+
+        await handler.sweepUnfinished()
+        expect(testFinishedSpy).not.toHaveBeenCalled()
+    })
+
+    it('runs the sweep before onWorkerEnd / batcher teardown in service.after()', async () => {
+        service = new BrowserstackService(
+            { testObservability: true } as any,
+            [] as any,
+            { user: 'foo', key: 'bar', framework: 'mocha' } as any
+        )
+        const order: string[] = []
+        const insightsHandler = {
+            sweepUnfinished: vi.fn(async () => { order.push('sweep') })
+        }
+        service['_insightsHandler'] = insightsHandler as any
+
+        const ListenerModule = await import('../src/testOps/listener.js')
+        const onWorkerEndSpy = vi
+            .spyOn(ListenerModule.default.getInstance(), 'onWorkerEnd')
+            .mockImplementation(async () => { order.push('onWorkerEnd'); return undefined as any })
+
+        await service.after(0)
+
+        expect(insightsHandler.sweepUnfinished).toHaveBeenCalledTimes(1)
+        expect(order).toEqual(['sweep', 'onWorkerEnd'])
+        onWorkerEndSpy.mockRestore()
+    })
+
+    it('leaves an entry unfinished and warns when the listener throws, and still sweeps the rest', async () => {
+        const handler = new InsightsHandler(mochaBrowser, 'mocha')
+        vi.spyOn(handler['listener'], 'testStarted').mockImplementation(() => {})
+        const warnSpy = vi.spyOn(bstackLogger.BStackLogger, 'warn').mockImplementation(() => {})
+
+        const first = { title: 'throws on finish', parent: { title: 'suite' }, type: 'test' } as any
+        const second = { title: 'sweeps fine', parent: { title: 'suite' }, type: 'test' } as any
+        await handler.beforeTest(first)
+        await handler.beforeTest(second)
+
+        const testFinishedSpy = vi.spyOn(handler['listener'], 'testFinished').mockImplementation((data: any) => {
+            if (data.identifier === 'suite - throws on finish') {
+                throw new Error('listener boom')
+            }
+        })
+
+        await handler.sweepUnfinished()
+
+        // the throwing entry must stay unfinished so a later pass does not skip (re-orphan) it
+        expect(handler['_tests']['suite - throws on finish'].finishedAt).toBeUndefined()
+        // per-item isolation: the second entry is still swept and stamped
+        expect(handler['_tests']['suite - sweeps fine'].finishedAt).toBeDefined()
+        // the failed emit is surfaced at warn, not debug
+        expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to emit synthetic finish while sweeping unfinished suite - throws on finish'))
+        expect(testFinishedSpy).toHaveBeenCalledTimes(2)
+
+        warnSpy.mockRestore()
+    })
+
+    it('drains _cliTestUuids after the sweep in after()', async () => {
+        service = new BrowserstackService(
+            { testObservability: true } as any,
+            [] as any,
+            { user: 'foo', key: 'bar', framework: 'mocha' } as any
+        )
+        service['_insightsHandler'] = { sweepUnfinished: vi.fn(async () => {}) } as any
+        // simulate a stale uuid snapshot from a timeout cycle where afterTest never drained it
+        service['_cliTestUuids'] = new Map([['suite - hung test', 'uuid-1']])
+
+        await service.after(0)
+
+        expect(service['_cliTestUuids'].size).toBe(0)
     })
 })
 
