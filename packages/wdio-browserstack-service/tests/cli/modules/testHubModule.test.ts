@@ -151,7 +151,7 @@ describe('TestHubModule', () => {
             vi.mocked(AutomationFramework.getTrackedInstance).mockReturnValue(mockAutomationInstance)
             // live session differs from the last reported one => a reloadSession() happened
             vi.mocked(AutomationFramework.getDriver).mockReturnValue({ sessionId: 'reloaded-session' } as any)
-            testHubModule['_lastReportedSessionId'] = 'first-session'
+            testHubModule['_lastReportedSessionId'].set('auto-ref', 'first-session')
             const sendTestSessionEventSpy = vi.spyOn(testHubModule, 'sendTestSessionEvent').mockResolvedValue()
 
             const mockArgs = { test: { title: 'Test After Reload' } as Frameworks.Test }
@@ -173,12 +173,33 @@ describe('TestHubModule', () => {
 
             vi.mocked(AutomationFramework.getTrackedInstance).mockReturnValue(mockAutomationInstance)
             vi.mocked(AutomationFramework.getDriver).mockReturnValue({ sessionId: 'same-session' } as any)
-            testHubModule['_lastReportedSessionId'] = 'same-session'
+            testHubModule['_lastReportedSessionId'].set('auto-ref', 'same-session')
             const sendTestSessionEventSpy = vi.spyOn(testHubModule, 'sendTestSessionEvent').mockResolvedValue()
 
             await testHubModule.onAfterTestSession({ test: { title: 'No Reload' } as Frameworks.Test })
 
             expect(sendTestSessionEventSpy).not.toHaveBeenCalled()
+        })
+
+        it('falls back to the cached session id when the live driver read is empty (SDK-6767)', async () => {
+            const mockAutomationInstance = {
+                getRef: vi.fn(() => 'auto-ref'),
+                frameworkName: 'webdriverio',
+                frameworkVersion: '9.0.0'
+            }
+
+            vi.mocked(AutomationFramework.getTrackedInstance).mockReturnValue(mockAutomationInstance)
+            // live read unavailable → helper must fall back to cached KEY_FRAMEWORK_SESSION_ID
+            vi.mocked(AutomationFramework.getDriver).mockReturnValue(undefined as any)
+            vi.mocked(AutomationFramework.getState).mockImplementation((instance, key) =>
+                key === AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID ? 'cached-reloaded-session' : 'x'
+            )
+            testHubModule['_lastReportedSessionId'].set('auto-ref', 'first-session')
+            const sendTestSessionEventSpy = vi.spyOn(testHubModule, 'sendTestSessionEvent').mockResolvedValue()
+
+            await testHubModule.onAfterTestSession({ test: { title: 'Reload, live read failed' } as Frameworks.Test })
+
+            expect(sendTestSessionEventSpy).toHaveBeenCalled()
         })
     })
 

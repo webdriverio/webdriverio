@@ -731,20 +731,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         this._reloadHappened = true
 
-        // SDK-6767: re-anchor the per-worker session identity to the NEW session after a reload.
-        // In the CLI/binary flow the device session id is captured once in before() (the CREATE/POST
-        // trackEvent below) into KEY_FRAMEWORK_SESSION_ID and never refreshed; without this, every
-        // post-reload test's TestHub event is stamped with the FIRST session's hashed_id, collapsing
-        // multiple real device sessions onto one session/video on the dashboard. Re-firing CREATE/POST
-        // re-invokes WebdriverIOModule.onDriverCreated, which overwrites the stored session id (and the
-        // new device's capabilities) with the live post-reload browser.sessionId.
-        if (BrowserstackCLI.getInstance().isRunning()) {
-            const automationFramework = BrowserstackCLI.getInstance().getAutomationFramework()
-            if (automationFramework) {
-                await automationFramework.trackEvent(AutomationFrameworkState.CREATE, HookState.POST, { browser: this._browser, hubUrl: this._config.hostname })
-            }
-        }
-
         const { setSessionName, setSessionStatus } = this._options
         const ignoreHooksStatus = this._options.testObservabilityOptions?.ignoreHooksStatus === true
 

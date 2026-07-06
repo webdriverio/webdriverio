@@ -9,8 +9,6 @@ import * as utils from '../src/util.js'
 import InsightsHandler from '../src/insights-handler.js'
 import * as bstackLogger from '../src/bstackLogger.js'
 import { BrowserstackCLI } from '../src/cli/index.js'
-import { AutomationFrameworkState } from '../src/cli/states/automationFrameworkState.js'
-import { HookState } from '../src/cli/states/hookState.js'
 import TestFramework from '../src/cli/frameworks/testFramework.js'
 import { TestFrameworkConstants } from '../src/cli/frameworks/constants/testFrameworkConstants.js'
 
@@ -236,38 +234,6 @@ describe('onReload()', () => {
         )
     })
 
-    it('re-fires the CLI session capture on reload so the new session is rebound (SDK-6767)', async () => {
-        const trackEventSpy = vi.fn().mockResolvedValue(undefined)
-        vi.spyOn(BrowserstackCLI, 'getInstance').mockReturnValue({
-            isRunning: () => true,
-            getTestFramework: () => null,
-            getAutomationFramework: () => ({ trackEvent: trackEventSpy })
-        } as any)
-        service['_browser'] = browser as WebdriverIO.Browser
-
-        await service.onReload('old-session', 'new-session')
-
-        // Re-captures the driver so KEY_FRAMEWORK_SESSION_ID is refreshed to the post-reload session
-        expect(trackEventSpy).toHaveBeenCalledWith(
-            AutomationFrameworkState.CREATE,
-            HookState.POST,
-            expect.objectContaining({ browser: service['_browser'] })
-        )
-    })
-
-    it('does NOT re-fire the CLI session capture on reload when the CLI is not running (SDK-6767)', async () => {
-        const trackEventSpy = vi.fn().mockResolvedValue(undefined)
-        vi.spyOn(BrowserstackCLI, 'getInstance').mockReturnValue({
-            isRunning: () => false,
-            getTestFramework: () => null,
-            getAutomationFramework: () => ({ trackEvent: trackEventSpy })
-        } as any)
-        service['_browser'] = browser as WebdriverIO.Browser
-
-        await service.onReload('old-session', 'new-session')
-
-        expect(trackEventSpy).not.toHaveBeenCalled()
-    })
 })
 
 describe('beforeSession', () => {

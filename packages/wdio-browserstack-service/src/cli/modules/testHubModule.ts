@@ -26,10 +26,11 @@ export default class TestHubModule extends BaseModule {
     testhubConfig: unknown
     name: string
     static MODULE_NAME = 'TestHubModule'
-    // SDK-6767: session id sent in the most recent session event (per worker). Used at TEST/POST to
+    // SDK-6767: session id sent in the most recent session event, keyed by automation-instance ref so
+    // concurrent multiremote instances in one worker don't clobber each other. Used at TEST/POST to
     // detect whether browser.reloadSession() changed the session during the test, so the post-reload
     // re-bind only fires when it is actually needed (not for every test).
-    private _lastReportedSessionId?: string
+    private _lastReportedSessionId = new Map<string, string>()
 
     /**
      * Create a new TestHubModule
@@ -70,22 +71,35 @@ export default class TestHubModule extends BaseModule {
         this.sendTestSessionEvent(args)
     }
 
+    // SDK-6767: resolve the session id for an automation instance, preferring the LIVE driver session
+    // over the cached KEY_FRAMEWORK_SESSION_ID (captured once at driver-create and stale after
+    // browser.reloadSession()). Falls back to the cached state when the live read is unavailable.
+    // Shared by sendTestSessionEvent and onAfterTestSession so the two never drift apart.
+    private getLiveOrCachedSessionId(autoInstance: AutomationFrameworkInstance): string {
+        let sessionId = ''
+        try {
+            sessionId = (AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser | undefined)?.sessionId?.toString() ?? ''
+        } catch (error) {
+            this.logger.debug(`getLiveOrCachedSessionId: live sessionId read failed, falling back to cached state: ${error}`)
+        }
+        if (!sessionId) {
+            sessionId = (
+                AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID)?.toString() ?? ''
+            )
+        }
+        return sessionId
+    }
+
     // SDK-6767: re-bind the per-test session at TEST/POST, but ONLY when the session changed during
     // the test (i.e. a beforeTest/in-body browser.reloadSession() happened). This pairs with the
     // live-read in sendTestSessionEvent so the post-reload session overwrites the stale PRE binding,
     // while avoiding a redundant session event on the common no-reload path.
     onAfterTestSession(args: Record<string, unknown>) {
         const autoInstance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
+        const liveSessionId = this.getLiveOrCachedSessionId(autoInstance)
 
-        let liveSessionId = ''
-        try {
-            liveSessionId = (AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser | undefined)?.sessionId?.toString() ?? ''
-        } catch (error) {
-            this.logger.debug(`onAfterTestSession: could not read live sessionId: ${error}`)
-        }
-
-        // No reload => the PRE binding already carries the correct session; skip the extra event.
-        if (!liveSessionId || liveSessionId === this._lastReportedSessionId) {
+        // No usable session id, or unchanged since the PRE binding for THIS instance => nothing to fix.
+        if (!liveSessionId || liveSessionId === this._lastReportedSessionId.get(autoInstance.getRef())) {
             return
         }
 
@@ -237,38 +251,12 @@ export default class TestHubModule extends BaseModule {
                         ? 'browserstack'
                         : 'unknown_grid')
 
-                // Null-safe: under LTS the local-Selenium AutomationFrameworkInstance
-                // may not have KEY_FRAMEWORK_SESSION_ID populated yet (the binary's
-                // hub assigns sessionId later than KEY_IS_BROWSERSTACK_HUB). Without
-                // the guard, AutomationFramework.getState returns undefined and the
-                // chained .toString() throws TypeError before the (ltsActive &&
-                // ltsSessionId) ternary on line 215 has a chance to fall through to
-                // ltsSessionId. Default to '' so the ternary path stays untouched
-                // and the non-LTS fall-through is still safe.
-                // SDK-6767: prefer the LIVE driver session id over the once-captured
-                // KEY_FRAMEWORK_SESSION_ID. The cached id is set at driver-create and goes stale after
-                // browser.reloadSession(), collapsing reloaded sessions onto the first. getDriver() is
-                // the same live handle used for capabilities above. Fall back to the cached state if the
-                // live read is unavailable (e.g. LTS local-Selenium instances without a live driver).
-                let driverFrameworkSessionId = ''
-                try {
-                    const liveDriver = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser | undefined
-                    driverFrameworkSessionId = liveDriver?.sessionId ? liveDriver.sessionId.toString() : ''
-                } catch (sessionErr) {
-                    this.logger.debug(`sendTestSessionEvent: live sessionId read failed, falling back to cached state: ${sessionErr}`)
-                }
-                if (!driverFrameworkSessionId) {
-                    driverFrameworkSessionId = (
-                        AutomationFramework.getState(
-                            autoInstance,
-                            AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID,
-                        )?.toString() ?? ''
-                    )
-                }
-
-                // SDK-6767: remember the live driver session we bound, so onAfterTestSession can tell
-                // whether a reloadSession() changed it during the test and skip the redundant re-bind.
-                this._lastReportedSessionId = driverFrameworkSessionId
+                // SDK-6767: prefer the LIVE driver session id over the once-captured, now-possibly-stale
+                // cached KEY_FRAMEWORK_SESSION_ID (helper is null-safe for LTS local-Selenium instances
+                // where the cached id may be unset). Record it per instance ref so onAfterTestSession can
+                // tell whether a reloadSession() changed the session during the test.
+                const driverFrameworkSessionId = this.getLiveOrCachedSessionId(autoInstance)
+                this._lastReportedSessionId.set(autoInstance.getRef(), driverFrameworkSessionId)
 
                 const automationSession: AutomationSession = {
                     provider: sessionProvider,
