@@ -115,7 +115,6 @@ export class BrowserstackCLI {
         BStackLogger.debug(`start: startBinSession response=${JSON.stringify(response)}`)
         this.loadModules(response)
         this.isMainConnected = true
-
     }
 
     /**

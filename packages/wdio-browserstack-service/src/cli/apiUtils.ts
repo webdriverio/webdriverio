@@ -10,7 +10,25 @@ export default class APIUtils {
     static UPLOAD_LOGS_ADDRESS = 'https://upload-observability.browserstack.com'
     static EDS_URL = 'https://eds.browserstack.com'
 
-    static updateURLSForGRR(apis: GRRUrls) {
+    static hasValidGRRUrls(apis?: Partial<GRRUrls>): apis is GRRUrls {
+        return Boolean(
+            apis?.automate?.api &&
+            apis?.automate?.upload &&
+            apis?.appAutomate?.api &&
+            apis?.appAutomate?.upload &&
+            apis?.percy?.api &&
+            apis?.appAccessibility?.api &&
+            apis?.observability?.api &&
+            apis?.observability?.upload &&
+            apis?.edsInstrumentation?.api
+        )
+    }
+
+    static updateURLSForGRR(apis?: Partial<GRRUrls>) {
+        if (!this.hasValidGRRUrls(apis)) {
+            return false
+        }
+
         this.FUNNEL_INSTRUMENTATION_URL = `${apis.automate.api}/sdk/v1/event`
         this.BROWSERSTACK_AUTOMATE_API_URL = apis.automate.api
         this.BROWSERSTACK_AA_API_URL = apis.appAutomate.api
@@ -21,5 +39,7 @@ export default class APIUtils {
         this.DATA_ENDPOINT = apis.observability.api
         this.UPLOAD_LOGS_ADDRESS = apis.observability.upload
         this.EDS_URL = apis.edsInstrumentation.api
+
+        return true
     }
 }

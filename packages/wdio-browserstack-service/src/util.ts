@@ -30,6 +30,8 @@ import {
     BROWSERSTACK_OBSERVABILITY,
     BROWSERSTACK_TESTHUB_JWT,
     BROWSERSTACK_TESTHUB_UUID,
+    BROWSERSTACK_BUILD_GROUPING_IDENTIFIER,
+    BROWSERSTACK_CENTRAL_USER,
     BROWSERSTACK_TEST_PLAN_ID,
     BROWSERSTACK_TEST_REPORTING,
     BROWSER_DESCRIPTION,
@@ -77,6 +79,10 @@ export type GitMetaData = {
     last_tag: string | null;
     commits_since_last_tag: number;
     remotes: Array<{ name: string; url: string }>;
+};
+
+export type CentralUser = {
+    app_lcnc: boolean;
 };
 
 export const DEFAULT_REQUEST_CONFIG = {
@@ -369,6 +375,14 @@ export const processLaunchBuildResponse = (response: LaunchResponse, options: Br
     processAccessibilityResponse(response, options)
 }
 
+export const getCentralUser = (): Partial<CentralUser> => {
+    switch (process.env[BROWSERSTACK_CENTRAL_USER]) {
+    case 'app_lcnc':
+        return { app_lcnc: true }
+    default:
+        return { app_lcnc: false }
+    }
+}
 export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation: boolean | null) {
     const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
     launchBuildUsage.triggered()
@@ -395,6 +409,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
             settings: options.accessibilityOptions
         },
         browserstackAutomation: shouldAddServiceVersion(config, options.testObservability),
+        grouping_identifier: process.env[BROWSERSTACK_BUILD_GROUPING_IDENTIFIER] || '',
         framework_details: {
             frameworkName: WDIO_NAMING_PREFIX + config.framework,
             frameworkVersion: bsConfig.bstackServiceVersion,

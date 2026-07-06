@@ -284,6 +284,7 @@ export interface TestData {
     hook_type?: string,
     hooks?: string[],
     meta?: TestMeta,
+    app_lcnc?: Record<string, any>,
     tags?: string[],
     test_run_id?: string,
     product_map?: {}
