@@ -2259,3 +2259,18 @@ describe('getAppA11yResultsSummary', () => {
         expect(result).toEqual({ })
     })
 })
+
+
+describe('coerceStringBooleans (SDK-3737)', () => {
+    it("coerces exact 'true'/'false' strings (any case) to booleans", () => {
+        expect(utils.coerceStringBooleans({ autoScanning: 'false' })).toEqual({ autoScanning: false })
+        expect(utils.coerceStringBooleans({ autoScanning: 'true', other: 'TRUE' })).toEqual({ autoScanning: true, other: true })
+    })
+    it('leaves non-boolean strings, real booleans and numbers untouched', () => {
+        expect(utils.coerceStringBooleans({ wcagVersion: 'wcag21a', autoScanning: true, n: 5 }))
+            .toEqual({ wcagVersion: 'wcag21a', autoScanning: true, n: 5 })
+    })
+    it('is safe with empty input', () => {
+        expect(utils.coerceStringBooleans({})).toEqual({})
+    })
+})
