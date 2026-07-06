@@ -28,6 +28,32 @@ vi.mock('uuid', () => ({ v4: () => '123456789' }))
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
 bstackLoggerSpy.mockImplementation(() => {})
 
+describe('shouldSkipScanForBidiWindowCommand (SDK-5047)', () => {
+    const skip = (b: any, c: any) => (AccessibilityHandler as any).shouldSkipScanForBidiWindowCommand(b, c)
+
+    it('skips the injected a11y scan for window/context commands on BiDi sessions', () => {
+        for (const name of ['getWindowHandle', 'getWindowHandles', 'switchToWindow', 'switchWindow', 'newWindow', 'closeWindow', 'switchFrame', 'switchToFrame', 'switchToParentFrame']) {
+            expect(skip({ isBidi: true }, { name, class: 'Browser' })).toBe(true)
+        }
+    })
+
+    it('does not skip for non-window commands on BiDi sessions', () => {
+        expect(skip({ isBidi: true }, { name: 'click', class: 'Element' })).toBe(false)
+        expect(skip({ isBidi: true }, { name: 'url', class: 'Browser' })).toBe(false)
+        expect(skip({ isBidi: true }, { name: 'execute', class: 'Browser' })).toBe(false)
+    })
+
+    it('does not skip on non-BiDi sessions even for window commands', () => {
+        expect(skip({ isBidi: false }, { name: 'getWindowHandle', class: 'Browser' })).toBe(false)
+        expect(skip({}, { name: 'switchToWindow', class: 'Browser' })).toBe(false)
+    })
+
+    it('is safe with undefined browser or missing command name', () => {
+        expect(skip(undefined, { name: 'getWindowHandle', class: 'Browser' })).toBe(false)
+        expect(skip({ isBidi: true }, {})).toBe(false)
+    })
+})
+
 beforeEach(() => {
     vi.mocked(log.info).mockClear()
     vi.mocked(fetch).mockClear()
