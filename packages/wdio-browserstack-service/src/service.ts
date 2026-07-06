@@ -18,7 +18,7 @@ import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction, Sessio
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
-import { DEFAULT_OPTIONS, PERF_MEASUREMENT_ENV } from './constants.js'
+import { DEFAULT_OPTIONS, NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import AccessibilityHandler from './accessibility-handler.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -156,6 +156,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 const instance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
                 const caps = AutomationFramework.getState(instance, AutomationFrameworkConstants.KEY_CAPABILITIES)
                 Object.assign(capabilities, caps)
+
+                // Strip CLI-only options that BrowserStack hub doesn't accept
+                const bstackOptions = (capabilities as Record<string, unknown>)['bstack:options'] as Record<string, unknown> | undefined
+                if (bstackOptions && typeof bstackOptions === 'object') {
+                    NOT_ALLOWED_KEYS_IN_CAPS.forEach(key => delete bstackOptions[key])
+                }
+                NOT_ALLOWED_KEYS_IN_CAPS.forEach(key => delete (capabilities as Record<string, unknown>)[`browserstack.${key}`])
             }
         } catch (err) {
             BStackLogger.error(`Error while connecting to Browserstack CLI: ${err}`)
@@ -245,6 +252,35 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     if (BrowserstackCLI.getInstance().isRunning()) {
                         await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.POST, { browser: this._browser, hubUrl: this._config.hostname })
                         this._insightsHandler.setGitConfigPath()
+                        /**
+                         * SDK-6277: register the command/result listeners in the CLI/binary flow too,
+                         * so the user's saveScreenshot()/takeScreenshot() command result is captured and
+                         * forwarded for screenshot-on-failure. Without this the screenshot is dropped in v8.
+                         * (browserCommand routes the screenshot over gRPC in CLI mode — see insights-handler.)
+                         */
+                        // 'client:beforeCommand' only records the command synchronously — no await needed.
+                        this._browser.on('command', (command) => {
+                            if (shouldProcessEventForTesthub('')) {
+                                this._insightsHandler?.browserCommand(
+                                    'client:beforeCommand',
+                                    Object.assign(command, { sessionId }),
+                                    this._currentTest
+                                )
+                            }
+                        })
+                        this._browser.on('result', (result) => {
+                            if (shouldProcessEventForTesthub('')) {
+                                // 'client:afterCommand' is async in CLI mode (forwards the screenshot to the
+                                // binary over gRPC). Handle the returned promise so a failed upload is logged
+                                // rather than dropped. (o11yClassErrorHandler also routes method errors to
+                                // processError; this .catch makes the call-site handling explicit.)
+                                this._insightsHandler?.browserCommand(
+                                    'client:afterCommand',
+                                    Object.assign(result, { sessionId }),
+                                    this._currentTest
+                                )?.catch((err: unknown) => BStackLogger.debug(`Error forwarding afterCommand in CLI mode: ${err}`))
+                            }
+                        })
                         PerformanceTester.end(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.PRE_INITIALIZE)
                         return
                     }

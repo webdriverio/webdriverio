@@ -18,20 +18,13 @@ on:
         default: 'v8'
 
 env:
-  NPM_TOKEN: ${{secrets.NPM_TOKEN}}
   NPM_CONFIG_PROVENANCE: true
 
 jobs:
   authorize:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: octokit/request-action@v2.1.9
-        with:
-          route: GET /orgs/:organisation/teams/:team/memberships/${{ github.actor }}
-          team: technical-steering-committee
-          organisation: webdriverio
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+    name: Authorize Actor
+    uses: ./.github/workflows/authorize-publisher.yml
+    secrets: inherit
   release:
     permissions:
       contents: write
@@ -45,12 +38,9 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 18.x
-      - name: NPM Setup
-        run: |
-          npm set registry "https://registry.npmjs.org/"
-          npm set //registry.npmjs.org/:_authToken $NPM_TOKEN
-          npm whoami
+          node-version: 22.14.x
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@11.5.1
       - name: Git Setup
         run: |
           git config --global user.email "bot@webdriver.io"

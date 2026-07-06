@@ -136,6 +136,7 @@ export class BrowserstackCLI {
         this.modules[AutomateModule.MODULE_NAME] = new AutomateModule(this.browserstackConfig as Options.Testrunner)
 
         if (startBinResponse.testhub) {
+            this.logBuildStartErrors(startBinResponse.testhub)
             process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
             if (startBinResponse.testhub.jwt) {
                 process.env[BROWSERSTACK_TESTHUB_JWT] = startBinResponse.testhub.jwt
@@ -167,6 +168,63 @@ export class BrowserstackCLI {
             this.modules[PercyModule.MODULE_NAME] = new PercyModule(startBinResponse.percy)
         }
         this.configureModules()
+    }
+
+    private logBuildStartErrors(testhub: unknown) {
+        if (process.env.WDIO_WORKER_ID) {
+            return
+        }
+
+        try {
+            const rawErrors = (testhub as { errors?: unknown } | null)?.errors
+            const parsedErrors = this.parseBuildStartErrors(rawErrors)
+
+            for (const [errorKey, errorDetails] of Object.entries(parsedErrors)) {
+                const errorMessage = errorDetails?.message
+                if (!errorMessage) {
+                    continue
+                }
+
+                const formattedMessage = `[Build] ${errorKey}: ${errorMessage}`
+                if (errorDetails.type === 'info') {
+                    BStackLogger.info(formattedMessage)
+                } else if (errorDetails.type === 'warn') {
+                    BStackLogger.warn(formattedMessage)
+                } else {
+                    BStackLogger.error(formattedMessage)
+                }
+            }
+        } catch (error) {
+            BStackLogger.debug(`Failed to log build-start errors: ${util.format(error)}`)
+        }
+    }
+
+    private parseBuildStartErrors(rawErrors: unknown): Record<string, { message?: string, type?: string }> {
+        if (!rawErrors) {
+            return {}
+        }
+
+        try {
+            if (typeof rawErrors === 'string') {
+                return JSON.parse(rawErrors) as Record<string, { message?: string, type?: string }>
+            }
+
+            if (Buffer.isBuffer(rawErrors)) {
+                return JSON.parse(rawErrors.toString('utf8')) as Record<string, { message?: string, type?: string }>
+            }
+
+            if (rawErrors instanceof Uint8Array) {
+                return JSON.parse(Buffer.from(rawErrors).toString('utf8')) as Record<string, { message?: string, type?: string }>
+            }
+
+            if (typeof rawErrors === 'object') {
+                return rawErrors as Record<string, { message?: string, type?: string }>
+            }
+        } catch (error) {
+            BStackLogger.debug(`Failed to parse build-start errors from CLI response: ${util.format(error)}`)
+        }
+
+        return {}
     }
 
     /**
