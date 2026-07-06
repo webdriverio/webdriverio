@@ -26,6 +26,10 @@ export default class TestHubModule extends BaseModule {
     testhubConfig: unknown
     name: string
     static MODULE_NAME = 'TestHubModule'
+    // SDK-6767: session id sent in the most recent session event (per worker). Used at TEST/POST to
+    // detect whether browser.reloadSession() changed the session during the test, so the post-reload
+    // re-bind only fires when it is actually needed (not for every test).
+    private _lastReportedSessionId?: string
 
     /**
      * Create a new TestHubModule
@@ -66,12 +70,26 @@ export default class TestHubModule extends BaseModule {
         this.sendTestSessionEvent(args)
     }
 
-    // SDK-6767: re-bind the per-test session at TEST/POST, after any beforeTest/in-body
-    // browser.reloadSession() has finalized the session. Pairs with the live-read in
-    // sendTestSessionEvent so the post-reload session overwrites the stale PRE binding.
+    // SDK-6767: re-bind the per-test session at TEST/POST, but ONLY when the session changed during
+    // the test (i.e. a beforeTest/in-body browser.reloadSession() happened). This pairs with the
+    // live-read in sendTestSessionEvent so the post-reload session overwrites the stale PRE binding,
+    // while avoiding a redundant session event on the common no-reload path.
     onAfterTestSession(args: Record<string, unknown>) {
-        this.logger.debug('onAfterTestSession: re-binding per-test session at TEST/POST (post reloadSession)')
         const autoInstance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
+
+        let liveSessionId = ''
+        try {
+            liveSessionId = (AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser | undefined)?.sessionId?.toString() ?? ''
+        } catch (error) {
+            this.logger.debug(`onAfterTestSession: could not read live sessionId: ${error}`)
+        }
+
+        // No reload => the PRE binding already carries the correct session; skip the extra event.
+        if (!liveSessionId || liveSessionId === this._lastReportedSessionId) {
+            return
+        }
+
+        this.logger.debug('onAfterTestSession: session changed during test (reloadSession) — re-binding at TEST/POST')
         args.autoInstance = [autoInstance]
         this.sendTestSessionEvent(args)
     }
@@ -247,6 +265,10 @@ export default class TestHubModule extends BaseModule {
                         )?.toString() ?? ''
                     )
                 }
+
+                // SDK-6767: remember the live driver session we bound, so onAfterTestSession can tell
+                // whether a reloadSession() changed it during the test and skip the redundant re-bind.
+                this._lastReportedSessionId = driverFrameworkSessionId
 
                 const automationSession: AutomationSession = {
                     provider: sessionProvider,

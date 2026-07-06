@@ -141,7 +141,7 @@ describe('TestHubModule', () => {
     })
 
     describe('onAfterTestSession', () => {
-        it('should re-send the session event at TEST/POST for post-reload rebind (SDK-6767)', async () => {
+        it('should re-send the session event at TEST/POST when the session changed (reload) (SDK-6767)', async () => {
             const mockAutomationInstance = {
                 getRef: vi.fn(() => 'auto-ref'),
                 frameworkName: 'webdriverio',
@@ -149,6 +149,9 @@ describe('TestHubModule', () => {
             }
 
             vi.mocked(AutomationFramework.getTrackedInstance).mockReturnValue(mockAutomationInstance)
+            // live session differs from the last reported one => a reloadSession() happened
+            vi.mocked(AutomationFramework.getDriver).mockReturnValue({ sessionId: 'reloaded-session' } as any)
+            testHubModule['_lastReportedSessionId'] = 'first-session'
             const sendTestSessionEventSpy = vi.spyOn(testHubModule, 'sendTestSessionEvent').mockResolvedValue()
 
             const mockArgs = { test: { title: 'Test After Reload' } as Frameworks.Test }
@@ -159,6 +162,23 @@ describe('TestHubModule', () => {
                 ...mockArgs,
                 autoInstance: [mockAutomationInstance]
             })
+        })
+
+        it('should NOT re-send at TEST/POST when the session is unchanged (no reload) (SDK-6767)', async () => {
+            const mockAutomationInstance = {
+                getRef: vi.fn(() => 'auto-ref'),
+                frameworkName: 'webdriverio',
+                frameworkVersion: '9.0.0'
+            }
+
+            vi.mocked(AutomationFramework.getTrackedInstance).mockReturnValue(mockAutomationInstance)
+            vi.mocked(AutomationFramework.getDriver).mockReturnValue({ sessionId: 'same-session' } as any)
+            testHubModule['_lastReportedSessionId'] = 'same-session'
+            const sendTestSessionEventSpy = vi.spyOn(testHubModule, 'sendTestSessionEvent').mockResolvedValue()
+
+            await testHubModule.onAfterTestSession({ test: { title: 'No Reload' } as Frameworks.Test })
+
+            expect(sendTestSessionEventSpy).not.toHaveBeenCalled()
         })
     })
 
@@ -417,6 +437,11 @@ describe('TestHubModule', () => {
 
         it('binds to the LIVE driver.sessionId, not the stale cached id (SDK-6767)', async () => {
             const mockInstance = {
+                getContext: vi.fn(() => ({
+                    getId: vi.fn(() => 'ctx-id'),
+                    getThreadId: vi.fn(() => 'thread-123'),
+                    getProcessId: vi.fn(() => 'process-456')
+                })),
                 getCurrentTestState: vi.fn(() => TestFrameworkState.TEST),
                 getCurrentHookState: vi.fn(() => HookState.POST)
             }

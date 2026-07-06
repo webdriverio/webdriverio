@@ -739,7 +739,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
         // re-invokes WebdriverIOModule.onDriverCreated, which overwrites the stored session id (and the
         // new device's capabilities) with the live post-reload browser.sessionId.
         if (BrowserstackCLI.getInstance().isRunning()) {
-            await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.POST, { browser: this._browser, hubUrl: this._config.hostname })
+            const automationFramework = BrowserstackCLI.getInstance().getAutomationFramework()
+            if (automationFramework) {
+                await automationFramework.trackEvent(AutomationFrameworkState.CREATE, HookState.POST, { browser: this._browser, hubUrl: this._config.hostname })
+            }
         }
 
         const { setSessionName, setSessionStatus } = this._options
