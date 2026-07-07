@@ -1906,3 +1906,15 @@ describe('ignoreHooksStatus feature', () => {
         })
     })
 })
+
+describe('_isAppAutomate honors skipAppOverride', () => {
+    it('returns true when skipAppOverride is set even with no appium:app cap', () => {
+        const svc = new BrowserstackService({ skipAppOverride: true } as any, [{}] as any, { user: 'foo', key: 'bar', capabilities: {} } as any)
+        expect(svc._isAppAutomate()).toBe(true)
+    })
+
+    it('returns false for a web session with no app and no skipAppOverride', () => {
+        const svc = new BrowserstackService({} as any, [{}] as any, { user: 'foo', key: 'bar', capabilities: {} } as any)
+        expect(svc._isAppAutomate()).toBe(false)
+    })
+})

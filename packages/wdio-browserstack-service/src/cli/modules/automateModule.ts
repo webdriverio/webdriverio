@@ -7,7 +7,7 @@ import got from 'got'
 import type { Frameworks, Options } from '@wdio/types'
 import AutomationFramework from '../frameworks/automationFramework.js'
 import { AutomationFrameworkConstants } from '../frameworks/constants/automationFrameworkConstants.js'
-import { isBrowserstackSession } from '../../util.js'
+import { isBrowserstackSession, isTrue } from '../../util.js'
 import type TestFrameworkInstance from '../instances/testFrameworkInstance.js'
 import { TestFrameworkConstants } from '../frameworks/constants/testFrameworkConstants.js'
 import PerformanceTester from '../../instrumentation/performance/performance-tester.js'
@@ -199,7 +199,10 @@ export default class AutomateModule extends BaseModule {
             async (sessionId: string, sessionName: string, config: { user: string; key: string;}) => {
                 try {
                     const auth = Buffer.from(`${config.user}:${config.key}`).toString('base64')
-                    const isAppAutomate = this.config.app
+                    // skipAppOverride runs App Automate without an app value, so route session
+                    // name/status to the App Automate endpoint on the flag too (config echoed from
+                    // the binary carries skipAppOverride via the binconfig service options).
+                    const isAppAutomate = this.config.app || isTrue(this.config.skipAppOverride)
                     if (isAppAutomate) {
                         this.logger.info('Marking session name for App Automate')
                     } else {
@@ -241,7 +244,10 @@ export default class AutomateModule extends BaseModule {
             async (sessionId: string, sessionStatus: 'passed' | 'failed', sessionErrorMessage: string | undefined, config: { user: string; key: string; }) => {
                 try {
                     const auth = Buffer.from(`${config.user}:${config.key}`).toString('base64')
-                    const isAppAutomate = this.config.app
+                    // skipAppOverride runs App Automate without an app value, so route session
+                    // name/status to the App Automate endpoint on the flag too (config echoed from
+                    // the binary carries skipAppOverride via the binconfig service options).
+                    const isAppAutomate = this.config.app || isTrue(this.config.skipAppOverride)
                     if (isAppAutomate) {
                         this.logger.info('Marking session status for App Automate')
                     } else {

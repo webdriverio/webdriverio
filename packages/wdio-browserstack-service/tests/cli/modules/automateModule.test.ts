@@ -1,4 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
+import got from 'got'
 import AutomateModule from '../../../src/cli/modules/automateModule.js'
 import type { Options } from '@wdio/types'
 
@@ -31,7 +32,8 @@ vi.mock('got', () => ({
 }))
 
 vi.mock('../../../src/util.js', () => ({
-    isBrowserstackSession: vi.fn(() => false)
+    isBrowserstackSession: vi.fn(() => false),
+    isTrue: vi.fn((value) => (value + '').toLowerCase() === 'true')
 }))
 
 describe('AutomateModule', () => {
@@ -122,6 +124,30 @@ describe('AutomateModule', () => {
 
         // Should not throw error
         await expect(automateModule.markSessionName(sessionId, sessionName, config)).resolves.toBeUndefined()
+    })
+
+    it('routes markSessionName to the App Automate endpoint when skipAppOverride is true and no app is set', async () => {
+        (automateModule.config as any).app = undefined
+        ;(automateModule.config as any).skipAppOverride = true
+        vi.mocked(got).mockResolvedValue({ body: {} } as any)
+
+        await automateModule.markSessionName('test-session-id', 'test-session-name', { user: 'testuser', key: 'testkey' })
+
+        expect(got).toHaveBeenCalledWith(
+            expect.objectContaining({ url: expect.stringContaining('app-automate/sessions') })
+        )
+    })
+
+    it('routes markSessionStatus to the App Automate endpoint when skipAppOverride is true and no app is set', async () => {
+        (automateModule.config as any).app = undefined
+        ;(automateModule.config as any).skipAppOverride = true
+        vi.mocked(got).mockResolvedValue({ body: {} } as any)
+
+        await automateModule.markSessionStatus('test-session-id', 'passed', undefined, { user: 'testuser', key: 'testkey' })
+
+        expect(got).toHaveBeenCalledWith(
+            expect.objectContaining({ url: expect.stringContaining('app-automate/sessions') })
+        )
     })
 
     it('should handle onBeforeTest with skipSessionName enabled', async () => {
