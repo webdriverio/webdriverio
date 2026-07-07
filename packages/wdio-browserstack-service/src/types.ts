@@ -152,7 +152,7 @@ export interface BrowserstackConfig {
      * Treat this session as App Automate without the SDK managing the app.
      * When `true`, the SDK classifies the run as App Automate, does NOT upload
      * an app, and does NOT inject an `appium:app` capability — you supply the
-     * app reference yourself (driver capability or `BROWSERSTACK_APP_ID`).
+     * app reference yourself via the `appium:app` driver capability.
      * When explicitly `false` and no `app` is provided, the SDK throws a
      * config error before the run starts. Leaving it unset preserves existing
      * behaviour.

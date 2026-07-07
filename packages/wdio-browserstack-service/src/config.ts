@@ -41,7 +41,7 @@ class BrowserStackConfig {
         this.accessibility = options.accessibility !== undefined ? options.accessibility : null
         this.app = options.app
         // `skipAppOverride: true` marks an App Automate run even when no `app` is set — the user
-        // supplies the app themselves (driver cap / BROWSERSTACK_APP_ID), so classification must
+        // supplies the app themselves via the appium:app driver capability, so classification must
         // not depend on an app value being present. Mirrors isAppAutomateSession() in the Node SDK.
         this.appAutomate = !isUndefined(options.app) || isTrue(options.skipAppOverride)
         this.automate = !this.appAutomate

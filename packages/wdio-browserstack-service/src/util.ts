@@ -1397,7 +1397,10 @@ export function isFalse(value?: any) {
  * nor injected. There is NO Tier-2 branch: every WebdriverIO test framework
  * (mocha/jasmine/cucumber) supports App Automate.
  *
- * Warning/edge strings are the locked cross-SDK contract (verbatim vs Java :636/643/651).
+ * The standard warning and the edge-2 error are verbatim with the other BrowserStack SDKs
+ * (BrowserStackJavaAgent#processAppOptions). The edge-1 conflict warning is INTENTIONALLY adapted for
+ * WebdriverIO — it says "browserstack service options" (where WDIO reads `app`), not "browserstack.yml" —
+ * so please do NOT "fix" it back to the yml wording to match the other SDKs.
  * Graceful: never throws except the deliberate edge-2 config error (explicit false + no app),
  * which fires pre-session so the run aborts cleanly.
  *
