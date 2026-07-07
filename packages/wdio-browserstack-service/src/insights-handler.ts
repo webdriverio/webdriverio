@@ -26,7 +26,8 @@ import {
     o11yClassErrorHandler,
     removeAnsiColors,
     getObservabilityProduct,
-    generateHashCodeFromFields
+    generateHashCodeFromFields,
+    isTrue
 } from './util.js'
 import type {
     TestData,
@@ -108,6 +109,12 @@ class _InsightsHandler {
     }
 
     _isAppAutomate(): boolean {
+        // Honor skipAppOverride here too: this handler recomputes App Automate from caps for the
+        // Observability product attribution, but a skipAppOverride run has no injected `appium:app`
+        // cap, so without this it would misclassify as 'automate'. Mirrors service._isAppAutomate().
+        if (isTrue(this._options?.skipAppOverride)) {
+            return true
+        }
         const browserDesiredCapabilities = (this._browser?.capabilities ?? {})
         const desiredCapabilities = (this._userCaps ?? {}) as WebdriverIO.Capabilities
         return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!(desiredCapabilities['appium:options']?.app)

@@ -109,7 +109,7 @@ class BrowserStackConfig {
         // credentials inside testObservabilityOptions — neither should be set, otherwise the
         // build is reported with origin `Automate` even though it never touched BrowserStack.
         // `skipAppOverride: true` marks an App Automate run even when no `app` is set — the user
-        // supplies the app themselves (driver cap / BROWSERSTACK_APP_ID), so classification must not
+        // supplies the app themselves via the appium:app driver capability, so classification must not
         // depend on an app value being present. Mirrors isAppAutomateSession() in the Node SDK.
         this.appAutomate = isBrowserStackInfra && (!isUndefined(options.app) || isTrue(options.skipAppOverride) || detectAppAutomate(capabilities))
         this.automate = isBrowserStackInfra && !this.appAutomate
