@@ -265,6 +265,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         } catch (error) {
             throw new SevereServiceError((error as Error).message)
         }
+        // Keep the config singleton consistent: validateSkipAppOverride clears this._options.app on the
+        // edge-1 conflict, but browserStackConfig.app was copied earlier in the constructor.
+        this.browserStackConfig.app = this._options.app
 
         // Send Funnel start request
         await sendStart(this.browserStackConfig)
