@@ -353,7 +353,7 @@ Sessions appear in the provider's dashboard under the specified project and buil
 - Device selection uses a `deviceQuery` (a property-based query over the device fleet). If you don't pass `deviceQuery` directly, one is built from `deviceName`/`platformVersion`. Queries match **real devices by default** — append `and @emulator='true'` to force an emulator/simulator.
 - Mobile browser mode is supported: set `platform: "android"` or `"ios"` with a `browser` name (e.g., `"chrome"`) instead of `app`.
 - Browser sessions map `os`/`osVersion` to the flat `digitalai:osName` capability (not `platformName`).
-- `browserVersion: "latest"` is not supported and will hang the session request — omit `browserVersion` to get the current default, or pin an exact version (e.g. `"149.0.7827.22"`).
+- `browserVersion: "latest"` is not supported — omit `browserVersion` to get the current default, or pin an exact version (e.g. `"149.0.7827.22"`).
 - `reporting.session` (or `reporting.project` if `session` is omitted) is sent to Digital.ai as `testName`, which appears as the test name in the cloud report.
 - No `tunnel` parameter support — a dedicated cloud reaches internal/staging URLs by default; a public cloud (or a dedicated cloud that needs your local network) uses Digital.ai's [Network Tunnel Client](https://docs.digital.ai/continuous-testing/docs/lt/live-testing-home/network-tunnel-test-local-networks) instead, run independently of the MCP server.
 - For the cloud dashboard to reflect accurate pass/fail status, pass `capabilities: { "wdio:enforceWebDriverClassic": true }` in `start_session` — Digital.ai's pass/fail detection relies on the classic WebDriver protocol, which WebdriverIO's default BiDi transport can bypass.
