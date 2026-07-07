@@ -44,6 +44,7 @@ export class BrowserstackCLI {
     process: ChildProcess | null = null
     isMainConnected = false
     isChildConnected = false
+    modulesLoaded = false
     binSessionId: string | null = null
     modules: Record<string, BaseModule> = {}
     testFramework: WdioMochaTestFramework|null = null
@@ -129,6 +130,17 @@ export class BrowserstackCLI {
         // Defer imports to avoid circular dependencies
         this.binSessionId = startBinResponse.binSessionId
         this.logger.info(`loadModules: binSessionId=${this.binSessionId}`)
+
+        // Idempotency guard: startMain() and startChild() can both run in the same process
+        // (e.g. local runner, single instance). Each call constructs the modules again, whose
+        // constructors register observers on the shared eventDispatcher singleton — and
+        // registerObserver does not dedupe. Loading twice therefore double-registers every
+        // observer, so each test/hook event is dispatched (and uploaded) twice. Load once.
+        if (this.modulesLoaded) {
+            this.logger.info('loadModules: modules already loaded in this process; skipping to avoid duplicate observer registration')
+            return
+        }
+        this.modulesLoaded = true
 
         this.setConfig(startBinResponse)
 

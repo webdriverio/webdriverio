@@ -8,7 +8,8 @@ import {
     isBrowserstackSession,
     patchConsoleLogs,
     isTrue,
-    getUniqueIdentifier
+    getUniqueIdentifier,
+    getHookType
 } from './util.js'
 import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
@@ -392,6 +393,19 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (this._config.framework !== 'cucumber') {
             this._currentTest = test as Frameworks.Test // not update currentTest when this is called for cucumber step
         }
+
+        // CLI flow: route hook lifecycle to the binary via the TestFramework tracker (gRPC),
+        // mirroring beforeTest/afterTest. Without this, hook events fall through to the legacy
+        // Listener -> api/v1/batch path, which is no longer functional in the CLI pipeline, so
+        // HookRunStarted/HookRunFinished never reach the dashboard.
+        if (BrowserstackCLI.getInstance().isRunning()) {
+            const hookFrameworkState = TestFrameworkState[getHookType((test as Frameworks.Test).title) as keyof typeof TestFrameworkState]
+            if (hookFrameworkState) {
+                await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(hookFrameworkState, HookState.PRE, { test })
+            }
+            return
+        }
+
         await this._insightsHandler?.beforeHook(test, context)
     }
 
@@ -407,6 +421,16 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 this._failReasons.push(hookError)
             }
         }
+
+        // CLI flow: mirror beforeHook — close the hook via the TestFramework tracker (gRPC).
+        if (BrowserstackCLI.getInstance().isRunning()) {
+            const hookFrameworkState = TestFrameworkState[getHookType((test as Frameworks.Test).title) as keyof typeof TestFrameworkState]
+            if (hookFrameworkState) {
+                await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(hookFrameworkState, HookState.POST, { test, result })
+            }
+            return
+        }
+
         await this._insightsHandler?.afterHook(test, result)
     }
 
