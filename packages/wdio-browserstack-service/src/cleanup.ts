@@ -1,4 +1,5 @@
 import { getErrorString, stopBuildUpstream } from './util.js'
+import { finalizeOrphanedRuns } from './testOps/openRunsJournal.js'
 import { BStackLogger } from './bstackLogger.js'
 import fs from 'node:fs'
 import util from 'node:util'
@@ -45,6 +46,9 @@ export default class BStackCleanup {
         }
         BStackLogger.debug('Executing Test Reporting and Analytics cleanup')
         try {
+            // SDK-4671: finalize any test runs orphaned by the interrupted process
+            // before the build itself is stopped.
+            await finalizeOrphanedRuns()
             const result = await stopBuildUpstream()
             if ((process.env[BROWSERSTACK_OBSERVABILITY]) && process.env[BROWSERSTACK_TESTHUB_UUID]) {
                 BStackLogger.info(`\nVisit https://automation.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
