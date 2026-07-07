@@ -64,6 +64,13 @@ const esmPlugins: Record<string, Plugin[]> = {
     'webdriverio': [externalScripts()]
 }
 /**
+ * ESM-only dependencies that need to be bundled into the CJS build
+ * instead of being externalized (since they can't be require()'d)
+ */
+const cjsBundledDeps: Record<string, string[]> = {
+    '@wdio/logger': ['chalk', 'strip-ansi']
+}
+/**
  * plugins for the cjs build
  */
 const cjsPlugins: Record<string, Plugin[]> = {}
@@ -155,9 +162,13 @@ const configs = packages.map(([packageDir, pkg]) => {
 
         if (typeof exp.require === 'string') {
             const requireSource = (exp.requireSource as string | undefined) || source
+
+            const bundled = cjsBundledDeps[pkg.name] ?? []
+            const cjsExternal = getExternal(pkg).filter((dep) => !bundled.some((b) => dep === b || dep.startsWith(b + '/')))
+
             const cjsBuild: BuildOptions = {
                 ...baseConfig,
-                external: getExternal(pkg),
+                external: cjsExternal,
                 entryPoints: [path.resolve(absWorkingDir, requireSource)],
                 platform: 'node',
                 format: 'cjs',
@@ -200,10 +211,12 @@ const configs = packages.map(([packageDir, pkg]) => {
                 entryPoints: [path.resolve(absWorkingDir, browserSource)],
                 platform: 'browser',
                 format: 'esm',
+                // Starting esbuild 0.28.1, we should also upgrade to safari14.1. TODO in v10 since this is breaking!
                 target: ['es2021', 'chrome90', 'edge90', 'firefox90', 'safari12'],
                 plugins: [],
                 supported: {
-                    'top-level-await': true //browsers can handle top-level-await features
+                    'top-level-await': true, //browsers can handle top-level-await features
+                    'destructuring': true, // TODO remove in v10: Required since esbuild 0.28.1, otherwise esbuild generates invalid code for destructured imports/exports
                 }
             }
 

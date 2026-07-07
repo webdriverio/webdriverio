@@ -46,7 +46,9 @@ services: [['devtools', options]]
 | `port` | `number` | random | Port the DevTools UI server listens on |
 | `hostname` | `string` | `'localhost'` | Hostname the DevTools UI server binds to |
 | `devtoolsCapabilities` | `Capabilities` | Chrome 1600x1200 | Capabilities used to open the DevTools UI window |
-| `screencast` | `ScreencastOptions` | — | Session video recording ([see Screencast](/docs/devtools/wdio/screencast)) |
+| `screencast` | `ScreencastOptions` | - | Session video recording ([see Screencast](/docs/devtools/wdio/screencast)) |
+| `mode` | `'live' \| 'trace'` | `'live'` | `live` opens the DevTools UI; `trace` skips it and writes a portable artifact instead ([see Trace Mode](/docs/devtools/wdio/trace-mode)) |
+| `traceFormat` | `'zip' \| 'ndjson-directory'` | `'zip'` | Trace artifact layout — single archive vs unpacked directory. Only applies when `mode: 'trace'` |
 
 ## Getting Started
 
@@ -63,8 +65,11 @@ services: [['devtools', options]]
 Explore the WebDriverIO DevTools features in detail:
 
 - **[Interactive Test Rerunning & Visualization](/docs/devtools/wdio/interactive-test-rerunning)** - Real-time browser previews with test rerunning
+- **[Preserve & Rerun (Compare)](/docs/devtools/wdio/preserve-and-rerun)** - Snapshot a failing test, rerun it, and diff the two runs side-by-side
 - **[Multi-Framework Support](/docs/devtools/wdio/multi-framework-support)** - Works with Mocha, Jasmine, and Cucumber
 - **[Console Logs](/docs/devtools/wdio/console-logs)** - Capture and inspect browser console output
 - **[Network Logs](/docs/devtools/wdio/network-logs)** - Monitor API calls and network activity
+- **[Metadata](/docs/devtools/wdio/metadata)** - Session capabilities, environment, and timing per browser session
 - **[TestLens](/docs/devtools/wdio/testlens)** - Navigate to source code with intelligent code navigation
 - **[Session Screencast](/docs/devtools/wdio/screencast)** - Automatic video recording of browser sessions
+- **[Trace Mode](/docs/devtools/wdio/trace-mode)** - Headless capture path producing a portable `trace.zip` artifact (no UI window); supports `zip` and `ndjson-directory` output formats, viewable in `playwright show-trace`
