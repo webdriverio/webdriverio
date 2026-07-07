@@ -11,7 +11,7 @@ The WebdriverIO MCP server has native support for running browser and mobile aut
 - **TestingBot** — [TestingBot](https://testingbot.com) real device cloud and browser grid
 - **Digital.ai Testing** — [Digital.ai Testing](https://digital.ai/products/continuous-testing/) real device and browser cloud
 
-All five providers share the same workflow: set credentials, optionally upload a mobile app, then call `start_session` with the provider name. Reporting labels, tunnel configuration, and mobile app lifecycle are identical across providers.
+All five providers share the same workflow: set credentials, optionally upload a mobile app, then call `start_session` with the provider name. Mobile app lifecycle (`upload_app` → `list_apps` → `start_session`) is identical across all five. Reporting labels and tunnel configuration are identical across BrowserStack, Sauce Labs, TestMu, and TestingBot — Digital.ai supports both, but with a different underlying model (see the Digital.ai notes below).
 
 ## Prerequisites
 
