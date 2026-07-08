@@ -521,6 +521,24 @@ class _AccessibilityHandler {
     ])
 
     /**
+     * BiDi detection that also covers MultiRemote: the aggregate multiremote
+     * object does not expose `isBidi` itself — the flag lives on each child
+     * instance — so the session counts as BiDi when the top-level flag is set
+     * OR any multiremote child instance reports `isBidi`.
+     */
+    private static isBidiSession(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | undefined): boolean {
+        const b = browser as (WebdriverIO.Browser & { isBidi?: boolean, instances?: string[] }) | undefined
+        if (b?.isBidi === true) {
+            return true
+        }
+        if (Array.isArray(b?.instances)) {
+            const children = b as unknown as Record<string, { isBidi?: boolean } | undefined>
+            return b.instances.some((name) => children[name]?.isBidi === true)
+        }
+        return false
+    }
+
+    /**
      * Returns true when the injected pre-command accessibility scan must be
      * skipped: only on BiDi sessions, and only for window/context-management
      * commands. Non-BiDi sessions and all other commands are unaffected and
@@ -529,7 +547,7 @@ class _AccessibilityHandler {
     private static shouldSkipScanForBidiWindowCommand(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | undefined, command: CommandInfo): boolean {
         return Boolean(
             command?.name &&
-            (browser as (WebdriverIO.Browser & { isBidi?: boolean }) | undefined)?.isBidi === true &&
+            AccessibilityHandler.isBidiSession(browser) &&
             AccessibilityHandler.BIDI_WINDOW_CONTEXT_COMMANDS.has(command.name)
         )
     }
