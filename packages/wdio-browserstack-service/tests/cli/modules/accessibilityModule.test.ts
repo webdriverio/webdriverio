@@ -51,6 +51,8 @@ vi.mock('../../../src/cli/grpcClient.js', () => ({
 }))
 
 import AccessibilityModule from '../../../src/cli/modules/accessibilityModule.js'
+import { validateCapsWithA11y, validateCapsWithAppA11y } from '../../../src/util.js'
+import accessibilityScripts from '../../../src/scripts/accessibility-scripts.js'
 import TestFramework from '../../../src/cli/frameworks/testFramework.js'
 import AutomationFramework from '../../../src/cli/frameworks/automationFramework.js'
 import { AutomationFrameworkState } from '../../../src/cli/states/automationFrameworkState.js'
@@ -364,6 +366,81 @@ describe('AccessibilityModule', () => {
             const result = await accessibilityModule.getA11yResultsSummary(mockBrowser)
 
             expect(result).toEqual({})
+        })
+    })
+
+    // SDK-3813: App Automate + App Accessibility sessions were mis-routed onto the
+    // web a11y path (Chrome-only gate + overwriteCommand on commands absent from the
+    // appium driver), so App A11y scans never ran. The CLI module must detect app
+    // sessions from caps (like the classic flow) and skip web command wrapping.
+    describe('onBeforeExecute - App Automate (SDK-3813)', () => {
+        const appGetState = (instance: any, key: string) => {
+            if (key.includes('input_capabilities')) {
+                return { 'appium:app': 'bs://BrowserStackMobileAppId' }
+            }
+            if (key.includes('capabilities')) {
+                return { platformName: 'android', platformVersion: '13' }
+            }
+            if (key.includes('session_id')) {
+                return 12345
+            }
+            return {}
+        }
+
+        afterEach(() => {
+            accessibilityScripts.commandsToWrap = []
+        })
+
+        it('detects app session from caps and skips web command-overwrite', async () => {
+            // binary flag is false; caps say app -> module must still take app path
+            vi.mocked(validateCapsWithAppA11y).mockReturnValue(true)
+            vi.mocked(validateCapsWithA11y).mockReturnValue(true)
+            accessibilityScripts.commandsToWrap = [
+                { name: 'click', class: 'Browser' },
+                { name: 'startA11yScanning', class: 'Browser' }
+            ]
+            vi.mocked(AutomationFramework.getState).mockImplementation(appGetState as any)
+
+            await accessibilityModule.onBeforeExecute()
+
+            expect(accessibilityModule.isAppAccessibility).toBe(true)
+            // Symptom 1: no web command-overwrite attempted on an app session
+            expect(mockBrowser.overwriteCommand).not.toHaveBeenCalled()
+            // Symptom 2: Chrome-only web gate never consulted; app validation used
+            expect(validateCapsWithAppA11y).toHaveBeenCalled()
+            expect(validateCapsWithA11y).not.toHaveBeenCalled()
+        })
+
+        it('engages the app performScan path (execute, not web executeAsync)', async () => {
+            vi.mocked(validateCapsWithAppA11y).mockReturnValue(true)
+            vi.mocked(validateCapsWithA11y).mockReturnValue(true)
+            vi.mocked(AutomationFramework.getState).mockImplementation(appGetState as any)
+            mockBrowser.execute.mockResolvedValue({ scanned: true })
+
+            await accessibilityModule.onBeforeExecute()
+            const result = await mockBrowser.performScan()
+
+            expect(mockBrowser.execute).toHaveBeenCalled()
+            expect(mockBrowser.executeAsync).not.toHaveBeenCalled()
+            expect(result).toEqual({ scanned: true })
+        })
+
+        it('does not abort onBeforeExecute when web command wrapping would throw', async () => {
+            vi.mocked(validateCapsWithAppA11y).mockReturnValue(true)
+            vi.mocked(validateCapsWithA11y).mockReturnValue(true)
+            accessibilityScripts.commandsToWrap = [{ name: 'startA11yScanning', class: 'Browser' }]
+            mockBrowser.overwriteCommand = vi.fn(() => {
+                throw new Error('overwriteCommand: no command to be overwritten: startA11yScanning')
+            })
+            const errorSpy = vi.spyOn(accessibilityModule.logger, 'error')
+            vi.mocked(AutomationFramework.getState).mockImplementation(appGetState as any)
+
+            await accessibilityModule.onBeforeExecute()
+
+            expect(mockBrowser.overwriteCommand).not.toHaveBeenCalled()
+            expect(errorSpy).not.toHaveBeenCalledWith(
+                expect.stringContaining('Error in onBeforeExecute')
+            )
         })
     })
 })
