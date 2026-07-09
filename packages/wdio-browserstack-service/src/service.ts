@@ -399,9 +399,16 @@ export default class BrowserstackService implements Services.ServiceInstance {
         // Listener -> api/v1/batch path, which is no longer functional in the CLI pipeline, so
         // HookRunStarted/HookRunFinished never reach the dashboard.
         if (BrowserstackCLI.getInstance().isRunning()) {
-            const hookFrameworkState = TestFrameworkState[getHookType((test as Frameworks.Test).title) as keyof typeof TestFrameworkState]
-            if (hookFrameworkState) {
-                await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(hookFrameworkState, HookState.PRE, { test })
+            // Null-check the tracker rather than asserting: getTestFramework() is null for
+            // non-mocha frameworks (setupTestFramework only wires it for webdriverio-mocha) and
+            // during any startup race, so a `!` here could throw a TypeError inside this awaited
+            // WDIO hook and break the user's suite. Instrumentation must degrade quietly.
+            const framework = BrowserstackCLI.getInstance().getTestFramework()
+            if (framework) {
+                const hookFrameworkState = TestFrameworkState[getHookType((test as Frameworks.Test).title) as keyof typeof TestFrameworkState]
+                if (hookFrameworkState) {
+                    await framework.trackEvent(hookFrameworkState, HookState.PRE, { test })
+                }
             }
             return
         }
@@ -424,9 +431,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         // CLI flow: mirror beforeHook — close the hook via the TestFramework tracker (gRPC).
         if (BrowserstackCLI.getInstance().isRunning()) {
-            const hookFrameworkState = TestFrameworkState[getHookType((test as Frameworks.Test).title) as keyof typeof TestFrameworkState]
-            if (hookFrameworkState) {
-                await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(hookFrameworkState, HookState.POST, { test, result })
+            // Null-check the tracker rather than asserting (see beforeHook) so a missing tracker
+            // degrades quietly instead of throwing inside this awaited hook.
+            const framework = BrowserstackCLI.getInstance().getTestFramework()
+            if (framework) {
+                const hookFrameworkState = TestFrameworkState[getHookType((test as Frameworks.Test).title) as keyof typeof TestFrameworkState]
+                if (hookFrameworkState) {
+                    await framework.trackEvent(hookFrameworkState, HookState.POST, { test, result })
+                }
             }
             return
         }
