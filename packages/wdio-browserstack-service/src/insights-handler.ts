@@ -47,6 +47,7 @@ import { HookState } from './cli/states/hookState.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 import CustomTagsHandler from './custom-tags-handler.js'
+import { resolveTitleTagConfig, extractCaseIdsFromTitle, mergeIntoTags } from './customTags.js'
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
@@ -907,8 +908,18 @@ class _InsightsHandler {
             // browser.setCustomTags on the legacy/listener path. Keyed on the test
             // uuid (the same uuid set in beforeTest / setTestData). The accumulator
             // already completed union+dedupe SDK-side; the binary is pass-through.
-            const customMetadata = CustomTagsHandler.drain(testMetaData.uuid)
-            if (customMetadata && Object.keys(customMetadata).length > 0) {
+            const customMetadata = CustomTagsHandler.drain(testMetaData.uuid) || {}
+            // Opt-in: merge Test-Case-IDs derived from the test title (unions with
+            // any explicit setCustomTags tags drained above). Same key/shape, so the
+            // binary treats title-derived tags identically to property-based ones.
+            const titleTagCfg = resolveTitleTagConfig()
+            if (titleTagCfg) {
+                const titleIds = extractCaseIdsFromTitle(test.title, titleTagCfg.pattern)
+                if (titleIds.length > 0) {
+                    mergeIntoTags(customMetadata, titleTagCfg.key, titleIds)
+                }
+            }
+            if (Object.keys(customMetadata).length > 0) {
                 testData.custom_metadata = customMetadata
             }
         }

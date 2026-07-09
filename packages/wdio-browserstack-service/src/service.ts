@@ -19,6 +19,7 @@ import { configureCaCertificate } from './caCert.js'
 import CrashReporter from './crash-reporter.js'
 import AccessibilityHandler from './accessibility-handler.js'
 import CustomTagsHandler from './custom-tags-handler.js'
+import { normalizeTitleTagConfig, publishTitleTagConfig } from './customTags.js'
 import { BStackLogger } from './bstackLogger.js'
 import PercyHandler from './Percy/Percy-Handler.js'
 import Listener from './testOps/listener.js'
@@ -145,6 +146,16 @@ export default class BrowserstackService implements Services.ServiceInstance {
         // provided set user and key with values so that the session request
         // will fail
         const testObservabilityOptions = this._options.testObservabilityOptions
+
+        // Opt-in: publish title-based Test-Case-ID config to the process env so both
+        // the legacy handler and the CLI module can derive test_case_id tags from test
+        // titles. No-op unless testCaseIdFromTitle is set.
+        try {
+            publishTitleTagConfig(normalizeTitleTagConfig(testObservabilityOptions?.testCaseIdFromTitle))
+        } catch (err) {
+            BStackLogger.debug(`[Custom Tags] title-based tagging config skipped: ${err}`)
+        }
+
         if (!config.user && !(testObservabilityOptions && testObservabilityOptions.user)) {
             config.user = 'NotSetUser'
         }

@@ -34,7 +34,18 @@ export interface TestObservabilityOptions {
      * When set to false or not set (default), hook failures will mark tests as "failed".
      * @default false
      */
-    ignoreHooksStatus?: boolean
+    ignoreHooksStatus?: boolean,
+    /**
+     * Auto-derive Test-Case-IDs from each test's TITLE and tag them as custom
+     * metadata — e.g. a TestRail-style title "C123 C456 C987 My test" tags
+     * test_case_id = ['C123','C456','C987']. Equivalent to calling
+     * setCustomTags('test_case_id', 'C123, C456, C987') for the test; the derived
+     * IDs union with any explicit setCustomTags calls. Off by default.
+     *   - `true`              → default pattern /C\d+/g, key 'test_case_id'
+     *   - `{ pattern?, key? }` → custom regex SOURCE string and/or target key
+     * @default false
+     */
+    testCaseIdFromTitle?: boolean | { pattern?: string, key?: string }
 }
 
 // New interface for Test Reporting and Analytics (same structure as TestObservabilityOptions for backward compatibility)

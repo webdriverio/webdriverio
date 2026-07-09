@@ -7,10 +7,11 @@ import type AutomationFrameworkInstance from '../instances/automationFrameworkIn
 import type TestFrameworkInstance from '../instances/testFrameworkInstance.js'
 import { AutomationFrameworkState } from '../states/automationFrameworkState.js'
 import { HookState } from '../states/hookState.js'
+import { TestFrameworkState } from '../states/testFrameworkState.js'
 import { TestFrameworkConstants } from '../frameworks/constants/testFrameworkConstants.js'
 import { CLIUtils } from '../cliUtils.js'
 import WdioMochaTestFramework from '../frameworks/wdioMochaTestFramework.js'
-import { mergeIntoTags, parseCommaSeparatedValues } from '../../customTags.js'
+import { mergeIntoTags, parseCommaSeparatedValues, extractCaseIdsFromTitle, resolveTitleTagConfig } from '../../customTags.js'
 import type { CustomMetadata } from '../../customTags.js'
 
 /**
@@ -37,6 +38,9 @@ export default class CustomTagsModule extends BaseModule {
         super()
         this.name = 'CustomTagsModule'
         AutomationFramework.registerObserver(AutomationFrameworkState.CREATE, HookState.POST, this.onBeforeExecute.bind(this))
+        // Opt-in title-based tagging: derive Test-Case-IDs from each test's title at
+        // test start (before any mid-test setCustomTags call, so the two union).
+        TestFramework.registerObserver(TestFrameworkState.TEST, HookState.PRE, this.onBeforeTest.bind(this))
     }
 
     getModuleName() {
@@ -94,6 +98,42 @@ export default class CustomTagsModule extends BaseModule {
             }
         } catch (error) {
             this.logger.error(`Error in CustomTagsModule.onBeforeExecute: ${error}`)
+        }
+    }
+
+    /**
+     * Opt-in title-based tagging (TestRail-style): at each test start, derive
+     * Test-Case-IDs from the test title and merge them into the tracked instance's
+     * custom_metadata under the configured key — via the SAME merge path as explicit
+     * setCustomTags, so title-derived and programmatic tags union. Gated by
+     * resolveTitleTagConfig() (env-published at beforeSession); a safe no-op when
+     * disabled or nothing matches.
+     */
+    async onBeforeTest(args: Record<string, unknown>) {
+        try {
+            const titleCfg = resolveTitleTagConfig()
+            if (!titleCfg) {
+                return
+            }
+            const test = args.test as { title?: string } | undefined
+            const ids = extractCaseIdsFromTitle(test?.title, titleCfg.pattern)
+            if (ids.length === 0) {
+                return
+            }
+            // Prefer the tracked instance (the SAME one the explicit setCustomTags
+            // closure reads/writes) so title-derived and programmatic tags union.
+            const testInstance = TestFramework.getTrackedInstance() || (args.instance as TestFrameworkInstance)
+            if (!testInstance) {
+                return
+            }
+            const existing = (TestFramework.getState(testInstance, TestFrameworkConstants.KEY_CUSTOM_TAGS) as CustomMetadata) || {}
+            mergeIntoTags(existing, titleCfg.key, ids)
+            testInstance.updateMultipleEntries({
+                [TestFrameworkConstants.KEY_CUSTOM_TAGS]: existing
+            })
+            this.logger.debug(`setCustomTags(title): merged key=${titleCfg.key} values=${JSON.stringify(ids)} from title="${test?.title}"`)
+        } catch (error) {
+            this.logger.debug(`setCustomTags(title): error deriving tags from title: ${error}`)
         }
     }
 
