@@ -1,4 +1,3 @@
-/// <reference path="./@types/bstack-service-types.d.ts" />
 import util from 'node:util'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
