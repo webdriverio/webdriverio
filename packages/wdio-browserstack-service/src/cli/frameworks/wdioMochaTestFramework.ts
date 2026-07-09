@@ -80,7 +80,14 @@ export default class WdioMochaTestFramework extends TestFramework {
                 this.loadTestResult(instance, args)
             }
 
-            await this.trackHookEvents(instance, testFrameworkState, hookState, args)
+            // Only real hook states accumulate into test_hooks_started/finished. trackEvent runs
+            // for every state (TEST/INIT_TEST/LOG/...); without this gate those push pseudo-hook
+            // entries which — now that the Map serializer actually emits them — get flat-mapped into
+            // TestRunFinished.hooks (duplicating the last hook id / adding '') and accumulate in
+            // test_hooks_started forever (never popped).
+            if (CLIUtils.matchHookRegex(testFrameworkState.toString().split('.')[1])) {
+                await this.trackHookEvents(instance, testFrameworkState, hookState, args)
+            }
             logger.debug(`trackEvent: tracked instance data=${JSON.stringify(Object.fromEntries(instance.getAllData()))}`)
         } catch (error) {
             logger.error(`trackEvent: Error in tracking events: ${error} hookState=${hookState} testFrameworkState=${testFrameworkState}`)
@@ -123,10 +130,14 @@ export default class WdioMochaTestFramework extends TestFramework {
                 this.trackWdioMochaInstance(testFrameworkState, args)
             }
         } else if (isHook && hookState === HookState.PRE) {
-            // Suite-level (`before all`/`after all`) and the first `before each` fire before any
-            // INIT_TEST, so no instance exists yet — and a before-hook right after a completed test
-            // starts a new test. Create an instance so the hook is captured instead of dropped.
-            if (!instance || isNewTestBoundary) {
+            // Suite-level (`before all`) and the first `before each` fire before any INIT_TEST, so
+            // no instance exists yet — create one. Also, a BEFORE hook right after a completed test
+            // (new-test boundary) starts a new test. The boundary restriction must be limited to
+            // BEFORE hooks: `after each`/`after all` also fire at a POST->PRE boundary (afterTest
+            // emits TEST POST just before `after each`), but they belong to the just-finished test.
+            // Creating a fresh (uuid-less) instance for them would drop test_run_id and orphan the
+            // hook from TestRunFinished.hooks — so let after-hooks reuse the finished test's instance.
+            if (!instance || (isNewTestBoundary && shortState.startsWith('BEFORE_'))) {
                 this.trackWdioMochaInstance(testFrameworkState, args)
             }
         }
@@ -241,7 +252,7 @@ export default class WdioMochaTestFramework extends TestFramework {
         const logRecord: Record<string, unknown> = {}
         const { level, message, timestamp } = logEntry
 
-        if (CLIUtils.matchHookRegex(instance.getCurrentTestState().toString())) {
+        if (CLIUtils.matchHookRegex(instance.getCurrentTestState().toString().split('.')[1])) {
             logRecord[TestFrameworkConstants.KEY_HOOK_ID] = TestFramework.getState(instance, TestFrameworkConstants.KEY_HOOK_ID)
         }
         logRecord.kind = TestFrameworkConstants.KIND_LOG
