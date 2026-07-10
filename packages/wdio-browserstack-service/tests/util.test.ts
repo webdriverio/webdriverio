@@ -54,6 +54,7 @@ import {
     getAppA11yResults,
     isMultiRemoteCaps,
     getTestPlanId,
+    performO11ySync,
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
 import PerformanceTester from '../src/instrumentation/performance/performance-tester.js'
@@ -2325,5 +2326,48 @@ describe('getAppA11yResultsSummary', () => {
         const result = await utils.getA11yResultsSummary(false, {} as WebdriverIO.Browser, true, true)
         delete process.env.BSTACK_A11Y_JWT
         expect(result).toEqual({ })
+    })
+})
+
+describe('performO11ySync', () => {
+    it('calls browser.execute with browserstack_executor when classic WebDriver session', async () => {
+        const mockExecute = vi.fn().mockResolvedValue(null)
+        const browser = {
+            isBidi: false,
+            options: { hostname: 'hub.browserstack.com' },
+            execute: mockExecute,
+        } as unknown as WebdriverIO.Browser
+
+        await performO11ySync(browser)
+
+        expect(mockExecute).toHaveBeenCalledOnce()
+        expect(mockExecute.mock.calls[0][0]).toContain('browserstack_executor')
+        expect(mockExecute.mock.calls[0][0]).toContain('ObservabilitySync')
+    })
+
+    it('skips browser.execute when session is BiDi to avoid new Function() validation failure', async () => {
+        const mockExecute = vi.fn().mockResolvedValue(null)
+        const browser = {
+            isBidi: true,
+            options: { hostname: 'hub.browserstack.com' },
+            execute: mockExecute,
+        } as unknown as WebdriverIO.Browser
+
+        await performO11ySync(browser)
+
+        expect(mockExecute).not.toHaveBeenCalled()
+    })
+
+    it('skips browser.execute when not a BrowserStack session', async () => {
+        const mockExecute = vi.fn().mockResolvedValue(null)
+        const browser = {
+            isBidi: false,
+            options: { hostname: 'localhost' },
+            execute: mockExecute,
+        } as unknown as WebdriverIO.Browser
+
+        await performO11ySync(browser)
+
+        expect(mockExecute).not.toHaveBeenCalled()
     })
 })
