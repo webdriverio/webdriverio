@@ -3,7 +3,7 @@ id: trace-mode
 title: Trace Mode
 ---
 
-Headless capture path — no DevTools UI window opens. At session end the adapter writes a `trace-<sessionId>.zip` (or `trace-<sessionId>/` directory) next to your spec / config file. The artifact is portable and ships everything needed for offline replay, AI-agent diffing, or any consumer that prefers a file over a live UI.
+Headless capture path — no DevTools UI window opens. At session end the adapter writes trace artifacts into a `test-results/` folder next to your spec / config directory. For `session` / `spec` granularity that's a `trace-<sessionId>.zip` (or a `trace-<sessionId>/` directory); for `test` granularity each test gets its own subfolder (see [Trace granularity](#trace-granularity--tracegranularity)). The artifact is portable and ships everything needed for offline replay, AI-agent diffing, or any consumer that prefers a file over a live UI.
 
 Trace mode is **mutually exclusive with live mode**. Pick one per session: humans debugging interactively want live; agents diffing runs or CI bots collecting artifacts want trace.
 
@@ -57,10 +57,53 @@ Internal commands like `findElement`, `waitUntil`, `executeScript` are deliberat
 }
 ```
 
-- **`zip`** (default) — single archive at `trace-<sessionId>.zip`.
-- **`ndjson-directory`** — same files unpacked into `trace-<sessionId>/`. One less unzip step for scripted or agentic consumers that want to grep / stream the NDJSON directly.
+- **`zip`** (default) — single archive at `test-results/trace-<sessionId>.zip`.
+- **`ndjson-directory`** — same files unpacked into `test-results/trace-<sessionId>/`. One less unzip step for scripted or agentic consumers that want to grep / stream the NDJSON directly.
 
-Both formats open in the first-party `show-trace` player (see [Viewing the artifact](#viewing-the-artifact)) and in `npx playwright show-trace <path>`.
+Both formats open in the first-party `show-trace` player (see [Viewing the artifact](#viewing-the-artifact)) and in other compatible trace viewers.
+
+## Trace granularity — `traceGranularity`
+
+How many trace artifacts a run produces:
+
+```ts
+{
+  mode: 'trace',
+  traceGranularity: 'session' | 'spec' | 'test' // default: 'session'
+}
+```
+
+| Value | Output |
+|---|---|
+| `session` (default) | One trace per worker/session — `test-results/trace-<sessionId>.zip`. |
+| `spec` | One trace per spec file. Smaller, easier to navigate. |
+| `test` | One trace **per test**, each in its own folder: `test-results/<spec>-<title>-<browser>[-retry<N>]/trace.zip`. |
+
+For `test` granularity the folder name is built from the spec basename, a slug of the test title, the browser, and a `-retry<N>` suffix on retried attempts — e.g. `test-results/login_e2e-logs-in-chrome/trace.zip`, with a first retry at `test-results/login_e2e-logs-in-chrome-retry1/trace.zip`. Per-test traces are the most navigable and pair best with a retention policy so only the traces you care about are written.
+
+## Retention — `tracePolicy`
+
+By default every trace is kept (`'on'`). To keep only the interesting ones — ideal with `traceGranularity: 'test'`:
+
+```ts
+{
+  mode: 'trace',
+  traceGranularity: 'test',
+  tracePolicy: 'retain-on-failure' // default: 'on'
+}
+```
+
+Policies: `'on'` · `'retain-on-failure'` · `'retain-on-first-failure'` · `'on-first-retry'` · `'on-all-retries'` · `'retain-on-failure-and-retries'`. A non-retained slice is decided against and never written to disk. The retry-aware policies need per-attempt retry information; where a runner doesn't expose it they degrade to `retain-on-failure` with a one-time warning.
+
+## Assertions — `captureAssertions`
+
+Assertions surface as first-class action rows in the trace (on by default; set `captureAssertions: false` to opt out):
+
+- **`node:assert`** — captured across all three adapters as `assert.<method>` rows.
+- **WebdriverIO `expect`** — passing *and* failing `expect(...)` matchers (`expect($el).toHaveText(...)`, `toBeExisting()`, …) appear as `expect.<matcher>` rows carrying the expected value, the element's source location, and a snapshot; the matcher's internal polling commands are suppressed so only the assertion shows.
+- **Nightwatch `browser.assert.*` / `browser.verify.*`** — native assertions surface as `assert.<m>` / `verify.<m>` rows.
+
+Passing assertions render green; failing ones render red with the error message.
 
 ## Mobile testing
 
@@ -99,17 +142,9 @@ The `show-trace` bin ships with each adapter (`@wdio/devtools-service`, `@wdio/n
 
 > Accepts a `.zip` only. The same shortcuts work in the live dashboard (`←`/`→` walk the command list, `?` shows help).
 
-### `playwright show-trace`
+### Other trace viewers
 
-Because the format is a Playwright-compatible NDJSON schema, the same artifact also opens in the Playwright trace viewer:
-
-```sh
-# Either a .zip or a directory works
-npx playwright show-trace trace-<sessionId>.zip
-npx playwright show-trace trace-<sessionId>/
-```
-
-The Playwright trace viewer renders:
+Because the artifact is a portable NDJSON schema, the same `.zip` (or directory) also opens in other compatible trace viewers, which render:
 - Timeline of actions with timings
 - Per-action screenshots
 - Element snapshots

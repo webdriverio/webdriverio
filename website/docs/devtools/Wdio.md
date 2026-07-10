@@ -49,6 +49,9 @@ services: [['devtools', options]]
 | `screencast` | `ScreencastOptions` | - | Session video recording ([see Screencast](/docs/devtools/wdio/screencast)) |
 | `mode` | `'live' \| 'trace'` | `'live'` | `live` opens the DevTools UI; `trace` skips it and writes a portable artifact instead ([see Trace Mode](/docs/devtools/wdio/trace-mode)) |
 | `traceFormat` | `'zip' \| 'ndjson-directory'` | `'zip'` | Trace artifact layout — single archive vs unpacked directory. Only applies when `mode: 'trace'` |
+| `traceGranularity` | `'session' \| 'spec' \| 'test'` | `'session'` | One trace per session / spec file / test. `'test'` writes each to `test-results/<spec>-<title>-<browser>[-retryN]/trace.zip`. Only applies when `mode: 'trace'` ([see Trace Mode](/docs/devtools/wdio/trace-mode#trace-granularity--tracegranularity)) |
+| `tracePolicy` | `'on' \| 'retain-on-failure' \| 'retain-on-first-failure' \| 'on-first-retry' \| 'on-all-retries' \| 'retain-on-failure-and-retries'` | `'on'` | Which traces to keep. Pairs with `traceGranularity: 'test'`. Only applies when `mode: 'trace'` |
+| `captureAssertions` | `boolean` | `true` | Capture assertions as trace action rows — `node:assert` plus passing/failing `expect(...)` matchers. Set `false` to opt out |
 
 ## Getting Started
 
@@ -72,4 +75,4 @@ Explore the WebDriverIO DevTools features in detail:
 - **[Metadata](/docs/devtools/wdio/metadata)** - Session capabilities, environment, and timing per browser session
 - **[TestLens](/docs/devtools/wdio/testlens)** - Navigate to source code with intelligent code navigation
 - **[Session Screencast](/docs/devtools/wdio/screencast)** - Automatic video recording of browser sessions
-- **[Trace Mode](/docs/devtools/wdio/trace-mode)** - Headless capture path producing a portable `trace.zip` artifact (no UI window); supports `zip` and `ndjson-directory` output formats, viewable in `playwright show-trace`
+- **[Trace Mode](/docs/devtools/wdio/trace-mode)** - Headless capture path producing a portable `trace.zip` artifact (no UI window); supports `zip` and `ndjson-directory` output formats, viewable in the first-party `show-trace` player
