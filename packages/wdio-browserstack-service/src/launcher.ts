@@ -46,9 +46,11 @@ import {
     validateCapsWithNonBstackA11y,
     mergeChromeOptions,
     isValidEnabledValue,
-    isMultiRemoteCaps
+    isMultiRemoteCaps,
+    coerceStringBooleans
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
+import { finalizeOrphanedRuns } from './testOps/openRunsJournal.js'
 import { BStackLogger } from './bstackLogger.js'
 import { configureCaCertificate } from './caCert.js'
 import { PercyLogger } from './Percy/PercyLogger.js'
@@ -447,14 +449,17 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         this.browserStackConfig.accessibility = this._accessibilityAutomation
 
         if (this._accessibilityAutomation && this._options.accessibilityOptions) {
-            const filteredOpts = Object.keys(this._options.accessibilityOptions)
+            // SDK-3737: coerce stringified booleans (e.g. autoScanning: 'false') to real
+            // booleans so boolean-typed accessibility options are honoured instead of
+            // being dropped by W3C caps validation.
+            const filteredOpts = coerceStringBooleans(Object.keys(this._options.accessibilityOptions)
                 .filter(key => !NOT_ALLOWED_KEYS_IN_CAPS.includes(key))
                 .reduce((opts, key) => {
                     return {
                         ...opts,
                         [key]: this._options.accessibilityOptions?.[key]
                     }
-                }, {})
+                }, {} as Record<string, unknown>))
 
             this._updateObjectTypeCaps(capabilities as Capabilities.TestrunnerCapabilities, 'accessibilityOptions', filteredOpts)
         } else if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
@@ -597,6 +602,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             const isCLIEnabled = BrowserstackCLI.getInstance().isRunning()
             BStackLogger.debug('Inside OnComplete hook..')
             BStackLogger.debug('Sending stop launch event')
+            // SDK-4671: before stopping the build, synthesize TestRunFinished for any
+            // test runs whose worker died mid-test, else they stay 'in progress' on TRA.
+            await finalizeOrphanedRuns()
             try {
                 await (isCLIEnabled ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
                 PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.STOP)
