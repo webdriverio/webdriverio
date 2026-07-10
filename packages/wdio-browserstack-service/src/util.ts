@@ -1858,11 +1858,14 @@ export function coerceStringBooleans<T extends Record<string, unknown>>(obj: T):
     }
     const out: Record<string, unknown> = {}
     for (const [key, value] of Object.entries(obj)) {
-        if (typeof value === 'string' && ['true', 'false'].includes(value.trim().toLowerCase())) {
-            out[key] = value.trim().toLowerCase() === 'true'
-        } else {
-            out[key] = value
+        if (typeof value === 'string') {
+            const normalised = value.trim().toLowerCase()
+            if (normalised === 'true' || normalised === 'false') {
+                out[key] = normalised === 'true'
+                continue
+            }
         }
+        out[key] = value
     }
     return out as T
 }
