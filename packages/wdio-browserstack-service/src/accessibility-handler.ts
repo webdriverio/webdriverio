@@ -423,8 +423,10 @@ class _AccessibilityHandler {
      */
 
     private async commandWrapper (command: CommandInfo, prevImpl: Function, origFunction: Function, ...args: unknown[]) {
+        const skipScanForBidiWindowCommand = AccessibilityHandler.shouldSkipScanForBidiWindowCommand(this._browser, command)
         if (
             this._sessionId && AccessibilityHandler._a11yScanSessionMap[this._sessionId] &&
+                !skipScanForBidiWindowCommand &&
                 (
                     !command.name.includes('execute') ||
                     !AccessibilityHandler.shouldPatchExecuteScript(args.length ? args[0] as string : null)
@@ -432,6 +434,8 @@ class _AccessibilityHandler {
         ) {
             BStackLogger.debug(`Performing scan for ${command.class} ${command.name}`)
             await performA11yScan(this.isAppAutomate, this._browser, true, true, command.name)
+        } else if (skipScanForBidiWindowCommand) {
+            BStackLogger.debug(`SDK-5047: skipping accessibility scan for BiDi window/context command '${command.name}' to avoid racing the WebdriverIO ContextManager during session-start window churn`)
         }
         const impl = prevImpl || origFunction
         return impl(...args)
@@ -500,6 +504,50 @@ class _AccessibilityHandler {
         return (
             script.toLowerCase().indexOf('browserstack_executor') !== -1 ||
             script.toLowerCase().indexOf('browserstack_accessibility_automation_script') !== -1
+        )
+    }
+
+    /**
+     * SDK-5047: Window/context-management commands whose surrounding injected
+     * accessibility scan (a browser.execute) races the WebdriverIO v9 core
+     * ContextManager while it (re)binds the browsing context during
+     * session-start window churn on BiDi sessions (e.g. Chrome), surfacing
+     * "no such window: target window already closed / web view not found".
+     */
+    private static readonly BIDI_WINDOW_CONTEXT_COMMANDS = new Set<string>([
+        'getWindowHandle', 'getWindowHandles', 'switchToWindow', 'switchWindow',
+        'newWindow', 'closeWindow', 'switchFrame', 'switchToFrame', 'switchToParentFrame'
+    ])
+
+    /**
+     * BiDi detection that also covers MultiRemote: the aggregate multiremote
+     * object does not expose `isBidi` itself — the flag lives on each child
+     * instance — so the session counts as BiDi when the top-level flag is set
+     * OR any multiremote child instance reports `isBidi`.
+     */
+    private static isBidiSession(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | undefined): boolean {
+        const b = browser as (WebdriverIO.Browser & { isBidi?: boolean, instances?: string[] }) | undefined
+        if (b?.isBidi === true) {
+            return true
+        }
+        if (Array.isArray(b?.instances)) {
+            const children = b as unknown as Record<string, { isBidi?: boolean } | undefined>
+            return b.instances.some((name) => children[name]?.isBidi === true)
+        }
+        return false
+    }
+
+    /**
+     * Returns true when the injected pre-command accessibility scan must be
+     * skipped: only on BiDi sessions, and only for window/context-management
+     * commands. Non-BiDi sessions and all other commands are unaffected and
+     * keep scanning exactly as before.
+     */
+    private static shouldSkipScanForBidiWindowCommand(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | undefined, command: CommandInfo): boolean {
+        return Boolean(
+            command?.name &&
+            AccessibilityHandler.isBidiSession(browser) &&
+            AccessibilityHandler.BIDI_WINDOW_CONTEXT_COMMANDS.has(command.name)
         )
     }
 
