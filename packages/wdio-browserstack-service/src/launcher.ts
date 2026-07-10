@@ -33,6 +33,7 @@ import {
     stopBuildUpstream,
     getCiInfo,
     isBStackSession,
+    isBrowserstackInfra,
     isUndefined,
     isAccessibilityAutomationSession,
     isTrue,
@@ -49,7 +50,9 @@ import {
     coerceStringBooleans
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
+import { finalizeOrphanedRuns } from './testOps/openRunsJournal.js'
 import { BStackLogger } from './bstackLogger.js'
+import { configureCaCertificate } from './caCert.js'
 import { PercyLogger } from './Percy/PercyLogger.js'
 import type Percy from './Percy/Percy.js'
 import BrowserStackConfig from './config.js'
@@ -87,6 +90,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         BStackLogger.clearLogFile()
         PercyLogger.clearLogFile()
         setupExitHandlers()
+        // SDK-5953: trust the customer CA (proxyCaCertificate / BROWSERSTACK_EXTRA_CA_CERTS)
+        // for all outbound HTTPS (undici fetch) before any request fires. Merged with system roots.
+        configureCaCertificate(this._options)
         // added to maintain backward compatibility with webdriverIO v5
         if (!this._config) {
             this._config = _options
@@ -117,7 +123,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             process.env.TEST_OBSERVABILITY_BUILD_TAG = process.env.TEST_REPORTING_BUILD_TAG
         }
 
-        this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config, capabilities)
+        // Pass `capabilities` so per-capability `hostname` overrides are honored too (e.g. a
+        // multi-remote config where only some capabilities target an external grid), mirroring
+        // the `shouldAddServiceVersion`/`isBrowserstackInfra` usage elsewhere in this package.
+        const isBrowserStackInfra = isBrowserstackInfra(_config as BrowserstackConfig & Options.Testrunner, capabilities as Capabilities.BrowserStackCapabilities)
+        this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config, capabilities, isBrowserStackInfra)
         BStackLogger.debug(`_options data: ${JSON.stringify(_options)}`)
         BStackLogger.debug(`webdriver capabilities data: ${JSON.stringify(capabilities)}`)
         const configCopy = JSON.parse(JSON.stringify(_config))
@@ -592,6 +602,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             const isCLIEnabled = BrowserstackCLI.getInstance().isRunning()
             BStackLogger.debug('Inside OnComplete hook..')
             BStackLogger.debug('Sending stop launch event')
+            // SDK-4671: before stopping the build, synthesize TestRunFinished for any
+            // test runs whose worker died mid-test, else they stay 'in progress' on TRA.
+            await finalizeOrphanedRuns()
             try {
                 await (isCLIEnabled ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
                 PerformanceTester.end(PERFORMANCE_SDK_EVENTS.FRAMEWORK_EVENTS.STOP)

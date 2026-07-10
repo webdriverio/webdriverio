@@ -76,6 +76,20 @@ export const EDS_URL = 'https://eds.browserstack.com'
 
 export const SUPPORTED_BROWSERS_FOR_AI = ['chrome', 'microsoftedge', 'firefox']
 
+export const SUPPORTED_BROWSERS_FOR_ACCESSIBILITY = ['chrome', 'chromefortesting', 'safari']
+
+export const MIN_BROWSER_VERSIONS_A11Y = {
+    chrome: 95,
+    chromefortesting: 141,
+    safari: 18.4
+} as const
+
+export const MIN_BROWSER_VERSIONS_A11Y_NON_BSTACK = {
+    chrome: 100,
+    chromefortesting: 141,
+    safari: 18.4
+} as const
+
 export const TCG_URL = 'https://tcg.browserstack.com'
 
 export const TCG_INFO = {
@@ -124,6 +138,13 @@ export const BROWSERSTACK_ACCESSIBILITY = 'BROWSERSTACK_ACCESSIBILITY'
 
 // Whether session is a test reporting session
 export const BROWSERSTACK_OBSERVABILITY = 'BROWSERSTACK_OBSERVABILITY'
+
+// Load Testing Service (LTS) env vars: the pod-iteration session id (its
+// presence is the single source of truth for "this run is an LTS pod
+// iteration") and an optional opt-in flag for local repro / CI runs that
+// don't have a real session id.
+export const BROWSERSTACK_LTS_SESSION_ID = 'BROWSERSTACK_LTS_SESSION_ID'
+export const BROWSERSTACK_LTS = 'BROWSERSTACK_LTS'
 
 // New Test Reporting and Analytics environment variables
 export const BROWSERSTACK_TEST_REPORTING = 'BROWSERSTACK_TEST_REPORTING'

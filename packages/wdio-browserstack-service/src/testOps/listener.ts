@@ -12,6 +12,7 @@ import {
     TEST_ANALYTICS_ID
 } from '../constants.js'
 import { sendScreenshots } from './requestUtils.js'
+import { recordOpenRun, clearOpenRun } from './openRunsJournal.js'
 import { BStackLogger } from '../bstackLogger.js'
 import { shouldProcessEventForTesthub } from '../testHub/utils.js'
 
@@ -105,6 +106,7 @@ class Listener {
                 return
             }
             process.env[TEST_ANALYTICS_ID] = testData.uuid
+            recordOpenRun(testData)
             this.testStartedStats.triggered()
 
             testData.product_map = {
@@ -128,6 +130,7 @@ class Listener {
                 accessibility: Listener._testRunAccessibilityVar
             }
 
+            clearOpenRun(testData.uuid)
             this.testFinishedStats.triggered(testData.result)
             this.sendBatchEvents(this.getEventForHook('TestRunFinished', testData))
         } catch (e) {
