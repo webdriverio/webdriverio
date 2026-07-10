@@ -2328,7 +2328,6 @@ describe('getAppA11yResultsSummary', () => {
     })
 })
 
-
 describe('coerceStringBooleans (SDK-3737)', () => {
     it("coerces exact 'true'/'false' strings (any case) to booleans", () => {
         expect(utils.coerceStringBooleans({ autoScanning: 'false' })).toEqual({ autoScanning: false })
