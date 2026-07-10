@@ -46,7 +46,8 @@ import {
     validateCapsWithNonBstackA11y,
     mergeChromeOptions,
     isValidEnabledValue,
-    isMultiRemoteCaps
+    isMultiRemoteCaps,
+    coerceStringBooleans
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { finalizeOrphanedRuns } from './testOps/openRunsJournal.js'
@@ -448,14 +449,17 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         this.browserStackConfig.accessibility = this._accessibilityAutomation
 
         if (this._accessibilityAutomation && this._options.accessibilityOptions) {
-            const filteredOpts = Object.keys(this._options.accessibilityOptions)
+            // SDK-3737: coerce stringified booleans (e.g. autoScanning: 'false') to real
+            // booleans so boolean-typed accessibility options are honoured instead of
+            // being dropped by W3C caps validation.
+            const filteredOpts = coerceStringBooleans(Object.keys(this._options.accessibilityOptions)
                 .filter(key => !NOT_ALLOWED_KEYS_IN_CAPS.includes(key))
                 .reduce((opts, key) => {
                     return {
                         ...opts,
                         [key]: this._options.accessibilityOptions?.[key]
                     }
-                }, {})
+                }, {} as Record<string, unknown>))
 
             this._updateObjectTypeCaps(capabilities as Capabilities.TestrunnerCapabilities, 'accessibilityOptions', filteredOpts)
         } else if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
