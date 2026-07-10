@@ -657,12 +657,14 @@ describe('onComplete', () => {
             .then(() => expect(service.browserstackLocal?.stop).toHaveBeenCalled())
     })
 
-    it('should stop accessibility test run on complete', () => {
+    it('should stop accessibility test run on complete', async () => {
         const stopBuildUpstreamSpy = vi.spyOn(utils, 'stopBuildUpstream')
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
 
         const service = new BrowserstackLauncher({} as any, [{}] as any, {} as any)
-        service.onComplete()
+        // onComplete is async (and now awaits orphaned-run finalization before
+        // stopping the build) — await it instead of relying on its sync prefix.
+        await service.onComplete()
         expect(stopBuildUpstreamSpy).toHaveBeenCalledTimes(1)
     })
 })
