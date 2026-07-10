@@ -1,4 +1,3 @@
-/// <reference path="../../@types/bstack-service-types.d.ts" />
 import BaseModule from './baseModule.js'
 import { BrowserstackCLI } from '../index.js'
 import { BStackLogger } from '../cliLogger.js'
