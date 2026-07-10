@@ -147,6 +147,17 @@ export interface BrowserstackConfig {
      */
     app?: string | AppConfig;
     /**
+     * Treat this session as App Automate without the SDK managing the app.
+     * When `true`, the SDK classifies the run as App Automate, does NOT upload
+     * an app, and does NOT inject an `appium:app` capability — you supply the
+     * app reference yourself via the `appium:app` driver capability.
+     * When explicitly `false` and no `app` is provided, the SDK throws a
+     * config error before the run starts. Leaving it unset preserves existing
+     * behaviour.
+     * @default undefined
+     */
+    skipAppOverride?: boolean;
+    /**
      * Enable routing connections from BrowserStack cloud through your computer.
      * You will also need to set `browserstack.local` to true in browser capabilities.
      * @default false

@@ -65,6 +65,20 @@ it('should initialize correctly', () => {
     expect(insightsHandler['_framework']).toEqual('framework')
 })
 
+describe('_isAppAutomate skipAppOverride', () => {
+    it('classifies App Automate (product=app-automate) when skipAppOverride is set with no app cap', () => {
+        const handler = new InsightsHandler(browser, 'framework', undefined, { skipAppOverride: true } as any)
+        expect(handler._isAppAutomate()).toBe(true)
+        expect(handler['_platformMeta']?.product).toBe('app-automate')
+    })
+
+    it('classifies Automate when skipAppOverride is unset and no app cap is present', () => {
+        const handler = new InsightsHandler(browser, 'framework', undefined, {} as any)
+        expect(handler._isAppAutomate()).toBe(false)
+        expect(handler['_platformMeta']?.product).toBe('automate')
+    })
+})
+
 describe('before', () => {
     const isBrowserstackSessionSpy = vi.spyOn(utils, 'isBrowserstackSession')
 
