@@ -114,7 +114,10 @@ export default class TestHubModule extends BaseModule {
             this.logger.debug(`sendTestFrameworkEvent for testState: ${testFrameworkState} hookState: ${testHookState}`)
             const platformIndex = process.env.WDIO_WORKER_ID ? parseInt(process.env.WDIO_WORKER_ID.split('-')[0]) : 0
             const uuid = TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_UUID) || instance.getRef()
-            const eventJson = Buffer.from(JSON.stringify(Object.fromEntries(testData)))
+            // Nested values such as test_hooks_started/test_hooks_finished are JS Maps, which
+            // JSON.stringify would serialise to `{}` and strip the hook data. Convert any Map to
+            // a plain object so the binary receives populated hook maps.
+            const eventJson = Buffer.from(JSON.stringify(Object.fromEntries(testData), (_key, value) => value instanceof Map ? Object.fromEntries(value) : value))
             const executionContext = { hash: trackedContext.getId(), threadId: trackedContext.getThreadId().toString(), processId: trackedContext.getProcessId().toString() }
             const payload: Omit<TestFrameworkEventRequest, 'binSessionId'> = {
                 platformIndex,
