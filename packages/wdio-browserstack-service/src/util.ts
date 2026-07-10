@@ -1902,6 +1902,31 @@ export function getBooleanValueFromString(value: string | undefined): boolean {
 }
 
 /**
+ * SDK-3737: Coerce stringified booleans ('true'/'false', any case) in a flat
+ * options object to real booleans, leaving every other value untouched. Boolean-
+ * typed accessibility options (e.g. autoScanning) are commonly supplied as
+ * strings from JS config / env; without coercion they fail W3C caps validation
+ * and are silently dropped. Only the exact strings 'true'/'false' are converted.
+ */
+export function coerceStringBooleans<T extends Record<string, unknown>>(obj: T): T {
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
+        return obj
+    }
+    const out: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(obj)) {
+        if (typeof value === 'string') {
+            const normalised = value.trim().toLowerCase()
+            if (normalised === 'true' || normalised === 'false') {
+                out[key] = normalised === 'true'
+                continue
+            }
+        }
+        out[key] = value
+    }
+    return out as T
+}
+
+/**
  * Checks if a key is safe to use for object property assignment to prevent prototype pollution
  * @param key - The key to check
  * @returns true if the key is safe, false otherwise

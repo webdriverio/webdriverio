@@ -1,19 +1,16 @@
+// The WebdriverIO.Browser accessibility augmentations
+// (getAccessibilityResultsSummary, getAccessibilityResults, performScan,
+// startA11yScanning, stopA11yScanning) now live in src/index.ts inside
+// `declare global { namespace WebdriverIO { ... } }`, so that tsc emits them
+// into build/index.d.ts for consumers. They were moved out of this ambient
+// file to avoid duplicate-declaration conflicts. The setCustomTags augmentation
+// stays here (it is not part of the a11y type-shipping fix).
 declare namespace WebdriverIO {
     interface Browser {
-        getAccessibilityResultsSummary: () => Promise<Record<string, unknown>>,
-        getAccessibilityResults: () => Promise<Array<Record<string, unknown>>>,
-        performScan: () => Promise<Record<string, unknown> | undefined>,
-        startA11yScanning: () => Promise<void>,
-        stopA11yScanning: () => Promise<void>,
         setCustomTags: (key: string, value: string) => Promise<void>
     }
 
     interface MultiRemoteBrowser {
-        getAccessibilityResultsSummary: () => Promise<Record<string, unknown>>,
-        getAccessibilityResults: () => Promise<Array<Record<string, unknown>>>,
-        performScan: () => Promise<Record<string, unknown> | undefined>,
-        startA11yScanning: () => Promise<void>,
-        stopA11yScanning: () => Promise<void>,
         setCustomTags: (key: string, value: string) => Promise<void>
     }
 }
