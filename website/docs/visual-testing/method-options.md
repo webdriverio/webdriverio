@@ -340,6 +340,12 @@ Compare options are options that influence the way the comparison is being execu
 
 ---
 
+:::info Version history for `ignore*` options
+These presets changed behavior once, as a breaking change, when the comparison engine switched from ResembleJS (v9 and below) to Pixelmatch (v10 and up). See the [version history table](./compare-options#visual-sensitivity) on the Compare Options page for details. Anything since v10.0.0 is called out with a "Since" note on the relevant option below.
+:::
+
+**Last-wins ordering:** when more than one `ignore*` flag is enabled at the same time, only one preset is applied, following this order (later wins): `ignoreAlpha` → `ignoreAntialiasing` → `ignoreColors` → `ignoreLess` → `ignoreNothing`. As of `v10.1.0` a warning is logged naming which preset won.
+
 ### `ignoreColors`
 
 - **Type:** `boolean`
@@ -347,8 +353,9 @@ Compare options are options that influence the way the comparison is being execu
 - **Mandatory:** No
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
+- **Since:** `v10.1.0`: brightness-only comparison using resemble luma weights (`0.3/0.59/0.11`).
 
-Even though the images are in color, the comparison will compare 2 black/white images
+Compares brightness only (resemble luma weights `0.3/0.59/0.11`), ignoring hue/color differences. Use this when color itself is expected to vary but you still want to catch layout or brightness changes.
 
 ```typescript
 await browser.checkScreen(
@@ -366,8 +373,9 @@ await browser.checkScreen(
 - **Mandatory:** No
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
+- **Since:** `v10.1.0`: applies its own threshold/AA rule independently of other `ignore*` flags.
 
-Compare images and discard alpha.
+Compare images and discard alpha-channel differences. Use this when transparency/opacity rendering is flaky but the pixel colors underneath matter.
 
 ```typescript
 await browser.checkScreen(
@@ -381,12 +389,13 @@ await browser.checkScreen(
 ### `ignoreAntialiasing`
 
 - **Type:** `boolean`
-- **Default:** `false`
+- **Default:** `true`
 - **Mandatory:** No
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
+- **Since:** `v10`: default changed to `true` (was `false` in v9 and below).
 
-Compare images and discard anti-aliasing.
+Forgives anti-aliased pixels during comparison. Set to `false` for strict comparison where anti-aliased pixels should count as mismatches. This solves the most common source of visual-test flakiness: text/shape edges rendering with slightly different anti-aliasing across machines even though nothing changed.
 
 ```typescript
 await browser.checkScreen(
@@ -404,8 +413,9 @@ await browser.checkScreen(
 - **Mandatory:** No
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
+- **Since:** `v10.1.0`: applies its own threshold/AA rule independently of other `ignore*` flags.
 
-Compare images and compare with `red = 16, green = 16, blue = 16, alpha = 16, minBrightness=16, maxBrightness=240`
+Compare images using a relaxed RGB tolerance (~16/255 per channel in YIQ space). Anti-aliasing is not forgiven. Use this for a little breathing room on rendering noise (compression artifacts, color rounding) without forgiving anti-aliasing.
 
 ```typescript
 await browser.checkScreen(
@@ -423,14 +433,37 @@ await browser.checkScreen(
 - **Mandatory:** No
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
+- **Since:** `v10.1.0`: applies its own threshold/AA rule independently of other `ignore*` flags.
 
-Compare images and compare with `red = 0, green = 0, blue = 0, alpha = 0, minBrightness=0, maxBrightness=255`
+Use zero tolerance: any pixel difference counts as a mismatch, including anti-aliasing. Use this when you need pixel-perfect proof nothing changed at all.
 
 ```typescript
 await browser.checkScreen(
     'sample-tag',
     {
         ignoreNothing: true
+    }
+)
+```
+
+### `pixelmatch`
+
+- **Type:** `object`
+- **Default:** `undefined`
+- **Mandatory:** No
+- **Used with:** All [Check methods](./methods#check-methods)
+- **Supported Application Contexts:** All
+- **Added in:** `v10.1.0`
+
+Overrides the compare mode for a single `check*` call with direct [pixelmatch](https://github.com/mapbox/pixelmatch) settings (`threshold`, `includeAA`, `diffColor`, `aaColor`, `diffColorAlt`, `alpha`, `diffMask`, `checkerboard`), instead of an `ignore*` preset. Use this when the presets are too coarse for one specific test, e.g. it needs its own threshold value, or a diff color that actually stands out in your report. See [Direct pixelmatch control](./compare-options#direct-pixelmatch-control) for the full field reference and what each field solves.
+
+Cannot be combined with `ignore*` options in the same call's options object: that throws `CompareOptionsConflictError`. It can, however, override a service config that uses `ignore*` presets (or vice versa); a warning is logged when a method call switches the compare mode this way.
+
+```typescript
+await browser.checkScreen(
+    'sample-tag',
+    {
+        pixelmatch: { threshold: 0.05 }
     }
 )
 ```
