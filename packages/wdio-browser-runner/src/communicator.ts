@@ -4,16 +4,15 @@ import libCoverage, { type CoverageMap, type CoverageMapData } from 'istanbul-li
 import logger from '@wdio/logger'
 import type { WebSocketClient } from 'vite'
 import type { WorkerInstance } from '@wdio/local-runner'
-import { MESSAGE_TYPES, type Workers } from '@wdio/types'
-import type { SessionStartedMessage, SessionEndedMessage, WorkerResponseMessage } from '@wdio/runner'
+import type { AnyWSMessage, IPCMessageValue, IPC_MESSAGE_TYPES, WSMessage } from '@wdio/types'
+import { WS_MESSAGE_TYPES } from '@wdio/types'
 
 import { SESSIONS } from './constants.js'
 import { WDIO_EVENT_NAME } from './constants.js'
 import type { ViteServer } from './vite/server.js'
+import { isWSMessage } from '@wdio/utils'
 
 const log = logger('@wdio/browser-runner')
-
-type WorkerMessagePayload = SessionStartedMessage | SessionEndedMessage | WorkerResponseMessage | Workers.WorkerEvent
 
 interface WorkerMessage {
     id: number
@@ -42,59 +41,73 @@ export class ServerWorkerCommunicator {
     }
 
     register (server: ViteServer, worker: WorkerInstance) {
+        const { cid } = worker
         server.onBrowserEvent((data, client) => this.#onBrowserEvent(data, client, worker))
-        worker.on('message', this.#onWorkerMessage.bind(this))
-    }
 
-    async #onWorkerMessage (payload: WorkerMessagePayload) {
-        if (payload.name === 'sessionStarted' && !SESSIONS.has(payload.cid!)) {
-            SESSIONS.set(payload.cid!, {
-                args: this.#config.mochaOpts || {},
-                config: this.#config,
-                capabilities: payload.content.capabilities,
-                sessionId: payload.content.sessionId,
-                injectGlobals: payload.content.injectGlobals
-            })
-        }
-
-        if (payload.name === 'sessionEnded') {
-            SESSIONS.delete(payload.cid)
-        }
-
-        if (payload.name === 'workerEvent' && payload.args.type === MESSAGE_TYPES.coverageMap) {
-            const coverageMapData = payload.args.value as CoverageMapData
-            this.coverageMaps.push(
-                await this.#mapStore.transformCoverage(libCoverage.createCoverageMap(coverageMapData))
-            )
-        }
-
-        if (payload.name === 'workerEvent' && payload.args.type === MESSAGE_TYPES.customCommand) {
-            const { commandName, cid } = payload.args.value
-            if (!this.#customCommands.has(cid)) {
-                this.#customCommands.set(cid, new Set())
-            }
-            const customCommands = this.#customCommands.get(cid) || new Set()
-            customCommands.add(commandName)
-            return
-        }
-
-        if (payload.name === 'workerResponse') {
-            const msg = this.#pendingMessages.get(payload.args.id)
-            if (!msg) {
-                return log.error(`Couldn't find message with id ${payload.args.id} from type ${payload.args.message.type}`)
-            }
-            this.#pendingMessages.delete(payload.args.id)
-            return msg.client.send(WDIO_EVENT_NAME, payload.args.message)
-        }
-    }
-
-    #onBrowserEvent (message: Workers.SocketMessage, client: WebSocketClient, worker: WorkerInstance) {
         /**
-         * some browser events don't need to go through the worker process
+         * register browser-runner handlers on the worker's single parent-side
+         * RPC server instead of creating a second `createServerRpc`. The disposer
+         * is kept in a per-`register` closure so each worker owns its own
+         * unregister callback; a class field would be overwritten when more than
+         * one worker is registered on the same communicator, letting one worker's
+         * `sessionEnded` unregister another worker's handlers. It is held on a
+         * const wrapper because `sessionEnded` reads it before
+         * `registerBrowserRunnerRpcHandlers` returns.
          */
-        if (message.type === MESSAGE_TYPES.initiateBrowserStateRequest) {
-            const result: Workers.SocketMessage = {
-                type: MESSAGE_TYPES.initiateBrowserStateResponse,
+        const handle: { unregister?: () => void } = {}
+        handle.unregister = worker.registerBrowserRunnerRpcHandlers({
+            sessionMetadata: (data: IPCMessageValue[typeof IPC_MESSAGE_TYPES.sessionMetadataMessage]) => {
+                if (!SESSIONS.has(cid)) {
+                    SESSIONS.set(cid, {
+                        args: this.#config.mochaOpts || {},
+                        config: this.#config,
+                        capabilities: data.capabilities,
+                        sessionId: data.sessionId,
+                        injectGlobals: data.injectGlobals
+                    })
+                }
+            },
+            sessionEnded: () => {
+                handle.unregister?.()
+                SESSIONS.delete(cid)
+                this.#customCommands.delete(cid)
+            },
+            workerEvent: async ({ args }) => {
+                if (isWSMessage(args, WS_MESSAGE_TYPES.coverageMap)) {
+                    const coverageMapData = args.value as CoverageMapData
+                    this.coverageMaps.push(
+                        await this.#mapStore.transformCoverage(libCoverage.createCoverageMap(coverageMapData))
+                    )
+                }
+
+                if (isWSMessage(args, WS_MESSAGE_TYPES.customCommand)) {
+                    const customArgs = args as WSMessage<WS_MESSAGE_TYPES.customCommand>
+                    const { commandName, cid: commandCid } = customArgs.value
+                    if (!this.#customCommands.has(commandCid)) {
+                        this.#customCommands.set(commandCid, new Set())
+                    }
+                    this.#customCommands.get(commandCid)!.add(commandName)
+                }
+            },
+            workerResponse: ({ args }) => {
+                const { id, message } = args
+                const msg = this.#pendingMessages.get(id)
+                if (!msg) {
+                    return log.error(`Couldn't find message with id ${id} from type ${message.type}`)
+                }
+                this.#pendingMessages.delete(id)
+                msg.client.send(WDIO_EVENT_NAME, message)
+            }
+        })
+    }
+
+    #onBrowserEvent (message: AnyWSMessage, client: WebSocketClient, worker: WorkerInstance) {
+        /**
+         * browser state requests are answered directly by the parent process
+         */
+        if (isWSMessage(message, WS_MESSAGE_TYPES.initiateBrowserStateRequest)) {
+            const result: AnyWSMessage = {
+                type: WS_MESSAGE_TYPES.initiateBrowserStateResponse,
                 value: {
                     customCommands: [...(this.#customCommands.get(message.value.cid) || [])]
                 }
@@ -102,10 +115,25 @@ export class ServerWorkerCommunicator {
             return client.send(WDIO_EVENT_NAME, result)
         }
 
+        /**
+         * fire-and-forget browser events that do not expect a worker response.
+         * Forwarded through the worker's single RPC proxy.
+         */
+        if (isWSMessage(message, WS_MESSAGE_TYPES.consoleMessage)) {
+            return worker.sendConsoleMessage(message.value)
+        }
+        if (isWSMessage(message, WS_MESSAGE_TYPES.browserTestResult)) {
+            return worker.sendBrowserTestResult(message.value)
+        }
+
+        /**
+         * request/response browser events (command, hook, expect and
+         * expect-matchers requests). We assign a communicator-level correlation
+         * `id` (separate from the browser payload id) and store the originating
+         * client so the matching `workerResponse` can be routed back to it.
+         */
         const id = this.#msgId++
-        const msg: WorkerMessage = { id, client }
-        this.#pendingMessages.set(id, msg)
-        const args: Workers.WorkerRequest['args'] = { id, message }
-        return worker.postMessage('workerRequest', args as unknown as Workers.WorkerMessageArgs, true)
+        this.#pendingMessages.set(id, { id, client })
+        return worker.sendWorkerRequest({ id, message })
     }
 }

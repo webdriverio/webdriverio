@@ -103,6 +103,21 @@ describe('cli interface', () => {
         })
     })
 
+    it('should buffer normalized reporterRealTime output coming from the local runner', () => {
+        // the local runner unwraps `{ type: reporterRealTime, value: { origin, name, content } }`
+        // into the legacy flat shape below before forwarding it to the CLI
+        wdioClInterface.onMessage({
+            cid: '0-0',
+            origin: 'reporter',
+            name: 'dot',
+            content: 'some output'
+        })
+        expect(wdioClInterface['_messages']).toEqual({
+            ...EMPTY_INTERFACE_MESSAGE_OBJECT,
+            reporter: { dot: ['some output'] }
+        })
+    })
+
     it('should print test error', () => {
         wdioClInterface.onTestError = vi.fn()
         wdioClInterface.onMessage({

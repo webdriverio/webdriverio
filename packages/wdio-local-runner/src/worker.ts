@@ -4,8 +4,24 @@ import { EventEmitter } from 'node:events'
 import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
 import { ProcessFactory, type XvfbManager } from '@wdio/xvfb'
-import type { Workers } from '@wdio/types'
+import type { Workers, AnyIPCMessage, WSMessageValue, WS_MESSAGE_TYPES } from '@wdio/types'
+import { IPC_MESSAGE_TYPES } from '@wdio/types'
 import type { ReplConfig } from '@wdio/repl'
+import { createServerRpc, createWorkerRpcTransport, isBirpcFrame, WORKER_RPC_EVENT } from '@wdio/rpc'
+import type { ClientFunctions, ServerFunctions, RpcTransportChannel, WorkerRequest, BirpcReturn } from '@wdio/rpc'
+
+/**
+ * subset of parent-side RPC server handlers that the browser-runner cares about.
+ * These are registered on the single `WorkerInstance` RPC server via
+ * `registerBrowserRunnerRpcHandlers` rather than by creating a second RPC server.
+ */
+export type BrowserRunnerHandlers = {
+    sessionMetadata?: ServerFunctions['sessionMetadata']
+    sessionEnded?: ServerFunctions['sessionEnded']
+    workerEvent?: ServerFunctions['workerEvent']
+    workerResponse?: ServerFunctions['workerResponse']
+    errorMessage?: ServerFunctions['errorMessage']
+}
 
 import logger from '@wdio/logger'
 
@@ -17,6 +33,24 @@ const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const ACCEPTABLE_BUSY_COMMANDS = ['workerRequest', 'endSession']
+
+/**
+ * type guard that verifies a payload is a typed IPC envelope, e.g.
+ * `{ type: IPC_MESSAGE_TYPES.reporterRealTime, value: { ... } }`.
+ *
+ * It explicitly requires a known `IPC_MESSAGE_TYPES` value so that birpc wire
+ * frames (which are handled separately by `createServerRpc`) are not mistaken
+ * for IPC envelopes and forwarded to the CLI as malformed messages.
+ */
+function isTypedIPCMessage(payload: unknown): payload is AnyIPCMessage {
+    return Boolean(
+        payload &&
+        typeof payload === 'object' &&
+        'type' in payload &&
+        'value' in payload &&
+        Object.values(IPC_MESSAGE_TYPES).includes((payload as AnyIPCMessage).type)
+    )
+}
 
 const stdOutStream = new RunnerStream()
 const stdErrStream = new RunnerStream()
@@ -46,6 +80,17 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     server?: Record<string, string>
     logsAggregator: string[] = []
     #processFactory: ProcessFactory
+    #rpcTransport: RpcTransportChannel
+    /**
+     * single parent-side RPC server proxy for this worker. Used to call
+     * worker-side `ClientFunctions` (e.g. forward browser events).
+     */
+    #rpc: BirpcReturn<ClientFunctions, ServerFunctions>
+    /**
+     * optional browser-runner handlers, registered via
+     * `registerBrowserRunnerRpcHandlers`. There is at most one set at a time.
+     */
+    #browserRunnerHandlers?: BrowserRunnerHandlers
 
     instances?: Record<string, { sessionId: string }>
     isMultiremote?: boolean
@@ -90,6 +135,112 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
 
         this.isReady = new Promise((resolve) => { this.isReadyResolver = resolve })
         this.isSetup = new Promise((resolve) => { this.isSetupResolver = resolve })
+
+        /**
+         * the worker transport hides the `childProcess.send` / worker event
+         * wiring and lets us dispose the RPC listener on worker exit/kill.
+         * birpc wire frames are routed to this transport by `_handleMessage`
+         * via the dedicated `WORKER_RPC_EVENT`, keeping them off the generic
+         * `message` event that the CLI consumes.
+         */
+        this.#rpcTransport = createWorkerRpcTransport(this)
+        this.#rpc = createServerRpc<ClientFunctions, ServerFunctions>(
+            this.#rpcTransport,
+            {
+                sessionMetadata: (data) => {
+                    /**
+                     * both the local runner and the browser runner care about
+                     * session metadata, so call both intentionally
+                     */
+                    this.#browserRunnerHandlers?.sessionMetadata?.(data)
+
+                    if (this.sessionId || this.instances || this.isMultiremote) {
+                        return
+                    }
+                    this.isSetupResolver(true)
+                    if (this.retries === -1 && data.specFileRetries) {
+                        this.retries = data.specFileRetries - 1
+                    }
+                    if (data.isMultiremote) {
+                        Object.assign(this, data)
+                    } else {
+                        this.sessionId = data.sessionId
+                        this.capabilities = data.capabilities as WebdriverIO.Capabilities
+                        Object.assign(this.config, data)
+                    }
+                },
+                sessionStarted: () => {},
+                sessionEnded: (data) => this.#browserRunnerHandlers?.sessionEnded?.(data),
+                /**
+                 * bridge typed birpc messages back to the legacy flat events
+                 * that `WDIOCLInterface.onMessage` still expects
+                 */
+                snapshotResults: (data) => {
+                    this.emit('message', { ...data, cid: this.cid })
+                },
+                printFailureMessage: () => {},
+                errorMessage: (data) => {
+                    this.emit('message', { ...data, cid: this.cid })
+                    this.#browserRunnerHandlers?.errorMessage?.(data)
+                },
+                testFrameworkInitMessage: (data) => {
+                    this.emit('message', { name: 'testFrameworkInit', content: data, cid: this.cid })
+                },
+                /**
+                 * browser-runner-specific events are delegated to the registered
+                 * browser-runner handlers (if any). When none are registered
+                 * (local runner) they are safely ignored.
+                 */
+                workerEvent: (data) => this.#browserRunnerHandlers?.workerEvent?.(data),
+                workerResponse: (data) => this.#browserRunnerHandlers?.workerResponse?.(data),
+            },
+            {
+                /**
+                 * forward browser requests as fire-and-forget events. The worker
+                 * replies asynchronously via the `workerResponse` server function,
+                 * and the child process hosts more than one RPC client, so we must
+                 * not await a single response here.
+                 */
+                eventNames: ['workerRequest', 'consoleMessage', 'browserTestResult']
+            }
+        )
+    }
+
+    /**
+     * Register browser-runner specific RPC handlers on this worker's single
+     * parent-side RPC server. This avoids creating a second `createServerRpc`
+     * (and a second transport listener) for the same worker.
+     * @returns a disposer that unregisters the handlers
+     */
+    registerBrowserRunnerRpcHandlers (handlers: BrowserRunnerHandlers): () => void {
+        this.#browserRunnerHandlers = handlers
+        return () => {
+            if (this.#browserRunnerHandlers === handlers) {
+                this.#browserRunnerHandlers = undefined
+            }
+        }
+    }
+
+    /**
+     * forward a browser WebSocket request to the worker process via the existing
+     * RPC proxy. The worker replies through the `workerResponse` server function.
+     */
+    sendWorkerRequest (data: WorkerRequest): void {
+        this.#rpc.workerRequest(data)
+    }
+
+    /**
+     * forward a fire-and-forget browser console message to the worker process
+     */
+    sendConsoleMessage (data: WSMessageValue[typeof WS_MESSAGE_TYPES.consoleMessage]): void {
+        this.#rpc.consoleMessage(data)
+    }
+
+    /**
+     * forward a fire-and-forget browser test result to the worker process
+     */
+    sendBrowserTestResult (data: WSMessageValue[typeof WS_MESSAGE_TYPES.browserTestResult]): void {
+        this.#rpc.browserTestResult(data)
     }
 
     /**
@@ -163,6 +314,16 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         const { cid, childProcess } = this
 
         /**
+         * birpc wire frames are internal to the RPC layer. Forward them to the
+         * RPC transport via a dedicated event so the typed server handlers run,
+         * but never emit them on the generic `message` event consumed by the CLI.
+         */
+        if (isBirpcFrame(payload)) {
+            this.emit(WORKER_RPC_EVENT, payload)
+            return
+        }
+
+        /**
          * resolve pending commands
          */
         if (payload.name === 'finishedCommand') {
@@ -178,8 +339,12 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
 
         /**
          * store sessionId and connection data to worker instance
+         * Note: birpc sessionMetadata is handled via createServerRpc in the constructor
          */
         if (payload.name === 'sessionStarted') {
+            if (this.sessionId || this.instances || this.isMultiremote) {
+                return
+            }
             this.isSetupResolver(true)
             if (this.retries === -1 && payload.specFileRetries) {
                 this.retries = payload.specFileRetries - 1
@@ -213,6 +378,20 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             replQueue.runningRepl?.onResult(payload.params)
         }
 
+        /**
+         * normalize typed IPC envelopes into the legacy flat shape the CLI
+         * (`WDIOCLInterface.onMessage`) expects. We unwrap the envelope `value`
+         * and attach `cid` without mutating the original payload object.
+         */
+        if (isTypedIPCMessage(payload)) {
+            if (
+                payload.type === IPC_MESSAGE_TYPES.reporterRealTime ||
+                payload.type === IPC_MESSAGE_TYPES.errorMessage
+            ) {
+                return this.emit('message', { ...payload.value, cid })
+            }
+        }
+
         this.emit('message', Object.assign(payload, { cid }))
     }
 
@@ -230,6 +409,11 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         delete this.childProcess
         this.isBusy = false
         this.isKilled = true
+
+        /**
+         * clean up the per-worker RPC listener now that the process is gone
+         */
+        this.#rpcTransport.dispose?.()
 
         log.debug(`Runner ${cid} finished with exit code ${exitCode}`)
         this.emit('exit', { cid, exitCode, specs, retries })
@@ -261,6 +445,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         delete this.childProcess
         this.isBusy = false
         this.isKilled = true
+        this.#rpcTransport.dispose?.()
     }
 
     /**
