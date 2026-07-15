@@ -241,15 +241,18 @@ export class AllureReportState {
 
     }
 
-    // A suite-scoped hook ("before all"/"after all") may only attach to a suite scope - it
-    // conceptually belongs to the whole suite, not to any one test, and attaching it to a
-    // test's own scope would hide it from every other test. Any other hook may attach to a
-    // test scope as long as that test hasn't been fully finalized yet (_currentTestUuid is
-    // only cleared by _writeLastTest) - this covers both an ordinary running test and a test
-    // that just ended and is merely pending close (see _closeDanglingTestScope), which is
-    // exactly when a trailing "after each" hook needs to attach. Anything else (no scope open
-    // at all, or a mismatch between the hook's own scope and the currently open one) has
-    // nowhere safe to attach to yet and is queued as a pending hook to be replayed later.
+    // The suite scope is shared by every test started under it, so it must only ever hold a
+    // genuinely suite-scoped hook ("before all"/"after all") - attaching anything else there
+    // would leak that hook's fixture onto every other test in the suite. A test scope, by
+    // contrast, is never shared across multiple real tests, so there's no such leakage risk in
+    // being permissive there: it accepts any hook - including a suite-scoped one with no suite
+    // scope currently available, e.g. a root-level hook outside any describe() being replayed
+    // from _pendingHookMessages (see _attachPendingHookToCurrentTest and the "root-level" test)
+    // - as long as that test hasn't been fully finalized yet (_currentTestUuid is only cleared
+    // by _writeLastTest). This covers an ordinary running test and a test that just ended and
+    // is merely pending close (see _closeDanglingTestScope), which is exactly when a trailing
+    // "after each" hook needs to attach. Anything else (no scope open at all) has nowhere safe
+    // to attach to yet and is queued as a pending hook to be replayed later.
     private _hasAttachableScope(hookName: string): boolean {
         const kind = this._scopeKindsStack[this._scopeKindsStack.length - 1]
         if (kind === 'suite') {

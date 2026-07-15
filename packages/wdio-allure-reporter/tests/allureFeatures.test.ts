@@ -619,6 +619,8 @@ describe('hooks handling default', () => {
 
         const beforeAllContainer = containers.find((c: any) => c.name === '"before all" hook')
         const afterAllContainer = containers.find((c: any) => c.name === '"after all" hook')
+        expect(beforeAllContainer).toBeDefined()
+        expect(afterAllContainer).toBeDefined()
         expect(beforeAllContainer.children.sort()).toEqual(testUuids)
         expect(afterAllContainer.children.sort()).toEqual(testUuids)
 
