@@ -7,13 +7,16 @@ import cp from 'node:child_process'
 import decamelize from 'decamelize'
 import logger from '@wdio/logger'
 import {
-    install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel,
-    computeExecutablePath, type InstallOptions
+    install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, BrowserPlatform, ChromeReleaseChannel,
+    computeExecutablePath, type InstalledBrowser,
+    type InstallOptions, type BrowserProvider
 } from '@puppeteer/browsers'
 import { download as downloadGeckodriver } from 'geckodriver'
 import { locateChrome, locateFirefox, locateApp } from 'locate-app'
 import type { EdgedriverParameters } from 'edgedriver'
 import type { Options } from '@wdio/types'
+
+import { ElectronChromedriverProvider } from './electronChromedriverProvider.js'
 
 const log = logger('webdriver')
 const EXCLUDED_PARAMS = ['version', 'help']
@@ -129,6 +132,7 @@ export const downloadProgressCallback = (artifact: string, downloadedBytes: numb
 
 /**
  * Installs a package using the provided installation options and clears the progress log afterward.
+ * Returns the InstalledBrowser object which includes the executable path (important for custom providers).
  *
  * @description
  * When installing a package, progress updates are logged using `log.progress`.
@@ -137,20 +141,21 @@ export const downloadProgressCallback = (artifact: string, downloadedBytes: numb
  *
  * @see {@link https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-logger/README.md#custom-log-levels} for more information.
  *
- * @param {InstallOptions & { unpack?: true | undefined }} args - An object containing installation options and an optional `unpack` flag.
- * @returns {Promise<void>} A Promise that resolves once the package is installed and clear the progress log.
+ * @param {InstallOptions & { unpack: true }} args - An object containing installation options with unpack enabled.
+ * @returns {Promise<InstalledBrowser>} A Promise that resolves with the installed browser info.
  */
-const _install = async (args: InstallOptions & { unpack?: true | undefined }, retry = false): Promise<void> => {
-    await install(args).catch((err) => {
+const _install = async (args: InstallOptions & { unpack: true }, retry = false): Promise<InstalledBrowser> => {
+    const result = await install(args).catch((err: Error) => {
         const error = `Failed downloading ${args.browser} v${args.buildId} using ${JSON.stringify(args)}: ${err.message}, retrying ...`
         if (retry) {
             err.message += '\n' + error.replace(', retrying ...', '')
-            throw new Error(err)
+            throw new Error(err.message)
         }
         log.error(error)
         return _install(args, true)
     })
     log.progress('')
+    return result
 }
 
 function locateChromeSafely () {
@@ -237,7 +242,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
         ? caps.browserVersion || ChromeReleaseChannel.STABLE
         : caps.browserVersion || 'latest'
     const buildId = await resolveBuildId(browserName, platform, tag)
-    const installOptions: InstallOptions & { unpack?: true } = {
+    const installOptions: InstallOptions & { unpack: true } = {
         unpack: true,
         cacheDir,
         platform,
@@ -291,53 +296,180 @@ export function getMajorVersionFromString(fullVersion:string) {
     return prefix && prefix.length > 0 ? prefix[0] : ''
 }
 
-export async function setupChromedriver (cacheDir: string, driverVersion?: string) {
+/**
+ * Extract Electron-related capabilities from WebdriverIO capabilities object.
+ * Handles both direct and W3C capabilities formats.
+ */
+function parseElectronCapabilities(capabilities?: WebdriverIO.Capabilities) {
+    if (!capabilities) {
+        return { chromiumVersion: undefined, electronVersion: undefined }
+    }
+
+    // Type for capabilities with custom properties
+    type CapabilitiesWithCustomProps = Record<string, unknown> & {
+        alwaysMatch?: Record<string, unknown>;
+    }
+
+    // Check direct capabilities
+    const caps = capabilities as CapabilitiesWithCustomProps
+    const chromiumVersion = caps['wdio:chromiumVersion'] as string | undefined
+    const electronVersion = caps['wdio:electronVersion'] as string | undefined
+
+    // Also check for W3C format capabilities
+    const w3cCapabilities = caps.alwaysMatch || caps
+    const w3cChromiumVersion = w3cCapabilities['wdio:chromiumVersion'] as string | undefined
+    const w3cElectronVersion = w3cCapabilities['wdio:electronVersion'] as string | undefined
+
+    // Use the versions found (prefer direct access, fallback to W3C)
+    return {
+        chromiumVersion: chromiumVersion || w3cChromiumVersion,
+        electronVersion: electronVersion || w3cElectronVersion
+    }
+}
+
+/**
+ * Determine the appropriate platform, with ARM overrides.
+ */
+function resolveChromedriverPlatform(): { platform: BrowserPlatform; isWindowsArm64: boolean } {
     const platform = detectBrowserPlatform()
-    if (!platform) {
+    const actualPlatform = (platform === BrowserPlatform.LINUX && process.arch === 'arm64') ? BrowserPlatform.LINUX_ARM : platform
+
+    if (actualPlatform !== platform) {
+        log.info(`Overriding platform from ${platform} to ${actualPlatform} for ARM Linux`)
+    }
+
+    if (!actualPlatform) {
         throw new Error('The current platform is not supported.')
     }
-    const version = driverVersion || getBuildIdByChromePath(await locateChromeSafely()) || ChromeReleaseChannel.STABLE
-    const buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
-    let executablePath = computeExecutablePath({
-        browser: Browser.CHROMEDRIVER,
+
+    // Windows ARM64 detection - detectBrowserPlatform() returns WIN64 for both x64 and ARM64
+    const isWindowsArm64 = process.platform === 'win32' && process.arch === 'arm64'
+
+    return { platform: actualPlatform, isWindowsArm64 }
+}
+
+export async function setupChromedriver (cacheDir: string, driverVersion?: string, capabilities?: WebdriverIO.Capabilities) {
+    const { platform, isWindowsArm64 } = resolveChromedriverPlatform()
+    const { chromiumVersion, electronVersion } = parseElectronCapabilities(capabilities)
+
+    // Platforms where Chrome for Testing doesn't provide native binaries
+    // Windows ARM64 is detected separately since detectBrowserPlatform() returns WIN64
+    const unsupportedPlatforms = [BrowserPlatform.LINUX_ARM]
+    const needsAlternativeProvider = unsupportedPlatforms.includes(platform) || isWindowsArm64
+
+    // Determine buildId and providers based on capabilities
+    let buildId: string
+    let providers: BrowserProvider[] | undefined
+
+    if (electronVersion) {
+        // Use Electron provider with Electron version
+        providers = [new ElectronChromedriverProvider()]
+        buildId = electronVersion
+        // Only mention the Chromium version when it was actually provided, otherwise
+        // the message reads "(Chromium undefined)" for the electronVersion-only path.
+        log.info(`Using Electron provider with Electron v${buildId}${chromiumVersion ? ` (Chromium ${chromiumVersion})` : ''}`)
+    } else if (chromiumVersion || needsAlternativeProvider) {
+        // Use Electron provider with Chromium version OR for unsupported platforms
+        providers = [new ElectronChromedriverProvider()]
+
+        // For fallback scenario, we need to resolve "stable" to an actual version
+        // that the Electron provider can map to an Electron release
+        let detectedVersion = chromiumVersion || driverVersion || getBuildIdByChromePath(await locateChromeSafely())
+
+        if (!detectedVersion && needsAlternativeProvider) {
+            // No Chrome detected - resolve "stable" from Chrome for Testing to get the
+            // version number. Probe with BrowserPlatform.LINUX (always served by CfT)
+            // rather than `platform`: this branch only runs on platforms CfT has no
+            // Chrome binaries for (Linux/Windows ARM64), so probing `platform` would
+            // throw. We only need the version string to map to an Electron release.
+            log.info('No Chrome installation detected. Resolving latest stable version...')
+            detectedVersion = await resolveBuildId(Browser.CHROME, BrowserPlatform.LINUX, ChromeReleaseChannel.STABLE)
+        }
+
+        buildId = detectedVersion || ChromeReleaseChannel.STABLE
+
+        if (needsAlternativeProvider && !chromiumVersion) {
+            const platformName = isWindowsArm64 ? 'Windows ARM64' : platform
+            log.info(`Chrome for Testing doesn't provide native binaries for ${platformName}. Using Electron releases as fallback with Chrome v${buildId}.`)
+        } else if (chromiumVersion) {
+            log.info(`Using Electron provider with Chromium v${buildId}`)
+        }
+    } else {
+        // Use standard Chrome chromedriver logic (no Electron provider)
+        const version = driverVersion || getBuildIdByChromePath(await locateChromeSafely()) || ChromeReleaseChannel.STABLE
+        buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
+        // If Chrome for Testing has no binary for this exact build, fall back to the
+        // newest known-good build for the same Chrome major. Restores the pre-refactor
+        // safety net that the standard (non-Electron) path relied on.
+        const canDownloadExact = await canDownload({ cacheDir, buildId, platform, browser: Browser.CHROMEDRIVER, unpack: true })
+        if (!canDownloadExact) {
+            const major = getMajorVersionFromString(version)
+            log.warn(`Chromedriver v${buildId} not available, resolving a known good version for major v${major}...`)
+            const knownGood = await resolveBuildId(Browser.CHROMEDRIVER, platform, major)
+            if (!knownGood) {
+                throw new Error(`Couldn't resolve a known good Chromedriver for major v${major} (requested v${version})`)
+            }
+            buildId = knownGood
+        }
+        log.info(`Using standard Chrome chromedriver logic, resolved buildId=${buildId}`)
+    }
+
+    const installOptions = {
+        cacheDir,
         buildId,
         platform,
-        cacheDir
-    })
-    const hasChromedriverInstalled = await fsp.access(executablePath).then(() => true, () => false)
-    if (!hasChromedriverInstalled) {
-        log.info(`Downloading Chromedriver v${buildId}`)
-        const chromedriverInstallOpts: InstallOptions & { unpack?: true } = {
-            cacheDir,
-            buildId,
-            platform,
-            browser: Browser.CHROMEDRIVER,
-            unpack: true,
-            downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
-        }
-        let knownBuild = buildId
-        if (await canDownload(chromedriverInstallOpts)) {
-            await _install({ ...chromedriverInstallOpts, buildId })
-            log.info(`Download of Chromedriver v${buildId} was successful`)
-        } else {
-            log.warn(`Chromedriver v${buildId} don't exist, trying to find known good version...`)
-            knownBuild = await resolveBuildId(Browser.CHROMEDRIVER, platform, getMajorVersionFromString(version))
-            if (knownBuild) {
-                await _install({ ...chromedriverInstallOpts, buildId: knownBuild })
-                log.info(`Download of Chromedriver v${knownBuild} was successful`)
+        browser: Browser.CHROMEDRIVER,
+        unpack: true,
+        downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes),
+        providers
+    } satisfies InstallOptions & { unpack: true; providers?: BrowserProvider[] }
+
+    let installedBrowser: Awaited<ReturnType<typeof _install>>
+
+    try {
+        installedBrowser = await _install(installOptions)
+        // "ready" rather than "downloaded": install() resolves from cache without
+        // a download when the build is already present.
+        log.info(`Chromedriver v${buildId} is ready`)
+    } catch (error) {
+        // If the primary download failed and we're using Electron, try a fallback version.
+        // Skip this on platforms Chrome for Testing doesn't serve (e.g. Linux ARM64): the
+        // fallback resolves against the CfT API, which has no binaries there and would throw
+        // a confusing CfT error that masks the original Electron download failure.
+        if (chromiumVersion && !needsAlternativeProvider) {
+            log.warn(`Chromedriver v${buildId} download failed, trying latest compatible version...`)
+            const fallbackVersion = getMajorVersionFromString(chromiumVersion)
+            const fallbackBuildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, fallbackVersion)
+
+            if (fallbackBuildId !== buildId) {
+                log.info(`Trying fallback Chromedriver v${fallbackBuildId}`)
+                try {
+                    // fallbackBuildId was resolved against Chrome for Testing, so download
+                    // it directly from CfT (drop the Electron provider) instead of
+                    // re-mapping a CfT build id through the Electron release index.
+                    installedBrowser = await _install({ ...installOptions, buildId: fallbackBuildId, providers: undefined })
+                    log.info(`Chromedriver v${fallbackBuildId} is ready`)
+                    buildId = fallbackBuildId
+                } catch (fallbackError) {
+                    log.error(`Fallback Chromedriver download also failed: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`)
+                    throw new Error(`Couldn't download Chromedriver v${buildId} or fallback v${fallbackBuildId}`)
+                }
             } else {
-                throw new Error(`Couldn't download any known good version from Chromedriver major v${getMajorVersionFromString(version)}, requested full version - v${version}`)
+                throw new Error(`Couldn't download Chromedriver v${buildId}`)
             }
+        } else {
+            throw error
         }
-        executablePath = computeExecutablePath({
-            browser: Browser.CHROMEDRIVER,
-            buildId: knownBuild,
-            platform,
-            cacheDir
-        })
-    } else {
-        log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
     }
+
+    // Use the executable path from InstalledBrowser - this automatically uses
+    // custom paths from providers that implement getExecutablePath()
+    const executablePath = installedBrowser.executablePath
+
+    if (providers?.length) {
+        log.info(`Using custom provider executable path: ${executablePath}`)
+    }
+
     return { executablePath }
 }
 
