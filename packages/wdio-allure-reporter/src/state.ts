@@ -15,6 +15,8 @@ import { Stage as AllureStage } from 'allure-js-commons'
 
 export class AllureReportState {
     private _scopesStack: string[] = []
+    private _scopeKindsStack: Array<'suite' | 'test'> = []
+    private _testScopePendingClose: boolean = false
     private _executablesStack: string[] = []
     private _fixturesStack: string[] = []
     private _currentTestUuid?: string
@@ -113,13 +115,15 @@ export class AllureReportState {
         return m?.data?.name
     }
 
-    private async _openScope(): Promise<void> {
+    private async _openScope(kind: 'suite' | 'test'): Promise<void> {
         const scopeUuid = this.allureRuntime.startScope()
         this._scopesStack.push(scopeUuid)
+        this._scopeKindsStack.push(kind)
     }
 
     private async _closeScope(): Promise<void> {
         const scopeUuid = this._scopesStack.pop()
+        this._scopeKindsStack.pop()
         if (scopeUuid) {
             await this.allureRuntime.writeScope(scopeUuid)
         }
@@ -133,14 +137,28 @@ export class AllureReportState {
         this._currentTestUuid = undefined
     }
 
+    // A test's own scope stays open past its test:end - Mocha fires a test's "after each"
+    // hook(s) only after that test's pass/fail/test:end events, so the scope needs to still
+    // be there for such a hook to attach to (see _endTest). Once marked pending-close, that
+    // scope is orphaned and must be closed before a new suite/test scope is opened, or before
+    // a suite-level "after all" hook can reach the suite scope underneath it.
+    private async _closeDanglingTestScope(): Promise<void> {
+        if (this._testScopePendingClose) {
+            await this._closeScope()
+            this._testScopePendingClose = false
+        }
+    }
+
     private async _startSuite(): Promise<void> {
         if (this._currentTestUuid) {
             await this._writeLastTest()
         }
-        await this._openScope()
+        await this._closeDanglingTestScope()
+        await this._openScope('suite')
     }
 
     private async _endSuite(write: boolean = false): Promise<void> {
+        await this._closeDanglingTestScope()
         await this._closeScope()
         if (write) {
             await this._writeLastTest()
@@ -151,7 +169,8 @@ export class AllureReportState {
         if (this._currentTestUuid) {
             await this._writeLastTest()
         }
-        await this._openScope()
+        await this._closeDanglingTestScope()
+        await this._openScope('test')
 
         const { name, start } = message.data
         const testUuid = this.allureRuntime.startTest(
@@ -193,7 +212,8 @@ export class AllureReportState {
         }
 
         await this._closeOpenedSteps(status, stop, statusDetails)
-        await this._closeScope()
+        // The test's own scope is intentionally left open here - see _closeDanglingTestScope.
+        this._testScopePendingClose = true
 
         this.allureRuntime.updateTest(testUuid, r => {
             r.status = status
@@ -208,34 +228,63 @@ export class AllureReportState {
 
     }
 
+    // A suite-scoped hook ("before all"/"after all") may only attach to a suite scope - it
+    // conceptually belongs to the whole suite, not to any one test, and attaching it to a
+    // test's own scope would hide it from every other test. Any other hook may attach to a
+    // test scope as long as that test hasn't been fully finalized yet (_currentTestUuid is
+    // only cleared by _writeLastTest) - this covers both an ordinary running test and a test
+    // that just ended and is merely pending close (see _closeDanglingTestScope), which is
+    // exactly when a trailing "after each" hook needs to attach. Anything else (no scope open
+    // at all, or a mismatch between the hook's own scope and the currently open one) has
+    // nowhere safe to attach to yet and is queued as a pending hook to be replayed later.
+    private _hasAttachableScope(hookName: string): boolean {
+        const kind = this._scopeKindsStack[this._scopeKindsStack.length - 1]
+        if (kind === 'suite') {
+            return /all/i.test(hookName)
+        }
+        if (kind === 'test') {
+            return Boolean(this._currentTestUuid)
+        }
+        return false
+    }
+
     private async _startHook(message: WDIOHookStartMessage): Promise<void> {
         const { name, type, start } = message.data
+
+        const isAllHook = /all/i.test(name)
 
         if (/after all/i.test(name) && this._currentTestUuid) {
             await this._writeLastTest()
         }
+        // Only an "all"-scoped hook needs the suite scope exposed - closing the dangling
+        // test scope here for an "each"-scoped hook would destroy the very scope it needs
+        // to attach to (see _closeDanglingTestScope).
+        if (isAllHook) {
+            await this._closeDanglingTestScope()
+        }
 
-        if (!this._currentTestUuid) {
+        const testScopeUuid = this._scopesStack[this._scopesStack.length - 1]
+        if (!testScopeUuid || !this._hasAttachableScope(name)) {
             this._pendingHookMessages.push(message)
             this._isCapturingPendingHook = true
             return
         }
 
-        const testScopeUuid = this._scopesStack[this._scopesStack.length - 1]
-        if (testScopeUuid) {
-            const hookUuid = this.allureRuntime.startFixture(testScopeUuid, type, { name, start })
-            if (hookUuid) {
-                this._fixturesStack.push(hookUuid)
-                this._openHookSteps.set(hookUuid, 0)
-                this._hookMeta.set(hookUuid, { name, type })
-            }
+        const hookUuid = this.allureRuntime.startFixture(testScopeUuid, type, { name, start })
+        if (hookUuid) {
+            this._fixturesStack.push(hookUuid)
+            this._openHookSteps.set(hookUuid, 0)
+            this._hookMeta.set(hookUuid, { name, type })
         }
     }
 
     private async _endHook(message: WDIOHookEndMessage): Promise<void> {
         const { status, statusDetails, duration, stop } = message.data
 
-        if (!this._currentTestUuid) {
+        // Mirrors _startHook: if there's no matching open fixture, the corresponding
+        // hook:start must have been queued as pending (no scope was open yet), so queue
+        // this end message alongside it rather than assuming a current test exists.
+        if (this._fixturesStack.length === 0) {
             this._pendingHookMessages.push(message)
             this._isCapturingPendingHook = false
             return
@@ -304,21 +353,11 @@ export class AllureReportState {
                 continue
 
             case 'allure:hook:start':
-                if (!this._currentTestUuid) {
-                    this._pendingHookMessages.push(message)
-                    this._isCapturingPendingHook = true
-                    continue
-                }
                 await this._startHook(message)
                 continue
 
             case 'allure:hook:end':
-                if (!this._currentTestUuid) {
-                    this._pendingHookMessages.push(message)
-                    this._isCapturingPendingHook = false
-                    continue
-                }
-                if (this._fixturesStack.length === 0 && this._pendingHookMessages.length > 0 && !this.currentFeature) {
+                if (this._fixturesStack.length === 0 && this._currentTestUuid && this._pendingHookMessages.length > 0 && !this.currentFeature) {
                     this._pendingHookMessages.push(message)
                     this._isCapturingPendingHook = false
                     const testName = this._currentTestName ?? 'unknown test'

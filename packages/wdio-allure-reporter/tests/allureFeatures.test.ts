@@ -535,6 +535,101 @@ describe('hooks handling default', () => {
         expect(beforeCount).toBeGreaterThanOrEqual(1)
         expect(afterCount).toBeGreaterThanOrEqual(1)
     })
+
+    it('attaches a root-level "before all" hook (fired before any suite exists) to the first test', async () => {
+        reporter.onRunnerStart(runnerStart())
+
+        reporter.onHookStart({ cid: cid(), title: '"before all" hook in "{root}"', parent: '' } as HookStats)
+        reporter.addStep('root-before-all-step')
+        reporter.onHookEnd({ cid: cid(), title: '"before all" hook in "{root}"', parent: '' } as HookStats)
+
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestPass(testPassed())
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results, containers } = getResults(outputDir)
+        expect(results).toHaveLength(1)
+        expect(containers).toHaveLength(1)
+        expect(containers[0].befores[0].steps[0]).toEqual(expect.objectContaining({ name: 'root-before-all-step' }))
+    })
+
+    it('attaches a before-all hook step to every test in the suite, not just one', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart({ cid: cid(), title: 'My Login application' } as any)
+
+        reporter.onHookStart({ title: '"before all" hook for "My Login application"', parent: 'My Login application' } as HookStats)
+        reporter.addStep('Start login')
+        reporter.onHookEnd({ title: '"before all" hook for "My Login application"', parent: 'My Login application' } as HookStats)
+
+        reporter.onTestStart({ ...testStart(), title: 'test 1' } as any)
+        reporter.onTestPass(testPassed())
+
+        reporter.onTestStart({ ...testStart(), title: 'test 2' } as any)
+        reporter.onTestPass(testPassed())
+
+        reporter.onTestStart({ ...testStart(), title: 'test 3' } as any)
+        reporter.onTestPass(testPassed())
+
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results, containers } = getResults(outputDir)
+        expect(results).toHaveLength(3)
+        expect(containers).toHaveLength(1)
+
+        const container = containers[0]
+        expect(container.children).toHaveLength(3)
+        expect(container.children.sort()).toEqual(results.map((r: any) => r.uuid).sort())
+        expect(container.befores[0].steps[0]).toEqual(expect.objectContaining({ name: 'Start login' }))
+    })
+
+    it('keeps before-all/after-all fixtures shared but before-each/after-each fixtures isolated per test', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+
+        reporter.onHookStart({ title: '"before all" hook', parent: 'Login' } as HookStats)
+        reporter.addStep('before-all-step')
+        reporter.onHookEnd({ title: '"before all" hook', parent: 'Login' } as HookStats)
+
+        for (const n of [1, 2, 3]) {
+            reporter.onTestStart({ ...testStart(), title: `test ${n}` } as any)
+            reporter.onHookStart({ title: '"before each" hook', parent: 'Login' } as HookStats)
+            reporter.addStep(`before-each-step-${n}`)
+            reporter.onHookEnd({ title: '"before each" hook', parent: 'Login' } as HookStats)
+            reporter.onTestPass(testPassed())
+            reporter.onHookStart({ title: '"after each" hook', parent: 'Login' } as HookStats)
+            reporter.addStep(`after-each-step-${n}`)
+            reporter.onHookEnd({ title: '"after each" hook', parent: 'Login' } as HookStats)
+        }
+
+        reporter.onHookStart({ title: '"after all" hook', parent: 'Login' } as HookStats)
+        reporter.addStep('after-all-step')
+        reporter.onHookEnd({ title: '"after all" hook', parent: 'Login' } as HookStats)
+
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results, containers } = getResults(outputDir)
+        expect(results).toHaveLength(3)
+        const testUuids = results.map((r: any) => r.uuid).sort()
+
+        const beforeAllContainer = containers.find((c: any) => c.name === '"before all" hook')
+        const afterAllContainer = containers.find((c: any) => c.name === '"after all" hook')
+        expect(beforeAllContainer.children.sort()).toEqual(testUuids)
+        expect(afterAllContainer.children.sort()).toEqual(testUuids)
+
+        const beforeEachContainers = containers.filter((c: any) => c.name === '"before each" hook')
+        const afterEachContainers = containers.filter((c: any) => c.name === '"after each" hook')
+        expect(beforeEachContainers).toHaveLength(3)
+        expect(afterEachContainers).toHaveLength(3)
+        for (const c of [...beforeEachContainers, ...afterEachContainers]) {
+            expect(c.children).toHaveLength(1)
+        }
+    })
 })
 
 describe('test step naming', () => {
