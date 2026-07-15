@@ -630,6 +630,39 @@ describe('hooks handling default', () => {
             expect(c.children).toHaveLength(1)
         }
     })
+
+    it('does not misclassify before-each/after-each hooks whose title mentions "all" via the suite/test name', async () => {
+        const reporter = new AllureReporter({ outputDir })
+        reporter.onRunnerStart(runnerStart())
+        // Mocha formats an "each" hook's title as `"before each" hook for "<test title>"` -
+        // a test named to contain the word "all" must not make the hook look suite-scoped.
+        reporter.onSuiteStart({ cid: cid(), title: 'All users' } as any)
+
+        for (const n of [1, 2, 3]) {
+            reporter.onTestStart({ ...testStart(), title: `should handle all cases ${n}` } as any)
+            reporter.onHookStart({ title: `"before each" hook for "should handle all cases ${n}"`, parent: 'All users' } as HookStats)
+            reporter.addStep(`before-each-step-${n}`)
+            reporter.onHookEnd({ title: `"before each" hook for "should handle all cases ${n}"`, parent: 'All users' } as HookStats)
+            reporter.onTestPass(testPassed())
+            reporter.onHookStart({ title: `"after each" hook for "should handle all cases ${n}"`, parent: 'All users' } as HookStats)
+            reporter.addStep(`after-each-step-${n}`)
+            reporter.onHookEnd({ title: `"after each" hook for "should handle all cases ${n}"`, parent: 'All users' } as HookStats)
+        }
+
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results, containers } = getResults(outputDir)
+        expect(results).toHaveLength(3)
+
+        const beforeEachContainers = containers.filter((c: any) => /before each/.test(c.name))
+        const afterEachContainers = containers.filter((c: any) => /after each/.test(c.name))
+        expect(beforeEachContainers).toHaveLength(3)
+        expect(afterEachContainers).toHaveLength(3)
+        for (const c of [...beforeEachContainers, ...afterEachContainers]) {
+            expect(c.children).toHaveLength(1)
+        }
+    })
 })
 
 describe('test step naming', () => {

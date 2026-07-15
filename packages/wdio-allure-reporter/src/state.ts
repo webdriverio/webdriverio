@@ -13,6 +13,19 @@ import { findLast, findLastIndex, last } from './utils.js'
 import type { Status as AllureStatus } from 'allure-js-commons'
 import { Stage as AllureStage } from 'allure-js-commons'
 
+// Mocha formats a hook's title as the literal quoted hook-type phrase (optionally
+// followed by ": fnName"), then a ` for "<test title>"` suffix (each-hooks, which run
+// in a specific test's context) or ` in "<suite title>"` suffix (all-hooks) naming the
+// context the hook ran in - see mocha's runner.js `setHookTitle`. Matching /all/i or
+// /each/i anywhere in the title would false-positive on a test/suite name that happens
+// to contain "all" or "each" (e.g. a test titled "should handle all cases", or a suite
+// named "All users"), misclassifying an ordinary before/after-each hook as suite-scoped
+// or vice versa. Anchoring to the start of the string ensures only the actual hook-type
+// phrase is matched, never the name that follows it.
+const ALL_HOOK_PATTERN = /^"(?:before|after)\s+all"/i
+const EACH_HOOK_PATTERN = /^"(?:before|after)\s+each"/i
+const AFTER_ALL_HOOK_PATTERN = /^"after\s+all"/i
+
 export class AllureReportState {
     private _scopesStack: string[] = []
     private _scopeKindsStack: Array<'suite' | 'test'> = []
@@ -240,7 +253,7 @@ export class AllureReportState {
     private _hasAttachableScope(hookName: string): boolean {
         const kind = this._scopeKindsStack[this._scopeKindsStack.length - 1]
         if (kind === 'suite') {
-            return /all/i.test(hookName)
+            return ALL_HOOK_PATTERN.test(hookName)
         }
         if (kind === 'test') {
             return Boolean(this._currentTestUuid)
@@ -251,9 +264,9 @@ export class AllureReportState {
     private async _startHook(message: WDIOHookStartMessage): Promise<void> {
         const { name, type, start } = message.data
 
-        const isAllHook = /all/i.test(name)
+        const isAllHook = ALL_HOOK_PATTERN.test(name)
 
-        if (/after all/i.test(name) && this._currentTestUuid) {
+        if (AFTER_ALL_HOOK_PATTERN.test(name) && this._currentTestUuid) {
             await this._writeLastTest()
         }
         // Only an "all"-scoped hook needs the suite scope exposed - closing the dangling
@@ -418,7 +431,7 @@ export class AllureReportState {
             return
         }
         const startIdx = this._pendingHookMessages.findIndex((m) =>
-            m.type === 'allure:hook:start' && m.data.type === kind && typeof m.data.name === 'string' && (scope === 'each' ? /each/i.test(m.data.name) : /all/i.test(m.data.name))
+            m.type === 'allure:hook:start' && m.data.type === kind && typeof m.data.name === 'string' && (scope === 'each' ? EACH_HOOK_PATTERN.test(m.data.name) : ALL_HOOK_PATTERN.test(m.data.name))
         )
         if (startIdx === -1) {
             return
