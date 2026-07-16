@@ -111,6 +111,7 @@ __Did you build a WebdriverIO service or reporter?__ That's awesome! Please add 
 ### Services
 
 - [@wdio/appium-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-appium-service) - A WebdriverIO service to start & stop Appium Server
+- [@wdio/browserstack-service](https://github.com/browserstack/wdio-browserstack-service) - A WebdriverIO service that can be used to use BrowserStack Test Observability which is a reporting, debugging, and test suite quality tracking tool for any test running anywhere. The service also helps for a better integration with the BrowserStack grid if you're running tests on the grid. (Maintained by BrowserStack in its own repository.)
 - [@wdio/lighthouse-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-lighthouse-service) - A WebdriverIO service that integrates Google Lighthouse commands to use it for automate tests
 - [@wdio/firefox-profile-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-firefox-profile-service) - A WebdriverIO service that lets you define your Firefox profile in your wdio.conf.js
 - [@wdio/sauce-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service) - A WebdriverIO service that provides a better integration into Sauce Labs
