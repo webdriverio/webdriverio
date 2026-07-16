@@ -235,6 +235,8 @@ node tests/google.test.js
 | `headless` | `boolean` | `false` | Run the **test** browser headless (injects `--headless=old`). The DevTools UI window is unaffected. |
 | `screencast` | `ScreencastOptions` | `{ enabled: false }` | Per-session `.webm` video recording. Options match the [WebdriverIO Screencast](/docs/devtools/wdio/screencast) page. |
 | `rerunCommand` | `string` | auto | Command template for per-test rerun. `{{testName}}` is substituted. Auto-derived from runner argv if omitted. |
+| `mode` | `'live' \| 'trace'` | `'live'` | `live` opens the DevTools UI; `trace` skips it and writes a portable artifact instead. See [Trace Mode](/docs/devtools/wdio/trace-mode). Overrides `openUi`. |
+| `traceFormat` | `'zip' \| 'ndjson-directory'` | `'zip'` | Trace artifact layout. Only applies when `mode: 'trace'`. |
 
 ```js
 DevTools.configure({
@@ -246,6 +248,19 @@ DevTools.configure({
 ```
 
 > **For CI**, set both `headless: true` (hide the test browser) and `openUi: false` (don't try to open the dashboard window - CI environments have no display). The backend keeps running on the configured port so you can still open the UI later if needed.
+
+## Trace mode
+
+Headless capture path — no DevTools UI window opens. At session end the adapter writes a portable `trace-<sessionId>.zip` (or directory) next to the test file, with the same shape as the WebdriverIO trace artifact.
+
+```js
+DevTools.configure({
+  mode: 'trace',
+  traceFormat: 'ndjson-directory'  // optional; default 'zip'
+})
+```
+
+The backend port-bind, UI window, and `screencast` option are all skipped in trace mode. For the full feature reference (artifact contents, viewer, mobile testing, when to pick `zip` vs `ndjson-directory`), see the [Trace Mode page](/docs/devtools/wdio/trace-mode).
 
 ## Public API
 
@@ -261,33 +276,33 @@ Under Mocha / Jest / Cucumber the plugin auto-hooks the runner's lifecycle, so y
 
 ## Examples
 
-Working examples are included in the package:
+Working examples live in the repo's top-level `examples/` directory. Build the workspace once (`pnpm install && pnpm build`), then run from the repo root. `pnpm demo:selenium` runs the default (Cucumber) example; the per-runner variants are:
 
 | Directory | Runner | Command |
 |-----------|--------|---------|
-| [`example/mocha-test/`](https://github.com/webdriverio/devtools/tree/main/packages/selenium-devtools/example/mocha-test) | Mocha | `pnpm example:mocha` |
-| [`example/jest-test/`](https://github.com/webdriverio/devtools/tree/main/packages/selenium-devtools/example/jest-test) | Jest | `pnpm example:jest` |
-| [`example/cucumber-test/`](https://github.com/webdriverio/devtools/tree/main/packages/selenium-devtools/example/cucumber-test) | Cucumber | `pnpm example:cucumber` |
-
-Build the package first:
-
-```bash
-# From repo root
-pnpm build --filter @wdio/selenium-devtools
-cd packages/selenium-devtools
-pnpm example:mocha
-```
+| [`examples/selenium/mocha-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/mocha-test) | Mocha | `pnpm --filter @wdio/selenium-devtools example:mocha` |
+| [`examples/selenium/jest-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/jest-test) | Jest | `pnpm --filter @wdio/selenium-devtools example:jest` |
+| [`examples/selenium/cucumber-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/cucumber-test) | Cucumber | `pnpm demo:selenium` |
 
 ## Features
 
-The Selenium adapter provides the same DevTools UI experience:
+The Selenium adapter provides the same DevTools UI experience as WebdriverIO. Every feature below is captured automatically with the base `DevTools.configure({})` setup — no per-feature config (console + network stream via Selenium's BiDi handlers on Chrome ≥114, with an injected-collector fallback). Links go to each feature's full reference.
 
-- **[Interactive Test Rerunning & Visualization](/docs/devtools/wdio/interactive-test-rerunning)** - Real-time browser previews with test rerunning
+- **[Interactive Test Rerunning & Visualization](/docs/devtools/wdio/interactive-test-rerunning)** - Live browser previews, per-command screenshots, and one-click test/suite rerunning
 - **[Preserve & Rerun (Compare)](/docs/devtools/wdio/preserve-and-rerun)** - Snapshot a failing test, rerun it, and diff the two runs side-by-side
+- **[Multi-Framework Support](/docs/devtools/wdio/multi-framework-support)** - Auto-detects Mocha, Jest, Cucumber, or a plain `node` script
 - **[Console Logs](/docs/devtools/wdio/console-logs)** - Capture and inspect browser console output
 - **[Network Logs](/docs/devtools/wdio/network-logs)** - Monitor API calls and network activity
-- **[TestLens](/docs/devtools/wdio/testlens)** - Navigate to source code with intelligent code navigation
+- **[Metadata](/docs/devtools/wdio/metadata)** - Session capabilities, environment, and timing per browser session
+- **[TestLens](/docs/devtools/wdio/testlens)** - Jump from any command to the source line that triggered it
 - **[Session Screencast](/docs/devtools/wdio/screencast)** - Automatic video recording of browser sessions
+- **[Trace Mode](/docs/devtools/wdio/trace-mode)** - Headless capture producing a portable `trace.zip` (no UI window)
+
+Screencast is the one feature with its own options (see [Configuration Options](#configuration-options)):
+
+```js
+DevTools.configure({ screencast: { enabled: true, quality: 70, maxWidth: 1280, maxHeight: 720 } })
+```
 
 ## How It Works
 

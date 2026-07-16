@@ -31,6 +31,8 @@ import {
     BROWSERSTACK_TESTHUB_JWT,
     BROWSERSTACK_OBSERVABILITY,
     BROWSERSTACK_ACCESSIBILITY,
+    BROWSERSTACK_LTS,
+    BROWSERSTACK_LTS_SESSION_ID,
     TESTOPS_SCREENSHOT_ENV,
     BROWSERSTACK_TESTHUB_UUID,
     PERF_MEASUREMENT_ENV,
@@ -1084,7 +1086,36 @@ export function getUniqueIdentifierForCucumber(world: ITestCaseHookParameter): s
     return world.pickle.uri + '_' + world.pickle.astNodeIds.join(',')
 }
 
+// Load Testing Service (LTS) gating helpers — mirror of bstack_utils/helper.py
+// is_load_testing_session() / get_lts_session_id() in browserstack-python-sdk
+// (branch LTS-tra-python-support). LTS pod-iterations export
+// BROWSERSTACK_LTS_SESSION_ID before invoking the test runner; presence of
+// that env var is the single source of truth for "this run is an LTS pod
+// iteration". Optional BROWSERSTACK_LTS=true|1 lets the runner opt-in without
+// supplying a session id (useful for local repro).
+export function isLoadTestingSession(): boolean {
+    if (process.env[BROWSERSTACK_LTS_SESSION_ID]) {
+        return true
+    }
+    const flag = process.env[BROWSERSTACK_LTS]
+    return flag === 'true' || flag === '1'
+}
+
+export function getLtsSessionId(): string {
+    return process.env[BROWSERSTACK_LTS_SESSION_ID] || ''
+}
+
 export function getCloudProvider(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser): string {
+    // NOTE: do NOT branch on isLoadTestingSession() here. getCloudProvider is
+    // shared with Automate-side guards (automateModule onBefore/onAfterTest,
+    // webdriverIOModule KEY_IS_BROWSERSTACK_HUB, accessibility-handler,
+    // service.ts) — flipping it to 'browserstack' under LTS would make
+    // isBrowserstackSession() return true for local-Selenium pod sessions,
+    // causing markSessionName / markSessionStatus to PUT against Automate
+    // REST APIs with session ids that don't exist there. TestHub-reporting
+    // callers that need 'browserstack' under LTS derive it locally with
+    // `isLoadTestingSession() ? 'browserstack' : getCloudProvider(browser)`
+    // (see reporter.ts, insights-handler.ts).
     if (browser && 'instances' in browser) {
         // Loop through all instances
         for (const instanceName of browser.instances) {
@@ -1899,6 +1930,31 @@ export function getBooleanValueFromString(value: string | undefined): boolean {
         return false
     }
     return ['true'].includes(value.trim().toLowerCase())
+}
+
+/**
+ * SDK-3737: Coerce stringified booleans ('true'/'false', any case) in a flat
+ * options object to real booleans, leaving every other value untouched. Boolean-
+ * typed accessibility options (e.g. autoScanning) are commonly supplied as
+ * strings from JS config / env; without coercion they fail W3C caps validation
+ * and are silently dropped. Only the exact strings 'true'/'false' are converted.
+ */
+export function coerceStringBooleans<T extends Record<string, unknown>>(obj: T): T {
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
+        return obj
+    }
+    const out: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(obj)) {
+        if (typeof value === 'string') {
+            const normalised = value.trim().toLowerCase()
+            if (normalised === 'true' || normalised === 'false') {
+                out[key] = normalised === 'true'
+                continue
+            }
+        }
+        out[key] = value
+    }
+    return out as T
 }
 
 /**

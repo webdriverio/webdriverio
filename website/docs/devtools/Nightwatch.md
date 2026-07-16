@@ -83,6 +83,8 @@ module.exports = {
 | `hostname` | `string` | `'localhost'` | Hostname the backend server binds to. |
 | `screencast` | `ScreencastOptions` | `{ enabled: false }` | Per-session `.webm` video recording. See [Screencast](#screencast) below. |
 | `bidi` | `boolean` | `false` | Opt into WebDriver BiDi capture for browser console + JS exceptions + network. Requires `webSocketUrl: true` in your capabilities and a BiDi-capable chromedriver. When attached, the per-command Chrome perf-log network path is gated off so requests don't duplicate. |
+| `mode` | `'live' \| 'trace'` | `'live'` | `live` opens the DevTools UI; `trace` skips it and writes a portable artifact instead. See [Trace Mode](/docs/devtools/wdio/trace-mode). |
+| `traceFormat` | `'zip' \| 'ndjson-directory'` | `'zip'` | Trace artifact layout. Only applies when `mode: 'trace'`. |
 
 ```js
 globals: nightwatchDevtools({
@@ -142,37 +144,46 @@ desiredCapabilities: {
 
 When BiDi is attached, the per-command Chrome performance-log network capture path is gated off so requests don't appear twice in the dashboard. If `webSocketUrl` is missing or the chromedriver version doesn't expose BiDi, the attach silently fails and the perf-log fallback continues to work.
 
+## Trace mode
+
+Headless capture path — no DevTools UI window opens. At session end the adapter writes a portable `trace-<sessionId>.zip` (or directory) next to the config file, with the same shape as the WebdriverIO trace artifact.
+
+```js
+globals: nightwatchDevtools({
+  mode: 'trace',
+  traceFormat: 'ndjson-directory'  // optional; default 'zip'
+})
+```
+
+The backend port-bind, UI window, and `screencast` option are all skipped in trace mode. For the full feature reference (artifact contents, viewer, mobile testing, when to pick `zip` vs `ndjson-directory`), see the [Trace Mode page](/docs/devtools/wdio/trace-mode).
+
 ## Examples
 
-Working examples are included in the package:
+Working examples live in the repo's top-level `examples/` directory. Build the workspace once (`pnpm install && pnpm build`), then run from the repo root:
 
 | Directory | Runner | Command |
 |-----------|--------|---------|
-| [`example/`](https://github.com/webdriverio/devtools/tree/main/packages/nightwatch-devtools/example) | Nightwatch mocha-style | `pnpm example` |
-
-Build the package first:
-
-```bash
-# From repo root
-pnpm build --filter @wdio/nightwatch-devtools
-cd packages/nightwatch-devtools
-pnpm example
-```
+| [`examples/nightwatch/`](https://github.com/webdriverio/devtools/tree/main/examples/nightwatch) | Nightwatch mocha-style | `pnpm demo:nightwatch` |
 
 ## Features
 
-The Nightwatch adapter provides the same DevTools UI experience:
+The Nightwatch adapter provides the same DevTools UI experience as WebdriverIO. Every feature below is captured automatically with the base `globals: nightwatchDevtools({ port: 3000 })` setup — no per-feature config (network logs additionally need `'goog:loggingPrefs': { performance: 'ALL' }`, shown in [Setup](#setup)). Links go to each feature's full reference.
 
-- **[Interactive Test Rerunning & Visualization](/docs/devtools/wdio/interactive-test-rerunning)** - Real-time browser previews with test rerunning
+- **[Interactive Test Rerunning & Visualization](/docs/devtools/wdio/interactive-test-rerunning)** - Live browser previews, per-command screenshots, and one-click test/suite rerunning
 - **[Preserve & Rerun (Compare)](/docs/devtools/wdio/preserve-and-rerun)** - Snapshot a failing test, rerun it, and diff the two runs side-by-side
-- **[Console Logs](/docs/devtools/wdio/console-logs)** - Capture and inspect browser console output
+- **[Multi-Framework Support](/docs/devtools/wdio/multi-framework-support)** - Standard (mocha-style) and Cucumber/BDD runners
+- **[Console Logs](/docs/devtools/wdio/console-logs)** - Capture and inspect browser console output (real-time with `bidi: true`)
 - **[Network Logs](/docs/devtools/wdio/network-logs)** - Monitor API calls and network activity
-- **[TestLens](/docs/devtools/wdio/testlens)** - Navigate to source code with intelligent code navigation
-- **[Session Screencast](/docs/devtools/wdio/screencast)** - Continuous `.webm` video recording of the browser session
+- **[Metadata](/docs/devtools/wdio/metadata)** - Session capabilities, environment, and timing per browser session
+- **[TestLens](/docs/devtools/wdio/testlens)** - Jump from any command to the source line that triggered it
+- **[Session Screencast](/docs/devtools/wdio/screencast)** - Continuous `.webm` recording of the browser session
+- **[Trace Mode](/docs/devtools/wdio/trace-mode)** - Headless capture producing a portable `trace.zip` (no UI window)
 
-### Preserve & Rerun (Compare)
+Screencast is the one feature with its own options (full list under [Screencast](#screencast)):
 
-Fully supported on Nightwatch - same dashboard UI as WebdriverIO. The flow snapshots the failing run, re-launches just that test, and shows the two runs side-by-side aligned by command. See the [Preserve & Rerun page](/docs/devtools/wdio/preserve-and-rerun) for the full feature reference.
+```js
+globals: nightwatchDevtools({ port: 3000, screencast: { enabled: true, pollIntervalMs: 200 } })
+```
 
 ## Limitations
 

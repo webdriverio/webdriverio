@@ -1,4 +1,3 @@
-/// <reference path="../../@types/bstack-service-types.d.ts" />
 import BaseModule from './baseModule.js'
 import { BrowserstackCLI } from '../index.js'
 import { BStackLogger } from '../cliLogger.js'
@@ -79,6 +78,15 @@ export default class AccessibilityModule extends BaseModule {
                 platform_name: browserCaps?.platformName,
                 platform_version: this.getCapability(browserCaps, 'appium:platformVersion', 'platformVersion'),
             }
+
+            // App Automate sessions must run the app-accessibility flow, not the
+            // Chrome-only web path. The binary's isAppAccessibility flag is not
+            // guaranteed to be set on the CLI path, so derive app-ness from caps the
+            // same way the classic flow does (service._isAppAutomate).
+            if (this.isAppAutomateSession(inputCaps, browserCaps)) {
+                this.isAppAccessibility = true
+            }
+
             if (this.isAppAccessibility) {
                 this.accessibility = validateCapsWithAppA11y(platformA11yMeta)
             } else {
@@ -130,12 +138,11 @@ export default class AccessibilityModule extends BaseModule {
                 return
             }
 
-            if (!('overwriteCommand' in browser && Array.isArray(this.scriptInstance.commandsToWrap))) {
-                return
-            }
-
-            // Wrap commands if accessibility scripts are available
-            if (this.scriptInstance.commandsToWrap && this.scriptInstance.commandsToWrap.length > 0) {
+            // Web command wrapping (overwriteCommand) only applies to the web a11y
+            // flow. App Automate a11y scans run via the performScan/test-lifecycle
+            // path, and appium drivers don't register these commands, so
+            // overwriteCommand would throw and abort onBeforeExecute.
+            if (!this.isAppAccessibility && 'overwriteCommand' in browser && Array.isArray(this.scriptInstance.commandsToWrap)) {
                 this.scriptInstance.commandsToWrap
                     .filter((command) => command.name && command.class)
                     .forEach((command) => {
@@ -364,6 +371,18 @@ export default class AccessibilityModule extends BaseModule {
             }
         }
 
+    }
+
+    // Mirrors service._isAppAutomate: an App Automate session is identified by the
+    // presence of an app capability (appium:app / appium:options.app).
+    private isAppAutomateSession(inputCaps?: WebdriverIO.Capabilities, browserCaps?: WebdriverIO.Capabilities): boolean {
+        for (const caps of [inputCaps, browserCaps]) {
+            const c = (caps ?? {}) as Record<string, unknown>
+            if (c['appium:app'] || (c['appium:options'] as { app?: unknown } | undefined)?.app) {
+                return true
+            }
+        }
+        return false
     }
 
     private async performScanCli(

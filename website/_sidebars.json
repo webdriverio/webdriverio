@@ -111,7 +111,8 @@
             "devtools/wdio/console-logs",
             "devtools/wdio/network-logs",
             "devtools/wdio/testlens",
-            "devtools/wdio/screencast"
+            "devtools/wdio/screencast",
+            "devtools/wdio/trace-mode"
           ]
         },
         {
@@ -299,9 +300,12 @@
       "type": "category",
       "label": "MCP",
       "items": [
-        "mcp/tools",
-        "mcp/selectors",
         "mcp/configuration",
+        "mcp/transport",
+        "mcp/cloud-providers",
+        "mcp/selectors",
+        "mcp/tools",
+        "mcp/resources",
         "mcp/faq"
       ],
       "link": {

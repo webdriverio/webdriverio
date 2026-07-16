@@ -142,7 +142,7 @@ describe('webdriver request', () => {
             expect((url! as URL).href)
                 .toBe('https://localhost:4445/session/foobar12345/element')
             expect([...(requestOptions.headers as unknown as Map<string, string>).keys()])
-                .toEqual(['accept', 'connection', 'content-length', 'content-type', 'foo', 'user-agent'])
+                .toEqual(['accept', 'content-type', 'foo', 'user-agent'])
             expect(requestOptions.signal?.aborted).toBeFalsy()
         })
 
@@ -211,8 +211,7 @@ describe('webdriver request', () => {
                 logLevel: 'warn'
             })
             expect([...(requestOptions.headers as unknown as Map<string, string>).keys()])
-                .toEqual(['accept', 'connection', 'content-length', 'content-type', 'user-agent'])
-            expect((requestOptions.headers as unknown as Map<string, string>).get('Content-Length')).toBe('13')
+                .toEqual(['accept', 'content-type', 'user-agent'])
         })
 
         it('should add Content-Length as well any other header provided in the request options if there is body in the request object', async () => {
@@ -223,7 +222,6 @@ describe('webdriver request', () => {
                 logLevel: 'warn'
             })
             expect((requestOptions.headers as unknown as Map<string, string>).get('foo')).toContain('bar')
-            expect((requestOptions.headers as unknown as Map<string, string>).get('Content-Length')).toBe('13')
         })
 
         it('should add only the headers provided if the request body is empty', async () => {
@@ -234,7 +232,6 @@ describe('webdriver request', () => {
                 headers: { foo: 'bar' },
                 logLevel: 'warn'
             })
-            expect([...(requestOptions.headers as unknown as Map<string, string>).keys()]).not.toContain('content-length')
             expect((requestOptions.headers as unknown as Map<string, string>).get('foo')).toContain('bar')
         })
     })

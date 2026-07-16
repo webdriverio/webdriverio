@@ -1,5 +1,6 @@
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Options as BSOptions } from 'browserstack-local'
+import type { CustomMetadata } from './customTags.js'
 
 export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<unknown>
 
@@ -248,7 +249,16 @@ export interface TestMeta {
     scenario?: { name: string },
     examples?: string[],
     hookType?: string,
-    testRunId?: string
+    testRunId?: string,
+    // Explicitly records whether this entry is a hook or a test so a teardown sweep can emit the
+    // correct synthetic finish event without re-deriving the kind from the title. Tagged at
+    // beforeHook/beforeTest time. Only used for the mocha never-finished sweep.
+    kind?: 'hook' | 'test',
+    // Identity captured at start time so the sweep can build a terminal finish payload without the
+    // live framework test object (which is gone by teardown).
+    name?: string,
+    scopes?: string[],
+    fileName?: string
 }
 
 export interface CurrentRunInfo {
@@ -284,7 +294,8 @@ export interface TestData {
     meta?: TestMeta,
     tags?: string[],
     test_run_id?: string,
-    product_map?: {}
+    product_map?: {},
+    custom_metadata?: CustomMetadata
 }
 
 export interface UserConfig {
@@ -452,6 +463,9 @@ export interface EventProperties {
         }
     }
     isCLIEnabled?: boolean
+    finishedMetadata?: {
+        reason: string
+    }
 }
 
 export interface FunnelData {
