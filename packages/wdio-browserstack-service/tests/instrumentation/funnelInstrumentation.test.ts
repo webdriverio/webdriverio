@@ -1,5 +1,6 @@
 import * as FunnelTestEvent from '../../src/instrumentation/funnelInstrumentation.js'
 import { sendFinish, sendStart } from '../../src/instrumentation/funnelInstrumentation.js'
+import * as DataStore from '../../src/data-store.js'
 import { BStackLogger } from '../../src/bstackLogger.js'
 import fs from 'node:fs'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
@@ -133,6 +134,24 @@ describe('funnelInstrumentation', () => {
             const [[, { body }]] = mockedFetch.mock.calls
             const parsedBody = JSON.parse(body as string)
             expect(parsedBody.event_properties.isCLIEnabled).toBe(false)
+        })
+
+        it('stamps finishedMetadata.reason=session_reloaded when a worker reported a reload', async () => {
+            vi.spyOn(DataStore, 'getDataFromWorkers').mockReturnValue([{ reloadHappened: true }] as any)
+            mockedFetch.mockReturnValueOnce(Promise.resolve(Response.json({})))
+            await sendFinish(config as any)
+            const body = mockedFetch.mock.calls[0][1]?.body as string
+            const parsedBody = JSON.parse(body)
+            expect(parsedBody.event_properties.finishedMetadata).toEqual({ reason: 'session_reloaded' })
+        })
+
+        it('omits finishedMetadata when no worker reported a reload', async () => {
+            vi.spyOn(DataStore, 'getDataFromWorkers').mockReturnValue([{ reloadHappened: false }] as any)
+            mockedFetch.mockReturnValueOnce(Promise.resolve(Response.json({})))
+            await sendFinish(config as any)
+            const body = mockedFetch.mock.calls[0][1]?.body as string
+            const parsedBody = JSON.parse(body)
+            expect(parsedBody.event_properties.finishedMetadata).toBeUndefined()
         })
     })
 

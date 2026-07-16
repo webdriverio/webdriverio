@@ -7,15 +7,19 @@ import {
     getParentSuiteName,
     isBrowserstackSession,
     patchConsoleLogs,
-    isTrue
+    isTrue,
+    getUniqueIdentifier,
+    getHookType
 } from './util.js'
 import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
-import { DEFAULT_OPTIONS, PERF_MEASUREMENT_ENV } from './constants.js'
+import { DEFAULT_OPTIONS, NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV } from './constants.js'
+import { configureCaCertificate } from './caCert.js'
 import CrashReporter from './crash-reporter.js'
 import AccessibilityHandler from './accessibility-handler.js'
+import CustomTagsHandler from './custom-tags-handler.js'
 import { BStackLogger } from './bstackLogger.js'
 import PercyHandler from './Percy/Percy-Handler.js'
 import Listener from './testOps/listener.js'
@@ -49,6 +53,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _scenariosThatRan: string[] = []
     private _lastScenarioName?: string  // Track last scenario for preferScenarioName feature
     private _scenariosRanCount: number = 0  // Count of non-skipped scenarios
+    private _reloadHappened: boolean = false  // Set when browser.reloadSession() is called; surfaced as finishedMetadata on SDKTestSuccessful so reload-orphaned builds can be excluded from session-linking
     private _failureStatuses: string[] = ['failed', 'ambiguous', 'undefined', 'unknown']
     private _browser?: WebdriverIO.Browser
     private _suiteTitle?: string
@@ -58,9 +63,24 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _specsRan: boolean = false
     private _observability
     private _currentTest?: Frameworks.Test | ITestCaseHookParameter
+    /**
+     * CLI/gRPC path: map of test identity -> the test_uuid minted for it at
+     * INIT_TEST/PRE. The CLI mints a fresh uuid into a SINGLE mutable per-worker tracked instance
+     * (`trackWdioMochaInstance` overwrites `TestFramework.instances[ctxId]` wholesale on every
+     * INIT_TEST), and the gRPC test-finish reads the uuid from that single slot. When a test hangs
+     * past the mocha timeout, the NEXT test's INIT_TEST overwrites the slot before the hung test's
+     * afterTest POST fires, so the POST would carry the wrong (next) test's uuid and the binary
+     * would close the wrong test_run — orphaning the hung one. We snapshot each test's uuid here,
+     * keyed by the same identity the legacy `_tests` map uses, and at afterTest we restore the
+     * finishing test's minted uuid onto the tracked instance before the POST so it closes the
+     * correct test_run. The finishing identity is `originalTest` (already snapshotted pre-await by
+     * the testFnWrapper, so it is the timed-out runnable's own identity, not the next test's).
+     */
+    private _cliTestUuids: Map<string, string> = new Map()
     private _insightsHandler?: InsightsHandler
     private _accessibility
     private _accessibilityHandler?: AccessibilityHandler
+    private _customTagsHandler?: CustomTagsHandler
     private _percy
     private _percyCaptureMode: string | undefined = undefined
     private _percyHandler?: PercyHandler
@@ -72,6 +92,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         private _config: Options.Testrunner
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
+        // SDK-5953: trust the customer CA (proxyCaCertificate / BROWSERSTACK_EXTRA_CA_CERTS)
+        // for all outbound HTTPS (undici fetch) in the worker process. Merged with system roots.
+        configureCaCertificate(this._options)
         // added to maintain backward compatibility with webdriverIO v5
         if (!this._config) {
             this._config = this._options
@@ -150,11 +173,22 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_FIND_NEAREST_HUB, false, 'Hub URL not found')
                 }
             }
-            if (BrowserstackCLI.getInstance().isRunning()) {
-                await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps: capabilities })
-                const instance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
-                const caps = AutomationFramework.getState(instance, AutomationFrameworkConstants.KEY_CAPABILITIES)
-                Object.assign(capabilities, caps)
+            try {
+                if (BrowserstackCLI.getInstance().isRunning()) {
+                    await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps: capabilities })
+                    const instance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
+                    const caps = AutomationFramework.getState(instance, AutomationFrameworkConstants.KEY_CAPABILITIES)
+                    Object.assign(capabilities, caps)
+
+                    // Strip CLI-only options that BrowserStack hub doesn't accept
+                    const bstackOptions = (capabilities as Record<string, unknown>)['bstack:options'] as Record<string, unknown> | undefined
+                    if (bstackOptions && typeof bstackOptions === 'object') {
+                        NOT_ALLOWED_KEYS_IN_CAPS.forEach(key => delete bstackOptions[key])
+                    }
+                    NOT_ALLOWED_KEYS_IN_CAPS.forEach(key => delete (capabilities as Record<string, unknown>)[`browserstack.${key}`])
+                }
+            } catch (err) {
+                BStackLogger.error(`Error while tracking automation framework event: ${err}`)
             }
         } catch (err) {
             BStackLogger.error(`Error while connecting to Browserstack CLI: ${err}`)
@@ -257,6 +291,25 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 }
 
                 /**
+                 * register custom-tag (multi Test-Case-ID) browser method on the
+                 * legacy/listener path. The CLI/gRPC path registers it via
+                 * CustomTagsModule.onBeforeExecute instead (both handlers' before()
+                 * are skipped when the binary is up).
+                 */
+                if (!BrowserstackCLI.getInstance().isRunning()) {
+                    try {
+                        this._customTagsHandler = new CustomTagsHandler(
+                            this._browser,
+                            this._caps,
+                            this._config.framework
+                        )
+                        this._customTagsHandler.before()
+                    } catch (err) {
+                        BStackLogger.error(`[Custom Tags] Error registering setCustomTags: ${err}`)
+                    }
+                }
+
+                /**
                  * register command event
                  */
                 if (!BrowserstackCLI.getInstance().isRunning()) {
@@ -340,6 +393,26 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (this._config.framework !== 'cucumber') {
             this._currentTest = test as Frameworks.Test // not update currentTest when this is called for cucumber step
         }
+
+        // CLI flow: route hook lifecycle to the binary via the TestFramework tracker (gRPC),
+        // mirroring beforeTest/afterTest. Without this, hook events fall through to the legacy
+        // Listener -> api/v1/batch path, which is no longer functional in the CLI pipeline, so
+        // HookRunStarted/HookRunFinished never reach the dashboard.
+        if (BrowserstackCLI.getInstance().isRunning()) {
+            // Null-check the tracker rather than asserting: getTestFramework() is null for
+            // non-mocha frameworks (setupTestFramework only wires it for webdriverio-mocha) and
+            // during any startup race, so a `!` here could throw a TypeError inside this awaited
+            // WDIO hook and break the user's suite. Instrumentation must degrade quietly.
+            const framework = BrowserstackCLI.getInstance().getTestFramework()
+            if (framework) {
+                const hookFrameworkState = TestFrameworkState[getHookType((test as Frameworks.Test).title) as keyof typeof TestFrameworkState]
+                if (hookFrameworkState) {
+                    await framework.trackEvent(hookFrameworkState, HookState.PRE, { test })
+                }
+            }
+            return
+        }
+
         await this._insightsHandler?.beforeHook(test, context)
     }
 
@@ -355,6 +428,21 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 this._failReasons.push(hookError)
             }
         }
+
+        // CLI flow: mirror beforeHook — close the hook via the TestFramework tracker (gRPC).
+        if (BrowserstackCLI.getInstance().isRunning()) {
+            // Null-check the tracker rather than asserting (see beforeHook) so a missing tracker
+            // degrades quietly instead of throwing inside this awaited hook.
+            const framework = BrowserstackCLI.getInstance().getTestFramework()
+            if (framework) {
+                const hookFrameworkState = TestFrameworkState[getHookType((test as Frameworks.Test).title) as keyof typeof TestFrameworkState]
+                if (hookFrameworkState) {
+                    await framework.trackEvent(hookFrameworkState, HookState.POST, { test, result })
+                }
+            }
+            return
+        }
+
         await this._insightsHandler?.afterHook(test, result)
     }
 
@@ -377,6 +465,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (BrowserstackCLI.getInstance().isRunning()) {
             await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.INIT_TEST, HookState.PRE, { test })
             const uuid = TestFramework.getState(TestFramework.getTrackedInstance(), TestFrameworkConstants.KEY_TEST_UUID)
+            // snapshot this test's freshly-minted uuid keyed by its identity, so a later
+            // afterTest can restore it even after a subsequent INIT_TEST has overwritten the single
+            // mutable tracked-instance slot. Keyed exactly like the legacy `_tests` map.
+            if (this._config.framework === 'mocha' && uuid) {
+                this._cliTestUuids.set(getUniqueIdentifier(test, this._config.framework), uuid as string)
+            }
             this._insightsHandler?.setTestData(test, uuid)
             await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.PRE, { test, suiteTitle })
             return
@@ -389,10 +483,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'afterTest' })
-    async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
+    async afterTest(originalTest: Frameworks.Test, context: never, results: Frameworks.TestResult) {
+        // `originalTest` is the identity the testFnWrapper snapshotted BEFORE awaiting the spec body,
+        // so on a timeout it is the runnable that actually started (not the next test mocha advanced
+        // its pointer to). Trust it directly as the finishing test for both reporting paths.
+        const test = originalTest
         this._specsRan = true
-        const { error, passed } = results
-        if (!passed) {
+        const { error, passed, skipped } = results
+        if (!passed && !skipped) {
             const testError = (error && error.message) || 'Unknown Error'
             this._failReasons.push(testError)
 
@@ -401,8 +499,26 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         if (BrowserstackCLI.getInstance().isRunning()) {
+            // the CLI test-finish reads test_uuid from the single mutable per-worker
+            // tracked instance, which a later INIT_TEST may have overwritten with the NEXT test's
+            // uuid. `test` is `originalTest` — already the correct (timed-out) identity, snapshotted
+            // pre-await by the testFnWrapper — so restore THAT test's minted uuid onto the tracked
+            // instance so the POST carries it and the binary closes the correct test_run. Without
+            // this, the finish would carry the next test's uuid and orphan the finishing one.
+            if (this._config.framework === 'mocha') {
+                const identifier = getUniqueIdentifier(test, this._config.framework)
+                const resolvedUuid = this._cliTestUuids.get(identifier)
+                if (resolvedUuid) {
+                    const trackedInstance = TestFramework.getTrackedInstance()
+                    if (trackedInstance) {
+                        TestFramework.setState(trackedInstance, TestFrameworkConstants.KEY_TEST_UUID, resolvedUuid)
+                    }
+                    // Clean up so the per-worker map does not grow across the run.
+                    this._cliTestUuids.delete(identifier)
+                }
+            }
             await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.LOG_REPORT, HookState.POST, { test, result: results })
-            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { test, result: results, suiteTite: this._suiteTitle })
+            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { test, result: results, suiteTitle: this._suiteTitle })
             return
         }
 
@@ -491,6 +607,23 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     })
                 }
             })()
+
+            // Teardown safety net: close any started-but-unfinished test/hook with a synthetic
+            // finish so the backend does not orphan them to the build watchdog (which would inflate
+            // the reported duration). This MUST run before onWorkerEnd, which shuts the event
+            // batcher down inside teardown; events enqueued after that are dropped. Wrapped so a
+            // sweep failure never breaks the session teardown.
+            try {
+                await this._insightsHandler?.sweepUnfinished()
+            } catch (sweepErr) {
+                BStackLogger.debug('Exception in sweepUnfinished during after(): ' + util.format(sweepErr))
+            }
+            // The sweep closes the _tests entries, but the CLI uuid snapshots (_cliTestUuids) are
+            // only drained in afterTest — the callback that never fires for a test the sweep just
+            // handled (e.g. one that timed out). Clear them here at per-worker teardown so stale
+            // snapshots cannot leak across the worker. Safe to clear: this runs after the sweep and
+            // no further afterTest will consume them in this worker.
+            this._cliTestUuids.clear()
 
             // Track Listener cleanup
             PerformanceTester.start(EVENTS.SDK_LISTENER_WORKER_END)
@@ -631,6 +764,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (!this._browser) {
             return Promise.resolve()
         }
+
+        this._reloadHappened = true
 
         const { setSessionName, setSessionStatus } = this._options
         const ignoreHooksStatus = this._options.testObservabilityOptions?.ignoreHooksStatus === true
@@ -851,7 +986,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     private saveWorkerData() {
         saveWorkerData({
-            usageStats: UsageStats.getInstance().getDataToSave()
+            usageStats: UsageStats.getInstance().getDataToSave(),
+            reloadHappened: this._reloadHappened
         })
     }
 }

@@ -190,6 +190,42 @@ describe('findDeepElement - isConnected validation', () => {
         expect(result).toBeUndefined()
     })
 
+    it('should return scoped nodes directly when no shadow roots, without isConnected check (e.g. select>option)', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue([])  // no shadow roots — regular DOM element like <select>
+
+        const browser = createMockBrowser()
+        const element: any = {
+            isW3C: true,
+            isMobile: false,
+            elementId: 'select-elem-id',
+            __browser: browser,
+            findElementFromElement: vi.fn(),
+        }
+
+        browser.browsingContextLocateNodes.mockResolvedValue({
+            nodes: [
+                { sharedId: 'option-1' },
+                { sharedId: 'option-2' },
+            ],
+        })
+
+        // elementContains: option-1 is in select, option-2 is not (to test scoping)
+        browser.execute
+            .mockResolvedValueOnce(true)   // elementContains for option-1
+            .mockResolvedValueOnce(false)  // elementContains for option-2
+
+        const result = await findDeepElement.call(element, 'option')
+
+        // Should return the first scoped node without any isConnected check
+        expect(result).toEqual({
+            [ELEMENT_KEY]: 'option-1',
+            locator: expect.objectContaining({ type: 'css', value: 'option' }),
+        })
+        // Only the elementContains calls, no isConnected calls
+        expect(browser.execute).toHaveBeenCalledTimes(2)
+        expect(element.findElementFromElement).not.toHaveBeenCalled()
+    })
+
     it('should return first connected scoped node (scoped/element context)', async () => {
         mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
 
@@ -359,6 +395,46 @@ describe('findDeepElements - isConnected validation', () => {
 
         // Classic fallback removed — returns empty array for retry
         expect(result).toEqual([])
+        expect(element.findElementsFromElement).not.toHaveBeenCalled()
+    })
+
+    it('should return all scoped nodes directly when no shadow roots, without isConnected check (e.g. select>option)', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue([])  // no shadow roots — regular DOM element like <select>
+
+        const browser = createMockBrowser()
+        const element: any = {
+            isW3C: true,
+            isMobile: false,
+            elementId: 'select-elem-id',
+            __browser: browser,
+            findElementsFromElement: vi.fn(),
+        }
+
+        browser.browsingContextLocateNodes.mockResolvedValue({
+            nodes: [
+                { sharedId: 'option-1' },
+                { sharedId: 'option-2' },
+                { sharedId: 'option-3' },
+            ],
+        })
+
+        // elementContains: all options are within the select
+        browser.execute
+            .mockResolvedValueOnce(true)   // elementContains for option-1
+            .mockResolvedValueOnce(true)   // elementContains for option-2
+            .mockResolvedValueOnce(true)   // elementContains for option-3
+
+        const result = await findDeepElements.call(element, 'option')
+
+        // Should return all scoped nodes without any isConnected check
+        expect(result).toHaveLength(3)
+        expect(result).toEqual([
+            { [ELEMENT_KEY]: 'option-1', locator: expect.objectContaining({ type: 'css', value: 'option' }) },
+            { [ELEMENT_KEY]: 'option-2', locator: expect.objectContaining({ type: 'css', value: 'option' }) },
+            { [ELEMENT_KEY]: 'option-3', locator: expect.objectContaining({ type: 'css', value: 'option' }) },
+        ])
+        // Only the elementContains calls, no isConnected calls
+        expect(browser.execute).toHaveBeenCalledTimes(3)
         expect(element.findElementsFromElement).not.toHaveBeenCalled()
     })
 

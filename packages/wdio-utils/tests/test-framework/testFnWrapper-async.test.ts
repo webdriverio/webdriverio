@@ -157,6 +157,64 @@ describe('testFnWrapper', () => {
         }])
     })
 
+    it('emits the after-hook with the identity captured BEFORE the await, not a mutated one', async () => {
+        // Simulate a timeout: the framework advances context.test to the NEXT runnable while the
+        // spec body runs. afterFnArgs reads the (mutable) current identity, mocha-style:
+        // [identityObject, context]. The snapshot must freeze the ORIGINAL identity.
+        const original = { title: 'timed-out test', parent: 'suite' }
+        const next = { title: 'next test', parent: 'suite' }
+        let currentIdentity = original
+        const sharedContext = { kind: 'context' }
+        const afterFnArgs = () => [currentIdentity, sharedContext]
+
+        // The spec body 'advances the pointer' the way mocha does on timeout.
+        const specFn = () => {
+            currentIdentity = next
+            return 'done'
+        }
+
+        const args = [
+            'Test',
+            { specFn, specFnArgs: [] },
+            { beforeFn: 'beforeFn', beforeFnArgs: () => [] },
+            { afterFn: 'afterFn', afterFnArgs },
+            '0-9',
+            0
+        ] as any[]
+
+        // @ts-expect-error
+        await testFnWrapper(...args)
+
+        const afterCall = executeHooksWithArgs.mock.calls.find((c: any[]) => c[0] === 'afterTest')
+        expect(afterCall).toBeDefined()
+        const emittedArgs = afterCall![2]
+        // identity (index 0) must be the ORIGINAL runnable, never the mutated 'next' one.
+        expect(emittedArgs[0]).toBe(original)
+        expect(emittedArgs[0].title).toBe('timed-out test')
+        // the live context (index 1) is still forwarded.
+        expect(emittedArgs[1]).toBe(sharedContext)
+    })
+
+    it('falls back to an empty args array when afterFnArgs is undefined', async () => {
+        const args = [
+            'Test',
+            { specFn: () => 'ok', specFnArgs: [] },
+            { beforeFn: 'beforeFn', beforeFnArgs: () => [] },
+            { afterFn: 'afterFn', afterFnArgs: undefined },
+            '0-9',
+            0
+        ] as any[]
+
+        // @ts-expect-error
+        const result = await testFnWrapper(...args)
+        expect(result).toBe('ok')
+        const afterCall = executeHooksWithArgs.mock.calls.find((c: any[]) => c[0] === 'afterTest')
+        expect(afterCall).toBeDefined()
+        // only the pushed result object should be present (no identity since afterFnArgs was absent).
+        expect(afterCall![2]).toHaveLength(1)
+        expect(afterCall![2][0]).toMatchObject({ result: 'ok', passed: true })
+    })
+
     afterEach(() => {
         executeHooksWithArgs.mockClear()
     })

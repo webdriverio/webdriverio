@@ -15,6 +15,7 @@ import WdioMochaTestFramework from '../frameworks/wdioMochaTestFramework.js'
 import type AutomationFrameworkInstance from '../instances/automationFrameworkInstance.js'
 import AutomationFramework from '../frameworks/automationFramework.js'
 import { AutomationFrameworkConstants } from '../frameworks/constants/automationFrameworkConstants.js'
+import { isLoadTestingSession, getLtsSessionId } from '../../util.js'
 
 /**
  * TestHub Module for BrowserStack
@@ -113,7 +114,10 @@ export default class TestHubModule extends BaseModule {
             this.logger.debug(`sendTestFrameworkEvent for testState: ${testFrameworkState} hookState: ${testHookState}`)
             const platformIndex = process.env.WDIO_WORKER_ID ? parseInt(process.env.WDIO_WORKER_ID.split('-')[0]) : 0
             const uuid = TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_UUID) || instance.getRef()
-            const eventJson = Buffer.from(JSON.stringify(Object.fromEntries(testData)))
+            // Nested values such as test_hooks_started/test_hooks_finished are JS Maps, which
+            // JSON.stringify would serialise to `{}` and strip the hook data. Convert any Map to
+            // a plain object so the binary receives populated hook maps.
+            const eventJson = Buffer.from(JSON.stringify(Object.fromEntries(testData), (_key, value) => value instanceof Map ? Object.fromEntries(value) : value))
             const executionContext = { hash: trackedContext.getId(), threadId: trackedContext.getThreadId().toString(), processId: trackedContext.getProcessId().toString() }
             const payload: Omit<TestFrameworkEventRequest, 'binSessionId'> = {
                 platformIndex,
@@ -182,22 +186,49 @@ export default class TestHubModule extends BaseModule {
             }
 
             this.logger.debug(`sendTestSessionEvent: instance iteration ${JSON.stringify(autoInstances)}`)
+            // LTS: BLU runner pods route through a local Selenium hub
+            // so KEY_IS_BROWSERSTACK_HUB resolves to false — without
+            // this gate the AutomationSession lands with provider=
+            // unknown_grid and TestHub's o11y classifier sets
+            // test_run.origin=UnknownGrid. Mirrors py-sdk 3af3bba6
+            // (force provider='browserstack' + product='loadTesting'
+            // under LTS) and 0efca1ae (override frameworkSessionId
+            // with the LTS pod-iteration env id).
+            // Hoisted above the loop — env vars are stable for the
+            // process lifetime, no need to re-read per iteration.
+            const ltsActive = isLoadTestingSession()
+            const ltsSessionId = ltsActive ? getLtsSessionId() : ''
             // Process automation instances
             for (const autoInstance of autoInstances) {
-                const sessionProvider = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_IS_BROWSERSTACK_HUB) as boolean
+                const sessionProvider = ltsActive
                     ? 'browserstack'
-                    : 'unknown_grid'
+                    : (AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_IS_BROWSERSTACK_HUB) as boolean
+                        ? 'browserstack'
+                        : 'unknown_grid')
+
+                // Null-safe: under LTS the local-Selenium AutomationFrameworkInstance
+                // may not have KEY_FRAMEWORK_SESSION_ID populated yet (the binary's
+                // hub assigns sessionId later than KEY_IS_BROWSERSTACK_HUB). Without
+                // the guard, AutomationFramework.getState returns undefined and the
+                // chained .toString() throws TypeError before the (ltsActive &&
+                // ltsSessionId) ternary on line 215 has a chance to fall through to
+                // ltsSessionId. Default to '' so the ternary path stays untouched
+                // and the non-LTS fall-through is still safe.
+                const driverFrameworkSessionId = (
+                    AutomationFramework.getState(
+                        autoInstance,
+                        AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID,
+                    )?.toString() ?? ''
+                )
 
                 const automationSession: AutomationSession = {
                     provider: sessionProvider,
                     ref: autoInstance.getRef(),
                     hubUrl: this.config.hubUrl as string,
-                    frameworkSessionId: AutomationFramework.getState(
-                        autoInstance,
-                        AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID,
-                    ).toString(),
+                    frameworkSessionId: (ltsActive && ltsSessionId) ? ltsSessionId : driverFrameworkSessionId,
                     frameworkName: autoInstance.frameworkName,
-                    frameworkVersion: autoInstance.frameworkVersion
+                    frameworkVersion: autoInstance.frameworkVersion,
+                    ...(ltsActive ? { product: 'loadTesting' } : {})
                 }
                 this.logger.debug(`sendTestSessionEvent: automationSession: ${JSON.stringify(automationSession)}`)
 

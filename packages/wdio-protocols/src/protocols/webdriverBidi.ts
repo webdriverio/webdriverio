@@ -263,7 +263,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowserSetClientWindowStateParameters`",
-                    "description": "<pre>\\{<br />  clientWindow: BrowserClientWindow;<br />}\\}</pre>",
+                    "description": "<pre>\\{<br />  clientWindow: BrowserClientWindow;<br />\\};</pre>",
                     "required": true
                 }
             ],
@@ -534,6 +534,46 @@ const protocol = {
             }
         }
     },
+    "browsingContext.startScreencast": {
+        "socket": {
+            "command": "browsingContextStartScreencast",
+            "description": "WebDriver Bidi command to send command method \"browsingContext.startScreencast\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-startScreencast",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.BrowsingContextStartScreencastParameters`",
+                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  mimeType?: string;<br />  video?: BrowsingContextMediaTrackConstraints;<br />  audio?: boolean;<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowsingContextStartScreencastResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     screencast: BrowsingContextScreencast;\n     path: string;\n   }\n   ```"
+            }
+        }
+    },
+    "browsingContext.stopScreencast": {
+        "socket": {
+            "command": "browsingContextStopScreencast",
+            "description": "WebDriver Bidi command to send command method \"browsingContext.stopScreencast\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-browsingContext-stopScreencast",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.BrowsingContextStopScreencastParameters`",
+                    "description": "<pre>\\{<br />  screencast: BrowsingContextScreencast;<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowsingContextStopScreencastResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     path: string;\n     error?: string;\n   }\n   ```"
+            }
+        }
+    },
     "browsingContext.traverseHistory": {
         "socket": {
             "command": "browsingContextTraverseHistory",
@@ -583,7 +623,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.EmulationSetGeolocationOverrideParameters`",
-                    "description": "<pre>\\{<br />  coordinates: EmulationGeolocationCoordinates &#124; null;<br />} &#124; {<br />  error: EmulationGeolocationPositionError;<br />}) & {<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />}\\}</pre>",
+                    "description": "<pre>\\{<br />  coordinates: EmulationGeolocationCoordinates &#124; null;<br />\\} &#124; \\{<br />  error: EmulationGeolocationPositionError;<br />\\}) & \\{<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\};</pre>",
                     "required": true
                 }
             ],
@@ -863,7 +903,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.NetworkContinueWithAuthParameters`",
-                    "description": "<pre>\\{<br />  request: NetworkRequest;<br />}\\}</pre>",
+                    "description": "<pre>\\{<br />  request: NetworkRequest;<br />\\};</pre>",
                     "required": true
                 }
             ],

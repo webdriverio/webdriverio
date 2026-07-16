@@ -53,9 +53,12 @@ import {
     performA11yScan,
     getAppA11yResults,
     isMultiRemoteCaps,
+    getTestPlanId,
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
-import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY } from '../src/constants.js'
+import PerformanceTester from '../src/instrumentation/performance/performance-tester.js'
+import * as PERFORMANCE_SDK_EVENTS from '../src/instrumentation/performance/constants.js'
+import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY, BROWSERSTACK_TEST_PLAN_ID } from '../src/constants.js'
 import * as testHubUtils from '../src/testHub/utils.js'
 import * as fs from 'node:fs/promises'
 import * as os from 'node:os'
@@ -885,6 +888,50 @@ describe('launchTestSession', () => {
         expect(options.method).toBe('POST')
         expect(result).toEqual(mockResponse)
     })
+
+    it('includes test_management with testPlanId from options in build start payload', async () => {
+        const mockResponse = { build_hashed_id: 'build_id', jwt: 'jwt' }
+        const fetchMock = vi.fn().mockResolvedValue({
+            json: vi.fn().mockResolvedValue(mockResponse)
+        })
+        vi.mocked(fetch).mockImplementation(fetchMock)
+        vi.spyOn(testHubUtils, 'getProductMapForBuildStartCall').mockReturnValue({})
+
+        await launchTestSession({ framework: 'framework', testManagementOptions: { testPlanId: 'tp-123' } } as any, {}, {}, {})
+        const [, reqOptions] = fetchMock.mock.calls[0]
+        const body = JSON.parse(reqOptions.body)
+        expect(body.test_management).toEqual({ test_plan_id: 'tp-123' })
+    })
+
+    it('includes test_management with testPlanId from env var in build start payload', async () => {
+        process.env[BROWSERSTACK_TEST_PLAN_ID] = 'tp-env-456'
+        const mockResponse = { build_hashed_id: 'build_id', jwt: 'jwt' }
+        const fetchMock = vi.fn().mockResolvedValue({
+            json: vi.fn().mockResolvedValue(mockResponse)
+        })
+        vi.mocked(fetch).mockImplementation(fetchMock)
+        vi.spyOn(testHubUtils, 'getProductMapForBuildStartCall').mockReturnValue({})
+
+        await launchTestSession({ framework: 'framework' } as any, {}, {}, {})
+        const [, reqOptions] = fetchMock.mock.calls[0]
+        const body = JSON.parse(reqOptions.body)
+        expect(body.test_management).toEqual({ test_plan_id: 'tp-env-456' })
+        delete process.env[BROWSERSTACK_TEST_PLAN_ID]
+    })
+
+    it('includes test_management with undefined testPlanId when not set', async () => {
+        const mockResponse = { build_hashed_id: 'build_id', jwt: 'jwt' }
+        const fetchMock = vi.fn().mockResolvedValue({
+            json: vi.fn().mockResolvedValue(mockResponse)
+        })
+        vi.mocked(fetch).mockImplementation(fetchMock)
+        vi.spyOn(testHubUtils, 'getProductMapForBuildStartCall').mockReturnValue({})
+
+        await launchTestSession({ framework: 'framework' } as any, {}, {}, {})
+        const [, reqOptions] = fetchMock.mock.calls[0]
+        const body = JSON.parse(reqOptions.body)
+        expect(body.test_management).toEqual({ test_plan_id: undefined })
+    })
 })
 
 describe('getLogTag', () => {
@@ -1051,6 +1098,62 @@ describe('getObservabilityBuildTags', () => {
     })
 })
 
+describe('getTestPlanId', () => {
+    const CLI_ARG = '--browserstack.testManagementOptions.testPlanId'
+
+    afterEach(() => {
+        delete process.env[BROWSERSTACK_TEST_PLAN_ID]
+        // restore argv to original state
+        process.argv = process.argv.filter((arg) => !arg.startsWith(CLI_ARG))
+    })
+
+    it('returns testPlanId from env var', () => {
+        process.env[BROWSERSTACK_TEST_PLAN_ID] = 'tp-env-123'
+        expect(getTestPlanId({} as any)).toEqual('tp-env-123')
+    })
+
+    it('env var takes priority over CLI arg and options', () => {
+        process.env[BROWSERSTACK_TEST_PLAN_ID] = 'tp-env-123'
+        process.argv.push(CLI_ARG, 'tp-cli-789')
+        expect(getTestPlanId({ testManagementOptions: { testPlanId: 'tp-opts-456' } } as any)).toEqual('tp-env-123')
+    })
+
+    it('returns testPlanId from CLI arg (space-separated)', () => {
+        process.argv.push(CLI_ARG, 'tp-cli-789')
+        expect(getTestPlanId({} as any)).toEqual('tp-cli-789')
+    })
+
+    it('returns testPlanId from CLI arg (equals-separated)', () => {
+        process.argv.push(`${CLI_ARG}=tp-cli-equals`)
+        expect(getTestPlanId({} as any)).toEqual('tp-cli-equals')
+    })
+
+    it('CLI arg takes priority over options', () => {
+        process.argv.push(CLI_ARG, 'tp-cli-789')
+        expect(getTestPlanId({ testManagementOptions: { testPlanId: 'tp-opts-456' } } as any)).toEqual('tp-cli-789')
+    })
+
+    it('returns testPlanId from testManagementOptions when env var and CLI arg are not set', () => {
+        expect(getTestPlanId({ testManagementOptions: { testPlanId: 'tp-opts-456' } } as any)).toEqual('tp-opts-456')
+    })
+
+    it('trims whitespace from testManagementOptions testPlanId', () => {
+        expect(getTestPlanId({ testManagementOptions: { testPlanId: '  tp-opts-456  ' } } as any)).toEqual('tp-opts-456')
+    })
+
+    it('returns undefined when testPlanId is empty string', () => {
+        expect(getTestPlanId({ testManagementOptions: { testPlanId: '   ' } } as any)).toBeUndefined()
+    })
+
+    it('returns undefined when testManagementOptions is not set', () => {
+        expect(getTestPlanId({} as any)).toBeUndefined()
+    })
+
+    it('returns undefined when testManagementOptions.testPlanId is not a string', () => {
+        expect(getTestPlanId({ testManagementOptions: { testPlanId: 123 } } as any)).toBeUndefined()
+    })
+})
+
 describe('o11yErrorHandler', () => {
     let spy: any
     beforeEach(() => {
@@ -1153,17 +1256,17 @@ describe('validateCapsWithA11y', () => {
             .toContain('Accessibility Automation will run only on Desktop browsers.')
     })
 
-    it('returns false if browser is not chrome', async () => {
+    it('returns false if browser is not supported', async () => {
         const platformMeta = {
-            'browser_name': 'safari'
+            'browser_name': 'firefox'
         }
 
         expect(validateCapsWithA11y(undefined, platformMeta)).toEqual(false)
         expect(logInfoMock.mock.calls[0][0])
-            .toContain('Accessibility Automation will run only on Chrome browsers.')
+            .toContain('Accessibility Automation supports Chrome 95+, Chrome for Testing 141+, and Safari 18.4+')
     })
 
-    it('returns false if browser version is lesser than 94', async () => {
+    it('returns false if browser version is lesser than 95', async () => {
         const platformMeta = {
             'browser_name': 'chrome',
             'browser_version': '90'
@@ -1171,7 +1274,7 @@ describe('validateCapsWithA11y', () => {
 
         expect(validateCapsWithA11y(undefined, platformMeta)).toEqual(false)
         expect(logInfoMock.mock.calls[0][0])
-            .toContain('Accessibility Automation will run only on Chrome browser version greater than 94.')
+            .toContain('Accessibility Automation requires Chrome version 95 or higher')
     })
 
     it('returns false if browser version is lesser than 94', async () => {
@@ -1197,6 +1300,50 @@ describe('validateCapsWithA11y', () => {
 
         expect(validateCapsWithA11y(undefined, platformMeta, chromeOptions)).toEqual(true)
     })
+
+    it('returns true for Safari 18.4+', async () => {
+        const platformMeta = {
+            'browser_name': 'safari',
+            'browser_version': '18.4'
+        }
+        expect(validateCapsWithA11y(undefined, platformMeta)).toEqual(true)
+    })
+
+    it('returns true for Safari latest', async () => {
+        const platformMeta = {
+            'browser_name': 'safari',
+            'browser_version': 'latest'
+        }
+        expect(validateCapsWithA11y(undefined, platformMeta)).toEqual(true)
+    })
+
+    it('returns false for Safari < 18.4', async () => {
+        const platformMeta = {
+            'browser_name': 'safari',
+            'browser_version': '16.0'
+        }
+        expect(validateCapsWithA11y(undefined, platformMeta)).toEqual(false)
+        expect(logInfoMock.mock.calls[0][0])
+            .toContain('Safari version 18.4 or higher')
+    })
+
+    it('returns true for ChromeForTesting 141+', async () => {
+        const platformMeta = {
+            'browser_name': 'ChromeForTesting',
+            'browser_version': '141'
+        }
+        expect(validateCapsWithA11y(undefined, platformMeta)).toEqual(true)
+    })
+
+    it('returns false for ChromeForTesting < 141', async () => {
+        const platformMeta = {
+            'browser_name': 'ChromeForTesting',
+            'browser_version': '140'
+        }
+        expect(validateCapsWithA11y(undefined, platformMeta)).toEqual(false)
+        expect(logInfoMock.mock.calls[0][0])
+            .toContain('Accessibility Automation requires Chrome for Testing version 141 or higher')
+    })
 })
 
 describe('validateCapsWithNonBstackA11y', () => {
@@ -1205,14 +1352,38 @@ describe('validateCapsWithNonBstackA11y', () => {
         logInfoMock = vi.spyOn(log, 'warn')
     })
 
-    it('returns false if browser is not chrome', async () => {
+    it('returns true for safari 18.4+', async () => {
+        expect(validateCapsWithNonBstackA11y('safari', '18.4')).toEqual(true)
+    })
 
-        const browserName = 'safari'
+    it('returns true for safari latest', async () => {
+        expect(validateCapsWithNonBstackA11y('safari', 'latest')).toEqual(true)
+    })
+
+    it('returns false for safari < 18.4', async () => {
+        expect(validateCapsWithNonBstackA11y('safari', '16.0')).toEqual(false)
+        expect(logInfoMock.mock.calls[0][0])
+            .toContain('Safari version 18.4+')
+    })
+
+    it('returns true for ChromeForTesting 141+', async () => {
+        expect(validateCapsWithNonBstackA11y('ChromeForTesting', '141')).toEqual(true)
+    })
+
+    it('returns false for ChromeForTesting < 141', async () => {
+        expect(validateCapsWithNonBstackA11y('ChromeForTesting', '140')).toEqual(false)
+        expect(logInfoMock.mock.calls[0][0])
+            .toContain('Accessibility Automation requires Chrome for Testing version 141+')
+    })
+
+    it('returns false if browser is not supported', async () => {
+
+        const browserName = 'firefox'
         const browserVersion = 'latest'
 
         expect(validateCapsWithNonBstackA11y(browserName, browserVersion)).toEqual(false)
         expect(logInfoMock.mock.calls[0][0])
-            .toContain('Accessibility Automation will run only on Chrome browsers.')
+            .toContain('Accessibility Automation on non-BrowserStack infrastructure supports Chrome 100+, Chrome for Testing 141+, and Safari 18.4+')
     })
 
     it('returns false if browser version is lesser than 100', async () => {
@@ -1222,7 +1393,7 @@ describe('validateCapsWithNonBstackA11y', () => {
 
         expect(validateCapsWithNonBstackA11y(browserName, browserVersion)).toEqual(false)
         expect(logInfoMock.mock.calls[0][0])
-            .toContain('Accessibility Automation will run only on Chrome browser version greater than 100.')
+            .toContain('Accessibility Automation requires Chrome version 100+')
     })
 
     it('returns true if validation done', async () => {
@@ -1462,32 +1633,101 @@ describe('frameworkSupportsHook', function () {
 describe('uploadLogs', function () {
     let tempLogFile: string
     let originalLogFilePath: string
+    let endSpy: ReturnType<typeof vi.spyOn>
 
-    beforeAll(async () => {
+    beforeAll(() => {
         tempLogFile = path.join(os.tmpdir(), 'test-logs.txt')
-        await fs.writeFile(tempLogFile, 'mock log content')
         // Store original log file path
         originalLogFilePath = bstackLogger.BStackLogger.logFilePath
         bstackLogger.BStackLogger.logFilePath = tempLogFile
     })
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        // uploadLogs's cleanup unlinks the copied file from tmpdir; that path
+        // is the same as tempLogFile, so re-create it before every test.
+        await fs.writeFile(tempLogFile, 'mock log content')
         vi.mocked(fetch).mockClear()
         vi.mocked(fetch).mockResolvedValue(Response.json({ status: 'success', message: 'Logs uploaded Successfully' }))
+        endSpy = vi.spyOn(PerformanceTester, 'end')
+    })
+
+    afterEach(() => {
+        endSpy.mockRestore()
     })
 
     it('should return if user is undefined', async function () {
         await uploadLogs(undefined, 'some_key', 'some_uuid')
         expect(fetch).not.toHaveBeenCalled()
+        expect(endSpy).toHaveBeenCalledWith(
+            PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS,
+            false,
+            'skipped: missing_credentials'
+        )
     })
+
     it('should return if key is undefined', async function () {
         await uploadLogs('some_user', undefined, 'some_uuid')
         expect(fetch).not.toHaveBeenCalled()
+        expect(endSpy).toHaveBeenCalledWith(
+            PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS,
+            false,
+            'skipped: missing_credentials'
+        )
     })
+
     it('should upload the logs', async function () {
         await uploadLogs('some_user', 'some_key', 'some_uuid')
         expect(fetch).toHaveBeenCalled()
+        expect(endSpy).toHaveBeenCalledWith(
+            PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS,
+            true,
+            undefined
+        )
     })
+
+    it('should send FormData with a Blob (native, not formdata-node)', async function () {
+        await uploadLogs('some_user', 'some_key', 'some_uuid')
+        expect(fetch).toHaveBeenCalled()
+        // The body passed to fetch should be a FormData with a `data` field containing
+        // a Blob/File so undici (native fetch) recognizes it as a file part. Sending
+        // formdata-node's FormData here causes undici to serialize the file as a
+        // string field and the server returns "File not attached".
+        const fetchCall = vi.mocked(fetch).mock.calls[0]
+        const opts: any = fetchCall[1]
+        expect(opts.body).toBeInstanceOf(FormData)
+        const dataField = (opts.body as FormData).get('data')
+        // In Node 18+, FormData.get for a file-like part returns a File/Blob.
+        // Either type is acceptable as long as it's a Blob (File extends Blob).
+        expect(dataField).toBeInstanceOf(Blob)
+        expect((opts.body as FormData).get('clientBuildUuid')).toBe('some_uuid')
+    })
+
+    it('should record upload_status when server rejects with non-success response', async function () {
+        vi.mocked(fetch).mockResolvedValueOnce(
+            Response.json({ status: 'failed', message: 'File not attached.' })
+        )
+        await uploadLogs('some_user', 'some_key', 'some_uuid')
+        expect(endSpy).toHaveBeenCalledWith(
+            PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS,
+            false,
+            expect.stringContaining('upload_status: failed')
+        )
+        // The failure string should also surface the server message for diagnostics
+        expect(endSpy.mock.calls[0][2]).toContain('File not attached.')
+    })
+
+    it('should record upload_no_response when nodeRequest swallows the error and returns undefined', async function () {
+        // nodeRequest returns undefined for the log-upload path on AbortError / network failure;
+        // simulate that via a fetch reject — the inner catch in nodeRequest swallows it and returns undefined.
+        vi.mocked(fetch).mockRejectedValueOnce(new Error('socket hang up'))
+        await uploadLogs('some_user', 'some_key', 'some_uuid')
+        expect(endSpy).toHaveBeenCalledWith(
+            PERFORMANCE_SDK_EVENTS.EVENTS.SDK_UPLOAD_LOGS,
+            false,
+            'upload_no_response'
+        )
+    })
+
     afterAll(async () => {
         try {
             await fs.unlink(tempLogFile)
@@ -2085,5 +2325,19 @@ describe('getAppA11yResultsSummary', () => {
         const result = await utils.getA11yResultsSummary(false, {} as WebdriverIO.Browser, true, true)
         delete process.env.BSTACK_A11Y_JWT
         expect(result).toEqual({ })
+    })
+})
+
+describe('coerceStringBooleans (SDK-3737)', () => {
+    it("coerces exact 'true'/'false' strings (any case) to booleans", () => {
+        expect(utils.coerceStringBooleans({ autoScanning: 'false' })).toEqual({ autoScanning: false })
+        expect(utils.coerceStringBooleans({ autoScanning: 'true', other: 'TRUE' })).toEqual({ autoScanning: true, other: true })
+    })
+    it('leaves non-boolean strings, real booleans and numbers untouched', () => {
+        expect(utils.coerceStringBooleans({ wcagVersion: 'wcag21a', autoScanning: true, n: 5 }))
+            .toEqual({ wcagVersion: 'wcag21a', autoScanning: true, n: 5 })
+    })
+    it('is safe with empty input', () => {
+        expect(utils.coerceStringBooleans({})).toEqual({})
     })
 })

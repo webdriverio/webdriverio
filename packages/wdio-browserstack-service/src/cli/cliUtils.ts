@@ -27,11 +27,12 @@ import {
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
 import { BStackLogger as logger } from './cliLogger.js'
-import { UPDATED_CLI_ENDPOINT, BSTACK_SERVICE_VERSION } from '../constants.js'
+import { UPDATED_CLI_ENDPOINT, BSTACK_SERVICE_VERSION, BINARY_BUSY_ERROR_CODES } from '../constants.js'
 import type { Options, Capabilities } from '@wdio/types'
 import type {
     BrowserstackConfig,
     BrowserstackOptions,
+    TestManagementOptions,
     TestObservabilityOptions,
 } from '../types.js'
 import { TestFrameworkConstants } from './frameworks/constants/testFrameworkConstants.js'
@@ -42,6 +43,15 @@ const CLI_LOCK_POLL_MS = 1000
 const CLI_DOWNLOAD_TIMEOUT_MS = 5 * 60 * 1000
 const CLI_DOWNLOAD_TMP_PREFIX = 'downloaded_file_'
 const CLI_DOWNLOAD_TMP_SUFFIX = '.zip'
+// Connection-establishment timeout for CLI network calls (update_cli + binary
+// download). Node's global fetch hard-codes this at 10s and it is NOT overridable
+// via AbortSignal, so a slow TLS/TCP handshake in a constrained/containerised CI
+// network (e.g. Kubernetes pods) aborts with UND_ERR_CONNECT_TIMEOUT even though
+// the endpoint is healthy (SDK-6152). Routed through a custom undici dispatcher.
+// Overridable via env for tuning.
+const CLI_CONNECT_TIMEOUT_MS = Number(process.env.BROWSERSTACK_CLI_CONNECT_TIMEOUT_MS) || 60 * 1000
+const CLI_FETCH_MAX_ATTEMPTS = 3
+const CLI_FETCH_RETRY_BASE_DELAY_MS = 500
 
 export class CLIUtils {
     static automationFrameworkDetail = {}
@@ -67,8 +77,8 @@ export class CLIUtils {
     static getBinConfig(
         config: Options.Testrunner,
         capabilities:
-            | Capabilities.TestrunnerCapabilities
-            | WebdriverIO.Capabilities,
+            | Capabilities.RequestedStandaloneCapabilities
+            | Capabilities.RequestedStandaloneCapabilities[],
         options: BrowserstackConfig & BrowserstackOptions,
         buildTag?: string,
     ) {
@@ -77,6 +87,7 @@ export class CLIUtils {
             modifiedOpts.browserStackLocalOptions = modifiedOpts.opts
             delete modifiedOpts.opts
         }
+        delete modifiedOpts.testManagementOptions
 
         modifiedOpts.testContextOptions = {
             skipSessionName: isFalse(modifiedOpts.setSessionName),
@@ -114,6 +125,11 @@ export class CLIUtils {
             )
         const observabilityOptions: TestObservabilityOptions =
             options.testObservabilityOptions || {}
+        const testManagementOptions: TestManagementOptions =
+            options.testManagementOptions || {}
+        const testPlanId = typeof testManagementOptions.testPlanId === 'string'
+            ? testManagementOptions.testPlanId.trim()
+            : ''
         const binconfig: Record<string, unknown> = {
             userName: observabilityOptions.user || config.user,
             accessKey: observabilityOptions.key || config.key,
@@ -126,36 +142,36 @@ export class CLIUtils {
         binconfig.buildName = observabilityOptions.buildName || binconfig.buildName
         binconfig.projectName = observabilityOptions.projectName || binconfig.projectName
         binconfig.buildTag = this.getObservabilityBuildTags(observabilityOptions, buildTag) || []
-
-        let caps = capabilities
-        if (capabilities && !Array.isArray(capabilities)) {
-            caps = [capabilities]
-        }
-        if (Array.isArray(caps)) {
-            for (const cap of caps) {
-                const platform: Record<string, unknown> = {}
-                const capability = cap as Record<string, unknown>
-
-                Object.keys(capability)
-                    .filter((key) => key !== 'bstack:options')
-                    .forEach((key) => {
-                        platform[key] = capability[key]
-                    })
-
-                if (capability['bstack:options']) {
-                    Object.keys(
-                        capability['bstack:options'] as Record<string, unknown>,
-                    ).forEach((key) => {
-                        platform[key] = (
-                            capability['bstack:options'] as Record<
-                                string,
-                                unknown
-                            >
-                        )[key]
-                    })
-                }
-                (binconfig.platforms as Array<unknown>).push(platform)
+        if (testPlanId.length > 0) {
+            binconfig.testManagementOptions = {
+                testPlanId,
             }
+        }
+
+        const caps = Array.isArray(capabilities) ? capabilities : [capabilities]
+        for (const cap of caps) {
+            const platform: Record<string, unknown> = {}
+            const capability = cap as Record<string, unknown>
+
+            Object.keys(capability)
+                .filter((key) => key !== 'bstack:options')
+                .forEach((key) => {
+                    platform[key] = capability[key]
+                })
+
+            if (capability['bstack:options']) {
+                Object.keys(
+                    capability['bstack:options'] as Record<string, unknown>,
+                ).forEach((key) => {
+                    platform[key] = (
+                        capability['bstack:options'] as Record<
+                            string,
+                            unknown
+                        >
+                    )[key]
+                })
+            }
+            (binconfig.platforms as Array<unknown>).push(platform)
         }
         return JSON.stringify(binconfig)
     }
@@ -192,7 +208,9 @@ export class CLIUtils {
             logger.debug(`Resolved binary path: ${finalBinaryPath}`)
             return finalBinaryPath
         } catch (err) {
-            logger.debug(
+            // Surface at warn (not debug) so a failed CLI setup is visible instead of
+            // the run exiting silently with no results (SDK-6152).
+            logger.warn(
                 `Error in setting up cli path directory, Exception: ${util.format(err)}`,
             )
         }
@@ -228,9 +246,22 @@ export class CLIUtils {
             sdk_language: this.getSdkLanguage(),
         }
         if (!isNullOrEmpty(existingCliPath)) {
-            queryParams.cli_version = await this.runShellCommand(
+            // If binary is busy (being executed by another process), skip version check
+            // and API call entirely — use existing binary as-is
+            if (this.isBinaryBusy(existingCliPath)) {
+                logger.warn(`Existing binary is currently in use, skipping update: ${existingCliPath}`)
+                PerformanceTester.end(PerformanceEvents.SDK_CLI_CHECK_UPDATE)
+                return existingCliPath
+            }
+            const version = await this.runShellCommand(
                 `${existingCliPath} version`,
             )
+            if (version.toLowerCase().includes('text file busy')) {
+                logger.warn(`Binary busy during version check, skipping update: ${existingCliPath}`)
+                PerformanceTester.end(PerformanceEvents.SDK_CLI_CHECK_UPDATE)
+                return existingCliPath
+            }
+            queryParams.cli_version = version
         }
         const response = await this.requestToUpdateCLI(queryParams, config)
         if (nestedKeyValue(response, ['updated_cli_version'])) {
@@ -372,6 +403,59 @@ export class CLIUtils {
         }
     }
 
+    static isBinaryBusy(binaryPath: string): boolean {
+        if (isNullOrEmpty(binaryPath)) {return false}
+        if (platform() === 'darwin') {return false}
+        if (!fs.existsSync(binaryPath)) {return false}
+
+        try {
+            const fd = fs.openSync(binaryPath, 'r+')
+            fs.closeSync(fd)
+            return false
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
+            if (BINARY_BUSY_ERROR_CODES.includes(err.code)) {
+                logger.debug(`Binary is busy: ${binaryPath}`)
+                return true
+            }
+            logger.debug(`Error checking if binary is busy: ${err.message}`)
+            return false
+        }
+    }
+
+    /**
+     * fetch wrapper for CLI network calls that (a) raises undici's connect timeout
+     * above the non-overridable 10s default of global fetch and (b) retries a few
+     * times with linear backoff on transient connection failures. Both are needed
+     * for reliability in constrained CI/containerised networks (SDK-6152).
+     */
+    static fetchWithRetry = async (
+        input: string,
+        init: RequestInit,
+        label: string,
+    ): Promise<Response> => {
+        let lastError: unknown
+        for (let attempt = 1; attempt <= CLI_FETCH_MAX_ATTEMPTS; attempt++) {
+            try {
+                return await fetch(input, init, { connectTimeoutMs: CLI_CONNECT_TIMEOUT_MS })
+            } catch (err) {
+                lastError = err
+                const reason =
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (err as any)?.cause?.code || (err as any)?.code || (err as Error)?.message
+                logger.warn(
+                    `${label} attempt ${attempt}/${CLI_FETCH_MAX_ATTEMPTS} failed: ${reason}`,
+                )
+                if (attempt < CLI_FETCH_MAX_ATTEMPTS) {
+                    await new Promise((resolve) =>
+                        setTimeout(resolve, CLI_FETCH_RETRY_BASE_DELAY_MS * attempt),
+                    )
+                }
+            }
+        }
+        throw lastError
+    }
+
     static requestToUpdateCLI = async (
         queryParams: Record<string, string>,
         config: Options.Testrunner,
@@ -383,9 +467,10 @@ export class CLIUtils {
                 Authorization: `Basic ${Buffer.from(`${getBrowserStackUser(config)}:${getBrowserStackKey(config)}`).toString('base64')}`,
             },
         }
-        const response = await fetch(
+        const response = await this.fetchWithRetry(
             `${APIUtils.BROWSERSTACK_AUTOMATE_API_URL}/${UPDATED_CLI_ENDPOINT}?${params.toString()}`,
             requestInit,
+            'update_cli request',
         )
         const jsonResponse = await response.json()
         logger.debug(`response ${JSON.stringify(jsonResponse)}`)
@@ -522,11 +607,15 @@ export class CLIUtils {
         const cleanupTemporaryDownloads = (maxAgeMs = CLI_LOCK_TIMEOUT_MS) => {
             try {
                 const now = Date.now()
+                // Match both download zips (downloaded_file_*.zip) and orphan extract
+                // temp files (<name>.tmp.<pid>) left by crashed peer workers.
+                const tmpExtractRe = /\.tmp\.\d+$/
                 for (const entry of fs.readdirSync(cliDir)) {
-                    if (
-                        !entry.startsWith(CLI_DOWNLOAD_TMP_PREFIX) ||
-                        !entry.endsWith(CLI_DOWNLOAD_TMP_SUFFIX)
-                    ) {
+                    const isDownloadZip =
+                        entry.startsWith(CLI_DOWNLOAD_TMP_PREFIX) &&
+                        entry.endsWith(CLI_DOWNLOAD_TMP_SUFFIX)
+                    const isExtractTmp = tmpExtractRe.test(entry)
+                    if (!isDownloadZip && !isExtractTmp) {
                         continue
                     }
                     const filePath = path.join(cliDir, entry)
@@ -543,13 +632,13 @@ export class CLIUtils {
                         fs.unlinkSync(filePath)
                     } catch (err) {
                         logger.debug(
-                            `Failed to delete temp CLI zip file ${filePath}: ${util.format(err)}`,
+                            `Failed to delete temp CLI file ${filePath}: ${util.format(err)}`,
                         )
                     }
                 }
             } catch (err) {
                 logger.debug(
-                    `Failed to scan temp CLI downloads in ${cliDir}: ${util.format(err)}`,
+                    `Failed to scan temp CLI files in ${cliDir}: ${util.format(err)}`,
                 )
             }
         }
@@ -610,8 +699,6 @@ export class CLIUtils {
             const downloadedFileStream = fs.createWriteStream(zipFilePath)
 
             return new Promise<string | null>((resolve, reject) => {
-                const binaryName = null
-
                 const processDownload = async () => {
                     const abortController = new AbortController()
                     const timeout = setTimeout(
@@ -620,9 +707,11 @@ export class CLIUtils {
                     )
                     let response: Response
                     try {
-                        response = await fetch(binDownloadUrl, {
-                            signal: abortController.signal,
-                        })
+                        response = await fetch(
+                            binDownloadUrl,
+                            { signal: abortController.signal },
+                            { connectTimeoutMs: CLI_CONNECT_TIMEOUT_MS },
+                        )
                     } finally {
                         clearTimeout(timeout)
                     }
@@ -650,7 +739,6 @@ export class CLIUtils {
                         // Set up the downloadFileStream handler before pipeline
                         CLIUtils.downloadFileStream(
                             downloadedFileStream,
-                            binaryName,
                             zipFilePath,
                             cliDir,
                             (result: string) => {
@@ -688,7 +776,6 @@ export class CLIUtils {
 
     static downloadFileStream(
         downloadedFileStream: fs.WriteStream,
-        binaryName: string | null,
         zipFilePath: string,
         cliDir: string,
         resolve: (path: string) => void,
@@ -703,37 +790,108 @@ export class CLIUtils {
                 const zipfile = await yauzlOpenPromise(zipFilePath, {
                     lazyEntries: true,
                 })
+                let resolvedBinaryPath: string | null = null
+
                 zipfile.readEntry()
                 zipfile.on('entry', async (entry) => {
-                    if (!binaryName) {
-                        binaryName = entry.fileName
-                    }
                     if (/\/$/.test(entry.fileName)) {
-                        // Directory file names end with '/'.
                         zipfile.readEntry()
-                    } else {
-                        // file entry
-                        const writeStream = fs.createWriteStream(
-                            path.join(cliDir, entry.fileName),
-                        )
+                        return
+                    }
+
+                    // Zip-slip guard: reject entries whose resolved path escapes cliDir
+                    // (BROWSERSTACK_BINARY_URL lets users supply arbitrary zips).
+                    const candidatePath = path.join(cliDir, entry.fileName)
+                    const resolvedCandidate = path.resolve(candidatePath)
+                    const resolvedDir = path.resolve(cliDir) + path.sep
+                    if (!resolvedCandidate.startsWith(resolvedDir)) {
+                        zipfile.close()
+                        reject(new Error(`Zip-slip detected: entry "${entry.fileName}" resolves outside ${cliDir}`))
+                        return
+                    }
+
+                    const isBinaryEntry = path.basename(entry.fileName).startsWith('binary-')
+
+                    if (!isBinaryEntry) {
+                        const directStream = fs.createWriteStream(candidatePath)
+                        directStream.on('error', (writeErr) => {
+                            zipfile.close()
+                            reject(writeErr as Error)
+                        })
                         const openReadStreamPromise = promisify(
                             zipfile.openReadStream,
                         ).bind(zipfile)
                         try {
-                            const readStream =
-                                await openReadStreamPromise(entry)
+                            const readStream = await openReadStreamPromise(entry)
                             readStream.on('end', function () {
-                                writeStream.close()
-                                zipfile.readEntry()
+                                directStream.end()
+                                directStream.on('close', () => zipfile.readEntry())
                             })
-                            readStream.pipe(writeStream)
+                            readStream.pipe(directStream)
                         } catch (zipErr) {
+                            zipfile.close()
                             reject(zipErr as Error)
                         }
+                        return
+                    }
 
-                        if (entry.fileName === binaryName) {
+                    // Binary entry: extract to PID-scoped temp file, chmod, atomic rename inline.
+                    // Prevents ETXTBSY/EBUSY: the file being executed is never the file being written.
+                    const finalPath = candidatePath
+                    const tempPath = path.join(cliDir, `${entry.fileName}.tmp.${process.pid}`)
+
+                    const writeStream = fs.createWriteStream(tempPath)
+
+                    let writeStreamErrored = false
+                    writeStream.on('error', (writeErr) => {
+                        writeStreamErrored = true
+                        fsp.unlink(tempPath).catch(() => {})
+                        zipfile.close()
+                        reject(writeErr as Error)
+                    })
+
+                    // 'close' fires after the fd is closed; safe for fsp.rename on Windows (where 'finish' may fire before fd release).
+                    // autoClose=true also makes 'close' fire after 'error' — bail out if the error path already rejected.
+                    writeStream.on('close', async () => {
+                        if (writeStreamErrored) { return }
+                        try {
+                            await fsp.chmod(tempPath, '0755')
+                            try {
+                                await fsp.rename(tempPath, finalPath)
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            } catch (renameErr: any) {
+                                // Narrow fallback to cross-device (EXDEV) only
+                                if (renameErr.code !== 'EXDEV') {
+                                    throw renameErr
+                                }
+                                logger.warn(`Atomic rename failed (cross-device), falling back to copy: ${renameErr.message}`)
+                                await fsp.copyFile(tempPath, finalPath)
+                                await fsp.unlink(tempPath).catch(() => {})
+                            }
+                            if (!resolvedBinaryPath) {
+                                resolvedBinaryPath = finalPath
+                            }
+                            zipfile.readEntry()
+                        } catch (err) {
+                            await fsp.unlink(tempPath).catch(() => {})
                             zipfile.close()
+                            reject(err as Error)
                         }
+                    })
+
+                    const openReadStreamPromise = promisify(
+                        zipfile.openReadStream,
+                    ).bind(zipfile)
+                    try {
+                        const readStream = await openReadStreamPromise(entry)
+                        readStream.on('end', function () {
+                            writeStream.end()
+                        })
+                        readStream.pipe(writeStream)
+                    } catch (zipErr) {
+                        fsp.unlink(tempPath).catch(() => {})
+                        zipfile.close()
+                        reject(zipErr as Error)
                     }
                 })
 
@@ -743,18 +901,16 @@ export class CLIUtils {
 
                 zipfile.once('end', () => {
                     fsp.unlink(zipFilePath).catch(() => {
-                        logger.warn(
-                            `Failed to delete zip file: ${zipFilePath}`,
-                        )
+                        logger.warn(`Failed to delete zip file: ${zipFilePath}`)
                     })
-                    fsp.chmod(`${cliDir}/${binaryName}`, '0755')
-                        .then(() => {
-                            resolve(`${cliDir}/${binaryName}`)
-                        })
-                        .catch((err) => {
-                            reject(err)
-                        })
+
+                    if (!resolvedBinaryPath) {
+                        zipfile.close()
+                        reject(new Error('No binary-* entry found in zip; cannot complete CLI binary extraction'))
+                        return
+                    }
                     zipfile.close()
+                    resolve(resolvedBinaryPath)
                 })
             } catch (err) {
                 reject(err as Error)

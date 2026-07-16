@@ -1,4 +1,4 @@
-name: Build WebdriverIO
+name: Authorize Team Publisher Only
 
 on:
   workflow_call:
@@ -13,7 +13,7 @@ jobs:
       - uses: octokit/request-action@dad4362715b7fb2ddedf9772c8670824af564f0d # v2.4.0
         with:
           route: GET /orgs/:organisation/teams/:team/memberships/${{ github.actor }}
-          team: technical-steering-committee
+          team: project-publishers
           organisation: webdriverio
         env:
           GITHUB_TOKEN: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}

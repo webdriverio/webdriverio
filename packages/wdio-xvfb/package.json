@@ -1,12 +1,12 @@
 {
   "name": "@wdio/xvfb",
-  "version": "9.27.0",
+  "version": "9.29.1",
   "description": "A standalone utility to manage Xvfb (X Virtual Framebuffer) for headless testing",
   "author": "WebdriverIO Team",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-xvfb",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=18.20.0"
   },
   "repository": {
     "type": "git",

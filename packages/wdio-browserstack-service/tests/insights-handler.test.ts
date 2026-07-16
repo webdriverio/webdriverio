@@ -497,7 +497,7 @@ describe('beforeTest', () => {
 
         it('update test data', async () => {
             await insightsHandler.beforeTest({ parent: 'parent', title: 'test' } as any)
-            expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
+            expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z', kind: 'test', name: 'test', scopes: [], fileName: undefined } })
             expect(insightsHandler['getRunData']).toBeCalledTimes(1)
         })
     })
@@ -537,7 +537,7 @@ describe('beforeHook', () => {
 
         it('update hook data', async () => {
             await insightsHandler.beforeHook({ parent: 'parent', title: 'test' } as any, {} as any)
-            expect(insightsHandler['_tests']).toEqual({ 'parent - test': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
+            expect(insightsHandler['_tests']).toEqual({ 'parent - test': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z', kind: 'hook', name: 'test', scopes: [], fileName: undefined } })
             expect(insightsHandler['getRunData']).toBeCalledTimes(1)
         })
     })
@@ -583,6 +583,26 @@ describe('afterHook', () => {
             await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any)
             expect(insightsHandler['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z', } })
             expect(insightsHandler['getRunData']).toBeCalledTimes(1)
+        })
+
+        it('emits HookRunFinished when getRunData resolves a uuid', async () => {
+            insightsHandler['_tests'] = { 'test title': { uuid: 'hook-uuid' } }
+            vi.mocked(insightsHandler['getRunData']).mockReturnValueOnce({ uuid: 'hook-uuid' } as any)
+            const hookFinishedSpy = vi.spyOn(insightsHandler['listener'], 'hookFinished').mockImplementation(() => { return [] as any })
+            await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any)
+            expect(hookFinishedSpy).toBeCalledTimes(1)
+        })
+
+        it('skips the HookRunFinished emit and warns when the resolved uuid is missing', async () => {
+            insightsHandler['_tests'] = { 'test title': { finishedAt: '2020-01-01T00:00:00.000Z' } }
+            // mislabelled identity -> empty meta -> no uuid on the run data
+            vi.mocked(insightsHandler['getRunData']).mockReturnValueOnce({ uuid: undefined } as any)
+            const hookFinishedSpy = vi.spyOn(insightsHandler['listener'], 'hookFinished').mockImplementation(() => { return [] as any })
+            const warnSpy = vi.spyOn(bstackLogger.BStackLogger, 'warn').mockImplementation(() => {})
+            await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any)
+            expect(hookFinishedSpy).not.toBeCalled()
+            expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Skipping HookRunFinished'))
+            warnSpy.mockRestore()
         })
     })
 

@@ -20,7 +20,7 @@ vi.mock('../../src/cli/modules/testHubModule.js', () => ({
 import { GrpcClient } from '../../../src/cli/grpcClient.js'
 import { BrowserstackCLI } from '../../../src/cli/index.js'
 
-import * as bstackLogger from '../../../src/bstackLogger.js'
+import * as cliLogger from '../../../src/cli/cliLogger.js'
 import { CLIUtils } from '../../../src/cli/cliUtils.js'
 import TestHubModule from '../../../src/cli/modules/testHubModule.js'
 
@@ -86,8 +86,8 @@ vi.mock('../../src/accessibility-response-processor.js', () => ({
 
 const mockGetInstance = GrpcClient.getInstance as Mock
 
-const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
-bstackLoggerSpy.mockImplementation(() => {})
+const cliLoggerSpy = vi.spyOn(cliLogger.BStackLogger, 'logToFile')
+cliLoggerSpy.mockImplementation(() => {})
 
 // Mock APIs structure for testing
 const mockApis = {
@@ -453,6 +453,26 @@ describe('BrowserstackCLI', () => {
             browserstackCLI.loadModules(mockStartBinResponse)
 
             expect(browserstackCLI.getConfig()).toEqual(mockConfig)
+        })
+
+        it('logs build-start errors for the main process', () => {
+            const errorSpy = vi.spyOn(cliLogger.BStackLogger, 'error').mockImplementation(() => {})
+            try {
+                mockStartBinResponse.testhub = {
+                    errors: Buffer.from(JSON.stringify({
+                        PLAN_ID_INVALID: {
+                            message: 'The provided Test Plan ID or format is invalid. Build created without association.',
+                            type: 'error'
+                        }
+                    }))
+                }
+
+                browserstackCLI.loadModules(mockStartBinResponse)
+
+                expect(errorSpy).toHaveBeenCalledWith('[Build] PLAN_ID_INVALID: The provided Test Plan ID or format is invalid. Build created without association.')
+            } finally {
+                errorSpy.mockRestore()
+            }
         })
     })
 

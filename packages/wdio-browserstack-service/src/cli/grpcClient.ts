@@ -45,6 +45,8 @@ import PerformanceTester from '../instrumentation/performance/performance-tester
 import * as PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
 import { BStackLogger } from './cliLogger.js'
 
+const GRPC_MESSAGE_LIMIT = 20 * 1024 * 1024 // 20 MB in bytes
+
 /**
  * GrpcClient - Singleton class for managing gRPC client connections
  *
@@ -122,20 +124,24 @@ export class GrpcClient {
             throw new Error('Unable to determine gRPC server listen address')
         }
 
+        const channelOptions = {
+            'grpc.keepalive_time_ms': 10000,
+            'grpc.max_send_message_length': GRPC_MESSAGE_LIMIT,
+            'grpc.max_receive_message_length': GRPC_MESSAGE_LIMIT,
+        }
+
         // Create a channel
         this.channel = new grpcChannel(
             listenAddress,
             grpcCredentials.createInsecure(),
-            {
-                'grpc.keepalive_time_ms': 10000
-            }
+            channelOptions
         )
 
         // Create a client using the channel
         this.client = new SDKClient(
             listenAddress,
             grpcCredentials.createInsecure(),
-            {}
+            channelOptions
         )
 
         this.logger.info(`Connected to gRPC server at ${listenAddress}`)
@@ -294,8 +300,17 @@ export class GrpcClient {
             }
             const { platformIndex, testFrameworkName, testFrameworkVersion, testFrameworkState, testHookState, testUuid, automationSessions, capabilities, executionContext } = data
             const sessions = automationSessions.map((automationSession) => {
+                // LTS: pass through optional product field so testHubModule's
+                // ltsActive override (sets product='loadTesting' on the
+                // AutomationSession) actually reaches the binary via the
+                // gRPC TestSessionEvent payload. Without this passthrough
+                // the binary's makeIntegrations falls back to 'automate'
+                // and test_run.origin lands as Automate instead of
+                // LoadTesting. Mirror of py-sdk a245a814 +
+                // browserstack-binary's existing s?.product read.
                 return AutomationSessionConstructor.create({
                     provider: automationSession.provider,
+                    product: automationSession.product,
                     frameworkName: automationSession.frameworkName,
                     frameworkVersion: automationSession.frameworkVersion,
                     frameworkSessionId: automationSession.frameworkSessionId,

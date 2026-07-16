@@ -657,12 +657,14 @@ describe('onComplete', () => {
             .then(() => expect(service.browserstackLocal?.stop).toHaveBeenCalled())
     })
 
-    it('should stop accessibility test run on complete', () => {
+    it('should stop accessibility test run on complete', async () => {
         const stopBuildUpstreamSpy = vi.spyOn(utils, 'stopBuildUpstream')
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
 
         const service = new BrowserstackLauncher({} as any, [{}] as any, {} as any)
-        service.onComplete()
+        // onComplete is async (and now awaits orphaned-run finalization before
+        // stopping the build) — await it instead of relying on its sync prefix.
+        await service.onComplete()
         expect(stopBuildUpstreamSpy).toHaveBeenCalledTimes(1)
     })
 })
@@ -1000,6 +1002,56 @@ describe('_updateObjectTypeCaps', () => {
 
         service._updateObjectTypeCaps(caps, 'accessibilityOptions')
         expect(caps[0]).toEqual({ 'browserstack.wdioService': pkg.version })
+    })
+})
+
+describe('_removeCliOnlyCapabilityOptions', () => {
+    const options: BrowserstackConfig = {}
+    const config = {
+        user: 'foobaruser',
+        key: '12345678901234567890',
+        capabilities: []
+    }
+
+    it('should remove testManagementOptions from bstack:options in caps array', () => {
+        const caps: any = [{ 'bstack:options': { testManagementOptions: { testPlanId: 'tp-1' }, buildName: 'my-build' } }]
+        const service = new BrowserstackLauncher(options as any, caps, config)
+
+        service['_removeCliOnlyCapabilityOptions'](caps)
+        expect(caps[0]['bstack:options'].testManagementOptions).toBeUndefined()
+        expect(caps[0]['bstack:options'].buildName).toBe('my-build')
+    })
+
+    it('should remove testManagementOptions from bstack:options in multiremote caps', () => {
+        const caps: any = { chromeBrowser: { capabilities: { 'bstack:options': { testManagementOptions: { testPlanId: 'tp-1' } } } } }
+        const service = new BrowserstackLauncher(options as any, caps, config)
+
+        service['_removeCliOnlyCapabilityOptions'](caps)
+        expect(caps.chromeBrowser.capabilities['bstack:options'].testManagementOptions).toBeUndefined()
+    })
+
+    it('should remove legacy browserstack.testManagementOptions from caps array', () => {
+        const caps: any = [{ 'browserstack.testManagementOptions': { testPlanId: 'tp-1' } }]
+        const service = new BrowserstackLauncher(options as any, caps, config)
+
+        service['_removeCliOnlyCapabilityOptions'](caps)
+        expect(caps[0]['browserstack.testManagementOptions']).toBeUndefined()
+    })
+
+    it('should handle caps array without testManagementOptions gracefully', () => {
+        const caps: any = [{ 'bstack:options': { buildName: 'my-build' } }]
+        const service = new BrowserstackLauncher(options as any, caps, config)
+
+        expect(() => service['_removeCliOnlyCapabilityOptions'](caps)).not.toThrow()
+        expect(caps[0]['bstack:options'].buildName).toBe('my-build')
+    })
+
+    it('should handle alwaysMatch caps', () => {
+        const caps: any = [{ alwaysMatch: { 'bstack:options': { testManagementOptions: { testPlanId: 'tp-1' } } } }]
+        const service = new BrowserstackLauncher(options as any, caps, config)
+
+        service['_removeCliOnlyCapabilityOptions'](caps)
+        expect(caps[0].alwaysMatch['bstack:options'].testManagementOptions).toBeUndefined()
     })
 })
 

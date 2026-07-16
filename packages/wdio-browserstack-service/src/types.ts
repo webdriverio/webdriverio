@@ -1,5 +1,6 @@
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Options as BSOptions } from 'browserstack-local'
+import type { CustomMetadata } from './customTags.js'
 
 export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<unknown>
 
@@ -45,6 +46,10 @@ export interface TestReportingOptions {
     key?: string
 }
 
+export interface TestManagementOptions {
+    testPlanId?: string,
+}
+
 export interface RunSmartSelectionOptions {
     enabled?: boolean,
     mode?: string,
@@ -60,6 +65,13 @@ export interface BrowserstackOptions extends Options.Testrunner {
 }
 
 export interface BrowserstackConfig {
+    /**
+     * Absolute path to a CA certificate (PEM, single cert or bundle) to trust for outbound
+     * HTTPS when behind an SSL-inspecting corporate proxy (Zscaler/Netskope/Forcepoint).
+     * Overridable via the `BROWSERSTACK_EXTRA_CA_CERTS` env var. Merged with the system
+     * trust store (never replaces it).
+     */
+    proxyCaCertificate?: string;
     /**
      *`buildIdentifier` is a unique id to differentiate every execution that gets appended to
      * buildName. Choose your buildIdentifier format from the available expressions:
@@ -93,6 +105,11 @@ export interface BrowserstackConfig {
      * For e.g. buildName, projectName, BrowserStack access credentials, etc.
      */
     testReportingOptions?: TestReportingOptions;
+    /**
+     * Set the Test Management related config options under this key.
+     * Currently supports testPlanId.
+     */
+    testManagementOptions?: TestManagementOptions;
     /**
      * Set this to true to enable BrowserStack Percy which will take screenshots
      * and snapshots for your tests run on Browserstack
@@ -232,7 +249,16 @@ export interface TestMeta {
     scenario?: { name: string },
     examples?: string[],
     hookType?: string,
-    testRunId?: string
+    testRunId?: string,
+    // Explicitly records whether this entry is a hook or a test so a teardown sweep can emit the
+    // correct synthetic finish event without re-deriving the kind from the title. Tagged at
+    // beforeHook/beforeTest time. Only used for the mocha never-finished sweep.
+    kind?: 'hook' | 'test',
+    // Identity captured at start time so the sweep can build a terminal finish payload without the
+    // live framework test object (which is gone by teardown).
+    name?: string,
+    scopes?: string[],
+    fileName?: string
 }
 
 export interface CurrentRunInfo {
@@ -268,7 +294,8 @@ export interface TestData {
     meta?: TestMeta,
     tags?: string[],
     test_run_id?: string,
-    product_map?: {}
+    product_map?: {},
+    custom_metadata?: CustomMetadata
 }
 
 export interface UserConfig {
@@ -366,6 +393,7 @@ export interface IntegrationObject {
     platform?: string
     product?: string
     platform_version?: string
+    device?: string
 }
 
 interface TestCodeBody {
@@ -435,6 +463,9 @@ export interface EventProperties {
         }
     }
     isCLIEnabled?: boolean
+    finishedMetadata?: {
+        reason: string
+    }
 }
 
 export interface FunnelData {
