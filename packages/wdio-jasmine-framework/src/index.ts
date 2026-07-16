@@ -6,7 +6,7 @@ import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
 import { _setGlobal } from '@wdio/globals'
 import type { Services, Capabilities } from '@wdio/types'
-import type { expect as wdioExpectImport, matchers as wdioMatchersImport, getConfig as wdioGetConfig } from 'expect-webdriverio'
+import type { expect as wdioExpectImport, wdioCustomMatchers as wdioCustomMatchersImport, getConfig as wdioGetConfig } from 'expect-webdriverio'
 
 import JasmineReporter from './reporter.js'
 import { jestResultToJasmine } from './utils.js'
@@ -232,12 +232,12 @@ class JasmineAdapter {
      * to setup the jasmine environment.
      *
      * @param wdioExpect - WebdriverIO expect
-     * @param wdioMatchers - WebdriverIO matchers
+     * @param wdioMatchers - WebdriverIO custom matchers excluding the basic Jest's expect matchers
      * @param getConfig - WebdriverIO getConfig
      */
     async setupExpect(
         wdioExpect: typeof wdioExpectImport,
-        wdioMatchers: typeof wdioMatchersImport,
+        wdioMatchers: typeof wdioCustomMatchersImport,
         getConfig: typeof wdioGetConfig
     ) {
         const { jasmine } = this._jrunner
@@ -463,7 +463,7 @@ class JasmineAdapter {
 
     #setupMatchers (
         jasmine: jasmine.Jasmine,
-        matchers: typeof wdioMatchersImport,
+        wdioCustomMatchers: typeof wdioCustomMatchersImport,
         getConfig: typeof wdioGetConfig
     ): jasmine.CustomAsyncMatcherFactories {
         /**
@@ -475,7 +475,7 @@ class JasmineAdapter {
 
         // @ts-expect-error not exported in jasmine
         const syncMatchers: jasmine.CustomAsyncMatcherFactories = this.#transformMatchers(jasmine.matchers)
-        const wdioMatchers: jasmine.CustomAsyncMatcherFactories = [...matchers.entries()].reduce((prev, [name, fn]) => {
+        const wdioMatchers: jasmine.CustomAsyncMatcherFactories = [...Object.entries(wdioCustomMatchers)].reduce((prev, [name, fn]) => {
             prev[name] = () => ({
                 async compare (...args: unknown[]) {
                     const context = getConfig()

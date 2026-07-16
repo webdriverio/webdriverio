@@ -40,7 +40,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "expect-webdriverio": "^5.6.5",
+    "expect-webdriverio": "^5.7.0",
     "webdriverio": "^9.0.0"
   },
   "peerDependenciesMeta": {
