@@ -90,7 +90,7 @@
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.6.0",
     "@vitejs/plugin-vue": "^6.0.0",
-    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/coverage-v8": "^3.2.6",
     "@wdio/config": "workspace:*",
     "@wdio/eslint": "^0.1.2",
     "@wdio/repl": "workspace:*",
@@ -127,15 +127,37 @@
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "unzipper": "^0.12.3",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.6"
   },
   "engines": {
     "pnpm": ">=8.15.3"
   },
   "pnpm": {
     "overrides": {
-      "axios": "^1.13.5",
-      "yauzl": "^3.4.0"
+      "axios": "^1.16.0",
+      "yauzl": "^3.4.0",
+      "form-data": "4.0.6",
+      "protobufjs": "7.6.1",
+      "fast-xml-parser": "5.5.6",
+      "shell-quote": "1.8.4",
+      "compressing": "1.10.5",
+      "defu": "6.1.5",
+      "fast-uri": "3.1.2",
+      "websocket-driver": "0.7.5",
+      "@babel/plugin-transform-modules-systemjs": "7.29.4",
+      "glob@8.1.0>minimatch": "5.1.8",
+      "glob@10.5.0>minimatch": "9.0.7",
+      "express@4.22.1>path-to-regexp": "0.1.13",
+      "router@2.2.0>path-to-regexp": "8.4.0",
+      "workbox-build@7.3.0>rollup": "2.80.0",
+      "svgo@^3.0.0": "3.3.3",
+      "@cucumber/cucumber@10.9.0>tmp": "0.2.7",
+      "@percy/appium-app@2.1.0>tmp": "0.2.7",
+      "webdriver@9.16.2>undici": "6.27.0",
+      "lighthouse>ws": "7.5.11",
+      "webdriver@9.16.2>ws": "8.21.0",
+      "puppeteer-core>ws": "8.21.0",
+      "@browserstack/wdio-browserstack-service@2.0.2>@grpc/grpc-js": "1.13.5"
     }
   }
 }
