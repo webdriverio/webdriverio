@@ -147,6 +147,7 @@
       "@babel/plugin-transform-modules-systemjs": "7.29.4",
       "glob@8.1.0>minimatch": "5.1.8",
       "glob@10.5.0>minimatch": "9.0.7",
+      "mocha@10.8.2>minimatch": "5.1.8",
       "express@4.22.1>path-to-regexp": "0.1.13",
       "router@2.2.0>path-to-regexp": "8.4.0",
       "workbox-build@7.3.0>rollup": "2.80.0",
