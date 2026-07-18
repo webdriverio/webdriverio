@@ -765,8 +765,8 @@ importers:
         specifier: ^0.28.1
         version: 0.28.1
       geckodriver:
-        specifier: ^6.1.0
-        version: 6.1.0
+        specifier: ^6.1.1
+        version: 6.1.1
       mocha:
         specifier: ^10.7.3
         version: 10.8.2
@@ -1509,8 +1509,8 @@ importers:
         specifier: ^6.1.2
         version: 6.3.0
       geckodriver:
-        specifier: ^6.1.0
-        version: 6.1.0
+        specifier: ^6.1.1
+        version: 6.1.1
       get-port:
         specifier: ^7.0.0
         version: 7.1.0
@@ -7200,10 +7200,6 @@ packages:
   '@yarnpkg/lockfile@1.1.0':
     resolution: {integrity: sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ==}
 
-  '@zip.js/zip.js@2.7.62':
-    resolution: {integrity: sha512-OaLvZ8j4gCkLn048ypkZu29KX30r8/OfFF2w4Jo5WXFr+J04J+lzJ5TKZBVgFXhlvSkqNFQdfnY1Q8TMTCyBVA==}
-    engines: {bun: '>=0.7.0', deno: '>=1.0.0', node: '>=16.5.0'}
-
   '@zip.js/zip.js@2.8.11':
     resolution: {integrity: sha512-0fztsk/0ryJ+2PPr9EyXS5/Co7OK8q3zY/xOoozEWaUsL5x+C0cyZ4YyMuUffOO2Dx/rAdq4JMPqW0VUtm+vzA==}
     engines: {bun: '>=0.7.0', deno: '>=1.0.0', node: '>=18.0.0'}
@@ -8660,10 +8656,6 @@ packages:
     resolution: {integrity: sha512-9iE1PgSik9HeIIw2JO94IidnE3eBoQrFJ3w7sFuzSX4DpmZ3v5sZpUiV5Swcf6mQEF+Y0ru8Neo+p+nyh2J+hQ==}
     engines: {node: '>=10'}
 
-  decamelize@6.0.0:
-    resolution: {integrity: sha512-Fv96DCsdOgB6mdGl67MT5JaTNKRzrzill5OH5s8bjYJXVlcXyPYGyPsUkWyGV5p1TXI5esYIYMMeDJL0hEIwaA==}
-    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
-
   decamelize@6.0.1:
     resolution: {integrity: sha512-G7Cqgaelq68XHJNGlZ7lrNQyhZGsFqpwtGFexqUv4IQdjKoSYF7ipZ9UuTJZUSQXFj/XaoBLuEVIVqr8EJngEQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
@@ -9814,8 +9806,8 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
-  geckodriver@6.1.0:
-    resolution: {integrity: sha512-ZRXLa4ZaYTTgUO4Eefw+RsQCleugU2QLb1ME7qTYxxuRj51yAhfnXaItXNs5/vUzfIaDHuZ+YnSF005hfp07nQ==}
+  geckodriver@6.1.1:
+    resolution: {integrity: sha512-/AcCyc9o9o6hUbudaSJM2iOtXbxSLqQPOb4GrPvEN40cjraUeaX/j5kH3mSgwiroyMn7qzx2wM61AQ2XY8j3sA==}
     engines: {node: '>=20.0.0'}
     hasBin: true
 
@@ -11939,8 +11931,8 @@ packages:
     peerDependencies:
       esbuild: ^0.14.0 || ^0.15.0 || ^0.16.0 || ^0.17.0 || ^0.18.0
 
-  modern-tar@0.7.2:
-    resolution: {integrity: sha512-TGG1ZRk1TAQ3neuZwahAHke3rKsSlro+ooMYtjh9sl2gGPVMLMuWiHgwC7im9T5bSM566RSo2Dko56ETgEvZcA==}
+  modern-tar@0.7.6:
+    resolution: {integrity: sha512-sweCIVXzx1aIGTCdzcMlSZt1h8k5Tmk08VNAuRk3IU28XamGiOH5ypi11g6De2CH7PhYqSSnGy2A/EFhbWnVKg==}
     engines: {node: '>=18.0.0'}
 
   modify-values@1.0.1:
@@ -23156,7 +23148,7 @@ snapshots:
       loglevel: 1.9.2
       loglevel-plugin-prefix: 0.8.4
       safe-regex2: 5.0.0
-      strip-ansi: 7.1.2
+      strip-ansi: 7.2.0
 
   '@wdio/logger@9.29.1':
     dependencies:
@@ -23221,7 +23213,7 @@ snapshots:
       '@puppeteer/browsers': 2.11.0
       '@wdio/logger': 9.16.2
       '@wdio/types': 9.16.2
-      decamelize: 6.0.0
+      decamelize: 6.0.1
       deepmerge-ts: 7.1.5
       edgedriver: 6.1.2
       geckodriver: 5.0.0
@@ -23244,7 +23236,7 @@ snapshots:
       decamelize: 6.0.1
       deepmerge-ts: 7.1.5
       edgedriver: 6.3.0
-      geckodriver: 6.1.0
+      geckodriver: 6.1.1
       get-port: 7.2.0
       import-meta-resolve: 4.2.0
       locate-app: 2.5.0
@@ -23266,7 +23258,7 @@ snapshots:
       decamelize: 6.0.1
       deepmerge-ts: 7.1.5
       edgedriver: 6.3.0
-      geckodriver: 6.1.0
+      geckodriver: 6.1.1
       get-port: 7.2.0
       import-meta-resolve: 4.2.0
       locate-app: 2.5.0
@@ -23363,8 +23355,6 @@ snapshots:
   '@xtuc/long@4.2.2': {}
 
   '@yarnpkg/lockfile@1.1.0': {}
-
-  '@zip.js/zip.js@2.7.62': {}
 
   '@zip.js/zip.js@2.8.11': {}
 
@@ -24999,8 +24989,6 @@ snapshots:
 
   decamelize@4.0.0: {}
 
-  decamelize@6.0.0: {}
-
   decamelize@6.0.1: {}
 
   decimal.js@10.5.0: {}
@@ -25294,8 +25282,8 @@ snapshots:
 
   edgedriver@6.1.2:
     dependencies:
-      '@wdio/logger': 9.16.2
-      '@zip.js/zip.js': 2.7.62
+      '@wdio/logger': 9.29.1
+      '@zip.js/zip.js': 2.8.11
       decamelize: 6.0.1
       edge-paths: 3.0.5
       fast-xml-parser: 5.5.6
@@ -26513,9 +26501,9 @@ snapshots:
 
   geckodriver@5.0.0:
     dependencies:
-      '@wdio/logger': 9.18.0
+      '@wdio/logger': 9.29.1
       '@zip.js/zip.js': 2.8.11
-      decamelize: 6.0.0
+      decamelize: 6.0.1
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
       node-fetch: 3.3.2
@@ -26526,14 +26514,14 @@ snapshots:
       - bare-buffer
       - supports-color
 
-  geckodriver@6.1.0:
+  geckodriver@6.1.1:
     dependencies:
-      '@wdio/logger': 9.18.0
+      '@wdio/logger': 9.29.1
       '@zip.js/zip.js': 2.8.11
       decamelize: 6.0.1
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
-      modern-tar: 0.7.2
+      modern-tar: 0.7.6
     transitivePeerDependencies:
       - supports-color
 
@@ -29287,7 +29275,7 @@ snapshots:
     transitivePeerDependencies:
       - rollup
 
-  modern-tar@0.7.2: {}
+  modern-tar@0.7.6: {}
 
   modify-values@1.0.1: {}
 
