@@ -73,10 +73,9 @@ describe('findDeepElement - isConnected validation', () => {
                 { sharedId: 'node-detached-2' },
             ],
         })
-        // First node: detached, second: connected, third: never reached
+        // isConnected (batched): first detached, second connected, third detached
         browser.execute
-            .mockResolvedValueOnce(false)  // node-detached-1 → not connected
-            .mockResolvedValueOnce(true)   // node-connected → connected
+            .mockResolvedValueOnce([false, true, false])
 
         const result = await findDeepElement.call(browser, '[data-qa="my-btn"]')
 
@@ -84,8 +83,8 @@ describe('findDeepElement - isConnected validation', () => {
             [ELEMENT_KEY]: 'node-connected',
             locator: expect.objectContaining({ type: 'css', value: '[data-qa="my-btn"]' }),
         })
-        // Should have called execute twice (stopped at first connected)
-        expect(browser.execute).toHaveBeenCalledTimes(2)
+        // a single batched isConnected round trip covers all nodes
+        expect(browser.execute).toHaveBeenCalledTimes(1)
         // Should NOT fall back to Classic
         expect(browser.findElement).not.toHaveBeenCalled()
     })
@@ -101,8 +100,7 @@ describe('findDeepElement - isConnected validation', () => {
             ],
         })
         browser.execute
-            .mockResolvedValueOnce(false)  // node-stale-1 → not connected
-            .mockResolvedValueOnce(false)  // node-stale-2 → not connected
+            .mockResolvedValueOnce([false, false])  // batched isConnected: both detached
 
         const classicResult = { [ELEMENT_KEY]: 'classic-element' }
         browser.findElement.mockResolvedValue(classicResult)
@@ -125,8 +123,9 @@ describe('findDeepElement - isConnected validation', () => {
             ],
         })
         browser.execute
-            .mockRejectedValueOnce(new Error('no such element'))  // node-gc → stale/GC'd
-            .mockResolvedValueOnce(true)  // node-ok → connected
+            .mockRejectedValueOnce(new Error('no such element'))  // batched isConnected fails (stale node poisons it)
+            .mockRejectedValueOnce(new Error('no such element'))  // per-element fallback: node-gc → stale/GC'd
+            .mockResolvedValueOnce(true)                          // per-element fallback: node-ok → connected
 
         const result = await findDeepElement.call(browser, '.my-class')
 
@@ -173,13 +172,11 @@ describe('findDeepElement - isConnected validation', () => {
             ],
         })
 
-        // elementContains calls: both nodes are "in" the parent
+        // containment check (batched): both nodes are "in" the parent
         // isConnected calls: both nodes are detached
         browser.execute
-            .mockResolvedValueOnce(true)   // elementContains for scoped-node-1
-            .mockResolvedValueOnce(true)   // elementContains for scoped-node-2
-            .mockResolvedValueOnce(false)  // isConnected for scoped-node-1
-            .mockResolvedValueOnce(false)  // isConnected for scoped-node-2
+            .mockResolvedValueOnce([true, true])    // batched containment for both nodes
+            .mockResolvedValueOnce([false, false])  // batched isConnected: both detached
 
         const classicResult = { [ELEMENT_KEY]: 'fallback-element' }
         element.findElementFromElement.mockResolvedValue(classicResult)
@@ -209,10 +206,9 @@ describe('findDeepElement - isConnected validation', () => {
             ],
         })
 
-        // elementContains: option-1 is in select, option-2 is not (to test scoping)
+        // containment check (batched): option-1 is in select, option-2 is not (to test scoping)
         browser.execute
-            .mockResolvedValueOnce(true)   // elementContains for option-1
-            .mockResolvedValueOnce(false)  // elementContains for option-2
+            .mockResolvedValueOnce([true, false])
 
         const result = await findDeepElement.call(element, 'option')
 
@@ -221,9 +217,37 @@ describe('findDeepElement - isConnected validation', () => {
             [ELEMENT_KEY]: 'option-1',
             locator: expect.objectContaining({ type: 'css', value: 'option' }),
         })
-        // Only the elementContains calls, no isConnected calls
-        expect(browser.execute).toHaveBeenCalledTimes(2)
+        // Only the single batched containment call, no isConnected calls
+        expect(browser.execute).toHaveBeenCalledTimes(1)
         expect(element.findElementFromElement).not.toHaveBeenCalled()
+    })
+
+    it('should include both the scope element and its shadow roots as startNodes (scoped/element context)', async () => {
+        // regression test: a scope that contains a shadow host must still search
+        // its own plain light-DOM descendants alongside the shadow root(s)
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
+
+        const browser = createMockBrowser()
+        const element: any = {
+            isW3C: true,
+            isMobile: false,
+            elementId: 'wrapper-elem-id',
+            __browser: browser,
+            findElementFromElement: vi.fn(),
+        }
+
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [] })
+
+        await findDeepElement.call(element, '.child-selector')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(
+            expect.objectContaining({
+                startNodes: [
+                    { sharedId: 'wrapper-elem-id' },
+                    { sharedId: 'shadow-1' },
+                ],
+            })
+        )
     })
 
     it('should return first connected scoped node (scoped/element context)', async () => {
@@ -245,13 +269,11 @@ describe('findDeepElement - isConnected validation', () => {
             ],
         })
 
-        // elementContains: both are in parent
+        // containment check (batched): both are in parent
         // isConnected: first detached, second connected
         browser.execute
-            .mockResolvedValueOnce(true)   // elementContains for scoped-detached
-            .mockResolvedValueOnce(true)   // elementContains for scoped-connected
-            .mockResolvedValueOnce(false)  // isConnected for scoped-detached
-            .mockResolvedValueOnce(true)   // isConnected for scoped-connected
+            .mockResolvedValueOnce([true, true])   // batched containment for both nodes
+            .mockResolvedValueOnce([false, true])  // batched isConnected: first detached, second connected
 
         const result = await findDeepElement.call(element, '.child-selector')
 
@@ -261,6 +283,41 @@ describe('findDeepElement - isConnected validation', () => {
         })
         // Should NOT fall back to Classic since we found a connected node
         expect(element.findElementFromElement).not.toHaveBeenCalled()
+    })
+
+    it('should fall back to per-element containment checks when the batched check fails (scoped/element context)', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue([])
+
+        const browser = createMockBrowser()
+        const element: any = {
+            isW3C: true,
+            isMobile: false,
+            elementId: 'parent-elem-id',
+            __browser: browser,
+            findElementFromElement: vi.fn(),
+        }
+
+        browser.browsingContextLocateNodes.mockResolvedValue({
+            nodes: [
+                { sharedId: 'node-in-scope' },
+                { sharedId: 'node-stale' },
+            ],
+        })
+
+        // batched containment throws, per-element fallback: first in scope, second stale
+        browser.execute
+            .mockRejectedValueOnce(new Error('stale element reference'))
+            .mockResolvedValueOnce(true)                                  // per-element check node-in-scope
+            .mockRejectedValueOnce(new Error('stale element reference'))  // per-element check node-stale
+
+        const result = await findDeepElement.call(element, '.child-selector')
+
+        expect(result).toEqual({
+            [ELEMENT_KEY]: 'node-in-scope',
+            locator: expect.objectContaining({ type: 'css', value: '.child-selector' }),
+        })
+        // 1 failed batched call + 2 per-element fallback calls
+        expect(browser.execute).toHaveBeenCalledTimes(3)
     })
 })
 
@@ -282,9 +339,7 @@ describe('findDeepElements - isConnected validation', () => {
             ],
         })
         browser.execute
-            .mockResolvedValueOnce(true)   // node-a → connected
-            .mockResolvedValueOnce(false)  // node-b → detached
-            .mockResolvedValueOnce(true)   // node-c → connected
+            .mockResolvedValueOnce([true, false, true])  // batched isConnected: node-b detached
 
         const result = await findDeepElements.call(browser, '[data-qa="items"]')
 
@@ -292,6 +347,8 @@ describe('findDeepElements - isConnected validation', () => {
             { [ELEMENT_KEY]: 'node-a', locator: expect.objectContaining({ type: 'css', value: '[data-qa="items"]' }) },
             { [ELEMENT_KEY]: 'node-c', locator: expect.objectContaining({ type: 'css', value: '[data-qa="items"]' }) },
         ])
+        // all nodes checked in a single batched isConnected round trip
+        expect(browser.execute).toHaveBeenCalledTimes(1)
         expect(browser.findElements).not.toHaveBeenCalled()
     })
 
@@ -306,8 +363,7 @@ describe('findDeepElements - isConnected validation', () => {
             ],
         })
         browser.execute
-            .mockResolvedValueOnce(false)
-            .mockResolvedValueOnce(false)
+            .mockResolvedValueOnce([false, false])  // batched isConnected: both detached
 
         const classicResults = [
             { [ELEMENT_KEY]: 'classic-1' },
@@ -332,8 +388,9 @@ describe('findDeepElements - isConnected validation', () => {
             ],
         })
         browser.execute
-            .mockRejectedValueOnce(new Error('no such element'))
-            .mockResolvedValueOnce(true)
+            .mockRejectedValueOnce(new Error('no such element'))  // batched isConnected fails (stale node poisons it)
+            .mockRejectedValueOnce(new Error('no such element'))  // per-element fallback: gc-node stale
+            .mockResolvedValueOnce(true)                          // per-element fallback: ok-node connected
 
         const result = await findDeepElements.call(browser, '.item')
 
@@ -381,12 +438,10 @@ describe('findDeepElements - isConnected validation', () => {
             ],
         })
 
-        // elementContains: both in parent; isConnected: both detached
+        // containment check (batched): both in parent; isConnected (batched): both detached
         browser.execute
-            .mockResolvedValueOnce(true)   // elementContains child-1
-            .mockResolvedValueOnce(true)   // elementContains child-2
-            .mockResolvedValueOnce(false)  // isConnected child-1
-            .mockResolvedValueOnce(false)  // isConnected child-2
+            .mockResolvedValueOnce([true, true])    // batched containment for both nodes
+            .mockResolvedValueOnce([false, false])  // batched isConnected: both detached
 
         const classicResults = [{ [ELEMENT_KEY]: 'classic-child' }]
         element.findElementsFromElement.mockResolvedValue(classicResults)
@@ -418,11 +473,9 @@ describe('findDeepElements - isConnected validation', () => {
             ],
         })
 
-        // elementContains: all options are within the select
+        // containment check (batched): all options are within the select
         browser.execute
-            .mockResolvedValueOnce(true)   // elementContains for option-1
-            .mockResolvedValueOnce(true)   // elementContains for option-2
-            .mockResolvedValueOnce(true)   // elementContains for option-3
+            .mockResolvedValueOnce([true, true, true])
 
         const result = await findDeepElements.call(element, 'option')
 
@@ -433,9 +486,40 @@ describe('findDeepElements - isConnected validation', () => {
             { [ELEMENT_KEY]: 'option-2', locator: expect.objectContaining({ type: 'css', value: 'option' }) },
             { [ELEMENT_KEY]: 'option-3', locator: expect.objectContaining({ type: 'css', value: 'option' }) },
         ])
-        // Only the elementContains calls, no isConnected calls
-        expect(browser.execute).toHaveBeenCalledTimes(3)
+        // Only the single batched containment call, no isConnected calls
+        expect(browser.execute).toHaveBeenCalledTimes(1)
         expect(element.findElementsFromElement).not.toHaveBeenCalled()
+    })
+
+    it('should keep only the nodes the batched containment check marks as contained (index alignment)', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue([])
+
+        const browser = createMockBrowser()
+        const element: any = {
+            isW3C: true,
+            isMobile: false,
+            elementId: 'select-elem-id',
+            __browser: browser,
+            findElementsFromElement: vi.fn(),
+        }
+
+        browser.browsingContextLocateNodes.mockResolvedValue({
+            nodes: [
+                { sharedId: 'option-1' },
+                { sharedId: 'option-2' },
+                { sharedId: 'option-3' },
+            ],
+        })
+
+        // only the middle node is contained in the scope — a misaligned
+        // batch result would keep the wrong node(s)
+        browser.execute.mockResolvedValueOnce([false, true, false])
+
+        const result = await findDeepElements.call(element, 'option')
+
+        expect(result).toEqual([
+            { [ELEMENT_KEY]: 'option-2', locator: expect.objectContaining({ type: 'css', value: 'option' }) },
+        ])
     })
 
     it('should return connected scoped nodes only (scoped/element context)', async () => {
@@ -457,12 +541,10 @@ describe('findDeepElements - isConnected validation', () => {
             ],
         })
 
-        // elementContains: both in parent; isConnected: first connected, second detached
+        // containment check (batched): both in parent; isConnected (batched): first connected, second detached
         browser.execute
-            .mockResolvedValueOnce(true)   // elementContains child-ok
-            .mockResolvedValueOnce(true)   // elementContains child-stale
-            .mockResolvedValueOnce(true)   // isConnected child-ok
-            .mockResolvedValueOnce(false)  // isConnected child-stale
+            .mockResolvedValueOnce([true, true])   // batched containment for both nodes
+            .mockResolvedValueOnce([true, false])  // batched isConnected: child-ok connected, child-stale detached
 
         const result = await findDeepElements.call(element, '.child')
 
