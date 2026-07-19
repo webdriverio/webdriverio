@@ -5,6 +5,7 @@ import type { remote } from 'webdriver'
 
 import { SessionManager } from './session.js'
 import customElementWrapper from '../scripts/customElement.js'
+import { checkElementsContainedIn } from '../utils/elementChecks.js'
 
 const log = logger('webdriverio:ShadowRootManager')
 
@@ -228,7 +229,7 @@ export class ShadowRootManager extends SessionManager {
         throw new Error(`Invalid parameters for "${eventType}" event: ${args.join(', ')}`)
     }
 
-    getShadowElementsByContextId (contextId: string, scope?: string): string[] {
+    async getShadowElementsByContextId (contextId: string, scope?: string): Promise<string[]> {
         let tree = this.#shadowRoots.get(contextId)
         if (!tree) {
             return []
@@ -241,9 +242,20 @@ export class ShadowRootManager extends SessionManager {
          */
         if (scope) {
             const subTree = tree.find(scope)
-            if (subTree) {
-                tree = subTree
+            if (!subTree) {
+                /**
+                 * `scope` is a regular DOM element that isn't itself tracked as a shadow
+                 * host or root, e.g. `$(parent).$(child)` where `parent` is a plain
+                 * wrapper. It may still be a real DOM ancestor of one or more shadow
+                 * hosts further down the light DOM (the tree only tracks hosts/roots,
+                 * not every ancestor), so fall back to a DOM containment check instead
+                 * of assuming `scope` has no shadow descendants at all.
+                 */
+                const containedHosts = await this.#findContainedShadowHosts(contextId, scope)
+                const elements = containedHosts.flatMap((host) => host.getAllLookupScopes())
+                return [...new Set(elements).values()]
             }
+            tree = subTree
         } else {
             /**
              * ensure to include to document root if no scope is provided
@@ -262,7 +274,7 @@ export class ShadowRootManager extends SessionManager {
         ]
     }
 
-    getShadowElementPairsByContextId (contextId: string, scope?: string): [string, string | undefined][] {
+    async getShadowElementPairsByContextId (contextId: string, scope?: string): Promise<[string, string | undefined][]> {
         let tree = this.#shadowRoots.get(contextId)
         if (!tree) {
             return []
@@ -270,12 +282,74 @@ export class ShadowRootManager extends SessionManager {
 
         if (scope) {
             const subTree = tree.find(scope)
-            if (subTree) {
-                tree = subTree
+            if (!subTree) {
+                // see comment in getShadowElementsByContextId for why we check DOM containment
+                const containedHosts = await this.#findContainedShadowHosts(contextId, scope)
+                return containedHosts.flatMap((host) => host.flat().map((t): [string, string | undefined] => [t.element, t.shadowRoot]))
             }
+            tree = subTree
         }
 
         return tree.flat().map((tree) => [tree.element, tree.shadowRoot])
+    }
+
+    /**
+     * Find all tracked shadow hosts that are real DOM descendants of `scope`, even though
+     * `scope` itself isn't tracked in the shadow tree (e.g. a plain wrapper element around
+     * a web component). Hosts nested inside another contained host are excluded since
+     * they're already covered by that host's own (recursive) lookup scopes.
+     */
+    async #findContainedShadowHosts (contextId: string, scope: string): Promise<ShadowRootTree[]> {
+        const tree = this.#shadowRoots.get(contextId)
+        if (!tree) {
+            return []
+        }
+
+        const hosts = tree.flat().filter((t) => t.shadowRoot)
+        if (hosts.length === 0) {
+            return []
+        }
+
+        const staleHosts: string[] = []
+        const containmentResults = await checkElementsContainedIn(
+            this.#browser, scope, hosts.map((host) => host.element), contextId,
+            (elementId) => staleHosts.push(elementId)
+        )
+        const containedHosts = hosts.filter((_, i) => containmentResults[i])
+
+        /**
+         * Prune hosts whose containment check threw (likely GC'd/detached during SPA
+         * navigation without a usable `removeShadowRoot` event) so a single stale entry
+         * doesn't keep failing the batched check — and degrading every subsequent scoped
+         * lookup to per-host round trips — forever. If *every* check failed, the scope
+         * itself is probably the stale reference, so don't punish the hosts for it.
+         */
+        if (staleHosts.length > 0 && staleHosts.length < hosts.length) {
+            for (const elementId of staleHosts) {
+                log.info(`Pruning stale shadow host ${elementId} from shadow tree of context ${contextId}`)
+                tree.remove(elementId)
+            }
+        }
+
+        /**
+         * Drop hosts that are already covered by another contained host's own subtree,
+         * to avoid returning the same nested shadow root twice. `hosts`/`containedHosts`
+         * are in pre-order (parents before children, per `ShadowRootTree.flat()`), so a
+         * single forward pass suffices — track already-covered descendants and skip any
+         * host that's already in that set, instead of comparing every pair.
+         */
+        const covered = new Set<ShadowRootTree>()
+        const topLevelContained: ShadowRootTree[] = []
+        for (const host of containedHosts) {
+            if (covered.has(host)) {
+                continue
+            }
+            topLevelContained.push(host)
+            for (const descendant of host.flat()) {
+                covered.add(descendant)
+            }
+        }
+        return topLevelContained
     }
 
     getShadowRootModeById (contextId: string, element: string): ShadowRootMode | undefined {
