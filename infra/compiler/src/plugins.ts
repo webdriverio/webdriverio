@@ -177,7 +177,7 @@ export function runBuildScript(absWorkingDir: string, pkg: PackageJson): Plugin 
             build.onEnd(async () => {
                 const child = cp.spawn('pnpm',
                     ['run', 'build'],
-                    { cwd: absWorkingDir, stdio: 'inherit' }
+                    { cwd: absWorkingDir, stdio: 'inherit', shell: process.platform === 'win32' }
                 )
                 child.on('exit', (code) => {
                     if (code !== 0) {
@@ -185,6 +185,9 @@ export function runBuildScript(absWorkingDir: string, pkg: PackageJson): Plugin 
                         return
                     }
                     console.log(`${l.name(pkg.name)} ✅ Successfully ran build script for ${pkg.name}: "${pkg.scripts?.build}"`)
+                })
+                child.on('error', (error) => {
+                    console.log(`${l.name(pkg.name)} ❌ Failed to spawn build script for ${pkg.name}: ${error.message}`)
                 })
             })
         }
