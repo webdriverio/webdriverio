@@ -323,9 +323,17 @@ export class ShadowRootManager extends SessionManager {
          * doesn't keep failing the batched check — and degrading every subsequent scoped
          * lookup to per-host round trips — forever. If *every* check failed, the scope
          * itself is probably the stale reference, so don't punish the hosts for it.
+         * `ShadowRootTree.remove()` deletes the whole subtree, so also skip pruning a
+         * stale host while any host nested under it just passed its containment check —
+         * removing the parent would silently drop the healthy child from the tree too.
          */
         if (staleHosts.length > 0 && staleHosts.length < hosts.length) {
+            const containedSet = new Set(containedHosts)
             for (const elementId of staleHosts) {
+                const staleHost = hosts.find((host) => host.element === elementId)
+                if (staleHost && staleHost.flat().some((descendant) => containedSet.has(descendant))) {
+                    continue
+                }
                 log.info(`Pruning stale shadow host ${elementId} from shadow tree of context ${contextId}`)
                 tree.remove(elementId)
             }

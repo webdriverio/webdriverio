@@ -452,6 +452,89 @@ describe('ShadowRootManager', () => {
         expect(executeMock.mock.calls[3][2]).toHaveLength(1)
     })
 
+    it('should fall back to per-element checks when the batched check returns a malformed result', async () => {
+        // batch resolves but returns 1 result for 2 hosts (buggy driver) — the
+        // helper must treat that as a batch failure and fall back per-element
+        const executeMock = vi.fn()
+            .mockResolvedValueOnce([true])   // malformed batch: wrong length
+            .mockResolvedValueOnce(true)     // per-host hostM → contained
+            .mockResolvedValueOnce(false)    // per-host hostN → not contained
+        const browser = { ...defaultBrowser, execute: executeMock } as any
+        const manager = getShadowRootManager(browser)
+
+        for (const [host, shadow] of [['hostM', 'shadowM'], ['hostN', 'shadowN']]) {
+            manager.handleLogEntry({
+                level: 'debug',
+                args: [
+                    { type: 'string', value: '[WDIO]' },
+                    { type: 'string', value: 'newShadowRoot' },
+                    { type: 'node', sharedId: host, value: {
+                        shadowRoot: { sharedId: shadow, value: { nodeType: 11, mode: 'open' } }
+                    } },
+                    { type: 'node', sharedId: 'docRoot' },
+                    { type: 'boolean', value: false },
+                    { type: 'node', sharedId: 'docRoot' }
+                ],
+                source: { context: 'malformedCtx' }
+            } as any)
+        }
+
+        const result = await manager.getShadowElementsByContextId('malformedCtx', 'wrapperDiv')
+        expect(result).toEqual(['shadowM'])
+        // 1 malformed batched call + 2 per-host fallback calls
+        expect(executeMock).toHaveBeenCalledTimes(3)
+    })
+
+    it('should not prune a stale host while a host nested under it passed its containment check', async () => {
+        // batch fails; per-host fallback: outer host throws (stale reference)
+        // but the inner host nested in its shadow root is alive and contained.
+        // Pruning the outer host would remove the healthy inner host with it.
+        const executeMock = vi.fn()
+            .mockRejectedValueOnce(new Error('stale host poisons batch'))  // 1st batch
+            .mockRejectedValueOnce(new Error('stale element reference'))   // per-host outerHost (pre-order first)
+            .mockResolvedValueOnce(true)                                   // per-host innerHost → contained
+            .mockImplementation((_script: unknown, _scope: unknown, elements: unknown[]) => (
+                Promise.resolve((elements as unknown[]).map(() => true))   // later batches succeed
+            ))
+        const browser = { ...defaultBrowser, execute: executeMock } as any
+        const manager = getShadowRootManager(browser)
+
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'outerHost', value: {
+                    shadowRoot: { sharedId: 'outerShadow', value: { nodeType: 11, mode: 'open' } }
+                } },
+                { type: 'node', sharedId: 'docRoot' }
+            ],
+            source: { context: 'nestedPruneCtx' }
+        } as any)
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'innerHost', value: {
+                    shadowRoot: { sharedId: 'innerShadow', value: { nodeType: 11, mode: 'open' } }
+                } },
+                { type: 'node', sharedId: 'outerShadow' },
+                { type: 'boolean', value: false },
+                { type: 'node', sharedId: 'docRoot' }
+            ],
+            source: { context: 'nestedPruneCtx' }
+        } as any)
+
+        const first = await manager.getShadowElementsByContextId('nestedPruneCtx', 'wrapperDiv')
+        expect(first).toEqual(['innerShadow'])
+
+        // outerHost must NOT have been pruned (its subtree holds the healthy
+        // innerHost) — both are still tracked on the next lookup
+        const second = await manager.getShadowElementsByContextId('nestedPruneCtx', 'wrapperDiv')
+        expect(second).toEqual(['outerShadow', 'innerShadow'])
+    })
+
     it('should not prune any host when every containment check fails (scope itself is likely stale)', async () => {
         const executeMock = vi.fn()
             .mockRejectedValueOnce(new Error('batch fails'))

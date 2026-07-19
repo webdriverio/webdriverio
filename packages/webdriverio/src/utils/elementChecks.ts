@@ -32,7 +32,16 @@ async function runBatchedElementCheck (
 
     const inContext = contextId ? ` in context ${contextId}` : ''
     try {
-        return await batchCheck()
+        const result = await batchCheck()
+        /**
+         * guard against a driver returning a malformed batch result: downstream
+         * callers filter by index, so a short array would silently treat the
+         * missing tail as `false` and drop valid elements
+         */
+        if (!Array.isArray(result) || result.length !== elementIds.length) {
+            throw new Error(`expected ${elementIds.length} result(s) but got ${Array.isArray(result) ? result.length : typeof result}`)
+        }
+        return result
     } catch (err) {
         log.warn(`Failed to batch-check element ${checkName}${inContext}: ${(err as Error).message}. Falling back to per-element checks.`)
     }
