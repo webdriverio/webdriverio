@@ -312,13 +312,13 @@ Default: `10485760` (10MB)
 ### region
 
 If running on Sauce Labs, you can choose to run tests between different data centers.
-To change your region, add a `region` option with one of the supported values to your config.
+Use short region handles `us` (default, maps to `us-west-1`) or `eu` (maps to `eu-central-1`), or the full region names directly.
 
 __Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
 
 Type: `String`<br />
-Default: `eu-central-1`<br />
-Options: `us-west-1` | `eu-central-1` | `apac-southeast-1`
+Default: `us`<br />
+Options: `us` | `eu` | `us-west-1` | `eu-central-1` | `us-east-4` | `staging`
 
 *(only for vm and or em/simulators)*
 
