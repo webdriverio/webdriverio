@@ -116,6 +116,7 @@ beforeEach(() => {
     browser = {
         execute: vi.fn(),
         executeScript: vi.fn(),
+        overwriteCommand: vi.fn(),
         on: vi.fn(),
         sessionId: sessionId,
         config: {},
@@ -617,6 +618,64 @@ describe('before', () => {
 
         expect(service['_failReasons']).toEqual([])
         expect(service['_sessionBaseUrl']).toEqual('https://api.browserstack.com/automate-turboscale/v1/sessions')
+    })
+
+    it('should overwrite execute command to route browserstack_executor via executeScript', async () => {
+        (browser as any).isBidi = true
+        const service = new BrowserstackService({} as any, [{}] as any, { user: 'foo', key: 'bar', capabilities: {} })
+        await service.before(service['_config'] as any, [], browser)
+
+        expect(browser.overwriteCommand).toHaveBeenCalledWith('execute', expect.any(Function))
+
+        const overwrite = vi.mocked(browser.overwriteCommand).mock.calls[0][1] as Function
+        const originalExecute = vi.fn()
+
+        await overwrite(originalExecute, 'browserstack_executor: {"action":"annotate"}')
+        expect(browser.executeScript).toHaveBeenCalledWith('browserstack_executor: {"action":"annotate"}', [])
+        expect(originalExecute).not.toHaveBeenCalled()
+
+        await overwrite(originalExecute, 'return document.title')
+        expect(originalExecute).toHaveBeenCalledWith('return document.title')
+
+        const extraArg = { key: 'value' }
+        await overwrite(originalExecute, 'return arguments[0]', extraArg)
+        expect(originalExecute).toHaveBeenCalledWith('return arguments[0]', extraArg)
+    })
+
+    it('should not overwrite execute command for non-BiDi sessions', async () => {
+        (browser as any).isBidi = false
+        const service = new BrowserstackService({} as any, [{}] as any, { user: 'foo', key: 'bar', capabilities: {} })
+        await service.before(service['_config'] as any, [], browser)
+
+        expect(browser.overwriteCommand).not.toHaveBeenCalled()
+    })
+
+    it('should overwrite execute on each instance for multiremote', async () => {
+        const browserA = { executeScript: vi.fn(), overwriteCommand: vi.fn(), sessionId: 'sessionA', isBidi: true }
+        const browserB = { executeScript: vi.fn(), overwriteCommand: vi.fn(), sessionId: 'sessionB', isBidi: true }
+        const multiRemoteBrowser = {
+            ...browser,
+            isMultiremote: true,
+            getInstance: vi.fn().mockImplementation((name: string) => name === 'browserA' ? browserA : browserB)
+        } as unknown as WebdriverIO.MultiRemoteBrowser
+
+        const service = new BrowserstackService({} as any, { browserA: {}, browserB: {} } as any, {
+            user: 'foo', key: 'bar'
+        })
+        await service.before(service['_config'] as any, [], multiRemoteBrowser as any)
+
+        expect(browserA.overwriteCommand).toHaveBeenCalledWith('execute', expect.any(Function))
+        expect(browserB.overwriteCommand).toHaveBeenCalledWith('execute', expect.any(Function))
+
+        const overwriteA = vi.mocked(browserA.overwriteCommand).mock.calls[0][1] as Function
+        await overwriteA(vi.fn(), 'browserstack_executor: {"action":"annotate"}')
+        expect(browserA.executeScript).toHaveBeenCalledWith('browserstack_executor: {"action":"annotate"}', [])
+        expect(browserB.executeScript).not.toHaveBeenCalled()
+
+        const originalExecuteA = vi.fn()
+        const extraArg = { key: 'value' }
+        await overwriteA(originalExecuteA, 'return arguments[0]', extraArg)
+        expect(originalExecuteA).toHaveBeenCalledWith('return arguments[0]', extraArg)
     })
 })
 

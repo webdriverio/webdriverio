@@ -244,6 +244,19 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._browser) {
             try {
+                if (this._browser.isMultiremote) {
+                    const multiRemoteBrowser = this._browser as unknown as WebdriverIO.MultiRemoteBrowser
+                    Object.keys(this._caps).forEach((browserName) => {
+                        this._routeBidiExecutorToHttp(multiRemoteBrowser.getInstance(browserName))
+                    })
+                } else {
+                    this._routeBidiExecutorToHttp(this._browser as WebdriverIO.Browser)
+                }
+            } catch (err) {
+                BStackLogger.warn(`Failed to patch execute for BiDi browserstack_executor routing; executor commands may not work in BiDi sessions: ${err}`)
+            }
+
+            try {
                 const sessionId = this._browser.sessionId
 
                 try {
@@ -832,6 +845,19 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 : `Update job with sessionId ${sessionId}`
             )
             return this._update(sessionId, requestBody)
+        })
+    }
+
+    _routeBidiExecutorToHttp (browser: WebdriverIO.Browser) {
+        if (!browser.isBidi) {
+            return
+        }
+
+        browser.overwriteCommand('execute', async (originalExecute, script, ...args) => {
+            if (typeof script === 'string' && script.startsWith('browserstack_executor:')) {
+                return browser.executeScript(script, args)
+            }
+            return originalExecute(script, ...args)
         })
     }
 
