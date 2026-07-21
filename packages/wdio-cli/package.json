@@ -39,7 +39,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@vitest/snapshot": "^2.1.1",
+    "@vitest/snapshot": "^4.1.10",
     "@wdio/config": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",
@@ -47,25 +47,25 @@
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "async-exit-hook": "^2.0.1",
-    "chalk": "^5.4.1",
-    "chokidar": "^4.0.0",
+    "chalk": "^5.6.2",
+    "chokidar": "^4.0.3",
     "create-wdio": "workspace:*",
-    "dotenv": "^17.2.0",
-    "import-meta-resolve": "^4.0.0",
+    "dotenv": "^17.4.2",
+    "import-meta-resolve": "^4.2.0",
     "lodash.flattendeep": "^4.4.0",
     "lodash.pickby": "^4.6.0",
     "lodash.union": "^4.6.0",
-    "read-pkg-up": "^10.0.0",
-    "tsx": "^4.7.2",
+    "read-pkg-up": "^11.0.0",
+    "tsx": "^4.23.1",
     "webdriverio": "workspace:*",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@types/async-exit-hook": "^2.0.0",
-    "@types/lodash.flattendeep": "^4.4.7",
-    "@types/lodash.pickby": "^4.6.7",
-    "@types/lodash.union": "^4.6.7",
-    "@types/yargs": "^17.0.24"
+    "@types/async-exit-hook": "^2.0.2",
+    "@types/lodash.flattendeep": "^4.4.9",
+    "@types/lodash.pickby": "^4.6.9",
+    "@types/lodash.union": "^4.6.9",
+    "@types/yargs": "^17.0.35"
   },
   "publishConfig": {
     "access": "public"
