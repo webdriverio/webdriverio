@@ -157,8 +157,7 @@
       "webdriver@9.16.2>undici": "6.27.0",
       "lighthouse>ws": "7.5.11",
       "webdriver@9.16.2>ws": "8.21.0",
-      "puppeteer-core>ws": "8.21.0",
-      "@browserstack/wdio-browserstack-service@2.0.2>@grpc/grpc-js": "1.13.5"
+      "puppeteer-core>ws": "8.21.0"
     }
   }
 }
