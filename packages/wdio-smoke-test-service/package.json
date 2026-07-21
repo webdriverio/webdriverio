@@ -29,6 +29,6 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/node": "^20.1.0"
+    "@types/node": "^26.1.1"
   }
 }
