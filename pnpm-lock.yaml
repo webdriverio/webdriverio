@@ -1031,14 +1031,14 @@ importers:
         specifier: workspace:*
         version: link:../wdio-types
       chalk:
-        specifier: ^5.0.1
+        specifier: ^5.6.2
         version: 5.6.2
     devDependencies:
       '@types/tmp':
-        specifier: ^0.2.3
+        specifier: ^0.2.6
         version: 0.2.6
       tmp:
-        specifier: ^0.2.1
+        specifier: ^0.2.7
         version: 0.2.7
 
   packages/wdio-firefox-profile-service:
