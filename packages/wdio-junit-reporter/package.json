@@ -38,10 +38,10 @@
     "@wdio/reporter": "workspace:*",
     "@wdio/types": "workspace:*",
     "json-stringify-safe": "^5.0.1",
-    "junit-report-builder": "^5.1.1"
+    "junit-report-builder": "^5.1.2"
   },
   "devDependencies": {
-    "@types/json-stringify-safe": "^5.0.0"
+    "@types/json-stringify-safe": "^5.0.3"
   },
   "publishConfig": {
     "access": "public"
