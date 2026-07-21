@@ -38,12 +38,12 @@
   "dependencies": {
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
-    "express": "^5.1.0",
-    "morgan": "^1.7.0"
+    "express": "^5.2.1",
+    "morgan": "^1.11.0"
   },
   "devDependencies": {
-    "@types/express": "^5.0.0",
-    "@types/morgan": "^1.9.1"
+    "@types/express": "^5.0.6",
+    "@types/morgan": "^1.9.10"
   },
   "publishConfig": {
     "access": "public"
