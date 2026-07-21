@@ -36,12 +36,12 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/mocha": "^10.0.6",
-    "@types/node": "^20.11.28",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^26.1.1",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "mocha": "^10.3.0"
+    "mocha": "^11.7.6"
   },
   "publishConfig": {
     "access": "public"
