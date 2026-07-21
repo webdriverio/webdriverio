@@ -484,8 +484,8 @@ export class CLIUtils {
         return new Promise((resolve) => {
             const process = exec(
                 cmdCommand,
-                { cwd: workingDir, timeout: 5000 },
-                (error: Error, stdout: string, stderr: string) => {
+                { cwd: workingDir, timeout: 5000, encoding: 'utf8' },
+                (error, stdout, stderr) => {
                     if (error) {
                         resolve(stderr.trim() || 'SHELL_EXECUTE_ERROR')
                     } else {
