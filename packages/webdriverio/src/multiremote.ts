@@ -173,42 +173,42 @@ export class MultiRemoteDriver {
     }
 
     on (this: WebdriverIO.MultiRemoteBrowser, eventName: keyof WebdriverIOEventMap, emitter: EventEmitter) {
-        this.instances.forEach((instanceName) => this.getInstance(instanceName).on(eventName, emitter))
+        this.instances.forEach((instanceName) => this.getInstance(instanceName)!.on(eventName, emitter))
         return undefined
     }
 
     once (this: WebdriverIO.MultiRemoteBrowser, eventName: keyof WebdriverIOEventMap, emitter: EventEmitter) {
-        this.instances.forEach((instanceName) => this.getInstance(instanceName).once(eventName, emitter))
+        this.instances.forEach((instanceName) => this.getInstance(instanceName)!.once(eventName, emitter))
         return undefined
     }
 
     emit (this: WebdriverIO.MultiRemoteBrowser, eventName: keyof WebdriverIOEventMap, emitter: EventEmitter) {
         return this.instances.map(
-            (instanceName) => this.getInstance(instanceName).emit(eventName, emitter)
+            (instanceName) => this.getInstance(instanceName)!.emit(eventName, emitter)
         ).some(Boolean)
     }
 
     eventNames (this: WebdriverIO.MultiRemoteBrowser) {
         return this.instances.map(
-            (instanceName) => this.getInstance(instanceName).eventNames()
+            (instanceName) => this.getInstance(instanceName)!.eventNames()
         )
     }
 
     getMaxListeners (this: WebdriverIO.MultiRemoteBrowser) {
         return this.instances.map(
-            (instanceName) => this.getInstance(instanceName).getMaxListeners()
+            (instanceName) => this.getInstance(instanceName)!.getMaxListeners()
         )
     }
 
     listenerCount (this: WebdriverIO.MultiRemoteBrowser, eventName: string) {
         return this.instances.map(
-            (instanceName) => this.getInstance(instanceName).listenerCount(eventName)
+            (instanceName) => this.getInstance(instanceName)!.listenerCount(eventName)
         )
     }
 
     listeners (this: WebdriverIO.MultiRemoteBrowser, eventName: string) {
         return this.instances.map(
-            (instanceName) => this.getInstance(instanceName).listeners(eventName)
+            (instanceName) => this.getInstance(instanceName)!.listeners(eventName)
         ).reduce((prev, cur) => {
             prev.concat(cur)
             return prev
@@ -216,12 +216,12 @@ export class MultiRemoteDriver {
     }
 
     removeListener (this: WebdriverIO.MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
-        this.instances.forEach((instanceName) => this.getInstance(instanceName).removeListener(eventName, emitter))
+        this.instances.forEach((instanceName) => this.getInstance(instanceName)!.removeListener(eventName, emitter))
         return undefined
     }
 
     removeAllListeners (this: WebdriverIO.MultiRemoteBrowser, eventName: string) {
-        this.instances.forEach((instanceName) => this.getInstance(instanceName).removeAllListeners(eventName))
+        this.instances.forEach((instanceName) => this.getInstance(instanceName)!.removeAllListeners(eventName))
         return undefined
     }
 }

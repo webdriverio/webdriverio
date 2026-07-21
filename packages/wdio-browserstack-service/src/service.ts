@@ -789,7 +789,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             BStackLogger.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${sessionStatus}`)
         } else {
             const browserName = (this._browser as unknown as WebdriverIO.MultiRemoteBrowser).instances.filter(
-                (browserName: string) => this._browser && (this._browser as unknown as WebdriverIO.MultiRemoteBrowser).getInstance(browserName).sessionId === newSessionId)[0]
+                (browserName: string) => this._browser && (this._browser as unknown as WebdriverIO.MultiRemoteBrowser).getInstance(browserName)!.sessionId === newSessionId)[0]
             BStackLogger.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${sessionStatus}`)
         }
 
@@ -851,7 +851,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 return isBrowserstackCapability(cap)
             })
             .map((browserName: string) => (
-                action(multiRemoteBrowser.getInstance(browserName).sessionId, browserName)
+                action(multiRemoteBrowser.getInstance(browserName)!.sessionId, browserName)
             ))
         )
     }
@@ -977,7 +977,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             const multiRemoteBrowser = this._browser as unknown as WebdriverIO.MultiRemoteBrowser
             return Promise.all(Object.keys(this._caps).map(async (browserName) => {
                 const browser = multiRemoteBrowser.getInstance(browserName)
-                return (await browser.executeScript(script, []))
+                return (await browser!.executeScript(script, []))
             }))
         }
 
