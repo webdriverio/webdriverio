@@ -1075,7 +1075,7 @@ importers:
         version: link:../wdio-logger
       '@wdio/runner':
         specifier: ^9.16.2
-        version: 9.16.2(expect-webdriverio@5.6.8(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.28.0(puppeteer-core@24.34.0)))(webdriverio@9.28.0(puppeteer-core@24.34.0))
+        version: 9.16.2(expect-webdriverio@5.6.8(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.29.1(puppeteer-core@24.34.0)))(webdriverio@9.29.1(puppeteer-core@24.34.0))
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
@@ -1491,8 +1491,8 @@ importers:
   packages/wdio-utils:
     dependencies:
       '@puppeteer/browsers':
-        specifier: ^2.2.0
-        version: 2.11.0
+        specifier: ^2.13.2
+        version: 2.13.2
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
@@ -1500,10 +1500,10 @@ importers:
         specifier: workspace:*
         version: link:../wdio-types
       decamelize:
-        specifier: ^6.0.0
+        specifier: ^6.0.1
         version: 6.0.1
       deepmerge-ts:
-        specifier: ^7.0.3
+        specifier: ^7.1.5
         version: 7.1.5
       edgedriver:
         specifier: ^6.1.2
@@ -1512,19 +1512,19 @@ importers:
         specifier: ^6.1.1
         version: 6.1.1
       get-port:
-        specifier: ^7.0.0
-        version: 7.1.0
+        specifier: ^7.2.0
+        version: 7.2.0
       import-meta-resolve:
-        specifier: ^4.0.0
+        specifier: ^4.2.0
         version: 4.2.0
       locate-app:
-        specifier: ^2.2.24
+        specifier: ^2.5.0
         version: 2.5.0
       mitt:
         specifier: ^3.0.1
         version: 3.0.1
       safaridriver:
-        specifier: ^1.0.0
+        specifier: ^1.0.1
         version: 1.0.1
       split2:
         specifier: ^4.2.0
@@ -7053,10 +7053,6 @@ packages:
     resolution: {integrity: sha512-a7zDSNzpGgkb6mWrg9GWPmvh/sZFzaf86/iBjCv+n2DTY0+8v8NLruRQmWuCaQAlLVhM3XAqmB+fWLqxDhdvOA==}
     engines: {node: '>=18.20.0'}
 
-  '@wdio/config@9.28.0':
-    resolution: {integrity: sha512-a2po2x0Gi0hNRCuqSYSAvgwC9RZsj1tH9mt4MeLk2hyJBQCyy9DjBBjwyd4AcnE11XhqVaIkMaIMBSRu2dJwLw==}
-    engines: {node: '>=18.20.0'}
-
   '@wdio/config@9.29.1':
     resolution: {integrity: sha512-8IXDiRG9wUUnpU6M/uzsVqIHJD/7o4y9RaOU2Jh/OdRJP/7rxwfGsa24Bv486rnMGdghztkwLCBJWG0jbeEtfw==}
     engines: {node: '>=18.20.0'}
@@ -7086,19 +7082,12 @@ packages:
     resolution: {integrity: sha512-6A1eVpNPToWupLIo8CXStth4HJGTfxKsAiKtwE0xQFKyDM8uPTm3YO3Nf15vCSHbmsncbYVEo7QrUwRUEB4YUg==}
     engines: {node: '>=18.20.0'}
 
-  '@wdio/logger@9.18.0':
-    resolution: {integrity: sha512-HdzDrRs+ywAqbXGKqe1i/bLtCv47plz4TvsHFH3j729OooT5VH38ctFn5aLXgECmiAKDkmH/A6kOq2Zh5DIxww==}
-    engines: {node: '>=18.20.0'}
-
   '@wdio/logger@9.29.1':
     resolution: {integrity: sha512-0ZAEIo6PNyMIJPlOGkIgyOJUjcd0pC8/QHlVAAe1c91/IcjZ1X+k0yidXHaboJdN7dq1XPUacmhRdtua0U5EZg==}
     engines: {node: '>=18.20.0'}
 
   '@wdio/protocols@9.16.2':
     resolution: {integrity: sha512-h3k97/lzmyw5MowqceAuY3HX/wGJojXHkiPXA3WlhGPCaa2h4+GovV2nJtRvknCKsE7UHA1xB5SWeI8MzloBew==}
-
-  '@wdio/protocols@9.28.0':
-    resolution: {integrity: sha512-bO9NeMCrtwfWI7q77GwfD68NlRNijnmwicW1OQ6p+7D3kZWEicfdhfvojPhjjf+e9XzqMDnUDGD5ni1lGMUBsg==}
 
   '@wdio/protocols@9.29.1':
     resolution: {integrity: sha512-NFlBQOA4zDb4D/ETpVMqDgbJyEqdhGRsJWybLOXG7PGlPwfcrfmTMHC1+Boq4KODgpwbhCmI9zIk2JQmGYIttQ==}
@@ -7122,20 +7111,12 @@ packages:
     resolution: {integrity: sha512-P86FvM/4XQGpJKwlC2RKF3I21TglPvPOozJGG9HoL0Jmt6jRF20ggO/nRTxU0XiWkRdqESUTmfA87bdCO4GRkQ==}
     engines: {node: '>=18.20.0'}
 
-  '@wdio/types@9.28.0':
-    resolution: {integrity: sha512-75JPq39gifkPNqOSn5C4/A5ZSyXwF+dGr5jfsCubFN9Lk9dKBXfjdbWueSQNpJg0jmE6dVrbT7+9mnDNnO0HdQ==}
-    engines: {node: '>=18.20.0'}
-
   '@wdio/types@9.29.1':
     resolution: {integrity: sha512-jp8jgMv6TS35G96YzHZxw3PVN0Dz6xQ6tnMAicndAJ8Jt9AIXb0ywIse4TjaFywakO3dLoEhlyA3ZtR26vmt+w==}
     engines: {node: '>=18.20.0'}
 
   '@wdio/utils@9.16.2':
     resolution: {integrity: sha512-bsRdEUXUTYvznXH/Z+p6HDzHSjMI6I6bnu8WXWTeDDDyqybWK5D8cbZvs8A/kMmGXoz1GZkSBHxy4Z5NTg8OQg==}
-    engines: {node: '>=18.20.0'}
-
-  '@wdio/utils@9.28.0':
-    resolution: {integrity: sha512-VDqUaXpR8oOZSs26dy06Y2LhmA8bldsXDHeZ36n8SfW+Bq0miG0RRxou7aqx7sifVbbsuxrbBPXvmK+40uAIbQ==}
     engines: {node: '>=18.20.0'}
 
   '@wdio/utils@9.29.1':
@@ -7200,8 +7181,8 @@ packages:
   '@yarnpkg/lockfile@1.1.0':
     resolution: {integrity: sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ==}
 
-  '@zip.js/zip.js@2.8.11':
-    resolution: {integrity: sha512-0fztsk/0ryJ+2PPr9EyXS5/Co7OK8q3zY/xOoozEWaUsL5x+C0cyZ4YyMuUffOO2Dx/rAdq4JMPqW0VUtm+vzA==}
+  '@zip.js/zip.js@2.8.33':
+    resolution: {integrity: sha512-Mc+s4DdDl9lmhFmkOmNDryC/b4rZm7y2/qBUQTCwPYGkQ8dkCeykILqEYBd+14ATuj93XWZJBrPe2x+cF9LcGA==}
     engines: {bun: '>=0.7.0', deno: '>=1.0.0', node: '>=18.0.0'}
 
   '@zkochan/js-yaml@0.0.7':
@@ -7400,6 +7381,9 @@ packages:
     resolution: {integrity: sha512-KMReFUr0B4t+D+OBkjR3KYqvocp2XaSzO55UcB6mgQMd3KbcE+mWTyvVV7D/zsdEbNnV6acZUutkiHQXvTr1Rw==}
     engines: {node: '>= 8'}
 
+  anynum@1.0.1:
+    resolution: {integrity: sha512-N6//FLET/tXYNM/F6ABca1oH6fWB+KlTt909Le28WMDBk8oaT4vY17DCrwg2MvmuqUKt3Ni4N5dGJ/EoBgcO6A==}
+
   aproba@2.0.0:
     resolution: {integrity: sha512-lYe4Gx7QT+MKGbDsA+Z+he/Wtef0BiwDOlK/XkBrdfsh9J/jPPXbX0tE9x9cl27Tmu5gg3QUbUrQYa/y+KOHPQ==}
 
@@ -7594,15 +7578,6 @@ packages:
       bare-abort-controller:
         optional: true
 
-  bare-fs@4.5.2:
-    resolution: {integrity: sha512-veTnRzkb6aPHOvSKIOy60KzURfBdUflr5VReI+NSaPL6xf+XLdONQgZgpYvUuZLVQ8dCqxpBAudaOM1+KpAUxw==}
-    engines: {bare: '>=1.16.0'}
-    peerDependencies:
-      bare-buffer: '*'
-    peerDependenciesMeta:
-      bare-buffer:
-        optional: true
-
   bare-fs@4.7.4:
     resolution: {integrity: sha512-y1kC+ffIx/tPLdTE693uNjHfzTfr+ravR5tvWlMXe25nELbkqV400S71qHDwbkAQ1FVEZobB1NFRzFbCCcyBCQ==}
     engines: {bare: '>=1.16.0'}
@@ -7611,13 +7586,6 @@ packages:
     peerDependenciesMeta:
       bare-buffer:
         optional: true
-
-  bare-os@3.6.2:
-    resolution: {integrity: sha512-T+V1+1srU2qYNBmJCXZkUY5vQ0B4FSlL3QDROnKQYOqeiQR8UbjNHlPa+TIbM4cuidiN9GaTaOZgSEgsvPbh5A==}
-    engines: {bare: '>=1.14.0'}
-
-  bare-path@3.0.0:
-    resolution: {integrity: sha512-tyfW2cQcB5NN8Saijrhqn0Zh7AnFNsnczRcuWODH0eYAXBsJ5gVxAUuNr7tsHSC6IZ77cA0SitzT+s47kot8Mw==}
 
   bare-path@3.1.1:
     resolution: {integrity: sha512-JprUlveX3QjApC1cTpsUOiscADftCGVWkzitbHsRqv84hzYwYHw2mbluddsq5TvI8mH/8Ov1f4BiMAdcB0oYnQ==}
@@ -7635,20 +7603,6 @@ packages:
         optional: true
       bare-events:
         optional: true
-
-  bare-stream@2.7.0:
-    resolution: {integrity: sha512-oyXQNicV1y8nc2aKffH+BUHFRXmx6VrPzlnaEvMhram0nPBrKcEdcyBg5r08D0i8VxngHFAiVyn1QKXpSG0B8A==}
-    peerDependencies:
-      bare-buffer: '*'
-      bare-events: '*'
-    peerDependenciesMeta:
-      bare-buffer:
-        optional: true
-      bare-events:
-        optional: true
-
-  bare-url@2.3.2:
-    resolution: {integrity: sha512-ZMq4gd9ngV5aTMa5p9+UfY0b3skwhHELaDkhEHetMdX0LRkW9kzaym4oo/Eh+Ghm0CCDuMTsRIGM/ytUc1ZYmw==}
 
   bare-url@2.4.5:
     resolution: {integrity: sha512-K+y9xF1tN+CdPu4qWwr0QiK1Al07eFPGYK5M2pDXcmHdMdgC/tT/bpmMe1hrmRHaidKLkXrC+cRNYf3XVDUhSQ==}
@@ -8933,11 +8887,6 @@ packages:
   edge-paths@3.0.5:
     resolution: {integrity: sha512-sB7vSrDnFa4ezWQk9nZ/n0FdpdUuC6R1EOrlU3DL+bovcNFK28rqu2emmAUjujYEJTWIgQGqgVVWUZXMnc8iWg==}
     engines: {node: '>=14.0.0'}
-
-  edgedriver@6.1.2:
-    resolution: {integrity: sha512-UvFqd/IR81iPyWMcxXbUNi+xKWR7JjfoHjfuwjqsj9UHQKn80RpQmS0jf+U25IPi+gKVPcpOSKm0XkqgGMq4zQ==}
-    engines: {node: '>=18.0.0'}
-    hasBin: true
 
   edgedriver@6.3.0:
     resolution: {integrity: sha512-ggEQL+oEyIcM4nP2QC3AtCQ04o4kDNefRM3hja0odvlPSnsaxiruMxEZ93v3gDCKWYW6BXUr51PPradb+3nffw==}
@@ -10397,9 +10346,6 @@ packages:
     resolution: {integrity: sha512-ASB07uLtnDs1o6EHjKpX34BKYDSqnFerfTOJL2HvMqF70LnxpjkzDB8J44oT9pu4AMPkQwf8jl6szgvNd2tRIg==}
     engines: {node: '>=8'}
     hasBin: true
-
-  import-meta-resolve@4.1.0:
-    resolution: {integrity: sha512-I6fiaX09Xivtk+THaMfAwnA3MVA5Big1WHF1Dfx9hFuvNIWpXnorlkzhcQf6ehrqQiiZECRt1poOAkPmer3ruw==}
 
   import-meta-resolve@4.2.0:
     resolution: {integrity: sha512-Iqv2fzaTQN28s/FwZAoFq0ZSs/7hMAHJVX+w8PZl3cY19Pxk6jFFalxQoIfW2826i/fDLXv8IiEZRIT0lDuWcg==}
@@ -11928,8 +11874,8 @@ packages:
     peerDependencies:
       esbuild: ^0.14.0 || ^0.15.0 || ^0.16.0 || ^0.17.0 || ^0.18.0
 
-  modern-tar@0.7.6:
-    resolution: {integrity: sha512-sweCIVXzx1aIGTCdzcMlSZt1h8k5Tmk08VNAuRk3IU28XamGiOH5ypi11g6De2CH7PhYqSSnGy2A/EFhbWnVKg==}
+  modern-tar@0.7.7:
+    resolution: {integrity: sha512-t9VmxaqrmANnEOBhpSDI6HD192Ge48k8vmWqQQL7hSFEqHEYwZbbsu49+aKLWZeRvFs3j1pMhXOqqF4kPlvjkQ==}
     engines: {node: '>=18.0.0'}
 
   modify-values@1.0.1:
@@ -13283,9 +13229,6 @@ packages:
     resolution: {integrity: sha512-v4Bl6I3f2kJfr5o80ShABNHAokIgY+wFDTQfE+X3zWYgSGQOCBeYptLZUpoOALBqO5EawmDN/tjTldJesd0ujQ==}
     engines: {node: '>=10'}
 
-  pump@3.0.3:
-    resolution: {integrity: sha512-todwxLMY7/heScKmntwQG8CXVkWUOdYxIvY2s0VWAAMh/nd8SoYiRaKjlr7+iCs984f2P8zvrfWcDDYVb73NfA==}
-
   pump@3.0.4:
     resolution: {integrity: sha512-VS7sjc6KR7e1ukRFhQSY5LM2uBWAUPiOPa/A3mkKmiMwSmRFUITt0xuj+/lesgnCv+dPIEYlkzrcyXgquIHMcA==}
 
@@ -13386,8 +13329,8 @@ packages:
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
 
-  react-is@19.2.7:
-    resolution: {integrity: sha512-kZFnouyVv7eP/Phmrlo9FK+zcAdriZJvzxXHF1Sl1P377WSGe2G/JxVolhTrB/jeV47lKImhNUsijjHAAbcl/A==}
+  react-is@19.2.8:
+    resolution: {integrity: sha512-s5un28nYxKJw5gvUHyW5PCC28CvBqLu9r3cWgzHT4Vo/5fqqkFcdRYsGcKf50WMPpjjFZS5d76fn3YCo2njKwQ==}
 
   react-json-view-lite@2.4.1:
     resolution: {integrity: sha512-fwFYknRIBxjbFm0kBDrzgBy1xa5tDg2LyXXBepC5f1b+MY3BUClMCsvanMPn089JbV1Eg3nZcrp0VCuH43aXnA==}
@@ -13790,10 +13733,6 @@ packages:
   rxjs@7.8.2:
     resolution: {integrity: sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==}
 
-  safaridriver@1.0.0:
-    resolution: {integrity: sha512-J92IFbskyo7OYB3Dt4aTdyhag1GlInrfbPCmMteb7aBK7PwlnGz1HI0+oyNN97j7pV9DqUAVoVgkNRMrfY47mQ==}
-    engines: {node: '>=18.0.0'}
-
   safaridriver@1.0.1:
     resolution: {integrity: sha512-jkg4434cYgtrIF2AeY/X0Wmd2W73cK5qIEFE3hDrrQenJH/2SDJIXGvPAigfvQTcE9+H31zkiNHbUqcihEiMRA==}
     engines: {node: '>=18.0.0'}
@@ -13818,6 +13757,10 @@ packages:
 
   safe-regex2@5.0.0:
     resolution: {integrity: sha512-YwJwe5a51WlK7KbOJREPdjNrpViQBI3p4T50lfwPuDhZnE3XGVTlGvi+aolc5+RvxDD6bnUmjVsU9n1eboLUYw==}
+
+  safe-regex2@5.1.1:
+    resolution: {integrity: sha512-mOSBvHGDZMuIEZMdOz/aCEYDCv0E7nfcNsIhUF+/P+xC7Hyf3FkvymqgPbg9D1EdSGu+uKbJgy09K/RKKc7kJA==}
+    hasBin: true
 
   safe-stable-stringify@2.5.0:
     resolution: {integrity: sha512-b3rppTKm9T+PsVCBEOUR46GWI7fdOs00VKZ1+9c1EWDaDMvjQc6tUwuFyIprgGgTcWoVHSKrU8H31ZHA2e0RHA==}
@@ -13915,11 +13858,6 @@ packages:
 
   semver@7.7.4:
     resolution: {integrity: sha512-vFKC2IEtQnVhpT78h1Yp8wzwrf8CM+MzKMHGJZfBtzhZNycRFnXsHk6E5TxIkkMsgNS7mdX3AGB7x2QM2di4lA==}
-    engines: {node: '>=10'}
-    hasBin: true
-
-  semver@7.8.4:
-    resolution: {integrity: sha512-rUCObTnP32Q08R2uuIrt7r9PlEonuTmtuXYcW6s5kjdlj3xbnwe+21yXptAUYcMAABLkYYTtnmzb3w3EDZfueA==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -14259,9 +14197,6 @@ packages:
   streamx@2.22.1:
     resolution: {integrity: sha512-znKXEBxfatz2GBNK02kRnCXjV+AA4kjZIUxeWSr3UGirZMJfTE9uiwKHobnbgxWyL/JWro8tTq+vOqAK1/qbSA==}
 
-  streamx@2.23.0:
-    resolution: {integrity: sha512-kn+e44esVfn2Fa/O0CPFcex27fjIL6MkVae0Mm6q+E6f0hWv578YCERbv+4m02cjxvDsPKLnmxral/rR6lBMAg==}
-
   streamx@2.28.0:
     resolution: {integrity: sha512-1Yowhzjf0ivGMrTIkY9hav5TxobO9qIVqUE41fiCGMGgc3CLlf4MY+9AHmZqBWgDTue0fY9zWjYFVyf6Diuobw==}
 
@@ -14389,8 +14324,8 @@ packages:
     resolution: {integrity: sha512-k55yxKHwaXnpYGsOzg4Vl8+tDrWylxDEpknGjhTiZB8dFRU5rTo9CAzeycivxV3s+zlTKwrs6WxMxR95n26kwg==}
     engines: {node: '>=0.10.0'}
 
-  strnum@2.1.2:
-    resolution: {integrity: sha512-l63NF9y/cLROq/yqKXSLtcMeeyOfnSQlfMSlzFt/K73oIaD8DGaQWd7Z34X9GPiKqP5rbSh84Hl4bOlLcjiSrQ==}
+  strnum@2.4.1:
+    resolution: {integrity: sha512-M9eUSMT2dCB2cTNPG7UYj6KuK7RJR2SN2+yCV/fTW3xzTCS6EaGZ5pSMgDIjB7r8zSfTGk+dvvn9rTjpVS9Mwg==}
 
   style-to-js@1.1.17:
     resolution: {integrity: sha512-xQcBGDxJb6jjFCTzvQtfiPn6YvvP2O8U1MDIPNfJQlWMYfktPy+iGsHE7cssjs7y84d9fQaK4UF3RIJaAHSoYA==}
@@ -14460,9 +14395,6 @@ packages:
 
   tar-fs@2.1.4:
     resolution: {integrity: sha512-mDAjwmZdh7LTT6pNleZ05Yt65HC3E+NiQzl672vQG38jIrehtJk/J3mNwIg+vShQPcLF/LV7CMnDW6vjj6sfYQ==}
-
-  tar-fs@3.1.1:
-    resolution: {integrity: sha512-LZA0oaPOc2fVo82Txf3gw+AkEd38szODlptMYejQUhndHMLQ9M059uXR+AfS7DNo0NpINvSqDsvyaCrBVkptWg==}
 
   tar-fs@3.1.3:
     resolution: {integrity: sha512-/hU4AXnIdZu+Gvl1pk0oI5f5HxWsCJRtY2aFaJdk9VvyL48DWU6iU5WAIPG+wIi1YvWA6eTJvIviP/tMAZZNwQ==}
@@ -15287,25 +15219,12 @@ packages:
     resolution: {integrity: sha512-T7QKqD+N0hfvrxq/am5wqdOuyOy7F2tGS7X2f/7jyhrxSPG6Q0cNkSt4gCwla+q3nDMivCP0QIPc7mAVSx5AYQ==}
     engines: {node: '>=18.20.0'}
 
-  webdriver@9.28.0:
-    resolution: {integrity: sha512-MmtC/n5rhOh/EYyYI1SbRBdEWctKaQouVeEAybv5SD/2bhTjg800q7mvGqHzhTXpqTPY5cdbOtT0PBdT89wz9w==}
-    engines: {node: '>=18.20.0'}
-
   webdriver@9.29.1:
     resolution: {integrity: sha512-uhxYap3qQXC9H2V8SDr7vcy0blZETeri4goLwbw1TFq4EZHF1Dv503Zc0PAjfkNQJCD4/rzAyr07+EX72kx1pg==}
     engines: {node: '>=18.20.0'}
 
   webdriverio@9.16.2:
     resolution: {integrity: sha512-aRcfBZyY+OFqz2DI0ZYmMahGlH3h/clAXXOQSFN5QfrHG4Cjuo5xy3lq4tVfszjEJ813+wwC4HJLbgDmMrPXkA==}
-    engines: {node: '>=18.20.0'}
-    peerDependencies:
-      puppeteer-core: '>=22.x || <=24.x'
-    peerDependenciesMeta:
-      puppeteer-core:
-        optional: true
-
-  webdriverio@9.28.0:
-    resolution: {integrity: sha512-ieFWi8dq57uZC6QMC2x6TllxKTRyInIMcOrVvwbHqVRYvJP8OLDtlH1bideGRIN0pgGHWStqplez2A95jS9bqA==}
     engines: {node: '>=18.20.0'}
     peerDependencies:
       puppeteer-core: '>=22.x || <=24.x'
@@ -15445,11 +15364,6 @@ packages:
   which@5.0.0:
     resolution: {integrity: sha512-JEdGzHwwkrbWoGOlIHqQ5gtprKGOenpDHpxE9zVR1bWbOtYRyPPHMe9FaP6x61CmNaTThSkb0DAJte5jD+DmzQ==}
     engines: {node: ^18.17.0 || >=20.5.0}
-    hasBin: true
-
-  which@6.0.0:
-    resolution: {integrity: sha512-f+gEpIKMR9faW/JgAgPK1D7mekkFoqbmiwvNzuhsHetni20QSgzg9Vhn0g2JSJkkfehQnqdUAx7/e15qS1lPxg==}
-    engines: {node: ^20.17.0 || >=22.9.0}
     hasBin: true
 
   which@6.0.1:
@@ -18558,6 +18472,7 @@ snapshots:
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - react-native-b4a
       - webpack
 
   '@docusaurus/mdx-loader@3.9.2(@swc/core@1.15.8)(acorn@8.17.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
@@ -18928,6 +18843,7 @@ snapshots:
       - debug
       - esbuild
       - lightningcss
+      - react-native-b4a
       - supports-color
       - typescript
       - uglify-js
@@ -19700,7 +19616,7 @@ snapshots:
       lodash.camelcase: 4.3.0
       long: 5.3.2
       protobufjs: 7.6.1
-      yargs: 17.7.2
+      yargs: 17.7.3
 
   '@hapi/hoek@9.3.0': {}
 
@@ -20569,7 +20485,7 @@ snapshots:
       proggy: 3.0.0
       promise-all-reject-late: 1.0.1
       promise-call-limit: 3.0.2
-      semver: 7.8.4
+      semver: 7.8.5
       ssri: 12.0.0
       treeverse: 3.0.0
       walk-up-path: 4.0.0
@@ -20579,15 +20495,15 @@ snapshots:
   '@npmcli/fs@1.1.1':
     dependencies:
       '@gar/promisify': 1.1.3
-      semver: 7.8.4
+      semver: 7.8.5
 
   '@npmcli/fs@4.0.0':
     dependencies:
-      semver: 7.8.4
+      semver: 7.8.5
 
   '@npmcli/fs@5.0.0':
     dependencies:
-      semver: 7.7.2
+      semver: 7.8.5
 
   '@npmcli/git@6.0.3':
     dependencies:
@@ -20597,7 +20513,7 @@ snapshots:
       npm-pick-manifest: 10.0.0
       proc-log: 5.0.0
       promise-retry: 2.0.1
-      semver: 7.7.2
+      semver: 7.8.5
       which: 5.0.0
 
   '@npmcli/git@7.0.2':
@@ -20608,7 +20524,7 @@ snapshots:
       lru-cache: 11.5.1
       npm-pick-manifest: 11.0.3
       proc-log: 6.1.0
-      semver: 7.8.4
+      semver: 7.8.5
       which: 6.0.1
 
   '@npmcli/installed-package-contents@3.0.0':
@@ -20634,7 +20550,7 @@ snapshots:
       json-parse-even-better-errors: 5.0.0
       pacote: 21.5.1
       proc-log: 6.1.0
-      semver: 7.8.4
+      semver: 7.8.5
     transitivePeerDependencies:
       - supports-color
 
@@ -20658,7 +20574,7 @@ snapshots:
       hosted-git-info: 9.0.3
       json-parse-even-better-errors: 5.0.0
       proc-log: 6.1.0
-      semver: 7.8.4
+      semver: 7.8.5
       validate-npm-package-license: 3.0.4
 
   '@npmcli/promise-spawn@8.0.3':
@@ -20721,7 +20637,7 @@ snapshots:
       enquirer: 2.3.6
       minimatch: 10.2.5
       nx: 22.7.5(@swc/core@1.15.8)
-      semver: 7.8.4
+      semver: 7.8.5
       tslib: 2.8.1
       yargs-parser: 21.1.1
 
@@ -21129,12 +21045,13 @@ snapshots:
       extract-zip: 2.0.1
       progress: 2.0.3
       proxy-agent: 6.5.0
-      semver: 7.7.4
-      tar-fs: 3.1.1
-      yargs: 17.7.2
+      semver: 7.8.5
+      tar-fs: 3.1.3
+      yargs: 17.7.3
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - react-native-b4a
       - supports-color
 
   '@puppeteer/browsers@2.13.2':
@@ -21790,7 +21707,7 @@ snapshots:
   '@sveltejs/vite-plugin-svelte-inspector@3.0.1(@sveltejs/vite-plugin-svelte@4.0.2(svelte@4.2.20)(vite@5.4.21(@types/node@20.19.43)(terser@5.43.1)))(svelte@4.2.20)(vite@5.4.21(@types/node@20.19.43)(terser@5.43.1))':
     dependencies:
       '@sveltejs/vite-plugin-svelte': 4.0.2(svelte@4.2.20)(vite@5.4.21(@types/node@20.19.43)(terser@5.43.1))
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@7.2.0)
       svelte: 4.2.20
       vite: 5.4.21(@types/node@20.19.43)(terser@5.43.1)
     transitivePeerDependencies:
@@ -21799,7 +21716,7 @@ snapshots:
   '@sveltejs/vite-plugin-svelte-inspector@3.0.1(@sveltejs/vite-plugin-svelte@4.0.2(svelte@4.2.20)(vite@5.4.21(@types/node@25.9.3)(terser@5.43.1)))(svelte@4.2.20)(vite@5.4.21(@types/node@25.9.3)(terser@5.43.1))':
     dependencies:
       '@sveltejs/vite-plugin-svelte': 4.0.2(svelte@4.2.20)(vite@5.4.21(@types/node@25.9.3)(terser@5.43.1))
-      debug: 4.4.1(supports-color@8.1.1)
+      debug: 4.4.3(supports-color@7.2.0)
       svelte: 4.2.20
       vite: 5.4.21(@types/node@25.9.3)(terser@5.43.1)
     transitivePeerDependencies:
@@ -22692,7 +22609,7 @@ snapshots:
       '@typescript-eslint/visitor-keys': 8.52.0
       debug: 4.4.3(supports-color@7.2.0)
       minimatch: 9.0.9
-      semver: 7.8.4
+      semver: 7.8.5
       tinyglobby: 0.2.17
       ts-api-utils: 2.4.0(typescript@5.9.3)
       typescript: 5.9.3
@@ -22707,7 +22624,7 @@ snapshots:
       '@typescript-eslint/visitor-keys': 8.56.1
       debug: 4.4.3(supports-color@7.2.0)
       minimatch: 10.2.5
-      semver: 7.8.4
+      semver: 7.8.5
       tinyglobby: 0.2.17
       ts-api-utils: 2.4.0(typescript@5.9.3)
       typescript: 5.9.3
@@ -22723,7 +22640,7 @@ snapshots:
       '@typescript-eslint/visitor-keys': 8.56.1
       debug: 4.4.3(supports-color@7.2.0)
       minimatch: 10.2.5
-      semver: 7.8.4
+      semver: 7.8.5
       tinyglobby: 0.2.17
       ts-api-utils: 2.4.0(typescript@6.0.3)
       typescript: 6.0.3
@@ -23044,7 +22961,7 @@ snapshots:
       dotenv: 16.6.1
       ejs: 3.1.10
       execa: 9.6.0
-      import-meta-resolve: 4.1.0
+      import-meta-resolve: 4.2.0
       inquirer: 11.1.0
       lodash.flattendeep: 4.4.0
       lodash.pickby: 4.6.0
@@ -23060,6 +22977,7 @@ snapshots:
       - bufferutil
       - expect-webdriverio
       - puppeteer-core
+      - react-native-b4a
       - supports-color
       - utf-8-validate
 
@@ -23070,21 +22988,7 @@ snapshots:
       '@wdio/utils': 9.16.2
       deepmerge-ts: 7.1.5
       glob: 10.5.0
-      import-meta-resolve: 4.1.0
-    transitivePeerDependencies:
-      - bare-abort-controller
-      - bare-buffer
-      - supports-color
-
-  '@wdio/config@9.28.0':
-    dependencies:
-      '@wdio/logger': 9.18.0
-      '@wdio/types': 9.28.0
-      '@wdio/utils': 9.28.0
-      deepmerge-ts: 7.1.5
-      glob: 10.5.0
       import-meta-resolve: 4.2.0
-      jiti: 2.7.0
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
@@ -23128,10 +23032,10 @@ snapshots:
       - supports-color
       - typescript
 
-  '@wdio/globals@9.16.2(expect-webdriverio@5.6.8(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.28.0(puppeteer-core@24.34.0)))(webdriverio@9.28.0(puppeteer-core@24.34.0))':
+  '@wdio/globals@9.16.2(expect-webdriverio@5.6.8(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.29.1(puppeteer-core@24.34.0)))(webdriverio@9.29.1(puppeteer-core@24.34.0))':
     dependencies:
-      expect-webdriverio: 5.6.8(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.28.0(puppeteer-core@24.34.0))
-      webdriverio: 9.28.0(puppeteer-core@24.34.0)
+      expect-webdriverio: 5.6.8(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.29.1(puppeteer-core@24.34.0))
+      webdriverio: 9.29.1(puppeteer-core@24.34.0)
 
   '@wdio/globals@9.16.2(expect-webdriverio@5.6.8(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio))(webdriverio@9.16.2(puppeteer-core@24.34.0))':
     dependencies:
@@ -23160,25 +23064,15 @@ snapshots:
       loglevel-plugin-prefix: 0.8.4
       strip-ansi: 7.1.2
 
-  '@wdio/logger@9.18.0':
-    dependencies:
-      chalk: 5.6.2
-      loglevel: 1.9.2
-      loglevel-plugin-prefix: 0.8.4
-      safe-regex2: 5.0.0
-      strip-ansi: 7.2.0
-
   '@wdio/logger@9.29.1':
     dependencies:
       chalk: 5.6.2
       loglevel: 1.9.2
       loglevel-plugin-prefix: 0.8.4
-      safe-regex2: 5.0.0
+      safe-regex2: 5.1.1
       strip-ansi: 7.2.0
 
   '@wdio/protocols@9.16.2': {}
-
-  '@wdio/protocols@9.28.0': {}
 
   '@wdio/protocols@9.29.1': {}
 
@@ -23194,31 +23088,28 @@ snapshots:
       diff: 7.0.0
       object-inspect: 1.13.4
 
-  '@wdio/runner@9.16.2(expect-webdriverio@5.6.8(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.28.0(puppeteer-core@24.34.0)))(webdriverio@9.28.0(puppeteer-core@24.34.0))':
+  '@wdio/runner@9.16.2(expect-webdriverio@5.6.8(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.29.1(puppeteer-core@24.34.0)))(webdriverio@9.29.1(puppeteer-core@24.34.0))':
     dependencies:
       '@types/node': 20.19.37
       '@wdio/config': 9.16.2
       '@wdio/dot-reporter': 9.16.2
-      '@wdio/globals': 9.16.2(expect-webdriverio@5.6.8(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.28.0(puppeteer-core@24.34.0)))(webdriverio@9.28.0(puppeteer-core@24.34.0))
+      '@wdio/globals': 9.16.2(expect-webdriverio@5.6.8(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.29.1(puppeteer-core@24.34.0)))(webdriverio@9.29.1(puppeteer-core@24.34.0))
       '@wdio/logger': 9.16.2
       '@wdio/types': 9.16.2
       '@wdio/utils': 9.16.2
       deepmerge-ts: 7.1.5
-      expect-webdriverio: 5.6.8(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.28.0(puppeteer-core@24.34.0))
+      expect-webdriverio: 5.6.8(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.29.1(puppeteer-core@24.34.0))
       webdriver: 9.16.2
-      webdriverio: 9.28.0(puppeteer-core@24.34.0)
+      webdriverio: 9.29.1(puppeteer-core@24.34.0)
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
       - bufferutil
+      - react-native-b4a
       - supports-color
       - utf-8-validate
 
   '@wdio/types@9.16.2':
-    dependencies:
-      '@types/node': 20.19.43
-
-  '@wdio/types@9.28.0':
     dependencies:
       '@types/node': 20.19.43
 
@@ -23228,37 +23119,16 @@ snapshots:
 
   '@wdio/utils@9.16.2':
     dependencies:
-      '@puppeteer/browsers': 2.11.0
+      '@puppeteer/browsers': 2.13.2
       '@wdio/logger': 9.16.2
       '@wdio/types': 9.16.2
       decamelize: 6.0.1
       deepmerge-ts: 7.1.5
-      edgedriver: 6.1.2
-      geckodriver: 5.0.0
-      get-port: 7.1.0
-      import-meta-resolve: 4.1.0
-      locate-app: 2.5.0
-      safaridriver: 1.0.0
-      split2: 4.2.0
-      wait-port: 1.1.0
-    transitivePeerDependencies:
-      - bare-abort-controller
-      - bare-buffer
-      - supports-color
-
-  '@wdio/utils@9.28.0':
-    dependencies:
-      '@puppeteer/browsers': 2.13.2
-      '@wdio/logger': 9.18.0
-      '@wdio/types': 9.28.0
-      decamelize: 6.0.1
-      deepmerge-ts: 7.1.5
       edgedriver: 6.3.0
-      geckodriver: 6.1.1
+      geckodriver: 5.0.0
       get-port: 7.2.0
       import-meta-resolve: 4.2.0
       locate-app: 2.5.0
-      mitt: 3.0.1
       safaridriver: 1.0.1
       split2: 4.2.0
       wait-port: 1.1.0
@@ -23374,7 +23244,7 @@ snapshots:
 
   '@yarnpkg/lockfile@1.1.0': {}
 
-  '@zip.js/zip.js@2.8.11': {}
+  '@zip.js/zip.js@2.8.33': {}
 
   '@zkochan/js-yaml@0.0.7':
     dependencies:
@@ -23555,6 +23425,8 @@ snapshots:
       normalize-path: 3.0.0
       picomatch: 2.3.2
 
+  anynum@1.0.1: {}
+
   aproba@2.0.0: {}
 
   archiver-utils@5.0.2:
@@ -23578,6 +23450,7 @@ snapshots:
       zip-stream: 6.0.1
     transitivePeerDependencies:
       - bare-abort-controller
+      - react-native-b4a
 
   arg@5.0.2: {}
 
@@ -23782,20 +23655,10 @@ snapshots:
 
   balanced-match@4.0.3: {}
 
-  bare-events@2.8.2: {}
+  bare-events@2.8.2:
+    optional: true
 
   bare-events@2.9.1: {}
-
-  bare-fs@4.5.2:
-    dependencies:
-      bare-events: 2.8.2
-      bare-path: 3.0.0
-      bare-stream: 2.7.0(bare-events@2.8.2)
-      bare-url: 2.3.2
-      fast-fifo: 1.3.2
-    transitivePeerDependencies:
-      - bare-abort-controller
-    optional: true
 
   bare-fs@4.7.4:
     dependencies:
@@ -23808,14 +23671,6 @@ snapshots:
       - bare-abort-controller
       - react-native-b4a
 
-  bare-os@3.6.2:
-    optional: true
-
-  bare-path@3.0.0:
-    dependencies:
-      bare-os: 3.6.2
-    optional: true
-
   bare-path@3.1.1: {}
 
   bare-stream@2.13.3(bare-events@2.9.1):
@@ -23827,20 +23682,6 @@ snapshots:
       bare-events: 2.9.1
     transitivePeerDependencies:
       - react-native-b4a
-
-  bare-stream@2.7.0(bare-events@2.8.2):
-    dependencies:
-      streamx: 2.23.0
-    optionalDependencies:
-      bare-events: 2.8.2
-    transitivePeerDependencies:
-      - bare-abort-controller
-    optional: true
-
-  bare-url@2.3.2:
-    dependencies:
-      bare-path: 3.0.0
-    optional: true
 
   bare-url@2.4.5:
     dependencies:
@@ -24660,7 +24501,7 @@ snapshots:
       handlebars: 4.7.9
       json-stringify-safe: 5.0.1
       meow: 8.1.2
-      semver: 7.7.2
+      semver: 7.8.5
       split: 1.0.1
 
   conventional-commits-filter@3.0.0:
@@ -24809,7 +24650,7 @@ snapshots:
       postcss-modules-scope: 3.2.1(postcss@8.5.6)
       postcss-modules-values: 4.0.0(postcss@8.5.6)
       postcss-value-parser: 4.2.0
-      semver: 7.7.4
+      semver: 7.8.5
     optionalDependencies:
       webpack: 5.99.9(@swc/core@1.15.8)
 
@@ -25265,7 +25106,7 @@ snapshots:
   dts-bundle-generator@9.5.1:
     dependencies:
       typescript: 6.0.3
-      yargs: 17.7.2
+      yargs: 17.7.3
 
   dunder-proto@1.0.1:
     dependencies:
@@ -25294,30 +25135,16 @@ snapshots:
       '@types/which': 2.0.2
       which: 2.0.2
 
-  edgedriver@6.1.2:
-    dependencies:
-      '@wdio/logger': 9.29.1
-      '@zip.js/zip.js': 2.8.11
-      decamelize: 6.0.1
-      edge-paths: 3.0.5
-      fast-xml-parser: 5.5.6
-      http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.6
-      node-fetch: 3.3.2
-      which: 5.0.0
-    transitivePeerDependencies:
-      - supports-color
-
   edgedriver@6.3.0:
     dependencies:
-      '@wdio/logger': 9.18.0
-      '@zip.js/zip.js': 2.8.11
+      '@wdio/logger': 9.29.1
+      '@zip.js/zip.js': 2.8.33
       decamelize: 6.0.1
       edge-paths: 3.0.5
       fast-xml-parser: 5.5.6
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
-      which: 6.0.0
+      which: 6.0.1
     transitivePeerDependencies:
       - supports-color
 
@@ -25326,7 +25153,7 @@ snapshots:
       '@one-ini/wasm': 0.1.1
       commander: 10.0.1
       minimatch: 9.0.1
-      semver: 7.8.4
+      semver: 7.8.5
 
   ee-first@1.1.1: {}
 
@@ -25772,7 +25599,7 @@ snapshots:
       pluralize: 8.0.0
       regexp-tree: 0.1.27
       regjsparser: 0.13.0
-      semver: 7.8.4
+      semver: 7.8.5
       strip-indent: 4.1.1
 
   eslint-plugin-unused-imports@4.3.0(@typescript-eslint/eslint-plugin@8.56.1(@typescript-eslint/parser@8.52.0(eslint@9.30.0(jiti@2.7.0))(typescript@5.9.3))(eslint@9.30.0(jiti@2.7.0))(typescript@5.9.3))(eslint@9.30.0(jiti@2.7.0)):
@@ -25968,7 +25795,7 @@ snapshots:
 
   events-universal@1.0.1:
     dependencies:
-      bare-events: 2.8.2
+      bare-events: 2.9.1
     transitivePeerDependencies:
       - bare-abort-controller
 
@@ -26097,16 +25924,6 @@ snapshots:
       expect: 30.4.1
       jest-matcher-utils: 30.4.1
       webdriverio: link:packages/webdriverio
-
-  expect-webdriverio@5.6.8(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.28.0(puppeteer-core@24.34.0)):
-    dependencies:
-      '@vitest/snapshot': 4.1.8
-      '@wdio/globals': link:packages/wdio-globals
-      '@wdio/logger': link:packages/wdio-logger
-      deep-eql: 5.0.2
-      expect: 30.4.1
-      jest-matcher-utils: 30.4.1
-      webdriverio: 9.28.0(puppeteer-core@24.34.0)
 
   expect-webdriverio@5.6.8(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.29.1(puppeteer-core@24.34.0)):
     dependencies:
@@ -26284,7 +26101,7 @@ snapshots:
     dependencies:
       fast-xml-builder: 1.3.0
       path-expression-matcher: 1.6.2
-      strnum: 2.1.2
+      strnum: 2.4.1
 
   fastq@1.20.1:
     dependencies:
@@ -26526,26 +26343,27 @@ snapshots:
   geckodriver@5.0.0:
     dependencies:
       '@wdio/logger': 9.29.1
-      '@zip.js/zip.js': 2.8.11
+      '@zip.js/zip.js': 2.8.33
       decamelize: 6.0.1
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
       node-fetch: 3.3.2
-      tar-fs: 3.1.1
+      tar-fs: 3.1.3
       which: 5.0.0
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - react-native-b4a
       - supports-color
 
   geckodriver@6.1.1:
     dependencies:
       '@wdio/logger': 9.29.1
-      '@zip.js/zip.js': 2.8.11
+      '@zip.js/zip.js': 2.8.33
       decamelize: 6.0.1
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
-      modern-tar: 0.7.6
+      modern-tar: 0.7.7
     transitivePeerDependencies:
       - supports-color
 
@@ -26651,7 +26469,7 @@ snapshots:
   git-semver-tags@5.0.1:
     dependencies:
       meow: 8.1.2
-      semver: 7.7.2
+      semver: 7.8.5
 
   git-up@7.0.0:
     dependencies:
@@ -27299,8 +27117,6 @@ snapshots:
       pkg-dir: 4.2.0
       resolve-cwd: 3.0.0
 
-  import-meta-resolve@4.1.0: {}
-
   import-meta-resolve@4.2.0: {}
 
   imurmurhash@0.1.4: {}
@@ -27340,7 +27156,7 @@ snapshots:
       npm-package-arg: 13.0.1
       promzard: 2.0.0
       read: 4.1.0
-      semver: 7.8.4
+      semver: 7.8.5
       validate-npm-package-license: 3.0.4
       validate-npm-package-name: 6.0.2
 
@@ -27699,7 +27515,7 @@ snapshots:
       '@babel/parser': 7.27.7
       '@istanbuljs/schema': 0.1.3
       istanbul-lib-coverage: 3.2.2
-      semver: 7.8.4
+      semver: 7.8.5
     transitivePeerDependencies:
       - supports-color
 
@@ -28190,7 +28006,7 @@ snapshots:
       npm-package-arg: 13.0.1
       npm-registry-fetch: 19.1.0
       proc-log: 5.0.0
-      semver: 7.8.4
+      semver: 7.8.5
       sigstore: 4.1.1
       ssri: 12.0.0
     transitivePeerDependencies:
@@ -28446,7 +28262,7 @@ snapshots:
 
   make-dir@4.0.0:
     dependencies:
-      semver: 7.8.4
+      semver: 7.8.5
 
   make-fetch-happen@15.0.2:
     dependencies:
@@ -29299,7 +29115,7 @@ snapshots:
     transitivePeerDependencies:
       - rollup
 
-  modern-tar@0.7.6: {}
+  modern-tar@0.7.7: {}
 
   modify-values@1.0.1: {}
 
@@ -29375,7 +29191,7 @@ snapshots:
 
   node-abi@3.75.0:
     dependencies:
-      semver: 7.8.4
+      semver: 7.8.5
 
   node-addon-api@6.1.0: {}
 
@@ -29410,7 +29226,7 @@ snapshots:
       graceful-fs: 4.2.11
       nopt: 9.0.0
       proc-log: 6.1.0
-      semver: 7.7.2
+      semver: 7.8.5
       tar: 7.5.11
       tinyglobby: 0.2.17
       undici: 6.27.0
@@ -29464,13 +29280,13 @@ snapshots:
     dependencies:
       hosted-git-info: 4.1.0
       is-core-module: 2.16.2
-      semver: 7.7.2
+      semver: 7.8.5
       validate-npm-package-license: 3.0.4
 
   normalize-package-data@6.0.2:
     dependencies:
       hosted-git-info: 7.0.2
-      semver: 7.8.4
+      semver: 7.8.5
       validate-npm-package-license: 3.0.4
 
   normalize-package-data@7.0.0:
@@ -29499,11 +29315,11 @@ snapshots:
 
   npm-install-checks@7.1.2:
     dependencies:
-      semver: 7.8.4
+      semver: 7.8.5
 
   npm-install-checks@8.0.0:
     dependencies:
-      semver: 7.8.4
+      semver: 7.8.5
 
   npm-normalize-package-bin@4.0.0: {}
 
@@ -29513,14 +29329,14 @@ snapshots:
     dependencies:
       hosted-git-info: 8.1.0
       proc-log: 5.0.0
-      semver: 7.7.2
+      semver: 7.8.5
       validate-npm-package-name: 6.0.2
 
   npm-package-arg@13.0.1:
     dependencies:
       hosted-git-info: 9.0.3
       proc-log: 5.0.0
-      semver: 7.8.4
+      semver: 7.8.5
       validate-npm-package-name: 6.0.2
 
   npm-packlist@10.0.3:
@@ -29533,14 +29349,14 @@ snapshots:
       npm-install-checks: 7.1.2
       npm-normalize-package-bin: 4.0.0
       npm-package-arg: 12.0.2
-      semver: 7.7.2
+      semver: 7.8.5
 
   npm-pick-manifest@11.0.3:
     dependencies:
       npm-install-checks: 8.0.0
       npm-normalize-package-bin: 5.0.0
       npm-package-arg: 13.0.1
-      semver: 7.8.4
+      semver: 7.8.5
 
   npm-registry-fetch@19.1.0:
     dependencies:
@@ -29943,7 +29759,7 @@ snapshots:
       got: 12.6.1
       registry-auth-token: 5.1.0
       registry-url: 6.0.1
-      semver: 7.7.4
+      semver: 7.8.5
 
   pacote@21.0.1:
     dependencies:
@@ -30397,7 +30213,7 @@ snapshots:
       cosmiconfig: 8.3.6(typescript@5.9.3)
       jiti: 1.21.7
       postcss: 8.5.6
-      semver: 7.7.4
+      semver: 7.8.5
       webpack: 5.99.9(@swc/core@1.15.8)
     transitivePeerDependencies:
       - typescript
@@ -30766,7 +30582,7 @@ snapshots:
       '@jest/schemas': 30.4.1
       ansi-styles: 5.2.0
       react-is-18: react-is@18.3.1
-      react-is-19: react-is@19.2.7
+      react-is-19: react-is@19.2.8
 
   pretty-ms@9.2.0:
     dependencies:
@@ -30875,11 +30691,6 @@ snapshots:
 
   ps-list@7.2.0: {}
 
-  pump@3.0.3:
-    dependencies:
-      end-of-stream: 1.4.5
-      once: 1.4.0
-
   pump@3.0.4:
     dependencies:
       end-of-stream: 1.4.5
@@ -30908,6 +30719,7 @@ snapshots:
       - bare-abort-controller
       - bare-buffer
       - bufferutil
+      - react-native-b4a
       - supports-color
       - utf-8-validate
 
@@ -30996,7 +30808,7 @@ snapshots:
 
   react-is@18.3.1: {}
 
-  react-is@19.2.7: {}
+  react-is@19.2.8: {}
 
   react-json-view-lite@2.4.1(react@18.3.1):
     dependencies:
@@ -31525,8 +31337,6 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  safaridriver@1.0.0: {}
-
   safaridriver@1.0.1: {}
 
   safe-array-concat@1.1.3:
@@ -31553,6 +31363,10 @@ snapshots:
       is-regex: 1.2.1
 
   safe-regex2@5.0.0:
+    dependencies:
+      ret: 0.5.0
+
+  safe-regex2@5.1.1:
     dependencies:
       ret: 0.5.0
 
@@ -31627,7 +31441,7 @@ snapshots:
 
   semver-diff@4.0.0:
     dependencies:
-      semver: 7.7.4
+      semver: 7.8.5
 
   semver@5.7.2: {}
 
@@ -31642,8 +31456,6 @@ snapshots:
   semver@7.7.3: {}
 
   semver@7.7.4: {}
-
-  semver@7.8.4: {}
 
   semver@7.8.5: {}
 
@@ -31779,13 +31591,14 @@ snapshots:
       detect-libc: 2.0.4
       node-addon-api: 6.1.0
       prebuild-install: 7.1.3
-      semver: 7.8.4
+      semver: 7.8.5
       simple-get: 4.0.1
-      tar-fs: 3.1.1
+      tar-fs: 3.1.3
       tunnel-agent: 0.6.0
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - react-native-b4a
 
   shebang-command@2.0.0:
     dependencies:
@@ -32065,15 +31878,7 @@ snapshots:
       bare-events: 2.8.2
     transitivePeerDependencies:
       - bare-abort-controller
-
-  streamx@2.23.0:
-    dependencies:
-      events-universal: 1.0.1
-      fast-fifo: 1.3.2
-      text-decoder: 1.2.3
-    transitivePeerDependencies:
-      - bare-abort-controller
-    optional: true
+      - react-native-b4a
 
   streamx@2.28.0:
     dependencies:
@@ -32221,7 +32026,9 @@ snapshots:
     dependencies:
       escape-string-regexp: 1.0.5
 
-  strnum@2.1.2: {}
+  strnum@2.4.1:
+    dependencies:
+      anynum: 1.0.1
 
   style-to-js@1.1.17:
     dependencies:
@@ -32341,17 +32148,6 @@ snapshots:
       pump: 3.0.4
       tar-stream: 2.2.0
 
-  tar-fs@3.1.1:
-    dependencies:
-      pump: 3.0.3
-      tar-stream: 3.1.7
-    optionalDependencies:
-      bare-fs: 4.5.2
-      bare-path: 3.0.0
-    transitivePeerDependencies:
-      - bare-abort-controller
-      - bare-buffer
-
   tar-fs@3.1.3:
     dependencies:
       pump: 3.0.4
@@ -32389,6 +32185,7 @@ snapshots:
       streamx: 2.22.1
     transitivePeerDependencies:
       - bare-abort-controller
+      - react-native-b4a
 
   tar-stream@3.2.0:
     dependencies:
@@ -32487,7 +32284,9 @@ snapshots:
 
   text-decoder@1.2.3:
     dependencies:
-      b4a: 1.6.7
+      b4a: 1.8.1
+    transitivePeerDependencies:
+      - react-native-b4a
 
   text-decoder@1.2.7:
     dependencies:
@@ -33021,7 +32820,7 @@ snapshots:
       is-yarn-global: 0.4.1
       latest-version: 7.0.0
       pupa: 3.1.0
-      semver: 7.7.4
+      semver: 7.8.5
       semver-diff: 4.0.0
       xdg-basedir: 5.1.0
 
@@ -33300,26 +33099,6 @@ snapshots:
       - bare-abort-controller
       - bare-buffer
       - bufferutil
-      - supports-color
-      - utf-8-validate
-
-  webdriver@9.28.0:
-    dependencies:
-      '@types/node': 20.19.43
-      '@types/ws': 8.18.1
-      '@wdio/config': 9.28.0
-      '@wdio/logger': 9.18.0
-      '@wdio/protocols': 9.28.0
-      '@wdio/types': 9.28.0
-      '@wdio/utils': 9.28.0
-      deepmerge-ts: 7.1.5
-      https-proxy-agent: 7.0.6
-      undici: 6.27.0
-      ws: 8.21.0
-    transitivePeerDependencies:
-      - bare-abort-controller
-      - bare-buffer
-      - bufferutil
       - react-native-b4a
       - supports-color
       - utf-8-validate
@@ -33372,42 +33151,6 @@ snapshots:
       serialize-error: 11.0.3
       urlpattern-polyfill: 10.1.0
       webdriver: 9.16.2
-    optionalDependencies:
-      puppeteer-core: 24.34.0
-    transitivePeerDependencies:
-      - bare-abort-controller
-      - bare-buffer
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-
-  webdriverio@9.28.0(puppeteer-core@24.34.0):
-    dependencies:
-      '@types/node': 20.19.43
-      '@types/sinonjs__fake-timers': 8.1.5
-      '@wdio/config': 9.28.0
-      '@wdio/logger': 9.18.0
-      '@wdio/protocols': 9.28.0
-      '@wdio/repl': 9.16.2
-      '@wdio/types': 9.28.0
-      '@wdio/utils': 9.28.0
-      archiver: 7.0.1
-      aria-query: 5.3.2
-      cheerio: 1.2.0
-      css-shorthand-properties: 1.1.2
-      css-value: 0.0.1
-      grapheme-splitter: 1.0.4
-      htmlfy: 0.8.1
-      is-plain-obj: 4.1.0
-      jszip: 3.10.1
-      lodash.clonedeep: 4.5.0
-      lodash.zip: 4.2.0
-      query-selector-shadow-dom: 1.0.1
-      resq: 1.11.0
-      rgb2hex: 0.2.5
-      serialize-error: 12.0.0
-      urlpattern-polyfill: 10.1.0
-      webdriver: 9.28.0
     optionalDependencies:
       puppeteer-core: 24.34.0
     transitivePeerDependencies:
@@ -33671,10 +33414,6 @@ snapshots:
       isexe: 2.0.0
 
   which@5.0.0:
-    dependencies:
-      isexe: 3.1.1
-
-  which@6.0.0:
     dependencies:
       isexe: 3.1.1
 
