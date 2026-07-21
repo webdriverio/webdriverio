@@ -36,13 +36,13 @@
     "node": ">=18.20.0"
   },
   "dependencies": {
-    "@types/node": "^20.1.0",
+    "@types/node": "^26.1.1",
     "@wdio/reporter": "workspace:*",
     "@wdio/types": "workspace:*",
-    "allure-js-commons": "^3.3.2",
-    "csv-stringify": "^6.0.4",
+    "allure-js-commons": "^3.10.2",
+    "csv-stringify": "^6.8.1",
     "html-entities": "^2.6.0",
-    "strip-ansi": "^7.1.0"
+    "strip-ansi": "^7.2.0"
   },
   "publishConfig": {
     "access": "public"
