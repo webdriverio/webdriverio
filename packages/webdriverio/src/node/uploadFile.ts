@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import archiver from 'archiver'
+import { ZipArchive } from 'archiver'
 
 /**
  * Command implementation of the `saveRecordingScreen` command.
@@ -27,7 +27,7 @@ export async function uploadFile (
     const source = fs.createReadStream(localPath)
 
     return new Promise((resolve, reject) => {
-        archiver('zip')
+        new ZipArchive()
             .on('error', (err: Error) => reject(err))
             .on('data', (data: Uint8Array) => zipData.push(data))
             .on('end', () => (

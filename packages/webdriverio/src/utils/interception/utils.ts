@@ -1,4 +1,6 @@
 import type { local, remote } from 'webdriver'
+import type { URLPattern } from 'urlpattern-polyfill'
+
 import type { RequestWithOptions, RespondWithOptions } from './types.js'
 
 type Overwrite<T> = Omit<T extends RequestWithOptions ? remote.NetworkContinueRequestParameters : remote.NetworkContinueResponseParameters, 'request'>
