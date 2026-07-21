@@ -267,6 +267,7 @@ const config: Config = {
         ]
     ],
     plugins: [
+        'docusaurus-plugin-copy-page-button',
         [
             'client-redirects',
             {
