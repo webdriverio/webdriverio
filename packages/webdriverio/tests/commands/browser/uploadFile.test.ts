@@ -1,7 +1,7 @@
 import { expect, describe, it, afterEach, vi } from 'vitest'
 
 import path from 'node:path'
-import archiver from 'archiver'
+import { ZipArchive } from 'archiver'
 import { remote } from '../../../src/index.js'
 
 import '../../../src/node.js'
@@ -13,7 +13,10 @@ vi.mock('node:fs', () => ({
     }
 }))
 vi.mock('fetch')
-vi.mock('archiver')
+vi.mock('archiver', async () => {
+    const { default: archiver } = await import(path.join(process.cwd(), '__mocks__', 'archiver'))
+    return { ZipArchive: vi.fn(() => archiver('zip')) }
+})
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('uploadFile', () => {
@@ -51,9 +54,9 @@ describe('uploadFile', () => {
         })
         browser.file = vi.fn().mockReturnValue(Promise.resolve())
 
-        const archiverMock = archiver('zip')
         browser.uploadFile(path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'))
-        expect((archiverMock as any).args).toEqual(['zip'])
+        const archiverMock = vi.mocked(ZipArchive).mock.results.at(-1)?.value
+        expect(ZipArchive).toBeCalledWith()
         expect(archiverMock.append).toBeCalledWith(undefined, { name: 'toUpload.jpg' })
     })
 
@@ -67,9 +70,9 @@ describe('uploadFile', () => {
         browser.file = vi.fn().mockReturnValue(Promise.resolve())
 
         let commandError: Error | null = null
-        const archiverMock = archiver('zip')
         const command = browser.uploadFile(path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'))
             .catch((e: Error) => (commandError = e))
+        const archiverMock = vi.mocked(ZipArchive).mock.results.at(-1)?.value
         expect(vi.mocked(archiverMock.on).mock.calls[0][0]).toBe('error')
         vi.mocked(archiverMock.on).mock.calls[0][1](new Error('boom'))
 
@@ -86,8 +89,8 @@ describe('uploadFile', () => {
         })
         browser.file = vi.fn().mockReturnValue(Promise.resolve('/some/local/path'))
 
-        const archiverMock = archiver('zip')
         const command = browser.uploadFile(path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'))
+        const archiverMock = vi.mocked(ZipArchive).mock.results.at(-1)?.value
         expect(vi.mocked(archiverMock.on).mock.calls[1][0]).toBe('data')
         expect(vi.mocked(archiverMock.on).mock.calls[2][0]).toBe('end')
 
@@ -101,9 +104,12 @@ describe('uploadFile', () => {
     })
 
     afterEach(() => {
-        const archiverMock = archiver('zip')
-        vi.mocked(archiverMock.on).mockClear()
-        vi.mocked(archiverMock.append).mockClear()
-        vi.mocked(archiverMock.finalize).mockClear()
+        const archiverMock = vi.mocked(ZipArchive).mock.results.at(-1)?.value
+        if (archiverMock) {
+            vi.mocked(archiverMock.on).mockClear()
+            vi.mocked(archiverMock.append).mockClear()
+            vi.mocked(archiverMock.finalize).mockClear()
+        }
+        vi.mocked(ZipArchive).mockClear()
     })
 })

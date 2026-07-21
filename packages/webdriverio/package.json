@@ -66,30 +66,30 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "devDependencies": {
-    "@sinonjs/fake-timers": "^14.0.0",
-    "@types/archiver": "^6.0.2",
+    "@sinonjs/fake-timers": "^15.4.0",
+    "@types/archiver": "^8.0.0",
     "@types/aria-query": "^5.0.4",
     "@types/lodash.clonedeep": "^4.5.9",
     "@types/lodash.zip": "^4.2.9",
-    "puppeteer-core": "^24.12.1",
-    "safe-stable-stringify": "^2.4.3"
+    "puppeteer-core": "^24.34.0",
+    "safe-stable-stringify": "^2.5.0"
   },
   "dependencies": {
-    "@types/node": "^20.11.30",
-    "@types/sinonjs__fake-timers": "^8.1.5",
+    "@types/node": "^26.1.1",
+    "@types/sinonjs__fake-timers": "^15.0.1",
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/protocols": "workspace:*",
     "@wdio/repl": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "archiver": "^7.0.1",
-    "aria-query": "^5.3.0",
-    "cheerio": "^1.0.0-rc.12",
-    "css-shorthand-properties": "^1.1.1",
+    "archiver": "^8.0.0",
+    "aria-query": "^5.3.2",
+    "cheerio": "1.0.0",
+    "css-shorthand-properties": "^1.1.2",
     "css-value": "^0.0.1",
     "grapheme-splitter": "^1.0.4",
-    "htmlfy": "^0.8.1",
+    "htmlfy": "^1.0.2",
     "is-plain-obj": "^4.1.0",
     "jszip": "^3.10.1",
     "lodash.clonedeep": "^4.5.0",
@@ -98,11 +98,11 @@
     "resq": "^1.11.0",
     "rgb2hex": "0.2.5",
     "serialize-error": "^12.0.0",
-    "urlpattern-polyfill": "^10.0.0",
+    "urlpattern-polyfill": "^10.1.0",
     "webdriver": "workspace:*"
   },
   "peerDependencies": {
-    "puppeteer-core": ">=22.x || <=24.x"
+    "puppeteer-core": ">=22.x <25.x"
   },
   "peerDependenciesMeta": {
     "puppeteer-core": {

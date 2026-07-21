@@ -1,4 +1,4 @@
-import type { FakeTimerInstallOpts } from '@sinonjs/fake-timers'
+import type { Config as FakeTimerInstallOpts } from '@sinonjs/fake-timers'
 
 import { ClockManager } from '../../clock.js'
 import { deviceDescriptorsSource, type DeviceName } from '../../deviceDescriptorsSource.js'
@@ -95,8 +95,9 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error('Missing geolocation emulation options')
         }
 
-        const patchedFn = options instanceof Error
-            ? `cbError(new Error(${JSON.stringify(options.message)}))`
+        const geolocationError = options as unknown
+        const patchedFn = geolocationError instanceof Error
+            ? `cbError(new Error(${JSON.stringify(geolocationError.message)}))`
             : `cbSuccess({
                 coords: ${JSON.stringify(options)},
                 timestamp: Date.now()
