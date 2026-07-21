@@ -35,19 +35,19 @@
   },
   "dependencies": {
     "@types/jasmine": "^5.1.13",
-    "@types/node": "^20.1.0",
+    "@types/node": "^20.19.43",
     "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "jasmine": "^5.0.0"
+    "jasmine": "^5.13.0"
   },
   "devDependencies": {
     "expect-webdriverio": "^5.6.5"
   },
   "peerDependencies": {
-    "@wdio/runner": "^9.16.2",
-    "webdriverio": "^9.0.0"
+    "@wdio/runner": "^9.29.1",
+    "webdriverio": "^9.29.1"
   },
   "peerDependenciesMeta": {
     "@wdio/runner": {
