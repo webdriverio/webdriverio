@@ -20,7 +20,7 @@ import {
     supportCodeLibraryBuilder,
     Status,
 } from '@cucumber/cucumber'
-import Gherkin from '@cucumber/gherkin'
+import * as Gherkin from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
 import type { Feature, GherkinDocument } from '@cucumber/messages'
 import type Cucumber from '@cucumber/cucumber'

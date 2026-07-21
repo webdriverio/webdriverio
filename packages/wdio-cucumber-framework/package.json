@@ -39,19 +39,19 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@cucumber/cucumber": "^10.3.1",
-    "@cucumber/gherkin": "29.0.0",
-    "@cucumber/messages": "26.0.1",
-    "@types/node": "^20.1.0",
+    "@cucumber/cucumber": "^11.3.0",
+    "@cucumber/gherkin": "42.0.0",
+    "@cucumber/messages": "34.2.0",
+    "@types/node": "^26.1.1",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "glob": "^10.2.2",
-    "import-meta-resolve": "^4.1.0",
-    "is-glob": "^4.0.0"
+    "glob": "^13.0.6",
+    "import-meta-resolve": "^4.2.0",
+    "is-glob": "^4.0.3"
   },
   "devDependencies": {
-    "@types/is-glob": "^4.0.1"
+    "@types/is-glob": "^4.0.4"
   },
   "publishConfig": {
     "access": "public"
