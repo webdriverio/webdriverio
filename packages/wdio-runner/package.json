@@ -31,20 +31,20 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/node": "^20.11.28",
+    "@types/node": "^26.1.1",
     "@wdio/config": "workspace:*",
     "@wdio/dot-reporter": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "deepmerge-ts": "^7.0.3",
+    "deepmerge-ts": "^7.1.5",
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*"
   },
   "peerDependencies": {
     "expect-webdriverio": "^5.6.5",
-    "webdriverio": "^9.0.0"
+    "webdriverio": "^9.29.1"
   },
   "peerDependenciesMeta": {
     "expect-webdriverio": {
