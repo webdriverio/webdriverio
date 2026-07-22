@@ -302,15 +302,23 @@ Default interval for all `waitFor*` commands to check if an expected state (e.g.
 Type: `Number`<br />
 Default: `100`
 
+### maxSpyCollectedBodySize
+
+Maximum size of the response body (in bytes) that can be returned when using the [`mock`](/docs/api/browser/mock) command. Use `0` to disable data collection of the spied payload.
+
+Type: `Number`<br />
+Default: `10485760` (10MB)
+
 ### region
 
-If running on Sauce Labs, you can choose to run tests between different data centers: US or EU.
-To change your region to EU, add `region: 'eu'` to your config.
+If running on Sauce Labs, you can choose to run tests between different data centers.
+Use short region handles `us` (default, maps to `us-west-1`) or `eu` (maps to `eu-central-1`), or the full region names directly.
 
 __Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
 
 Type: `String`<br />
-Default: `us`
+Default: `us`<br />
+Options: `us` | `eu` | `us-west-1` | `eu-central-1` | `us-east-4` | `staging`
 
 *(only for vm and or em/simulators)*
 

@@ -118,7 +118,7 @@ export async function getHTML(
         const shadowRootManager = getShadowRootManager(browser)
         const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
-        const shadowRootElementPairs = shadowRootManager.getShadowElementPairsByContextId(context, (this as WebdriverIO.Element).elementId)
+        const shadowRootElementPairs = await shadowRootManager.getShadowElementPairsByContextId(context, (this as WebdriverIO.Element).elementId)
 
         /**
          * verify that shadow elements captured by the shadow root manager is still attached to the DOM

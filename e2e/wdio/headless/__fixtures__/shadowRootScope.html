@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shadow Root Scope Repro</title>
+    <!--
+        Mirrors the reporter's setup: a declarative CLOSED shadow root defined via
+        <template shadowrootmode="closed"> inside <head>. Its registration happens
+        during parsing, before anything else on the page, and must never leak into
+        subsequent scoped lookups.
+    -->
+    <cs-native-frame-holder>
+        <template shadowrootmode="closed">
+            <span class="declarative-closed-inside">declarative closed shadow text</span>
+        </template>
+    </cs-native-frame-holder>
+</head>
+<body>
+    <!--
+        Mirrors the reported bug: an unrelated element elsewhere in the page has a
+        shadow root (closed, like the reporter's cs-native-frame-holder). It must
+        never leak into lookups scoped to unrelated parts of the page.
+    -->
+    <div id="unrelated-holder"></div>
+
+    <!--
+        The regression case found during review: a plain wrapper div (never itself
+        a shadow host) containing a custom element that DOES have a shadow root.
+        $('#wrapper').$('.inside-shadow') must find the element inside the nested
+        shadow root, and $('#wrapper').$('.plain-sibling') must still find the
+        plain light-DOM sibling.
+    -->
+    <div id="wrapper">
+        <my-widget></my-widget>
+        <span class="plain-sibling">plain sibling text</span>
+    </div>
+
+    <div id="target"><span data-testid="ift">target element</span></div>
+
+    <script>
+        class MyWidget extends HTMLElement {
+            connectedCallback() {
+                const shadow = this.attachShadow({ mode: 'open' })
+                shadow.innerHTML = '<span class="inside-shadow">inside shadow text</span>'
+            }
+        }
+        customElements.define('my-widget', MyWidget)
+
+        class ClosedHolder extends HTMLElement {
+            connectedCallback() {
+                const shadow = this.attachShadow({ mode: 'closed' })
+                shadow.innerHTML = '<span class="closed-inside">closed shadow text</span>'
+            }
+        }
+        customElements.define('closed-holder', ClosedHolder)
+        document.getElementById('unrelated-holder').appendChild(document.createElement('closed-holder'))
+    </script>
+</body>
+</html>

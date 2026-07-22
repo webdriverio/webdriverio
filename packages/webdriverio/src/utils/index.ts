@@ -9,8 +9,8 @@ import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
-import elementContains from '../scripts/elementContains.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
+import { checkElementsContainedIn, checkElementsConnected } from './elementChecks.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
 import { DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
@@ -312,7 +312,7 @@ export async function findDeepElement(
     const contextManager = getContextManager(browser)
     const context = await contextManager.getCurrentContext()
 
-    const shadowRoots = shadowRootManager.getShadowElementsByContextId(
+    const shadowRoots = await shadowRootManager.getShadowElementsByContextId(
         context,
         (this as WebdriverIO.Element).elementId
     )
@@ -330,12 +330,21 @@ export async function findDeepElement(
     const locator = transformClassicToBidiSelector(using, value)
 
     /**
-     * look up selector within document and all shadow roots
+     * Look up selector within document/scope and all shadow roots found under it.
+     * When scoped to an element, always include the element itself alongside any
+     * shadow roots — otherwise a plain light-DOM descendant of a scope that also
+     * happens to contain (or be) a shadow host would never be searched, since
+     * shadow roots don't automatically get pierced from a plain startNode and vice
+     * versa. Extra candidates from the scope itself are safe: they're narrowed
+     * back down by the containment check below.
      */
-    const startNodes = shadowRoots.length > 0
-        ? shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
-        : (this as WebdriverIO.Element).elementId
-            ? [{ sharedId: (this as WebdriverIO.Element).elementId }]
+    const startNodes = (this as WebdriverIO.Element).elementId
+        ? [
+            { sharedId: (this as WebdriverIO.Element).elementId },
+            ...shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
+        ]
+        : shadowRoots.length > 0
+            ? shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
             : undefined
     const deepElementResult = await browser.browsingContextLocateNodes({ locator, context, startNodes }).then(async (result) => {
         let nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
@@ -346,21 +355,64 @@ export async function findDeepElement(
         nodes = returnUniqueNodes(nodes)
 
         if (!(this as WebdriverIO.Element).elementId) {
+            /**
+             * When searching via shadow root startNodes, validate that returned
+             * elements are connected to the live DOM. In SPAs using client-side
+             * routing, stale shadow root entries can cause browsingContextLocateNodes
+             * to return references to elements in detached DOM trees.
+             */
+            if (shadowRoots.length > 0 && nodes.length > 0) {
+                const connected = await checkElementsConnected(
+                    browser, nodes.map((node) => node[ELEMENT_KEY] as string), context)
+                nodes.forEach((node, i) => {
+                    if (!connected[i]) {
+                        shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+                    }
+                })
+                const firstConnected = nodes.find((_, i) => connected[i])
+                if (firstConnected) {
+                    return firstConnected
+                }
+                log.warn(`All ${nodes.length} BiDi results for "${value}" are detached, removed stale entries from shadow root tree`)
+                return undefined
+            }
             return nodes[0]
         }
 
         /**
-         * determine if node is within tree of current element
+         * determine if node is within tree of current element (batched into a single
+         * round trip, with per-element fallback for stale references)
          */
-        const scopedNodes = await Promise.all(nodes.map(async (node) => {
-            const isIn = await browser.execute(
-                elementContains,
-                { [ELEMENT_KEY]: (this as WebdriverIO.Element).elementId } as unknown as HTMLElement,
-                node as unknown as HTMLElement
-            )
-            return [isIn, node]
-        })).then((elems) => elems.filter(([isIn]) => isIn).map(([, elem]) => elem)) as ExtendedElementReference[]
+        const containment = await checkElementsContainedIn(
+            browser,
+            (this as WebdriverIO.Element).elementId,
+            nodes.map((node) => node[ELEMENT_KEY] as string)
+        )
+        const scopedNodes = nodes.filter((_, i) => containment[i])
 
+        /**
+         * Validate that the first scoped node is connected to the live DOM.
+         * Only needed when shadow roots are involved — regular DOM elements
+         * (e.g. <option> inside <select>) may not have resolvable BiDi sharedId
+         * references for script execution, causing false "stale" detection.
+         */
+        if (shadowRoots.length > 0) {
+            const connected = await checkElementsConnected(
+                browser, scopedNodes.map((node) => node[ELEMENT_KEY] as string), context)
+            scopedNodes.forEach((node, i) => {
+                if (!connected[i]) {
+                    shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+                }
+            })
+            const firstConnected = scopedNodes.find((_, i) => connected[i])
+            if (firstConnected) {
+                return firstConnected
+            }
+            if (scopedNodes.length > 0) {
+                log.warn(`All ${scopedNodes.length} scoped BiDi results for "${value}" are detached, removed stale entries from shadow root tree`)
+                return undefined
+            }
+        }
         return scopedNodes[0]
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
@@ -388,7 +440,7 @@ export async function findDeepElements(
     const contextManager = getContextManager(browser)
     const context = await contextManager.getCurrentContext()
 
-    const shadowRoots = shadowRootManager.getShadowElementsByContextId(
+    const shadowRoots = await shadowRootManager.getShadowElementsByContextId(
         context,
         (this as WebdriverIO.Element).elementId
     )
@@ -406,12 +458,21 @@ export async function findDeepElements(
     const locator = transformClassicToBidiSelector(using, value)
 
     /**
-     * look up selector within document and all shadow roots
+     * Look up selector within document/scope and all shadow roots found under it.
+     * When scoped to an element, always include the element itself alongside any
+     * shadow roots — otherwise a plain light-DOM descendant of a scope that also
+     * happens to contain (or be) a shadow host would never be searched, since
+     * shadow roots don't automatically get pierced from a plain startNode and vice
+     * versa. Extra candidates from the scope itself are safe: they're narrowed
+     * back down by the containment check below.
      */
-    const startNodes = shadowRoots.length > 0
-        ? shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
-        : (this as WebdriverIO.Element).elementId
-            ? [{ sharedId: (this as WebdriverIO.Element).elementId }]
+    const startNodes = (this as WebdriverIO.Element).elementId
+        ? [
+            { sharedId: (this as WebdriverIO.Element).elementId },
+            ...shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
+        ]
+        : shadowRoots.length > 0
+            ? shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
             : undefined
     const deepElementResult = await browser.browsingContextLocateNodes({ locator, context, startNodes }).then(async (result) => {
         let nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId))
@@ -423,21 +484,57 @@ export async function findDeepElements(
         nodes = returnUniqueNodes(nodes)
 
         if (!(this as WebdriverIO.Element).elementId) {
+            /**
+             * When searching via shadow root startNodes, filter out stale elements
+             * from detached DOM trees (common in SPA client-side navigation).
+             */
+            if (shadowRoots.length > 0 && nodes.length > 0) {
+                const connected = await checkElementsConnected(
+                    browser, nodes.map((node) => node[ELEMENT_KEY] as string), context)
+                nodes.forEach((node, i) => {
+                    if (!connected[i]) {
+                        shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+                    }
+                })
+                const validNodes = nodes.filter((_, i) => connected[i])
+                if (validNodes.length > 0) { return validNodes }
+                // All BiDi results are detached, fall back to Classic WebDriver
+                return []
+            }
             return nodes
         }
 
         /**
-         * determine if node is within tree of current element
+         * determine if node is within tree of current element (batched into a single
+         * round trip, with per-element fallback for stale references)
          */
-        const scopedNodes = await Promise.all(nodes.map(async (node) => {
-            const isIn = await browser.execute(
-                elementContains,
-                { [ELEMENT_KEY]: (this as WebdriverIO.Element).elementId } as unknown as HTMLElement,
-                node as unknown as HTMLElement
-            )
-            return [isIn, node]
-        })).then((elems) => elems.filter(([isIn]) => isIn).map(([, elem]) => elem))
+        const containment = await checkElementsContainedIn(
+            browser,
+            (this as WebdriverIO.Element).elementId,
+            nodes.map((node) => node[ELEMENT_KEY] as string)
+        )
+        const scopedNodes = nodes.filter((_, i) => containment[i])
 
+        /**
+         * Filter out detached scoped nodes. Only needed when shadow roots are
+         * involved — regular DOM elements (e.g. <option> inside <select>) may
+         * not have resolvable BiDi sharedId references for script execution,
+         * causing false "stale" detection and an empty result.
+         */
+        if (shadowRoots.length > 0) {
+            const connected = await checkElementsConnected(
+                browser, scopedNodes.map((node) => node[ELEMENT_KEY] as string), context)
+            scopedNodes.forEach((node, i) => {
+                if (!connected[i]) {
+                    shadowRootManager.deleteShadowRoot(node[ELEMENT_KEY] as string, context)
+                }
+            })
+            const connectedScopedNodes = scopedNodes.filter((_, i) => connected[i])
+            if (connectedScopedNodes.length > 0) { return connectedScopedNodes }
+            if (scopedNodes.length > 0) {
+                return []
+            }
+        }
         return scopedNodes
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
