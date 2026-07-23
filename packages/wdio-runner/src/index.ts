@@ -23,6 +23,7 @@ const log = logger('@wdio/runner')
 
 export default class Runner extends EventEmitter {
     private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    private _bidiHandler?: (logEntry: any) => void
     private _configParser?: ConfigParser
     private _sigintWasCalled = false
     private _isMultiremote = false
@@ -148,6 +149,13 @@ export default class Runner extends EventEmitter {
             await executeHooksWithArgs('after', this._config.after as Function, afterArgs)
             await this.endSession()
             return this._shutdown(1, retries, true)
+        }
+
+        if (browser.isBidi) {
+            this._bidiHandler = (logEntry: any) => {
+                this._reporter?.emit('client:logEntry', logEntry)
+            }
+            browser.on('log.entryAdded', this._bidiHandler)
         }
 
         this._reporter.caps = browser.capabilities
@@ -437,6 +445,10 @@ export default class Runner extends EventEmitter {
             await this._reporter!.waitForSync()
         } catch (err: any) {
             log.error(err)
+        } finally {
+            if (this._reporter) {
+                this._reporter.closeStream()
+            }
         }
         this.emit('exit', failures === 0 ? 0 : 1)
         return failures
@@ -496,6 +508,10 @@ export default class Runner extends EventEmitter {
             })
         }
 
+        if (this._browser && this._bidiHandler) {
+            this._browser.off('log.entryAdded', this._bidiHandler)
+            this._bidiHandler = undefined
+        }
         await this._browser?.deleteSession()
         process.send!(<SessionEndedMessage>{
             origin: 'worker',
