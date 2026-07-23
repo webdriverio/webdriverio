@@ -501,7 +501,7 @@ describe('Lit Component testing', () => {
             await expect(elem).toHaveText('Find me')
         })
 
-        it('fetches element by JS function', async () => {
+        it('fetches element by JS function', async function () {
             expect((await $(() => document.body).getTagName()).toLowerCase()).toBe('body')
         })
 
