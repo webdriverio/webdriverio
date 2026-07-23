@@ -53,6 +53,13 @@ export class ShadowRootManager extends SessionManager {
         this.#browser.on('bidiCommand', this.#handleBidiCommandListener)
         this.#browser.scriptAddPreloadScript({
             functionDeclaration: customElementWrapper.toString()
+        }).catch(() => {
+            /**
+             * This fire-and-forget call may reject if the remote end does not implement
+             * `script.addPreloadScript` (e.g. Appium drivers that only support a subset of
+             * WebDriver Bidi). Swallow the rejection so it does not surface as an
+             * unhandledRejection after session setup.
+             */
         })
     }
 
