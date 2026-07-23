@@ -162,7 +162,7 @@ export abstract class WebDriverRequest {
     ): Promise<WebDriverResponse> {
         log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
 
-        if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
+        if (fullRequestOptions.body && typeof fullRequestOptions.body === 'object' && Object.keys(fullRequestOptions.body).length) {
             this.eventHandler.onLogData?.(fullRequestOptions.body)
         }
 
