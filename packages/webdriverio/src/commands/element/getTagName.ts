@@ -21,6 +21,13 @@
  * @type property
  *
  */
+import { getBrowserObject } from '@wdio/utils'
+import { bidiGetTagName, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
+
 export function getTagName (this: WebdriverIO.Element) {
+    const browser = getBrowserObject(this) as WebdriverIO.Browser
+    if (isBidiCommandsEnabled(browser)) {
+        return bidiGetTagName(this)
+    }
     return this.getElementTagName(this.elementId)
 }
