@@ -239,7 +239,11 @@ node tests/google.test.js
 | `traceFormat` | `'zip' \| 'ndjson-directory'` | `'zip'` | Trace artifact layout. Only applies when `mode: 'trace'`. |
 | `traceGranularity` | `'session' \| 'spec' \| 'test'` | `'session'` | One trace per session / spec file / test. `'test'` writes each to `test-results/<spec>-<title>-<browser>[-retryN]/trace.zip`. Only applies when `mode: 'trace'`. See [Trace Mode](/docs/devtools/wdio/trace-mode#trace-granularity--tracegranularity). |
 | `tracePolicy` | `'on' \| 'retain-on-failure' \| 'retain-on-first-failure' \| 'on-first-retry' \| 'on-all-retries' \| 'retain-on-failure-and-retries'` | `'on'` | Which traces to keep. Pairs with `traceGranularity: 'test'`. Only applies when `mode: 'trace'`. |
-| `captureAssertions` | `boolean` | `true` | Capture `node:assert` assertions as trace action rows. Set `false` to opt out. |
+| `filmstrip` | `boolean` | `true` | Record a dense, continuous screencast into the trace for frame-by-frame scrubbing in the player. Only applies when `mode: 'trace'`. |
+| `screenshot` | `'off' \| 'on' \| 'only-on-failure'` | `'off'` | Trace mode + `traceGranularity: 'test'`. Per-test screenshot, attached inline to Allure (`image/png`) via `allure-js-commons` when an Allure runner adapter is active. |
+| `video` | `'off' \| TraceRetentionPolicy` | `'off'` | Trace mode + `traceGranularity: 'test'`. Per-test screencast video, retained per the given policy, attached inline to Allure (`video/webm`) via `allure-js-commons` when an Allure runner adapter is active. |
+| `emitArtifactsManifest` | `boolean` | auto | Write the `devtools-artifacts-<sessionId>.json` manifest — the generic index reporters/CI consume to discover produced artifacts — next to the trace. Off by default; **auto-enables** when an `allure-js-commons` runtime is active. Trace mode only. |
+| `captureAssertions` | `boolean` | `true` | Capture `node:assert` assertions (both passing and failing) as trace action rows. Set `false` to opt out. |
 
 ```js
 DevTools.configure({
@@ -254,7 +258,7 @@ DevTools.configure({
 
 ## Trace mode
 
-Headless capture path — no DevTools UI window opens. At session end the adapter writes a portable `trace-<sessionId>.zip` (or directory) next to the test file, with the same shape as the WebdriverIO trace artifact.
+Headless capture path — no DevTools UI window opens. At session end the adapter writes a portable `trace-<sessionId>.zip` (or directory) into a `test-results/` folder (next to the resolved test / config directory), with the same shape as the WebdriverIO trace artifact.
 
 ```js
 DevTools.configure({
@@ -264,6 +268,34 @@ DevTools.configure({
 ```
 
 The backend port-bind, UI window, and `screencast` option are all skipped in trace mode. For the full feature reference (artifact contents, viewer, mobile testing, when to pick `zip` vs `ndjson-directory`), see the [Trace Mode page](/docs/devtools/wdio/trace-mode).
+
+### Per-test artifacts and retention
+
+At `traceGranularity: 'test'` each test gets its own artifact folder, and `tracePolicy` decides which are kept (e.g. `retain-on-failure`). In that mode you can also capture a per-test `screenshot` (PNG) and `video` (`.webm`), and enable a dense `filmstrip` recorded into the trace for frame-by-frame scrubbing. When an `allure-js-commons` runner adapter is active, per-test traces / screenshots / videos are attached inline to the Allure report (and `emitArtifactsManifest` auto-enables); otherwise they're written to `test-results/` and recorded in the manifest.
+
+```js
+DevTools.configure({
+  mode: 'trace',
+  traceGranularity: 'test',
+  tracePolicy: 'retain-on-failure',
+  filmstrip: true,
+  screenshot: 'only-on-failure',
+  video: 'retain-on-failure'
+})
+```
+
+### Viewing the trace
+
+Open any trace `.zip` in the first-party player — the same DevTools UI in a dedicated **player** mode:
+
+```bash
+npx show-trace path/to/trace.zip      # in a project that installs the adapter
+pnpm show-trace path/to/trace.zip     # from the devtools monorepo
+```
+
+The `show-trace` bin ships with `@wdio/selenium-devtools`, so it's available in any project that installs it — no extra dependency. Because the Selenium adapter captures the page's **DOM mutation stream** and a per-command element / accessibility snapshot alongside each screenshot, a Selenium trace drives the player's full feature set — DOM time-travel, the A11y tab and pick-locator overlay, the Transcript tab with Copy-for-LLM, Cucumber Feature → Scenario → Step nesting, and the scrubbable timeline.
+
+The trace uses a portable NDJSON schema, so the same `.zip` (or directory) also opens in other compatible trace viewers. See the **[Trace Player](/docs/devtools/trace-player)** page for the full walkthrough.
 
 ## Public API
 
@@ -316,6 +348,8 @@ The plugin patches `selenium-webdriver`'s `Builder`, `WebDriver`, and `WebElemen
 - **`WebDriver.quit()`** - an awaited cleanup hook flushes screencast encoding, WebSocket buffer, and final metadata before the original quit runs.
 
 When BiDi is available (Chrome ≥114), console logs, JavaScript exceptions, and network events stream directly via the Selenium BiDi handlers. Otherwise the plugin falls back to an injected browser-side collector script.
+
+The same injected collector also records the page's **DOM mutation stream** and a per-command element / accessibility snapshot, so a trace carries enough to rebuild the live DOM at each step (per-navigation mapping) — this is what powers the player's DOM time-travel and A11y tab rather than a screenshot-only replay.
 
 ## Limitations
 

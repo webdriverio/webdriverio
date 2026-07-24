@@ -60,7 +60,7 @@ Internal commands like `findElement`, `waitUntil`, `executeScript` are deliberat
 - **`zip`** (default) — single archive at `test-results/trace-<sessionId>.zip`.
 - **`ndjson-directory`** — same files unpacked into `test-results/trace-<sessionId>/`. One less unzip step for scripted or agentic consumers that want to grep / stream the NDJSON directly.
 
-Both formats open in the first-party `show-trace` player (see [Viewing the artifact](#viewing-the-artifact)) and in other compatible trace viewers.
+Both formats open in the first-party [`show-trace` player](/docs/devtools/trace-player) and in other compatible trace viewers.
 
 ## Trace granularity — `traceGranularity`
 
@@ -93,7 +93,75 @@ By default every trace is kept (`'on'`). To keep only the interesting ones — i
 }
 ```
 
-Policies: `'on'` · `'retain-on-failure'` · `'retain-on-first-failure'` · `'on-first-retry'` · `'on-all-retries'` · `'retain-on-failure-and-retries'`. A non-retained slice is decided against and never written to disk. The retry-aware policies need per-attempt retry information; where a runner doesn't expose it they degrade to `retain-on-failure` with a one-time warning.
+| Policy | Keeps the trace when… |
+|---|---|
+| `'on'` (default) | Always — every trace is written. |
+| `'retain-on-failure'` | The test's **final** attempt failed. A fail-then-pass retry sequence ends `passed`, so it is *not* kept — you don't over-retain a flake that eventually went green. |
+| `'retain-on-first-failure'` | **Attempt 0** failed, regardless of whether a later retry passed. |
+| `'on-first-retry'` | The test was retried at least once (an attempt 1 exists). |
+| `'on-all-retries'` | Any retried attempt (attempt ≥ 1) exists. |
+| `'retain-on-failure-and-retries'` | The final attempt failed **or** the test was retried. |
+
+A non-retained slice is decided against and never written to disk. The retry-aware policies key on a per-attempt **outcome ledger** the adapter keeps per retry-stable test id, so `retain-on-failure` and `retain-on-first-failure` evaluate the right attempt. Where a runner doesn't expose per-attempt retry information, every policy except `retain-on-failure` degrades to `retain-on-failure`; a run with no observed outcomes (e.g. a plain standalone script) fails **open** and keeps the trace rather than risk dropping one you need.
+
+> Retry-aware retention is verified end-to-end for **WebdriverIO** (mocha / cucumber) and **Selenium** (mocha). For **Nightwatch**, `retain-on-failure` works, but the other retry-aware policies degrade to it because Nightwatch's `--retries` re-runs a testcase internally without re-firing the per-test hooks. WDIO's cross-process `specFileRetries` also falls outside the (per-worker) ledger. See the [Nightwatch adapter page](/docs/devtools/nightwatch#trace-mode) for the specifics.
+
+## Dense filmstrip — `filmstrip`
+
+**By default** the trace records a **dense, continuous** screencast so the player scrubs smooth playback rather than jumping frame-to-frame. The dense frames sit alongside the per-action frames (which carry the DOM snapshots). Set `filmstrip: false` to record only one frame per action — a smaller trace with no continuous recorder:
+
+```ts
+{
+  mode: 'trace',
+  filmstrip: false // opt out — one frame per action (default is true)
+}
+```
+
+- Dense frames are added **alongside** the per-action frames (which carry the DOM snapshots), so no DOM data is lost — when dense frames are present they supersede the sparse per-action filmstrip for scrubbing.
+- Frames are thinned at export (≥100 ms apart) and content-addressed, so identical frames (a static wait) collapse to one resource. The live session buffer is bounded by `screencast.maxBufferFrames` (default 2000).
+- Recording uses the screencast recorder — CDP push on Chrome/Chromium, screenshot polling elsewhere. On non-Chrome browsers the polling issues many `takeScreenshot` commands; pair with your reporter's step-silencing option (see [Allure Integration](/docs/devtools/allure)).
+
+`filmstrip` is available on all three adapters (WebdriverIO / Selenium / Nightwatch).
+
+## Per-test screenshot & video — `screenshot` / `video`
+
+At `traceGranularity: 'test'` each test can also produce a standalone screenshot and/or a per-test video slice, mirroring the familiar screenshot/video-on-failure ergonomics:
+
+```ts
+{
+  mode: 'trace',
+  traceGranularity: 'test',
+  screenshot: 'only-on-failure', // 'off' (default) | 'on' | 'only-on-failure'
+  video: 'retain-on-failure'     // 'off' (default) | any tracePolicy value
+}
+```
+
+| Option | Values | Behavior |
+|---|---|---|
+| `screenshot` | `'off'` (default) · `'on'` · `'only-on-failure'` | `'on'` captures after every test; `'only-on-failure'` only after a failing test. PNG. |
+| `video` | `'off'` (default) · any `tracePolicy` value | Records the screencast continuously and keeps each test's slice per the same retention semantics as `tracePolicy`. WebM. Setting a non-`off` value starts the recorder on its own — you don't also need `filmstrip` or `screencast.enabled`. |
+
+Both are gated to trace mode + `traceGranularity: 'test'` (the per-test scope these attach to). At coarser granularities they no-op.
+
+- **WebdriverIO** — `screenshot` / `video` are service options; attached inline to Allure when `@wdio/allure-reporter` is present.
+- **Selenium** — same options on its `DevToolsOptions`; attached inline to Allure via `allure-js-commons` when an Allure runner adapter is active.
+- **Nightwatch** — **produce-only**: the files are written to the trace output dir (and listed in the manifest), but not attached inline to Allure — Nightwatch has no live Allure attach API. See [Trace Mode Limitations](/docs/devtools/limitations).
+
+> `screencast.enabled` is the separate **live-mode** continuous `.webm` recording and is ignored in trace mode. In trace mode use `filmstrip` (dense frames into the trace) or per-test `video`; the screencast tuning fields (`quality`, `maxWidth`, `pollIntervalMs`, …) still apply to whichever recorder runs.
+
+## Artifacts manifest — `emitArtifactsManifest`
+
+Writes a `devtools-artifacts-<sessionId>.json` next to the trace — a generic index that reporters and CI consume to discover the produced artifacts (every trace / screenshot / video, plus each test's state):
+
+```ts
+{
+  mode: 'trace',
+  emitArtifactsManifest: true // default: off; auto-on when Allure is detected
+}
+```
+
+- **Off by default.** It **auto-enables** when an Allure reporter is detected — WebdriverIO's `@wdio/allure-reporter` in the config, or an active Selenium `allure-js-commons` runtime.
+- **Nightwatch is opt-in**: it has no live Allure signal to auto-detect against (`nightwatch-allure` is post-hoc), so it never auto-enables — set it explicitly if you want the manifest.
 
 ## Assertions — `captureAssertions`
 
@@ -114,43 +182,21 @@ Trace mode detects mobile sessions via `platformName: 'android' | 'ios'` (case-i
 
 The trace's `context-options` records `title: 'android — <deviceName>'` / `'ios — <deviceName>'` so the viewer labels frames correctly. A reference WDIO config for Android Chrome via Appium ships at [`examples/wdio/wdio.mobile.conf.ts`](https://github.com/webdriverio/devtools/blob/main/examples/wdio/wdio.mobile.conf.ts).
 
-## What trace mode skips
-
-- **DevTools UI window** — no Chrome instance opens for the dashboard.
-- **Backend port-bind** — no localhost port is reserved (parity across all three adapters as of v1.2+).
-- **`screencast` option** — ignored even if configured. Trace mode embeds per-action JPEG frames inside the archive; the live-mode continuous `.webm` is a separate feature. A warning is logged: `trace mode: ignoring screencast option (live-mode feature)`.
-- **`wdio-trace-<sessionId>.json` dump** — removed entirely. The legacy monolithic JSON the WDIO live mode used to write is gone; live mode now streams to the dashboard and writes nothing to disk, and the `trace.zip` is the single trace artifact.
-
 ## Viewing the artifact
 
-### `show-trace` — the first-party player
-
-Open a trace in the WebdriverIO DevTools UI itself:
+Open a trace in the first-party **[Trace Player](/docs/devtools/trace-player)** — the WebdriverIO DevTools UI in a dedicated read-only player mode:
 
 ```sh
 show-trace trace-<sessionId>.zip          # bin on PATH after install
 npx show-trace trace-<sessionId>.zip      # or via npx
-pnpm show-trace trace-<sessionId>.zip     # from the devtools monorepo
 ```
 
-The `show-trace` bin ships with each adapter (`@wdio/devtools-service`, `@wdio/nightwatch-devtools`, `@wdio/selenium-devtools`), so it's available in any project that installs one — no extra dependency. It boots the same DevTools UI in a dedicated **player** mode and opens it in your browser:
+The player gives you DOM time-travel, the A11y tab and pick-locator overlay, the Transcript tab with Copy-for-LLM, the Errors / Console / Network / Source dock tabs, and a scrubbable timeline. The same portable `.zip` also opens in other standalone trace viewers and inside an Allure report's embedded viewer. See the **[Trace Player](/docs/devtools/trace-player)** page for the full walkthrough, features, and keyboard shortcuts.
 
-- **Action list** (left) with the captured commands.
-- **Browser pane** showing the per-action page snapshot.
-- **Timeline** along the bottom — a screenshot filmstrip plus Actions / Network / Console tracks, a draggable playhead, and playback controls (play/pause, step, speed). Click a **Network** bar to open the request detail (headers, timing, status).
-- **Keyboard shortcuts** — `Space` play/pause, `←`/`→` step between actions, `Home`/`End` jump to first/last, `,`/`.` change speed, `/` focus filter, `?` show all shortcuts.
+## Learn more
 
-> Accepts a `.zip` only. The same shortcuts work in the live dashboard (`←`/`→` walk the command list, `?` shows help).
-
-### Other trace viewers
-
-Because the artifact is a portable NDJSON schema, the same `.zip` (or directory) also opens in other compatible trace viewers, which render:
-- Timeline of actions with timings
-- Per-action screenshots
-- Element snapshots
-- Network waterfall
-- Console events
-
-For LLM / agent consumption, read `transcript.md` directly — it's a tight Markdown rendering of the actions with selectors and values.
-
-The trace pipeline (action-mapping, snapshot serializers, NDJSON writer, zip / directory writer) is shared across adapters via [`@wdio/devtools-core`](https://github.com/webdriverio/devtools/tree/main/packages/core), so the artifact shape is identical no matter which adapter produced it.
+- **[Trace Player](/docs/devtools/trace-player)** — the full `show-trace` player walkthrough, features, and keyboard shortcuts.
+- **[Allure Integration](/docs/devtools/allure)** — how trace / screenshot / video artifacts attach to an Allure report.
+- **[Cross-Framework Support](/docs/devtools/cross-framework)** — the per-adapter capability matrix (WebdriverIO / Selenium / Nightwatch).
+- **[Trace Mode Limitations](/docs/devtools/limitations)** — what trace mode skips and the known per-adapter gaps.
+- **[Configuration Reference](/docs/devtools/reference)** — every option at a glance.
