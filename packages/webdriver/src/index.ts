@@ -11,7 +11,7 @@ import command from './command.js'
 import { DEFAULTS } from './constants.js'
 import type { BidiHandler } from './bidi/handler.js'
 import { environment as environmentValue } from './environment.js'
-import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect, initiateBidi, parseBidiMessage } from './utils.js'
+import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect, initiateBidi, parseBidiMessage, getBidiRequestOptions } from './utils.js'
 import type { Client, AttachOptions, SessionFlags } from './types.js'
 
 const log = logger('webdriver')
@@ -216,7 +216,7 @@ export default class WebDriver {
          * reconnect to new Bidi session
          */
         if (isBidi(instance.capabilities || {})) {
-            const bidiReqOpts = instance.options.strictSSL ? {} : { rejectUnauthorized: false }
+            const bidiReqOpts = getBidiRequestOptions(instance.options.strictSSL, instance.options.headers)
             await instance._bidiHandler?.reconnect(newSessionCapabilities.webSocketUrl as unknown as string, bidiReqOpts)
             instance._bidiHandler?.socket?.on('message', parseBidiMessage.bind(instance))
         }
