@@ -1,0 +1,117 @@
+{
+  "Sample feature2": {
+    "type": "feature",
+    "start": "2019-12-13T19:10:04.659Z",
+    "_duration": 15907,
+    "uid": "Sample feature2",
+    "cid": "0-1",
+    "title": "Sample feature",
+    "file": "/features/sample_feature.feature",
+    "tags": [
+      { "type": "Tag", "location": { "line": 1, "column": 1 }, "name": "@run" }
+    ],
+    "tests": [
+      {
+        "type": "test",
+        "start": "2019-12-13T19:10:18.800Z",
+        "_duration": 1755,
+        "uid": "Sample scenario4",
+        "cid": "0-1",
+        "title": "Sample scenario",
+        "fullTitle": "Sample feature: Sample scenario",
+        "output": [],
+        "state": "passed",
+        "end": "2019-12-13T19:10:20.555Z"
+      },
+      {
+        "type": "test",
+        "start": "2019-12-13T19:10:20.600Z",
+        "_duration": 900,
+        "uid": "Sample scenario with failure5",
+        "cid": "0-1",
+        "title": "Sample scenario with failure",
+        "fullTitle": "Sample feature: Sample scenario with failure",
+        "output": [],
+        "state": "failed",
+        "end": "2019-12-13T19:10:21.500Z",
+        "errors": [
+          {
+            "name": "AssertionError",
+            "message": "expected true to equal false",
+            "stack": "AssertionError: expected true to equal false\n    at World.<anonymous> (./step_definitions/steps.js:642:21)"
+          }
+        ],
+        "error": {
+          "name": "AssertionError",
+          "message": "expected true to equal false",
+          "stack": "AssertionError: expected true to equal false\n    at World.<anonymous> (./step_definitions/steps.js:642:21)"
+        }
+      },
+      {
+        "type": "test",
+        "start": "2019-12-13T19:10:21.550Z",
+        "_duration": 0,
+        "uid": "Sample scenario with pending step6",
+        "cid": "0-1",
+        "title": "Sample scenario with pending step",
+        "fullTitle": "Sample feature: Sample scenario with pending step",
+        "output": [],
+        "state": "skipped",
+        "end": "2019-12-13T19:10:21.550Z"
+      }
+    ],
+    "hooks": [],
+    "suites": [],
+    "hooksAndTests": [
+      {
+        "type": "test",
+        "start": "2019-12-13T19:10:18.800Z",
+        "_duration": 1755,
+        "uid": "Sample scenario4",
+        "cid": "0-1",
+        "title": "Sample scenario",
+        "fullTitle": "Sample feature: Sample scenario",
+        "output": [],
+        "state": "passed",
+        "end": "2019-12-13T19:10:20.555Z"
+      },
+      {
+        "type": "test",
+        "start": "2019-12-13T19:10:20.600Z",
+        "_duration": 900,
+        "uid": "Sample scenario with failure5",
+        "cid": "0-1",
+        "title": "Sample scenario with failure",
+        "fullTitle": "Sample feature: Sample scenario with failure",
+        "output": [],
+        "state": "failed",
+        "end": "2019-12-13T19:10:21.500Z",
+        "errors": [
+          {
+            "name": "AssertionError",
+            "message": "expected true to equal false",
+            "stack": "AssertionError: expected true to equal false\n    at World.<anonymous> (./step_definitions/steps.js:642:21)"
+          }
+        ],
+        "error": {
+          "name": "AssertionError",
+          "message": "expected true to equal false",
+          "stack": "AssertionError: expected true to equal false\n    at World.<anonymous> (./step_definitions/steps.js:642:21)"
+        }
+      },
+      {
+        "type": "test",
+        "start": "2019-12-13T19:10:21.550Z",
+        "_duration": 0,
+        "uid": "Sample scenario with pending step6",
+        "cid": "0-1",
+        "title": "Sample scenario with pending step",
+        "fullTitle": "Sample feature: Sample scenario with pending step",
+        "output": [],
+        "state": "skipped",
+        "end": "2019-12-13T19:10:21.550Z"
+      }
+    ],
+    "end": "2019-12-13T19:10:21.550Z"
+  }
+}
