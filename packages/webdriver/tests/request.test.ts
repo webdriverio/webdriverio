@@ -277,6 +277,29 @@ describe('webdriver request', () => {
             expect(onLogData).toHaveBeenNthCalledWith(1, body)
         })
 
+        it('should log the transformed body if transformRequest modifies it', async () => {
+            const onLogData = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', { password: 'secret' }, undefined, false, { onLogData })
+            const transformRequest = vi.fn().mockImplementation((requestOptions) => ({
+                ...requestOptions,
+                body: JSON.stringify({ password: '**REDACTED**' })
+            }))
+
+            await req.makeRequest({ ...defaultOptions, transformRequest }, 'foobar-123')
+            expect(onLogData).toHaveBeenNthCalledWith(1, JSON.stringify({ password: '**REDACTED**' }))
+        })
+
+        it('should not throw a RangeError if transformRequest returns a binary body', async () => {
+            const onLogData = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', { foo: 'bar' }, undefined, false, { onLogData })
+            const body = new Uint8Array(10_000_000)
+            const transformRequest = vi.fn().mockImplementation((requestOptions) => ({ ...requestOptions, body }))
+
+            const err = await req.makeRequest({ ...defaultOptions, transformRequest }, 'foobar-123').catch((e) => e)
+            expect(err).not.toBeInstanceOf(RangeError)
+            expect(onLogData).toHaveBeenNthCalledWith(1, body)
+        })
+
         it('should not log an empty request body', async () => {
             const onLogData = vi.fn()
             const req = new WebFetchRequest('POST', 'session/:sessionId/element', {}, undefined, false, { onLogData })
