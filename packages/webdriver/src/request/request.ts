@@ -45,6 +45,18 @@ function hasLoggableBody (body: BodyInit | Record<string, unknown>): boolean {
     return Object.keys(body).length > 0
 }
 
+function toLoggableBody (body: BodyInit): BodyInit | Record<string, unknown> {
+    if (typeof body !== 'string') {
+        return body
+    }
+
+    try {
+        return JSON.parse(body)
+    } catch {
+        return body
+    }
+}
+
 export abstract class WebDriverRequest {
     protected abstract fetch(url: URL, opts: RequestInit): Promise<Response>
 
@@ -55,7 +67,6 @@ export abstract class WebDriverRequest {
     requiresSessionId: boolean
     eventHandler: RequestEventHandler
     abortSignal?: AbortSignal
-    private serializedBody?: BodyInit
     constructor (
         method: string,
         endpoint: string,
@@ -102,7 +113,6 @@ export abstract class WebDriverRequest {
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             requestOptions.body = JSON.stringify(this.body)
-            this.serializedBody = requestOptions.body
         }
 
         /**
@@ -183,9 +193,7 @@ export abstract class WebDriverRequest {
         retryCount = 0
     ): Promise<WebDriverResponse> {
         log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
-        const loggableBody = fullRequestOptions.body === this.serializedBody
-            ? this.body
-            : fullRequestOptions.body
+        const loggableBody = fullRequestOptions.body && toLoggableBody(fullRequestOptions.body)
         if (loggableBody && hasLoggableBody(loggableBody)) {
             this.eventHandler.onLogData?.(loggableBody)
         }

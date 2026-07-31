@@ -286,7 +286,29 @@ describe('webdriver request', () => {
             }))
 
             await req.makeRequest({ ...defaultOptions, transformRequest }, 'foobar-123')
-            expect(onLogData).toHaveBeenNthCalledWith(1, JSON.stringify({ password: '**REDACTED**' }))
+            expect(onLogData).toHaveBeenNthCalledWith(1, { password: '**REDACTED**' })
+        })
+
+        it('should log the serialised value of a body that defines toJSON', async () => {
+            const onLogData = vi.fn()
+            const credential = { token: 'hunter2', toJSON: () => '**REDACTED**' }
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', { args: [credential] }, undefined, false, { onLogData })
+
+            await req.makeRequest(defaultOptions, 'foobar-123')
+            expect(onLogData).toHaveBeenNthCalledWith(1, { args: ['**REDACTED**'] })
+        })
+
+        it('should log a non JSON body as is', async () => {
+            const onLogData = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', { foo: 'bar' }, undefined, false, { onLogData })
+            const transformRequest = vi.fn().mockImplementation((requestOptions) => ({
+                ...requestOptions,
+                body: '<compressed payload>'
+            }))
+            req['_libRequest'] = vi.fn().mockResolvedValue({ statusCode: 200, body: { value: null } })
+
+            await req.makeRequest({ ...defaultOptions, transformRequest }, 'foobar-123')
+            expect(onLogData).toHaveBeenNthCalledWith(1, '<compressed payload>')
         })
 
         it('should not throw a RangeError if transformRequest returns a binary body', async () => {
@@ -294,9 +316,9 @@ describe('webdriver request', () => {
             const req = new WebFetchRequest('POST', 'session/:sessionId/element', { foo: 'bar' }, undefined, false, { onLogData })
             const body = new Uint8Array(10_000_000)
             const transformRequest = vi.fn().mockImplementation((requestOptions) => ({ ...requestOptions, body }))
+            req['_libRequest'] = vi.fn().mockResolvedValue({ statusCode: 200, body: { value: null } })
 
-            const err = await req.makeRequest({ ...defaultOptions, transformRequest }, 'foobar-123').catch((e) => e)
-            expect(err).not.toBeInstanceOf(RangeError)
+            await req.makeRequest({ ...defaultOptions, transformRequest }, 'foobar-123')
             expect(onLogData).toHaveBeenNthCalledWith(1, body)
         })
 
