@@ -259,6 +259,32 @@ describe('webdriver request', () => {
             }))
         })
 
+        it('should log the request body as plain object', async () => {
+            const onLogData = vi.fn()
+            const body = { foo: 'bar' }
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', body, undefined, false, { onLogData })
+
+            await req.makeRequest(defaultOptions, 'foobar-123')
+            expect(onLogData).toHaveBeenNthCalledWith(1, body)
+        })
+
+        it('should not throw a RangeError when logging large request bodies', async () => {
+            const onLogData = vi.fn()
+            const body = { file: 'x'.repeat(10_000_000) }
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', body, undefined, false, { onLogData })
+
+            await expect(req.makeRequest(defaultOptions, 'foobar-123')).resolves.toBeTruthy()
+            expect(onLogData).toHaveBeenNthCalledWith(1, body)
+        })
+
+        it('should not log an empty request body', async () => {
+            const onLogData = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', {}, undefined, false, { onLogData })
+
+            await req.makeRequest(defaultOptions, 'foobar-123')
+            expect(onLogData).not.toHaveBeenCalled()
+        })
+
         it('should short circuit if request throws a stale element exception', async () => {
             const onResponse = vi.fn()
             const onPerformance = vi.fn()

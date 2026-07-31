@@ -161,9 +161,8 @@ export abstract class WebDriverRequest {
         retryCount = 0
     ): Promise<WebDriverResponse> {
         log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
-
-        if (fullRequestOptions.body && typeof fullRequestOptions.body === 'object' && Object.keys(fullRequestOptions.body).length) {
-            this.eventHandler.onLogData?.(fullRequestOptions.body)
+        if (this.body && Object.keys(this.body).length) {
+            this.eventHandler.onLogData?.(this.body)
         }
 
         const { ...requestLibOptions } = fullRequestOptions
