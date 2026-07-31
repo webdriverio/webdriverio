@@ -59,6 +59,7 @@
     "@wdio/junit-reporter": "workspace:*",
     "@wdio/lighthouse-service": "workspace:*",
     "@wdio/local-runner": "workspace:*",
+    "@wdio/logger": "workspace:*",
     "@wdio/mocha-framework": "workspace:*",
     "@wdio/repl": "workspace:*",
     "@wdio/sauce-service": "workspace:*",

@@ -7,7 +7,7 @@ import type { InputOptions } from '../../types.js'
  * :::info
  *
  * If you like to use special characters, e.g. to copy and paste a value from one input to another, use the
- * [`keys`](/docs/api/browser/keys) command.
+ * [`keys`](/docs/api/browser/keys) command with the [`Key`](/docs/api/modules#key) object.
  *
  * :::
  *

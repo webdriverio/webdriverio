@@ -1,6 +1,6 @@
 {
   "name": "create-wdio",
-  "version": "9.27.0",
+  "version": "9.30.0",
   "description": "Install and setup a WebdriverIO project with all its dependencies in a single run",
   "author": "WebdriverIO Team <mail@webdriver.io>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/create-wdio",
@@ -31,7 +31,7 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=18.20.0"
   },
   "repository": {
     "type": "git",

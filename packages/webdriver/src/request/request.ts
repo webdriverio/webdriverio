@@ -19,7 +19,6 @@ const ERRORS_TO_EXCLUDE_FROM_RETRY = [
 
 const DEFAULT_HEADERS = {
     'Content-Type': 'application/json; charset=utf-8',
-    'Connection': 'keep-alive',
     'Accept': 'application/json',
     'User-Agent': 'webdriver/' + pkg.version
 }
@@ -82,8 +81,6 @@ export abstract class WebDriverRequest {
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             requestOptions.body = JSON.stringify(this.body)
-            const contentLength = new TextEncoder().encode(requestOptions.body).length
-            requestHeaders.set('Content-Length', `${contentLength}`)
         }
 
         /**

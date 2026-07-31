@@ -29,7 +29,7 @@ To initiate a new WebdriverIO project, run:
 npm create wdio@latest ./
 ```
 
-An installation wizard will guide you through the process. Ensure you select _"Desktop Testing - of Electron Applications"_ when it asks you what type of testing you'd like to do. Afterwards provide the path to your compiled Electron application, e.g. `./dist`, then just keep the defaults or modify based on your preference.
+An installation wizard will guide you through the process. When asked what type of testing you'd like to do, select _"Desktop Testing - of Electron, Tauri, or macOS Applications"_, then choose _Electron_ at the framework prompt. Afterwards provide the path to your compiled Electron application, e.g. `./dist`, then just keep the defaults or modify based on your preference.
 
 The configuration wizard will install all required packages and create a `wdio.conf.js` or `wdio.conf.ts` with the necessary configuration to test your application. If you agree to autogenerate some test files you can run your first test via `npm run wdio`.
 
@@ -38,7 +38,7 @@ The configuration wizard will install all required packages and create a `wdio.c
 If you are already using WebdriverIO in your project you can skip the installation wizard and just add the following dependencies:
 
 ```sh
-npm install --save-dev wdio-electron-service
+npm install --save-dev @wdio/electron-service
 ```
 
 Then you can use the following configuration:
@@ -56,4 +56,4 @@ export const config: WebdriverIO.Config = {
 
 That's it 🎉
 
-Learn more about how [to configure the Electron Service](/docs/desktop-testing/electron/configuration), [how to mock Electron APIs](/docs/desktop-testing/electron/mocking) and [how to access Electron APIs](/docs/desktop-testing/electron/api).
+Learn more about how [to configure the Electron Service](/docs/desktop-testing/electron/configuration), [how to mock Electron APIs](/docs/desktop-testing/electron/api-reference) and [how to access Electron APIs](/docs/desktop-testing/electron/api).

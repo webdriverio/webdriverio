@@ -30,12 +30,21 @@ This allows you to:
 -   verify how your website will **support tabbing with your keyboard)**, see also [Tabbing through a website](#tabbing-through-a-website)
 -   and much more, see the [service](./visual-testing/service-options) and [method](./visual-testing/method-options) options
 
-The service is a lightweight module to retrieve the needed data and screenshots for all browsers/devices. The comparison power comes from [ResembleJS](https://github.com/Huddle/Resemble.js). If you want to compare images online you can check the [online tool](http://rsmbl.github.io/Resemble.js/).
+The service is a lightweight module to retrieve the needed data and screenshots for all browsers/devices. The comparison power comes from [Pixelmatch](https://github.com/mapbox/pixelmatch), a fast and accurate perceptual image comparison library using the YIQ color space. Images are processed with [fast-png](https://github.com/image-js/fast-png), a zero-native-dependency PNG codec.
 
 :::info NOTE For Native/Hybrid Apps
 The methods `saveScreen`, `saveElement`, `checkScreen`, `checkElement` and the matchers `toMatchScreenSnapshot` and `toMatchElementSnapshot` can be used for Native Apps/Context.
 
 Please use the property `isHybridApp:true` in your service settings when you want to use it for Hybrid Apps.
+:::
+
+:::caution Upgrading from v9 (or lower)?
+
+`@wdio/visual-service` **v10** changed the comparison engine from **ResembleJS** to **[Pixelmatch](https://github.com/mapbox/pixelmatch)**. Pixelmatch uses a perceptual (YIQ) color model instead of raw RGB, so mismatch percentages will differ from v9. This means:
+
+-   **Your test code does not need to change.** All method names, option names, and matchers are identical.
+-   **Your baseline images may need to be updated.** After upgrading, run your test suite and review any visual diffs. You can update individual failing baselines with `--update-visual-baseline`, or delete your entire baseline folder and let `autoSaveBaseline` recreate it from scratch. See the [FAQ](/docs/visual-testing/faq#my-visual-tests-fail-with-a-difference-how-can-i-update-my-baseline) for details.
+
 :::
 
 ## Installation
@@ -327,9 +336,13 @@ export const config = {
 
 ## System Requirements
 
-### Version 5 and up
+### Version 10 and up (current)
 
-For version 5 and up, this module is a purely JavaScript-based module with no additional system dependencies beyond the general [project requirements](/docs/gettingstarted#system-requirements). It uses [Jimp](https://github.com/jimp-dev/jimp) which is an image processing library for Node written entirely in JavaScript, with zero native dependencies.
+For version 10 and up, this module has no additional system dependencies beyond the general [project requirements](/docs/gettingstarted#system-requirements). It uses [Pixelmatch](https://github.com/mapbox/pixelmatch) for perceptual image comparison and [fast-png](https://github.com/image-js/fast-png) for image encoding/decoding. Both are pure JavaScript with zero native dependencies.
+
+### Version 5 to 9 (legacy)
+
+Versions 5 through 9 used [Jimp](https://github.com/jimp-dev/jimp), an image processing library for Node written entirely in JavaScript, with zero native dependencies. No additional system dependencies were required.
 
 ### Version 4 and Lower
 

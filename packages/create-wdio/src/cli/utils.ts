@@ -1,7 +1,7 @@
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import inquirer from 'inquirer'
-import { configHelperSuccessMessage, CONFIG_HELPER_SERENITY_BANNER, SUPPORTED_CONFIG_FILE_EXTENSION, CONFIG_HELPER_INTRO, isNuxtProject, SUPPORTED_PACKAGES } from '../constants.js'
+import { buildTauriBanner, configHelperSuccessMessage, CONFIG_HELPER_SERENITY_BANNER, SUPPORTED_CONFIG_FILE_EXTENSION, CONFIG_HELPER_INTRO, getResolvedPurpose, isNuxtProject, SUPPORTED_PACKAGES } from '../constants.js'
 import type { ParsedAnswers } from '../types.js'
 import { createPackageJSON, setupTypeScript, npmInstall, createWDIOConfig, createWDIOScript, runAppiumInstaller, convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps, getProjectRoot, getSerenityPackages } from '../utils.js'
 
@@ -17,11 +17,21 @@ export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: str
     /**
      * print success message
      */
+    const extraInfoParts: string[] = []
+    if (parsedAnswers.serenityAdapter) {
+        extraInfoParts.push(CONFIG_HELPER_SERENITY_BANNER)
+    }
+    if (parsedAnswers.purpose === 'tauri') {
+        extraInfoParts.push(buildTauriBanner(
+            parsedAnswers.rawAnswers.tauriDriverProvider,
+            parsedAnswers.rawAnswers.tauriUseFrontendPlugin
+        ))
+    }
     console.log(
         configHelperSuccessMessage({
             projectRootDir: parsedAnswers.projectRootDir,
             runScript: parsedAnswers.serenityAdapter ? 'serenity' : 'wdio',
-            extraInfo: parsedAnswers.serenityAdapter ? CONFIG_HELPER_SERENITY_BANNER : ''
+            extraInfo: extraInfoParts.join('\n')
         }),
     )
 
@@ -132,7 +142,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
         runner: runnerPackage.short as 'local' | 'browser',
         preset: presetPackage.short,
         framework: frameworkPackage.short,
-        purpose: runnerPackage.purpose,
+        purpose: getResolvedPurpose(answers),
         serenityAdapter: frameworkPackage.package === '@serenity-js/webdriverio' && frameworkPackage.purpose,
         reporters: reporterPackages.map(({ short }) => short),
         plugins: pluginPackages.map(({ short }) => short),

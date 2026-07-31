@@ -11,12 +11,12 @@ import { deepmerge } from 'deepmerge-ts'
 
 import { start as startSafaridriver, type SafaridriverOptions as SafaridriverParameters } from 'safaridriver'
 import { start as startGeckodriver, type GeckodriverParameters } from 'geckodriver'
-import { start as startEdgedriver, findEdgePath, type EdgedriverParameters } from 'edgedriver'
 import type { InstallOptions } from '@puppeteer/browsers'
+import type { EdgedriverParameters } from 'edgedriver'
 
 import type { Capabilities } from '@wdio/types'
 
-import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir, generateDefaultPrefs } from './utils.js'
+import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir, generateDefaultPrefs, setDefaultEdgedriverCdnUrl } from './utils.js'
 import { isChrome, isFirefox, isEdge, isSafari, isAppiumCapability } from '../utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 
@@ -181,6 +181,8 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
             edgedriverOptions.customEdgeDriverPath = binary
         }
 
+        setDefaultEdgedriverCdnUrl()
+        const { start: startEdgedriver, findEdgePath } = await import('edgedriver')
         driver = 'EdgeDriver'
         driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port, allowedIps: ['0.0.0.0'] }).catch((err) => {
             log.warn(`Couldn't start EdgeDriver: ${err.message}, retry ...`)

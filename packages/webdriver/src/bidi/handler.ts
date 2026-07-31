@@ -69,7 +69,7 @@ export class BidiHandler extends BidiCore {
      * @param params `remote.SessionSubscribeParameters` {@link https://w3c.github.io/webdriver-bidi/#command-session-subscribe | command parameter}
      * @returns `Promise<local.SessionSubscribeResult>`
      **/
-    async sessionSubscribe(params: remote.SessionSubscribeParameters | remote.SessionSubscriptionRequest): Promise<local.SessionSubscribeResult> {
+    async sessionSubscribe(params: remote.SessionSubscribeParameters): Promise<local.SessionSubscribeResult> {
         const result = await this.send({
             method: 'session.subscribe',
             params
@@ -376,6 +376,36 @@ export class BidiHandler extends BidiCore {
         })
 
         return result.result as local.BrowsingContextSetViewportResult
+    }
+
+    /**
+     * WebDriver Bidi command to send command method "browsingContext.startScreencast" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-browsingContext-startScreencast
+     * @param params `remote.BrowsingContextStartScreencastParameters` {@link https://w3c.github.io/webdriver-bidi/#command-browsingContext-startScreencast | command parameter}
+     * @returns `Promise<local.BrowsingContextStartScreencastResult>`
+     **/
+    async browsingContextStartScreencast(params: remote.BrowsingContextStartScreencastParameters): Promise<local.BrowsingContextStartScreencastResult> {
+        const result = await this.send({
+            method: 'browsingContext.startScreencast',
+            params
+        })
+
+        return result.result as local.BrowsingContextStartScreencastResult
+    }
+
+    /**
+     * WebDriver Bidi command to send command method "browsingContext.stopScreencast" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-browsingContext-stopScreencast
+     * @param params `remote.BrowsingContextStopScreencastParameters` {@link https://w3c.github.io/webdriver-bidi/#command-browsingContext-stopScreencast | command parameter}
+     * @returns `Promise<local.BrowsingContextStopScreencastResult>`
+     **/
+    async browsingContextStopScreencast(params: remote.BrowsingContextStopScreencastParameters): Promise<local.BrowsingContextStopScreencastResult> {
+        const result = await this.send({
+            method: 'browsingContext.stopScreencast',
+            params
+        })
+
+        return result.result as local.BrowsingContextStopScreencastResult
     }
 
     /**

@@ -83,8 +83,8 @@ interface AsyncIterators<T> {
     /**
      * Unwrap the nth element of the element list.
      */
-    forEach: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => void, thisArg?: T) => Promise<void>
-    forEachSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => void, thisArg?: T) => Promise<void>
+    forEach: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => unknown, thisArg?: T) => Promise<void>
+    forEachSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => unknown, thisArg?: T) => Promise<void>
     map: <U>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => U | Promise<U>, thisArg?: T) => Promise<U[]>
     mapSeries: <T, U>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => U | Promise<U>, thisArg?: T) => Promise<U[]>;
     find: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<T>;
@@ -345,8 +345,8 @@ export type WebdriverIOEventMap = EventMap & {
 }
 
 interface BidiEventHandler {
-    on<K extends keyof WebdriverIOEventMap>(event: K, listener: (this: WebdriverIO.Browser, param: WebdriverIOEventMap[K]) => void): this
-    once<K extends keyof WebdriverIOEventMap>(event: K, listener: (this: WebdriverIO.Browser, param: WebdriverIOEventMap[K]) => void): this
+    on<K extends keyof WebdriverIOEventMap>(event: K, listener: (this: WebdriverIO.Browser, param: WebdriverIOEventMap[K]) => unknown): this
+    once<K extends keyof WebdriverIOEventMap>(event: K, listener: (this: WebdriverIO.Browser, param: WebdriverIOEventMap[K]) => unknown): this
 }
 
 /**
