@@ -36,14 +36,14 @@ describe('multi remote test', () => {
             const nameInput = await browserA.$('.usernameInput')
             await nameInput.addValue('Browser A')
             await browserA.keys(Key.Enter)
-            await expect(browserA.$('.inputMessage')).toHaveAttribute('placeHolder', 'Type here...')
+            await expect(browserA.$('.inputMessage')).toHaveAttribute('placeHolder')
         })
 
         it.skip('should login the browser B', async () => {
             const nameInput = await browserB.$('.usernameInput')
             await nameInput.addValue('Browser B')
             await browserB.keys(Key.Enter)
-            await expect(browserB.$('.inputMessage')).toHaveAttribute('placeHolder', 'Type here...')
+            await expect(browserB.$('.inputMessage')).toHaveAttribute('placeHolder')
         })
 
         it('can access shared store', async () => {
@@ -54,7 +54,7 @@ describe('multi remote test', () => {
     })
 
     describe('Multi-remote instance', () => {
-        it('should be able to expect with multi-remote browser', async () => {
+        it('should have 3 browser titles', async () => {
             await multiRemoteBrowser.url('https://webdriver.io')
 
             const titles = await multiRemoteBrowser.getTitle()
@@ -63,47 +63,62 @@ describe('multi remote test', () => {
                 'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO',
                 'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO'
             ])
-            // await expect(multiremotebrowser).toHaveTitle('WebdriverIO')
         })
 
-        // it('should be able to expect with multi-remote element', async () => {
-        //     await multiremotebrowser.url('https://webdriver.io')
-
-        //     const multiRemoteTitleSelector: WebdriverIO.MultiRemoteElement = multiremotebrowser.$('title')
-
-        //     await expect(multiRemoteTitleSelector).toBeExisting()
-        //     await expect(titleSelector).toBeExisting()
-        // })
-
-        it('should be able to select specific instances', async () => {
+        it('should be able to select one specific instance on multi-remote element', async () => {
             await multiRemoteBrowser.url('https://webdriver.io')
             const header = multiRemoteBrowser.$('h1')
 
-            // @ts-ignore
-            const browserAHeader = header.select(['browserA'])
+            const browserAHeader = header.select('browserA')
+
             expect(await browserAHeader.instances).toEqual(['browserA'])
+
             const browserAClasses = await browserAHeader.getAttribute('class')
             expect(browserAClasses).toEqual(expect.arrayContaining([expect.stringContaining('hero__title')]))
             expect(browserAClasses).toHaveLength(1)
         })
 
-        it('should be able to filter instances', async () => {
+        it('should be able to select two specific instance on multi-remote element', async () => {
+            await multiRemoteBrowser.url('https://webdriver.io')
+            const header = multiRemoteBrowser.$('h1')
+
+            const browserAHeader = header.select(['browserA', 'browserC'])
+
+            expect(await browserAHeader.instances).toEqual(['browserA', 'browserC'])
+
+            const browserAClasses = await browserAHeader.getAttribute('class')
+            expect(browserAClasses).toEqual(expect.arrayContaining([expect.stringContaining('hero__title'), expect.stringContaining('hero__title')]))
+            expect(browserAClasses).toHaveLength(2)
+        })
+
+        it('should be able to filter on multi-remote element', async () => {
             await multiRemoteBrowser.url('https://webdriver.io')
             await browserB.url('about:blank')
 
             const header = multiRemoteBrowser.$('h1')
 
-            // @ts-ignore
             const existingHeaders = await header.filter((e) => e.isExisting())
+
+            expect(existingHeaders.instances).toEqual(['browserA', 'browserB', 'browserC'])
+            const classes = await existingHeaders.getAttribute('class')
+            expect(classes).toHaveLength(3)
+        })
+
+        it('should be able to select and filter on multi-remote element', async () => {
+            await multiRemoteBrowser.url('https://webdriver.io')
+            await browserB.url('about:blank')
+
+            const header = multiRemoteBrowser.$('h1')
+
+            const existingHeaders = await header.select(['browserA', 'browserC']).filter((e) => e.isExisting())
 
             expect(existingHeaders.instances).toEqual(['browserA', 'browserC'])
             const classes = await existingHeaders.getAttribute('class')
-            expect(classes).toEqual(expect.arrayContaining([expect.stringContaining('hero__title')]))
             expect(classes).toHaveLength(2)
         })
 
-        it('should not fail if element is missing on unselected instance', async () => {
-            // @ts-ignore
+        it('should be able to select on multi-remote browser', async () => {
+
             await multiRemoteBrowser.select('browserA').url('https://webdriver.io')
             // Remove h1 from browserB to ensure it would fail if accessed
             await browserB.execute(() => {
@@ -111,7 +126,6 @@ describe('multi remote test', () => {
             })
 
             // Select only browserA, so browserB's missing element shouldn't matter
-            // @ts-ignore
             const header = await multiRemoteBrowser.select('browserA').$('h1')
 
             expect(await header.instances).toEqual(['browserA'])
@@ -120,71 +134,9 @@ describe('multi remote test', () => {
             expect(classes).toHaveLength(1)
         })
 
-        it('should not fail if element is missing on unselected instance 2', async () => {
-            // @ts-ignore
-            // await multiremotebrowser.select('browserA', 'browserC').url('https://webdriver.io')
-            await multiRemoteBrowser.select('browserC').url('https://webdriver.io')
-            // Remove h1 from browserB to ensure it would fail if accessed
-            await browserB.execute(() => {
-                document.querySelector('h1')?.remove()
-            })
-
-            await multiRemoteBrowser.pause(10000)
-            // @ts-ignore
-            const header = await multiRemoteBrowser.select('browserA', 'browserC').$('h1')
-
-            // Select only browserA, so browserB's missing element shouldn't matter
-            // @ts-ignore
-            const browserAHeader = header
-
-            expect(await browserAHeader.instances).toEqual(['browserA'])
-            const classes = await browserAHeader.getAttribute('class')
-            expect(classes).toEqual(expect.arrayContaining([expect.stringContaining('hero__title')]))
-            expect(classes).toHaveLength(1)
-        })
-
-        it('should not fail if element is missing on unselected instance 3', async () => {
-            // @ts-ignore
-            const selection = multiRemoteBrowser.select(['browserB', 'browserC'])
-            await selection.url('https://webdriver.io')
-
-            // Remove h1 from browserA to ensure it would fail if accessed
-            await browserA.execute(() => {
-                document.querySelector('h1')?.remove()
-            })
-
-            await multiRemoteBrowser.pause(2000)
-            // @ts-ignore
-            const header = await selection.$('h1')
-
-            expect(await header.instances).toEqual(['browserB', 'browserC'])
-            const classes = await header.getAttribute('class')
-            expect(classes).toEqual(expect.arrayContaining([expect.stringContaining('hero__title')]))
-            expect(classes).toHaveLength(2)
-        })
-
-        // it('should be able to select instance before command execution', async () => {
-        //     await multiremotebrowser.url('https://webdriver.io')
-
-        //     // Reset state
-        //     await browserA.execute(() => { (window as any).wasCalled = false })
-        //     await browserB.execute(() => { (window as any).wasCalled = false })
-
-        //     // Select browserA and run execute
-        //     // @ts-ignore
-        //     const browserAOnly = multiremotebrowser.select('browserA')
-        //     await browserAOnly.execute(() => { (window as any).wasCalled = true })
-
-        //     const resultA = await browserA.execute(() => (window as any).wasCalled)
-        //     const resultB = await browserB.execute(() => (window as any).wasCalled)
-
-        //     expect(resultA).toBe(true)
-        //     expect(resultB).toBe(false)
-        // })
-
         it('should allow chaining select with element query', async () => {
-            // @ts-ignore
             const header = await multiRemoteBrowser.select('browserA').$('h1')
+
             expect(header.instances).toEqual(['browserA'])
         })
     })

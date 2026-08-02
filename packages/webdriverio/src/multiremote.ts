@@ -120,11 +120,12 @@ export default class MultiRemote {
             // @ts-expect-error ToDo(Christian): remove eventually
             delete client.sessionId
 
-            client.select = function (instanceNames: string[]) {
+            client.select = function (instanceNames: string | string[]) {
                 const selectedInstances: Record<string, WebdriverIO.Browser> = {}
                 const selectedResults: unknown[] = []
 
-                instanceNames.forEach((name) => {
+                const instances = Array.isArray(instanceNames) ? instanceNames : [instanceNames]
+                instances.forEach((name) => {
                     if (client.instances.includes(name)) {
                         selectedInstances[name] = scope.instances[name]
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
