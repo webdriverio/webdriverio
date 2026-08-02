@@ -1525,7 +1525,7 @@ importers:
         version: 7.0.6
       undici:
         specifier: ^6.27.0
-        version: 6.27.0
+        version: 6.28.0
       ws:
         specifier: ^8.21.0
         version: 8.21.1
@@ -14547,10 +14547,6 @@ packages:
     resolution: {integrity: sha512-LIY910g9TI13YS95lrMFrs8Rm/u/irgHeTWoKCoteeJ04CUJ92eEfj0rVn+7VKMPBpUPiUoBKfhNyLI23EE/KA==}
     engines: {node: '>=18.17'}
 
-  undici@7.18.2:
-    resolution: {integrity: sha512-y+8YjDFzWdQlSE9N5nzKMT3g4a5UBX1HKowfdXh0uvAnTaqqwqB92Jt4UXBAeKekDs5IaDKyJFR4X1gYVCgXcw==}
-    engines: {node: '>=20.18.1'}
-
   undici@7.29.0:
     resolution: {integrity: sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw==}
     engines: {node: '>=20.18.1'}
@@ -23762,7 +23758,7 @@ snapshots:
       parse5: 7.3.0
       parse5-htmlparser2-tree-adapter: 7.1.0
       parse5-parser-stream: 7.1.2
-      undici: 7.18.2
+      undici: 7.29.0
       whatwg-mimetype: 4.0.0
 
   cheerio@1.2.0:
@@ -32063,8 +32059,6 @@ snapshots:
   undici@6.27.0: {}
 
   undici@6.28.0: {}
-
-  undici@7.18.2: {}
 
   undici@7.29.0: {}
 
