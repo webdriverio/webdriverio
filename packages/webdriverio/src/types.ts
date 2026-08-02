@@ -443,6 +443,14 @@ interface MultiRemoteElementBase {
      * get a specific instance to run commands on it
      */
     getInstance: (browserName: string) => WebdriverIO.Element
+    /**
+     * select one or multiple multi-remote element to run commands on them
+     */
+    select: (browserNames: string[]) => WebdriverIO.MultiRemoteElement
+    /**
+     * select one or multiple multi-remote element to run commands on them
+     */
+    filter: (predicate: (element: WebdriverIO.Element) => Promise<boolean> | boolean) => Promise<WebdriverIO.MultiRemoteElement>
     // @private
     __propertiesObject__: never
 }

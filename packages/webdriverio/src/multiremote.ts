@@ -114,14 +114,12 @@ export default class MultiRemote {
 
             client.instances = Object.keys(instances)
             client.isMultiremote = true
-            const res = result
-            client.selector = Array.isArray(res) && res[0]
-                ? res[0].selector
+            client.selector = Array.isArray(result) && result[0]
+                ? result[0].selector
                 : null
-            // @ts-ignore
+            // @ts-expect-error ToDo(Christian): remove eventually
             delete client.sessionId
 
-            // @ts-ignore
             client.select = function (instanceNames: string[]) {
                 const selectedInstances: Record<string, WebdriverIO.Browser> = {}
                 const selectedResults: unknown[] = []
@@ -137,22 +135,21 @@ export default class MultiRemote {
                 return MultiRemote.elementWrapper(selectedInstances, selectedResults, propertiesObject, scope)
             }
 
-            // @ts-ignore
-            client.filter = async function (predicate: (elem: WebdriverIO.Element, name: string) => Promise<boolean> | boolean) {
+            client.filter = async function (predicate: (element: WebdriverIO.Element) => Promise<boolean> | boolean) {
                 const selectedInstances: Record<string, WebdriverIO.Browser> = {}
                 const selectedResults: unknown[] = []
 
-                const results = await Promise.all(client.instances.map(async (name) => {
+                const results = await Promise.all(client.instances.map(async (instanceName) => {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const elem = (client as any)[name]
-                    const result = await predicate(elem, name)
-                    return result ? { name, elem } : null
+                    const elem = (client as any)[instanceName]
+                    const result = await predicate(elem)
+                    return result ? { name: instanceName, elem } : null
                 }))
 
-                results.forEach((res) => {
-                    if (res) {
-                        selectedInstances[res.name] = scope.instances[res.name]
-                        selectedResults.push(res.elem)
+                results.forEach((result) => {
+                    if (result) {
+                        selectedInstances[result.name] = scope.instances[result.name]
+                        selectedResults.push(result.elem)
                     }
                 })
 
@@ -162,7 +159,7 @@ export default class MultiRemote {
             return client
         }, prototype)
 
-        // @ts-ignore
+        // @ts-expect-error
         return element(this.sessionId, multiremoteHandler(scope.commandWrapper.bind(scope)))
     }
 
@@ -211,7 +208,6 @@ export default class MultiRemote {
             return result
         }
 
-        // @ts-ignore
         func.isMultiremote = true
         return wrapCommand(commandName, func)
     }
