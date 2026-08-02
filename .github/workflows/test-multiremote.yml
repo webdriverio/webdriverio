@@ -1,4 +1,4 @@
-name: Testrunner Multiremote Tests
+name: Testrunner Multi-remote Tests
 
 on:
   workflow_call:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   multiremote_check:
-    name: Testrunner Multiremote Tests (${{ matrix.os }})
+    name: Testrunner Multi-remote Tests (${{ matrix.os }})
     permissions:
       contents: read
     strategy:
@@ -29,7 +29,7 @@ jobs:
           path: .
           filename: webdriverio-build.zip
 
-      - name: Testrunner Multiremote Tests
+      - name: Testrunner Multi-remote Tests
         run: pnpm run test:e2e:multiremote
         shell: bash
 

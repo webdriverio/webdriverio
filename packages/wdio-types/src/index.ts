@@ -80,6 +80,9 @@ declare global {
         interface CucumberOpts { [key: string]: any }
         interface Config extends Options.Testrunner, Capabilities.WithRequestedTestrunnerCapabilities {}
         interface RemoteConfig extends Options.WebdriverIO, Capabilities.WithRequestedCapabilities {}
+        /**
+         * To rename to MultiRemoteConfig in v10 to follow camelCase naming convention and avoid confusion with MultiRemoteBrowser
+         */
         interface MultiremoteConfig extends Options.Testrunner, Capabilities.WithRequestedMultiremoteCapabilities {}
         interface HookFunctionExtension {}
         interface WDIOVSCodeServiceOptions {}
