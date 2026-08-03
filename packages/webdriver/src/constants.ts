@@ -100,7 +100,7 @@ export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
         type: 'number',
         default: DEFAULT_RESPONSE_TIMEOUT,
         validate: (timeout: number): boolean => {
-            if (timeout <= 0) {
+            if (!Number.isFinite(timeout) || timeout <= 0) {
                 throw new TypeError('The option "bidiResponseTimeout" needs to be a positive number')
             }
 
