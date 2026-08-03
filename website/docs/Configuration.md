@@ -119,6 +119,13 @@ Maximum count of request retries to the Selenium server.
 Type: `Number`<br />
 Default: `3`
 
+### bidiResponseTimeout
+
+Timeout (in ms) for a WebDriver Bidi command to receive a response from the browser. Increase this if you run commands, e.g. [`execute`](/docs/api/browser/execute), that legitimately take longer than the default to resolve, otherwise WebdriverIO gives up waiting before the browser is done.
+
+Type: `Number`<br />
+Default: `180000`
+
 ### agent
 
 Allows you to use a custom` http`/`https`/`http2` [agent](https://www.npmjs.com/package/got#agent) to make requests.
