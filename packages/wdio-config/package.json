@@ -39,7 +39,7 @@
     "@wdio/logger": "8.38.0",
     "@wdio/types": "8.41.0",
     "@wdio/utils": "8.46.0",
-    "decamelize": "^6.0.0",
+    "decamelize": "^6.0.1",
     "deepmerge-ts": "^5.0.0",
     "glob": "^10.2.2",
     "import-meta-resolve": "^4.0.0"
