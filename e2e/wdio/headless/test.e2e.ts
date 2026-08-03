@@ -210,6 +210,30 @@ describe('main suite 1', () => {
             { xOffset: 25, yOffset: 25 },
         ]
 
+        const setupMouseTracking = () => browser.execute(() => {
+            const w = window as unknown as { __mouseMoveCount: number, mouseMoveTo: { x: number, y: number } }
+            w.__mouseMoveCount = 0
+            w.mouseMoveTo = { x: 0, y: 0 }
+            document.onmousemove = (e) => {
+                w.mouseMoveTo = { x: e.clientX, y: e.clientY }
+                w.__mouseMoveCount++
+            }
+        })
+
+        const getMouseMoveCount = () => browser.execute(
+            () => (window as unknown as { __mouseMoveCount: number }).__mouseMoveCount
+        )
+
+        const waitForMousePosition = async (countBefore: number) => {
+            await browser.waitUntil(
+                async () => (await getMouseMoveCount()) > countBefore,
+                { timeout: 5000, timeoutMsg: 'expected a mousemove event to fire after moveTo()' }
+            )
+            return browser.execute(
+                () => (window as unknown as { mouseMoveTo: { x: number, y: number } }).mouseMoveTo
+            ) as unknown as Promise<{ x: number, y: number }>
+        }
+
         beforeEach(async () => {
             await browser.url('https://guinea-pig.webdriver.io/pointer.html')
             await browser.$('#parent').waitForExist()
@@ -227,25 +251,12 @@ describe('main suite 1', () => {
 
         inputs.forEach((input) => {
             it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
-                await browser.execute(() => {
-                    const mouse = { x:0, y:0 }
-                    document.onmousemove = (e) => {
-                        mouse.x = e.clientX
-                        mouse.y = e.clientY
-                    }
-                    //@ts-ignore
-                    document.mouseMoveTo = mouse
-                })
+                await setupMouseTracking()
                 await browser.$('#parent').moveTo()
-                const rectBefore = await browser.execute(
-                    // @ts-ignore
-                    () => document.mouseMoveTo
-                ) as {  x: number, y: number }
+                const rectBefore = await waitForMousePosition(0)
+                const countBeforeSecondMove = await getMouseMoveCount()
                 await browser.$('#parent').moveTo(input)
-                const rectAfter = await browser.execute(
-                    // @ts-ignore
-                    () => document.mouseMoveTo
-                ) as {  x: number, y: number }
+                const rectAfter = await waitForMousePosition(countBeforeSecondMove)
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
             })
@@ -282,25 +293,12 @@ describe('main suite 1', () => {
 
         inputs.forEach((input) => {
             it(`moves to position x,y inside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
-                await browser.execute(() => {
-                    const mouse = { x: 0, y: 0 }
-                    document.onmousemove = (e) => {
-                        mouse.x = e.clientX
-                        mouse.y = e.clientY
-                    }
-                    //@ts-ignore
-                    document.mouseMoveTo = mouse
-                })
+                await setupMouseTracking()
                 await browser.$('#parent').moveTo()
-                const rectBefore = await browser.execute(
-                    //@ts-ignore
-                    () => document.mouseMoveTo
-                ) as {  x: number, y: number }
+                const rectBefore = await waitForMousePosition(0)
+                const countBeforeSecondMove = await getMouseMoveCount()
                 await browser.$('#parent').moveTo(input)
-                const rectAfter = await browser.execute(
-                    //@ts-ignore
-                    () => document.mouseMoveTo
-                ) as {  x: number, y: number }
+                const rectAfter = await waitForMousePosition(countBeforeSecondMove)
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
             })

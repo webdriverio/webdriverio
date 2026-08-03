@@ -259,6 +259,84 @@ describe('webdriver request', () => {
             }))
         })
 
+        it('should log the request body as plain object', async () => {
+            const onLogData = vi.fn()
+            const body = { foo: 'bar' }
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', body, undefined, false, { onLogData })
+
+            await req.makeRequest(defaultOptions, 'foobar-123')
+            expect(onLogData).toHaveBeenNthCalledWith(1, body)
+        })
+
+        it('should not throw a RangeError when logging large request bodies', async () => {
+            const onLogData = vi.fn()
+            /**
+             * `Object.keys` throws `RangeError: Too many properties to enumerate` beyond
+             * 2^24 properties, so the payload has to exceed that to cover the regression
+             */
+            const body = { file: 'x'.repeat(16_777_217) }
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', body, undefined, false, { onLogData })
+            req['_libRequest'] = vi.fn().mockResolvedValue({ statusCode: 200, body: { value: null } })
+
+            await expect(req.makeRequest(defaultOptions, 'foobar-123')).resolves.toBeTruthy()
+            expect(onLogData).toHaveBeenCalledTimes(1)
+            expect((onLogData.mock.calls[0][0] as { file: string }).file).toHaveLength(16_777_217)
+        })
+
+        it('should log the transformed body if transformRequest modifies it', async () => {
+            const onLogData = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', { password: 'secret' }, undefined, false, { onLogData })
+            const transformRequest = vi.fn().mockImplementation((requestOptions) => ({
+                ...requestOptions,
+                body: JSON.stringify({ password: '**REDACTED**' })
+            }))
+
+            await req.makeRequest({ ...defaultOptions, transformRequest }, 'foobar-123')
+            expect(onLogData).toHaveBeenNthCalledWith(1, { password: '**REDACTED**' })
+        })
+
+        it('should log the serialised value of a body that defines toJSON', async () => {
+            const onLogData = vi.fn()
+            const credential = { token: 'hunter2', toJSON: () => '**REDACTED**' }
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', { args: [credential] }, undefined, false, { onLogData })
+
+            await req.makeRequest(defaultOptions, 'foobar-123')
+            expect(onLogData).toHaveBeenNthCalledWith(1, { args: ['**REDACTED**'] })
+        })
+
+        it('should log a non JSON body as is', async () => {
+            const onLogData = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', { foo: 'bar' }, undefined, false, { onLogData })
+            const transformRequest = vi.fn().mockImplementation((requestOptions) => ({
+                ...requestOptions,
+                body: '<compressed payload>'
+            }))
+            req['_libRequest'] = vi.fn().mockResolvedValue({ statusCode: 200, body: { value: null } })
+
+            await req.makeRequest({ ...defaultOptions, transformRequest }, 'foobar-123')
+            expect(onLogData).toHaveBeenNthCalledWith(1, '<compressed payload>')
+        })
+
+        it('should log a binary body as is', async () => {
+            const onLogData = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', { foo: 'bar' }, undefined, false, { onLogData })
+            const body = new Uint8Array([1, 2, 3])
+            const transformRequest = vi.fn().mockImplementation((requestOptions) => ({ ...requestOptions, body }))
+            req['_libRequest'] = vi.fn().mockResolvedValue({ statusCode: 200, body: { value: null } })
+
+            await req.makeRequest({ ...defaultOptions, transformRequest }, 'foobar-123')
+            expect(onLogData).toHaveBeenCalledTimes(1)
+            expect(onLogData.mock.calls[0][0]).toBe(body)
+        })
+
+        it('should not log an empty request body', async () => {
+            const onLogData = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', {}, undefined, false, { onLogData })
+
+            await req.makeRequest(defaultOptions, 'foobar-123')
+            expect(onLogData).not.toHaveBeenCalled()
+        })
+
         it('should short circuit if request throws a stale element exception', async () => {
             const onResponse = vi.fn()
             const onPerformance = vi.fn()

@@ -39,12 +39,12 @@
     "@types/estree": "^1.0.8",
     "eslint": "^9.39.2",
     "expect-webdriverio": "^5.6.5",
-    "globals": "^16.5.0",
+    "globals": "^17.7.0",
     "typescript-eslint": "^8.54.0"
   },
   "peerDependencies": {
-    "eslint": "^9.39.2",
-    "globals": "^16.5.0",
+    "eslint": "^9.39.2 || ^10.0.0",
+    "globals": "^16.5.0 || ^17.0.0",
     "typescript-eslint": "^8.54.0"
   },
   "peerDependenciesMeta": {

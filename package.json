@@ -139,6 +139,7 @@
       "form-data": "4.0.6",
       "protobufjs": "7.6.1",
       "fast-xml-parser": "5.5.6",
+      "@aws-sdk/xml-builder>fast-xml-parser": "5.2.5",
       "shell-quote": "1.8.4",
       "compressing": "1.10.5",
       "defu": "6.1.5",
@@ -158,7 +159,8 @@
       "lighthouse>ws": "7.5.11",
       "webdriver@9.16.2>ws": "8.21.0",
       "puppeteer-core>ws": "8.21.0",
-      "@browserstack/wdio-browserstack-service@2.0.2>@grpc/grpc-js": "1.13.5"
+      "conventional-changelog-writer@6.0.1>handlebars": "4.7.9",
+      "get-uri@6.0.5>basic-ftp": "5.3.1"
     }
   }
 }
