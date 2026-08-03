@@ -1,6 +1,7 @@
 import type { Options } from '@wdio/types'
 
 import { environment } from './environment.js'
+import { DEFAULT_RESPONSE_TIMEOUT } from './bidi/core.js'
 import type { RemoteConfig } from './types.js'
 
 export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
@@ -91,6 +92,20 @@ export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
     connectionRetryCount: {
         type: 'number',
         default: 3
+    },
+    /**
+     * Timeout for a WebDriver Bidi command to receive a response from the browser
+     */
+    bidiResponseTimeout: {
+        type: 'number',
+        default: DEFAULT_RESPONSE_TIMEOUT,
+        validate: (timeout: number): boolean => {
+            if (timeout <= 0) {
+                throw new TypeError('The option "bidiResponseTimeout" needs to be a positive number')
+            }
+
+            return true
+        }
     },
     /**
      * Override default agent
