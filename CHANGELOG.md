@@ -23,6 +23,42 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.30.1 (2026-08-03)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-types`, `webdriver`
+  * [#15461](https://github.com/webdriverio/webdriverio/pull/15461) fix(webdriver): make WebDriver Bidi response timeout configurable ([@mccmrunal](https://github.com/mccmrunal))
+* `webdriver`
+  * [#15221](https://github.com/webdriverio/webdriverio/pull/15221) fix(webdriver): guard Object.keys call on stringified request body ([@mnaoumov](https://github.com/mnaoumov))
+* Other
+  * [#15455](https://github.com/webdriverio/webdriverio/pull/15455) Fix/deps security overrides ([@mccmrunal](https://github.com/mccmrunal))
+  * [#15453](https://github.com/webdriverio/webdriverio/pull/15453) Fix/deps security overrides ([@mccmrunal](https://github.com/mccmrunal))
+* `wdio-junit-reporter`
+  * [#15452](https://github.com/webdriverio/webdriverio/pull/15452) fix(wdio-junit-reporter): report scenarios as testcases with cucumber Opts.scenarioLevelReporter ([@mccmrunal](https://github.com/mccmrunal))
+* `eslint-plugin-wdio`
+  * [#15441](https://github.com/webdriverio/webdriverio/pull/15441) fix: Update es-lint-plugin globals peer deps ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :memo: Documentation
+* [#15369](https://github.com/webdriverio/webdriverio/pull/15369) Added trace player devtools doc for webpage ([@vishnuv688](https://github.com/vishnuv688))
+
+#### :house: Internal
+* Other
+  * [#15448](https://github.com/webdriverio/webdriverio/pull/15448) chore(deps): bump preact from 10.26.9 to 10.29.8 ([@dependabot[bot]](https://github.com/apps/dependabot))
+  * [#15447](https://github.com/webdriverio/webdriverio/pull/15447) chore(deps): bump minimatch from 10.1.1 to 10.2.5 ([@dependabot[bot]](https://github.com/apps/dependabot))
+  * [#15451](https://github.com/webdriverio/webdriverio/pull/15451) fix(deps): pin fast-xml-parser to 5.2.5 on the AWS SDK path to fix docs deploy ([@AutomatedTester](https://github.com/AutomatedTester))
+* `wdio-browserstack-service`
+  * [#15404](https://github.com/webdriverio/webdriverio/pull/15404) chore(@wdio/browserstack-service): remove service from this repository ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 7
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- David Burns ([@AutomatedTester](https://github.com/AutomatedTester))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Michael Naumov ([@mnaoumov](https://github.com/mnaoumov))
+- Mykyta Chursin ([@unickq](https://github.com/unickq))
+- Vishnu Vardhan ([@vishnuv688](https://github.com/vishnuv688))
+
+
 ## v9.30.0 (2026-07-21)
 
 #### :eyeglasses: Spec Compliancy
