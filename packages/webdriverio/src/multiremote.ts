@@ -29,7 +29,7 @@ export default class MultiRemote {
     /**
      * modifier for multibrowser instance
      */
-    modifier (wrapperClient: { options: Options.WebdriverIO, commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance')[] }) {
+    modifier (wrapperClient: { options: Options.WebdriverIO, commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'select')[] }) {
         const propertiesObject: Record<string, PropertyDescriptor> = {}
         propertiesObject.commandList = { value: wrapperClient.commandList }
         propertiesObject.options = { value: wrapperClient.options }
@@ -167,9 +167,9 @@ export default class MultiRemote {
     /**
      * handle commands for multiremote instances
      */
-    commandWrapper (commandName: keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance') {
+    commandWrapper (commandName: keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'select') {
         const instances = this.instances
-        const self = this
+        const self: MultiRemote = this
 
         if (commandName === 'getInstance') {
             return function (this: Record<string, WebdriverIO.Browser | WebdriverIO.Element>, browserName: string) {
@@ -177,6 +177,20 @@ export default class MultiRemote {
                     throw new Error(`Multiremote object has no instance named "${browserName}"`)
                 }
                 return this[browserName]
+            }
+        } else if (commandName === 'select') {
+            return function (this: Record<string, WebdriverIO.Browser | WebdriverIO.Element>, instanceNames: string | string[]) {
+                const names = Array.isArray(instanceNames) ? instanceNames : [instanceNames]
+                const selectedInstances: Record<string, WebdriverIO.Browser> = {}
+                names.forEach((name) => {
+                    if (instances[name]) {
+                        selectedInstances[name] = instances[name]
+                    }
+                })
+
+                const newMultiRemote = new MultiRemote()
+                newMultiRemote.instances = selectedInstances
+                return newMultiRemote
             }
         }
 
