@@ -7,6 +7,7 @@ const defaultBrowser = {
     sessionId: '123',
     sessionSubscribe: vi.fn().mockResolvedValue({}),
     on: vi.fn(),
+    off: vi.fn(),
     scriptAddPreloadScript: vi.fn().mockResolvedValue({}),
     capabilities: {}
 }
@@ -35,8 +36,52 @@ describe('ShadowRootManager', () => {
         process.env.WDIO_UNIT_TESTS = wid
         expect(await manager.initialize()).toBe(true)
         expect(browser.sessionSubscribe).toBeCalledTimes(1)
-        expect(browser.on).toBeCalledTimes(4)
+        expect(browser.on).toBeCalledTimes(5)
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(1)
+
+        manager.removeListeners()
+        expect(browser.off).toHaveBeenCalledWith('browsingContext.navigationStarted', expect.any(Function))
+    })
+
+    it('clears cached shadow roots when a navigation starts', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const browser = {
+            ...defaultBrowser,
+            sessionId: 'navigation-session',
+            isBidi: true,
+            options: { capabilities: { webSocketUrl: './' } }
+        } as any
+        const manager = getShadowRootManager(browser)
+        process.env.WDIO_UNIT_TESTS = wid
+
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'f.C1.d.AAAA.e.100', value: {
+                    localName: 'custom-app',
+                    shadowRoot: {
+                        sharedId: 'f.C1.d.AAAA.e.101',
+                        value: { nodeType: 11, mode: 'open' }
+                    }
+                } },
+                { type: 'node', sharedId: 'f.C1.d.AAAA.e.1' },
+                { type: 'boolean', value: true },
+                { type: 'node', sharedId: 'f.C1.d.AAAA.e.1' }
+            ],
+            source: { context: 'navigation-context' }
+        } as any)
+        expect(await manager.getShadowElementsByContextId('navigation-context')).toContain('f.C1.d.AAAA.e.101')
+
+        const navigationStartedListener = browser.on.mock.calls.find(
+            ([event]: [string]) => event === 'browsingContext.navigationStarted'
+        )?.[1]
+        expect(navigationStartedListener).toEqual(expect.any(Function))
+        navigationStartedListener({ context: 'navigation-context' })
+
+        expect(await manager.getShadowElementsByContextId('navigation-context')).toEqual([])
     })
 
     it('handles a rejected scriptAddPreloadScript so it cannot leak as an unhandledRejection', async () => {

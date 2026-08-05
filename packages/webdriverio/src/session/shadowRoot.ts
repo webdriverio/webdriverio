@@ -29,6 +29,7 @@ export class ShadowRootManager extends SessionManager {
     #handleLogEntryListener = this.handleLogEntry.bind(this)
     #commandResultHandlerListener = this.#commandResultHandler.bind(this)
     #handleBidiCommandListener = this.#handleBidiCommand.bind(this)
+    #handleNavigationStartedListener = this.#handleNavigationStarted.bind(this)
 
     constructor(browser: WebdriverIO.Browser) {
         super(browser, ShadowRootManager.name)
@@ -51,6 +52,7 @@ export class ShadowRootManager extends SessionManager {
         this.#browser.on('log.entryAdded', this.#handleLogEntryListener)
         this.#browser.on('result', this.#commandResultHandlerListener)
         this.#browser.on('bidiCommand', this.#handleBidiCommandListener)
+        this.#browser.on('browsingContext.navigationStarted', this.#handleNavigationStartedListener)
         this.#browser.scriptAddPreloadScript({
             functionDeclaration: customElementWrapper.toString()
         }).catch((err: Error) => {
@@ -69,6 +71,7 @@ export class ShadowRootManager extends SessionManager {
         this.#browser.off('log.entryAdded', this.#handleLogEntryListener)
         this.#browser.off('result', this.#commandResultHandlerListener)
         this.#browser.off('bidiCommand', this.#handleBidiCommandListener)
+        this.#browser.off('browsingContext.navigationStarted', this.#handleNavigationStartedListener)
     }
 
     async initialize () {
@@ -83,8 +86,16 @@ export class ShadowRootManager extends SessionManager {
             return
         }
         const params = command.params as remote.BrowsingContextNavigateParameters
-        this.#shadowRoots.delete(params.context)
-        this.#currentDocumentIds.delete(params.context)
+        this.#clearContext(params.context)
+    }
+
+    #handleNavigationStarted({ context }: local.BrowsingContextNavigationInfo) {
+        this.#clearContext(context)
+    }
+
+    #clearContext(context: string) {
+        this.#shadowRoots.delete(context)
+        this.#currentDocumentIds.delete(context)
     }
 
     /**
