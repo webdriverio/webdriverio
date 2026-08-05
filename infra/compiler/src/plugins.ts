@@ -175,16 +175,27 @@ export function runBuildScript(absWorkingDir: string, pkg: PackageJson): Plugin 
         name: `build-${pkg.name || 'unknown'}`,
         setup(build) {
             build.onEnd(async () => {
-                const child = cp.spawn('pnpm',
-                    ['run', 'build'],
-                    { cwd: absWorkingDir, stdio: 'inherit' }
-                )
-                child.on('exit', (code) => {
-                    if (code !== 0) {
-                        console.log(`${l.name(pkg.name)} ❌ Failed run build script for ${pkg.name}`)
-                        return
-                    }
-                    console.log(`${l.name(pkg.name)} ✅ Successfully ran build script for ${pkg.name}: "${pkg.scripts?.build}"`)
+                await new Promise<void>((resolve) => {
+                    const child = cp.spawn(
+                        'pnpm',
+                        ['run', 'build'],
+                        { cwd: absWorkingDir, stdio: 'inherit', shell: process.platform === 'win32' }
+                    )
+                    child.on('exit', (code) => {
+                        if (code !== 0) {
+                            console.error(`${l.name(pkg.name)} ❌ Failed run build script for ${pkg.name}`)
+                            process.exitCode = 1
+                            resolve()
+                            return
+                        }
+                        console.log(`${l.name(pkg.name)} ✅ Successfully ran build script for ${pkg.name}: "${pkg.scripts?.build}"`)
+                        resolve()
+                    })
+                    child.on('error', (error) => {
+                        console.error(`${l.name(pkg.name)} ❌ Failed to spawn build script for ${pkg.name}:`, error)
+                        process.exitCode = 1
+                        resolve()
+                    })
                 })
             })
         }
