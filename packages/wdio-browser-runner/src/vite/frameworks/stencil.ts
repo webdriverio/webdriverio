@@ -118,15 +118,29 @@ async function stencilVitePlugin(rootDir: string): Promise<Plugin> {
             transformedCode = injectStencilImports(transformedCode, stencilImports)
 
             /**
-             * Ensure that CSS imports by Stencil have an `&inline` query parameter
+             * Ensure that CSS imports by Stencil have an `&inline` query parameter.
+             *
+             * Since Stencil 4.39, the compiler emits `static get style() { return
+             * ${styleVarName}(); }`, i.e. it calls the imported style as a function
+             * (see https://github.com/ionic-team/stencil/ ... the runtime only
+             * accepts the *result* of `Cstr.style` to be a string, see
+             * `@stencil/core/internal/client`'s `typeof Cstr.style === 'string'`
+             * check). We bypass Stencil's own CSS bundling and resolve the import
+             * via Vite's native `?inline` CSS import instead, which yields the raw
+             * CSS text as the default export rather than a function. To satisfy
+             * the generated `${styleVarName}()` call, we import the CSS text under
+             * a private name and re-export the original name as a function
+             * returning that text.
              */
             findStaticImports(transformedCode)
                 .filter((imp) => imp.specifier.includes('&encapsulation=shadow'))
                 .forEach((imp) => {
                     const cssPath = path.resolve(path.dirname(id), imp.specifier)
+                    const styleVarName = imp.imports.trim()
                     transformedCode = transformedCode.replace(
                         imp.code,
-                        `import ${imp.imports.trim()} from '/@fs/${cssPath}&inline';\n`
+                        `import __${styleVarName}Css from '/@fs/${cssPath}&inline';\n` +
+                        `const ${styleVarName} = () => __${styleVarName}Css;\n`
                     )
                 })
 
