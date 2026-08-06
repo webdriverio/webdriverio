@@ -11,8 +11,8 @@ import JasmineAdapterFactory, { JasmineAdapter } from '../src/index.js'
 vi.mock('jasmine')
 vi.mock('expect-webdriverio', () => ({
     expect: {},
-    matchers: new Map([['toHaveTitle', vi.fn()]]),
-    getConfig: vi.fn()
+    wdioCustomMatchers:  { toHaveTitle: vi.fn() },
+    getDefaultOptions: vi.fn(),
 }))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))

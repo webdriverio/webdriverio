@@ -1,5 +1,5 @@
 import type { Capabilities, Services, Workers } from '@wdio/types'
-import type { getConfig, matchers } from 'expect-webdriverio'
+import type { getDefaultOptions, wdioCustomMatchers } from 'expect-webdriverio'
 import type { AddCommandFunction, CustomCommandOptions, Instances } from 'webdriverio'
 
 import type BaseReporter from './reporter.js'
@@ -48,8 +48,8 @@ export interface TestFramework {
     hasTests (): boolean
     setupExpect?: (
         wdioExpect: ExpectWebdriverIO.Expect,
-        wdioMatchers: typeof matchers,
-        getExpectConfig: typeof getConfig
+        wdioMatchers: typeof wdioCustomMatchers,
+        getExpectConfig: typeof getDefaultOptions
     ) => void
 }
 
