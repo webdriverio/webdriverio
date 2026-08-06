@@ -121,26 +121,30 @@ async function stencilVitePlugin(rootDir: string): Promise<Plugin> {
              * Ensure that CSS imports by Stencil have an `&inline` query parameter.
              *
              * Since Stencil 4.39, the compiler emits `static get style() { return
-             * ${styleVarName}(); }`, i.e. it calls the imported style as a function
-             * (see https://github.com/ionic-team/stencil/ ... the runtime only
-             * accepts the *result* of `Cstr.style` to be a string, see
-             * `@stencil/core/internal/client`'s `typeof Cstr.style === 'string'`
-             * check). We bypass Stencil's own CSS bundling and resolve the import
-             * via Vite's native `?inline` CSS import instead, which yields the raw
-             * CSS text as the default export rather than a function. To satisfy
-             * the generated `${styleVarName}()` call, we import the CSS text under
-             * a private name and re-export the original name as a function
-             * returning that text.
+             * ${styleVarName}(); }`, i.e. it calls the imported style as a function,
+             * whereas older versions emit `return ${styleVarName};` and use the
+             * import directly (the runtime only requires the *result* of `Cstr.style`
+             * to be a string, see `@stencil/core/internal/client`'s
+             * `typeof Cstr.style === 'string'` check). We bypass Stencil's own CSS
+             * bundling and resolve the import via Vite's native `?inline` CSS import
+             * instead, which yields the raw CSS text as the default export rather
+             * than a function. We inspect the generated code to see which calling
+             * convention was actually emitted for this style var and only wrap the
+             * import in a function when the compiler calls it as one, so this keeps
+             * working across the whole declared `@stencil/core` `^4.20.0` range.
              */
             findStaticImports(transformedCode)
                 .filter((imp) => imp.specifier.includes('&encapsulation=shadow'))
                 .forEach((imp) => {
                     const cssPath = path.resolve(path.dirname(id), imp.specifier)
                     const styleVarName = imp.imports.trim()
+                    const isStyleCalledAsFunction = new RegExp(`return\\s+${styleVarName}\\s*\\(\\)`).test(transformedCode)
                     transformedCode = transformedCode.replace(
                         imp.code,
-                        `import __${styleVarName}Css from '/@fs/${cssPath}&inline';\n` +
-                        `const ${styleVarName} = () => __${styleVarName}Css;\n`
+                        isStyleCalledAsFunction
+                            ? `import __${styleVarName}Css from '/@fs/${cssPath}&inline';\n` +
+                              `const ${styleVarName} = () => __${styleVarName}Css;\n`
+                            : `import ${styleVarName} from '/@fs/${cssPath}&inline';\n`
                     )
                 })
 
