@@ -7,7 +7,7 @@ const defaultBrowser = {
     sessionId: '123',
     sessionSubscribe: vi.fn().mockResolvedValue({}),
     on: vi.fn(),
-    scriptAddPreloadScript: vi.fn(),
+    scriptAddPreloadScript: vi.fn().mockResolvedValue({}),
     capabilities: {}
 }
 
@@ -37,6 +37,44 @@ describe('ShadowRootManager', () => {
         expect(browser.sessionSubscribe).toBeCalledTimes(1)
         expect(browser.on).toBeCalledTimes(4)
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(1)
+    })
+
+    it('handles a rejected scriptAddPreloadScript so it cannot leak as an unhandledRejection', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        try {
+            /**
+             * Simulate a remote end that does not implement `script.addPreloadScript`
+             * (e.g. an Appium driver): the fire-and-forget call rejects, and the manager
+             * must attach a rejection handler so it never surfaces as an unhandledRejection
+             * after session setup.
+             */
+            const rejected = Promise.reject(new Error('unknown command'))
+            const realCatch = Promise.prototype.catch.bind(rejected)
+            const catchSpy = vi.fn((onRejected) => realCatch(onRejected))
+            ;(rejected as any).catch = catchSpy
+            /**
+             * safety net: always consume the rejection (via the real catch, which does not
+             * inflate the spy) so this test itself never leaks, even if the manager regresses
+             */
+            realCatch(() => {})
+
+            const browser = {
+                ...defaultBrowser,
+                isBidi: true,
+                scriptAddPreloadScript: vi.fn().mockReturnValue(rejected)
+            } as any
+            browser.sessionId = '567'
+            const manager = getShadowRootManager(browser)
+
+            // session setup still completes successfully
+            expect(await manager.initialize()).toBe(true)
+            expect(browser.scriptAddPreloadScript).toBeCalledTimes(1)
+            // the manager must register a rejection handler on the fire-and-forget call
+            expect(catchSpy).toHaveBeenCalledTimes(1)
+        } finally {
+            process.env.WDIO_UNIT_TESTS = wid
+        }
     })
 
     it('should not register event listeners if not in bidi mode', async () => {
