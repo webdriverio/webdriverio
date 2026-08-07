@@ -6,7 +6,7 @@ exports[`scrollIntoView test > desktop > scrolls by default the element to the t
     {
       "actions": [
         {
-          "deltaX": 15,
+          "deltaX": 0,
           "deltaY": 20,
           "duration": 0,
           "origin": {
@@ -56,7 +56,7 @@ exports[`scrollIntoView test > desktop > scrolls element when using boolean scro
     {
       "actions": [
         {
-          "deltaX": 15,
+          "deltaX": 0,
           "deltaY": 20,
           "duration": 0,
           "origin": {
@@ -81,7 +81,7 @@ exports[`scrollIntoView test > desktop > scrolls element when using boolean scro
     {
       "actions": [
         {
-          "deltaX": 15,
+          "deltaX": 0,
           "deltaY": -750,
           "duration": 0,
           "origin": {

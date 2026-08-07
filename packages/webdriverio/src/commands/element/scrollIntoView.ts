@@ -141,15 +141,28 @@ export async function scrollIntoView (
         }
         if (options && typeof options === 'object') {
             const { block, inline } = options
+            const isVisibleY = elemRect.y >= windowScrollY && elemRect.y + elemRect.height <= windowScrollY + viewport.height
+            const isVisibleX = elemRect.x >= windowScrollX && elemRect.x + elemRect.width <= windowScrollX + viewport.width
+
             if (block === 'nearest') {
-                const nearestYDistance = Math.min(...Object.values(targetByOption).map(delta => Math.abs(delta.y - windowScrollY)))
-                deltaY = Object.values(targetByOption).find(delta => Math.abs(delta.y - windowScrollY) === nearestYDistance)!.y
+                if (isVisibleY) {
+                    // already fully visible on this axis, don't move it
+                    deltaY = windowScrollY
+                } else {
+                    const nearestYDistance = Math.min(...Object.values(targetByOption).map(delta => Math.abs(delta.y - windowScrollY)))
+                    deltaY = Object.values(targetByOption).find(delta => Math.abs(delta.y - windowScrollY) === nearestYDistance)!.y
+                }
             } else if (block) {
                 deltaY = targetByOption[block].y
             }
             if (inline === 'nearest') {
-                const nearestXDistance = Math.min(...Object.values(targetByOption).map(delta => Math.abs(delta.x - windowScrollX)))
-                deltaX = Object.values(targetByOption).find(delta => Math.abs(delta.x - windowScrollX) === nearestXDistance)!.x
+                if (isVisibleX) {
+                    // already fully visible on this axis, don't move it
+                    deltaX = windowScrollX
+                } else {
+                    const nearestXDistance = Math.min(...Object.values(targetByOption).map(delta => Math.abs(delta.x - windowScrollX)))
+                    deltaX = Object.values(targetByOption).find(delta => Math.abs(delta.x - windowScrollX) === nearestXDistance)!.x
+                }
             } else if (inline) {
                 deltaX = targetByOption[inline].x
             }

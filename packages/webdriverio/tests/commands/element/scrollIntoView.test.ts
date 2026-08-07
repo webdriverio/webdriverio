@@ -51,6 +51,22 @@ describe('scrollIntoView test', () => {
             expect(JSON.parse(optionsCenter.body)).toMatchSnapshot()
         })
 
+        it('does not move an axis that is already fully visible when using "nearest"', async () => {
+            await elem.scrollIntoView({ block: 'start', inline: 'nearest' })
+            const optionsInline = vi.mocked(fetch).mock.calls.slice(-2, -1)[0][1] as any
+            const scrollActionInline = JSON.parse(optionsInline.body).actions[0].actions[0]
+            expect(scrollActionInline.deltaX).toBe(0)
+            expect(scrollActionInline.deltaY).toBe(20)
+
+            vi.mocked(fetch).mockClear()
+
+            await elem.scrollIntoView({ block: 'nearest', inline: 'start' })
+            const optionsBlock = vi.mocked(fetch).mock.calls.slice(-2, -1)[0][1] as any
+            const scrollActionBlock = JSON.parse(optionsBlock.body).actions[0].actions[0]
+            expect(scrollActionBlock.deltaY).toBe(0)
+            expect(scrollActionBlock.deltaX).toBe(15)
+        })
+
         it('falls back using Web API if scroll action fails', async () => {
             // @ts-expect-error mock feature
             vi.mocked(fetch).customResponseFor(/\/actions/, { error: 'invalid parameter' })
