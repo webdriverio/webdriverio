@@ -27,13 +27,6 @@ describe('scrollIntoView test', () => {
             })
             // @ts-expect-error
             elem = await browser.$('#foo')
-            vi.spyOn(browser, 'getWindowSize').mockResolvedValue({ height: 800, width: 600 })
-            vi.spyOn(browser, 'getElementRect').mockImplementation(() =>
-                elem.getElementRect(elem.elementId).catch(() =>
-                    // there is a test forcing `elementId` to be invalid to check the fallback to the web API
-                    ({ x: 15, y: 20, height: 30, width: 50 })
-                )
-            )
         })
 
         it('scrolls by default the element to the top', async () => {
@@ -70,14 +63,18 @@ describe('scrollIntoView test', () => {
         })
 
         it('rounds float delta values', async () => {
-            vi.spyOn(browser, 'getWindowSize').mockResolvedValue({ height: 800.123, width: 600.321 })
-            vi.spyOn(browser, 'getElementRect').mockResolvedValue(
-                ({ x: 15.34, y: 20.23, height: 30.2344, width: 50.543 }))
+            vi.spyOn(browser, 'execute').mockResolvedValueOnce({
+                elemRect: { x: 15.34, y: 20.23, height: 30.2344, width: 50.543 },
+                viewport: { width: 600.321, height: 800.123 },
+                scroll: { x: 0, y: 0 }
+            })
             await elem.scrollIntoView({ block: 'center', inline: 'center' })
             const optionsCenter = vi.mocked(fetch).mock.calls.slice(-2, -1)[0][1] as any
-            expect(JSON.parse(optionsCenter.body).actions[0].actions[0].deltaX).toBe(0)
-            expect(JSON.parse(optionsCenter.body).actions[0].actions[0].deltaY).toBe(0)
-            expect(JSON.parse(optionsCenter.body).actions[0].actions[0].y).toBe(-385)
+            const scrollAction = JSON.parse(optionsCenter.body).actions[0].actions[0]
+            expect(scrollAction.deltaX).toBe(-260)
+            expect(scrollAction.deltaY).toBe(-365)
+            expect(scrollAction.x).toBe(0)
+            expect(scrollAction.y).toBe(0)
         })
 
     })
