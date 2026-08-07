@@ -1635,9 +1635,6 @@ importers:
       '@wdio/cli':
         specifier: workspace:*
         version: link:../packages/wdio-cli
-      '@wdio/globals':
-        specifier: workspace:*
-        version: link:../packages/wdio-globals
       '@wdio/local-runner':
         specifier: workspace:*
         version: link:../packages/wdio-local-runner
@@ -1649,7 +1646,7 @@ importers:
         version: link:../packages/wdio-spec-reporter
       expect-webdriverio:
         specifier: ^6.0.1
-        version: 6.0.1(@wdio/globals@packages+wdio-globals)(@wdio/logger@9.29.1)(webdriverio@packages+webdriverio)
+        version: 6.0.1(@wdio/globals@9.29.1)(@wdio/logger@9.29.1)(webdriverio@packages+webdriverio)
       webdriverio:
         specifier: workspace:*
         version: link:../packages/webdriverio
@@ -21963,6 +21960,11 @@ snapshots:
       expect-webdriverio: 6.0.1(@wdio/globals@9.29.1)(@wdio/logger@9.29.1)(webdriverio@9.30.1(puppeteer-core@24.34.0))
       webdriverio: 9.30.1(puppeteer-core@24.34.0)
 
+  '@wdio/globals@9.29.1(expect-webdriverio@6.0.1)(webdriverio@packages+webdriverio)':
+    dependencies:
+      expect-webdriverio: 6.0.1(@wdio/globals@9.29.1)(@wdio/logger@9.29.1)(webdriverio@packages+webdriverio)
+      webdriverio: link:packages/webdriverio
+
   '@wdio/logger@9.16.2':
     dependencies:
       chalk: 5.6.2
@@ -24819,6 +24821,16 @@ snapshots:
       expect: 30.4.1
       jest-matcher-utils: 30.4.1
       webdriverio: 9.30.1(puppeteer-core@24.34.0)
+
+  expect-webdriverio@6.0.1(@wdio/globals@9.29.1)(@wdio/logger@9.29.1)(webdriverio@packages+webdriverio):
+    dependencies:
+      '@vitest/snapshot': 4.1.10
+      '@wdio/globals': 9.29.1(expect-webdriverio@6.0.1)(webdriverio@packages+webdriverio)
+      '@wdio/logger': 9.29.1
+      deep-eql: 5.0.2
+      expect: 30.4.1
+      jest-matcher-utils: 30.4.1
+      webdriverio: link:packages/webdriverio
 
   expect-webdriverio@6.0.1(@wdio/globals@9.29.1)(@wdio/logger@packages+wdio-logger)(webdriverio@9.30.1(puppeteer-core@24.34.0)):
     dependencies:

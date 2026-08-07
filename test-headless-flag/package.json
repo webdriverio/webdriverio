@@ -14,7 +14,6 @@
     "@wdio/mocha-framework": "workspace:*",
     "@wdio/spec-reporter": "workspace:*",
     "expect-webdriverio": "^6.0.1",
-    "webdriverio": "workspace:*",
-    "@wdio/globals": "workspace:*"
+    "webdriverio": "workspace:*"
   }
 }

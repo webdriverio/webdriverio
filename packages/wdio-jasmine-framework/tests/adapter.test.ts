@@ -72,6 +72,11 @@ test('comes with a factory', async () => {
         wdioReporter
     )
     instance.setupExpect(expect as any, wdioCustomMatchers, vi.fn())
+
+    // verify the WDIO matcher bridge fired
+    const asyncMatchersArg = vi.mocked(jasmine.addAsyncMatchers).mock.calls[0]?.[0]
+    expect(asyncMatchersArg).toHaveProperty('toHaveTitle')
+
     const result = await instance.run()
     expect(result).toBe(0)
 
