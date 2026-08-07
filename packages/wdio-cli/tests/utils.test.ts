@@ -313,6 +313,15 @@ describe('getCapabilities', () => {
         expect(autoCompileMock).toBeCalledTimes(1)
     })
 
+    it('should support TypeScript config files', async () => {
+        const getCapabilitiesMock = vi.spyOn(ConfigParser.prototype, 'getCapabilities')
+        getCapabilitiesMock.mockReturnValue([
+            { browserName: 'chrome' }
+        ] as WebdriverIO.Capabilities)
+        expect(await getCapabilities({ option: '/path/to/config.ts', capabilities: 0 } as any))
+            .toMatchSnapshot()
+    })
+
     it('should return driver with capabilities for multiremote config', async () => {
         const getCapabilitiesMock = vi.spyOn(ConfigParser.prototype, 'getCapabilities')
         getCapabilitiesMock.mockReturnValue({

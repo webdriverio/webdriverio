@@ -174,6 +174,17 @@ export async function getCapabilities(arg: ReplCommandArguments) {
     } else if (/ios/.test(arg.option)) {
         return { capabilities: { browserName: 'Safari', ...IOS_CONFIG, ...optionalCapabilites } }
     } else if (/(js|ts)$/.test(arg.option)) {
+        /**
+         * Load tsx before attempting to read the config file if it's TypeScript.
+         * This prevents "Unknown file extension" errors when parsing the config.
+         */
+        const TS_FILE_EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']
+        if (TS_FILE_EXTENSIONS.some((ext) => arg.option.endsWith(ext))) {
+            const { resolve } = await import('import-meta-resolve')
+            const tsxPath = resolve('tsx', import.meta.url)
+            await import(tsxPath)
+        }
+
         const config = new ConfigParser(arg.option)
         try {
             await config.initialize()
