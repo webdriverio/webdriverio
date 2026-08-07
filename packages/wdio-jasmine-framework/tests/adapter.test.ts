@@ -7,6 +7,7 @@ import { jasmine } from 'jasmine'
 import type { EventEmitter } from 'node:events'
 
 import JasmineAdapterFactory, { JasmineAdapter } from '../src/index.js'
+import { wdioCustomMatchers } from 'expect-webdriverio'
 
 vi.mock('jasmine')
 vi.mock('expect-webdriverio', () => ({
@@ -70,7 +71,7 @@ test('comes with a factory', async () => {
         { browserName: 'chrome' },
         wdioReporter
     )
-    instance.setupExpect(expect as any, new Map(), vi.fn())
+    instance.setupExpect(expect as any, wdioCustomMatchers, vi.fn())
     const result = await instance.run()
     expect(result).toBe(0)
 
