@@ -62,6 +62,16 @@ describe('scrollIntoView test', () => {
                 .toBe(true)
         })
 
+        it('skips the wheel action when the element is already positioned as requested', async () => {
+            vi.spyOn(browser, 'execute').mockResolvedValueOnce({
+                elemRect: { x: 0, y: 0, height: 10, width: 10 },
+                viewport: { width: 100, height: 100 },
+                scroll: { x: 0, y: 0 }
+            })
+            await elem.scrollIntoView({ block: 'start', inline: 'start' })
+            expect(vi.mocked(fetch).mock.calls).toHaveLength(0)
+        })
+
         it('rounds float delta values', async () => {
             vi.spyOn(browser, 'execute').mockResolvedValueOnce({
                 elemRect: { x: 15.34, y: 20.23, height: 30.2344, width: 50.543 },

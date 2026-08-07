@@ -159,6 +159,11 @@ export async function scrollIntoView (
         deltaX = Math.round(deltaX - windowScrollX)
         deltaY = Math.round(deltaY - windowScrollY)
 
+        // element is already positioned as requested, nothing to scroll
+        if (deltaX === 0 && deltaY === 0) {
+            return
+        }
+
         await browser.action('wheel')
             .scroll({
                 duration: 0,
