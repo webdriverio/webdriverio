@@ -258,7 +258,21 @@ export default class Runner extends EventEmitter {
             const framework = (await initializePlugin(config.framework as string, 'framework')).default as unknown as TestFramework
             const frameworkInstance = await framework.init(cid, config, specs, capabilities, reporter)
             if (frameworkInstance.setupExpect) {
-                await frameworkInstance.setupExpect(expect, wdioCustomMatchers, getDefaultOptions)
+                /**
+                 * Backward compatibility, to remove in v10.
+                 * Build a shim that supports both the deprecated Map.entries() API and the
+                 * new Object.entries() API. `entries` is non-enumerable so Object.entries()
+                 * callers only see the actual matchers.
+                 */
+                const matchersShim = Object.defineProperty(
+                    { ...wdioCustomMatchers },
+                    'entries',
+                    {
+                        enumerable: false,
+                        value: () => Object.entries(wdioCustomMatchers)[Symbol.iterator]()
+                    }
+                ) as typeof wdioCustomMatchers
+                await frameworkInstance.setupExpect(expect, matchersShim, getDefaultOptions)
             }
             return frameworkInstance
         }
