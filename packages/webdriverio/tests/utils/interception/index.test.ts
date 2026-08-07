@@ -363,6 +363,104 @@ describe('WebDriverInterception', () => {
         expect(mock.getBinaryResponse('123')).toBeNull()
     })
 
+    it('should record matching requests that the driver reports as not blocked (regression test)', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        // subresource loaded while a navigation is in progress: the driver emits
+        // responseStarted with isBlocked: false even though the URL matches the mock
+        browser.emit('network.responseStarted', {
+            isBlocked: false,
+            request: {
+                request: 'req-123',
+                url: 'http://test.com/api',
+                method: 'GET',
+                headers: []
+            }
+        })
+
+        expect(mock.calls.length).toBe(1)
+        // non-blocked requests are not paused, so no networkProvideResponse should be sent
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+    })
+
+    it('should not provide a response for a non-blocked request that carries the intercept id (regression test)', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        // even when the driver reports the intercept id for a non-blocked request,
+        // calling networkProvideResponse would fail at the protocol layer, so the
+        // mock must only record the request
+        browser.emit('network.responseStarted', {
+            isBlocked: false,
+            intercepts: ['mock-id'],
+            request: {
+                request: 'req-123',
+                url: 'http://test.com/api',
+                method: 'GET',
+                headers: []
+            }
+        })
+
+        expect(mock.calls.length).toBe(1)
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+    })
+
+    it('should not record requests that do not match the mock pattern', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        browser.emit('network.responseStarted', {
+            isBlocked: false,
+            request: {
+                request: 'req-123',
+                url: 'http://other.com/api',
+                method: 'GET',
+                headers: []
+            }
+        })
+
+        expect(mock.calls.length).toBe(0)
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+    })
+
+    it('should resolve waitForResponse for a matching response reported as not blocked (regression test)', async () => {
+        const browser = getResponseCollectionBrowserMock({
+            waitforTimeout: 5000,
+            waitforInterval: 100
+        }, {
+            call: vi.fn().mockImplementation((fn) => fn())
+        })
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        // subresource loaded while navigating: isBlocked is false on both events
+        browser.emit('network.responseStarted', {
+            isBlocked: false,
+            request: {
+                request: 'req-123',
+                url: 'http://test.com/api',
+                method: 'GET',
+                headers: []
+            }
+        })
+        browser.emit('network.responseCompleted', {
+            isBlocked: false,
+            request: {
+                request: 'req-123',
+                url: 'http://test.com/api',
+                method: 'GET',
+                headers: []
+            },
+            response: {
+                status: 200,
+                headers: []
+            }
+        })
+
+        await waitForAsyncHandlers()
+        await expect(mock.waitForResponse()).resolves.toBeDefined()
+    })
+
     it('handles non-binary response correctly', async () => {
         const browser = getResponseCollectionBrowserMock()
 
