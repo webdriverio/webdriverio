@@ -313,13 +313,13 @@ describe('getCapabilities', () => {
         expect(autoCompileMock).toBeCalledTimes(1)
     })
 
-    it('should support TypeScript config files', async () => {
+    it.each(['.ts', '.tsx', '.mts', '.cts'])('should support %s TypeScript config files', async (ext) => {
         const getCapabilitiesMock = vi.spyOn(ConfigParser.prototype, 'getCapabilities')
         getCapabilitiesMock.mockReturnValue([
             { browserName: 'chrome' }
         ] as WebdriverIO.Capabilities)
-        expect(await getCapabilities({ option: '/path/to/config.ts', capabilities: 0 } as any))
-            .toMatchSnapshot()
+        expect(await getCapabilities({ option: `/path/to/config${ext}`, capabilities: 0 } as any))
+            .toEqual({ capabilities: { browserName: 'chrome' } })
     })
 
     it('should return driver with capabilities for multiremote config', async () => {

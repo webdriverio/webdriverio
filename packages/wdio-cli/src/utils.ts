@@ -173,7 +173,7 @@ export async function getCapabilities(arg: ReplCommandArguments) {
         return { capabilities: { browserName: 'Chrome', ...ANDROID_CONFIG, ...optionalCapabilites } }
     } else if (/ios/.test(arg.option)) {
         return { capabilities: { browserName: 'Safari', ...IOS_CONFIG, ...optionalCapabilites } }
-    } else if (/(js|ts)$/.test(arg.option)) {
+    } else if (/\.(m|c)?[jt]sx?$/.test(arg.option)) {
         /**
          * Load tsx before attempting to read the config file if it's TypeScript.
          * This prevents "Unknown file extension" errors when parsing the config.
