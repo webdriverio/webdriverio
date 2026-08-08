@@ -252,6 +252,35 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     if (BrowserstackCLI.getInstance().isRunning()) {
                         await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.POST, { browser: this._browser, hubUrl: this._config.hostname })
                         this._insightsHandler.setGitConfigPath()
+                        /**
+                         * SDK-6277: register the command/result listeners in the CLI/binary flow too,
+                         * so the user's saveScreenshot()/takeScreenshot() command result is captured and
+                         * forwarded for screenshot-on-failure. Without this the screenshot is dropped in v8.
+                         * (browserCommand routes the screenshot over gRPC in CLI mode — see insights-handler.)
+                         */
+                        // 'client:beforeCommand' only records the command synchronously — no await needed.
+                        this._browser.on('command', (command) => {
+                            if (shouldProcessEventForTesthub('')) {
+                                this._insightsHandler?.browserCommand(
+                                    'client:beforeCommand',
+                                    Object.assign(command, { sessionId }),
+                                    this._currentTest
+                                )
+                            }
+                        })
+                        this._browser.on('result', (result) => {
+                            if (shouldProcessEventForTesthub('')) {
+                                // 'client:afterCommand' is async in CLI mode (forwards the screenshot to the
+                                // binary over gRPC). Handle the returned promise so a failed upload is logged
+                                // rather than dropped. (o11yClassErrorHandler also routes method errors to
+                                // processError; this .catch makes the call-site handling explicit.)
+                                this._insightsHandler?.browserCommand(
+                                    'client:afterCommand',
+                                    Object.assign(result, { sessionId }),
+                                    this._currentTest
+                                )?.catch((err: unknown) => BStackLogger.debug(`Error forwarding afterCommand in CLI mode: ${err}`))
+                            }
+                        })
                         PerformanceTester.end(PERFORMANCE_SDK_EVENTS.DRIVER_EVENT.PRE_INITIALIZE)
                         return
                     }

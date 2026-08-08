@@ -199,12 +199,14 @@ export default class WdioMochaTestFramework extends TestFramework {
      */
     loadLogEntries(instance: TestFrameworkInstance, testFrameworkState: State, hookState: State, logEntry: Record<string, unknown>) {
         const logRecord: Record<string, unknown> = {}
-        const { level, message, timestamp } = logEntry
+        const { level, message, timestamp, kind } = logEntry
 
         if (CLIUtils.matchHookRegex(instance.getCurrentTestState().toString())) {
             logRecord[TestFrameworkConstants.KEY_HOOK_ID] = TestFramework.getState(instance, TestFrameworkConstants.KEY_HOOK_ID)
         }
-        logRecord.kind = TestFrameworkConstants.KIND_LOG
+        // SDK-6277: honor the incoming log kind (e.g. TEST_SCREENSHOT) so screenshots route correctly
+        // on the binary side; default to TEST_LOG for ordinary stdout/console logs.
+        logRecord.kind = (kind as string) ?? TestFrameworkConstants.KIND_LOG
         logRecord.message = Buffer.from(message as string)
         logRecord.level = level
         logRecord.timestamp = timestamp

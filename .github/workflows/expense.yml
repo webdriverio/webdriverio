@@ -36,16 +36,10 @@ on:
 
 jobs:
   authorize:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: octokit/request-action@v2.1.9
-        with:
-          route: GET /orgs/:organisation/teams/:team/memberships/${{ github.actor }}
-          team: technical-steering-committee
-          organisation: webdriverio
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-  release:
+    name: Authorize Actor
+    uses: ./.github/workflows/authorize-committee.yml
+    secrets: inherit
+  expense:
     permissions:
       contents: write
       id-token: write
