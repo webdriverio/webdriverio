@@ -9,11 +9,12 @@ import type { Suite } from 'mocha'
 // Helpers to build mock Mocha suite trees
 // ---------------------------------------------------------------------------
 
-function mockTest(title: string, fn?: Function): any {
+function mockTest(title: string, fn?: Function, pending?: boolean): any {
     return {
         title,
         fullTitle: () => title,
-        fn: fn || (() => {}),
+        fn: pending ? undefined : (fn || (() => {})),
+        pending: pending || false,
         file: '/foo/bar.test.js'
     }
 }
@@ -45,6 +46,7 @@ function mockBrowser(opts?: { contexts?: string[]; store?: AsyncLocalStorage<str
     return {
         isBidi: true,
         __parallelContextStore: store,
+        __parallelContexts: new Set<string>(),
         __bidiCommandsEnabled: true,
         browsingContextCreate: vi.fn().mockImplementation(async () => {
             const ctx = contexts[idx++] || `ctx-${idx}`
@@ -141,6 +143,41 @@ describe('collectTests', () => {
         expect(collected[0]._afterEach).toHaveLength(1)
         expect(collected[0]._afterEach[0]).toBe(grandparentAfter[0])
     })
+
+    test('merges suite-level beforeAll/afterAll hooks through nesting', () => {
+        const parentBeforeAll = [() => 'parent beforeAll']
+        const parentAfterAll = [() => 'parent afterAll']
+        const childBeforeAll = [() => 'child beforeAll']
+        const childAfterAll = [() => 'child afterAll']
+
+        const childSuite = mockSuite('child', {
+            tests: [mockTest('nested test')],
+            _beforeAll: childBeforeAll,
+            _afterAll: childAfterAll,
+        })
+        const rootSuite = mockSuite('parent', {
+            suites: [childSuite],
+            _beforeAll: parentBeforeAll,
+            _afterAll: parentAfterAll,
+        })
+
+        const collected = collectTests(rootSuite)
+        expect(collected).toHaveLength(1)
+        const test = collected[0]
+
+        // beforeAll outermost-first, afterAll innermost-first (Mocha order)
+        expect(test._beforeAll).toEqual([parentBeforeAll[0], childBeforeAll[0]])
+        expect(test._afterAll).toEqual([childAfterAll[0], parentAfterAll[0]])
+    })
+
+    test('marks static pending tests (no fn) as pending', () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('pending test', undefined, true)],
+        })
+
+        const collected = collectTests(suite)
+        expect(collected[0].pending).toBe(true)
+    })
 })
 
 // ===========================================================================
@@ -231,19 +268,25 @@ describe('runParallelTests', () => {
 
 describe('runParallelTests — suite hooks', () => {
     let reporter: EventEmitter
+    let emittedEvents: any[]
 
     beforeEach(() => {
         reporter = new EventEmitter()
-        reporter.on('test:start', () => {})
-        reporter.on('test:pass', () => {})
-        reporter.on('test:fail', () => {})
-        reporter.on('test:end', () => {})
+        emittedEvents = []
+        const capture = (event: string, payload: any) => {
+            emittedEvents.push({ event, payload })
+        }
+        reporter.on('test:start', (p) => capture('test:start', p))
+        reporter.on('test:pass', (p) => capture('test:pass', p))
+        reporter.on('test:fail', (p) => capture('test:fail', p))
+        reporter.on('test:end', (p) => capture('test:end', p))
     })
 
-    test('calls suite-level _beforeAll and _afterAll [currently BROKEN]', async () => {
-        const beforeAllFn = vi.fn().mockResolvedValue(undefined)
-        const afterAllFn = vi.fn().mockResolvedValue(undefined)
-        const testFn = vi.fn().mockResolvedValue(undefined)
+    test('calls suite-level _beforeAll and _afterAll once per test', async () => {
+        const callOrder: string[] = []
+        const beforeAllFn = vi.fn().mockImplementation(() => { callOrder.push('beforeAll') })
+        const afterAllFn = vi.fn().mockImplementation(() => { callOrder.push('afterAll') })
+        const testFn = vi.fn().mockImplementation(() => { callOrder.push('test') })
 
         const suite = mockSuite('root', {
             tests: [mockTest('test1', testFn)],
@@ -254,15 +297,18 @@ describe('runParallelTests — suite hooks', () => {
         const browser = mockBrowser({ contexts: ['ctx-d'] })
         await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
 
-        // BUG #4: suite-level beforeAll / afterAll are never called
+        // Suite hooks re-run per test (inside the test's browsing context)
         expect(beforeAllFn).toBeCalledTimes(1)
         expect(afterAllFn).toBeCalledTimes(1)
+        // Strict per-test order with a single test
+        expect(callOrder).toEqual(['beforeAll', 'test', 'afterAll'])
     })
 
-    test('runs _beforeAll before all tests and _afterAll after all tests [currently BROKEN]', async () => {
+    test('runs suite hooks once per test with per-test ordering', async () => {
         const callOrder: string[] = []
-        const beforeAllFn = vi.fn().mockImplementation(() => { callOrder.push('beforeAll') })
-        const afterAllFn = vi.fn().mockImplementation(() => { callOrder.push('afterAll') })
+        let hookIdx = 0
+        const beforeAllFn = vi.fn().mockImplementation(() => { callOrder.push(`beforeAll${hookIdx}`) })
+        const afterAllFn = vi.fn().mockImplementation(() => { callOrder.push(`afterAll${hookIdx++}`) })
         const test1Fn = vi.fn().mockImplementation(() => { callOrder.push('test1') })
         const test2Fn = vi.fn().mockImplementation(() => { callOrder.push('test2') })
 
@@ -275,15 +321,37 @@ describe('runParallelTests — suite hooks', () => {
         const browser = mockBrowser({ contexts: ['ctx-e', 'ctx-f'] })
         await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
 
-        // BUG #4: These hooks are never called. Once fixed, verify order.
-        expect(beforeAllFn).toBeCalledTimes(1)
+        // 2 tests → hooks run twice each (once per test)
+        expect(beforeAllFn).toBeCalledTimes(2)
+        expect(afterAllFn).toBeCalledTimes(2)
+        // Each test's chain keeps its internal order even though the two
+        // tests execute concurrently: beforeAllN → testN → afterAllN
+        expect(callOrder.indexOf('beforeAll0')).toBeLessThan(callOrder.indexOf('test1'))
+        expect(callOrder.indexOf('test1')).toBeLessThan(callOrder.indexOf('afterAll0'))
+        expect(callOrder.indexOf('beforeAll1')).toBeLessThan(callOrder.indexOf('test2'))
+        expect(callOrder.indexOf('test2')).toBeLessThan(callOrder.indexOf('afterAll1'))
+    })
+
+    test('runs afterAll even when beforeAll fails', async () => {
+        const beforeAllFn = vi.fn().mockRejectedValue(new Error('beforeAll failed'))
+        const afterAllFn = vi.fn()
+        const testFn = vi.fn()
+
+        const suite = mockSuite('root', {
+            tests: [mockTest('test1', testFn)],
+            _beforeAll: [beforeAllFn],
+            _afterAll: [afterAllFn]
+        })
+
+        const browser = mockBrowser({ contexts: ['ctx-g'] })
+        const failures = await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
+
+        expect(failures).toBe(1)
+        expect(testFn).not.toBeCalled()
         expect(afterAllFn).toBeCalledTimes(1)
-        // beforeAll must come before any test
-        expect(callOrder.indexOf('beforeAll')).toBeLessThan(callOrder.indexOf('test1'))
-        expect(callOrder.indexOf('beforeAll')).toBeLessThan(callOrder.indexOf('test2'))
-        // afterAll must come after all tests
-        expect(callOrder.indexOf('afterAll')).toBeGreaterThan(callOrder.indexOf('test1'))
-        expect(callOrder.indexOf('afterAll')).toBeGreaterThan(callOrder.indexOf('test2'))
+        // Test never started — no test:start, but a test:fail is emitted
+        const starts = emittedEvents.filter((e) => e.event === 'test:start')
+        expect(starts.length).toBe(0)
     })
 
     test('batches tests respecting maxParallelContexts with fresh contexts per batch', async () => {
@@ -303,5 +371,128 @@ describe('runParallelTests — suite hooks', () => {
 
         expect(browser.browsingContextCreate).toHaveBeenCalledTimes(6)
         expect(browser.browsingContextClose).toHaveBeenCalledTimes(6)
+        // All contexts registered at allocate time are unregistered after close
+        expect((browser as unknown as { __parallelContexts: Set<string> }).__parallelContexts.size).toBe(0)
+    })
+})
+
+// ===========================================================================
+// TESTS: hook events, durations, skip/pending semantics
+// ===========================================================================
+
+describe('runParallelTests — hook events and pending', () => {
+    let reporter: EventEmitter
+    let emittedEvents: any[]
+
+    beforeEach(() => {
+        reporter = new EventEmitter()
+        emittedEvents = []
+        const capture = (event: string, payload: any) => {
+            emittedEvents.push({ event, payload })
+        }
+        for (const ev of ['test:start', 'test:pass', 'test:fail', 'test:pending', 'test:end', 'hook:start', 'hook:end']) {
+            reporter.on(ev, (p) => capture(ev, p))
+        }
+    })
+
+    test('emits paired hook:start/hook:end with shared uid and per-hook duration', async () => {
+        const beforeEachFn = vi.fn().mockResolvedValue(undefined)
+        const suite = mockSuite('root', {
+            tests: [mockTest('t1')],
+            _beforeEach: [beforeEachFn],
+        })
+        const browser = mockBrowser({ contexts: ['ctx-0'] })
+        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
+
+        const starts = emittedEvents.filter((e) => e.event === 'hook:start')
+        const ends = emittedEvents.filter((e) => e.event === 'hook:end')
+        expect(starts.length).toBe(1)
+        expect(ends.length).toBe(1)
+        // start/end share a uid, anchored to the test uid (no cross-test collision)
+        expect(starts[0].payload.uid).toBe(ends[0].payload.uid)
+        expect(starts[0].payload.uid).toContain('test-0-0-0')
+        expect(starts[0].payload.title).toBe('before each hook for "root"')
+        expect(ends[0].payload.duration).toBeGreaterThanOrEqual(0)
+        expect(ends[0].payload.state).toBe('pass')
+    })
+
+    test('reported test duration excludes hook time', async () => {
+        const beforeEachFn = vi.fn().mockImplementation(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 30))
+        })
+        const suite = mockSuite('root', {
+            tests: [mockTest('slow hooks')],
+            _beforeEach: [beforeEachFn],
+        })
+        const browser = mockBrowser({ contexts: ['ctx-0'] })
+        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
+
+        const pass = emittedEvents.find((e) => e.event === 'test:pass')
+        expect(pass).toBeDefined()
+        // beforeEach took ≥30ms but the reported duration is fn-only
+        expect(pass.payload.duration).toBeLessThan(20)
+    })
+
+    test('this.skip() in a test emits test:pending, not a failure', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('skipped', function (this: any) { this.skip() })],
+        })
+        const browser = mockBrowser({ contexts: ['ctx-0'] })
+        const failures = await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
+
+        expect(failures).toBe(0)
+        const pending = emittedEvents.filter((e) => e.event === 'test:pending')
+        const ends = emittedEvents.filter((e) => e.event === 'test:end')
+        expect(pending.length).toBe(1)
+        expect(ends.length).toBe(1)
+        expect(ends[0].payload.pending).toBe(true)
+        expect(emittedEvents.find((e) => e.event === 'test:fail')).toBeUndefined()
+    })
+
+    test('this.timeout() fails loudly instead of silently no-op', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('timeout', function (this: any) { this.timeout(1000) })],
+        })
+        const browser = mockBrowser({ contexts: ['ctx-0'] })
+        const failures = await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
+
+        expect(failures).toBe(1)
+        const fail = emittedEvents.find((e) => e.event === 'test:fail')
+        expect(fail.payload.error.message).toContain('this.timeout() is not supported')
+    })
+
+    test('static pending tests emit test:pending without test:start or hooks', async () => {
+        const beforeAllFn = vi.fn()
+        const suite = mockSuite('root', {
+            tests: [mockTest('pending test', undefined, true)],
+            _beforeAll: [beforeAllFn],
+        })
+        const browser = mockBrowser({ contexts: ['ctx-0'] })
+        const failures = await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
+
+        expect(failures).toBe(0)
+        expect(beforeAllFn).not.toBeCalled()
+        expect(emittedEvents.filter((e) => e.event === 'test:start')).toHaveLength(0)
+        expect(emittedEvents.filter((e) => e.event === 'test:pending')).toHaveLength(1)
+    })
+
+    test('this.skip() in a suite before() hook emits test:pending, not a failure', async () => {
+        const afterAllFn = vi.fn()
+        const suite = mockSuite('root', {
+            tests: [mockTest('skipped by suite hook', () => {})],
+            _beforeAll: [function (this: any) { this.skip() }],
+            _afterAll: [afterAllFn],
+        })
+        const browser = mockBrowser({ contexts: ['ctx-0'] })
+        const failures = await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
+
+        // Mocha marks the suite's tests pending when before() skips
+        expect(failures).toBe(0)
+        const pending = emittedEvents.filter((e) => e.event === 'test:pending')
+        expect(pending.length).toBe(1)
+        expect(pending[0].payload.pending).toBe(true)
+        expect(emittedEvents.find((e) => e.event === 'test:fail')).toBeUndefined()
+        // afterAll still runs after a skipped test — Mocha parity
+        expect(afterAllFn).toBeCalledTimes(1)
     })
 })

@@ -160,9 +160,19 @@ class MochaAdapter {
             return this._runSequential(mocha)
         }
 
-        await executeHooksWithArgs('beforeSuite', this._config.beforeSuite as Function, [
-            { type: 'beforeSuite', payload: mocha.suite.suites[0] }
-        ])
+        // Config hooks are surfaced as paired hook:start/hook:end events like
+        // sequential mode's root-suite hooks (wrapHook), with prepareMessage
+        // payloads. They run against the session-global context (no tab).
+        const beforeSuiteMsg = this.prepareMessage('beforeSuite')
+        const beforeSuiteUid = this.getSyncEventIdStart('hook')
+        this._reporter.emit('hook:start', { ...beforeSuiteMsg, type: 'hook:start', cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+        try {
+            await executeHooksWithArgs('beforeSuite', this._config.beforeSuite as Function, [beforeSuiteMsg])
+            this._reporter.emit('hook:end', { ...this.prepareMessage('afterSuite'), type: 'hook:end', state: 'pass', cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+        } catch (err) {
+            log.error(`Error in beforeSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
+            this._reporter.emit('hook:end', { ...this.prepareMessage('afterSuite'), type: 'hook:end', state: 'fail', error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+        }
 
         let failures: number
         let runtimeError: Error | undefined
@@ -176,9 +186,16 @@ class MochaAdapter {
             failures = 1
         }
 
-        await executeHooksWithArgs('afterSuite', this._config.afterSuite as Function, [
-            { type: 'afterSuite', payload: mocha.suite.suites[0] }
-        ])
+        const afterSuiteMsg = this.prepareMessage('afterSuite')
+        const afterSuiteStartUid = this.getSyncEventIdStart('hook')
+        this._reporter.emit('hook:start', { ...afterSuiteMsg, type: 'hook:start', cid: this._cid, specs: this._specs, uid: afterSuiteStartUid })
+        try {
+            await executeHooksWithArgs('afterSuite', this._config.afterSuite as Function, [afterSuiteMsg])
+            this._reporter.emit('hook:end', { ...afterSuiteMsg, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: this.getSyncEventIdEnd('hook') })
+        } catch (err) {
+            log.error(`Error in afterSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
+            this._reporter.emit('hook:end', { ...afterSuiteMsg, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: this.getSyncEventIdEnd('hook') })
+        }
 
         return this._finalize(failures, runtimeError)
     }
@@ -234,10 +251,11 @@ class MochaAdapter {
         switch (hookName) {
         case 'beforeSuite':
             this._suiteStartDate = Date.now()
-            params.payload = this._runner?.suite.suites[0]
+            // _runner is only set in sequential mode; parallel mode has mocha
+            params.payload = this._runner?.suite.suites[0] || this._mocha?.suite?.suites?.[0]
             break
         case 'afterSuite':
-            params.payload = this._runner?.suite.suites[0]
+            params.payload = this._runner?.suite.suites[0] || this._mocha?.suite?.suites?.[0]
             if (params.payload) {
                 (params.payload as { duration: number }).duration = (
                     (params.payload as { duration: number }).duration ||

@@ -29,6 +29,7 @@ function mockBrowser(opts?: {
     return {
         isBidi: opts?.isBidi ?? true,
         __parallelContextStore: store,
+        __parallelContexts: new Set<string>(),
         __bidiCommandsEnabled: opts?.bidiCommandsEnabled ?? true,
         browsingContextCreate: vi.fn().mockImplementation(async () => {
             const ctx = contexts[idx++] || `ctx-${idx}`
@@ -120,7 +121,7 @@ describe('runParallelCucumber', () => {
         reporter = new EventEmitter()
         eventEmitter = new EventEmitter()
         reporterEvents = []
-        for (const ev of ['suite:start', 'suite:end', 'test:start', 'test:pass', 'test:fail', 'test:end', 'hook:start', 'hook:end']) {
+        for (const ev of ['suite:start', 'suite:end', 'suite:retry', 'test:start', 'test:pass', 'test:fail', 'test:end', 'hook:start', 'hook:end']) {
             reporter.on(ev, (p) => reporterEvents.push({ event: ev, payload: p }))
         }
     })
@@ -165,6 +166,8 @@ describe('runParallelCucumber', () => {
         // Two contexts pre-allocated for two scenarios
         expect(browser.browsingContextCreate).toHaveBeenCalledTimes(2)
         expect(browser.browsingContextCreate).toHaveBeenCalledWith({ type: 'tab' })
+        // All contexts registered at allocate time are unregistered after close
+        expect((browser as unknown as { __parallelContexts: Set<string> }).__parallelContexts.size).toBe(0)
     })
 
     test('emits feature suite:start and suite:end events', async () => {
@@ -247,7 +250,7 @@ describe('runParallelCucumber', () => {
         expect(afterHookCalls).toEqual(['after1', 'after2'])
     })
 
-    test('runs BeforeAll and AfterAll hooks per feature when multiple features exist', async () => {
+    test('runs BeforeAll once per run when multiple features exist', async () => {
         const browser = mockBrowser()
         const beforeHookCalls: string[] = []
 
@@ -271,8 +274,8 @@ describe('runParallelCucumber', () => {
             cucumberOpts: defaultCucumberOpts(),
         })
 
-        // BeforeAll runs once per feature (2 features = 2 calls)
-        expect(beforeHookCalls.length).toBe(2)
+        // Test-run hooks execute once per run, not once per feature
+        expect(beforeHookCalls.length).toBe(1)
     })
 
     // ---- Error handling ----
@@ -468,11 +471,39 @@ describe('runParallelCucumber', () => {
         expect(browser.browsingContextClose).toHaveBeenCalledTimes(2)
     })
 
-    // ---- test:end event ----
+    // ---- Event stream balance ----
 
-    test('emits test:end after step results in step-level mode', async () => {
-        // This test verifies the wireScenarioTranslator emits test:end for steps.
-        // We run with scenarioLevelReporter: false to trigger step-level events.
+    test('emits balanced scenario events in scenario-level mode', async () => {
+        const browser = mockBrowser({ contexts: ['ctx-0'] })
+        const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['scenario a'])
+
+        await runOrCatch({
+            browser: browser as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: ['/test/foo.feature'],
+            gherkinDocuments: [doc],
+            supportCodeLibrary: mockSupportCodeLibrary(),
+            cucumberOpts: defaultCucumberOpts(),
+        })
+
+        // test:start (testCaseStarted) must be closed by a test:pass/test:fail
+        // (testCaseFinished) sharing the scenario uid
+        const starts = reporterEvents.filter((e) => e.event === 'test:start')
+        const fails = reporterEvents.filter((e) => e.event === 'test:fail')
+        const passes = reporterEvents.filter((e) => e.event === 'test:pass')
+
+        expect(starts.length).toBe(1)
+        expect(starts[0].payload.uid).toBe('scenario-0-0-0')
+        // Scenario has no step definitions → fails with an undefined-steps error
+        expect(fails.length).toBe(1)
+        expect(fails[0].payload.uid).toBe(starts[0].payload.uid)
+        expect(fails[0].payload.error).toBeDefined()
+        expect(passes.length).toBe(0)
+    })
+
+    test('emits scenario suite:end and no test:end in step-level mode', async () => {
         const browser = mockBrowser({ contexts: ['ctx-0'] })
         const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['scenario a'])
 
@@ -487,11 +518,70 @@ describe('runParallelCucumber', () => {
             cucumberOpts: defaultCucumberOpts({ scenarioLevelReporter: false }),
         })
 
-        // In step-level mode, suite:start is emitted for scenarios.
-        // The testCaseStarted envelope triggers this event.
+        // feature suite:start + scenario suite:start (testCaseStarted)
         const suiteStarts = reporterEvents.filter((e) => e.event === 'suite:start')
-        // At least the feature suite:start should be emitted
-        expect(suiteStarts.length).toBeGreaterThanOrEqual(1)
+        // feature suite:end + scenario suite:end (testCaseFinished)
+        const suiteEnds = reporterEvents.filter((e) => e.event === 'suite:end')
+        // test:end is never emitted — matches sequential mode
+        const testEnds = reporterEvents.filter((e) => e.event === 'test:end')
+
+        expect(suiteStarts.length).toBe(2)
+        expect(suiteEnds.length).toBe(2)
+        expect(testEnds.length).toBe(0)
+    })
+
+    test('emits suite:retry for retried attempts in step-level mode', async () => {
+        const browser = mockBrowser({ contexts: ['ctx-0'] })
+        const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['scenario a'])
+
+        // Step passes on the second attempt so the scenario is retried once
+        // and then succeeds (retry: 1 applies to all pickles without a tag filter).
+        let calls = 0
+        const stepCode = async function () {
+            calls++
+            if (calls === 1) {
+                throw new Error('first attempt fails')
+            }
+        }
+        const stepDefinition = {
+            id: 'sd-1',
+            code: stepCode,
+            keyword: 'Given',
+            pattern: 'something',
+            uri: '/test/features',
+            line: 1,
+            options: {},
+            expression: { match: (text: string) => (text === 'something' ? [] : null) },
+            matchesStepName: (text: string) => text === 'something',
+            getInvocationParameters: async () => ({
+                parameters: [],
+                validCodeLengths: [0, 1],
+                getInvalidCodeLengthMessage: () => 'invalid code length',
+            }),
+        }
+
+        await runOrCatch({
+            browser: browser as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: ['/test/foo.feature'],
+            gherkinDocuments: [doc],
+            supportCodeLibrary: mockSupportCodeLibrary({ stepDefinitions: [stepDefinition] }),
+            cucumberOpts: defaultCucumberOpts({ scenarioLevelReporter: false, retry: 1 }),
+        })
+
+        expect(calls).toBe(2)
+        // feature suite:start + scenario suite:start (attempt 0) — no suite:end
+        // for the retried attempt, mirroring sequential mode
+        const suiteStarts = reporterEvents.filter((e) => e.event === 'suite:start')
+        const suiteRetries = reporterEvents.filter((e) => e.event === 'suite:retry')
+        // feature suite:end + scenario suite:end (final attempt)
+        const suiteEnds = reporterEvents.filter((e) => e.event === 'suite:end')
+
+        expect(suiteStarts.length).toBe(2)
+        expect(suiteRetries.length).toBe(1)
+        expect(suiteEnds.length).toBe(2)
     })
 })
 

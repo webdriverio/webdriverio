@@ -53,12 +53,23 @@ function applyBidiBrowserOverwrites(browser: WebdriverIO.Browser) {
         return
     }
 
-    const contextManager = getContextManager(browser)
+    /**
+     * Skip protocol-stub sessions (e.g. the runner's capability-filtering
+     * pass which sets `automationProtocol: './protocol-stub.js'`).  The
+     * runner transfers the stub's `overwrittenCommands` onto the real
+     * browser, so closures registered here must not capture the stub's
+     * ContextManager — hence the call-time `getContextManager(this)`
+     * resolution below (same pattern as the `url` command).
+     */
+    if (isStub((browser.options as { automationProtocol?: string } | undefined)?.automationProtocol)) {
+        return
+    }
+
     const overwrite = browser.overwriteCommand.bind(browser) as (name: string, fn: Function) => void
 
     overwrite('getTitle', async function (this: WebdriverIO.Browser, origCommand: () => Promise<string>) {
         if (isBidiCommandsEnabled(this)) {
-            const context = await contextManager.getCurrentContext()
+            const context = await getContextManager(this).getCurrentContext()
             const result = await this.scriptEvaluate({
                 expression: 'document.title',
                 target: { context },
@@ -71,7 +82,7 @@ function applyBidiBrowserOverwrites(browser: WebdriverIO.Browser) {
 
     overwrite('getUrl', async function (this: WebdriverIO.Browser, origCommand: () => Promise<string>) {
         if (isBidiCommandsEnabled(this)) {
-            const context = await contextManager.getCurrentContext()
+            const context = await getContextManager(this).getCurrentContext()
             const tree = await this.browsingContextGetTree({ root: context })
             return tree.contexts[0]?.url || ''
         }
@@ -80,7 +91,7 @@ function applyBidiBrowserOverwrites(browser: WebdriverIO.Browser) {
 
     overwrite('getPageSource', async function (this: WebdriverIO.Browser, origCommand: () => Promise<string>) {
         if (isBidiCommandsEnabled(this)) {
-            const context = await contextManager.getCurrentContext()
+            const context = await getContextManager(this).getCurrentContext()
             const result = await this.scriptEvaluate({
                 expression: 'document.documentElement.outerHTML',
                 target: { context },

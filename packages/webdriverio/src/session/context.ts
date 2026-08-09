@@ -24,7 +24,32 @@ const COMMANDS_REQUIRING_RESET = ['deleteSession', 'refresh', 'switchToParentFra
 /** Key used to expose the parallel context store on the browser instance. */
 export const PARALLEL_CONTEXT_STORE_KEY = '__parallelContextStore'
 
+/** Key used to expose the set of framework-managed parallel contexts. */
+export const PARALLEL_CONTEXTS_KEY = '__parallelContexts'
+
 const parallelContextStore = new AsyncLocalStorage<string>()
+
+/**
+ * Contexts created by the parallel framework adapters (one tab per test).
+ * The session-global ContextManager must not re-anchor on navigations that
+ * happen inside these: each test owns its context via the ALS store, and
+ * re-anchoring (browsingContextGetTree + switchToWindow) would add a round
+ * trip per test navigation and mutate shared session-global state across
+ * concurrent tests.
+ */
+const parallelContexts = new Set<string>()
+
+export function registerParallelContext(contextId: string) {
+    parallelContexts.add(contextId)
+}
+
+export function unregisterParallelContext(contextId: string) {
+    parallelContexts.delete(contextId)
+}
+
+export function isParallelContext(contextId: string): boolean {
+    return parallelContexts.has(contextId)
+}
 
 /**
  * Returns the parallel context store. The framework uses this to
@@ -71,6 +96,9 @@ export class ContextManager extends SessionManager {
          * access them without importing from 'webdriverio'.
          */
         ;(browser as unknown as Record<string, unknown>)[PARALLEL_CONTEXT_STORE_KEY] = parallelContextStore
+        // Expose the parallel-context registry so the framework adapters can
+        // register/unregister the tabs they create per test.
+        ;(browser as unknown as Record<string, unknown>)[PARALLEL_CONTEXTS_KEY] = parallelContexts
         // Cache the capability flag so per-command checks are O(1)
         const reqCaps = browser.requestedCapabilities as unknown as Record<string, unknown> | undefined
         const sessCaps = browser.capabilities as unknown as Record<string, unknown> | undefined
@@ -142,6 +170,16 @@ export class ContextManager extends SessionManager {
          * no need to do anything as we navigate within the same context
          */
         if (!this.#currentContext || nav.context === this.#currentContext) {
+            return
+        }
+
+        /**
+         * Parallel test tabs are owned by their ALS-scoped test. Do not
+         * re-anchor the session-global context on their navigations — that
+         * would trigger a browsingContextGetTree + switchToWindow per test
+         * navigation and mutate shared state across concurrent tests.
+         */
+        if (isParallelContext(nav.context)) {
             return
         }
 

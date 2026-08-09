@@ -34,7 +34,15 @@ vi.mock('@cucumber/cucumber', async (orig) => {
         setDefaultTimeout: vi.fn(),
         supportCodeLibraryBuilder: {
             reset: vi.fn(),
-            finalize: vi.fn()
+            finalize: vi.fn(),
+            methods: {
+                BeforeAll: vi.fn(),
+                AfterAll: vi.fn(),
+                Before: vi.fn(),
+                After: vi.fn(),
+                BeforeStep: vi.fn(),
+                AfterStep: vi.fn(),
+            },
         },
         Status: origMod.Status
     }
@@ -73,6 +81,17 @@ vi.mock('../src/utils.js', async () => {
     }
 })
 
+vi.mock('../src/parallel.js', async () => {
+    const actual: any = await vi.importActual('../src/parallel.js')
+    return {
+        ...actual,
+        runParallelCucumber: vi.fn(),
+        parallelRunHasStarted: vi.fn().mockReturnValue(false),
+    }
+})
+
+import { runParallelCucumber, parallelRunHasStarted } from '../src/parallel.js'
+
 declare global {
 
     var MODULE_A_WAS_LOADED: boolean
@@ -92,6 +111,9 @@ describe('CucumberAdapter', () => {
         vi.mocked(Cucumber.After).mockClear()
         vi.mocked(Cucumber.BeforeStep).mockClear()
         vi.mocked(Cucumber.AfterStep).mockClear()
+        vi.mocked(runParallelCucumber).mockClear()
+        vi.mocked(parallelRunHasStarted).mockReturnValue(false)
+        vi.mocked(setUserHookNames).mockClear()
     })
 
     it('exports Cucumber exports', () => {
@@ -136,6 +158,44 @@ describe('CucumberAdapter', () => {
         ).rejects.toEqual(expect.objectContaining({
             message: 'The option "parallel" is not supported by WebdriverIO'
         }))
+    })
+
+    it('re-throws parallel execution failure once execution has started', async () => {
+        vi.mocked(parallelRunHasStarted).mockReturnValue(true)
+        vi.mocked(runParallelCucumber).mockRejectedValue(new Error('parallel boom'))
+        ;(globalThis as Record<string, unknown>).browser = { isBidi: true, __bidiCommandsEnabled: true }
+
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { parallelMode: 'contexts' } },
+            [], {}, {}, {}, false, ['progress']
+        )
+        ;(adapter as any)._runSequential = vi.fn().mockResolvedValue(0)
+
+        await expect(adapter.run()).rejects.toThrow('parallel boom')
+        expect(runParallelCucumber).toHaveBeenCalledTimes(1)
+        // No sequential fallback — scenarios/hooks may already have run
+        expect((adapter as any)._runSequential).not.toHaveBeenCalled()
+        delete (globalThis as Record<string, unknown>).browser
+    })
+
+    it('falls back to sequential when parallel execution failed before starting', async () => {
+        vi.mocked(parallelRunHasStarted).mockReturnValue(false)
+        vi.mocked(runParallelCucumber).mockRejectedValue(new Error('parallel boom'))
+        ;(globalThis as Record<string, unknown>).browser = { isBidi: true, __bidiCommandsEnabled: true }
+
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { parallelMode: 'contexts' } },
+            [], {}, {}, {}, false, ['progress']
+        )
+        ;(adapter as any)._runSequential = vi.fn().mockResolvedValue(0)
+
+        const result = await adapter.run()
+        expect(result).toBe(0)
+        expect(runParallelCucumber).toHaveBeenCalledTimes(1)
+        expect((adapter as any)._runSequential).toHaveBeenCalledTimes(1)
+        delete (globalThis as Record<string, unknown>).browser
     })
 
     it('should not initiated with no tests', async () => {

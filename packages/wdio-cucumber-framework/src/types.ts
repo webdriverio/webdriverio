@@ -16,6 +16,8 @@ export interface ParallelBrowser extends WebdriverIO.Browser {
     isBidi: boolean
     __parallelContextStore?: AsyncLocalStorage<string>
     __bidiCommandsEnabled?: boolean
+    /** Set of framework-managed parallel contexts (see session/context.ts). */
+    __parallelContexts?: Set<string>
     requestedCapabilities: Record<string, unknown>
     capabilities: Record<string, unknown>
     browsingContextCreate(params: { type: string }): Promise<{ context: string }>

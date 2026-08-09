@@ -35,7 +35,7 @@ import type {
     StepDefinitionOptions,
     ParallelBrowser,
 } from './types.js'
-import { runParallelCucumber } from './parallel.js'
+import { runParallelCucumber, parallelRunHasStarted } from './parallel.js'
 
 export const FILE_PROTOCOL = 'file://'
 
@@ -324,6 +324,16 @@ export class CucumberAdapter {
                 cucumberOpts: this._cucumberOpts,
             })
         } catch (err) {
+            if (parallelRunHasStarted()) {
+                // BeforeAll may already have run and scenarios may have
+                // executed — re-running them sequentially would double-execute
+                // side effects and duplicate reports.
+                log.error(
+                    `Parallel Cucumber execution failed after execution began: ${(err as Error).message}. ` +
+                    'Not falling back to sequential execution to avoid re-running side effects.'
+                )
+                throw err
+            }
             log.warn(
                 `Parallel Cucumber execution failed: ${(err as Error).message}. ` +
                 'Falling back to sequential execution.'
