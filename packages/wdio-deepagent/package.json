@@ -52,12 +52,23 @@
       "importSource": "./src/config/index.ts",
       "import": "./build/config/index.js",
       "types": "./build/config/index.d.ts"
+    },
+    "./heal": {
+      "importSource": "./src/heal/index.ts",
+      "import": "./build/heal/index.js",
+      "types": "./build/heal/index.d.ts"
+    },
+    "./commands/run": {
+      "importSource": "./src/commands/run.ts",
+      "import": "./build/commands/run.js",
+      "types": "./build/commands/run.d.ts"
     }
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@langchain/anthropic": "^1.5.4",
     "@langchain/core": "^1.2.5",
+    "@langchain/langgraph-checkpoint": "^1.1.3",
     "@langchain/mcp-adapters": "^1.1.3",
     "@langchain/ollama": "^1.3.0",
     "@langchain/openai": "^1.5.6",
@@ -73,6 +84,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@langchain/langgraph": "^1.4.8",
     "@types/adm-zip": "^0.5.8",
     "@types/node": "^20.1.0"
   },

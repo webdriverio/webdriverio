@@ -11,7 +11,7 @@ describe('parseModelConfig (zod schema)', () => {
     it('validates a minimal provider config and applies defaults', () => {
         const cfg = parseModelConfig({ provider: 'openrouter', model: 'moonshotai/kimi-k3' })
         expect(cfg.temperature).toBe(0.1)
-        expect(cfg.maxTokens).toBe(1024)
+        expect(cfg.maxTokens).toBe(8192)
         expect(cfg.apiKey).toBeUndefined()
     })
 

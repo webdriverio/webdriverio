@@ -64,10 +64,48 @@ export interface TraceParseOptions {
     maxTotalBytes?: number
 }
 
+/**
+ * Action id in the devtools trace: `id` (fixture/older format) or
+ * `callId` (current @wdio/devtools-service v8 format).
+ */
+function recordId(rec: Record<string, unknown>): string | undefined {
+    return typeof rec.id === 'string' ? rec.id : typeof rec.callId === 'string' ? rec.callId : undefined
+}
+
+/** Timestamp in ms: `ts` (fixture), `timestamp`, or `startTime`/`endTime` (v8). */
+function recordTs(rec: Record<string, unknown>, key: 'start' | 'end'): number | undefined {
+    if (key === 'start') {
+        return typeof rec.ts === 'number'
+            ? rec.ts
+            : typeof rec.timestamp === 'number' ? rec.timestamp : typeof rec.startTime === 'number' ? rec.startTime : undefined
+    }
+    return typeof rec.endTime === 'number' ? rec.endTime : undefined
+}
+
+/**
+ * Error text from either shape: plain string (`error`) or the v8
+ * `{ message }` object.
+ */
+function recordError(rec: Record<string, unknown>): string | undefined {
+    if (typeof rec.error === 'string') {
+        return rec.error
+    }
+    if (rec.error && typeof rec.error === 'object') {
+        const msg = (rec.error as { message?: unknown }).message
+        if (typeof msg === 'string') {
+            return msg
+        }
+    }
+    return undefined
+}
+
 function parseActionRecord(rec: Record<string, unknown>): TraceAction {
     // The devtools trace wraps the action payload in `action` for before
-    // records; accept both flattened and nested shapes.
-    const action = (rec.action && typeof rec.action === 'object' ? rec.action : rec) as Record<string, unknown>
+    // records (fixture format); the current v8 format nests it in
+    // `params`. Accept both flattened and nested shapes.
+    const action = (rec.action && typeof rec.action === 'object'
+        ? rec.action
+        : rec.params && typeof rec.params === 'object' ? rec.params : rec) as Record<string, unknown>
     const actionFields: Partial<TraceAction> = {}
     for (const key of ACTION_KEYS) {
         const v = action[key]
@@ -75,13 +113,19 @@ function parseActionRecord(rec: Record<string, unknown>): TraceAction {
             ;(actionFields as Record<string, unknown>)[key] = v
         }
     }
-    const ts = typeof rec.ts === 'number' ? rec.ts : typeof rec.timestamp === 'number' ? rec.timestamp : undefined
+    // v8 before records carry no `name` — derive it from the CDP call
+    if (!actionFields.name) {
+        const derived = typeof rec.apiName === 'string' ? rec.apiName : typeof rec.method === 'string' ? rec.method : undefined
+        if (derived) {
+            actionFields.name = derived
+        }
+    }
     return {
-        id: typeof rec.id === 'string' ? rec.id : undefined,
+        id: recordId(rec),
         ...actionFields,
-        startedAt: ts,
-        ok: rec.type !== 'after' || !rec.error,
-        error: typeof rec.error === 'string' ? rec.error : undefined,
+        startedAt: recordTs(rec, 'start'),
+        ok: rec.type !== 'after' || !recordError(rec),
+        error: recordError(rec),
         snapshotFile: typeof rec.snapshotFile === 'string' ? rec.snapshotFile : undefined,
         elementsFile: typeof rec.elementsFile === 'string' ? rec.elementsFile : undefined,
         screenshotFile: typeof rec.screenshotFile === 'string' ? rec.screenshotFile : undefined,
@@ -107,7 +151,7 @@ export function parseTraceArchive(
     const snapshots = new Map<string, string>()
     const screenshots = new Map<string, Buffer>()
     let transcript = ''
-    const afterById = new Map<string, TraceAction>()
+    const afterById = new Map<string, Record<string, unknown>>()
 
     const entries = zip.getEntries()
     if (entries.length > maxEntries) {
@@ -150,9 +194,15 @@ export function parseTraceArchive(
                     const rec = JSON.parse(trimmed) as Record<string, unknown>
                     if (rec.type === 'context-options' || rec.type === 'after') {
                         // `after` records only enrich their `before` pair
-                        if (rec.type === 'after' && typeof rec.id === 'string') {
-                            afterById.set(rec.id, parseActionRecord(rec))
+                        const id = recordId(rec)
+                        if (rec.type === 'after' && id) {
+                            afterById.set(id, rec)
                         }
+                        continue
+                    }
+                    // v8 traces interleave `screencast-frame`/`network`/
+                    // `mutation` records — only `before` records are actions
+                    if (rec.type !== 'before') {
                         continue
                     }
                     actions.push(parseActionRecord(rec))
@@ -195,13 +245,19 @@ export function parseTraceArchive(
         }
     }
 
-    // attach durations: an `after` record with the same id follows `before`
+    // attach durations + errors: an `after` record with the same id follows
+    // `before`. Fixture format: after has `ts`; v8 format: after has `endTime`.
     for (const action of actions) {
-        const after = action.id ? afterById.get(action.id) : undefined
-        if (after?.startedAt !== undefined && action.startedAt !== undefined) {
-            action.duration = Math.max(0, after.startedAt - action.startedAt)
+        const afterRaw = action.id ? afterById.get(action.id) : undefined
+        if (!afterRaw) {
+            continue
         }
-        if (after?.error && !action.error) {
+        const after = parseActionRecord(afterRaw)
+        const end = after.startedAt ?? afterRaw.endTime
+        if (typeof end === 'number' && action.startedAt !== undefined) {
+            action.duration = Math.max(0, end - action.startedAt)
+        }
+        if (after.error && !action.error) {
             action.error = after.error
             action.ok = false
         }

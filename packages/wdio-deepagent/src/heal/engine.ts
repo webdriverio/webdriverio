@@ -7,6 +7,7 @@ import type { TraceAction, TraceArtifact, TraceNetworkEntry } from '../trace/rea
 import { reproduceSpec } from '../trace/reproduce.js'
 import { diffArtifacts, summarizeFailures } from '../trace/diff.js'
 import type { TraceDiff } from '../trace/diff.js'
+import { extractAgentReply } from '../commands/turn.js'
 
 /**
  * The `diagnose` pipeline: ingest → reproduce → diff → heal. Mode
@@ -112,18 +113,8 @@ export async function runDiagnosis(options: DiagnosisOptions): Promise<Diagnosis
     if (options.heal !== 'propose' && options.agent) {
         const prompt = (options.healPrompt ?? DEFAULT_HEAL_PROMPT)(report)
         const run = await options.agent.invoke({ messages: [{ role: 'user', content: prompt }] })
-        const messages = (run as { messages: unknown[] }).messages
-        let reply = ''
-        for (const m of [...messages].reverse()) {
-            const type = (m as { _getType?: () => string })._getType?.()
-            const content = (m as { content?: unknown }).content
-            if (type === 'ai' && typeof content === 'string' && content.trim()) {
-                reply = content
-                break
-            }
-        }
         report.agentRan = true
-        report.agentReply = reply
+        report.agentReply = extractAgentReply((run as { messages: unknown[] }).messages)
     }
 
     return report

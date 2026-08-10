@@ -12,7 +12,6 @@ backend. It bundles `@wdio/mcp` as the traversal layer and works with
 `@wdio/devtools-service` trace artifacts (the service runs in your
 project, not here).
 
-> Design plan: [`deepagent_repl_plan.md`](../../deepagent_repl_plan.md) ·
 > Docs: [webdriver.io/docs/deepagent](https://webdriver.io/docs/deepagent) ·
 > Definition of usable: [`docs/USABILITY.md`](docs/USABILITY.md)
 

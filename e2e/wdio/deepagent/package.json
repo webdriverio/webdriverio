@@ -1,0 +1,22 @@
+{
+  "name": "wdio-deepagent-e2e",
+  "version": "0.0.0",
+  "description": "Deterministic e2e suite for @wdio/deepagent — 26 cases, 5 tiers incl. T0 live-LLM (plan: packages/wdio-deepagent/docs/E2E.md)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run --config ./vitest.config.ts",
+    "test:live-llm": "vitest run --config ./vitest.config.ts tests/live-llm.test.ts",
+    "test:harness": "vitest run --config ./vitest.config.ts tests/harness.test.ts",
+    "test:browser": "vitest run --config ./vitest.config.ts tests/browser-tools.test.ts",
+    "test:cli": "vitest run --config ./vitest.config.ts tests/cli-commands.test.ts",
+    "test:wdio-cli": "vitest run --config ./vitest.config.ts tests/wdio-cli-dispatch.test.ts"
+  },
+  "devDependencies": {
+    "@langchain/core": "^1.2.5",
+    "@langchain/langgraph": "^1.4.8",
+    "@wdio/deepagent": "workspace:*",
+    "adm-zip": "^0.5.16",
+    "langchain": "^1.5.5"
+  }
+}

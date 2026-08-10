@@ -5,8 +5,6 @@ title: DeepAgent (BYOK agent harness)
 
 WebdriverIO DeepAgent is a **bring-your-own-key** agent harness built on LangChain's [Deep Agents](https://docs.langchain.com/oss/javascript/deepagents/overview). It bundles `@wdio/mcp` (the traversal layer over the app under test) and works with `@wdio/devtools-service` trace artifacts (captured by the service running in your project) for reproducible, healable runs, and helps you set up a correct `wdio.conf` for your framework.
 
-The design plan lives at [`deepagent_repl_plan.md`](https://github.com/webdriverio/webdriverio/blob/main/deepagent_repl_plan.md).
-
 ## Install
 
 ```sh
@@ -56,7 +54,7 @@ The same harness is available as `wdio deepagent …` (lazily loaded so the core
 
 ## How it works
 
-- **Traversal** — the agent loads the `@wdio/mcp` 29-tool surface as an **MCP client**: sessions, navigation, elements, selectors, screenshots, cookies, mobile gestures, script execution. WebdriverIO executes underneath.
+- **Traversal** — the agent loads the `@wdio/mcp` 31-tool surface as an **MCP client**: sessions, navigation, elements, selectors, screenshots, cookies, mobile gestures, script execution. WebdriverIO executes underneath.
 - **Trace** — `diagnose` ingests a devtools `trace.zip` (action NDJSON, network, `transcript.md`, a11y snapshots, screenshots), reproduces the failing spec under a trace-mode overlay, diffs old vs new runs, and heals the spec.
 - **Heal modes**
   - `ask` (default): the agent proposes fixes and **every write is gated by human approval** (`interrupt_on`).
@@ -75,7 +73,7 @@ One schema, one resolver — no per-provider HTTP code (the wdio-agent-service p
     baseURL?: string,       // OpenAI-compatible endpoint / Ollama server
     apiKey?: string,        // falls back to the provider env var
     temperature?: number,   // default 0.1
-    maxTokens?: number,     // default 1024
+    maxTokens?: number,     // default 8192
     request?: (input: { system?: string, user?: string }) => string | Promise<string>, // escape hatch (text-only)
 }
 ```

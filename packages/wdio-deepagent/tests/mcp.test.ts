@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { WdiMcpClient, resolveLocalMcpBin, resolveMcpSpawn } from '../src/mcp/index.js'
+import { WdioMcpClient, resolveLocalMcpBin, resolveMcpSpawn } from '../src/mcp/index.js'
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
 const MCP_SERVER = path.join(FIXTURES, 'mcp-server.mjs')
@@ -36,9 +36,9 @@ describe('resolveLocalMcpBin / resolveMcpSpawn', () => {
     })
 })
 
-describe('WdiMcpClient (integration over stdio)', () => {
+describe('WdioMcpClient (integration over stdio)', () => {
     it('loads tools from a spawned MCP server and closes cleanly', async () => {
-        const client = new WdiMcpClient({ command: process.execPath, args: [MCP_SERVER] })
+        const client = new WdioMcpClient({ command: process.execPath, args: [MCP_SERVER] })
 
         const tools = await client.getTools()
         expect(client.toolCount).toBeGreaterThanOrEqual(2)
@@ -60,7 +60,7 @@ describe('WdiMcpClient (integration over stdio)', () => {
     })
 
     it('restarts the server after close', async () => {
-        const client = new WdiMcpClient({ command: process.execPath, args: [MCP_SERVER] })
+        const client = new WdioMcpClient({ command: process.execPath, args: [MCP_SERVER] })
         await client.getTools()
         await client.close()
         const tools = await client.getTools()

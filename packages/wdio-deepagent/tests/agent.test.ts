@@ -4,8 +4,9 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { HumanMessage } from '@langchain/core/messages'
+import { Command } from '@langchain/langgraph'
 import { FakeToolCallingModel } from 'langchain'
-import { createDeepAgentHarness, interruptsForHeal, permissionsForHeal } from '../src/agent.js'
+import { createDeepAgentHarness, interruptsForHeal, isSmallModelForMcp, permissionsForHeal } from '../src/agent.js'
 import type { HealMode } from '../src/config/index.js'
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
@@ -44,6 +45,22 @@ describe('permissionsForHeal / interruptsForHeal', () => {
         expect(interruptsForHeal('ask')).toEqual({ write_file: true, edit_file: true })
         expect(interruptsForHeal('auto')).toEqual({})
         expect(interruptsForHeal('propose')).toEqual({})
+    })
+})
+
+describe('isSmallModelForMcp', () => {
+    it('flags models with ≤7B parameter counts', () => {
+        expect(isSmallModelForMcp('qwen/qwen3.5-4b')).toBe(true)
+        expect(isSmallModelForMcp('llama-3.2-1b')).toBe(true)
+        expect(isSmallModelForMcp('mixtral-8x7b')).toBe(true)
+        expect(isSmallModelForMcp('qwen2.5-coder-0.5b')).toBe(true)
+    })
+
+    it('does not flag larger models or ids without param counts', () => {
+        expect(isSmallModelForMcp('qwen2.5-coder-32b')).toBe(false)
+        expect(isSmallModelForMcp('moonshotai/kimi-k3')).toBe(false)
+        expect(isSmallModelForMcp('gpt-5.5')).toBe(false)
+        expect(isSmallModelForMcp('claude-3-5-sonnet')).toBe(false)
     })
 })
 
@@ -168,6 +185,80 @@ describe('filesystem scope enforcement (real backend)', () => {
             })
             expect(result).toMatch(/permission denied/)
         } finally {
+            await fs.rm(projRoot, { recursive: true, force: true })
+        }
+    })
+})
+
+describe('ask-mode human-in-the-loop gating (checkpointer-backed)', () => {
+    it('pauses before a gated write and applies it only after approval', async () => {
+        const projRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-ask-'))
+        const spec = path.join(projRoot, 'spec.js')
+        await fs.writeFile(spec, 'const a = 1\n')
+        const harness = await createDeepAgentHarness({
+            model: { provider: 'openai', model: 'fake' },
+            modelOverride: new FakeToolCallingModel({
+                toolCalls: [[{
+                    name: 'edit_file',
+                    args: { file_path: spec, old_string: 'const a = 1', new_string: 'const a = 2' },
+                    id: 'call-edit-1',
+                }], []],
+                toolStyle: 'openai',
+            }),
+            mcp: { command: process.execPath, args: [MCP_SERVER] },
+            traceDir: 'test-results',
+            projectRoot: projRoot,
+            heal: 'ask',
+        })
+        try {
+            // 1. the gated edit_file pauses for approval — no write yet
+            const run = await harness.agent.invoke({ messages: [new HumanMessage('fix the spec')] })
+            const interrupts = (run as { __interrupt__?: unknown[] }).__interrupt__ ?? []
+            expect(interrupts.length).toBeGreaterThan(0)
+            expect(await fs.readFile(spec, 'utf8')).toBe('const a = 1\n')
+
+            // 2. approving the requested action applies the edit
+            const request = (interrupts[0] as { value: { actionRequests: unknown[] } }).value
+            await harness.agent.invoke(
+                new Command({ resume: { decisions: request.actionRequests.map(() => ({ type: 'approve' })) } }),
+            )
+            expect(await fs.readFile(spec, 'utf8')).toBe('const a = 2\n')
+        } finally {
+            await harness.close()
+            await fs.rm(projRoot, { recursive: true, force: true })
+        }
+    })
+})
+
+describe('mcp: null — harness without browser tools', () => {
+    it('skips the browser surface but the fs tools still execute through the agent', async () => {
+        const projRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-mcpnull-'))
+        const target = path.join(projRoot, 'written.txt')
+        const harness = await createDeepAgentHarness({
+            model: { provider: 'openai', model: 'fake' },
+            modelOverride: new FakeToolCallingModel({
+                toolCalls: [[{ name: 'write_file', args: { path: target, content: 'null mcp ok' }, id: 'call-1' }]],
+                toolStyle: 'openai',
+            }),
+            mcp: null,
+            traceDir: 'test-results',
+            projectRoot: projRoot,
+            heal: 'auto',
+        })
+
+        try {
+            // no browser surface: no MCP client, no traversal tools
+            expect(harness.mcpClient).toBeNull()
+            const names = harness.tools.map((t) => t.name)
+            expect(names).not.toContain('fixture_navigate')
+            expect(names).toContain('ingest_trace')
+
+            // the filesystem surface works without MCP: the write lands on disk
+            const run = await harness.agent.invoke({ messages: [new HumanMessage('go')] })
+            expect(run).toBeDefined()
+            expect(await fs.readFile(target, 'utf8')).toBe('null mcp ok')
+        } finally {
+            await harness.close()
             await fs.rm(projRoot, { recursive: true, force: true })
         }
     })

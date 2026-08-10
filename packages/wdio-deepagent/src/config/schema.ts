@@ -21,11 +21,11 @@ export const DeepAgentConfigSchema = z.object({
      * - `auto`: unattended CI healing; specs/page objects only, never config
      */
     heal: HealModeSchema.default('ask'),
-    /** How to spawn the @wdio/mcp server the agent connects to. */
+    /** How to spawn the @wdio/mcp server the agent connects to; `null` runs the harness without browser tools. */
     mcp: z.object({
         command: z.string().default('npx'),
         args: z.array(z.string()).default(['-y', '@wdio/mcp']),
-    }).prefault({}),
+    }).prefault({}).nullable(),
     /** Where devtools trace artifacts land (reproduce/diagnose). */
     traceDir: z.string().default('test-results'),
     /** Filesystem scope granted to the agent. */
