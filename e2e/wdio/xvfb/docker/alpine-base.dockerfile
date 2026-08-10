@@ -24,7 +24,7 @@ RUN apk add --no-cache \
         libstdc++
 
 # Install pnpm globally as root
-RUN npm install -g pnpm@10
+RUN npm install -g pnpm
 
 # Install Chrome for testing
 RUN apk add --no-cache chromium@latest
@@ -44,6 +44,11 @@ RUN apk del xvfb-run || true && \
 RUN ! which xvfb-run || exit 1
 
 WORKDIR /app
+
+# Copy lockfile and install dependencies to pre-populate native binaries for this architecture
+COPY pnpm-lock.yaml .
+RUN pnpm fetch
+
 USER testuser
 
 # Default command
