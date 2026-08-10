@@ -15,7 +15,7 @@ harness, the real `@wdio/mcp` stdio server, and a real Chrome process.
   deps:
   - `e2e/wdio/deepagent/vitest.config.ts` — `include: tests/**`,
     `testTimeout` 3 min, `retry: 1` (Chrome-crash flake policy).
-  - Per-tier scripts: `pnpm --filter wdio-deepagent-e2e test:t0|t1|t2|t3|t4`
+  - Per-tier scripts: `pnpm --filter wdio-deepagent-e2e test:live-llm|test:harness|test:browser|test:cli|test:wdio-cli`
     (full suite via `test`).
 - Shared fixtures: `e2e/wdio/deepagent/fixtures/` —
   - `mcp-server.mjs` — fixture MCP server that appends every call to
@@ -54,14 +54,12 @@ Verified empirically while building the suite; cases assert the shipped
 behavior, not the plan's assumptions:
 
 - **E2E-06 exit-code contract is error-based, not text-based.** `run.ts`
-  has no `"FAILED:"` reply contract — `runMission` exits 1 when the turn
-  throws, when the last turn ends on a failed tool invocation, or when the
-  agent produces no final answer (empty reply). Through the agent loop,
-  model errors are still converted to reply content (exit 0, tracked gap,
-  asserted in E2E-06b). A **transport crash** (`fixture_crash` exits the
-  MCP server mid-call) throws the turn and surfaces as exit 1 (E2E-06c).
-  CLI-level exit-1 paths: no model (E2E-14), unknown command (E2E-13),
-  failing trace (E2E-16).
+  has no `"FAILED:"` reply contract — `runMission` exits 1 only when the
+  turn throws. Through the agent loop, model errors and unknown tools are
+  converted to reply content (exit 0, tracked gap, asserted in E2E-06b). A
+  **transport crash** (`fixture_crash` exits the MCP server mid-call)
+  throws the turn and surfaces as exit 1 (E2E-06c). CLI-level exit-1 paths:
+  no model (E2E-14), unknown command (E2E-13), failing trace (E2E-16).
 - **E2E-05: auto mode has no config-file deny rule.** `permissionsForHeal`
   scopes writes to `projectRoot` only; a root-scoped `wdio.conf.ts` write
   is allowed. Open product question: should `auto` protect config files?

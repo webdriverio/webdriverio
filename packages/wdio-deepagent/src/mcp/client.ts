@@ -3,11 +3,28 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import type { DynamicStructuredTool } from '@langchain/core/tools'
 import { loadMcpTools } from '@langchain/mcp-adapters'
 import logger from '@wdio/logger'
+import { exec } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const log = logger('wdio-deepagent')
+
+/**
+ * Current Chrome/Chromium process ids, or null when the platform cannot
+ * list them (e.g. Windows without pgrep — Chrome cleanup is skipped).
+ */
+function listChromePids(): Promise<Set<number> | null> {
+    return new Promise((resolve) => {
+        exec('pgrep -f chrome', (err, stdout) => {
+            if (err) {
+                resolve(null)
+                return
+            }
+            resolve(new Set(stdout.split('\n').filter(Boolean).map(Number)))
+        })
+    })
+}
 
 /**
  * Locates the `@wdio/mcp` server binary installed alongside this package.
@@ -96,10 +113,12 @@ export interface McpServerConfig {
  * Lifecycle: the server process starts on first `getTools()` (first tool
  * call), and is shut down via `close()` on REPL exit / `run` completion.
  */
-export class WdiMcpClient {
+export class WdioMcpClient {
     #transport?: StdioClientTransport
     #client?: Client
     #tools?: DynamicStructuredTool[]
+    /** Chrome PIDs that existed before the server spawned (kill diff on close). */
+    #chromeAtStart: Set<number> | null = null
 
     constructor(private server: McpServerConfig) {}
 
@@ -110,6 +129,9 @@ export class WdiMcpClient {
 
         // Prefer the locally installed (pinned) @wdio/mcp binary over
         // `npx -y @wdio/mcp` so the traversal tool surface cannot drift.
+        // Record pre-existing Chrome processes so close() can kill the
+        // browser session this mission spawned without touching others.
+        this.#chromeAtStart = await listChromePids()
         const { command, args } = resolveMcpSpawn(this.server)
         log.info(`Spawning @wdio/mcp: ${command} ${args.join(' ')}`)
         this.#transport = new StdioClientTransport({
@@ -146,6 +168,24 @@ export class WdiMcpClient {
             this.#client = undefined
             this.#transport = undefined
             this.#tools = undefined
+            // @wdio/mcp spawns Chrome detached (survives the server process),
+            // so killing the stdio transport alone leaks the browser session.
+            // Kill every Chrome process that appeared since the server spawn.
+            if (this.#chromeAtStart) {
+                const now = await listChromePids()
+                if (now) {
+                    for (const pid of now) {
+                        if (!this.#chromeAtStart.has(pid)) {
+                            try {
+                                process.kill(pid, 'SIGTERM')
+                            } catch {
+                                // already gone
+                            }
+                        }
+                    }
+                }
+            }
+            this.#chromeAtStart = null
         }
     }
 

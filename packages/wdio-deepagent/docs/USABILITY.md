@@ -98,5 +98,5 @@
   `repl`) works verbatim.
 - **[manual]** `wdio-deepagent help` (USAGE) matches actual CLI behavior,
   including "default: wdio.conf.ts in cwd".
-- **[manual]** website/docs/deepagent.md and deepagent_repl_plan.md's
-  "delivered deviations" still describe the implementation.
+- **[manual]** e2e/wdio/deepagent/README.md's "Plan-vs-reality
+  deviations" table matches shipped behavior.

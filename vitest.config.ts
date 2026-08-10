@@ -12,7 +12,9 @@ export default defineConfig({
          * not to ESM ported packages
          */
         exclude: [
-            'dist', '.idea', '.git', '.cache', '**/node_modules/**'
+            'dist', '.idea', '.git', '.cache', '**/node_modules/**',
+            // e2e tier suite — runs via its own vitest config (test:harness, test:browser, test:cli, test:wdio-cli, test:live-llm)
+            'e2e/wdio/deepagent/**'
         ],
         env: {
             WDIO_SKIP_DRIVER_SETUP: '1'

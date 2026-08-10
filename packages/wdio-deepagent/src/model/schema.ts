@@ -29,7 +29,7 @@ export const DeepAgentModelConfigSchema = z.object({
     /** API key; falls back to the provider's env var when omitted. */
     apiKey: z.string().optional(),
     temperature: z.number().min(0).max(2).default(0.1),
-    maxTokens: z.number().int().positive().default(1024),
+    maxTokens: z.number().int().positive().default(8192),
     /**
      * Escape hatch: fully custom LLM request, e.g.
      * `async ({ system, user }) => string`. Takes priority over provider

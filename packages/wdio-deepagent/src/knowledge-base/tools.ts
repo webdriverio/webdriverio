@@ -5,7 +5,7 @@ import { z } from 'zod'
 /**
  * In-memory knowledge base of the site under test: a11y snapshots and
  * element maps accumulated while the agent browses (context-injection
- * only — no embeddings in v1, see deepagent_repl_plan.md §10).
+ * only — no embeddings in v1 (plain context injection).
  */
 export interface SiteSnapshot {
     url: string

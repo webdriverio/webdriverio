@@ -76,6 +76,46 @@ describe('parseTraceArchive', () => {
         expect(artifact.transcript).toBe('')
     })
 
+    it('parses the current @wdio/devtools-service v8 format (callId/params/startTime/error.message)', () => {
+        const zip = new AdmZip()
+        zip.addFile('trace.trace', Buffer.from([
+            JSON.stringify({ version: 8, type: 'context-options', browserName: 'chrome' }),
+            JSON.stringify({
+                type: 'before', callId: 'call@1', startTime: 1000,
+                class: 'Page', method: 'navigate', apiName: 'page.navigate',
+                params: { url: 'https://example.com' },
+            }),
+            JSON.stringify({ type: 'screencast-frame', pageId: 'page@1', timestamp: 1100 }),
+            JSON.stringify({
+                type: 'after', callId: 'call@1', endTime: 1400,
+            }),
+            JSON.stringify({
+                type: 'before', callId: 'call@2', startTime: 1500,
+                class: 'Element', method: 'click', apiName: 'element.click',
+                params: { selector: '#login-btn', locator: '#login-btn' },
+            }),
+            JSON.stringify({
+                type: 'after', callId: 'call@2', endTime: 7500,
+                error: { message: 'Can\'t call click on element with selector "#login-btn" because element wasn\'t found' },
+            }),
+        ].join('\n')))
+        zip.addFile('trace.network', Buffer.from(JSON.stringify({ method: 'GET', url: 'https://example.com/api', status: 200, duration: 12 }) + '\n'))
+        const artifact = parseTraceArchive(zip.toBuffer(), 'v8.zip')
+
+        // screencast-frame noise is not an action
+        expect(artifact.actions).toHaveLength(2)
+
+        const [nav, click] = artifact.actions
+        expect(nav).toMatchObject({ name: 'page.navigate', url: 'https://example.com', ok: true })
+        expect(nav.startedAt).toBe(1000)
+        expect(nav.duration).toBe(400)
+
+        expect(click).toMatchObject({ name: 'element.click', selector: '#login-btn', ok: false })
+        expect(click.error).toContain('element wasn\'t found')
+        expect(click.startedAt).toBe(1500)
+        expect(click.duration).toBe(6000)
+    })
+
     it('rejects archives with more entries than the cap', () => {
         const zip = new AdmZip()
         for (let i = 0; i < 5; i++) {

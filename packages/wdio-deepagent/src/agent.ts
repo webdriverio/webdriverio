@@ -1,6 +1,8 @@
 import path from 'node:path'
+import logger from '@wdio/logger'
 import { createDeepAgent, FilesystemBackend } from 'deepagents'
 import type { DeepAgent, FilesystemPermission } from 'deepagents'
+import { MemorySaver } from '@langchain/langgraph-checkpoint'
 import { todoListMiddleware } from 'langchain'
 import type { DynamicStructuredTool } from '@langchain/core/tools'
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
@@ -9,18 +11,33 @@ import type { DeepAgentModelConfig } from './model/index.js'
 import { resolveChatModel, RequestChatModel } from './model/index.js'
 import type { HealMode } from './config/index.js'
 import type { McpServerConfig } from './mcp/index.js'
-import { WdiMcpClient } from './mcp/index.js'
+import { WdioMcpClient } from './mcp/index.js'
 import { createTraceTools } from './trace/tools.js'
 import { createKnowledgeBaseTools } from './knowledge-base/tools.js'
 import { DEFAULT_INSTRUCTIONS, readInstructionsFile } from './prompts.js'
+
+const log = logger('wdio-deepagent')
+
+/**
+ * Heuristic: does the model id look like a small-parameter model (≤7B)?
+ * Small models usually ship small context windows, and the MCP traversal
+ * surface costs ~8-10k tokens of tool schemas before the first turn —
+ * a 4B/8k-ctx model cannot fit both. Parsing param counts out of model
+ * ids is inherently fragile across providers; the warning is advisory,
+ * `mcp: null` stays the user's explicit opt-out.
+ */
+export function isSmallModelForMcp(modelId: string): boolean {
+    const match = /(\d+(?:\.\d+)?)\s*b\b/i.exec(modelId)
+    return Boolean(match && Number(match[1]) <= 7)
+}
 
 export interface DeepAgentHarnessOptions {
     /** BYOK model config (validated through the zod schema). */
     model: DeepAgentModelConfig
     /** Healing policy that drives filesystem permissions + interrupts. */
     heal?: HealMode
-    /** @wdio/mcp spawn config. */
-    mcp?: McpServerConfig
+    /** @wdio/mcp spawn config; `null` disables the browser tool surface entirely. */
+    mcp?: McpServerConfig | null
     /** Where devtools trace artifacts land. */
     traceDir?: string
     /** Project root for filesystem permission scoping. */
@@ -39,7 +56,7 @@ export interface DeepAgentHarnessOptions {
 
 export interface DeepAgentHarness {
     agent: DeepAgent
-    mcpClient: WdiMcpClient
+    mcpClient: WdioMcpClient | null
     tools: DynamicStructuredTool[]
     /** Shuts down the MCP server process. */
     close(): Promise<void>
@@ -107,14 +124,22 @@ export async function createDeepAgentHarness(
 ): Promise<DeepAgentHarness> {
     const modelConfig = parseModelConfig(options.model)
     const heal = options.heal ?? 'ask'
-    const mcpConfig = options.mcp ?? DEFAULT_MCP_CONFIG
+    const mcpConfig = options.mcp === null ? undefined : (options.mcp ?? DEFAULT_MCP_CONFIG)
     const traceDir = options.traceDir ?? 'test-results'
     const projectRoot = options.projectRoot ?? process.cwd()
 
     const chatModel = options.modelOverride ?? resolveChatModel(modelConfig)
 
-    const mcpClient = new WdiMcpClient(mcpConfig)
-    const traversalTools = await mcpClient.getTools()
+    if (mcpConfig && isSmallModelForMcp(modelConfig.model)) {
+        log.warn(
+            `Model "${modelConfig.model}" looks like a small model (≤7B) — the MCP traversal ` +
+            'surface adds ~8-10k tokens of tool schemas. Set `deepagent.mcp: null` if your ' +
+            'model cannot fit both (small context windows will error mid-mission).'
+        )
+    }
+
+    const mcpClient = mcpConfig ? new WdioMcpClient(mcpConfig) : null
+    const traversalTools = mcpClient ? await mcpClient.getTools() : []
 
     const traceTools = createTraceTools({ configPath: options.configPath, traceDir })
     const knowledgeBaseTools = createKnowledgeBaseTools()
@@ -129,12 +154,19 @@ export async function createDeepAgentHarness(
     }
 
     const instructions = options.instructions ?? await readInstructionsFile(options.instructionsPath)
-    const agent = await createDeepAgent({
+    const agent = (await createDeepAgent({
         name: 'wdio-deepagent',
         model: chatModel,
         tools,
         systemPrompt: instructions ?? DEFAULT_INSTRUCTIONS,
         middleware: [todoListMiddleware()],
+        // In-memory checkpointer. Required for two things:
+        // 1. `ask`-mode human-in-the-loop interrupts (humanInTheLoopMiddleware
+        //    calls langgraph's `interrupt()`, which throws MISSING_CHECKPOINTER
+        //    without one) — every gated write pauses for approval.
+        // 2. Multi-turn memory: conversation + todo state persist across
+        //    `agent.invoke` calls (repl sessions, repeated missions).
+        checkpointer: new MemorySaver(),
         // Real host filesystem. deepagents' default backend is an in-memory
         // sandbox (writes never reach the project); the harness must heal
         // real spec files, so we mount the real FS and confine it via the
@@ -144,12 +176,19 @@ export async function createDeepAgentHarness(
         ...(options.memoryFiles?.length ? { memory: options.memoryFiles } : {}),
         permissions: permissionsForHeal(heal, projectRoot),
         interruptOn: interruptsForHeal(heal),
-    })
+    })).withConfig({
+        // The in-memory checkpointer needs a stable thread id so every
+        // invoke (repl turns, interrupt resumes, repeated missions) writes
+        // to the same conversation thread.
+        configurable: { thread_id: 'default' },
+    }) as unknown as DeepAgent
 
     return {
         agent,
         mcpClient,
         tools,
-        close: () => mcpClient.close(),
+        close: async () => {
+            await mcpClient?.close()
+        },
     }
 }

@@ -54,6 +54,13 @@ rl.on('line', (line) => {
             },
         })
     } else if (msg.method === 'tools/call') {
+        if (process.env.FIXTURE_LOG) {
+            // append every call (name + args) so tests can assert call order
+            fs.appendFileSync(process.env.FIXTURE_LOG, JSON.stringify({
+                name: msg.params?.name,
+                args: msg.params?.arguments ?? {},
+            }) + '\n')
+        }
         if (msg.params?.name === 'fixture_navigate' && process.env.FIXTURE_MARKER) {
             fs.writeFileSync(process.env.FIXTURE_MARKER, JSON.stringify(msg.params.arguments ?? {}))
         }
