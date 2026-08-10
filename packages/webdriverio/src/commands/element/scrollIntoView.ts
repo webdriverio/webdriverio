@@ -17,6 +17,14 @@ const log = logger('webdriverio')
  *
  * :::
  *
+ * :::info
+ *
+ * On Desktop/Mobile Web, browsers apply wheel-driven scrolling asynchronously, so this command
+ * waits until the scroll position stops changing before resolving. This ensures the element is
+ * actually in its final position by the time subsequent commands run.
+ *
+ * :::
+ *
  * <example>
     :desktop.mobile.web.scrollIntoView.js
     it('should demonstrate the desktop/mobile web scrollIntoView command', async () => {
@@ -187,6 +195,45 @@ export async function scrollIntoView (
                 deltaY,
             })
             .perform()
+
+        /**
+         * real browsers apply wheel-driven scrolling asynchronously (e.g. inertial
+         * scrolling), so `window.scrollX/Y` may not reflect the final position right
+         * after the action resolves. Wait until the scroll position stops changing
+         * across consecutive animation frames instead of assuming it's done.
+         */
+        // `execute` doesn't await promises under the classic WebDriver protocol, only Bidi,
+        // so `executeAsync` is still required here to reliably wait under both protocols
+        // @ts-ignore `executeAsync` is deprecated in favor of `execute`, see comment above
+        await browser.executeAsync((done: () => void) => {
+            try {
+                let lastX = window.scrollX
+                let lastY = window.scrollY
+                let stableFrames = 0
+                let totalFrames = 0
+                const maxFrames = 60
+
+                const check = () => {
+                    totalFrames++
+                    const x = window.scrollX
+                    const y = window.scrollY
+                    if (x === lastX && y === lastY) {
+                        stableFrames++
+                    } else {
+                        stableFrames = 0
+                        lastX = x
+                        lastY = y
+                    }
+                    if (stableFrames >= 2 || totalFrames >= maxFrames) {
+                        return done()
+                    }
+                    requestAnimationFrame(check)
+                }
+                requestAnimationFrame(check)
+            } catch {
+                done()
+            }
+        })
     } catch (err) {
         log.warn(
             `Failed to execute "scrollIntoView" using WebDriver Actions API: ${(err as Error).message}!\n` +
