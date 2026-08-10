@@ -190,7 +190,8 @@ const SUPPORTED_ASYMMETRIC_MATCHER = {
     ObjectContaining: 'objectContaining',
     StringContaining: 'stringContaining',
     StringMatching: 'stringMatching',
-    CloseTo: 'closeTo'
+    CloseTo: 'closeTo',
+    OneOf: 'oneOf'
 } as const
 
 /**
@@ -198,17 +199,25 @@ const SUPPORTED_ASYMMETRIC_MATCHER = {
  * @param arg raw value or a stringified asymmetric matcher
  * @returns   raw value or an actual asymmetric matcher
  */
-export function transformExpectArgs (arg: unknown) {
+export function transformExpectArgs (arg: unknown): unknown {
+    if (Array.isArray(arg)) {
+        return arg.map((item) => transformExpectArgs(item))
+    }
     if (typeof arg === 'object' && arg && '$$typeof' in arg && typeof arg.$$typeof === 'string' && Object.keys(SUPPORTED_ASYMMETRIC_MATCHER).includes(arg.$$typeof)) {
         const matcherKey = SUPPORTED_ASYMMETRIC_MATCHER[arg.$$typeof as keyof typeof SUPPORTED_ASYMMETRIC_MATCHER] as keyof AsymmetricMatchers
         const inverseMatcherKey = SUPPORTED_ASYMMETRIC_MATCHER[arg.$$typeof as keyof typeof SUPPORTED_ASYMMETRIC_MATCHER] as keyof InverseAsymmetricMatchers
-        const matcher = ('inverse' in arg && arg.inverse ? expect.not[inverseMatcherKey] : expect[matcherKey]) as unknown as (sample: string) => unknown
+        const matcher = ('inverse' in arg && arg.inverse ? expect.not[inverseMatcherKey] : expect[matcherKey]) as (sample: unknown) => unknown
 
+        const transformedSample: unknown = transformExpectArgs((arg as { sample: unknown } & typeof arg).sample)
         if (!matcher) {
             throw new Error(`Matcher "${matcherKey}" is not supported by expect-webdriverio`)
         }
+        if (matcherKey === 'oneOf') {
+            // @ts-expect-error TODO dprevost
+            return matcher(...transformedSample as [])
+        }
 
-        return matcher((arg as unknown as { sample: string }).sample)
+        return matcher(transformedSample)
     }
 
     return arg

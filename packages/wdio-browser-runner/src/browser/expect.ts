@@ -1,10 +1,32 @@
 import { expect, type MatcherContext, type ExpectationResult, type SyncExpectationResult } from 'expect'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 import { $ } from '@wdio/globals'
-import type { ChainablePromiseElement } from 'webdriverio'
+import type { ChainablePromiseElement, ElementArray } from 'webdriverio'
 
 import { getCID } from './utils.js'
 import { WDIO_EVENT_NAME } from '../constants.js'
+
+// Define AsymmetricMatcher class matching Jest/Expect internals
+class AsymmetricMatcher {
+    $$typeof = asymmetricMatcher
+    constructor(public sample: unknown, public matcherName?: string) {}
+    asymmetricMatch() {
+        return true
+    }
+    toString() {
+        return this.matcherName
+    }
+}
+
+type Expect = typeof expect & {
+    // Modifiers fake as an asymmetric matcher for now, but we can implement a proper modifier later
+    some(elements: WebdriverIO.Element[] | ElementArray | ChainablePromiseArray): AsymmetricMatcher
+    oneOf(...sample: string[]): AsymmetricMatcher
+}
+const expectWithHelpers = expect as Expect
+// Attach the helpers to the browser expect object
+expectWithHelpers.some = (sample: WebdriverIO.Element[] | ElementArray | ChainablePromiseArray) => new AsymmetricMatcher(sample, 'Some')
+expectWithHelpers.oneOf = (...sample: string[]) => new AsymmetricMatcher(sample, 'OneOf')
 
 declare type RawMatcherFn<Context extends MatcherContext = MatcherContext> = {
     (this: Context, actual: unknown, ...expected: Array<unknown>): ExpectationResult;
@@ -32,7 +54,7 @@ const COMMAND_TIMEOUT = 30 * 1000 // 30s
  */
 function createMatcher (matcherName: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return async function (this: MatcherContext, context: WebdriverIO.Browser | WebdriverIO.Element | ChainablePromiseElement | ChainablePromiseArray, ...args: any[]) {
+    return async function (this: MatcherContext, context: WebdriverIO.Browser | WebdriverIO.Element | ChainablePromiseElement | ChainablePromiseArray | WebdriverIO.Element[] | ElementArray, ...args: any[]) {
         const cid = getCID()
         if (!import.meta.hot || !cid) {
             return {
@@ -41,20 +63,20 @@ function createMatcher (matcherName: string) {
             }
         }
 
-        if (typeof args[0] === 'object' && '$$typeof' in args[0] && args[0].$$typeof === asymmetricMatcher && args[0].asymmetricMatch) {
-            args[0] = {
-                $$typeof: args[0].toString(),
-                sample: args[0].sample,
-                inverse: args[0].inverse
-            }
-        }
+        const serializedArgs = args.map(serializeAsymmetricMatchers)
 
         const expectRequest: Workers.ExpectRequestEvent = {
             id: matcherRequestCount++,
             cid,
             scope: this,
             matcherName,
-            args: args
+            args: serializedArgs
+        }
+
+        if (context instanceof AsymmetricMatcher && context.matcherName === 'Some') {
+            expectRequest.scope.isSome = true
+            // TODO validate that sample is also an ElementArray or ChainableElementArray or array of elements...
+            context = context.sample as WebdriverIO.Element[] | ElementArray | ChainablePromiseArray
         }
 
         const isContextObject = typeof context === 'object'
@@ -99,8 +121,8 @@ function createMatcher (matcherName: string) {
          * an element from an existing HTMLElement, it might have custom properties
          * attached to it that can't be serialized.
          */
-        if (expectRequest.element && typeof expectRequest.element.selector !== 'string') {
-            expectRequest.element.selector = undefined
+        if (expectRequest.element && typeof (expectRequest.element as { selector: unknown }).selector !== 'string') {
+            (expectRequest.element as { selector: unknown }).selector = undefined
         }
 
         /**
@@ -124,6 +146,7 @@ function createMatcher (matcherName: string) {
                 .replace('/@fs/', '/')
         }
 
+        console.log('YOOooooo expectRequest', expectRequest)
         import.meta.hot.send(WDIO_EVENT_NAME, { type: MESSAGE_TYPES.expectRequestMessage, value: expectRequest })
         const contextString = isContextObject
             ? 'elementId' in context
@@ -186,4 +209,26 @@ import.meta.hot?.on(WDIO_EVENT_NAME, (message: Workers.SocketMessage) => {
     })
 })
 
-export { expect }
+function serializeAsymmetricMatchers(arg: unknown): unknown {
+    if (!arg || typeof arg !== 'object') {
+        return arg
+    }
+
+    const asymmetricArg = arg as { $$typeof?: symbol, sample?: unknown, inverse?: boolean, matcherName?: string, asymmetricMatch?: (other: unknown) => boolean }
+    // Handle asymmetric matchers (like expect.oneOf, expect.stringContaining)
+    if ('$$typeof' in asymmetricArg && asymmetricArg.$$typeof === asymmetricMatcher) {
+        return {
+            $$typeof: asymmetricArg.toString(),
+            matcherName: asymmetricArg.matcherName,
+            sample: serializeAsymmetricMatchers(asymmetricArg.sample)
+        }
+    }
+
+    if (Array.isArray(arg)) {
+        return arg.map(serializeAsymmetricMatchers)
+    }
+
+    return arg
+}
+
+export { expectWithHelpers as expect }

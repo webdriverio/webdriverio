@@ -24,6 +24,60 @@ describe('Vue Component Testing', () => {
         await expect($('p=Times clicked: 123')).not.toExist()
     })
 
+    const featureFlags = { featureFlags: { useToHaveTextStrictMultiElementsCompareStrategy : true } }
+
+    it('support toHaveText with single element in legacy mode', async () => {
+        await render(Component)
+
+        // Legacy
+        await expect($('p=Times clicked: 0')).toHaveText('Times clicked: 0')
+        await expect($('p=Times clicked: 0')).toHaveText(expect.stringContaining('Times clicked'))
+        await expect($('p=Times clicked: 0')).toHaveText(['Times clicked: 0', 'Times clicked: 1'])
+        await expect($('p=Times clicked: 0')).toHaveText([expect.stringContaining('Times clicked'), 'Times clicked: 1'])
+        await expect($('p=Times clicked: 0')).toHaveText(expect.oneOf('Times clicked: 0', 'Times clicked: 1'))
+        await expect($('p=Times clicked: 0')).toHaveText(expect.oneOf(expect.stringContaining('Times clicked'), 'Times clicked: 1'))
+    })
+
+    it('support toHaveText with single element in strict mode', async () => {
+        await render(Component)
+
+        // New strict mode
+        await expect($('p=Times clicked: 0')).toHaveText('Times clicked: 0', featureFlags)
+        await expect($('p=Times clicked: 0')).toHaveText(expect.stringContaining('Times clicked'), featureFlags)
+        await expect($('p=Times clicked: 0')).toHaveText(['Times clicked: 0', 'Times clicked: 1'], featureFlags)
+        await expect($('p=Times clicked: 0')).toHaveText([expect.stringContaining('Times clicked'), 'Times clicked: 1'], featureFlags)
+        await expect($('p=Times clicked: 0')).toHaveText(expect.oneOf('Times clicked: 0', 'Times clicked: 1'), featureFlags)
+        await expect($('p=Times clicked: 0')).toHaveText(expect.oneOf(expect.stringContaining('Times clicked'), 'Times clicked: 1'), featureFlags)
+    })
+
+    it('support toHaveText with multi-elements in legacy mode', async () => {
+        await render(Component)
+
+        // Legacy
+        await expect($$('p=Times clicked: 0')).toHaveText('Times clicked: 0')
+        await expect(await $$('p=Times clicked: 0')).toHaveText('Times clicked: 0')
+        await expect($$('p=Times clicked: 0')).toHaveText(expect.stringContaining('Times clicked'))
+        await expect($$('p=Times clicked: 0')).toHaveText(['Times clicked: 0'])
+        await expect($$('p=Times clicked: 0')).toHaveText(expect.oneOf('Times clicked: 0', 'Times clicked: 1'))
+        await expect($$('p=Times clicked: 0')).toHaveText(expect.oneOf(expect.stringContaining('Times clicked'), 'Times clicked: 1'))
+    })
+
+    it('support toHaveText with multi-elements in strict mode', async () => {
+        await render(Component)
+
+        // New strict mode
+        await expect($$('p=Times clicked: 0')).toHaveText('Times clicked: 0', featureFlags)
+        await expect($$('p=Times clicked: 0')).toHaveText(expect.stringContaining('Times clicked'), featureFlags)
+        await expect($$('p=Times clicked: 0')).toHaveText(['Times clicked: 0'], featureFlags)
+        await expect($$('p=Times clicked: 0')).toHaveText(expect.oneOf('Times clicked: 0', 'Times clicked: 1'), featureFlags)
+        await expect($$('p=Times clicked: 0')).toHaveText(expect.oneOf(expect.stringContaining('Times clicked'), 'Times clicked: 1'), featureFlags)
+        await expect($$('p=Times clicked: 0')).toHaveText([expect.stringContaining('Times clicked')], featureFlags)
+        await expect($$('p=Times clicked: 0')).toHaveText([expect.oneOf('Times clicked: 0', 'Times clicked: 1')], featureFlags)
+        await expect(expect.some($$('p=Times clicked: 0'))).toHaveText(expect.oneOf('Times clicked: 0', 'Times clicked: 1'), featureFlags)
+        await expect($$('p=Times clicked: 0').filter(element => element.isExisting())).toHaveText('Times clicked: 0', featureFlags)
+        await expect(await $$('p=Times clicked: 0').filter(element => element.isExisting())).toHaveText('Times clicked: 0', featureFlags)
+    })
+
     it('should support tailwindcss', async () => {
         const { getByText } = render(Component)
         const elem = await $(getByText('Times clicked: 0'))
