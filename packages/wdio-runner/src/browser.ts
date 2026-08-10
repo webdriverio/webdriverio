@@ -4,7 +4,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
 import { executeHooksWithArgs } from '@wdio/utils'
-import { wdioCustomMatchers } from 'expect-webdriverio'
+import { some, wdioCustomMatchers } from 'expect-webdriverio'
 import { ELEMENT_KEY } from 'webdriver'
 import { type Workers, type Services, MESSAGE_TYPES } from '@wdio/types'
 
@@ -408,19 +408,35 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
 
         try {
-            const context = payload.element
-                ? Array.isArray(payload.element)
-                    ? await browser.$$(payload.element)
-                    /**
-                     * check if element contains an `elementId` property, if so the element was already
-                     * found, so we can transform it into an `WebdriverIO.Element` object, if not we
-                     * need to find it first, so we pass in the selector.
-                     */
-                    : payload.element.elementId
-                        ? await browser.$(payload.element)
-                        : await browser.$(payload.element.selector)
-                : payload.context || browser
-            const result = await matcher.apply(payload.scope, [context, ...payload.args.map(transformExpectArgs)])
+            const isSome = payload.scope.isSome
+            let received = payload.element
+
+            const refetchElement = async (element: WebdriverIO.Element) => {
+                return element.elementId
+                    ? await browser.$(element)
+                    : await browser.$(element.selector)
+            }
+
+            if (received && Array.isArray(received)) {
+                received = await ('parent' in received ? browser.$$(received) : Promise.all(received.map(refetchElement)))
+            } else if (received && (received as { elementId: string }).elementId) {
+                received = await refetchElement(received as WebdriverIO.Element)
+            } else if (payload.context) {
+                received = payload.context
+                if (Array.isArray(payload.context)) {
+                    if (payload.context.every((context) => typeof context === 'object' && 'elementId' in context)) {
+                        received = await Promise.all(payload.context.map(refetchElement))
+                    }
+                }
+            } else {
+                received = browser
+            }
+
+            if (isSome) {
+                received = isSome ? some(received as WebdriverIO.Element[] | WebdriverIO.ElementArray | ChainablePromiseArray) : received
+            }
+
+            const result = await matcher.apply(payload.scope, [received, ...payload.args.map(transformExpectArgs)])
             return this.#sendWorkerResponse(id, this.#expectResponse({
                 id: payload.id,
                 pass: result.pass,

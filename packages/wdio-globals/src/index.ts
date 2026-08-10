@@ -89,6 +89,8 @@ const ASYNC_MATCHERS = [
     'objectContaining',
     'stringContaining',
     'stringMatching',
+    'oneOf',
+    'closeTo'
 ] as const
 
 for (const matcher of ASYNC_MATCHERS) {
@@ -98,6 +100,16 @@ for (const matcher of ASYNC_MATCHERS) {
         }
         return globals.get('expect')[matcher](...args)
     }
+}
+
+/**
+ * Custom modifiers exposed on expect for the browser runner for now!
+ */
+(expect as any).some = (...args: any) => {
+    if (!globals.has('expect')) {
+        throw new Error(GLOBALS_ERROR_MESSAGE)
+    }
+    return globals.get('expect')['some'](...args)
 }
 
 expect.not = ASYNC_MATCHERS.reduce((acc, matcher) => {
