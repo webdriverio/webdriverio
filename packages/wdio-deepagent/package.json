@@ -6,7 +6,8 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-deepagent",
   "license": "MIT",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.0.0",
+    "pnpm": ">=10 || <11"
   },
   "repository": {
     "type": "git",
@@ -64,7 +65,6 @@
       "types": "./build/commands/run.d.ts"
     }
   },
-  "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@langchain/anthropic": "^1.5.4",
     "@langchain/core": "^1.2.5",

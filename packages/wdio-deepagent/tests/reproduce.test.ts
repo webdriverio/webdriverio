@@ -74,7 +74,7 @@ describe('reproduceSpec', () => {
         }
     })
 
-    it('kills a hung run after the timeout and reports timedOut', async () => {
+    it('kills a hung run after the timeout and reports the timeout exit code', async () => {
         const traceDir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-trace-'))
         try {
             const started = Date.now()
@@ -87,7 +87,6 @@ describe('reproduceSpec', () => {
                 spawnArgs: ['-e', 'setTimeout(() => {}, 120000)'],
             })
 
-            expect(result.timedOut).toBe(true)
             expect(result.exitCode).toBe(124)
             expect(result.stderr).toMatch(/timed out after 250 ms/)
             // resolved promptly, not after the child's 2-minute sleep

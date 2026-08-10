@@ -1,8 +1,11 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
+import type { z } from 'zod'
 import type { DeepAgentHarness } from '../agent.js'
-import { jsonSchemaToZodRawShape } from './json-schema-to-zod.js'
+import { VERSION } from '../constants.js'
+import { isZodSchema, jsonSchemaToZodRawShape } from './json-schema-to-zod.js'
+import type { JsonSchemaObject } from './json-schema-to-zod.js'
 
 /**
  * Exposes the harness tools (traversal via @wdio/mcp + trace + site KB)
@@ -12,18 +15,20 @@ import { jsonSchemaToZodRawShape } from './json-schema-to-zod.js'
  */
 export async function serveAsMcpServer(harness: DeepAgentHarness, transport: Transport = new StdioServerTransport()): Promise<void> {
     const server = new McpServer(
-        { name: 'wdio-deepagent', version: '9.30.1' },
+        { name: 'wdio-deepagent', version: VERSION },
         { capabilities: { tools: {} } },
     )
 
     for (const t of harness.tools) {
-        // langchain v1 tools carry a plain JSON schema; convert to a zod
-        // raw shape which the MCP SDK accepts natively.
+        // MCP-adapter tools carry a plain JSON schema; langchain tool()
+        // schemas are zod objects — convert only the former.
+        const inputSchema = isZodSchema(t.schema)
+            ? t.schema as unknown as z.ZodRawShape
+            : jsonSchemaToZodRawShape(t.schema as unknown as JsonSchemaObject)
         server.registerTool(t.name, {
             title: t.name,
             description: t.description ?? t.name,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            inputSchema: jsonSchemaToZodRawShape(t.schema as any),
+            inputSchema,
         }, async (args) => {
             const result = await t.invoke(args)
             const text = typeof result === 'string' ? result : JSON.stringify(result)

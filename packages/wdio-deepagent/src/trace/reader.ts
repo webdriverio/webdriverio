@@ -38,6 +38,17 @@ export interface TraceNetworkEntry {
     raw: Record<string, unknown>
 }
 
+/**
+ * True when the entry records a failed request. Chromium logs HTTP errors
+ * as >= 400 and aborted/failed requests (dns failure, connection reset,
+ * `Network.loadingFailed` without a response) as status 0 or no status at
+ * all — those must count as failures, not successes.
+ */
+export function isNetworkError(entry: TraceNetworkEntry): boolean {
+    const status = entry.status ?? 0
+    return status === 0 || status >= 400
+}
+
 export interface TraceArtifact {
     /** Archive file name. */
     source: string
@@ -62,6 +73,8 @@ export interface TraceParseOptions {
     maxEntries?: number
     /** Max total decompressed bytes (default 256 MiB). */
     maxTotalBytes?: number
+    /** Skip decompressing resource entries (screenshots/snapshots); record names only (default true). */
+    keepResources?: boolean
 }
 
 /**
@@ -97,6 +110,20 @@ function recordError(rec: Record<string, unknown>): string | undefined {
         }
     }
     return undefined
+}
+
+function forEachNdjsonLine(data: Buffer, fn: (line: Record<string, unknown>) => void): void {
+    for (const line of data.toString('utf8').split('\n')) {
+        const trimmed = line.trim()
+        if (!trimmed) {
+            continue
+        }
+        try {
+            fn(JSON.parse(trimmed) as Record<string, unknown>)
+        } catch {
+            // skip malformed lines
+        }
+    }
 }
 
 function parseActionRecord(rec: Record<string, unknown>): TraceAction {
@@ -145,6 +172,7 @@ export function parseTraceArchive(
 ): TraceArtifact {
     const maxEntries = options.maxEntries ?? DEFAULT_MAX_TRACE_ENTRIES
     const maxTotalBytes = options.maxTotalBytes ?? DEFAULT_MAX_TRACE_BYTES
+    const keepResources = options.keepResources ?? true
     const zip = new AdmZip(zipBuffer)
     const actions: TraceAction[] = []
     const network: TraceNetworkEntry[] = []
@@ -171,6 +199,16 @@ export function parseTraceArchive(
                 `trace.zip entry ${name} declares ${declared} bytes (max ${maxTotalBytes}); refusing to parse untrusted archive.`
             )
         }
+        if (!keepResources) {
+            if (name.endsWith('-elements.json') || name.endsWith('-snapshot.txt')) {
+                snapshots.set(name, '')
+                continue
+            }
+            if (/\.(jpe?g|png|webp)$/i.test(name)) {
+                screenshots.set(name, Buffer.alloc(0))
+                continue
+            }
+        }
         const data = entry.getData()
         totalBytes += data.length
         if (totalBytes > maxTotalBytes) {
@@ -185,53 +223,35 @@ export function parseTraceArchive(
         }
 
         if (name === 'trace.trace' || name.endsWith('.trace')) {
-            for (const line of data.toString('utf8').split('\n')) {
-                const trimmed = line.trim()
-                if (!trimmed) {
-                    continue
-                }
-                try {
-                    const rec = JSON.parse(trimmed) as Record<string, unknown>
-                    if (rec.type === 'context-options' || rec.type === 'after') {
-                        // `after` records only enrich their `before` pair
-                        const id = recordId(rec)
-                        if (rec.type === 'after' && id) {
-                            afterById.set(id, rec)
-                        }
-                        continue
+            forEachNdjsonLine(data, (rec) => {
+                if (rec.type === 'context-options' || rec.type === 'after') {
+                    // `after` records only enrich their `before` pair
+                    const id = recordId(rec)
+                    if (rec.type === 'after' && id) {
+                        afterById.set(id, rec)
                     }
-                    // v8 traces interleave `screencast-frame`/`network`/
-                    // `mutation` records — only `before` records are actions
-                    if (rec.type !== 'before') {
-                        continue
-                    }
-                    actions.push(parseActionRecord(rec))
-                } catch {
-                    // skip malformed lines rather than failing the whole artifact
+                    return
                 }
-            }
+                // v8 traces interleave `screencast-frame`/`network`/
+                // `mutation` records — only `before` records are actions
+                if (rec.type !== 'before') {
+                    return
+                }
+                actions.push(parseActionRecord(rec))
+            })
             continue
         }
 
         if (name === 'trace.network' || name.endsWith('.network')) {
-            for (const line of data.toString('utf8').split('\n')) {
-                const trimmed = line.trim()
-                if (!trimmed) {
-                    continue
-                }
-                try {
-                    const rec = JSON.parse(trimmed) as Record<string, unknown>
-                    network.push({
-                        method: typeof rec.method === 'string' ? rec.method : undefined,
-                        url: typeof rec.url === 'string' ? rec.url : undefined,
-                        status: typeof rec.status === 'number' ? rec.status : undefined,
-                        duration: typeof rec.duration === 'number' ? rec.duration : undefined,
-                        raw: rec,
-                    })
-                } catch {
-                    // skip malformed lines
-                }
-            }
+            forEachNdjsonLine(data, (rec) => {
+                network.push({
+                    method: typeof rec.method === 'string' ? rec.method : undefined,
+                    url: typeof rec.url === 'string' ? rec.url : undefined,
+                    status: typeof rec.status === 'number' ? rec.status : undefined,
+                    duration: typeof rec.duration === 'number' ? rec.duration : undefined,
+                    raw: rec,
+                })
+            })
             continue
         }
 

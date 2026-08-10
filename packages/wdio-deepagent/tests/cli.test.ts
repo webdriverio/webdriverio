@@ -17,7 +17,6 @@ describe('parseFlags', () => {
             config: 'wdio.conf.ts',
             heal: 'auto',
             model: 'ollama:llama3',
-            prompt: 'explore the site',
             positionals: ['explore', 'the', 'site'],
         })
     })

@@ -9,14 +9,16 @@ import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { parseModelConfig } from './model/index.js'
 import type { DeepAgentModelConfig } from './model/index.js'
 import { resolveChatModel, RequestChatModel } from './model/index.js'
-import type { HealMode } from './config/index.js'
+import { DEFAULT_MCP_CONFIG, type HealMode } from './config/index.js'
 import type { McpServerConfig } from './mcp/index.js'
 import { WdioMcpClient } from './mcp/index.js'
 import { createTraceTools } from './trace/tools.js'
 import { createKnowledgeBaseTools } from './knowledge-base/tools.js'
-import { DEFAULT_INSTRUCTIONS, readInstructionsFile } from './prompts.js'
+import { readInstructionsFile } from './prompts.js'
 
-const log = logger('wdio-deepagent')
+const log = logger('@wdio/deepagent')
+
+export { DEFAULT_MCP_CONFIG }
 
 /**
  * Heuristic: does the model id look like a small-parameter model (≤7B)?
@@ -44,8 +46,6 @@ export interface DeepAgentHarnessOptions {
     projectRoot?: string
     /** Path to the project's wdio.conf (enables reproduce_spec). */
     configPath?: string
-    /** Custom system prompt / instructions file. */
-    instructions?: string
     /** AGENTS.md memory files loaded into the system prompt. */
     memoryFiles?: string[]
     /** Inject instructions from a file instead of the default. */
@@ -60,12 +60,6 @@ export interface DeepAgentHarness {
     tools: DynamicStructuredTool[]
     /** Shuts down the MCP server process. */
     close(): Promise<void>
-}
-
-/** Default @wdio/mcp spawn. The local (pinned) install is preferred at runtime; `npx -y` is the fallback. */
-export const DEFAULT_MCP_CONFIG: McpServerConfig = {
-    command: 'npx',
-    args: ['-y', '@wdio/mcp'],
 }
 
 /**
@@ -86,10 +80,7 @@ export function permissionsForHeal(heal: HealMode, projectRoot: string): Filesys
     // deepagents requires absolute glob paths (start with `/`, no `~`/`..`),
     // so resolve relative roots against the cwd and drop trailing slashes.
     // A project root of `/` means "full scope" — keep it as the bare root.
-    let root = path.resolve(projectRoot).replace(/\/+$/, '')
-    if (root === '') {
-        root = '/'
-    }
+    const root = path.resolve(projectRoot).replace(/\/+$/, '') || '/'
     // `**` does not match the root directory itself, so the allow rules list
     // both the bare root (ls/glob/grep at the root) and everything under it.
     const underRoot = root === '/' ? '/**' : `${root}/**`
@@ -112,6 +103,33 @@ export function interruptsForHeal(heal: HealMode): Record<string, boolean> {
         return { write_file: true, edit_file: true }
     }
     return {}
+}
+
+/**
+ * Tool failures otherwise propagate through deepagents as a hard turn
+ * failure — a dead browser session (REPL `close session`, crashed Chrome)
+ * would kill the mission before the model could react. Wrap every harness
+ * tool so any thrown error becomes tool content: the model sees the failure
+ * in-context and recovers (retry, start_session, different approach)
+ * instead of the whole turn dying.
+ */
+export function withErrorRecovery(tool: DynamicStructuredTool): DynamicStructuredTool {
+    // `_call` passes (input, runManager, parentConfig) — parentConfig carries
+    // signal/timeout, which mcp-adapters' func reads; forwarding all args
+    // keeps abort + per-call timeouts working through the wrapper
+    const exec = tool.func as (input: unknown, ...rest: unknown[]) => Promise<unknown>
+    // content_and_artifact tools (mcp-adapters) require a [content, artifact]
+    // tuple; a bare string fails tool.call's output validation
+    const tuple = (tool as { responseFormat?: string }).responseFormat === 'content_and_artifact'
+    tool.func = (async (input: unknown, ...rest: unknown[]) => {
+        try {
+            return await exec(input, ...rest)
+        } catch (err) {
+            const message = `Error: ${err instanceof Error ? err.message : String(err)}`
+            return tuple ? [message, undefined] : message
+        }
+    }) as unknown as DynamicStructuredTool['func']
+    return tool
 }
 
 /**
@@ -138,27 +156,29 @@ export async function createDeepAgentHarness(
         )
     }
 
-    const mcpClient = mcpConfig ? new WdioMcpClient(mcpConfig) : null
-    const traversalTools = mcpClient ? await mcpClient.getTools() : []
-
-    const traceTools = createTraceTools({ configPath: options.configPath, traceDir })
-    const knowledgeBaseTools = createKnowledgeBaseTools()
-    // MCP tools are DynamicStructuredTool; harness tools are too.
-    const tools: DynamicStructuredTool[] = [...traversalTools, ...traceTools, ...knowledgeBaseTools]
-
-    if (chatModel instanceof RequestChatModel && tools.length > 0) {
+    if (chatModel instanceof RequestChatModel) {
         throw new Error(
             'The `request` override model is text-only and cannot call tools. ' +
             'Configure a real provider (openrouter | openai | anthropic | ollama) for the deepagent agent modes.'
         )
     }
 
-    const instructions = options.instructions ?? await readInstructionsFile(options.instructionsPath)
-    const agent = (await createDeepAgent({
-        name: 'wdio-deepagent',
+    const mcpClient = mcpConfig ? new WdioMcpClient(mcpConfig) : null
+    const [traversalTools, instructions] = await Promise.all([
+        mcpClient ? mcpClient.getTools() : [],
+        readInstructionsFile(options.instructionsPath),
+    ])
+
+    const traceTools = createTraceTools({ configPath: options.configPath, traceDir })
+    const knowledgeBaseTools = createKnowledgeBaseTools()
+    // MCP tools are DynamicStructuredTool; harness tools are too.
+    const tools: DynamicStructuredTool[] = [...traversalTools, ...traceTools, ...knowledgeBaseTools].map(withErrorRecovery)
+
+    const agent = createDeepAgent({
+        name: '@wdio/deepagent',
         model: chatModel,
         tools,
-        systemPrompt: instructions ?? DEFAULT_INSTRUCTIONS,
+        systemPrompt: instructions,
         middleware: [todoListMiddleware()],
         // In-memory checkpointer. Required for two things:
         // 1. `ask`-mode human-in-the-loop interrupts (humanInTheLoopMiddleware
@@ -176,7 +196,7 @@ export async function createDeepAgentHarness(
         ...(options.memoryFiles?.length ? { memory: options.memoryFiles } : {}),
         permissions: permissionsForHeal(heal, projectRoot),
         interruptOn: interruptsForHeal(heal),
-    })).withConfig({
+    }).withConfig({
         // The in-memory checkpointer needs a stable thread id so every
         // invoke (repl turns, interrupt resumes, repeated missions) writes
         // to the same conversation thread.

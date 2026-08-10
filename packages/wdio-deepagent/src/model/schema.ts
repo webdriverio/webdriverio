@@ -15,13 +15,16 @@ export interface RequestOverrideFn {
  * override) without any per-provider HTTP code: the resolver maps this
  * schema onto the matching LangChain chat model integration.
  */
+export const DeepAgentProviderSchema = z.enum(['openrouter', 'openai', 'anthropic', 'ollama', 'llama-cpp', 'lm-studio'])
+export const PROVIDERS = DeepAgentProviderSchema.options
+
 export const DeepAgentModelConfigSchema = z.object({
     /**
      * LLM provider. `openrouter` covers dozens of models with one key;
      * `openai` also covers OpenAI-compatible endpoints (LM Studio, …) via
      * `baseURL`; `ollama` runs fully local.
      */
-    provider: z.enum(['openrouter', 'openai', 'anthropic', 'ollama']),
+    provider: DeepAgentProviderSchema,
     /** Model identifier, e.g. `moonshotai/kimi-k3` or `gpt-5.5`. */
     model: z.string().min(1),
     /** Override endpoint. OpenAI-compatible base URL or Ollama server. */

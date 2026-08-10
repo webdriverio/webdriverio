@@ -2,19 +2,13 @@ import { ConfigParser } from '@wdio/config/node'
 import logger from '@wdio/logger'
 import fs from 'node:fs'
 import path from 'node:path'
-import type { DeepAgentConfig, HealMode } from './schema.js'
+import type { CliFlags } from '../commands/flags.js'
+import type { DeepAgentProvider } from '../model/schema.js'
+import { DeepAgentProviderSchema } from '../model/schema.js'
+import type { DeepAgentConfig } from './schema.js'
 import { parseDeepAgentConfig } from './schema.js'
 
-const log = logger('wdio-deepagent')
-
-export interface CliDeepAgentFlags {
-    /** --heal ask|propose|auto */
-    heal?: HealMode
-    /** --trace-dir <path> */
-    traceDir?: string
-    /** --model provider:model, e.g. openrouter:moonshotai/kimi-k3 */
-    model?: string
-}
+const log = logger('@wdio/deepagent')
 
 export interface LoadDeepAgentConfigOptions {
     /** Path to the project's wdio.conf.{js,ts,mjs,cjs}. */
@@ -22,7 +16,7 @@ export interface LoadDeepAgentConfigOptions {
     /** Injectable env for tests. */
     env?: NodeJS.ProcessEnv
     /** CLI flags — highest precedence. */
-    cli?: CliDeepAgentFlags
+    cli?: Pick<CliFlags, 'heal' | 'model' | 'traceDir'>
     /** Directory to probe for the default config when `configPath` is unset. */
     cwd?: string
     /**
@@ -56,12 +50,33 @@ export function findDefaultConfigPath(cwd = process.cwd()): string | undefined {
 }
 
 /** Parses a `provider:model` string into `{ provider, model }`. */
-function splitModelString(model: string): { provider: 'openrouter' | 'openai' | 'anthropic' | 'ollama'; model: string } {
+function splitModelString(model: string): { provider: DeepAgentProvider; model: string } {
     const idx = model.indexOf(':')
     if (idx === -1) {
         throw new Error(`Invalid --model "${model}". Expected "provider:model", e.g. "openrouter:moonshotai/kimi-k3".`)
     }
-    return { provider: model.slice(0, idx) as never, model: model.slice(idx + 1) }
+    return { provider: DeepAgentProviderSchema.parse(model.slice(0, idx)), model: model.slice(idx + 1) }
+}
+
+/**
+ * Merges a CLI/env `provider:model` override into the file block's model
+ * config. Provider-specific credentials (apiKey/baseURL) must not leak into
+ * a different provider — an openrouter key on an openai call fails
+ * confusingly. Provider-agnostic fields (temperature, maxTokens) survive
+ * either way.
+ */
+function mergeModelOverride(
+    fileModel: Record<string, unknown> | undefined,
+    override: { provider: DeepAgentProvider; model: string },
+): Record<string, unknown> {
+    if (!fileModel) {
+        return override
+    }
+    if (typeof fileModel.provider === 'string' && fileModel.provider === override.provider) {
+        return { ...fileModel, ...override }
+    }
+    const { apiKey: _apiKey, baseURL: _baseURL, ...rest } = fileModel
+    return { ...rest, ...override }
 }
 
 /**
@@ -108,20 +123,19 @@ export async function loadDeepAgentConfig(
     const envHeal = env.DEEPAGENT_HEAL
 
     // 3. merge, lowest → highest precedence
+    const modelStr = options.cli?.model ?? envModel
     const merged: Record<string, unknown> = {
         ...(fileBlock ?? {}),
         ...(envHeal ? { heal: envHeal } : {}),
-        ...(envModel ? { model: { ...(fileBlock?.model as Record<string, unknown> ?? {}), ...splitModelString(envModel) } } : {}),
+        ...(modelStr
+            ? { model: mergeModelOverride(fileBlock?.model as Record<string, unknown> | undefined, splitModelString(modelStr)) }
+            : {}),
         ...(options.cli?.heal ? { heal: options.cli.heal } : {}),
         ...(options.cli?.traceDir ? { traceDir: options.cli.traceDir } : {}),
-        ...(options.cli?.model ? { model: { ...(fileBlock?.model as Record<string, unknown> ?? {}), ...splitModelString(options.cli.model) } } : {}),
     }
 
-    if (!merged.model) {
-        if (!options.modelOptional) {
-            throw new Error(DEFAULT_MODEL_HINT)
-        }
-        // read-only mode (propose diagnose): no agent, so no model required
+    if (!merged.model && !options.modelOptional) {
+        throw new Error(DEFAULT_MODEL_HINT)
     }
 
     return parseDeepAgentConfig(merged)

@@ -105,9 +105,31 @@ describe('createDeepAgentHarness (smoke, no network)', () => {
         }
     })
 
+    it('recovers any MCP tool error into tool content instead of failing the turn', async () => {
+        process.env.FIXTURE_SESSION_LOST = '1'
+        try {
+            const content = await runSingleTool(
+                'ask',
+                process.cwd(),
+                'fixture_navigate',
+                { url: 'https://example.com' },
+            )
+            // the adapter threw on the isError result; the error-recovery
+            // wrapper turned it into content the model can react to
+            expect(content).toMatch(/^Error:/)
+            expect(content).toMatch(/no active browser session/i)
+        } finally {
+            delete process.env.FIXTURE_SESSION_LOST
+        }
+    })
+
     it('refuses a request-override model when tools are present', async () => {
         await expect(createDeepAgentHarness({
-            model: { provider: 'openai', model: 'fake', request: async () => 'text-only' },
+            model: {
+                provider: 'openai', model: 'fake', request: async () => 'text-only',
+                temperature: 0,
+                maxTokens: 0
+            },
             mcp: { command: process.execPath, args: [MCP_SERVER] },
         })).rejects.toThrow(/does not support tool calling|text-only/)
     })

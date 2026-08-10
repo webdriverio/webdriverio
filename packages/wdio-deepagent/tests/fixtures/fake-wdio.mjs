@@ -1,4 +1,4 @@
-// Fake `wdio` binary for reproduce tests: writes a trace-*.zip into
+// Fake `wdio` binary for reproduce-path tests: writes a trace-*.zip into
 // <cwd>/test-results (the directory the reproduce runner scans) and exits
 // 0, or 1 when invoked with --fail.
 import fs from 'node:fs'

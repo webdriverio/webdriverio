@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import AdmZip from 'adm-zip'
-import { parseTraceArchive } from '../src/trace/reader.js'
+import { isNetworkError, parseTraceArchive } from '../src/trace/reader.js'
+import { summarizeFailures } from '../src/trace/diff.js'
 
 /** Builds a fixture trace.zip in the documented devtools layout. */
 function makeFixtureZip(): Buffer {
@@ -114,6 +115,30 @@ describe('parseTraceArchive', () => {
         expect(click.error).toContain('element wasn\'t found')
         expect(click.startedAt).toBe(1500)
         expect(click.duration).toBe(6000)
+    })
+
+    it('treats status 0 and missing status as network failures, not successes', () => {
+        const zip = new AdmZip()
+        zip.addFile('trace.network', Buffer.from([
+            JSON.stringify({ method: 'GET', url: 'https://example.com/ok', status: 200 }),
+            JSON.stringify({ method: 'GET', url: 'https://example.com/failed', status: 0 }),
+            JSON.stringify({ method: 'GET', url: 'https://example.com/aborted' }),
+            JSON.stringify({ method: 'GET', url: 'https://example.com/error', status: 500 }),
+        ].join('\n')))
+        const artifact = parseTraceArchive(zip.toBuffer())
+        expect(artifact.network).toHaveLength(4)
+
+        expect(isNetworkError(artifact.network[0])).toBe(false)
+        expect(isNetworkError(artifact.network[1])).toBe(true)
+        expect(isNetworkError(artifact.network[2])).toBe(true)
+        expect(isNetworkError(artifact.network[3])).toBe(true)
+
+        const errors = summarizeFailures(artifact).networkErrors
+        expect(errors.map((e) => e.url)).toEqual([
+            'https://example.com/failed',
+            'https://example.com/aborted',
+            'https://example.com/error',
+        ])
     })
 
     it('rejects archives with more entries than the cap', () => {
