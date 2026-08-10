@@ -116,7 +116,7 @@ jobs:
           docker build \
             -f e2e/wdio/xvfb/docker/${{ matrix.dockerfile }} \
             -t xvfb-test:${{ matrix.distro }}-${{ matrix.scenario }} \
-            e2e/wdio/xvfb/docker/
+            .
 
       - name: Run XVFB E2E tests in container
         run: |
