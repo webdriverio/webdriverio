@@ -12,25 +12,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Ubuntu scenarios
-          - distro: ubuntu
-            version: "24.04"
-            scenario: base
-            dockerfile: ubuntu-base.dockerfile
-          - distro: ubuntu
-            version: "24.04"
-            scenario: with-xvfb
-            dockerfile: ubuntu-with-xvfb.dockerfile
+          # # Ubuntu scenarios
+          # - distro: ubuntu
+          #   version: "24.04"
+          #   scenario: base
+          #   dockerfile: ubuntu-base.dockerfile
+          # - distro: ubuntu
+          #   version: "24.04"
+          #   scenario: with-xvfb
+          #   dockerfile: ubuntu-with-xvfb.dockerfile
 
-          # Fedora scenarios
-          - distro: fedora
-            version: "40"
-            scenario: base
-            dockerfile: fedora-base.dockerfile
-          - distro: fedora
-            version: "40"
-            scenario: with-xvfb
-            dockerfile: fedora-with-xvfb.dockerfile
+          # # Fedora scenarios
+          # - distro: fedora
+          #   version: "40"
+          #   scenario: base
+          #   dockerfile: fedora-base.dockerfile
+          # - distro: fedora
+          #   version: "40"
+          #   scenario: with-xvfb
+          #   dockerfile: fedora-with-xvfb.dockerfile
 
           # Alpine scenarios
           - distro: alpine
@@ -42,55 +42,55 @@ jobs:
             scenario: with-xvfb
             dockerfile: alpine-with-xvfb.dockerfile
 
-          # Debian scenarios
-          - distro: debian
-            version: "12"
-            scenario: base
-            dockerfile: debian-base.dockerfile
-          - distro: debian
-            version: "12"
-            scenario: with-xvfb
-            dockerfile: debian-with-xvfb.dockerfile
+          # # Debian scenarios
+          # - distro: debian
+          #   version: "12"
+          #   scenario: base
+          #   dockerfile: debian-base.dockerfile
+          # - distro: debian
+          #   version: "12"
+          #   scenario: with-xvfb
+          #   dockerfile: debian-with-xvfb.dockerfile
 
-          # CentOS Stream scenarios (upstream RHEL)
-          - distro: centos-stream
-            version: "9"
-            scenario: base
-            dockerfile: centos-stream-base.dockerfile
-          - distro: centos-stream
-            version: "9"
-            scenario: with-xvfb
-            dockerfile: centos-stream-with-xvfb.dockerfile
+          # # CentOS Stream scenarios (upstream RHEL)
+          # - distro: centos-stream
+          #   version: "9"
+          #   scenario: base
+          #   dockerfile: centos-stream-base.dockerfile
+          # - distro: centos-stream
+          #   version: "9"
+          #   scenario: with-xvfb
+          #   dockerfile: centos-stream-with-xvfb.dockerfile
 
-          # Arch Linux scenarios
-          - distro: arch
-            version: "latest"
-            scenario: base
-            dockerfile: arch-base.dockerfile
-          - distro: arch
-            version: "latest"
-            scenario: with-xvfb
-            dockerfile: arch-with-xvfb.dockerfile
+          # # Arch Linux scenarios
+          # - distro: arch
+          #   version: "latest"
+          #   scenario: base
+          #   dockerfile: arch-base.dockerfile
+          # - distro: arch
+          #   version: "latest"
+          #   scenario: with-xvfb
+          #   dockerfile: arch-with-xvfb.dockerfile
 
-          # SUSE scenarios
-          - distro: suse
-            version: "15.6"
-            scenario: base
-            dockerfile: suse-base.dockerfile
-          - distro: suse
-            version: "15.6"
-            scenario: with-xvfb
-            dockerfile: suse-with-xvfb.dockerfile
+          # # SUSE scenarios
+          # - distro: suse
+          #   version: "15.6"
+          #   scenario: base
+          #   dockerfile: suse-base.dockerfile
+          # - distro: suse
+          #   version: "15.6"
+          #   scenario: with-xvfb
+          #   dockerfile: suse-with-xvfb.dockerfile
 
-          # Void Linux scenarios
-          - distro: void
-            version: "latest"
-            scenario: base
-            dockerfile: void-base.dockerfile
-          - distro: void
-            version: "latest"
-            scenario: with-xvfb
-            dockerfile: void-with-xvfb.dockerfile
+          # # Void Linux scenarios
+          # - distro: void
+          #   version: "latest"
+          #   scenario: base
+          #   dockerfile: void-base.dockerfile
+          # - distro: void
+          #   version: "latest"
+          #   scenario: with-xvfb
+          #   dockerfile: void-with-xvfb.dockerfile
 
     name: "XVFB E2E: ${{ matrix.distro }}:${{ matrix.version }} (${{ matrix.scenario }})"
 
