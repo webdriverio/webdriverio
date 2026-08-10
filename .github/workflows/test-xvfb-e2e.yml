@@ -137,7 +137,12 @@ jobs:
               sudo chmod -R 755 /workspace/
 
               # Install dependencies in container (pnpm already installed in Docker image)
-              pnpm install --frozen-lockfile
+              # Alpine needs pnpm install without --frozen-lockfile due to architecture mismatch
+              if [ '${{ matrix.distro }}' = 'alpine' ]; then
+                pnpm install
+              else
+                pnpm install --frozen-lockfile
+              fi
 
               # Run the appropriate E2E test based on scenario
               if [ '${{ matrix.scenario }}' = 'base' ]; then

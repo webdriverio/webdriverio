@@ -44,11 +44,6 @@ RUN apk del xvfb-run || true && \
 RUN ! which xvfb-run || exit 1
 
 WORKDIR /app
-
-# Copy lockfile and install dependencies to pre-populate native binaries for this architecture
-COPY ./pnpm-lock.yaml ./
-RUN pnpm fetch
-
 USER testuser
 
 # Default command
