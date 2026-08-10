@@ -322,7 +322,8 @@
         "mcp/selectors",
         "mcp/tools",
         "mcp/resources",
-        "mcp/faq"
+        "mcp/faq",
+        "deepagent"
       ],
       "link": {
         "type": "doc",

@@ -1,0 +1,82 @@
+{
+  "name": "@wdio/deepagent",
+  "version": "9.30.1",
+  "description": "BYOK LangChain Deep Agent harness for WebdriverIO — agent REPL, config wizard, trace diagnosis & healing",
+  "author": "WebdriverIO Team",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-deepagent",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-deepagent"
+  },
+  "keywords": [
+    "webdriverio",
+    "webdriver",
+    "wdio",
+    "agent",
+    "llm",
+    "langchain",
+    "deepagents",
+    "mcp",
+    "repl",
+    "byok"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "bin": {
+    "wdio-deepagent": "./bin/wdio-deepagent.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./build/index.js",
+      "types": "./build/index.d.ts"
+    },
+    "./model": {
+      "importSource": "./src/model/index.ts",
+      "import": "./build/model/index.js",
+      "types": "./build/model/index.d.ts"
+    },
+    "./agent": {
+      "importSource": "./src/agent.ts",
+      "import": "./build/agent.js",
+      "types": "./build/agent.d.ts"
+    },
+    "./config": {
+      "importSource": "./src/config/index.ts",
+      "import": "./build/config/index.js",
+      "types": "./build/config/index.d.ts"
+    }
+  },
+  "typeScriptVersion": "3.8.3",
+  "dependencies": {
+    "@langchain/anthropic": "^1.5.4",
+    "@langchain/core": "^1.2.5",
+    "@langchain/mcp-adapters": "^1.1.3",
+    "@langchain/ollama": "^1.3.0",
+    "@langchain/openai": "^1.5.6",
+    "@langchain/openrouter": "^0.4.6",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "adm-zip": "^0.5.16",
+    "@wdio/config": "workspace:*",
+    "@wdio/logger": "workspace:*",
+    "@wdio/mcp": "^3.11.1",
+    "@wdio/types": "workspace:*",
+    "deepagents": "^1.12.2",
+    "langchain": "^1.5.5",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.8",
+    "@types/node": "^20.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

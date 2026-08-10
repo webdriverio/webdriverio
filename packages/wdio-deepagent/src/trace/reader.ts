@@ -1,0 +1,211 @@
+import AdmZip from 'adm-zip'
+
+/**
+ * Normalized view of a devtools `trace.zip` artifact (see
+ * website/docs/devtools/wdio/trace-mode). Parsing is best-effort: exact
+ * record shapes come from the webdriverio/devtools repo, so the reader
+ * extracts documented fields defensively and keeps the raw records.
+ */
+
+export interface TraceAction {
+    /** Pair id linking the `before`/`after` records. */
+    id?: string
+    /** wdio command name (e.g. `url`, `click`, `setValue`). */
+    name?: string
+    selector?: string
+    value?: string
+    url?: string
+    /** Start timestamp (ms). */
+    startedAt?: number
+    /** Duration in ms when the `after` record is present. */
+    duration?: number
+    /** Whether the action completed without error. */
+    ok: boolean
+    error?: string
+    /** Referenced resources inside the archive. */
+    snapshotFile?: string
+    elementsFile?: string
+    screenshotFile?: string
+    /** Raw NDJSON record for downstream consumers. */
+    raw: Record<string, unknown>
+}
+
+export interface TraceNetworkEntry {
+    method?: string
+    url?: string
+    status?: number
+    duration?: number
+    raw: Record<string, unknown>
+}
+
+export interface TraceArtifact {
+    /** Archive file name. */
+    source: string
+    actions: TraceAction[]
+    network: TraceNetworkEntry[]
+    /** `transcript.md` content (LLM-friendly summary). */
+    transcript: string
+    /** `*-elements.json` / `*-snapshot.txt` resources by entry name. */
+    snapshots: Map<string, string>
+    /** Screenshot resources by entry name. */
+    screenshots: Map<string, Buffer>
+}
+
+const ACTION_KEYS = ['name', 'selector', 'value', 'url'] as const
+
+/** Hard caps so a crafted `trace.zip` cannot exhaust memory (zip-bomb defense). */
+export const DEFAULT_MAX_TRACE_ENTRIES = 10_000
+export const DEFAULT_MAX_TRACE_BYTES = 256 * 1024 * 1024
+
+export interface TraceParseOptions {
+    /** Max archive entries to decompress (default 10_000). */
+    maxEntries?: number
+    /** Max total decompressed bytes (default 256 MiB). */
+    maxTotalBytes?: number
+}
+
+function parseActionRecord(rec: Record<string, unknown>): TraceAction {
+    // The devtools trace wraps the action payload in `action` for before
+    // records; accept both flattened and nested shapes.
+    const action = (rec.action && typeof rec.action === 'object' ? rec.action : rec) as Record<string, unknown>
+    const actionFields: Partial<TraceAction> = {}
+    for (const key of ACTION_KEYS) {
+        const v = action[key]
+        if (typeof v === 'string') {
+            ;(actionFields as Record<string, unknown>)[key] = v
+        }
+    }
+    const ts = typeof rec.ts === 'number' ? rec.ts : typeof rec.timestamp === 'number' ? rec.timestamp : undefined
+    return {
+        id: typeof rec.id === 'string' ? rec.id : undefined,
+        ...actionFields,
+        startedAt: ts,
+        ok: rec.type !== 'after' || !rec.error,
+        error: typeof rec.error === 'string' ? rec.error : undefined,
+        snapshotFile: typeof rec.snapshotFile === 'string' ? rec.snapshotFile : undefined,
+        elementsFile: typeof rec.elementsFile === 'string' ? rec.elementsFile : undefined,
+        screenshotFile: typeof rec.screenshotFile === 'string' ? rec.screenshotFile : undefined,
+        raw: rec,
+    }
+}
+
+/**
+ * Parses a devtools `trace.zip` buffer into structured agent context:
+ * ordered action timeline (before/after pairs), network entries,
+ * transcript, per-action accessibility snapshots and screenshots.
+ */
+export function parseTraceArchive(
+    zipBuffer: Buffer,
+    source = 'trace.zip',
+    options: TraceParseOptions = {},
+): TraceArtifact {
+    const maxEntries = options.maxEntries ?? DEFAULT_MAX_TRACE_ENTRIES
+    const maxTotalBytes = options.maxTotalBytes ?? DEFAULT_MAX_TRACE_BYTES
+    const zip = new AdmZip(zipBuffer)
+    const actions: TraceAction[] = []
+    const network: TraceNetworkEntry[] = []
+    const snapshots = new Map<string, string>()
+    const screenshots = new Map<string, Buffer>()
+    let transcript = ''
+    const afterById = new Map<string, TraceAction>()
+
+    const entries = zip.getEntries()
+    if (entries.length > maxEntries) {
+        throw new Error(
+            `trace.zip has ${entries.length} entries (max ${maxEntries}); refusing to parse untrusted archive.`
+        )
+    }
+
+    let totalBytes = 0
+    for (const entry of entries) {
+        const name = entry.entryName
+        // The entry header carries the declared uncompressed size; reject
+        // oversized entries before materializing them in memory.
+        const declared = typeof entry.header?.size === 'number' ? entry.header.size : 0
+        if (declared > maxTotalBytes) {
+            throw new Error(
+                `trace.zip entry ${name} declares ${declared} bytes (max ${maxTotalBytes}); refusing to parse untrusted archive.`
+            )
+        }
+        const data = entry.getData()
+        totalBytes += data.length
+        if (totalBytes > maxTotalBytes) {
+            throw new Error(
+                `trace.zip exceeds ${maxTotalBytes} bytes decompressed; refusing to parse untrusted archive.`
+            )
+        }
+
+        if (name === 'transcript.md') {
+            transcript = data.toString('utf8')
+            continue
+        }
+
+        if (name === 'trace.trace' || name.endsWith('.trace')) {
+            for (const line of data.toString('utf8').split('\n')) {
+                const trimmed = line.trim()
+                if (!trimmed) {
+                    continue
+                }
+                try {
+                    const rec = JSON.parse(trimmed) as Record<string, unknown>
+                    if (rec.type === 'context-options' || rec.type === 'after') {
+                        // `after` records only enrich their `before` pair
+                        if (rec.type === 'after' && typeof rec.id === 'string') {
+                            afterById.set(rec.id, parseActionRecord(rec))
+                        }
+                        continue
+                    }
+                    actions.push(parseActionRecord(rec))
+                } catch {
+                    // skip malformed lines rather than failing the whole artifact
+                }
+            }
+            continue
+        }
+
+        if (name === 'trace.network' || name.endsWith('.network')) {
+            for (const line of data.toString('utf8').split('\n')) {
+                const trimmed = line.trim()
+                if (!trimmed) {
+                    continue
+                }
+                try {
+                    const rec = JSON.parse(trimmed) as Record<string, unknown>
+                    network.push({
+                        method: typeof rec.method === 'string' ? rec.method : undefined,
+                        url: typeof rec.url === 'string' ? rec.url : undefined,
+                        status: typeof rec.status === 'number' ? rec.status : undefined,
+                        duration: typeof rec.duration === 'number' ? rec.duration : undefined,
+                        raw: rec,
+                    })
+                } catch {
+                    // skip malformed lines
+                }
+            }
+            continue
+        }
+
+        if (name.endsWith('-elements.json') || name.endsWith('-snapshot.txt')) {
+            snapshots.set(name, data.toString('utf8'))
+            continue
+        }
+
+        if (/\.(jpe?g|png|webp)$/i.test(name)) {
+            screenshots.set(name, data)
+        }
+    }
+
+    // attach durations: an `after` record with the same id follows `before`
+    for (const action of actions) {
+        const after = action.id ? afterById.get(action.id) : undefined
+        if (after?.startedAt !== undefined && action.startedAt !== undefined) {
+            action.duration = Math.max(0, after.startedAt - action.startedAt)
+        }
+        if (after?.error && !action.error) {
+            action.error = after.error
+            action.ok = false
+        }
+    }
+
+    return { source, actions, network, transcript, snapshots, screenshots }
+}

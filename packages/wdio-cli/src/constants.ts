@@ -8,7 +8,7 @@ const pkgJSON = require('../package.json')
 export const pkg = pkgJSON
 export const CLI_EPILOGUE = `Documentation: https://webdriver.io\n@wdio/cli (v${pkg.version})`
 
-export const SUPPORTED_COMMANDS = ['run', 'install', 'config', 'repl']
+export const SUPPORTED_COMMANDS = ['run', 'install', 'config', 'repl', 'deepagent']
 
 export const ANDROID_CONFIG = {
     platformName: 'Android',
