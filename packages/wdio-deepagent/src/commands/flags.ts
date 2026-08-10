@@ -1,15 +1,15 @@
 /** Minimal CLI flag parsing for `wdio-deepagent` (hand-rolled, no yargs). */
+import { HealModeSchema } from '../config/schema.js'
+import type { HealMode } from '../config/schema.js'
 
 export interface CliFlags {
     config?: string
-    heal?: 'ask' | 'propose' | 'auto'
+    heal?: HealMode
     model?: string
     traceDir?: string
     /** Spec to reproduce (diagnose mode). */
     spec?: string
-    /** Positional prompt (run mode) / trace.zip path (diagnose mode). */
-    prompt?: string
-    /** Raw positionals. */
+    /** Positionals: prompt (run mode) / trace.zip path (diagnose mode). */
     positionals?: string[]
 }
 
@@ -27,12 +27,14 @@ export function parseFlags(argv: string[]): CliFlags {
             }
             switch (arg) {
             case '--config': flags.config = value; break
-            case '--heal':
-                if (value !== 'ask' && value !== 'propose' && value !== 'auto') {
+            case '--heal': {
+                const heal = HealModeSchema.safeParse(value)
+                if (!heal.success) {
                     throw new Error(`Invalid --heal "${value}". Expected ask | propose | auto.`)
                 }
-                flags.heal = value
+                flags.heal = heal.data
                 break
+            }
             case '--model': flags.model = value; break
             case '--trace-dir': flags.traceDir = value; break
             case '--spec': flags.spec = value; break
@@ -45,7 +47,6 @@ export function parseFlags(argv: string[]): CliFlags {
         }
     }
     if (positionals.length > 0) {
-        flags.prompt = positionals.join(' ')
         flags.positionals = positionals
     }
     return flags

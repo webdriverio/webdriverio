@@ -1,4 +1,5 @@
 import type { TraceAction, TraceArtifact, TraceNetworkEntry } from './reader.js'
+import { isNetworkError } from './reader.js'
 
 /** Human/agent-facing failure summary of one artifact. */
 export function summarizeFailures(artifact: TraceArtifact): {
@@ -7,7 +8,7 @@ export function summarizeFailures(artifact: TraceArtifact): {
 } {
     return {
         failedActions: artifact.actions.filter((a) => !a.ok),
-        networkErrors: artifact.network.filter((n) => (n.status ?? 200) >= 400),
+        networkErrors: artifact.network.filter(isNetworkError),
     }
 }
 

@@ -20,17 +20,17 @@ export async function runMission(agent: DeepAgent, prompt: string): Promise<RunM
         // A mission that ends on a failed tool call, or with no final answer
         // at all (iteration cap, empty reply), is a failure for CI purposes.
         if (failedToolIds.length > 0) {
-            const msg = `[wdio-deepagent] mission ended with failed tool invocation(s): ${failedToolIds.join(', ')}`
+            const msg = `[@wdio/deepagent] mission ended with failed tool invocation(s): ${failedToolIds.join(', ')}`
             console.error(msg)
             return { reply, toolCalls, exitCode: 1 }
         }
         if (!reply.trim()) {
-            console.error('[wdio-deepagent] mission ended with no final answer')
+            console.error('[@wdio/deepagent] mission ended with no final answer')
             return { reply, toolCalls, exitCode: 1 }
         }
         return { reply, toolCalls, exitCode: 0 }
     } catch (err) {
-        console.error(`[wdio-deepagent] mission failed: ${(err as Error).message}`)
+        console.error(`[@wdio/deepagent] mission failed: ${(err as Error).message}`)
         return { reply: '', toolCalls: [], exitCode: 1 }
     }
 }

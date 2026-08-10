@@ -8,15 +8,19 @@
 import logger from '@wdio/logger'
 import path from 'node:path'
 import { loadDeepAgentConfig, findDefaultConfigPath, DEFAULT_MODEL_HINT } from './config/index.js'
+import type { DeepAgentConfig } from './config/index.js'
 import { createDeepAgentHarness } from './agent.js'
+import type { DeepAgentHarness } from './agent.js'
 import { runInit } from './init/index.js'
 import { runDiagnosis } from './heal/index.js'
+import type { DiagnosisReport } from './heal/index.js'
 import { serveAsMcpServer } from './mcp/index.js'
 import { parseFlags } from './commands/flags.js'
+import type { CliFlags } from './commands/flags.js'
 import { runRepl } from './commands/repl.js'
 import { runMission } from './commands/run.js'
 
-const log = logger('wdio-deepagent')
+const log = logger('@wdio/deepagent')
 
 const USAGE = `Usage: wdio-deepagent <command> [options]
 
@@ -35,28 +39,37 @@ Options:
   --trace-dir <dir> trace artifact directory (default: test-results)
 `
 
-async function buildHarnessFromFlags(argv: string[]) {
+interface BuildHarnessResult {
+    harness: DeepAgentHarness | undefined
+    flags: CliFlags
+    configPath?: string
+    config: DeepAgentConfig
+}
+
+async function buildHarness(argv: string[], opts: { allowModelless?: boolean; skipPropose?: boolean } = {}): Promise<BuildHarnessResult> {
     const flags = parseFlags(argv)
     const configPath = flags.config ?? findDefaultConfigPath()
     const config = await loadDeepAgentConfig({
         configPath,
         cli: { heal: flags.heal, model: flags.model, traceDir: flags.traceDir },
+        modelOptional: opts.allowModelless,
     })
-    // loadDeepAgentConfig throws DEFAULT_MODEL_HINT when no model resolves,
-    // so config.model is guaranteed here.
-    if (!config.model) {
+    if (!config.model && !opts.allowModelless) {
         throw new Error(DEFAULT_MODEL_HINT)
     }
-    log.info(`Model: ${config.model.provider}:${config.model.model} · heal: ${config.heal}`)
-    const harness = await createDeepAgentHarness({
-        model: config.model,
-        heal: config.heal,
-        mcp: config.mcp,
-        traceDir: config.traceDir,
-        projectRoot: path.resolve(config.permissions.projectRoot),
-        configPath,
-    })
-    return { harness, flags }
+    if (config.model && !(opts.skipPropose && config.heal === 'propose')) {
+        log.info(`Model: ${config.model.provider}:${config.model.model} · heal: ${config.heal}`)
+        const harness = await createDeepAgentHarness({
+            model: config.model,
+            heal: config.heal,
+            mcp: config.mcp,
+            traceDir: config.traceDir,
+            projectRoot: path.resolve(config.permissions.projectRoot),
+            configPath,
+        })
+        return { harness, flags, configPath, config }
+    }
+    return { harness: undefined, flags, configPath, config }
 }
 
 export async function run(): Promise<void> {
@@ -77,18 +90,23 @@ export async function run(): Promise<void> {
 async function dispatch(command: string | undefined, rest: string[]): Promise<void> {
     switch (command) {
     case 'repl': {
-        const { harness } = await buildHarnessFromFlags(rest)
-        console.log('wdio-deepagent REPL — type a mission, or "exit" to quit.')
-        await runRepl(harness.agent, harness.close)
+        const { harness } = await buildHarness(rest)
+        console.log('wdio-deepagent REPL — type a mission, or "exit" to quit. "close session" closes the browser session.')
+        await runRepl(harness!.agent, harness!.close, async () => {
+            if (!harness!.mcpClient) {
+                throw new Error('mcp: null config — no browser session')
+            }
+            await harness!.mcpClient.callTool('close_session', {})
+        })
         break
     }
     case 'run': {
-        const { harness, flags } = await buildHarnessFromFlags(rest)
-        if (!flags.prompt) {
+        const { harness, flags } = await buildHarness(rest)
+        if (!flags.positionals?.length) {
             throw new Error('run requires a prompt: wdio-deepagent run "<prompt>"')
         }
-        const result = await runMission(harness.agent, flags.prompt)
-        await harness.close()
+        const result = await runMission(harness!.agent, flags.positionals.join(' '))
+        await harness!.close()
         process.exitCode = result.exitCode
         break
     }
@@ -99,41 +117,29 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
         break
     }
     case 'diagnose': {
-        const flags = parseFlags(rest)
-        const configPath = flags.config ?? findDefaultConfigPath()
-        const tracePath = flags.positionals?.[0] ?? flags.prompt
+        const built = await buildHarness(rest, { allowModelless: true, skipPropose: true })
+        const tracePath = built.flags.positionals?.[0]
         if (!tracePath) {
             throw new Error('diagnose requires a trace.zip path: wdio-deepagent diagnose <trace.zip> [--spec <path>]')
         }
-        const config = await loadDeepAgentConfig({
-            configPath,
-            cli: { heal: flags.heal, model: flags.model, traceDir: flags.traceDir },
-            // propose mode builds no agent, so read-only diagnosis works
-            // even without any model configured
-            modelOptional: true,
-        })
-        if (config.heal !== 'propose' && !config.model) {
+        if (built.config.heal !== 'propose' && !built.harness) {
             throw new Error(DEFAULT_MODEL_HINT)
         }
-        const harness = config.heal !== 'propose' && config.model
-            ? await createDeepAgentHarness({
-                model: config.model,
-                heal: config.heal,
-                mcp: config.mcp,
-                traceDir: config.traceDir,
-                projectRoot: path.resolve(config.permissions.projectRoot),
-                configPath,
+        const harness = built.harness
+        let report: DiagnosisReport
+        try {
+            report = await runDiagnosis({
+                tracePath,
+                configPath: built.configPath,
+                spec: built.flags.spec,
+                traceDir: built.config.traceDir,
+                heal: built.config.heal,
+                agent: harness?.agent,
             })
-            : undefined
-        const report = await runDiagnosis({
-            tracePath,
-            configPath,
-            spec: flags.spec,
-            traceDir: config.traceDir,
-            heal: config.heal,
-            agent: harness?.agent,
-        })
-        await harness?.close()
+        } finally {
+            // a thrown diagnosis must not leak the harness's MCP server process
+            await harness?.close()
+        }
         console.log(JSON.stringify({
             source: report.source,
             actionCount: report.actionCount,
@@ -149,12 +155,12 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
         break
     }
     case 'mcp': {
-        const { harness } = await buildHarnessFromFlags(rest)
-        if (harness.mcpClient === null) {
+        const { harness } = await buildHarness(rest)
+        if (harness!.mcpClient === null) {
             log.warn('mcp: null config — serving the trace/knowledge-base tool surface only (no browser tools)')
         }
-        await serveAsMcpServer(harness)
-        await harness.close()
+        await serveAsMcpServer(harness!)
+        await harness!.close()
         break
     }
     case 'help':

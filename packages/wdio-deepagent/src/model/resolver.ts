@@ -50,6 +50,8 @@ export const PROVIDER_ENV_KEYS: Record<DeepAgentProvider, string | undefined> = 
     openai: 'OPENAI_API_KEY',
     anthropic: 'ANTHROPIC_API_KEY',
     ollama: undefined,
+    'llama-cpp': undefined,
+    'lm-studio': undefined
 }
 
 export const PROVIDER_BASE_URL_ENV_KEYS: Partial<Record<DeepAgentProvider, string>> = {
@@ -85,7 +87,7 @@ export function resolveChatModel(
     const apiKey = config.apiKey ?? (envKey ? env[envKey] : undefined)
     if (config.provider !== 'ollama' && !apiKey) {
         throw new Error(
-            `[wdio-deepagent] No API key for provider "${config.provider}". ` +
+            `[@wdio/deepagent] No API key for provider "${config.provider}". ` +
             `Set ${envKey} or add \`apiKey\` to the deepagent model config.`
         )
     }
@@ -98,13 +100,13 @@ export function resolveChatModel(
     const baseUrlEnvKey = PROVIDER_BASE_URL_ENV_KEYS[config.provider]
     const baseUrl = config.baseURL ?? (baseUrlEnvKey ? env[baseUrlEnvKey] : undefined)
 
+    const shared = { ...common, apiKey, ...(baseUrl ? { baseURL: baseUrl } : {}) }
+
     switch (config.provider) {
     case 'openrouter':
-        return new ChatOpenRouter({
-            ...common,
-            apiKey,
-            ...(config.baseURL ? { baseURL: config.baseURL } : {}),
-        })
+        return new ChatOpenRouter(shared)
+    case 'lm-studio':
+    case 'llama-cpp':
     case 'openai':
         return new ChatOpenAI({
             ...common,
@@ -117,7 +119,7 @@ export function resolveChatModel(
         return new ChatAnthropic({
             ...common,
             apiKey,
-            ...(baseUrl ? { baseURL: baseUrl } : {}),
+            ...(baseUrl ? { anthropicApiUrl: baseUrl } : {}),
         })
     case 'ollama':
         return new ChatOllama({

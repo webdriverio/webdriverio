@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import type { PromptFn } from './wizard.js'
-import { interview } from './wizard.js'
+import type { PromptFn, ReadlinePrompter } from './wizard.js'
+import { createReadlinePrompter, interview } from './wizard.js'
 import { renderWdioConfig } from './template.js'
 
 export * from './template.js'
@@ -45,10 +45,18 @@ export async function runInit(options: InitOptions = {}): Promise<InitResult> {
     if (!prompt && !process.stdin.isTTY) {
         throw new Error('init requires an interactive terminal (no answers provided).')
     }
-    const answers = await interview(options.prompt ?? (await import('./wizard.js')).createReadlinePrompter())
-    const content = renderWdioConfig(answers)
+    const prompter = prompt ?? createReadlinePrompter()
+    try {
+        const answers = await interview(prompter)
+        const content = renderWdioConfig(answers)
 
-    const writeFile = options.writeFile ?? ((filePath, content) => fs.writeFile(filePath, content, 'utf8'))
-    await writeFile(configPath, content)
-    return { configPath, wrote: true }
+        const writeFile = options.writeFile ?? ((filePath, content) => fs.writeFile(filePath, content, 'utf8'))
+        await writeFile(configPath, content)
+        return { configPath, wrote: true }
+    } finally {
+        // the readline interface keeps stdin open, so a TTY run hangs on exit without close()
+        if (!options.prompt) {
+            (prompter as ReadlinePrompter).close()
+        }
+    }
 }

@@ -5,7 +5,7 @@ import path from 'node:path'
  * Default system prompt for the harness. Mirrors the role of the
  * `instructions.md` file in webdriverio/brain agents; kept as a constant
  * so the built package needs no asset-copy step. A custom instructions
- * file can be provided via `createDeepAgentHarness({ instructions })` or
+ * file can be provided via `createDeepAgentHarness({ instructionsPath })` or
  * `readInstructionsFile(path)`.
  */
 export const DEFAULT_INSTRUCTIONS = `You are wdio-deepagent, a WebdriverIO testing agent running inside the user's project.
@@ -45,6 +45,6 @@ export async function readInstructionsFile(instructionsPath?: string): Promise<s
     try {
         return await fs.readFile(path.resolve(instructionsPath), 'utf8')
     } catch (err) {
-        throw new Error(`[wdio-deepagent] Cannot read instructions file ${instructionsPath}: ${(err as Error).message}`)
+        throw new Error(`[@wdio/deepagent] Cannot read instructions file ${instructionsPath}: ${(err as Error).message}`)
     }
 }

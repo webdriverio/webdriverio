@@ -17,13 +17,8 @@ export interface SiteSnapshot {
     recordedAt: number
 }
 
-const knowledgeBase = new Map<string, SiteSnapshot>()
-
-/**
- * Tools that ground later traversal and healing in what the agent
- * actually saw. Keys are URL-normalized; latest snapshot per page wins.
- */
 export function createKnowledgeBaseTools(): DynamicStructuredTool[] {
+    const knowledgeBase = new Map<string, SiteSnapshot>()
     const rememberSnapshot = tool(
         async ({ url, snapshot, elements }) => {
             knowledgeBase.set(normalizeUrl(url), { url, snapshot, elements, recordedAt: Date.now() })

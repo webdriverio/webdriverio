@@ -1,22 +1,40 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
+import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import type { DynamicStructuredTool } from '@langchain/core/tools'
 import { loadMcpTools } from '@langchain/mcp-adapters'
 import logger from '@wdio/logger'
 import { exec } from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { DEFAULT_MCP_CONFIG } from '../config/schema.js'
+import { VERSION } from '../constants.js'
 
-const log = logger('wdio-deepagent')
+const log = logger('@wdio/deepagent')
 
 /**
- * Current Chrome/Chromium process ids, or null when the platform cannot
- * list them (e.g. Windows without pgrep — Chrome cleanup is skipped).
+ * @wdio/mcp launches Chrome with a fixed temp profile (server.js
+ * `USER_DATA_DIR = <tmp>/chrome-debug`). The cmdline pattern is the only
+ * reliable scope for the close sweep: the server spawns Chrome detached (its
+ * own process group, survives the server), so neither the stdio transport
+ * nor a server-group kill can reach it — and a bare "chrome appeared since
+ * spawn" diff would kill the user's own browser.
  */
-function listChromePids(): Promise<Set<number> | null> {
+const MCP_CHROME_PATTERN = `user-data-dir=${path.join(os.tmpdir(), 'chrome-debug').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`
+
+/**
+ * Chrome/Chromium process ids whose command line matches `pattern`, or null
+ * when the platform cannot list them (e.g. Windows without pgrep — Chrome
+ * cleanup is skipped).
+ */
+function listChromePids(pattern: string): Promise<Set<number> | null> {
     return new Promise((resolve) => {
-        exec('pgrep -f chrome', (err, stdout) => {
+        // bracket the first char so the wrapping shell's own cmdline (which
+        // contains the literal pattern) does not match itself
+        const bracketed = pattern.replace(/^./, (c) => `[${c}]`)
+        exec(`pgrep -f '${bracketed}'`, (err, stdout) => {
             if (err) {
                 resolve(null)
                 return
@@ -24,6 +42,17 @@ function listChromePids(): Promise<Set<number> | null> {
             resolve(new Set(stdout.split('\n').filter(Boolean).map(Number)))
         })
     })
+}
+
+/** Process group id of `pid` from /proc (Linux); undefined where /proc is absent. */
+function processGroupOf(pid: number): number | undefined {
+    try {
+        const stat = fs.readFileSync(`/proc/${pid}/stat`, 'utf8')
+        const after = stat.slice(stat.lastIndexOf(')') + 2).split(' ')
+        return parseInt(after[2], 10)
+    } catch {
+        return undefined
+    }
 }
 
 /**
@@ -79,10 +108,9 @@ export function resolveLocalMcpBin(): string | undefined {
  * running on Windows hosts (known limitation, see USABILITY.md).
  */
 export function resolveMcpSpawn(server: McpServerConfig): { command: string; args: string[] } {
-    const isDefaultNpx = server.command === 'npx'
-        && server.args.length === 2
-        && server.args[0] === '-y'
-        && server.args[1] === '@wdio/mcp'
+    const isDefaultNpx = server.command === DEFAULT_MCP_CONFIG.command
+        && server.args.length === DEFAULT_MCP_CONFIG.args.length
+        && server.args.every((arg, i) => arg === DEFAULT_MCP_CONFIG.args[i])
     if (isDefaultNpx) {
         const localBin = resolveLocalMcpBin()
         if (localBin) {
@@ -129,9 +157,10 @@ export class WdioMcpClient {
 
         // Prefer the locally installed (pinned) @wdio/mcp binary over
         // `npx -y @wdio/mcp` so the traversal tool surface cannot drift.
-        // Record pre-existing Chrome processes so close() can kill the
-        // browser session this mission spawned without touching others.
-        this.#chromeAtStart = await listChromePids()
+        // Record pre-existing Chrome processes (scoped to the @wdio/mcp
+        // profile) so close() can kill the browser session this mission
+        // spawned without touching others.
+        this.#chromeAtStart = await listChromePids(MCP_CHROME_PATTERN)
         const { command, args } = resolveMcpSpawn(this.server)
         log.info(`Spawning @wdio/mcp: ${command} ${args.join(' ')}`)
         this.#transport = new StdioClientTransport({
@@ -145,7 +174,7 @@ export class WdioMcpClient {
         })
 
         this.#client = new Client(
-            { name: 'wdio-deepagent', version: '9.30.1' },
+            { name: '@wdio/deepagent', version: VERSION },
             { capabilities: {} },
         )
         try {
@@ -161,6 +190,24 @@ export class WdioMcpClient {
         return this.#tools
     }
 
+    // direct tool invocation (e.g. the REPL's `close session` keyword) without
+    // going through the agent's LangChain tool wrapper
+    async callTool(name: string, args: Record<string, unknown> = {}): Promise<unknown> {
+        if (!this.#client) {
+            throw new Error('MCP client not connected')
+        }
+        // the SDK types the result as a union with the task variant (content
+        // unknown); the runtime value is always the tool-result shape here
+        const result = (await this.#client.callTool({ name, arguments: args })) as CallToolResult
+        // @wdio/mcp returns an isError result instead of throwing (e.g. no
+        // active session) — surface it as a throw so callers see the failure
+        if (result.isError) {
+            const message = result.content.map((c) => 'text' in c ? c.text : JSON.stringify(c)).join('; ')
+            throw new Error(message || `MCP tool ${name} failed`)
+        }
+        return result.content
+    }
+
     async close(): Promise<void> {
         try {
             await this.#client?.close()
@@ -170,17 +217,35 @@ export class WdioMcpClient {
             this.#tools = undefined
             // @wdio/mcp spawns Chrome detached (survives the server process),
             // so killing the stdio transport alone leaks the browser session.
-            // Kill every Chrome process that appeared since the server spawn.
+            // Kill the process groups of Chrome instances using the @wdio/mcp
+            // profile that appeared since the server spawn: the profile match
+            // keeps the user's own browser alive, the start-diff keeps a
+            // concurrent mission's Chrome alive, and group SIGKILL reaches
+            // zygote/gpu/utility children a pid-only kill leaves behind.
             if (this.#chromeAtStart) {
-                const now = await listChromePids()
+                const now = await listChromePids(MCP_CHROME_PATTERN)
                 if (now) {
+                    const groups = new Set<number>()
                     for (const pid of now) {
-                        if (!this.#chromeAtStart.has(pid)) {
+                        if (this.#chromeAtStart.has(pid)) {
+                            continue
+                        }
+                        const group = processGroupOf(pid)
+                        if (group) {
+                            groups.add(group)
+                        } else {
                             try {
-                                process.kill(pid, 'SIGTERM')
+                                process.kill(pid, 'SIGKILL')
                             } catch {
                                 // already gone
                             }
+                        }
+                    }
+                    for (const group of groups) {
+                        try {
+                            process.kill(-group, 'SIGKILL')
+                        } catch {
+                            // group already gone
                         }
                     }
                 }

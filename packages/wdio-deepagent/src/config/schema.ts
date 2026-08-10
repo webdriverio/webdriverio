@@ -4,6 +4,12 @@ import { DeepAgentModelConfigSchema } from '../model/schema.js'
 export const HealModeSchema = z.enum(['ask', 'propose', 'auto'])
 export type HealMode = z.infer<typeof HealModeSchema>
 
+/** Default @wdio/mcp spawn. The local (pinned) install is preferred at runtime; `npx -y` is the fallback. */
+export const DEFAULT_MCP_CONFIG: { command: string; args: string[] } = {
+    command: 'npx',
+    args: ['-y', '@wdio/mcp'],
+}
+
 /**
  * The `deepagent` block as it appears in `wdio.conf.ts`. The whole block
  * is optional. `model` is optional at parse time — `loadDeepAgentConfig`
@@ -23,8 +29,8 @@ export const DeepAgentConfigSchema = z.object({
     heal: HealModeSchema.default('ask'),
     /** How to spawn the @wdio/mcp server the agent connects to; `null` runs the harness without browser tools. */
     mcp: z.object({
-        command: z.string().default('npx'),
-        args: z.array(z.string()).default(['-y', '@wdio/mcp']),
+        command: z.string().default(DEFAULT_MCP_CONFIG.command),
+        args: z.array(z.string()).default(DEFAULT_MCP_CONFIG.args),
     }).prefault({}).nullable(),
     /** Where devtools trace artifacts land (reproduce/diagnose). */
     traceDir: z.string().default('test-results'),

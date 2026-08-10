@@ -37,8 +37,6 @@ export interface ReproduceResult {
     /** Wall-clock duration of the run in ms. */
     duration: number
     stderr: string
-    /** True when the run was killed by the timeout instead of finishing. */
-    timedOut: boolean
 }
 
 /**
@@ -59,11 +57,11 @@ export function buildTraceOverlay(baseConfigPath: string, traceDir: string): str
     return `import { config as base } from ${JSON.stringify(absBase)}
 
 const baseServices = base.services || []
-const hasDevtools = baseServices.some((s) =>
+const isDevtools = (s) =>
     (typeof s === 'string' && s === 'devtools') || (Array.isArray(s) && s[0] === 'devtools')
-)
+const hasDevtools = baseServices.some(isDevtools)
 const services = baseServices.map((s) =>
-    (typeof s === 'string' && s === 'devtools') || (Array.isArray(s) && s[0] === 'devtools')
+    isDevtools(s)
         ? ['devtools', { mode: 'trace', traceFormat: 'zip' }]
         : s
 )
@@ -102,6 +100,55 @@ async function findNewestTraceZip(dirs: string[]): Promise<string | undefined> {
     return newest?.path
 }
 
+interface SpawnRunOptions {
+    cwd: string
+    env?: NodeJS.ProcessEnv
+    timeoutMs: number
+    shell?: boolean
+}
+
+/** Spawns the wdio run, killing the child after `timeoutMs` if it does not finish. */
+function spawnRun(command: string, args: string[], options: SpawnRunOptions): Promise<{ exitCode: number; stderr: string }> {
+    return new Promise((resolve, reject) => {
+        const child = spawn(command, args, {
+            cwd: options.cwd,
+            env: { ...process.env, ...options.env },
+            stdio: ['ignore', 'ignore', 'pipe'],
+            shell: options.shell,
+        })
+        let stderr = ''
+        let settled = false
+        const timer = setTimeout(() => {
+            if (settled) {
+                return
+            }
+            settled = true
+            stderr += `\n[@wdio/deepagent] reproduction timed out after ${options.timeoutMs} ms; killing the run.\n`
+            child.kill('SIGTERM')
+            // Force-kill shortly after in case the child ignores SIGTERM.
+            setTimeout(() => child.kill('SIGKILL'), 5000).unref()
+            resolve({ exitCode: TIMED_OUT_EXIT_CODE, stderr })
+        }, options.timeoutMs)
+        child.stderr.on('data', (chunk: Buffer) => {
+            stderr += chunk.toString()
+        })
+        child.on('error', (err) => {
+            if (!settled) {
+                settled = true
+                clearTimeout(timer)
+                reject(err)
+            }
+        })
+        child.on('close', (code) => {
+            if (!settled) {
+                settled = true
+                clearTimeout(timer)
+                resolve({ exitCode: code ?? 1, stderr })
+            }
+        })
+    })
+}
+
 /**
  * Runs the spec under the trace overlay and returns the fresh artifact.
  * The spawned run is killed after `timeoutMs` if it does not finish, and
@@ -126,45 +173,19 @@ export async function reproduceSpec(options: ReproduceOptions): Promise<Reproduc
     const wdioBin = options.spawnCommand ?? path.join(projectRoot, 'node_modules', '.bin', 'wdio')
     const args = options.spawnArgs ?? ['run', overlayPath, '--spec', spec]
     const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS
+    const spawnOptions: SpawnRunOptions = { cwd: projectRoot, env: options.env, timeoutMs }
 
     const startedAt = Date.now()
-    const result = await new Promise<{ exitCode: number; stderr: string; timedOut: boolean }>((resolve, reject) => {
-        const child = spawn(wdioBin, args, {
-            cwd: projectRoot,
-            env: { ...process.env, ...options.env },
-            stdio: ['ignore', 'ignore', 'pipe'],
-        })
-        let stderr = ''
-        let settled = false
-        const timer = setTimeout(() => {
-            if (settled) {
-                return
-            }
-            settled = true
-            stderr += `\n[wdio-deepagent] reproduction timed out after ${timeoutMs} ms; killing the run.\n`
-            child.kill('SIGTERM')
-            // Force-kill shortly after in case the child ignores SIGTERM.
-            setTimeout(() => child.kill('SIGKILL'), 5000).unref()
-            resolve({ exitCode: TIMED_OUT_EXIT_CODE, stderr, timedOut: true })
-        }, timeoutMs)
-        child.stderr.on('data', (chunk: Buffer) => {
-            stderr += chunk.toString()
-        })
-        child.on('error', (err) => {
-            if (!settled) {
-                settled = true
-                clearTimeout(timer)
-                reject(err)
-            }
-        })
-        child.on('close', (code) => {
-            if (!settled) {
-                settled = true
-                clearTimeout(timer)
-                resolve({ exitCode: code ?? 1, stderr, timedOut: false })
-            }
-        })
-    })
+    let result: { exitCode: number; stderr: string }
+    try {
+        result = await spawnRun(wdioBin, args, spawnOptions)
+    } catch (err) {
+        if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+            throw err
+        }
+        // no local wdio bin (npx-driven or globally installed project): retry via npx
+        result = await spawnRun('npx', ['wdio', ...args], { ...spawnOptions, shell: process.platform === 'win32' })
+    }
 
     const artifactPath = await findNewestTraceZip([traceDir, path.join(projectRoot, 'test-results')])
 
@@ -173,6 +194,5 @@ export async function reproduceSpec(options: ReproduceOptions): Promise<Reproduc
         exitCode: result.exitCode,
         duration: Date.now() - startedAt,
         stderr: result.stderr,
-        timedOut: result.timedOut,
     }
 }

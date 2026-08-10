@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import { HealModeSchema } from '../config/schema.js'
+import { DeepAgentProviderSchema } from '../model/schema.js'
 
 /**
  * Answers collected by the `init` wizard — the same question set
@@ -15,10 +17,10 @@ export const InitAnswersSchema = z.object({
     cloudProvider: z.enum(['browserstack', 'saucelabs', 'lambdatest', 'testingbot']).optional(),
     baseUrl: z.string().default('http://localhost'),
     deepagentModel: z.object({
-        provider: z.enum(['openrouter', 'openai', 'anthropic', 'ollama']),
+        provider: DeepAgentProviderSchema,
         model: z.string(),
     }).default({ provider: 'openrouter', model: 'moonshotai/kimi-k3' }),
-    heal: z.enum(['ask', 'propose', 'auto']).default('ask'),
+    heal: HealModeSchema.default('ask'),
 })
 
 export type InitAnswers = z.infer<typeof InitAnswersSchema>

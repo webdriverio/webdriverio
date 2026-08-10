@@ -1,10 +1,11 @@
 import { z } from 'zod'
 
 /**
- * langchain v1 `tool()` exposes `schema` as a plain JSON-schema object,
- * while the MCP SDK wants a zod schema/raw shape. This converter covers
- * the subset our harness tools produce (object with string/boolean/
- * number/enum/array-string properties + required list).
+ * langchain v1 `tool()` exposes `schema` as a plain JSON-schema object
+ * (MCP-adapter tools) or a zod schema (langchain `tool()`), while the MCP
+ * SDK wants a zod schema/raw shape. This converter covers the subset our
+ * harness tools produce (object with string/boolean/number/enum/array-string
+ * properties + required list).
  */
 
 export interface JsonSchemaProperty {
@@ -18,6 +19,11 @@ export interface JsonSchemaObject {
     type?: string
     properties?: Record<string, JsonSchemaProperty>
     required?: string[]
+}
+
+/** True for zod schema instances (v3 `_def` / v4 `_zod`); the SDK accepts them as-is. */
+export function isZodSchema(schema: unknown): boolean {
+    return typeof schema === 'object' && schema !== null && ('_def' in schema || '_zod' in schema)
 }
 
 function propertyToZod(prop: JsonSchemaProperty | undefined): z.ZodType {

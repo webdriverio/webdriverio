@@ -65,6 +65,21 @@ describe('resolveChatModel', () => {
         expect((model as { apiKey?: string }).apiKey).toBe('cfg-key')
     })
 
+    it('passes baseURL to anthropic models as anthropicApiUrl', () => {
+        const model = resolveChatModel(
+            {
+                provider: 'anthropic',
+                model: 'deepseek-v4-flash',
+                apiKey: 'cfg-key',
+                baseURL: 'https://api.deepseek.com/anthropic',
+            },
+            { env: {} },
+        )
+        // ChatAnthropic ignores `baseURL` — without this the request silently
+        // goes to api.anthropic.com with a third-party key (401 invalid x-api-key)
+        expect((model as { apiUrl?: string }).apiUrl).toBe('https://api.deepseek.com/anthropic')
+    })
+
     it('does not require a key for ollama', () => {
         const model = resolveChatModel({ provider: 'ollama', model: 'llama3.1:8b' }, { env: {} })
         expect(model).toBeDefined()

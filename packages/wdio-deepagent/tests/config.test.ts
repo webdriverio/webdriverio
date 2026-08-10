@@ -57,6 +57,45 @@ describe('loadDeepAgentConfig', () => {
         expect(cfg.model).toMatchObject({ provider: 'anthropic', model: 'claude-sonnet-4-6' })
     })
 
+    it('drops the file block apiKey/baseURL when the override switches provider', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-cfg-'))
+        await fs.writeFile(path.join(dir, 'wdio.conf.ts'), `
+            export const config = { capabilities: {}, deepagent: {
+                model: {
+                    provider: 'openrouter', model: 'moonshotai/kimi-k3',
+                    apiKey: 'sk-or-123', baseURL: 'https://openrouter.ai/api/v1',
+                },
+            } }`)
+        try {
+            const cfg = await loadDeepAgentConfig({ cwd: dir, env: {}, cli: { model: 'openai:gpt-5.5' } })
+            expect(cfg.model).toMatchObject({ provider: 'openai', model: 'gpt-5.5' })
+            expect(cfg.model!.apiKey).toBeUndefined()
+            expect(cfg.model!.baseURL).toBeUndefined()
+        } finally {
+            await fs.rm(dir, { recursive: true, force: true })
+        }
+    })
+
+    it('keeps the file block apiKey/baseURL when the override keeps the provider', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-cfg-'))
+        await fs.writeFile(path.join(dir, 'wdio.conf.ts'), `
+            export const config = { capabilities: {}, deepagent: {
+                model: {
+                    provider: 'openai', model: 'gpt-5.5',
+                    apiKey: 'sk-openai', baseURL: 'https://api.openai.com/v1',
+                },
+            } }`)
+        try {
+            const cfg = await loadDeepAgentConfig({ cwd: dir, env: {}, cli: { model: 'openai:gpt-5.5-mini' } })
+            expect(cfg.model).toMatchObject({
+                provider: 'openai', model: 'gpt-5.5-mini',
+                apiKey: 'sk-openai', baseURL: 'https://api.openai.com/v1',
+            })
+        } finally {
+            await fs.rm(dir, { recursive: true, force: true })
+        }
+    })
+
     it('applies CLI flags with highest precedence', async () => {
         const cfg = await loadDeepAgentConfig({
             configPath: FIXTURE,

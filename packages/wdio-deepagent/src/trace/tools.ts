@@ -22,7 +22,7 @@ export interface TraceToolOptions {
 }
 
 function summarizeArtifact(source: string, buffer: Buffer): string {
-    const artifact = parseTraceArchive(buffer, source)
+    const artifact = parseTraceArchive(buffer, source, { keepResources: false })
     return JSON.stringify({
         source,
         actions: artifact.actions.map((a) => ({
