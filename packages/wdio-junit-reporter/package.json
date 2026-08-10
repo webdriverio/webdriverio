@@ -34,7 +34,7 @@
     "@wdio/reporter": "8.43.0",
     "@wdio/types": "8.41.0",
     "json-stringify-safe": "^5.0.1",
-    "junit-report-builder": "^5.0.0"
+    "junit-report-builder": "^5.1.2"
   },
   "devDependencies": {
     "@types/json-stringify-safe": "^5.0.0"
