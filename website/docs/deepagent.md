@@ -11,8 +11,6 @@ WebdriverIO DeepAgent is a **bring-your-own-key** agent harness built on LangCha
 npm install @wdio/deepagent
 ```
 
-> **Installation note:** `@wdio/deepagent` is an optional dependency of `wdio-cli`, so npm installs it by default. Its dependency tree is heavy (langchain, deepagents, @wdio/mcp), but it is lazy-loaded and only evaluated when you actually run `wdio deepagent` / `wdio-deepagent` — core CLI startup is unaffected. Use `npm install --omit=optional` to skip it entirely.
-
 ## Configure (BYOK)
 
 Add a `deepagent` block to your `wdio.conf.ts` (typed once you import `@wdio/deepagent`) and set your provider key in the environment:
@@ -55,7 +53,7 @@ wdio-deepagent diagnose <trace.zip> [--spec <path>] [--heal mode]
 wdio-deepagent mcp                 # serve the agent/tools as an MCP server
 ```
 
-The same harness is available as `wdio deepagent …` (lazily loaded so the core CLI stays lean).
+wdio-deepagent is a standalone binary: install it in any project (`npm i -D @wdio/deepagent`) or run it via `npx wdio-deepagent repl`. It reads the project's `deepagent` config block, so the same config drives both.
 
 ## How it works
 
@@ -93,5 +91,4 @@ One schema, one resolver — no per-provider HTTP code (the wdio-agent-service p
 | Agent core (`createDeepAgent` harness) | implemented |
 | `repl` / `run` / `diagnose` / `mcp` CLI | implemented |
 | Heal engine (ask / propose / auto) | implemented |
-| `wdio deepagent` CLI hook | implemented |
 | RAG over docs/site (embeddings) | later phase |

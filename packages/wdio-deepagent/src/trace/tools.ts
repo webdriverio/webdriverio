@@ -4,6 +4,7 @@ import { tool } from 'langchain'
 import type { DynamicStructuredTool } from '@langchain/core/tools'
 import { z } from 'zod'
 import { parseTraceArchive } from './reader.js'
+import type { TraceArtifact } from './reader.js'
 import { reproduceSpec } from './reproduce.js'
 import { diffArtifacts } from './diff.js'
 
@@ -21,10 +22,32 @@ export interface TraceToolOptions {
     spawnArgs?: string[]
 }
 
-function summarizeArtifact(source: string, buffer: Buffer): string {
-    const artifact = parseTraceArchive(buffer, source, { keepResources: false })
+const MAX_ARCHIVE_CACHE = 4
+const archiveCache = new Map<string, ReturnType<typeof parseTraceArchive>>()
+
+async function readTraceArchive(absPath: string, opts: Parameters<typeof parseTraceArchive>[2]): Promise<ReturnType<typeof parseTraceArchive>> {
+    // stat in the key: a replaced artifact at the same path must not serve a stale parse
+    const stat = await fs.stat(absPath)
+    const key = `${absPath}:${stat.mtimeMs}:${stat.size}:${JSON.stringify(opts)}`
+    const cached = archiveCache.get(key)
+    if (cached) {
+        return cached
+    }
+    const buffer = await fs.readFile(absPath)
+    const parsed = parseTraceArchive(buffer, path.basename(absPath), opts)
+    if (archiveCache.size >= MAX_ARCHIVE_CACHE) {
+        const oldest = archiveCache.keys().next().value
+        if (oldest !== undefined) {
+            archiveCache.delete(oldest)
+        }
+    }
+    archiveCache.set(key, parsed)
+    return parsed
+}
+
+function summarizeArtifact(artifact: TraceArtifact): string {
     return JSON.stringify({
-        source,
+        source: artifact.source,
         actions: artifact.actions.map((a) => ({
             name: a.name,
             selector: a.selector,
@@ -44,13 +67,17 @@ export function createTraceTools(options: TraceToolOptions): DynamicStructuredTo
     const ingestTrace = tool(
         async ({ tracePath }) => {
             const abs = path.resolve(tracePath)
-            let buffer: Buffer
             try {
-                buffer = await fs.readFile(abs)
+                const artifact = await readTraceArchive(abs, { keepResources: false })
+                return summarizeArtifact(artifact)
             } catch (err) {
+                // read failures (ENOENT etc.) are friendly messages; parse
+                // failures (corrupt zip) stay loud — only readFile errors carry a code
+                if (!(err as NodeJS.ErrnoException).code) {
+                    throw err
+                }
                 return `Cannot read trace at ${abs}: ${(err as Error).message}`
             }
-            return summarizeArtifact(path.basename(abs), buffer)
         },
         {
             name: 'ingest_trace',
@@ -87,19 +114,18 @@ export function createTraceTools(options: TraceToolOptions): DynamicStructuredTo
 
     const diffTraces = tool(
         async ({ oldTrace, newTrace }) => {
-            let oldBuffer: Buffer
-            let newBuffer: Buffer
             try {
-                ;[oldBuffer, newBuffer] = await Promise.all([
-                    fs.readFile(path.resolve(oldTrace)),
-                    fs.readFile(path.resolve(newTrace)),
+                const [oldArtifact, newArtifact] = await Promise.all([
+                    readTraceArchive(path.resolve(oldTrace), {}),
+                    readTraceArchive(path.resolve(newTrace), {}),
                 ])
+                return JSON.stringify(diffArtifacts(oldArtifact, newArtifact), null, 2)
             } catch (err) {
+                if (!(err as NodeJS.ErrnoException).code) {
+                    throw err
+                }
                 return `Cannot read traces: ${(err as Error).message}`
             }
-            const oldArtifact = parseTraceArchive(oldBuffer, path.basename(oldTrace))
-            const newArtifact = parseTraceArchive(newBuffer, path.basename(newTrace))
-            return JSON.stringify(diffArtifacts(oldArtifact, newArtifact), null, 2)
         },
         {
             name: 'diff_traces',

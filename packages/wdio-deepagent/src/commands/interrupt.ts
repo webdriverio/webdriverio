@@ -12,15 +12,22 @@ export function describeActionRequest(action: TurnInterruptRequest['actionReques
 
 /** Interactive y/N approval for gated tool calls (heal=ask). */
 export function createInterruptResolver(rl: readline.Interface): (request: TurnInterruptRequest) => Promise<boolean> {
+    // one persistent listener — per-prompt `once('close')` listeners leak until
+    // the interface closes, holding every pending approval promise
+    let rejectPending: ((err: Error) => void) | undefined
+    rl.on('close', () => {
+        rejectPending?.(new Error('interrupt prompt closed — mission aborted'))
+        rejectPending = undefined
+    })
     return async (request) => {
         for (const action of request.actionRequests) {
             console.log(describeActionRequest(action))
         }
         const answer = await new Promise<string>((resolve, reject) => {
+            rejectPending = reject
             rl.question('  Approve? [y/N] ', resolve)
-            // closing the interface (Ctrl-C) leaves the question pending forever
-            rl.once('close', () => reject(new Error('interrupt prompt closed — mission aborted')))
         })
+        rejectPending = undefined
         return /^y(es)?$/i.test(answer.trim())
     }
 }

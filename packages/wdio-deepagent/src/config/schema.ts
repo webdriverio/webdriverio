@@ -10,6 +10,8 @@ export const DEFAULT_MCP_CONFIG: { command: string; args: string[] } = {
     args: ['-y', '@wdio/mcp'],
 }
 
+export const DEFAULT_TRACE_DIR = 'test-results'
+
 /**
  * The `deepagent` block as it appears in `wdio.conf.ts`. The whole block
  * is optional. `model` is optional at parse time — `loadDeepAgentConfig`
@@ -33,7 +35,7 @@ export const DeepAgentConfigSchema = z.object({
         args: z.array(z.string()).default(DEFAULT_MCP_CONFIG.args),
     }).prefault({}).nullable(),
     /** Where devtools trace artifacts land (reproduce/diagnose). */
-    traceDir: z.string().default('test-results'),
+    traceDir: z.string().default(DEFAULT_TRACE_DIR),
     /** Filesystem scope granted to the agent. */
     permissions: z.object({
         projectRoot: z.string().default('.'),

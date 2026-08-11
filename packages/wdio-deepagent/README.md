@@ -35,7 +35,7 @@ wdio-deepagent diagnose test-results/trace-<session>.zip --spec test/specs/login
 wdio-deepagent mcp        # serve the agent/tools as an MCP server
 ```
 
-The same commands are available as `wdio deepagent …` (init was folded into the `wdio config` wizard).
+The same commands are available as `wdio-deepagent <command>` (install via `npm i -D @wdio/deepagent`); init was folded into the `wdio config` wizard.
 
 ## Configuration
 

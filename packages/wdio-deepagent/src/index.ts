@@ -7,9 +7,9 @@
 import logger from '@wdio/logger'
 import readline from 'node:readline'
 import path from 'node:path'
-import { loadDeepAgentConfig, findDefaultConfigPath, DEFAULT_MODEL_HINT } from './config/index.js'
+import { loadDeepAgentConfig, findDefaultConfigPath, DEFAULT_MODEL_HINT, DEFAULT_TRACE_DIR } from './config/index.js'
 import type { DeepAgentConfig } from './config/index.js'
-import { createDeepAgentHarness } from './agent.js'
+import { createDeepAgentHarness, createToolSurface } from './agent.js'
 import type { DeepAgentHarness } from './agent.js'
 import { runDiagnosis } from './heal/index.js'
 import type { DiagnosisReport } from './heal/index.js'
@@ -35,24 +35,23 @@ Options:
   --config <path>   wdio.conf path (default: wdio.conf.ts in cwd)
   --heal <mode>     ask | propose | auto
   --model <str>     provider:model, e.g. openrouter:moonshotai/kimi-k3
-  --trace-dir <dir> trace artifact directory (default: test-results)
+  --trace-dir <dir> trace artifact directory (default: ${DEFAULT_TRACE_DIR})
   --no-mcp          run without the @wdio/mcp browser tool surface
 `
 
+const rejectWrite = (config: DeepAgentConfig, subject: string): string | undefined =>
+    config.heal === 'propose'
+        ? `[@wdio/deepagent] heal mode "propose" is read-only — ${subject} cannot write. Use \`wdio-deepagent diagnose <trace.zip>\` to produce a fix diff without writes.`
+        : undefined
+
 const rejectRun = (config: DeepAgentConfig): string | undefined => {
-    if (config.heal === 'propose') {
-        return '[@wdio/deepagent] heal mode "propose" is read-only — `run` cannot write. Use `wdio-deepagent diagnose <trace.zip>` to produce a fix diff without writes.'
-    }
     if (config.heal === 'ask' && !process.stdin.isTTY) {
         return '[@wdio/deepagent] heal mode is "ask" but stdin is not a TTY — gated writes cannot be approved. Pass `--heal auto` for unattended CI, or use `wdio-deepagent repl` for interactive approval.'
     }
-    return undefined
+    return rejectWrite(config, '`run`')
 }
 
-const rejectRepl = (config: DeepAgentConfig): string | undefined =>
-    config.heal === 'propose'
-        ? '[@wdio/deepagent] heal mode "propose" is read-only — the REPL cannot write. Use `wdio-deepagent diagnose <trace.zip>` to produce a fix diff without writes.'
-        : undefined
+const rejectRepl = (config: DeepAgentConfig): string | undefined => rejectWrite(config, 'the REPL')
 
 interface BuildHarnessResult {
     harness: DeepAgentHarness | undefined
@@ -69,9 +68,6 @@ async function buildHarness(argv: string[], opts: { allowModelless?: boolean; sk
         cli: { heal: flags.heal, model: flags.model, traceDir: flags.traceDir },
         modelOptional: opts.allowModelless,
     })
-    if (!config.model && !opts.allowModelless) {
-        throw new Error(DEFAULT_MODEL_HINT)
-    }
     const rejected = opts.rejectIf?.(config)
     if (rejected) {
         throw new Error(rejected)
@@ -92,9 +88,7 @@ async function buildHarness(argv: string[], opts: { allowModelless?: boolean; sk
 }
 
 export async function run(): Promise<void> {
-    // strip a leading `deepagent` arg when invoked as `wdio deepagent …`
-    const raw = process.argv.slice(2)
-    const [command, ...rest] = raw[0] === 'deepagent' ? raw.slice(1) : raw
+    const [command, ...rest] = process.argv.slice(2)
 
     try {
         await dispatch(command, rest)
@@ -127,6 +121,11 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
         let rl: readline.Interface | undefined
         if (config.heal === 'ask') {
             rl = readline.createInterface({ input: process.stdin, output: process.stdout })
+            // Ctrl-C while a gated write awaits approval must abort the
+            // mission, not hang it: closing the interface rejects the pending
+            // prompt (see createInterruptResolver), unwinding the finally
+            // block so the MCP server is closed.
+            rl.on('SIGINT', () => rl?.close())
         }
         try {
             const prompt = flags.positionals.join(' ')
@@ -179,12 +178,21 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
         break
     }
     case 'mcp': {
-        const { harness } = await buildHarness(rest)
-        if (harness!.mcpClient === null) {
+        const built = await buildHarness(rest, { allowModelless: true })
+        const surface = built.harness ?? await createToolSurface({
+            mcp: built.flags.noMcp ? null : built.config.mcp,
+            traceDir: built.config.traceDir,
+            configPath: built.configPath,
+        })
+        if (surface.mcpClient === null) {
             log.warn('mcp: null config — serving the trace/knowledge-base tool surface only (no browser tools)')
         }
-        await serveAsMcpServer(harness!)
-        await harness!.close()
+        try {
+            await serveAsMcpServer(surface)
+        } finally {
+            await surface.close()
+        }
+        process.exitCode = 0
         break
     }
     case 'help':

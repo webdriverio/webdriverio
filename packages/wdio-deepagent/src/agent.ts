@@ -9,7 +9,7 @@ import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { parseModelConfig } from './model/index.js'
 import type { DeepAgentModelConfig } from './model/index.js'
 import { resolveChatModel, RequestChatModel } from './model/index.js'
-import { DEFAULT_MCP_CONFIG, type HealMode } from './config/index.js'
+import { DEFAULT_MCP_CONFIG, DEFAULT_TRACE_DIR, type HealMode } from './config/index.js'
 import type { McpServerConfig } from './mcp/index.js'
 import { WdioMcpClient } from './mcp/index.js'
 import { createTraceTools } from './trace/tools.js'
@@ -18,7 +18,9 @@ import { readInstructionsFile } from './prompts.js'
 
 const log = logger('@wdio/deepagent')
 
-export { DEFAULT_MCP_CONFIG }
+/** `mcp: null` disables the browser surface; `undefined` means the default config. */
+const resolveMcpConfig = (mcp: McpServerConfig | null | undefined): McpServerConfig | undefined =>
+    mcp === null ? undefined : (mcp ?? DEFAULT_MCP_CONFIG)
 
 /**
  * Heuristic: does the model id look like a small-parameter model (≤7B)?
@@ -142,6 +144,38 @@ export function withErrorRecovery(tool: DynamicStructuredTool): DynamicStructure
     return tool
 }
 
+export interface DeepAgentToolSurface {
+    mcpClient: WdioMcpClient | null
+    tools: DynamicStructuredTool[]
+    close(): Promise<void>
+}
+
+/**
+ * Builds the tool surface shared by the harness and the `mcp` command:
+ * traversal tools from the @wdio/mcp server + trace tools + site KB,
+ * each wrapped with error recovery. Model-independent — the `mcp` CLI
+ * command serves this surface without needing a model.
+ */
+export async function createToolSurface(options: { mcp?: McpServerConfig | null; traceDir?: string; configPath?: string }): Promise<DeepAgentToolSurface> {
+    const mcpConfig = resolveMcpConfig(options.mcp)
+    const mcpClient = mcpConfig ? new WdioMcpClient(mcpConfig) : null
+    const traceDir = options.traceDir ?? DEFAULT_TRACE_DIR
+
+    const traversalTools = mcpClient ? await mcpClient.getTools() : []
+    const traceTools = createTraceTools({ configPath: options.configPath, traceDir })
+    const knowledgeBaseTools = createKnowledgeBaseTools()
+    // MCP tools are DynamicStructuredTool; harness tools are too.
+    const tools: DynamicStructuredTool[] = [...traversalTools, ...traceTools, ...knowledgeBaseTools].map(withErrorRecovery)
+
+    return {
+        mcpClient,
+        tools,
+        close: async () => {
+            await mcpClient?.close()
+        },
+    }
+}
+
 /**
  * Builds the Deep Agent harness: model (BYOK) + traversal tools from the
  * @wdio/mcp server + trace tools + site knowledge base + filesystem
@@ -152,8 +186,8 @@ export async function createDeepAgentHarness(
 ): Promise<DeepAgentHarness> {
     const modelConfig = parseModelConfig(options.model)
     const heal = options.heal ?? 'ask'
-    const mcpConfig = options.mcp === null ? undefined : (options.mcp ?? DEFAULT_MCP_CONFIG)
-    const traceDir = options.traceDir ?? 'test-results'
+    const mcpConfig = resolveMcpConfig(options.mcp)
+    const traceDir = options.traceDir ?? DEFAULT_TRACE_DIR
     const projectRoot = options.projectRoot ?? process.cwd()
 
     const chatModel = options.modelOverride ?? resolveChatModel(modelConfig)
@@ -173,16 +207,9 @@ export async function createDeepAgentHarness(
         )
     }
 
-    const mcpClient = mcpConfig ? new WdioMcpClient(mcpConfig) : null
-    const [traversalTools, instructions] = await Promise.all([
-        mcpClient ? mcpClient.getTools() : [],
-        readInstructionsFile(options.instructionsPath),
-    ])
-
-    const traceTools = createTraceTools({ configPath: options.configPath, traceDir })
-    const knowledgeBaseTools = createKnowledgeBaseTools()
-    // MCP tools are DynamicStructuredTool; harness tools are too.
-    const tools: DynamicStructuredTool[] = [...traversalTools, ...traceTools, ...knowledgeBaseTools].map(withErrorRecovery)
+    const surface = await createToolSurface({ mcp: options.mcp === null ? null : mcpConfig, traceDir, configPath: options.configPath })
+    const instructions = await readInstructionsFile(options.instructionsPath)
+    const { tools, mcpClient } = surface
 
     const agent = createDeepAgent({
         name: '@wdio/deepagent',
@@ -217,8 +244,6 @@ export async function createDeepAgentHarness(
         agent,
         mcpClient,
         tools,
-        close: async () => {
-            await mcpClient?.close()
-        },
+        close: surface.close,
     }
 }
