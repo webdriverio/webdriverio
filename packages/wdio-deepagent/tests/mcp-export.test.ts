@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { FakeToolCallingModel } from 'langchain'
-import { createDeepAgentHarness } from '../src/agent.js'
+import { createDeepAgentHarness, createToolSurface } from '../src/agent.js'
 import { serveAsMcpServer } from '../src/mcp/index.js'
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
@@ -40,6 +40,21 @@ describe('serveAsMcpServer (MCP export)', () => {
         } finally {
             await client.close()
             await harness.close()
+        }
+    })
+
+    it('serves the tool surface without a model', async () => {
+        const surface = await createToolSurface({
+            mcp: { command: process.execPath, args: [MCP_SERVER] },
+            traceDir: 'test-results',
+        })
+        try {
+            const names = surface.tools.map((t) => t.name)
+            expect(names).toContain('fixture_navigate')
+            expect(names).toContain('ingest_trace')
+            expect(names).toContain('remember_snapshot')
+        } finally {
+            await surface.close()
         }
     })
 })

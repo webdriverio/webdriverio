@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { DEFAULT_TRACE_DIR } from '../config/index.js'
 
 /**
  * Reproduces a failing spec by re-running it under a devtools trace-mode
@@ -224,7 +225,7 @@ export async function reproduceSpec(options: ReproduceOptions): Promise<Reproduc
         result = await spawnRun('npx', ['wdio', ...args], { ...spawnOptions, shell: process.platform === 'win32' })
     }
 
-    const artifactPath = await findNewestTraceZip([traceDir, path.join(projectRoot, 'test-results')])
+    const artifactPath = await findNewestTraceZip([traceDir, path.join(projectRoot, DEFAULT_TRACE_DIR)])
 
     return {
         artifactPath,

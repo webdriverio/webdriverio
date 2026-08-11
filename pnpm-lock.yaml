@@ -864,10 +864,6 @@ importers:
       '@types/yargs':
         specifier: ^17.0.24
         version: 17.0.33
-    optionalDependencies:
-      '@wdio/deepagent':
-        specifier: workspace:*
-        version: link:../wdio-deepagent
 
   packages/wdio-concise-reporter:
     dependencies:

@@ -272,13 +272,13 @@ export function parseTraceArchive(
         if (!afterRaw) {
             continue
         }
-        const after = parseActionRecord(afterRaw)
-        const end = after.startedAt ?? afterRaw.endTime
+        const end = recordTs(afterRaw, 'start') ?? afterRaw.endTime
         if (typeof end === 'number' && action.startedAt !== undefined) {
             action.duration = Math.max(0, end - action.startedAt)
         }
-        if (after.error && !action.error) {
-            action.error = after.error
+        const err = recordError(afterRaw)
+        if (err && !action.error) {
+            action.error = err
             action.ok = false
         }
     }

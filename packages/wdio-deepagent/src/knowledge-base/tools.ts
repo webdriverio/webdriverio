@@ -30,7 +30,7 @@ export function createKnowledgeBaseTools(): DynamicStructuredTool[] {
             schema: z.object({
                 url: z.string(),
                 snapshot: z.string(),
-                elements: z.string().optional().default(''),
+                elements: z.string().default(''),
             }),
         },
     )

@@ -779,7 +779,7 @@ export const QUESTIONNAIRE = [{
     name: 'deepagentBaseURL',
     message: 'Base URL of your LLM server?',
     default: (answers: Questionnair) => answers.deepagentProvider ? DEEPAGENT_DEFAULT_BASE_URLS[answers.deepagentProvider] : undefined,
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.plugins.includes(DEEPAGENT_PLUGIN_VALUE) && !!answers.deepagentProvider && ['llama-cpp', 'lm-studio'].includes(answers.deepagentProvider)
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.plugins.includes(DEEPAGENT_PLUGIN_VALUE) && !!answers.deepagentProvider && Object.keys(DEEPAGENT_DEFAULT_BASE_URLS).includes(answers.deepagentProvider)
 }, {
     type: 'confirm',
     name: 'includeVisualTesting',

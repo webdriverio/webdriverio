@@ -7,7 +7,7 @@ describe('createInterruptResolver', () => {
         let onClose: () => void = () => {}
         const rl = {
             question: (_q: string, _cb: (a: string) => void) => {},
-            once: (_ev: string, cb: () => void) => { onClose = cb },
+            on: (_ev: string, cb: () => void) => { onClose = cb },
         } as never
         const resolve = createInterruptResolver(rl)
         const pending = resolve({ actionRequests: [{ name: 'write_file', args: {}, description: 'x' }] })
@@ -18,7 +18,7 @@ describe('createInterruptResolver', () => {
     it('approves a y answer', async () => {
         const rl = {
             question: (_q: string, cb: (a: string) => void) => cb('y'),
-            once: () => {},
+            on: () => {},
         } as never
         await expect(createInterruptResolver(rl)({ actionRequests: [] })).resolves.toBe(true)
     })

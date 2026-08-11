@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import type * as agentModule from '../src/agent.js'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -14,15 +15,22 @@ const mocks = vi.hoisted(() => ({
     close: vi.fn(),
 }))
 
-vi.mock('../src/agent.js', () => ({
-    createDeepAgentHarness: mocks.createHarness,
+const mcpMocks = vi.hoisted(() => ({
+    serveAsMcpServer: vi.fn(),
 }))
+
+vi.mock('../src/agent.js', async (importOriginal) => {
+    const original = await importOriginal<typeof agentModule>()
+    return { ...original, createDeepAgentHarness: mocks.createHarness }
+})
 
 vi.mock('../src/commands/run.js', () => ({
     runMission: mocks.runMission,
 }))
 
-describe('CLI routing (quick start: wdio deepagent run "<prompt>")', () => {
+vi.mock('../src/mcp/export.js', () => ({ serveAsMcpServer: mcpMocks.serveAsMcpServer }))
+
+describe('CLI routing (quick start: wdio-deepagent run "<prompt>")', () => {
     it('resolves config from --config, builds the harness, runs the mission, closes and sets exit code', async () => {
         const { run } = await import('../src/index.js')
 
@@ -32,7 +40,7 @@ describe('CLI routing (quick start: wdio deepagent run "<prompt>")', () => {
         mocks.close.mockResolvedValue(undefined)
 
         const prevArgv = process.argv
-        process.argv = ['node', 'wdio-deepagent', 'deepagent', 'run', '--config', FIXTURE_CONFIG, '--heal', 'auto', 'verify', 'login']
+        process.argv = ['node', 'wdio-deepagent', 'run', '--config', FIXTURE_CONFIG, '--heal', 'auto', 'verify', 'login']
         try {
             await run()
 
@@ -132,6 +140,26 @@ describe('CLI routing (quick start: wdio deepagent run "<prompt>")', () => {
         } finally {
             delete process.env.DEEPAGENT_HEAL
             delete (process.stdin as { isTTY?: unknown }).isTTY
+            process.argv = prevArgv
+            process.exitCode = 0
+            vi.clearAllMocks()
+        }
+    })
+
+    it('serves tools via mcp without a model', async () => {
+        const { run } = await import('../src/index.js')
+
+        mcpMocks.serveAsMcpServer.mockResolvedValue(undefined)
+        vi.clearAllMocks()
+        const prevArgv = process.argv
+        process.argv = ['node', 'wdio-deepagent', 'mcp', '--no-mcp', '--config', '/nonexistent/wdio.conf.ts']
+        try {
+            await run()
+            expect(mcpMocks.serveAsMcpServer).toHaveBeenCalledWith(
+                expect.objectContaining({ mcpClient: null, tools: expect.any(Array) }),
+            )
+            expect(process.exitCode).toBe(0)
+        } finally {
             process.argv = prevArgv
             process.exitCode = 0
             vi.clearAllMocks()
