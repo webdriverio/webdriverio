@@ -131,8 +131,8 @@ export async function scrollIntoView (
         const targetByOption = {
             start: { y: elemRect.y, x: elemRect.x },
             center: {
-                y: elemRect.y - Math.round((viewport.height - elemRect.height) / 2),
-                x: elemRect.x - Math.round((viewport.width - elemRect.width) / 2)
+                y: elemRect.y - (viewport.height - elemRect.height) / 2,
+                x: elemRect.x - (viewport.width - elemRect.width) / 2
             },
             end: {
                 y: elemRect.y - (viewport.height - elemRect.height),
