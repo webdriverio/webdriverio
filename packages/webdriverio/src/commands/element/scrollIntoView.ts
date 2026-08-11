@@ -185,10 +185,15 @@ export async function scrollIntoView (
             return
         }
 
+        /**
+         * per the WebDriver spec, an element `origin` must be scrolled into view before its
+         * coordinates can be resolved - which would silently reposition the page before our
+         * own deltaX/deltaY are applied. Our deltas are already absolute, computed relative to
+         * the current window scroll, so we scroll from the viewport origin instead.
+         */
         await browser.action('wheel')
             .scroll({
                 duration: 0,
-                origin: this,
                 x: 0,
                 y: 0,
                 deltaX,

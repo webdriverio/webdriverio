@@ -9,9 +9,6 @@ exports[`scrollIntoView test > desktop > scrolls by default the element to the t
           "deltaX": 0,
           "deltaY": 20,
           "duration": 0,
-          "origin": {
-            "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
-          },
           "type": "scroll",
           "x": 0,
           "y": 0,
@@ -34,9 +31,6 @@ exports[`scrollIntoView test > desktop > scrolls element using scroll into view 
           "deltaX": -260,
           "deltaY": -365,
           "duration": 0,
-          "origin": {
-            "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
-          },
           "type": "scroll",
           "x": 0,
           "y": 0,
@@ -59,9 +53,6 @@ exports[`scrollIntoView test > desktop > scrolls element when using boolean scro
           "deltaX": 0,
           "deltaY": 20,
           "duration": 0,
-          "origin": {
-            "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
-          },
           "type": "scroll",
           "x": 0,
           "y": 0,
@@ -84,9 +75,6 @@ exports[`scrollIntoView test > desktop > scrolls element when using boolean scro
           "deltaX": 0,
           "deltaY": -750,
           "duration": 0,
-          "origin": {
-            "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
-          },
           "type": "scroll",
           "x": 0,
           "y": 0,
