@@ -4,8 +4,6 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { findDefaultConfigPath, loadDeepAgentConfig, parseDeepAgentConfig } from '../src/config/index.js'
-import { parseInitAnswers, renderWdioConfig } from '../src/init/template.js'
-
 const FIXTURE = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures', 'wdio.conf.ts')
 
 describe('parseDeepAgentConfig', () => {
@@ -39,7 +37,7 @@ describe('loadDeepAgentConfig', () => {
     })
 
     it('throws a helpful hint when no model is configured', async () => {
-        await expect(loadDeepAgentConfig({ env: {} })).rejects.toThrow(/wdio-deepagent init/)
+        await expect(loadDeepAgentConfig({ env: {} })).rejects.toThrow(/wdio config/)
     })
 
     it('modelOptional allows a model-free config (read-only propose diagnose)', async () => {
@@ -158,15 +156,15 @@ describe('findDefaultConfigPath', () => {
     })
 })
 
-describe('quick start (init → repl config discovery)', () => {
-    it('loadDeepAgentConfig() with no flags resolves the model from the config init writes', async () => {
+describe('quick start (config wizard → repl config discovery)', () => {
+    it('loadDeepAgentConfig() with no flags resolves the model from the config the wizard writes', async () => {
         const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-quickstart-'))
         try {
-            // what `wdio-deepagent init` writes to the project root
-            await fs.writeFile(
-                path.join(dir, 'wdio.conf.ts'),
-                renderWdioConfig(parseInitAnswers({ framework: 'mocha' })),
-            )
+            // what the wdio config wizard emits (no heal key → defaults to 'ask')
+            await fs.writeFile(path.join(dir, 'wdio.conf.ts'), `
+                export const config = { capabilities: {}, deepagent: {
+                    model: { provider: 'openrouter', model: 'moonshotai/kimi-k3' },
+                } }`)
 
             const cfg = await loadDeepAgentConfig({ env: {}, cwd: dir })
             expect(cfg.model).toMatchObject({ provider: 'openrouter', model: 'moonshotai/kimi-k3' })

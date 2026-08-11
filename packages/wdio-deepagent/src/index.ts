@@ -1,8 +1,7 @@
 /**
  * @wdio/deepagent — BYOK LangChain Deep Agent harness for WebdriverIO.
  *
- * CLI entry point. Command implementations: repl + run (this phase);
- * init / diagnose / mcp are wired in the final phase.
+ * CLI entry point dispatching the repl, run, diagnose, and mcp commands.
  */
 
 import logger from '@wdio/logger'
@@ -11,7 +10,6 @@ import { loadDeepAgentConfig, findDefaultConfigPath, DEFAULT_MODEL_HINT } from '
 import type { DeepAgentConfig } from './config/index.js'
 import { createDeepAgentHarness } from './agent.js'
 import type { DeepAgentHarness } from './agent.js'
-import { runInit } from './init/index.js'
 import { runDiagnosis } from './heal/index.js'
 import type { DiagnosisReport } from './heal/index.js'
 import { serveAsMcpServer } from './mcp/index.js'
@@ -27,7 +25,6 @@ const USAGE = `Usage: wdio-deepagent <command> [options]
 Commands:
   repl                 interactive agent session
   run <prompt>         one-shot mission (CI-able)
-  init                 framework interview → write wdio.conf.ts
   diagnose <trace.zip> reproduce + heal a failing run
   mcp                  serve the agent as an MCP server
   help                 show this help
@@ -108,12 +105,6 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
         const result = await runMission(harness!.agent, flags.positionals.join(' '))
         await harness!.close()
         process.exitCode = result.exitCode
-        break
-    }
-    case 'init': {
-        const result = await runInit()
-
-        console.log(`Wrote ${result.configPath}. Next: set your LLM key (e.g. OPENROUTER_API_KEY) and run \`wdio-deepagent repl\`.`)
         break
     }
     case 'diagnose': {

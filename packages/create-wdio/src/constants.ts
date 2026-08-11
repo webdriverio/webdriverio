@@ -105,6 +105,30 @@ export const CONFIG_HELPER_INTRO = `
 export const CLI_EPILOGUE = `Documentation: https://webdriver.io\n@wdio/cli (v${pkg.version})`
 
 /**
+ * Mirrors @wdio/deepagent's provider list (model/schema.ts). Duplicated,
+ * not imported: create-wdio must not depend on the deepagent package.
+ * Keep in sync.
+ */
+export const DEEPAGENT_PLUGIN_VALUE = '@wdio/deepagent$--$deepagent'
+export const DEEPAGENT_PROVIDERS = ['openrouter', 'openai', 'anthropic', 'ollama', 'llama-cpp', 'lm-studio']
+/** Editable placeholders; local providers must match what the local server serves. */
+const DEEPAGENT_DEFAULT_MODELS: Record<string, string> = {
+    openrouter: 'moonshotai/kimi-k3',
+    openai: 'gpt-5.5',
+    anthropic: 'claude-sonnet-4-6',
+    ollama: 'llama3.2',
+    'llama-cpp': 'llama-3.2-3b',
+    'lm-studio': 'qwen2.5-7b-instruct',
+}
+export function deepagentDefaultModel(provider: string): string {
+    return DEEPAGENT_DEFAULT_MODELS[provider] || 'gpt-5.5'
+}
+export const DEEPAGENT_DEFAULT_BASE_URLS: Partial<Record<string, string>> = {
+    'llama-cpp': 'http://localhost:8080/v1',
+    'lm-studio': 'http://localhost:1234/v1',
+}
+
+/**
  * We have to use a string hash for value because InquirerJS default values do not work if we have
  * objects as a `value` to be stored from the user's answers.
  */
@@ -149,7 +173,8 @@ export const SUPPORTED_PACKAGES = {
     plugin: [
         { name: 'wait-for: utilities that provide functionalities to wait for certain conditions till a defined task is complete.\n   > https://www.npmjs.com/package/wdio-wait-for', value: 'wdio-wait-for$--$wait-for' },
         { name: 'angular-component-harnesses: support for Angular component test harnesses\n   > https://www.npmjs.com/package/@badisi/wdio-harness', value: '@badisi/wdio-harness$--$harness' },
-        { name: 'Testing Library: utilities that encourage good testing practices laid down by dom-testing-library.\n   > https://testing-library.com/docs/webdriverio-testing-library/intro', value: '@testing-library/webdriverio$--$testing-library' }
+        { name: 'Testing Library: utilities that encourage good testing practices laid down by dom-testing-library.\n   > https://testing-library.com/docs/webdriverio-testing-library/intro', value: '@testing-library/webdriverio$--$testing-library' },
+        { name: 'deepagent: BYOK LLM agent harness (repl, run, diagnose, mcp)\n   > https://webdriver.io/docs/deepagent', value: DEEPAGENT_PLUGIN_VALUE }
     ],
     service: [
         // internal or community driver services
@@ -742,6 +767,19 @@ export const QUESTIONNAIRE = [{
     message: 'Do you want to add a plugin to your test setup?',
     choices: SUPPORTED_PACKAGES.plugin,
     default: []
+}, {
+    type: 'list',
+    name: 'deepagentProvider',
+    message: 'Which LLM provider should the DeepAgent use?',
+    choices: DEEPAGENT_PROVIDERS,
+    default: 'openrouter',
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.plugins.includes(DEEPAGENT_PLUGIN_VALUE)
+}, {
+    type: 'input',
+    name: 'deepagentBaseURL',
+    message: 'Base URL of your LLM server?',
+    default: (answers: Questionnair) => answers.deepagentProvider ? DEEPAGENT_DEFAULT_BASE_URLS[answers.deepagentProvider] : undefined,
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.plugins.includes(DEEPAGENT_PLUGIN_VALUE) && !!answers.deepagentProvider && ['llama-cpp', 'lm-studio'].includes(answers.deepagentProvider)
 }, {
     type: 'confirm',
     name: 'includeVisualTesting',
