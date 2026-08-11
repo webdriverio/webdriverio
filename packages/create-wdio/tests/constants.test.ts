@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
 import { convertPackageHashToObject } from '../src/utils.js'
-import { buildTauriBanner, getResolvedPurpose, SUPPORTED_PACKAGES, DesktopFrameworkChoice, TauriDriverProviderChoice } from '../src/constants.js'
+import { buildTauriBanner, DEEPAGENT_PLUGIN_VALUE, getResolvedPurpose, SUPPORTED_PACKAGES, DesktopFrameworkChoice, TauriDriverProviderChoice } from '../src/constants.js'
 
 const supportedInstallations = [
     ...SUPPORTED_PACKAGES.runner.map(({ value }) => convertPackageHashToObject(value)),
@@ -16,6 +16,12 @@ describe('constants', () => {
         it('should provide all a short name', () => {
             const pluginsWithoutShorts = supportedInstallations.filter((plugin) => !plugin.short)
             expect(pluginsWithoutShorts).toHaveLength(0)
+        })
+
+        it('should include the deepagent plugin entry', () => {
+            const deepagent = SUPPORTED_PACKAGES.plugin.find(({ value }) => value === DEEPAGENT_PLUGIN_VALUE)
+            expect(deepagent).toBeTruthy()
+            expect(convertPackageHashToObject(deepagent!.value).package).toBe('@wdio/deepagent')
         })
     })
 

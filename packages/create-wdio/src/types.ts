@@ -47,6 +47,8 @@ export interface Questionnair {
     services: string[]
     serenityLibPath?: string
     plugins: string[]
+    deepagentProvider?: string
+    deepagentBaseURL?: string
     outputDir?: string
     includeVisualTesting: boolean
     npmInstall: boolean
@@ -69,6 +71,8 @@ export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework'
     services: string[]
     packagesToInstall: string[]
     isUsingTypeScript: boolean
+    isUsingDeepAgent: boolean
+    deepagentModel: { provider: string; model: string; baseURL?: string } | undefined
     serenityAdapter: string | false
     esmSupport: boolean
     isSync: boolean

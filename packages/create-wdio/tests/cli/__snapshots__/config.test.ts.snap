@@ -12,6 +12,7 @@ exports[`handler 1`] = `
     "_await": "await ",
     "backend": "On my local machine",
     "baseUrl": "http://localhost",
+    "deepagentModel": undefined,
     "destPageObjectRootPath": "",
     "destSerenityLibRootPath": "",
     "destSpecRootPath": "/foo/bar",
@@ -22,6 +23,7 @@ exports[`handler 1`] = `
     "hasRootTSConfig": false,
     "installTestingLibrary": false,
     "isSync": false,
+    "isUsingDeepAgent": false,
     "isUsingTypeScript": true,
     "npmInstall": true,
     "packagesToInstall": [

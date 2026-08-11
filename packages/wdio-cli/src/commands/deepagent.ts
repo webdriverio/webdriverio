@@ -7,7 +7,7 @@
 import type { Argv } from 'yargs'
 
 export const command = 'deepagent [command]'
-export const desc = 'Run the WebdriverIO DeepAgent harness (repl, run, init, diagnose, mcp)'
+export const desc = 'Run the WebdriverIO DeepAgent harness (repl, run, diagnose, mcp)'
 
 export const cmdArgs = {
     config: {

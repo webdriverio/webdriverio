@@ -27,7 +27,7 @@ export interface LoadDeepAgentConfigOptions {
 }
 
 const DEFAULT_MODEL_HINT =
-    'No model configured. Run `wdio-deepagent init` to write a wdio.conf.ts with a `deepagent.model` block, ' +
+    'No model configured. Run `npx wdio config` and select the @wdio/deepagent plugin to write a wdio.conf.ts with a `deepagent.model` block, ' +
     'pass `--model provider:model`, or set `DEEPAGENT_MODEL=provider:model` (e.g. openrouter:moonshotai/kimi-k3).'
 export { DEFAULT_MODEL_HINT }
 
@@ -81,7 +81,7 @@ function mergeModelOverride(
 
 /**
  * Loads the project's wdio config and returns the raw `deepagent` block
- * (plus the full config for framework detection by `init`).
+ * (plus the full config for framework detection).
  */
 export async function loadProjectConfig(configPath: string): Promise<{ config: WebdriverIO.Config; deepagent: unknown }> {
     const parser = new ConfigParser(configPath)

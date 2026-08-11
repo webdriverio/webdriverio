@@ -93,6 +93,27 @@ describe('resolveChatModel', () => {
         )
         expect((model as { baseUrl?: string }).baseUrl).toBe('http://127.0.0.1:11434')
     })
+
+    it('does not require a key for lm-studio and passes a placeholder', () => {
+        const model = resolveChatModel(
+            { provider: 'lm-studio', model: 'gpt-4o', baseURL: 'http://localhost:1234/v1' },
+            { env: {} },
+        )
+        // the OpenAI SDK rejects an empty key at request time
+        expect((model as { apiKey?: string }).apiKey).toBe('local')
+        expect((model as { clientConfig?: { baseURL?: string } }).clientConfig?.baseURL)
+            .toBe('http://localhost:1234/v1')
+    })
+
+    it('does not require a key for llama-cpp and honors baseURL', () => {
+        const model = resolveChatModel(
+            { provider: 'llama-cpp', model: 'llama-3.2', baseURL: 'http://localhost:8080/v1' },
+            { env: {} },
+        )
+        expect((model as { apiKey?: string }).apiKey).toBe('local')
+        expect((model as { clientConfig?: { baseURL?: string } }).clientConfig?.baseURL)
+            .toBe('http://localhost:8080/v1')
+    })
 })
 
 describe('RequestChatModel', () => {

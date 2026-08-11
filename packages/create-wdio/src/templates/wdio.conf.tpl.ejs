@@ -7,6 +7,10 @@ if (answers.isUsingTypeScript && answers.purpose === 'tauri') {
     %>/// <reference types="@wdio/tauri-service" />
 <% }
 
+if (answers.isUsingTypeScript && answers.isUsingDeepAgent) {
+    %>/// <reference types="@wdio/deepagent" />
+<% }
+
 if (answers.isUsingTypeScript && answers.serenityAdapter) {
     %>import type { WebdriverIOConfig } from '@serenity-js/webdriverio'
 <% }
@@ -413,4 +417,20 @@ if (answers.isUsingTypeScript) {
     */
     // afterAssertion: function(params) {
     // }
+<% if (answers.isUsingDeepAgent) { %>
+    //
+    // =================
+    // DeepAgent config
+    // =================
+    // Consumed by `wdio-deepagent` (repl, run, diagnose). Remote providers read
+    // their key from env (OPENROUTER_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY);
+    // local providers (ollama, llama-cpp, lm-studio) need no key.
+    deepagent: {
+        model: {
+            provider: '<%- answers.deepagentModel.provider %>',
+            model: '<%- answers.deepagentModel.model %>'<% if (answers.deepagentModel.baseURL) { %>,
+            baseURL: '<%- answers.deepagentModel.baseURL %>'<% } %>
+        }
+    }
+<% } %>
 }

@@ -85,7 +85,8 @@ export function resolveChatModel(
 
     const envKey = PROVIDER_ENV_KEYS[config.provider]
     const apiKey = config.apiKey ?? (envKey ? env[envKey] : undefined)
-    if (config.provider !== 'ollama' && !apiKey) {
+    const keylessLocal = config.provider === 'llama-cpp' || config.provider === 'lm-studio'
+    if (config.provider !== 'ollama' && !keylessLocal && !apiKey) {
         throw new Error(
             `[@wdio/deepagent] No API key for provider "${config.provider}". ` +
             `Set ${envKey} or add \`apiKey\` to the deepagent model config.`
@@ -110,7 +111,9 @@ export function resolveChatModel(
     case 'openai':
         return new ChatOpenAI({
             ...common,
-            apiKey,
+            // local OpenAI-compatible servers ignore auth; the SDK still
+            // requires a non-empty key at request time
+            apiKey: apiKey ?? (keylessLocal ? 'local' : undefined),
             configuration: {
                 ...(baseUrl ? { baseURL: baseUrl } : {}),
             },

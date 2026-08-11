@@ -3,7 +3,7 @@ id: deepagent
 title: DeepAgent (BYOK agent harness)
 ---
 
-WebdriverIO DeepAgent is a **bring-your-own-key** agent harness built on LangChain's [Deep Agents](https://docs.langchain.com/oss/javascript/deepagents/overview). It bundles `@wdio/mcp` (the traversal layer over the app under test) and works with `@wdio/devtools-service` trace artifacts (captured by the service running in your project) for reproducible, healable runs, and helps you set up a correct `wdio.conf` for your framework.
+WebdriverIO DeepAgent is a **bring-your-own-key** agent harness built on LangChain's [Deep Agents](https://docs.langchain.com/oss/javascript/deepagents/overview). It bundles `@wdio/mcp` (the traversal layer over the app under test) and works with `@wdio/devtools-service` trace artifacts (captured by the service running in your project) for reproducible, healable runs.
 
 ## Install
 
@@ -21,7 +21,7 @@ export const config = {
     // ...framework/services as usual...
     deepagent: {
         model: {
-            provider: 'openrouter',               // openrouter | openai | anthropic | ollama
+            provider: 'openrouter',               // openrouter | openai | anthropic | ollama | llama-cpp | lm-studio
             model: 'moonshotai/kimi-k3',
         },
         heal: 'ask',                              // ask | propose | auto
@@ -32,6 +32,8 @@ export const config = {
 ```sh
 export OPENROUTER_API_KEY=sk-…   # or OPENAI_API_KEY / ANTHROPIC_API_KEY; ollama needs no key
 ```
+
+llama-cpp and lm-studio need no API key but require a `baseURL` pointing at the local server.
 
 Or skip the file entirely — env vars work too:
 
@@ -45,7 +47,7 @@ export DEEPAGENT_HEAL=ask
 ```sh
 wdio-deepagent repl                # interactive agent session
 wdio-deepagent run "<prompt>"      # one-shot mission (CI-able)
-wdio-deepagent init                # framework interview → writes wdio.conf.ts
+npx wdio config                    # config setup — select the @wdio/deepagent plugin
 wdio-deepagent diagnose <trace.zip> [--spec <path>] [--heal mode]
 wdio-deepagent mcp                 # serve the agent/tools as an MCP server
 ```
@@ -68,7 +70,7 @@ One schema, one resolver — no per-provider HTTP code (the wdio-agent-service p
 
 ```ts
 {
-    provider: 'openrouter' | 'openai' | 'anthropic' | 'ollama',
+    provider: 'openrouter' | 'openai' | 'anthropic' | 'ollama' | 'llama-cpp' | 'lm-studio',
     model: string,
     baseURL?: string,       // OpenAI-compatible endpoint / Ollama server
     apiKey?: string,        // falls back to the provider env var
@@ -86,7 +88,7 @@ One schema, one resolver — no per-provider HTTP code (the wdio-agent-service p
 | MCP client (traversal tools) | implemented |
 | Trace reader + reproduce runner | implemented |
 | Agent core (`createDeepAgent` harness) | implemented |
-| `repl` / `run` / `init` / `diagnose` / `mcp` CLI | implemented |
+| `repl` / `run` / `diagnose` / `mcp` CLI | implemented |
 | Heal engine (ask / propose / auto) | implemented |
 | `wdio deepagent` CLI hook | implemented |
 | RAG over docs/site (embeddings) | later phase |

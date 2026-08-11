@@ -6,6 +6,7 @@ exports[`parseAnswers 1`] = `
   "_await": "await ",
   "backend": "On my local machine",
   "baseUrl": "http://localhost",
+  "deepagentModel": undefined,
   "destPageObjectRootPath": "/tmp/foobar",
   "destSerenityLibRootPath": "",
   "destSpecRootPath": "/tmp/foobar",
@@ -16,6 +17,7 @@ exports[`parseAnswers 1`] = `
   "hasRootTSConfig": true,
   "installTestingLibrary": false,
   "isSync": false,
+  "isUsingDeepAgent": false,
   "isUsingTypeScript": false,
   "npmInstall": true,
   "packagesToInstall": [

@@ -128,7 +128,7 @@ describe('createDeepAgentHarness (smoke, no network)', () => {
             model: {
                 provider: 'openai', model: 'fake', request: async () => 'text-only',
                 temperature: 0,
-                maxTokens: 0
+                maxTokens: 128
             },
             mcp: { command: process.execPath, args: [MCP_SERVER] },
         })).rejects.toThrow(/does not support tool calling|text-only/)
