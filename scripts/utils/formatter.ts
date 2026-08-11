@@ -59,6 +59,7 @@ export default function (docfile: {
     let tagMobileElement = false
     let tagSkipUsage = false
     let tagSupport: string[] | undefined
+    let tagSkipAwait = false
     let returns
 
     for (const tag of javadoc.tags) {
@@ -160,6 +161,14 @@ export default function (docfile: {
             } catch {
                 // ignore malformed support tag
             }
+            break
+        }
+        /**
+         * commands that don't return a promise, e.g. `browser.action`, so that the
+         * generated usage snippet doesn't teach an unnecessary `await`
+         */
+        case 'skipAwait': {
+            tagSkipAwait = true
             break
         }
         case 'author': {
@@ -313,6 +322,7 @@ export default function (docfile: {
         originalId: `api/${scope}/${name}`,
         isElementScope: scope === 'element' || tagMobileElement,
         isSkipUsage: tagSkipUsage,
+        isSkipAwait: tagSkipAwait,
         isNetworkScope : scope === 'network',
         isMockScope : scope === 'mock',
         isDialogScope : scope === 'dialog',

@@ -148,6 +148,7 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
  *
  * @alias browser.action
  * @type utility
+ * @skipAwait
  *
  */
 export function action (

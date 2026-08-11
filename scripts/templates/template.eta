@@ -1,3 +1,78 @@
+<%_
+/**
+ * Section headings sit exactly one level below the command heading so that every generated
+ * page has a valid outline and Docusaurus can build a table of contents from it. Standalone
+ * command pages take their `h1` from the Docusaurus frontmatter, while protocol pages inline
+ * many commands under an `## <command>` heading (see `hasHeader` in `protocolDocs.ts`).
+ */
+const heading = it.hasHeader ? '###' : '##'
+
+/**
+ * WebdriverIO is promise based, so usage snippets are awaited unless the command is tagged
+ * `@skipAwait` because it returns something other than a promise, e.g. `browser.action`.
+ */
+const awaitPrefix = it.isSkipAwait ? '' : 'await '
+
+/**
+ * markdown table cells are `|` delimited and can not span multiple lines
+ */
+const cell = (value) => String(value === undefined || value === null ? '' : value)
+    .replace(/\s*\n\s*/g, ' ')
+    .replace(/\|/g, '\\|')
+
+/**
+ * Parameters are rendered as a GFM table so the signature data survives markdown extraction.
+ * `@rowInfo` tags without a `::` separator are section notes rather than parameters, so they
+ * end the current table and a fresh one is started below them.
+ */
+const TABLE_HEADER = ['| Name | Type | Details |', '| --- | --- | --- |']
+const parameters = []
+let needsTableHeader = true
+for (const paramTag of it.paramTags || []) {
+    if (paramTag.tag === 'rowInfo' && !paramTag.string.includes('::')) {
+        parameters.push('', `**${paramTag.string.replace(/\s*\n\s*/g, ' ')}**`, '')
+        needsTableHeader = true
+        continue
+    }
+
+    if (needsTableHeader) {
+        parameters.push(...TABLE_HEADER)
+        needsTableHeader = false
+    }
+
+    if (paramTag.tag === 'rowInfo') {
+        const [label, details] = paramTag.string.split('::').map((part) => part.trim())
+        parameters.push(`| **${cell(label)}** | | ${cell(details)} |`)
+        continue
+    }
+
+    const name = paramTag.name + (paramTag.default ? `=${paramTag.default}` : '')
+    const isOptional = (!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional
+    const type = paramTag.type.split('|').join(', ').replace('(', '').replace(')', '')
+    parameters.push(`| \`${cell(name)}\`${isOptional ? '<br />*optional*' : ''} | ${cell(type)} | ${cell(paramTag.description)} |`)
+}
+
+/**
+ * Platform support is repeated as text next to the icons, otherwise it only exists as image alt
+ * text and is lost by anything that strips images. `@support` is normalised to a list of platform
+ * names by `formatter.ts`, but tolerate the legacy `{ platform: { driver: version } }` shape too.
+ */
+const supportedPlatforms = Array.isArray(it.support)
+    ? it.support
+    : Object.keys(it.support || {})
+
+/**
+ * eta trims the newline that follows a tag, so paragraphs that have to stay separate are joined
+ * here rather than spaced out in the template body.
+ */
+const supportBlock = [
+    supportedPlatforms.map((platform) => `![Support for ${platform}](/img/icons/${platform}.svg)`).join(' '),
+    `**Supported platforms:** ${supportedPlatforms.join(', ')}`,
+    ':::note',
+    'Refer to the official [Appium driver documentation](https://appium.io/docs/en/latest/ecosystem/) to see which driver versions support this command.',
+    ':::'
+].join('\n\n')
+_%>
 <% if (it.hasDocusaurusHeader) { %>
 ---
 id: <%= it.command %>
@@ -31,62 +106,37 @@ This protocol command is embedded in the following convenient method<%= it.alter
 
 <% if (!it.isSkipUsage) { %>
 
-##### Usage
+<%= heading %> Usage
 
 ```js
 <% if (it.isElementScope) { %>
-$(selector).<%= it.command %>(<%= it.paramString %>)
+<%= awaitPrefix %>$(selector).<%= it.command %>(<%= it.paramString %>)
 <% } else if (it.isMockScope) { %>
-mock.<%= it.command %>(<%= it.paramString %>)
+<%= awaitPrefix %>mock.<%= it.command %>(<%= it.paramString %>)
 <% } else if (it.isDialogScope) { %>
 await dialog.<%= it.command %>(<%= it.paramString %>)
 <% } else if (it.isClockScope) { %>
 const clock = await browser.emulate('clock', { ... })
 await clock.<%= it.command %>(<%= it.paramString %>)
 <% } else { %>
-<%= it.isMobile ? 'driver' : 'browser' %>.<%= it.command %>(<%= it.paramString %>)
+<%= awaitPrefix %><%= it.isMobile ? 'driver' : 'browser' %>.<%= it.command %>(<%= it.paramString %>)
 <% } %>
 ```
 
 <% } %>
 
-<% if (it.paramTags.length) { %>
-##### Parameters
+<% if (parameters.length) { %>
+<%= heading %> Parameters
 
-<table>
-  <thead>
-    <tr>
-      <th>Name</th><th>Type</th><th>Details</th>
-    </tr>
-  </thead>
-  <tbody>
-<% it.paramTags.forEach((paramTag) => { %>
-<% if (paramTag.tag === "rowInfo") { %>
-    <tr>
-      <% if (paramTag.string.includes('::')) { %>
-        <% const parts = paramTag.string.split('::').map(part => part.trim()); %>
-        <td colspan="3"><strong><%= parts[0] %></strong><br /><%= parts[1] %></td>
-        <% } else { %>
-        <td colspan="3"><strong><%= paramTag.string %></strong></td>
-        <% } %>
-    </tr>
-<% } else { %>
-    <tr>
-      <td><code><var><%= paramTag.name + (paramTag.default ? `=${paramTag.default}` : '') %></var></code><% if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { %><br /><span className="label labelWarning">optional</span><% } %></td>
-      <td><%= paramTag.type.split('|').join(', ').replace('(', '').replace(')', '') %></td>
-      <td><%= paramTag.description %></td>
-    </tr>
-<% } %>
-<% }) %>
-  </tbody>
-</table>
+<%= parameters.join('\n') %>
+
 <% } %>
 
 <%
 const allExamples = [...it.examples, ...it.exampleReferences];
 if (allExamples.length) {
 %>
-##### Example<%= allExamples.length > 1 ? 's' : '' %>
+<%= heading %> Example<%= allExamples.length > 1 ? 's' : '' %>
 
 <% it.exampleReferences.forEach(function(ref) {
 const filename = it.path.basename(ref.split('#')[0]);
@@ -112,38 +162,20 @@ const ext = it.path.extname(filename).slice(1);
 <% } %>
 
 <% if (it.returns) { %>
-##### Returns
+<%= heading %> Returns
 
-- **&lt;<%= it.returns.type %>&gt;**
-    <% if (it.returns.description) { %>
-        **<code><var><%= it.returns.name %></var></code>:** <%= it.returns.description %>
-    <% } %>
+- **&lt;<%= it.returns.type %>&gt;**<% if (it.returns.description) { %> **`<%= it.returns.name %>`:** <%= it.returns.description %><% } %>
 <% } %>
 
 <% if (it.throwsTags.length) { %>
-##### Throws
+<%= heading %> Throws
 
-<% it.throwsTags.forEach(function(throwsTag) { %>- **<%= throwsTag.type %>**: <%= throwsTag.description %><% }) %>
+<%= it.throwsTags.map((throwsTag) => `- **${throwsTag.type}**: ${throwsTag.description}`).join('\n') %>
 <% } %>
 
-<% if (it.support) { %>
-##### Support
+<% if (supportedPlatforms.length) { %>
+<%= heading %> Support
 
-<% if (Array.isArray(it.support) && it.support.length) { %>
-<% it.support.forEach(function(platform) { %>
-![Support for <%= platform %>](/img/icons/<%= platform %>.svg)
-<% }) %>
+<%= supportBlock %>
 
-:::note
-
-Refer to the official [Appium driver documentation](https://appium.io/docs/en/latest/ecosystem/) to see which driver versions support this command.
-
-:::
-<% } else if (!Array.isArray(it.support) && Object.keys(it.support).length) { %>
-<% Object.keys(it.support).forEach(function(platform) { %>
-![Support for <%= Object.keys(it.support[platform]).map(function(driver) {
-    return driver + " (" + it.support[platform][driver] + ")";
-}).join(", ") %>](/img/icons/<%= platform %>.svg)
-<% }) %>
-<% } %>
 <% } %>
