@@ -20,8 +20,12 @@ describe('permissionsForHeal / interruptsForHeal', () => {
         ])
     })
 
-    it('ask and auto confine read+write to the project root', () => {
+    it('ask and auto confine read+write to the project root, denying sensitive paths first', () => {
         const scoped = [
+            { operations: ['read', 'write'], paths: ['/proj/wdio.conf*'], mode: 'deny' },
+            { operations: ['read', 'write'], paths: ['/proj/.env*'], mode: 'deny' },
+            { operations: ['read', 'write'], paths: ['/proj/.git/**'], mode: 'deny' },
+            { operations: ['read', 'write'], paths: ['/proj/node_modules/**'], mode: 'deny' },
             { operations: ['read', 'write'], paths: ['/proj', '/proj/**'], mode: 'allow' },
             { operations: ['read', 'write'], paths: ['/**'], mode: 'deny' },
         ]
@@ -30,15 +34,16 @@ describe('permissionsForHeal / interruptsForHeal', () => {
     })
 
     it('normalizes trailing slashes, relative roots and the full-scope root', () => {
-        expect(permissionsForHeal('auto', '/proj/')[0].paths).toEqual(['/proj', '/proj/**'])
+        expect(permissionsForHeal('auto', '/proj/')[4].paths).toEqual(['/proj', '/proj/**'])
         const rel = permissionsForHeal('auto', 'some/dir')
-        expect(rel[0].paths).toEqual([
+        expect(rel[4].paths).toEqual([
             path.join(process.cwd(), 'some', 'dir'),
             path.join(process.cwd(), 'some', 'dir') + '/**',
         ])
-        expect(rel[1].paths[0]).toBe('/**')
+        expect(rel[5].paths[0]).toBe('/**')
         // projectRoot '/' = explicit full scope: allow matches everything first
-        expect(permissionsForHeal('auto', '/')[0].paths).toEqual(['/', '/**'])
+        expect(permissionsForHeal('auto', '/')[0].paths).toEqual(['/wdio.conf*'])
+        expect(permissionsForHeal('auto', '/')[4].paths).toEqual(['/', '/**'])
     })
 
     it('ask gates write tools with interrupts; auto/propose do not', () => {
@@ -169,11 +174,17 @@ describe('filesystem scope enforcement (real backend)', () => {
     it('denies reads and writes outside projectRoot, allows both inside', async () => {
         const projRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-scope-'))
         const insideFile = path.join(projRoot, 'app.txt')
+        const envFile = path.join(projRoot, '.env')
         const outsideFile = path.join(os.tmpdir(), 'deepagent-scope-evil.txt')
         await fs.writeFile(insideFile, 'project data')
+        await fs.writeFile(envFile, 'SECRET=1')
         try {
             const outsideRead = await runSingleTool('auto', projRoot, 'read_file', { path: '/etc/passwd' })
             expect(outsideRead).toMatch(/permission denied/)
+
+            // sensitive-path deny rules win over the allow rule (first match)
+            const envRead = await runSingleTool('auto', projRoot, 'read_file', { path: envFile })
+            expect(envRead).toMatch(/permission denied/)
 
             const outsideWrite = await runSingleTool('auto', projRoot, 'write_file', {
                 path: outsideFile,

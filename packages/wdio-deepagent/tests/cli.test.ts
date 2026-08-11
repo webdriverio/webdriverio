@@ -33,6 +33,18 @@ describe('parseFlags', () => {
     it('handles no-flag invocation', () => {
         expect(parseFlags([])).toEqual({})
     })
+
+    it('parses --no-mcp', () => {
+        expect(parseFlags(['--no-mcp'])).toEqual({ noMcp: true })
+    })
+
+    it('parses --no-mcp alongside value flags', () => {
+        expect(parseFlags(['--no-mcp', '--heal', 'auto', 'run', 'fix it'])).toEqual({
+            noMcp: true,
+            heal: 'auto',
+            positionals: ['run', 'fix it'],
+        })
+    })
 })
 
 describe('processTurn', () => {

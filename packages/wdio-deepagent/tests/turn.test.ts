@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 import type { DeepAgent } from 'deepagents'
 import { FakeToolCallingModel } from 'langchain'
 import { createDeepAgentHarness } from '../src/agent.js'
-import { extractAgentReply, processTurn } from '../src/commands/turn.js'
+import { extractAgentReply, MAX_INTERRUPT_ROUNDS, processTurn } from '../src/commands/turn.js'
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
 const MCP_SERVER = path.join(FIXTURES, 'mcp-server.mjs')
@@ -98,6 +98,22 @@ describe('processTurn', () => {
             expect(r).toBeInstanceOf(Command)
             expect((r as unknown as { resume: { decisions: unknown[] } }).resume.decisions)
                 .toEqual([{ type: 'approve' }])
+        }
+    })
+
+    it('logs unresolved interrupts after the resume-round cap and stops', async () => {
+        const invoke = vi.fn().mockResolvedValue(interrupted([
+            { name: 'write_file', args: {}, description: 'x' },
+        ]))
+        const agent = { invoke } as unknown as DeepAgent
+        const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+        try {
+            const result = await processTurn(agent, 'go')
+            expect(result.reply).toBe('')
+            expect(errorSpy).toHaveBeenCalledWith(expect.stringMatching(/1 gated action/))
+            expect(invoke).toHaveBeenCalledTimes(MAX_INTERRUPT_ROUNDS + 1)
+        } finally {
+            errorSpy.mockRestore()
         }
     })
 

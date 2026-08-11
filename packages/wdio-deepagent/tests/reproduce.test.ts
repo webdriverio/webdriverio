@@ -95,4 +95,65 @@ describe('reproduceSpec', () => {
             await fs.rm(traceDir, { recursive: true, force: true })
         }
     })
+
+    it('forwards a parent SIGINT to the spawned run', async () => {
+        const traceDir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-trace-'))
+        try {
+            const started = Date.now()
+            const promise = reproduceSpec({
+                configPath: CONFIG,
+                spec: path.join(FIXTURES, 'some.spec.js'),
+                traceDir,
+                spawnCommand: process.execPath,
+                spawnArgs: ['-e', 'setTimeout(() => {}, 120000)'],
+            })
+            setTimeout(() => process.emit('SIGINT'), 150)
+            const result = await promise
+
+            // killed by the forwarded SIGTERM, not the timeout path
+            expect(result.stderr).not.toMatch(/timed out/)
+            expect(Date.now() - started).toBeLessThan(10_000)
+        } finally {
+            await fs.rm(traceDir, { recursive: true, force: true })
+        }
+    })
+
+    it('kills the process group so orphaned workers die with the timed-out run', async () => {
+        const traceDir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-trace-'))
+        const pidFile = path.join(traceDir, 'worker.pid')
+        // Parent spawns a non-detached grandchild (same process group, like
+        // wdio workers/browser) and stays alive so the timeout path fires;
+        // the group kill must take the grandchild down with it.
+        const script = `
+            const { spawn } = require('node:child_process')
+            const fs = require('node:fs')
+            const child = spawn(process.execPath, ['-e', 'setTimeout(() => {}, 120000)'], { stdio: 'ignore' })
+            fs.writeFileSync(${JSON.stringify(pidFile)}, String(child.pid))
+            setTimeout(() => {}, 120000)
+        `
+        try {
+            await reproduceSpec({
+                configPath: CONFIG,
+                spec: path.join(FIXTURES, 'some.spec.js'),
+                traceDir,
+                timeoutMs: 250,
+                spawnCommand: process.execPath,
+                spawnArgs: ['-e', script],
+            })
+
+            const pid = Number(await fs.readFile(pidFile, 'utf8'))
+            const deadline = Date.now() + 1500
+            while (Date.now() < deadline) {
+                try {
+                    process.kill(pid, 0)
+                } catch {
+                    break // ESRCH: process is gone
+                }
+                await new Promise((r) => setTimeout(r, 100))
+            }
+            expect(() => process.kill(pid, 0)).toThrow()
+        } finally {
+            await fs.rm(traceDir, { recursive: true, force: true })
+        }
+    })
 })

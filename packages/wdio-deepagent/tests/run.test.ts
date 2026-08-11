@@ -33,4 +33,11 @@ describe('runMission exit-code contract', () => {
         const result = await runMission({} as never, 'go')
         expect(result.exitCode).toBe(1)
     })
+
+    it('passes the interrupt resolver through to processTurn', async () => {
+        const resolveInterrupt = vi.fn(async () => true)
+        vi.mocked(processTurn).mockResolvedValue(ok)
+        await runMission({} as never, 'go', { resolveInterrupt })
+        expect(processTurn).toHaveBeenCalledWith({}, 'go', { resolveInterrupt })
+    })
 })

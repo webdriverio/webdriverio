@@ -9,6 +9,8 @@ export interface CliFlags {
     traceDir?: string
     /** Spec to reproduce (diagnose mode). */
     spec?: string
+    /** Disable the @wdio/mcp browser tool surface. */
+    noMcp?: boolean
     /** Positionals: prompt (run mode) / trace.zip path (diagnose mode). */
     positionals?: string[]
 }
@@ -40,8 +42,10 @@ export function parseFlags(argv: string[]): CliFlags {
             case '--spec': flags.spec = value; break
             }
             i++
+        } else if (arg === '--no-mcp') {
+            flags.noMcp = true
         } else if (arg.startsWith('--')) {
-            throw new Error(`Unknown flag "${arg}". Supported: ${[...VALUE_FLAGS].join(', ')}`)
+            throw new Error(`Unknown flag "${arg}". Supported: ${[...VALUE_FLAGS, '--no-mcp'].join(', ')}`)
         } else {
             positionals.push(arg)
         }

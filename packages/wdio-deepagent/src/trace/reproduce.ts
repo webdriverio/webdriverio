@@ -115,18 +115,53 @@ function spawnRun(command: string, args: string[], options: SpawnRunOptions): Pr
             env: { ...process.env, ...options.env },
             stdio: ['ignore', 'ignore', 'pipe'],
             shell: options.shell,
+            detached: process.platform !== 'win32',
         })
         let stderr = ''
         let settled = false
+        // kill(-pid) hits the detached process group so wdio's workers and
+        // the browser it spawned die with it; throws ESRCH once it is gone
+        const killRun = (signal: NodeJS.Signals) => {
+            try {
+                if (process.platform === 'win32') {
+                    child.kill(signal)
+                } else if (child.pid) {
+                    // process.kill with a negative pid targets the group;
+                    // child.kill takes a signal, not a pid
+                    process.kill(-child.pid, signal)
+                }
+            } catch {
+                // group already gone or spawn failed
+            }
+        }
+        // detached puts the child in its own session: forward parent
+        // termination signals to the group so Ctrl-C/CI-kill cannot orphan it
+        const forward = (signal: NodeJS.Signals) => () => {
+            if (!settled) {
+                killRun(signal)
+            }
+        }
+        const onSigint = forward('SIGTERM')
+        const onSigterm = forward('SIGTERM')
+        const onExit = forward('SIGKILL')
+        process.once('SIGINT', onSigint)
+        process.once('SIGTERM', onSigterm)
+        process.once('exit', onExit)
+        const cleanup = () => {
+            process.removeListener('SIGINT', onSigint)
+            process.removeListener('SIGTERM', onSigterm)
+            process.removeListener('exit', onExit)
+        }
         const timer = setTimeout(() => {
             if (settled) {
                 return
             }
             settled = true
+            cleanup()
             stderr += `\n[@wdio/deepagent] reproduction timed out after ${options.timeoutMs} ms; killing the run.\n`
-            child.kill('SIGTERM')
-            // Force-kill shortly after in case the child ignores SIGTERM.
-            setTimeout(() => child.kill('SIGKILL'), 5000).unref()
+            killRun('SIGTERM')
+            // Force-kill shortly after in case the group ignores SIGTERM.
+            setTimeout(() => killRun('SIGKILL'), 5000).unref()
             resolve({ exitCode: TIMED_OUT_EXIT_CODE, stderr })
         }, options.timeoutMs)
         child.stderr.on('data', (chunk: Buffer) => {
@@ -135,6 +170,7 @@ function spawnRun(command: string, args: string[], options: SpawnRunOptions): Pr
         child.on('error', (err) => {
             if (!settled) {
                 settled = true
+                cleanup()
                 clearTimeout(timer)
                 reject(err)
             }
@@ -142,6 +178,7 @@ function spawnRun(command: string, args: string[], options: SpawnRunOptions): Pr
         child.on('close', (code) => {
             if (!settled) {
                 settled = true
+                cleanup()
                 clearTimeout(timer)
                 resolve({ exitCode: code ?? 1, stderr })
             }
