@@ -5,6 +5,7 @@
  */
 
 import logger from '@wdio/logger'
+import readline from 'node:readline'
 import path from 'node:path'
 import { loadDeepAgentConfig, findDefaultConfigPath, DEFAULT_MODEL_HINT } from './config/index.js'
 import type { DeepAgentConfig } from './config/index.js'
@@ -15,6 +16,7 @@ import type { DiagnosisReport } from './heal/index.js'
 import { serveAsMcpServer } from './mcp/index.js'
 import { parseFlags } from './commands/flags.js'
 import type { CliFlags } from './commands/flags.js'
+import { createInterruptResolver } from './commands/interrupt.js'
 import { runRepl } from './commands/repl.js'
 import { runMission } from './commands/run.js'
 
@@ -34,7 +36,23 @@ Options:
   --heal <mode>     ask | propose | auto
   --model <str>     provider:model, e.g. openrouter:moonshotai/kimi-k3
   --trace-dir <dir> trace artifact directory (default: test-results)
+  --no-mcp          run without the @wdio/mcp browser tool surface
 `
+
+const rejectRun = (config: DeepAgentConfig): string | undefined => {
+    if (config.heal === 'propose') {
+        return '[@wdio/deepagent] heal mode "propose" is read-only — `run` cannot write. Use `wdio-deepagent diagnose <trace.zip>` to produce a fix diff without writes.'
+    }
+    if (config.heal === 'ask' && !process.stdin.isTTY) {
+        return '[@wdio/deepagent] heal mode is "ask" but stdin is not a TTY — gated writes cannot be approved. Pass `--heal auto` for unattended CI, or use `wdio-deepagent repl` for interactive approval.'
+    }
+    return undefined
+}
+
+const rejectRepl = (config: DeepAgentConfig): string | undefined =>
+    config.heal === 'propose'
+        ? '[@wdio/deepagent] heal mode "propose" is read-only — the REPL cannot write. Use `wdio-deepagent diagnose <trace.zip>` to produce a fix diff without writes.'
+        : undefined
 
 interface BuildHarnessResult {
     harness: DeepAgentHarness | undefined
@@ -43,7 +61,7 @@ interface BuildHarnessResult {
     config: DeepAgentConfig
 }
 
-async function buildHarness(argv: string[], opts: { allowModelless?: boolean; skipPropose?: boolean } = {}): Promise<BuildHarnessResult> {
+async function buildHarness(argv: string[], opts: { allowModelless?: boolean; skipPropose?: boolean; rejectIf?: (config: DeepAgentConfig) => string | undefined } = {}): Promise<BuildHarnessResult> {
     const flags = parseFlags(argv)
     const configPath = flags.config ?? findDefaultConfigPath()
     const config = await loadDeepAgentConfig({
@@ -54,12 +72,16 @@ async function buildHarness(argv: string[], opts: { allowModelless?: boolean; sk
     if (!config.model && !opts.allowModelless) {
         throw new Error(DEFAULT_MODEL_HINT)
     }
+    const rejected = opts.rejectIf?.(config)
+    if (rejected) {
+        throw new Error(rejected)
+    }
     if (config.model && !(opts.skipPropose && config.heal === 'propose')) {
         log.info(`Model: ${config.model.provider}:${config.model.model} · heal: ${config.heal}`)
         const harness = await createDeepAgentHarness({
             model: config.model,
             heal: config.heal,
-            mcp: config.mcp,
+            mcp: flags.noMcp ? null : config.mcp,
             traceDir: config.traceDir,
             projectRoot: path.resolve(config.permissions.projectRoot),
             configPath,
@@ -87,7 +109,7 @@ export async function run(): Promise<void> {
 async function dispatch(command: string | undefined, rest: string[]): Promise<void> {
     switch (command) {
     case 'repl': {
-        const { harness } = await buildHarness(rest)
+        const { harness } = await buildHarness(rest, { rejectIf: rejectRepl })
         console.log('wdio-deepagent REPL — type a mission, or "exit" to quit. "close session" closes the browser session.')
         await runRepl(harness!.agent, harness!.close, async () => {
             if (!harness!.mcpClient) {
@@ -98,13 +120,24 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
         break
     }
     case 'run': {
-        const { harness, flags } = await buildHarness(rest)
+        const { harness, flags, config } = await buildHarness(rest, { rejectIf: rejectRun })
         if (!flags.positionals?.length) {
             throw new Error('run requires a prompt: wdio-deepagent run "<prompt>"')
         }
-        const result = await runMission(harness!.agent, flags.positionals.join(' '))
-        await harness!.close()
-        process.exitCode = result.exitCode
+        let rl: readline.Interface | undefined
+        if (config.heal === 'ask') {
+            rl = readline.createInterface({ input: process.stdin, output: process.stdout })
+        }
+        try {
+            const prompt = flags.positionals.join(' ')
+            const result = rl
+                ? await runMission(harness!.agent, prompt, { resolveInterrupt: createInterruptResolver(rl) })
+                : await runMission(harness!.agent, prompt)
+            process.exitCode = result.exitCode
+        } finally {
+            rl?.close()
+            await harness!.close()
+        }
         break
     }
     case 'diagnose': {
@@ -160,7 +193,7 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
         process.exitCode = 0
         break
     default:
-        console.error(`Unknown command: ${command}`)
+        console.error(`Unknown command: ${command} — commands come first: wdio-deepagent <command> [options]`)
         console.log(USAGE)
         process.exitCode = 1
     }

@@ -1,5 +1,6 @@
 import type { DeepAgent } from 'deepagents'
 import { processTurn } from './turn.js'
+import type { ProcessTurnOptions } from './turn.js'
 
 export interface RunMissionResult {
     reply: string
@@ -9,11 +10,12 @@ export interface RunMissionResult {
 
 /**
  * One-shot mission mode (CI-able): run the prompt once, stream the result
- * to stdout, exit 0 on success / 1 on failure.
+ * to stdout, exit 0 on success / 1 on failure. `options` — e.g. an
+ * interactive interrupt resolver — are passed through to `processTurn`.
  */
-export async function runMission(agent: DeepAgent, prompt: string): Promise<RunMissionResult> {
+export async function runMission(agent: DeepAgent, prompt: string, options?: ProcessTurnOptions): Promise<RunMissionResult> {
     try {
-        const { reply, toolCalls, failedToolIds } = await processTurn(agent, prompt)
+        const { reply, toolCalls, failedToolIds } = await processTurn(agent, prompt, options)
         console.log(reply)
         // deepagents swallows some model/tool failures into reply content
         // (see E2E.md E2E-06), so a throw alone can't gate the exit code.

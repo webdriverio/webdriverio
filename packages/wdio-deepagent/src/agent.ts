@@ -64,11 +64,13 @@ export interface DeepAgentHarness {
 
 /**
  * Filesystem rules per heal mode. Every mode confines the agent to
- * `projectRoot` — deepagents evaluates rules in declaration order with a
- * permissive default, so the allow rule must come first, followed by a
- * catch-all deny. `ask` additionally gates every write via interrupts
- * (`interruptsForHeal`); `propose` is read-only inside the project and
- * denies writes everywhere; `auto` is scoped by the rules alone.
+ * `projectRoot`. deepagents evaluates rules in declaration order with a
+ * permissive default (first match wins), so ask/auto deny the sensitive
+ * paths (wdio.conf*, .env*, .git, node_modules) before the allow rule can
+ * shadow them, and a catch-all deny comes last. `ask` additionally gates
+ * every write via interrupts (`interruptsForHeal`); `propose` is read-only
+ * inside the project and denies writes everywhere; `auto` is scoped by the
+ * rules alone.
  *
  * The harness backend is a real `FilesystemBackend` (see
  * `createDeepAgentHarness`), so these rules are the only boundary between
@@ -85,6 +87,8 @@ export function permissionsForHeal(heal: HealMode, projectRoot: string): Filesys
     // both the bare root (ls/glob/grep at the root) and everything under it.
     const underRoot = root === '/' ? '/**' : `${root}/**`
     const withinRoot = [root, underRoot]
+    // join the sensitive-path globs without doubling the slash at root '/'
+    const rootPrefix = root === '/' ? '' : root
     if (heal === 'propose') {
         return [
             { operations: ['read'], paths: withinRoot, mode: 'allow' },
@@ -92,6 +96,12 @@ export function permissionsForHeal(heal: HealMode, projectRoot: string): Filesys
         ]
     }
     return [
+        // Sensitive paths are denied first: first-match-wins, so the allow
+        // rule below must not shadow them.
+        { operations: ['read', 'write'], paths: [`${rootPrefix}/wdio.conf*`], mode: 'deny' },
+        { operations: ['read', 'write'], paths: [`${rootPrefix}/.env*`], mode: 'deny' },
+        { operations: ['read', 'write'], paths: [`${rootPrefix}/.git/**`], mode: 'deny' },
+        { operations: ['read', 'write'], paths: [`${rootPrefix}/node_modules/**`], mode: 'deny' },
         { operations: ['read', 'write'], paths: withinRoot, mode: 'allow' },
         { operations: ['read', 'write'], paths: ['/**'], mode: 'deny' },
     ]

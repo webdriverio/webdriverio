@@ -11,6 +11,8 @@ WebdriverIO DeepAgent is a **bring-your-own-key** agent harness built on LangCha
 npm install @wdio/deepagent
 ```
 
+> **Installation note:** `@wdio/deepagent` is an optional dependency of `wdio-cli`, so npm installs it by default. Its dependency tree is heavy (langchain, deepagents, @wdio/mcp), but it is lazy-loaded and only evaluated when you actually run `wdio deepagent` / `wdio-deepagent` — core CLI startup is unaffected. Use `npm install --omit=optional` to skip it entirely.
+
 ## Configure (BYOK)
 
 Add a `deepagent` block to your `wdio.conf.ts` (typed once you import `@wdio/deepagent`) and set your provider key in the environment:
@@ -46,6 +48,7 @@ export DEEPAGENT_HEAL=ask
 
 ```sh
 wdio-deepagent repl                # interactive agent session
+wdio-deepagent repl --no-mcp       # run without the @wdio/mcp browser tool surface
 wdio-deepagent run "<prompt>"      # one-shot mission (CI-able)
 npx wdio config                    # config setup — select the @wdio/deepagent plugin
 wdio-deepagent diagnose <trace.zip> [--spec <path>] [--heal mode]
@@ -56,7 +59,7 @@ The same harness is available as `wdio deepagent …` (lazily loaded so the core
 
 ## How it works
 
-- **Traversal** — the agent loads the `@wdio/mcp` 31-tool surface as an **MCP client**: sessions, navigation, elements, selectors, screenshots, cookies, mobile gestures, script execution. WebdriverIO executes underneath.
+- **Traversal** — the agent loads the `@wdio/mcp` full tool surface as an **MCP client**: sessions, navigation, elements, selectors, screenshots, cookies, mobile gestures, script execution. WebdriverIO executes underneath.
 - **Trace** — `diagnose` ingests a devtools `trace.zip` (action NDJSON, network, `transcript.md`, a11y snapshots, screenshots), reproduces the failing spec under a trace-mode overlay, diffs old vs new runs, and heals the spec.
 - **Heal modes**
   - `ask` (default): the agent proposes fixes and **every write is gated by human approval** (`interrupt_on`).

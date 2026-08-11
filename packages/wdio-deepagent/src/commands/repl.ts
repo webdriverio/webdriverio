@@ -1,5 +1,6 @@
 import readline from 'node:readline'
 import type { DeepAgent } from 'deepagents'
+import { createInterruptResolver } from './interrupt.js'
 import { processTurn } from './turn.js'
 
 /**
@@ -65,13 +66,7 @@ export async function runRepl(agent: DeepAgent, onClose: () => Promise<void>, cl
             const { reply, toolCalls } = await processTurn(agent, text, {
                 // heal=ask gates writes behind an interrupt — the default
                 // auto-approve is for CI; an interactive repl must ask.
-                resolveInterrupt: async (request) => {
-                    for (const action of request.actionRequests) {
-                        console.log(`\n  ⚠️  ${action.description}`)
-                    }
-                    const answer = await new Promise<string>((resolve) => rl.question('  Approve? [y/N] ', resolve))
-                    return /^y(es)?$/i.test(answer.trim())
-                },
+                resolveInterrupt: createInterruptResolver(rl),
             })
             for (const call of toolCalls) {
                 console.log(`  🔧 ${call.name} ${JSON.stringify(call.args ?? {})}`)

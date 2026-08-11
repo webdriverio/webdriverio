@@ -82,13 +82,13 @@ export const MAX_INTERRUPT_ROUNDS = 5
 export async function processTurn(agent: DeepAgent, text: string, options: ProcessTurnOptions = {}): Promise<TurnResult> {
     const resolve = options.resolveInterrupt ?? (async () => true)
     let run = await agent.invoke({ messages: [new HumanMessage(text)] })
+    let declined = false
     for (let round = 0; round < MAX_INTERRUPT_ROUNDS; round++) {
         const interrupts = (run as { __interrupt__?: unknown[] }).__interrupt__
         if (!interrupts?.length) {
             break
         }
         const decisions: Array<{ type: 'approve' } | { type: 'reject'; message: string }> = []
-        let declined = false
         for (const item of interrupts) {
             const request = (item as { value: TurnInterruptRequest }).value
             if (await resolve(request)) {
@@ -102,6 +102,10 @@ export async function processTurn(agent: DeepAgent, text: string, options: Proce
         if (declined) {
             break
         }
+    }
+    const pending = (run as { __interrupt__?: unknown[] }).__interrupt__
+    if (!declined && pending?.length) {
+        console.error(`[@wdio/deepagent] ${pending.length} gated action(s) still pending after ${MAX_INTERRUPT_ROUNDS} resume rounds — not executed.`)
     }
     const messages = (run as { messages: unknown[] }).messages
 
