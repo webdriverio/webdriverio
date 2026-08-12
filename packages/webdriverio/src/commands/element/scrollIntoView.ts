@@ -151,10 +151,12 @@ export async function scrollIntoView (
             const { block, inline } = options
             const isVisibleY = elemRect.y >= windowScrollY && elemRect.y + elemRect.height <= windowScrollY + viewport.height
             const isVisibleX = elemRect.x >= windowScrollX && elemRect.x + elemRect.width <= windowScrollX + viewport.width
+            const spansViewportY = elemRect.y <= windowScrollY && elemRect.y + elemRect.height >= windowScrollY + viewport.height
+            const spansViewportX = elemRect.x <= windowScrollX && elemRect.x + elemRect.width >= windowScrollX + viewport.width
 
             if (block === 'nearest') {
-                if (isVisibleY) {
-                    // already fully visible on this axis, don't move it
+                if (isVisibleY || spansViewportY) {
+                    // already sufficiently visible on this axis, don't move it
                     deltaY = windowScrollY
                 } else {
                     const nearestYDistance = Math.min(...Object.values(targetByOption).map(delta => Math.abs(delta.y - windowScrollY)))
@@ -164,8 +166,8 @@ export async function scrollIntoView (
                 deltaY = targetByOption[block].y
             }
             if (inline === 'nearest') {
-                if (isVisibleX) {
-                    // already fully visible on this axis, don't move it
+                if (isVisibleX || spansViewportX) {
+                    // already sufficiently visible on this axis, don't move it
                     deltaX = windowScrollX
                 } else {
                     const nearestXDistance = Math.min(...Object.values(targetByOption).map(delta => Math.abs(delta.x - windowScrollX)))

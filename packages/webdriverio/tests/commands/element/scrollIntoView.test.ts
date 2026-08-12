@@ -77,6 +77,21 @@ describe('scrollIntoView test', () => {
             expect(scrollActionBlock.deltaX).toBe(15)
         })
 
+        it('does not move an axis when the element is larger than the viewport and already spans both of its edges using "nearest"', async () => {
+            vi.spyOn(browser, 'execute').mockResolvedValueOnce({
+                // element starts above/left of the viewport and ends below/right of it;
+                // deliberately off-center so a "nearest of start/center/end" fallback
+                // (the bug) would compute a non-zero delta instead of leaving it in place
+                elemRect: { x: -30, y: -30, width: 200, height: 200 },
+                viewport: { width: 100, height: 100 },
+                scroll: { x: 0, y: 0 }
+            })
+            await elem.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+            // no scroll action should be performed at all: the element already fully
+            // covers the viewport on both axes, same as native scrollIntoView would leave it
+            expect(vi.mocked(fetch).mock.calls).toHaveLength(0)
+        })
+
         it('waits for the scroll to settle after performing the wheel action', async () => {
             await elem.scrollIntoView()
             const { calls } = vi.mocked(fetch).mock
