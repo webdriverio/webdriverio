@@ -32,7 +32,7 @@ export interface ReproduceOptions {
 }
 
 export interface ReproduceResult {
-    /** Path of the newest `trace-*.zip` produced by the run. */
+    /** Path of the newest `.zip` written after the run started. */
     artifactPath?: string
     exitCode: number
     /** Wall-clock duration of the run in ms. */
@@ -78,7 +78,7 @@ export const config = {
 `
 }
 
-async function findNewestTraceZip(dirs: string[]): Promise<string | undefined> {
+async function findNewestTraceZip(dirs: string[], afterMs?: number): Promise<string | undefined> {
     let newest: { path: string; mtime: number } | undefined
     for (const dir of dirs) {
         let entries: string[]
@@ -88,11 +88,14 @@ async function findNewestTraceZip(dirs: string[]): Promise<string | undefined> {
             continue
         }
         for (const entry of entries) {
-            if (!/^trace-.+\.zip$/.test(entry)) {
+            if (!entry.endsWith('.zip')) {
                 continue
             }
             const full = path.join(dir, entry)
             const stat = await fs.stat(full)
+            if (afterMs !== undefined && stat.mtimeMs < afterMs) {
+                continue
+            }
             if (!newest || stat.mtimeMs > newest.mtime) {
                 newest = { path: full, mtime: stat.mtimeMs }
             }
@@ -225,7 +228,7 @@ export async function reproduceSpec(options: ReproduceOptions): Promise<Reproduc
         result = await spawnRun('npx', ['wdio', ...args], { ...spawnOptions, shell: process.platform === 'win32' })
     }
 
-    const artifactPath = await findNewestTraceZip([traceDir, path.join(projectRoot, DEFAULT_TRACE_DIR)])
+    const artifactPath = await findNewestTraceZip([traceDir, path.join(projectRoot, DEFAULT_TRACE_DIR)], startedAt)
 
     return {
         artifactPath,

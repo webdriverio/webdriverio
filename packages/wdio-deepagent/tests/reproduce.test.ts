@@ -59,6 +59,30 @@ describe('reproduceSpec', () => {
         await fs.rm(path.join(FIXTURES, 'test-results'), { recursive: true, force: true })
     })
 
+    it('a stale pre-existing zip is not picked as the reproduction artifact', async () => {
+        const traceDir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-trace-'))
+        const stale = path.join(traceDir, '2026-01-01T00-00-00Z-abc12345.zip')
+        await fs.writeFile(stale, Buffer.from('stale'))
+        await fs.utimes(stale, new Date(Date.now() - 3600_000), new Date(Date.now() - 3600_000))
+        try {
+            const spec = path.join(FIXTURES, 'some.spec.js')
+            const result = await reproduceSpec({
+                configPath: CONFIG,
+                spec,
+                traceDir,
+                spawnCommand: process.execPath,
+                spawnArgs: [FAKE_WDIO, 'run', 'overlay.mjs', '--spec', spec],
+            })
+
+            expect(result.artifactPath).toBeDefined()
+            expect(result.artifactPath).not.toContain('2026-01-01')
+            expect(result.artifactPath).toMatch(/trace-.+\.zip$/)
+        } finally {
+            await fs.rm(traceDir, { recursive: true, force: true })
+            await fs.rm(path.join(FIXTURES, 'test-results'), { recursive: true, force: true })
+        }
+    })
+
     it('refuses a spec that resolves outside the project root', async () => {
         const traceDir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-trace-'))
         try {

@@ -56,6 +56,10 @@ export interface TraceArtifact {
     network: TraceNetworkEntry[]
     /** `transcript.md` content (LLM-friendly summary). */
     transcript: string
+    /** True when the archive contains a `trace.network` entry with non-empty content. */
+    hasNetworkData: boolean
+    /** True when the archive contains a `transcript.md` entry. */
+    hasTranscript: boolean
     /** `*-elements.json` / `*-snapshot.txt` resources by entry name. */
     snapshots: Map<string, string>
     /** Screenshot resources by entry name. */
@@ -179,6 +183,8 @@ export function parseTraceArchive(
     const snapshots = new Map<string, string>()
     const screenshots = new Map<string, Buffer>()
     let transcript = ''
+    let hasNetworkData = false
+    let hasTranscript = false
     const afterById = new Map<string, Record<string, unknown>>()
 
     const entries = zip.getEntries()
@@ -219,6 +225,7 @@ export function parseTraceArchive(
 
         if (name === 'transcript.md') {
             transcript = data.toString('utf8')
+            hasTranscript = true
             continue
         }
 
@@ -243,6 +250,9 @@ export function parseTraceArchive(
         }
 
         if (name === 'trace.network' || name.endsWith('.network')) {
+            if (data.toString('utf8').trim()) {
+                hasNetworkData = true
+            }
             forEachNdjsonLine(data, (rec) => {
                 network.push({
                     method: typeof rec.method === 'string' ? rec.method : undefined,
@@ -283,5 +293,5 @@ export function parseTraceArchive(
         }
     }
 
-    return { source, actions, network, transcript, snapshots, screenshots }
+    return { source, actions, network, transcript, hasNetworkData, hasTranscript, snapshots, screenshots }
 }

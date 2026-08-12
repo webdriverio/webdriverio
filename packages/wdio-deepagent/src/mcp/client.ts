@@ -61,9 +61,11 @@ function processGroupOf(pid: number): number | undefined {
  * (`@wdio/mcp: ^3.11.1`) instead of whatever `npx -y @wdio/mcp` fetches
  * from the registry at runtime, so the traversal tool surface cannot drift.
  *
- * `@wdio/mcp` is a bin-only package (no resolvable main/package.json
- * export), so we walk up from this module to find a `node_modules` that
- * contains it and read its `bin` field.
+ * `@wdio/mcp` ships `main`/`exports`, but the walk-up still exists: the
+ * package may be installed without being resolvable from this module's
+ * location (pnpm store, npx cache). The pin holds only where
+ * `node_modules/@wdio/mcp` is symlinked — otherwise it degrades to `npx`
+ * (unpinned latest).
  *
  * Returns `undefined` when no local install is found (caller falls back to
  * `npx -y @wdio/mcp`).

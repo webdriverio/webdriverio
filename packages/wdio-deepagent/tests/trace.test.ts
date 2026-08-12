@@ -77,6 +77,26 @@ describe('parseTraceArchive', () => {
         expect(artifact.transcript).toBe('')
     })
 
+    it('flags missing network/transcript data in MCP-session trace subsets', () => {
+        const zip = new AdmZip()
+        zip.addFile('trace.trace', Buffer.from([
+            JSON.stringify({ type: 'before', id: 'a1', ts: 1000, action: { name: 'url', value: 'https://example.com' } }),
+            JSON.stringify({ type: 'after', id: 'a1', ts: 1450 }),
+        ].join('\n')))
+
+        const subset = parseTraceArchive(zip.toBuffer(), 'subset.zip')
+        expect(subset.actions).toHaveLength(1)
+        expect(subset.hasNetworkData).toBe(false)
+        expect(subset.hasTranscript).toBe(false)
+
+        zip.addFile('trace.network', Buffer.from(JSON.stringify({ method: 'GET', url: 'https://example.com/api', status: 200 }) + '\n'))
+        zip.addFile('transcript.md', Buffer.from('# Trace\n'))
+
+        const full = parseTraceArchive(zip.toBuffer(), 'full.zip')
+        expect(full.hasNetworkData).toBe(true)
+        expect(full.hasTranscript).toBe(true)
+    })
+
     it('parses the current @wdio/devtools-service v8 format (callId/params/startTime/error.message)', () => {
         const zip = new AdmZip()
         zip.addFile('trace.trace', Buffer.from([
