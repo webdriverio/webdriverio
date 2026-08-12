@@ -17,6 +17,14 @@ const log = logger('webdriverio')
  *
  * :::
  *
+ * :::info
+ *
+ * On Desktop/Mobile Web, browsers apply wheel-driven scrolling asynchronously, so this command
+ * waits until the scroll position stops changing before resolving. This ensures the element is
+ * actually in its final position by the time subsequent commands run.
+ *
+ * :::
+ *
  * <example>
     :desktop.mobile.web.scrollIntoView.js
     it('should demonstrate the desktop/mobile web scrollIntoView command', async () => {
@@ -123,8 +131,9 @@ export async function scrollIntoView (
         const targetByOption = {
             start: { y: elemRect.y, x: elemRect.x },
             center: {
-                y: elemRect.y - Math.round((viewport.height - elemRect.height) / 2),
-                x: elemRect.x - Math.round((viewport.width - elemRect.width) / 2)
+                // keep fractional precision here; rounding happens once, on the final delta
+                y: elemRect.y - (viewport.height - elemRect.height) / 2,
+                x: elemRect.x - (viewport.width - elemRect.width) / 2
             },
             end: {
                 y: elemRect.y - (viewport.height - elemRect.height),
@@ -143,10 +152,15 @@ export async function scrollIntoView (
             const { block, inline } = options
             const isVisibleY = elemRect.y >= windowScrollY && elemRect.y + elemRect.height <= windowScrollY + viewport.height
             const isVisibleX = elemRect.x >= windowScrollX && elemRect.x + elemRect.width <= windowScrollX + viewport.width
+            // element is larger than the viewport and already spans both of its edges on
+            // this axis, e.g. a tall element that starts above and ends below the viewport.
+            // There's nothing more of it to bring into view, so native leaves it in place.
+            const spansViewportY = elemRect.y <= windowScrollY && elemRect.y + elemRect.height >= windowScrollY + viewport.height
+            const spansViewportX = elemRect.x <= windowScrollX && elemRect.x + elemRect.width >= windowScrollX + viewport.width
 
             if (block === 'nearest') {
-                if (isVisibleY) {
-                    // already fully visible on this axis, don't move it
+                if (isVisibleY || spansViewportY) {
+                    // already sufficiently visible on this axis, don't move it
                     deltaY = windowScrollY
                 } else {
                     const nearestYDistance = Math.min(...Object.values(targetByOption).map(delta => Math.abs(delta.y - windowScrollY)))
@@ -156,8 +170,8 @@ export async function scrollIntoView (
                 deltaY = targetByOption[block].y
             }
             if (inline === 'nearest') {
-                if (isVisibleX) {
-                    // already fully visible on this axis, don't move it
+                if (isVisibleX || spansViewportX) {
+                    // already sufficiently visible on this axis, don't move it
                     deltaX = windowScrollX
                 } else {
                     const nearestXDistance = Math.min(...Object.values(targetByOption).map(delta => Math.abs(delta.x - windowScrollX)))
@@ -177,16 +191,60 @@ export async function scrollIntoView (
             return
         }
 
+        /**
+         * per the WebDriver spec, an element `origin` must be scrolled into view before its
+         * coordinates can be resolved - which would silently reposition the page before our
+         * own deltaX/deltaY are applied. Our deltas are already absolute, computed relative to
+         * the current window scroll, so we scroll from the viewport origin instead.
+         */
         await browser.action('wheel')
             .scroll({
                 duration: 0,
-                origin: this,
                 x: 0,
                 y: 0,
                 deltaX,
                 deltaY,
             })
             .perform()
+
+        /**
+         * real browsers apply wheel-driven scrolling asynchronously (e.g. inertial
+         * scrolling), so `window.scrollX/Y` may not reflect the final position right
+         * after the action resolves. Wait until the scroll position stops changing
+         * across consecutive animation frames instead of assuming it's done.
+         */
+        // `execute` doesn't await promises under the classic WebDriver protocol, only Bidi,
+        // so `executeAsync` is still required here to reliably wait under both protocols
+        // @ts-ignore `executeAsync` is deprecated in favor of `execute`, see comment above
+        await browser.executeAsync((done: () => void) => {
+            try {
+                let lastX = window.scrollX
+                let lastY = window.scrollY
+                let stableFrames = 0
+                let totalFrames = 0
+                const maxFrames = 60
+
+                const check = () => {
+                    totalFrames++
+                    const x = window.scrollX
+                    const y = window.scrollY
+                    if (x === lastX && y === lastY) {
+                        stableFrames++
+                    } else {
+                        stableFrames = 0
+                        lastX = x
+                        lastY = y
+                    }
+                    if (stableFrames >= 2 || totalFrames >= maxFrames) {
+                        return done()
+                    }
+                    requestAnimationFrame(check)
+                }
+                requestAnimationFrame(check)
+            } catch {
+                done()
+            }
+        })
     } catch (err) {
         log.warn(
             `Failed to execute "scrollIntoView" using WebDriver Actions API: ${(err as Error).message}!\n` +

@@ -7,6 +7,22 @@ import { remote } from '../../../src/index.js'
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
+/**
+ * finds the wheel "actions" request body among all fetch calls, since the
+ * scrollIntoView flow may also perform an "execute/async" settle-wait call
+ * after the wheel action, shifting where it lands among the recorded calls.
+ */
+const getScrollActionBody = () => {
+    const call = vi.mocked(fetch).mock.calls.find(([, requestOptions]) => {
+        try {
+            return JSON.parse((requestOptions as any)?.body)?.actions?.[0]?.actions?.[0]?.type === 'scroll'
+        } catch {
+            return false
+        }
+    })
+    return JSON.parse((call![1] as any).body)
+}
+
 describe('scrollIntoView test', () => {
     let browser: WebdriverIO.Browser
     let elem: WebdriverIO.Element
@@ -31,40 +47,72 @@ describe('scrollIntoView test', () => {
 
         it('scrolls by default the element to the top', async () => {
             await elem.scrollIntoView()
-            const optionsVoid = vi.mocked(fetch).mock.calls.slice(-2, -1)[0][1] as any
-            expect(JSON.parse(optionsVoid.body)).toMatchSnapshot()
+            expect(getScrollActionBody()).toMatchSnapshot()
         })
 
         it('scrolls element when using boolean scroll options', async () => {
             await elem.scrollIntoView(true)
-            const optionsTrue = vi.mocked(fetch).mock.calls.slice(-2, -1)[0][1] as any
-            expect(JSON.parse(optionsTrue.body)).toMatchSnapshot()
+            expect(getScrollActionBody()).toMatchSnapshot()
             vi.mocked(fetch).mockClear()
             await elem.scrollIntoView(false)
-            const optionsFalse = vi.mocked(fetch).mock.calls.slice(-2, -1)[0][1] as any
-            expect(JSON.parse(optionsFalse.body)).toMatchSnapshot()
+            expect(getScrollActionBody()).toMatchSnapshot()
         })
 
         it('scrolls element using scroll into view options', async () => {
             await elem.scrollIntoView({ block: 'center', inline: 'center' })
-            const optionsCenter = vi.mocked(fetch).mock.calls.slice(-2, -1)[0][1] as any
-            expect(JSON.parse(optionsCenter.body)).toMatchSnapshot()
+            expect(getScrollActionBody()).toMatchSnapshot()
         })
 
         it('does not move an axis that is already fully visible when using "nearest"', async () => {
             await elem.scrollIntoView({ block: 'start', inline: 'nearest' })
-            const optionsInline = vi.mocked(fetch).mock.calls.slice(-2, -1)[0][1] as any
-            const scrollActionInline = JSON.parse(optionsInline.body).actions[0].actions[0]
+            const scrollActionInline = getScrollActionBody().actions[0].actions[0]
             expect(scrollActionInline.deltaX).toBe(0)
             expect(scrollActionInline.deltaY).toBe(20)
 
             vi.mocked(fetch).mockClear()
 
             await elem.scrollIntoView({ block: 'nearest', inline: 'start' })
-            const optionsBlock = vi.mocked(fetch).mock.calls.slice(-2, -1)[0][1] as any
-            const scrollActionBlock = JSON.parse(optionsBlock.body).actions[0].actions[0]
+            const scrollActionBlock = getScrollActionBody().actions[0].actions[0]
             expect(scrollActionBlock.deltaY).toBe(0)
             expect(scrollActionBlock.deltaX).toBe(15)
+        })
+
+        it('does not move an axis when the element is larger than the viewport and already spans both of its edges using "nearest"', async () => {
+            vi.spyOn(browser, 'execute').mockResolvedValueOnce({
+                // element starts above/left of the viewport and ends below/right of it;
+                // deliberately off-center so a "nearest of start/center/end" fallback
+                // (the bug) would compute a non-zero delta instead of leaving it in place
+                elemRect: { x: -30, y: -30, width: 200, height: 200 },
+                viewport: { width: 100, height: 100 },
+                scroll: { x: 0, y: 0 }
+            })
+            await elem.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+            // no scroll action should be performed at all: the element already fully
+            // covers the viewport on both axes, same as native scrollIntoView would leave it
+            expect(vi.mocked(fetch).mock.calls).toHaveLength(0)
+        })
+
+        it('waits for the scroll to settle after performing the wheel action', async () => {
+            await elem.scrollIntoView()
+            const { calls } = vi.mocked(fetch).mock
+
+            const actionsIndex = calls.findIndex(([url]) => (url as URL).pathname?.endsWith('/actions'))
+            const settleIndex = calls.findIndex(([url]) => (url as URL).pathname?.endsWith('/execute/async'))
+
+            expect(actionsIndex).toBeGreaterThanOrEqual(0)
+            expect(settleIndex).toBeGreaterThan(actionsIndex)
+            expect(JSON.parse((calls[settleIndex][1] as any).body).script)
+                .toEqual(expect.stringContaining('stableFrames'))
+        })
+
+        it('does not wait for settle when the wheel action fails and falls back to the Web API', async () => {
+            // @ts-expect-error mock feature
+            vi.mocked(fetch).customResponseFor(/\/actions/, { error: 'invalid parameter' })
+            // @ts-expect-error mock feature
+            elem.elementId = { scrollIntoView: 'mockFunction' }
+            await elem.scrollIntoView({})
+            const hasSettleCall = vi.mocked(fetch).mock.calls.some(([url]) => (url as URL).pathname?.endsWith('/execute/async'))
+            expect(hasSettleCall).toBe(false)
         })
 
         it('falls back using Web API if scroll action fails', async () => {
@@ -95,8 +143,7 @@ describe('scrollIntoView test', () => {
                 scroll: { x: 0, y: 0 }
             })
             await elem.scrollIntoView({ block: 'center', inline: 'center' })
-            const optionsCenter = vi.mocked(fetch).mock.calls.slice(-2, -1)[0][1] as any
-            const scrollAction = JSON.parse(optionsCenter.body).actions[0].actions[0]
+            const scrollAction = getScrollActionBody().actions[0].actions[0]
             expect(scrollAction.deltaX).toBe(-260)
             expect(scrollAction.deltaY).toBe(-365)
             expect(scrollAction.x).toBe(0)
