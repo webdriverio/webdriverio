@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { HumanMessage } from '@langchain/core/messages'
 import { Command } from '@langchain/langgraph'
 import { FakeToolCallingModel } from 'langchain'
-import { createDeepAgentHarness, interruptsForHeal, isSmallModelForMcp, permissionsForHeal } from '../src/agent.js'
+import { createDeepAgentHarness, interruptsForHeal, isSmallModelForMcp, normalizePermissionRoot, permissionsForHeal } from '../src/agent.js'
 import type { HealMode } from '../src/config/index.js'
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
@@ -44,6 +44,18 @@ describe('permissionsForHeal / interruptsForHeal', () => {
         // projectRoot '/' = explicit full scope: allow matches everything first
         expect(permissionsForHeal('auto', '/')[0].paths).toEqual(['/wdio.conf*'])
         expect(permissionsForHeal('auto', '/')[4].paths).toEqual(['/', '/**'])
+    })
+
+    it('normalizePermissionRoot yields `/`-prefixed forward-slash globs (deepagents contract)', () => {
+        expect(normalizePermissionRoot('C:\\users\\bob\\proj\\')).toBe('/C:/users/bob/proj')
+        expect(normalizePermissionRoot('/home/bob/proj/')).toBe('/home/bob/proj')
+        expect(normalizePermissionRoot('/')).toBe('/')
+        // deepagents validatePath rejects globs that do not start with `/`
+        for (const rule of permissionsForHeal('ask', '/home/bob/proj')) {
+            for (const glob of rule.paths) {
+                expect(glob.startsWith('/')).toBe(true)
+            }
+        }
     })
 
     it('ask gates write tools with interrupts; auto/propose do not', () => {

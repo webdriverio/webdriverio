@@ -65,6 +65,16 @@ export interface DeepAgentHarness {
 }
 
 /**
+ * Converts a resolved absolute path into the `/`-prefixed, forward-slash
+ * glob form deepagents requires (Windows drive paths become `/C:/...`).
+ * Collapsing `//`→`/` is deliberate — UNC roots would break anyway since
+ * deepagents only understands `/`-prefixed forms.
+ */
+export function normalizePermissionRoot(resolvedRoot: string): string {
+    return ('/' + resolvedRoot.replace(/\\/g, '/')).replace(/\/{2,}/g, '/').replace(/\/+$/, '') || '/'
+}
+
+/**
  * Filesystem rules per heal mode. Every mode confines the agent to
  * `projectRoot`. deepagents evaluates rules in declaration order with a
  * permissive default (first match wins), so ask/auto deny the sensitive
@@ -84,7 +94,11 @@ export function permissionsForHeal(heal: HealMode, projectRoot: string): Filesys
     // deepagents requires absolute glob paths (start with `/`, no `~`/`..`),
     // so resolve relative roots against the cwd and drop trailing slashes.
     // A project root of `/` means "full scope" — keep it as the bare root.
-    const root = path.resolve(projectRoot).replace(/\/+$/, '') || '/'
+    // On Windows the deny rules cannot match model-supplied `C:\...` paths
+    // (deepagents canonicalizes them with backslashes intact), so confinement
+    // degrades to the permissive default — the harness works unconfined rather
+    // than crashing.
+    const root = normalizePermissionRoot(path.resolve(projectRoot))
     // `**` does not match the root directory itself, so the allow rules list
     // both the bare root (ls/glob/grep at the root) and everything under it.
     const underRoot = root === '/' ? '/**' : `${root}/**`

@@ -7,7 +7,7 @@ import type { TraceAction, TraceArtifact, TraceNetworkEntry } from '../trace/rea
 import { reproduceSpec } from '../trace/reproduce.js'
 import { diffArtifacts, summarizeFailures } from '../trace/diff.js'
 import type { TraceDiff } from '../trace/diff.js'
-import { extractAgentReply } from '../commands/turn.js'
+import { processTurn, type TurnInterruptRequest } from '../commands/turn.js'
 
 /**
  * The `diagnose` pipeline: ingest → reproduce → diff → heal. Mode
@@ -33,6 +33,8 @@ export interface DiagnosisOptions {
     agent?: DeepAgent
     /** Heal prompt template (injectable for tests). */
     healPrompt?: (report: DiagnosisReport) => string
+    /** Decide a pending gated write (heal=ask). Default: auto-approve. */
+    resolveInterrupt?: (request: TurnInterruptRequest) => Promise<boolean>
 }
 
 export interface ReproductionInfo {
@@ -47,6 +49,9 @@ export interface DiagnosisReport {
     failedActions: TraceAction[]
     networkErrors: TraceNetworkEntry[]
     transcript: string
+    /** Trace subset flags — false when the archive came from an MCP session. */
+    hasNetworkData: boolean
+    hasTranscript: boolean
     reproduction?: ReproductionInfo
     diff?: TraceDiff
     heal: HealMode
@@ -62,7 +67,7 @@ Actions: ${JSON.stringify(report.failedActions.map((a) => ({ name: a.name, selec
 Network errors: ${JSON.stringify(report.networkErrors.map((n) => ({ url: n.url, status: n.status })))}
 Run transcript (what the run actually did):
 ${report.transcript}
-${report.diff ? `Diff vs previous run: ${JSON.stringify(report.diff)}` : ''}
+${report.diff ? `Diff vs previous run: ${JSON.stringify(report.diff)}` : ''}${!report.hasNetworkData || !report.hasTranscript ? '\nNote: this trace lacks network/transcript data (MCP-session trace subset) — diagnosis context is limited.' : ''}
 
 Heal mode: ${report.heal}${report.heal === 'propose' ? ' — do NOT write files, produce a diff instead.' : ''}
 Fix the failing spec or page object so the run passes, then summarize what you changed and why.`
@@ -82,6 +87,8 @@ export async function runDiagnosis(options: DiagnosisOptions): Promise<Diagnosis
         actionCount: oldArtifact.actions.length,
         ...summarizeFailures(oldArtifact),
         transcript: oldArtifact.transcript,
+        hasNetworkData: oldArtifact.hasNetworkData,
+        hasTranscript: oldArtifact.hasTranscript,
         heal: options.heal,
         agentRan: false,
     }
@@ -112,9 +119,9 @@ export async function runDiagnosis(options: DiagnosisOptions): Promise<Diagnosis
 
     if (options.heal !== 'propose' && options.agent) {
         const prompt = (options.healPrompt ?? DEFAULT_HEAL_PROMPT)(report)
-        const run = await options.agent.invoke({ messages: [{ role: 'user', content: prompt }] })
+        const { reply } = await processTurn(options.agent, prompt, { resolveInterrupt: options.resolveInterrupt })
         report.agentRan = true
-        report.agentReply = extractAgentReply((run as { messages: unknown[] }).messages)
+        report.agentReply = reply
     }
 
     return report

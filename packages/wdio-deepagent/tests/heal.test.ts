@@ -118,4 +118,68 @@ describe('runDiagnosis', () => {
             await fs.rm(dir, { recursive: true, force: true })
         }
     })
+
+    it('ask mode resumes interrupt-gated writes (auto-approve)', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
+        const tracePath = await makeFailingTrace(dir)
+        const spec = path.join(dir, 'spec.js')
+        await fs.writeFile(spec, 'original')
+        const harness = await createDeepAgentHarness({
+            model: { provider: 'openai', model: 'fake' },
+            modelOverride: new FakeToolCallingModel({
+                toolCalls: [[{ name: 'write_file', args: { path: spec, content: 'fixed' }, id: 'call-1' }]],
+                toolStyle: 'openai',
+            }),
+            mcp: { command: process.execPath, args: [MCP_SERVER] },
+            traceDir: 'test-results',
+            heal: 'ask',
+            projectRoot: dir,
+        })
+        try {
+            const report = await runDiagnosis({
+                tracePath,
+                traceDir: path.join(dir, 'traces'),
+                heal: 'ask',
+                agent: harness.agent,
+            })
+            expect(report.agentRan).toBe(true)
+            expect(typeof report.agentReply).toBe('string')
+            expect(await fs.readFile(spec, 'utf8')).toBe('fixed')
+        } finally {
+            await harness.close()
+            await fs.rm(dir, { recursive: true, force: true })
+        }
+    })
+
+    it('ask mode with a rejecting resolver skips the write', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
+        const tracePath = await makeFailingTrace(dir)
+        const spec = path.join(dir, 'spec.js')
+        await fs.writeFile(spec, 'original')
+        const harness = await createDeepAgentHarness({
+            model: { provider: 'openai', model: 'fake' },
+            modelOverride: new FakeToolCallingModel({
+                toolCalls: [[{ name: 'write_file', args: { path: spec, content: 'fixed' }, id: 'call-1' }]],
+                toolStyle: 'openai',
+            }),
+            mcp: { command: process.execPath, args: [MCP_SERVER] },
+            traceDir: 'test-results',
+            heal: 'ask',
+            projectRoot: dir,
+        })
+        try {
+            const report = await runDiagnosis({
+                tracePath,
+                traceDir: path.join(dir, 'traces'),
+                heal: 'ask',
+                agent: harness.agent,
+                resolveInterrupt: async () => false,
+            })
+            expect(report.agentRan).toBe(true)
+            expect(await fs.readFile(spec, 'utf8')).toBe('original')
+        } finally {
+            await harness.close()
+            await fs.rm(dir, { recursive: true, force: true })
+        }
+    })
 })

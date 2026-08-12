@@ -8,6 +8,7 @@ export function getExternal(pkg: PackageJson) {
         ...builtinModules.map((mod) => `node:${mod}`),
         ...Object.keys(pkg.dependencies || {}),
         ...Object.keys(pkg.peerDependencies || {}),
-        ...Object.keys(pkg.optionalDependencies || {})
+        ...Object.keys(pkg.optionalDependencies || {}),
+        './node.js'
     ]
 }
