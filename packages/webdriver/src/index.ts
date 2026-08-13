@@ -57,7 +57,8 @@ export default class WebDriver {
             Object.assign(bidiPrototype, initiateBidi(
                 capabilities.webSocketUrl as unknown as string,
                 options.strictSSL,
-                options.headers
+                options.headers,
+                params.bidiResponseTimeout
             ))
         }
 
@@ -139,7 +140,8 @@ export default class WebDriver {
             Object.assign(bidiPrototype, initiateBidi(
                 webSocketUrl as string,
                 options.strictSSL,
-                options.headers
+                options.headers,
+                options.bidiResponseTimeout
             ))
         }
 

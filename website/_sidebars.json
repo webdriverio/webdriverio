@@ -97,42 +97,43 @@
         "id": "devtools"
       },
       "items": [
+        "devtools/getting-started",
         {
           "type": "category",
-          "label": "WebDriverIO",
-          "link": {
-            "type": "doc",
-            "id": "devtools/wdio"
-          },
+          "label": "Live Mode",
           "items": [
+            "devtools/dashboard",
             "devtools/wdio/interactive-test-rerunning",
             "devtools/wdio/preserve-and-rerun",
-            "devtools/wdio/multi-framework-support",
             "devtools/wdio/console-logs",
             "devtools/wdio/network-logs",
+            "devtools/wdio/metadata",
             "devtools/wdio/testlens",
-            "devtools/wdio/screencast",
-            "devtools/wdio/trace-mode"
+            "devtools/wdio/multi-framework-support",
+            "devtools/wdio/screencast"
           ]
         },
         {
           "type": "category",
-          "label": "Nightwatch",
-          "link": {
-            "type": "doc",
-            "id": "devtools/nightwatch"
-          },
-          "items": []
+          "label": "Trace Mode",
+          "items": [
+            "devtools/wdio/trace-mode",
+            "devtools/trace-player",
+            "devtools/allure",
+            "devtools/cross-framework",
+            "devtools/limitations"
+          ]
         },
         {
           "type": "category",
-          "label": "Selenium",
-          "link": {
-            "type": "doc",
-            "id": "devtools/selenium"
-          },
-          "items": []
-        }
+          "label": "Frameworks",
+          "items": [
+            "devtools/wdio",
+            "devtools/selenium",
+            "devtools/nightwatch"
+          ]
+        },
+        "devtools/reference"
       ]
     },
     {

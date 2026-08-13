@@ -25,6 +25,38 @@ const DEFAULT_HEADERS = {
 
 const log = logger('webdriver')
 
+function hasLoggableBody (body: BodyInit | Record<string, unknown>): boolean {
+    if (typeof body === 'string') {
+        return body.length > 0
+    }
+
+    if (body instanceof URLSearchParams || body instanceof FormData) {
+        return !(body as URLSearchParams).keys().next().done
+    }
+
+    if (body instanceof Blob) {
+        return body.size > 0
+    }
+
+    if (body instanceof ArrayBuffer || ArrayBuffer.isView(body)) {
+        return body.byteLength > 0
+    }
+
+    return Object.keys(body).length > 0
+}
+
+function toLoggableBody (body: BodyInit): BodyInit | Record<string, unknown> {
+    if (typeof body !== 'string') {
+        return body
+    }
+
+    try {
+        return JSON.parse(body)
+    } catch {
+        return body
+    }
+}
+
 export abstract class WebDriverRequest {
     protected abstract fetch(url: URL, opts: RequestInit): Promise<Response>
 
@@ -161,9 +193,9 @@ export abstract class WebDriverRequest {
         retryCount = 0
     ): Promise<WebDriverResponse> {
         log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
-
-        if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
-            this.eventHandler.onLogData?.(fullRequestOptions.body)
+        const loggableBody = fullRequestOptions.body && toLoggableBody(fullRequestOptions.body)
+        if (loggableBody && hasLoggableBody(loggableBody)) {
+            this.eventHandler.onLogData?.(loggableBody)
         }
 
         const { ...requestLibOptions } = fullRequestOptions
