@@ -1,3 +1,5 @@
+import { getBrowserObject } from '@wdio/utils'
+import { bidiGetText, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 /**
  *
  * Get the text content from a DOM-element. Make sure the element
@@ -39,5 +41,9 @@
  *
  */
 export function getText (this: WebdriverIO.Element) {
+    const browser = getBrowserObject(this) as WebdriverIO.Browser
+    if (isBidiCommandsEnabled(browser)) {
+        return bidiGetText(this)
+    }
     return this.getElementText(this.elementId)
 }

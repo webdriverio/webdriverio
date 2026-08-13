@@ -1,3 +1,5 @@
+import { getBrowserObject } from '@wdio/utils'
+import { bidiAddValue, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 import type { InputOptions } from '../../types.js'
 import { CommandRuntimeOptions } from 'webdriver'
 
@@ -46,6 +48,11 @@ export function addValue (
             'The setValue/addValue command only take string or number values. ' +
             'If you like to use special characters, use the "keys" command.'
         )
+    }
+
+    const browser = getBrowserObject(this) as WebdriverIO.Browser
+    if (isBidiCommandsEnabled(browser)) {
+        return bidiAddValue(this, value.toString())
     }
 
     if (options) {

@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 
 import { getBrowserObject } from '@wdio/utils'
+import { isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 import { buttonValue } from '../../utils/actions/index.js'
 import type { ClickOptions } from '../../types.js'
 
@@ -115,6 +116,11 @@ export function click(
             throw new TypeError('Options must be an object')
         }
         return actionClick(this, options)
+    }
+
+    const browser = getBrowserObject(this) as WebdriverIO.Browser
+    if (isBidiCommandsEnabled(browser)) {
+        return actionClick(this, {})
     }
 
     return elementClick(this)

@@ -7,6 +7,7 @@ import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
 
 import MochaAdapterFactory, { MochaAdapter } from '../src/index.js'
 import { EVENTS } from '../src/constants.js'
+import { runParallelTests } from '../src/parallel.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
@@ -16,6 +17,9 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 vi.mock('expect-webdriverio')
 vi.mock('../src/utils', () => ({
     loadModule: vi.fn()
+}))
+vi.mock('../src/parallel.js', () => ({
+    runParallelTests: vi.fn().mockResolvedValue(0),
 }))
 
 const wdioReporter = {
@@ -193,6 +197,51 @@ describe('prepareMessage', () => {
         expect(result.type).toBe('afterSuite')
         expect(result.title).toBeUndefined()
         expect(result.duration).toBeUndefined()
+    })
+
+    test('should fall back to _mocha.suite when _runner is unset (parallel mode)', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory()
+        await adapter.init()
+        // _runner is only set by the sequential mocha.run() path
+        adapter['_mocha']!.suite = { suites: [{ title: 'parallel suite' }] } as any
+
+        const result = adapter.prepareMessage('beforeSuite')
+        expect(result.type).toBe('beforeSuite')
+        expect(result.title).toBe('parallel suite')
+    })
+})
+
+describe('parallel mode config hooks', () => {
+    test('emits paired hook events around beforeSuite/afterSuite', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        await adapter.init()
+        adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }] } as any
+
+        ;(globalThis as any).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        try {
+            const result = await adapter.run()
+            expect(result).toBe(0)
+        } finally {
+            delete (globalThis as any).browser
+        }
+
+        const hookStarts = wdioReporter.emit.mock.calls.filter((c) => c[0] === 'hook:start')
+        const hookEnds = wdioReporter.emit.mock.calls.filter((c) => c[0] === 'hook:end')
+
+        // beforeSuite + afterSuite → two start/end pairs
+        expect(hookStarts.length).toBe(2)
+        expect(hookEnds.length).toBe(2)
+        // prepareMessage payloads, not raw config-hook objects
+        expect(hookStarts[0][1].title).toBe('first suite')
+        expect(hookStarts[0][1].type).toBe('hook:start')
+        // start/end share a uid; afterSuite end carries duration + state
+        expect(hookStarts[0][1].uid).toBe(hookEnds[0][1].uid)
+        expect(hookStarts[1][1].uid).toBe(hookEnds[1][1].uid)
+        expect(hookEnds[1][1].state).toBe('pass')
+        expect(hookEnds[1][1].duration).toBeGreaterThanOrEqual(0)
+        expect(runParallelTests).toBeCalledTimes(1)
     })
 })
 

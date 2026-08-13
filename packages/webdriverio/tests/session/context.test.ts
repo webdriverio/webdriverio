@@ -1,7 +1,13 @@
 import path from 'node:path'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-import { getContextManager } from '../../src/session/context.js'
+import {
+    getContextManager,
+    registerParallelContext,
+    unregisterParallelContext,
+    isParallelContext,
+    PARALLEL_CONTEXTS_KEY,
+} from '../../src/session/context.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
@@ -99,5 +105,82 @@ describe('ContextManager', () => {
         const error = new Error('no such window')
         handler({ command: 'switchToWindow', result: { error } })
         expect(getContextManager(browser).getCurrentWindowHandle()).toBeUndefined()
+    })
+})
+
+describe('ContextManager — parallel context registry', () => {
+    afterEach(() => {
+        unregisterParallelContext('ctx-parallel-a')
+        unregisterParallelContext('ctx-other')
+    })
+
+    it('registers, reports and unregisters parallel contexts', () => {
+        expect(isParallelContext('ctx-parallel-a')).toBe(false)
+        registerParallelContext('ctx-parallel-a')
+        expect(isParallelContext('ctx-parallel-a')).toBe(true)
+        unregisterParallelContext('ctx-parallel-a')
+        expect(isParallelContext('ctx-parallel-a')).toBe(false)
+    })
+
+    it('exposes the registry on the browser instance for the framework adapters', () => {
+        const stub = createBrowserStub()
+        getContextManager(stub.browser)
+        const registry = (stub.browser as unknown as Record<string, unknown>)[PARALLEL_CONTEXTS_KEY]
+        expect(registry).toBeInstanceOf(Set)
+        // The browser-exposed set IS the registry the manager consults — a
+        // broken exposure (different Set) would silently disable the
+        // re-anchor protection, so assert the wiring end-to-end.
+        ;(registry as Set<string>).add('ctx-via-browser-prop')
+        expect(isParallelContext('ctx-via-browser-prop')).toBe(true)
+        unregisterParallelContext('ctx-via-browser-prop')
+    })
+
+    it('does not re-anchor the session context on navigations inside a parallel tab', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub()
+        const bidiBrowser = {
+            ...stub.browser,
+            isBidi: true,
+            browsingContextGetTree: vi.fn().mockResolvedValue({ contexts: [] }),
+        } as unknown as WebdriverIO.Browser & { on: any, off: any, switchToWindow: any }
+        try {
+            const manager = getContextManager(bidiBrowser)
+            manager.setCurrentContext('handle-A')
+            registerParallelContext('ctx-parallel-a')
+
+            const navHandlers = stub.getListeners()['browsingContext.navigationStarted']
+            expect(navHandlers?.length).toBeGreaterThan(0)
+            await navHandlers![0]({ context: 'ctx-parallel-a' })
+
+            // parallel tab navigation: no tree fetch, no switchToWindow churn
+            expect(bidiBrowser.browsingContextGetTree).not.toHaveBeenCalled()
+            expect(bidiBrowser.switchToWindow).not.toHaveBeenCalled()
+        } finally {
+            process.env.WDIO_UNIT_TESTS = wid
+        }
+    })
+
+    it('still re-anchors on navigations in non-parallel contexts (control)', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub()
+        const bidiBrowser = {
+            ...stub.browser,
+            isBidi: true,
+            browsingContextGetTree: vi.fn().mockResolvedValue({ contexts: [] }),
+        } as unknown as WebdriverIO.Browser & { on: any, off: any, switchToWindow: any }
+        try {
+            const manager = getContextManager(bidiBrowser)
+            manager.setCurrentContext('handle-A')
+
+            const navHandlers = stub.getListeners()['browsingContext.navigationStarted']
+            await navHandlers![0]({ context: 'ctx-other' })
+
+            // unregistered context: existing re-anchor behavior preserved
+            expect(bidiBrowser.browsingContextGetTree).toHaveBeenCalled()
+        } finally {
+            process.env.WDIO_UNIT_TESTS = wid
+        }
     })
 })
