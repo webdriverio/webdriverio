@@ -42,6 +42,11 @@ describe('setupChromedriver', () => {
 
     beforeEach(() => {
         vi.clearAllMocks()
+        // Default to a Linux host so the ARM64 cases exercise the linux-arm64 path regardless
+        // of the CI runner OS. Without this, a Windows runner's native process.platform==='win32'
+        // combined with a test's arch==='arm64' trips isWindowsArm64 and routes to the Electron
+        // provider. The Windows/macOS cases override process.platform explicitly below.
+        Object.defineProperty(process, 'platform', { value: 'linux', configurable: true })
         mockInstall.mockResolvedValue({
             executablePath: '/path/to/chromedriver',
             browser: Browser.CHROMEDRIVER,
