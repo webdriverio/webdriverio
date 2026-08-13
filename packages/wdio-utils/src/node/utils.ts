@@ -352,21 +352,17 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
     const { platform, isWindowsArm64 } = resolveChromedriverPlatform()
     const { chromiumVersion, electronVersion } = parseElectronCapabilities(capabilities)
 
-    // Chrome for Testing has shipped linux-arm64 Chromedriver since @puppeteer/browsers 3.2.0,
-    // so Linux ARM64 uses the standard CfT path below, with the Electron release as a fallback
-    // (`electronFallbackAvailable`) when CfT can't serve the build — e.g. a Chromium milestone
-    // older than CfT's arm64 floor, or a CfT outage. Windows ARM64 has no CfT binary at all
-    // (and detectBrowserPlatform() reports it as WIN64), so it downloads from an Electron
-    // release outright.
+    // Chrome for Testing now ships linux-arm64 Chromedriver, so Linux ARM64 takes the standard
+    // CfT path below, with the Electron release as a fallback (`electronFallbackAvailable`).
+    // Windows ARM64 has no CfT binary at all (detectBrowserPlatform() reports it as WIN64), so
+    // it uses the Electron provider outright.
     const needsAlternativeProvider = isWindowsArm64
     const electronFallbackAvailable = platform === BrowserPlatform.LINUX_ARM
 
-    // Determine buildId and providers based on capabilities
     let buildId: string
     let providers: BrowserProvider[] | undefined
 
     if (electronVersion) {
-        // Use Electron provider with Electron version
         providers = [new ElectronChromedriverProvider()]
         buildId = electronVersion
         // Only mention the Chromium version when it was actually provided, otherwise
@@ -468,7 +464,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
         } else if (electronFallbackAvailable && !providers) {
             // Standard Chrome-for-Testing path failed on Linux ARM64 (Chromium milestone below
             // CfT's arm64 floor, or a CfT outage). Retry the same build from the matching
-            // Electron release, which ships linux-arm64 Chromedriver.
+            // Electron release.
             log.warn(`Chrome for Testing couldn't provide Chromedriver v${buildId} for ${platform}: ${error instanceof Error ? error.message : String(error)}. Falling back to Electron releases...`)
             installedBrowser = await _install({ ...installOptions, providers: [new ElectronChromedriverProvider()] })
             log.info(`Chromedriver v${buildId} is ready (via Electron fallback)`)

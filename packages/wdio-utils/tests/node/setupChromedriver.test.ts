@@ -145,7 +145,6 @@ describe('setupChromedriver', () => {
                 browserName: 'chrome'
             })
 
-            // Verify standard Chrome for Testing was used (no providers)
             const installCall = mockInstall.mock.calls[0][0]
             expect(installCall.providers).toBeUndefined()
         })
@@ -159,7 +158,6 @@ describe('setupChromedriver', () => {
                 browserName: 'chrome'
             })
 
-            // Verify standard Chrome for Testing was used (no providers)
             const installCall = mockInstall.mock.calls[0][0]
             expect(installCall.providers).toBeUndefined()
         })
@@ -178,7 +176,6 @@ describe('setupChromedriver', () => {
                 executablePath: '/path/to/chromedriver'
             })
 
-            // Verify Electron provider was used
             const installCall = mockInstall.mock.calls[0][0]
             expect(installCall.providers).toBeDefined()
             expect(installCall.providers).toHaveLength(1)
@@ -193,7 +190,6 @@ describe('setupChromedriver', () => {
                 browserName: 'chrome'
             })
 
-            // Verify standard Chrome for Testing was used (no providers)
             const installCall = mockInstall.mock.calls[0][0]
             expect(installCall.providers).toBeUndefined()
         })
