@@ -3,14 +3,15 @@ import { remote, type RemoteOptions } from 'webdriverio'
 import type { Browser } from 'webdriverio'
 
 /**
- * Integration tests for Linux ARM64 Chromedriver automatic fallback
+ * Integration tests for Linux ARM64 Chromedriver download
  *
  * These tests verify that:
- * 1. Chromedriver downloads successfully on Linux ARM64 using Electron fallback
+ * 1. Chromedriver downloads successfully on Linux ARM64 (Chrome for Testing first, with the
+ *    Electron release as an automatic fallback)
  * 2. The downloaded chromedriver works correctly
  * 3. Version resolution works with and without explicit capabilities
  */
-describe('Chromedriver Linux ARM64 Fallback', () => {
+describe('Chromedriver Linux ARM64 download', () => {
     let browser: Browser
 
     afterAll(async () => {
@@ -19,8 +20,8 @@ describe('Chromedriver Linux ARM64 Fallback', () => {
         }
     })
 
-    describe('automatic fallback (no explicit capabilities)', () => {
-        it('should download chromedriver via Electron fallback on ARM64', async () => {
+    describe('automatic source selection (no explicit capabilities)', () => {
+        it('should download a working chromedriver on ARM64', async () => {
             // Skip if not on Linux ARM64
             if (process.platform !== 'linux' || process.arch !== 'arm64') {
                 console.log('Skipping ARM64-specific test (not on Linux ARM64)')
@@ -42,7 +43,7 @@ describe('Chromedriver Linux ARM64 Fallback', () => {
                 }
             }
 
-            // This should trigger automatic Electron fallback on ARM64
+            // Chrome for Testing serves linux-arm64; the Electron release is the automatic fallback
             browser = await remote(options)
 
             // Verify browser session was created successfully
@@ -171,9 +172,11 @@ describe('Chromedriver Linux ARM64 Fallback', () => {
     })
 })
 
-// NOTE: platform-mocked fallback logic (ARM64 triggers the Electron provider, x64
-// does not) is covered without real network access by the unit suite — see
-// packages/wdio-utils/tests/node/setupChromedriver.test.ts ("should use Electron
-// provider on Linux ARM64…" and "should NOT use fallback on Linux x64"). Those
-// assertions intentionally live there rather than in this e2e file, which is
-// reserved for real browser sessions on actual ARM64 hardware.
+// NOTE: platform-mocked source-selection logic (ARM64 prefers Chrome for Testing and
+// falls back to the Electron provider, x64 always uses CfT) is covered without real
+// network access by the unit suite — see
+// packages/wdio-utils/tests/node/setupChromedriver.test.ts ("should use Chrome for
+// Testing first on Linux ARM64…", "should fall back to the Electron release when Chrome
+// for Testing fails on Linux ARM64" and "should NOT use fallback on Linux x64"). Those
+// assertions intentionally live there rather than in this e2e file, which is reserved
+// for real browser sessions on actual ARM64 hardware.
