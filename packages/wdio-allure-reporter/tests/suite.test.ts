@@ -479,6 +479,10 @@ describe('Pending tests', () => {
         expect(results[0].historyId).toEqual(
             '0afaf0cb3770d6ce7ae0665f2eeecf81',
         )
+
+        const labels = mapBy<Label>(results[0].labels, 'name')
+        expect(labels.parentSuite[0].value).toEqual('A passing Suite')
+        expect(labels[LabelName.PACKAGE][0].value).toContain('spec.js')
     })
 
     it('should detect not started pending test case after completed test', async () => {

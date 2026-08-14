@@ -807,17 +807,7 @@ export default class AllureReporter extends WDIOReporter {
         const fullName = toFullName(this._pkgByCid.get(cid)!, fullTitle || test.title)
         this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName: fullName } })
 
-        const suitePath = [...this._suiteStack(cid)]
-        const pkg = isFeatureFilePath(this._pkgByCid.get(cid)) ? toPackageLabelCucumber(this._pkgByCid.get(cid) || '') : toPackageLabel(this._pkgByCid.get(cid) || '')
-        const labels = [
-            ...getSuiteLabels(suitePath),
-            ...(pkg ? [{ name: LabelName.PACKAGE, value: pkg }] : []),
-            { name: LabelName.LANGUAGE, value: 'javascript' },
-            { name: LabelName.FRAMEWORK, value: 'wdio' },
-            { name: LabelName.THREAD, value: cid },
-            ...getEnvironmentLabels(),
-        ]
-        this._pushRuntimeMessage({ type: 'metadata', data: { labels } })
+        this._emitTestLabels(cid)
     }
 
     onTestPass(test: TestStats | HookStats): void {
@@ -893,8 +883,10 @@ export default class AllureReporter extends WDIOReporter {
         const start = AllureReporter.getTimeOrNow(test.start)
         this._startTest({ name: test.title, start })
         if (test.fullTitle) { this._emitHistoryIdsFrom(test.fullTitle) }
-        const fullName = toFullName(this._pkgByCid.get(this._currentCid())!, test.fullTitle || test.title)
+        const cid = this._currentCid()
+        const fullName = toFullName(this._pkgByCid.get(cid)!, test.fullTitle || test.title)
         this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName } })
+        this._emitTestLabels(cid)
         this._attachLogs()
         this._skipTest()
     }
@@ -1080,6 +1072,21 @@ export default class AllureReporter extends WDIOReporter {
         const suitePath = [...this._suiteStack(cid)]
         const labels = [
             ...getSuiteLabels(suitePath),
+            { name: LabelName.LANGUAGE, value: 'javascript' },
+            { name: LabelName.FRAMEWORK, value: 'wdio' },
+            { name: LabelName.THREAD, value: cid },
+            ...getEnvironmentLabels(),
+        ]
+        this._pushRuntimeMessage({ type: 'metadata', data: { labels } })
+    }
+
+    private _emitTestLabels(cid: string): void {
+        const file = this._pkgByCid.get(cid)
+        const suitePath = [...this._suiteStack(cid)]
+        const pkg = isFeatureFilePath(file) ? toPackageLabelCucumber(file || '') : toPackageLabel(file || '')
+        const labels = [
+            ...getSuiteLabels(suitePath),
+            ...(pkg ? [{ name: LabelName.PACKAGE, value: pkg }] : []),
             { name: LabelName.LANGUAGE, value: 'javascript' },
             { name: LabelName.FRAMEWORK, value: 'wdio' },
             { name: LabelName.THREAD, value: cid },
