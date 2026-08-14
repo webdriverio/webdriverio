@@ -1,6 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { CommandArgs } from '@wdio/type'
 import process from 'node:process'
+import path from 'node:path'
 import { Status } from 'allure-js-commons'
 import CompoundError from '../src/compoundError.js'
 import {
@@ -14,6 +15,7 @@ import {
     isEachTypeHooks,
     isEmpty,
     isScreenshotCommand,
+    toPackageLabel,
 } from '../src/utils.js'
 import { linkPlaceholder } from '../src/constants.js'
 
@@ -240,5 +242,34 @@ describe('utils', () => {
                 )
             })
         })
+    })
+})
+
+describe('toPackageLabel', () => {
+    it('returns an empty label for an empty path', () => {
+        expect(toPackageLabel()).toEqual('')
+        expect(toPackageLabel('')).toEqual('')
+    })
+
+    it('maps the spec directories to a dotted package', () => {
+        const spec = path.join(process.cwd(), 'test', 'specs', 'my.e2e.js')
+
+        expect(toPackageLabel(spec)).toEqual('test.specs.my.e2e.js')
+    })
+
+    it('drops a trailing line/column position suffix', () => {
+        const spec = path.join(process.cwd(), 'test', 'specs', 'my.e2e.js')
+
+        expect(toPackageLabel(`${spec}:12`)).toEqual('test.specs.my.e2e.js')
+        expect(toPackageLabel(`${spec}:12:5`)).toEqual('test.specs.my.e2e.js')
+    })
+
+    it('keeps a Windows drive letter out of the position suffix', () => {
+        // Splitting on the first colon used to cut this path down to `C`, so every
+        // spec on Windows landed in the same package.
+        const label = toPackageLabel('C:/Users/me/project/test/specs/my.e2e.js')
+
+        expect(label).not.toEqual('C')
+        expect(label).toMatch(/test\.specs\.my\.e2e\.js$/)
     })
 })
