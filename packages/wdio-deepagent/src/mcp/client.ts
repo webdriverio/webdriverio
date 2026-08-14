@@ -55,6 +55,37 @@ function processGroupOf(pid: number): number | undefined {
     }
 }
 
+/** Parent process id of `pid` from /proc (Linux); undefined where /proc is absent. */
+function ppidOf(pid: number): number | undefined {
+    try {
+        const stat = fs.readFileSync(`/proc/${pid}/stat`, 'utf8')
+        const after = stat.slice(stat.lastIndexOf(')') + 2).split(' ')
+        return parseInt(after[1], 10)
+    } catch {
+        return undefined
+    }
+}
+
+/**
+ * True when `pid`'s ancestor chain reaches `ancestor` within a bounded depth.
+ * Chrome spawned by @wdio/mcp is detached, so its PPID stays the server while
+ * the server lives — ancestry is the ownership proof the PID-diff sweep lacked.
+ */
+export function isDescendantOf(pid: number, ancestor: number, maxDepth = 16): boolean {
+    let current = pid
+    for (let i = 0; i < maxDepth; i++) {
+        const ppid = ppidOf(current)
+        if (ppid === ancestor) {
+            return true
+        }
+        if (ppid === undefined || ppid <= 1) {
+            return false
+        }
+        current = ppid
+    }
+    return false
+}
+
 /**
  * Locates the `@wdio/mcp` server binary installed alongside this package.
  * This makes the harness run the exact version pinned in package.json
@@ -147,8 +178,8 @@ export class WdioMcpClient {
     #transport?: StdioClientTransport
     #client?: Client
     #tools?: DynamicStructuredTool[]
-    /** Chrome PIDs that existed before the server spawned (kill diff on close). */
-    #chromeAtStart: Set<number> | null = null
+    /** PID of the spawned @wdio/mcp server (child of the stdio transport); set after connect. */
+    #serverPid?: number
 
     constructor(private server: McpServerConfig) {}
 
@@ -159,10 +190,6 @@ export class WdioMcpClient {
 
         // Prefer the locally installed (pinned) @wdio/mcp binary over
         // `npx -y @wdio/mcp` so the traversal tool surface cannot drift.
-        // Record pre-existing Chrome processes (scoped to the @wdio/mcp
-        // profile) so close() can kill the browser session this mission
-        // spawned without touching others.
-        this.#chromeAtStart = await listChromePids(MCP_CHROME_PATTERN)
         const { command, args } = resolveMcpSpawn(this.server)
         log.info(`Spawning @wdio/mcp: ${command} ${args.join(' ')}`)
         this.#transport = new StdioClientTransport({
@@ -181,6 +208,10 @@ export class WdioMcpClient {
         )
         try {
             await this.#client.connect(this.#transport)
+            // Ancestry anchor for close(): Chrome spawned by @wdio/mcp keeps
+            // this server as its PPID while the server lives, so the sweep can
+            // prove ownership instead of relying on a start-time PID diff.
+            this.#serverPid = this.#transport.pid ?? undefined
             this.#tools = await loadMcpTools('wdio-mcp', this.#client)
         } catch (err) {
             // Never leave the spawned server process orphaned behind a
@@ -211,49 +242,61 @@ export class WdioMcpClient {
     }
 
     async close(): Promise<void> {
+        // Resolve owned Chrome groups while the server is still alive: Chrome
+        // is spawned detached by @wdio/mcp and reparents to PID 1 once the
+        // server exits, so ancestry must be checked before closing the server.
+        // On platforms without /proc (macOS, Windows) the sweep is skipped —
+        // the safe direction, since the fixed `chrome-debug` profile is shared
+        // by concurrent missions and a PID diff cannot prove ownership.
+        const groups = await this.#ownedChromeGroups()
         try {
             await this.#client?.close()
         } finally {
             this.#client = undefined
             this.#transport = undefined
             this.#tools = undefined
-            // @wdio/mcp spawns Chrome detached (survives the server process),
-            // so killing the stdio transport alone leaks the browser session.
-            // Kill the process groups of Chrome instances using the @wdio/mcp
-            // profile that appeared since the server spawn: the profile match
-            // keeps the user's own browser alive, the start-diff keeps a
-            // concurrent mission's Chrome alive, and group SIGKILL reaches
-            // zygote/gpu/utility children a pid-only kill leaves behind.
-            if (this.#chromeAtStart) {
-                const now = await listChromePids(MCP_CHROME_PATTERN)
-                if (now) {
-                    const groups = new Set<number>()
-                    for (const pid of now) {
-                        if (this.#chromeAtStart.has(pid)) {
-                            continue
-                        }
-                        const group = processGroupOf(pid)
-                        if (group) {
-                            groups.add(group)
-                        } else {
-                            try {
-                                process.kill(pid, 'SIGKILL')
-                            } catch {
-                                // already gone
-                            }
-                        }
-                    }
-                    for (const group of groups) {
-                        try {
-                            process.kill(-group, 'SIGKILL')
-                        } catch {
-                            // group already gone
-                        }
-                    }
+            this.#serverPid = undefined
+            for (const group of groups) {
+                try {
+                    process.kill(-group, 'SIGKILL')
+                } catch {
+                    // group already gone
                 }
             }
-            this.#chromeAtStart = null
         }
+    }
+
+    /**
+     * Process groups of Chrome instances using the @wdio/mcp profile whose
+     * ancestor chain reaches this client's server process. Group SIGKILL
+     * reaches zygote/gpu/utility children a pid-only kill leaves behind.
+     */
+    async #ownedChromeGroups(): Promise<Set<number>> {
+        const groups = new Set<number>()
+        const serverPid = this.#serverPid
+        if (!serverPid) {
+            return groups
+        }
+        const chrome = await listChromePids(MCP_CHROME_PATTERN)
+        if (!chrome) {
+            return groups
+        }
+        for (const pid of chrome) {
+            if (!isDescendantOf(pid, serverPid)) {
+                continue
+            }
+            const group = processGroupOf(pid)
+            if (group) {
+                groups.add(group)
+            } else {
+                try {
+                    process.kill(pid, 'SIGKILL')
+                } catch {
+                    // already gone
+                }
+            }
+        }
+        return groups
     }
 
     get toolCount(): number {

@@ -1,92 +1,37 @@
-import readline from 'node:readline'
 import type { DeepAgent } from 'deepagents'
-import { createInterruptResolver } from './interrupt.js'
-import { processTurn } from './turn.js'
 
 /**
- * Interactive agent REPL: a readline chat loop. Each prompt runs one agent
- * turn; tool calls are printed as they're recorded, then the final reply.
- * `close`/`close session`/`reset` closes the browser session without exiting;
- * `exit`/`quit`/Ctrl-C shuts down cleanly (closing the MCP server).
+ * Interactive agent REPL: an ink (React-for-terminal) chat loop. Each prompt
+ * runs one agent turn through the v3 stream — token-by-token replies,
+ * bordered tool-call cards, an arrow-key approval picker for `heal=ask`
+ * gates, and a status footer. `close`/`close session`/`reset` closes the
+ * browser session without exiting; `exit`/`quit`/Ctrl-C shuts down cleanly
+ * (closing the MCP server).
+ *
+ * ink has no plain-text fallback for piped stdin, so the REPL requires a
+ * TTY; non-TTY callers get a pointer to `run` (the CI path).
  */
 export async function runRepl(agent: DeepAgent, onClose: () => Promise<void>, closeSession?: () => Promise<void>): Promise<void> {
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-        prompt: 'wdio> ',
-    })
-
-    let closed = false
-    const shutdown = async (code: number) => {
-        if (closed) {
-            return
-        }
-        closed = true
-        rl.close()
+    if (!process.stdin.isTTY || !process.stdout.isTTY) {
+        console.error('[@wdio/deepagent] repl requires a TTY. Use `wdio-deepagent run "<prompt>"` for non-interactive use.')
+        process.exitCode = 1
+        // the harness was already built (spawning the MCP server), so close
+        // it here — otherwise the child keeps the process alive after exit
         await onClose()
-        process.exitCode = code
+        return
     }
-
-    rl.prompt()
-
-    // a pasted multi-line input emits one 'line' per line; concurrent turns
-    // would race on the agent's thread_id, so input arriving mid-turn is dropped
-    let busy = false
-    rl.on('line', async (line) => {
-        const text = line.trim()
-        if (!text) {
-            rl.prompt()
-            return
-        }
-        if (busy) {
-            console.log('[@wdio/deepagent] still running the previous turn — input ignored (Ctrl-C to stop)')
-            rl.prompt()
-            return
-        }
-        if (text === 'close' || text === 'close session' || text === 'reset') {
-            if (!closeSession) {
-                console.log('[@wdio/deepagent] no browser session to close')
-            } else {
-                try {
-                    await closeSession()
-                    console.log('[@wdio/deepagent] session closed')
-                } catch (err) {
-                    console.log(`[@wdio/deepagent] ${(err as Error).message}`)
-                }
-            }
-            rl.prompt()
-            return
-        }
-        if (text === 'exit' || text === 'quit') {
-            await shutdown(0)
-            return
-        }
-        busy = true
-        try {
-            const { reply, toolCalls } = await processTurn(agent, text, {
-                // heal=ask gates writes behind an interrupt — the default
-                // auto-approve is for CI; an interactive repl must ask.
-                resolveInterrupt: createInterruptResolver(rl),
-            })
-            for (const call of toolCalls) {
-                console.log(`  🔧 ${call.name} ${JSON.stringify(call.args ?? {})}`)
-            }
-            if (reply) {
-                console.log(reply)
-            }
-        } catch (err) {
-            console.error(`[@wdio/deepagent] turn failed: ${(err as Error).message}`)
-        } finally {
-            busy = false
-        }
-        rl.prompt()
-    })
-
-    rl.on('close', async () => {
-        await shutdown(0)
-    })
-
-    rl.on('SIGINT', async () => {
-        await shutdown(0)
-    })
+    // ink is lazy-loaded: its layout engine (yoga-layout) fetches a wasm
+    // blob through global fetch at import time, so importing it from the CLI
+    // entry would break other commands' unit tests and slow their startup.
+    const [{ render }, { createElement }, { ReplApp }, { rejectPendingApprovals }] = await Promise.all([
+        import('ink'),
+        import('react'),
+        import('./ui/ReplApp.js'),
+        import('./ui/approvalBus.js'),
+    ])
+    const app = render(createElement(ReplApp, { agent, onClose, closeSession }), { exitOnCtrlC: true })
+    await app.waitUntilExit()
+    rejectPendingApprovals(new Error('repl closed — approval abandoned'))
+    await onClose()
+    process.exitCode = 0
 }

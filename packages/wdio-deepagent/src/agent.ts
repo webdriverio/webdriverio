@@ -150,10 +150,19 @@ export function permissionsForHeal(heal: HealMode, projectRoot: string): Filesys
     ]
 }
 
-/** interrupt_on mapping per heal mode: `ask` pauses before every write. */
+/**
+ * interrupt_on mapping per heal mode: `ask` pauses before every filesystem
+ * mutation. deepagents 1.12.2's FilesystemMiddleware exposes only
+ * `write_file` and `edit_file` as mutating tools — `FilesystemBackend` has a
+ * `delete` method but it is NOT registered as a tool (FILESYSTEM_TOOL_NAMES is
+ * ls/read_file/write_file/edit_file/glob/grep/execute, no delete_file, and
+ * `execute` is filtered out because `FilesystemBackend` lacks it). Gate
+ * `delete_file` anyway so a future release that exposes deletion stays gated
+ * instead of silently ungated.
+ */
 export function interruptsForHeal(heal: HealMode): Record<string, boolean> {
     if (heal === 'ask') {
-        return { write_file: true, edit_file: true }
+        return { write_file: true, edit_file: true, delete_file: true }
     }
     return {}
 }

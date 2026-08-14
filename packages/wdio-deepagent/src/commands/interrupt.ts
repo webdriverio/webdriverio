@@ -1,7 +1,7 @@
 import type readline from 'node:readline'
 import type { TurnInterruptRequest } from './turn.js'
 
-const ARGS_TRUNCATE = 200
+export const ARGS_TRUNCATE = 200
 
 /** One line describing a gated action: name, truncated args, and the description. */
 export function describeActionRequest(action: TurnInterruptRequest['actionRequests'][number]): string {

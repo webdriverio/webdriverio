@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { WdioMcpClient, resolveLocalMcpBin, resolveMcpSpawn } from '../src/mcp/index.js'
+import { WdioMcpClient, isDescendantOf, resolveLocalMcpBin, resolveMcpSpawn } from '../src/mcp/index.js'
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
 const MCP_SERVER = path.join(FIXTURES, 'mcp-server.mjs')
@@ -66,5 +66,16 @@ describe('WdioMcpClient (integration over stdio)', () => {
         const tools = await client.getTools()
         expect(tools.length).toBeGreaterThanOrEqual(2)
         await client.close()
+    })
+})
+
+describe('chrome ownership ancestry', () => {
+    // /proc ancestry is Linux-only; macOS/Windows skip the sweep entirely
+    it.skipIf(process.platform === 'win32' || process.platform === 'darwin')('isDescendantOf finds the current process under init', () => {
+        expect(isDescendantOf(process.pid, 1)).toBe(true)
+    })
+
+    it.skipIf(process.platform === 'win32' || process.platform === 'darwin')('isDescendantOf rejects a non-ancestor', () => {
+        expect(isDescendantOf(1, process.pid)).toBe(false)
     })
 })
