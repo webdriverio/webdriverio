@@ -15,7 +15,10 @@ describe('buildTraceOverlay', () => {
         expect(overlay).toContain('mode: \'trace\'')
         expect(overlay).toContain('traceFormat: \'zip\'')
         expect(overlay).toContain('outputDir')
-        expect(overlay).toContain(path.resolve(CONFIG))
+        // `buildTraceOverlay` embeds the config path via `JSON.stringify`, so the
+        // assertion must compare against the stringified form (backslashes are
+        // escaped on Windows, which a bare `path.resolve` would not match).
+        expect(overlay).toContain(JSON.stringify(path.resolve(CONFIG)))
     })
 })
 

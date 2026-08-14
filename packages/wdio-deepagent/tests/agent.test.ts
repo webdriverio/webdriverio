@@ -6,27 +6,34 @@ import { fileURLToPath } from 'node:url'
 import { HumanMessage } from '@langchain/core/messages'
 import { Command } from '@langchain/langgraph'
 import { FakeToolCallingModel } from 'langchain'
-import { createDeepAgentHarness, interruptsForHeal, isSmallModelForMcp, normalizePermissionRoot, permissionsForHeal } from '../src/agent.js'
+import { createDeepAgentHarness, fromVirtualPath, interruptsForHeal, isSmallModelForMcp, normalizePermissionRoot, permissionsForHeal, toVirtualPath } from '../src/agent.js'
 import type { HealMode } from '../src/config/index.js'
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
 const MCP_SERVER = path.join(FIXTURES, 'mcp-server.mjs')
 
 describe('permissionsForHeal / interruptsForHeal', () => {
+    // `/proj` is a POSIX absolute path; on Windows `path.resolve` anchors it to
+    // the current drive (`D:\proj`), which `permissionsForHeal` normalizes to
+    // the deepagents virtual form. Compute the expected root the same way so
+    // the assertions hold on both platforms.
+    const proj = normalizePermissionRoot(path.resolve('/proj'))
+    const underProj = [proj, `${proj}/**`]
+
     it('propose is read-only: reads allowed under the root, all writes denied', () => {
         expect(permissionsForHeal('propose', '/proj')).toEqual([
-            { operations: ['read'], paths: ['/proj', '/proj/**'], mode: 'allow' },
+            { operations: ['read'], paths: underProj, mode: 'allow' },
             { operations: ['read', 'write'], paths: ['/**'], mode: 'deny' },
         ])
     })
 
     it('ask and auto confine read+write to the project root, denying sensitive paths first', () => {
         const scoped = [
-            { operations: ['read', 'write'], paths: ['/proj/wdio.conf*'], mode: 'deny' },
-            { operations: ['read', 'write'], paths: ['/proj/.env*'], mode: 'deny' },
-            { operations: ['read', 'write'], paths: ['/proj/.git/**'], mode: 'deny' },
-            { operations: ['read', 'write'], paths: ['/proj/node_modules/**'], mode: 'deny' },
-            { operations: ['read', 'write'], paths: ['/proj', '/proj/**'], mode: 'allow' },
+            { operations: ['read', 'write'], paths: [`${proj}/wdio.conf*`], mode: 'deny' },
+            { operations: ['read', 'write'], paths: [`${proj}/.env*`], mode: 'deny' },
+            { operations: ['read', 'write'], paths: [`${proj}/.git/**`], mode: 'deny' },
+            { operations: ['read', 'write'], paths: [`${proj}/node_modules/**`], mode: 'deny' },
+            { operations: ['read', 'write'], paths: underProj, mode: 'allow' },
             { operations: ['read', 'write'], paths: ['/**'], mode: 'deny' },
         ]
         expect(permissionsForHeal('ask', '/proj')).toEqual(scoped)
@@ -34,16 +41,19 @@ describe('permissionsForHeal / interruptsForHeal', () => {
     })
 
     it('normalizes trailing slashes, relative roots and the full-scope root', () => {
-        expect(permissionsForHeal('auto', '/proj/')[4].paths).toEqual(['/proj', '/proj/**'])
-        const rel = permissionsForHeal('auto', 'some/dir')
-        expect(rel[4].paths).toEqual([
-            path.join(process.cwd(), 'some', 'dir'),
-            path.join(process.cwd(), 'some', 'dir') + '/**',
-        ])
-        expect(rel[5].paths[0]).toBe('/**')
-        // projectRoot '/' = explicit full scope: allow matches everything first
-        expect(permissionsForHeal('auto', '/')[0].paths).toEqual(['/wdio.conf*'])
-        expect(permissionsForHeal('auto', '/')[4].paths).toEqual(['/', '/**'])
+        expect(permissionsForHeal('auto', '/proj/')[4].paths).toEqual(underProj)
+        const relRoot = normalizePermissionRoot(path.resolve('some/dir'))
+        expect(permissionsForHeal('auto', 'some/dir')[4].paths).toEqual([relRoot, `${relRoot}/**`])
+        expect(permissionsForHeal('auto', 'some/dir')[5].paths[0]).toBe('/**')
+        // projectRoot '/' = explicit full scope: allow matches everything first.
+        // On win32 `path.resolve('/')` is `D:\` so the impl yields `/D:`-prefixed
+        // globs — compute the expectation the same way the impl does.
+        const fullScope = normalizePermissionRoot(path.resolve('/'))
+        const fullPrefix = fullScope === '/' ? '' : fullScope
+        expect(permissionsForHeal('auto', '/')[0].paths).toEqual([`${fullPrefix}/wdio.conf*`])
+        expect(permissionsForHeal('auto', '/')[4].paths).toEqual(
+            fullScope === '/' ? ['/', '/**'] : [fullScope, `${fullScope}/**`],
+        )
     })
 
     it('normalizePermissionRoot yields `/`-prefixed forward-slash globs (deepagents contract)', () => {
@@ -56,6 +66,22 @@ describe('permissionsForHeal / interruptsForHeal', () => {
                 expect(glob.startsWith('/')).toBe(true)
             }
         }
+    })
+
+    it('toVirtualPath / fromVirtualPath bridge native and deepagents virtual paths', () => {
+        // fromVirtualPath is a pure string transform: testable on every platform.
+        expect(fromVirtualPath('/C:/Users/bob/proj/app.ts')).toBe('C:/Users/bob/proj/app.ts')
+        expect(fromVirtualPath('/home/bob/proj/app.ts')).toBe('/home/bob/proj/app.ts')
+        expect(fromVirtualPath('/')).toBe('/')
+        // toVirtualPath translates only native Windows drive paths (no
+        // `path.resolve`), so the transform is testable on every platform.
+        expect(toVirtualPath('C:\\Users\\bob\\proj\\app.ts')).toBe('/C:/Users/bob/proj/app.ts')
+        expect(toVirtualPath('C:/Users/bob/proj')).toBe('/C:/Users/bob/proj')
+        // relative and POSIX-absolute input is left untouched (deepagents rejects
+        // relative paths itself); already-virtual input is idempotent.
+        expect(toVirtualPath('relative/file.ts')).toBe('relative/file.ts')
+        expect(toVirtualPath('/home/bob/proj')).toBe('/home/bob/proj')
+        expect(toVirtualPath('/C:/Users/bob/proj')).toBe('/C:/Users/bob/proj')
     })
 
     it('ask gates write tools with interrupts; auto/propose do not', () => {
