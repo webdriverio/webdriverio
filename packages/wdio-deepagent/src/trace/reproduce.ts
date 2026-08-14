@@ -1,7 +1,6 @@
 import { spawn } from 'node:child_process'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { DEFAULT_TRACE_DIR } from '../config/index.js'
 
 /**
  * Reproduces a failing spec by re-running it under a devtools trace-mode
@@ -46,6 +45,9 @@ export interface ReproduceResult {
  * and without tsx active Node 20–22 throws ERR_UNKNOWN_FILE_EXTENSION.
  */
 const OVERLAY_FILENAME = '.deepagent-trace.conf.ts'
+
+/** Env var carrying the run-scoped trace output dir to the spawned run (used by the test fixture). */
+const TRACE_DIR_ENV = 'WDIO_DEEPAGENT_TRACE_DIR'
 
 /** Exit code used when a reproduction is killed by the timeout (mirrors `timeout(1)`). */
 export const TIMED_OUT_EXIT_CODE = 124
@@ -198,6 +200,11 @@ function spawnRun(command: string, args: string[], options: SpawnRunOptions): Pr
 export async function reproduceSpec(options: ReproduceOptions): Promise<ReproduceResult> {
     const traceDir = path.resolve(options.traceDir)
     await fs.mkdir(traceDir, { recursive: true })
+    // Each reproduction gets its own output dir so a concurrent run (or a
+    // second mission sharing `traceDir`) cannot inject a newer trace.zip into
+    // the scan. The overlay pins `outputDir` here; findNewestTraceZip then only
+    // ever sees this run's artifacts.
+    const runDir = await fs.mkdtemp(path.join(traceDir, 'repro-'))
 
     const projectRoot = path.dirname(path.resolve(options.configPath))
     const spec = path.resolve(projectRoot, options.spec)
@@ -208,13 +215,17 @@ export async function reproduceSpec(options: ReproduceOptions): Promise<Reproduc
         )
     }
 
-    const overlayPath = path.join(traceDir, OVERLAY_FILENAME)
-    await fs.writeFile(overlayPath, buildTraceOverlay(options.configPath, traceDir))
+    const overlayPath = path.join(runDir, OVERLAY_FILENAME)
+    await fs.writeFile(overlayPath, buildTraceOverlay(options.configPath, runDir))
 
     const wdioBin = options.spawnCommand ?? path.join(projectRoot, 'node_modules', '.bin', 'wdio')
     const args = options.spawnArgs ?? ['run', overlayPath, '--spec', spec]
     const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS
-    const spawnOptions: SpawnRunOptions = { cwd: projectRoot, env: options.env, timeoutMs }
+    const spawnOptions: SpawnRunOptions = {
+        cwd: projectRoot,
+        env: { ...options.env, [TRACE_DIR_ENV]: runDir },
+        timeoutMs,
+    }
 
     const startedAt = Date.now()
     let result: { exitCode: number; stderr: string }
@@ -228,7 +239,7 @@ export async function reproduceSpec(options: ReproduceOptions): Promise<Reproduc
         result = await spawnRun('npx', ['wdio', ...args], { ...spawnOptions, shell: process.platform === 'win32' })
     }
 
-    const artifactPath = await findNewestTraceZip([traceDir, path.join(projectRoot, DEFAULT_TRACE_DIR)], startedAt)
+    const artifactPath = await findNewestTraceZip([runDir], startedAt)
 
     return {
         artifactPath,

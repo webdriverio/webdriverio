@@ -85,7 +85,7 @@ describe('permissionsForHeal / interruptsForHeal', () => {
     })
 
     it('ask gates write tools with interrupts; auto/propose do not', () => {
-        expect(interruptsForHeal('ask')).toEqual({ write_file: true, edit_file: true })
+        expect(interruptsForHeal('ask')).toEqual({ write_file: true, edit_file: true, delete_file: true })
         expect(interruptsForHeal('auto')).toEqual({})
         expect(interruptsForHeal('propose')).toEqual({})
     })

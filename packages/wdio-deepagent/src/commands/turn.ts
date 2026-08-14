@@ -107,8 +107,16 @@ export async function processTurn(agent: DeepAgent, text: string, options: Proce
     if (!declined && pending?.length) {
         console.error(`[@wdio/deepagent] ${pending.length} gated action(s) still pending after ${MAX_INTERRUPT_ROUNDS} resume rounds — not executed.`)
     }
-    const messages = (run as { messages: unknown[] }).messages
+    return collectTurnResult((run as { messages: unknown[] }).messages)
+}
 
+/**
+ * Reduces a run's full message list into a {@link TurnResult}: the final
+ * reply text, every recorded tool call, and the ids of failed tool
+ * invocations. Shared by `processTurn` (invoke path) and
+ * `runStreamedTurn` (v3 stream path, fed from `run.output.messages`).
+ */
+export function collectTurnResult(messages: unknown[]): TurnResult {
     const toolCalls: ToolCallRecord[] = []
     const failedToolIds: string[] = []
     for (const m of messages) {

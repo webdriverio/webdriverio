@@ -105,7 +105,6 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
     switch (command) {
     case 'repl': {
         const { harness } = await buildHarness(rest, { rejectIf: rejectRepl })
-        console.log('wdio-deepagent REPL — type a mission, or "exit" to quit. "close session" closes the browser session.')
         await runRepl(harness!.agent, harness!.close, async () => {
             if (!harness!.mcpClient) {
                 throw new Error('mcp: null config — no browser session')

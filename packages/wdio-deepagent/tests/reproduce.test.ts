@@ -35,13 +35,13 @@ describe('reproduceSpec', () => {
         })
 
         expect(result.exitCode).toBe(0)
-        // fake-wdio writes into <cwd>/test-results; cwd = project root (fixtures dir)
-        expect(result.artifactPath).toContain(path.join(FIXTURES, 'test-results'))
+        // fake-wdio writes into the run-scoped trace dir passed via env;
+        // cwd = project root (fixtures dir)
+        expect(result.artifactPath).toContain(traceDir)
         expect(result.artifactPath).toMatch(/trace-.+\.zip$/)
         expect(result.duration).toBeGreaterThanOrEqual(0)
 
         await fs.rm(traceDir, { recursive: true, force: true })
-        await fs.rm(path.join(FIXTURES, 'test-results'), { recursive: true, force: true })
     })
 
     it('reports a non-zero exit code when the run fails', async () => {
@@ -62,11 +62,13 @@ describe('reproduceSpec', () => {
         await fs.rm(path.join(FIXTURES, 'test-results'), { recursive: true, force: true })
     })
 
-    it('a stale pre-existing zip is not picked as the reproduction artifact', async () => {
+    it('ignores a concurrent run\'s zip in the shared test-results dir', async () => {
         const traceDir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-trace-'))
-        const stale = path.join(traceDir, '2026-01-01T00-00-00Z-abc12345.zip')
-        await fs.writeFile(stale, Buffer.from('stale'))
-        await fs.utimes(stale, new Date(Date.now() - 3600_000), new Date(Date.now() - 3600_000))
+        // simulate a concurrent WDIO run writing a newer zip into the shared dir
+        const shared = path.join(FIXTURES, 'test-results')
+        await fs.mkdir(shared, { recursive: true })
+        const foreign = path.join(shared, `trace-${Date.now()}.zip`)
+        await fs.writeFile(foreign, Buffer.from('foreign'))
         try {
             const spec = path.join(FIXTURES, 'some.spec.js')
             const result = await reproduceSpec({
@@ -78,11 +80,12 @@ describe('reproduceSpec', () => {
             })
 
             expect(result.artifactPath).toBeDefined()
-            expect(result.artifactPath).not.toContain('2026-01-01')
+            expect(result.artifactPath).not.toContain('test-results')
+            expect(result.artifactPath).toContain(traceDir)
             expect(result.artifactPath).toMatch(/trace-.+\.zip$/)
         } finally {
             await fs.rm(traceDir, { recursive: true, force: true })
-            await fs.rm(path.join(FIXTURES, 'test-results'), { recursive: true, force: true })
+            await fs.rm(shared, { recursive: true, force: true })
         }
     })
 

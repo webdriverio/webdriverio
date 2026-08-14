@@ -4,7 +4,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-const out = path.join(process.cwd(), 'test-results')
+const out = process.env.WDIO_DEEPAGENT_TRACE_DIR || path.join(process.cwd(), 'test-results')
 fs.mkdirSync(out, { recursive: true })
 // minimal valid ZIP (empty archive): END header + zeros
 const emptyZip = Buffer.concat([Buffer.from([0x50, 0x4b, 0x05, 0x06]), Buffer.alloc(18)])
