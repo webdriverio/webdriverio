@@ -3,7 +3,7 @@ import logger from '@wdio/logger'
 import { createDeepAgent, FilesystemBackend } from 'deepagents'
 import type { DeepAgent, FilesystemPermission } from 'deepagents'
 import { MemorySaver } from '@langchain/langgraph-checkpoint'
-import { todoListMiddleware } from 'langchain'
+import { createMiddleware, todoListMiddleware } from 'langchain'
 import type { DynamicStructuredTool } from '@langchain/core/tools'
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { parseModelConfig } from './model/index.js'
@@ -74,6 +74,33 @@ export function normalizePermissionRoot(resolvedRoot: string): string {
     return ('/' + resolvedRoot.replace(/\\/g, '/')).replace(/\/{2,}/g, '/').replace(/\/+$/, '') || '/'
 }
 
+/** Matches deepagents' Windows virtual form `/C:/...` (or `/C:\...`). */
+const WINDOWS_DRIVE_VIRTUAL = /^\/[A-Za-z]:[\\/]/
+
+/**
+ * Native Windows drive path → the `/`-prefixed virtual path deepagents
+ * requires (`C:\...` → `/C:/...`). Identity for relative, POSIX-absolute,
+ * and already-virtual input — those stay untouched so deepagents' own
+ * `path must be absolute` validation keeps firing for relative paths
+ * instead of silently resolving them against the process cwd.
+ */
+export function toVirtualPath(nativePath: string): string {
+    if (WINDOWS_DRIVE_VIRTUAL.test(nativePath) || !/^[A-Za-z]:[\\/]/.test(nativePath)) {
+        return nativePath
+    }
+    return '/' + nativePath.replace(/\\/g, '/')
+}
+
+/**
+ * deepagents virtual path → native path. Reverses `toVirtualPath` for the
+ * Windows drive form (`/C:/...` → `C:/...`); identity otherwise. Pure string
+ * transform so the backend resolves `/C:/...` to the real file on Windows.
+ */
+export function fromVirtualPath(virtualPath: string): string {
+    const drive = /^\/([A-Za-z]):(\/.*)$/.exec(virtualPath)
+    return drive ? `${drive[1]}:${drive[2]}` : virtualPath
+}
+
 /**
  * Filesystem rules per heal mode. Every mode confines the agent to
  * `projectRoot`. deepagents evaluates rules in declaration order with a
@@ -94,10 +121,10 @@ export function permissionsForHeal(heal: HealMode, projectRoot: string): Filesys
     // deepagents requires absolute glob paths (start with `/`, no `~`/`..`),
     // so resolve relative roots against the cwd and drop trailing slashes.
     // A project root of `/` means "full scope" — keep it as the bare root.
-    // On Windows the deny rules cannot match model-supplied `C:\...` paths
-    // (deepagents canonicalizes them with backslashes intact), so confinement
-    // degrades to the permissive default — the harness works unconfined rather
-    // than crashing.
+    // `normalizePermissionRoot` emits the deepagents virtual form on Windows
+    // (`D:\proj` → `/D:/proj`); the `CrossPlatformFilesystemBackend` and
+    // `normalizeFsToolPaths` middleware translate tool paths to/from that form,
+    // so these rules confine the agent correctly on every platform.
     const root = normalizePermissionRoot(path.resolve(projectRoot))
     // `**` does not match the root directory itself, so the allow rules list
     // both the bare root (ls/glob/grep at the root) and everything under it.
@@ -156,6 +183,106 @@ export function withErrorRecovery(tool: DynamicStructuredTool): DynamicStructure
         }
     }) as unknown as DynamicStructuredTool['func']
     return tool
+}
+
+/**
+ * deepagents' `FilesystemBackend` resolves native paths while its permission
+ * layer requires `/`-prefixed virtual paths. On POSIX the two coincide; on
+ * Windows they diverge (`C:\...` vs `/C:/...`). This backend bridges them:
+ * virtual input paths are translated to native before hitting the host fs,
+ * and `ls`/`glob`/`grep` result paths are translated back to virtual so
+ * deepagents' `filterByPermissions` can validate them.
+ */
+class CrossPlatformFilesystemBackend extends FilesystemBackend {
+    override async ls(dirPath: string) {
+        const result = await super.ls(fromVirtualPath(dirPath))
+        return { files: (result.files ?? []).map((f) => ({ ...f, path: toVirtualPath(f.path) })) }
+    }
+
+    override async read(filePath: string, offset?: number, limit?: number) {
+        return super.read(fromVirtualPath(filePath), offset, limit)
+    }
+
+    override async readRaw(filePath: string) {
+        return super.readRaw(fromVirtualPath(filePath))
+    }
+
+    override async write(filePath: string, content: string) {
+        return super.write(fromVirtualPath(filePath), content)
+    }
+
+    override async edit(filePath: string, oldString: string, newString: string, replaceAll?: boolean) {
+        return super.edit(fromVirtualPath(filePath), oldString, newString, replaceAll)
+    }
+
+    override async delete(filePath: string) {
+        return super.delete(fromVirtualPath(filePath))
+    }
+
+    override async grep(pattern: string, dirPath?: string, glob?: string | null, maxCount?: number | null) {
+        const result = await super.grep(
+            pattern,
+            dirPath === undefined ? dirPath : fromVirtualPath(dirPath),
+            glob,
+            maxCount,
+        )
+        return { matches: (result.matches ?? []).map((m) => ({ ...m, path: toVirtualPath(m.path) })) }
+    }
+
+    override async glob(pattern: string, searchPath?: string) {
+        const result = await super.glob(
+            pattern,
+            searchPath === undefined ? searchPath : fromVirtualPath(searchPath),
+        )
+        return { files: (result.files ?? []).map((f) => ({ ...f, path: toVirtualPath(f.path) })) }
+    }
+}
+
+const FS_TOOL_NAMES: Record<string, true> = {
+    ls: true,
+    read_file: true,
+    write_file: true,
+    edit_file: true,
+    glob: true,
+    grep: true,
+}
+
+/**
+ * Rewrites the `path`/`file_path` args of the built-in fs tools into the
+ * `/`-prefixed virtual form before deepagents' permission layer validates
+ * them (that layer rejects native Windows paths). No-op on POSIX.
+ */
+function normalizeFsToolPaths() {
+    return createMiddleware({
+        name: 'NormalizeFsToolPaths',
+        wrapToolCall: async (request, handler) => {
+            const toolCall = request.toolCall
+            if (!toolCall || !FS_TOOL_NAMES[toolCall.name]) {
+                return handler(request)
+            }
+            const args = (toolCall.args ?? {}) as Record<string, unknown>
+            const normalized: Record<string, unknown> = { ...args }
+            let changed = false
+            if (typeof normalized.path === 'string') {
+                const virtual = toVirtualPath(normalized.path)
+                if (virtual !== normalized.path) {
+                    normalized.path = virtual
+                    changed = true
+                }
+            }
+            if (typeof normalized.file_path === 'string') {
+                const virtual = toVirtualPath(normalized.file_path)
+                if (virtual !== normalized.file_path) {
+                    normalized.file_path = virtual
+                    changed = true
+                }
+            }
+            if (!changed) {
+                return handler(request)
+            }
+            return handler({ ...request, toolCall: { ...toolCall, args: normalized } })
+        },
+    })
 }
 
 export interface DeepAgentToolSurface {
@@ -230,7 +357,7 @@ export async function createDeepAgentHarness(
         model: chatModel,
         tools,
         systemPrompt: instructions,
-        middleware: [todoListMiddleware()],
+        middleware: [normalizeFsToolPaths(), todoListMiddleware()],
         // In-memory checkpointer. Required for two things:
         // 1. `ask`-mode human-in-the-loop interrupts (humanInTheLoopMiddleware
         //    calls langgraph's `interrupt()`, which throws MISSING_CHECKPOINTER
@@ -243,7 +370,9 @@ export async function createDeepAgentHarness(
         // real spec files, so we mount the real FS and confine it via the
         // permission rules below. FilesystemBackend exposes no `execute`
         // tool, so the permission rules are the sole boundary.
-        backend: new FilesystemBackend({ rootDir: '/' }),
+        backend: process.platform === 'win32'
+            ? new CrossPlatformFilesystemBackend({ rootDir: '/' })
+            : new FilesystemBackend({ rootDir: '/' }),
         ...(options.memoryFiles?.length ? { memory: options.memoryFiles } : {}),
         permissions: permissionsForHeal(heal, projectRoot),
         interruptOn: interruptsForHeal(heal),
