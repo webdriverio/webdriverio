@@ -22,13 +22,14 @@ function composeElementOverrides(previousCommand: Function | undefined, nextComm
 
     const previousElementCommand = previousCommand
 
-    return function composedElementOverride(this: WebdriverIO.Element, originalCommand: Function, ...args: unknown[]) {
+    // WebdriverIO.Element is unavailable to @wdio/utils in v8 without creating a circular dependency.
+    return function composedElementOverride(this: unknown, originalCommand: Function, ...args: unknown[]) {
         const element = this
 
-        function previousCommandAsOriginal(this: WebdriverIO.Element, ...previousArgs: unknown[]) {
+        function previousCommandAsOriginal(this: unknown, ...previousArgs: unknown[]) {
             const context = this || element
 
-            function originalForPrevious(this: WebdriverIO.Element, ...originalArgs: unknown[]) {
+            function originalForPrevious(this: unknown, ...originalArgs: unknown[]) {
                 return originalCommand.apply(this || context, originalArgs)
             }
 
