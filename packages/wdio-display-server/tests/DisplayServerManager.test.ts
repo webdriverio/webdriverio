@@ -1,4 +1,5 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+import path from 'node:path'
 
 const mockPlatform = vi.hoisted(() => vi.fn(() => 'linux'))
 const mockWayland = vi.hoisted(() => ({
@@ -28,14 +29,7 @@ vi.mock('../src/XvfbDisplayServer.js', () => ({
     XvfbDisplayServer: vi.fn(() => mockXvfb),
 }))
 
-vi.mock('@wdio/logger', () => ({
-    default: vi.fn(() => ({
-        info: vi.fn(),
-        error: vi.fn(),
-        warn: vi.fn(),
-        debug: vi.fn(),
-    })),
-}))
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const { DisplayServerManager, optionsFromConfig } = await import('../src/DisplayServerManager.js')
 

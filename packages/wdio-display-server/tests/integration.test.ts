@@ -4,18 +4,13 @@ import path from 'node:path'
 import url from 'node:url'
 import type { ChildProcess } from 'node:child_process'
 
-import type { DisplayServer } from '../src/types.js'
-import type { DisplayServerManager } from '../src/DisplayServerManager.js'
 import { startDisplayDaemonFromConfig } from '../src/daemon.js'
+import { makeDaemonHandle, makeDisplayServer, makeManager, makeRetryManager } from './helpers.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const shimPath = path.join(__dirname, 'fixtures', 'env-echo.mjs')
 
-vi.mock('@wdio/logger', () => ({
-    default: vi.fn(() => ({
-        info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn(),
-    })),
-}))
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const collectStdout = (proc: ChildProcess): Promise<string> => new Promise((resolve, reject) => {
     let out = ''
@@ -27,43 +22,6 @@ const collectStdout = (proc: ChildProcess): Promise<string> => new Promise((reso
     proc.stdout.on('data', (chunk: string) => { out += chunk })
     proc.on('error', reject)
     proc.on('exit', () => resolve(out))
-})
-
-const makeManager = (server: DisplayServer | null, shouldRun = true) => ({
-    shouldRun: () => shouldRun,
-    init: vi.fn().mockResolvedValue(server !== null),
-    getDisplayServer: () => server,
-    injectDisplayFlags: vi.fn(),
-    // Pass-through by default; specific tests override to assert retry policy
-    executeWithRetry: vi.fn(async (fn: () => Promise<unknown>) => fn()),
-}) as unknown as DisplayServerManager
-
-const fakeWaylandServer = (stopSpy = vi.fn().mockResolvedValue(undefined)): DisplayServer => ({
-    name: 'wayland',
-    isAvailable: async () => true,
-    install: async () => true,
-    getChromeFlags: () => [],
-    startDaemon: async () => ({
-        env: {
-            WAYLAND_DISPLAY: 'wayland-test',
-            XDG_RUNTIME_DIR: '/tmp/wdio-test-runtime',
-            ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
-        },
-        stop: stopSpy,
-        stopSync: vi.fn(),
-    }),
-})
-
-const fakeXvfbServer = (stopSpy = vi.fn().mockResolvedValue(undefined)): DisplayServer => ({
-    name: 'xvfb',
-    isAvailable: async () => true,
-    install: async () => true,
-    getChromeFlags: () => [],
-    startDaemon: async () => ({
-        env: { DISPLAY: ':99' },
-        stop: stopSpy,
-        stopSync: vi.fn(),
-    }),
 })
 
 /**
@@ -90,7 +48,17 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
 
     it('publishes Wayland env to process.env and a real fork()ed child inherits it', async () => {
         const stopSpy = vi.fn().mockResolvedValue(undefined)
-        const manager = makeManager(fakeWaylandServer(stopSpy))
+        const manager = makeManager(makeDisplayServer({
+            name: 'wayland',
+            startDaemon: async () => makeDaemonHandle({
+                env: {
+                    WAYLAND_DISPLAY: 'wayland-test',
+                    XDG_RUNTIME_DIR: '/tmp/wdio-test-runtime',
+                    ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
+                },
+                stop: stopSpy,
+            }),
+        }))
 
         const daemon = await startDisplayDaemonFromConfig(
             {} as WebdriverIO.Config,
@@ -119,7 +87,10 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
 
     it('publishes Xvfb DISPLAY to process.env and a real fork()ed child inherits it', async () => {
         const stopSpy = vi.fn().mockResolvedValue(undefined)
-        const manager = makeManager(fakeXvfbServer(stopSpy))
+        const manager = makeManager(makeDisplayServer({
+            name: 'xvfb',
+            startDaemon: async () => makeDaemonHandle({ env: { DISPLAY: ':99' }, stop: stopSpy }),
+        }))
 
         const daemon = await startDisplayDaemonFromConfig(
             {} as WebdriverIO.Config,
@@ -142,7 +113,17 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
     it('returns null when DISPLAY is already set (someone wrapped us with xvfb-run)', async () => {
         process.env.DISPLAY = ':42'
         const stopSpy = vi.fn().mockResolvedValue(undefined)
-        const manager = makeManager(fakeWaylandServer(stopSpy))
+        const manager = makeManager(makeDisplayServer({
+            name: 'wayland',
+            startDaemon: async () => makeDaemonHandle({
+                env: {
+                    WAYLAND_DISPLAY: 'wayland-test',
+                    XDG_RUNTIME_DIR: '/tmp/wdio-test-runtime',
+                    ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
+                },
+                stop: stopSpy,
+            }),
+        }))
 
         const daemon = await startDisplayDaemonFromConfig(
             {} as WebdriverIO.Config,
@@ -158,7 +139,17 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
 
     it('returns null when manager.shouldRun() returns false (non-Linux, disabled, etc.)', async () => {
         const stopSpy = vi.fn().mockResolvedValue(undefined)
-        const manager = makeManager(fakeWaylandServer(stopSpy), /* shouldRun */ false)
+        const manager = makeManager(makeDisplayServer({
+            name: 'wayland',
+            startDaemon: async () => makeDaemonHandle({
+                env: {
+                    WAYLAND_DISPLAY: 'wayland-test',
+                    XDG_RUNTIME_DIR: '/tmp/wdio-test-runtime',
+                    ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
+                },
+                stop: stopSpy,
+            }),
+        }), { shouldRun: false })
 
         const daemon = await startDisplayDaemonFromConfig(
             {} as WebdriverIO.Config,
@@ -175,36 +166,10 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         const startSpy = vi.fn()
             .mockRejectedValueOnce(new Error('Xvfb spawn flake #1'))
             .mockRejectedValueOnce(new Error('Xvfb spawn flake #2'))
-            .mockResolvedValueOnce({
-                env: { DISPLAY: ':99' },
-                stop: vi.fn().mockResolvedValue(undefined),
-                stopSync: vi.fn(),
-            })
+            .mockResolvedValueOnce(makeDaemonHandle({ env: { DISPLAY: ':99' } }))
 
-        const server: DisplayServer = {
-            name: 'xvfb',
-            isAvailable: async () => true,
-            install: async () => true,
-            getChromeFlags: () => [],
-            startDaemon: startSpy,
-        }
-        const manager = {
-            shouldRun: () => true,
-            init: vi.fn().mockResolvedValue(true),
-            getDisplayServer: () => server,
-            injectDisplayFlags: vi.fn(),
-            executeWithRetry: vi.fn(async (fn: () => Promise<unknown>) => {
-                let lastError: unknown
-                for (let i = 0; i < 3; i++) {
-                    try {
-                        return await fn()
-                    } catch (err) {
-                        lastError = err
-                    }
-                }
-                throw lastError
-            }),
-        } as unknown as DisplayServerManager
+        const server = makeDisplayServer({ name: 'xvfb', startDaemon: startSpy })
+        const manager = makeRetryManager(server)
 
         const daemon = await startDisplayDaemonFromConfig(
             {} as WebdriverIO.Config,
@@ -222,30 +187,8 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
     it('surfaces the last error when daemon startup exhausts every retry', async () => {
         const finalError = new Error('Xvfb spawn flake #final')
         const startSpy = vi.fn().mockRejectedValue(finalError)
-        const server: DisplayServer = {
-            name: 'xvfb',
-            isAvailable: async () => true,
-            install: async () => true,
-            getChromeFlags: () => [],
-            startDaemon: startSpy,
-        }
-        const manager = {
-            shouldRun: () => true,
-            init: vi.fn().mockResolvedValue(true),
-            getDisplayServer: () => server,
-            injectDisplayFlags: vi.fn(),
-            executeWithRetry: vi.fn(async (fn: () => Promise<unknown>) => {
-                let lastError: unknown
-                for (let i = 0; i < 3; i++) {
-                    try {
-                        return await fn()
-                    } catch (err) {
-                        lastError = err
-                    }
-                }
-                throw lastError
-            }),
-        } as unknown as DisplayServerManager
+        const server = makeDisplayServer({ name: 'xvfb', startDaemon: startSpy })
+        const manager = makeRetryManager(server)
 
         await expect(
             startDisplayDaemonFromConfig({} as WebdriverIO.Config, [] as never, manager),
@@ -258,17 +201,10 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
     it('registers an exit listener that uses stopSync, not the abandonable async stop', async () => {
         const stopSpy = vi.fn().mockResolvedValue(undefined)
         const stopSyncSpy = vi.fn()
-        const server: DisplayServer = {
+        const server = makeDisplayServer({
             name: 'xvfb',
-            isAvailable: async () => true,
-            install: async () => true,
-            getChromeFlags: () => [],
-            startDaemon: async () => ({
-                env: { DISPLAY: ':99' },
-                stop: stopSpy,
-                stopSync: stopSyncSpy,
-            }),
-        }
+            startDaemon: async () => makeDaemonHandle({ env: { DISPLAY: ':99' }, stop: stopSpy, stopSync: stopSyncSpy }),
+        })
         const manager = makeManager(server)
 
         const daemon = await startDisplayDaemonFromConfig(
@@ -296,14 +232,10 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         process.env.NODE_ENV = 'preserved'
         const stopSpy = vi.fn().mockResolvedValue(undefined)
         // Server whose env includes a key that's already in process.env
-        const server: DisplayServer = {
-            ...fakeXvfbServer(stopSpy),
-            startDaemon: async () => ({
-                env: { DISPLAY: ':99', NODE_ENV: 'daemon-set' },
-                stop: stopSpy,
-                stopSync: vi.fn(),
-            }),
-        }
+        const server = makeDisplayServer({
+            name: 'xvfb',
+            startDaemon: async () => makeDaemonHandle({ env: { DISPLAY: ':99', NODE_ENV: 'daemon-set' }, stop: stopSpy }),
+        })
         const manager = makeManager(server)
 
         const daemon = await startDisplayDaemonFromConfig(
