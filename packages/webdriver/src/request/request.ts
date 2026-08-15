@@ -67,6 +67,7 @@ export abstract class WebDriverRequest {
     requiresSessionId: boolean
     eventHandler: RequestEventHandler
     abortSignal?: AbortSignal
+    connectionRetryTimeout = DEFAULTS.connectionRetryTimeout.default!
     constructor (
         method: string,
         endpoint: string,
@@ -90,15 +91,19 @@ export abstract class WebDriverRequest {
         return this._request(url, requestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
+    private createAbortSignal () {
+        return AbortSignal.any([
+            AbortSignal.timeout(this.connectionRetryTimeout),
+            ...(this.abortSignal ? [this.abortSignal] : [])
+        ])
+    }
+
     async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{ url: URL; requestOptions: RequestInit; }> {
-        const timeout = options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default as number
+        this.connectionRetryTimeout = options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default!
         const requestOptions: RequestInit = {
             method: this.method,
             redirect: 'follow',
-            signal: AbortSignal.any([
-                AbortSignal.timeout(timeout),
-                ...(this.abortSignal ? [this.abortSignal] : [])
-            ])
+            signal: this.createAbortSignal()
         }
 
         const requestHeaders: HeadersInit = new Headers({
@@ -198,7 +203,13 @@ export abstract class WebDriverRequest {
             this.eventHandler.onLogData?.(loggableBody)
         }
 
-        const { ...requestLibOptions } = fullRequestOptions
+        /**
+         * a retry needs a fresh timeout signal, the one composed for the
+         * previous attempt may already have aborted
+         */
+        const requestLibOptions = retryCount > 0
+            ? { ...fullRequestOptions, signal: this.createAbortSignal() }
+            : { ...fullRequestOptions }
         const startTime = performance.now()
         let response = await this._libRequest(url!, requestLibOptions)
             .catch((err: WebDriverRequestError) => err)
