@@ -1,16 +1,17 @@
-FROM opensuse/leap:15.6
+FROM opensuse/leap:16.0
 
 # Set environment variables
 ENV CI=true
 
-# Install basic requirements but explicitly NOT xvfb
+# Install requirements including Wayland (weston)
 RUN zypper refresh && \
     zypper install -y \
         curl \
         ca-certificates \
         sudo \
         nodejs \
-        npm && \
+        npm \
+        weston && \
     zypper clean -a
 
 # Install pnpm globally as root
@@ -27,14 +28,6 @@ RUN zypper addrepo -f http://dl.google.com/linux/chrome/rpm/stable/x86_64 google
 RUN groupadd testuser && \
     useradd -m -g testuser -s /bin/bash testuser && \
     echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-
-# Ensure clean environment by removing any xvfb packages (do this at the very end)
-RUN zypper remove -y xvfb-run || true && \
-    rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run && \
-    zypper clean -a
-
-# Verify xvfb-run is NOT available
-RUN ! which xvfb-run || exit 1
 
 WORKDIR /app
 USER testuser

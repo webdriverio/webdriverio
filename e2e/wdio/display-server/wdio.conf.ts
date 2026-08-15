@@ -24,7 +24,13 @@ export const config: WebdriverIO.Config = {
             ],
             // Handle Alpine Linux with chromium-browser
             ...(process.env.CHROME_BIN && { binary: process.env.CHROME_BIN })
-        }
+        },
+        // Chrome-for-Testing chromedriver is glibc-only, so Alpine (musl) and
+        // any other distro without a glibc loader must provide a system
+        // chromedriver and point us at it. Set CHROMEDRIVER_PATH to opt in.
+        ...(process.env.CHROMEDRIVER_PATH && {
+            'wdio:chromedriverOptions': { binary: process.env.CHROMEDRIVER_PATH }
+        })
     }],
 
     /**
@@ -40,13 +46,13 @@ export const config: WebdriverIO.Config = {
     runner: 'local',
 
     /**
-     * Disable automatic xvfb initialization so tests can control it manually
+     * Disable automatic display-server initialization so tests can control it manually
      */
-    autoXvfb: false,
+    displayServerEnabled: false,
     /**
-     * Do not auto-install xvfb by default; tests will enable it when needed
+     * Do not auto-install the display server by default; tests will enable it when needed
      */
-    xvfbAutoInstall: false,
+    displayServerAutoInstall: false,
 
     /**
      * Reporters

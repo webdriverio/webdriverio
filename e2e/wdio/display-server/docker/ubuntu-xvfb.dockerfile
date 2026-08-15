@@ -4,7 +4,7 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CI=true
 
-# Install requirements including xvfb
+# Install requirements including Xvfb
 RUN apt-get update -qq && \
     apt-get install -y \
         curl \
@@ -29,9 +29,6 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
 
 # Install pnpm globally as root
 RUN npm install -g pnpm
-
-# Verify xvfb-run is available
-RUN which xvfb-run
 
 # Create test user with sudo access
 RUN useradd -m -s /bin/bash testuser && \
