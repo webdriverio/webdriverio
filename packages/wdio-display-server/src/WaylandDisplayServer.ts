@@ -1,4 +1,4 @@
-import { exec, spawn } from 'node:child_process'
+import { exec } from 'node:child_process'
 import { rmSync } from 'node:fs'
 import { mkdir, rm } from 'node:fs/promises'
 import { promisify } from 'node:util'
@@ -9,7 +9,8 @@ import type {
     DisplayServer,
     DisplayServerInstallOptions,
 } from './types.js'
-import { installViaPackageManager, waitForSocket } from './utils.js'
+import { installViaPackageManager } from './utils.js'
+import { runDaemon } from './daemonProcess.js'
 
 const execAsync = promisify(exec)
 
@@ -63,124 +64,28 @@ export class WaylandDisplayServer implements DisplayServer {
         const socketPath = `${runtimeDir}/${socketName}`
 
         await mkdir(runtimeDir, { recursive: true, mode: 0o700 })
-
         this.log.info(`Starting Weston daemon on ${socketName} (${width}x${height}) in ${runtimeDir}`)
 
-        const proc = spawn(
-            'weston',
-            [
-                '--backend=headless',
-                `--width=${width}`,
-                `--height=${height}`,
-                '--use-pixman',
-                `--socket=${socketName}`,
-            ],
-            {
-                // Capture stderr (stdin/stdout ignored) so a startup failure can be
-                // diagnosed — Weston is otherwise silent.
-                stdio: ['ignore', 'ignore', 'pipe'],
-                env: { ...process.env, XDG_RUNTIME_DIR: runtimeDir },
-            }
-        )
-
-        // Keep only the tail of stderr to bound memory; surfaced in the exit error.
-        let stderr = ''
-        proc.stderr?.on('data', (chunk) => {
-            stderr = (stderr + chunk.toString()).slice(-4096)
-        })
-
-        let rejectExit!: (err: Error) => void
-        const exitPromise = new Promise<never>((_, reject) => { rejectExit = reject })
-        const onExit = (code: number | null, signal: NodeJS.Signals | null) =>
-            rejectExit(new Error(`Weston process exited unexpectedly (code=${code}, signal=${signal})${stderr ? `\n${stderr.trim()}` : ''}`))
-        const onError = (err: Error) =>
-            rejectExit(new Error(`Weston process error: ${err.message}`))
-        proc.once('exit', onExit)
-        proc.once('error', onError)
-
-        // Abort the socket poll once the race settles so it doesn't keep polling
-        // in the background when exitPromise (a premature crash) wins.
-        const socketWait = new AbortController()
-        try {
-            await Promise.race([waitForSocket(socketPath, 10_000, 'Wayland socket', socketWait.signal), exitPromise])
-        } catch (err) {
-            proc.removeListener('exit', onExit)
-            proc.removeListener('error', onError)
-            // proc.killed only reflects that a signal was sent, not that the process
-            // exited; guard on exitCode/signalCode so a still-running Weston is torn down.
-            if (proc.exitCode === null && proc.signalCode === null) {
-                proc.kill('SIGTERM')
-            }
-            await rm(runtimeDir, { recursive: true, force: true }).catch(() => {})
-            throw err
-        } finally {
-            socketWait.abort()
-        }
-        proc.removeListener('exit', onExit)
-        proc.removeListener('error', onError)
-
-        // syncDone short-circuits stop() so a prior stopSync() (sync teardown
-        // during process exit) isn't undone by a redundant async cleanup, while
-        // still allowing stopSync() to run when an async stop() is mid-flight —
-        // otherwise an exit fired while stop() is awaiting would orphan the child.
-        let stopPromise: Promise<void> | null = null
-        let syncDone = false
-        const stop = (): Promise<void> => {
-            if (syncDone) {
-                return Promise.resolve()
-            }
-            if (stopPromise) {
-                return stopPromise
-            }
-            stopPromise = (async () => {
-                this.log.info(`Stopping Weston daemon on ${socketName}`)
-                // Skip the SIGTERM + wait when proc has already exited;
-                // `once('exit', …)` is one-shot and would never fire, forcing
-                // the full 1s timeout before we proceed to rm().
-                if (proc.exitCode === null && proc.signalCode === null) {
-                    proc.kill('SIGTERM')
-                    await new Promise<void>((resolve) => {
-                        const timer = setTimeout(() => {
-                            if (proc.exitCode === null && proc.signalCode === null) {
-                                proc.kill('SIGKILL')
-                            }
-                            resolve()
-                        }, 1000)
-                        proc.once('exit', () => {
-                            clearTimeout(timer)
-                            resolve()
-                        })
-                    })
-                }
-                await rm(runtimeDir, { recursive: true, force: true }).catch(() => {})
-            })()
-            return stopPromise
-        }
-
-        const stopSync = (): void => {
-            if (syncDone) {
-                return
-            }
-            syncDone = true
-            try {
-                if (proc.exitCode === null && proc.signalCode === null) {
-                    proc.kill('SIGKILL')
-                }
-            } catch { /* process may already be gone */ }
-            try {
-                rmSync(runtimeDir, { recursive: true, force: true })
-            } catch { /* ignore — best-effort */ }
-        }
-
-        return {
+        return runDaemon({
+            command: 'weston',
+            args: ['--backend=headless', `--width=${width}`, `--height=${height}`, '--use-pixman', `--socket=${socketName}`],
+            socketPath,
+            spawnEnv: { ...process.env, XDG_RUNTIME_DIR: runtimeDir },
+            label: 'Weston',
+            socketLabel: 'Wayland socket',
+            log: this.log,
             env: {
                 WAYLAND_DISPLAY: socketName,
                 XDG_RUNTIME_DIR: runtimeDir,
                 ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
             },
-            stop,
-            stopSync,
-        }
+            cleanup: () => rm(runtimeDir, { recursive: true, force: true }).catch(() => {}),
+            cleanupSync: () => {
+                try {
+                    rmSync(runtimeDir, { recursive: true, force: true })
+                } catch { /* best-effort */ }
+            },
+        })
     }
 
 }

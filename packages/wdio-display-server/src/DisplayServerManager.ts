@@ -293,20 +293,17 @@ export class DisplayServerManager {
 
         const chromeFlags = ['--headless']
         const firefoxFlags = ['--headless', '-headless']
+        const browsers: Array<['goog:chromeOptions' | 'ms:edgeOptions' | 'moz:firefoxOptions', string[], string]> = [
+            ['goog:chromeOptions', chromeFlags, 'Chrome'],
+            ['ms:edgeOptions', chromeFlags, 'Edge'],
+            ['moz:firefoxOptions', firefoxFlags, 'Firefox'],
+        ]
 
-        if (this.#hasHeadlessFlag(caps['goog:chromeOptions'], chromeFlags)) {
-            this.#log.info('Detected headless Chrome flag, forcing display server usage')
-            return true
-        }
-
-        if (this.#hasHeadlessFlag(caps['ms:edgeOptions'], chromeFlags)) {
-            this.#log.info('Detected headless Edge flag, forcing display server usage')
-            return true
-        }
-
-        if (this.#hasHeadlessFlag(caps['moz:firefoxOptions'], firefoxFlags)) {
-            this.#log.info('Detected headless Firefox flag, forcing display server usage')
-            return true
+        for (const [key, flags, label] of browsers) {
+            if (this.#hasHeadlessFlag(caps[key], flags)) {
+                this.#log.info(`Detected headless ${label} flag, forcing display server usage`)
+                return true
+            }
         }
 
         return false

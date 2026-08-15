@@ -1,4 +1,4 @@
-import { exec, spawn } from 'node:child_process'
+import { exec } from 'node:child_process'
 import { readdir, readFile } from 'node:fs/promises'
 import { promisify } from 'node:util'
 import logger from '@wdio/logger'
@@ -8,7 +8,8 @@ import type {
     DisplayServer,
     DisplayServerInstallOptions,
 } from './types.js'
-import { installViaPackageManager, waitForSocket } from './utils.js'
+import { installViaPackageManager } from './utils.js'
+import { runDaemon } from './daemonProcess.js'
 
 const execAsync = promisify(exec)
 const X_SOCKET_DIR = '/tmp/.X11-unix'
@@ -95,119 +96,26 @@ export class XvfbDisplayServer implements DisplayServer {
 
         this.log.info(`Starting Xvfb daemon on ${display} (${width}x${height}x${depth})`)
 
-        const proc = spawn(
-            'Xvfb',
-            [display, '-screen', '0', `${width}x${height}x${depth}`, '-nolisten', 'tcp'],
-            // Capture stderr (stdin/stdout ignored) so a startup failure can be
-            // diagnosed — Xvfb is otherwise silent.
-            { stdio: ['ignore', 'ignore', 'pipe'] }
-        )
-
-        // Keep only the tail of stderr to bound memory; surfaced in the exit error.
-        let stderr = ''
-        proc.stderr?.on('data', (chunk) => {
-            stderr = (stderr + chunk.toString()).slice(-4096)
-        })
-
-        let rejectExit!: (err: Error) => void
-        const exitPromise = new Promise<never>((_, reject) => { rejectExit = reject })
-        const onExit = (code: number | null, signal: NodeJS.Signals | null) =>
-            rejectExit(new Error(`Xvfb process exited unexpectedly (code=${code}, signal=${signal})${stderr ? `\n${stderr.trim()}` : ''}`))
-        const onError = (err: Error) =>
-            rejectExit(new Error(`Xvfb process error: ${err.message}`))
-        proc.once('exit', onExit)
-        proc.once('error', onError)
-
-        // Abort the socket poll once the race settles so it doesn't keep polling
-        // in the background when exitPromise (a premature crash) wins.
-        const socketWait = new AbortController()
-        try {
-            await Promise.race([waitForSocket(socketPath, 10_000, 'Xvfb socket', socketWait.signal), exitPromise])
-        } catch (err) {
-            proc.removeListener('exit', onExit)
-            proc.removeListener('error', onError)
-            // proc.killed only reflects that a signal was sent, not that the process
-            // exited; guard on exitCode/signalCode so a still-running Xvfb is torn down.
-            if (proc.exitCode === null && proc.signalCode === null) {
-                proc.kill('SIGTERM')
-            }
-            XvfbDisplayServer.reservedDisplays.delete(displayNum)
-            throw err
-        } finally {
-            socketWait.abort()
-        }
-        proc.removeListener('exit', onExit)
-        proc.removeListener('error', onError)
-
-        // syncDone short-circuits stop() so a prior stopSync() (sync teardown
-        // during process exit) isn't undone by a redundant async cleanup, while
-        // still allowing stopSync() to run when an async stop() is mid-flight —
-        // otherwise an exit fired while stop() is awaiting would orphan the child.
-        let stopPromise: Promise<void> | null = null
-        let syncDone = false
-        const stop = (): Promise<void> => {
-            if (syncDone) {
-                return Promise.resolve()
-            }
-            if (stopPromise) {
-                return stopPromise
-            }
-            stopPromise = (async () => {
-                this.log.info(`Stopping Xvfb daemon on ${display}`)
-                // Skip the SIGTERM + wait when proc has already exited;
-                // `once('exit', …)` is one-shot and would never fire, forcing
-                // the full 1s timeout before stop() resolves.
-                if (proc.exitCode === null && proc.signalCode === null) {
-                    proc.kill('SIGTERM')
-                    await new Promise<void>((resolve) => {
-                        const timer = setTimeout(() => {
-                            if (proc.exitCode === null && proc.signalCode === null) {
-                                proc.kill('SIGKILL')
-                            }
-                            resolve()
-                        }, 1000)
-                        proc.once('exit', () => {
-                            clearTimeout(timer)
-                            resolve()
-                        })
-                    })
-                }
-                // Release the display only after the process is gone. Releasing at call
-                // time would let a concurrent findFreeDisplay() reuse a display whose
-                // Xvfb is still shutting down and holding its socket/lock.
-                XvfbDisplayServer.reservedDisplays.delete(displayNum)
-            })()
-            return stopPromise
-        }
-
-        const stopSync = (): void => {
-            if (syncDone) {
-                return
-            }
-            syncDone = true
-            XvfbDisplayServer.reservedDisplays.delete(displayNum)
-            // No rm equivalent: the X socket under /tmp/.X11-unix/X<n> is
-            // left behind, and the X server overwrites stale ones on next start.
-            try {
-                if (proc.exitCode === null && proc.signalCode === null) {
-                    proc.kill('SIGKILL')
-                }
-            } catch { /* process may already be gone */ }
-        }
-
         // Force GTK/Electron to X11. Without these, a Wayland-host's inherited
-        // `GDK_BACKEND=wayland,x11` makes them try Wayland first, fail (we're
-        // running Xvfb), and surface as `session not created: Chrome instance
-        // exited`.
-        return {
+        // `GDK_BACKEND=wayland,x11` makes them try Wayland first, fail (we're running
+        // Xvfb), and surface as `session not created: Chrome instance exited`.
+        return runDaemon({
+            command: 'Xvfb',
+            args: [display, '-screen', '0', `${width}x${height}x${depth}`, '-nolisten', 'tcp'],
+            socketPath,
+            label: 'Xvfb',
+            socketLabel: 'Xvfb socket',
+            log: this.log,
             env: {
                 DISPLAY: display,
                 GDK_BACKEND: 'x11',
                 ELECTRON_OZONE_PLATFORM_HINT: 'x11',
             },
-            stop,
-            stopSync,
-        }
+            // No rm of the X socket under /tmp/.X11-unix/X<n>: the X server overwrites
+            // stale ones on next start, so only the display reservation is released.
+            cleanup: () => { XvfbDisplayServer.reservedDisplays.delete(displayNum) },
+            cleanupSync: () => { XvfbDisplayServer.reservedDisplays.delete(displayNum) },
+        })
     }
 
     private async findFreeDisplay(): Promise<number> {
