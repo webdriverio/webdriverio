@@ -1,5 +1,7 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { EventEmitter } from 'node:events'
+import path from 'node:path'
+
+import { arrangeSpawn, queuePackageManagerDetection, runAsRoot } from './helpers.js'
 
 const mockExecAsync = vi.hoisted(() => vi.fn())
 const mockSpawn = vi.hoisted(() => vi.fn())
@@ -29,55 +31,9 @@ vi.mock('node:fs/promises', () => ({
     rm: mockRm,
 }))
 
-// `detectPackageManager` (used by installViaPackageManager) probes
-// `which apt-get`, `which dnf`, ... via execAsync. This helper queues
-// rejections for the package managers checked before the target, then a
-// resolution for the target. Tests using install() can call this to put the
-// detection in a deterministic state.
-const PM_PROBE_ORDER = ['apt-get', 'dnf', 'yum', 'zypper', 'pacman', 'apk', 'xbps-install']
-const PM_NAME_TO_CMD: Record<string, string> = {
-    apt: 'apt-get', dnf: 'dnf', yum: 'yum', zypper: 'zypper',
-    pacman: 'pacman', apk: 'apk', xbps: 'xbps-install',
-}
-function queuePackageManagerDetection(pm: string) {
-    if (pm === 'unknown') {
-        for (let i = 0; i < PM_PROBE_ORDER.length; i++) {
-            mockExecAsync.mockRejectedValueOnce(new Error('not found'))
-        }
-        return
-    }
-    const target = PM_NAME_TO_CMD[pm]
-    const targetIdx = PM_PROBE_ORDER.indexOf(target)
-    for (let i = 0; i < targetIdx; i++) {
-        mockExecAsync.mockRejectedValueOnce(new Error('not found'))
-    }
-    mockExecAsync.mockResolvedValueOnce({ stdout: `/usr/bin/${target}`, stderr: '' })
-}
-
-vi.mock('@wdio/logger', () => ({
-    default: vi.fn(() => ({
-        info: vi.fn(),
-        error: vi.fn(),
-        warn: vi.fn(),
-        debug: vi.fn(),
-    })),
-}))
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const { WaylandDisplayServer } = await import('../src/WaylandDisplayServer.js')
-
-class FakeProc extends EventEmitter {
-    killed = false
-    exitCode: number | null = null
-    signalCode: NodeJS.Signals | null = null
-    kill = vi.fn((_signal?: NodeJS.Signals) => {
-        this.killed = true
-        return true
-    })
-    removeListener = (event: string, listener: (...args: any[]) => void) => {
-        super.removeListener(event, listener)
-        return this
-    }
-}
 
 describe('WaylandDisplayServer', () => {
     beforeEach(() => {
@@ -149,9 +105,9 @@ describe('WaylandDisplayServer', () => {
         })
 
         it('installs via apt when detected and running as root', async () => {
-            queuePackageManagerDetection('apt')
+            queuePackageManagerDetection(mockExecAsync, 'apt')
             mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
-            ;(process as any).getuid = vi.fn().mockReturnValue(0)
+            runAsRoot()
             const server = new WaylandDisplayServer()
 
             const result = await server.install({ mode: 'root' })
@@ -171,9 +127,9 @@ describe('WaylandDisplayServer', () => {
             ['apk', 'apk update && apk add --no-cache weston'],
             ['xbps', 'xbps-install -Sy weston'],
         ])('uses the correct install command for %s', async (pm, expectedCmd) => {
-            queuePackageManagerDetection(pm)
+            queuePackageManagerDetection(mockExecAsync, pm)
             mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
-            ;(process as any).getuid = vi.fn().mockReturnValue(0)
+            runAsRoot()
             const server = new WaylandDisplayServer()
 
             const result = await server.install({ mode: 'root' })
@@ -183,9 +139,9 @@ describe('WaylandDisplayServer', () => {
         })
 
         it('returns false when the install command itself fails', async () => {
-            queuePackageManagerDetection('apt')
+            queuePackageManagerDetection(mockExecAsync, 'apt')
             mockExecAsync.mockRejectedValueOnce(new Error('apt failed'))
-            ;(process as any).getuid = vi.fn().mockReturnValue(0)
+            runAsRoot()
             const server = new WaylandDisplayServer()
 
             const result = await server.install({ mode: 'root' })
@@ -196,9 +152,7 @@ describe('WaylandDisplayServer', () => {
 
     describe('startDaemon', () => {
         it('spawns weston, awaits its socket, and returns a daemon handle with env vars', async () => {
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
+            arrangeSpawn(mockSpawn, mockAccess)
 
             const server = new WaylandDisplayServer()
             const daemon = await server.startDaemon({ width: 1280, height: 720 })
@@ -230,9 +184,7 @@ describe('WaylandDisplayServer', () => {
         })
 
         it('uses default dimensions when options omitted', async () => {
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
+            arrangeSpawn(mockSpawn, mockAccess)
 
             const server = new WaylandDisplayServer()
             await server.startDaemon()
@@ -245,8 +197,7 @@ describe('WaylandDisplayServer', () => {
         })
 
         it('rejects when weston exits before the socket appears', async () => {
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
+            const proc = arrangeSpawn(mockSpawn)
             mockAccess.mockRejectedValue(new Error('ENOENT'))
 
             const server = new WaylandDisplayServer()
@@ -260,8 +211,7 @@ describe('WaylandDisplayServer', () => {
         })
 
         it('rejects when the weston process errors before the socket appears', async () => {
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
+            const proc = arrangeSpawn(mockSpawn)
             mockAccess.mockRejectedValue(new Error('ENOENT'))
 
             const server = new WaylandDisplayServer()
@@ -275,9 +225,7 @@ describe('WaylandDisplayServer', () => {
 
         describe('daemon.stop()', () => {
             it('sends SIGTERM, removes the runtime dir, and is idempotent', async () => {
-                const proc = new FakeProc()
-                mockSpawn.mockReturnValue(proc)
-                mockAccess.mockResolvedValue(undefined)
+                const proc = arrangeSpawn(mockSpawn, mockAccess)
 
                 const server = new WaylandDisplayServer()
                 const daemon = await server.startDaemon()
@@ -304,9 +252,7 @@ describe('WaylandDisplayServer', () => {
 
             it('escalates to SIGKILL if SIGTERM does not terminate within 1s', async () => {
                 vi.useFakeTimers()
-                const proc = new FakeProc()
-                mockSpawn.mockReturnValue(proc)
-                mockAccess.mockResolvedValue(undefined)
+                const proc = arrangeSpawn(mockSpawn, mockAccess)
 
                 const server = new WaylandDisplayServer()
                 const daemon = await server.startDaemon()
@@ -328,9 +274,7 @@ describe('WaylandDisplayServer', () => {
 
         describe('daemon.stopSync()', () => {
             it('SIGKILLs the Weston child and rmSyncs the runtime dir', async () => {
-                const proc = new FakeProc()
-                mockSpawn.mockReturnValue(proc)
-                mockAccess.mockResolvedValue(undefined)
+                const proc = arrangeSpawn(mockSpawn, mockAccess)
 
                 const server = new WaylandDisplayServer()
                 const daemon = await server.startDaemon()
@@ -346,9 +290,7 @@ describe('WaylandDisplayServer', () => {
             })
 
             it('is idempotent across stop() and itself', async () => {
-                const proc = new FakeProc()
-                mockSpawn.mockReturnValue(proc)
-                mockAccess.mockResolvedValue(undefined)
+                const proc = arrangeSpawn(mockSpawn, mockAccess)
 
                 const server = new WaylandDisplayServer()
                 const daemon = await server.startDaemon()
@@ -368,8 +310,7 @@ describe('WaylandDisplayServer', () => {
 
     describe('waitForSocket (via startDaemon)', () => {
         it('polls until the socket appears', async () => {
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
+            arrangeSpawn(mockSpawn)
             mockAccess
                 .mockRejectedValueOnce(new Error('ENOENT'))
                 .mockRejectedValueOnce(new Error('ENOENT'))

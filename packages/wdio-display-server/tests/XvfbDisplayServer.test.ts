@@ -1,5 +1,7 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { EventEmitter } from 'node:events'
+import path from 'node:path'
+
+import { arrangeSpawn, queuePackageManagerDetection, runAsRoot } from './helpers.js'
 
 const mockExecAsync = vi.hoisted(() => vi.fn())
 const mockSpawn = vi.hoisted(() => vi.fn())
@@ -23,52 +25,9 @@ vi.mock('node:fs/promises', () => ({
     readFile: mockReadFile,
 }))
 
-// Sequence execAsync responses so the real detectPackageManager (called by
-// the shared installViaPackageManager helper) "finds" the requested PM.
-const PM_PROBE_ORDER = ['apt-get', 'dnf', 'yum', 'zypper', 'pacman', 'apk', 'xbps-install']
-const PM_NAME_TO_CMD: Record<string, string> = {
-    apt: 'apt-get', dnf: 'dnf', yum: 'yum', zypper: 'zypper',
-    pacman: 'pacman', apk: 'apk', xbps: 'xbps-install',
-}
-function queuePackageManagerDetection(pm: string) {
-    if (pm === 'unknown') {
-        for (let i = 0; i < PM_PROBE_ORDER.length; i++) {
-            mockExecAsync.mockRejectedValueOnce(new Error('not found'))
-        }
-        return
-    }
-    const target = PM_NAME_TO_CMD[pm]
-    const targetIdx = PM_PROBE_ORDER.indexOf(target)
-    for (let i = 0; i < targetIdx; i++) {
-        mockExecAsync.mockRejectedValueOnce(new Error('not found'))
-    }
-    mockExecAsync.mockResolvedValueOnce({ stdout: `/usr/bin/${target}`, stderr: '' })
-}
-
-vi.mock('@wdio/logger', () => ({
-    default: vi.fn(() => ({
-        info: vi.fn(),
-        error: vi.fn(),
-        warn: vi.fn(),
-        debug: vi.fn(),
-    })),
-}))
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const { XvfbDisplayServer } = await import('../src/XvfbDisplayServer.js')
-
-class FakeProc extends EventEmitter {
-    killed = false
-    exitCode: number | null = null
-    signalCode: NodeJS.Signals | null = null
-    kill = vi.fn((_signal?: NodeJS.Signals) => {
-        this.killed = true
-        return true
-    })
-    removeListener = (event: string, listener: (...args: any[]) => void) => {
-        super.removeListener(event, listener)
-        return this
-    }
-}
 
 const clearReservedDisplays = () => {
     // Reach into the static set used by findFreeDisplay() and reset it between
@@ -162,9 +121,9 @@ describe('XvfbDisplayServer', () => {
             ['apk', 'apk update && apk add --no-cache xvfb-run'],
             ['xbps', 'xbps-install -Sy xvfb-run'],
         ])('uses the correct install command for %s', async (pm, expectedCmd) => {
-            queuePackageManagerDetection(pm)
+            queuePackageManagerDetection(mockExecAsync, pm)
             mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
-            ;(process as any).getuid = vi.fn().mockReturnValue(0)
+            runAsRoot()
             const server = new XvfbDisplayServer()
 
             const result = await server.install({ mode: 'root' })
@@ -182,9 +141,7 @@ describe('XvfbDisplayServer', () => {
 
     describe('startDaemon', () => {
         it('spawns Xvfb with the right args, waits for the socket, and returns DISPLAY', async () => {
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
+            arrangeSpawn(mockSpawn, mockAccess)
 
             const server = new XvfbDisplayServer()
             const daemon = await server.startDaemon({ width: 800, height: 600, depth: 16 })
@@ -205,9 +162,7 @@ describe('XvfbDisplayServer', () => {
         })
 
         it('publishes GDK_BACKEND=x11 and ELECTRON_OZONE_PLATFORM_HINT=x11 in daemon env (Wayland-host fallback)', async () => {
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
+            arrangeSpawn(mockSpawn, mockAccess)
 
             const server = new XvfbDisplayServer()
             const daemon = await server.startDaemon()
@@ -221,9 +176,7 @@ describe('XvfbDisplayServer', () => {
         })
 
         it('uses default 1920x1080x24 when options omitted', async () => {
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
+            arrangeSpawn(mockSpawn, mockAccess)
 
             const server = new XvfbDisplayServer()
             await server.startDaemon()
@@ -236,8 +189,7 @@ describe('XvfbDisplayServer', () => {
         })
 
         it('releases the display reservation when Xvfb exits before the socket appears', async () => {
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
+            const proc = arrangeSpawn(mockSpawn)
             mockAccess.mockRejectedValue(new Error('ENOENT'))
 
             const server = new XvfbDisplayServer()
@@ -254,9 +206,7 @@ describe('XvfbDisplayServer', () => {
 
         describe('daemon.stop()', () => {
             it('sends SIGTERM, releases the reservation, and is idempotent', async () => {
-                const proc = new FakeProc()
-                mockSpawn.mockReturnValue(proc)
-                mockAccess.mockResolvedValue(undefined)
+                const proc = arrangeSpawn(mockSpawn, mockAccess)
 
                 const server = new XvfbDisplayServer()
                 const daemon = await server.startDaemon()
@@ -278,9 +228,7 @@ describe('XvfbDisplayServer', () => {
 
             it('escalates to SIGKILL when SIGTERM does not terminate within 1s', async () => {
                 vi.useFakeTimers()
-                const proc = new FakeProc()
-                mockSpawn.mockReturnValue(proc)
-                mockAccess.mockResolvedValue(undefined)
+                const proc = arrangeSpawn(mockSpawn, mockAccess)
 
                 const server = new XvfbDisplayServer()
                 const daemon = await server.startDaemon()
@@ -300,9 +248,7 @@ describe('XvfbDisplayServer', () => {
 
         describe('daemon.stopSync()', () => {
             it('SIGKILLs the Xvfb child synchronously', async () => {
-                const proc = new FakeProc()
-                mockSpawn.mockReturnValue(proc)
-                mockAccess.mockResolvedValue(undefined)
+                const proc = arrangeSpawn(mockSpawn, mockAccess)
 
                 const server = new XvfbDisplayServer()
                 const daemon = await server.startDaemon()
@@ -315,9 +261,7 @@ describe('XvfbDisplayServer', () => {
             })
 
             it('is idempotent across stop() and itself', async () => {
-                const proc = new FakeProc()
-                mockSpawn.mockReturnValue(proc)
-                mockAccess.mockResolvedValue(undefined)
+                const proc = arrangeSpawn(mockSpawn, mockAccess)
 
                 const server = new XvfbDisplayServer()
                 const daemon = await server.startDaemon()
@@ -336,9 +280,7 @@ describe('XvfbDisplayServer', () => {
     describe('findFreeDisplay (via startDaemon)', () => {
         it('skips display numbers whose sockets already exist on disk', async () => {
             mockReaddir.mockResolvedValue(['X99', 'X100', 'X150'])
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
+            arrangeSpawn(mockSpawn, mockAccess)
 
             const server = new XvfbDisplayServer()
             const daemon = await server.startDaemon()
@@ -352,9 +294,7 @@ describe('XvfbDisplayServer', () => {
             // Pre-reserve :99 to simulate a concurrent caller having grabbed it.
             ;(XvfbDisplayServer as any).reservedDisplays.add(99)
 
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
+            arrangeSpawn(mockSpawn, mockAccess)
 
             const server = new XvfbDisplayServer()
             const daemon = await server.startDaemon()
@@ -374,9 +314,7 @@ describe('XvfbDisplayServer', () => {
 
         it('tolerates a missing /tmp/.X11-unix directory', async () => {
             mockReaddir.mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }))
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
+            arrangeSpawn(mockSpawn, mockAccess)
 
             const server = new XvfbDisplayServer()
             const daemon = await server.startDaemon()
@@ -401,9 +339,7 @@ describe('XvfbDisplayServer', () => {
                 }
                 return []
             })
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
+            arrangeSpawn(mockSpawn, mockAccess)
 
             const server = new XvfbDisplayServer()
             const daemon = await server.startDaemon()
@@ -421,9 +357,7 @@ describe('XvfbDisplayServer', () => {
                 }
                 return []
             })
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
-            mockAccess.mockResolvedValue(undefined)
+            arrangeSpawn(mockSpawn, mockAccess)
 
             const server = new XvfbDisplayServer()
             const daemon = await server.startDaemon()
@@ -435,8 +369,7 @@ describe('XvfbDisplayServer', () => {
 
     describe('waitForSocket (via startDaemon)', () => {
         it('polls until the socket file exists', async () => {
-            const proc = new FakeProc()
-            mockSpawn.mockReturnValue(proc)
+            arrangeSpawn(mockSpawn)
             mockAccess
                 .mockRejectedValueOnce(new Error('ENOENT'))
                 .mockRejectedValueOnce(new Error('ENOENT'))
