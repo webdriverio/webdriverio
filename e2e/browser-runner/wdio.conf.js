@@ -32,8 +32,7 @@ export const config = {
      * specify test files
      */
     specs: [
-        // path.resolve(__dirname, '*.test.tsx'),
-        path.resolve(__dirname, 'vue.test.js')
+        path.resolve(__dirname, '*.test.tsx'),
     ],
 
     /**
