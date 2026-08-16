@@ -46,6 +46,9 @@ export const config = {
             : {
                 browserName: 'chrome',
                 browserVersion: 'canary',
+                'goog:chromeOptions': {
+                    args: ['--headless', '--disable-gpu']
+                }
             }
     ],
 
