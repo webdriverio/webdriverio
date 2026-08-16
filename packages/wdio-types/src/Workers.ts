@@ -189,8 +189,8 @@ export interface ExpectRequestEvent extends MessageWithPendingPromiseId {
      */
     scope: any,
     args: unknown[]
-    element?: unknown | unknown[]
-    context?: unknown | unknown[]
+    element?: any | any[]
+    context?: unknown
     /**
      * propagate error stack for inline snapshots
      */
