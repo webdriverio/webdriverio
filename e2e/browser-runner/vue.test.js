@@ -5,7 +5,7 @@ import { mount } from '@vue/test-utils'
 import Component from './components/Component.vue'
 
 describe('Vue Component Testing', () => {
-    it('increments value on click', async () => {
+    it('increments value on click with single element', async () => {
         // The render method returns a collection of utilities to query your component.
         const { getByText } = render(Component)
 
@@ -20,8 +20,48 @@ describe('Vue Component Testing', () => {
         await button.click()
 
         getByText('Times clicked: 2')
+
         await expect($('p=Times clicked: 2')).toExist()
+        await expect(await $('p=Times clicked: 2')).toExist()
+
         await expect($('p=Times clicked: 123')).not.toExist()
+        await expect(await $('p=Times clicked: 123')).not.toExist()
+
+        await expect($('p=Times clicked: 2')).toBeDisplayed()
+        await expect(await $('p=Times clicked: 2')).toBeDisplayed()
+
+        await expect($('p=Times clicked: 123')).not.toBeDisplayed()
+        await expect(await $('p=Times clicked: 123')).not.toBeDisplayed()
+    })
+
+    it('increments value on click with multi-elements', async () => {
+        // The render method returns a collection of utilities to query your component.
+        const { getByText } = render(Component)
+
+        // getByText returns the first matching node for the provided text, and
+        // throws an error if no elements match or if more than one match is found.
+        getByText('Times clicked: 0')
+
+        const button = await $(getByText('increment'))
+
+        // Dispatch a native click event to our button element.
+        await button.click()
+        await button.click()
+
+        getByText('Times clicked: 2')
+
+        await expect($$('p=Times clicked: 2')).toExist()
+        await expect(await $$('p=Times clicked: 2')).toExist()
+
+        await expect($$('p=Times clicked: 123')).not.toExist()
+        await expect(await $$('p=Times clicked: 123')).not.toExist()
+
+        await expect($$('p=Times clicked: 2')).toBeDisplayed()
+        await expect(await $$('p=Times clicked: 2')).toBeDisplayed()
+
+        // Fails since we have no elements and cannot assert if it displayed or not - DESIRED BEHAVIOR
+        // await expect($$('p=Times clicked: 123')).not.toBeDisplayed()
+        // await expect(await $$('p=Times clicked: 123')).not.toBeDisplayed()
     })
 
     const featureFlags = { featureFlags: { useToHaveTextStrictMultiElementsCompareStrategy : true } }
