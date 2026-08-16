@@ -24,9 +24,17 @@ type Expect = typeof expect & {
     oneOf(...sample: string[]): AsymmetricMatcher
 }
 const expectWithHelpers = expect as Expect
-// Attach the helpers to the browser expect object
-expectWithHelpers.some = (sample: WebdriverIO.Element[] | ElementArray | ChainablePromiseArray) => new AsymmetricMatcher(sample, 'Some')
+
+/**
+ * Attach serializable asymmetric matchers helpers to the browser expect object
+ *
+ * For real asymmetric matchers, name must match the name of the matcher in SUPPORTED_ASYMMETRIC_MATCHER
+ * @see packages/wdio-runner/src/utils.ts#SUPPORTED_ASYMMETRIC_MATCHER
+ *
+ * For modifiers `some`, it is custom handled.
+ */
 expectWithHelpers.oneOf = (...sample: string[]) => new AsymmetricMatcher(sample, 'OneOf')
+expectWithHelpers.some = (sample: WebdriverIO.Element[] | ElementArray | ChainablePromiseArray) => new AsymmetricMatcher(sample, 'Some')
 
 declare type RawMatcherFn<Context extends MatcherContext = MatcherContext> = {
     (this: Context, actual: unknown, ...expected: Array<unknown>): ExpectationResult;
