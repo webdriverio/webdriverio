@@ -420,8 +420,10 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             if (received) {
                 if (Array.isArray(received)) {
                     received = await ('parent' in received ? browser.$$(received) : Promise.all(received.map(refetchElement)))
-                } else if (received && (received as { elementId: string }).elementId) {
+                } else if (typeof received === 'object' && ('elementId' in received || 'selector' in received)) {
                     received = await refetchElement(received as WebdriverIO.Element)
+                } else {
+                    throw new Error(`Received value is not an element or array of elements: ${JSON.stringify(received)}`)
                 }
             } else if (payload.context) {
                 received = payload.context
