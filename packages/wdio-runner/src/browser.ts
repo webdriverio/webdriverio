@@ -412,6 +412,10 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             let received = payload.element
 
             const refetchElement = async (element: WebdriverIO.Element) => {
+                /**
+                 * When having `elementId`, element was already found and it is transformed into an `WebdriverIO.Element`,
+                 * If not we need to find it first with the selector.
+                 */
                 return element.elementId
                     ? await browser.$(element)
                     : await browser.$(element.selector)
@@ -419,21 +423,15 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
             if (received) {
                 if (Array.isArray(received)) {
+                    // ElementArray or array of WebdriverIO.Element, refetch all elements to get fresh references
                     received = await ('parent' in received ? browser.$$(received) : Promise.all(received.map(refetchElement)))
                 } else if (typeof received === 'object' && ('elementId' in received || 'selector' in received)) {
                     received = await refetchElement(received as WebdriverIO.Element)
                 } else {
                     throw new Error(`Received value is not an element or array of elements: ${JSON.stringify(received)}`)
                 }
-            } else if (payload.context) {
-                received = payload.context
-                if (Array.isArray(payload.context)) {
-                    if (payload.context.every((context) => typeof context === 'object' && 'elementId' in context)) {
-                        received = await Promise.all(payload.context.map(refetchElement))
-                    }
-                }
             } else {
-                received = browser
+                received = payload.context || browser
             }
 
             if (isSome) {

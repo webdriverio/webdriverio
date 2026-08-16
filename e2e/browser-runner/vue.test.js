@@ -107,6 +107,7 @@ describe('Vue Component Testing', () => {
 
         // New strict mode
         await expect($$('p=Times clicked: 0')).toHaveText('Times clicked: 0', featureFlags)
+        await expect(await $$('p=Times clicked: 0')).toHaveText('Times clicked: 0', featureFlags)
         await expect($$('p=Times clicked: 0')).toHaveText(expect.stringContaining('Times clicked'), featureFlags)
         await expect($$('p=Times clicked: 0')).toHaveText(['Times clicked: 0'], featureFlags)
         await expect($$('p=Times clicked: 0')).toHaveText(expect.oneOf('Times clicked: 0', 'Times clicked: 1'), featureFlags)

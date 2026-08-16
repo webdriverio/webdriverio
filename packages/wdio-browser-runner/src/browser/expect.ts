@@ -83,24 +83,28 @@ function createMatcher (matcherName: string) {
 
         if (context instanceof AsymmetricMatcher && context.matcherName === 'Some') {
             expectRequest.scope.isSome = true
-            // TODO validate that sample is also an ElementArray or ChainableElementArray or array of elements...
             context = context.sample as WebdriverIO.Element[] | ElementArray | ChainablePromiseArray
         }
 
         const isContextObject = typeof context === 'object'
 
-        /**
-         * Check if context is an WebdriverIO.Element
-         */
-        if (isContextObject && 'selector' in context && 'selector' in context) {
-            expectRequest.element = context
-        }
-
-        /**
-         * Check if context is ChainablePromiseElement
-         */
-        if (isContextObject && 'then' in context && typeof (context as { selector: string }).selector === 'object') {
-            expectRequest.element = await context
+        if (context && isContextObject) {
+            /**
+             * Check if context is a Chainable (ChainablePromiseElement or ChainablePromiseArray)
+             */
+            if ('then' in context && typeof (context as { selector?: string }).selector === 'object') {
+                expectRequest.element = await context
+            } else if ('selector' in context) {
+                /**
+                 * Check if context is an WebdriverIO.Element or WebdriverIO.ElementArray
+                 */
+                expectRequest.element = context
+            } if (Array.isArray(context) && context.every((el) => 'selector' in el)) {
+                /**
+                 * Check if context is an array of elements (WebdriverIO.Element[]) aka filtered ElementArray
+                 */
+                expectRequest.element = context
+            }
         }
 
         /**
@@ -108,7 +112,7 @@ function createMatcher (matcherName: string) {
          */
         if (context instanceof Element) {
             expectRequest.element = await $(context as unknown as HTMLElement)
-        } else if (isContextObject && !('sessionId' in context)) {
+        } else if (context && isContextObject && !('sessionId' in context)) {
             /**
              * check if context is an object or promise and resolve it
              * but not pass through the browser object
