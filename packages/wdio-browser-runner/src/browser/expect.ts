@@ -154,7 +154,6 @@ function createMatcher (matcherName: string) {
                 .replace('/@fs/', '/')
         }
 
-        console.log('YOOooooo expectRequest', expectRequest)
         import.meta.hot.send(WDIO_EVENT_NAME, { type: MESSAGE_TYPES.expectRequestMessage, value: expectRequest })
         const contextString = isContextObject
             ? 'elementId' in context
