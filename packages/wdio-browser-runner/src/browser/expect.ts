@@ -1,7 +1,7 @@
 import { expect, type MatcherContext, type ExpectationResult, type SyncExpectationResult } from 'expect'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 import { $ } from '@wdio/globals'
-import type { ChainablePromiseElement, ElementArray } from 'webdriverio'
+import type { ChainablePromiseElement, ChainablePromiseArray } from 'webdriverio'
 
 import { getCID } from './utils.js'
 import { WDIO_EVENT_NAME } from '../constants.js'
@@ -20,7 +20,7 @@ class AsymmetricMatcher {
 
 type Expect = typeof expect & {
     // Modifiers fake as an asymmetric matcher for now, but we can implement a proper modifier later
-    some(elements: WebdriverIO.Element[] | ElementArray | ChainablePromiseArray): AsymmetricMatcher
+    some(elements: WebdriverIO.Element[] | WebdriverIO.ElementArray | ChainablePromiseArray): AsymmetricMatcher
     oneOf(...sample: string[]): AsymmetricMatcher
 }
 const expectWithHelpers = expect as Expect
@@ -34,7 +34,7 @@ const expectWithHelpers = expect as Expect
  * For modifiers `some`, it is custom handled.
  */
 expectWithHelpers.oneOf = (...sample: string[]) => new AsymmetricMatcher(sample, 'OneOf')
-expectWithHelpers.some = (sample: WebdriverIO.Element[] | ElementArray | ChainablePromiseArray) => new AsymmetricMatcher(sample, 'Some')
+expectWithHelpers.some = (sample: WebdriverIO.Element[] | WebdriverIO.ElementArray | ChainablePromiseArray) => new AsymmetricMatcher(sample, 'Some')
 
 declare type RawMatcherFn<Context extends MatcherContext = MatcherContext> = {
     (this: Context, actual: unknown, ...expected: Array<unknown>): ExpectationResult;
@@ -62,7 +62,7 @@ const COMMAND_TIMEOUT = 30 * 1000 // 30s
  */
 function createMatcher (matcherName: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return async function (this: MatcherContext, context: WebdriverIO.Browser | WebdriverIO.Element | ChainablePromiseElement | ChainablePromiseArray | WebdriverIO.Element[] | ElementArray, ...args: any[]) {
+    return async function (this: MatcherContext, context: WebdriverIO.Browser | WebdriverIO.Element | ChainablePromiseElement | ChainablePromiseArray | WebdriverIO.Element[] | WebdriverIO.ElementArray, ...args: any[]) {
         const cid = getCID()
         if (!import.meta.hot || !cid) {
             return {
@@ -83,7 +83,7 @@ function createMatcher (matcherName: string) {
 
         if (context instanceof AsymmetricMatcher && context.matcherName === 'Some') {
             expectRequest.scope.isSome = true
-            context = context.sample as WebdriverIO.Element[] | ElementArray | ChainablePromiseArray
+            context = context.sample as WebdriverIO.Element[] | WebdriverIO.ElementArray | ChainablePromiseArray
         }
 
         const isContextObject = typeof context === 'object'
