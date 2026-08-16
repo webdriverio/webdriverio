@@ -417,10 +417,12 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                     : await browser.$(element.selector)
             }
 
-            if (received && Array.isArray(received)) {
-                received = await ('parent' in received ? browser.$$(received) : Promise.all(received.map(refetchElement)))
-            } else if (received && (received as { elementId: string }).elementId) {
-                received = await refetchElement(received as WebdriverIO.Element)
+            if (received) {
+                if (Array.isArray(received)) {
+                    received = await ('parent' in received ? browser.$$(received) : Promise.all(received.map(refetchElement)))
+                } else if (received && (received as { elementId: string }).elementId) {
+                    received = await refetchElement(received as WebdriverIO.Element)
+                }
             } else if (payload.context) {
                 received = payload.context
                 if (Array.isArray(payload.context)) {
