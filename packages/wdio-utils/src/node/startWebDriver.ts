@@ -119,7 +119,7 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
 
         const { executablePath: chromedriverExcecuteablePath } = chromedriverBinary
             ? { executablePath: chromedriverBinary }
-            : await setupChromedriver(cacheDir, browserVersion)
+            : await setupChromedriver(cacheDir, browserVersion, caps)
 
         chromedriverOptions.allowedOrigins = chromedriverOptions.allowedOrigins || ['*']
         chromedriverOptions.allowedIps = chromedriverOptions.allowedIps || ['0.0.0.0']
