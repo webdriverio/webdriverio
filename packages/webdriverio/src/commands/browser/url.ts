@@ -342,20 +342,12 @@ export function requiresBidiNavigation (options: UrlCommandOptions = {}): boolea
         }
 
         if (!CLASSIC_SAFE_OPTION_KEYS.has(key)) {
-            /**
-             * headers / auth / onBeforeLoad today; any future option tomorrow.
-             * Empty `headers: {}` is still an explicit BiDi opt-in.
-             */
             return true
         }
 
         if (key === 'wait' && value !== 'complete') {
             return true
         }
-
-        /**
-         * `timeout` alone is a no-op without `networkIdle` (already BiDi above).
-         */
     }
 
     return false
