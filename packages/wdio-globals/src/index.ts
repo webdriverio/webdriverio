@@ -103,7 +103,8 @@ for (const matcher of ASYNC_MATCHERS) {
 }
 
 /**
- * Custom modifiers exposed on expect for the browser runner for now!
+ * Custom modifiers exposed on expect for the browser-runner for now!
+ * Outside the browser-runner context, use `import { some } from 'expect-webdriverio/api'` to get access to the same modifiers.
  */
 (expect as any).some = (...args: any) => {
     if (!globals.has('expect')) {
