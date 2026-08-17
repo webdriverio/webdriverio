@@ -10,9 +10,6 @@ import { WDIO_EVENT_NAME } from '../constants.js'
 class AsymmetricMatcher {
     $$typeof = asymmetricMatcher
     constructor(public sample: unknown, public matcherName?: string) {}
-    asymmetricMatch() {
-        return true
-    }
     toString() {
         return this.matcherName
     }
