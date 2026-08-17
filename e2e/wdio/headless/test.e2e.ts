@@ -11,6 +11,7 @@ import type { InputOptions } from 'webdriverio'
 import type { remote } from 'webdriver'
 import type { SameSiteOptions } from '../../../packages/wdio-protocols/build/types.js'
 import logger from '@wdio/logger'
+import { some } from 'expect-webdriverio'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -799,6 +800,13 @@ describe('main suite 1', () => {
             const resource = path.resolve(__dirname, '__fixtures__', 'test.html')
             await browser.url(url.pathToFileURL(resource).href)
             await expect($('h1')).toHaveText('Hello World')
+        })
+
+        it('file', async () => {
+            const resource = path.resolve(__dirname, '__fixtures__', 'multi-elements.html')
+            await browser.url(url.pathToFileURL(resource).href)
+            await expect($$('h1')).toHaveText(['Hello World', 'Hello World 2'])
+            await expect(some($$('h1'))).toHaveText(expect.oneOf('Hello World', 'Hello World 2'))
         })
 
         it.skip('chrome', async () => {
