@@ -56,10 +56,12 @@ const DEFAULT_WAIT_STATE = 'complete'
  * classic `navigateTo` for a simple page load (see
  * [webdriverio#15481](https://github.com/webdriverio/webdriverio/issues/15481)).
  * Therefore a plain `browser.url(url)` (no BiDi-only options) uses classic navigation
- * on darwin and returns `undefined` instead of a `Request` object. Pass a BiDi-only
- * option (`headers`, `auth`, `onBeforeLoad`, or `wait` other than `'complete'`) if you
- * need request/response metadata on macOS. On Linux and Windows the BiDi path (and
- * `Request` return value) remains the default for `browser.url(url)`.
+ * when the session reports a macOS browser (W3C `capabilities.platformName`, including
+ * `mac` / `macOS` / `darwin` / `OS X`) and returns
+ * `undefined` instead of a `Request` object. Pass a BiDi-only option (`headers`, `auth`,
+ * `onBeforeLoad`, or `wait` other than `'complete'`) if you need request/response
+ * metadata on macOS. On Linux and Windows the BiDi path (and `Request` return value)
+ * remains the default for `browser.url(url)`.
  *
  * :::
  *
@@ -104,13 +106,13 @@ const DEFAULT_WAIT_STATE = 'complete'
     :url.js
     // navigate to a new URL
     // On Linux/Windows (BiDi): returns Request with response metadata
-    // On macOS: uses classic navigateTo for speed; returns undefined
+    // On macOS browsers: uses classic navigateTo for speed; returns undefined
     const request = await browser.url('https://webdriver.io')
     console.log(request?.url) // "https://webdriver.io" (undefined on macOS without BiDi options)
     console.log(request?.response?.status) // e.g. 200 (undefined on macOS without BiDi options)
 
     :urlRequestMacOS.js
-    // On macOS, pass a BiDi-only option to get Request metadata (pays BiDi navigate cost)
+    // On a macOS browser session, pass a BiDi-only option to get Request metadata
     const request = await browser.url('https://webdriver.io', { wait: 'networkIdle' })
     console.log(request.url)
     console.log(request.response?.status)
@@ -169,7 +171,7 @@ const DEFAULT_WAIT_STATE = 'complete'
  * mock the environment, e.g. overwrite Web APIs that your application uses.
  * @param {`{user: string, pass: string}`=} options.auth  basic authentication credentials
  * @param {`Record<string, string>`=} options.headers  headers to be sent with the request
- * @returns {WebdriverIO.Request|void} request/response data for the page load when the BiDi path is used; `undefined` on classic navigation (including the macOS fast path for plain `url()`)
+ * @returns {WebdriverIO.Request|void} request/response data for the page load when the BiDi path is used; `undefined` on classic navigation (including the macOS-browser fast path for plain `url()`)
  *
  * @see  https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get
  * @see  https://nodejs.org/api/url.html#url_url_resolve_from_to
@@ -191,14 +193,15 @@ export async function url (
 
     /**
      * Prefer BiDi navigation whenever we need BiDi-only features, or when the
-     * platform does not pay a large BiDi navigate tax. On macOS, Chrome's
+     * browser platform does not pay a large BiDi navigate tax. On macOS Chrome,
      * `browsingContext.navigate` is much slower than classic `navigateTo` for a
      * simple load (webdriverio#15481), so plain `url()` uses classic there.
+     * Use session `platformName` (remote browser), not the Node runner OS.
      */
     const useBidiNavigation = (
         this.isBidi &&
         path.startsWith('http') &&
-        (requiresBidiNavigation(options) || !preferClassicUrlFastPath())
+        (requiresBidiNavigation(options) || !isMacOSPlatform(this.capabilities.platformName))
     )
 
     if (useBidiNavigation) {
@@ -360,10 +363,11 @@ export function requiresBidiNavigation (options: UrlCommandOptions = {}): boolea
 
 /**
  * macOS Chrome pays a large BiDi `browsingContext.navigate` cost vs classic
- * `navigateTo` for simple loads; other platforms do not (webdriverio#15481).
+ * `navigateTo` for simple loads (webdriverio#15481). Session `platformName` is
+ * already the W3C value (`mac`, `macOS`, `darwin`, `OS X`, …).
  */
-export function preferClassicUrlFastPath (): boolean {
-    return process.platform === 'darwin'
+function isMacOSPlatform (platformName?: string) {
+    return Boolean(platformName && /mac|darwin|os x/i.test(platformName))
 }
 
 interface UrlCommandOptions {

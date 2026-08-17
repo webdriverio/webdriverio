@@ -120,8 +120,8 @@ describe('url', () => {
             mockMock.restore.mockClear()
         })
 
-        it('should use classic navigateTo on macOS when no BiDi-only options are set', async () => {
-            const platformSpy = vi.spyOn(process, 'platform', 'get').mockReturnValue('darwin')
+        it('should use classic navigateTo on a darwin platformName when no BiDi-only options are set', async () => {
+            browser.capabilities.platformName = 'darwin'
             const navigateTo = vi.spyOn(browser, 'navigateTo').mockResolvedValue(null as never)
             const req = await browser.url('http://google.com')
             expect(browsingContextNavigate).toBeCalledTimes(0)
@@ -129,11 +129,11 @@ describe('url', () => {
             expect(navigateTo).toBeCalledWith('http://google.com/')
             expect(req).toBeUndefined()
             navigateTo.mockRestore()
-            platformSpy.mockRestore()
+            delete browser.capabilities.platformName
         })
 
-        it('should use browsingContextNavigate on non-macOS when no BiDi-only options are set', async () => {
-            const platformSpy = vi.spyOn(process, 'platform', 'get').mockReturnValue('linux')
+        it('should use browsingContextNavigate on non-macOS browser when no BiDi-only options are set', async () => {
+            browser.capabilities.platformName = 'linux'
             const navigateTo = vi.spyOn(browser, 'navigateTo').mockResolvedValue(null as never)
             const req = await browser.url('http://google.com')
             expect(browsingContextNavigate).toBeCalledTimes(1)
@@ -145,11 +145,11 @@ describe('url', () => {
             expect(navigateTo).toBeCalledTimes(0)
             expect(req).toEqual({ some: 'request' })
             navigateTo.mockRestore()
-            platformSpy.mockRestore()
+            delete browser.capabilities.platformName
         })
 
-        it('should use browsingContextNavigate on macOS when BiDi-only options are set', async () => {
-            const platformSpy = vi.spyOn(process, 'platform', 'get').mockReturnValue('darwin')
+        it('should use browsingContextNavigate on macOS browser when BiDi-only options are set', async () => {
+            browser.capabilities.platformName = 'mac'
             const req = await browser.url('http://google.com', { wait: 'none' })
             expect(browsingContextNavigate).toBeCalledTimes(1)
             expect(browsingContextNavigate).toBeCalledWith({
@@ -158,7 +158,7 @@ describe('url', () => {
                 wait: 'none'
             })
             expect(req).toEqual({ some: 'request' })
-            platformSpy.mockRestore()
+            delete browser.capabilities.platformName
         })
 
         it('allows to define different page load strategy', async () => {
