@@ -816,8 +816,9 @@ describe('main suite 1', () => {
             const featureFlags = { 'useToHaveTextStrictMultiElementsCompareStrategy': true }
 
             await expect($$('h1')).toHaveText(['Hello World', 'Hello World 2'], { featureFlags })
+            await expect(some($$('h1'))).toHaveText('Hello World', { featureFlags })
             await expect(some($$('h1'))).toHaveText(expect.oneOf('Hello World', 'Hello World 2', 'Hello World 3'), { featureFlags })
-            await expect($$('h1')).toBeExisting()
+            await expect($$('h1')).toHaveText(expect.stringMatching(/Hello World/))
         })
 
         it.skip('chrome', async () => {
