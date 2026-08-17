@@ -61,9 +61,10 @@ export const config: WebdriverIO.Config = {
                 args: [
                     'headless',
                     'disable-gpu',
-                    // Having `WebDriverError: session not created: Chrome instance exited` since ubuntu 22.04 to 24.04, since the below is no more wrapped by default.
-                    // See https://github.com/webdriverio/webdriverio/issues/14168.
-                    ...(isLinux ? ['no-sandbox'] : [])
+                    // `no-sandbox` is required on Linux since Ubuntu 22.04→24.04 (seccomp/user-namespace sandbox no longer
+                    // provided by default — see https://github.com/webdriverio/webdriverio/issues/14168) and on macOS in
+                    // CI/sandboxed environments where Chrome's user-namespace sandboxing is also unavailable.
+                    ...(isLinux || isApple ? ['no-sandbox'] : [])
                 ]
             }
         }] : []),
