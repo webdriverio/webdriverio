@@ -802,11 +802,21 @@ describe('main suite 1', () => {
             await expect($('h1')).toHaveText('Hello World')
         })
 
-        it('file - multi-elements', async () => {
+        it('file - legacy multi-elements', async () => {
             const resource = path.resolve(__dirname, '__fixtures__', 'multi-elements.html')
             await browser.url(url.pathToFileURL(resource).href)
-            await expect($$('h1')).toHaveText(['Hello World', 'Hello World 2'])
-            await expect(some($$('h1'))).toHaveText(expect.oneOf('Hello World', 'Hello World 2'))
+
+            await expect($$('h1')).toHaveText(['Hello World', 'Hello World 2', 'Hello World 3'])
+            await expect($$('h1')).toBeExisting()
+        })
+
+        it('file - multi-elements strict behavior', async () => {
+            const resource = path.resolve(__dirname, '__fixtures__', 'multi-elements.html')
+            await browser.url(url.pathToFileURL(resource).href)
+            const featureFlags = { 'useToHaveTextStrictMultiElementsCompareStrategy': true }
+
+            await expect($$('h1')).toHaveText(['Hello World', 'Hello World 2'], { featureFlags })
+            await expect(some($$('h1'))).toHaveText(expect.oneOf('Hello World', 'Hello World 2', 'Hello World 3'), { featureFlags })
             await expect($$('h1')).toBeExisting()
         })
 
