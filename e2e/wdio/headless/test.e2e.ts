@@ -796,17 +796,18 @@ describe('main suite 1', () => {
             await expect($('h1')).toHaveText('Test')
         })
 
-        it('file', async () => {
+        it('file - single element', async () => {
             const resource = path.resolve(__dirname, '__fixtures__', 'test.html')
             await browser.url(url.pathToFileURL(resource).href)
             await expect($('h1')).toHaveText('Hello World')
         })
 
-        it('file', async () => {
+        it('file - multi-elements', async () => {
             const resource = path.resolve(__dirname, '__fixtures__', 'multi-elements.html')
             await browser.url(url.pathToFileURL(resource).href)
             await expect($$('h1')).toHaveText(['Hello World', 'Hello World 2'])
             await expect(some($$('h1'))).toHaveText(expect.oneOf('Hello World', 'Hello World 2'))
+            await expect($$('h1')).toBeExisting()
         })
 
         it.skip('chrome', async () => {
