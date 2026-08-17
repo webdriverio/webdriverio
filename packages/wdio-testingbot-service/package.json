@@ -33,7 +33,7 @@
     "@wdio/logger": "8.38.0",
     "@wdio/types": "8.41.0",
     "got": "^12.6.1",
-    "testingbot-tunnel-launcher": "^1.1.7",
+    "testingbot-tunnel-launcher": "^1.1.18",
     "webdriverio": "8.46.0"
   },
   "devDependencies": {
