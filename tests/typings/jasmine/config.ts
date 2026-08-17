@@ -1,4 +1,4 @@
-import { some } from "expect-webdriverio"
+import { some } from "expect-webdriverio/api"
 
 const config: WebdriverIO.Config = {
     jasmineOpts: {

@@ -11,7 +11,7 @@ import type { InputOptions } from 'webdriverio'
 import type { remote } from 'webdriver'
 import type { SameSiteOptions } from '../../../packages/wdio-protocols/build/types.js'
 import logger from '@wdio/logger'
-import { some } from 'expect-webdriverio'
+import { some } from 'expect-webdriverio/api'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 

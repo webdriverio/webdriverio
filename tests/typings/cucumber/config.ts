@@ -1,4 +1,4 @@
-import { some } from 'expect-webdriverio'
+import { some } from 'expect-webdriverio/api'
 import { expectType } from 'tsd'
 
 const config: WebdriverIO.Config = {
