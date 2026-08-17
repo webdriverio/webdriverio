@@ -545,6 +545,41 @@ describe('webdriver request', () => {
                 expect(new Set(signals).size).toBe(6)
             })
 
+            it('should keep honouring a signal supplied by "transformRequest" across retries', async () => {
+                const controller = new AbortController()
+                const transformRequest = vi.fn().mockImplementation((requestOptions) => ({
+                    ...requestOptions,
+                    signal: controller.signal
+                }))
+                const req = new WebFetchRequest('POST', '/abortTimeout', {}, undefined, true)
+                const result = await req.makeRequest({
+                    protocol: 'https',
+                    hostname: 'localhost',
+                    port: 4445,
+                    path: '/',
+                    connectionRetryCount: 7,
+                    connectionRetryTimeout: 10000,
+                    transformRequest,
+                    logLevel: 'warn'
+                }, 'foobar').then(
+                    (res) => res,
+                    (e) => e
+                )
+
+                expect(result).toEqual({ value: {} })
+
+                /**
+                 * each attempt composes a fresh timeout with the caller's signal,
+                 * so aborting it still cancels a retried request
+                 */
+                const signals = vi.mocked(fetch).mock.calls.map(([, opts]) => opts!.signal)
+                expect(signals).toHaveLength(6)
+                expect(signals.every((signal) => !signal!.aborted)).toBe(true)
+
+                controller.abort()
+                expect(signals.every((signal) => signal!.aborted)).toBe(true)
+            })
+
             it('should use error from "getRequestError" helper', async () => {
                 const onRetry = vi.fn()
                 const onRequest = vi.fn()

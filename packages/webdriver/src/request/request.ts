@@ -91,10 +91,10 @@ export abstract class WebDriverRequest {
         return this._request(url, requestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    private createAbortSignal () {
+    private createAbortSignal (signal?: AbortSignal | null) {
         return AbortSignal.any([
             AbortSignal.timeout(this.connectionRetryTimeout),
-            ...(this.abortSignal ? [this.abortSignal] : [])
+            ...(signal ? [signal] : [])
         ])
     }
 
@@ -103,7 +103,7 @@ export abstract class WebDriverRequest {
         const requestOptions: RequestInit = {
             method: this.method,
             redirect: 'follow',
-            signal: this.createAbortSignal()
+            signal: this.abortSignal
         }
 
         const requestHeaders: HeadersInit = new Headers({
@@ -204,12 +204,13 @@ export abstract class WebDriverRequest {
         }
 
         /**
-         * a retry needs a fresh timeout signal, the one composed for the
-         * previous attempt may already have aborted
+         * every attempt gets its own timeout, a retry must not inherit the
+         * already aborted signal of the attempt before it
          */
-        const requestLibOptions = retryCount > 0
-            ? { ...fullRequestOptions, signal: this.createAbortSignal() }
-            : { ...fullRequestOptions }
+        const requestLibOptions = {
+            ...fullRequestOptions,
+            signal: this.createAbortSignal(fullRequestOptions.signal)
+        }
         const startTime = performance.now()
         let response = await this._libRequest(url!, requestLibOptions)
             .catch((err: WebDriverRequestError) => err)
