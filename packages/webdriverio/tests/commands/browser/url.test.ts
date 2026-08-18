@@ -3,6 +3,8 @@ import { expect, describe, it, beforeAll, beforeEach, afterEach, vi, type MockIn
 
 import { remote } from '../../../src/index.js'
 import { requiresBidiNavigation } from '../../../src/commands/browser/url.js'
+import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
+import { getContextManager } from '../../../src/session/context.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -158,6 +160,33 @@ describe('url', () => {
                 wait: 'none'
             })
             expect(req).toEqual({ some: 'request' })
+            delete browser.capabilities.platformName
+        })
+
+        it('uses BiDi navigation on macOS when an active mock exists, even without BiDi-only options', async () => {
+            browser.capabilities.platformName = 'darwin'
+            const navigateTo = vi.spyOn(browser, 'navigateTo').mockResolvedValue(null as never)
+            SESSION_MOCKS['some-context'] = new Set([{} as never])
+
+            try {
+                await browser.url('http://google.com')
+                expect(browsingContextNavigate).toBeCalledTimes(1)
+                expect(navigateTo).toBeCalledTimes(0)
+            } finally {
+                delete SESSION_MOCKS['some-context']
+                navigateTo.mockRestore()
+                delete browser.capabilities.platformName
+            }
+        })
+
+        it('resolves the browsing context even on the classic macOS fast path', async () => {
+            browser.capabilities.platformName = 'darwin'
+            vi.spyOn(browser, 'navigateTo').mockResolvedValue(null as never)
+            const callsBefore = vi.mocked(getContextManager).mock.calls.length
+
+            await browser.url('http://google.com')
+
+            expect(vi.mocked(getContextManager).mock.calls.length).toBeGreaterThan(callsBefore)
             delete browser.capabilities.platformName
         })
 

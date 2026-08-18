@@ -1,6 +1,7 @@
 import { validateUrl } from '../../utils/index.js'
 import { getNetworkManager } from '../../session/networkManager.js'
 import { getContextManager } from '../../session/context.js'
+import { SESSION_MOCKS } from './mock.js'
 import type { InitScript } from './addInitScript.js'
 
 type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
@@ -191,23 +192,11 @@ export async function url (
         path = (new URL(path, this.options.baseUrl)).href
     }
 
-    /**
-     * Prefer BiDi navigation whenever we need BiDi-only features, or when the
-     * browser platform does not pay a large BiDi navigate tax. On macOS Chrome,
-     * `browsingContext.navigate` is much slower than classic `navigateTo` for a
-     * simple load (webdriverio#15481), so plain `url()` uses classic there.
-     * Use session `platformName` (remote browser), not the Node runner OS.
-     */
-    const useBidiNavigation = (
-        this.isBidi &&
-        path.startsWith('http') &&
-        (requiresBidiNavigation(options) || !isMacOSPlatform(this.capabilities.platformName))
-    )
+    const { useBidi, context } = await planNavigation(this, path, options)
 
-    if (useBidiNavigation) {
+    if (useBidi) {
         let resetPreloadScript: InitScript | undefined
-        const contextManager = getContextManager(this)
-        const context = await contextManager.getCurrentContext()
+        const bidiContext = context as string
         /**
          * set up preload script if `onBeforeLoad` option is provided
          */
@@ -251,7 +240,7 @@ export async function url (
             ? 'complete'
             : options.wait || classicPageLoadStrategy || DEFAULT_WAIT_STATE
         const navigation = await this.browsingContextNavigate({
-            context,
+            context: bidiContext,
             url: path,
             wait
         }).catch((err) => {
@@ -282,10 +271,10 @@ export async function url (
         if (options.wait === 'networkIdle') {
             const timeout = options.timeout || DEFAULT_NETWORK_IDLE_TIMEOUT
             await this.waitUntil(async () => {
-                return network.getPendingRequests(context).length === 0
+                return network.getPendingRequests(bidiContext).length === 0
             }, {
                 timeout,
-                timeoutMsg: `Navigation to '${path}' timed out after ${timeout}ms with ${network.getPendingRequests(context).length} (${network.getPendingRequests(context).map((r) => r.url).join(', ')}) pending requests`
+                timeoutMsg: `Navigation to '${path}' timed out after ${timeout}ms with ${network.getPendingRequests(bidiContext).length} (${network.getPendingRequests(bidiContext).map((r) => r.url).join(', ')}) pending requests`
             })
         }
 
@@ -323,17 +312,62 @@ export async function url (
     await this.navigateTo(validateUrl(path))
 }
 
+interface NavigationPlan {
+    /**
+     * whether to navigate via BiDi `browsingContext.navigate` (`true`) or
+     * classic `navigateTo` (`false`)
+     */
+    useBidi: boolean
+    /**
+     * the session's current browsing context, resolved whenever `isBidi` is
+     * true regardless of `useBidi`
+     */
+    context?: string
+}
+
+/**
+ * Decide how to navigate, and resolve the browsing context needed either way.
+ *
+ * ### Context resolution
+ *
+ * Added context resolution here, skipping this would leave them blind to the next
+ * context transition (e.g. a `newWindow()` call right after).
+ *
+ * ### Mocks
+ *
+ * Added hasActiveMocks here, when mocks are active, we need to use BiDi and need to accept
+ * the latency on Mac. Paused requests are only released as part of the
+ * BiDi navigation flow; classic `navigateTo` blocks until the full page load
+ * completes, so a request stuck waiting on a mock would hang the whole call.
+ */
+async function planNavigation (
+    browser: WebdriverIO.Browser,
+    path: string,
+    options: UrlCommandOptions
+): Promise<NavigationPlan> {
+    const context = browser.isBidi
+        ? await getContextManager(browser).getCurrentContext()
+        : undefined
+
+    const useBidi = (
+        browser.isBidi &&
+        path.startsWith('http') &&
+        (requiresBidiNavigation(options) || hasActiveMocks() || !isMacOSPlatform(browser.capabilities.platformName))
+    )
+
+    return { useBidi, context }
+}
+
 /**
  * Keys that classic `navigateTo` can honor (or ignore as a no-op).
  */
 const CLASSIC_SAFE_OPTION_KEYS = new Set(['wait', 'timeout'])
 
 /**
- * Whether navigation needs BiDi `browsingContext.navigate`.
- *
- * Fail-safe for new options: only an empty options object (or classic-safe
- * `wait: 'complete'` / unused `timeout`) stays on classic. Everything else,
- * including unknown keys, uses BiDi so we never silently drop features.
+ * Whether navigation needs BiDi `browsingContext.navigate`. Fail-safe for new
+ * options: only an empty options object (or classic-safe `wait: 'complete'` /
+ * unused `timeout`) stays on classic; everything else, including unknown
+ * keys, uses BiDi so we never silently drop features.
  */
 export function requiresBidiNavigation (options: UrlCommandOptions = {}): boolean {
     for (const [key, value] of Object.entries(options)) {
@@ -360,6 +394,14 @@ export function requiresBidiNavigation (options: UrlCommandOptions = {}): boolea
  */
 function isMacOSPlatform (platformName?: string) {
     return Boolean(platformName && /mac|darwin|os x/i.test(platformName))
+}
+
+/**
+ * Whether any browsing context in this session currently has an active
+ * `browser.mock()` interception.
+ */
+function hasActiveMocks (): boolean {
+    return Object.values(SESSION_MOCKS).some((mocks) => mocks.size > 0)
 }
 
 interface UrlCommandOptions {
