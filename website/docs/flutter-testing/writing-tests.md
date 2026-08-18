@@ -22,9 +22,9 @@ We document common scenarios using `appium-flutter-finder` and direct `flutter:`
 
 ### Example A — Simple interaction (Counter flow)
 
-```js
-// couter.spec.js
-const find = require('appium-flutter-finder');
+```typescript
+// counter.spec.ts
+import find from 'appium-flutter-finder';
 
 describe('Flutter Counter Flow', () => {
 
@@ -49,9 +49,9 @@ describe('Flutter Counter Flow', () => {
 
 ### Example B — Stable Navigation (Avoiding Timeouts)
 
-```js
-// redirects.spec.js
-const find = require('appium-flutter-finder');
+```typescript
+// redirects.spec.ts
+import find from 'appium-flutter-finder';
 
 describe('Flutter Redirects Flow', () => {
 
@@ -75,15 +75,15 @@ describe('Flutter Redirects Flow', () => {
         await driver.execute('flutter:waitFor', redirectExampleBody);
         const textRedirectExampleBody = await driver.getElementText(redirectExampleBody);
         expect(textRedirectExampleBody).toBe('This is the Redirect Example View');
-    })
-})
+    });
+});
 ```
 
 ### Example C — Interacting with Dialogs (Flutter context)
 
-```js
-// change_context.spec.js
-const find = require('appium-flutter-finder');
+```typescript
+// change_context.spec.ts
+import find from 'appium-flutter-finder';
 
 describe('Flutter Change Context Flow', () => {
     beforeEach(async () => {
@@ -106,8 +106,8 @@ describe('Flutter Change Context Flow', () => {
         await driver.execute('flutter:waitFor', changeContextViewTitle);
         const textChangeContextViewTitle = await driver.getElementText(changeContextViewTitle);
         expect(textChangeContextViewTitle).toBe('Change Context Example View');
-    })
-})
+    });
+});
 ```
 
 ## Build and Execution Flow
@@ -116,7 +116,7 @@ To ensure your recent Dart code and Key changes are visible to the tests, always
 
 ```bash
 flutter build apk -t lib/main_e2e.dart --debug
-npx wdio run wdio.conf.js
+npx wdio run wdio.conf.ts
 ```
 
 You can see the code examples in the repository: https://github.com/webdriverio/appium-boilerplate
