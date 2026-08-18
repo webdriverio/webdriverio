@@ -194,6 +194,11 @@ npx show-trace trace-<sessionId>.zip      # or via npx
 The player gives you DOM time-travel, the A11y tab and pick-locator overlay, the Transcript tab with Copy-for-LLM, the Errors / Console / Network / Source dock tabs, and a scrubbable timeline. The same portable `.zip` also opens in other standalone trace viewers and inside an Allure report's embedded viewer. See the **[Trace Player](/docs/devtools/trace-player)** page for the full walkthrough, features, and keyboard shortcuts.
 
 ## Learn more
+The `show-trace` bin shipped by each adapter opens the same archive in the DevTools player, which additionally exposes an **A11y tab**: the accessibility tree captured per action, where clicking a row copies that element's locator.
+
+Those locators are written in the recording runner's own dialect, so they paste straight into the framework that produced the trace. An element identified only by its text is `a*=Logout` under WebdriverIO and `//a[contains(., "Logout")]` under Selenium — captioned with the call that resolves it, `By.xpath()`. Nightwatch prefers a native CSS locator such as `button[type="submit"]`, because it is the only runner that reads a bare selector string under a default CSS strategy, and falls back to XPath (captioned `useXpath()` / `locateStrategy: 'xpath'`) only when no unique CSS locator exists. Every other locator is portable CSS.
+
+For LLM / agent consumption, read `transcript.md` directly — it's a tight Markdown rendering of the actions with selectors and values.
 
 - **[Trace Player](/docs/devtools/trace-player)** — the full `show-trace` player walkthrough, features, and keyboard shortcuts.
 - **[Allure Integration](/docs/devtools/allure)** — how trace / screenshot / video artifacts attach to an Allure report.

@@ -81,7 +81,7 @@ describe('await-expect', () => {
     it('All epxect-webdriverio matchers are covered', async () => {
         // eslint-disable-next-line @typescript-eslint/consistent-type-imports
         const expectWebdriverio = await vi.importActual<typeof import('expect-webdriverio')>('expect-webdriverio')
-        const matchers = Array.from(expectWebdriverio.matchers.keys())
+        const matchers = Object.keys(expectWebdriverio.wdioCustomMatchers)
             .filter((matcher) => !['toMatchSnapshot', 'toMatchInlineSnapshot'].includes(matcher))
 
         expect(MATCHERS.sort()).toEqual(matchers.sort())

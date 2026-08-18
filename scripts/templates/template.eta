@@ -1,91 +1,98 @@
-<%_
+<%
 /**
- * Section headings sit exactly one level below the command heading so that every generated
- * page has a valid outline and Docusaurus can build a table of contents from it. Standalone
- * command pages take their `h1` from the Docusaurus frontmatter, while protocol pages inline
- * many commands under an `## <command>` heading (see `hasHeader` in `protocolDocs.ts`).
+ * Section headings sit exactly one level below the heading that names the
+ * command: the Docusaurus page title when a command gets its own page, and
+ * the `## <command>` heading when many commands share one protocol page.
+ * Skipping straight to `#####` left these pages with an empty table of
+ * contents, because Docusaurus only collects h2 and h3.
  */
-const heading = it.hasHeader ? '###' : '##'
+const sectionHeading = it.hasHeader ? '###' : '##'
 
 /**
- * WebdriverIO is promise based, so usage snippets are awaited unless the command is tagged
- * `@skipAwait` because it returns something other than a promise, e.g. `browser.action`.
+ * Every command on `browser`, `element`, `dialog` and `clock` is awaited.
+ * `mock` methods are not, and a command can opt out with `@skipAwait` when
+ * it returns something chainable rather than a promise.
  */
 const awaitPrefix = it.isSkipAwait ? '' : 'await '
 
+const PLATFORM_LABELS = { ios: 'iOS', android: 'Android', windows: 'Windows' }
+const platformLabel = (platform) => PLATFORM_LABELS[platform] || platform
+
 /**
- * markdown table cells are `|` delimited and can not span multiple lines
+ * Eta finds the end of this block by scanning past quoted strings, counting
+ * backticks as it goes. An odd number of them anywhere in here, in code or
+ * in a comment, makes it run straight past the closing tag and swallow the
+ * rest of the template, so the character is written as an escape.
+ */
+const BACKTICK = '\u0060'
+const BACKTICK_PATTERN = new RegExp(BACKTICK, 'g')
+
+/**
+ * A GFM table cell is pipe delimited and cannot span lines, so pipes in
+ * prose have to be escaped and any hard break becomes a `<br />`.
  */
 const cell = (value) => String(value === undefined || value === null ? '' : value)
-    .replace(/\s*\n\s*/g, ' ')
     .replace(/\|/g, '\\|')
+    .replace(/\r?\n/g, '<br />')
+    .trim()
 
 /**
- * Parameters are rendered as a GFM table so the signature data survives markdown extraction.
- * `@rowInfo` tags without a `::` separator are section notes rather than parameters, so they
- * end the current table and a fresh one is started below them.
+ * Rows are joined here rather than emitted from a template loop, because a
+ * single blank line between two rows splits the table in half.
  */
-const TABLE_HEADER = ['| Name | Type | Details |', '| --- | --- | --- |']
-const parameters = []
-let needsTableHeader = true
-for (const paramTag of it.paramTags || []) {
-    if (paramTag.tag === 'rowInfo' && !paramTag.string.includes('::')) {
-        parameters.push('', `**${paramTag.string.replace(/\s*\n\s*/g, ' ')}**`, '')
-        needsTableHeader = true
-        continue
-    }
+const parameterTable = (paramTags) => {
+    const rows = paramTags.map((paramTag) => {
+        /**
+         * `@rowInfo` groups the rows that follow it. Markdown has no
+         * colspan, so the label goes in the first column and any text after
+         * the `::` separator goes in the last one.
+         */
+        if (paramTag.tag === 'rowInfo') {
+            const [label, details] = paramTag.string.includes('::')
+                ? paramTag.string.split('::').map((part) => part.trim())
+                : [paramTag.string, '']
+            const detailsCell = cell(details)
+            return `| **${cell(label)}** | |${detailsCell ? ` ${detailsCell} ` : ''}|`
+        }
 
-    if (needsTableHeader) {
-        parameters.push(...TABLE_HEADER)
-        needsTableHeader = false
-    }
+        const isOptional = (!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional
+        const name = `\`${paramTag.name}${paramTag.default ? `=${paramTag.default}` : ''}\``
+        /**
+         * types arrive backtick wrapped from the JSDoc commands and bare from
+         * the protocol definitions, so they are normalised to one code span
+         */
+        const type = BACKTICK + paramTag.type
+            .replace(BACKTICK_PATTERN, '')
+            .replace('(', '')
+            .replace(')', '')
+            .split('|')
+            .map((part) => part.trim())
+            .filter(Boolean)
+            .join(', ') + BACKTICK
 
-    if (paramTag.tag === 'rowInfo') {
-        const [label, details] = paramTag.string.split('::').map((part) => part.trim())
-        parameters.push(`| **${cell(label)}** | | ${cell(details)} |`)
-        continue
-    }
+        return `| ${cell(name)}${isOptional ? '<br />*optional*' : ''} | ${cell(type)} | ${cell(paramTag.description)} |`
+    })
 
-    const name = paramTag.name + (paramTag.default ? `=${paramTag.default}` : '')
-    const isOptional = (!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional
-    const type = paramTag.type.split('|').join(', ').replace('(', '').replace(')', '')
-    parameters.push(`| \`${cell(name)}\`${isOptional ? '<br />*optional*' : ''} | ${cell(type)} | ${cell(paramTag.description)} |`)
+    /**
+     * the trailing newline keeps a blank line between the last row and
+     * whatever section follows, without which the table runs into it
+     */
+    return ['| Name | Type | Details |', '| --- | --- | --- |', ...rows].join('\n') + '\n'
 }
 
 /**
- * Platform support is repeated as text next to the icons, otherwise it only exists as image alt
- * text and is lost by anything that strips images.
- *
- * Two shapes arrive here:
- * - string[] from JSDoc `@support` tags (normalised by `formatter.ts`)
- * - `{ platform: { driver: version } }` from protocol docs (`protocolDocs.ts` passes
- *   `SupportedEnvironments` straight through), which must keep driver/version ranges
+ * The support icons carry the platform and driver versions in their alt
+ * text alone, which is lost by anything that strips images.
  */
-const supportEntries = Array.isArray(it.support)
-    ? (it.support || []).map((platform) => ({ platform, details: null }))
-    : Object.entries(it.support || {}).map(([platform, drivers]) => ({
-        platform,
-        details: Object.entries(drivers || {})
-            .map(([driver, version]) => `${driver} (${version})`)
+const supportList = (support) => Object.keys(support)
+    .map((platform) => {
+        const drivers = Object.keys(support[platform])
+            .map((driver) => `${driver} (${support[platform][driver]})`)
             .join(', ')
-    }))
-
-/**
- * eta trims the newline that follows a tag, so paragraphs that have to stay separate are joined
- * here rather than spaced out in the template body.
- */
-const supportBlock = [
-    supportEntries.map(({ platform, details }) => (
-        `![Support for ${details || platform}](/img/icons/${platform}.svg)`
-    )).join(' '),
-    `**Supported platforms:** ${supportEntries.map(({ platform, details }) => (
-        details ? `${platform}: ${details}` : platform
-    )).join(supportEntries.some(({ details }) => details) ? '; ' : ', ')}`,
-    ':::note',
-    'Refer to the official [Appium driver documentation](https://appium.io/docs/en/latest/ecosystem/) to see which driver versions support this command.',
-    ':::'
-].join('\n\n')
-_%>
+        return `- **${platformLabel(platform)}:** ${drivers}`
+    })
+    .join('\n')
+%>
 <% if (it.hasDocusaurusHeader) { %>
 ---
 id: <%= it.command %>
@@ -119,13 +126,13 @@ This protocol command is embedded in the following convenient method<%= it.alter
 
 <% if (!it.isSkipUsage) { %>
 
-<%= heading %> Usage
+<%= sectionHeading %> Usage
 
 ```js
 <% if (it.isElementScope) { %>
 <%= awaitPrefix %>$(selector).<%= it.command %>(<%= it.paramString %>)
 <% } else if (it.isMockScope) { %>
-<%= awaitPrefix %>mock.<%= it.command %>(<%= it.paramString %>)
+mock.<%= it.command %>(<%= it.paramString %>)
 <% } else if (it.isDialogScope) { %>
 await dialog.<%= it.command %>(<%= it.paramString %>)
 <% } else if (it.isClockScope) { %>
@@ -138,18 +145,17 @@ await clock.<%= it.command %>(<%= it.paramString %>)
 
 <% } %>
 
-<% if (parameters.length) { %>
-<%= heading %> Parameters
+<% if (it.paramTags.length) { %>
+<%= sectionHeading %> Parameters
 
-<%= parameters.join('\n') %>
-
+<%= parameterTable(it.paramTags) %>
 <% } %>
 
 <%
 const allExamples = [...it.examples, ...it.exampleReferences];
 if (allExamples.length) {
 %>
-<%= heading %> Example<%= allExamples.length > 1 ? 's' : '' %>
+<%= sectionHeading %> Example<%= allExamples.length > 1 ? 's' : '' %>
 
 <% it.exampleReferences.forEach(function(ref) {
 const filename = it.path.basename(ref.split('#')[0]);
@@ -175,20 +181,43 @@ const ext = it.path.extname(filename).slice(1);
 <% } %>
 
 <% if (it.returns) { %>
-<%= heading %> Returns
+<%= sectionHeading %> Returns
 
-- **&lt;<%= it.returns.type %>&gt;**<% if (it.returns.description) { %> **`<%= it.returns.name %>`:** <%= it.returns.description %><% } %>
+- **&lt;<%= it.returns.type %>&gt;**
+    <% if (it.returns.description) { %>
+        **<code><var><%= it.returns.name %></var></code>:** <%= it.returns.description %>
+    <% } %>
 <% } %>
 
 <% if (it.throwsTags.length) { %>
-<%= heading %> Throws
+<%= sectionHeading %> Throws
 
-<%= it.throwsTags.map((throwsTag) => `- **${throwsTag.type}**: ${throwsTag.description}`).join('\n') %>
+<% it.throwsTags.forEach(function(throwsTag) { %>- **<%= throwsTag.type %>**: <%= throwsTag.description %><% }) %>
 <% } %>
 
-<% if (supportEntries.length) { %>
-<%= heading %> Support
+<% if (it.support) { %>
+<%= sectionHeading %> Support
 
-<%= supportBlock %>
+<% if (Array.isArray(it.support) && it.support.length) { %>
+<% it.support.forEach(function(platform) { %>
+![Support for <%= platform %>](/img/icons/<%= platform %>.svg)
+<% }) %>
 
+**Supported platforms:** <%= it.support.map(platformLabel).join(', ') %>
+
+
+:::note
+
+Refer to the official [Appium driver documentation](https://appium.io/docs/en/latest/ecosystem/) to see which driver versions support this command.
+
+:::
+<% } else if (!Array.isArray(it.support) && Object.keys(it.support).length) { %>
+<% Object.keys(it.support).forEach(function(platform) { %>
+![Support for <%= Object.keys(it.support[platform]).map(function(driver) {
+    return driver + " (" + it.support[platform][driver] + ")";
+}).join(", ") %>](/img/icons/<%= platform %>.svg)
+<% }) %>
+
+<%= supportList(it.support) %>
+<% } %>
 <% } %>

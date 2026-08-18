@@ -190,26 +190,59 @@ const SUPPORTED_ASYMMETRIC_MATCHER = {
     ObjectContaining: 'objectContaining',
     StringContaining: 'stringContaining',
     StringMatching: 'stringMatching',
-    CloseTo: 'closeTo'
+    CloseTo: 'closeTo',
+    OneOf: 'oneOf'
 } as const
+
+type AsymmetricMatcherKey = keyof typeof SUPPORTED_ASYMMETRIC_MATCHER
+
+interface SerializedAsymmetricMatcher {
+    $$typeof: AsymmetricMatcherKey
+    sample: unknown
+    inverse?: boolean
+}
+
+function isSerializedAsymmetricMatcher(arg: unknown): arg is SerializedAsymmetricMatcher {
+    return (
+        typeof arg === 'object' &&
+        arg !== null &&
+        '$$typeof' in arg &&
+        typeof (arg as Record<string, unknown>).$$typeof === 'string' &&
+        Object.keys(SUPPORTED_ASYMMETRIC_MATCHER).includes((arg as Record<string, unknown>).$$typeof as string)
+    )
+}
+
+function isOneOfMatcher(matcherKey: string): matcherKey is 'oneOf' {
+    return matcherKey === 'oneOf'
+}
 
 /**
  * utility function to transform assertion parameters into asymmetric matchers if necessary
  * @param arg raw value or a stringified asymmetric matcher
  * @returns   raw value or an actual asymmetric matcher
  */
-export function transformExpectArgs (arg: unknown) {
-    if (typeof arg === 'object' && arg && '$$typeof' in arg && typeof arg.$$typeof === 'string' && Object.keys(SUPPORTED_ASYMMETRIC_MATCHER).includes(arg.$$typeof)) {
-        const matcherKey = SUPPORTED_ASYMMETRIC_MATCHER[arg.$$typeof as keyof typeof SUPPORTED_ASYMMETRIC_MATCHER] as keyof AsymmetricMatchers
-        const inverseMatcherKey = SUPPORTED_ASYMMETRIC_MATCHER[arg.$$typeof as keyof typeof SUPPORTED_ASYMMETRIC_MATCHER] as keyof InverseAsymmetricMatchers
-        const matcher = ('inverse' in arg && arg.inverse ? expect.not[inverseMatcherKey] : expect[matcherKey]) as unknown as (sample: string) => unknown
-
-        if (!matcher) {
-            throw new Error(`Matcher "${matcherKey}" is not supported by expect-webdriverio`)
-        }
-
-        return matcher((arg as unknown as { sample: string }).sample)
+export function transformExpectArgs(arg: unknown): unknown {
+    if (Array.isArray(arg)) {
+        return arg.map((item) => transformExpectArgs(item))
     }
 
-    return arg
+    if (!isSerializedAsymmetricMatcher(arg)) {
+        return arg
+    }
+
+    const matcherKey = SUPPORTED_ASYMMETRIC_MATCHER[arg.$$typeof] as keyof AsymmetricMatchers
+    const inverseMatcherKey = SUPPORTED_ASYMMETRIC_MATCHER[arg.$$typeof] as keyof InverseAsymmetricMatchers
+    const matcher = (arg.inverse ? expect.not[inverseMatcherKey] : expect[matcherKey]) as ((...args: unknown[]) => unknown) | undefined
+
+    if (!matcher) {
+        throw new Error(`Matcher "${matcherKey}" is not supported by expect-webdriverio`)
+    }
+
+    const transformedSample = transformExpectArgs(arg.sample)
+
+    if (isOneOfMatcher(matcherKey)) {
+        return matcher(...(transformedSample as unknown[]))
+    }
+
+    return matcher(transformedSample)
 }

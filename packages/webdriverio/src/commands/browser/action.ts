@@ -148,7 +148,7 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
  *
  * @alias browser.action
  * @type utility
- * @skipAwait
+ * @skipAwait returns a chainable action builder, the `perform()` call at the end of the chain is what gets awaited
  *
  */
 export function action (

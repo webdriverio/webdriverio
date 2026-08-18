@@ -58,8 +58,8 @@ export default function (docfile: {
     let tagCustomType = ''
     let tagMobileElement = false
     let tagSkipUsage = false
-    let tagSupport: string[] | undefined
     let tagSkipAwait = false
+    let tagSupport: string[] | undefined
     let returns
 
     for (const tag of javadoc.tags) {
@@ -154,6 +154,10 @@ export default function (docfile: {
             tagSkipUsage = true
             break
         }
+        case 'skipAwait': {
+            tagSkipAwait = true
+            break
+        }
         case 'support': {
             try {
                 const parsed = JSON.parse(source[0].source.split('@support')[1].trim())
@@ -161,14 +165,6 @@ export default function (docfile: {
             } catch {
                 // ignore malformed support tag
             }
-            break
-        }
-        /**
-         * commands that don't return a promise, e.g. `browser.action`, so that the
-         * generated usage snippet doesn't teach an unnecessary `await`
-         */
-        case 'skipAwait': {
-            tagSkipAwait = true
             break
         }
         case 'author': {

@@ -164,6 +164,21 @@ globals: nightwatchDevtools({
 })
 ```
 
+### Granularity and Cucumber
+
+`traceGranularity` chooses what one artifact covers — `'session'` (default), `'spec'`, or `'test'`.
+
+Nightwatch quits the browser after every Cucumber scenario. A `'session'` trace spans that: one zip for the whole run, with every scenario nested under its feature. `'test'` writes one zip per scenario into its own folder, which is the recommendation for Cucumber — smaller artifacts, and the granularity that `tracePolicy` retention keys on.
+
+```js
+globals: nightwatchDevtools({
+  mode: 'trace',
+  traceGranularity: 'test'  // one trace per Cucumber scenario
+})
+```
+
+On the BDD `describe/it` interface, `'test'` collapses to a single session-scoped slice: Nightwatch runs each `it()` internally and fires the plugin's per-test hook only once per module. The action tree still shows each `it` as its own group.
+
 The backend port-bind, UI window, and `screencast` option are all skipped in trace mode. For the full feature reference (artifact contents, viewer, mobile testing, when to pick `zip` vs `ndjson-directory`), see the [Trace Mode page](/docs/devtools/wdio/trace-mode).
 
 Nightwatch shares the same trace pipeline as the WebdriverIO and Selenium adapters, so the artifact shape is identical no matter which adapter produced it. A Nightwatch trace carries the full per-action capture — a screenshot, the depth-indented accessibility-tree snapshot, the interactable-element list, and the Markdown transcript — so it opens in the `show-trace` player with DOM/snapshot time-travel, the **A11y** and **Transcript** tabs, the pick-locator element overlay, and (for Cucumber) **Feature → Scenario → Step** nesting.
