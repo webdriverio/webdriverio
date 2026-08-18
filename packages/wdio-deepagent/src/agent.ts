@@ -58,6 +58,8 @@ export interface DeepAgentHarnessOptions {
 
 export interface DeepAgentHarness {
     agent: DeepAgent
+    /** Resolved chat model — exposed so callers can fire preload probes (REPL warmup). */
+    model: BaseChatModel
     mcpClient: WdioMcpClient | null
     tools: DynamicStructuredTool[]
     /** Shuts down the MCP server process. */
@@ -394,6 +396,7 @@ export async function createDeepAgentHarness(
 
     return {
         agent,
+        model: chatModel,
         mcpClient,
         tools,
         close: surface.close,
