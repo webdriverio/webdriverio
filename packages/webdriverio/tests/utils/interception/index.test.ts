@@ -1,8 +1,9 @@
 import { EventEmitter } from 'node:events'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import logger from '@wdio/logger'
 import { type local } from 'webdriver'
 import WebDriverInterception from '../../../src/utils/interception/index.js'
-import logger from '@wdio/logger'
+import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
 
 type WebDriverInterceptionClass = typeof WebDriverInterception
 
@@ -399,7 +400,7 @@ describe('WebDriverInterception', () => {
                     responseStart: 0,
                     responseEnd: 0,
                 },
-            } satisfies Partial<local.NetworkRequestData> as unknown as     local.NetworkRequestData,
+            } satisfies Partial<local.NetworkRequestData> as unknown as local.NetworkRequestData,
             response: {
                 url: 'http://localhost/test/api',
                 status: 200,
@@ -1003,6 +1004,38 @@ describe('WebDriverInterception', () => {
                     body: { type: 'string', value: 'mocked response' }
                 })
             )
+        })
+    })
+
+    describe('restore', () => {
+        it('should continue in-flight blocked requests before removing the intercept', async () => {
+            let resolveProvideResponse: () => void
+            const provideResponsePromise = new Promise<void>((resolve) => {
+                resolveProvideResponse = resolve
+            })
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkProvideResponse: vi.fn().mockReturnValue(provideResponsePromise),
+                networkRemoveIntercept: vi.fn().mockResolvedValue(undefined),
+                getWindowHandle: vi.fn().mockResolvedValue('handle-1'),
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            SESSION_MOCKS['handle-1'] = new Set([mock])
+
+            mock.respond({ ok: true })
+            browser.emit('network.responseStarted', {
+                ...getResponseCollectionRequestStub(),
+                intercepts: ['mock-id']
+            })
+
+            // provideResponse is still pending, so the request id must still be tracked
+            // through restore even though reset()/clear() would otherwise wipe the set
+            await mock.restore()
+
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-123' })
+            expect(browser.networkRemoveIntercept).toHaveBeenCalledWith({ intercept: 'mock-id' })
+
+            resolveProvideResponse!()
+            delete SESSION_MOCKS['handle-1']
         })
     })
 })

@@ -34,6 +34,7 @@ type RequestWithPostData<T extends local.NetworkBeforeRequestSentParameters | Re
  */
 export default class WebDriverInterception {
     #pattern: URLPattern
+    #patternId: string
     #mockId: string
     #filterOptions: MockFilterOptions
     #browser: WebdriverIO.Browser
@@ -47,6 +48,7 @@ export default class WebDriverInterception {
     #requestPostData = new Map<string, string>()
     #isCollectingNetworkData: boolean
     #hasOneResponseCollected = false
+    #blockedRequests = new Set<string>()
 
     constructor(
         pattern: URLPattern,
@@ -56,6 +58,7 @@ export default class WebDriverInterception {
         isCollectingNetworkData = false
     ) {
         this.#pattern = pattern
+        this.#patternId = getPatternId(pattern)
         this.#mockId = mockId
         this.#filterOptions = filterOptions
         this.#browser = browser
@@ -141,6 +144,15 @@ export default class WebDriverInterception {
     }
 
     #handleBeforeRequestSent(request: local.NetworkBeforeRequestSentParameters) {
+        if (this.#restored) {
+            // If restored during in-flight request, continue it to prevent hanging
+            if (request.intercepts?.includes(this.#mockId)) {
+                return this.#browser.networkContinueRequest({
+                    request: request.request.request
+                }).catch(() => { /* ignore errors for restored mocks */ })
+            }
+            return
+        }
         /**
          * don't do anything if:
          * - request is not blocked
@@ -181,6 +193,7 @@ export default class WebDriverInterception {
             })
         }
 
+        const requestId = request.request.request
         this.#emit('request', request)
         const hasRequestOverwrites = this.#requestOverwrites.length > 0
         if (hasRequestOverwrites) {
@@ -189,24 +202,42 @@ export default class WebDriverInterception {
                 : this.#requestOverwrites[0]
 
             if (abort) {
-                this.#emit('fail', request.request.request)
-                return this.#browser.networkFailRequest({ request: request.request.request })
+                this.#emit('fail', requestId)
+                return this.#withBlockedRequestTracking(
+                    requestId,
+                    this.#browser.networkFailRequest({ request: requestId })
+                )
             }
 
             this.#emit('overwrite', request)
-            return this.#browser.networkContinueRequest({
-                request: request.request.request,
-                ...(overwrite ? parseOverwrite(overwrite, request) : {})
-            })
+            return this.#withBlockedRequestTracking(
+                requestId,
+                this.#browser.networkContinueRequest({
+                    request: requestId,
+                    ...(overwrite ? parseOverwrite(overwrite, request) : {})
+                })
+            )
         }
 
-        this.#emit('continue', request.request.request)
-        return this.#browser.networkContinueRequest({
-            request: request.request.request
-        })
+        this.#emit('continue', requestId)
+        return this.#withBlockedRequestTracking(
+            requestId,
+            this.#browser.networkContinueRequest({
+                request: requestId
+            })
+        )
     }
 
     #handleResponseStarted(request: Response) {
+        if (this.#restored) {
+            // If restored during in-flight request, provide response to prevent hanging
+            if (request.intercepts?.includes(this.#mockId)) {
+                return this.#browser.networkProvideResponse({
+                    request: request.request.request
+                }).catch(() => { /* ignore errors for restored mocks */ })
+            }
+            return
+        }
         /**
          * don't do anything if:
          * - request is not blocked
@@ -242,6 +273,8 @@ export default class WebDriverInterception {
          */
         this.#calls.push(request)
 
+        const requestId = request.request.request
+
         /**
          * continue response as mock has no respond overwrites
          */
@@ -249,10 +282,13 @@ export default class WebDriverInterception {
             this.#respondOverwrites.length === 0 ||
             !this.#respondOverwrites[0].overwrite
         ) {
-            this.#emit('continue', request.request.request)
-            return this.#browser.networkProvideResponse({
-                request: request.request.request
-            }).catch(this.#handleNetworkProvideResponseError)
+            this.#emit('continue', requestId)
+            return this.#withBlockedRequestTracking(
+                requestId,
+                this.#browser.networkProvideResponse({
+                    request: requestId
+                }).catch(this.#handleNetworkProvideResponseError)
+            )
         }
 
         const { overwrite } = this.#respondOverwrites[0].once
@@ -266,21 +302,27 @@ export default class WebDriverInterception {
             this.#emit('overwrite', request)
             const responseData = parseOverwrite(overwrite, request)
             if (responseData.body) {
-                this.#overwrittenResponseBodies.set(request.request.request, responseData.body)
+                this.#overwrittenResponseBodies.set(requestId, responseData.body)
             }
-            return this.#browser.networkProvideResponse({
-                request: request.request.request,
-                ...responseData,
-            }).catch(this.#handleNetworkProvideResponseError)
+            return this.#withBlockedRequestTracking(
+                requestId,
+                this.#browser.networkProvideResponse({
+                    request: requestId,
+                    ...responseData,
+                }).catch(this.#handleNetworkProvideResponseError)
+            )
         }
 
         /**
          * continue request as is
          */
-        this.#emit('continue', request.request.request)
-        return this.#browser.networkProvideResponse({
-            request: request.request.request
-        }).catch(this.#handleNetworkProvideResponseError)
+        this.#emit('continue', requestId)
+        return this.#withBlockedRequestTracking(
+            requestId,
+            this.#browser.networkProvideResponse({
+                request: requestId
+            }).catch(this.#handleNetworkProvideResponseError)
+        )
     }
 
     async #handleResponseCompleted(response: Response) {
@@ -526,6 +568,7 @@ export default class WebDriverInterception {
         this.#overwrittenResponseBodies.clear()
         this.#requestPostData.clear()
         this.#hasOneResponseCollected = false
+        this.#blockedRequests.clear()
         return this
     }
 
@@ -546,17 +589,38 @@ export default class WebDriverInterception {
      * Restored mock does not emit events and could not mock responses
      */
     async restore() {
+        /**
+         * Snapshot before reset()/clear() — those clear `#blockedRequests`, and we
+         * still need to continue any in-flight blocked requests after cleanup.
+         */
+        const blockedRequestIds = Array.from(this.#blockedRequests)
         this.reset()
         this.#respondOverwrites = []
-        this.#restored = true
         const handle = await this.#browser.getWindowHandle()
 
         log.trace(`Restoring mock for ${handle}`)
         SESSION_MOCKS[handle].delete(this as WebDriverInterception)
 
+        // Continue any in-flight blocked requests before removing the intercept
+        // to prevent them from hanging
+        for (const requestId of blockedRequestIds) {
+            try {
+                await this.#browser.networkContinueRequest({ request: requestId })
+            } catch (err) {
+                // Ignore errors - request may have already completed or timed out
+                log.trace(`Failed to continue in-flight request ${requestId} during restore:`, err)
+            }
+        }
+        this.#blockedRequests.clear()
+
+        // Remove the network intercept BEFORE setting #restored flag
+        // This prevents new requests from being blocked while we're cleaning up
         if (this.#mockId) {
             await this.#browser.networkRemoveIntercept({ intercept: this.#mockId })
         }
+
+        // Now it's safe to mark as restored
+        this.#restored = true
 
         return this
     }
@@ -658,6 +722,22 @@ export default class WebDriverInterception {
         }
     }
 
+    /**
+     * Keep the request id tracked until the BiDi call settles so restore()
+     * can still continue it if cleanup races an in-flight interception.
+     */
+    #withBlockedRequestTracking(requestId: string, networkCall: Promise<unknown>) {
+        this.#blockedRequests.add(requestId)
+        return Promise.resolve(networkCall).finally(() => {
+            this.#blockedRequests.delete(requestId)
+        })
+    }
+
+    isSameDefinition(url: string | URLPattern, filterOptions: MockFilterOptions = {}) {
+        const pattern = parseUrlPattern(url)
+        return this.#patternId === getPatternId(pattern) && areFilterOptionsEqual(this.#filterOptions, filterOptions)
+    }
+
     waitForResponse({
         timeout = this.#browser.options.waitforTimeout,
         interval = this.#browser.options.waitforInterval,
@@ -711,4 +791,34 @@ export function parseUrlPattern(url: string | URLPattern) {
     return new URLPattern({
         pathname: url
     })
+}
+
+function getPatternId(pattern: URLPattern) {
+    return `${pattern.protocol}|${pattern.username}|${pattern.password}|${pattern.hostname}|${pattern.port}|${pattern.pathname}|${pattern.search}|${pattern.hash}`
+}
+
+function areFilterOptionsEqual(a: MockFilterOptions = {}, b: MockFilterOptions = {}) {
+    const keys: (keyof MockFilterOptions)[] = ['method', 'requestHeaders', 'responseHeaders', 'statusCode', 'postData']
+    return keys.every((key) => isFilterOptionValueEqual(a[key], b[key]))
+}
+
+function isFilterOptionValueEqual(a: unknown, b: unknown) {
+    if (a === b) {
+        return true
+    }
+
+    if (typeof a === 'function' || typeof b === 'function') {
+        return false
+    }
+
+    if (a && b && typeof a === 'object' && typeof b === 'object') {
+        const aKeys = Object.keys(a as Record<string, unknown>).sort()
+        const bKeys = Object.keys(b as Record<string, unknown>).sort()
+        if (aKeys.length !== bKeys.length) {
+            return false
+        }
+        return aKeys.every((k, i) => k === bKeys[i] && (a as Record<string, unknown>)[k] === (b as Record<string, unknown>)[k])
+    }
+
+    return false
 }
