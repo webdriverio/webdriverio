@@ -235,6 +235,15 @@ node tests/google.test.js
 | `headless` | `boolean` | `false` | Run the **test** browser headless (injects `--headless=old`). The DevTools UI window is unaffected. |
 | `screencast` | `ScreencastOptions` | `{ enabled: false }` | Per-session `.webm` video recording. Options match the [WebdriverIO Screencast](/docs/devtools/wdio/screencast) page. |
 | `rerunCommand` | `string` | auto | Command template for per-test rerun. `{{testName}}` is substituted. Auto-derived from runner argv if omitted. |
+| `mode` | `'live' \| 'trace'` | `'live'` | `live` opens the DevTools UI; `trace` skips it and writes a portable artifact instead. See [Trace Mode](/docs/devtools/wdio/trace-mode). Overrides `openUi`. |
+| `traceFormat` | `'zip' \| 'ndjson-directory'` | `'zip'` | Trace artifact layout. Only applies when `mode: 'trace'`. |
+| `traceGranularity` | `'session' \| 'spec' \| 'test'` | `'session'` | One trace per session / spec file / test. `'test'` writes each to `test-results/<spec>-<title>-<browser>[-retryN]/trace.zip`. Only applies when `mode: 'trace'`. See [Trace Mode](/docs/devtools/wdio/trace-mode#trace-granularity--tracegranularity). |
+| `tracePolicy` | `'on' \| 'retain-on-failure' \| 'retain-on-first-failure' \| 'on-first-retry' \| 'on-all-retries' \| 'retain-on-failure-and-retries'` | `'on'` | Which traces to keep. Pairs with `traceGranularity: 'test'`. Only applies when `mode: 'trace'`. |
+| `filmstrip` | `boolean` | `true` | Record a dense, continuous screencast into the trace for frame-by-frame scrubbing in the player. Only applies when `mode: 'trace'`. |
+| `screenshot` | `'off' \| 'on' \| 'only-on-failure'` | `'off'` | Trace mode + `traceGranularity: 'test'`. Per-test screenshot, attached inline to Allure (`image/png`) via `allure-js-commons` when an Allure runner adapter is active. |
+| `video` | `'off' \| TraceRetentionPolicy` | `'off'` | Trace mode + `traceGranularity: 'test'`. Per-test screencast video, retained per the given policy, attached inline to Allure (`video/webm`) via `allure-js-commons` when an Allure runner adapter is active. |
+| `emitArtifactsManifest` | `boolean` | auto | Write the `devtools-artifacts-<sessionId>.json` manifest — the generic index reporters/CI consume to discover produced artifacts — next to the trace. Off by default; **auto-enables** when an `allure-js-commons` runtime is active. Trace mode only. |
+| `captureAssertions` | `boolean` | `true` | Capture `node:assert` assertions (both passing and failing) as trace action rows. Set `false` to opt out. |
 
 ```js
 DevTools.configure({
@@ -246,6 +255,47 @@ DevTools.configure({
 ```
 
 > **For CI**, set both `headless: true` (hide the test browser) and `openUi: false` (don't try to open the dashboard window - CI environments have no display). The backend keeps running on the configured port so you can still open the UI later if needed.
+
+## Trace mode
+
+Headless capture path — no DevTools UI window opens. At session end the adapter writes a portable `trace-<sessionId>.zip` (or directory) into a `test-results/` folder (next to the resolved test / config directory), with the same shape as the WebdriverIO trace artifact.
+
+```js
+DevTools.configure({
+  mode: 'trace',
+  traceFormat: 'ndjson-directory'  // optional; default 'zip'
+})
+```
+
+The backend port-bind, UI window, and `screencast` option are all skipped in trace mode. For the full feature reference (artifact contents, viewer, mobile testing, when to pick `zip` vs `ndjson-directory`), see the [Trace Mode page](/docs/devtools/wdio/trace-mode).
+
+### Per-test artifacts and retention
+
+At `traceGranularity: 'test'` each test gets its own artifact folder, and `tracePolicy` decides which are kept (e.g. `retain-on-failure`). In that mode you can also capture a per-test `screenshot` (PNG) and `video` (`.webm`), and enable a dense `filmstrip` recorded into the trace for frame-by-frame scrubbing. When an `allure-js-commons` runner adapter is active, per-test traces / screenshots / videos are attached inline to the Allure report (and `emitArtifactsManifest` auto-enables); otherwise they're written to `test-results/` and recorded in the manifest.
+
+```js
+DevTools.configure({
+  mode: 'trace',
+  traceGranularity: 'test',
+  tracePolicy: 'retain-on-failure',
+  filmstrip: true,
+  screenshot: 'only-on-failure',
+  video: 'retain-on-failure'
+})
+```
+
+### Viewing the trace
+
+Open any trace `.zip` in the first-party player — the same DevTools UI in a dedicated **player** mode:
+
+```bash
+npx show-trace path/to/trace.zip      # in a project that installs the adapter
+pnpm show-trace path/to/trace.zip     # from the devtools monorepo
+```
+
+The `show-trace` bin ships with `@wdio/selenium-devtools`, so it's available in any project that installs it — no extra dependency. Because the Selenium adapter captures the page's **DOM mutation stream** and a per-command element / accessibility snapshot alongside each screenshot, a Selenium trace drives the player's full feature set — DOM time-travel, the A11y tab and pick-locator overlay, the Transcript tab with Copy-for-LLM, Cucumber Feature → Scenario → Step nesting, and the scrubbable timeline.
+
+The trace uses a portable NDJSON schema, so the same `.zip` (or directory) also opens in other compatible trace viewers. See the **[Trace Player](/docs/devtools/trace-player)** page for the full walkthrough.
 
 ## Public API
 
@@ -261,33 +311,33 @@ Under Mocha / Jest / Cucumber the plugin auto-hooks the runner's lifecycle, so y
 
 ## Examples
 
-Working examples are included in the package:
+Working examples live in the repo's top-level `examples/` directory. Build the workspace once (`pnpm install && pnpm build`), then run from the repo root. `pnpm demo:selenium` runs the default (Cucumber) example; the per-runner variants are:
 
 | Directory | Runner | Command |
 |-----------|--------|---------|
-| [`example/mocha-test/`](https://github.com/webdriverio/devtools/tree/main/packages/selenium-devtools/example/mocha-test) | Mocha | `pnpm example:mocha` |
-| [`example/jest-test/`](https://github.com/webdriverio/devtools/tree/main/packages/selenium-devtools/example/jest-test) | Jest | `pnpm example:jest` |
-| [`example/cucumber-test/`](https://github.com/webdriverio/devtools/tree/main/packages/selenium-devtools/example/cucumber-test) | Cucumber | `pnpm example:cucumber` |
-
-Build the package first:
-
-```bash
-# From repo root
-pnpm build --filter @wdio/selenium-devtools
-cd packages/selenium-devtools
-pnpm example:mocha
-```
+| [`examples/selenium/mocha-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/mocha-test) | Mocha | `pnpm --filter @wdio/selenium-devtools example:mocha` |
+| [`examples/selenium/jest-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/jest-test) | Jest | `pnpm --filter @wdio/selenium-devtools example:jest` |
+| [`examples/selenium/cucumber-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/cucumber-test) | Cucumber | `pnpm demo:selenium` |
 
 ## Features
 
-The Selenium adapter provides the same DevTools UI experience:
+The Selenium adapter provides the same DevTools UI experience as WebdriverIO. Every feature below is captured automatically with the base `DevTools.configure({})` setup — no per-feature config (console + network stream via Selenium's BiDi handlers on Chrome ≥114, with an injected-collector fallback). Links go to each feature's full reference.
 
-- **[Interactive Test Rerunning & Visualization](/docs/devtools/wdio/interactive-test-rerunning)** - Real-time browser previews with test rerunning
+- **[Interactive Test Rerunning & Visualization](/docs/devtools/wdio/interactive-test-rerunning)** - Live browser previews, per-command screenshots, and one-click test/suite rerunning
 - **[Preserve & Rerun (Compare)](/docs/devtools/wdio/preserve-and-rerun)** - Snapshot a failing test, rerun it, and diff the two runs side-by-side
+- **[Multi-Framework Support](/docs/devtools/wdio/multi-framework-support)** - Auto-detects Mocha, Jest, Cucumber, or a plain `node` script
 - **[Console Logs](/docs/devtools/wdio/console-logs)** - Capture and inspect browser console output
 - **[Network Logs](/docs/devtools/wdio/network-logs)** - Monitor API calls and network activity
-- **[TestLens](/docs/devtools/wdio/testlens)** - Navigate to source code with intelligent code navigation
+- **[Metadata](/docs/devtools/wdio/metadata)** - Session capabilities, environment, and timing per browser session
+- **[TestLens](/docs/devtools/wdio/testlens)** - Jump from any command to the source line that triggered it
 - **[Session Screencast](/docs/devtools/wdio/screencast)** - Automatic video recording of browser sessions
+- **[Trace Mode](/docs/devtools/wdio/trace-mode)** - Headless capture producing a portable `trace.zip` (no UI window)
+
+Screencast is the one feature with its own options (see [Configuration Options](#configuration-options)):
+
+```js
+DevTools.configure({ screencast: { enabled: true, quality: 70, maxWidth: 1280, maxHeight: 720 } })
+```
 
 ## How It Works
 
@@ -298,6 +348,8 @@ The plugin patches `selenium-webdriver`'s `Builder`, `WebDriver`, and `WebElemen
 - **`WebDriver.quit()`** - an awaited cleanup hook flushes screencast encoding, WebSocket buffer, and final metadata before the original quit runs.
 
 When BiDi is available (Chrome ≥114), console logs, JavaScript exceptions, and network events stream directly via the Selenium BiDi handlers. Otherwise the plugin falls back to an injected browser-side collector script.
+
+The same injected collector also records the page's **DOM mutation stream** and a per-command element / accessibility snapshot, so a trace carries enough to rebuild the live DOM at each step (per-navigation mapping) — this is what powers the player's DOM time-travel and A11y tab rather than a screenshot-only replay.
 
 ## Limitations
 

@@ -27,7 +27,7 @@ jobs:
         # Don't merge updates to GitHub Actions versions automatically.
         # (Some repos may wish to limit by version range (major/minor/patch), or scope (dep vs dev-dep), too.)
         if: contains(steps.metadata.outputs.package-ecosystem, 'npm')
-        uses: lewagon/wait-on-check-action@74049309dfeff245fe8009a0137eacf28136cb3c # v1.5.0
+        uses: lewagon/wait-on-check-action@96d9100b431964d10e0136aff8b9ccb92470505e # v1.8.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}

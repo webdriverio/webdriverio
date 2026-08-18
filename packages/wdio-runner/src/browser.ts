@@ -4,7 +4,8 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
 import { executeHooksWithArgs } from '@wdio/utils'
-import { matchers } from 'expect-webdriverio'
+import { wdioCustomMatchers } from 'expect-webdriverio'
+import { some } from 'expect-webdriverio/api'
 import { ELEMENT_KEY } from 'webdriver'
 import { type Workers, type Services, MESSAGE_TYPES } from '@wdio/types'
 
@@ -258,7 +259,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         if (message.type === MESSAGE_TYPES.expectMatchersRequest) {
             return this.#sendWorkerResponse(
                 id,
-                this.#expectMatcherResponse({ matchers: Array.from(matchers.keys()) })
+                this.#expectMatcherResponse({ matchers: Object.keys(wdioCustomMatchers) })
             )
         }
     }
@@ -401,26 +402,44 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         /**
          * find matcher, e.g. `toBeDisplayed` or `toHaveTitle`
          */
-        const matcher = matchers.get(payload.matcherName)
+        const matcher = wdioCustomMatchers[payload.matcherName]
         if (!matcher) {
             const message = `Couldn't find matcher with name "${payload.matcherName}"`
             return this.#sendWorkerResponse(id, this.#expectResponse({ id: payload.id, pass: false, message }))
         }
 
         try {
-            const context = payload.element
-                ? Array.isArray(payload.element)
-                    ? await browser.$$(payload.element)
-                    /**
-                     * check if element contains an `elementId` property, if so the element was already
-                     * found, so we can transform it into an `WebdriverIO.Element` object, if not we
-                     * need to find it first, so we pass in the selector.
-                     */
-                    : payload.element.elementId
-                        ? await browser.$(payload.element)
-                        : await browser.$(payload.element.selector)
-                : payload.context || browser
-            const result = await matcher.apply(payload.scope, [context, ...payload.args.map(transformExpectArgs)])
+            const isSome = payload.scope.isSome
+            let received = payload.element
+
+            const refetchElement = async (element: WebdriverIO.Element) => {
+                /**
+                 * When having `elementId`, element was already found and it is transformed into an `WebdriverIO.Element`,
+                 * If not we need to find it first with the selector.
+                 */
+                return element.elementId
+                    ? await browser.$(element)
+                    : await browser.$(element.selector)
+            }
+
+            if (received) {
+                if (Array.isArray(received)) {
+                    // ElementArray or array of WebdriverIO.Element, refetch all elements to get fresh references
+                    received = await ('parent' in received ? browser.$$(received) : Promise.all(received.map(refetchElement)))
+                } else if (typeof received === 'object' && ('elementId' in received || 'selector' in received)) {
+                    received = await refetchElement(received as WebdriverIO.Element)
+                } else {
+                    throw new Error(`Received value is not an element or array of elements: ${JSON.stringify(received)}`)
+                }
+            } else {
+                received = payload.context || browser
+            }
+
+            if (isSome) {
+                received = isSome ? some(received as WebdriverIO.Element[] | WebdriverIO.ElementArray | ChainablePromiseArray) : received
+            }
+
+            const result = await matcher.apply(payload.scope, [received, ...payload.args.map(transformExpectArgs)])
             return this.#sendWorkerResponse(id, this.#expectResponse({
                 id: payload.id,
                 pass: result.pass,

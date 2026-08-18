@@ -543,7 +543,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextStartScreencastParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  mimeType?: string;<br />  streamOptions?: BrowsingContextMediaStreamOptions;<br />\\}</pre>",
+                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  mimeType?: string;<br />  video?: BrowsingContextMediaTrackConstraints;<br />  audio?: boolean;<br />\\}</pre>",
                     "required": true
                 }
             ],

@@ -337,7 +337,6 @@ describe('bidi e2e test', () => {
         describe('Browser ClientWindowState', () => {
 
             it('can get window state', async () => {
-                console.log('Getting window state')
                 await browser.url('https://guinea-pig.webdriver.io')
 
                 const windowState = await browser.browserGetClientWindows({})
@@ -466,7 +465,7 @@ describe('bidi e2e test', () => {
                 await browser.setPermissions({ name: 'geolocation' }, 'granted')
 
                 return browser.execute(() => {
-                // You must wrap callback-based APIs in a Promise even in an async function
+                    // You must wrap callback-based APIs in a Promise even in an async function
                     return new Promise((resolve, reject) => {
                         if (!navigator.geolocation) {
                             return reject(new Error('Geolocation not supported'))

@@ -86,12 +86,10 @@ Directories under `node_modules/` are skipped on the Selenium/Nightwatch path so
 
 ## Output Files
 
-Filenames are adapter-specific (the framework name appears in the prefix), but the shape is the same:
+Live mode streams captured data to the dashboard over WebSocket and writes **no trace file to disk** — for a portable artifact, use [trace mode](/docs/devtools/wdio/trace-mode) (`trace.zip`). The only file live mode writes is the screencast video, and only when `screencast.enabled: true`. Filenames are adapter-specific (the framework name appears in the prefix):
 
-| Adapter | Trace JSON | Screencast video |
-|---|---|---|
-| WebdriverIO | `wdio-trace-{sessionId}.json` | `wdio-video-{sessionId}.webm` |
-| Selenium | - | `selenium-video-{sessionId}.webm` |
-| Nightwatch | - | `nightwatch-video-{sessionId}.webm` |
-
-The trace JSON is currently produced by WDIO only; Selenium and Nightwatch stream the same data live to the dashboard but don't write a snapshot file today. The video is produced by every adapter when `screencast.enabled: true`.
+| Adapter | Screencast video |
+|---|---|
+| WebdriverIO | `wdio-video-{sessionId}.webm` |
+| Selenium | `selenium-video-{sessionId}.webm` |
+| Nightwatch | `nightwatch-video-{sessionId}.webm` |
