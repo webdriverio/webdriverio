@@ -20,14 +20,14 @@ Flutter manages its own internal elements and uses proprietary search methods (s
 
 We document common scenarios using `appium-flutter-finder` to locate widgets, combined with direct extension commands executed through `driver.execute('flutter:<command>')`.
 
-:::info Flutter Driver Extension Commands
+:::info Flutter Driver Extension Commands & Finders
 The `appium-flutter-driver` provides specialized commands for interacting with Flutter applications, including:
 - `flutter:waitFor`: Waits for a widget to become visible.
 - `flutter:waitForAbsent`: Waits for a widget to disappear.
 - `flutter:scroll` / `flutter:scrollIntoView` / `flutter:scrollUntilVisible`: Handles scrolling within scrollable views.
 - `flutter:setTextEntryEmulation`: Configures text input behavior.
 
-For the full list of available commands, parameters, and return types, see the [Appium Flutter Driver Extension Commands Documentation](https://github.com/appium/appium-flutter-driver#driver-extension-commands) and the [Appium Flutter Finder API](https://github.com/appium/appium-flutter-finder#locators).
+For the full list of available commands, parameters, and return types, see the [Appium Flutter Driver Commands Documentation](https://github.com/appium/appium-flutter-driver#commands), the [Node.js Finder source code](https://github.com/appium/appium-flutter-driver/tree/main/finder/nodejs), and the [appium-flutter-finder on npm](https://www.npmjs.com/package/appium-flutter-finder).
 :::
 
 ### Example A — Simple interaction (Counter flow)
