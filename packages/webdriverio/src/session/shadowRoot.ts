@@ -28,7 +28,6 @@ export class ShadowRootManager extends SessionManager {
 
     #handleLogEntryListener = this.handleLogEntry.bind(this)
     #commandResultHandlerListener = this.#commandResultHandler.bind(this)
-    #handleBidiCommandListener = this.#handleBidiCommand.bind(this)
     #handleNavigationCommittedListener = this.#handleNavigationCommitted.bind(this)
 
     constructor(browser: WebdriverIO.Browser) {
@@ -51,7 +50,6 @@ export class ShadowRootManager extends SessionManager {
         }).then(() => true, () => false)
         this.#browser.on('log.entryAdded', this.#handleLogEntryListener)
         this.#browser.on('result', this.#commandResultHandlerListener)
-        this.#browser.on('bidiCommand', this.#handleBidiCommandListener)
         this.#browser.on('browsingContext.navigationCommitted', this.#handleNavigationCommittedListener)
         this.#browser.scriptAddPreloadScript({
             functionDeclaration: customElementWrapper.toString()
@@ -70,23 +68,11 @@ export class ShadowRootManager extends SessionManager {
         super.removeListeners()
         this.#browser.off('log.entryAdded', this.#handleLogEntryListener)
         this.#browser.off('result', this.#commandResultHandlerListener)
-        this.#browser.off('bidiCommand', this.#handleBidiCommandListener)
         this.#browser.off('browsingContext.navigationCommitted', this.#handleNavigationCommittedListener)
     }
 
     async initialize () {
         return this.#initialize
-    }
-
-    /**
-     * keep track of navigation events and remove shadow roots when they are no longer needed
-     */
-    #handleBidiCommand (command: Omit<remote.CommandData, 'id'>) {
-        if (command.method !== 'browsingContext.navigate') {
-            return
-        }
-        const params = command.params as remote.BrowsingContextNavigateParameters
-        this.#clearContext(params.context)
     }
 
     #handleNavigationCommitted({ context }: local.BrowsingContextNavigationInfo) {

@@ -36,7 +36,7 @@ describe('ShadowRootManager', () => {
         process.env.WDIO_UNIT_TESTS = wid
         expect(await manager.initialize()).toBe(true)
         expect(browser.sessionSubscribe).toBeCalledTimes(1)
-        expect(browser.on).toBeCalledTimes(5)
+        expect(browser.on).toBeCalledTimes(4)
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(1)
 
         manager.removeListeners()
@@ -46,10 +46,12 @@ describe('ShadowRootManager', () => {
     it('does not clear cached shadow roots until a navigation commits', async () => {
         const wid = process.env.WDIO_UNIT_TESTS
         delete process.env.WDIO_UNIT_TESTS
+        const listeners = new Map<string, (...args: any[]) => void>()
         const browser = {
             ...defaultBrowser,
             sessionId: 'navigation-session',
             isBidi: true,
+            on: vi.fn((event: string, listener: (...args: any[]) => void) => listeners.set(event, listener)),
             options: { capabilities: { webSocketUrl: './' } }
         } as any
         const manager = getShadowRootManager(browser)
@@ -79,11 +81,15 @@ describe('ShadowRootManager', () => {
             events: ['log.entryAdded', 'browsingContext.navigationCommitted']
         })
         expect(browser.on).not.toHaveBeenCalledWith('browsingContext.navigationStarted', expect.any(Function))
+        expect(browser.on).not.toHaveBeenCalledWith('bidiCommand', expect.any(Function))
+
+        listeners.get('bidiCommand')?.({
+            method: 'browsingContext.navigate',
+            params: { context: 'navigation-context', url: 'https://example.com', wait: 'complete' }
+        })
         expect(await manager.getShadowElementsByContextId('navigation-context')).toContain('f.C1.d.AAAA.e.101')
 
-        const navigationCommittedListener = browser.on.mock.calls.find(
-            ([event]: [string]) => event === 'browsingContext.navigationCommitted'
-        )?.[1]
+        const navigationCommittedListener = listeners.get('browsingContext.navigationCommitted')
         expect(navigationCommittedListener).toEqual(expect.any(Function))
         navigationCommittedListener({ context: 'navigation-context' })
 
