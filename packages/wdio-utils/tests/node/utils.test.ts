@@ -3,13 +3,13 @@ import path from 'node:path'
 import url from 'node:url'
 import cp from 'node:child_process'
 import fs from 'node:fs'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { canDownload, resolveBuildId, detectBrowserPlatform } from '@puppeteer/browsers'
 import { locateChrome, locateApp } from 'locate-app'
 
 import {
     parseParams, getBuildIdByChromePath, getBuildIdByFirefoxPath, setupPuppeteerBrowser,
-    canAccess
+    canAccess, getCacheDir
 } from '../../src/node/utils.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -83,6 +83,26 @@ describe('driver utils', () => {
             stderr: '',
             status: 0,
             signal: null
+        })
+    })
+
+    describe('getCacheDir', () => {
+        afterEach(() => vi.unstubAllEnvs())
+
+        it('uses WEBDRIVER_CACHE_DIR when no cache directory is configured', () => {
+            vi.stubEnv('WEBDRIVER_CACHE_DIR', '/environment/cache')
+
+            expect(getCacheDir({}, {})).toBe('/environment/cache')
+        })
+
+        it('prefers configured cache directories over WEBDRIVER_CACHE_DIR', () => {
+            vi.stubEnv('WEBDRIVER_CACHE_DIR', '/environment/cache')
+
+            expect(getCacheDir({ cacheDir: '/options/cache' }, {})).toBe('/options/cache')
+            expect(getCacheDir(
+                { cacheDir: '/options/cache' },
+                { 'wdio:chromedriverOptions': { cacheDir: '/driver/cache' } }
+            )).toBe('/driver/cache')
         })
     })
 
