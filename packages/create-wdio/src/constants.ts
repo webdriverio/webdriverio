@@ -113,12 +113,12 @@ export const DEEPAGENT_PLUGIN_VALUE = '@wdio/deepagent$--$deepagent'
 export const DEEPAGENT_PROVIDERS = ['openrouter', 'openai', 'anthropic', 'ollama', 'llama-cpp', 'lm-studio']
 /** Editable placeholders; local providers must match what the local server serves. */
 const DEEPAGENT_DEFAULT_MODELS: Record<string, string> = {
-    openrouter: 'moonshotai/kimi-k3',
-    openai: 'gpt-5.5',
-    anthropic: 'claude-sonnet-4-6',
+    openrouter: 'qwen/qwen3.8-27b',
+    openai: 'gpt-5.6-luna',
+    anthropic: 'claude-sonnet-5',
     ollama: 'llama3.2',
     'llama-cpp': 'llama-3.2-3b',
-    'lm-studio': 'qwen2.5-7b-instruct',
+    'lm-studio': 'qwen/qwen3.5-4b',
 }
 export function deepagentDefaultModel(provider: string): string {
     return DEEPAGENT_DEFAULT_MODELS[provider] || 'gpt-5.5'

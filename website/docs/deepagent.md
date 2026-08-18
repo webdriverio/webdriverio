@@ -45,10 +45,10 @@ export DEEPAGENT_HEAL=ask
 ## Commands
 
 ```sh
+npx wdio config                    # config setup — select the @wdio/deepagent plugin
 wdio-deepagent repl                # interactive agent session
 wdio-deepagent repl --no-mcp       # run without the @wdio/mcp browser tool surface
 wdio-deepagent run "<prompt>"      # one-shot mission (CI-able)
-npx wdio config                    # config setup — select the @wdio/deepagent plugin
 wdio-deepagent diagnose <trace.zip> [--spec <path>] [--heal mode]
 wdio-deepagent mcp                 # serve the agent/tools as an MCP server
 ```
