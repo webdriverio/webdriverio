@@ -3,31 +3,25 @@ id: base-appium-configuration
 title: Base Appium Configuration
 ---
 
-## 1. Base Appium Configuration
+WebdriverIO uses Appium to run tests across mobile emulators, simulators, and real devices. The `@wdio/appium-service` automatically manages the Appium server lifecycle during test execution.
 
-Mobile test execution within the WebdriverIO ecosystem relies on the Appium protocol to manage sessions across emulators, simulators, and real devices. WebdriverIO handles the Appium server lifecycle, including automatic startup and shutdown, through its dedicated service.
+For general Appium setup and capability options, see the [Appium Service Documentation](https://webdriver.io/docs/appium-service/).
 
-For complete details on supported capabilities, advanced configurations, and server execution architecture, refer to the [Official WebdriverIO Appium Service Documentation](https://webdriver.io/docs/appium-service/).
+## Installing Dependencies
 
-## 2. Dependency Installation
-
-To support E2E test execution and enable communication with Flutter's internal widget tree, install the core WebdriverIO packages, the Appium automation service, and the Flutter locator library.
-
-Run the following command in the root of your project to add the required development dependencies:
+To test Flutter applications, install the Appium service and the Flutter finder package:
 
 ```bash
-npm install --save-dev @wdio/cli @wdio/appium-service appium appium-flutter-finder
+npm install --save-dev @wdio/appium-service appium appium-flutter-finder
 ```
 
-After installing the Node.js dependencies, install the Appium 2 Flutter driver as well:
+Next, install the Appium Flutter Driver (`appium-flutter-driver`) to enable communication with Flutter apps:
 
 ```bash
-appium driver install flutter
+npx appium driver install flutter
 ```
 
-Installed packages:
-
-- `@wdio/cli`: The command-line interface for managing WebdriverIO configuration, test suites, and test execution.
-- `@wdio/appium-service`: A service that manages the Appium server lifecycle in the background during test runs.
-- `appium`: The core mobile test automation server.
-- `appium-flutter-finder`: A utility library that provides Flutter-specific locator strategies based on keys, text, and tooltips.
+These packages provide:
+- **`@wdio/appium-service` & `appium`**: Starts and manages the Appium server during test runs.
+- **`appium-flutter-driver`**: The Appium driver responsible for communicating with Flutter's test extension.
+- **`appium-flutter-finder`**: Helper library providing Flutter-specific locator strategies (`byValueKey`, `byText`, `byTooltip`).
