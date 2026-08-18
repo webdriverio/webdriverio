@@ -19,6 +19,7 @@ import type { CliFlags } from './commands/flags.js'
 import { createInterruptResolver } from './commands/interrupt.js'
 import { runRepl } from './commands/repl.js'
 import { runMission } from './commands/run.js'
+import { isLocalProvider, warmupModel } from './commands/warmup.js'
 
 const log = logger('@wdio/deepagent')
 
@@ -104,13 +105,24 @@ export async function run(): Promise<void> {
 async function dispatch(command: string | undefined, rest: string[]): Promise<void> {
     switch (command) {
     case 'repl': {
-        const { harness } = await buildHarness(rest, { rejectIf: rejectRepl })
-        await runRepl(harness!.agent, harness!.close, async () => {
-            if (!harness!.mcpClient) {
-                throw new Error('mcp: null config — no browser session')
-            }
-            await harness!.mcpClient.callTool('close_session', {})
-        })
+        const { harness, config } = await buildHarness(rest, { rejectIf: rejectRepl })
+        const warmupAbort = new AbortController()
+        // fire-and-forget: preload the model/tool schema while ink renders;
+        // failures or slow servers must never block or break the repl.
+        // Remote providers bill ~13k tokens per session — warmup is local-only.
+        if (config.model && isLocalProvider(config.model.provider)) {
+            warmupModel(harness!.model, harness!.tools, warmupAbort.signal).catch(() => {})
+        }
+        try {
+            await runRepl(harness!.agent, harness!.close, async () => {
+                if (!harness!.mcpClient) {
+                    throw new Error('mcp: null config — no browser session')
+                }
+                await harness!.mcpClient.callTool('close_session', {})
+            })
+        } finally {
+            warmupAbort.abort()
+        }
         break
     }
     case 'run': {
