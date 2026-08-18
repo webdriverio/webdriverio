@@ -64,8 +64,8 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
     alt="Momentic"
     target="_blank"
     link="https://momentic.ai/"
-    width="250"
-    style={{ marginLeft: '30px', position: 'relative', top: '8px' }}
+    width="300"
+    style={{ marginLeft: '30px', position: 'relative', top: '6px' }}
 />
 
 <br />

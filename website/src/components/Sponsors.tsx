@@ -49,7 +49,7 @@ export default function Sponsors () {
                         alt="Momentic"
                         link="https://momentic.ai/"
                         target="_blank"
-                        style={{ width: '200px' }}
+                        style={{ width: '260px' }}
                     />
                 </div>
             </div>

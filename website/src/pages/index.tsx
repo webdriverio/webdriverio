@@ -114,6 +114,7 @@ function Home() {
                                 darkImageSrc="/img/sponsors/momentic_white.svg"
                                 alt="Momentic"
                                 link="https://momentic.ai/"
+                                style={{ width: '220px', maxWidth: '220px' }}
                             />
                         </div>
                     </section>

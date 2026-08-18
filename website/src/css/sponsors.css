@@ -12,7 +12,7 @@
 .sponsorSection > div {
     display: flex;
     flex-direction: row;
-    width: 520px;
+    width: 560px;
     border: 1px solid var(--ifm-color-primary);
     border-radius: 10px;
     margin: 0 auto;
@@ -32,6 +32,7 @@
 }
 .sponsorSection img {
     max-width: 150px;
+    height: auto;
 }
 
 @media (max-width: 996px) {
