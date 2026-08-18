@@ -27,7 +27,7 @@ export interface Request {
     children?: Request[]
 }
 
-export type NetworkSameSite = 'strict' | 'lax' | 'none'
+export type NetworkSameSite = 'strict' | 'lax' | 'none' | 'default'
 export type Extensible = Record<string, unknown>
 export interface NetworkCookie extends Extensible {
     name: string

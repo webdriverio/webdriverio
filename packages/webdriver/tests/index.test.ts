@@ -25,6 +25,7 @@ vi.mock('fetch')
 vi.mock('../src/bidi/core.js', () => {
     let initCount = 0
     return {
+        DEFAULT_RESPONSE_TIMEOUT: 1000 * 180,
         BidiCore: class BidiHandlerMock {
             connect = vi.fn().mockResolvedValue({})
             constructor () {
@@ -186,7 +187,31 @@ describe('WebDriver', () => {
                 headers
             })
 
-            expect(utils.initiateBidi).toHaveBeenCalledWith(webSocketUrl, strictSSL, headers)
+            expect(utils.initiateBidi).toHaveBeenCalledWith(
+                webSocketUrl,
+                strictSSL,
+                headers,
+                DEFAULTS.bidiResponseTimeout.default
+            )
+        })
+
+        it('should pass a custom "bidiResponseTimeout" to "initiateBidi"', async () => {
+            const webSocketUrl = 'ws://foo/bar'
+
+            vi.spyOn(utils, 'initiateBidi')
+            vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: { webSocketUrl } }))
+            await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' },
+                bidiResponseTimeout: 300000
+            })
+
+            expect(utils.initiateBidi).toHaveBeenCalledWith(
+                webSocketUrl,
+                undefined,
+                undefined,
+                300000
+            )
         })
     })
 
@@ -295,8 +320,8 @@ describe('WebDriver', () => {
                 }
             }) as unknown as TestClient
             expect(client.isMobile).toBe(true)
-            expect(client.isLocked).toBeTruthy()
-            expect(client.shake).toBeTruthy()
+            expect(client.appiumIsLocked).toBeTruthy()
+            expect(client.appiumShake).toBeTruthy()
         })
 
         it('should fail attaching to session if sessionId is not given', () => {

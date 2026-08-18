@@ -4,6 +4,10 @@ export default defineConfig({
     test: {
         dangerouslyIgnoreUnhandledErrors: true,
         include: ['packages/**/*.test.ts'],
+        typecheck: {
+            enabled: true,
+            ignoreSourceErrors : true
+        },
         /**
          * not to ESM ported packages
          */
@@ -24,6 +28,7 @@ export default defineConfig({
                 '**/build/**',
                 '**/cjs/*.ts',
                 '**/*.test.ts',
+                '**/*.test-d.ts',
                 'packages/webdriver/src/bidi/handler.ts'
             ],
             watermarks: {

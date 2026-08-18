@@ -77,6 +77,8 @@ const SWIPE_DEFAULTS = {
  * @uses protocol/execute
  * @type utility
  * @skipUsage
+ *
+ * @support ["ios","android"]
  */
 export async function swipe (
     this: WebdriverIO.Browser,

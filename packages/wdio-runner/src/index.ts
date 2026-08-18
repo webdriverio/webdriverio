@@ -5,9 +5,9 @@ import logger from '@wdio/logger'
 import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
-import { expect, setOptions, getConfig, matchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
+import { expect, setDefaultOptions, getDefaultOptions, wdioCustomMatchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
-import type { AddCommandFunction, CustomCommandOptions, Instances, Selector } from 'webdriverio'
+import type { Browser, Selector } from 'webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
 
 import BrowserFramework from './browser.js'
@@ -15,7 +15,8 @@ import BaseReporter from './reporter.js'
 import { initializeInstance, getInstancesData } from './utils.js'
 import type {
     BeforeArgs, AfterArgs, BeforeSessionArgs, AfterSessionArgs, RunParams,
-    TestFramework, SessionStartedMessage, SessionEndedMessage, SnapshotResultMessage
+    TestFramework, SessionStartedMessage, SessionEndedMessage, SnapshotResultMessage,
+    CustomStubCommand
 } from './types.js'
 
 const log = logger('@wdio/runner')
@@ -145,6 +146,7 @@ export default class Runner extends EventEmitter {
         if (!browser) {
             const afterArgs: AfterArgs = [1, this._caps, this._specs]
             await executeHooksWithArgs('after', this._config.after as Function, afterArgs)
+            await this.endSession()
             return this._shutdown(1, retries, true)
         }
 
@@ -256,7 +258,21 @@ export default class Runner extends EventEmitter {
             const framework = (await initializePlugin(config.framework as string, 'framework')).default as unknown as TestFramework
             const frameworkInstance = await framework.init(cid, config, specs, capabilities, reporter)
             if (frameworkInstance.setupExpect) {
-                await frameworkInstance.setupExpect(expect, matchers, getConfig)
+                /**
+                 * Backward compatibility, to remove in v10.
+                 * Build a shim that supports both the deprecated Map.entries() API and the
+                 * new Object.entries() API. `entries` is non-enumerable so Object.entries()
+                 * callers only see the actual matchers.
+                 */
+                const matchersShim = Object.defineProperty(
+                    { ...wdioCustomMatchers },
+                    'entries',
+                    {
+                        enumerable: false,
+                        value: () => Object.entries(wdioCustomMatchers)[Symbol.iterator]()
+                    }
+                ) as typeof wdioCustomMatchers
+                await frameworkInstance.setupExpect(expect, matchersShim, getDefaultOptions)
             }
             return frameworkInstance
         }
@@ -330,10 +346,11 @@ export default class Runner extends EventEmitter {
              * get all custom or overwritten commands users tried to register before the
              * test started, e.g. after all imports
              */
-            const customStubCommands: [string, AddCommandFunction<boolean>, boolean, Record<string, unknown>?, Record<string, Instances>?][] = (this._browser as any | undefined)?.customCommands || []
+            const customStubCommands: CustomStubCommand[] = (this._browser as any | undefined)?.customCommands || []
             const overwrittenCommands: [any, (...args: any[]) => any, boolean][] = (this._browser as any | undefined)?.overwrittenCommands || []
 
-            this._browser = await initializeInstance(config, caps, this._isMultiremote)
+            const browser = await initializeInstance(config, caps, this._isMultiremote)
+            this._browser = browser
             _setGlobal('browser', this._browser, config.injectGlobals)
             _setGlobal('driver', this._browser, config.injectGlobals)
 
@@ -346,23 +363,28 @@ export default class Runner extends EventEmitter {
             }
 
             /**
-             * re-assign previously registered custom commands to the actual instance
+             * re-assign previously registered custom commands to the actual instance.
+             * Casting to Browser since union & generic types cause too much issues with type inference and overload resolution
              */
-            for (const params of customStubCommands) {
-                const [name, func, attachToElement, proto, instances] = params
-                const options = { attachToElement, proto, instances } satisfies CustomCommandOptions<boolean>
-
-                (this._browser as WebdriverIO.Browser).addCommand(name, func, options)
+            const commandTarget: Browser = browser as unknown as Browser
+            for (const [name, func, thirdArg, proto, instances] of customStubCommands) {
+                if (typeof thirdArg === 'object' && thirdArg !== null) {
+                    commandTarget.addCommand(name, func, thirdArg)
+                } else if (typeof thirdArg === 'boolean') {
+                    commandTarget.addCommand(name, func, thirdArg, proto, instances)
+                } else {
+                    commandTarget.addCommand(name, func)
+                }
             }
             for (const params of overwrittenCommands) {
-                this._browser.overwriteCommand(...params)
+                browser.overwriteCommand(...params)
             }
 
             /**
              * import and set options for `expect-webdriverio` assertion lib once
              * the browser was initiated
              */
-            setOptions({
+            setDefaultOptions({
                 wait: config.waitforTimeout, // ms to wait for expectation to succeed
                 interval: config.waitforInterval, // interval between attempts
                 beforeAssertion: async (params) => {

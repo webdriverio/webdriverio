@@ -1,0 +1,108 @@
+{
+  "type": "runner",
+  "start": "2018-04-17T09:09:27.771Z",
+  "_duration": 907,
+  "cid": "0-0",
+  "capabilities": {
+    "myChromeBrowser": {
+      "browserName": "chrome",
+      "version": "114.0.0.0",
+      "platform": "Mac OS X",
+      "sessionId": "abc123"
+    },
+    "myFirefoxBrowser": {
+      "browserName": "firefox",
+      "version": "115.0",
+      "platform": "Mac OS X",
+      "sessionId": "def456"
+    }
+  },
+  "sanitizedCapabilities": "multiremote",
+  "isMultiremote": true,
+  "config": {
+    "hostname": "127.0.0.1",
+    "port": 4444,
+    "specs": [
+      "./specs/sync.spec.js"
+    ],
+    "suites": {},
+    "exclude": [],
+    "outputDir": "/path/to/project/test",
+    "logLevel": "trace",
+    "baseUrl": "http://localhost",
+    "bail": 0,
+    "waitforInterval": 500,
+    "waitforTimeout": 10000,
+    "reporters": [
+      "dot",
+      "junit",
+      "spec"
+    ],
+    "maxInstances": 1,
+    "maxInstancesPerCapability": 100,
+    "connectionRetryCount": 3,
+    "execArgv": [],
+    "runnerEnv": {},
+    "runner": "local",
+    "cucumberOpts": {
+      "require": [
+        "./features/step_definitions/**/*.js"
+      ],
+      "backtrace": true,
+      "dryRun": false,
+      "failFast": false,
+      "colors": true,
+      "snippets": true,
+      "source": true,
+      "profile": [],
+      "strict": true,
+      "timeout": 360000,
+      "tagsInTitle": false,
+      "tagExpression": "@run",
+      "ignoreUndefinedDefinitions": false
+    },
+    "jasmineOpts": {
+      "defaultTimeoutInterval": 10000
+    },
+    "before": [],
+    "beforeSession": [],
+    "beforeSuite": [],
+    "beforeHook": [],
+    "beforeTest": [],
+    "beforeCommand": [],
+    "afterCommand": [],
+    "afterTest": [],
+    "afterHook": [],
+    "afterSuite": [],
+    "afterSession": [],
+    "after": [],
+    "onReload": [],
+    "beforeFeature": [],
+    "beforeScenario": [],
+    "beforeStep": [],
+    "afterFeature": [],
+    "afterScenario": [],
+    "afterStep": [],
+    "_": [
+      "wdio.conf.js"
+    ],
+    "$0": "../packages/wdio-cli/bin/wdio",
+    "capabilities": {
+      "myChromeBrowser": {
+        "capabilities": {
+          "browserName": "chrome"
+        }
+      },
+      "myFirefoxBrowser": {
+        "capabilities": {
+          "browserName": "firefox"
+        }
+      }
+    }
+  },
+  "specs": [
+    "file:///features/sample_feature.feature"
+  ],
+  "failures": 1,
+  "end": "2018-04-17T09:09:28.678Z"
+}

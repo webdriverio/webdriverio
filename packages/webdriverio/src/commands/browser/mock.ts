@@ -146,5 +146,5 @@ export async function mock(
 
     const networkInterception = await WebDriverInterception.initiate(url, normalizedFilterOptions, this)
     SESSION_MOCKS[context].add(networkInterception)
-    return networkInterception as WebdriverIO.Mock
+    return networkInterception satisfies WebdriverIO.Mock
 }

@@ -1,3 +1,5 @@
+import { some } from "expect-webdriverio/api"
+
 const config: WebdriverIO.Config = {
     jasmineOpts: {
         requires: ['foo', 'bar'],
@@ -12,6 +14,8 @@ const config: WebdriverIO.Config = {
  * check compatibility with WebdriverIO assertion lib
  */
 expect($('foo')).toHaveText('foobar')
+expect($$('foo')).toHaveText('foobar')
+expect(some($$('foo'))).toHaveText(expect.oneOf('foobar', expect.stringContaining('foo')))
 /**
  * check support for Jasmine specific matchers
  */

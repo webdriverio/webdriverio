@@ -76,7 +76,7 @@ describe('utils', () => {
         expect(mobilePrototype instanceof Object).toBe(true)
         expect(typeof mobilePrototype.performActions.value).toBe('function')
         expect(typeof mobilePrototype.sendKeys.value).toBe('function')
-        expect(typeof mobilePrototype.lock.value).toBe('function')
+        expect(typeof mobilePrototype.appiumLock.value).toBe('function')
         expect(typeof mobilePrototype.getNetworkConnection.value).toBe('function')
 
         const mobileChromePrototype = getPrototype({
@@ -86,7 +86,7 @@ describe('utils', () => {
         expect(typeof mobileChromePrototype.sendCommand.value).toBe('function')
         expect(typeof mobileChromePrototype.performActions.value).toBe('function')
         expect(typeof mobileChromePrototype.sendKeys.value).toBe('function')
-        expect(typeof mobileChromePrototype.lock.value).toBe('function')
+        expect(typeof mobileChromePrototype.appiumLock.value).toBe('function')
         expect(typeof mobileChromePrototype.getNetworkConnection.value).toBe('function')
 
         const saucePrototype = getPrototype({

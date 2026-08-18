@@ -5,6 +5,7 @@ import path from 'node:path'
 
 import { downloadFromGitHub } from '../utils/index.js'
 import { buildPreface } from '../utils/helpers.js'
+import { sanitizeHtmlForMdx } from './docsUtils.js'
 
 import reporters3rdParty from './3rd-party/reporters.json' with { type: 'json' }
 import services3rdParty from './3rd-party/services.json' with { type: 'json' }
@@ -174,9 +175,9 @@ function normalizeDoc(readme: string, githubUrl: string, branch: string, preface
         readmeArr = [docsFixes[packageName](readmeArr.join('\n'))]
     }
 
-    return [...preface, ...repoInfo, ...readmeArr]
-        .join('\n')
-        .replace(/<br>/g, '<br />')
+    return sanitizeHtmlForMdx(
+        [...preface, ...repoInfo, ...readmeArr].join('\n')
+    )
 }
 
 /**
