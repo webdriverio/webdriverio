@@ -70,7 +70,7 @@ describe('Flutter Redirects Flow', () => {
     });
 
     it('The user should be able to navigate between the Redirect Example views and back to the first view.', async () => {
-        const buttonGoToRedirectExampleTwoView = find.byValueKey('redirect_example_back_button');
+        const buttonGoToRedirectExampleTwoView = find.byValueKey('redirect_example_two_button');
         await driver.elementClick(buttonGoToRedirectExampleTwoView);
 
         const redirectExampleTwoBody = find.byValueKey('redirect_example_two_body');
@@ -89,33 +89,37 @@ describe('Flutter Redirects Flow', () => {
 });
 ```
 
-### Example C — Interacting with Dialogs (Flutter context)
+### Example C — Switching Contexts (Native OS Dialogs & Permissions)
 
 ```typescript
-// change_context.spec.ts
+// native_dialog_context.spec.ts
 import find from 'appium-flutter-finder';
 
-describe('Flutter Change Context Flow', () => {
+describe('Flutter & Native Context Switching Flow', () => {
     beforeEach(async () => {
         await driver.switchContext('FLUTTER');
     });
 
-    it('The user should be able to open the Change Context Example View dialog and close it.', async () => {
-        const buttonToOpenADialog = find.byValueKey('change_context_button');
-        await driver.elementClick(buttonToOpenADialog);
+    it('The user should trigger a native dialog, interact with OS controls, and return to Flutter context.', async () => {
+        // 1. In FLUTTER context: click widget that triggers an OS-level permission or alert dialog
+        const buttonRequestPermission = find.byValueKey('request_permission_button');
+        await driver.elementClick(buttonRequestPermission);
 
-        const changeContextDialogBody = find.byValueKey('change_context_dialog_body');
-        await driver.execute('flutter:waitFor', changeContextDialogBody);
-        const textChangeContextDialogBody = await driver.getElementText(changeContextDialogBody);
-        expect(textChangeContextDialogBody).toBe('WebDriver is awesome for testing Flutter apps!');
+        // 2. Switch to NATIVE_APP context to interact with the OS dialog
+        await driver.switchContext('NATIVE_APP');
 
-        const buttonToCloseDialog = find.byValueKey('change_context_dialog_close_button');
-        await driver.elementClick(buttonToCloseDialog);
+        // Locate and click native button using standard WebdriverIO selectors
+        const nativeAllowButton = await $('//*[@text="Allow" or @text="While using the app" or @label="Allow"]');
+        await nativeAllowButton.waitForDisplayed();
+        await nativeAllowButton.click();
 
-        const changeContextViewTitle = find.byValueKey('change_context_title');
-        await driver.execute('flutter:waitFor', changeContextViewTitle);
-        const textChangeContextViewTitle = await driver.getElementText(changeContextViewTitle);
-        expect(textChangeContextViewTitle).toBe('Change Context Example View');
+        // 3. Switch back to FLUTTER context to continue verifying Flutter widgets
+        await driver.switchContext('FLUTTER');
+
+        const permissionStatusText = find.byValueKey('permission_status_text');
+        await driver.execute('flutter:waitFor', permissionStatusText);
+        const status = await driver.getElementText(permissionStatusText);
+        expect(status).toBe('Permission Granted');
     });
 });
 ```

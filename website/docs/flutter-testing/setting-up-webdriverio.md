@@ -36,7 +36,7 @@ export const config: WebdriverIO.Config = {
             'appium:automationName': 'Flutter', // Sets the mandatory use of the Flutter driver
             'appium:deviceName': 'Android_Emulator', // Name of your configured emulator or real device
             // PATH OBSERVATION (See Operating Systems note below)
-            'appium:app': './android/app/build/outputs/apk/debug/app-debug.apk', 
+            'appium:app': './build/app/outputs/flutter-apk/app-debug.apk', 
             'appium:autoGrantPermissions': true
         },
         
