@@ -173,7 +173,7 @@ describe('parseAnswers with deepagent', () => {
         const parsedAnswers = await parseAnswers(true)
 
         expect(parsedAnswers.isUsingDeepAgent).toBe(true)
-        expect(parsedAnswers.deepagentModel).toEqual({ provider: 'openrouter', model: 'moonshotai/kimi-k3' })
+        expect(parsedAnswers.deepagentModel).toEqual({ provider: 'openrouter', model: 'qwen/qwen3.8-27b' })
         expect(parsedAnswers.services).toContain('devtools')
         expect(parsedAnswers.rawAnswers.services).toContain('@wdio/devtools-service$--$devtools')
         expect(parsedAnswers.packagesToInstall).toContain('@wdio/deepagent')

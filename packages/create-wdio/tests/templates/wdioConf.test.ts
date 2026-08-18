@@ -42,7 +42,7 @@ describe('wdio.conf template', () => {
         expect(output).toContain('deepagent: {')
         expect(output).toContain("provider: 'openrouter'")
         expect(output).toContain("model: 'moonshotai/kimi-k3'")
-        expect(output).toContain("services: ['devtools'],")
+        expect(output).toContain('services: [[\'devtools\', { mode: \'trace\' as const, traceFormat: \'zip\' }]],')
     })
 
     it('renders a baseURL for local providers', async () => {
