@@ -5,7 +5,6 @@
 Built on the OSS [Deep Agents](https://docs.langchain.com/oss/javascript/deepagents/overview) harness (`deepagents` → `createDeepAgent`). You bring your own model key (OpenRouter / OpenAI / Anthropic / Ollama) — nothing runs on a managed backend. It bundles `@wdio/mcp` as the traversal layer and works with `@wdio/devtools-service` trace artifacts (the service runs in your project, not here).
 
 > Docs: [webdriver.io/docs/deepagent](https://webdriver.io/docs/deepagent) ·
-> Definition of usable: [`docs/USABILITY.md`](docs/USABILITY.md)
 
 ## Install
 
@@ -66,6 +65,10 @@ Local providers (ollama, llama-cpp, lm-studio) need no API key; llama-cpp and lm
 - **Trace** — `diagnose` ingests a devtools `trace.zip`, reproduces the failing spec under a trace-mode overlay, diffs old vs new runs, and heals the spec (spec/page objects only, never config or secrets).
 - **Site knowledge base** — per-page a11y snapshots/element maps are accumulated while browsing (context-injection, no embeddings in v1).
 - **Model config** — one zod schema + resolver (the wdio-agent-service pattern): `{ provider, model, baseURL?, apiKey?, temperature?, maxTokens?, request? `. A `request` override is a text-only escape hatch and cannot call tools.
+
+## Roadmap
+
+- Inject Agent Skills (SKILL.md bundles, via deepagents `skills` option) — deferred while the system prompt's `## Running tests` section covers the essential guidance; skills would replace it once progressive-disclosure knowledge grows beyond prompt-sized.
 
 ## License
 

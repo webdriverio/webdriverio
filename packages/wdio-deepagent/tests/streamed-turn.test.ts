@@ -4,6 +4,7 @@ import { Command } from '@langchain/langgraph'
 import type { DeepAgent } from 'deepagents'
 import { runStreamedTurn } from '../src/commands/streamedTurn.js'
 import { MAX_INTERRUPT_ROUNDS } from '../src/commands/turn.js'
+import { MAX_RECURSION_LIMIT } from '../src/loop-guard.js'
 
 /** Empty async iterable — used where a round has no messages/tool calls. */
 function empty<T>(): AsyncIterable<T> {
@@ -22,19 +23,21 @@ function msgHandle(tokens: string[], inputTokens = 5, outputTokens = 3) {
     }
 }
 
-/** A tool call handle (status/error are promises, mirroring ToolCallStream). */
+/** A tool call handle (status/error/output are promises, mirroring ToolCallStream). */
 function toolHandle(over: {
     name?: string
     callId?: string
     input?: unknown
+    output?: unknown
     status?: 'running' | 'finished' | 'error'
     error?: string | undefined
 } = {}) {
-    const { name = 'write_file', callId = 'c1', input = { path: 'x.txt' }, status = 'finished', error } = over
+    const { name = 'write_file', callId = 'c1', input = { path: 'x.txt' }, output, status = 'finished', error } = over
     return {
         name,
         callId,
         input,
+        output: Promise.resolve(output),
         status: Promise.resolve(status),
         error: Promise.resolve(error),
     }
@@ -85,8 +88,9 @@ describe('runStreamedTurn', () => {
         expect(tokens).toEqual(['Hel', 'lo'])
         expect(usage).toEqual([{ inputTokens: 5, outputTokens: 3 }])
         expect(result.reply).toBe('Hello')
-        // first call is the plain input
+        // first call is the plain input with the recursion limit in config
         expect(streamEvents.mock.calls[0][0]).toMatchObject({ messages: [expect.any(HumanMessage)] })
+        expect(streamEvents.mock.calls[0][1]).toMatchObject({ recursionLimit: MAX_RECURSION_LIMIT })
     })
 
     it('reports tool call start then end with client-measured duration', async () => {
@@ -101,7 +105,7 @@ describe('runStreamedTurn', () => {
         })
         const agent = { streamEvents } as unknown as DeepAgent
         const starts: Array<{ name: string; callId: string; input: unknown }> = []
-        const ends: Array<{ name: string; callId: string; durationMs: number; status: string; error?: string }> = []
+        const ends: Array<{ name: string; callId: string; durationMs: number; status: string; error?: string; output?: string }> = []
 
         await runStreamedTurn(agent, 'go', {
             onToolCallStart: (c) => starts.push(c),
@@ -113,6 +117,66 @@ describe('runStreamedTurn', () => {
         expect(ends[0].status).toBe('finished')
         expect(ends[0].durationMs).toBeGreaterThanOrEqual(0)
         expect(ends[0].error).toBeUndefined()
+        expect(ends[0].output).toBeUndefined()
+    })
+
+    it('passes through a finished call output, unwrapping content_and_artifact tuples', async () => {
+        const streamEvents = vi.fn().mockResolvedValueOnce({
+            messages: empty(),
+            toolCalls: (async function* () {
+                yield toolHandle({ status: 'finished', output: ['Success: file written', 'artifact-bytes'] })
+            })(),
+            output: Promise.resolve({ messages: [new AIMessage('ok')] }),
+            interrupted: false,
+            interrupts: [],
+        })
+        const agent = { streamEvents } as unknown as DeepAgent
+        const ends: Array<{ status: string; output?: string }> = []
+
+        await runStreamedTurn(agent, 'go', { onToolCallEnd: (c) => ends.push(c) })
+
+        expect(ends[0].status).toBe('finished')
+        expect(ends[0].output).toBe('Success: file written')
+    })
+
+    it('flips a finished call with an "Error: " prefixed output to error status', async () => {
+        const streamEvents = vi.fn().mockResolvedValueOnce({
+            messages: empty(),
+            toolCalls: (async function* () {
+                yield toolHandle({ status: 'finished', output: 'Error: loop guard — stop repeating this call' })
+            })(),
+            output: Promise.resolve({ messages: [new AIMessage('ok')] }),
+            interrupted: false,
+            interrupts: [],
+        })
+        const agent = { streamEvents } as unknown as DeepAgent
+        const ends: Array<{ status: string; error?: string; output?: string }> = []
+
+        await runStreamedTurn(agent, 'go', { onToolCallEnd: (c) => ends.push(c) })
+
+        expect(ends[0].status).toBe('error')
+        expect(ends[0].error).toBe('Error: loop guard — stop repeating this call')
+        expect(ends[0].output).toBeUndefined()
+    })
+
+    it('tolerates a rejected output promise without throwing', async () => {
+        const streamEvents = vi.fn().mockResolvedValueOnce({
+            messages: empty(),
+            toolCalls: (async function* () {
+                yield { ...toolHandle(), output: Promise.reject(new Error('tool error event')) }
+            })(),
+            output: Promise.resolve({ messages: [new AIMessage('ok')] }),
+            interrupted: false,
+            interrupts: [],
+        })
+        const agent = { streamEvents } as unknown as DeepAgent
+        const ends: Array<{ status: string; output?: string }> = []
+
+        const result = await runStreamedTurn(agent, 'go', { onToolCallEnd: (c) => ends.push(c) })
+
+        expect(result.reply).toBe('ok')
+        expect(ends[0].status).toBe('finished')
+        expect(ends[0].output).toBeUndefined()
     })
 
     it('reports tool call errors with the error message', async () => {
@@ -150,6 +214,9 @@ describe('runStreamedTurn', () => {
         expect(result.reply).toBe('file written')
         expect(resolve).toHaveBeenCalledWith({ actionRequests })
         expect(streamEvents).toHaveBeenCalledTimes(2)
+        // recursion limit passed on both the initial and the resume run
+        expect(streamEvents.mock.calls[0][1]).toMatchObject({ recursionLimit: MAX_RECURSION_LIMIT })
+        expect(streamEvents.mock.calls[1][1]).toMatchObject({ recursionLimit: MAX_RECURSION_LIMIT })
         const cmd = streamEvents.mock.calls[1][0] as Command
         expect(cmd).toBeInstanceOf(Command)
         expect((cmd as unknown as { resume: { decisions: unknown[] } }).resume.decisions)

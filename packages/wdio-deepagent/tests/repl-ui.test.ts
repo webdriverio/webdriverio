@@ -14,6 +14,7 @@ const [{ ToolCallCard }, { ApprovalPrompt }, { render }] = await Promise.all([
     import('../src/commands/ui/ApprovalPrompt.js'),
     import('ink-testing-library'),
 ])
+const { ARGS_TRUNCATE } = await import('../src/commands/interrupt.js')
 
 describe('ToolCallCard', () => {
     it('renders the tool name, args preview and duration', () => {
@@ -32,6 +33,28 @@ describe('ToolCallCard', () => {
         }))
         const frame = lastFrame()
         expect(frame).toContain('boom')
+        expect(frame).toContain('[error]')
+    })
+
+    it('renders a truncated dim output line for a finished call', () => {
+        const { lastFrame } = render(React.createElement(ToolCallCard, {
+            card: { name: 'write_file', input: {}, status: 'finished', durationMs: 5, output: 'x'.repeat(ARGS_TRUNCATE + 50) },
+        }))
+        const frame = lastFrame()
+        // ink wraps the long word across lines, so assert on the character
+        // count: exactly the truncation budget plus the ellipsis marker
+        expect((frame!.match(/x/g) ?? []).length).toBe(ARGS_TRUNCATE)
+        expect(frame).toContain('…')
+    })
+
+    it('renders an error-status card without a dim output line', () => {
+        const { lastFrame } = render(React.createElement(ToolCallCard, {
+            card: { name: 'write_file', input: {}, status: 'error', durationMs: 4, error: 'Error: loop guard — stop' },
+        }))
+        const frame = lastFrame()
+        expect(frame).toContain('[error]')
+        expect(frame).toContain('Error: loop guard — stop')
+        expect(frame).not.toContain('…')
     })
 
     it('caps the card width and contains a long no-space input', () => {

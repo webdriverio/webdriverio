@@ -3,6 +3,11 @@ import type { TurnInterruptRequest } from './turn.js'
 
 export const ARGS_TRUNCATE = 200
 
+/** Parses a y/N answer — 'y' or 'yes' (case-insensitive) approves. */
+export function parseYesNo(value: string): boolean {
+    return /^y(es)?$/i.test(value.trim())
+}
+
 /** One line describing a gated action: name, truncated args, and the description. */
 export function describeActionRequest(action: TurnInterruptRequest['actionRequests'][number]): string {
     const args = JSON.stringify(action.args ?? {})
@@ -28,6 +33,6 @@ export function createInterruptResolver(rl: readline.Interface): (request: TurnI
             rl.question('  Approve? [y/N] ', resolve)
         })
         rejectPending = undefined
-        return /^y(es)?$/i.test(answer.trim())
+        return parseYesNo(answer)
     }
 }

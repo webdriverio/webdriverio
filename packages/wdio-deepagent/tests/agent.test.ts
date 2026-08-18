@@ -22,7 +22,6 @@ describe('permissionsForHeal / interruptsForHeal', () => {
 
     it('ask and auto deny sensitive paths first, then allow the rest', () => {
         const scoped = [
-            { operations: ['read', 'write'], paths: ['/wdio.conf*', '/**/wdio.conf*'], mode: 'deny' },
             { operations: ['read', 'write'], paths: ['/.env*', '/**/.env*'], mode: 'deny' },
             { operations: ['read', 'write'], paths: ['/.git/**', '/**/.git/**'], mode: 'deny' },
             { operations: ['read', 'write'], paths: ['/node_modules/**', '/**/node_modules/**'], mode: 'deny' },
@@ -32,6 +31,7 @@ describe('permissionsForHeal / interruptsForHeal', () => {
             {
                 operations: ['write'],
                 paths: [
+                    '/wdio.conf*', '/**/wdio.conf*',
                     '/.github/**', '/**/.github/**',
                     '/package.json', '/**/package.json',
                     '/package-lock.json', '/**/package-lock.json',
@@ -279,6 +279,7 @@ describe('filesystem scope enforcement (real backend)', () => {
     it('write-denies infra files but keeps them readable in auto mode', async () => {
         const projRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-infra-'))
         const infra = {
+            'wdio.conf.ts': 'export const config = {}',
             '.github/workflows/ci.yml': 'on: push',
             'package.json': '{"name": "x"}',
             'package-lock.json': '{"lockfileVersion": 3}',

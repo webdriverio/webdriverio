@@ -55,6 +55,20 @@ const rejectDiagnose = (config: DeepAgentConfig): string | undefined =>
 
 const rejectRepl = (config: DeepAgentConfig): string | undefined => rejectWrite(config, 'the REPL')
 
+/** Interactive approval interface for heal=ask, or undefined to run unattended. */
+function createAskInterface(config: DeepAgentConfig): readline.Interface | undefined {
+    if (config.heal !== 'ask') {
+        return undefined
+    }
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
+    // Ctrl-C while a gated write awaits approval must abort the mission,
+    // not hang it: closing the interface rejects the pending prompt (see
+    // createInterruptResolver), unwinding the finally block so the MCP
+    // server is closed.
+    rl.on('SIGINT', () => rl?.close())
+    return rl
+}
+
 interface BuildHarnessResult {
     harness: DeepAgentHarness | undefined
     flags: CliFlags
@@ -62,14 +76,19 @@ interface BuildHarnessResult {
     config: DeepAgentConfig
 }
 
-async function buildHarness(argv: string[], opts: { allowModelless?: boolean; skipPropose?: boolean; rejectIf?: (config: DeepAgentConfig) => string | undefined } = {}): Promise<BuildHarnessResult> {
-    const flags = parseFlags(argv)
+async function loadConfigForFlags(rest: string[], opts: { allowModelless?: boolean } = {}): Promise<{ flags: CliFlags; configPath?: string; config: DeepAgentConfig }> {
+    const flags = parseFlags(rest)
     const configPath = flags.config ?? findDefaultConfigPath()
     const config = await loadDeepAgentConfig({
         configPath,
         cli: { heal: flags.heal, model: flags.model, traceDir: flags.traceDir },
         modelOptional: opts.allowModelless,
     })
+    return { flags, configPath, config }
+}
+
+async function buildHarness(argv: string[], opts: { allowModelless?: boolean; skipPropose?: boolean; rejectIf?: (config: DeepAgentConfig) => string | undefined } = {}): Promise<BuildHarnessResult> {
+    const { flags, configPath, config } = await loadConfigForFlags(argv, { allowModelless: opts.allowModelless })
     const rejected = opts.rejectIf?.(config)
     if (rejected) {
         throw new Error(rejected)
@@ -119,7 +138,7 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
                     throw new Error('mcp: null config — no browser session')
                 }
                 await harness!.mcpClient.callTool('close_session', {})
-            })
+            }, () => warmupAbort.abort())
         } finally {
             warmupAbort.abort()
         }
@@ -130,15 +149,7 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
         if (!flags.positionals?.length) {
             throw new Error('run requires a prompt: wdio-deepagent run "<prompt>"')
         }
-        let rl: readline.Interface | undefined
-        if (config.heal === 'ask') {
-            rl = readline.createInterface({ input: process.stdin, output: process.stdout })
-            // Ctrl-C while a gated write awaits approval must abort the
-            // mission, not hang it: closing the interface rejects the pending
-            // prompt (see createInterruptResolver), unwinding the finally
-            // block so the MCP server is closed.
-            rl.on('SIGINT', () => rl?.close())
-        }
+        const rl = createAskInterface(config)
         try {
             const prompt = flags.positionals.join(' ')
             const result = rl
@@ -161,15 +172,7 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
             throw new Error(DEFAULT_MODEL_HINT)
         }
         const harness = built.harness
-        let rl: readline.Interface | undefined
-        if (built.config.heal === 'ask') {
-            rl = readline.createInterface({ input: process.stdin, output: process.stdout })
-            // Ctrl-C while a gated write awaits approval must abort the
-            // diagnosis, not hang it: closing the interface rejects the
-            // pending prompt (see createInterruptResolver), unwinding the
-            // finally block so the MCP server is closed.
-            rl.on('SIGINT', () => rl?.close())
-        }
+        const rl = createAskInterface(built.config)
         let report: DiagnosisReport
         try {
             report = await runDiagnosis({
@@ -206,13 +209,7 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
         // setLogLevelsConfig silences all loggers (incl. @wdio/config's ConfigParser
         // during config load) and pins WDIO_LOG_LEVEL=silent for any created later
         logger.setLogLevelsConfig({}, 'silent')
-        const flags = parseFlags(rest)
-        const configPath = flags.config ?? findDefaultConfigPath()
-        const config = await loadDeepAgentConfig({
-            configPath,
-            cli: { heal: flags.heal, model: flags.model, traceDir: flags.traceDir },
-            modelOptional: true,
-        })
+        const { flags, configPath, config } = await loadConfigForFlags(rest, { allowModelless: true })
         // serve the surface without a model — resolving the chat model here would
         // fail for keyed providers without an API key, and the mcp command needs none
         const surface = await createToolSurface({

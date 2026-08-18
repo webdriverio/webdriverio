@@ -14,6 +14,8 @@ import type { McpServerConfig } from './mcp/index.js'
 import { WdioMcpClient } from './mcp/index.js'
 import { createTraceTools } from './trace/tools.js'
 import { createKnowledgeBaseTools } from './knowledge-base/tools.js'
+import { createRunSpecTool } from './run-spec.js'
+import { createLoopGuardMiddleware, TOOL_ERROR_PREFIX } from './loop-guard.js'
 import { readInstructionsFile } from './prompts.js'
 
 const log = logger('@wdio/deepagent')
@@ -75,8 +77,11 @@ export interface DeepAgentHarness {
  * matches every valid tool path. each sensitive name is denied via two globs —
  * root form and nested form — because a micromatch globstar directly after the
  * leading slash never matches zero directory levels
- * (secrets, npmrc, key material, nested node_modules). `auto` additionally
- * write-denies CI config, manifests,
+ * (secrets, npmrc, key material, nested node_modules). wdio.conf stays
+ * readable — it is the agent's main source of project structure (framework,
+ * spec patterns, services) — but is write-denied with the rest of the infra
+ * so a heal cannot rewrite its own harness config and escalate heal/mcp.
+ * `auto` additionally write-denies CI config, manifests,
  * lockfiles and git hooks while reads stay allowed — an unrestricted auto
  * heal could otherwise rewrite `.github/workflows/*.yml`, `package.json` or
  * the lockfile and break the build. `ask` additionally gates every write via
@@ -94,7 +99,6 @@ export function permissionsForHeal(heal: HealMode): FilesystemPermission[] {
         ]
     }
     return [
-        { operations: ['read', 'write'], paths: ['/wdio.conf*', '/**/wdio.conf*'], mode: 'deny' },
         { operations: ['read', 'write'], paths: ['/.env*', '/**/.env*'], mode: 'deny' },
         { operations: ['read', 'write'], paths: ['/.git/**', '/**/.git/**'], mode: 'deny' },
         { operations: ['read', 'write'], paths: ['/node_modules/**', '/**/node_modules/**'], mode: 'deny' },
@@ -104,6 +108,7 @@ export function permissionsForHeal(heal: HealMode): FilesystemPermission[] {
         {
             operations: ['write'],
             paths: [
+                '/wdio.conf*', '/**/wdio.conf*',
                 '/.github/**', '/**/.github/**',
                 '/package.json', '/**/package.json',
                 '/package-lock.json', '/**/package-lock.json',
@@ -154,12 +159,16 @@ export function withErrorRecovery(tool: DynamicStructuredTool): DynamicStructure
         try {
             return await exec(input, ...rest)
         } catch (err) {
-            const message = `Error: ${err instanceof Error ? err.message : String(err)}`
+            const message = `${TOOL_ERROR_PREFIX}${err instanceof Error ? err.message : String(err)}`
             return tuple ? [message, undefined] : message
         }
     }) as unknown as DynamicStructuredTool['func']
     return tool
 }
+
+// re-exported for streamedTurn — defined in loop-guard.ts to avoid the
+// agent.ts -> loop-guard.ts -> agent.ts import cycle
+export { isErrorOutput, TOOL_ERROR_PREFIX } from './loop-guard.js'
 
 export interface DeepAgentToolSurface {
     mcpClient: WdioMcpClient | null
@@ -182,7 +191,7 @@ export async function createToolSurface(options: { mcp?: McpServerConfig | null;
     const traceTools = createTraceTools({ configPath: options.configPath, traceDir })
     const knowledgeBaseTools = createKnowledgeBaseTools()
     // MCP tools are DynamicStructuredTool; harness tools are too.
-    const tools: DynamicStructuredTool[] = [...traversalTools, ...traceTools, ...knowledgeBaseTools].map(withErrorRecovery)
+    const tools: DynamicStructuredTool[] = [...traversalTools, createRunSpecTool({ configPath: options.configPath }), ...traceTools, ...knowledgeBaseTools].map(withErrorRecovery)
 
     return {
         mcpClient,
@@ -234,6 +243,7 @@ export async function createDeepAgentHarness(
     if (options.configPath) {
         const rel = path.relative(projectRoot, path.resolve(options.configPath))
         if (!rel.startsWith('..') && !path.isAbsolute(rel)) {
+            // virtual-mode backend roots '/' at projectRoot — host-absolute would double-root
             const virtualConfigPath = '/' + rel.split(path.sep).join('/')
             systemPrompt = `${instructions}\n\n- The project's wdio config: \`${virtualConfigPath}\` — read it with \`read_file\` before spec or config work.`
         }
@@ -244,7 +254,7 @@ export async function createDeepAgentHarness(
         model: chatModel,
         tools,
         systemPrompt,
-        middleware: [todoListMiddleware()],
+        middleware: [todoListMiddleware(), createLoopGuardMiddleware()],
         // In-memory checkpointer. Required for two things:
         // 1. `ask`-mode human-in-the-loop interrupts (humanInTheLoopMiddleware
         //    calls langgraph's `interrupt()`, which throws MISSING_CHECKPOINTER

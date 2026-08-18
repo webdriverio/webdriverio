@@ -1,10 +1,10 @@
 import type { DeepAgent } from 'deepagents'
 import { processTurn } from './turn.js'
-import type { ProcessTurnOptions } from './turn.js'
+import type { ProcessTurnOptions, ToolCallRecord } from './turn.js'
 
 export interface RunMissionResult {
     reply: string
-    toolCalls: Array<{ name: string; args: unknown }>
+    toolCalls: ToolCallRecord[]
     exitCode: number
 }
 
