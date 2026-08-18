@@ -1,4 +1,5 @@
 import spawn from 'cross-spawn'
+import { existsSync } from 'node:fs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
@@ -8,26 +9,9 @@ import path from 'node:path'
  * the original one (the "reproducible" half of the heal loop).
  */
 
-export interface ReproduceOptions {
-    /** Path to the project's wdio.conf.{js,ts,mjs,cjs}. */
-    configPath: string
-    /** Absolute path of the spec file to reproduce. */
-    spec: string
+export interface ReproduceOptions extends RunSpecOptions {
     /** Directory for the overlay config + trace artifacts. */
     traceDir: string
-    env?: NodeJS.ProcessEnv
-    /**
-     * Kill the spawned run after this many ms and report a timeout
-     * (default: 10 minutes) so a hung spec cannot hang the harness/CI
-     * forever.
-     */
-    timeoutMs?: number
-    /**
-     * Command/args used to run `wdio run` (injectable for tests).
-     * Default: the project's `node_modules/.bin/wdio`.
-     */
-    spawnCommand?: string
-    spawnArgs?: string[]
 }
 
 export interface ReproduceResult {
@@ -51,7 +35,7 @@ const TRACE_DIR_ENV = 'WDIO_DEEPAGENT_TRACE_DIR'
 
 /** Exit code used when a reproduction is killed by the timeout (mirrors `timeout(1)`). */
 export const TIMED_OUT_EXIT_CODE = 124
-const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000
+export const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000
 
 /** Builds the overlay config: base config + devtools `trace` service. */
 export function buildTraceOverlay(baseConfigPath: string, traceDir: string): string {
@@ -80,30 +64,37 @@ export const config = {
 `
 }
 
-async function findNewestTraceZip(dirs: string[], afterMs?: number): Promise<string | undefined> {
+async function findNewestTraceZip(dir: string, afterMs?: number): Promise<string | undefined> {
     let newest: { path: string; mtime: number } | undefined
-    for (const dir of dirs) {
-        let entries: string[]
-        try {
-            entries = await fs.readdir(dir)
-        } catch {
+    let entries: string[]
+    try {
+        entries = await fs.readdir(dir)
+    } catch {
+        return undefined
+    }
+    for (const entry of entries) {
+        if (!entry.endsWith('.zip')) {
             continue
         }
-        for (const entry of entries) {
-            if (!entry.endsWith('.zip')) {
-                continue
-            }
-            const full = path.join(dir, entry)
-            const stat = await fs.stat(full)
-            if (afterMs !== undefined && stat.mtimeMs < afterMs) {
-                continue
-            }
-            if (!newest || stat.mtimeMs > newest.mtime) {
-                newest = { path: full, mtime: stat.mtimeMs }
-            }
+        const full = path.join(dir, entry)
+        const stat = await fs.stat(full)
+        if (afterMs !== undefined && stat.mtimeMs < afterMs) {
+            continue
+        }
+        if (!newest || stat.mtimeMs > newest.mtime) {
+            newest = { path: full, mtime: stat.mtimeMs }
         }
     }
     return newest?.path
+}
+
+/**
+ * Command/args used to run `wdio run` (injectable for tests).
+ * Default: the project's `node_modules/.bin/wdio`.
+ */
+export interface SpawnOverride {
+    spawnCommand?: string
+    spawnArgs?: string[]
 }
 
 interface SpawnRunOptions {
@@ -113,14 +104,15 @@ interface SpawnRunOptions {
 }
 
 /** Spawns the wdio run, killing the child after `timeoutMs` if it does not finish. */
-function spawnRun(command: string, args: string[], options: SpawnRunOptions): Promise<{ exitCode: number; stderr: string }> {
+function spawnRun(command: string, args: string[], options: SpawnRunOptions): Promise<{ exitCode: number; stdout: string; stderr: string }> {
     return new Promise((resolve, reject) => {
         const child = spawn(command, args, {
             cwd: options.cwd,
             env: { ...process.env, ...options.env },
-            stdio: ['ignore', 'ignore', 'pipe'],
+            stdio: ['ignore', 'pipe', 'pipe'],
             detached: process.platform !== 'win32',
         })
+        let stdout = ''
         let stderr = ''
         let settled = false
         // kill(-pid) hits the detached process group so wdio's workers and
@@ -166,8 +158,11 @@ function spawnRun(command: string, args: string[], options: SpawnRunOptions): Pr
             killRun('SIGTERM')
             // Force-kill shortly after in case the group ignores SIGTERM.
             setTimeout(() => killRun('SIGKILL'), 5000).unref()
-            resolve({ exitCode: TIMED_OUT_EXIT_CODE, stderr })
+            resolve({ exitCode: TIMED_OUT_EXIT_CODE, stdout, stderr })
         }, options.timeoutMs)
+        child.stdout?.on('data', (chunk: Buffer) => {
+            stdout += chunk.toString()
+        })
         child.stderr?.on('data', (chunk: Buffer) => {
             stderr += chunk.toString()
         })
@@ -184,10 +179,145 @@ function spawnRun(command: string, args: string[], options: SpawnRunOptions): Pr
                 settled = true
                 cleanup()
                 clearTimeout(timer)
-                resolve({ exitCode: code ?? 1, stderr })
+                resolve({ exitCode: code ?? 1, stdout, stderr })
             }
         })
     })
+}
+
+/**
+ * Unified model-supplied path mapping: a host-absolute path that exists on
+ * disk wins; a relative or `/`-virtual path is stripped of its leading `/`
+ * and rooted at `root`.
+ */
+export function resolveModelPath(root: string, p: string): string {
+    const abs = path.resolve(p)
+    if (path.isAbsolute(p) && existsSync(abs)) {
+        return abs
+    }
+    return path.resolve(root, p.replace(/^\//, ''))
+}
+
+/** Default project root for a config file (its dir), or the cwd. */
+export function projectRootForConfig(configPath?: string): string {
+    return path.dirname(path.resolve(configPath ?? process.cwd()))
+}
+
+/**
+ * Resolves a model-supplied spec path against the project root: a
+ * host-absolute path inside the root wins (so an outside-root spec still
+ * fails runSpec's confinement check instead of being re-read as a virtual
+ * path), else a `/`-prefixed virtual path as emitted by the fs tools is
+ * mapped onto the root.
+ */
+export function resolveSpecPath(projectRoot: string, spec: string): string {
+    return resolveModelPath(path.resolve(projectRoot), spec)
+}
+
+export interface RunSpecOptions extends SpawnOverride {
+    /** Path to the wdio config to run. */
+    configPath: string
+    /** Spec file path, resolved against `projectRoot`. */
+    spec: string
+    /**
+     * Root for spec resolution, confinement and the spawn cwd (default:
+     * dirname of `configPath`).
+     */
+    projectRoot?: string
+    /**
+     * Kill the spawned run after this many ms and report a timeout
+     * (default: 10 minutes) so a hung spec cannot hang the harness/CI
+     * forever.
+     */
+    timeoutMs?: number
+    env?: NodeJS.ProcessEnv
+}
+
+export interface RunSpecResult {
+    exitCode: number
+    /** Wall-clock duration of the run in ms. */
+    duration: number
+    stdout: string
+    stderr: string
+}
+
+/**
+ * Runs `wdio run` against the given config without any trace overlay.
+ * The spawned run is killed after `timeoutMs` if it does not finish, and
+ * the spec path is validated to stay inside the project root.
+ */
+export async function runSpec(options: RunSpecOptions): Promise<RunSpecResult> {
+    const projectRoot = path.resolve(options.projectRoot ?? projectRootForConfig(options.configPath))
+    const spec = path.resolve(projectRoot, options.spec)
+    const relativeSpec = path.relative(projectRoot, spec)
+    if (relativeSpec.startsWith('..') || path.isAbsolute(relativeSpec)) {
+        throw new Error(
+            `Spec ${options.spec} resolves outside the project root (${projectRoot}); refusing to reproduce.`
+        )
+    }
+
+    const wdioBin = options.spawnCommand ?? path.join(projectRoot, 'node_modules', '.bin', 'wdio')
+    const args = options.spawnArgs ?? ['run', options.configPath, '--spec', spec]
+    const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS
+    const spawnOptions: SpawnRunOptions = {
+        cwd: projectRoot,
+        env: options.env,
+        timeoutMs,
+    }
+
+    const startedAt = process.hrtime.bigint()
+    let spawned: { exitCode: number; stdout: string; stderr: string }
+    try {
+        spawned = await spawnRun(wdioBin, args, spawnOptions)
+    } catch (err) {
+        if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+            throw err
+        }
+        // no local wdio bin (npx-driven or globally installed project): retry via npx.
+        // cross-spawn resolves .cmd/.bat without a shell on win32, so the
+        // spec path embedded in args is never handed to a shell interpreter
+        spawned = await spawnRun('npx', ['wdio', ...args], spawnOptions)
+    }
+
+    return {
+        exitCode: spawned.exitCode,
+        duration: Number(process.hrtime.bigint() - startedAt) / 1e6,
+        stdout: spawned.stdout,
+        stderr: spawned.stderr,
+    }
+}
+
+export interface RunResult {
+    exitCode: number
+    durationMs: number
+    stdout?: string
+    stderr?: string
+    artifactPath?: string
+}
+
+/** Formats a run result as the JSON the tools return to the model. */
+export function formatRunResult(
+    result: RunResult,
+    options?: { stdoutTail?: number; stderrTail?: number },
+): string {
+    const output: Record<string, unknown> = {}
+    if (result.artifactPath !== undefined) {
+        output.artifactPath = result.artifactPath ?? null
+    }
+    output.exitCode = result.exitCode
+    output.durationMs = result.durationMs
+    if (result.stdout !== undefined) {
+        output.stdoutTail = result.stdout.slice(-(options?.stdoutTail ?? 4000))
+    }
+    if (result.stderr !== undefined) {
+        output.stderrTail = result.stderr.slice(-(options?.stderrTail ?? 2000))
+    }
+    return JSON.stringify(output, null, 2)
+}
+
+/** Message returned when a tool needs a wdio.conf but none is configured. */
+export function missingConfigMessage(action: string): string {
+    return `No wdio.conf configured — cannot ${action}.`
 }
 
 /**
@@ -204,47 +334,30 @@ export async function reproduceSpec(options: ReproduceOptions): Promise<Reproduc
     // ever sees this run's artifacts.
     const runDir = await fs.mkdtemp(path.join(traceDir, 'repro-'))
 
-    const projectRoot = path.dirname(path.resolve(options.configPath))
-    const spec = path.resolve(projectRoot, options.spec)
-    const relativeSpec = path.relative(projectRoot, spec)
-    if (relativeSpec.startsWith('..') || path.isAbsolute(relativeSpec)) {
-        throw new Error(
-            `Spec ${options.spec} resolves outside the project root (${projectRoot}); refusing to reproduce.`
-        )
-    }
-
+    const projectRoot = projectRootForConfig(options.configPath)
     const overlayPath = path.join(runDir, OVERLAY_FILENAME)
     await fs.writeFile(overlayPath, buildTraceOverlay(options.configPath, runDir))
 
-    const wdioBin = options.spawnCommand ?? path.join(projectRoot, 'node_modules', '.bin', 'wdio')
-    const args = options.spawnArgs ?? ['run', overlayPath, '--spec', spec]
-    const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS
-    const spawnOptions: SpawnRunOptions = {
-        cwd: projectRoot,
-        env: { ...options.env, [TRACE_DIR_ENV]: runDir },
-        timeoutMs,
-    }
-
     const startedAt = Date.now()
-    let result: { exitCode: number; stderr: string }
-    try {
-        result = await spawnRun(wdioBin, args, spawnOptions)
-    } catch (err) {
-        if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
-            throw err
-        }
-        // no local wdio bin (npx-driven or globally installed project): retry via npx.
-        // cross-spawn resolves .cmd/.bat without a shell on win32, so the
-        // spec path embedded in args is never handed to a shell interpreter
-        result = await spawnRun('npx', ['wdio', ...args], spawnOptions)
-    }
+    // explicit projectRoot = the original config's dir, not the overlay's:
+    // the overlay lives in the mkdtemp traceDir, so dirname(overlayPath)
+    // would break runSpec's confinement check
+    const result = await runSpec({
+        configPath: overlayPath,
+        spec: options.spec,
+        projectRoot,
+        env: { ...options.env, [TRACE_DIR_ENV]: runDir },
+        timeoutMs: options.timeoutMs,
+        spawnCommand: options.spawnCommand,
+        spawnArgs: options.spawnArgs,
+    })
 
-    const artifactPath = await findNewestTraceZip([runDir], startedAt)
+    const artifactPath = await findNewestTraceZip(runDir, startedAt)
 
     return {
         artifactPath,
         exitCode: result.exitCode,
-        duration: Date.now() - startedAt,
+        duration: result.duration,
         stderr: result.stderr,
     }
 }

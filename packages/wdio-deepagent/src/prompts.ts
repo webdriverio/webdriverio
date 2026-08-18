@@ -21,6 +21,11 @@ Help the user test and fix their web app: traverse the app under test, understan
 - Trace tools work on @wdio/devtools-service trace.zip artifacts: ingest a trace to understand what a run did, reproduce a spec to get a fresh trace, diff two traces to find what changed.
 - The site knowledge base (remember_snapshot / query_knowledge_base) lets you accumulate what you've seen per page; record snapshots as you browse instead of re-discovering selectors.
 
+## Running tests
+- Use \`run_spec\` to run or verify any spec: a real wdio run with the project's own wdio.conf, returning the exit code and output tails.
+- \`execute_script\` runs JavaScript inside the browser page context only — no Node builtins, no \`require\`, \`child_process\` or \`execSync\`; never use it to run tests or touch the filesystem.
+- \`reproduce_spec\` is for reproducing from devtools trace artifacts, not for running specs.
+
 ## Config & framework knowledge
 - Frameworks: mocha, jasmine, cucumber. Config lives in wdio.conf.{js,ts}. A typical setup: framework, spec patterns, capabilities, services (e.g. devtools, appium, browserstack), reporters.
 - The harness config block is \`deepagent\` inside wdio.conf.ts: { model, heal, mcp, traceDir, permissions }.

@@ -9,6 +9,7 @@ import type { DeepAgent } from 'deepagents'
 import { FakeToolCallingModel } from 'langchain'
 import { createDeepAgentHarness } from '../src/agent.js'
 import { extractAgentReply, MAX_INTERRUPT_ROUNDS, processTurn } from '../src/commands/turn.js'
+import { MAX_RECURSION_LIMIT } from '../src/loop-guard.js'
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
 const MCP_SERVER = path.join(FIXTURES, 'mcp-server.mjs')
@@ -72,6 +73,9 @@ describe('processTurn', () => {
         // first invoke: plain input; second: a resume Command
         expect(invoke).toHaveBeenCalledTimes(2)
         expect(invoke.mock.calls[0][0]).toMatchObject({ messages: [expect.any(HumanMessage)] })
+        // recursion limit passed on both the initial and the resume invoke
+        expect(invoke.mock.calls[0][1]).toMatchObject({ recursionLimit: MAX_RECURSION_LIMIT })
+        expect(invoke.mock.calls[1][1]).toMatchObject({ recursionLimit: MAX_RECURSION_LIMIT })
         const cmd = invoke.mock.calls[1][0] as Command
         expect(cmd).toBeInstanceOf(Command)
         expect((cmd as unknown as { resume: { decisions: unknown[] } }).resume.decisions)

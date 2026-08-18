@@ -1,6 +1,7 @@
 import { tool } from 'langchain'
 import type { DynamicStructuredTool } from '@langchain/core/tools'
 import { z } from 'zod'
+import { CappedMap } from '../capped-map.js'
 
 /**
  * In-memory knowledge base of the site under test: a11y snapshots and
@@ -20,15 +21,9 @@ export interface SiteSnapshot {
 const MAX_KB_ENTRIES = 32
 
 export function createKnowledgeBaseTools(): DynamicStructuredTool[] {
-    const knowledgeBase = new Map<string, SiteSnapshot>()
+    const knowledgeBase = new CappedMap<string, SiteSnapshot>(MAX_KB_ENTRIES)
     const rememberSnapshot = tool(
         async ({ url, snapshot, elements }) => {
-            if (knowledgeBase.size >= MAX_KB_ENTRIES) {
-                const oldest = knowledgeBase.keys().next().value
-                if (oldest !== undefined) {
-                    knowledgeBase.delete(oldest)
-                }
-            }
             knowledgeBase.set(normalizeUrl(url), { url, snapshot, elements, recordedAt: Date.now() })
             return `Remembered snapshot for ${url} (${knowledgeBase.size} pages in knowledge base).`
         },

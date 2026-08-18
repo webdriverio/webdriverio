@@ -1,6 +1,7 @@
 import { HumanMessage } from '@langchain/core/messages'
 import { Command } from '@langchain/langgraph'
 import type { DeepAgent } from 'deepagents'
+import { MAX_RECURSION_LIMIT } from '../loop-guard.js'
 
 export interface ToolCallRecord {
     name: string
@@ -68,6 +69,30 @@ export interface ProcessTurnOptions {
 /** Resume-round guard: a looping model cannot spin the graph forever. */
 export const MAX_INTERRUPT_ROUNDS = 5
 
+/** Resolves a batch of pending interrupt requests into resume decisions. */
+export async function resolveInterruptDecisions(
+    items: readonly unknown[],
+    requestOf: (item: unknown) => TurnInterruptRequest,
+    resolve: (request: TurnInterruptRequest) => Promise<boolean>,
+): Promise<{ decisions: Array<{ type: 'approve' } | { type: 'reject'; message: string }>; declined: boolean }> {
+    const decisions: Array<{ type: 'approve' } | { type: 'reject'; message: string }> = []
+    let declined = false
+    for (const item of items) {
+        if (await resolve(requestOf(item))) {
+            decisions.push({ type: 'approve' })
+        } else {
+            declined = true
+            decisions.push({ type: 'reject', message: 'User declined the action.' })
+        }
+    }
+    return { decisions, declined }
+}
+
+/** Logs gated actions still pending after the resume-round cap was hit. */
+export function warnUnresolvedInterrupts(count: number): void {
+    console.error(`[@wdio/deepagent] ${count} gated action(s) still pending after ${MAX_INTERRUPT_ROUNDS} resume rounds — not executed.`)
+}
+
 /**
  * Runs one agent turn (user text in, final reply out) and records the
  * tool calls that happened. Shared by `repl` and `run`.
@@ -81,31 +106,28 @@ export const MAX_INTERRUPT_ROUNDS = 5
  */
 export async function processTurn(agent: DeepAgent, text: string, options: ProcessTurnOptions = {}): Promise<TurnResult> {
     const resolve = options.resolveInterrupt ?? (async () => true)
-    let run = await agent.invoke({ messages: [new HumanMessage(text)] })
+    const config = { recursionLimit: MAX_RECURSION_LIMIT }
+    let run = await agent.invoke({ messages: [new HumanMessage(text)] }, config)
     let declined = false
     for (let round = 0; round < MAX_INTERRUPT_ROUNDS; round++) {
         const interrupts = (run as { __interrupt__?: unknown[] }).__interrupt__
         if (!interrupts?.length) {
             break
         }
-        const decisions: Array<{ type: 'approve' } | { type: 'reject'; message: string }> = []
-        for (const item of interrupts) {
-            const request = (item as { value: TurnInterruptRequest }).value
-            if (await resolve(request)) {
-                decisions.push({ type: 'approve' })
-            } else {
-                declined = true
-                decisions.push({ type: 'reject', message: 'User declined the action.' })
-            }
-        }
-        run = await agent.invoke(new Command({ resume: { decisions } }))
+        const { decisions, declined: declinedRound } = await resolveInterruptDecisions(
+            interrupts,
+            (item) => (item as { value: TurnInterruptRequest }).value,
+            resolve,
+        )
+        declined = declinedRound
+        run = await agent.invoke(new Command({ resume: { decisions } }), config)
         if (declined) {
             break
         }
     }
     const pending = (run as { __interrupt__?: unknown[] }).__interrupt__
     if (!declined && pending?.length) {
-        console.error(`[@wdio/deepagent] ${pending.length} gated action(s) still pending after ${MAX_INTERRUPT_ROUNDS} resume rounds — not executed.`)
+        warnUnresolvedInterrupts(pending.length)
     }
     return collectTurnResult((run as { messages: unknown[] }).messages)
 }

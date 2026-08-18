@@ -46,46 +46,47 @@ function listChromePids(pattern: string): Promise<Set<number> | null> {
     })
 }
 
-/** Process group id of `pid` from /proc (Linux); undefined where /proc is absent. */
-function processGroupOf(pid: number): number | undefined {
+/** (ppid, process group id) of `pid` from one /proc/<pid>/stat read (Linux); undefined where /proc is absent. */
+function procStatOf(pid: number): { ppid: number | undefined; pgrp: number | undefined } | undefined {
     try {
         const stat = fs.readFileSync(`/proc/${pid}/stat`, 'utf8')
         const after = stat.slice(stat.lastIndexOf(')') + 2).split(' ')
-        return parseInt(after[2], 10)
+        return { ppid: parseInt(after[1], 10), pgrp: parseInt(after[2], 10) }
     } catch {
         return undefined
     }
 }
 
-/** Parent process id of `pid` from /proc (Linux); undefined where /proc is absent. */
-function ppidOf(pid: number): number | undefined {
-    try {
-        const stat = fs.readFileSync(`/proc/${pid}/stat`, 'utf8')
-        const after = stat.slice(stat.lastIndexOf(')') + 2).split(' ')
-        return parseInt(after[1], 10)
-    } catch {
-        return undefined
-    }
+interface AncestryResult {
+    descendant: boolean
+    /** Process group of the start pid, from its own stat read. */
+    group: number | undefined
 }
 
 /**
- * True when `pid`'s ancestor chain reaches `ancestor` within a bounded depth.
- * Chrome spawned by @wdio/mcp is detached, so its PPID stays the server while
- * the server lives — ancestry is the ownership proof the PID-diff sweep lacked.
+ * Walks `pid`'s ancestor chain, one stat read per pid. Chrome spawned by
+ * @wdio/mcp is detached, so its PPID stays the server while the server lives —
+ * ancestry is the ownership proof the PID-diff sweep lacked.
  */
-export function isDescendantOf(pid: number, ancestor: number, maxDepth = 16): boolean {
-    let current = pid
-    for (let i = 0; i < maxDepth; i++) {
-        const ppid = ppidOf(current)
+function walkAncestry(pid: number, ancestor: number, maxDepth = 16): AncestryResult {
+    let stat = procStatOf(pid)
+    const group = stat?.pgrp
+    for (let i = 0; i < maxDepth && stat; i++) {
+        const ppid = stat.ppid
         if (ppid === ancestor) {
-            return true
+            return { descendant: true, group }
         }
         if (ppid === undefined || ppid <= 1) {
-            return false
+            return { descendant: false, group }
         }
-        current = ppid
+        stat = procStatOf(ppid)
     }
-    return false
+    return { descendant: false, group }
+}
+
+/** True when `pid`'s ancestor chain reaches `ancestor` within a bounded depth. */
+export function isDescendantOf(pid: number, ancestor: number, maxDepth = 16): boolean {
+    return walkAncestry(pid, ancestor, maxDepth).descendant
 }
 
 /**
@@ -94,9 +95,10 @@ export function isDescendantOf(pid: number, ancestor: number, maxDepth = 16): bo
  * (`@wdio/mcp: ^3.11.1`) instead of whatever `npx -y @wdio/mcp` fetches
  * from the registry at runtime, so the traversal tool surface cannot drift.
  *
- * `@wdio/mcp` ships `main`/`exports`, but the walk-up still exists: the
- * package may be installed without being resolvable from this module's
- * location (pnpm store, npx cache). The pin holds only where
+ * `@wdio/mcp` ships an exports map that blocks `./package.json` and has no
+ * `require` condition, so createRequire/import.meta.resolve cannot reach it
+ * (and import.meta.resolve fails under vitest) — the walk-up reads the
+ * symlinked `node_modules/@wdio/mcp` directly. The pin holds only where
  * `node_modules/@wdio/mcp` is symlinked — otherwise it degrades to `npx`
  * (unpinned latest).
  *
@@ -284,10 +286,10 @@ export class WdioMcpClient {
             return groups
         }
         for (const pid of chrome) {
-            if (!isDescendantOf(pid, serverPid)) {
+            const { descendant, group } = walkAncestry(pid, serverPid)
+            if (!descendant) {
                 continue
             }
-            const group = processGroupOf(pid)
             if (group) {
                 groups.add(group)
             } else {

@@ -8,6 +8,7 @@ export interface ToolCardState {
     status: 'running' | 'finished' | 'error'
     durationMs?: number
     error?: string
+    output?: string
 }
 
 /** Bordered tool-call card: name + colored status, truncated args, duration. */
@@ -25,6 +26,9 @@ export function ToolCallCard({ card }: { card: ToolCardState }): React.JSX.Eleme
                 {card.status === 'error' && <Text color="red">[error]</Text>}
             </Text>
             <Text dimColor wrap="wrap">{preview}</Text>
+            {card.output !== undefined && card.status !== 'running' && (
+                <Text dimColor wrap="wrap">{card.output.length > ARGS_TRUNCATE ? `${card.output.slice(0, ARGS_TRUNCATE)}…` : card.output}</Text>
+            )}
             {card.durationMs !== undefined && (
                 <Text>
                     <Text color={card.status === 'error' ? 'red' : 'green'}>{card.durationMs}ms</Text>

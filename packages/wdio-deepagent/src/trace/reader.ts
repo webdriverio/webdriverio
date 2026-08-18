@@ -117,8 +117,8 @@ function recordError(rec: Record<string, unknown>): string | undefined {
     return undefined
 }
 
-function forEachNdjsonLine(data: Buffer, fn: (line: Record<string, unknown>) => void): void {
-    for (const line of data.toString('utf8').split('\n')) {
+function forEachNdjsonLine(text: string, fn: (line: Record<string, unknown>) => void): void {
+    for (const line of text.split('\n')) {
         const trimmed = line.trim()
         if (!trimmed) {
             continue
@@ -255,7 +255,7 @@ export function parseTraceArchive(
         }
 
         if (name === 'trace.trace' || name.endsWith('.trace')) {
-            forEachNdjsonLine(data, (rec) => {
+            forEachNdjsonLine(data.toString('utf8'), (rec) => {
                 if (rec.type === 'context-options' || rec.type === 'after') {
                     // `after` records only enrich their `before` pair
                     const id = recordId(rec)
@@ -275,10 +275,11 @@ export function parseTraceArchive(
         }
 
         if (name === 'trace.network' || name.endsWith('.network')) {
-            if (data.toString('utf8').trim()) {
+            const text = data.toString('utf8')
+            if (text.trim()) {
                 hasNetworkData = true
             }
-            forEachNdjsonLine(data, (rec) => {
+            forEachNdjsonLine(text, (rec) => {
                 network.push({
                     method: typeof rec.method === 'string' ? rec.method : undefined,
                     url: typeof rec.url === 'string' ? rec.url : undefined,

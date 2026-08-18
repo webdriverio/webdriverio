@@ -1,10 +1,10 @@
-import fs from 'node:fs/promises'
 import path from 'node:path'
 import type { DeepAgent } from 'deepagents'
 import type { HealMode } from '../config/index.js'
-import { DEFAULT_MAX_TRACE_BYTES, parseTraceArchive } from '../trace/reader.js'
 import type { TraceAction, TraceArtifact, TraceNetworkEntry } from '../trace/reader.js'
 import { reproduceSpec } from '../trace/reproduce.js'
+import type { SpawnOverride } from '../trace/reproduce.js'
+import { readTraceArchive } from '../trace/tools.js'
 import { diffArtifacts, summarizeFailures } from '../trace/diff.js'
 import type { TraceDiff } from '../trace/diff.js'
 import { processTurn, type TurnInterruptRequest } from '../commands/turn.js'
@@ -15,7 +15,7 @@ import { processTurn, type TurnInterruptRequest } from '../commands/turn.js'
  * the heal mode); this engine only decides whether the agent runs.
  */
 
-export interface DiagnosisOptions {
+export interface DiagnosisOptions extends SpawnOverride {
     /** Path to the failing run's trace.zip. */
     tracePath: string
     /** Project wdio.conf path (needed for reproduction). */
@@ -26,9 +26,6 @@ export interface DiagnosisOptions {
     heal: HealMode
     /** Re-run the spec to capture a fresh trace (default: spec provided). */
     reproduce?: boolean
-    /** Injectable spawn override for tests (see reproduce.ts). */
-    spawnCommand?: string
-    spawnArgs?: string[]
     /** Agent used for the heal step (mode-gated). */
     agent?: DeepAgent
     /** Heal prompt template (injectable for tests). */
@@ -86,14 +83,7 @@ Fix the failing spec or page object so the run passes, then summarize what you c
  */
 export async function runDiagnosis(options: DiagnosisOptions): Promise<DiagnosisReport> {
     const absTrace = path.resolve(options.tracePath)
-    // gate on the compressed size before reading: the decompressed cap in
-    // parseTraceArchive only applies after the whole archive is in memory
-    const stat = await fs.stat(absTrace)
-    if (stat.size > DEFAULT_MAX_TRACE_BYTES) {
-        throw new Error(`Trace ${options.tracePath} is ${stat.size} bytes — exceeds the ${DEFAULT_MAX_TRACE_BYTES} byte cap.`)
-    }
-    const buffer = await fs.readFile(absTrace)
-    const oldArtifact: TraceArtifact = parseTraceArchive(buffer, path.basename(absTrace))
+    const oldArtifact: TraceArtifact = await readTraceArchive(absTrace)
 
     const report: DiagnosisReport = {
         source: oldArtifact.source,
@@ -124,8 +114,7 @@ export async function runDiagnosis(options: DiagnosisOptions): Promise<Diagnosis
             durationMs: reproduction.duration,
         }
         if (reproduction.artifactPath) {
-            const newBuffer = await fs.readFile(reproduction.artifactPath)
-            const newArtifact = parseTraceArchive(newBuffer, path.basename(reproduction.artifactPath))
+            const newArtifact = await readTraceArchive(reproduction.artifactPath)
             report.diff = diffArtifacts(oldArtifact, newArtifact)
         }
     }

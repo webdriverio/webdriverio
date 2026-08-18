@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Text } from 'ink'
 import { TextInput } from '@inkjs/ui'
 import type { TurnInterruptRequest } from '../turn.js'
-import { describeActionRequest } from '../interrupt.js'
+import { describeActionRequest, parseYesNo } from '../interrupt.js'
 import { submitApproval } from './approvalBus.js'
 
 /** y/N approval for gated tool calls; defaults to N (matches the old `[y/N]`). */
@@ -15,7 +15,7 @@ export function ApprovalPrompt({ request }: { request: TurnInterruptRequest }): 
             ))}
             <TextInput
                 placeholder="y/N"
-                onSubmit={(value) => submitApproval(/^y(es)?$/i.test(value.trim()))}
+                onSubmit={(value) => submitApproval(parseYesNo(value))}
             />
         </Box>
     )
