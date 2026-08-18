@@ -1,4 +1,5 @@
 import AdmZip from 'adm-zip'
+import zlib from 'node:zlib'
 
 /**
  * Normalized view of a devtools `trace.zip` artifact (see
@@ -130,6 +131,28 @@ function forEachNdjsonLine(data: Buffer, fn: (line: Record<string, unknown>) => 
     }
 }
 
+/**
+ * Decompresses one zip entry under a hard output cap so a crafted deflate
+ * stream cannot exhaust memory (zip-bomb defense). Method 8 is DEFLATED
+ * (raw deflate, no zlib header — verified against adm-zip 0.5.x's
+ * `zlib.inflateRawSync`); STORED/other entries are copied, never inflated.
+ */
+function inflateEntryData(entry: AdmZip.IZipEntry, maxBytes: number): Buffer {
+    if (entry.header.method !== 8) {
+        return entry.getData()
+    }
+    try {
+        return zlib.inflateRawSync(entry.getCompressedData(), { maxOutputLength: maxBytes })
+    } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === 'ERR_BUFFER_TOO_LARGE') {
+            throw new Error(
+                `trace.zip entry ${entry.entryName} exceeds ${maxBytes} bytes decompressed; refusing to parse untrusted archive.`
+            )
+        }
+        throw err
+    }
+}
+
 function parseActionRecord(rec: Record<string, unknown>): TraceAction {
     // The devtools trace wraps the action payload in `action` for before
     // records (fixture format); the current v8 format nests it in
@@ -155,7 +178,9 @@ function parseActionRecord(rec: Record<string, unknown>): TraceAction {
         id: recordId(rec),
         ...actionFields,
         startedAt: recordTs(rec, 'start'),
-        ok: rec.type !== 'after' || !recordError(rec),
+        // parseActionRecord only sees `before` records; ok is set by the
+        // after-pairing below, and stays false for orphaned (truncated) actions
+        ok: false,
         error: recordError(rec),
         snapshotFile: typeof rec.snapshotFile === 'string' ? rec.snapshotFile : undefined,
         elementsFile: typeof rec.elementsFile === 'string' ? rec.elementsFile : undefined,
@@ -215,7 +240,7 @@ export function parseTraceArchive(
                 continue
             }
         }
-        const data = entry.getData()
+        const data = inflateEntryData(entry, maxTotalBytes)
         totalBytes += data.length
         if (totalBytes > maxTotalBytes) {
             throw new Error(
@@ -282,15 +307,16 @@ export function parseTraceArchive(
         if (!afterRaw) {
             continue
         }
-        const end = recordTs(afterRaw, 'start') ?? afterRaw.endTime
+        const end = recordTs(afterRaw, 'end') ?? recordTs(afterRaw, 'start')
         if (typeof end === 'number' && action.startedAt !== undefined) {
             action.duration = Math.max(0, end - action.startedAt)
         }
         const err = recordError(afterRaw)
         if (err && !action.error) {
             action.error = err
-            action.ok = false
         }
+        // only an explicit error-free `after` clears the not-ok default
+        action.ok = !err
     }
 
     return { source, actions, network, transcript, hasNetworkData, hasTranscript, snapshots, screenshots }

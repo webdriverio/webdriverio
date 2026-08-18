@@ -89,6 +89,38 @@ describe('reproduceSpec', () => {
         }
     })
 
+    it.skipIf(process.platform === 'win32')('falls back to npx when the local wdio bin is missing, passing args unshelled', async () => {
+        const traceDir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-trace-'))
+        const fakeBin = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-npx-bin-'))
+        const argsFile = path.join(traceDir, 'npx-args.json')
+        try {
+            // fake `npx` first in PATH records the args it received (a shell
+            // would have swallowed the quoted spec path and metacharacters)
+            const npx = path.join(fakeBin, 'npx')
+            await fs.writeFile(npx,
+                '#!/usr/bin/env node\n' +
+                'require(\'node:fs\').writeFileSync(process.env.WDIO_NPX_ARGS_FILE, JSON.stringify(process.argv.slice(1)))\n',
+                { mode: 0o755 })
+            const spec = path.join(FIXTURES, 'some.spec.js')
+            const result = await reproduceSpec({
+                configPath: CONFIG,
+                spec,
+                traceDir,
+                env: { PATH: `${fakeBin}${path.delimiter}${process.env.PATH ?? ''}`, WDIO_NPX_ARGS_FILE: argsFile },
+            })
+
+            expect(result.exitCode).toBe(0)
+            const argv = JSON.parse(await fs.readFile(argsFile, 'utf8'))
+            expect(argv[1]).toBe('wdio')
+            expect(argv[2]).toBe('run')
+            expect(argv[argv.length - 2]).toBe('--spec')
+            expect(argv[argv.length - 1]).toBe(spec)
+        } finally {
+            await fs.rm(traceDir, { recursive: true, force: true })
+            await fs.rm(fakeBin, { recursive: true, force: true })
+        }
+    })
+
     it('refuses a spec that resolves outside the project root', async () => {
         const traceDir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-trace-'))
         try {

@@ -184,4 +184,28 @@ describe('parseTraceArchive', () => {
         expect(() => parseTraceArchive(zip.toBuffer(), 'bomb.zip', { maxTotalBytes: 6 }))
             .toThrow(/exceeds 6 bytes decompressed/)
     })
+
+    it('rejects an entry that inflates beyond the cap even when its declared size lies', () => {
+        // 10 MiB of zeros deflates to ~10 KiB; lying about the declared size
+        // must not bypass the decompression budget (zip-bomb defense)
+        const zip = new AdmZip()
+        zip.addFile('big.txt', Buffer.alloc(10 * 1024 * 1024))
+        zip.getEntries()[0].header.size = 4
+        expect(() => parseTraceArchive(zip.toBuffer(), 'bomb.zip', { maxTotalBytes: 1024 }))
+            .toThrow(/entry big\.txt exceeds 1024 bytes decompressed/)
+    })
+
+    it('marks actions without a matching after record as failed (truncated trace)', () => {
+        const zip = new AdmZip()
+        zip.addFile('trace.trace', Buffer.from([
+            JSON.stringify({ type: 'before', id: 'a1', ts: 1000, action: { name: 'url', value: 'https://example.com' } }),
+            JSON.stringify({ type: 'before', id: 'a2', ts: 1500, action: { name: 'click', selector: '#login-btn' } }),
+            JSON.stringify({ type: 'after', id: 'a2', ts: 1600 }),
+        ].join('\n')))
+        const [orphan, done] = parseTraceArchive(zip.toBuffer()).actions
+        expect(orphan).toMatchObject({ id: 'a1', ok: false })
+        expect(orphan.error).toBeUndefined()
+        expect(done).toMatchObject({ id: 'a2', ok: true })
+        expect(done.duration).toBe(100)
+    })
 })

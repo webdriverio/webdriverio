@@ -17,6 +17,7 @@ Help the user test and fix their web app: traverse the app under test, understan
 - Traversal tools (session, navigation, elements, selectors, screenshots, cookies, mobile gestures) come from the @wdio/mcp server. Start a session before interacting with the app; one session at a time. Prefer the accessibility/visible-element tools over guessing selectors.
 - Selectors: \`get_elements\` returns working selectors for every interactable element — reuse them verbatim for click/input tools (they accept WebdriverIO selectors). \`execute_script\` takes CSS selectors ONLY; never pass \`button*=Login\`-style WebdriverIO syntax to it. When in doubt, re-query \`get_elements\` instead of guessing.
 - Filesystem tools (read_file, write_file, edit_file, glob, grep) give you the project itself: read existing specs and page objects before writing new ones, and match the repo's style.
+- The filesystem tools are rooted at the project directory (your working directory): \`/\` is the project root. Use \`/\`-prefixed paths — \`ls "/"\` lists the project, \`read_file "/specs/navigation.spec.js"\` reads a spec. Never guess host-machine paths.
 - Trace tools work on @wdio/devtools-service trace.zip artifacts: ingest a trace to understand what a run did, reproduce a spec to get a fresh trace, diff two traces to find what changed.
 - The site knowledge base (remember_snapshot / query_knowledge_base) lets you accumulate what you've seen per page; record snapshots as you browse instead of re-discovering selectors.
 

@@ -1,9 +1,10 @@
+import { existsSync } from 'node:fs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { tool } from 'langchain'
 import type { DynamicStructuredTool } from '@langchain/core/tools'
 import { z } from 'zod'
-import { parseTraceArchive } from './reader.js'
+import { DEFAULT_MAX_TRACE_BYTES, parseTraceArchive } from './reader.js'
 import type { TraceArtifact } from './reader.js'
 import { reproduceSpec } from './reproduce.js'
 import { diffArtifacts } from './diff.js'
@@ -22,12 +23,36 @@ export interface TraceToolOptions {
     spawnArgs?: string[]
 }
 
+/** Model-supplied trace paths must stay inside the trace dir. The fs tools
+ * emit `/`-prefixed project-rooted virtual paths, but reproduce_spec also
+ * hands the model a host-absolute artifactPath — accept both, host first. */
+function confineTracePath(traceDir: string, projectRoot: string, tracePath: string): string {
+    const dir = path.resolve(traceDir)
+    const within = (abs: string) => abs === dir || abs.startsWith(dir + path.sep)
+    const hostAbs = path.resolve(tracePath)
+    if (within(hostAbs)) {
+        return hostAbs
+    }
+    if (tracePath.startsWith('/')) {
+        const virtualAbs = path.resolve(projectRoot, tracePath.replace(/^\//, ''))
+        if (within(virtualAbs)) {
+            return virtualAbs
+        }
+    }
+    throw new Error(`trace path "${tracePath}" is outside the trace directory`)
+}
+
 const MAX_ARCHIVE_CACHE = 4
 const archiveCache = new Map<string, ReturnType<typeof parseTraceArchive>>()
 
 async function readTraceArchive(absPath: string, opts: Parameters<typeof parseTraceArchive>[2]): Promise<ReturnType<typeof parseTraceArchive>> {
     // stat in the key: a replaced artifact at the same path must not serve a stale parse
     const stat = await fs.stat(absPath)
+    if (stat.size > DEFAULT_MAX_TRACE_BYTES) {
+        throw new Error(
+            `trace archive is ${stat.size} bytes (max ${DEFAULT_MAX_TRACE_BYTES}); refusing to parse untrusted archive.`
+        )
+    }
     const key = `${absPath}:${stat.mtimeMs}:${stat.size}:${JSON.stringify(opts)}`
     const cached = archiveCache.get(key)
     if (cached) {
@@ -64,9 +89,10 @@ function summarizeArtifact(artifact: TraceArtifact): string {
 }
 
 export function createTraceTools(options: TraceToolOptions): DynamicStructuredTool[] {
+    const projectRoot = options.configPath ? path.dirname(path.resolve(options.configPath)) : process.cwd()
     const ingestTrace = tool(
         async ({ tracePath }) => {
-            const abs = path.resolve(tracePath)
+            const abs = confineTracePath(options.traceDir, projectRoot, tracePath)
             try {
                 const artifact = await readTraceArchive(abs, { keepResources: false })
                 return summarizeArtifact(artifact)
@@ -91,9 +117,19 @@ export function createTraceTools(options: TraceToolOptions): DynamicStructuredTo
             if (!options.configPath) {
                 return 'No wdio.conf configured — cannot reproduce.'
             }
+            // accept both the fs tools' `/`-prefixed virtual paths and
+            // host-absolute paths; a host path that actually exists wins, so
+            // an outside-root spec still fails reproduceSpec's confinement
+            // check instead of being re-read as a virtual path
+            const hostResolved = path.resolve(projectRoot, spec)
+            const relative = path.relative(projectRoot, hostResolved)
+            const hostInside = !relative.startsWith('..') && !path.isAbsolute(relative)
+            const resolved = hostInside || !spec.startsWith('/') || existsSync(hostResolved)
+                ? hostResolved
+                : path.resolve(projectRoot, spec.replace(/^\//, ''))
             const result = await reproduceSpec({
                 configPath: options.configPath,
-                spec: path.resolve(spec),
+                spec: resolved,
                 traceDir: options.traceDir,
                 spawnCommand: options.spawnCommand,
                 spawnArgs: options.spawnArgs,
@@ -116,8 +152,8 @@ export function createTraceTools(options: TraceToolOptions): DynamicStructuredTo
         async ({ oldTrace, newTrace }) => {
             try {
                 const [oldArtifact, newArtifact] = await Promise.all([
-                    readTraceArchive(path.resolve(oldTrace), {}),
-                    readTraceArchive(path.resolve(newTrace), {}),
+                    readTraceArchive(confineTracePath(options.traceDir, projectRoot, oldTrace), {}),
+                    readTraceArchive(confineTracePath(options.traceDir, projectRoot, newTrace), {}),
                 ])
                 return JSON.stringify(diffArtifacts(oldArtifact, newArtifact), null, 2)
             } catch (err) {

@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { FakeToolCallingModel } from 'langchain'
 import { createDeepAgentHarness } from '../src/agent.js'
 import { runDiagnosis } from '../src/heal/index.js'
+import { DEFAULT_MAX_TRACE_BYTES } from '../src/trace/reader.js'
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
 const CONFIG = path.join(FIXTURES, 'wdio.conf.ts')
@@ -31,6 +32,24 @@ async function makeFailingTrace(dir: string): Promise<string> {
 }
 
 describe('runDiagnosis', () => {
+    it('rejects an oversize trace before reading it', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
+        const tracePath = path.join(dir, 'huge-trace.zip')
+        // sparse file: sized past the cap without writing 256MB
+        const fh = await fs.open(tracePath, 'w')
+        await fh.truncate(DEFAULT_MAX_TRACE_BYTES + 1)
+        await fh.close()
+        try {
+            await expect(runDiagnosis({
+                tracePath,
+                traceDir: path.join(dir, 'traces'),
+                heal: 'propose',
+            })).rejects.toThrow(/exceeds the .* byte cap/)
+        } finally {
+            await fs.rm(dir, { recursive: true, force: true })
+        }
+    })
+
     it('ingests a failing trace and reports failures without reproduction', async () => {
         const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
         const tracePath = await makeFailingTrace(dir)
@@ -127,7 +146,7 @@ describe('runDiagnosis', () => {
         const harness = await createDeepAgentHarness({
             model: { provider: 'openai', model: 'fake' },
             modelOverride: new FakeToolCallingModel({
-                toolCalls: [[{ name: 'write_file', args: { path: spec, content: 'fixed' }, id: 'call-1' }]],
+                toolCalls: [[{ name: 'write_file', args: { path: '/spec.js', content: 'fixed' }, id: 'call-1' }]],
                 toolStyle: 'openai',
             }),
             mcp: { command: process.execPath, args: [MCP_SERVER] },
@@ -159,7 +178,7 @@ describe('runDiagnosis', () => {
         const harness = await createDeepAgentHarness({
             model: { provider: 'openai', model: 'fake' },
             modelOverride: new FakeToolCallingModel({
-                toolCalls: [[{ name: 'write_file', args: { path: spec, content: 'fixed' }, id: 'call-1' }]],
+                toolCalls: [[{ name: 'write_file', args: { path: '/spec.js', content: 'fixed' }, id: 'call-1' }]],
                 toolStyle: 'openai',
             }),
             mcp: { command: process.execPath, args: [MCP_SERVER] },

@@ -19,15 +19,15 @@ export function ToolCallCard({ card }: { card: ToolCardState }): React.JSX.Eleme
     return (
         <Box borderStyle="round" flexDirection="column" paddingX={1} width={Math.max(40, Math.min(columns - 4, 110))}>
             <Text>
-                <Text bold>🔧  {card.name}</Text>{' '}
+                <Text bold>{card.name}</Text>{' '}
                 {card.status === 'running' && <Text color="yellow">… running</Text>}
-                {card.status === 'finished' && <Text color="green">✓ finished</Text>}
-                {card.status === 'error' && <Text color="red">✗ error</Text>}
+                {card.status === 'finished' && <Text color="green">[ok]</Text>}
+                {card.status === 'error' && <Text color="red">[error]</Text>}
             </Text>
             <Text dimColor wrap="wrap">{preview}</Text>
             {card.durationMs !== undefined && (
                 <Text>
-                    <Text color={card.status === 'error' ? 'red' : 'green'}>⌛ {card.durationMs}ms</Text>
+                    <Text color={card.status === 'error' ? 'red' : 'green'}>{card.durationMs}ms</Text>
                     {card.status === 'error' && card.error ? ` — ${card.error}` : ''}
                 </Text>
             )}

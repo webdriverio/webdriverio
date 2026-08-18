@@ -17,10 +17,18 @@ export interface SiteSnapshot {
     recordedAt: number
 }
 
+const MAX_KB_ENTRIES = 32
+
 export function createKnowledgeBaseTools(): DynamicStructuredTool[] {
     const knowledgeBase = new Map<string, SiteSnapshot>()
     const rememberSnapshot = tool(
         async ({ url, snapshot, elements }) => {
+            if (knowledgeBase.size >= MAX_KB_ENTRIES) {
+                const oldest = knowledgeBase.keys().next().value
+                if (oldest !== undefined) {
+                    knowledgeBase.delete(oldest)
+                }
+            }
             knowledgeBase.set(normalizeUrl(url), { url, snapshot, elements, recordedAt: Date.now() })
             return `Remembered snapshot for ${url} (${knowledgeBase.size} pages in knowledge base).`
         },
@@ -68,10 +76,8 @@ export function createKnowledgeBaseTools(): DynamicStructuredTool[] {
     return [rememberSnapshot, queryKnowledgeBase, clearKnowledgeBase]
 }
 
+/** Site under test is one host: strip it so relative and absolute page URLs hit the same key. */
 function normalizeUrl(url: string): string {
-    try {
-        return new URL(url).href.replace(/\/$/, '')
-    } catch {
-        return url
-    }
+    const { pathname } = new URL(url, 'http://kb.local')
+    return pathname.replace(/\/$/, '') || '/'
 }

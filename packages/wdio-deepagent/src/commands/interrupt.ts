@@ -7,7 +7,7 @@ export const ARGS_TRUNCATE = 200
 export function describeActionRequest(action: TurnInterruptRequest['actionRequests'][number]): string {
     const args = JSON.stringify(action.args ?? {})
     const preview = args.length > ARGS_TRUNCATE ? `${args.slice(0, ARGS_TRUNCATE)}…` : args
-    return `\n  ⚠️  ${action.name} ${preview} — ${action.description}`
+    return `\n  [!] ${action.name} ${preview} — ${action.description}`
 }
 
 /** Interactive y/N approval for gated tool calls (heal=ask). */

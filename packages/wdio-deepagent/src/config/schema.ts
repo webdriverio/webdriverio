@@ -33,6 +33,7 @@ export const DeepAgentConfigSchema = z.object({
     mcp: z.object({
         command: z.string().default(DEFAULT_MCP_CONFIG.command),
         args: z.array(z.string()).default(DEFAULT_MCP_CONFIG.args),
+        env: z.record(z.string(), z.string()).optional(),
     }).prefault({}).nullable(),
     /** Where devtools trace artifacts land (reproduce/diagnose). */
     traceDir: z.string().default(DEFAULT_TRACE_DIR),

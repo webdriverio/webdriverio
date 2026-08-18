@@ -19,6 +19,10 @@ const mcpMocks = vi.hoisted(() => ({
     serveAsMcpServer: vi.fn(),
 }))
 
+const healMocks = vi.hoisted(() => ({
+    runDiagnosis: vi.fn(),
+}))
+
 vi.mock('../src/agent.js', async (importOriginal) => {
     const original = await importOriginal<typeof agentModule>()
     return { ...original, createDeepAgentHarness: mocks.createHarness }
@@ -29,6 +33,8 @@ vi.mock('../src/commands/run.js', () => ({
 }))
 
 vi.mock('../src/mcp/export.js', () => ({ serveAsMcpServer: mcpMocks.serveAsMcpServer }))
+
+vi.mock('../src/heal/index.js', () => ({ runDiagnosis: healMocks.runDiagnosis }))
 
 describe('CLI routing (quick start: wdio-deepagent run "<prompt>")', () => {
     it('resolves config from --config, builds the harness, runs the mission, closes and sets exit code', async () => {
@@ -159,6 +165,127 @@ describe('CLI routing (quick start: wdio-deepagent run "<prompt>")', () => {
                 expect.objectContaining({ mcpClient: null, tools: expect.any(Array) }),
             )
             expect(process.exitCode).toBe(0)
+        } finally {
+            process.argv = prevArgv
+            process.exitCode = 0
+            vi.clearAllMocks()
+        }
+    })
+
+    it('mcp never resolves the configured model (no API key needed)', async () => {
+        const { run } = await import('../src/index.js')
+
+        mcpMocks.serveAsMcpServer.mockResolvedValue(undefined)
+        vi.clearAllMocks()
+        const prevArgv = process.argv
+        // FIXTURE_CONFIG configures openrouter (keyed) — the harness factory must stay untouched
+        process.argv = ['node', 'wdio-deepagent', 'mcp', '--no-mcp', '--config', FIXTURE_CONFIG]
+        try {
+            await run()
+            expect(mocks.createHarness).not.toHaveBeenCalled()
+            expect(mcpMocks.serveAsMcpServer).toHaveBeenCalledWith(
+                expect.objectContaining({ mcpClient: null, tools: expect.any(Array) }),
+            )
+            expect(process.exitCode).toBe(0)
+        } finally {
+            process.argv = prevArgv
+            process.exitCode = 0
+            vi.clearAllMocks()
+        }
+    })
+
+    it('diagnose exits 0 when the post-heal run is clean', async () => {
+        const { run } = await import('../src/index.js')
+
+        healMocks.runDiagnosis.mockResolvedValue({
+            source: 'trace.zip',
+            actionCount: 1,
+            failedActions: [{ name: 'click', selector: '#login-btn', error: 'element not found' }],
+            networkErrors: [],
+            transcript: '',
+            hasNetworkData: false,
+            hasTranscript: false,
+            heal: 'propose',
+            agentRan: false,
+            diff: {
+                oldActionCount: 1,
+                newActionCount: 1,
+                added: [],
+                removed: [],
+                failedNow: [],
+                oldHadFailures: true,
+                newHasFailures: false,
+            },
+        })
+        vi.clearAllMocks()
+        const prevArgv = process.argv
+        process.argv = ['node', 'wdio-deepagent', 'diagnose', 'trace.zip', '--config', FIXTURE_CONFIG]
+        try {
+            await run()
+            expect(process.exitCode).toBe(0)
+        } finally {
+            process.argv = prevArgv
+            process.exitCode = 0
+            vi.clearAllMocks()
+        }
+    })
+
+    it('diagnose exits 1 when the post-heal run still fails', async () => {
+        const { run } = await import('../src/index.js')
+
+        healMocks.runDiagnosis.mockResolvedValue({
+            source: 'trace.zip',
+            actionCount: 1,
+            failedActions: [{ name: 'click', selector: '#login-btn', error: 'element not found' }],
+            networkErrors: [],
+            transcript: '',
+            hasNetworkData: false,
+            hasTranscript: false,
+            heal: 'propose',
+            agentRan: false,
+            diff: {
+                oldActionCount: 1,
+                newActionCount: 1,
+                added: [],
+                removed: [],
+                failedNow: [{ name: 'click', selector: '#login-btn', error: 'element not found' }],
+                oldHadFailures: true,
+                newHasFailures: true,
+            },
+        })
+        vi.clearAllMocks()
+        const prevArgv = process.argv
+        process.argv = ['node', 'wdio-deepagent', 'diagnose', 'trace.zip', '--config', FIXTURE_CONFIG]
+        try {
+            await run()
+            expect(process.exitCode).toBe(1)
+        } finally {
+            process.argv = prevArgv
+            process.exitCode = 0
+            vi.clearAllMocks()
+        }
+    })
+
+    it('diagnose exits 1 without a reproduction diff', async () => {
+        const { run } = await import('../src/index.js')
+
+        healMocks.runDiagnosis.mockResolvedValue({
+            source: 'trace.zip',
+            actionCount: 1,
+            failedActions: [{ name: 'click', selector: '#login-btn', error: 'element not found' }],
+            networkErrors: [],
+            transcript: '',
+            hasNetworkData: false,
+            hasTranscript: false,
+            heal: 'propose',
+            agentRan: false,
+        })
+        vi.clearAllMocks()
+        const prevArgv = process.argv
+        process.argv = ['node', 'wdio-deepagent', 'diagnose', 'trace.zip', '--config', FIXTURE_CONFIG]
+        try {
+            await run()
+            expect(process.exitCode).toBe(1)
         } finally {
             process.argv = prevArgv
             process.exitCode = 0
