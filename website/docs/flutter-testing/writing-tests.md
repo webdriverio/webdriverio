@@ -16,9 +16,19 @@ Traditional WebdriverIO selectors, like `$('~selector')` or `$('#id')`, are desi
 
 Flutter manages its own internal elements and uses proprietary search methods (such as `byValueKey`, `byText`, `byType`). The `appium-flutter-finder` library is required because it acts as a translator: it exposes these Flutter-specific locator strategies into a serialized format (Base64/JSON) that the `appium-flutter-driver` can interpret and execute inside the Dart Virtual Machine (VM).
 
-### Practical Test Example
+### Practical Test Examples
 
-We document common scenarios using `appium-flutter-finder` and direct `flutter:` commands via `driver.execute`.
+We document common scenarios using `appium-flutter-finder` to locate widgets, combined with direct extension commands executed through `driver.execute('flutter:<command>')`.
+
+:::info Flutter Driver Extension Commands
+The `appium-flutter-driver` provides specialized commands for interacting with Flutter applications, including:
+- `flutter:waitFor`: Waits for a widget to become visible.
+- `flutter:waitForAbsent`: Waits for a widget to disappear.
+- `flutter:scroll` / `flutter:scrollIntoView` / `flutter:scrollUntilVisible`: Handles scrolling within scrollable views.
+- `flutter:setTextEntryEmulation`: Configures text input behavior.
+
+For the full list of available commands, parameters, and return types, see the [Appium Flutter Driver Extension Commands Documentation](https://github.com/appium/appium-flutter-driver#driver-extension-commands) and the [Appium Flutter Finder API](https://github.com/appium/appium-flutter-finder#locators).
+:::
 
 ### Example A — Simple interaction (Counter flow)
 
