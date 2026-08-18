@@ -29,7 +29,7 @@ export class ShadowRootManager extends SessionManager {
     #handleLogEntryListener = this.handleLogEntry.bind(this)
     #commandResultHandlerListener = this.#commandResultHandler.bind(this)
     #handleBidiCommandListener = this.#handleBidiCommand.bind(this)
-    #handleNavigationStartedListener = this.#handleNavigationStarted.bind(this)
+    #handleNavigationCommittedListener = this.#handleNavigationCommitted.bind(this)
 
     constructor(browser: WebdriverIO.Browser) {
         super(browser, ShadowRootManager.name)
@@ -47,12 +47,12 @@ export class ShadowRootManager extends SessionManager {
          * listen on required bidi events
          */
         this.#initialize = this.#browser.sessionSubscribe({
-            events: ['log.entryAdded', 'browsingContext.navigationStarted']
+            events: ['log.entryAdded', 'browsingContext.navigationCommitted']
         }).then(() => true, () => false)
         this.#browser.on('log.entryAdded', this.#handleLogEntryListener)
         this.#browser.on('result', this.#commandResultHandlerListener)
         this.#browser.on('bidiCommand', this.#handleBidiCommandListener)
-        this.#browser.on('browsingContext.navigationStarted', this.#handleNavigationStartedListener)
+        this.#browser.on('browsingContext.navigationCommitted', this.#handleNavigationCommittedListener)
         this.#browser.scriptAddPreloadScript({
             functionDeclaration: customElementWrapper.toString()
         }).catch((err: Error) => {
@@ -71,7 +71,7 @@ export class ShadowRootManager extends SessionManager {
         this.#browser.off('log.entryAdded', this.#handleLogEntryListener)
         this.#browser.off('result', this.#commandResultHandlerListener)
         this.#browser.off('bidiCommand', this.#handleBidiCommandListener)
-        this.#browser.off('browsingContext.navigationStarted', this.#handleNavigationStartedListener)
+        this.#browser.off('browsingContext.navigationCommitted', this.#handleNavigationCommittedListener)
     }
 
     async initialize () {
@@ -89,7 +89,7 @@ export class ShadowRootManager extends SessionManager {
         this.#clearContext(params.context)
     }
 
-    #handleNavigationStarted({ context }: local.BrowsingContextNavigationInfo) {
+    #handleNavigationCommitted({ context }: local.BrowsingContextNavigationInfo) {
         this.#clearContext(context)
     }
 

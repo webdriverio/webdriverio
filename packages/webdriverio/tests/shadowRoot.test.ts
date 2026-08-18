@@ -40,10 +40,10 @@ describe('ShadowRootManager', () => {
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(1)
 
         manager.removeListeners()
-        expect(browser.off).toHaveBeenCalledWith('browsingContext.navigationStarted', expect.any(Function))
+        expect(browser.off).toHaveBeenCalledWith('browsingContext.navigationCommitted', expect.any(Function))
     })
 
-    it('clears cached shadow roots when a navigation starts', async () => {
+    it('does not clear cached shadow roots until a navigation commits', async () => {
         const wid = process.env.WDIO_UNIT_TESTS
         delete process.env.WDIO_UNIT_TESTS
         const browser = {
@@ -75,11 +75,17 @@ describe('ShadowRootManager', () => {
         } as any)
         expect(await manager.getShadowElementsByContextId('navigation-context')).toContain('f.C1.d.AAAA.e.101')
 
-        const navigationStartedListener = browser.on.mock.calls.find(
-            ([event]: [string]) => event === 'browsingContext.navigationStarted'
+        expect(browser.sessionSubscribe).toHaveBeenCalledWith({
+            events: ['log.entryAdded', 'browsingContext.navigationCommitted']
+        })
+        expect(browser.on).not.toHaveBeenCalledWith('browsingContext.navigationStarted', expect.any(Function))
+        expect(await manager.getShadowElementsByContextId('navigation-context')).toContain('f.C1.d.AAAA.e.101')
+
+        const navigationCommittedListener = browser.on.mock.calls.find(
+            ([event]: [string]) => event === 'browsingContext.navigationCommitted'
         )?.[1]
-        expect(navigationStartedListener).toEqual(expect.any(Function))
-        navigationStartedListener({ context: 'navigation-context' })
+        expect(navigationCommittedListener).toEqual(expect.any(Function))
+        navigationCommittedListener({ context: 'navigation-context' })
 
         expect(await manager.getShadowElementsByContextId('navigation-context')).toEqual([])
     })
