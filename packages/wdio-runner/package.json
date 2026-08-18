@@ -38,7 +38,7 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "deepmerge-ts": "^7.0.3",
+    "deepmerge-ts": "^8.0.0",
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*"
   },
