@@ -63,7 +63,7 @@ export const config: WebdriverIO.Config = {
 
 Defining the binary application path (`.apk` for Android, `.app` or `.ipa` for iOS) inside the `appium:app` property requires careful attention depending on the operating system and target environment:
 
-- **On Windows**: The operating system uses backslashes (`\`) for directory paths. When mapping the path to your `.apk` file on Windows, ensure you escape the backslashes in your configuration file (e.g., `.\\android\\app\\build\\...`) or use consistent forward slashes (`/`), which are correctly parsed by Node.js.
+- **On Windows**: The operating system uses backslashes (`\`) for directory paths. When mapping the path to your `.apk` file on Windows, ensure you escape the backslashes in your configuration file (e.g., `.\\build\\app\\outputs\\flutter-apk\\app-debug.apk`) or use consistent forward slashes (`/`), which are correctly parsed by Node.js.
 - **On macOS / Linux**: Standard paths with forward slashes (`/`) are used. Remember that iOS builds (`.app` for Simulator or `.ipa` for real devices) can only be compiled within macOS environments.
 - **iOS Simulator vs Real Devices**: Use `.app` bundles when executing against the iOS Simulator and signed `.ipa` packages when running against physical iOS devices.
 - **Absolute vs Relative Paths**: It is highly recommended to use relative paths starting from the project root (using `./`) to guarantee portability across different development machines and Continuous Integration (CI) environments.
