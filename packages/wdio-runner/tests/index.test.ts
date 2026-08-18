@@ -7,7 +7,7 @@ import { ConfigParser } from '@wdio/config/node'
 import type { Instances } from 'webdriverio'
 import { attach } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
-import { setOptions, SnapshotService } from 'expect-webdriverio'
+import { setDefaultOptions, SnapshotService } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
 import type { CustomStubCommand, CustomStubCommandWithOptions, LegacyCustomStubCommand } from '../src/types.js'
@@ -18,7 +18,7 @@ vi.mock('fs/promises', async (orig) => ({
 }))
 vi.mock('util')
 vi.mock('expect-webdriverio', () => ({
-    setOptions: vi.fn(),
+    setDefaultOptions: vi.fn(),
     expect: vi.fn(),
     SoftAssertionService: vi.fn(),
     SnapshotService: {
@@ -40,7 +40,7 @@ type MultiRemoteBrowserObject = WebdriverIO.MultiRemoteBrowser
 describe('wdio-runner', () => {
     beforeEach(() => {
         vi.mocked(_setGlobal).mockClear()
-        vi.mocked(setOptions).mockClear()
+        vi.mocked(setDefaultOptions).mockClear()
         process.send = vi.fn()
     })
 
@@ -401,8 +401,8 @@ describe('wdio-runner', () => {
             expect(_setGlobal).toBeCalledWith('$', expect.any(Function), undefined)
             expect(_setGlobal).toBeCalledWith('$$', expect.any(Function), undefined)
 
-            expect(setOptions).toBeCalledTimes(1)
-            expect(setOptions).toBeCalledWith({
+            expect(setDefaultOptions).toBeCalledTimes(1)
+            expect(setDefaultOptions).toBeCalledWith({
                 afterAssertion: expect.any(Function),
                 beforeAssertion: expect.any(Function),
                 wait: 1,
@@ -422,6 +422,7 @@ describe('wdio-runner', () => {
 
             const beforeListener = vi.mocked(browser!.on).mock.calls[0]
             expect(beforeListener[0]).toBe('command')
+            // @ts-expect-error
             beforeListener[1]({ foo: 'bar' })
             expect(reporter.emit).toBeCalledWith(
                 'client:beforeCommand',
@@ -431,6 +432,7 @@ describe('wdio-runner', () => {
 
             const afterListener = vi.mocked(browser!.on).mock.calls[1]
             expect(afterListener[0]).toBe('result')
+            // @ts-expect-error
             afterListener[1]({ bar: 'foo' })
             expect(reporter.emit).toBeCalledWith(
                 'client:afterCommand',
@@ -462,7 +464,7 @@ describe('wdio-runner', () => {
             const browser = await runner['_startSession']({} as any, {} as any)
             expect(typeof browser?.deleteSession).toBe('function')
             expect(_setGlobal).toBeCalledTimes(3)
-            expect(setOptions).toBeCalledTimes(1)
+            expect(setDefaultOptions).toBeCalledTimes(1)
         })
 
         it('transfers custom element commands with options object from old instance to new one', async () => {
