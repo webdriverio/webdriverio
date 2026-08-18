@@ -3,7 +3,7 @@ import logger from '@wdio/logger'
 import { createDeepAgent, FilesystemBackend } from 'deepagents'
 import type { DeepAgent, FilesystemPermission } from 'deepagents'
 import { MemorySaver } from '@langchain/langgraph-checkpoint'
-import { createMiddleware, todoListMiddleware } from 'langchain'
+import { todoListMiddleware } from 'langchain'
 import type { DynamicStructuredTool } from '@langchain/core/tools'
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { parseModelConfig } from './model/index.js'
@@ -44,7 +44,7 @@ export interface DeepAgentHarnessOptions {
     mcp?: McpServerConfig | null
     /** Where devtools trace artifacts land. */
     traceDir?: string
-    /** Project root for filesystem permission scoping. */
+    /** Project root: roots the filesystem backend (virtual mode) and permission scoping. */
     projectRoot?: string
     /** Path to the project's wdio.conf (enables reproduce_spec). */
     configPath?: string
@@ -67,88 +67,53 @@ export interface DeepAgentHarness {
 }
 
 /**
- * Converts a resolved absolute path into the `/`-prefixed, forward-slash
- * glob form deepagents requires (Windows drive paths become `/C:/...`).
- * Collapsing `//`→`/` is deliberate — UNC roots would break anyway since
- * deepagents only understands `/`-prefixed forms.
- */
-export function normalizePermissionRoot(resolvedRoot: string): string {
-    return ('/' + resolvedRoot.replace(/\\/g, '/')).replace(/\/{2,}/g, '/').replace(/\/+$/, '') || '/'
-}
-
-/** Matches deepagents' Windows virtual form `/C:/...` (or `/C:\...`). */
-const WINDOWS_DRIVE_VIRTUAL = /^\/[A-Za-z]:[\\/]/
-
-/**
- * Native Windows drive path → the `/`-prefixed virtual path deepagents
- * requires (`C:\...` → `/C:/...`). Identity for relative, POSIX-absolute,
- * and already-virtual input — those stay untouched so deepagents' own
- * `path must be absolute` validation keeps firing for relative paths
- * instead of silently resolving them against the process cwd.
- */
-export function toVirtualPath(nativePath: string): string {
-    if (WINDOWS_DRIVE_VIRTUAL.test(nativePath) || !/^[A-Za-z]:[\\/]/.test(nativePath)) {
-        return nativePath
-    }
-    return '/' + nativePath.replace(/\\/g, '/')
-}
-
-/**
- * deepagents virtual path → native path. Reverses `toVirtualPath` for the
- * Windows drive form (`/C:/...` → `C:/...`); identity otherwise. Pure string
- * transform so the backend resolves `/C:/...` to the real file on Windows.
- */
-export function fromVirtualPath(virtualPath: string): string {
-    const drive = /^\/([A-Za-z]):(\/.*)$/.exec(virtualPath)
-    return drive ? `${drive[1]}:${drive[2]}` : virtualPath
-}
-
-/**
- * Filesystem rules per heal mode. Every mode confines the agent to
- * `projectRoot`. deepagents evaluates rules in declaration order with a
- * permissive default (first match wins), so ask/auto deny the sensitive
- * paths (wdio.conf*, .env*, .git, node_modules) before the allow rule can
- * shadow them, and a catch-all deny comes last. `ask` additionally gates
- * every write via interrupts (`interruptsForHeal`); `propose` is read-only
- * inside the project and denies writes everywhere; `auto` is scoped by the
- * rules alone.
+ * Filesystem rules per heal mode. With `virtualMode: true` every tool-visible
+ * path is `/`-prefixed and confined to projectRoot by the backend's
+ * `resolvePath`, so these rules only carve out sensitive paths: the denies
+ * come first (first match wins) so the allow rule cannot shadow them, and
+ * there is no trailing catch-all deny — dead under virtual mode since `/**`
+ * matches every valid tool path. each sensitive name is denied via two globs —
+ * root form and nested form — because a micromatch globstar directly after the
+ * leading slash never matches zero directory levels
+ * (secrets, npmrc, key material, nested node_modules). `auto` additionally
+ * write-denies CI config, manifests,
+ * lockfiles and git hooks while reads stay allowed — an unrestricted auto
+ * heal could otherwise rewrite `.github/workflows/*.yml`, `package.json` or
+ * the lockfile and break the build. `ask` additionally gates every write via
+ * interrupts (`interruptsForHeal`); `propose` is read-only and denies writes
+ * everywhere; `auto` is scoped by the rules alone.
  *
- * The harness backend is a real `FilesystemBackend` (see
- * `createDeepAgentHarness`), so these rules are the only boundary between
- * the agent and the host filesystem. `FilesystemBackend` exposes no
- * `execute` tool, so there is no shell-command hole that permissions
- * cannot cover.
+ * `FilesystemBackend` exposes no `execute` tool, so there is no shell-command
+ * hole that these permissions cannot cover.
  */
-export function permissionsForHeal(heal: HealMode, projectRoot: string): FilesystemPermission[] {
-    // deepagents requires absolute glob paths (start with `/`, no `~`/`..`),
-    // so resolve relative roots against the cwd and drop trailing slashes.
-    // A project root of `/` means "full scope" — keep it as the bare root.
-    // `normalizePermissionRoot` emits the deepagents virtual form on Windows
-    // (`D:\proj` → `/D:/proj`); the `CrossPlatformFilesystemBackend` and
-    // `normalizeFsToolPaths` middleware translate tool paths to/from that form,
-    // so these rules confine the agent correctly on every platform.
-    const root = normalizePermissionRoot(path.resolve(projectRoot))
-    // `**` does not match the root directory itself, so the allow rules list
-    // both the bare root (ls/glob/grep at the root) and everything under it.
-    const underRoot = root === '/' ? '/**' : `${root}/**`
-    const withinRoot = [root, underRoot]
-    // join the sensitive-path globs without doubling the slash at root '/'
-    const rootPrefix = root === '/' ? '' : root
+export function permissionsForHeal(heal: HealMode): FilesystemPermission[] {
     if (heal === 'propose') {
         return [
-            { operations: ['read'], paths: withinRoot, mode: 'allow' },
+            { operations: ['read'], paths: ['/**'], mode: 'allow' },
             { operations: ['read', 'write'], paths: ['/**'], mode: 'deny' },
         ]
     }
     return [
-        // Sensitive paths are denied first: first-match-wins, so the allow
-        // rule below must not shadow them.
-        { operations: ['read', 'write'], paths: [`${rootPrefix}/wdio.conf*`], mode: 'deny' },
-        { operations: ['read', 'write'], paths: [`${rootPrefix}/.env*`], mode: 'deny' },
-        { operations: ['read', 'write'], paths: [`${rootPrefix}/.git/**`], mode: 'deny' },
-        { operations: ['read', 'write'], paths: [`${rootPrefix}/node_modules/**`], mode: 'deny' },
-        { operations: ['read', 'write'], paths: withinRoot, mode: 'allow' },
-        { operations: ['read', 'write'], paths: ['/**'], mode: 'deny' },
+        { operations: ['read', 'write'], paths: ['/wdio.conf*', '/**/wdio.conf*'], mode: 'deny' },
+        { operations: ['read', 'write'], paths: ['/.env*', '/**/.env*'], mode: 'deny' },
+        { operations: ['read', 'write'], paths: ['/.git/**', '/**/.git/**'], mode: 'deny' },
+        { operations: ['read', 'write'], paths: ['/node_modules/**', '/**/node_modules/**'], mode: 'deny' },
+        { operations: ['read', 'write'], paths: ['/.npmrc', '/**/.npmrc'], mode: 'deny' },
+        { operations: ['read', 'write'], paths: ['/*.pem', '/**/*.pem'], mode: 'deny' },
+        { operations: ['read', 'write'], paths: ['/*.key', '/**/*.key'], mode: 'deny' },
+        {
+            operations: ['write'],
+            paths: [
+                '/.github/**', '/**/.github/**',
+                '/package.json', '/**/package.json',
+                '/package-lock.json', '/**/package-lock.json',
+                '/pnpm-lock.yaml', '/**/pnpm-lock.yaml',
+                '/yarn.lock', '/**/yarn.lock',
+                '/.husky/**', '/**/.husky/**',
+            ],
+            mode: 'deny',
+        },
+        { operations: ['read', 'write'], paths: ['/**'], mode: 'allow' },
     ]
 }
 
@@ -194,106 +159,6 @@ export function withErrorRecovery(tool: DynamicStructuredTool): DynamicStructure
         }
     }) as unknown as DynamicStructuredTool['func']
     return tool
-}
-
-/**
- * deepagents' `FilesystemBackend` resolves native paths while its permission
- * layer requires `/`-prefixed virtual paths. On POSIX the two coincide; on
- * Windows they diverge (`C:\...` vs `/C:/...`). This backend bridges them:
- * virtual input paths are translated to native before hitting the host fs,
- * and `ls`/`glob`/`grep` result paths are translated back to virtual so
- * deepagents' `filterByPermissions` can validate them.
- */
-class CrossPlatformFilesystemBackend extends FilesystemBackend {
-    override async ls(dirPath: string) {
-        const result = await super.ls(fromVirtualPath(dirPath))
-        return { files: (result.files ?? []).map((f) => ({ ...f, path: toVirtualPath(f.path) })) }
-    }
-
-    override async read(filePath: string, offset?: number, limit?: number) {
-        return super.read(fromVirtualPath(filePath), offset, limit)
-    }
-
-    override async readRaw(filePath: string) {
-        return super.readRaw(fromVirtualPath(filePath))
-    }
-
-    override async write(filePath: string, content: string) {
-        return super.write(fromVirtualPath(filePath), content)
-    }
-
-    override async edit(filePath: string, oldString: string, newString: string, replaceAll?: boolean) {
-        return super.edit(fromVirtualPath(filePath), oldString, newString, replaceAll)
-    }
-
-    override async delete(filePath: string) {
-        return super.delete(fromVirtualPath(filePath))
-    }
-
-    override async grep(pattern: string, dirPath?: string, glob?: string | null, maxCount?: number | null) {
-        const result = await super.grep(
-            pattern,
-            dirPath === undefined ? dirPath : fromVirtualPath(dirPath),
-            glob,
-            maxCount,
-        )
-        return { matches: (result.matches ?? []).map((m) => ({ ...m, path: toVirtualPath(m.path) })) }
-    }
-
-    override async glob(pattern: string, searchPath?: string) {
-        const result = await super.glob(
-            pattern,
-            searchPath === undefined ? searchPath : fromVirtualPath(searchPath),
-        )
-        return { files: (result.files ?? []).map((f) => ({ ...f, path: toVirtualPath(f.path) })) }
-    }
-}
-
-const FS_TOOL_NAMES: Record<string, true> = {
-    ls: true,
-    read_file: true,
-    write_file: true,
-    edit_file: true,
-    glob: true,
-    grep: true,
-}
-
-/**
- * Rewrites the `path`/`file_path` args of the built-in fs tools into the
- * `/`-prefixed virtual form before deepagents' permission layer validates
- * them (that layer rejects native Windows paths). No-op on POSIX.
- */
-function normalizeFsToolPaths() {
-    return createMiddleware({
-        name: 'NormalizeFsToolPaths',
-        wrapToolCall: async (request, handler) => {
-            const toolCall = request.toolCall
-            if (!toolCall || !FS_TOOL_NAMES[toolCall.name]) {
-                return handler(request)
-            }
-            const args = (toolCall.args ?? {}) as Record<string, unknown>
-            const normalized: Record<string, unknown> = { ...args }
-            let changed = false
-            if (typeof normalized.path === 'string') {
-                const virtual = toVirtualPath(normalized.path)
-                if (virtual !== normalized.path) {
-                    normalized.path = virtual
-                    changed = true
-                }
-            }
-            if (typeof normalized.file_path === 'string') {
-                const virtual = toVirtualPath(normalized.file_path)
-                if (virtual !== normalized.file_path) {
-                    normalized.file_path = virtual
-                    changed = true
-                }
-            }
-            if (!changed) {
-                return handler(request)
-            }
-            return handler({ ...request, toolCall: { ...toolCall, args: normalized } })
-        },
-    })
 }
 
 export interface DeepAgentToolSurface {
@@ -363,12 +228,23 @@ export async function createDeepAgentHarness(
     const instructions = await readInstructionsFile(options.instructionsPath)
     const { tools, mcpClient } = surface
 
+    // Point the model at the project's wdio config instead of inlining it —
+    // zero tokens until the agent reads it, and never stale mid-session.
+    let systemPrompt = instructions
+    if (options.configPath) {
+        const rel = path.relative(projectRoot, path.resolve(options.configPath))
+        if (!rel.startsWith('..') && !path.isAbsolute(rel)) {
+            const virtualConfigPath = '/' + rel.split(path.sep).join('/')
+            systemPrompt = `${instructions}\n\n- The project's wdio config: \`${virtualConfigPath}\` — read it with \`read_file\` before spec or config work.`
+        }
+    }
+
     const agent = createDeepAgent({
         name: '@wdio/deepagent',
         model: chatModel,
         tools,
-        systemPrompt: instructions,
-        middleware: [normalizeFsToolPaths(), todoListMiddleware()],
+        systemPrompt,
+        middleware: [todoListMiddleware()],
         // In-memory checkpointer. Required for two things:
         // 1. `ask`-mode human-in-the-loop interrupts (humanInTheLoopMiddleware
         //    calls langgraph's `interrupt()`, which throws MISSING_CHECKPOINTER
@@ -376,16 +252,16 @@ export async function createDeepAgentHarness(
         // 2. Multi-turn memory: conversation + todo state persist across
         //    `agent.invoke` calls (repl sessions, repeated missions).
         checkpointer: new MemorySaver(),
-        // Real host filesystem. deepagents' default backend is an in-memory
-        // sandbox (writes never reach the project); the harness must heal
-        // real spec files, so we mount the real FS and confine it via the
-        // permission rules below. FilesystemBackend exposes no `execute`
-        // tool, so the permission rules are the sole boundary.
-        backend: process.platform === 'win32'
-            ? new CrossPlatformFilesystemBackend({ rootDir: '/' })
-            : new FilesystemBackend({ rootDir: '/' }),
+        // Real host filesystem mounted at project root in virtual mode:
+        // `ls /` lists the project, tool paths are project-relative
+        // `/`-prefixed, and `resolvePath` confines every operation to
+        // projectRoot — the containment boundary; permission rules carve
+        // out sensitive paths only. VirtualMode semantics verified against
+        // deepagents 1.12.2 — re-verify on dependency upgrade (package.json
+        // has `^1.12.2`).
+        backend: new FilesystemBackend({ rootDir: projectRoot, virtualMode: true }),
         ...(options.memoryFiles?.length ? { memory: options.memoryFiles } : {}),
-        permissions: permissionsForHeal(heal, projectRoot),
+        permissions: permissionsForHeal(heal),
         interruptOn: interruptsForHeal(heal),
     }).withConfig({
         // The in-memory checkpointer needs a stable thread id so every

@@ -4,7 +4,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import type { DynamicStructuredTool } from '@langchain/core/tools'
 import { loadMcpTools } from '@langchain/mcp-adapters'
 import logger from '@wdio/logger'
-import { exec } from 'node:child_process'
+import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -31,10 +31,12 @@ const MCP_CHROME_PATTERN = `user-data-dir=${path.join(os.tmpdir(), 'chrome-debug
  */
 function listChromePids(pattern: string): Promise<Set<number> | null> {
     return new Promise((resolve) => {
-        // bracket the first char so the wrapping shell's own cmdline (which
-        // contains the literal pattern) does not match itself
+        // bracket the first char so the pattern cannot match the literal
+        // pattern text in any wrapping process's own cmdline
         const bracketed = pattern.replace(/^./, (c) => `[${c}]`)
-        exec(`pgrep -f '${bracketed}'`, (err, stdout) => {
+        // execFile: no shell, so a pattern containing `'` or `$` cannot
+        // escape into command injection
+        execFile('pgrep', ['-f', bracketed], (err, stdout) => {
             if (err) {
                 resolve(null)
                 return

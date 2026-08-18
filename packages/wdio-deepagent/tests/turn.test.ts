@@ -145,7 +145,7 @@ describe('processTurn', () => {
             modelOverride: new FakeToolCallingModel({
                 toolCalls: [[{
                     name: 'edit_file',
-                    args: { file_path: spec, old_string: 'const a = 1', new_string: 'const a = 2' },
+                    args: { file_path: '/spec.js', old_string: 'const a = 1', new_string: 'const a = 2' },
                     id: 'call-edit-1',
                 }], []],
                 toolStyle: 'openai',

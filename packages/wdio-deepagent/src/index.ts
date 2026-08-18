@@ -197,19 +197,28 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
             agentRan: report.agentRan,
             agentReply: report.agentReply,
         }, null, 2))
-        process.exitCode = report.failedActions.length > 0 ? 1 : 0
+        // a clean post-heal reproduction (diff.newHasFailures false) means the diagnosis succeeded
+        process.exitCode = report.failedActions.length > 0 && (report.diff?.newHasFailures ?? true) ? 1 : 0
         break
     }
     case 'mcp': {
         // nothing may land on stdout before the JSON-RPC framing clients parse from byte 0
         // setLogLevelsConfig silences all loggers (incl. @wdio/config's ConfigParser
-        // during buildHarness) and pins WDIO_LOG_LEVEL=silent for any created later
+        // during config load) and pins WDIO_LOG_LEVEL=silent for any created later
         logger.setLogLevelsConfig({}, 'silent')
-        const built = await buildHarness(rest, { allowModelless: true })
-        const surface = built.harness ?? await createToolSurface({
-            mcp: built.flags.noMcp ? null : built.config.mcp,
-            traceDir: built.config.traceDir,
-            configPath: built.configPath,
+        const flags = parseFlags(rest)
+        const configPath = flags.config ?? findDefaultConfigPath()
+        const config = await loadDeepAgentConfig({
+            configPath,
+            cli: { heal: flags.heal, model: flags.model, traceDir: flags.traceDir },
+            modelOptional: true,
+        })
+        // serve the surface without a model — resolving the chat model here would
+        // fail for keyed providers without an API key, and the mcp command needs none
+        const surface = await createToolSurface({
+            mcp: flags.noMcp ? null : config.mcp,
+            traceDir: config.traceDir,
+            configPath,
         })
         if (surface.mcpClient === null) {
             log.warn('mcp: null config — serving the trace/knowledge-base tool surface only (no browser tools)')

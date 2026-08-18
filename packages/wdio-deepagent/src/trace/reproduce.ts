@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process'
+import spawn from 'cross-spawn'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
@@ -110,7 +110,6 @@ interface SpawnRunOptions {
     cwd: string
     env?: NodeJS.ProcessEnv
     timeoutMs: number
-    shell?: boolean
 }
 
 /** Spawns the wdio run, killing the child after `timeoutMs` if it does not finish. */
@@ -120,7 +119,6 @@ function spawnRun(command: string, args: string[], options: SpawnRunOptions): Pr
             cwd: options.cwd,
             env: { ...process.env, ...options.env },
             stdio: ['ignore', 'ignore', 'pipe'],
-            shell: options.shell,
             detached: process.platform !== 'win32',
         })
         let stderr = ''
@@ -170,7 +168,7 @@ function spawnRun(command: string, args: string[], options: SpawnRunOptions): Pr
             setTimeout(() => killRun('SIGKILL'), 5000).unref()
             resolve({ exitCode: TIMED_OUT_EXIT_CODE, stderr })
         }, options.timeoutMs)
-        child.stderr.on('data', (chunk: Buffer) => {
+        child.stderr?.on('data', (chunk: Buffer) => {
             stderr += chunk.toString()
         })
         child.on('error', (err) => {
@@ -235,8 +233,10 @@ export async function reproduceSpec(options: ReproduceOptions): Promise<Reproduc
         if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
             throw err
         }
-        // no local wdio bin (npx-driven or globally installed project): retry via npx
-        result = await spawnRun('npx', ['wdio', ...args], { ...spawnOptions, shell: process.platform === 'win32' })
+        // no local wdio bin (npx-driven or globally installed project): retry via npx.
+        // cross-spawn resolves .cmd/.bat without a shell on win32, so the
+        // spec path embedded in args is never handed to a shell interpreter
+        result = await spawnRun('npx', ['wdio', ...args], spawnOptions)
     }
 
     const artifactPath = await findNewestTraceZip([runDir], startedAt)

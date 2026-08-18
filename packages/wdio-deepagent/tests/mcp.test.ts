@@ -1,8 +1,16 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import type * as childProcess from 'node:child_process'
 import { WdioMcpClient, isDescendantOf, resolveLocalMcpBin, resolveMcpSpawn } from '../src/mcp/index.js'
+
+// wrap execFile (not spawn — the MCP server transport needs the real one)
+// so the chrome-cleanup sweep's pgrep invocation is observable
+vi.mock('node:child_process', async (importOriginal) => {
+    const actual = await importOriginal<typeof childProcess>()
+    return { ...actual, execFile: vi.fn(actual.execFile) }
+})
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
 const MCP_SERVER = path.join(FIXTURES, 'mcp-server.mjs')
@@ -77,5 +85,28 @@ describe('chrome ownership ancestry', () => {
 
     it.skipIf(process.platform === 'win32' || process.platform === 'darwin')('isDescendantOf rejects a non-ancestor', () => {
         expect(isDescendantOf(1, process.pid)).toBe(false)
+    })
+})
+
+describe('chrome cleanup pgrep invocation', () => {
+    it('calls pgrep -f via execFile with args, never a shell string', async () => {
+        const { execFile } = await import('node:child_process')
+        const client = new WdioMcpClient({ command: process.execPath, args: [MCP_SERVER] })
+        try {
+            await client.getTools()
+        } finally {
+            await client.close()
+        }
+        const mock = vi.mocked(execFile)
+        const pgrepCall = mock.mock.calls.find((call) => call[0] === 'pgrep')
+        expect(pgrepCall).toBeDefined()
+        // args passed as an array is the no-shell guarantee: execFile never
+        // interpolates into a shell command line
+        const args = pgrepCall![1] as string[]
+        expect(args).toHaveLength(2)
+        expect(args[0]).toBe('-f')
+        // same bracketed pattern the pre-fix shell form passed to pgrep
+        expect(args[1]).toMatch(/^\[u\]ser-data-dir=/)
+        expect(args[1]).toContain('chrome-debug')
     })
 })

@@ -25,7 +25,7 @@ const ABORT_ERROR = 'repl closed'
 
 /**
  * Interactive agent REPL root. Streams replies token-by-token, renders
- * bordered tool-call cards, shows an arrow-key approval picker for
+ * bordered tool-call cards, shows a y/N approval prompt for
  * `heal=ask` gates, and keeps a sticky status footer. Input is hidden
  * while a turn runs (`still running the previous turn — input ignored
  * (Ctrl-C to stop)`); `close`/`close session`/`reset` close the browser
@@ -160,9 +160,9 @@ export function ReplApp({ agent, closeSession }: ReplAppProps): React.JSX.Elemen
             {pendingApproval ? <ApprovalPrompt request={pendingApproval.request} /> : null}
             {!busy && !pendingApproval ? (
                 <TextInput placeholder="wdio> " onSubmit={onSubmit} />
-            ) : (
+            ) : busy && !pendingApproval ? (
                 <Text dimColor>still running the previous turn — input ignored (Ctrl-C to stop)</Text>
-            )}
+            ) : null}
             <StatusFooter status={footerStatus} lastTurnMs={lastTurnMs} inputTokens={inputTokens} outputTokens={outputTokens} />
         </Box>
     )

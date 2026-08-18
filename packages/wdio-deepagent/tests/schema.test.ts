@@ -24,4 +24,9 @@ describe('deepagent config schema — mcp', () => {
         const cfg = parseDeepAgentConfig({})
         expect(cfg.mcp).toEqual({ command: 'npx', args: ['-y', '@wdio/mcp'] })
     })
+
+    it('keeps an env block for the mcp server spawn', () => {
+        const cfg = parseDeepAgentConfig({ mcp: { command: 'node', args: ['server.mjs'], env: { TOKEN: 'secret' } } })
+        expect(cfg.mcp).toEqual({ command: 'node', args: ['server.mjs'], env: { TOKEN: 'secret' } })
+    })
 })

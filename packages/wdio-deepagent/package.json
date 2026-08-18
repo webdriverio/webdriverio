@@ -76,6 +76,7 @@
     "@langchain/langgraph": "^1.4.8",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "adm-zip": "^0.5.16",
+    "cross-spawn": "^7.0.3",
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/mcp": "^3.11.1",
@@ -89,6 +90,7 @@
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.8",
+    "@types/cross-spawn": "^6.0.6",
     "@types/node": "^20.1.0",
     "@types/react": "^18.3.18",
     "ink-testing-library": "^4.0.0"
