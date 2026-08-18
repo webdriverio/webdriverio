@@ -54,20 +54,33 @@ for (const paramTag of it.paramTags || []) {
 
 /**
  * Platform support is repeated as text next to the icons, otherwise it only exists as image alt
- * text and is lost by anything that strips images. `@support` is normalised to a list of platform
- * names by `formatter.ts`, but tolerate the legacy `{ platform: { driver: version } }` shape too.
+ * text and is lost by anything that strips images.
+ *
+ * Two shapes arrive here:
+ * - string[] from JSDoc `@support` tags (normalised by `formatter.ts`)
+ * - `{ platform: { driver: version } }` from protocol docs (`protocolDocs.ts` passes
+ *   `SupportedEnvironments` straight through), which must keep driver/version ranges
  */
-const supportedPlatforms = Array.isArray(it.support)
-    ? it.support
-    : Object.keys(it.support || {})
+const supportEntries = Array.isArray(it.support)
+    ? (it.support || []).map((platform) => ({ platform, details: null }))
+    : Object.entries(it.support || {}).map(([platform, drivers]) => ({
+        platform,
+        details: Object.entries(drivers || {})
+            .map(([driver, version]) => `${driver} (${version})`)
+            .join(', ')
+    }))
 
 /**
  * eta trims the newline that follows a tag, so paragraphs that have to stay separate are joined
  * here rather than spaced out in the template body.
  */
 const supportBlock = [
-    supportedPlatforms.map((platform) => `![Support for ${platform}](/img/icons/${platform}.svg)`).join(' '),
-    `**Supported platforms:** ${supportedPlatforms.join(', ')}`,
+    supportEntries.map(({ platform, details }) => (
+        `![Support for ${details || platform}](/img/icons/${platform}.svg)`
+    )).join(' '),
+    `**Supported platforms:** ${supportEntries.map(({ platform, details }) => (
+        details ? `${platform}: ${details}` : platform
+    )).join(supportEntries.some(({ details }) => details) ? '; ' : ', ')}`,
     ':::note',
     'Refer to the official [Appium driver documentation](https://appium.io/docs/en/latest/ecosystem/) to see which driver versions support this command.',
     ':::'
@@ -173,7 +186,7 @@ const ext = it.path.extname(filename).slice(1);
 <%= it.throwsTags.map((throwsTag) => `- **${throwsTag.type}**: ${throwsTag.description}`).join('\n') %>
 <% } %>
 
-<% if (supportedPlatforms.length) { %>
+<% if (supportEntries.length) { %>
 <%= heading %> Support
 
 <%= supportBlock %>
