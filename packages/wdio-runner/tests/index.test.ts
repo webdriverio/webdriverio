@@ -1,7 +1,7 @@
 import path from 'node:path'
 
 import logger from '@wdio/logger'
-import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
+import { describe, expect, it, vi, afterEach, beforeEach, onTestFinished } from 'vitest'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import type { Instances } from 'webdriverio'
@@ -186,6 +186,49 @@ describe('wdio-runner', () => {
 
             // session capabilities should be passed to reporter
             expect(runner['_reporter']?.caps).toEqual({ browserName: 'chrome' })
+        })
+
+        it('should send the post-beforeSession retry budget with testFrameworkInit', async () => {
+            const runner = new WDIORunner()
+            const config: any = {
+                reporters: [],
+                before: [],
+                beforeSession: [vi.fn()],
+                specFileRetries: 2,
+                framework: 'testWithFailures',
+                runner: 'local'
+            }
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            // @ts-expect-error mock private
+            vi.spyOn(ConfigParser.prototype, 'addConfigFile').mockReturnValue()
+            vi.mocked(executeHooksWithArgs).mockImplementation(async (name: unknown, _hooks: unknown, args: unknown) => {
+                if (name === 'beforeSession') {
+                    (args as any[])[0].specFileRetries = 5
+                }
+                return []
+            })
+            onTestFinished(() => vi.mocked(executeHooksWithArgs).mockReset())
+
+            runner['_shutdown'] = vi.fn()
+            runner['_initSession'] = vi.fn().mockReturnValue({
+                capabilities: { browserName: 'chrome' },
+                options: {}
+            })
+            await runner.run({
+                args: { reporters: [] },
+                cid: '0-0',
+                retries: -1,
+                caps: { browserName: '123' },
+                specs: ['foobar'],
+                configFile: '/foo/bar'
+            })
+
+            expect(process.send).toBeCalledWith(expect.objectContaining({
+                name: 'testFrameworkInit',
+                // budget overridden in `beforeSession` (5) minus the -1 launcher
+                // sentinel, mirroring the `sessionStarted` accounting
+                specFileRetries: 6
+            }))
         })
 
         it('should return failures count', async () => {

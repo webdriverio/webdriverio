@@ -370,22 +370,6 @@ describe('launcher', () => {
             expect(launcher['_schedule']).toMatchObject([{ cid: 0, specs: [{ rid: '0-5', files: ['a.js'], retries: 0 }] }])
         })
 
-        it('should reschedule with configured retry budget when worker died before session started', async () => {
-            launcher.configParser.getConfig = vi.fn().mockReturnValue({ specFileRetries: 2, onWorkerEnd: vi.fn() })
-            launcher['_schedule'] = [{ cid: 0, specs: [] }] as any
-            await launcher['_endHandler']({ cid: '0-5', exitCode: 1, retries: -1, specs: ['a.js'] })
-            expect(launcher['_schedule']).toMatchObject([{ cid: 0, specs: [{ rid: '0-5', files: ['a.js'], retries: 1 }] }])
-            expect(launcher.interface!.emit).toBeCalledWith('job:end', { cid: '0-5', passed: false, retries: 2 })
-        })
-
-        it('should not reschedule when worker died before session started and no retries are configured', async () => {
-            launcher.configParser.getConfig = vi.fn().mockReturnValue({ specFileRetries: 0, onWorkerEnd: vi.fn() })
-            launcher['_schedule'] = [{ cid: 0, specs: [] }] as any
-            await launcher['_endHandler']({ cid: '0-5', exitCode: 1, retries: -1, specs: ['a.js'] })
-            expect(launcher['_schedule']).toMatchObject([{ cid: 0, specs: [] }])
-            expect(launcher.interface!.emit).toBeCalledWith('job:end', { cid: '0-5', passed: false, retries: 0 })
-        })
-
         it('should requeue retried specfiles at beginning of queue', async () => {
             launcher.configParser.getConfig = vi.fn().mockReturnValue({ specFileRetriesDeferred: false, onWorkerEnd: vi.fn() })
             launcher['_schedule'] = [{ cid: 0, specs: [{ files: ['b.js'] }] }] as any
