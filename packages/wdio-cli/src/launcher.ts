@@ -594,6 +594,17 @@ class Launcher {
     private async _endHandler({ cid: rid, exitCode, specs, retries }: EndMessage): Promise<void> {
         const passed = this._isWatchModeHalted() || exitCode === 0
 
+        /**
+         * `retries` is scheduled with a -1 sentinel and only resolved to the actual
+         * retry budget once the worker reports `sessionStarted`. If the worker dies
+         * before its session ever started (e.g. session creation timed out), the
+         * sentinel would otherwise disable the requeue below and the spec file
+         * would never be retried despite `specFileRetries` being set.
+         */
+        if (retries === -1) {
+            retries = this.configParser.getConfig().specFileRetries || 0
+        }
+
         if (!passed && retries > 0) {
             // Default is true, so test for false explicitly
             const requeue = this.configParser.getConfig().specFileRetriesDeferred ? 'push' : 'unshift'
