@@ -50,7 +50,7 @@ export class DialogManager extends SessionManager {
         this.#browser.removeAllListeners('_dialogListenerRemoved')
     }
 
-    async initialize () {
+    async initialize() {
         return this.#initialize
     }
 
@@ -97,7 +97,7 @@ export class Dialog {
     #defaultValue?: string
     #type: local.BrowsingContextUserPromptOpenedParameters['type']
 
-    constructor (event: local.BrowsingContextUserPromptOpenedParameters, browser: WebdriverIO.Browser) {
+    constructor(event: local.BrowsingContextUserPromptOpenedParameters, browser: WebdriverIO.Browser) {
         this.#message = event.message
         this.#defaultValue = event.defaultValue
         this.#type = event.type
@@ -125,14 +125,16 @@ export class Dialog {
      * @returns {Promise<void>}
      */
     async accept(userText?: string) {
-        const contextManager = getContextManager(this.#browser)
+        const browser = this.#browser
+
+        const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
 
         if (this.#context !== context) {
             return
         }
 
-        await this.#browser.browsingContextHandleUserPrompt({
+        await browser.browsingContextHandleUserPrompt({
             accept: true,
             context: this.#context,
             userText
@@ -140,14 +142,16 @@ export class Dialog {
     }
 
     async dismiss() {
-        const contextManager = getContextManager(this.#browser)
+        const browser = this.#browser
+
+        const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
 
         if (this.#context !== context) {
             return
         }
 
-        await this.#browser.browsingContextHandleUserPrompt({
+        await browser.browsingContextHandleUserPrompt({
             accept: false,
             context: this.#context
         })
