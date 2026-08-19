@@ -414,6 +414,19 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         return Promise.reject(timeoutError)
     }
 
+    if (uri.pathname.endsWith('abortTimeout')) {
+        if (params?.signal?.aborted) {
+            return Promise.reject(params.signal.reason)
+        }
+
+        if (requestMock.retryCnt < 5) {
+            ++requestMock.retryCnt
+            return Promise.reject(
+                new DOMException('The operation was aborted due to timeout', 'TimeoutError')
+            )
+        }
+    }
+
     if (uri.pathname.startsWith(`/session/${sessionId}/element/`) && uri.pathname.includes('/attribute/')) {
         value = `${uri.pathname.substring(uri.pathname.lastIndexOf('/') + 1)}-value`
     }

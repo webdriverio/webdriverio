@@ -20,7 +20,6 @@ export const MATCHERS = [
     'toHaveAttributeAndValue',
     'toHaveChildren',
     'toHaveClass',
-    'toHaveClassContaining',
     'toHaveClipboardText',
     'toHaveComputedLabel',
     'toHaveComputedRole',

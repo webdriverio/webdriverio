@@ -1,3 +1,98 @@
+<%
+/**
+ * Section headings sit exactly one level below the heading that names the
+ * command: the Docusaurus page title when a command gets its own page, and
+ * the `## <command>` heading when many commands share one protocol page.
+ * Skipping straight to `#####` left these pages with an empty table of
+ * contents, because Docusaurus only collects h2 and h3.
+ */
+const sectionHeading = it.hasHeader ? '###' : '##'
+
+/**
+ * Every command on `browser`, `element`, `dialog` and `clock` is awaited.
+ * `mock` methods are not, and a command can opt out with `@skipAwait` when
+ * it returns something chainable rather than a promise.
+ */
+const awaitPrefix = it.isSkipAwait ? '' : 'await '
+
+const PLATFORM_LABELS = { ios: 'iOS', android: 'Android', windows: 'Windows' }
+const platformLabel = (platform) => PLATFORM_LABELS[platform] || platform
+
+/**
+ * Eta finds the end of this block by scanning past quoted strings, counting
+ * backticks as it goes. An odd number of them anywhere in here, in code or
+ * in a comment, makes it run straight past the closing tag and swallow the
+ * rest of the template, so the character is written as an escape.
+ */
+const BACKTICK = '\u0060'
+const BACKTICK_PATTERN = new RegExp(BACKTICK, 'g')
+
+/**
+ * A GFM table cell is pipe delimited and cannot span lines, so pipes in
+ * prose have to be escaped and any hard break becomes a `<br />`.
+ */
+const cell = (value) => String(value === undefined || value === null ? '' : value)
+    .replace(/\|/g, '\\|')
+    .replace(/\r?\n/g, '<br />')
+    .trim()
+
+/**
+ * Rows are joined here rather than emitted from a template loop, because a
+ * single blank line between two rows splits the table in half.
+ */
+const parameterTable = (paramTags) => {
+    const rows = paramTags.map((paramTag) => {
+        /**
+         * `@rowInfo` groups the rows that follow it. Markdown has no
+         * colspan, so the label goes in the first column and any text after
+         * the `::` separator goes in the last one.
+         */
+        if (paramTag.tag === 'rowInfo') {
+            const [label, details] = paramTag.string.includes('::')
+                ? paramTag.string.split('::').map((part) => part.trim())
+                : [paramTag.string, '']
+            const detailsCell = cell(details)
+            return `| **${cell(label)}** | |${detailsCell ? ` ${detailsCell} ` : ''}|`
+        }
+
+        const isOptional = (!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional
+        const name = `\`${paramTag.name}${paramTag.default ? `=${paramTag.default}` : ''}\``
+        /**
+         * types arrive backtick wrapped from the JSDoc commands and bare from
+         * the protocol definitions, so they are normalised to one code span
+         */
+        const type = BACKTICK + paramTag.type
+            .replace(BACKTICK_PATTERN, '')
+            .replace('(', '')
+            .replace(')', '')
+            .split('|')
+            .map((part) => part.trim())
+            .filter(Boolean)
+            .join(', ') + BACKTICK
+
+        return `| ${cell(name)}${isOptional ? '<br />*optional*' : ''} | ${cell(type)} | ${cell(paramTag.description)} |`
+    })
+
+    /**
+     * the trailing newline keeps a blank line between the last row and
+     * whatever section follows, without which the table runs into it
+     */
+    return ['| Name | Type | Details |', '| --- | --- | --- |', ...rows].join('\n') + '\n'
+}
+
+/**
+ * The support icons carry the platform and driver versions in their alt
+ * text alone, which is lost by anything that strips images.
+ */
+const supportList = (support) => Object.keys(support)
+    .map((platform) => {
+        const drivers = Object.keys(support[platform])
+            .map((driver) => `${driver} (${support[platform][driver]})`)
+            .join(', ')
+        return `- **${platformLabel(platform)}:** ${drivers}`
+    })
+    .join('\n')
+%>
 <% if (it.hasDocusaurusHeader) { %>
 ---
 id: <%= it.command %>
@@ -31,11 +126,11 @@ This protocol command is embedded in the following convenient method<%= it.alter
 
 <% if (!it.isSkipUsage) { %>
 
-##### Usage
+<%= sectionHeading %> Usage
 
 ```js
 <% if (it.isElementScope) { %>
-$(selector).<%= it.command %>(<%= it.paramString %>)
+<%= awaitPrefix %>$(selector).<%= it.command %>(<%= it.paramString %>)
 <% } else if (it.isMockScope) { %>
 mock.<%= it.command %>(<%= it.paramString %>)
 <% } else if (it.isDialogScope) { %>
@@ -44,49 +139,23 @@ await dialog.<%= it.command %>(<%= it.paramString %>)
 const clock = await browser.emulate('clock', { ... })
 await clock.<%= it.command %>(<%= it.paramString %>)
 <% } else { %>
-<%= it.isMobile ? 'driver' : 'browser' %>.<%= it.command %>(<%= it.paramString %>)
+<%= awaitPrefix %><%= it.isMobile ? 'driver' : 'browser' %>.<%= it.command %>(<%= it.paramString %>)
 <% } %>
 ```
 
 <% } %>
 
 <% if (it.paramTags.length) { %>
-##### Parameters
+<%= sectionHeading %> Parameters
 
-<table>
-  <thead>
-    <tr>
-      <th>Name</th><th>Type</th><th>Details</th>
-    </tr>
-  </thead>
-  <tbody>
-<% it.paramTags.forEach((paramTag) => { %>
-<% if (paramTag.tag === "rowInfo") { %>
-    <tr>
-      <% if (paramTag.string.includes('::')) { %>
-        <% const parts = paramTag.string.split('::').map(part => part.trim()); %>
-        <td colspan="3"><strong><%= parts[0] %></strong><br /><%= parts[1] %></td>
-        <% } else { %>
-        <td colspan="3"><strong><%= paramTag.string %></strong></td>
-        <% } %>
-    </tr>
-<% } else { %>
-    <tr>
-      <td><code><var><%= paramTag.name + (paramTag.default ? `=${paramTag.default}` : '') %></var></code><% if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { %><br /><span className="label labelWarning">optional</span><% } %></td>
-      <td><%= paramTag.type.split('|').join(', ').replace('(', '').replace(')', '') %></td>
-      <td><%= paramTag.description %></td>
-    </tr>
-<% } %>
-<% }) %>
-  </tbody>
-</table>
+<%= parameterTable(it.paramTags) %>
 <% } %>
 
 <%
 const allExamples = [...it.examples, ...it.exampleReferences];
 if (allExamples.length) {
 %>
-##### Example<%= allExamples.length > 1 ? 's' : '' %>
+<%= sectionHeading %> Example<%= allExamples.length > 1 ? 's' : '' %>
 
 <% it.exampleReferences.forEach(function(ref) {
 const filename = it.path.basename(ref.split('#')[0]);
@@ -112,7 +181,7 @@ const ext = it.path.extname(filename).slice(1);
 <% } %>
 
 <% if (it.returns) { %>
-##### Returns
+<%= sectionHeading %> Returns
 
 - **&lt;<%= it.returns.type %>&gt;**
     <% if (it.returns.description) { %>
@@ -121,18 +190,21 @@ const ext = it.path.extname(filename).slice(1);
 <% } %>
 
 <% if (it.throwsTags.length) { %>
-##### Throws
+<%= sectionHeading %> Throws
 
 <% it.throwsTags.forEach(function(throwsTag) { %>- **<%= throwsTag.type %>**: <%= throwsTag.description %><% }) %>
 <% } %>
 
 <% if (it.support) { %>
-##### Support
+<%= sectionHeading %> Support
 
 <% if (Array.isArray(it.support) && it.support.length) { %>
 <% it.support.forEach(function(platform) { %>
 ![Support for <%= platform %>](/img/icons/<%= platform %>.svg)
 <% }) %>
+
+**Supported platforms:** <%= it.support.map(platformLabel).join(', ') %>
+
 
 :::note
 
@@ -145,5 +217,7 @@ Refer to the official [Appium driver documentation](https://appium.io/docs/en/la
     return driver + " (" + it.support[platform][driver] + ")";
 }).join(", ") %>](/img/icons/<%= platform %>.svg)
 <% }) %>
+
+<%= supportList(it.support) %>
 <% } %>
 <% } %>

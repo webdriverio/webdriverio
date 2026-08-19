@@ -1,3 +1,5 @@
+import { some } from "expect-webdriverio/api"
+
 const config: WebdriverIO.Config = {
     mochaOpts: {
         ui: 'qunit',
@@ -35,3 +37,5 @@ const mrconfig2: WebdriverIO.MultiremoteConfig = {
  * check import of assertion lib
  */
 expect($('foo')).toHaveText('foobar')
+expect($$('foo')).toHaveText('foobar')
+expect(some($$('foo'))).toHaveText(expect.oneOf('foobar', expect.stringContaining('foo')))

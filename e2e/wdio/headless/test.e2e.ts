@@ -11,6 +11,7 @@ import type { InputOptions } from 'webdriverio'
 import type { remote } from 'webdriver'
 import type { SameSiteOptions } from '../../../packages/wdio-protocols/build/types.js'
 import logger from '@wdio/logger'
+import { some } from 'expect-webdriverio/api'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -805,10 +806,29 @@ describe('main suite 1', () => {
             await expect($('h1')).toHaveText('Test')
         })
 
-        it('file', async () => {
+        it('file - single element', async () => {
             const resource = path.resolve(__dirname, '__fixtures__', 'test.html')
             await browser.url(url.pathToFileURL(resource).href)
             await expect($('h1')).toHaveText('Hello World')
+        })
+
+        it('file - legacy multi-elements', async () => {
+            const resource = path.resolve(__dirname, '__fixtures__', 'multi-elements.html')
+            await browser.url(url.pathToFileURL(resource).href)
+
+            await expect($$('h1')).toHaveText(['Hello World', 'Hello World 2', 'Hello World 3'])
+            await expect($$('h1')).toBeExisting()
+        })
+
+        it('file - multi-elements strict behavior', async () => {
+            const resource = path.resolve(__dirname, '__fixtures__', 'multi-elements.html')
+            await browser.url(url.pathToFileURL(resource).href)
+            const featureFlags = { 'useToHaveTextStrictMultiElementsCompareStrategy': true }
+
+            await expect($$('h1')).toHaveText(['Hello World', 'Hello World 2'], { featureFlags })
+            await expect(some($$('h1'))).toHaveText('Hello World', { featureFlags })
+            await expect(some($$('h1'))).toHaveText(expect.oneOf('Hello World', 'Hello World 2', 'Hello World 3'), { featureFlags })
+            await expect($$('h1')).toHaveText(expect.stringMatching(/Hello World/))
         })
 
         it.skip('chrome', async () => {

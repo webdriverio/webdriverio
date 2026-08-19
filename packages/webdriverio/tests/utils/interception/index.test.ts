@@ -822,14 +822,12 @@ describe('WebDriverInterception', () => {
             })
 
             it('should return false then true if response take time to collect', async () => {
+                let resolveGetData: (value: unknown) => void
+                const getDataPromise = new Promise((resolve) => {
+                    resolveGetData = resolve
+                })
                 const browser = getResponseCollectionBrowserMock({ maxSpyCollectedBodySize: 1024 }, {
-                    networkGetData: vi.fn().mockImplementation(() => new Promise((resolve) => {
-                        setTimeout(() => {
-                            resolve({
-                                bytes: { type: 'string', value: 'response-body' }
-                            })
-                        }, 50)
-                    }))
+                    networkGetData: vi.fn().mockReturnValue(getDataPromise)
                 })
                 const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
                 const request = getResponseCollectionRequestStub()
@@ -837,10 +835,13 @@ describe('WebDriverInterception', () => {
                 browser.emit('network.responseStarted', request)
                 browser.emit('network.responseCompleted', { ...request, isBlocked: false } as Partial<local.NetworkResponseCompletedParameters> as local.NetworkResponseCompletedParameters)
 
-                await waitForAsyncHandlers(25)
+                await waitForAsyncHandlers()
                 expect(mock.hasAtLeastOneResponseReceived).toBe(false)
 
-                await waitForAsyncHandlers(100)
+                resolveGetData!({
+                    bytes: { type: 'string', value: 'response-body' }
+                })
+                await waitForAsyncHandlers()
                 expect(mock.hasAtLeastOneResponseReceived).toBe(true)
             })
         })
