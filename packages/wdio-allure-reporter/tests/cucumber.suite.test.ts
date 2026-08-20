@@ -85,6 +85,10 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
                 expect(parentSuiteLabel?.value).toEqual('MyFeature')
             })
 
+            it('should add title path', () => {
+                expect(allureResult.titlePath).toEqual(['foo', 'MyFeature'])
+            })
+
             it('should detect passed test case', () => {
                 expect(allureResult.name).toEqual('MyScenario')
                 expect(allureResult.status).toEqual(Status.PASSED)
@@ -943,6 +947,11 @@ describe('Cucumber retries (issue #15177)', () => {
         it('should assign the same historyId to both attempts so Allure groups them as retries', () => {
             expect(results[0].historyId).toBeDefined()
             expect(results[0].historyId).toBe(results[1].historyId)
+        })
+
+        it('should assign the same titlePath to both attempts', () => {
+            expect(results[0].titlePath).toEqual(['foo', 'MyFeature'])
+            expect(results[0].titlePath).toEqual(results[1].titlePath)
         })
 
         it('attempt 1 should be tagged as "retried" with FAILED status', () => {
