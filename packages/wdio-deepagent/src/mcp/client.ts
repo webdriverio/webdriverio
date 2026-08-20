@@ -25,6 +25,68 @@ const log = logger('@wdio/deepagent')
 const MCP_CHROME_PATTERN = `user-data-dir=${path.join(os.tmpdir(), 'chrome-debug').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`
 
 /**
+ * Holder registry for the shared `chrome-debug` profile. The profile is fixed,
+ * so a second mission's Chrome hands off to the first mission's instance; the
+ * sweep must not run while another holder is alive. Refcount as one file per
+ * holder pid inside a directory — single-file create/unlink is atomic, so
+ * concurrent missions can never clobber each other's claim (a shared JSON
+ * read-modify-write would).
+ */
+let chromeLockDir = path.join(os.tmpdir(), 'chrome-debug.lock')
+
+/** Test hook: point the profile lock at an isolated path (vitest workers share os.tmpdir()). */
+export function useChromeLockPath(p: string): void {
+    chromeLockDir = p
+}
+
+function claimChromeLock(pid: number): void {
+    try {
+        fs.mkdirSync(chromeLockDir, { recursive: true })
+        fs.writeFileSync(path.join(chromeLockDir, String(pid)), '')
+    } catch {
+        // best-effort: a failed lock write must not break the harness
+    }
+}
+
+function releaseChromeLock(pid: number): void {
+    try {
+        fs.rmSync(path.join(chromeLockDir, String(pid)), { force: true })
+        // drop the empty registry dir so a finished mission leaves nothing behind
+        fs.rmdirSync(chromeLockDir)
+    } catch {
+        // still held by others, or already gone — best-effort
+    }
+}
+
+/** Removes holder files whose mission crashed without releasing. */
+function pruneDeadHolders(): void {
+    try {
+        for (const name of fs.readdirSync(chromeLockDir)) {
+            const pid = Number(name)
+            if (!Number.isInteger(pid)) {
+                continue
+            }
+            try {
+                process.kill(pid, 0)
+            } catch {
+                fs.rmSync(path.join(chromeLockDir, name), { force: true })
+            }
+        }
+    } catch {
+        // lock dir missing — nothing to prune
+    }
+}
+
+/** Holder file names currently in the shared-profile registry. */
+function chromeHolders(): string[] {
+    try {
+        return fs.readdirSync(chromeLockDir)
+    } catch {
+        return []
+    }
+}
+
+/**
  * Chrome/Chromium process ids whose command line matches `pattern`, or null
  * when the platform cannot list them (e.g. Windows without pgrep — Chrome
  * cleanup is skipped).
@@ -68,7 +130,7 @@ interface AncestryResult {
  * @wdio/mcp is detached, so its PPID stays the server while the server lives —
  * ancestry is the ownership proof the PID-diff sweep lacked.
  */
-function walkAncestry(pid: number, ancestor: number, maxDepth = 16): AncestryResult {
+export function walkAncestry(pid: number, ancestor: number, maxDepth = 16): AncestryResult {
     let stat = procStatOf(pid)
     const group = stat?.pgrp
     for (let i = 0; i < maxDepth && stat; i++) {
@@ -82,11 +144,6 @@ function walkAncestry(pid: number, ancestor: number, maxDepth = 16): AncestryRes
         stat = procStatOf(ppid)
     }
     return { descendant: false, group }
-}
-
-/** True when `pid`'s ancestor chain reaches `ancestor` within a bounded depth. */
-export function isDescendantOf(pid: number, ancestor: number, maxDepth = 16): boolean {
-    return walkAncestry(pid, ancestor, maxDepth).descendant
 }
 
 /**
@@ -216,6 +273,11 @@ export class WdioMcpClient {
             // this server as its PPID while the server lives, so the sweep can
             // prove ownership instead of relying on a start-time PID diff.
             this.#serverPid = this.#transport.pid ?? undefined
+            if (this.#serverPid) {
+                // prune holders that crashed without releasing, then claim
+                pruneDeadHolders()
+                claimChromeLock(this.#serverPid)
+            }
             this.#tools = await loadMcpTools('wdio-mcp', this.#client)
         } catch (err) {
             // Never leave the spawned server process orphaned behind a
@@ -246,26 +308,51 @@ export class WdioMcpClient {
     }
 
     async close(): Promise<void> {
+        // Sweep only when no OTHER mission holds the shared `chrome-debug`
+        // profile: Chrome hands off to the existing instance, so killing it
+        // would take down their session. Own claim stays in place until the
+        // sweep has run so a mission claiming during close still blocks us.
+        // Accepted trade-off: in an overlap, the survivor's Chrome descends
+        // from the departed mission's server, so a later last-holder sweep
+        // cannot prove ownership and the instance leaks (one zombie per host —
+        // the handoff reuses it, so it never accumulates). Killing it would
+        // require trusting profile matches alone, which would also kill any
+        // non-deepagent @wdio/mcp consumer sharing the profile — the
+        // wrongful-kill class this gate exists to prevent.
+        const heldElsewhere = this.#serverPid === undefined
+            || chromeHolders().some((name) => name !== String(this.#serverPid))
         // Resolve owned Chrome groups while the server is still alive: Chrome
         // is spawned detached by @wdio/mcp and reparents to PID 1 once the
         // server exits, so ancestry must be checked before closing the server.
         // On platforms without /proc (macOS, Windows) the sweep is skipped —
-        // the safe direction, since the fixed `chrome-debug` profile is shared
-        // by concurrent missions and a PID diff cannot prove ownership.
-        const groups = await this.#ownedChromeGroups()
+        // the safe direction, since the shared profile means a PID diff
+        // cannot prove ownership.
+        const groups = heldElsewhere ? undefined : await this.#ownedChromeGroups()
         try {
             await this.#client?.close()
         } finally {
             this.#client = undefined
             this.#transport = undefined
             this.#tools = undefined
+            const serverPid = this.#serverPid
             this.#serverPid = undefined
-            for (const group of groups) {
-                try {
-                    process.kill(-group, 'SIGKILL')
-                } catch {
-                    // group already gone
+            // Recheck holders right before the kills: a mission that claimed
+            // while the sweep (pgrep + /proc walks + MCP close) ran now owns
+            // the surviving Chrome via handoff — killing it would end their
+            // session. The window between this readdir and the kill syscalls
+            // is microseconds; a claiming mission's handoff takes ~100ms, so
+            // the contested case is caught.
+            if (groups && chromeHolders().every((name) => name === String(serverPid))) {
+                for (const group of groups) {
+                    try {
+                        process.kill(-group, 'SIGKILL')
+                    } catch {
+                        // group already gone
+                    }
                 }
+            }
+            if (serverPid) {
+                releaseChromeLock(serverPid)
             }
         }
     }

@@ -28,7 +28,8 @@ export interface TurnResult {
  * content a string-only check silently drops the reply.
  */
 export function extractAgentReply(messages: unknown[]): string {
-    for (const m of [...messages].reverse()) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+        const m = messages[i]
         const type = (m as { _getType?: () => string })._getType?.()
         const content = (m as { content?: unknown }).content
         if (type !== 'ai') {
@@ -60,8 +61,10 @@ export interface ProcessTurnOptions {
     /**
      * Decide a pending gated tool call. Return `true` to approve, `false` to
      * reject (the tool call is answered with an error message and the graph
-     * continues). Default: auto-approve — `run` in CI must not silently drop
-     * gated writes. `repl` passes a y/N prompt instead.
+     * continues). Default: decline — a caller that does not wire a resolver
+     * must not silently write files on the ask-mode promise. The `run` CLI
+     * passes a y/N prompt (`createInterruptResolver`); callers that want
+     * auto-approve pass `async () => true` explicitly.
      */
     resolveInterrupt?: (request: TurnInterruptRequest) => Promise<boolean>
 }
@@ -105,7 +108,7 @@ export function warnUnresolvedInterrupts(count: number): void {
  * looping until the graph completes or the user declines.
  */
 export async function processTurn(agent: DeepAgent, text: string, options: ProcessTurnOptions = {}): Promise<TurnResult> {
-    const resolve = options.resolveInterrupt ?? (async () => true)
+    const resolve = options.resolveInterrupt ?? (async () => false)
     const config = { recursionLimit: MAX_RECURSION_LIMIT }
     let run = await agent.invoke({ messages: [new HumanMessage(text)] }, config)
     let declined = false

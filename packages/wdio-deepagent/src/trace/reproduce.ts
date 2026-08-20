@@ -203,7 +203,7 @@ export function resolveModelPath(root: string, p: string): string {
 
 /** Default project root for a config file (its dir), or the cwd. */
 export function projectRootForConfig(configPath?: string): string {
-    return path.dirname(path.resolve(configPath ?? process.cwd()))
+    return configPath ? path.dirname(path.resolve(configPath)) : process.cwd()
 }
 
 /**
@@ -214,7 +214,7 @@ export function projectRootForConfig(configPath?: string): string {
  * mapped onto the root.
  */
 export function resolveSpecPath(projectRoot: string, spec: string): string {
-    return resolveModelPath(path.resolve(projectRoot), spec)
+    return resolveModelPath(projectRoot, spec)
 }
 
 export interface RunSpecOptions extends SpawnOverride {

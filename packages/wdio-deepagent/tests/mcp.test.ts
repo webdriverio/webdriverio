@@ -1,9 +1,11 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { execFile } from 'node:child_process'
 import type * as childProcess from 'node:child_process'
-import { WdioMcpClient, isDescendantOf, resolveLocalMcpBin, resolveMcpSpawn } from '../src/mcp/index.js'
+import { WdioMcpClient, resolveLocalMcpBin, resolveMcpSpawn, useChromeLockPath, walkAncestry } from '../src/mcp/index.js'
 
 // wrap execFile (not spawn — the MCP server transport needs the real one)
 // so the chrome-cleanup sweep's pgrep invocation is observable
@@ -79,34 +81,109 @@ describe('WdioMcpClient (integration over stdio)', () => {
 
 describe('chrome ownership ancestry', () => {
     // /proc ancestry is Linux-only; macOS/Windows skip the sweep entirely
-    it.skipIf(process.platform === 'win32' || process.platform === 'darwin')('isDescendantOf finds the current process under init', () => {
-        expect(isDescendantOf(process.pid, 1)).toBe(true)
+    it.skipIf(process.platform === 'win32' || process.platform === 'darwin')('walkAncestry finds the current process under init', () => {
+        expect(walkAncestry(process.pid, 1).descendant).toBe(true)
     })
 
-    it.skipIf(process.platform === 'win32' || process.platform === 'darwin')('isDescendantOf rejects a non-ancestor', () => {
-        expect(isDescendantOf(1, process.pid)).toBe(false)
+    it.skipIf(process.platform === 'win32' || process.platform === 'darwin')('walkAncestry rejects a non-ancestor', () => {
+        expect(walkAncestry(1, process.pid).descendant).toBe(false)
     })
 })
 
 describe('chrome cleanup pgrep invocation', () => {
+    // isolated lock path per test: parallel workers share os.tmpdir() and
+    // would otherwise claim/release the real profile lock concurrently
+    let lockDir: string
+    let lockPath: string
+    const pgrepCalls = () => vi.mocked(execFile).mock.calls.filter((call) => call[0] === 'pgrep')
+    const holderPids = () => fs.readdirSync(lockPath).map(Number)
+
+    beforeEach(() => {
+        vi.mocked(execFile).mockClear()
+        lockDir = fs.mkdtempSync(path.join(os.tmpdir(), 'deepagent-lock-'))
+        lockPath = path.join(lockDir, 'chrome-debug.lock')
+        useChromeLockPath(lockPath)
+    })
+
+    afterEach(() => {
+        fs.rmSync(lockDir, { recursive: true, force: true })
+    })
+
     it('calls pgrep -f via execFile with args, never a shell string', async () => {
-        const { execFile } = await import('node:child_process')
         const client = new WdioMcpClient({ command: process.execPath, args: [MCP_SERVER] })
         try {
             await client.getTools()
         } finally {
             await client.close()
         }
-        const mock = vi.mocked(execFile)
-        const pgrepCall = mock.mock.calls.find((call) => call[0] === 'pgrep')
+        const pgrepCall = pgrepCalls()[0]
         expect(pgrepCall).toBeDefined()
         // args passed as an array is the no-shell guarantee: execFile never
         // interpolates into a shell command line
-        const args = pgrepCall![1] as string[]
+        const args = pgrepCall[1] as string[]
         expect(args).toHaveLength(2)
         expect(args[0]).toBe('-f')
         // same bracketed pattern the pre-fix shell form passed to pgrep
         expect(args[1]).toMatch(/^\[u\]ser-data-dir=/)
         expect(args[1]).toContain('chrome-debug')
+    })
+
+    it('skips the sweep while another mission holds the shared profile', async () => {
+        const first = new WdioMcpClient({ command: process.execPath, args: [MCP_SERVER] })
+        const second = new WdioMcpClient({ command: process.execPath, args: [MCP_SERVER] })
+        try {
+            await first.getTools()
+            await second.getTools()
+            // lock holds both server pids, one file each
+            expect(holderPids()).toHaveLength(2)
+            await first.close()
+            // first exit must not sweep: the second mission still owns Chrome
+            expect(pgrepCalls()).toHaveLength(0)
+            expect(holderPids()).toHaveLength(1)
+        } finally {
+            await second.close()
+        }
+        // last holder out runs the sweep
+        expect(pgrepCalls()).toHaveLength(1)
+        expect(fs.existsSync(lockPath)).toBe(false)
+    })
+
+    it('rechecks the holder registry before killing when a mission claims mid-sweep', async () => {
+        const killSpy = vi.spyOn(process, 'kill').mockImplementation(() => true)
+        const client = new WdioMcpClient({ command: process.execPath, args: [MCP_SERVER] })
+        try {
+            await client.getTools()
+            // a second mission claims the profile while the sweep is running
+            const delegate = vi.mocked(execFile).getMockImplementation() as unknown as
+                (file: string, args: string[], cb: (err: Error | null, stdout: string, stderr: string) => void) => childProcess.ChildProcess
+            vi.mocked(execFile).mockImplementationOnce((file, args, cb) => {
+                fs.writeFileSync(path.join(lockPath, '424242'), '')
+                return delegate(file as string, args as string[], cb as (err: Error | null, stdout: string, stderr: string) => void)
+            })
+            await client.close()
+            // sweep ran but the recheck caught the new holder — nothing killed
+            expect(pgrepCalls()).toHaveLength(1)
+            expect(killSpy).not.toHaveBeenCalled()
+            expect(fs.existsSync(path.join(lockPath, '424242'))).toBe(true)
+        } finally {
+            killSpy.mockRestore()
+            await client.close().catch(() => {})
+        }
+    })
+
+    it('prunes holders that crashed without releasing', async () => {
+        fs.mkdirSync(lockPath, { recursive: true })
+        fs.writeFileSync(path.join(lockPath, '999999'), '')
+        const client = new WdioMcpClient({ command: process.execPath, args: [MCP_SERVER] })
+        try {
+            await client.getTools()
+            const held = holderPids()
+            expect(held).toHaveLength(1)
+            expect(held[0]).not.toBe(999999)
+            // the surviving entry is the live server pid, not the stale one
+            expect(() => process.kill(held[0], 0)).not.toThrow()
+        } finally {
+            await client.close()
+        }
     })
 })

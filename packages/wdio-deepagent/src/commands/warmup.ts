@@ -1,13 +1,11 @@
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import type { StructuredToolInterface } from '@langchain/core/tools'
-import { DeepAgentProviderSchema, type DeepAgentProvider } from '../model/schema.js'
+import { LOCAL_PROVIDERS, type DeepAgentProvider } from '../model/schema.js'
 
 export const WARMUP_TIMEOUT_MS = 10_000
 
-const LOCAL_PROVIDER_NAMES: readonly DeepAgentProvider[] = ['ollama', 'llama-cpp', 'lm-studio']
-
-/** Providers serving weights locally — remote APIs bill ~13k tokens per repl session, so warmup is local-only. */
-export const LOCAL_MODEL_PROVIDERS: readonly DeepAgentProvider[] = DeepAgentProviderSchema.options.filter((provider) => LOCAL_PROVIDER_NAMES.includes(provider))
+/** Remote APIs bill ~13k tokens per repl session, so warmup is local-only. */
+export const LOCAL_MODEL_PROVIDERS: readonly DeepAgentProvider[] = LOCAL_PROVIDERS
 
 export function isLocalProvider(provider: DeepAgentProvider): boolean {
     return LOCAL_MODEL_PROVIDERS.includes(provider)

@@ -67,7 +67,7 @@ describe('processTurn', () => {
             })
         const agent = { invoke } as unknown as DeepAgent
 
-        const result = await processTurn(agent, 'write the file')
+        const result = await processTurn(agent, 'write the file', { resolveInterrupt: async () => true })
 
         expect(result.reply).toBe('file written')
         // first invoke: plain input; second: a resume Command
@@ -93,7 +93,7 @@ describe('processTurn', () => {
             .mockResolvedValueOnce({ messages: [new AIMessage('both done')] })
         const agent = { invoke } as unknown as DeepAgent
 
-        const result = await processTurn(agent, 'go')
+        const result = await processTurn(agent, 'go', { resolveInterrupt: async () => true })
 
         expect(result.reply).toBe('both done')
         expect(invoke).toHaveBeenCalledTimes(3)
@@ -112,7 +112,7 @@ describe('processTurn', () => {
         const agent = { invoke } as unknown as DeepAgent
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
         try {
-            const result = await processTurn(agent, 'go')
+            const result = await processTurn(agent, 'go', { resolveInterrupt: async () => true })
             expect(result.reply).toBe('')
             expect(errorSpy).toHaveBeenCalledWith(expect.stringMatching(/1 gated action/))
             expect(invoke).toHaveBeenCalledTimes(MAX_INTERRUPT_ROUNDS + 1)
@@ -132,6 +132,25 @@ describe('processTurn', () => {
         const agent = { invoke } as unknown as DeepAgent
 
         const result = await processTurn(agent, 'write the file', { resolveInterrupt: async () => false })
+
+        expect(result.reply).toBe('ok, skipping')
+        expect(invoke).toHaveBeenCalledTimes(2)
+        const cmd = invoke.mock.calls[1][0] as Command
+        expect((cmd as unknown as { resume: { decisions: unknown[] } }).resume.decisions)
+            .toEqual([{ type: 'reject', message: 'User declined the action.' }])
+    })
+
+    it('declines gated actions by default when no resolver is passed', async () => {
+        const invoke = vi.fn()
+            .mockResolvedValueOnce(interrupted([
+                { name: 'write_file', args: { path: 'x.txt' }, description: 'write x.txt' },
+            ]))
+            .mockResolvedValueOnce({
+                messages: [new ToolMessage({ content: 'rejected', tool_call_id: 'call-0' }), new AIMessage('ok, skipping')],
+            })
+        const agent = { invoke } as unknown as DeepAgent
+
+        const result = await processTurn(agent, 'write the file')
 
         expect(result.reply).toBe('ok, skipping')
         expect(invoke).toHaveBeenCalledTimes(2)
@@ -162,7 +181,7 @@ describe('processTurn', () => {
         try {
             // without resume handling the gated write would be dropped and
             // the turn would end on the interrupted (tool-call) message
-            await processTurn(harness.agent, 'fix the spec')
+            await processTurn(harness.agent, 'fix the spec', { resolveInterrupt: async () => true })
             expect(await fs.readFile(spec, 'utf8')).toBe('const a = 2\n')
         } finally {
             await harness.close()

@@ -238,13 +238,26 @@ describe('runStreamedTurn', () => {
             .toEqual([{ type: 'reject', message: 'User declined the action.' }])
     })
 
-    it('auto-approves by default', async () => {
+    it('declines gated actions by default when no resolver is passed', async () => {
         const streamEvents = vi.fn()
             .mockResolvedValueOnce(interruptedRun([{ name: 'write_file', args: {}, description: 'x' }]))
             .mockResolvedValueOnce(doneRun([new AIMessage('done')]))
         const agent = { streamEvents } as unknown as DeepAgent
 
         await runStreamedTurn(agent, 'go')
+
+        const cmd = streamEvents.mock.calls[1][0] as Command
+        expect((cmd as unknown as { resume: { decisions: unknown[] } }).resume.decisions)
+            .toEqual([{ type: 'reject', message: 'User declined the action.' }])
+    })
+
+    it('approves when the caller passes an approving resolver', async () => {
+        const streamEvents = vi.fn()
+            .mockResolvedValueOnce(interruptedRun([{ name: 'write_file', args: {}, description: 'x' }]))
+            .mockResolvedValueOnce(doneRun([new AIMessage('done')]))
+        const agent = { streamEvents } as unknown as DeepAgent
+
+        await runStreamedTurn(agent, 'go', { resolveInterrupt: async () => true })
 
         const cmd = streamEvents.mock.calls[1][0] as Command
         expect((cmd as unknown as { resume: { decisions: unknown[] } }).resume.decisions)
@@ -258,7 +271,7 @@ describe('runStreamedTurn', () => {
         const agent = { streamEvents } as unknown as DeepAgent
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
         try {
-            const result = await runStreamedTurn(agent, 'go')
+            const result = await runStreamedTurn(agent, 'go', { resolveInterrupt: async () => true })
             expect(result.reply).toBe('')
             expect(errorSpy).toHaveBeenCalledWith(expect.stringMatching(/1 gated action/))
             expect(streamEvents).toHaveBeenCalledTimes(MAX_INTERRUPT_ROUNDS + 1)

@@ -76,7 +76,7 @@ function summarizeArtifact(artifact: TraceArtifact): string {
 }
 
 export function createTraceTools(options: TraceToolOptions): DynamicStructuredTool[] {
-    const projectRoot = options.configPath ? projectRootForConfig(options.configPath) : process.cwd()
+    const projectRoot = projectRootForConfig(options.configPath)
     const ingestTrace = tool(
         async ({ tracePath }) => {
             const abs = confineTracePath(options.traceDir, projectRoot, tracePath)

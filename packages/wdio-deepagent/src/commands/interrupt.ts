@@ -3,6 +3,11 @@ import type { TurnInterruptRequest } from './turn.js'
 
 export const ARGS_TRUNCATE = 200
 
+/** Ellipsizes `s` past `n` chars (default: the shared args truncation limit). */
+export function truncate(s: string, n = ARGS_TRUNCATE): string {
+    return s.length > n ? `${s.slice(0, n)}…` : s
+}
+
 /** Parses a y/N answer — 'y' or 'yes' (case-insensitive) approves. */
 export function parseYesNo(value: string): boolean {
     return /^y(es)?$/i.test(value.trim())
@@ -18,7 +23,7 @@ const truncateValues = (value: unknown, seen = new WeakSet<object>()): unknown =
         seen.add(value)
     }
     if (typeof value === 'string') {
-        return value.length > ARGS_TRUNCATE ? `${value.slice(0, ARGS_TRUNCATE)}…` : value
+        return truncate(value)
     }
     if (Array.isArray(value)) {
         return value.map((v) => truncateValues(v, seen))
@@ -55,7 +60,7 @@ export function createInterruptResolver(rl: readline.Interface): (request: TurnI
         for (const action of request.actionRequests) {
             const why = typeof action.description === 'string' ? action.description.trim() : ''
             if (why) {
-                console.log(`  ${why.length > ARGS_TRUNCATE ? `${why.slice(0, ARGS_TRUNCATE)}…` : why}`)
+                console.log(`  ${truncate(why)}`)
             }
             console.log(describeActionRequest(action))
         }
