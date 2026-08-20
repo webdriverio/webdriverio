@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig",
+  "compilerOptions": {
+    "outDir": "./build",
+    "rootDir": "./src",
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "src/**/*",
+    "../../@types"
+  ]
+}
