@@ -136,7 +136,7 @@ describe('multi remote test', () => {
         })
 
         it('should allow chaining select with element query', async () => {
-            const header = await multiRemoteBrowser.select('browserA').$('h1')
+            const header = await multiRemoteBrowser.unstable_select('browserA').$('h1')
 
             expect(header.instances).toEqual(['browserA'])
         })
