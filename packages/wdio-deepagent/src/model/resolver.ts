@@ -86,6 +86,11 @@ export function resolveChatModel(
     const envKey = PROVIDER_ENV_KEYS[config.provider]
     const apiKey = config.apiKey ?? (envKey ? env[envKey] : undefined)
     const keylessLocal = config.provider === 'llama-cpp' || config.provider === 'lm-studio'
+    if (keylessLocal && !config.baseURL) {
+        throw new Error(
+            `[@wdio/deepagent] Provider "${config.provider}" is keyless and local — set \`baseURL\` to your server (e.g. http://localhost:1234/v1).`
+        )
+    }
     if (config.provider !== 'ollama' && !keylessLocal && !apiKey) {
         throw new Error(
             `[@wdio/deepagent] No API key for provider "${config.provider}". ` +

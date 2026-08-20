@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createInterruptResolver } from '../src/commands/interrupt.js'
 
 describe('createInterruptResolver', () => {
@@ -21,5 +21,13 @@ describe('createInterruptResolver', () => {
             on: () => {},
         } as never
         await expect(createInterruptResolver(rl)({ actionRequests: [] })).resolves.toBe(true)
+    })
+
+    it('prints the agent-provided description before the action header', async () => {
+        const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+        const rl = { question: (_q: string, cb: (a: string) => void) => cb('y'), on: () => {} } as never
+        await createInterruptResolver(rl)({ actionRequests: [{ name: 'write_file', args: {}, description: 'because the selector moved' }] })
+        expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('because the selector moved'))
+        logSpy.mockRestore()
     })
 })

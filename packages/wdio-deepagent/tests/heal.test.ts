@@ -13,6 +13,21 @@ const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtur
 const CONFIG = path.join(FIXTURES, 'wdio.conf.ts')
 const FAKE_WDIO = path.join(FIXTURES, 'fake-wdio.mjs')
 const MCP_SERVER = path.join(FIXTURES, 'mcp-server.mjs')
+const FAKE_MODEL = { provider: 'openai', model: 'fake', temperature: 0.1, maxTokens: 8192 } as const
+
+/** A trace.network line in the real @wdio/devtools-service HAR shape. */
+function networkRecord(method: string, url: string, status: number, time = 0): string {
+    return JSON.stringify({
+        type: 'resource-snapshot',
+        snapshot: {
+            startedDateTime: '2026-08-20T18:50:03.690Z',
+            time,
+            request: { method, url, headers: [], httpVersion: 'HTTP/1.1' },
+            response: { status, statusText: status >= 400 ? 'Error' : 'OK', headers: [] },
+            timings: { send: 0, wait: time, receive: 0 },
+        },
+    })
+}
 
 /** Failing trace: a click that errored. */
 async function makeFailingTrace(dir: string): Promise<string> {
@@ -24,11 +39,67 @@ async function makeFailingTrace(dir: string): Promise<string> {
         JSON.stringify({ type: 'before', id: 'a2', ts: 1300, action: { name: 'click', selector: '#login-btn' } }),
         JSON.stringify({ type: 'after', id: 'a2', ts: 1300, error: 'element not found' }),
     ].join('\n')))
-    zip.addFile('trace.network', Buffer.from(JSON.stringify({ method: 'GET', url: 'https://example.com/api', status: 500, duration: 10 }) + '\n'))
+    zip.addFile('trace.network', Buffer.from(networkRecord('GET', 'https://example.com/api', 500, 10) + '\n'))
     zip.addFile('transcript.md', Buffer.from('# Trace\n- url https://example.com\n- click #login-btn failed\n'))
     const tracePath = path.join(dir, 'trace-failing.zip')
     await fs.writeFile(tracePath, zip.toBuffer())
     return tracePath
+}
+
+/** Fake spec runner that records each invocation and mimics fake-wdio's trace zip + exit code. */
+const RUNNER_SCRIPT = `import fs from 'node:fs'
+import path from 'node:path'
+const out = process.env.WDIO_DEEPAGENT_TRACE_DIR || path.join(process.cwd(), 'test-results')
+fs.mkdirSync(out, { recursive: true })
+fs.appendFileSync(process.argv[process.argv.indexOf('--log') + 1], 'run\\n')
+const emptyZip = Buffer.concat([Buffer.from([0x50, 0x4b, 0x05, 0x06]), Buffer.alloc(18)])
+fs.writeFileSync(path.join(out, 'trace-' + Date.now() + '.zip'), emptyZip)
+process.exit(process.argv.includes('--fail') ? 1 : 0)
+`
+
+/** Writes the counting runner into `dir` and returns its spawn args plus the run log. */
+async function makeRunner(dir: string) {
+    const spec = path.join(FIXTURES, 'some.spec.js')
+    const runner = path.join(dir, 'fake-runner.mjs')
+    const logPath = path.join(dir, 'runs.log')
+    await fs.writeFile(runner, RUNNER_SCRIPT)
+    return { logPath, spec, spawnArgs: [runner, 'run', 'overlay.mjs', '--spec', spec, '--log', logPath] }
+}
+
+/** RUNNER_SCRIPT variant: fails the first `--fail-first N` invocations (counted via its own log), then succeeds. */
+const FLAKY_RUNNER_SCRIPT = `import fs from 'node:fs'
+import path from 'node:path'
+const out = process.env.WDIO_DEEPAGENT_TRACE_DIR || path.join(process.cwd(), 'test-results')
+fs.mkdirSync(out, { recursive: true })
+const logPath = process.argv[process.argv.indexOf('--log') + 1]
+const invocation = (fs.existsSync(logPath) ? fs.readFileSync(logPath, 'utf8').split('\\n').filter(Boolean).length : 0) + 1
+fs.appendFileSync(logPath, 'run\\n')
+const emptyZip = Buffer.concat([Buffer.from([0x50, 0x4b, 0x05, 0x06]), Buffer.alloc(18)])
+fs.writeFileSync(path.join(out, 'trace-' + Date.now() + '.zip'), emptyZip)
+process.exit(invocation <= Number(process.argv[process.argv.indexOf('--fail-first') + 1]) ? 1 : 0)
+`
+
+/** Like makeRunner, but exits 1 for the first `failFirst` invocations and 0 afterwards. */
+async function makeFlakyRunner(dir: string, failFirst: number) {
+    const spec = path.join(FIXTURES, 'some.spec.js')
+    const runner = path.join(dir, 'fake-runner.mjs')
+    const logPath = path.join(dir, 'runs.log')
+    await fs.writeFile(runner, FLAKY_RUNNER_SCRIPT)
+    return { logPath, spec, spawnArgs: [runner, 'run', 'overlay.mjs', '--spec', spec, '--log', logPath, '--fail-first', String(failFirst)] }
+}
+
+async function countRuns(logPath: string): Promise<number> {
+    return (await fs.readFile(logPath, 'utf8')).split('\n').filter(Boolean).length
+}
+
+async function makeAskHarness() {
+    return createDeepAgentHarness({
+        model: FAKE_MODEL,
+        modelOverride: new FakeToolCallingModel({ toolCalls: [], toolStyle: 'openai' }),
+        mcp: { command: process.execPath, args: [MCP_SERVER] },
+        traceDir: 'test-results',
+        heal: 'ask',
+    })
 }
 
 describe('runDiagnosis', () => {
@@ -93,7 +164,7 @@ describe('runDiagnosis', () => {
         const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
         const tracePath = await makeFailingTrace(dir)
         const harness = await createDeepAgentHarness({
-            model: { provider: 'openai', model: 'fake' },
+            model: FAKE_MODEL,
             modelOverride: new FakeToolCallingModel({ toolCalls: [], toolStyle: 'openai' }),
             mcp: { command: process.execPath, args: [MCP_SERVER] },
             traceDir: 'test-results',
@@ -117,7 +188,7 @@ describe('runDiagnosis', () => {
         const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
         const tracePath = await makeFailingTrace(dir)
         const harness = await createDeepAgentHarness({
-            model: { provider: 'openai', model: 'fake' },
+            model: FAKE_MODEL,
             modelOverride: new FakeToolCallingModel({ toolCalls: [], toolStyle: 'openai' }),
             mcp: { command: process.execPath, args: [MCP_SERVER] },
             traceDir: 'test-results',
@@ -144,7 +215,7 @@ describe('runDiagnosis', () => {
         const spec = path.join(dir, 'spec.js')
         await fs.writeFile(spec, 'original')
         const harness = await createDeepAgentHarness({
-            model: { provider: 'openai', model: 'fake' },
+            model: FAKE_MODEL,
             modelOverride: new FakeToolCallingModel({
                 toolCalls: [[{ name: 'write_file', args: { path: '/spec.js', content: 'fixed' }, id: 'call-1' }]],
                 toolStyle: 'openai',
@@ -176,7 +247,7 @@ describe('runDiagnosis', () => {
         const spec = path.join(dir, 'spec.js')
         await fs.writeFile(spec, 'original')
         const harness = await createDeepAgentHarness({
-            model: { provider: 'openai', model: 'fake' },
+            model: FAKE_MODEL,
             modelOverride: new FakeToolCallingModel({
                 toolCalls: [[{ name: 'write_file', args: { path: '/spec.js', content: 'fixed' }, id: 'call-1' }]],
                 toolStyle: 'openai',
@@ -196,6 +267,250 @@ describe('runDiagnosis', () => {
             })
             expect(report.agentRan).toBe(true)
             expect(await fs.readFile(spec, 'utf8')).toBe('original')
+        } finally {
+            await harness.close()
+            await fs.rm(dir, { recursive: true, force: true })
+        }
+    })
+
+    it('ask mode reruns the spec after healing and reports a green verification', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
+        const tracePath = await makeFailingTrace(dir)
+        const { logPath, spec, spawnArgs } = await makeRunner(dir)
+        const harness = await makeAskHarness()
+        try {
+            const report = await runDiagnosis({
+                tracePath,
+                configPath: CONFIG,
+                spec,
+                traceDir: path.join(dir, 'traces'),
+                heal: 'ask',
+                agent: harness.agent,
+                spawnCommand: process.execPath,
+                spawnArgs,
+            })
+            expect(report.agentRan).toBe(true)
+            expect(report.verification).toBeDefined()
+            expect(report.verification!.healed).toBe(true)
+            expect(report.verification!.exitCode).toBe(0)
+            expect(await countRuns(logPath)).toBe(2)
+        } finally {
+            await harness.close()
+            await fs.rm(dir, { recursive: true, force: true })
+            await fs.rm(path.join(FIXTURES, 'test-results'), { recursive: true, force: true })
+        }
+    })
+
+    it('ask mode reports a failed verification when the heal did not fix the spec', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
+        const tracePath = await makeFailingTrace(dir)
+        const { logPath, spec, spawnArgs } = await makeRunner(dir)
+        const harness = await makeAskHarness()
+        try {
+            const report = await runDiagnosis({
+                tracePath,
+                configPath: CONFIG,
+                spec,
+                traceDir: path.join(dir, 'traces'),
+                heal: 'ask',
+                agent: harness.agent,
+                // pins the single-attempt path this test has always covered;
+                // the default of 2 is exercised by the cap test below
+                maxHealAttempts: 1,
+                spawnCommand: process.execPath,
+                spawnArgs: [...spawnArgs, '--fail'],
+            })
+            expect(report.verification).toBeDefined()
+            expect(report.verification!.healed).toBe(false)
+            expect(report.verification!.exitCode).toBe(1)
+            expect(await countRuns(logPath)).toBe(2)
+        } finally {
+            await harness.close()
+            await fs.rm(dir, { recursive: true, force: true })
+            await fs.rm(path.join(FIXTURES, 'test-results'), { recursive: true, force: true })
+        }
+    })
+
+    it('ask mode heals on a retry when the first fix attempt still fails', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
+        const tracePath = await makeFailingTrace(dir)
+        const { logPath, spec, spawnArgs } = await makeFlakyRunner(dir, 2)
+        const harness = await makeAskHarness()
+        try {
+            const report = await runDiagnosis({
+                tracePath,
+                configPath: CONFIG,
+                spec,
+                traceDir: path.join(dir, 'traces'),
+                heal: 'ask',
+                agent: harness.agent,
+                spawnCommand: process.execPath,
+                spawnArgs,
+            })
+            expect(report.healAttempts).toBe(2)
+            expect(report.verification).toBeDefined()
+            expect(report.verification!.healed).toBe(true)
+            expect(report.verification!.exitCode).toBe(0)
+            expect(await countRuns(logPath)).toBe(3)
+        } finally {
+            await harness.close()
+            await fs.rm(dir, { recursive: true, force: true })
+            await fs.rm(path.join(FIXTURES, 'test-results'), { recursive: true, force: true })
+        }
+    })
+
+    it('ask mode caps heal attempts at maxHealAttempts', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
+        const tracePath = await makeFailingTrace(dir)
+        const { logPath, spec, spawnArgs } = await makeFlakyRunner(dir, Infinity)
+        const harness = await makeAskHarness()
+        try {
+            const report = await runDiagnosis({
+                tracePath,
+                configPath: CONFIG,
+                spec,
+                traceDir: path.join(dir, 'traces'),
+                heal: 'ask',
+                agent: harness.agent,
+                spawnCommand: process.execPath,
+                spawnArgs,
+                maxHealAttempts: 2,
+            })
+            expect(report.healAttempts).toBe(2)
+            expect(report.verification).toBeDefined()
+            expect(report.verification!.healed).toBe(false)
+            expect(await countRuns(logPath)).toBe(3)
+        } finally {
+            await harness.close()
+            await fs.rm(dir, { recursive: true, force: true })
+            await fs.rm(path.join(FIXTURES, 'test-results'), { recursive: true, force: true })
+        }
+    })
+
+    it('ask mode with maxHealAttempts 1 keeps the single-shot behaviour', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
+        const tracePath = await makeFailingTrace(dir)
+        const { logPath, spec, spawnArgs } = await makeFlakyRunner(dir, Infinity)
+        const harness = await makeAskHarness()
+        try {
+            const report = await runDiagnosis({
+                tracePath,
+                configPath: CONFIG,
+                spec,
+                traceDir: path.join(dir, 'traces'),
+                heal: 'ask',
+                agent: harness.agent,
+                spawnCommand: process.execPath,
+                spawnArgs,
+                maxHealAttempts: 1,
+            })
+            expect(report.healAttempts).toBe(1)
+            expect(report.verification).toBeDefined()
+            expect(report.verification!.healed).toBe(false)
+            expect(await countRuns(logPath)).toBe(2)
+        } finally {
+            await harness.close()
+            await fs.rm(dir, { recursive: true, force: true })
+            await fs.rm(path.join(FIXTURES, 'test-results'), { recursive: true, force: true })
+        }
+    })
+
+    it('ask mode stops after one heal attempt when the fix succeeds first time', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
+        const tracePath = await makeFailingTrace(dir)
+        const { logPath, spec, spawnArgs } = await makeFlakyRunner(dir, 0)
+        const harness = await makeAskHarness()
+        try {
+            const report = await runDiagnosis({
+                tracePath,
+                configPath: CONFIG,
+                spec,
+                traceDir: path.join(dir, 'traces'),
+                heal: 'ask',
+                agent: harness.agent,
+                spawnCommand: process.execPath,
+                spawnArgs,
+            })
+            expect(report.healAttempts).toBe(1)
+            expect(report.verification).toBeDefined()
+            expect(report.verification!.healed).toBe(true)
+            expect(await countRuns(logPath)).toBe(2)
+        } finally {
+            await harness.close()
+            await fs.rm(dir, { recursive: true, force: true })
+            await fs.rm(path.join(FIXTURES, 'test-results'), { recursive: true, force: true })
+        }
+    })
+
+    it('propose mode never heals even with an agent attached', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
+        const tracePath = await makeFailingTrace(dir)
+        const { logPath, spec, spawnArgs } = await makeRunner(dir)
+        const harness = await createDeepAgentHarness({
+            model: FAKE_MODEL,
+            modelOverride: new FakeToolCallingModel({ toolCalls: [], toolStyle: 'openai' }),
+            mcp: { command: process.execPath, args: [MCP_SERVER] },
+            traceDir: 'test-results',
+            heal: 'propose',
+        })
+        try {
+            const report = await runDiagnosis({
+                tracePath,
+                configPath: CONFIG,
+                spec,
+                traceDir: path.join(dir, 'traces'),
+                heal: 'propose',
+                agent: harness.agent,
+                spawnCommand: process.execPath,
+                spawnArgs,
+            })
+            expect(report.healAttempts).toBe(0)
+            expect(report.agentRan).toBe(false)
+            expect(report.verification).toBeUndefined()
+            expect(await countRuns(logPath)).toBe(1)
+        } finally {
+            await harness.close()
+            await fs.rm(dir, { recursive: true, force: true })
+            await fs.rm(path.join(FIXTURES, 'test-results'), { recursive: true, force: true })
+        }
+    })
+
+    it('propose mode never verifies: the spec runs once', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
+        const tracePath = await makeFailingTrace(dir)
+        const { logPath, spec, spawnArgs } = await makeRunner(dir)
+        try {
+            const report = await runDiagnosis({
+                tracePath,
+                configPath: CONFIG,
+                spec,
+                traceDir: path.join(dir, 'traces'),
+                heal: 'propose',
+                spawnCommand: process.execPath,
+                spawnArgs,
+            })
+            expect(report.agentRan).toBe(false)
+            expect(report.verification).toBeUndefined()
+            expect(await countRuns(logPath)).toBe(1)
+        } finally {
+            await fs.rm(dir, { recursive: true, force: true })
+            await fs.rm(path.join(FIXTURES, 'test-results'), { recursive: true, force: true })
+        }
+    })
+
+    it('ask mode without reproduction never verifies', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
+        const tracePath = await makeFailingTrace(dir)
+        const harness = await makeAskHarness()
+        try {
+            const report = await runDiagnosis({
+                tracePath,
+                traceDir: path.join(dir, 'traces'),
+                heal: 'ask',
+                agent: harness.agent,
+            })
+            expect(report.agentRan).toBe(true)
+            expect(report.verification).toBeUndefined()
         } finally {
             await harness.close()
             await fs.rm(dir, { recursive: true, force: true })

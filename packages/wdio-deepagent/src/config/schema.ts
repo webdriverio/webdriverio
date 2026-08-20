@@ -11,16 +11,23 @@ export const DEFAULT_MCP_CONFIG: { command: string; args: string[] } = {
 }
 
 export const DEFAULT_TRACE_DIR = 'test-results'
+export const DEFAULT_MAX_HEAL_ATTEMPTS = 2
 
 /**
  * The `deepagent` block as it appears in `wdio.conf.ts`. The whole block
- * is optional. `model` is optional at parse time — `loadDeepAgentConfig`
+ * is optional. `llm` is optional at parse time — `loadDeepAgentConfig`
  * requires it unless `modelOptional` is set (read-only `diagnose` in
  * `propose` mode needs no agent and therefore no model).
  */
 export const DeepAgentConfigSchema = z.object({
     /** BYOK model config (see ../model/schema.ts). Required for agent modes. */
-    model: DeepAgentModelConfigSchema.optional(),
+    llm: DeepAgentModelConfigSchema.optional(),
+    /** Replaces the default instructions entirely. */
+    instructionsPath: z.string().optional(),
+    /** Inline instructions appended after the base instructions. */
+    appendInstructions: z.string().optional(),
+    /** File whose contents are appended after the base instructions. */
+    appendInstructionsFile: z.string().optional(),
     /**
      * Healing policy for `diagnose`:
      * - `ask` (default): agent edits specs/page objects, every write is
@@ -29,6 +36,11 @@ export const DeepAgentConfigSchema = z.object({
      * - `auto`: unattended CI healing; specs/page objects only, never config
      */
     heal: HealModeSchema.default('ask'),
+    /**
+     * Attempts at healing before giving up; each retry costs one real spec
+     * re-run. `min(1)` is deliberate — 0 must not silently disable healing.
+     */
+    maxHealAttempts: z.number().int().min(1).default(DEFAULT_MAX_HEAL_ATTEMPTS),
     /** How to spawn the @wdio/mcp server the agent connects to; `null` runs the harness without browser tools. */
     mcp: z.object({
         command: z.string().default(DEFAULT_MCP_CONFIG.command),

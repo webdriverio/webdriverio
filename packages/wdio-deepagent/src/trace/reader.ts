@@ -280,11 +280,18 @@ export function parseTraceArchive(
                 hasNetworkData = true
             }
             forEachNdjsonLine(text, (rec) => {
+                // Network lines are HAR-format `resource-snapshot` records written by
+                // @wdio/devtools-service (core/src/trace-har.ts); fields live under `snapshot`.
+                const snapshot = rec.snapshot && typeof rec.snapshot === 'object'
+                    ? rec.snapshot as { request?: Record<string, unknown>; response?: Record<string, unknown>; time?: unknown }
+                    : undefined
+                const request = snapshot?.request
+                const response = snapshot?.response
                 network.push({
-                    method: typeof rec.method === 'string' ? rec.method : undefined,
-                    url: typeof rec.url === 'string' ? rec.url : undefined,
-                    status: typeof rec.status === 'number' ? rec.status : undefined,
-                    duration: typeof rec.duration === 'number' ? rec.duration : undefined,
+                    method: request && typeof request.method === 'string' ? request.method : undefined,
+                    url: request && typeof request.url === 'string' ? request.url : undefined,
+                    status: response && typeof response.status === 'number' ? response.status : undefined,
+                    duration: typeof snapshot?.time === 'number' ? snapshot.time : undefined,
                     raw: rec,
                 })
             })

@@ -1,6 +1,6 @@
 # @wdio/deepagent
 
-**BYOK LangChain Deep Agent harness for WebdriverIO** — an interactive agent REPL/CLI that traverses the app under test through `@wdio/mcp`, makes runs reproducible and healable with `@wdio/devtools-service` traces.
+**LangChain Deep Agent harness for WebdriverIO** — an interactive *bring-your-own-key* agent REPL/CLI that traverses the app under test through `@wdio/mcp`, makes runs reproducible and healable with `@wdio/devtools-service` traces.
 
 Built on the OSS [Deep Agents](https://docs.langchain.com/oss/javascript/deepagents/overview) harness (`deepagents` → `createDeepAgent`). You bring your own model key (OpenRouter / OpenAI / Anthropic / Ollama) — nothing runs on a managed backend. It bundles `@wdio/mcp` as the traversal layer and works with `@wdio/devtools-service` trace artifacts (the service runs in your project, not here).
 
@@ -43,8 +43,12 @@ The same commands are available as `wdio-deepagent <command>` (install via `npm 
 export const config = {
     // ...framework/services as usual...
     deepagent: {
-        model: { provider: 'openrouter', model: 'moonshotai/kimi-k3' },
+        llm: { provider: 'openrouter', model: 'moonshotai/kimi-k3' },
         heal: 'ask', // 'ask' (human-approve writes) | 'propose' (read-only diffs) | 'auto' (CI healing)
+        appendInstructions: 'Use data-testid selectors.', // appended to the built-in instructions
+        // appendInstructionsFile: 'agent-notes.md', // file contents appended (cwd-relative)
+        // instructionsPath: 'agent-instructions.md', // REPLACES the built-in instructions entirely
+        // maxHealAttempts: 2, // fix attempts per diagnose run (default 2, min 1)
     },
 }
 ```
@@ -60,7 +64,7 @@ Local providers (ollama, llama-cpp, lm-studio) need no API key; llama-cpp and lm
 - The harness runs the locally installed `@wdio/mcp` binary (the exact version pinned in `package.json`) when available, falling back to `npx -y @wdio/mcp` otherwise.
 
 ## How it works
--
+
 - **Traversal** — the agent loads the `@wdio/mcp` 29-tool surface as an MCP client (sessions, navigation, elements, selectors, screenshots, cookies, mobile gestures); WebdriverIO executes underneath.
 - **Trace** — `diagnose` ingests a devtools `trace.zip`, reproduces the failing spec under a trace-mode overlay, diffs old vs new runs, and heals the spec (spec/page objects only, never config or secrets).
 - **Site knowledge base** — per-page a11y snapshots/element maps are accumulated while browsing (context-injection, no embeddings in v1).
@@ -69,6 +73,7 @@ Local providers (ollama, llama-cpp, lm-studio) need no API key; llama-cpp and lm
 ## Roadmap
 
 - Inject Agent Skills (SKILL.md bundles, via deepagents `skills` option) — deferred while the system prompt's `## Running tests` section covers the essential guidance; skills would replace it once progressive-disclosure knowledge grows beyond prompt-sized.
+- Searchable official docs (`search_wdio_docs` tool over the webdriverio `llms-full.txt` corpus, gated by a `docsUrl` config field) — planned, not wired; the corpus is ~2.9 MB so it needs a runtime-fetched search tool, never inlining.
 
 ## License
 

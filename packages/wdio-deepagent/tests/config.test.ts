@@ -18,7 +18,7 @@ describe('parseDeepAgentConfig', () => {
     it('requires a model at load time, not parse time (read-only diagnose needs none)', () => {
         // parse-level: model is optional (propose diagnose builds no agent)
         const cfg = parseDeepAgentConfig({ heal: 'propose' })
-        expect(cfg.model).toBeUndefined()
+        expect(cfg.llm).toBeUndefined()
         // load-level enforcement happens in loadDeepAgentConfig (see below)
         expect(cfg.heal).toBe('propose')
     })
@@ -32,7 +32,7 @@ describe('parseDeepAgentConfig', () => {
 describe('loadDeepAgentConfig', () => {
     it('reads the deepagent block from a wdio.conf.ts', async () => {
         const cfg = await loadDeepAgentConfig({ configPath: FIXTURE, env: {} })
-        expect(cfg.model).toMatchObject({ provider: 'openrouter', model: 'moonshotai/kimi-k3' })
+        expect(cfg.llm).toMatchObject({ provider: 'openrouter', model: 'moonshotai/kimi-k3' })
         expect(cfg.heal).toBe('propose')
     })
 
@@ -42,7 +42,7 @@ describe('loadDeepAgentConfig', () => {
 
     it('modelOptional allows a model-free config (read-only propose diagnose)', async () => {
         const cfg = await loadDeepAgentConfig({ env: {}, modelOptional: true })
-        expect(cfg.model).toBeUndefined()
+        expect(cfg.llm).toBeUndefined()
         expect(cfg.heal).toBe('ask')
         expect(cfg.traceDir).toBe('test-results')
     })
@@ -52,23 +52,66 @@ describe('loadDeepAgentConfig', () => {
             configPath: FIXTURE,
             env: { DEEPAGENT_MODEL: 'anthropic:claude-sonnet-4-6' },
         })
-        expect(cfg.model).toMatchObject({ provider: 'anthropic', model: 'claude-sonnet-4-6' })
+        expect(cfg.llm).toMatchObject({ provider: 'anthropic', model: 'claude-sonnet-4-6' })
+    })
+
+    it('applies the conf top-level logLevel to the logger (launcher parity)', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-loglevel-'))
+        await fs.writeFile(path.join(dir, 'wdio.conf.ts'), `
+            export const config = { capabilities: {}, logLevel: 'error', deepagent: {
+                llm: { provider: 'lm-studio', model: 'qwen/qwen3.5-4b' },
+            } }`)
+        const prev = process.env.WDIO_LOG_LEVEL
+        try {
+            // a fresh process has no pinned level — earlier suite loads must not leak one in
+            delete process.env.WDIO_LOG_LEVEL
+            await loadDeepAgentConfig({ cwd: dir, env: {} })
+            expect(process.env.WDIO_LOG_LEVEL).toBe('error')
+        } finally {
+            if (prev === undefined) {
+                delete process.env.WDIO_LOG_LEVEL
+            } else {
+                process.env.WDIO_LOG_LEVEL = prev
+            }
+            await fs.rm(dir, { recursive: true, force: true })
+        }
+    })
+
+    it('keeps a pinned WDIO_LOG_LEVEL when the conf has logLevels entries', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-loglevels-'))
+        await fs.writeFile(path.join(dir, 'wdio.conf.ts'), `
+            export const config = { capabilities: {}, logLevel: 'error', logLevels: { '@wdio/deepagent': 'info' }, deepagent: {
+                llm: { provider: 'lm-studio', model: 'qwen/qwen3.5-4b' },
+            } }`)
+        const prev = process.env.WDIO_LOG_LEVEL
+        try {
+            process.env.WDIO_LOG_LEVEL = 'silent'
+            await loadDeepAgentConfig({ cwd: dir, env: {} })
+            expect(process.env.WDIO_LOG_LEVEL).toBe('silent')
+        } finally {
+            if (prev === undefined) {
+                delete process.env.WDIO_LOG_LEVEL
+            } else {
+                process.env.WDIO_LOG_LEVEL = prev
+            }
+            await fs.rm(dir, { recursive: true, force: true })
+        }
     })
 
     it('drops the file block apiKey/baseURL when the override switches provider', async () => {
         const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-cfg-'))
         await fs.writeFile(path.join(dir, 'wdio.conf.ts'), `
             export const config = { capabilities: {}, deepagent: {
-                model: {
+                llm: {
                     provider: 'openrouter', model: 'moonshotai/kimi-k3',
                     apiKey: 'sk-or-123', baseURL: 'https://openrouter.ai/api/v1',
                 },
             } }`)
         try {
             const cfg = await loadDeepAgentConfig({ cwd: dir, env: {}, cli: { model: 'openai:gpt-5.5' } })
-            expect(cfg.model).toMatchObject({ provider: 'openai', model: 'gpt-5.5' })
-            expect(cfg.model!.apiKey).toBeUndefined()
-            expect(cfg.model!.baseURL).toBeUndefined()
+            expect(cfg.llm).toMatchObject({ provider: 'openai', model: 'gpt-5.5' })
+            expect(cfg.llm!.apiKey).toBeUndefined()
+            expect(cfg.llm!.baseURL).toBeUndefined()
         } finally {
             await fs.rm(dir, { recursive: true, force: true })
         }
@@ -78,17 +121,38 @@ describe('loadDeepAgentConfig', () => {
         const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-cfg-'))
         await fs.writeFile(path.join(dir, 'wdio.conf.ts'), `
             export const config = { capabilities: {}, deepagent: {
-                model: {
+                llm: {
                     provider: 'openai', model: 'gpt-5.5',
                     apiKey: 'sk-openai', baseURL: 'https://api.openai.com/v1',
                 },
             } }`)
         try {
             const cfg = await loadDeepAgentConfig({ cwd: dir, env: {}, cli: { model: 'openai:gpt-5.5-mini' } })
-            expect(cfg.model).toMatchObject({
+            expect(cfg.llm).toMatchObject({
                 provider: 'openai', model: 'gpt-5.5-mini',
                 apiKey: 'sk-openai', baseURL: 'https://api.openai.com/v1',
             })
+        } finally {
+            await fs.rm(dir, { recursive: true, force: true })
+        }
+    })
+
+    it('keeps the new deepagent fields through a conf round trip', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-cfg-'))
+        await fs.writeFile(path.join(dir, 'wdio.conf.ts'), `
+            export const config = { capabilities: {}, deepagent: {
+                llm: { provider: 'lm-studio', model: 'qwen/qwen3.5-4b' },
+                instructionsPath: './AGENTS.md',
+                appendInstructions: 'inline rules',
+                appendInstructionsFile: './RULES.md',
+                maxHealAttempts: 5,
+            } }`)
+        try {
+            const cfg = await loadDeepAgentConfig({ cwd: dir, env: {} })
+            expect(cfg.instructionsPath).toBe('./AGENTS.md')
+            expect(cfg.appendInstructions).toBe('inline rules')
+            expect(cfg.appendInstructionsFile).toBe('./RULES.md')
+            expect(cfg.maxHealAttempts).toBe(5)
         } finally {
             await fs.rm(dir, { recursive: true, force: true })
         }
@@ -101,7 +165,7 @@ describe('loadDeepAgentConfig', () => {
             cli: { heal: 'ask', model: 'ollama:qwen2.5:7b' },
         })
         expect(cfg.heal).toBe('ask')
-        expect(cfg.model).toMatchObject({ provider: 'ollama', model: 'qwen2.5:7b' })
+        expect(cfg.llm).toMatchObject({ provider: 'ollama', model: 'qwen2.5:7b' })
     })
 
     it('env DEEPAGENT_HEAL overrides the file block', async () => {
@@ -119,7 +183,7 @@ describe('loadDeepAgentConfig', () => {
             configPath: '/nonexistent/wdio.conf.ts',
             env: { DEEPAGENT_MODEL: 'openai:gpt-5.5' },
         })
-        expect(cfg.model).toMatchObject({ provider: 'openai', model: 'gpt-5.5' })
+        expect(cfg.llm).toMatchObject({ provider: 'openai', model: 'gpt-5.5' })
     })
 })
 
@@ -163,11 +227,11 @@ describe('quick start (config wizard → repl config discovery)', () => {
             // what the wdio config wizard emits (no heal key → defaults to 'ask')
             await fs.writeFile(path.join(dir, 'wdio.conf.ts'), `
                 export const config = { capabilities: {}, deepagent: {
-                    model: { provider: 'openrouter', model: 'moonshotai/kimi-k3' },
+                    llm: { provider: 'openrouter', model: 'moonshotai/kimi-k3' },
                 } }`)
 
             const cfg = await loadDeepAgentConfig({ env: {}, cwd: dir })
-            expect(cfg.model).toMatchObject({ provider: 'openrouter', model: 'moonshotai/kimi-k3' })
+            expect(cfg.llm).toMatchObject({ provider: 'openrouter', model: 'moonshotai/kimi-k3' })
             expect(cfg.heal).toBe('ask')
         } finally {
             await fs.rm(dir, { recursive: true, force: true })

@@ -11,7 +11,7 @@ import path from 'node:path'
 export const DEFAULT_INSTRUCTIONS = `You are wdio-deepagent, a WebdriverIO testing agent running inside the user's project.
 
 ## Your job
-Help the user test and fix their web app: traverse the app under test, understand it, write or heal WebdriverIO test specs, and produce a correct wdio.conf for their framework.
+Help the user test and fix their web app: traverse the app under test, understand it, write or heal WebdriverIO test specs, and diagnose their wdio.conf for their framework.
 
 ## Tooling model
 - Traversal tools (session, navigation, elements, selectors, screenshots, cookies, mobile gestures) come from the @wdio/mcp server. Start a session before interacting with the app; one session at a time. Prefer the accessibility/visible-element tools over guessing selectors.
@@ -28,8 +28,8 @@ Help the user test and fix their web app: traverse the app under test, understan
 
 ## Config & framework knowledge
 - Frameworks: mocha, jasmine, cucumber. Config lives in wdio.conf.{js,ts}. A typical setup: framework, spec patterns, capabilities, services (e.g. devtools, appium, browserstack), reporters.
-- The harness config block is \`deepagent\` inside wdio.conf.ts: { model, heal, mcp, traceDir, permissions }.
-- When asked to set up config, ask the user which framework, whether TypeScript, which services/cloud, then write a complete, valid config file — never a fragment.
+- The harness config block is \`deepagent\` inside wdio.conf.ts: { llm, heal, maxHealAttempts, mcp, traceDir, permissions, instructionsPath, appendInstructions, appendInstructionsFile }.
+- When asked to set up config, ask the user which framework, whether TypeScript, which services/cloud, then print a complete, valid config file for the user to paste — never a fragment. wdio.conf is write-denied in every mode, so \`edit_file\` and \`write_file\` must never target it.
 
 ## Healing policy
 The \`heal\` mode determines what you may change:
@@ -53,4 +53,22 @@ export async function readInstructionsFile(instructionsPath?: string): Promise<s
     } catch (err) {
         throw new Error(`[@wdio/deepagent] Cannot read instructions file ${instructionsPath}: ${(err as Error).message}`)
     }
+}
+
+/** Appended instructions (file first, then inline); `''` when none configured. */
+export async function readAppendedInstructions(
+    opts: { appendInstructions?: string; appendInstructionsFile?: string },
+): Promise<string> {
+    const parts: string[] = []
+    if (opts.appendInstructionsFile) {
+        try {
+            parts.push(await fs.readFile(path.resolve(opts.appendInstructionsFile), 'utf8'))
+        } catch (err) {
+            throw new Error(`[@wdio/deepagent] Cannot read appended instructions file ${opts.appendInstructionsFile}: ${(err as Error).message}`)
+        }
+    }
+    if (opts.appendInstructions) {
+        parts.push(opts.appendInstructions)
+    }
+    return parts.length ? `\n\n${parts.join('\n\n')}` : ''
 }

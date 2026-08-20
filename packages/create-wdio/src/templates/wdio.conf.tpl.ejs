@@ -426,7 +426,7 @@ if (answers.isUsingTypeScript) {
     // their key from env (OPENROUTER_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY);
     // local providers (ollama, llama-cpp, lm-studio) need no key.
     deepagent: {
-        model: {
+        llm: {
             provider: '<%- answers.deepagentModel.provider %>',
             model: '<%- answers.deepagentModel.model %>'<% if (answers.deepagentModel.baseURL) { %>,
             baseURL: '<%- answers.deepagentModel.baseURL %>'<% } %>

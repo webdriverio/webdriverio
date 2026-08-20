@@ -114,6 +114,25 @@ describe('resolveChatModel', () => {
         expect((model as { clientConfig?: { baseURL?: string } }).clientConfig?.baseURL)
             .toBe('http://localhost:8080/v1')
     })
+
+    it('throws when lm-studio has no baseURL (would silently 401 at the OpenAI endpoint)', () => {
+        expect(() => resolveChatModel({ provider: 'lm-studio', model: 'qwen3.5-4b' }, { env: {} }))
+            .toThrow(/baseURL/)
+    })
+
+    it('throws when llama-cpp has no baseURL', () => {
+        expect(() => resolveChatModel({ provider: 'llama-cpp', model: 'llama-3.2' }, { env: {} }))
+            .toThrow(/baseURL/)
+    })
+
+    it('a request override bypasses the baseURL requirement', () => {
+        const model = resolveChatModel({
+            provider: 'lm-studio',
+            model: 'ignored',
+            request: async () => 'hi',
+        })
+        expect(model).toBeInstanceOf(RequestChatModel)
+    })
 })
 
 describe('RequestChatModel', () => {

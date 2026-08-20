@@ -27,7 +27,7 @@ export interface LoadDeepAgentConfigOptions {
 }
 
 const DEFAULT_MODEL_HINT =
-    'No model configured. Run `npx wdio config` and select the @wdio/deepagent plugin to write a wdio.conf.ts with a `deepagent.model` block, ' +
+    'No model configured. Run `npx wdio config` and select the @wdio/deepagent plugin to write a wdio.conf.ts with a `deepagent.llm` block, ' +
     'pass `--model provider:model`, or set `DEEPAGENT_MODEL=provider:model` (e.g. openrouter:moonshotai/kimi-k3).'
 export { DEFAULT_MODEL_HINT }
 
@@ -87,6 +87,13 @@ export async function loadProjectConfig(configPath: string): Promise<{ config: W
     const parser = new ConfigParser(configPath)
     await parser.initialize()
     const config = parser.getConfig() as WebdriverIO.Config
+    // wdio-cli applies the conf's logLevel in its launcher; a standalone deepagent
+    // run has no launcher, so mirror it here — but never override a pinned
+    // WDIO_LOG_LEVEL (the mcp command pins 'silent' before config load to keep
+    // stdout clean for JSON-RPC framing, and conf logLevels entries would beat it)
+    if (process.env.WDIO_LOG_LEVEL === undefined) {
+        logger.setLogLevelsConfig(config.logLevels, config.logLevel)
+    }
     return { config, deepagent: (config as unknown as Record<string, unknown>).deepagent }
 }
 
@@ -128,13 +135,13 @@ export async function loadDeepAgentConfig(
         ...(fileBlock ?? {}),
         ...(envHeal ? { heal: envHeal } : {}),
         ...(modelStr
-            ? { model: mergeModelOverride(fileBlock?.model as Record<string, unknown> | undefined, splitModelString(modelStr)) }
+            ? { llm: mergeModelOverride(fileBlock?.llm as Record<string, unknown> | undefined, splitModelString(modelStr)) }
             : {}),
         ...(options.cli?.heal ? { heal: options.cli.heal } : {}),
         ...(options.cli?.traceDir ? { traceDir: options.cli.traceDir } : {}),
     }
 
-    if (!merged.model && !options.modelOptional) {
+    if (!merged.llm && !options.modelOptional) {
         throw new Error(DEFAULT_MODEL_HINT)
     }
 

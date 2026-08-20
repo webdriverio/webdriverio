@@ -14,7 +14,7 @@ const [{ ToolCallCard }, { ApprovalPrompt }, { render }] = await Promise.all([
     import('../src/commands/ui/ApprovalPrompt.js'),
     import('ink-testing-library'),
 ])
-const { ARGS_TRUNCATE } = await import('../src/commands/interrupt.js')
+const { ARGS_TRUNCATE, describeActionRequest } = await import('../src/commands/interrupt.js')
 
 describe('ToolCallCard', () => {
     it('renders the tool name, args preview and duration', () => {
@@ -80,7 +80,25 @@ describe('ApprovalPrompt', () => {
         }))
         const frame = lastFrame()
         expect(frame).toContain('write_file')
-        expect(frame).toContain('write it')
+        // the langchain description is deliberately not rendered
+        expect(frame).not.toContain('write it')
         expect(frame).toContain('y/N')
+    })
+})
+
+describe('describeActionRequest', () => {
+    it('puts name and file_path on the header, skips the langchain description and truncates string values', () => {
+        const out = describeActionRequest({
+            name: 'edit_file',
+            args: { file_path: '/wdio.conf.js', old_string: 'a'.repeat(500), replace_all: false },
+            description: 'Tool execution requires approval\n\nTool: edit_file\nArgs: {...}',
+        })
+        const header = out.split('\n').find((line) => line.includes('edit_file'))!
+        expect(header).toContain('edit_file')
+        expect(header).toContain('/wdio.conf.js')
+        expect(out).not.toContain('Tool execution requires approval')
+        expect(out).toContain('replace_all')
+        expect(out).toContain(`"old_string": "${'a'.repeat(ARGS_TRUNCATE)}…`)
+        expect(out).not.toContain('a'.repeat(500))
     })
 })
