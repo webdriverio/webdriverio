@@ -223,7 +223,6 @@ export default class MultiRemote {
             return result
         }
 
-        func.isMultiremote = true
         return wrapCommand(commandName, func)
     }
 }
