@@ -29,7 +29,7 @@ export default class MultiRemote {
     /**
      * modifier for multibrowser instance
      */
-    modifier (wrapperClient: { options: Options.WebdriverIO, commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'select')[] }) {
+    modifier (wrapperClient: { options: Options.WebdriverIO, commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'unstable_select')[] }) {
         const propertiesObject: Record<string, PropertyDescriptor> = {}
         propertiesObject.commandList = { value: wrapperClient.commandList }
         propertiesObject.options = { value: wrapperClient.options }
@@ -37,7 +37,7 @@ export default class MultiRemote {
             value: (browserName: string) => this.instances[browserName]
         }
 
-        propertiesObject.select = {
+        propertiesObject.unstable_select = {
             value: (instanceNames: string | string[]) => {
                 const names = Array.isArray(instanceNames) ? instanceNames : [instanceNames]
                 const selectedInstances: Record<string, WebdriverIO.Browser> = {}
@@ -120,7 +120,7 @@ export default class MultiRemote {
             // @ts-expect-error ToDo(Christian): remove eventually
             delete client.sessionId
 
-            client.select = function (instanceNames: string | string[]) {
+            client.unstable_select = function (instanceNames: string | string[]) {
                 const selectedInstances: Record<string, WebdriverIO.Browser> = {}
                 const selectedResults: unknown[] = []
 
@@ -136,7 +136,7 @@ export default class MultiRemote {
                 return MultiRemote.elementWrapper(selectedInstances, selectedResults, propertiesObject, scope)
             }
 
-            client.filter = async function (predicate: (element: WebdriverIO.Element) => Promise<boolean> | boolean) {
+            client.unstable_filter = async function (predicate: (element: WebdriverIO.Element) => Promise<boolean> | boolean) {
                 const selectedInstances: Record<string, WebdriverIO.Browser> = {}
                 const selectedResults: unknown[] = []
 
@@ -167,7 +167,7 @@ export default class MultiRemote {
     /**
      * handle commands for multiremote instances
      */
-    commandWrapper (commandName: keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'select') {
+    commandWrapper (commandName: keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'unstable_select') {
         const instances = this.instances
         const self: MultiRemote = this
 
@@ -178,7 +178,7 @@ export default class MultiRemote {
                 }
                 return this[browserName]
             }
-        } else if (commandName === 'select') {
+        } else if (commandName === 'unstable_select') {
             return function (this: Record<string, WebdriverIO.Browser | WebdriverIO.Element>, instanceNames: string | string[]) {
                 const names = Array.isArray(instanceNames) ? instanceNames : [instanceNames]
                 const selectedInstances: Record<string, WebdriverIO.Browser> = {}

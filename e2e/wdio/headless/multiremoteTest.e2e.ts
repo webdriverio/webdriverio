@@ -69,7 +69,7 @@ describe('multi remote test', () => {
             await multiRemoteBrowser.url('https://webdriver.io')
             const header = multiRemoteBrowser.$('h1')
 
-            const browserAHeader = header.select('browserA')
+            const browserAHeader = header.unstable_select('browserA')
 
             expect(await browserAHeader.instances).toEqual(['browserA'])
 
@@ -82,7 +82,7 @@ describe('multi remote test', () => {
             await multiRemoteBrowser.url('https://webdriver.io')
             const header = multiRemoteBrowser.$('h1')
 
-            const browserAHeader = header.select(['browserA', 'browserC'])
+            const browserAHeader = header.unstable_select(['browserA', 'browserC'])
 
             expect(await browserAHeader.instances).toEqual(['browserA', 'browserC'])
 
@@ -97,7 +97,7 @@ describe('multi remote test', () => {
 
             const header = multiRemoteBrowser.$('h1')
 
-            const existingHeaders = await header.filter((e) => e.isExisting())
+            const existingHeaders = await header.unstable_filter((e) => e.isExisting())
 
             // TODO review to assert order of instances, as it may not be guaranteed to be the same order each time
             expect(existingHeaders.instances).toEqual(expect.arrayContaining(['browserA', 'browserC']))
@@ -111,7 +111,7 @@ describe('multi remote test', () => {
 
             const header = multiRemoteBrowser.$('h1')
 
-            const existingHeaders = await header.select(['browserA', 'browserC']).filter((e) => e.isExisting())
+            const existingHeaders = await header.unstable_select(['browserA', 'browserC']).unstable_filter((e) => e.isExisting())
 
             expect(existingHeaders.instances).toEqual(['browserA', 'browserC'])
             const classes = await existingHeaders.getAttribute('class')
@@ -120,14 +120,14 @@ describe('multi remote test', () => {
 
         it('should be able to select on multi-remote browser', async () => {
 
-            await multiRemoteBrowser.select('browserA').url('https://webdriver.io')
+            await multiRemoteBrowser.unstable_select('browserA').url('https://webdriver.io')
             // Remove h1 from browserB to ensure it would fail if accessed
             await browserB.execute(() => {
                 document.querySelector('h1')?.remove()
             })
 
             // Select only browserA, so browserB's missing element shouldn't matter
-            const header = await multiRemoteBrowser.select('browserA').$('h1')
+            const header = await multiRemoteBrowser.unstable_select('browserA').$('h1')
 
             expect(await header.instances).toEqual(['browserA'])
             const classes = await header.getAttribute('class')

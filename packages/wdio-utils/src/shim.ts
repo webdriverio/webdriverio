@@ -10,7 +10,7 @@ let inCommandHook = false
 
 const ELEMENT_QUERY_COMMANDS = [
     '$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$',
-    'react$$', 'nextElement', 'previousElement', 'parentElement', 'select', 'filter'
+    'react$$', 'nextElement', 'previousElement', 'parentElement', 'unstable_select', 'unstable_filter'
 ]
 const ELEMENT_PROPS = [
     'elementId', 'error', 'selector', 'parent', 'index', 'isReactElement',
