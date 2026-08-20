@@ -3,7 +3,9 @@ import logger from '@wdio/logger'
 import { createDeepAgent, FilesystemBackend } from 'deepagents'
 import type { DeepAgent, FilesystemPermission } from 'deepagents'
 import { MemorySaver } from '@langchain/langgraph-checkpoint'
-import { todoListMiddleware } from 'langchain'
+import { todoListMiddleware, type InterruptOnConfig, type ToolCallRequest } from 'langchain'
+import micromatch from 'micromatch'
+import { ChatAnthropic } from '@langchain/anthropic'
 import type { DynamicStructuredTool } from '@langchain/core/tools'
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { parseModelConfig } from './model/index.js'
@@ -16,7 +18,8 @@ import { createTraceTools } from './trace/tools.js'
 import { createKnowledgeBaseTools } from './knowledge-base/tools.js'
 import { createRunSpecTool } from './run-spec.js'
 import { createLoopGuardMiddleware, TOOL_ERROR_PREFIX } from './loop-guard.js'
-import { readInstructionsFile } from './prompts.js'
+import { readInstructionsFile, readAppendedInstructions } from './prompts.js'
+import { extractAgentReply } from './commands/turn.js'
 
 const log = logger('@wdio/deepagent')
 
@@ -54,6 +57,10 @@ export interface DeepAgentHarnessOptions {
     memoryFiles?: string[]
     /** Inject instructions from a file instead of the default. */
     instructionsPath?: string
+    /** Inline instructions appended after the base instructions. */
+    appendInstructions?: string
+    /** File whose contents are appended after the base instructions. */
+    appendInstructionsFile?: string
     /** Test/advanced escape hatch: use this model instead of resolving from config. */
     modelOverride?: BaseChatModel
 }
@@ -91,6 +98,41 @@ export interface DeepAgentHarness {
  * `FilesystemBackend` exposes no `execute` tool, so there is no shell-command
  * hole that these permissions cannot cover.
  */
+const WRITE_DENY_GLOBS = [
+    '/wdio.conf*', '/**/wdio.conf*',
+    '/.github/**', '/**/.github/**',
+    '/package.json', '/**/package.json',
+    '/package-lock.json', '/**/package-lock.json',
+    '/pnpm-lock.yaml', '/**/pnpm-lock.yaml',
+    '/yarn.lock', '/**/yarn.lock',
+    '/.husky/**', '/**/.husky/**',
+]
+
+/** All write-denying globs across every rule permissionsForHeal emits — single source of truth for the gate. */
+function writeDeniedGlobs(heal: HealMode): string[] {
+    return permissionsForHeal(heal).flatMap((rule) =>
+        rule.mode === 'deny' && rule.operations.includes('write') ? rule.paths : []
+    )
+}
+
+const SENSITIVE_DENY_GLOBS = [
+    '/.env*', '/**/.env*',
+    '/.git/**', '/**/.git/**',
+    '/node_modules/**', '/**/node_modules/**',
+    '/.npmrc', '/**/.npmrc',
+    '/*.pem', '/**/*.pem',
+    '/*.key', '/**/*.key',
+]
+
+function isWriteDenied(globs: string[], filePath: unknown): boolean {
+    if (typeof filePath !== 'string' || filePath.length === 0) {
+        return false
+    }
+    // tool args can arrive relative ("wdio.conf.ts"); the deny globs are '/'-anchored
+    const normalized = filePath.startsWith('/') ? filePath : `/${filePath}`
+    return micromatch.isMatch(normalized, globs, { dot: true })
+}
+
 export function permissionsForHeal(heal: HealMode): FilesystemPermission[] {
     if (heal === 'propose') {
         return [
@@ -99,23 +141,10 @@ export function permissionsForHeal(heal: HealMode): FilesystemPermission[] {
         ]
     }
     return [
-        { operations: ['read', 'write'], paths: ['/.env*', '/**/.env*'], mode: 'deny' },
-        { operations: ['read', 'write'], paths: ['/.git/**', '/**/.git/**'], mode: 'deny' },
-        { operations: ['read', 'write'], paths: ['/node_modules/**', '/**/node_modules/**'], mode: 'deny' },
-        { operations: ['read', 'write'], paths: ['/.npmrc', '/**/.npmrc'], mode: 'deny' },
-        { operations: ['read', 'write'], paths: ['/*.pem', '/**/*.pem'], mode: 'deny' },
-        { operations: ['read', 'write'], paths: ['/*.key', '/**/*.key'], mode: 'deny' },
+        { operations: ['read', 'write'], paths: SENSITIVE_DENY_GLOBS, mode: 'deny' },
         {
             operations: ['write'],
-            paths: [
-                '/wdio.conf*', '/**/wdio.conf*',
-                '/.github/**', '/**/.github/**',
-                '/package.json', '/**/package.json',
-                '/package-lock.json', '/**/package-lock.json',
-                '/pnpm-lock.yaml', '/**/pnpm-lock.yaml',
-                '/yarn.lock', '/**/yarn.lock',
-                '/.husky/**', '/**/.husky/**',
-            ],
+            paths: WRITE_DENY_GLOBS,
             mode: 'deny',
         },
         { operations: ['read', 'write'], paths: ['/**'], mode: 'allow' },
@@ -123,18 +152,24 @@ export function permissionsForHeal(heal: HealMode): FilesystemPermission[] {
 }
 
 /**
- * interrupt_on mapping per heal mode: `ask` pauses before every filesystem
- * mutation. deepagents 1.12.2's FilesystemMiddleware exposes only
- * `write_file` and `edit_file` as mutating tools — `FilesystemBackend` has a
- * `delete` method but it is NOT registered as a tool (FILESYSTEM_TOOL_NAMES is
- * ls/read_file/write_file/edit_file/glob/grep/execute, no delete_file, and
- * `execute` is filtered out because `FilesystemBackend` lacks it). Gate
- * `delete_file` anyway so a future release that exposes deletion stays gated
- * instead of silently ungated.
+ * interrupt_on mapping per heal mode: `ask` gates every mutating filesystem
+ * tool behind human approval — deepagents exposes only `write_file` and
+ * `edit_file` as mutating tools (no `delete_file`).
  */
-export function interruptsForHeal(heal: HealMode): Record<string, boolean> {
+export function interruptsForHeal(heal: HealMode): Record<string, boolean | InterruptOnConfig> {
     if (heal === 'ask') {
-        return { write_file: true, edit_file: true, delete_file: true }
+        // The HITL gate fires before the filesystem permission check inside
+        // the tool, so write-denied paths must be filtered here — otherwise
+        // the human is asked to approve a write that cannot succeed. Globs
+        // derived from permissionsForHeal so the gate can never drift from
+        // the deny rules it mirrors.
+        const denied = writeDeniedGlobs(heal)
+        const gate: InterruptOnConfig = {
+            allowedDecisions: ['approve', 'reject'],
+            when: (req: ToolCallRequest) => !isWriteDenied(denied, req.toolCall.args?.file_path),
+            description: (_toolCall, state) => extractAgentReply(state.messages),
+        }
+        return { write_file: gate, edit_file: gate }
     }
     return {}
 }
@@ -146,8 +181,16 @@ export function interruptsForHeal(heal: HealMode): Record<string, boolean> {
  * tool so any thrown error becomes tool content: the model sees the failure
  * in-context and recovers (retry, start_session, different approach)
  * instead of the whole turn dying.
+ *
+ * `imagesAsText` additionally rewrites screenshot content blocks to text
+ * placeholders: OpenAI-compatible providers reject non-text tool content
+ * with a 400 (Anthropic accepts images in tool results, so the option
+ * stays off for it).
  */
-export function withErrorRecovery(tool: DynamicStructuredTool): DynamicStructuredTool {
+export function withErrorRecovery(
+    tool: DynamicStructuredTool,
+    options: { imagesAsText?: boolean } = {},
+): DynamicStructuredTool {
     // `_call` passes (input, runManager, parentConfig) — parentConfig carries
     // signal/timeout, which mcp-adapters' func reads; forwarding all args
     // keeps abort + per-call timeouts working through the wrapper
@@ -157,13 +200,45 @@ export function withErrorRecovery(tool: DynamicStructuredTool): DynamicStructure
     const tuple = (tool as { responseFormat?: string }).responseFormat === 'content_and_artifact'
     tool.func = (async (input: unknown, ...rest: unknown[]) => {
         try {
-            return await exec(input, ...rest)
+            const output = await exec(input, ...rest)
+            if (options.imagesAsText && tuple && Array.isArray(output) && Array.isArray(output[0])) {
+                output[0] = output[0].map((block: unknown) => {
+                    if (typeof block !== 'object' || block === null || !('type' in block)) {
+                        return block
+                    }
+                    const { type } = block as { type?: unknown }
+                    if (type !== 'image_url' && type !== 'image') {
+                        return block
+                    }
+                    return { type: 'text', text: imagePlaceholder(block) }
+                })
+            }
+            return output
         } catch (err) {
             const message = `${TOOL_ERROR_PREFIX}${err instanceof Error ? err.message : String(err)}`
             return tuple ? [message, undefined] : message
         }
     }) as unknown as DynamicStructuredTool['func']
     return tool
+}
+
+/** Derives mime + approximate size from an image content block for the placeholder text. */
+function imagePlaceholder(block: object): string {
+    let mime: unknown
+    let base64 = ''
+    if ('image_url' in block) {
+        const url = (block as { image_url?: { url?: string } }).image_url?.url ?? ''
+        const match = /^data:([^;,]+)?;base64,(.*)$/.exec(url)
+        mime = match?.[1] ?? 'image'
+        base64 = match?.[2] ?? ''
+    } else {
+        mime = (block as { mimeType?: unknown; mime_type?: unknown }).mimeType
+            ?? (block as { mimeType?: unknown; mime_type?: unknown }).mime_type
+            ?? 'image'
+        base64 = typeof (block as { data?: unknown }).data === 'string' ? (block as { data: string }).data : ''
+    }
+    const kb = Math.round((base64.length * 3) / 4 / 1024)
+    return `[Image capture (${String(mime)}, ~${kb} KB) omitted: this model cannot view images in tool results — inspect page state with get_accessibility_tree or get_elements instead.]`
 }
 
 // re-exported for streamedTurn — defined in loop-guard.ts to avoid the
@@ -182,7 +257,7 @@ export interface DeepAgentToolSurface {
  * each wrapped with error recovery. Model-independent — the `mcp` CLI
  * command serves this surface without needing a model.
  */
-export async function createToolSurface(options: { mcp?: McpServerConfig | null; traceDir?: string; configPath?: string }): Promise<DeepAgentToolSurface> {
+export async function createToolSurface(options: { mcp?: McpServerConfig | null; traceDir?: string; configPath?: string; imagesAsText?: boolean }): Promise<DeepAgentToolSurface> {
     const mcpConfig = resolveMcpConfig(options.mcp)
     const mcpClient = mcpConfig ? new WdioMcpClient(mcpConfig) : null
     const traceDir = options.traceDir ?? DEFAULT_TRACE_DIR
@@ -191,7 +266,7 @@ export async function createToolSurface(options: { mcp?: McpServerConfig | null;
     const traceTools = createTraceTools({ configPath: options.configPath, traceDir })
     const knowledgeBaseTools = createKnowledgeBaseTools()
     // MCP tools are DynamicStructuredTool; harness tools are too.
-    const tools: DynamicStructuredTool[] = [...traversalTools, createRunSpecTool({ configPath: options.configPath }), ...traceTools, ...knowledgeBaseTools].map(withErrorRecovery)
+    const tools: DynamicStructuredTool[] = [...traversalTools, createRunSpecTool({ configPath: options.configPath }), ...traceTools, ...knowledgeBaseTools].map((tool) => withErrorRecovery(tool, { imagesAsText: options.imagesAsText }))
 
     return {
         mcpClient,
@@ -233,7 +308,7 @@ export async function createDeepAgentHarness(
         )
     }
 
-    const surface = await createToolSurface({ mcp: options.mcp === null ? null : mcpConfig, traceDir, configPath: options.configPath })
+    const surface = await createToolSurface({ mcp: options.mcp === null ? null : mcpConfig, traceDir, configPath: options.configPath, imagesAsText: !(chatModel instanceof ChatAnthropic) })
     const instructions = await readInstructionsFile(options.instructionsPath)
     const { tools, mcpClient } = surface
 
@@ -248,6 +323,7 @@ export async function createDeepAgentHarness(
             systemPrompt = `${instructions}\n\n- The project's wdio config: \`${virtualConfigPath}\` — read it with \`read_file\` before spec or config work.`
         }
     }
+    systemPrompt += await readAppendedInstructions(options)
 
     const agent = createDeepAgent({
         name: '@wdio/deepagent',

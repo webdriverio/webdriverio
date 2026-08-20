@@ -47,11 +47,23 @@ const rejectWrite = (config: DeepAgentConfig, subject: string): string | undefin
         ? `[@wdio/deepagent] heal mode "propose" is read-only — ${subject} cannot write. Use \`wdio-deepagent diagnose <trace.zip>\` to produce a fix diff without writes.`
         : undefined
 
-const rejectRun = (config: DeepAgentConfig): string | undefined =>
-    config.heal === 'ask' && !process.stdin.isTTY ? ASK_NON_TTY_ERROR : rejectWrite(config, '`run`')
+const rejectRun = (config: DeepAgentConfig, flags: CliFlags): string | undefined => {
+    // `run ""` parses as one empty positional — reject it here, or the agent
+    // receives a blank prompt
+    if (!flags.positionals?.[0]) {
+        return 'run requires a prompt: wdio-deepagent run "<prompt>"'
+    }
+    return config.heal === 'ask' && !process.stdin.isTTY ? ASK_NON_TTY_ERROR : rejectWrite(config, '`run`')
+}
 
-const rejectDiagnose = (config: DeepAgentConfig): string | undefined =>
-    config.heal === 'ask' && !process.stdin.isTTY ? ASK_NON_TTY_ERROR : undefined
+const rejectDiagnose = (config: DeepAgentConfig, flags: CliFlags): string | undefined => {
+    // `diagnose ""` parses as one empty positional — reject it here, or
+    // path.resolve('') silently yields cwd and AdmZip fails with EISDIR
+    if (!flags.positionals?.[0]) {
+        return 'diagnose requires a trace.zip path: wdio-deepagent diagnose <trace.zip> [--spec <path>]'
+    }
+    return config.heal === 'ask' && !process.stdin.isTTY ? ASK_NON_TTY_ERROR : undefined
+}
 
 const rejectRepl = (config: DeepAgentConfig): string | undefined => rejectWrite(config, 'the REPL')
 
@@ -87,21 +99,24 @@ async function loadConfigForFlags(rest: string[], opts: { allowModelless?: boole
     return { flags, configPath, config }
 }
 
-async function buildHarness(argv: string[], opts: { allowModelless?: boolean; skipPropose?: boolean; rejectIf?: (config: DeepAgentConfig) => string | undefined } = {}): Promise<BuildHarnessResult> {
+async function buildHarness(argv: string[], opts: { allowModelless?: boolean; skipPropose?: boolean; rejectIf?: (config: DeepAgentConfig, flags: CliFlags) => string | undefined } = {}): Promise<BuildHarnessResult> {
     const { flags, configPath, config } = await loadConfigForFlags(argv, { allowModelless: opts.allowModelless })
-    const rejected = opts.rejectIf?.(config)
+    const rejected = opts.rejectIf?.(config, flags)
     if (rejected) {
         throw new Error(rejected)
     }
-    if (config.model && !(opts.skipPropose && config.heal === 'propose')) {
-        log.info(`Model: ${config.model.provider}:${config.model.model} · heal: ${config.heal}`)
+    if (config.llm && !(opts.skipPropose && config.heal === 'propose')) {
+        log.info(`Model: ${config.llm.provider}:${config.llm.model} · heal: ${config.heal}`)
         const harness = await createDeepAgentHarness({
-            model: config.model,
+            model: config.llm,
             heal: config.heal,
             mcp: flags.noMcp ? null : config.mcp,
             traceDir: config.traceDir,
             projectRoot: path.resolve(config.permissions.projectRoot),
             configPath,
+            instructionsPath: config.instructionsPath,
+            appendInstructions: config.appendInstructions,
+            appendInstructionsFile: config.appendInstructionsFile,
         })
         return { harness, flags, configPath, config }
     }
@@ -116,7 +131,7 @@ export async function run(): Promise<void> {
     } catch (err) {
         // Surface failures with a clear exit code — the bin shim does not
         // catch, and an unhandled rejection is invisible in scripts.
-        console.error((err as Error).message)
+        log.error((err as Error).message)
         process.exitCode = 1
     }
 }
@@ -129,7 +144,7 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
         // fire-and-forget: preload the model/tool schema while ink renders;
         // failures or slow servers must never block or break the repl.
         // Remote providers bill ~13k tokens per session — warmup is local-only.
-        if (config.model && isLocalProvider(config.model.provider)) {
+        if (config.llm && isLocalProvider(config.llm.provider)) {
             warmupModel(harness!.model, harness!.tools, warmupAbort.signal).catch(() => {})
         }
         try {
@@ -146,12 +161,9 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
     }
     case 'run': {
         const { harness, flags, config } = await buildHarness(rest, { rejectIf: rejectRun })
-        if (!flags.positionals?.length) {
-            throw new Error('run requires a prompt: wdio-deepagent run "<prompt>"')
-        }
         const rl = createAskInterface(config)
         try {
-            const prompt = flags.positionals.join(' ')
+            const prompt = flags.positionals!.join(' ')
             const result = rl
                 ? await runMission(harness!.agent, prompt, { resolveInterrupt: createInterruptResolver(rl) })
                 : await runMission(harness!.agent, prompt)
@@ -164,10 +176,7 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
     }
     case 'diagnose': {
         const built = await buildHarness(rest, { allowModelless: true, skipPropose: true, rejectIf: rejectDiagnose })
-        const tracePath = built.flags.positionals?.[0]
-        if (!tracePath) {
-            throw new Error('diagnose requires a trace.zip path: wdio-deepagent diagnose <trace.zip> [--spec <path>]')
-        }
+        const tracePath = built.flags.positionals![0]
         if (built.config.heal !== 'propose' && !built.harness) {
             throw new Error(DEFAULT_MODEL_HINT)
         }
@@ -181,6 +190,7 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
                 spec: built.flags.spec,
                 traceDir: built.config.traceDir,
                 heal: built.config.heal,
+                maxHealAttempts: built.config.maxHealAttempts,
                 agent: harness?.agent,
                 ...(rl ? { resolveInterrupt: createInterruptResolver(rl) } : {}),
             })
@@ -196,12 +206,22 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
             networkErrors: report.networkErrors.length,
             reproduction: report.reproduction,
             diff: report.diff,
+            verification: report.verification,
             heal: report.heal,
             agentRan: report.agentRan,
+            healAttempts: report.healAttempts,
             agentReply: report.agentReply,
         }, null, 2))
-        // a clean post-heal reproduction (diff.newHasFailures false) means the diagnosis succeeded
-        process.exitCode = report.failedActions.length > 0 && (report.diff?.newHasFailures ?? true) ? 1 : 0
+        // a post-heal rerun is the only truthful signal: report.diff describes the
+        // pre-heal state, so it cannot tell whether the agent's edit worked
+        const exitFailed = report.verification
+            ? !report.verification.healed
+            : (report.failedActions.length > 0 && (report.diff?.newHasFailures ?? true))
+        process.exitCode = exitFailed ? 1 : 0
+        console.error(`Diagnosis ${exitFailed ? 'failed' : 'passed'} — ${report.failedActions.length} failed action(s), ${report.networkErrors.length} network error(s)`)
+        if (report.agentReply) {
+            console.error(`Agent: ${report.agentReply.slice(0, 200)}${report.agentReply.length > 200 ? '…' : ''}`)
+        }
         break
     }
     case 'mcp': {
@@ -234,8 +254,7 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
         process.exitCode = 0
         break
     default:
-        console.error(`Unknown command: ${command} — commands come first: wdio-deepagent <command> [options]`)
-        console.log(USAGE)
+        log.error(`Unknown command: ${command} — commands come first: wdio-deepagent <command> [options]`, USAGE)
         process.exitCode = 1
     }
 }

@@ -3,6 +3,20 @@ import AdmZip from 'adm-zip'
 import { isNetworkError, parseTraceArchive } from '../src/trace/reader.js'
 import { summarizeFailures } from '../src/trace/diff.js'
 
+/** A trace.network line in the real @wdio/devtools-service HAR shape. */
+function networkRecord(method: string, url: string, status: number, time = 0): string {
+    return JSON.stringify({
+        type: 'resource-snapshot',
+        snapshot: {
+            startedDateTime: '2026-08-20T18:50:03.690Z',
+            time,
+            request: { method, url, headers: [], httpVersion: 'HTTP/1.1' },
+            response: { status, statusText: status >= 400 ? 'Error' : 'OK', headers: [] },
+            timings: { send: 0, wait: time, receive: 0 },
+        },
+    })
+}
+
 /** Builds a fixture trace.zip in the documented devtools layout. */
 function makeFixtureZip(): Buffer {
     const zip = new AdmZip()
@@ -24,8 +38,8 @@ function makeFixtureZip(): Buffer {
         'this is not json',
     ].join('\n')))
     zip.addFile('trace.network', Buffer.from(
-        JSON.stringify({ method: 'GET', url: 'https://example.com/api', status: 200, duration: 12 }) + '\n' +
-        JSON.stringify({ method: 'POST', url: 'https://example.com/login', status: 500, duration: 300 }) + '\n',
+        networkRecord('GET', 'https://example.com/api', 200, 12) + '\n' +
+        networkRecord('POST', 'https://example.com/login', 500, 300) + '\n',
     ))
     zip.addFile('transcript.md', Buffer.from('# Trace\n- url https://example.com\n'))
     zip.addFile('resources/page@ctx-1-1000-elements.json', Buffer.from('{"elements":[{"selector":"#login-btn"}]}'))
@@ -89,7 +103,7 @@ describe('parseTraceArchive', () => {
         expect(subset.hasNetworkData).toBe(false)
         expect(subset.hasTranscript).toBe(false)
 
-        zip.addFile('trace.network', Buffer.from(JSON.stringify({ method: 'GET', url: 'https://example.com/api', status: 200 }) + '\n'))
+        zip.addFile('trace.network', Buffer.from(networkRecord('GET', 'https://example.com/api', 200) + '\n'))
         zip.addFile('transcript.md', Buffer.from('# Trace\n'))
 
         const full = parseTraceArchive(zip.toBuffer(), 'full.zip')
@@ -120,7 +134,7 @@ describe('parseTraceArchive', () => {
                 error: { message: 'Can\'t call click on element with selector "#login-btn" because element wasn\'t found' },
             }),
         ].join('\n')))
-        zip.addFile('trace.network', Buffer.from(JSON.stringify({ method: 'GET', url: 'https://example.com/api', status: 200, duration: 12 }) + '\n'))
+        zip.addFile('trace.network', Buffer.from(networkRecord('GET', 'https://example.com/api', 200, 12) + '\n'))
         const artifact = parseTraceArchive(zip.toBuffer(), 'v8.zip')
 
         // screencast-frame noise is not an action
@@ -140,10 +154,10 @@ describe('parseTraceArchive', () => {
     it('treats status 0 and missing status as network failures, not successes', () => {
         const zip = new AdmZip()
         zip.addFile('trace.network', Buffer.from([
-            JSON.stringify({ method: 'GET', url: 'https://example.com/ok', status: 200 }),
-            JSON.stringify({ method: 'GET', url: 'https://example.com/failed', status: 0 }),
-            JSON.stringify({ method: 'GET', url: 'https://example.com/aborted' }),
-            JSON.stringify({ method: 'GET', url: 'https://example.com/error', status: 500 }),
+            networkRecord('GET', 'https://example.com/ok', 200),
+            networkRecord('GET', 'https://example.com/failed', 0),
+            JSON.stringify({ type: 'resource-snapshot', snapshot: { request: { method: 'GET', url: 'https://example.com/aborted' } } }),
+            networkRecord('GET', 'https://example.com/error', 500),
         ].join('\n')))
         const artifact = parseTraceArchive(zip.toBuffer())
         expect(artifact.network).toHaveLength(4)
@@ -159,6 +173,16 @@ describe('parseTraceArchive', () => {
             'https://example.com/aborted',
             'https://example.com/error',
         ])
+    })
+
+    it('does not flag a successful 200 response as a network error', () => {
+        const zip = new AdmZip()
+        zip.addFile('trace.network', Buffer.from(networkRecord('GET', 'http://localhost:8080/', 200, 55) + '\n'))
+        const artifact = parseTraceArchive(zip.toBuffer())
+
+        expect(artifact.network[0]).toMatchObject({ method: 'GET', url: 'http://localhost:8080/', status: 200, duration: 55 })
+        expect(isNetworkError(artifact.network[0])).toBe(false)
+        expect(summarizeFailures(artifact).networkErrors).toEqual([])
     })
 
     it('rejects archives with more entries than the cap', () => {

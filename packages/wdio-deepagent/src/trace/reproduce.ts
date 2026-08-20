@@ -33,6 +33,9 @@ const OVERLAY_FILENAME = '.deepagent-trace.conf.ts'
 /** Env var carrying the run-scoped trace output dir to the spawned run (used by the test fixture). */
 const TRACE_DIR_ENV = 'WDIO_DEEPAGENT_TRACE_DIR'
 
+/** Stderr tail handed to the model — shared by run summaries and the heal retry prompt. */
+export const STDERR_TAIL_CHARS = 2000
+
 /** Exit code used when a reproduction is killed by the timeout (mirrors `timeout(1)`). */
 export const TIMED_OUT_EXIT_CODE = 124
 export const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000
@@ -310,7 +313,7 @@ export function formatRunResult(
         output.stdoutTail = result.stdout.slice(-(options?.stdoutTail ?? 4000))
     }
     if (result.stderr !== undefined) {
-        output.stderrTail = result.stderr.slice(-(options?.stderrTail ?? 2000))
+        output.stderrTail = result.stderr.slice(-(options?.stderrTail ?? STDERR_TAIL_CHARS))
     }
     return JSON.stringify(output, null, 2)
 }

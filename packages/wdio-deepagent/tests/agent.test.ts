@@ -4,9 +4,11 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { HumanMessage } from '@langchain/core/messages'
+import { DynamicStructuredTool } from '@langchain/core/tools'
 import { Command } from '@langchain/langgraph'
 import { FakeToolCallingModel } from 'langchain'
-import { createDeepAgentHarness, interruptsForHeal, isSmallModelForMcp, permissionsForHeal } from '../src/agent.js'
+import { z } from 'zod'
+import { createDeepAgentHarness, interruptsForHeal, isSmallModelForMcp, permissionsForHeal, TOOL_ERROR_PREFIX, withErrorRecovery } from '../src/agent.js'
 import type { HealMode } from '../src/config/index.js'
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
@@ -22,12 +24,18 @@ describe('permissionsForHeal / interruptsForHeal', () => {
 
     it('ask and auto deny sensitive paths first, then allow the rest', () => {
         const scoped = [
-            { operations: ['read', 'write'], paths: ['/.env*', '/**/.env*'], mode: 'deny' },
-            { operations: ['read', 'write'], paths: ['/.git/**', '/**/.git/**'], mode: 'deny' },
-            { operations: ['read', 'write'], paths: ['/node_modules/**', '/**/node_modules/**'], mode: 'deny' },
-            { operations: ['read', 'write'], paths: ['/.npmrc', '/**/.npmrc'], mode: 'deny' },
-            { operations: ['read', 'write'], paths: ['/*.pem', '/**/*.pem'], mode: 'deny' },
-            { operations: ['read', 'write'], paths: ['/*.key', '/**/*.key'], mode: 'deny' },
+            {
+                operations: ['read', 'write'],
+                paths: [
+                    '/.env*', '/**/.env*',
+                    '/.git/**', '/**/.git/**',
+                    '/node_modules/**', '/**/node_modules/**',
+                    '/.npmrc', '/**/.npmrc',
+                    '/*.pem', '/**/*.pem',
+                    '/*.key', '/**/*.key',
+                ],
+                mode: 'deny',
+            },
             {
                 operations: ['write'],
                 paths: [
@@ -48,9 +56,26 @@ describe('permissionsForHeal / interruptsForHeal', () => {
     })
 
     it('ask gates write tools with interrupts; auto/propose do not', () => {
-        expect(interruptsForHeal('ask')).toEqual({ write_file: true, edit_file: true, delete_file: true })
+        const ask = interruptsForHeal('ask')
+        expect(Object.keys(ask)).toEqual(['write_file', 'edit_file'])
+        expect(ask.write_file).toMatchObject({ allowedDecisions: ['approve', 'reject'] })
+        expect(ask.edit_file).toMatchObject({ allowedDecisions: ['approve', 'reject'] })
+
+        const when = (ask.write_file as { when: (req: { toolCall: { args?: Record<string, unknown> } }) => boolean }).when
+        for (const denied of ['/wdio.conf.js', '/wdio.conf.ts', '/package.json', '/.husky/pre-commit', '/.env', '/.git/config', '/node_modules/foo/index.js', '/deploy.pem', 'wdio.conf.ts', '.env']) {
+            expect(when({ toolCall: { args: { file_path: denied } } })).toBe(false)
+        }
+        expect(when({ toolCall: { args: { file_path: '/test/specs/failing.spec.js' } } })).toBe(true)
+
         expect(interruptsForHeal('auto')).toEqual({})
         expect(interruptsForHeal('propose')).toEqual({})
+    })
+
+    it('ask descriptions pull the last AI message text as approval context', () => {
+        const gate = interruptsForHeal('ask').write_file as unknown as { description: (...args: unknown[]) => string }
+        const ai = { _getType: () => 'ai', content: [{ type: 'text', text: 'login selector changed' }] }
+        expect(gate.description({}, { messages: [ai] })).toBe('login selector changed')
+        expect(gate.description({}, { messages: [] })).toBe('')
     })
 })
 
@@ -67,6 +92,59 @@ describe('isSmallModelForMcp', () => {
         expect(isSmallModelForMcp('moonshotai/kimi-k3')).toBe(false)
         expect(isSmallModelForMcp('gpt-5.5')).toBe(false)
         expect(isSmallModelForMcp('claude-3-5-sonnet')).toBe(false)
+    })
+})
+
+describe('withErrorRecovery', () => {
+    const imageUrlBlock = { type: 'image_url', image_url: { url: 'data:image/png;base64,' + 'A'.repeat(2048) } }
+    const textBlock = { type: 'text', text: 'dom summary' }
+
+    function fakeScreenshotTool(): DynamicStructuredTool {
+        return new DynamicStructuredTool({
+            name: 'fake_screenshot',
+            description: 'fake screenshot tool',
+            schema: z.object({}),
+            responseFormat: 'content_and_artifact',
+            func: async () => [[imageUrlBlock, textBlock], 'artifact-value'],
+        })
+    }
+
+    const run = (tool: DynamicStructuredTool) =>
+        (tool.func as unknown as (input: unknown, ...rest: unknown[]) => Promise<unknown>)({})
+
+    it('downconverts image content blocks to text placeholders when imagesAsText is set', async () => {
+        const output = (await run(withErrorRecovery(fakeScreenshotTool(), { imagesAsText: true }))) as [unknown[], unknown]
+        const [content, artifact] = output
+        expect(content).toHaveLength(2)
+        expect(content[0]).toEqual({
+            type: 'text',
+            text: '[Image capture (image/png, ~2 KB) omitted: this model cannot view images in tool results — inspect page state with get_accessibility_tree or get_elements instead.]',
+        })
+        expect(content[1]).toEqual(textBlock)
+        expect(artifact).toBe('artifact-value')
+    })
+
+    it('keeps image blocks unchanged when imagesAsText is false', async () => {
+        const output = (await run(withErrorRecovery(fakeScreenshotTool(), { imagesAsText: false }))) as [unknown[], unknown]
+        expect(output[0][0]).toEqual(imageUrlBlock)
+    })
+
+    it('keeps image blocks unchanged by default', async () => {
+        const output = (await run(withErrorRecovery(fakeScreenshotTool()))) as [unknown[], unknown]
+        expect(output[0][0]).toEqual(imageUrlBlock)
+    })
+
+    it('returns the error tuple when a content_and_artifact tool throws', async () => {
+        const tool = new DynamicStructuredTool({
+            name: 'fake_throwing',
+            description: 'fake throwing tool',
+            schema: z.object({}),
+            responseFormat: 'content_and_artifact',
+            func: async () => {
+                throw new Error('boom')
+            },
+        })
+        expect(await run(withErrorRecovery(tool))).toEqual([`${TOOL_ERROR_PREFIX}boom`, undefined])
     })
 })
 

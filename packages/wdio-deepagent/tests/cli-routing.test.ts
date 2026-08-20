@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import logger from '@wdio/logger'
 import type * as agentModule from '../src/agent.js'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -83,7 +84,7 @@ describe('CLI routing (quick start: wdio-deepagent run "<prompt>")', () => {
     it('refuses run with heal: propose (read-only mode)', async () => {
         const { run } = await import('../src/index.js')
 
-        const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+        const errSpy = vi.spyOn(logger('@wdio/deepagent'), 'error').mockImplementation(() => {})
         vi.clearAllMocks()
         const prevArgv = process.argv
         process.argv = ['node', 'wdio-deepagent', 'run', '--config', FIXTURE_CONFIG, 'fix it']
@@ -103,7 +104,7 @@ describe('CLI routing (quick start: wdio-deepagent run "<prompt>")', () => {
     it('refuses run with heal: ask when stdin is not a TTY', async () => {
         const { run } = await import('../src/index.js')
 
-        const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+        const errSpy = vi.spyOn(logger('@wdio/deepagent'), 'error').mockImplementation(() => {})
         vi.clearAllMocks()
         const prevArgv = process.argv
         process.argv = ['node', 'wdio-deepagent', 'run', '--config', FIXTURE_CONFIG, 'fix it']
@@ -118,6 +119,46 @@ describe('CLI routing (quick start: wdio-deepagent run "<prompt>")', () => {
             process.argv = prevArgv
             process.exitCode = 0
             errSpy.mockRestore()
+            vi.clearAllMocks()
+        }
+    })
+
+    it('diagnose fails before spawning the harness when no trace.zip is given', async () => {
+        const { run } = await import('../src/index.js')
+
+        const logSpy = vi.spyOn(logger('@wdio/deepagent'), 'error').mockImplementation(() => {})
+        vi.clearAllMocks()
+        const prevArgv = process.argv
+        process.argv = ['node', 'wdio-deepagent', 'diagnose', '--config', FIXTURE_CONFIG]
+        try {
+            await run()
+            expect(process.exitCode).toBe(1)
+            expect(mocks.createHarness).not.toHaveBeenCalled()
+            expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('diagnose requires a trace.zip path'))
+        } finally {
+            process.argv = prevArgv
+            process.exitCode = 0
+            logSpy.mockRestore()
+            vi.clearAllMocks()
+        }
+    })
+
+    it('run fails before spawning the harness when no prompt is given', async () => {
+        const { run } = await import('../src/index.js')
+
+        const logSpy = vi.spyOn(logger('@wdio/deepagent'), 'error').mockImplementation(() => {})
+        vi.clearAllMocks()
+        const prevArgv = process.argv
+        process.argv = ['node', 'wdio-deepagent', 'run', '--config', FIXTURE_CONFIG]
+        try {
+            await run()
+            expect(process.exitCode).toBe(1)
+            expect(mocks.createHarness).not.toHaveBeenCalled()
+            expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('run requires a prompt'))
+        } finally {
+            process.argv = prevArgv
+            process.exitCode = 0
+            logSpy.mockRestore()
             vi.clearAllMocks()
         }
     })

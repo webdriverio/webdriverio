@@ -30,3 +30,47 @@ describe('deepagent config schema — mcp', () => {
         expect(cfg.mcp).toEqual({ command: 'node', args: ['server.mjs'], env: { TOKEN: 'secret' } })
     })
 })
+
+describe('deepagent config schema — maxHealAttempts', () => {
+    it('defaults to 2 when omitted', () => {
+        const cfg = parseDeepAgentConfig({})
+        expect(cfg.maxHealAttempts).toBe(2)
+    })
+
+    it('parses an explicit value', () => {
+        const cfg = parseDeepAgentConfig({ maxHealAttempts: 3 })
+        expect(cfg.maxHealAttempts).toBe(3)
+    })
+
+    it('rejects zero (heal attempts must be >= 1)', () => {
+        expect(() => parseDeepAgentConfig({ maxHealAttempts: 0 })).toThrow()
+    })
+
+    it('rejects negatives', () => {
+        expect(() => parseDeepAgentConfig({ maxHealAttempts: -1 })).toThrow()
+    })
+
+    it('rejects non-integers', () => {
+        expect(() => parseDeepAgentConfig({ maxHealAttempts: 2.5 })).toThrow()
+    })
+})
+
+describe('deepagent config schema — appended instructions', () => {
+    it('leaves the instruction fields undefined when omitted', () => {
+        const cfg = parseDeepAgentConfig({})
+        expect(cfg.instructionsPath).toBeUndefined()
+        expect(cfg.appendInstructions).toBeUndefined()
+        expect(cfg.appendInstructionsFile).toBeUndefined()
+    })
+
+    it('parses each instruction field when supplied', () => {
+        const cfg = parseDeepAgentConfig({
+            instructionsPath: './AGENTS.md',
+            appendInstructions: 'inline rules',
+            appendInstructionsFile: './RULES.md',
+        })
+        expect(cfg.instructionsPath).toBe('./AGENTS.md')
+        expect(cfg.appendInstructions).toBe('inline rules')
+        expect(cfg.appendInstructionsFile).toBe('./RULES.md')
+    })
+})
