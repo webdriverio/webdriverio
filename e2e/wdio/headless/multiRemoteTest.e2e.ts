@@ -170,8 +170,8 @@ describe('multi remote test', () => {
             expect(header).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
         })
 
-        // TODO part of unstable API, to fix later
-        it.skip('should keep instance scope when using select on a chained $ from an element????', async () => {
+        // TODO Review if scoping on element should be preserved when chaining $() on a selected element, or if it should reset to all instances!!
+        it('should keep instance scope when using select on a chained $ from an element????', async () => {
             await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
 
             expect(await browserA.$('header').$('h1').getText()).toEqual('WebdriverJS Testpage')
@@ -185,7 +185,6 @@ describe('multi remote test', () => {
             expect(elementTextFromChainedSelected).toEqual(['WebdriverJS Testpage'])
 
             // However, should we do the same when selecting on a element and chaining $()?
-            // Throws `Cannot read properties of undefined (reading 'getText')`
             const elementTextFromChainedParentSelected = await multiRemoteBrowser.$('header').unstable_select('browserA').$('h1').getText()
             expect(elementTextFromChainedParentSelected).toEqual(['WebdriverJS Testpage'])
         })

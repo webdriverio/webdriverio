@@ -17,6 +17,7 @@ export default class MultiRemote {
     instances: Record<string, WebdriverIO.Browser> = {}
     baseInstance?: MultiRemoteDriver
     sessionId?: string
+    usedSelectUnstableAPI = false
 
     /**
      * add instance to multibrowser instance
@@ -179,6 +180,7 @@ export default class MultiRemote {
                 return this[browserName]
             }
         } else if (commandName === 'unstable_select') {
+            self.usedSelectUnstableAPI = true
             return function (this: Record<string, WebdriverIO.Browser | WebdriverIO.Element>, instanceNames: string | string[]) {
                 const names = Array.isArray(instanceNames) ? instanceNames : [instanceNames]
 
@@ -200,29 +202,36 @@ export default class MultiRemote {
         }
 
         return wrapCommand(commandName, async function (this: WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement, ...args: unknown[]) {
-            const mElem = this as WebdriverIO.MultiRemoteElement
-            const scope = (this as WebdriverIO.MultiRemoteElement).selector
-                ? Object.entries(mElem.instances.reduce((ins, instanceName) => (
+            const thisElement = this as WebdriverIO.MultiRemoteElement
+            const isElementScope = thisElement.selector
+            const scopeEntries = isElementScope
+                ? Object.entries(thisElement.instances.reduce((instance, instanceName) => (
                     // @ts-expect-error ToDo(Christian): deprecate
-                    { ...ins, [instanceName]: mElem[instanceName] }
+                    { ...instance, [instanceName]: thisElement[instanceName] }
                 ), {} as Record<string, Element[]>))
                 : Object.entries(instances)
 
             const result = await Promise.all(
-                scope.map(
+                scopeEntries.map(
                     ([, instance]) => instance[commandName](...args)
                 )
             )
+
+            // Narrow instances to only those actually used in this command call
+            const activeInstances = isElementScope && self.usedSelectUnstableAPI
+                ? thisElement.instances.reduce((instance, instanceName) => (
+                    { ...instance, [instanceName]: instances[instanceName] }
+                ), {} as Record<string, WebdriverIO.Browser>)
+                : instances
 
             /**
              * return element object to call commands directly
              */
             if (commandName === '$') {
-                const elem = MultiRemote.elementWrapper(instances, result, this.__propertiesObject__, self)
-                return elem
+                return MultiRemote.elementWrapper(activeInstances, result, this.__propertiesObject__, self)
             } else if (commandName === '$$') {
                 const zippedResult = zip(...result)
-                return zippedResult.map((singleResult) => MultiRemote.elementWrapper(instances, singleResult, this.__propertiesObject__, self))
+                return zippedResult.map((singleResult) => MultiRemote.elementWrapper(activeInstances, singleResult, this.__propertiesObject__, self))
             }
 
             return result

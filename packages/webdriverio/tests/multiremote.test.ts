@@ -136,20 +136,18 @@ describe('Multi-Remote tests', () => {
         expect(sizeB).toEqual(result)
     })
 
-    // TODO part of unstable API, to fix later
-    // ─── Bug 1: chained $ on a selected element restores the full instance set ───
-    test.skip('should preserve filtered instances when chaining $ on a selected element', async () => {
+    test('should preserve filtered instances when chaining $ on a selected element', async () => {
         const browser = await multiremote(caps())
 
         const h1 = await browser.$('#foo')
+
         // narrow to browserA only
         const selectedH1 = h1.unstable_select('browserA')
         expect(selectedH1.instances).toEqual(['browserA'])
 
-        // Bug 1: elementWrapper is called with the closed-over `instances` (full scope),
-        // so child.instances leaks back to ['browserA', 'browserB']
+        // Should preserve the instance scope when chaining $() on a selected element
         const child = await selectedH1.$('#child')
-        expect(child.instances).toEqual(['browserA']) // ← fails today
+        expect(child.instances).toEqual(['browserA'])
     })
 
     // TODO part of unstable API, to fix later
