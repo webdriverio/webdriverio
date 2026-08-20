@@ -181,6 +181,11 @@ export default class MultiRemote {
         } else if (commandName === 'unstable_select') {
             return function (this: Record<string, WebdriverIO.Browser | WebdriverIO.Element>, instanceNames: string | string[]) {
                 const names = Array.isArray(instanceNames) ? instanceNames : [instanceNames]
+
+                if (!names.every((name) => this[name])) {
+                    throw new Error(`Multiremote object has no instance named "${names.find((name) => !this[name])}"`)
+                }
+
                 const selectedInstances: Record<string, WebdriverIO.Browser> = {}
                 names.forEach((name) => {
                     if (instances[name]) {
