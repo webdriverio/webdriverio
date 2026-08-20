@@ -1,4 +1,4 @@
-import { multiRemoteBrowser } from '@wdio/globals'
+import { multiRemoteBrowser, expect } from '@wdio/globals'
 import { Key } from 'webdriverio'
 
 let browserA: WebdriverIO.Browser
@@ -36,14 +36,14 @@ describe('multi remote test', () => {
             const nameInput = await browserA.$('.usernameInput')
             await nameInput.addValue('Browser A')
             await browserA.keys(Key.Enter)
-            await expect(browserA.$('.inputMessage')).toHaveAttribute('placeHolder')
+            await expect(browserA.$('.inputMessage')).toHaveAttribute('placeHolder', 'Type here...')
         })
 
         it.skip('should login the browser B', async () => {
             const nameInput = await browserB.$('.usernameInput')
             await nameInput.addValue('Browser B')
             await browserB.keys(Key.Enter)
-            await expect(browserB.$('.inputMessage')).toHaveAttribute('placeHolder')
+            await expect(browserB.$('.inputMessage')).toHaveAttribute('placeHolder', 'Type here...')
         })
 
         it('can access shared store', async () => {
