@@ -572,7 +572,7 @@ export default class AllureReporter extends WDIOReporter {
             const fullName = toFullName(this._pkgByCid.get(cid)!, fullTitleForHash)
             this._pushRuntimeMessage({
                 type: 'allure:test:info',
-                data: { fullName, fullTitle: fullTitleForHash, titlePath: this._titlePath(cid) }
+                data: { fullName, fullTitle: fullTitleForHash, titlePath: this._titlePath(cid, this._suiteStack(cid)) }
             })
 
             applyTestPlanLabel(this._testPlan, (m) => this._pushRuntimeMessage(m), {
