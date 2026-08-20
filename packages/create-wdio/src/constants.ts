@@ -234,6 +234,7 @@ export const CONFIG_HELPER_SERENITY_BANNER = `
 Learn more about Serenity/JS:
   🔗 https://serenity-js.org/
   🔗 https://serenity-js.org/handbook/test-runners/webdriverio/
+  🔗 https://serenity-js.org/handbook/reporting/html-reporter/
 `
 
 export function usesSerenity (answers: Questionnair) {
