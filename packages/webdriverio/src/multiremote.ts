@@ -17,7 +17,7 @@ export default class MultiRemote {
     instances: Record<string, WebdriverIO.Browser> = {}
     baseInstance?: MultiRemoteDriver
     sessionId?: string
-    usedSelectUnstableAPI = false
+    usedUnstableSelectAPIOnElementScope = false
 
     /**
      * add instance to multibrowser instance
@@ -180,7 +180,7 @@ export default class MultiRemote {
                 return this[browserName]
             }
         } else if (commandName === 'unstable_select') {
-            self.usedSelectUnstableAPI = true
+            self.usedUnstableSelectAPIOnElementScope = true
             return function (this: Record<string, WebdriverIO.Browser | WebdriverIO.Element>, instanceNames: string | string[]) {
                 const names = Array.isArray(instanceNames) ? instanceNames : [instanceNames]
 
@@ -218,7 +218,7 @@ export default class MultiRemote {
             )
 
             // Narrow instances to only those actually used in this command call
-            const activeInstances = isElementScope && self.usedSelectUnstableAPI
+            const activeInstances = isElementScope && self.usedUnstableSelectAPIOnElementScope
                 ? thisElement.instances.reduce((instance, instanceName) => (
                     { ...instance, [instanceName]: instances[instanceName] }
                 ), {} as Record<string, WebdriverIO.Browser>)
