@@ -194,7 +194,7 @@ export default class MultiRemote {
             }
         }
 
-        const func = async function (this: WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement, ...args: unknown[]) {
+        return wrapCommand(commandName, async function (this: WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement, ...args: unknown[]) {
             const mElem = this as WebdriverIO.MultiRemoteElement
             const scope = (this as WebdriverIO.MultiRemoteElement).selector
                 ? Object.entries(mElem.instances.reduce((ins, instanceName) => (
@@ -221,9 +221,7 @@ export default class MultiRemote {
             }
 
             return result
-        }
-
-        return wrapCommand(commandName, func)
+        })
     }
 }
 
