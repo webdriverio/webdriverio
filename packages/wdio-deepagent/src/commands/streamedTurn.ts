@@ -40,7 +40,7 @@ export interface StreamedTurnOptions extends ProcessTurnOptions {
  * `run`/`diagnose` keep the `processTurn` invoke path.
  */
 export async function runStreamedTurn(agent: DeepAgent, text: string, options: StreamedTurnOptions = {}): Promise<TurnResult> {
-    const resolve = options.resolveInterrupt ?? (async () => true)
+    const resolve = options.resolveInterrupt ?? (async () => false)
     const streamConfig = () => ({
         version: 'v3' as const,
         recursionLimit: MAX_RECURSION_LIMIT,

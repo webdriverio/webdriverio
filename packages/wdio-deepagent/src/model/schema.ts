@@ -18,6 +18,9 @@ export interface RequestOverrideFn {
 export const DeepAgentProviderSchema = z.enum(['openrouter', 'openai', 'anthropic', 'ollama', 'llama-cpp', 'lm-studio'])
 export const PROVIDERS = DeepAgentProviderSchema.options
 
+/** Providers serving weights fully local: no API key, `baseURL`-driven (or bundled runtime). */
+export const LOCAL_PROVIDERS: DeepAgentProvider[] = ['ollama', 'llama-cpp', 'lm-studio']
+
 export const DeepAgentModelConfigSchema = z.object({
     /**
      * LLM provider. `openrouter` covers dozens of models with one key;

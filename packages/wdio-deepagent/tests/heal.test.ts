@@ -209,7 +209,7 @@ describe('runDiagnosis', () => {
         }
     })
 
-    it('ask mode resumes interrupt-gated writes (auto-approve)', async () => {
+    it('ask mode resumes interrupt-gated writes when the caller approves', async () => {
         const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
         const tracePath = await makeFailingTrace(dir)
         const spec = path.join(dir, 'spec.js')
@@ -231,6 +231,7 @@ describe('runDiagnosis', () => {
                 traceDir: path.join(dir, 'traces'),
                 heal: 'ask',
                 agent: harness.agent,
+                resolveInterrupt: async () => true,
             })
             expect(report.agentRan).toBe(true)
             expect(typeof report.agentReply).toBe('string')

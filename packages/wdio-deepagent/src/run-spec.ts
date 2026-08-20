@@ -21,7 +21,7 @@ export interface RunSpecToolOptions extends SpawnOverride {
 }
 
 export function createRunSpecTool(options: RunSpecToolOptions): DynamicStructuredTool {
-    const projectRoot = options.configPath ? projectRootForConfig(options.configPath) : process.cwd()
+    const projectRoot = projectRootForConfig(options.configPath)
     return tool(
         async ({ spec, timeoutMs }) => {
             if (!options.configPath) {

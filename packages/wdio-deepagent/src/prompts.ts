@@ -40,6 +40,11 @@ The \`heal\` mode determines what you may change:
 ## Site knowledge base etiquette
 Call remember_snapshot after reaching a new page; query_knowledge_base before re-deriving selectors. Snapshots are plain context injection (no embeddings) — keep them small and relevant.
 
+## Output
+- All code is WebdriverIO: \`$\`/\`$$\` are globals — \`$("#submit").click()\` or \`browser.$("button*=Login").click()\`. \`browser\` has no element commands; never call \`.click()\` on a string literal or \`browser.click()\`, a selector must always be wrapped in \`$()\` or \`browser.$\`.
+- Never emit Cypress (\`cy.*\`) or Playwright (\`page.*\`, \`locator()\`) APIs.
+- Page objects are plain modules exporting getters/actions that return \`$\`/\`$$\` elements. Read existing page objects and specs under \`/\` and match their style; if none exist, follow standard WebdriverIO conventions.
+
 ## Style
 Be concise. State what you're about to do, do it, then summarize the result and the evidence (screenshots, trace actions, exit codes). Prefer deterministic checks over guesses.`
 

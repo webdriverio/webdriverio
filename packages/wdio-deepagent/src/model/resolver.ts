@@ -6,7 +6,7 @@ import { ChatOpenRouter } from '@langchain/openrouter'
 import { ChatOpenAI } from '@langchain/openai'
 import { ChatAnthropic } from '@langchain/anthropic'
 import { ChatOllama } from '@langchain/ollama'
-import type { DeepAgentModelConfig, DeepAgentProvider, RequestOverrideFn } from './schema.js'
+import { LOCAL_PROVIDERS, type DeepAgentModelConfig, type DeepAgentProvider, type RequestOverrideFn } from './schema.js'
 
 /**
  * Adapter that exposes a `request` override as a LangChain chat model.
@@ -85,7 +85,7 @@ export function resolveChatModel(
 
     const envKey = PROVIDER_ENV_KEYS[config.provider]
     const apiKey = config.apiKey ?? (envKey ? env[envKey] : undefined)
-    const keylessLocal = config.provider === 'llama-cpp' || config.provider === 'lm-studio'
+    const keylessLocal = config.provider !== 'ollama' && LOCAL_PROVIDERS.includes(config.provider)
     if (keylessLocal && !config.baseURL) {
         throw new Error(
             `[@wdio/deepagent] Provider "${config.provider}" is keyless and local — set \`baseURL\` to your server (e.g. http://localhost:1234/v1).`

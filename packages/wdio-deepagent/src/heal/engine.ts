@@ -33,7 +33,7 @@ export interface DiagnosisOptions extends SpawnOverride {
     healPrompt?: (report: DiagnosisReport) => string
     /** Agent turns to try before giving up; each retry costs one spec re-run. */
     maxHealAttempts?: number
-    /** Decide a pending gated write (heal=ask). Default: auto-approve. */
+    /** Decide a pending gated write (heal=ask). Default: decline — pass `async () => true` to auto-approve. */
     resolveInterrupt?: (request: TurnInterruptRequest) => Promise<boolean>
 }
 

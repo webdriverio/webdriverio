@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box, Text, useStdout } from 'ink'
-import { ARGS_TRUNCATE } from '../interrupt.js'
+import { truncate } from '../interrupt.js'
 
 export interface ToolCardState {
     name: string
@@ -16,7 +16,7 @@ export function ToolCallCard({ card }: { card: ToolCardState }): React.JSX.Eleme
     const { stdout } = useStdout()
     const columns = stdout.columns ?? 120
     const json = JSON.stringify(card.input ?? {})
-    const preview = json.length > ARGS_TRUNCATE ? `${json.slice(0, ARGS_TRUNCATE)}…` : json
+    const preview = truncate(json)
     return (
         <Box borderStyle="round" flexDirection="column" paddingX={1} width={Math.max(40, Math.min(columns - 4, 110))}>
             <Text>
@@ -27,7 +27,7 @@ export function ToolCallCard({ card }: { card: ToolCardState }): React.JSX.Eleme
             </Text>
             <Text dimColor wrap="wrap">{preview}</Text>
             {card.output !== undefined && card.status !== 'running' && (
-                <Text dimColor wrap="wrap">{card.output.length > ARGS_TRUNCATE ? `${card.output.slice(0, ARGS_TRUNCATE)}…` : card.output}</Text>
+                <Text dimColor wrap="wrap">{truncate(card.output)}</Text>
             )}
             {card.durationMs !== undefined && (
                 <Text>
