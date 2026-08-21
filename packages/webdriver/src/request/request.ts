@@ -25,6 +25,38 @@ const DEFAULT_HEADERS = {
 
 const log = logger('webdriver')
 
+function hasLoggableBody (body: BodyInit | Record<string, unknown>): boolean {
+    if (typeof body === 'string') {
+        return body.length > 0
+    }
+
+    if (body instanceof URLSearchParams || body instanceof FormData) {
+        return !(body as URLSearchParams).keys().next().done
+    }
+
+    if (body instanceof Blob) {
+        return body.size > 0
+    }
+
+    if (body instanceof ArrayBuffer || ArrayBuffer.isView(body)) {
+        return body.byteLength > 0
+    }
+
+    return Object.keys(body).length > 0
+}
+
+function toLoggableBody (body: BodyInit): BodyInit | Record<string, unknown> {
+    if (typeof body !== 'string') {
+        return body
+    }
+
+    try {
+        return JSON.parse(body)
+    } catch {
+        return body
+    }
+}
+
 export abstract class WebDriverRequest {
     protected abstract fetch(url: URL, opts: RequestInit): Promise<Response>
 
@@ -35,6 +67,7 @@ export abstract class WebDriverRequest {
     requiresSessionId: boolean
     eventHandler: RequestEventHandler
     abortSignal?: AbortSignal
+    connectionRetryTimeout = DEFAULTS.connectionRetryTimeout.default!
     constructor (
         method: string,
         endpoint: string,
@@ -58,15 +91,19 @@ export abstract class WebDriverRequest {
         return this._request(url, requestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
+    private createAbortSignal (signal?: AbortSignal | null) {
+        return AbortSignal.any([
+            AbortSignal.timeout(this.connectionRetryTimeout),
+            ...(signal ? [signal] : [])
+        ])
+    }
+
     async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{ url: URL; requestOptions: RequestInit; }> {
-        const timeout = options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default as number
+        this.connectionRetryTimeout = options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default!
         const requestOptions: RequestInit = {
             method: this.method,
             redirect: 'follow',
-            signal: AbortSignal.any([
-                AbortSignal.timeout(timeout),
-                ...(this.abortSignal ? [this.abortSignal] : [])
-            ])
+            signal: this.abortSignal
         }
 
         const requestHeaders: HeadersInit = new Headers({
@@ -161,12 +198,19 @@ export abstract class WebDriverRequest {
         retryCount = 0
     ): Promise<WebDriverResponse> {
         log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
-
-        if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
-            this.eventHandler.onLogData?.(fullRequestOptions.body)
+        const loggableBody = fullRequestOptions.body && toLoggableBody(fullRequestOptions.body)
+        if (loggableBody && hasLoggableBody(loggableBody)) {
+            this.eventHandler.onLogData?.(loggableBody)
         }
 
-        const { ...requestLibOptions } = fullRequestOptions
+        /**
+         * every attempt gets its own timeout, a retry must not inherit the
+         * already aborted signal of the attempt before it
+         */
+        const requestLibOptions = {
+            ...fullRequestOptions,
+            signal: this.createAbortSignal(fullRequestOptions.signal)
+        }
         const startTime = performance.now()
         let response = await this._libRequest(url!, requestLibOptions)
             .catch((err: WebDriverRequestError) => err)

@@ -5,7 +5,7 @@ import { temporaryDirectory } from 'tempy'
 import { ReporterRuntime } from 'allure-js-commons/sdk/reporter'
 import { FileSystemWriter } from 'allure-js-commons/sdk/reporter'
 import { AllureReportState } from '../src/state.js'
-import { clean, getResultFiles } from './helpers/wdio-allure-helper.js'
+import { clean, getResultFiles, getResults } from './helpers/wdio-allure-helper.js'
 
 describe('state', () => {
     const outputDir = temporaryDirectory()
@@ -65,6 +65,24 @@ describe('state', () => {
             state.pushRuntimeMessage({ type: 'allure:test:start', data: { name: 'test case', start: Date.now() } })
 
             expect(state.hasPendingTest).toBe(true)
+        })
+
+        it('writes title path from test info', async () => {
+            state.pushRuntimeMessage({ type: 'allure:test:start', data: { name: 'test case', start: Date.now() } })
+            state.pushRuntimeMessage({
+                type: 'allure:test:info',
+                data: {
+                    fullName: 'foo/bar.test.js#test suite test case',
+                    titlePath: ['foo', 'bar.test.js', 'test suite']
+                }
+            })
+            state.pushRuntimeMessage({ type: 'allure:test:end', data: { status: 'passed' as any } })
+
+            await state.processRuntimeMessage()
+
+            const { results } = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            expect(results[0].titlePath).toEqual(['foo', 'bar.test.js', 'test suite'])
         })
     })
 

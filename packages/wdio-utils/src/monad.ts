@@ -19,6 +19,34 @@ interface PropertiesObject {
     [key: string | symbol]: PropertyDescriptor
 }
 
+function composeElementOverrides(previousCommand: Function | undefined, nextCommand: Function): Function {
+    if (!previousCommand) {
+        return nextCommand
+    }
+
+    const previousElementCommand = previousCommand
+
+    return function composedElementOverride(this: WebdriverIO.Element, originalCommand: Function, ...args: unknown[]) {
+        const element = this
+
+        function previousCommandAsOriginal(this: WebdriverIO.Element, ...previousArgs: unknown[]) {
+            const context = this || element
+
+            function originalForPrevious(this: WebdriverIO.Element, ...originalArgs: unknown[]) {
+                return originalCommand.apply(this || context, originalArgs)
+            }
+
+            return previousElementCommand.call(context, originalForPrevious, ...previousArgs)
+        }
+
+        return nextCommand.call(element, previousCommandAsOriginal, ...args)
+    }
+}
+
+function setElementOverride(overrides: Record<string, Function>, name: string, command: Function): void {
+    overrides[name] = composeElementOverrides(overrides[name], command)
+}
+
 export default function WebDriver(options: object, modifier?: Function, propertiesObject: PropertiesObject = {}) {
     /**
      * In order to allow named scopes for elements we have to propagate that
@@ -188,13 +216,13 @@ export default function WebDriver(options: object, modifier?: Function, properti
                      * add command to every multiremote instance
                      */
                     Object.values(instances).forEach(instance => {
-                        instance.__propertiesObject__.__elementOverrides__.value[name] = customCommand
+                        setElementOverride(instance.__propertiesObject__.__elementOverrides__.value, name, customCommand)
                     })
                 } else {
                     /**
                      * regular mode
                      */
-                    this.__propertiesObject__.__elementOverrides__.value[name] = customCommand
+                    setElementOverride(this.__propertiesObject__.__elementOverrides__.value, name, customCommand)
                 }
             } else if (client[name]) {
                 const origCommand = client[name]

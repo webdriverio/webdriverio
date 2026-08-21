@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
-import { expect, setOptions, getConfig, matchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
+import { expect, setDefaultOptions, getDefaultOptions, wdioCustomMatchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
 import type { Browser, Selector } from 'webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
@@ -258,7 +258,21 @@ export default class Runner extends EventEmitter {
             const framework = (await initializePlugin(config.framework as string, 'framework')).default as unknown as TestFramework
             const frameworkInstance = await framework.init(cid, config, specs, capabilities, reporter)
             if (frameworkInstance.setupExpect) {
-                await frameworkInstance.setupExpect(expect, matchers, getConfig)
+                /**
+                 * Backward compatibility, to remove in v10.
+                 * Build a shim that supports both the deprecated Map.entries() API and the
+                 * new Object.entries() API. `entries` is non-enumerable so Object.entries()
+                 * callers only see the actual matchers.
+                 */
+                const matchersShim = Object.defineProperty(
+                    { ...wdioCustomMatchers },
+                    'entries',
+                    {
+                        enumerable: false,
+                        value: () => Object.entries(wdioCustomMatchers)[Symbol.iterator]()
+                    }
+                ) as typeof wdioCustomMatchers
+                await frameworkInstance.setupExpect(expect, matchersShim, getDefaultOptions)
             }
             return frameworkInstance
         }
@@ -370,7 +384,7 @@ export default class Runner extends EventEmitter {
              * import and set options for `expect-webdriverio` assertion lib once
              * the browser was initiated
              */
-            setOptions({
+            setDefaultOptions({
                 wait: config.waitforTimeout, // ms to wait for expectation to succeed
                 interval: config.waitforInterval, // interval between attempts
                 beforeAssertion: async (params) => {
