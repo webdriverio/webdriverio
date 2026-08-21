@@ -689,7 +689,7 @@ export type ActiveAppInfo = {
 
 export type WaitUntilOptions = {
     timeout?: number,
-    timeoutMsg?: string,
+    timeoutMsg?: string | (() => string),
     interval?: number
 }
 
