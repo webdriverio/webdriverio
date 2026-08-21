@@ -17,7 +17,6 @@ To fully understand the limitations, supported commands, and protocol extensions
 export const config: WebdriverIO.Config = {
     // ... other wdio.conf.ts configurations (runner, specs, etc.)
     
-    port: 4723, // Default Appium server port
 
     services: [
         ['appium', {
