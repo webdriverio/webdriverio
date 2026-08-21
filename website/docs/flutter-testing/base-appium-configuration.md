@@ -15,11 +15,32 @@ To test Flutter applications, install the Appium service and the Flutter finder 
 npm install --save-dev @wdio/appium-service appium appium-flutter-finder
 ```
 
-Next, install the Appium Flutter Driver (`appium-flutter-driver`) to enable communication with Flutter apps:
+### Installing the Appium Flutter Driver
+
+You can install the Appium Flutter Driver (`appium-flutter-driver`) in one of two ways:
+
+#### Option 1: As a Dev Dependency (Recommended for CI/CD)
+
+Adding the driver directly to your `devDependencies` ensures that all team members and CI/CD pipelines have the driver installed automatically without requiring extra setup steps:
+
+```bash
+npm install --save-dev appium-flutter-driver
+```
+
+> You can also install all required packages together in a single command:
+> ```bash
+> npm install --save-dev @wdio/appium-service appium appium-flutter-finder appium-flutter-driver
+> ```
+
+#### Option 2: Via Appium CLI (Local Setup)
+
+Alternatively, you can install the driver locally into your Appium environment using the Appium CLI:
 
 ```bash
 npx appium driver install flutter
 ```
+
+### Package Overview
 
 These packages provide:
 - **`@wdio/appium-service` & `appium`**: Starts and manages the Appium server during test runs.

@@ -6,9 +6,14 @@ title: Writing Tests
 This section covers the practical structure for creating automated test scenarios, how to interact directly with Flutter's internal component tree using WebdriverIO.
 
 ### Why is Context Switching Necessary?
+
 When initiating an automation session with Appium, the driver begins execution by mapping the native context of the operating system, known as `NATIVE_APP`. This context can only see the native shell wrapping the application (such as the system status bar or native Android/iOS dialogs).
 
 Since Flutter renders its user interface inside an isolated Canvas, internal elements are invisible within the `NATIVE_APP` context. To send commands directly to Flutter's test extension (`flutter_driver`), we must explicitly switch the automation focus to the `FLUTTER` context. Without this switch, any attempt to locate a Widget will result in an element not found error.
+
+:::tip Best Practice: Always Switch Context in `beforeEach`
+It is a recommended best practice to include `await driver.switchContext('FLUTTER')` in a `beforeEach` hook in every test file. This ensures that every test begins execution in the `FLUTTER` context, avoiding flakiness or state leakage if a previous test switched to `NATIVE_APP` (e.g., to handle OS permission dialogs) or if a session resets the active context.
+:::
 
 ### Why is `appium-flutter-finder` Necessary?
 
