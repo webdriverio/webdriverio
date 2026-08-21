@@ -48,4 +48,8 @@ For more information on [options](https://webdriver.io/docs/options#webdriver-op
     <a href="https://www.browserstack.com/automation-webdriverio">
         <img src="https://webdriver.io/img/sponsors/browserstack_black.svg" alt="BrowserStack" width="300" />
     </a>
+    &nbsp;
+    <a href="https://momentic.ai/">
+        <img src="https://webdriver.io/img/sponsors/momentic_black.svg" alt="Momentic" width="300" />
+    </a>
 </p>
