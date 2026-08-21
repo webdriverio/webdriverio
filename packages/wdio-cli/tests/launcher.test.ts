@@ -389,6 +389,17 @@ describe('launcher', () => {
                 }]
             }])
         })
+
+        it('should reschedule when retries sentinel is -1 (session never started) and config.specFileRetries > 0', async () => {
+            launcher.configParser.getConfig = vi.fn().mockReturnValue({
+                specFileRetries: 2,
+                specFileRetriesDeferred: true,
+                onWorkerEnd: vi.fn()
+            })
+            launcher['_schedule'] = [{ cid: 0, specs: [] }] as any
+            await launcher['_endHandler']({ cid: '0-5', exitCode: 1, retries: -1, specs: ['a.js'] })
+            expect(launcher['_schedule']).toMatchObject([{ cid: 0, specs: [{ rid: '0-5', files: ['a.js'], retries: 1 }] }])
+        })
     })
 
     describe('exitHandler', () => {
@@ -846,6 +857,31 @@ describe('launcher', () => {
                 { hostname: '127.0.0.4' },
                 []
             )
+        })
+
+        it('should not wait when retries sentinel is -1 (session never started)', async () => {
+            const onWorkerStartMock = vi.fn()
+            const caps = {
+                browserName: 'chrome'
+            }
+            launcher.configParser = {
+                getConfig: vi.fn().mockReturnValue({
+                    onWorkerStart: onWorkerStartMock,
+                    specFileRetries: 2,
+                    specFileRetriesDelay: 5
+                })
+            } as any
+            launcher['_args'].hostname = '127.0.0.5'
+
+            await launcher['_startInstance'](
+                ['/foo.test.js'],
+                caps,
+                0,
+                '0-8',
+                -1
+            )
+
+            expect(sleep).not.toHaveBeenCalled()
         })
     })
 
