@@ -17,6 +17,7 @@ export default class MultiRemote {
     instances: Record<string, WebdriverIO.Browser> = {}
     baseInstance?: MultiRemoteDriver
     sessionId?: string
+    usedUnstableSelectAPIOnElementScope = false
 
     /**
      * add instance to multibrowser instance
@@ -29,12 +30,30 @@ export default class MultiRemote {
     /**
      * modifier for multibrowser instance
      */
-    modifier (wrapperClient: { options: Options.WebdriverIO, commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance')[] }) {
+    modifier (wrapperClient: { options: Options.WebdriverIO, commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'unstable_select')[] }) {
         const propertiesObject: Record<string, PropertyDescriptor> = {}
         propertiesObject.commandList = { value: wrapperClient.commandList }
         propertiesObject.options = { value: wrapperClient.options }
         propertiesObject.getInstance = {
             value: (browserName: string) => this.instances[browserName]
+        }
+
+        propertiesObject.unstable_select = {
+            value: (instanceNames: string | string[]) => {
+                const names = Array.isArray(instanceNames) ? instanceNames : [instanceNames]
+                const selectedInstances: Record<string, WebdriverIO.Browser> = {}
+                names.forEach((name) => {
+                    if (this.instances[name]) {
+                        selectedInstances[name] = this.instances[name]
+                    }
+                })
+
+                const newMultiRemote = new MultiRemote()
+                newMultiRemote.instances = selectedInstances
+                return newMultiRemote.modifier(wrapperClient)
+            },
+            configurable: true,
+            writable: true
         }
 
         for (const commandName of wrapperClient.commandList) {
@@ -101,19 +120,57 @@ export default class MultiRemote {
                 : null
             // @ts-expect-error ToDo(Christian): remove eventually
             delete client.sessionId
+
+            client.unstable_select = function (instanceNames: string | string[]) {
+                const selectedInstances: Record<string, WebdriverIO.Browser> = {}
+                const selectedResults: unknown[] = []
+
+                const instances = Array.isArray(instanceNames) ? instanceNames : [instanceNames]
+                instances.forEach((name) => {
+                    if (client.instances.includes(name)) {
+                        selectedInstances[name] = scope.instances[name]
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        selectedResults.push((client as any)[name])
+                    }
+                })
+
+                return MultiRemote.elementWrapper(selectedInstances, selectedResults, propertiesObject, scope)
+            }
+
+            client.unstable_filter = async function (predicate: (element: WebdriverIO.Element) => Promise<boolean> | boolean) {
+                const selectedInstances: Record<string, WebdriverIO.Browser> = {}
+                const selectedResults: unknown[] = []
+
+                const results = await Promise.all(client.instances.map(async (instanceName) => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const elem = (client as any)[instanceName]
+                    const result = await predicate(elem)
+                    return result ? { name: instanceName, elem } : null
+                }))
+
+                results.forEach((result) => {
+                    if (result) {
+                        selectedInstances[result.name] = scope.instances[result.name]
+                        selectedResults.push(result.elem)
+                    }
+                })
+
+                return MultiRemote.elementWrapper(selectedInstances, selectedResults, propertiesObject, scope)
+            }
+
             return client
         }, prototype)
 
-        // @ts-ignore
+        // @ts-expect-error
         return element(this.sessionId, multiremoteHandler(scope.commandWrapper.bind(scope)))
     }
 
     /**
      * handle commands for multiremote instances
      */
-    commandWrapper (commandName: keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance') {
+    commandWrapper (commandName: keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'unstable_select') {
         const instances = this.instances
-        const self = this
+        const self: MultiRemote = this
 
         if (commandName === 'getInstance') {
             return function (this: Record<string, WebdriverIO.Browser | WebdriverIO.Element>, browserName: string) {
@@ -122,32 +179,59 @@ export default class MultiRemote {
                 }
                 return this[browserName]
             }
+        } else if (commandName === 'unstable_select') {
+            self.usedUnstableSelectAPIOnElementScope = true
+            return function (this: Record<string, WebdriverIO.Browser | WebdriverIO.Element>, instanceNames: string | string[]) {
+                const names = Array.isArray(instanceNames) ? instanceNames : [instanceNames]
+
+                if (!names.every((name) => this[name])) {
+                    throw new Error(`Multiremote object has no instance named "${names.find((name) => !this[name])}"`)
+                }
+
+                const selectedInstances: Record<string, WebdriverIO.Browser> = {}
+                names.forEach((name) => {
+                    if (instances[name]) {
+                        selectedInstances[name] = instances[name]
+                    }
+                })
+
+                const newMultiRemote = new MultiRemote()
+                newMultiRemote.instances = selectedInstances
+                return newMultiRemote
+            }
         }
 
         return wrapCommand(commandName, async function (this: WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement, ...args: unknown[]) {
-            const mElem = this as WebdriverIO.MultiRemoteElement
-            const scope = (this as WebdriverIO.MultiRemoteElement).selector
-                ? Object.entries(mElem.instances.reduce((ins, instanceName) => (
+            const thisElement = this as WebdriverIO.MultiRemoteElement
+            const isElementScope = thisElement.selector
+            const scopeEntries = isElementScope
+                ? Object.entries(thisElement.instances.reduce((instance, instanceName) => (
                     // @ts-expect-error ToDo(Christian): deprecate
-                    { ...ins, [instanceName]: mElem[instanceName] }
+                    { ...instance, [instanceName]: thisElement[instanceName] }
                 ), {} as Record<string, Element[]>))
                 : Object.entries(instances)
 
             const result = await Promise.all(
-                scope.map(
+                scopeEntries.map(
                     ([, instance]) => instance[commandName](...args)
                 )
             )
+
+            // Narrow instances to only those actually used in this command call
+            const activeInstances = isElementScope && self.usedUnstableSelectAPIOnElementScope
+                ? thisElement.instances.reduce((instance, instanceName) => (
+                    { ...instance, [instanceName]: instances[instanceName] }
+                ), {} as Record<string, WebdriverIO.Browser>)
+                : instances
 
             /**
              * return element object to call commands directly
              */
             if (commandName === '$') {
-                const elem = MultiRemote.elementWrapper(instances, result, this.__propertiesObject__, self)
-                return elem
+                return MultiRemote.elementWrapper(activeInstances, result, this.__propertiesObject__, self)
             } else if (commandName === '$$') {
                 const zippedResult = zip(...result)
-                return zippedResult.map((singleResult) => MultiRemote.elementWrapper(instances, singleResult, this.__propertiesObject__, self))
+                return zippedResult.map((singleResult) => MultiRemote.elementWrapper(activeInstances, singleResult, this.__propertiesObject__, self))
             }
 
             return result
