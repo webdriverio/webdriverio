@@ -23,6 +23,32 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.31.2 (2026-08-21)
+
+#### :rocket: New Feature
+* `wdio-types`, `wdio-utils`, `webdriverio`
+  * [#15459](https://github.com/webdriverio/webdriverio/pull/15459) feat: UNSTABLE Enhance multi-remote instance/element support with `select` & `filter` ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-allure-reporter`
+  * [#15514](https://github.com/webdriverio/webdriverio/pull/15514) Add title path ([@formaceft-93](https://github.com/formaceft-93))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#15479](https://github.com/webdriverio/webdriverio/pull/15479) fix(webdriverio): record matching mock responses even when not blocked ([@Badisi](https://github.com/Badisi))
+* `wdio-config`
+  * [#15511](https://github.com/webdriverio/webdriverio/pull/15511) fix: add .cts to supported file extensions ([@mauriciolauffer](https://github.com/mauriciolauffer))
+
+#### :nail_care: Polish
+* `create-wdio`
+  * [#15515](https://github.com/webdriverio/webdriverio/pull/15515) fix(create-wdio): install @serenity-js/html-reporter instead of @senity-js/serenity-bdd ([@jan-molak](https://github.com/jan-molak))
+
+#### Committers: 5
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Dmitrii ([@formaceft-93](https://github.com/formaceft-93))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Mauricio Lauffer ([@mauriciolauffer](https://github.com/mauriciolauffer))
+- [@Badisi](https://github.com/Badisi)
+
+
 ## v9.31.0 (2026-08-18)
 
 #### :rocket: New Feature
