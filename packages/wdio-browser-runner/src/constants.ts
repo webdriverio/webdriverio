@@ -20,7 +20,7 @@ export const EVENTS = {
 export const FRAMEWORK_SUPPORT_ERROR = 'Currently only "mocha" is supported as framework when using @wdio/browser-runner.'
 
 export const DEFAULT_INCLUDE = ['**']
-export const DEFAULT_FILE_EXTENSIONS = ['.js', '.cjs', '.mjs', '.ts', '.mts', '.cts', '.tsx', '.jsx', '.vue', '.svelte']
+export const DEFAULT_FILE_EXTENSIONS = ['.js', '.cjs', '.mjs', '.ts', '.mts', '.cts', '.tsx', '.jsx', '.vue', '.svelte', '.html']
 export const DEFAULT_REPORTS_DIRECTORY = 'coverage'
 export const DEFAULT_AUTOMOCK = true
 export const DEFAULT_MOCK_DIRECTORY = '__mocks__'
