@@ -23,6 +23,7 @@ export default class MultiRemote {
      * add instance to multibrowser instance
      */
     async addInstance (browserName: string, client: WebdriverIO.Browser) {
+        client.isMultiremoteBrowser = true
         this.instances[browserName] = client
         return this.instances[browserName]
     }
