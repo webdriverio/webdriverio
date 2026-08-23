@@ -208,16 +208,17 @@ export default class WebDriverInterception {
 
     #handleResponseStarted(request: Response) {
         /**
-         * don't do anything if:
-         * - request is not blocked
-         * - request is not matching the pattern, e.g. a different mock is responsible for this request
+         * don't do anything if the request does not match the pattern, e.g. a
+         * different mock is responsible for this request
          */
-        if (!this.#isRequestMatching(request)) {
+        const isHandledByThisMock = request.intercepts?.includes(this.#mockId)
+        const urlMatches = this.#pattern && this.#pattern.test(request.request.url)
+        if (!urlMatches) {
             /**
              * if request is not matching pattern but blocked by this mock (due to catch-all),
              * we need to continue the request
              */
-            if (request.intercepts?.includes(this.#mockId)) {
+            if (isHandledByThisMock && request.isBlocked) {
                 return this.#browser.networkProvideResponse({
                     request: request.request.request
                 }).catch(this.#handleNetworkProvideResponseError)
@@ -227,20 +228,34 @@ export default class WebDriverInterception {
 
         this.#attachPostData(request)
 
+        const filterMatches = this.#matchesFilterOptions(request)
+        if (filterMatches) {
+            /**
+             * record matching requests even when the driver did not mark them as "blocked"
+             * (e.g. subresources loaded while navigating) so `calls`/`waitForResponse()`
+             * resolve correctly
+             */
+            this.#calls.push(request)
+        }
+
+        /**
+         * only requests the driver paused ("blocked") need to be continued or
+         * provided a response; non-blocked requests are not paused, so calling
+         * `networkProvideResponse` on them fails at the protocol layer
+         */
+        if (!request.isBlocked) {
+            return
+        }
+
         /**
          * continue mock if not matching filter
          */
-        if (!this.#matchesFilterOptions(request)) {
+        if (!filterMatches) {
             this.#emit('continue', request.request.request)
             return this.#browser.networkProvideResponse({
                 request: request.request.request
             }).catch(this.#handleNetworkProvideResponseError)
         }
-
-        /**
-         * mark mock to be "called"
-         */
-        this.#calls.push(request)
 
         /**
          * continue response as mock has no respond overwrites

@@ -51,6 +51,12 @@ vi.mock('@wdio/config/node', () => ({
     }
 }))
 
+const { resolveMock } = vi.hoisted(() => ({
+    resolveMock: vi.fn((specifier: string) => specifier)
+}))
+vi.mock('import-meta-resolve', () => ({ resolve: resolveMock }))
+vi.mock('tsx', () => ({}))
+
 beforeEach(() => {
     global.console.log = vi.fn()
 
@@ -61,6 +67,7 @@ beforeEach(() => {
             type: 'module'
         }
     })
+    resolveMock.mockClear()
 })
 
 describe('runServiceHook', () => {
@@ -311,6 +318,26 @@ describe('getCapabilities', () => {
         expect(await getCapabilities({ option: '/path/to/config.js', capabilities: 2 } as any))
             .toMatchSnapshot()
         expect(autoCompileMock).toBeCalledTimes(1)
+    })
+
+    it.each(['.ts', '.tsx', '.mts', '.cts'])('should support %s TypeScript config files', async (ext) => {
+        const getCapabilitiesMock = vi.spyOn(ConfigParser.prototype, 'getCapabilities')
+        getCapabilitiesMock.mockReturnValue([
+            { browserName: 'chrome' }
+        ] as WebdriverIO.Capabilities)
+        expect(await getCapabilities({ option: `/path/to/config${ext}`, capabilities: 0 } as any))
+            .toEqual({ capabilities: { browserName: 'chrome' } })
+        expect(resolveMock).toHaveBeenCalledWith('tsx', expect.any(String))
+    })
+
+    it('should not load tsx for non-TypeScript config files', async () => {
+        const getCapabilitiesMock = vi.spyOn(ConfigParser.prototype, 'getCapabilities')
+        getCapabilitiesMock.mockReturnValue([
+            { browserName: 'chrome' }
+        ] as WebdriverIO.Capabilities)
+        expect(await getCapabilities({ option: '/path/to/config.js', capabilities: 0 } as any))
+            .toEqual({ capabilities: { browserName: 'chrome' } })
+        expect(resolveMock).not.toHaveBeenCalled()
     })
 
     it('should return driver with capabilities for multiremote config', async () => {

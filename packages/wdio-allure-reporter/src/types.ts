@@ -209,6 +209,7 @@ export type WDIOTestInfoMessage = {
         fullTitle?: string
         historyId?: string
         testCaseId?: string
+        titlePath?: string[]
     }
 }
 

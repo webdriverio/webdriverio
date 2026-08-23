@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { browser, $, _setGlobal } from '../src/index.js'
+import { describe, it, expect, vi } from 'vitest'
+import { browser, $, _setGlobal, expect as wdioExpect } from '../src/index.js'
 
 describe('global handler', () => {
     it('should allow to import without issues', () => {
@@ -26,4 +26,19 @@ describe('global handler', () => {
         _setGlobal('$$', (param: string) => `foo${param}`, true)
         expect(() => $$('foo')).not.toThrow()
     })
+
+    it('can set some on expect', () => {
+        expect(() => (wdioExpect as any)('some')).toThrow()
+        const myExpect =  { some: vi.fn().mockReturnValue('mock-result') }
+        _setGlobal('expect', myExpect, true)
+        expect(() => (wdioExpect as any).some()).not.toThrow()
+    })
+
+    it('can set some on expect', () => {
+        expect(() => (wdioExpect as any)('some')).toThrow()
+        const myExpect =  { closeTo: vi.fn().mockReturnValue('mock-result') }
+        _setGlobal('expect', myExpect, true)
+        expect(() => (wdioExpect as any).closeTo(10, 2)).not.toThrow()
+    })
+
 })

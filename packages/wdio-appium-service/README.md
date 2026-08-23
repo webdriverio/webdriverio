@@ -115,6 +115,26 @@ export const config = {
 ```
 **Note:** The utilization of aliases is discouraged and unsupported. Instead, please use the full property name in lower camel case.
 
+### appiumStartTimeout
+Timeout in milliseconds for Appium to start successfully.
+
+Type: `Number`
+
+Default: `30000`
+
+Example:
+```js
+export const config = {
+    // ...
+    services: [
+        ['appium', {
+            appiumStartTimeout: 60000
+        }]
+    ],
+    // ...
+}
+```
+
 ## CLI Command
 
 This package includes a CLI command to quickly start the Appium server and open the Appium Inspector in your browser. This makes it easier to work with Appium when using WebdriverIO.
