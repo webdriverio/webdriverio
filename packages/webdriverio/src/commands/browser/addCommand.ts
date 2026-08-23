@@ -57,5 +57,6 @@
  * @param {Boolean=} options.attachToElement extend the Element object instead of the Browser object
  * @param {Boolean=} options.disableElementImplicitWait disable implicit wait for element commands
  * @type utility
+ * @skipAwait
  *
  */

@@ -9,6 +9,7 @@ import type { Capabilities, Services } from '@wdio/types'
 import {
     ANDROID_CONFIG,
     IOS_CONFIG,
+    TS_FILE_EXTENSIONS,
 } from './constants.js'
 import type {
     OnCompleteResult,
@@ -173,7 +174,17 @@ export async function getCapabilities(arg: ReplCommandArguments) {
         return { capabilities: { browserName: 'Chrome', ...ANDROID_CONFIG, ...optionalCapabilites } }
     } else if (/ios/.test(arg.option)) {
         return { capabilities: { browserName: 'Safari', ...IOS_CONFIG, ...optionalCapabilites } }
-    } else if (/(js|ts)$/.test(arg.option)) {
+    } else if (/\.(m|c)?(js|tsx?)$/.test(arg.option)) {
+        /**
+         * Load tsx before attempting to read the config file if it's TypeScript.
+         * This prevents "Unknown file extension" errors when parsing the config.
+         */
+        if (TS_FILE_EXTENSIONS.some((ext) => arg.option.endsWith(ext))) {
+            const { resolve } = await import('import-meta-resolve')
+            const tsxPath = resolve('tsx', import.meta.url)
+            await import(tsxPath)
+        }
+
         const config = new ConfigParser(arg.option)
         try {
             await config.initialize()

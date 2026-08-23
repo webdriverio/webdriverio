@@ -2,7 +2,7 @@
   "name": "webdriverio-monorepo",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.12.4",
+  "packageManager": "pnpm@10.34.5+sha512.a4ee05f2f73658255bd6a89859c065a45c28a57daefae2c893a168ee2b73168c37b91e83e57ea67654ad03f03031746430e8bce38e362e042605fb8abc80192e",
   "scripts": {
     "create": "tsx ./scripts/generateSubPackage.ts",
     "backport": "tsx ./scripts/backport.ts",
@@ -52,7 +52,7 @@
     "test:component:run": "cd e2e && pnpm test:browser",
     "test:smoke": "cd ./tests && node ./smoke.runner.js",
     "test:e2e:testrunner": "cd ./e2e && npx wdio run ./wdio/wdio.conf.ts",
-    "test:e2e:multiremote": "cd ./e2e && npx wdio run ./wdio/wdio-multiremote.conf.ts",
+    "test:e2e:multiremote": "cd ./e2e && npx wdio run ./wdio/wdio-multiRemote.conf.ts",
     "test:e2e:standalone": "vitest --config ./e2e/vitest.config.ts --run standalone",
     "test:e2e:webdriver": "cd ./e2e && npx wdio run ./wdio/wdio.local.conf.ts",
     "test:e2e:classic": "cd ./e2e && npx wdio run ./wdio/wdio.classic.conf.ts",
@@ -130,7 +130,7 @@
     "vitest": "^3.2.6"
   },
   "engines": {
-    "pnpm": ">=8.15.3"
+    "pnpm": ">=8.15.3 <11"
   },
   "pnpm": {
     "overrides": {

@@ -166,6 +166,25 @@ describe('overwriteCommand', () => {
                 expect(await elem.getAttribute('foo', 'bar')).toBe('foo-value foo bar')
             })
 
+            test('should compose sequential element command overwrites', async () => {
+                const browser = await remote(remoteConfig)
+                const calls: string[] = []
+
+                browser.overwriteCommand('click', async function firstOverride(originalCommand, ...args) {
+                    calls.push('first')
+                    return originalCommand(...args)
+                }, isElementScope)
+                browser.overwriteCommand('click', async function secondOverride(originalCommand, ...args) {
+                    calls.push('second')
+                    return originalCommand(...args)
+                }, isElementScope)
+
+                const elem = await browser.$('#foo')
+                await elem.click()
+
+                expect(calls).toEqual(['second', 'first'])
+            })
+
             test('should properly throw exceptions on the element scope', async () => {
                 const browser = await remote(remoteConfig)
                 browser.overwriteCommand('click', function () {

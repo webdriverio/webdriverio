@@ -29,6 +29,7 @@ const config: Config = {
     organizationName: 'webdriverio',
     projectName: 'webdriverio',
     markdown: {
+        mermaid: true,
         hooks: {
             onBrokenMarkdownLinks: 'throw',
         },
@@ -71,6 +72,9 @@ const config: Config = {
         prism: {
             theme: themes.github,
             darkTheme: themes.dracula
+        },
+        mermaid: {
+            theme: { light: 'neutral', dark: 'dark' },
         },
         algolia: {
             apiKey: 'f86258c57f779a1358e0a9054aeadad5',
@@ -263,6 +267,14 @@ const config: Config = {
                     trackingID: 'UA-47063382-1',
                     anonymizeIP: true,
                 },
+                sitemap: {
+                    /**
+                     * emit <lastmod> so search engines and AI crawlers can tell
+                     * which pages actually changed
+                     */
+                    lastmod: 'date',
+                    changefreq: 'weekly',
+                },
             },
         ]
     ],
@@ -363,17 +375,52 @@ const config: Config = {
                 ],
             },
         ],
+        [
+            '@signalwire/docusaurus-plugin-llms-txt',
+            {
+                /**
+                 * emits `/llms.txt` (an annotated index of the docs), plus a
+                 * clean Markdown twin for every page, e.g. `/docs/api/browser.md`.
+                 * Without this, anything reading the site has to scrape the
+                 * rendered HTML and strip the navbar, announcement bar and footer
+                 * off every page.
+                 */
+                siteTitle: 'WebdriverIO',
+                siteDescription: 'Next-gen browser and mobile automation test framework for Node.js',
+                depth: 2,
+                content: {
+                    enableMarkdownFiles: true,
+                    /**
+                     * `/llms-full.txt` inlines the whole corpus into one file, for
+                     * consumers that would otherwise crawl every page individually
+                     */
+                    enableLlmsFullTxt: true,
+                    /**
+                     * docs only for now. Whether the blog and community pages
+                     * should be included too is still an open question
+                     */
+                    includeDocs: true,
+                    includeBlog: false,
+                    includePages: false,
+                    excludeRoutes: [
+                        '/search',
+                        '/404',
+                    ],
+                },
+            },
+        ],
     ],
-    themes: [path.resolve(__dirname, 'node_modules', 'docusaurus-theme-github-codeblock', 'build', 'index.js')],
+    themes: [
+        path.resolve(__dirname, 'node_modules', 'docusaurus-theme-github-codeblock', 'build', 'index.js'),
+        '@docusaurus/theme-mermaid',
+    ],
     stylesheets: [
         'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700&display=block',
         'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=block'
     ],
     scripts: [
-        'https://unpkg.com/mermaid@8.5.1/dist/mermaid.min.js',
         'https://buttons.github.io/buttons.js',
-        '/js/ribbons.js',
-        '/js/flowchart.js'
+        '/js/ribbons.js'
     ]
 }
 

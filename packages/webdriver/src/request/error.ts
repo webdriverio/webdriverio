@@ -67,14 +67,22 @@ export class WebDriverRequestError extends WebDriverError {
         this.url = url
         this.opts = opts
 
+        /**
+         * A request that exceeds `connectionRetryTimeout` is aborted by
+         * `AbortSignal.timeout`, which rejects with a `DOMException` whose `code`
+         * is the numeric `TIMEOUT_ERR` rather than a string.
+         */
+        const isAbortTimeout = err.name === 'TimeoutError'
         const errorCode = typeof err.cause === 'object' && err.cause && 'code' in err.cause && typeof err.cause.code === 'string'
             ? err.cause.code
             : 'code' in err && typeof err.code === 'string'
                 ? err.code
-                : undefined
+                : isAbortTimeout
+                    ? 'ETIMEDOUT'
+                    : undefined
         if (errorCode) {
             this.code = errorCode
-            this.message = errorCode === 'UND_ERR_CONNECT_TIMEOUT'
+            this.message = errorCode === 'UND_ERR_CONNECT_TIMEOUT' || isAbortTimeout
                 ? 'Request timed out! Consider increasing the "connectionRetryTimeout" option.'
                 : 'Request failed with error code ' + errorCode
         }

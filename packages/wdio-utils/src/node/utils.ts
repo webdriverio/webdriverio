@@ -280,7 +280,7 @@ export function getDriverOptions (caps: WebdriverIO.Capabilities) {
 
 export function getCacheDir (options: Pick<Options.WebDriver, 'cacheDir'>, caps: WebdriverIO.Capabilities) {
     const driverOptions = getDriverOptions(caps)
-    return driverOptions.cacheDir || options.cacheDir || os.tmpdir()
+    return driverOptions.cacheDir || options.cacheDir || process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()
 }
 
 export function getMajorVersionFromString(fullVersion:string) {
