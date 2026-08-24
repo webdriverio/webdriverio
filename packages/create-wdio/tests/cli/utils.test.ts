@@ -142,6 +142,77 @@ test.skipIf(isUsingWindows)('parseAnswers', async () => {
     expect(parsedAnswers).toMatchSnapshot()
 })
 
+describe('parseAnswers with deepagent', () => {
+    const deepagentAnswers = () => ({
+        backend: BackendChoice.Local,
+        specs: '/tmp/foobar/specs',
+        pages: '/tmp/foobar/pageobjects',
+        stepDefinitions: '/tmp/foobar/steps',
+        generateTestFiles: true,
+        usePageObjects: true,
+        baseUrl: 'http://localhost',
+        runner: '@wdio/local-runner$--$local',
+        framework: '@wdio/mocha-framework$--$mocha',
+        preset: '@sveltejs/vite-plugin-svelte$--$svelte',
+        isUsingTypeScript: false,
+        reporters: [
+            '@wdio/spec-reporter$--$spec'
+        ],
+        plugins: [
+            '@wdio/deepagent$--$deepagent'
+        ],
+        services: [],
+        npmInstall: true
+    })
+
+    it('adds deepagent plugin and forces devtools service', async () => {
+        vi.mocked(getAnswers).mockResolvedValue({
+            ...deepagentAnswers(),
+            deepagentProvider: 'openrouter'
+        } as any)
+        const parsedAnswers = await parseAnswers(true)
+
+        expect(parsedAnswers.isUsingDeepAgent).toBe(true)
+        expect(parsedAnswers.deepagentModel).toEqual({ provider: 'openrouter', model: 'qwen/qwen3.8-27b' })
+        expect(parsedAnswers.services).toContain('devtools')
+        expect(parsedAnswers.rawAnswers.services).toContain('@wdio/devtools-service$--$devtools')
+        expect(parsedAnswers.packagesToInstall).toContain('@wdio/deepagent')
+        expect(parsedAnswers.packagesToInstall).toContain('@wdio/devtools-service')
+    })
+
+    it('preserves a local provider baseURL', async () => {
+        vi.mocked(getAnswers).mockResolvedValue({
+            ...deepagentAnswers(),
+            deepagentProvider: 'llama-cpp',
+            deepagentBaseURL: 'http://localhost:8080/v1'
+        } as any)
+        const parsedAnswers = await parseAnswers(true)
+
+        expect(parsedAnswers.isUsingDeepAgent).toBe(true)
+        expect(parsedAnswers.deepagentModel).toEqual({
+            provider: 'llama-cpp',
+            model: 'llama-3.2-3b',
+            baseURL: 'http://localhost:8080/v1'
+        })
+    })
+
+    it('does not add deepagent data or devtools when plugin is not selected', async () => {
+        vi.mocked(getAnswers).mockResolvedValue({
+            ...deepagentAnswers(),
+            plugins: [
+                'wdio-wait-for$--$wait-for'
+            ]
+        } as any)
+        const parsedAnswers = await parseAnswers(true)
+
+        expect(parsedAnswers.isUsingDeepAgent).toBe(false)
+        expect(parsedAnswers.deepagentModel).toBeUndefined()
+        expect(parsedAnswers.services).not.toContain('devtools')
+        expect(parsedAnswers.packagesToInstall).not.toContain('@wdio/deepagent')
+        expect(parsedAnswers.packagesToInstall).not.toContain('@wdio/devtools-service')
+    })
+})
+
 describe('Serenity/JS project generation', () => {
 
     const defaultAnswers: Questionnair = {

@@ -1,7 +1,7 @@
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import inquirer from 'inquirer'
-import { buildTauriBanner, configHelperSuccessMessage, CONFIG_HELPER_SERENITY_BANNER, SUPPORTED_CONFIG_FILE_EXTENSION, CONFIG_HELPER_INTRO, getResolvedPurpose, isNuxtProject, SUPPORTED_PACKAGES } from '../constants.js'
+import { buildTauriBanner, configHelperSuccessMessage, CONFIG_HELPER_SERENITY_BANNER, deepagentDefaultModel, DEEPAGENT_PLUGIN_VALUE, SUPPORTED_CONFIG_FILE_EXTENSION, CONFIG_HELPER_INTRO, getResolvedPurpose, isNuxtProject, SUPPORTED_PACKAGES } from '../constants.js'
 import type { ParsedAnswers } from '../types.js'
 import { createPackageJSON, setupTypeScript, npmInstall, createWDIOConfig, createWDIOScript, runAppiumInstaller, convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps, getProjectRoot, getSerenityPackages } from '../utils.js'
 
@@ -82,8 +82,14 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
     const answers = await getAnswers(yes)
     const frameworkPackage = convertPackageHashToObject(answers.framework)
     const runnerPackage = convertPackageHashToObject(answers.runner || SUPPORTED_PACKAGES.runner[0].value)
-    const servicePackages = answers.services.map((service) => convertPackageHashToObject(service))
     const pluginPackages = answers.plugins.map((plugin) => convertPackageHashToObject(plugin))
+    const isUsingDeepAgent = answers.plugins.includes(DEEPAGENT_PLUGIN_VALUE)
+    if (isUsingDeepAgent && !answers.services.some((s) => convertPackageHashToObject(s).short === 'devtools')) {
+        // devtools service is required for trace reproducibility (diagnose);
+        // force-added, not offered in the services checkbox
+        answers.services.push('@wdio/devtools-service$--$devtools')
+    }
+    const servicePackages = answers.services.map((service) => convertPackageHashToObject(service))
     const serenityPackages = getSerenityPackages(answers)
     const reporterPackages = answers.reporters.map((reporter) => convertPackageHashToObject(reporter))
     const presetPackage = convertPackageHashToObject(answers.preset || '')
@@ -151,6 +157,10 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
         stepDefinitions: answers.stepDefinitions && `./${path.relative(projectRootDir, answers.stepDefinitions).replaceAll(path.sep, '/')}`,
         packagesToInstall,
         isUsingTypeScript,
+        isUsingDeepAgent,
+        deepagentModel: isUsingDeepAgent
+            ? { provider: answers.deepagentProvider || 'openrouter', model: deepagentDefaultModel(answers.deepagentProvider || 'openrouter'), ...(answers.deepagentBaseURL ? { baseURL: answers.deepagentBaseURL } : {}) }
+            : undefined,
         esmSupport: projectProps && !(projectProps.esmSupported) ? false : true,
         isSync: false,
         _async: 'async ',

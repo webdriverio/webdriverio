@@ -31,6 +31,8 @@ services: [<%- answers.services.map((service) => {
             }
         }
     ]`
+    } else if (service === 'devtools') {
+        return /*js*/`['devtools', { mode: 'trace'${answers.isUsingTypeScript ? ' as const' : ''}, traceFormat: 'zip' }]`
     }
 
     return `'${service}'`
