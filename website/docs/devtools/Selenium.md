@@ -24,11 +24,8 @@ npm install @wdio/selenium-devtools
 </TabItem>
 <TabItem value="python" label="Python">
 
-Not published to PyPI yet, so install it from the DevTools repository:
-
 ```bash
-git clone https://github.com/webdriverio/devtools
-pip install -e devtools/packages/selenium-devtools-py
+pip install selenium-devtools-py
 ```
 
 **Requires Python 3.10+ and `selenium>=4.44`.** Both are declared in the package metadata, so pip enforces them rather than leaving you to find an empty Network tab at runtime. Network capture subscribes through the public BiDi event API that selenium regenerated in 4.44; the private connection it replaced was removed in the same release, and 4.44 is what sets the Python floor.
