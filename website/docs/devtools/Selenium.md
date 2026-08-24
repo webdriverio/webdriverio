@@ -433,6 +433,9 @@ Under pytest the plugin drives all of this from `DEVTOOLS_ENABLE=1`, and test bo
 
 ## Examples
 
+<Tabs groupId="devtools-language">
+<TabItem value="node" label="Node.js" default>
+
 Working examples live in the repo's top-level `examples/` directory. Build the workspace once (`pnpm install && pnpm build`), then run from the repo root. `pnpm demo:selenium` runs the default (Cucumber) example; the per-runner variants are:
 
 | Directory | Runner | Command |
@@ -441,27 +444,46 @@ Working examples live in the repo's top-level `examples/` directory. Build the w
 | [`examples/selenium/jest-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/jest-test) | Jest | `pnpm --filter @wdio/selenium-devtools example:jest` |
 | [`examples/selenium/cucumber-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/cucumber-test) | Cucumber | `pnpm demo:selenium` |
 
+</TabItem>
+<TabItem value="python" label="Python">
+
+The Python examples live in [`examples/selenium/python-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/python-test). Install the adapter and build the workspace once (`pnpm install && pnpm build`, so the backend exists), then run from the repo root:
+
+| Example | What it shows | Command |
+|---|---|---|
+| `web_form.py` | The three-line plain-script setup | `pnpm demo:python` |
+| `login.py` | A longer script: navigation, form fill, assertions | `pnpm demo:python:login` |
+| `test_login_pytest.py` | pytest, with a class and a module-level test | `pnpm demo:python:pytest` |
+
+</TabItem>
+</Tabs>
+
 ## Features
 
-The Selenium adapter provides the same DevTools UI experience as WebdriverIO. Every feature below is captured automatically with the base `DevTools.configure({})` setup — no per-feature config (console + network stream via Selenium's BiDi handlers on Chrome ≥114, with an injected-collector fallback). Links go to each feature's full reference.
+The Selenium adapter provides the same DevTools UI experience as WebdriverIO, in both languages. Every feature below is captured automatically with no per-feature config — the base `DevTools.configure({})` in Node.js, or simply `DEVTOOLS_ENABLE=1` in Python. Console and network stream via Selenium's BiDi handlers, with an injected-collector fallback in Node.js. Links go to each feature's full reference.
 
 - **[Interactive Test Rerunning & Visualization](/docs/devtools/wdio/interactive-test-rerunning)** - Live browser previews, per-command screenshots, and one-click test/suite rerunning
 - **[Preserve & Rerun (Compare)](/docs/devtools/wdio/preserve-and-rerun)** - Snapshot a failing test, rerun it, and diff the two runs side-by-side
-- **[Multi-Framework Support](/docs/devtools/wdio/multi-framework-support)** - Auto-detects Mocha, Jest, Cucumber, or a plain `node` script
+- **[Multi-Framework Support](/docs/devtools/wdio/multi-framework-support)** - Auto-detects Mocha, Jest, Cucumber, or a plain script in Node.js; pytest or a plain script in Python
 - **[Console Logs](/docs/devtools/wdio/console-logs)** - Capture and inspect browser console output
 - **[Network Logs](/docs/devtools/wdio/network-logs)** - Monitor API calls and network activity
 - **[Metadata](/docs/devtools/wdio/metadata)** - Session capabilities, environment, and timing per browser session
 - **[TestLens](/docs/devtools/wdio/testlens)** - Jump from any command to the source line that triggered it
 - **[Session Screencast](/docs/devtools/wdio/screencast)** - Automatic video recording of browser sessions
-- **[Trace Mode](/docs/devtools/wdio/trace-mode)** - Headless capture producing a portable `trace.zip` (no UI window)
+- **[Trace Mode](/docs/devtools/wdio/trace-mode)** *(Node.js only)* - Headless capture producing a portable `trace.zip` (no UI window)
 
-Screencast is the one feature with its own options (see [Configuration Options](#configuration-options)):
+In Node.js, screencast is the one feature with its own options (see [Configuration Options](#configuration-options)):
 
 ```js
 DevTools.configure({ screencast: { enabled: true, quality: 70, maxWidth: 1280, maxHeight: 720 } })
 ```
 
+In Python it needs no configuration: Chrome streams frames over CDP, other browsers fall back to one screenshot per command, and encoding the `.webm` needs `ffmpeg` on `PATH`.
+
 ## How It Works
+
+<Tabs groupId="devtools-language">
+<TabItem value="node" label="Node.js" default>
 
 The plugin patches `selenium-webdriver`'s `Builder`, `WebDriver`, and `WebElement` prototypes at import time:
 
@@ -473,10 +495,42 @@ When BiDi is available (Chrome ≥114), console logs, JavaScript exceptions, and
 
 The same injected collector also records the page's **DOM mutation stream** and a per-command element / accessibility snapshot, so a trace carries enough to rebuild the live DOM at each step (per-navigation mapping) — this is what powers the player's DOM time-travel and A11y tab rather than a screenshot-only replay.
 
+</TabItem>
+<TabItem value="python" label="Python">
+
+There are no prototypes to patch, so the Python adapter wraps one method instead:
+
+- **`WebDriver.execute()`** - the single chokepoint every command flows through. Element methods delegate to it too (`self._parent.execute`), so `click`, `send_keys` and `text` are captured by the same wrapper without touching the element classes.
+- **Session setup** - on the first real command the driver is registered, metadata is sent, and BiDi, the collector and the screencast are armed.
+- **`quit()`** - intercepted before the session is torn down, so the screencast is encoded and the final frames flushed while the driver still exists.
+
+Console, JavaScript exceptions and network stream over selenium's BiDi layer (4.44+), which the adapter enables for you by injecting the `webSocketUrl` capability into the `newSession` request.
+
+The **DOM mutation stream** comes from the same browser-side collector as Node.js, registered at document start through BiDi so a page instruments itself before any of its own script runs. On Chrome the screencast is pushed by the browser over a CDP websocket of its own — separate from the session's command channel, which is what makes a real frame stream safe when a Selenium session is not thread-safe.
+
+</TabItem>
+</Tabs>
+
 ## Limitations
+
+<Tabs groupId="devtools-language">
+<TabItem value="node" label="Node.js" default>
 
 | Limitation | Detail |
 |-----------|--------|
 | Cucumber leaf-step rerun | Cucumber's `--name` filter targets scenarios, not individual Gherkin steps. The dashboard's per-step rerun is disabled under Cucumber. |
 | Headless mode caveat | `headless: true` injects `--headless=old`; `--headless=new` produces all-black CDP frames in the screencast. |
 | Initial viewport | The dashboard's snapshot iframe falls back to 1280×800 until the first navigation completes and the browser-side collector reports the real viewport. |
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+| Limitation | Detail |
+|-----------|--------|
+| Live mode only | No `trace.zip` is written yet, so [Trace Mode](/docs/devtools/wdio/trace-mode), the offline player, and the dense filmstrip and A11y tab that come with them are not available. |
+| Node is still required | The dashboard server is a Node application, so Node 18+ must be present even though your tests are Python. The adapter finds or launches it for you. |
+| Browser options are yours | There is no `headless` option; configure Chrome through selenium's own `Options` object as you normally would. |
+| Video needs ffmpeg | Without `ffmpeg` on `PATH` the encode is skipped with a warning rather than an error. |
+
+</TabItem>
+</Tabs>
