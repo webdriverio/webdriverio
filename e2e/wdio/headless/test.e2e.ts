@@ -821,6 +821,17 @@ describe('main suite 1', () => {
             await expect($$('h1')).toHaveText(expect.stringMatching(/Hello World/))
         })
 
+        it.only('file - nested shadow DOM', async () => {
+            const resource = path.resolve(__dirname, '__fixtures__', 'nest-shadow-dom-container.html')
+            await browser.url(url.pathToFileURL(resource).href)
+
+            const el = await browser.$('#cb-40')
+            await el.scrollIntoView({ block: 'center', inline: 'center' })
+
+            await expect(el).toBeDisplayedInViewport()
+            await expect(el).toBeClickable()
+        })
+
         it.skip('chrome', async () => {
             await browser.url('chrome://about/')
             await expect($('li=chrome://accessibility')).toExist()

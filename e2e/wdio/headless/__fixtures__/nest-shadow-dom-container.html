@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>scrollIntoView repro - double-nested shadow DOM (custom checkbox)</title>
+<style>
+  body { margin: 0; font-family: sans-serif; }
+  #fixed-footer {
+    position: fixed; left: 0; right: 0; bottom: 0; height: 150px;
+    background: rgba(200, 0, 0, 0.85); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; z-index: 10;
+  }
+</style>
+</head>
+<body>
+  <div id="fixed-footer">FIXED FOOTER</div>
+  <my-table></my-table>
+
+  <script>
+    // A second level of shadow DOM, like a real "checkbox" web component
+    class MyCheckbox extends HTMLElement {
+      connectedCallback() {
+        const shadow = this.attachShadow({ mode: 'open' });
+        const id = this.getAttribute('cb-id');
+        shadow.innerHTML = `<input type="checkbox" id="${id}" />`;
+      }
+    }
+    customElements.define('my-checkbox', MyCheckbox);
+
+    class MyTable extends HTMLElement {
+      connectedCallback() {
+        const shadow = this.attachShadow({ mode: 'open' });
+        let rows = '';
+        for (let i = 1; i <= 60; i++) {
+          rows += `<tr><td>Row ${i}</td><td><my-checkbox cb-id="cb-${i}"></my-checkbox></td></tr>`;
+        }
+        shadow.innerHTML = `
+          <style>
+            #scroll-container {
+              height: 500px; width: 620px; overflow-y: auto;
+              border: 2px solid #333; margin-top: 40px;
+            }
+            table { border-collapse: collapse; width: 600px; }
+            td { border: 1px solid #ccc; padding: 12px 16px; }
+          </style>
+          <div id="scroll-container">
+            <table><tbody>${rows}</tbody></table>
+          </div>
+        `;
+      }
+    }
+    customElements.define('my-table', MyTable);
+  </script>
+</body>
+</html>
