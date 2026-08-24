@@ -133,7 +133,14 @@ export default class Runner extends EventEmitter {
          * initialize framework
          */
         this._framework = await this.#initFramework(cid, this._config, this._caps, this._reporter, specs)
-        process.send!({ name: 'testFrameworkInit', content: { cid, caps: this._caps, specs, hasTests: this._framework.hasTests() } })
+        /**
+         * `specFileRetries` is sent along so the worker can resolve its retry budget
+         * before the session is requested — it reflects `beforeSession` overrides as
+         * `this._specFileRetryAttempts` is computed after the hook ran. If only sent
+         * with `sessionStarted`, a failed session start would leave the budget
+         * unresolved and the spec file would never be retried.
+         */
+        process.send!({ name: 'testFrameworkInit', content: { cid, caps: this._caps, specs, hasTests: this._framework.hasTests() }, specFileRetries: this._specFileRetryAttempts })
         if (!this._framework.hasTests()) {
             return this._shutdown(0, retries, true)
         }

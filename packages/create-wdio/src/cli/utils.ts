@@ -30,7 +30,7 @@ export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: str
     console.log(
         configHelperSuccessMessage({
             projectRootDir: parsedAnswers.projectRootDir,
-            runScript: parsedAnswers.serenityAdapter ? 'serenity' : 'wdio',
+            runScript: 'wdio',
             extraInfo: extraInfoParts.join('\n')
         }),
     )

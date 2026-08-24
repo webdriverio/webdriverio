@@ -30,7 +30,7 @@
     "test:mocha": "wdio ./mocha/wdio.conf.js",
     "test:jasmine": "wdio ./jasmine/wdio.conf.js",
     "test:cucumber": "wdio ./cucumber/wdio.conf.js",
-    "test:multiremote": "wdio ./wdio/wdio-multiremote.conf.ts",
+    "test:multiRemote": "wdio ./wdio/wdio-multiRemote.conf.ts",
     "test:customReporter": "wdio ./custom-reporter/wdio.conf.js",
     "test:customService": "wdio ./custom-service/wdio.conf.js",
     "test:xvfb": "wdio ./wdio/xvfb/wdio.conf.ts",
