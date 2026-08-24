@@ -3,17 +3,43 @@ id: selenium
 title: Selenium DevTools
 ---
 
-Selenium WebDriver adapter for [WebdriverIO DevTools](https://github.com/webdriverio/devtools) - brings the same visual debugging UI to any `selenium-webdriver` test, regardless of the test runner.
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
-Works with **Mocha**, **Jest**, **Cucumber**, or plain `node script.js` - the plugin auto-detects the runner and wires test boundaries accordingly. No changes to your test code are needed beyond a single import.
+Selenium WebDriver adapter for [WebdriverIO DevTools](https://github.com/webdriverio/devtools) - brings the same visual debugging UI to any Selenium test, in **Node.js** or **Python**, regardless of the test runner.
+
+Node.js works with **Mocha**, **Jest**, **Cucumber**, or a plain script - the plugin auto-detects the runner and wires test boundaries accordingly. Python works with **pytest** or a plain script, and under pytest needs no changes to your test files at all.
+
+Pick your language in the tabs below; the choice follows you down the page.
 
 ## Installation
+
+<Tabs groupId="devtools-language">
+<TabItem value="node" label="Node.js" default>
 
 ```bash
 npm install @wdio/selenium-devtools
 ```
 
+</TabItem>
+<TabItem value="python" label="Python">
+
+Not published to PyPI yet, so install it from the DevTools repository:
+
+```bash
+git clone https://github.com/webdriverio/devtools
+pip install -e devtools/packages/selenium-devtools-py
+```
+
+**Requires Python 3.10+ and `selenium>=4.44`.** Both are declared in the package metadata, so pip enforces them rather than leaving you to find an empty Network tab at runtime. Network capture subscribes through the public BiDi event API that selenium regenerated in 4.44; the private connection it replaced was removed in the same release, and 4.44 is what sets the Python floor.
+
+</TabItem>
+</Tabs>
+
 ## Setup
+
+<Tabs groupId="devtools-language">
+<TabItem value="node" label="Node.js" default>
 
 Each block below is a **complete, copy-paste-ready example** including the `DevTools.configure(...)` call. Pick the runner you use, drop the snippet into your project, and run it.
 
@@ -224,7 +250,53 @@ node tests/google.test.js
 
 > Only use `startTest` / `endTest` for plain Node scripts. Under Mocha / Jest / Cucumber the plugin already knows when each test starts and ends - calling these manually would create duplicate rows.
 
+</TabItem>
+<TabItem value="python" label="Python">
+
+### pytest
+
+Nothing goes in your test files - the plugin is auto-discovered and turns itself on from an environment variable:
+
+```bash
+DEVTOOLS_ENABLE=1 pytest tests/
+```
+
+The dashboard opens in a dedicated browser window and **stays open after the run** so you can inspect what happened; close it (or `Ctrl-C`) to finish. `DEVTOOLS_PORT=<n>` also opts in, and attaches to a dashboard that is already running instead of starting one.
+
+### Plain Python script (no test runner)
+
+Two lines around your existing Selenium code:
+
+```python title="login.py"
+import selenium_devtools as devtools
+from selenium import webdriver
+
+devtools.enable()                     # open the dashboard, capture every command
+
+driver = webdriver.Chrome()
+driver.get('https://the-internet.herokuapp.com/login')
+driver.find_element('id', 'username').send_keys('tomsmith')
+driver.quit()
+
+devtools.wait_for_dashboard_close()   # keep the UI up to inspect
+devtools.disable()
+```
+
+If the backend cannot be launched or reached, `enable()` logs a warning and returns `None`. Capture is skipped and your tests still run - a missing dashboard never fails a suite.
+
+### Parallel runs (`pytest -n`)
+
+**pytest-xdist works with no extra configuration.** Every process reporting into one run has to agree on a run id, or the backend treats each connect as a new run and wipes what the previous one captured. With xdist they do agree: the plugin loads in the **controller** as well, and enabling capture there resolves the id before xdist spawns any worker - workers are child processes, so they inherit it.
+
+What genuinely reads as separate runs: two independent `pytest` invocations, or a worker started without the environment. Export `DEVTOOLS_RUN_ID` yourself to join such processes into one run.
+
+</TabItem>
+</Tabs>
+
 ## Configuration Options
+
+<Tabs groupId="devtools-language">
+<TabItem value="node" label="Node.js" default>
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -256,7 +328,39 @@ DevTools.configure({
 
 > **For CI**, set both `headless: true` (hide the test browser) and `openUi: false` (don't try to open the dashboard window - CI environments have no display). The backend keeps running on the configured port so you can still open the UI later if needed.
 
+</TabItem>
+<TabItem value="python" label="Python">
+
+The Python adapter is configured by environment variables rather than an options object, so nothing devtools-specific has to appear in your test code.
+
+| Variable | Effect |
+|---|---|
+| `DEVTOOLS_ENABLE=1` | Turn capture on (pytest). |
+| `DEVTOOLS_PORT=<n>` | Attach to a dashboard already listening on this port; also opts in. |
+| `DEVTOOLS_HOST=<host>` | Host the dashboard is reached on (default `localhost`). |
+| `DEVTOOLS_OPEN=0` | Do not open the dashboard window (CI). |
+| `DEVTOOLS_BIDI=0` | Disable BiDi, and with it console and network capture. |
+| `DEVTOOLS_RUN_ID=<id>` | Join several processes into one run. |
+| `DEVTOOLS_BACKEND_CMD=<cmd>` | Start the backend with an explicit command instead of the resolved one. |
+
+The dashboard server is a Node application, so **Node 18+ must be available** even though your tests are Python. The adapter finds or launches it for you - see [running the backend on its own](/docs/devtools/dashboard#running-the-backend-on-its-own) if you would rather manage it yourself.
+
+### Assertions
+
+Passing and failing `assert` statements appear as rows carrying **expected** and **actual**, and failures reach the Errors tab. Python's `assert` is a statement rather than a call, so unlike the Node adapter's `node:assert` patching there is nothing to wrap - the outcome comes from the runner.
+
+**Under pytest**, values come from the assertion rewriter, so every row carries real operands. Capturing *passing* assertions needs pytest's `enable_assertion_pass_hook`, which the plugin switches on for itself. One caveat: pytest decides per module, *while rewriting it*, whether to emit that hook, so a module whose rewritten bytecode was cached before the plugin was installed keeps reporting failures only. The adapter says so once at collection and names the cache to delete - which is **not** always the `__pycache__` beside your tests, since `sys.pycache_prefix` (set by default on macOS's system Python) sends every rewritten module to one central tree.
+
+**In a plain script** there is no rewriter, so outcomes come from the interpreter's line events and values are read from the frame about to run the assert. Only reads that cannot execute your code are resolved: a literal or a local resolves, an attribute or a call does not, because evaluating `driver.current_url` a second time would issue another WebDriver command.
+
+</TabItem>
+</Tabs>
+
 ## Trace mode
+
+:::note Node.js only
+Trace mode is not available for the Python adapter yet - it streams to the live dashboard and does not write a `trace.zip`. Everything in this section describes the Node.js adapter.
+:::
 
 Headless capture path — no DevTools UI window opens. At session end the adapter writes a portable `trace-<sessionId>.zip` (or directory) into a `test-results/` folder (next to the resolved test / config directory), with the same shape as the WebdriverIO trace artifact.
 
@@ -299,6 +403,9 @@ The trace uses a portable NDJSON schema, so the same `.zip` (or directory) also 
 
 ## Public API
 
+<Tabs groupId="devtools-language">
+<TabItem value="node" label="Node.js" default>
+
 ```js
 import { DevTools } from '@wdio/selenium-devtools'
 
@@ -308,6 +415,24 @@ DevTools.endTest('passed'|'failed'|'skipped'|'pending')
 ```
 
 Under Mocha / Jest / Cucumber the plugin auto-hooks the runner's lifecycle, so you don't need `startTest` / `endTest` manually - calling them would create duplicate rows.
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+import selenium_devtools as devtools
+
+devtools.enable()                     # connect and instrument; idempotent
+devtools.disable()                    # tear down; safe to call twice
+devtools.wait_for_dashboard_close()   # block until the window is closed
+devtools.get_capturer()               # the live SessionCapturer, or None
+devtools.dashboard_url()              # the URL the dashboard is served on
+```
+
+Under pytest the plugin drives all of this from `DEVTOOLS_ENABLE=1`, and test boundaries come from pytest's own hooks - there is no `startTest` / `endTest` equivalent to call.
+
+</TabItem>
+</Tabs>
 
 ## Examples
 
