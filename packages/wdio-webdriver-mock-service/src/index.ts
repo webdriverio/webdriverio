@@ -48,8 +48,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         specs: unknown,
         browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {
-        // TODO: remove casting once intersect typing issue with WebdriverIO.MultiRemoteBrowser is resolved
-        this._browser = browser as WebdriverIO.Browser
+        this._browser = browser
 
         /**
          * register request interceptors for specific scenarios

@@ -199,6 +199,15 @@ type AddCommandFnScoped<
     ...args: any[]
 ) => any
 
+/**
+ * A looser variant of AddCommandFnScoped used when the exact browser type
+ * is not known statically (e.g. `WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser`).
+ */
+type AddCommandFnScopedLoose<IsElement extends boolean = false> = (
+    this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    ...args: any[]
+) => any
+
 export type AddCommandFn = (...args: any[]) => any
 
 type OverwriteCommandFnScoped<
@@ -228,6 +237,24 @@ export type CustomCommandOptions<IsElement extends boolean> = CustomCommands.Cus
 export type AddCommandFunction<IsElement extends boolean, T = any, Instance = WebdriverIO.Browser> = IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn
 
 export interface CustomInstanceCommands<T> {
+
+    /**
+     * Union-compatible overload: used when the browser type is not known statically.
+     * Makes `addCommand` callable on `WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser`
+     * without a cast.
+     */
+    addCommand<IsElement extends boolean = false>(
+        name: string,
+        func: IsElement extends true ? AddCommandFnScopedLoose<IsElement> : AddCommandFn,
+    ): void;
+
+    /**
+     * add command to `browser`
+     */
+    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
+        name: string,
+        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
+    ): void;
 
     /**
      * @deprecated use option object as 3rd parameter
@@ -263,14 +290,6 @@ export interface CustomInstanceCommands<T> {
         attachToElement: IsElement,
         proto: Record<string, any>,
         instances: Record<string, Instances>,
-    ): void;
-
-    /**
-     * add command to `browser`
-     */
-    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
-        name: string,
-        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
     ): void;
 
     /**
