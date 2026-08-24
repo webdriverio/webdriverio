@@ -82,6 +82,6 @@
     "title": "Serenity/JS HTML",
     "githubUrl": "https://github.com/serenity-js/serenity-js",
     "npmUrl": "https://www.npmjs.com/package/@serenity-js/html-reporter",
-    "location": "packages/wdio-testplanit-reporter/README.md"
+    "location": "packages/html-reporter/README.md"
   }
 ]
