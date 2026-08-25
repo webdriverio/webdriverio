@@ -6,9 +6,8 @@ import { WaylandDisplayServer } from './WaylandDisplayServer.js'
 import { XvfbDisplayServer } from './XvfbDisplayServer.js'
 import { executeWithRetry } from './utils.js'
 
-// WDIO capabilities arrive in three shapes — single ({ browserName }), vendor-keyed
-// ({ 'goog:chromeOptions' }), and multiremote ({ browserA: {...} }). These helpers
-// centralise walking every browser capability regardless of shape.
+// WDIO capabilities come in four shapes: single ({ browserName }), vendor-keyed
+// ({ 'goog:chromeOptions' }), parallel (array), and multiremote ({ browserA: {...} }).
 
 type CapsRoot = WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }>
 
@@ -22,7 +21,7 @@ function isSingleCapability(caps: CapsRoot): caps is WebdriverIO.Capabilities {
 }
 
 function isMultiRemoteCapability(caps: CapsRoot): caps is Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }> {
-    return !isSingleCapability(caps) && typeof caps === 'object' && caps !== null
+    return !isSingleCapability(caps) && !Array.isArray(caps) && typeof caps === 'object' && caps !== null
 }
 
 function extractCapabilitiesFromBrowserConfig(
@@ -39,6 +38,13 @@ function forEachBrowserCapability(
     visit: (cap: WebdriverIO.Capabilities) => void
 ): void {
     if (!capabilities) {
+        return
+    }
+    // Explicit branch — Object.entries would otherwise walk the array as a multiremote map.
+    if (Array.isArray(capabilities)) {
+        for (const entry of capabilities) {
+            forEachBrowserCapability(entry as CapsRoot, visit)
+        }
         return
     }
     const caps = capabilities as CapsRoot
