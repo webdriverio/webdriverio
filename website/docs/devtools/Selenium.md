@@ -3,17 +3,40 @@ id: selenium
 title: Selenium DevTools
 ---
 
-Selenium WebDriver adapter for [WebdriverIO DevTools](https://github.com/webdriverio/devtools) - brings the same visual debugging UI to any `selenium-webdriver` test, regardless of the test runner.
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
-Works with **Mocha**, **Jest**, **Cucumber**, or plain `node script.js` - the plugin auto-detects the runner and wires test boundaries accordingly. No changes to your test code are needed beyond a single import.
+Selenium WebDriver adapter for [WebdriverIO DevTools](https://github.com/webdriverio/devtools) - brings the same visual debugging UI to any Selenium test, in **Node.js** or **Python**, regardless of the test runner.
+
+Node.js works with **Mocha**, **Jest**, **Cucumber**, or a plain script - the plugin auto-detects the runner and wires test boundaries accordingly. Python works with **pytest** or a plain script, and under pytest needs no changes to your test files at all.
+
+Pick your language in the tabs below; the choice follows you down the page.
 
 ## Installation
+
+<Tabs groupId="devtools-language">
+<TabItem value="node" label="Node.js" default>
 
 ```bash
 npm install @wdio/selenium-devtools
 ```
 
+</TabItem>
+<TabItem value="python" label="Python">
+
+```bash
+pip install selenium-devtools-py
+```
+
+**Requires Python 3.10+ and `selenium>=4.44`.** Both are declared in the package metadata, so pip enforces them rather than leaving you to find an empty Network tab at runtime. Network capture subscribes through the public BiDi event API that selenium regenerated in 4.44; the private connection it replaced was removed in the same release, and 4.44 is what sets the Python floor.
+
+</TabItem>
+</Tabs>
+
 ## Setup
+
+<Tabs groupId="devtools-language">
+<TabItem value="node" label="Node.js" default>
 
 Each block below is a **complete, copy-paste-ready example** including the `DevTools.configure(...)` call. Pick the runner you use, drop the snippet into your project, and run it.
 
@@ -224,7 +247,53 @@ node tests/google.test.js
 
 > Only use `startTest` / `endTest` for plain Node scripts. Under Mocha / Jest / Cucumber the plugin already knows when each test starts and ends - calling these manually would create duplicate rows.
 
+</TabItem>
+<TabItem value="python" label="Python">
+
+### pytest
+
+Nothing goes in your test files - the plugin is auto-discovered and turns itself on from an environment variable:
+
+```bash
+DEVTOOLS_ENABLE=1 pytest tests/
+```
+
+The dashboard opens in a dedicated browser window and **stays open after the run** so you can inspect what happened; close it (or `Ctrl-C`) to finish. `DEVTOOLS_PORT=<n>` also opts in, and attaches to a dashboard that is already running instead of starting one.
+
+### Plain Python script (no test runner)
+
+Two lines around your existing Selenium code:
+
+```python title="login.py"
+import selenium_devtools as devtools
+from selenium import webdriver
+
+devtools.enable()                     # open the dashboard, capture every command
+
+driver = webdriver.Chrome()
+driver.get('https://the-internet.herokuapp.com/login')
+driver.find_element('id', 'username').send_keys('tomsmith')
+driver.quit()
+
+devtools.wait_for_dashboard_close()   # keep the UI up to inspect
+devtools.disable()
+```
+
+If the backend cannot be launched or reached, `enable()` logs a warning and returns `None`. Capture is skipped and your tests still run - a missing dashboard never fails a suite.
+
+### Parallel runs (`pytest -n`)
+
+**pytest-xdist works with no extra configuration.** Every process reporting into one run has to agree on a run id, or the backend treats each connect as a new run and wipes what the previous one captured. With xdist they do agree: the plugin loads in the **controller** as well, and enabling capture there resolves the id before xdist spawns any worker - workers are child processes, so they inherit it.
+
+What genuinely reads as separate runs: two independent `pytest` invocations, or a worker started without the environment. Export `DEVTOOLS_RUN_ID` yourself to join such processes into one run.
+
+</TabItem>
+</Tabs>
+
 ## Configuration Options
+
+<Tabs groupId="devtools-language">
+<TabItem value="node" label="Node.js" default>
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -256,7 +325,39 @@ DevTools.configure({
 
 > **For CI**, set both `headless: true` (hide the test browser) and `openUi: false` (don't try to open the dashboard window - CI environments have no display). The backend keeps running on the configured port so you can still open the UI later if needed.
 
+</TabItem>
+<TabItem value="python" label="Python">
+
+The Python adapter is configured by environment variables rather than an options object, so nothing devtools-specific has to appear in your test code.
+
+| Variable | Effect |
+|---|---|
+| `DEVTOOLS_ENABLE=1` | Turn capture on (pytest). |
+| `DEVTOOLS_PORT=<n>` | Attach to a dashboard already listening on this port; also opts in. |
+| `DEVTOOLS_HOST=<host>` | Host the dashboard is reached on (default `localhost`). |
+| `DEVTOOLS_OPEN=0` | Do not open the dashboard window (CI). |
+| `DEVTOOLS_BIDI=0` | Disable BiDi, and with it console and network capture. |
+| `DEVTOOLS_RUN_ID=<id>` | Join several processes into one run. |
+| `DEVTOOLS_BACKEND_CMD=<cmd>` | Start the backend with an explicit command instead of the resolved one. |
+
+The dashboard server is a Node application, so **Node 18+ must be available** even though your tests are Python. The adapter finds or launches it for you - see [running the backend on its own](/docs/devtools/dashboard#running-the-backend-on-its-own) if you would rather manage it yourself.
+
+### Assertions
+
+Passing and failing `assert` statements appear as rows carrying **expected** and **actual**, and failures reach the Errors tab. Python's `assert` is a statement rather than a call, so unlike the Node adapter's `node:assert` patching there is nothing to wrap - the outcome comes from the runner.
+
+**Under pytest**, values come from the assertion rewriter, so every row carries real operands. Capturing *passing* assertions needs pytest's `enable_assertion_pass_hook`, which the plugin switches on for itself. One caveat: pytest decides per module, *while rewriting it*, whether to emit that hook, so a module whose rewritten bytecode was cached before the plugin was installed keeps reporting failures only. The adapter says so once at collection and names the cache to delete - which is **not** always the `__pycache__` beside your tests, since `sys.pycache_prefix` (set by default on macOS's system Python) sends every rewritten module to one central tree.
+
+**In a plain script** there is no rewriter, so outcomes come from the interpreter's line events and values are read from the frame about to run the assert. Only reads that cannot execute your code are resolved: a literal or a local resolves, an attribute or a call does not, because evaluating `driver.current_url` a second time would issue another WebDriver command.
+
+</TabItem>
+</Tabs>
+
 ## Trace mode
+
+:::note Node.js only
+Trace mode is not available for the Python adapter yet - it streams to the live dashboard and does not write a `trace.zip`. Everything in this section describes the Node.js adapter.
+:::
 
 Headless capture path — no DevTools UI window opens. At session end the adapter writes a portable `trace-<sessionId>.zip` (or directory) into a `test-results/` folder (next to the resolved test / config directory), with the same shape as the WebdriverIO trace artifact.
 
@@ -299,6 +400,9 @@ The trace uses a portable NDJSON schema, so the same `.zip` (or directory) also 
 
 ## Public API
 
+<Tabs groupId="devtools-language">
+<TabItem value="node" label="Node.js" default>
+
 ```js
 import { DevTools } from '@wdio/selenium-devtools'
 
@@ -309,7 +413,28 @@ DevTools.endTest('passed'|'failed'|'skipped'|'pending')
 
 Under Mocha / Jest / Cucumber the plugin auto-hooks the runner's lifecycle, so you don't need `startTest` / `endTest` manually - calling them would create duplicate rows.
 
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+import selenium_devtools as devtools
+
+devtools.enable()                     # connect and instrument; idempotent
+devtools.disable()                    # tear down; safe to call twice
+devtools.wait_for_dashboard_close()   # block until the window is closed
+devtools.get_capturer()               # the live SessionCapturer, or None
+devtools.dashboard_url()              # the URL the dashboard is served on
+```
+
+Under pytest the plugin drives all of this from `DEVTOOLS_ENABLE=1`, and test boundaries come from pytest's own hooks - there is no `startTest` / `endTest` equivalent to call.
+
+</TabItem>
+</Tabs>
+
 ## Examples
+
+<Tabs groupId="devtools-language">
+<TabItem value="node" label="Node.js" default>
 
 Working examples live in the repo's top-level `examples/` directory. Build the workspace once (`pnpm install && pnpm build`), then run from the repo root. `pnpm demo:selenium` runs the default (Cucumber) example; the per-runner variants are:
 
@@ -319,27 +444,46 @@ Working examples live in the repo's top-level `examples/` directory. Build the w
 | [`examples/selenium/jest-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/jest-test) | Jest | `pnpm --filter @wdio/selenium-devtools example:jest` |
 | [`examples/selenium/cucumber-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/cucumber-test) | Cucumber | `pnpm demo:selenium` |
 
+</TabItem>
+<TabItem value="python" label="Python">
+
+The Python examples live in [`examples/selenium/python-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/python-test). Install the adapter and build the workspace once (`pnpm install && pnpm build`, so the backend exists), then run from the repo root:
+
+| Example | What it shows | Command |
+|---|---|---|
+| `web_form.py` | The three-line plain-script setup | `pnpm demo:python` |
+| `login.py` | A longer script: navigation, form fill, assertions | `pnpm demo:python:login` |
+| `test_login_pytest.py` | pytest, with a class and a module-level test | `pnpm demo:python:pytest` |
+
+</TabItem>
+</Tabs>
+
 ## Features
 
-The Selenium adapter provides the same DevTools UI experience as WebdriverIO. Every feature below is captured automatically with the base `DevTools.configure({})` setup — no per-feature config (console + network stream via Selenium's BiDi handlers on Chrome ≥114, with an injected-collector fallback). Links go to each feature's full reference.
+The Selenium adapter provides the same DevTools UI experience as WebdriverIO, in both languages. Every feature below is captured automatically with no per-feature config — the base `DevTools.configure({})` in Node.js, or simply `DEVTOOLS_ENABLE=1` in Python. Console and network stream via Selenium's BiDi handlers, with an injected-collector fallback in Node.js. Links go to each feature's full reference.
 
 - **[Interactive Test Rerunning & Visualization](/docs/devtools/wdio/interactive-test-rerunning)** - Live browser previews, per-command screenshots, and one-click test/suite rerunning
 - **[Preserve & Rerun (Compare)](/docs/devtools/wdio/preserve-and-rerun)** - Snapshot a failing test, rerun it, and diff the two runs side-by-side
-- **[Multi-Framework Support](/docs/devtools/wdio/multi-framework-support)** - Auto-detects Mocha, Jest, Cucumber, or a plain `node` script
+- **[Multi-Framework Support](/docs/devtools/wdio/multi-framework-support)** - Auto-detects Mocha, Jest, Cucumber, or a plain script in Node.js; pytest or a plain script in Python
 - **[Console Logs](/docs/devtools/wdio/console-logs)** - Capture and inspect browser console output
 - **[Network Logs](/docs/devtools/wdio/network-logs)** - Monitor API calls and network activity
 - **[Metadata](/docs/devtools/wdio/metadata)** - Session capabilities, environment, and timing per browser session
 - **[TestLens](/docs/devtools/wdio/testlens)** - Jump from any command to the source line that triggered it
 - **[Session Screencast](/docs/devtools/wdio/screencast)** - Automatic video recording of browser sessions
-- **[Trace Mode](/docs/devtools/wdio/trace-mode)** - Headless capture producing a portable `trace.zip` (no UI window)
+- **[Trace Mode](/docs/devtools/wdio/trace-mode)** *(Node.js only)* - Headless capture producing a portable `trace.zip` (no UI window)
 
-Screencast is the one feature with its own options (see [Configuration Options](#configuration-options)):
+In Node.js, screencast is the one feature with its own options (see [Configuration Options](#configuration-options)):
 
 ```js
 DevTools.configure({ screencast: { enabled: true, quality: 70, maxWidth: 1280, maxHeight: 720 } })
 ```
 
+In Python it needs no configuration: Chrome streams frames over CDP, other browsers fall back to one screenshot per command, and encoding the `.webm` needs `ffmpeg` on `PATH`.
+
 ## How It Works
+
+<Tabs groupId="devtools-language">
+<TabItem value="node" label="Node.js" default>
 
 The plugin patches `selenium-webdriver`'s `Builder`, `WebDriver`, and `WebElement` prototypes at import time:
 
@@ -351,10 +495,42 @@ When BiDi is available (Chrome ≥114), console logs, JavaScript exceptions, and
 
 The same injected collector also records the page's **DOM mutation stream** and a per-command element / accessibility snapshot, so a trace carries enough to rebuild the live DOM at each step (per-navigation mapping) — this is what powers the player's DOM time-travel and A11y tab rather than a screenshot-only replay.
 
+</TabItem>
+<TabItem value="python" label="Python">
+
+There are no prototypes to patch, so the Python adapter wraps one method instead:
+
+- **`WebDriver.execute()`** - the single chokepoint every command flows through. Element methods delegate to it too (`self._parent.execute`), so `click`, `send_keys` and `text` are captured by the same wrapper without touching the element classes.
+- **Session setup** - on the first real command the driver is registered, metadata is sent, and BiDi, the collector and the screencast are armed.
+- **`quit()`** - intercepted before the session is torn down, so the screencast is encoded and the final frames flushed while the driver still exists.
+
+Console, JavaScript exceptions and network stream over selenium's BiDi layer (4.44+), which the adapter enables for you by injecting the `webSocketUrl` capability into the `newSession` request.
+
+The **DOM mutation stream** comes from the same browser-side collector as Node.js, registered at document start through BiDi so a page instruments itself before any of its own script runs. On Chrome the screencast is pushed by the browser over a CDP websocket of its own — separate from the session's command channel, which is what makes a real frame stream safe when a Selenium session is not thread-safe.
+
+</TabItem>
+</Tabs>
+
 ## Limitations
+
+<Tabs groupId="devtools-language">
+<TabItem value="node" label="Node.js" default>
 
 | Limitation | Detail |
 |-----------|--------|
 | Cucumber leaf-step rerun | Cucumber's `--name` filter targets scenarios, not individual Gherkin steps. The dashboard's per-step rerun is disabled under Cucumber. |
 | Headless mode caveat | `headless: true` injects `--headless=old`; `--headless=new` produces all-black CDP frames in the screencast. |
 | Initial viewport | The dashboard's snapshot iframe falls back to 1280×800 until the first navigation completes and the browser-side collector reports the real viewport. |
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+| Limitation | Detail |
+|-----------|--------|
+| Live mode only | No `trace.zip` is written yet, so [Trace Mode](/docs/devtools/wdio/trace-mode), the offline player, and the dense filmstrip and A11y tab that come with them are not available. |
+| Node is still required | The dashboard server is a Node application, so Node 18+ must be present even though your tests are Python. The adapter finds or launches it for you. |
+| Browser options are yours | There is no `headless` option; configure Chrome through selenium's own `Options` object as you normally would. |
+| Video needs ffmpeg | Without `ffmpeg` on `PATH` the encode is skipped with a warning rather than an error. |
+
+</TabItem>
+</Tabs>

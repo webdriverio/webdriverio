@@ -107,6 +107,15 @@ function Home() {
                                 alt="BrowserStack"
                                 link="https://www.browserstack.com/automation-webdriverio"
                             />
+                            <em style={{ marginRight: 0 }}>&nbsp; and &nbsp;</em>
+                            <ImageSwitcher
+                                target="_blank"
+                                lightImageSrc="/img/sponsors/momentic_black.svg"
+                                darkImageSrc="/img/sponsors/momentic_white.svg"
+                                alt="Momentic"
+                                link="https://momentic.ai/"
+                                style={{ width: '220px', maxWidth: '220px' }}
+                            />
                         </div>
                     </section>
                     <Features features={features} />

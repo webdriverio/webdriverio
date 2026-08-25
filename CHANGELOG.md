@@ -23,6 +23,34 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.31.3 (2026-08-25)
+
+#### :bug: Bug Fix
+* `eslint-plugin-wdio`, `wdio-browser-runner`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-local-runner`, `wdio-runner`, `wdio-webdriver-mock-service`
+  * [#15518](https://github.com/webdriverio/webdriverio/pull/15518) fix: typing for `expect-wdio/api` ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-local-runner`, `wdio-runner`
+  * [#15513](https://github.com/webdriverio/webdriverio/pull/15513) fix(@wdio/local-runner): retry spec files when session creation fails ([@lorenaskosinskas](https://github.com/lorenaskosinskas))
+
+#### :memo: Documentation
+* Other
+  * [#15524](https://github.com/webdriverio/webdriverio/pull/15524) docs(website): added Serenity/JS HTML Reporter ([@jan-molak](https://github.com/jan-molak))
+  * [#15526](https://github.com/webdriverio/webdriverio/pull/15526) docs(devtools): document the Python adapter as language tabs on the S… ([@vishnuv688](https://github.com/vishnuv688))
+  * [#15520](https://github.com/webdriverio/webdriverio/pull/15520) doc: A11y doc update ([@vishnuv688](https://github.com/vishnuv688))
+* `webdriverio`
+  * [#15510](https://github.com/webdriverio/webdriverio/pull/15510) docs(sponsor): add Momentic as Premium sponsor ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* [#15517](https://github.com/webdriverio/webdriverio/pull/15517) fix(docs): unbreak non-English docs builds after flowchart component removal ([@AutomatedTester](https://github.com/AutomatedTester))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- David Burns ([@AutomatedTester](https://github.com/AutomatedTester))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Lorenas ([@lorenaskosinskas](https://github.com/lorenaskosinskas))
+- Vishnu Vardhan ([@vishnuv688](https://github.com/vishnuv688))
+
+
 ## v9.31.2 (2026-08-21)
 
 #### :rocket: New Feature
