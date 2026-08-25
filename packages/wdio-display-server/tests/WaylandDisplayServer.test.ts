@@ -180,6 +180,7 @@ describe('WaylandDisplayServer', () => {
 
             expect(daemon.env.WAYLAND_DISPLAY).toMatch(/^wayland-\d+$/)
             expect(daemon.env.XDG_RUNTIME_DIR).toMatch(/^\/tmp\/wdio-wayland-/)
+            expect(daemon.env.GDK_BACKEND).toBe('wayland')
             expect(daemon.env.ELECTRON_OZONE_PLATFORM_HINT).toBe('wayland')
         })
 
