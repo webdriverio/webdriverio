@@ -45,14 +45,14 @@ describe('handleMessage', () => {
     })
 
     it('resolves the retry budget on testFrameworkInit so it survives a failed session start', () => {
-        const worker = new Worker({} as any, { ...workerConfig, retries: -1 }, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, { ...workerConfig, retries: -1 }, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = vi.fn()
         worker['_handleMessage']({ name: 'testFrameworkInit', specFileRetries: 3 } as unknown as Workers.WorkerMessage)
         expect(worker.retries).toBe(2)
     })
 
     it('propagates the resolved retry budget with the exit event when the session never started', () => {
-        const worker = new Worker({} as any, { ...workerConfig, retries: -1 }, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, { ...workerConfig, retries: -1 }, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = vi.fn()
         worker['_handleMessage']({ name: 'testFrameworkInit', specFileRetries: 3 } as unknown as Workers.WorkerMessage)
         worker['_handleExit'](1)
@@ -60,7 +60,7 @@ describe('handleMessage', () => {
     })
 
     it('does not touch an already resolved retry budget on testFrameworkInit', () => {
-        const worker = new Worker({} as any, { ...workerConfig, retries: 1 }, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, { ...workerConfig, retries: 1 }, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = vi.fn()
         worker['_handleMessage']({ name: 'testFrameworkInit', specFileRetries: 3 } as unknown as Workers.WorkerMessage)
         expect(worker.retries).toBe(1)
