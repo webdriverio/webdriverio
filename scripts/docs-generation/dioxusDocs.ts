@@ -70,11 +70,13 @@ export async function generateDioxusDocs () {
                 (_match, prefix: string, relativePath: string) =>
                     `${prefix}${resolveRelativePath(relativePath)}`
             )
-            // Any relative markdown link rewriteLinks() didn't resolve — a sibling package
-            // README (../../<pkg>/…) or a source doc we don't publish — can't resolve in the
-            // site and fails the MDX build; point it at GitHub instead.
+            // Any relative link rewriteLinks() didn't resolve — a sibling package README, a
+            // source file (../../native-types/src/….ts), or a doc we don't publish — can't
+            // resolve in the site and fails both the MDX build and Docusaurus' broken-link
+            // check. Point it at GitHub instead. (In-doc links were already rewritten to
+            // absolute /docs/… paths above, so they no longer start with ./ or ../.)
             .replace(
-                /(\]\()((?:\.\.?\/)[^)\s]*\.md)((?:#[\w-]+)?)(\))/g,
+                /(\]\()((?:\.\.?\/)[^)\s#]+)((?:#[\w-]+)?)(\))/g,
                 (_match, open: string, relativePath: string, anchor: string, close: string) =>
                     `${open}${resolveRepoBlobUrl(relativePath)}${anchor}${close}`
             )
