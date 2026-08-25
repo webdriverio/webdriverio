@@ -265,10 +265,12 @@ describe('WaylandDisplayServer', () => {
 
                 const stopPromise = daemon.stop()
                 await vi.advanceTimersByTimeAsync(1000)
+                expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
+                // SIGKILL takes effect: the process exits, and only then does stop() resolve.
+                proc.emit('exit', null, 'SIGKILL')
                 await stopPromise
 
                 expect(proc.kill).toHaveBeenCalledWith('SIGTERM')
-                expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
                 vi.useRealTimers()
             })
         })
