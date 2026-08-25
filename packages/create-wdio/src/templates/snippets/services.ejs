@@ -20,6 +20,19 @@ services: [<%- answers.services.map((service) => {
     ]`
     } else if (service === 'tauri-plugin') {
         return /*js*/`'tauri-plugin'`
+    } else if (service === 'dioxus') {
+        const providerMap = {
+            'Embedded in-process driver (recommended — no external driver, all platforms)': 'embedded',
+            'External driver via wdio-dioxus-driver (Windows only)': 'external',
+        }
+        const provider = providerMap[answers.rawAnswers.dioxusDriverProvider] ?? 'embedded'
+        return /*js*/`[
+        'dioxus',
+        {
+            driverProvider: '${provider}',
+            // see https://webdriver.io/docs/desktop-testing/dioxus/configuration for all options
+        }
+    ]`
     } else if (service === 'sauce' && answers.useSauceConnect) {
         return /*js*/`[
         'sauce',
