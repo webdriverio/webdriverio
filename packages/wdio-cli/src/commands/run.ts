@@ -6,7 +6,7 @@ import type { Argv } from 'yargs'
 import Launcher from '../launcher.js'
 import Watcher from '../watcher.js'
 import { coerceOptsFor, } from '../utils.js'
-import { CLI_EPILOGUE } from '../constants.js'
+import { CLI_EPILOGUE, TS_FILE_EXTENSIONS } from '../constants.js'
 import type { RunCommandArguments } from '../types.js'
 import { config } from 'create-wdio/config/cli'
 import { ConfigParser } from '@wdio/config/node'
@@ -217,7 +217,6 @@ export async function handler(argv: RunCommandArguments) {
      * Load tsx before attempting to read the config file if it's TypeScript.
      * This prevents "Unknown file extension" errors when calling tsConfigPathFromConfigFile.
      */
-    const TS_FILE_EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']
     if (TS_FILE_EXTENSIONS.some((ext) => confAccess.endsWith(ext))) {
         const { resolve } = await import('import-meta-resolve')
         const tsxPath = resolve('tsx', import.meta.url)
