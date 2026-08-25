@@ -77,6 +77,9 @@ export class WaylandDisplayServer implements DisplayServer {
             env: {
                 WAYLAND_DISPLAY: socketName,
                 XDG_RUNTIME_DIR: runtimeDir,
+                // Pin GTK to the weston compositor we started; mirrors the Xvfb backend's
+                // GDK_BACKEND=x11 so an inherited GDK_BACKEND doesn't send GTK to a missing X11.
+                GDK_BACKEND: 'wayland',
                 ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
             },
             cleanup: () => rm(runtimeDir, { recursive: true, force: true }).catch(() => {}),
