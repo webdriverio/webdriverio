@@ -51,6 +51,10 @@ export async function generateDioxusDocs () {
             const resolved = path.posix.normalize(`${sourceFileDir}/${relativePath}`)
             return `https://raw.githubusercontent.com/${GITHUB_REPO}/${DOCS_SHA}/${resolved}`
         }
+        const resolveRepoBlobUrl = (relativePath: string) => {
+            const resolved = path.posix.normalize(`${sourceFileDir}/${relativePath}`)
+            return `https://github.com/${GITHUB_REPO}/blob/${DOCS_SHA}/${resolved}`
+        }
 
         let inCodeBlock = false
         const transformed = rewriteLinks(stripped)
@@ -66,11 +70,24 @@ export async function generateDioxusDocs () {
                 (_match, prefix: string, relativePath: string) =>
                     `${prefix}${resolveRelativePath(relativePath)}`
             )
-            // Escape TypeScript generic angle brackets in plain text to prevent MDX parse errors
+            // Any relative markdown link rewriteLinks() didn't resolve — a sibling package
+            // README (../../<pkg>/…) or a source doc we don't publish — can't resolve in the
+            // site and fails the MDX build; point it at GitHub instead.
+            .replace(
+                /(\]\()((?:\.\.?\/)[^)\s]*\.md)((?:#[\w-]+)?)(\))/g,
+                (_match, open: string, relativePath: string, anchor: string, close: string) =>
+                    `${open}${resolveRepoBlobUrl(relativePath)}${anchor}${close}`
+            )
+            // Escape angle brackets in plain text so MDX doesn't parse them as JSX.
             .split('\n').map((line) => {
                 if (/^```/.test(line)) { inCodeBlock = !inCodeBlock }
                 if (inCodeBlock) { return line }
-                return line.replace(/<([A-Z][a-zA-Z0-9]+)>/g, '\\<$1>')
+                return line
+                    // Standalone component-like tags, e.g. <Result>.
+                    .replace(/<([A-Z][a-zA-Z0-9]+)>/g, '\\<$1>')
+                    // Type generics, e.g. Record<string, string> or Array<T> — the identifier
+                    // before `<` distinguishes them from real tags like <br> or <img …>.
+                    .replace(/([A-Za-z0-9_\]])<(?=[A-Za-z])/g, '$1\\<')
             }).join('\n')
 
         await fs.writeFile(newDocsPath, `---
