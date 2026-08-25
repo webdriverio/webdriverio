@@ -56,6 +56,26 @@ export async function runDaemon({
     proc.once('exit', onExit)
     proc.once('error', onError)
 
+    // Resolves only once the process has actually exited (SIGTERM, then SIGKILL after 1s).
+    const terminate = async (): Promise<void> => {
+        if (proc.exitCode !== null || proc.signalCode !== null) {
+            return
+        }
+        proc.kill('SIGTERM')
+        await new Promise<void>((resolve) => {
+            const timer = setTimeout(() => {
+                if (proc.exitCode === null && proc.signalCode === null) {
+                    proc.kill('SIGKILL')
+                }
+                resolve()
+            }, 1000)
+            proc.once('exit', () => {
+                clearTimeout(timer)
+                resolve()
+            })
+        })
+    }
+
     // Abort the socket poll once the race settles so it doesn't keep polling
     // in the background when exitPromise (a premature crash) wins.
     const socketWait = new AbortController()
@@ -64,11 +84,7 @@ export async function runDaemon({
     } catch (err) {
         proc.removeListener('exit', onExit)
         proc.removeListener('error', onError)
-        // proc.killed only reflects that a signal was sent, not that the process
-        // exited; guard on exitCode/signalCode so a still-running daemon is torn down.
-        if (proc.exitCode === null && proc.signalCode === null) {
-            proc.kill('SIGTERM')
-        }
+        await terminate()
         await cleanup?.()
         throw err
     } finally {
@@ -92,23 +108,7 @@ export async function runDaemon({
         }
         stopPromise = (async () => {
             log.info(`Stopping ${label} daemon`)
-            // Skip the SIGTERM + wait when proc has already exited; once('exit', …) is
-            // one-shot and would never fire, forcing the full timeout before stop() resolves.
-            if (proc.exitCode === null && proc.signalCode === null) {
-                proc.kill('SIGTERM')
-                await new Promise<void>((resolve) => {
-                    const timer = setTimeout(() => {
-                        if (proc.exitCode === null && proc.signalCode === null) {
-                            proc.kill('SIGKILL')
-                        }
-                        resolve()
-                    }, 1000)
-                    proc.once('exit', () => {
-                        clearTimeout(timer)
-                        resolve()
-                    })
-                })
-            }
+            await terminate()
             // Cleanup runs only after the process is gone — releasing/removing a
             // still-running daemon's resources would race a concurrent restart.
             await cleanup?.()
