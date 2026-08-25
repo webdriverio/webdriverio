@@ -56,23 +56,31 @@ export async function runDaemon({
     proc.once('exit', onExit)
     proc.once('error', onError)
 
-    // Resolves only once the process has actually exited (SIGTERM, then SIGKILL after 1s).
+    // Resolve only once the process has actually exited, so cleanup never releases the
+    // display reservation / removes the runtime dir out from under a not-yet-reaped
+    // process. SIGTERM, then SIGKILL after a 1s grace, then keep waiting for 'exit'; a 2s
+    // fallback prevents a wedge if 'exit' is somehow never reported after SIGKILL.
     const terminate = async (): Promise<void> => {
         if (proc.exitCode !== null || proc.signalCode !== null) {
             return
         }
         proc.kill('SIGTERM')
         await new Promise<void>((resolve) => {
-            const timer = setTimeout(() => {
+            const sigkillTimer = setTimeout(() => {
                 if (proc.exitCode === null && proc.signalCode === null) {
                     proc.kill('SIGKILL')
                 }
-                resolve()
             }, 1000)
-            proc.once('exit', () => {
-                clearTimeout(timer)
+            const fallbackTimer = setTimeout(() => {
+                proc.removeListener('exit', onProcExit)
                 resolve()
-            })
+            }, 2000)
+            function onProcExit () {
+                clearTimeout(sigkillTimer)
+                clearTimeout(fallbackTimer)
+                resolve()
+            }
+            proc.once('exit', onProcExit)
         })
     }
 
