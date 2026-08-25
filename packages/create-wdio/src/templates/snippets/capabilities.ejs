@@ -54,7 +54,7 @@ capabilities: [{<%
         // path to your built Dioxus debug binary
         // see https://webdriver.io/docs/desktop-testing/dioxus/configuration
         'dioxus:options': {
-            application: '<%- answers.dioxusAppBinaryPath || './target/debug/my-app' %>'
+            application: <%- JSON.stringify(answers.dioxusAppBinaryPath || './target/debug/my-app') %>
         }<%
     } else {
         %>
