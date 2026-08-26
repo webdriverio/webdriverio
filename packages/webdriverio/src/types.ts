@@ -109,9 +109,10 @@ interface AsyncIterators<T> {
     mapSeries: <T, U>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => U | Promise<U>, thisArg?: T) => Promise<U[]>;
     /**
      * Returns the first element that satisfies the callback, running the callbacks
-     * concurrently. "First" means the first match to resolve, which is not
-     * necessarily the earliest element in the list, and every callback still runs
-     * even once a match is found. Use `findSeries` if either matters.
+     * concurrently, or `undefined` if none does. "First" means the first match to
+     * resolve, which is not necessarily the earliest element in the list, and every
+     * callback still runs even once a match is found. Use `findSeries` if either
+     * matters.
      */
     find: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<T>;
     /**
@@ -121,7 +122,10 @@ interface AsyncIterators<T> {
     findSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<T>;
     /**
      * Returns the index of the first element that satisfies the callback, running
-     * the callbacks concurrently.
+     * the callbacks concurrently, or `-1` if none does. "First" means the first
+     * match to resolve, which is not necessarily the earliest element in the list,
+     * and every callback still runs even once a match is found. Use
+     * `findIndexSeries` if either matters.
      */
     findIndex: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<number>;
     /**
