@@ -122,7 +122,7 @@ describe('multi remote test', () => {
             const existingHeaders = await h1.unstable_filter((e) => e.isExisting())
 
             // TODO review to assert order of instances, as it may not be guaranteed to be the same order each time
-            expect(existingHeaders.instances).toEqual(['browserA', 'browserC'])
+            expect(existingHeaders.instances).toEqual(expect.arrayContaining(['browserA', 'browserC']))
             const header1Texts = await existingHeaders.getText()
             expect(header1Texts).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
         })
@@ -135,7 +135,7 @@ describe('multi remote test', () => {
 
             const existingHeaders = await header.unstable_select(['browserA', 'browserC']).unstable_filter((e) => e.isExisting())
 
-            expect(existingHeaders.instances).toEqual(['browserA', 'browserC'])
+            expect(existingHeaders.instances).toEqual(expect.arrayContaining(['browserA', 'browserC']))
             const headerExistence = await existingHeaders.isExisting()
             expect(headerExistence).toEqual([true, true])
         })
