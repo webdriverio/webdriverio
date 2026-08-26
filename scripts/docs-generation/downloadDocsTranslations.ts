@@ -25,6 +25,39 @@ export function downloadDocsTranslations() {
     return downloadAndExtractRepo(REPO_OWNER, REPO_NAME)
 }
 
+const FLOWCHARTS_DIR = path.resolve(__dirname, '..', '..', 'website', 'docs', 'flowcharts')
+const CREATE_FLOWCHARTS_TAG = /^[^\S\n]*<CreateFlowcharts\s+id=['"]([^'"]+)['"]\s*\/>[^\S\n]*$/gm
+
+/**
+ * Reads the English flowchart docs and maps each page's `id` to its diagram body
+ * (everything from the first heading or ```mermaid fence onwards, i.e. skipping the
+ * frontmatter and intro paragraph).
+ *
+ * The English markdown is the single source of truth: the diagrams themselves were
+ * never translated — they used to be rendered from a shared React component — so
+ * splicing the English body into a translated page loses nothing.
+ */
+async function getFlowchartDiagrams() {
+    const diagrams = new Map<string, string>()
+    const files = await fs.readdir(FLOWCHARTS_DIR).catch((err: NodeJS.ErrnoException) => {
+        if (err.code === 'ENOENT') {
+            return [] as string[]
+        }
+        throw err
+    })
+
+    for (const file of files.filter((f) => f.endsWith('.md'))) {
+        const source = await fs.readFile(path.join(FLOWCHARTS_DIR, file), 'utf-8')
+        const id = source.match(/^---\n(?:.*\n)*?id:\s*(\S+)\s*$/m)?.[1]
+        const bodyStart = source.search(/^(##\s|```mermaid\s*$)/m)
+        if (id && bodyStart !== -1) {
+            diagrams.set(id, source.slice(bodyStart).trimEnd())
+        }
+    }
+
+    return diagrams
+}
+
 /**
  * Patches known stale links in translated i18n files that become broken when English
  * source docs are restructured but translations haven't been updated yet.
@@ -41,8 +74,42 @@ async function applyTranslationFixes(i18nPath: string) {
     // only iterate locale directories; ignore stray files (e.g. .gitkeep, config)
     const locales = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
+    const flowchartDiagrams = await getFlowchartDiagrams()
+
     for (const locale of locales) {
         const contentPath = path.join(i18nPath, locale, 'docusaurus-plugin-content-docs', 'current')
+
+        // Fix: translated flowchart pages still reference the <CreateFlowcharts /> component,
+        // which was replaced by inline ```mermaid fences in the English docs. Without this
+        // the MDX compiler fails every non-English locale with "Expected component
+        // `CreateFlowcharts` to be defined". Remove once webdriverio/i18n is updated.
+        const flowchartsPath = path.join(contentPath, 'flowcharts')
+        const flowchartFiles = await fs.readdir(flowchartsPath).catch((err: NodeJS.ErrnoException) => {
+            if (err.code === 'ENOENT') {
+                return [] as string[]
+            }
+            throw err
+        })
+        for (const file of flowchartFiles.filter((f) => f.endsWith('.md'))) {
+            const filePath = path.join(flowchartsPath, file)
+            const content = await fs.readFile(filePath, 'utf-8')
+            let unresolvedId: string | undefined
+            const fixed = content.replace(CREATE_FLOWCHARTS_TAG, (match, id: string) => {
+                const diagram = flowchartDiagrams.get(id)
+                if (!diagram) {
+                    unresolvedId = id
+                    return match
+                }
+                return diagram
+            })
+            if (unresolvedId) {
+                throw new Error(`No English flowchart diagram found for id '${unresolvedId}' referenced by ${locale}/flowcharts/${file}. Add the diagram to website/docs/flowcharts, or remove the <CreateFlowcharts /> reference from the translation.`)
+            }
+            if (fixed !== content) {
+                await fs.writeFile(filePath, `${fixed.trimEnd()}\n`)
+                console.log(`Applied flowchart mermaid fix to ${locale}/flowcharts/${file}`)
+            }
+        }
 
         // Fix: Devtools.md links missing wdio/ prefix after devtools section was restructured
         // Old: devtools/interactive-test-rerunning  New: devtools/wdio/interactive-test-rerunning
