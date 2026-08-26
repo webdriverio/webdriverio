@@ -97,6 +97,7 @@ export default class MultiRemote {
      * ```
      */
     static elementWrapper (
+        // TODO: One day let's change for a Map<string, WebdriverIO.Browser> to preserve the order of the instances
         instances: Record<string, WebdriverIO.Browser>,
         result: unknown,
         propertiesObject: Record<string, PropertyDescriptor>,
