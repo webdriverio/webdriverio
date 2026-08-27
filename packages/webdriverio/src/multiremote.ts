@@ -5,8 +5,8 @@ import type { Options } from '@wdio/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 
 import { multiremoteHandler } from './middlewares.js'
-import { getPrototype } from './utils/index.js'
-import type { BrowserCommandsType, WebdriverIOEventMap } from './types.js'
+import { enhanceElementsArray, getPrototype } from './utils/index.js'
+import type { BrowserCommandsType, Selector, WebdriverIOEventMap } from './types.js'
 
 type EventEmitter = (args: unknown) => void
 
@@ -101,7 +101,8 @@ export default class MultiRemote {
         instances: Record<string, WebdriverIO.Browser>,
         result: unknown,
         propertiesObject: Record<string, PropertyDescriptor>,
-        scope: MultiRemote
+        scope: MultiRemote,
+        selector?: string,
     ): WebdriverIO.MultiRemoteElement {
         const prototype = { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
 
@@ -116,9 +117,9 @@ export default class MultiRemote {
 
             client.instances = Object.keys(instances)
             client.isMultiremote = true
-            client.selector = Array.isArray(result) && result[0]
+            client.selector = selector ?? (Array.isArray(result) && result[0]
                 ? result[0].selector
-                : null
+                : null)
             // @ts-expect-error ToDo(Christian): remove eventually
             delete client.sessionId
 
@@ -231,10 +232,27 @@ export default class MultiRemote {
             if (commandName === '$') {
                 return MultiRemote.elementWrapper(activeInstances, result, this.__propertiesObject__, self)
             } else if (commandName === '$$') {
+                const selector = args[0] as Selector
                 const zippedResult = zip(...result)
-                return zippedResult.map((singleResult) => MultiRemote.elementWrapper(activeInstances, singleResult, this.__propertiesObject__, self))
-            }
+                const wrappedResult = zippedResult.map((singleResult) => MultiRemote.elementWrapper(activeInstances, singleResult, this.__propertiesObject__, self, typeof selector === 'string' ? selector : undefined))
 
+                // TODO remove this flag in v10
+                if (process.env.WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY !== 'true') {
+                    return wrappedResult
+                }
+
+                // TODO in v10, let's do a proper MultiRemoteElementArray type instead of casting
+                const elementArray = enhanceElementsArray(
+                    wrappedResult as unknown as WebdriverIO.Element[],
+                    this as unknown as WebdriverIO.Browser,
+                    selector,
+                    commandName
+                )
+
+                // TODO expose this property in v10 with a new MultiRemoteElementArray type
+                Object.assign(elementArray, { isMultiremote: true })
+                return elementArray
+            }
             return result
         })
     }
