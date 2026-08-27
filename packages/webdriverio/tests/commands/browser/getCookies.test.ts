@@ -69,6 +69,23 @@ describe('getCookies', () => {
             ])
         })
 
+        it('should require all attributes in an object filter to match', async () => {
+            vi.mocked(fetch).setMockResponse([[
+                { name: 'session', value: 'matching', domain: 'webdriver.io' },
+                { name: 'session', value: 'wrong-domain', domain: 'example.com' },
+                { name: 'another', value: 'wrong-name', domain: 'webdriver.io' },
+            ]])
+
+            const cookies = await browser.getCookies({
+                name: 'session',
+                domain: 'webdriver.io'
+            })
+
+            expect(cookies).toEqual([
+                { name: 'session', value: 'matching', domain: 'webdriver.io' }
+            ])
+        })
+
         it('should throw error if invalid arguments are passed', async () => {
             // @ts-ignore test invalid input
             const cookies = await browser.getCookies([2])

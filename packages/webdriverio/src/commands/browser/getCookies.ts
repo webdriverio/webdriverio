@@ -126,15 +126,16 @@ async function getCookiesClassic(
     const filter = getCookieFilter(names)
     const allCookies = await this.getAllCookies()
     return allCookies.filter(cookie => (
-        !filter ||
-        cookie.name && filter.name === cookie.name ||
-        cookie.value && filter.value?.value === cookie.value ||
-        cookie.path && filter.path === cookie.path ||
-        cookie.domain && filter.domain === cookie.domain ||
-        cookie.sameSite && filter.sameSite === cookie.sameSite ||
-        cookie.expiry && filter.expiry === cookie.expiry ||
-        typeof cookie.httpOnly === 'boolean' && filter.httpOnly === cookie.httpOnly ||
-        typeof cookie.secure === 'boolean' && filter.secure === cookie.secure
+        !filter || (typeof filter === 'object' && (
+            (filter.name === undefined || filter.name === cookie.name) &&
+            (filter.value === undefined || filter.value.value === cookie.value) &&
+            (filter.path === undefined || filter.path === cookie.path) &&
+            (filter.domain === undefined || filter.domain === cookie.domain) &&
+            (filter.sameSite === undefined || filter.sameSite === cookie.sameSite) &&
+            (filter.expiry === undefined || filter.expiry === cookie.expiry) &&
+            (filter.httpOnly === undefined || filter.httpOnly === cookie.httpOnly) &&
+            (filter.secure === undefined || filter.secure === cookie.secure)
+        ))
     ))
 }
 
