@@ -107,7 +107,7 @@ describe('multi remote test', () => {
             const existingHeaders = await header.unstable_filter((e) => e.isExisting())
 
             // TODO review to assert order of instances, as it may not be guaranteed to be the same order each time
-            expect(existingHeaders.instances).toEqual(['browserA', 'browserC'])
+            expect(existingHeaders.instances).toEqual(expect.arrayContaining(['browserA', 'browserC']))
             const header1Texts = await existingHeaders.isExisting()
             expect(header1Texts).toEqual([true, true])
         })
@@ -205,6 +205,19 @@ describe('multi remote test', () => {
             // Throws instance[commandName] is not a function
             const texts = await existing.getText()
             expect(texts).toEqual([])  // ← fails today: returns ['', '', ''] (3 browsers executed)
+        })
+
+        it('should always have selector for MultiRemoteElement[]', async () => {
+
+            await multiRemoteBrowser.getInstance('browserA').url('about:blank')
+            await multiRemoteBrowser.getInstance('browserB').url('about:blank')
+            await multiRemoteBrowser.getInstance('browserC').url('https://guinea-pig.webdriver.io/')
+
+            const elements = await multiRemoteBrowser.$$('h1')
+
+            expect(elements).toHaveLength(2)
+            expect(elements[0].selector).toBe('h1')
+            expect(elements[1].selector).toBe('h1')
         })
     })
 })

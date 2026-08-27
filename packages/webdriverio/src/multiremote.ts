@@ -101,7 +101,8 @@ export default class MultiRemote {
         instances: Record<string, WebdriverIO.Browser>,
         result: unknown,
         propertiesObject: Record<string, PropertyDescriptor>,
-        scope: MultiRemote
+        scope: MultiRemote,
+        selector?: string,
     ): WebdriverIO.MultiRemoteElement {
         const prototype = { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
 
@@ -116,9 +117,9 @@ export default class MultiRemote {
 
             client.instances = Object.keys(instances)
             client.isMultiremote = true
-            client.selector = Array.isArray(result) && result[0]
+            client.selector = selector ?? (Array.isArray(result) && result[0]
                 ? result[0].selector
-                : null
+                : null)
             // @ts-expect-error ToDo(Christian): remove eventually
             delete client.sessionId
 
@@ -231,10 +232,13 @@ export default class MultiRemote {
             if (commandName === '$') {
                 return MultiRemote.elementWrapper(activeInstances, result, this.__propertiesObject__, self)
             } else if (commandName === '$$') {
-                const zippedResult = zip(...result)
-                return zippedResult.map((singleResult) => MultiRemote.elementWrapper(activeInstances, singleResult, this.__propertiesObject__, self))
-            }
+                const selector = typeof args[0] === 'string' ? args[0] : undefined
 
+                const zippedResult = zip(...result)
+                const wrappedResult = zippedResult.map((singleResult) => MultiRemote.elementWrapper(activeInstances, singleResult, this.__propertiesObject__, self, selector))
+                // TODO wrapped MultiRemoteElement[] into a MultiRemoteElementArray and set selector/foundWith/isMultiremote
+                return wrappedResult
+            }
             return result
         })
     }
