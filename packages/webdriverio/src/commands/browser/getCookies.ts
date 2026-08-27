@@ -125,10 +125,11 @@ async function getCookiesClassic(
 
     const filter = getCookieFilter(names)
     const allCookies = await this.getAllCookies()
+    const filterValue = typeof filter === 'object' ? getCookieValue(filter.value) : undefined
     return allCookies.filter(cookie => (
         !filter || (typeof filter === 'object' && (
             (filter.name === undefined || filter.name === cookie.name) &&
-            (filter.value === undefined || filter.value?.value === cookie.value) &&
+            (filter.value === undefined || filterValue === cookie.value) &&
             (filter.path === undefined || filter.path === cookie.path) &&
             (filter.domain === undefined || filter.domain === cookie.domain) &&
             (filter.sameSite === undefined || filter.sameSite === cookie.sameSite) &&
@@ -137,6 +138,16 @@ async function getCookiesClassic(
             (filter.secure === undefined || filter.secure === cookie.secure)
         ))
     ))
+}
+
+function getCookieValue(value?: remote.NetworkBytesValue | null): string | undefined {
+    if (!value) {
+        return
+    }
+
+    return value.type === 'base64'
+        ? Buffer.from(value.value, 'base64').toString('utf-8')
+        : value.value
 }
 
 function getCookieFilter (names?: string | string[] | remote.StorageCookieFilter) {

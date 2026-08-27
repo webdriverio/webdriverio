@@ -86,6 +86,22 @@ describe('getCookies', () => {
             ])
         })
 
+        it('should decode base64 values in an object filter', async () => {
+            vi.mocked(fetch).setMockResponse([[
+                { name: 'session', value: 'matching', domain: 'webdriver.io' },
+            ]])
+
+            const cookies = await browser.getCookies({
+                name: 'session',
+                value: { type: 'base64', value: btoa('matching') },
+                domain: 'webdriver.io'
+            })
+
+            expect(cookies).toEqual([
+                { name: 'session', value: 'matching', domain: 'webdriver.io' }
+            ])
+        })
+
         it('should throw error if invalid arguments are passed', async () => {
             // @ts-ignore test invalid input
             const cookies = await browser.getCookies([2])
