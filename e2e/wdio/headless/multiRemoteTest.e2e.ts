@@ -1,6 +1,6 @@
 import { multiRemoteBrowser, expect } from '@wdio/globals'
 import type { ElementArray } from 'webdriverio'
-import { Key } from 'webdriverio'
+import { Key, multiremote } from 'webdriverio'
 
 let browserA: WebdriverIO.Browser
 let browserB: WebdriverIO.Browser
@@ -193,6 +193,45 @@ describe('multi remote test', () => {
                 // However, should we do the same when selecting on a element and chaining $()?
                 const elementTextFromChainedParentSelected = await multiRemoteBrowser.$('header').unstable_select('browserA').$('h1').getText()
                 expect(elementTextFromChainedParentSelected).toEqual(['WebdriverJS Testpage'])
+            })
+
+            describe('Dynamically created multiremote browser', () => {
+                let customMultiRemoteBrowser: WebdriverIO.MultiRemoteBrowser
+                before(async () => {
+                    customMultiRemoteBrowser = await multiremote({
+                        browserA: {
+                            capabilities: {
+                                browserName: 'chrome',
+                                browserVersion: 'stable',
+                                'goog:chromeOptions': {
+                                    args: ['headless', 'disable-gpu']
+                                }
+                            } },
+                        browserB: {
+                            capabilities: {
+                                browserName: 'firefox',
+                                browserVersion: 'stable',
+                                'moz:firefoxOptions': {
+                                    args: ['-headless']
+                                }
+                            } }
+                    })
+                })
+
+                it('should be able to select 2 instances on the browser', async () => {
+                    const selected = customMultiRemoteBrowser.unstable_select('browserA', 'browserB')
+
+                    expect(selected.getInstance('browserA')).toBeDefined()
+                    expect(selected.getInstance('browserB')).toBeDefined()
+                })
+
+                it('should be able to select 2 instances on the element', async () => {
+                    const selected = customMultiRemoteBrowser.$('h1').unstable_select('browserA', 'browserB')
+
+                    expect(selected.getInstance('browserA')).toBeDefined()
+                    expect(selected.getInstance('browserB')).toBeDefined()
+                })
+
             })
         })
 
