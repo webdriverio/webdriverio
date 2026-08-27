@@ -1,4 +1,5 @@
 import { multiRemoteBrowser, expect } from '@wdio/globals'
+import type { ElementArray } from 'webdriverio'
 import { Key } from 'webdriverio'
 
 let browserA: WebdriverIO.Browser
@@ -207,7 +208,7 @@ describe('multi remote test', () => {
             expect(texts).toEqual([])  // ← fails today: returns ['', '', ''] (3 browsers executed)
         })
 
-        it('should always have selector for MultiRemoteElement[]', async () => {
+        it('should always have selector for MultiRemoteElement[] when some browsers have no matching elements', async () => {
 
             await multiRemoteBrowser.getInstance('browserA').url('about:blank')
             await multiRemoteBrowser.getInstance('browserB').url('about:blank')
@@ -218,6 +219,24 @@ describe('multi remote test', () => {
             expect(elements).toHaveLength(2)
             expect(elements[0].selector).toBe('h1')
             expect(elements[1].selector).toBe('h1')
+        })
+
+        it('should return an ElementArray at runtime', async () => {
+
+            await multiRemoteBrowser.getInstance('browserA').url('about:blank')
+            await multiRemoteBrowser.getInstance('browserB').url('about:blank')
+            await multiRemoteBrowser.getInstance('browserC').url('about:blank')
+
+            const elements = await multiRemoteBrowser.$$('h1')
+
+            console.log('elements', elements)
+            expect(elements).toHaveLength(0)
+            expect(elements).toHaveProperty('selector')
+            expect((elements as unknown as ElementArray).selector).toBe('h1')
+            expect((elements as unknown as ElementArray).foundWith).toBe('$$')
+            expect((elements as unknown as ElementArray).parent).toBeDefined()
+            expect((elements as unknown as ElementArray).getElements).toBeDefined()
+            expect(Array.isArray(elements)).toBe(true)
         })
     })
 })
