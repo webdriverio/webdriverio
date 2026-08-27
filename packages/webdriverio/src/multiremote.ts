@@ -39,17 +39,22 @@ export default class MultiRemote {
         }
 
         propertiesObject.unstable_select = {
-            value: (instanceNames: string | string[]) => {
-                const names = Array.isArray(instanceNames) ? instanceNames : [instanceNames]
-                const selectedInstances: Record<string, WebdriverIO.Browser> = {}
-                names.forEach((name) => {
-                    if (this.instances[name]) {
-                        selectedInstances[name] = this.instances[name]
-                    }
-                })
-
+            value: (...instanceNames: string[]) => {
+                console.log('propertiesObject.unstable_select)')
+                // TODO dprevost: Is the below enough, should we use multiremote()?
                 const newMultiRemote = new MultiRemote()
-                newMultiRemote.instances = selectedInstances
+
+                newMultiRemote.instances = instanceNames.reduce((acc, name) => {
+                    if (this.instances[name]) {
+                        acc[name] = this.instances[name]
+                    }
+                    // Skipping instances that are not part of the current multi-remote setup
+                    return acc
+                }, {} as Record<string, WebdriverIO.Browser>)
+
+                if (Object.keys(newMultiRemote.instances).length === 0) {
+                    throw new Error('None of the following requested instances are valid: ' + instanceNames.join(', '))
+                }
                 return newMultiRemote.modifier(wrapperClient)
             },
             configurable: true,
@@ -123,39 +128,24 @@ export default class MultiRemote {
             // @ts-expect-error ToDo(Christian): remove eventually
             delete client.sessionId
 
-            client.unstable_select = function (instanceNames: string | string[]) {
-                const selectedInstances: Record<string, WebdriverIO.Browser> = {}
+            client.unstable_select = function (...instanceNames: string[]) {
+                console.log('client.unstable_select')
                 const selectedResults: unknown[] = []
 
-                const instances = Array.isArray(instanceNames) ? instanceNames : [instanceNames]
-                instances.forEach((name) => {
+                const selectedInstances = instanceNames.reduce((acc, name) => {
                     if (client.instances.includes(name)) {
-                        selectedInstances[name] = scope.instances[name]
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        selectedResults.push((client as any)[name])
+                        acc[name] = scope.instances[name]
+                        // @ts-expect-error
+                        const element: WebdriverIO.Element = client[name]
+                        selectedResults.push(element)
                     }
-                })
+                    // Skipping instances that are not part of the current multi-remote setup
+                    return acc
+                }, {} as Record<string, WebdriverIO.Browser>)
 
-                return MultiRemote.elementWrapper(selectedInstances, selectedResults, propertiesObject, scope)
-            }
-
-            client.unstable_filter = async function (predicate: (element: WebdriverIO.Element) => Promise<boolean> | boolean) {
-                const selectedInstances: Record<string, WebdriverIO.Browser> = {}
-                const selectedResults: unknown[] = []
-
-                const results = await Promise.all(client.instances.map(async (instanceName) => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const elem = (client as any)[instanceName]
-                    const result = await predicate(elem)
-                    return result ? { name: instanceName, elem } : null
-                }))
-
-                results.forEach((result) => {
-                    if (result) {
-                        selectedInstances[result.name] = scope.instances[result.name]
-                        selectedResults.push(result.elem)
-                    }
-                })
+                if (Object.keys(selectedInstances).length === 0) {
+                    throw new Error('None of the following requested instances are valid: ' + instanceNames.join(', '))
+                }
 
                 return MultiRemote.elementWrapper(selectedInstances, selectedResults, propertiesObject, scope)
             }
@@ -164,7 +154,9 @@ export default class MultiRemote {
         }, prototype)
 
         // @ts-expect-error
-        return element(this.sessionId, multiremoteHandler(scope.commandWrapper.bind(scope)))
+        const sessionId = this.sessionId
+
+        return element(sessionId, multiremoteHandler(scope.commandWrapper.bind(scope)))
     }
 
     /**
@@ -183,22 +175,22 @@ export default class MultiRemote {
             }
         } else if (commandName === 'unstable_select') {
             self.usedUnstableSelectAPIOnElementScope = true
-            return function (this: Record<string, WebdriverIO.Browser | WebdriverIO.Element>, instanceNames: string | string[]) {
-                const names = Array.isArray(instanceNames) ? instanceNames : [instanceNames]
+            return function (this: Record<string, WebdriverIO.Browser | WebdriverIO.Element>, ...instanceNames: string[]) {
+                console.log('commandWrapper.unstable_select')
+                // TODO dprevost: Is the below enough, should we use multiremote()?
+                const newMultiRemote = new MultiRemote()
 
-                if (!names.every((name) => this[name])) {
-                    throw new Error(`Multiremote object has no instance named "${names.find((name) => !this[name])}"`)
+                newMultiRemote.instances = instanceNames.reduce((acc, name) => {
+                    if (instances[name]) {
+                        acc[name] = instances[name]
+                    }
+                    return acc
+                }, {} as Record<string, WebdriverIO.Browser>)
+
+                if (Object.keys(newMultiRemote.instances).length === 0) {
+                    throw new Error('None of the following requested instances are valid: ' + instanceNames.join(', '))
                 }
 
-                const selectedInstances: Record<string, WebdriverIO.Browser> = {}
-                names.forEach((name) => {
-                    if (instances[name]) {
-                        selectedInstances[name] = instances[name]
-                    }
-                })
-
-                const newMultiRemote = new MultiRemote()
-                newMultiRemote.instances = selectedInstances
                 return newMultiRemote
             }
         }

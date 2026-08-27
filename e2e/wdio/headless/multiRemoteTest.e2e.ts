@@ -73,139 +73,127 @@ describe('multi remote test', () => {
             ])
         })
 
-        it('should be able to select one specific instance on multi-remote element', async () => {
-            await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
+        describe('select', () => {
+            it('should be able to select one specific instance on multi-remote element', async () => {
+                await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
 
-            const title = multiRemoteBrowser.$('header').$('h1')
-            const browserAHeader = title.unstable_select('browserA')
+                const title = multiRemoteBrowser.$('header').$('h1')
+                const browserAHeader = title.unstable_select('browserA')
 
-            expect(await browserAHeader.instances).toEqual(['browserA'])
-            expect(await browserAHeader.isExisting()).toEqual([true])
+                expect(await browserAHeader.instances).toEqual(['browserA'])
+                expect(await browserAHeader.isExisting()).toEqual([true])
 
-            const browserAText = await browserAHeader.getText()
-            expect(browserAText).toEqual(['WebdriverJS Testpage'])
-        })
-
-        it('should be able to select two specific instance on multi-remote element', async () => {
-            await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
-
-            const title = multiRemoteBrowser.$('header').$('h1')
-            const browserAHeader = title.unstable_select(['browserA', 'browserC'])
-
-            expect(await browserAHeader.instances).toEqual(['browserA', 'browserC'])
-            expect(await browserAHeader.isExisting()).toEqual([true, true])
-
-            const browserAText = await browserAHeader.getText()
-            expect(browserAText).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
-        })
-
-        it('should be able to filter on multi-remote element', async () => {
-            await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
-            await browserB.url('about:blank')
-
-            const header = multiRemoteBrowser.$('header')
-
-            const existingHeaders = await header.unstable_filter((e) => e.isExisting())
-
-            // TODO review to assert order of instances, as it may not be guaranteed to be the same order each time
-            expect(existingHeaders.instances).toEqual(expect.arrayContaining(['browserA', 'browserC']))
-            const header1Texts = await existingHeaders.isExisting()
-            expect(header1Texts).toEqual([true, true])
-        })
-
-        // TODO part of unstable API, to fix later
-        it.skip('should be able to filter on chained multi-remote element when non-existing on 1 browser', async () => {
-            await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
-            await browserB.url('about:blank')
-
-            const h1 = multiRemoteBrowser.$('header').$('h1')
-
-            const existingHeaders = await h1.unstable_filter((e) => e.isExisting())
-
-            // TODO review to assert order of instances, as it may not be guaranteed to be the same order each time
-            expect(existingHeaders.instances).toEqual(expect.arrayContaining(['browserA', 'browserC']))
-            const header1Texts = await existingHeaders.getText()
-            expect(header1Texts).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
-        })
-
-        it('should be able to select and filter on multi-remote element', async () => {
-            await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
-            await browserB.url('about:blank')
-
-            const header = multiRemoteBrowser.$('header')
-
-            const existingHeaders = await header.unstable_select(['browserA', 'browserC']).unstable_filter((e) => e.isExisting())
-
-            expect(existingHeaders.instances).toEqual(expect.arrayContaining(['browserA', 'browserC']))
-            const headerExistence = await existingHeaders.isExisting()
-            expect(headerExistence).toEqual([true, true])
-        })
-
-        it('should be able to select on multi-remote browser', async () => {
-            await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
-            // Remove h1 from browserB to ensure it would fail if accessed
-            await browserB.execute(() => {
-                document.querySelector('header')?.remove()
+                const browserAText = await browserAHeader.getText()
+                expect(browserAText).toEqual(['WebdriverJS Testpage'])
             })
 
-            // Select only browserA, so browserB's missing element shouldn't matter
-            const header = await multiRemoteBrowser.unstable_select('browserA').$('header')
+            it('should be able to select two specific instance on multi-remote element', async () => {
+                await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
 
-            expect(await header.instances).toEqual(['browserA'])
-            expect(await header.isExisting()).toEqual([true])
-        })
+                const title = multiRemoteBrowser.$('header').$('h1')
+                const browserAHeader = title.unstable_select('browserA', 'browserC')
 
-        it('should allow chaining select with 1 browser on element query', async () => {
-            await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
+                expect(await browserAHeader.instances).toEqual(['browserA', 'browserC'])
+                expect(await browserAHeader.isExisting()).toEqual([true, true])
 
-            const header = await multiRemoteBrowser.unstable_select('browserA').$('header').$('h1').getText()
+                const browserAText = await browserAHeader.getText()
+                expect(browserAText).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
+            })
 
-            expect(header).toEqual(['WebdriverJS Testpage'])
-        })
+            it('should be able to select multiple instances with a non existing one', async () => {
+                await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
 
-        it('should allow chaining select with 2 browser on element query', async () => {
-            await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
+                const title = multiRemoteBrowser.$('header').$('h1')
+                const browserAHeader = title.unstable_select('browserA', 'browserC', 'non-existing')
 
-            const header = await multiRemoteBrowser.unstable_select(['browserA', 'browserC']).$('header').$('h1').getText()
+                expect(await browserAHeader.instances).toEqual(['browserA', 'browserC'])
+                expect(await browserAHeader.isExisting()).toEqual([true, true])
 
-            expect(header).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
-        })
+                const browserAText = await browserAHeader.getText()
+                expect(browserAText).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
+            })
 
-        // TODO Review if scoping on element should be preserved when chaining $() on a selected element, or if it should reset to all instances!!
-        it('should keep instance scope when using select on a chained $ from an element????', async () => {
-            await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
+            it('should throws if no valid instances are selected', async () => {
+                await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
 
-            expect(await browserA.$('header').$('h1').getText()).toEqual('WebdriverJS Testpage')
+                const title = multiRemoteBrowser.$('header').$('h1')
+                // @ts-expect-error: rejects seems missing...
+                await expect(() => title.unstable_select('non-existing').instances).rejects.toThrow('None of the following requested instances are valid: non-existing')
+            })
 
-            // On browser, using select we do keep the selected instance scope, so we can chain $ and get the element from the selected browser
-            const browserChainedText = await multiRemoteBrowser.unstable_select('browserA').$('header').$('h1').getText()
-            expect(browserChainedText).toEqual(['WebdriverJS Testpage'])
+            it('should be able to select 1 instance on the multi-remote browser', async () => {
+                await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
+                await browserB.url('about:blank')
 
-            // Selecting only for value it works!
-            const elementTextFromChainedSelected = await multiRemoteBrowser.$('header').$('h1').unstable_select('browserA').getText()
-            expect(elementTextFromChainedSelected).toEqual(['WebdriverJS Testpage'])
+                // Select only browserA, so browserB's missing element shouldn't matter
+                const header = await multiRemoteBrowser.unstable_select('browserA').$('header')
 
-            // However, should we do the same when selecting on a element and chaining $()?
-            const elementTextFromChainedParentSelected = await multiRemoteBrowser.$('header').unstable_select('browserA').$('h1').getText()
-            expect(elementTextFromChainedParentSelected).toEqual(['WebdriverJS Testpage'])
-        })
+                expect(await header.instances).toEqual(['browserA'])
+                expect(await header.isExisting()).toEqual([true])
+            })
 
-        // TODO part of unstable API, to fix later
-        it.skip('should return empty array and not dispatch to all browsers when filter excludes everything (Bug 2)', async () => {
-            // about:blank has no h1 in any browser
-            await multiRemoteBrowser.url('about:blank')
+            it('should be able to select 2 instances on the multi-remote browser', async () => {
+                await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
+                await browserB.url('about:blank')
 
-            const header = await multiRemoteBrowser.$('h1')
-            const existing = await header.unstable_filter((e) => e.isExisting())
+                const header = await multiRemoteBrowser.unstable_select('browserA', 'browserB').$('header')
 
-            // All instances excluded → empty selection
-            expect(existing.instances).toHaveLength(0)
+                expect(await header.instances).toEqual(expect.arrayContaining(['browserA', 'browserB']))
+                expect(await header.isExisting()).toEqual([true, false])
+            })
 
-            // Bug 2: selector is null on the empty element, so commandWrapper skips the
-            // mElem.instances branch and falls back to Object.entries(instances) — the full set
-            // Throws instance[commandName] is not a function
-            const texts = await existing.getText()
-            expect(texts).toEqual([])  // ← fails today: returns ['', '', ''] (3 browsers executed)
+            it('should be able to select 2 instances on the multi-remote browser and a non-existing one', async () => {
+                await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
+                await browserB.url('about:blank')
+
+                const header = await multiRemoteBrowser.unstable_select('browserA', 'browserB', 'non-existing').$('header')
+
+                expect(await header.instances).toEqual(expect.arrayContaining(['browserA', 'browserB']))
+                expect(await header.isExisting()).toEqual([true, false])
+            })
+
+            it('should throw when no valid instances are selected', async () => {
+                await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
+                await browserB.url('about:blank')
+
+                // @ts-expect-error: rejects seems missing...
+                await expect(async () => multiRemoteBrowser.unstable_select('non-existing')).rejects.toThrow('None of the following requested instances are valid: non-existing')
+            })
+
+            it('should allow chaining select with 1 browser on element query', async () => {
+                await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
+
+                const header = await multiRemoteBrowser.unstable_select('browserA').$('header').$('h1').getText()
+
+                expect(header).toEqual(['WebdriverJS Testpage'])
+            })
+
+            it('should allow chaining select with 2 browser on element query', async () => {
+                await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
+
+                const header = await multiRemoteBrowser.unstable_select('browserA', 'browserC').$('header').$('h1').getText()
+
+                expect(header).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
+            })
+
+            // TODO Review if scoping on element should be preserved when chaining $() on a selected element, or if it should reset to all instances!!
+            it('should keep instance scope when using select on a chained $ from an element????', async () => {
+                await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
+
+                expect(await browserA.$('header').$('h1').getText()).toEqual('WebdriverJS Testpage')
+
+                // On browser, using select we do keep the selected instance scope, so we can chain $ and get the element from the selected browser
+                const browserChainedText = await multiRemoteBrowser.unstable_select('browserA').$('header').$('h1').getText()
+                expect(browserChainedText).toEqual(['WebdriverJS Testpage'])
+
+                // Selecting only for value it works!
+                const elementTextFromChainedSelected = await multiRemoteBrowser.$('header').$('h1').unstable_select('browserA').getText()
+                expect(elementTextFromChainedSelected).toEqual(['WebdriverJS Testpage'])
+
+                // However, should we do the same when selecting on a element and chaining $()?
+                const elementTextFromChainedParentSelected = await multiRemoteBrowser.$('header').unstable_select('browserA').$('h1').getText()
+                expect(elementTextFromChainedParentSelected).toEqual(['WebdriverJS Testpage'])
+            })
         })
 
         it('should always have selector for MultiRemoteElement[] when some browsers have no matching elements', async () => {
