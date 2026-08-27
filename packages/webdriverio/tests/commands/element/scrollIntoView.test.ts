@@ -231,6 +231,42 @@ describe('scrollIntoView test', () => {
 
                 expect(hasWebApiFallbackCall()).toBe(false)
             })
+
+            it('does not skip straight to returning for a clipped element whose "nearest" delta computes to zero', async () => {
+                // `computeDelta`'s "nearest" branch decides an axis needs no delta using the
+                // same window-bounds arithmetic `isPainted` exists to correct for - so a
+                // clipped-but-in-bounds element can compute a (0, 0) delta on the very first
+                // measurement despite `isPainted: false`. Trusting that delta alone would
+                // return immediately, skipping both the probe and the Web API fallback, and
+                // scrollIntoView would do nothing at all for a genuinely invisible element.
+                const clippedZeroDeltaRect = {
+                    elemRect: { x: 15, y: 20, height: 30, width: 50 },
+                    viewport: { width: 600, height: 800 },
+                    scroll: { x: 0, y: 0 },
+                    isPainted: false
+                }
+                vi.spyOn(browser, 'execute')
+                    .mockResolvedValueOnce(clippedZeroDeltaRect)
+                    .mockResolvedValueOnce({ ...clippedZeroDeltaRect, isPainted: true })
+                    .mockResolvedValueOnce({ ...clippedZeroDeltaRect, isPainted: true })
+
+                await elem.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+
+                const scrollCalls = vi.mocked(fetch).mock.calls.filter(([, requestOptions]) => {
+                    try {
+                        return JSON.parse((requestOptions as any)?.body)?.actions?.[0]?.actions?.[0]?.type === 'scroll'
+                    } catch {
+                        return false
+                    }
+                })
+                // the zero-delta probe must still have been sent, proving the early return
+                // didn't fire just because the "nearest" delta happened to be (0, 0)
+                expect(scrollCalls).toHaveLength(1)
+                const probeAction = JSON.parse((scrollCalls[0][1] as any).body).actions[0].actions[0]
+                expect(probeAction).toMatchObject({ deltaX: 0, deltaY: 0 })
+
+                expect(hasWebApiFallbackCall()).toBe(false)
+            })
         })
 
         it('skips the origin probe when the element already starts within the viewport', async () => {

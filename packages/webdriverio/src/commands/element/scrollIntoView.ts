@@ -234,8 +234,13 @@ export async function scrollIntoView (
         const initialMeasurement = await measure()
         const initialDelta = computeDelta(initialMeasurement)
 
-        // element is already positioned as requested, nothing to scroll
-        if (initialDelta.deltaX === 0 && initialDelta.deltaY === 0) {
+        // element is already positioned as requested, nothing to scroll - but only trust
+        // that when it's actually painted there. For "nearest" alignment, `computeDelta`
+        // itself decides an axis needs no delta using the same window-bounds arithmetic
+        // that can't see clipping/occlusion (see `isPainted` below); trusting a zero delta
+        // alone here would skip the probe *and* the fallback entirely for a genuinely
+        // clipped element, doing nothing at all.
+        if (initialMeasurement.isPainted && initialDelta.deltaX === 0 && initialDelta.deltaY === 0) {
             return
         }
 
@@ -278,31 +283,34 @@ export async function scrollIntoView (
 
         /**
          * real browsers apply wheel-driven scrolling asynchronously (e.g. inertial
-         * scrolling), so `window.scrollX/Y` may not reflect the final position right
-         * after the action resolves. Wait until the scroll position stops changing
-         * across consecutive animation frames instead of assuming it's done.
+         * scrolling), so the element's position may not reflect its final resting place
+         * right after the action resolves. Wait until it stops changing across
+         * consecutive animation frames instead of assuming it's done.
+         *
+         * Tracks the element's own `getBoundingClientRect()`, not `window.scrollX/Y`:
+         * a nested-container scroll never touches the window's own scroll position, so
+         * polling only that would report "settled" immediately (nothing to compare
+         * against ever changes) while the container's own inertial scroll is still
+         * animating underneath.
          */
         // `execute` doesn't await promises under the classic WebDriver protocol, only Bidi,
         // so `executeAsync` is still required here to reliably wait under both protocols
         // @ts-ignore `executeAsync` is deprecated in favor of `execute`, see comment above
-        await browser.executeAsync((done: () => void) => {
+        await browser.executeAsync((elem: HTMLElement, done: () => void) => {
             try {
-                let lastX = window.scrollX
-                let lastY = window.scrollY
+                let last = elem.getBoundingClientRect()
                 let stableFrames = 0
                 let totalFrames = 0
                 const maxFrames = 60
 
                 const check = () => {
                     totalFrames++
-                    const x = window.scrollX
-                    const y = window.scrollY
-                    if (x === lastX && y === lastY) {
+                    const current = elem.getBoundingClientRect()
+                    if (current.top === last.top && current.left === last.left) {
                         stableFrames++
                     } else {
                         stableFrames = 0
-                        lastX = x
-                        lastY = y
+                        last = current
                     }
                     if (stableFrames >= 2 || totalFrames >= maxFrames) {
                         return done()
@@ -313,7 +321,10 @@ export async function scrollIntoView (
             } catch {
                 done()
             }
-        })
+        }, {
+            [ELEMENT_KEY]: this.elementId, // w3c compatible
+            ELEMENT: this.elementId, // jsonwp compatible
+        } as unknown as HTMLElement)
 
         /**
          * Not every WebDriver implementation performs the element-origin pre-scroll
