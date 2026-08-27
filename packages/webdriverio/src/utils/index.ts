@@ -244,7 +244,8 @@ export function isStaleElementError(err: Error) {
         // Chrome through JS execution
         err.message.includes('stale element not found in the current frame') ||
         // BIDI
-        err.message.includes('belongs to different document')
+        err.message.includes('belongs to different document') ||
+        err.message.includes('no such node - The node with the reference')
     )
 }
 
