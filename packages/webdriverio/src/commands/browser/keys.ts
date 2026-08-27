@@ -22,8 +22,9 @@ import { checkUnicode } from '../../utils/index.js'
  * See the [Key API docs](/docs/api/modules#key) for a complete list.
  *
  * Modifier keys like `Control`, `Shift`, `Alt` and `Command` will stay pressed throughout the sequence and will be released
- * at the end. To combine keyboard input with pointer actions, use
- * [`browser.action()`](https://webdriver.io/docs/api/browser/action) instead.
+ * at the end. To combine keyboard input with pointer actions, build separate input-source chains with
+ * [`browser.action()`](https://webdriver.io/docs/api/browser/action) and submit them together with
+ * [`browser.actions()`](https://webdriver.io/docs/api/browser/actions).
  *
  * :::info Cross-Platform Modifier
  *
