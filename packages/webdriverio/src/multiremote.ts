@@ -18,7 +18,6 @@ export default class MultiRemote {
     baseInstance?: MultiRemoteDriver
     sessionId?: string
     usedUnstableSelectAPIOnElementScope = false
-    enableMultiRemoteElementArray = false
 
     /**
      * add instance to multibrowser instance
@@ -31,7 +30,7 @@ export default class MultiRemote {
     /**
      * modifier for multibrowser instance
      */
-    modifier (wrapperClient: { options: Options.WebdriverIO, commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'unstable_select')[] }) {
+    modifier (wrapperClient: { options: Options.WebdriverIO, commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'unstable_select')[], enableMultiRemoteElementArray: boolean }) {
         const propertiesObject: Record<string, PropertyDescriptor> = {}
         propertiesObject.commandList = { value: wrapperClient.commandList }
         propertiesObject.options = { value: wrapperClient.options }
@@ -238,7 +237,7 @@ export default class MultiRemote {
                 const wrappedResult = zippedResult.map((singleResult) => MultiRemote.elementWrapper(activeInstances, singleResult, this.__propertiesObject__, self, typeof selector === 'string' ? selector : undefined))
 
                 // TODO remove this flag in v10
-                if (!self.enableMultiRemoteElementArray) {
+                if (process.env.WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY !== 'true') {
                     return wrappedResult
                 }
 

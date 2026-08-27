@@ -1,7 +1,6 @@
 import { multiRemoteBrowser, expect } from '@wdio/globals'
 import type { ElementArray } from 'webdriverio'
 import { Key } from 'webdriverio'
-import type MultiRemote from '../../../packages/webdriverio/src/multiremote.js'
 
 let browserA: WebdriverIO.Browser
 let browserB: WebdriverIO.Browser
@@ -222,23 +221,30 @@ describe('multi remote test', () => {
             expect(elements[1].selector).toBe('h1')
         })
 
-        it('should return an ElementArray at runtime', async () => {
-            (multiRemoteBrowser as unknown as MultiRemote).enableMultiRemoteElementArray = true
+        describe('when enabling process.env.WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY', () => {
+            before(() => {
+                process.env.WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY = 'true'
+            })
 
-            await multiRemoteBrowser.getInstance('browserA').url('about:blank')
-            await multiRemoteBrowser.getInstance('browserB').url('about:blank')
-            await multiRemoteBrowser.getInstance('browserC').url('about:blank')
+            after(() => {
+                process.env.WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY = 'false'
+            })
 
-            const elements = await multiRemoteBrowser.$$('h1')
+            it('should return an ElementArray at runtime', async () => {
+                await multiRemoteBrowser.getInstance('browserA').url('about:blank')
+                await multiRemoteBrowser.getInstance('browserB').url('about:blank')
+                await multiRemoteBrowser.getInstance('browserC').url('about:blank')
 
-            console.log('elements', elements)
-            expect(elements).toHaveLength(0)
-            expect(elements).toHaveProperty('selector')
-            expect((elements as unknown as ElementArray).selector).toBe('h1')
-            expect((elements as unknown as ElementArray).foundWith).toBe('$$')
-            expect((elements as unknown as ElementArray).parent).toBeDefined()
-            expect((elements as unknown as ElementArray).getElements).toBeDefined()
-            expect(Array.isArray(elements)).toBe(true)
+                const elements = await multiRemoteBrowser.$$('h1')
+
+                expect(elements).toHaveLength(0)
+                expect(elements).toHaveProperty('selector')
+                expect((elements as unknown as ElementArray).selector).toBe('h1')
+                expect((elements as unknown as ElementArray).foundWith).toBe('$$')
+                expect((elements as unknown as ElementArray).parent).toBeDefined()
+                expect((elements as unknown as ElementArray).getElements).toBeDefined()
+                expect(Array.isArray(elements)).toBe(true)
+            })
         })
     })
 })
