@@ -128,7 +128,7 @@ async function getCookiesClassic(
     return allCookies.filter(cookie => (
         !filter || (typeof filter === 'object' && (
             (filter.name === undefined || filter.name === cookie.name) &&
-            (filter.value === undefined || filter.value.value === cookie.value) &&
+            (filter.value === undefined || filter.value?.value === cookie.value) &&
             (filter.path === undefined || filter.path === cookie.path) &&
             (filter.domain === undefined || filter.domain === cookie.domain) &&
             (filter.sameSite === undefined || filter.sameSite === cookie.sameSite) &&

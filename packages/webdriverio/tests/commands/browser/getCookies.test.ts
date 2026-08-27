@@ -92,6 +92,12 @@ describe('getCookies', () => {
             expect(cookies).toEqual([])
         })
 
+        it('should not throw for an invalid cookie value filter', async () => {
+            // @ts-expect-error test invalid input
+            const cookies = await browser.getCookies({ value: null })
+            expect(cookies).toEqual([])
+        })
+
         afterEach(() => {
             vi.mocked(fetch).mockClear()
         })
