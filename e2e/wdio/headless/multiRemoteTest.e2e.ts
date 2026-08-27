@@ -1,6 +1,7 @@
 import { multiRemoteBrowser, expect } from '@wdio/globals'
 import type { ElementArray } from 'webdriverio'
 import { Key } from 'webdriverio'
+import type MultiRemote from '../../../packages/webdriverio/src/multiremote.js'
 
 let browserA: WebdriverIO.Browser
 let browserB: WebdriverIO.Browser
@@ -222,6 +223,7 @@ describe('multi remote test', () => {
         })
 
         it('should return an ElementArray at runtime', async () => {
+            (multiRemoteBrowser as unknown as MultiRemote).enableMultiRemoteElementArray = true
 
             await multiRemoteBrowser.getInstance('browserA').url('about:blank')
             await multiRemoteBrowser.getInstance('browserB').url('about:blank')

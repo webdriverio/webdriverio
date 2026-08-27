@@ -18,6 +18,7 @@ export default class MultiRemote {
     baseInstance?: MultiRemoteDriver
     sessionId?: string
     usedUnstableSelectAPIOnElementScope = false
+    enableMultiRemoteElementArray = false
 
     /**
      * add instance to multibrowser instance
@@ -235,6 +236,12 @@ export default class MultiRemote {
                 const selector = args[0] as Selector
                 const zippedResult = zip(...result)
                 const wrappedResult = zippedResult.map((singleResult) => MultiRemote.elementWrapper(activeInstances, singleResult, this.__propertiesObject__, self, typeof selector === 'string' ? selector : undefined))
+
+                // TODO remove this flag in v10
+                if (!self.enableMultiRemoteElementArray) {
+                    return wrappedResult
+                }
+
                 // TODO in v10, let's do a proper MultiRemoteElementArray type instead of casting
                 const elementArray = enhanceElementsArray(
                     wrappedResult as unknown as WebdriverIO.Element[],
