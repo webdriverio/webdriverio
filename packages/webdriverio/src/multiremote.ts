@@ -38,7 +38,7 @@ export default class MultiRemote {
 
         // Allows to preserve element scope custom commands
         const propertiesObject: Record<string, PropertyDescriptor> = Object.fromEntries(
-            Object.entries(wrapperClient.__propertiesObject__).map(([name, descriptor]) => [name, { ...descriptor }]))
+            Object.entries(wrapperClient.__propertiesObject__ ?? {}).map(([name, descriptor]) => [name, { ...descriptor }]))
         propertiesObject.commandList = { value: wrapperClient.commandList }
         propertiesObject.options = { value: wrapperClient.options }
         propertiesObject.getInstance = {
