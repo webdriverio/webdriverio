@@ -60,7 +60,7 @@ export default class MultiRemote {
                 }
 
                 // Allows to preserve element scope custom commands
-                const __propertiesObject__=(this as unknown as {
+                const __propertiesObject__= (this as unknown as {
                     __propertiesObject__: Record<string, PropertyDescriptor>
                 }).__propertiesObject__
 
