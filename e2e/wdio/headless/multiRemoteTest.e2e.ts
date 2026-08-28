@@ -240,7 +240,7 @@ describe('multi remote test', () => {
 
             })
 
-            describe.only('should preserve custom commands, capabilities and more', () => {
+            describe('should preserve custom commands, capabilities and more', () => {
                 before(async () => {
                     await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
                     multiRemoteBrowser.addCommand(
