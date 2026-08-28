@@ -44,11 +44,6 @@ export default class MultiRemote {
             value: (browserName: string) => this.instances[browserName]
         }
 
-        // TODO: calling addLocatorStrategy seems to fail with `scope.strategies.get is not a function`
-        if (wrapperClient.addLocatorStrategy !== undefined) {
-            propertiesObject.addLocatorStrategy = { value: wrapperClient.addLocatorStrategy }
-        }
-
         propertiesObject.unstable_select = {
             value: (...instanceNames: string[]) => {
                 // TODO dprevost: Is the below enough, should we use multiremote()?
