@@ -42,6 +42,20 @@ describe('isExisting test', () => {
 
     })
 
+    it('should use findElement (single) on mobile', async () => {
+        const mobileBrowser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'iOS'
+            }
+        })
+        const elem = await mobileBrowser.$('#foo')
+        await elem.isExisting()
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
+            .toBe('/session/foobar-123/element')
+    })
+
     afterEach(() => {
         vi.mocked(fetch).mockClear()
     })
