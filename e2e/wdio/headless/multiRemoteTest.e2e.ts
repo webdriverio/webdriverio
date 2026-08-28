@@ -288,13 +288,13 @@ describe('multi remote test', () => {
                 })
 
                 it('preserve overridden elements commands on multiRemoteBrowser', async () => {
-                    multiRemoteBrowser.overwriteCommand('getText', async function (originalCommand) {
-                        return `${await originalCommand()} (overwritten)`
+                    multiRemoteBrowser.overwriteCommand('getValue', async function (_originalCommand) {
+                        return 'getValue (overwritten)'
                     }, true)
 
-                    expect(await multiRemoteBrowser.$('header').$('h1').getText()).toEqual(['WebdriverJS Testpage (overwritten)', 'WebdriverJS Testpage (overwritten)', 'WebdriverJS Testpage (overwritten)'])
-                    expect(await multiRemoteBrowser.unstable_select('browserA', 'browserB').$('header').$('h1').getText()).toEqual(['WebdriverJS Testpage (overwritten)', 'WebdriverJS Testpage (overwritten)'])
-                    expect(await multiRemoteBrowser.$('header').$('h1').unstable_select('browserA', 'browserB').getText()).toEqual(['WebdriverJS Testpage (overwritten)', 'WebdriverJS Testpage (overwritten)'])
+                    expect(await multiRemoteBrowser.$('header').$('h1').getValue()).toEqual(['getValue (overwritten)', 'getValue (overwritten)', 'getValue (overwritten)'])
+                    expect(await multiRemoteBrowser.unstable_select('browserA', 'browserB').$('header').$('h1').getValue()).toEqual(['getValue (overwritten)', 'getValue (overwritten)'])
+                    expect(await multiRemoteBrowser.$('header').$('h1').unstable_select('browserA', 'browserB').getValue()).toEqual(['getValue (overwritten)', 'getValue (overwritten)'])
                 })
 
                 it('should preserve custom commands when selecting element', async () => {

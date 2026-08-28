@@ -34,10 +34,11 @@ export default class MultiRemote {
         commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'unstable_select')[], __propertiesObject__: Record<string, PropertyDescriptor>
         addLocatorStrategy?: WebdriverIO.MultiRemoteBrowser['addLocatorStrategy']
     }) {
-        // TODO what does that copy more?
-        // const propertiesObject: Record<string, PropertyDescriptor> = Object.fromEntries(
-        //     Object.entries(wrapperClient.__propertiesObject__).map(([name, descriptor]) => [name, { ...descriptor }]))
-        const propertiesObject: Record<string, PropertyDescriptor> = {}
+        const parentThis: MultiRemote = this
+
+        // Allows to preserve element scope custom commands
+        const propertiesObject: Record<string, PropertyDescriptor> = Object.fromEntries(
+            Object.entries(wrapperClient.__propertiesObject__).map(([name, descriptor]) => [name, { ...descriptor }]))
         propertiesObject.commandList = { value: wrapperClient.commandList }
         propertiesObject.options = { value: wrapperClient.options }
         propertiesObject.getInstance = {
@@ -45,22 +46,29 @@ export default class MultiRemote {
         }
 
         propertiesObject.unstable_select = {
-            value: (...instanceNames: string[]) => {
-                // TODO dprevost: Is the below enough, should we use multiremote()?
+            value: function (this: WebdriverIO.MultiRemoteBrowser, ...instanceNames: string[]) {
                 const newMultiRemote = new MultiRemote()
-
                 newMultiRemote.instances = instanceNames.reduce((acc, name) => {
-                    if (this.instances[name]) {
-                        acc[name] = this.instances[name]
+                    if (parentThis.instances[name]) {
+                        acc[name] = parentThis.instances[name]
                     }
-                    // Skipping instances that are not part of the current multi-remote setup
                     return acc
                 }, {} as Record<string, WebdriverIO.Browser>)
 
                 if (Object.keys(newMultiRemote.instances).length === 0) {
                     throw new Error('None of the following requested instances are valid: ' + instanceNames.join(', '))
                 }
-                return newMultiRemote.modifier(wrapperClient)
+
+                // Allows to preserve element scope custom commands
+                const __propertiesObject__=(this as unknown as {
+                    __propertiesObject__: Record<string, PropertyDescriptor>
+                }).__propertiesObject__
+
+                return newMultiRemote.modifier({
+                    options: wrapperClient.options,
+                    commandList: wrapperClient.commandList,
+                    __propertiesObject__
+                })
             },
             configurable: true,
             writable: true
