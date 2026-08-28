@@ -32,22 +32,18 @@ export default class MultiRemote {
     modifier (wrapperClient: {
         options: Options.WebdriverIO,
         commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'unstable_select')[], __propertiesObject__: Record<string, PropertyDescriptor>
-        capabilities?: WebdriverIO.MultiRemoteBrowser['capabilities']
         addLocatorStrategy?: WebdriverIO.MultiRemoteBrowser['addLocatorStrategy']
     }) {
         // TODO what does that copy more?
-        const propertiesObject: Record<string, PropertyDescriptor> = Object.fromEntries(
-            Object.entries(wrapperClient.__propertiesObject__).map(([name, descriptor]) => [name, { ...descriptor }]))
-        // const propertiesObject: Record<string, PropertyDescriptor> = {}
+        // const propertiesObject: Record<string, PropertyDescriptor> = Object.fromEntries(
+        //     Object.entries(wrapperClient.__propertiesObject__).map(([name, descriptor]) => [name, { ...descriptor }]))
+        const propertiesObject: Record<string, PropertyDescriptor> = {}
         propertiesObject.commandList = { value: wrapperClient.commandList }
         propertiesObject.options = { value: wrapperClient.options }
         propertiesObject.getInstance = {
             value: (browserName: string) => this.instances[browserName]
         }
-        // TODO: capabilities seems to be undefined anyway? Normal?
-        if (wrapperClient.capabilities !== undefined) {
-            propertiesObject.capabilities = { value: wrapperClient.capabilities }
-        }
+
         // TODO: calling addLocatorStrategy seems to fail with `scope.strategies.get is not a function`
         if (wrapperClient.addLocatorStrategy !== undefined) {
             propertiesObject.addLocatorStrategy = { value: wrapperClient.addLocatorStrategy }

@@ -317,7 +317,7 @@ describe('multi remote test', () => {
                     expect(selected.capabilities).toBe(multiRemoteBrowser.capabilities)
                 })
 
-                // TODO fail on `multiRemoteBrowser.addLocatorStrategy` with `scope.strategies.get is not a function`
+                // AddLocatorStrategy is just boken see: https://github.com/webdriverio/webdriverio/issues/15540
                 it.skip('should preserved addLocatorStrategy', async () => {
                     multiRemoteBrowser.addLocatorStrategy('selectHeader', (selector: any) => document.querySelector(selector) as HTMLElement)
                     const selected = multiRemoteBrowser.unstable_select('browserA')
