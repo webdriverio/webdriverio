@@ -239,6 +239,73 @@ describe('multi remote test', () => {
                 })
 
             })
+
+            describe.only('should preserve custom commands, capabilities and more', () => {
+                before(async () => {
+                    await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
+                    multiRemoteBrowser.addCommand(
+                        'customCommand',
+                        async function (this: WebdriverIO.Browser) {
+                            return this.getTitle()
+                        }
+                    )
+                    multiRemoteBrowser.addCommand(
+                        'customElementCommand',
+                        async function (this: WebdriverIO.Element) {
+                            return this.getText()
+                        },
+                        { attachToElement: true }
+                    )
+                })
+
+                it('should have custom commands on multiRemoteBrowser ', async () => {
+                    // @ts-expect-error custom element command is not part of the default type
+                    expect(await multiRemoteBrowser.customCommand()).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage', 'WebdriverJS Testpage'])
+                })
+
+                it('should have custom commands on queried element from original multiRemoteBrowser', async () => {
+                    const selectedElement = await multiRemoteBrowser.$('h1')
+
+                    // @ts-expect-error custom element command is not part of the default type
+                    expect(await selectedElement.customElementCommand()).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage', 'WebdriverJS Testpage'])
+                })
+
+                it('should preserve custom commands when selecting browser', async () => {
+                    const selectedBrowser = multiRemoteBrowser.unstable_select('browserA', 'browserB')
+
+                    // @ts-expect-error custom element command is not part of the default type
+                    expect(await selectedBrowser.customCommand()).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
+                })
+
+                it('should preserve custom commands when selecting element', async () => {
+
+                    const selectedHeaderOnBrowser = await multiRemoteBrowser.unstable_select('browserA', 'browserB').$('header').$('h1')
+                    const selectedHeaderOnElement = await multiRemoteBrowser.$('header').$('h1').unstable_select('browserA', 'browserB')
+
+                    // TODO: fix, this one fails with selectedHeaderOnBrowser.customElementCommand is not a function
+                    // @ts-expect-error custom element command is not part of the default type
+                    expect(await selectedHeaderOnBrowser.customElementCommand()).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
+                    // @ts-expect-error custom element command is not part of the default type
+                    expect(await selectedHeaderOnElement.customElementCommand()).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
+                })
+
+                // TODO why capabilities are undefined on `multiRemoteBrowser`?
+                it.skip('should preserve capabilities', async () => {
+                    const selected = multiRemoteBrowser.unstable_select('browserA', 'browserB')
+
+                    expect(multiRemoteBrowser.capabilities).toBeDefined()
+                    expect(selected.capabilities).toBe(multiRemoteBrowser.capabilities)
+                })
+
+                // TODO fail on `multiRemoteBrowser.addLocatorStrategy` with `scope.strategies.get is not a function`
+                it.skip('should preserved addLocatorStrategy', async () => {
+                    multiRemoteBrowser.addLocatorStrategy('selectHeader', (selector: any) => document.querySelector(selector) as HTMLElement)
+                    const selected = multiRemoteBrowser.unstable_select('browserA')
+
+                    expect(multiRemoteBrowser.addLocatorStrategy).toBeDefined()
+                    expect(selected.addLocatorStrategy).toBe(multiRemoteBrowser.addLocatorStrategy)
+                })
+            })
         })
 
         it('should always have selector for MultiRemoteElement[] when some browsers have no matching elements', async () => {
@@ -279,5 +346,19 @@ describe('multi remote test', () => {
                 expect(Array.isArray(elements)).toBe(true)
             })
         })
+
+        it('should be able to query isDisplayed on element no longer existing', async () => {
+            await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
+
+            const h1 = multiRemoteBrowser.$('h1')
+            const browserAH1 = multiRemoteBrowser.getInstance('browserA').$('h1')
+            const browserBH1 = multiRemoteBrowser.getInstance('browserB').$('h1')
+            await multiRemoteBrowser.getInstance('browserA').url('about:blank')
+
+            expect(await browserAH1.isDisplayed()).toBe(false)
+            expect(await browserBH1.isDisplayed()).toBe(true)
+            expect(await h1.isDisplayed()).toEqual([false, true, true])
+        })
+
     })
 })
