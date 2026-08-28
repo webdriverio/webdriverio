@@ -182,8 +182,7 @@ describe('multi remote test', () => {
                 expect(header).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
             })
 
-            // TODO Review if scoping on element should be preserved when chaining $() on a selected element, or if it should reset to all instances!!
-            it('should keep instance scope when using select on a chained $ from an element????', async () => {
+            it('should keep instance scope when using select on a chained $ from an element', async () => {
                 await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
 
                 expect(await browserA.$('header').$('h1').getText()).toEqual('WebdriverJS Testpage')
@@ -278,7 +277,7 @@ describe('multi remote test', () => {
                 })
 
                 // TODO: to fix
-                it.skip('preserve overridden commands on multiRemoteBrowser', async () => {
+                it('preserve overridden commands on multiRemoteBrowser', async () => {
                     multiRemoteBrowser.overwriteCommand('getCookies', async function (_originalCommand) {
                         return 'getCookies (overwritten)'
                     })
@@ -302,22 +301,13 @@ describe('multi remote test', () => {
                     const selectedHeaderOnBrowser = await multiRemoteBrowser.unstable_select('browserA', 'browserB').$('header').$('h1')
                     const selectedHeaderOnElement = await multiRemoteBrowser.$('header').$('h1').unstable_select('browserA', 'browserB')
 
-                    // TODO: fix, this one fails with selectedHeaderOnBrowser.customElementCommand is not a function
                     // @ts-expect-error custom element command is not part of the default type
                     expect(await selectedHeaderOnBrowser.customElementCommand()).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
                     // @ts-expect-error custom element command is not part of the default type
                     expect(await selectedHeaderOnElement.customElementCommand()).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
                 })
 
-                // TODO why capabilities are undefined on `multiRemoteBrowser`?
-                it.skip('should preserve capabilities', async () => {
-                    const selected = multiRemoteBrowser.unstable_select('browserA', 'browserB')
-
-                    expect(multiRemoteBrowser.capabilities).toBeDefined()
-                    expect(selected.capabilities).toBe(multiRemoteBrowser.capabilities)
-                })
-
-                // AddLocatorStrategy is just boken see: https://github.com/webdriverio/webdriverio/issues/15540
+                // AddLocatorStrategy is just broken see: https://github.com/webdriverio/webdriverio/issues/15540
                 it.skip('should preserved addLocatorStrategy', async () => {
                     multiRemoteBrowser.addLocatorStrategy('selectHeader', (selector: any) => document.querySelector(selector) as HTMLElement)
                     const selected = multiRemoteBrowser.unstable_select('browserA')
