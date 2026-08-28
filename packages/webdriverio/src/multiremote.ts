@@ -32,7 +32,6 @@ export default class MultiRemote {
     modifier (wrapperClient: {
         options: Options.WebdriverIO,
         commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'unstable_select')[], __propertiesObject__: Record<string, PropertyDescriptor>
-        addLocatorStrategy?: WebdriverIO.MultiRemoteBrowser['addLocatorStrategy']
     }) {
         const parentThis: MultiRemote = this
 
