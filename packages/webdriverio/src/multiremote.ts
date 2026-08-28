@@ -17,7 +17,6 @@ export default class MultiRemote {
     instances: Record<string, WebdriverIO.Browser> = {}
     baseInstance?: MultiRemoteDriver
     sessionId?: string
-    usedUnstableSelectAPIOnElementScope = false
 
     /**
      * add instance to multibrowser instance
@@ -40,7 +39,6 @@ export default class MultiRemote {
 
         propertiesObject.unstable_select = {
             value: (...instanceNames: string[]) => {
-                console.log('propertiesObject.unstable_select)')
                 // TODO dprevost: Is the below enough, should we use multiremote()?
                 const newMultiRemote = new MultiRemote()
 
@@ -129,7 +127,6 @@ export default class MultiRemote {
             delete client.sessionId
 
             client.unstable_select = function (...instanceNames: string[]) {
-                console.log('client.unstable_select')
                 const selectedResults: unknown[] = []
 
                 const selectedInstances = instanceNames.reduce((acc, name) => {
@@ -173,26 +170,6 @@ export default class MultiRemote {
                 }
                 return this[browserName]
             }
-        } else if (commandName === 'unstable_select') {
-            self.usedUnstableSelectAPIOnElementScope = true
-            return function (this: Record<string, WebdriverIO.Browser | WebdriverIO.Element>, ...instanceNames: string[]) {
-                console.log('commandWrapper.unstable_select')
-                // TODO dprevost: Is the below enough, should we use multiremote()?
-                const newMultiRemote = new MultiRemote()
-
-                newMultiRemote.instances = instanceNames.reduce((acc, name) => {
-                    if (instances[name]) {
-                        acc[name] = instances[name]
-                    }
-                    return acc
-                }, {} as Record<string, WebdriverIO.Browser>)
-
-                if (Object.keys(newMultiRemote.instances).length === 0) {
-                    throw new Error('None of the following requested instances are valid: ' + instanceNames.join(', '))
-                }
-
-                return newMultiRemote
-            }
         }
 
         return wrapCommand(commandName, async function (this: WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement, ...args: unknown[]) {
@@ -212,7 +189,7 @@ export default class MultiRemote {
             )
 
             // Narrow instances to only those actually used in this command call
-            const activeInstances = isElementScope && self.usedUnstableSelectAPIOnElementScope
+            const activeInstances = isElementScope && process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT === 'true'
                 ? thisElement.instances.reduce((instance, instanceName) => (
                     { ...instance, [instanceName]: instances[instanceName] }
                 ), {} as Record<string, WebdriverIO.Browser>)

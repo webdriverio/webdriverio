@@ -74,6 +74,12 @@ describe('multi remote test', () => {
         })
 
         describe('select', () => {
+            before(() => {
+                process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT = 'true'
+            })
+            after(() => {
+                delete process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT
+            })
             it('should be able to select one specific instance on multi-remote element', async () => {
                 await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
 
