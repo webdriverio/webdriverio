@@ -11,7 +11,8 @@ import type { BrowserCommandsType, Selector, WebdriverIOEventMap } from './types
 type EventEmitter = (args: unknown) => void
 type WrappedClient = {
     options: Options.WebdriverIO,
-    commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'unstable_select')[], __propertiesObject__: Record<string, PropertyDescriptor>
+    commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'unstable_select')[],
+    __propertiesObject__?: Record<string, PropertyDescriptor>
 }
 
 /**

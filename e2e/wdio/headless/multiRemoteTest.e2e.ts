@@ -359,7 +359,7 @@ describe('multi remote test', () => {
                     expect(browserA.mobileContext).toBe(undefined)
                     expect(browserA.isMultiremote).toBe(undefined)
 
-                    expect(multiRemoteBrowser.strategies).toBeInstanceOf(Map) // Should be a map?, see https://github.com/webdriverio/webdriverio/issues/15540
+                    expect(multiRemoteBrowser.strategies).toBeInstanceOf(Map)
                     expect(multiRemoteBrowser.isW3C).toBe(true)
                     expect(multiRemoteBrowser.isMobile).toBe(false)
                     expect(multiRemoteBrowser.isIOS).toBe(false)
