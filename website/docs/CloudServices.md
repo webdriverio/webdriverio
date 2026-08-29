@@ -181,3 +181,33 @@ In addition, you need to add cloud configuration, as follows:
   port: 443,
   protocol: "https",
 ```
+
+## RobotActions
+
+[RobotActions](https://robotactions.com) provides real Android and iOS devices alongside browser nodes behind a single endpoint. It authenticates with an API token sent as a bearer header rather than a `user` and `key` pair:
+
+```js
+export const config = {
+  protocol: 'https',
+  hostname: 'grid.robotactions.com',
+  port: 443,
+  path: '/',
+  headers: {
+    Authorization: `Bearer ${process.env.RA_API_TOKEN}`
+  },
+  capabilities: [{
+    browserName: 'chrome'
+  }],
+```
+
+The grid also accepts the token as a `/t/<token>/` path prefix, but WebdriverIO cannot use that form: it is fetch-based, and Node 18 and above reject credentials embedded in a URL. Use the header shown above.
+
+To run against a real device, pass the browser as an Appium capability:
+
+```js
+  capabilities: [{
+    platformName: 'Android',
+    'appium:browserName': 'chrome',
+    'appium:automationName': 'UiAutomator2'
+  }],
+```
