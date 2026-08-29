@@ -5,8 +5,13 @@ import type { Options } from '@wdio/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 
 import { multiremoteHandler } from './middlewares.js'
-import { enhanceElementsArray, getPrototype } from './utils/index.js'
+import { addLocatorStrategyHandler, enhanceElementsArray, getPrototype } from './utils/index.js'
 import type { BrowserCommandsType, Selector, WebdriverIOEventMap } from './types.js'
+
+import * as BrowserCommands from './commands/browser.js'
+import * as ElementCommands from './commands/element.js'
+
+const overridableCommands = new Set(Object.keys(BrowserCommands).concat(Object.keys(ElementCommands)))
 
 type EventEmitter = (args: unknown) => void
 type WrappedClient = {
@@ -40,7 +45,8 @@ export default class MultiRemote {
 
         // Allows to preserve element scope custom commands
         const propertiesObject: Record<string, PropertyDescriptor> = enableMultiRemoteSelect ? Object.fromEntries(
-            Object.entries(wrapperClient.__propertiesObject__ ?? {}).map(([name, descriptor]) => [name, { ...descriptor }])) : {}
+            Object.entries(wrapperClient.__propertiesObject__ ?? {}).map(([name, descriptor]) => [name, { ...descriptor }])
+        ) : {}
         propertiesObject.commandList = { value: wrapperClient.commandList }
         propertiesObject.options = { value: wrapperClient.options }
         propertiesObject.getInstance = {
@@ -69,16 +75,23 @@ export default class MultiRemote {
 
         for (const commandName of wrapperClient.commandList) {
             // Preserved overridden commands
-            if (enableMultiRemoteSelect && !Object.prototype.hasOwnProperty.call(wrapperClient, commandName)) {
+            if (enableMultiRemoteSelect && !Object.prototype.hasOwnProperty.call(wrapperClient, commandName) && overridableCommands.has(commandName)) {
                 delete propertiesObject[commandName]
                 continue
             }
 
+            if (enableMultiRemoteSelect) {
             // Wrap commands only that are functions else it breaks the interface type
-            const isFunction = typeof wrapperClient[commandName] === 'function'
-            propertiesObject[commandName] = {
-                value: isFunction ? this.commandWrapper(commandName) : wrapperClient[commandName],
-                configurable: true
+                const isFunction = typeof wrapperClient[commandName] === 'function'
+                propertiesObject[commandName] = {
+                    value: isFunction ? this.commandWrapper(commandName) : wrapperClient[commandName],
+                    configurable: true
+                }
+            } else {
+                propertiesObject[commandName] = {
+                    value: this.commandWrapper(commandName),
+                    configurable: true
+                }
             }
         }
 
@@ -89,6 +102,10 @@ export default class MultiRemote {
         this.baseInstance = new MultiRemoteDriver(this.instances, propertiesObject)
         const client = Object.create(this.baseInstance, propertiesObject)
 
+        // Preserve addLocatorStrategy if it exists on the wrapper client
+        if (enableMultiRemoteSelect && Object.prototype.hasOwnProperty.call(wrapperClient, 'addLocatorStrategy')) {
+            client.addLocatorStrategy = addLocatorStrategyHandler(client)
+        }
         /**
          * attach instances to wrapper client
          * ToDo(Christian): deprecate and remove

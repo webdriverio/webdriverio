@@ -5,6 +5,8 @@ import { Key, multiremote } from 'webdriverio'
 let browserA: WebdriverIO.Browser
 let browserB: WebdriverIO.Browser
 
+process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT = 'true'
+
 describe('multi remote test', () => {
     before(() => {
         browserA = multiRemoteBrowser.getInstance('browserA')
@@ -80,13 +82,6 @@ describe('multi remote test', () => {
         })
 
         describe('select', () => {
-            before(() => {
-                process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT = 'true'
-            })
-            after(() => {
-                delete process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT
-            })
-
             it('should be able to select one specific instance on multi-remote element', async () => {
                 await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
 
@@ -330,7 +325,7 @@ describe('multi remote test', () => {
                     expect(await selectedHeaderOnElement.customElementCommand()).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
                 })
 
-                it.skip('should preserved addLocatorStrategy', async () => {
+                it('should preserved addLocatorStrategy', async () => {
                     multiRemoteBrowser.addLocatorStrategy('staticStrategy', (_selector: any) => ({ elementId: 'static' }) as unknown as HTMLElement)
                     const selected = multiRemoteBrowser.unstable_select('browserA')
 
