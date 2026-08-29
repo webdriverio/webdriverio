@@ -54,6 +54,12 @@ describe('multi remote test', () => {
         })
     })
 
+    it('can add a locator strategy', async () => {
+        multiRemoteBrowser.addLocatorStrategy('selectHeader', (selector: any) => document.querySelector(selector) as HTMLElement)
+
+        expect(multiRemoteBrowser.addLocatorStrategy).toBeDefined()
+    })
+
     describe('Multi-remote instance', () => {
         it('should have 3 browser titles', async () => {
             await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
@@ -80,6 +86,7 @@ describe('multi remote test', () => {
             after(() => {
                 delete process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT
             })
+
             it('should be able to select one specific instance on multi-remote element', async () => {
                 await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
 
@@ -224,17 +231,34 @@ describe('multi remote test', () => {
                 })
 
                 it('should be able to select 2 instances on the browser', async () => {
-                    const selected = customMultiRemoteBrowser.unstable_select('browserA', 'browserB')
+                    const selected = await customMultiRemoteBrowser.unstable_select('browserA', 'browserB')
 
+                    expect(selected.instances).toEqual(['browserA', 'browserB'])
                     expect(selected.getInstance('browserA')).toBeDefined()
                     expect(selected.getInstance('browserB')).toBeDefined()
                 })
 
                 it('should be able to select 2 instances on the element', async () => {
-                    const selected = customMultiRemoteBrowser.$('h1').unstable_select('browserA', 'browserB')
+                    const selected = await customMultiRemoteBrowser.$('h1').unstable_select('browserA', 'browserB')
 
+                    expect(selected.instances).toEqual(['browserA', 'browserB'])
                     expect(selected.getInstance('browserA')).toBeDefined()
                     expect(selected.getInstance('browserB')).toBeDefined()
+                    expect(() => selected.getInstance('browserC')).toThrow('Multiremote object has no instance named "browserC"')
+                })
+
+                it('should be able to chain select', async () => {
+                    const selected = await customMultiRemoteBrowser.$('h1').unstable_select('browserA', 'browserB').unstable_select('browserA')
+
+                    expect(selected.instances).toEqual(['browserA'])
+                    expect(selected.getInstance('browserA')).toBeDefined()
+                    expect(() => selected.getInstance('browserB')).toThrow('Multiremote object has no instance named "browserB"')
+                })
+
+                it('should be able to select 2 instances on the element', async () => {
+                    const selected = await customMultiRemoteBrowser.$('h1')
+
+                    expect(selected.getInstance('browserA')).toBeDefined()
                 })
 
             })
@@ -306,13 +330,68 @@ describe('multi remote test', () => {
                     expect(await selectedHeaderOnElement.customElementCommand()).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
                 })
 
-                // AddLocatorStrategy is just broken see: https://github.com/webdriverio/webdriverio/issues/15540
                 it.skip('should preserved addLocatorStrategy', async () => {
-                    multiRemoteBrowser.addLocatorStrategy('selectHeader', (selector: any) => document.querySelector(selector) as HTMLElement)
+                    multiRemoteBrowser.addLocatorStrategy('staticStrategy', (_selector: any) => ({ elementId: 'static' }) as unknown as HTMLElement)
                     const selected = multiRemoteBrowser.unstable_select('browserA')
 
                     expect(multiRemoteBrowser.addLocatorStrategy).toBeDefined()
-                    expect(selected.addLocatorStrategy).toBe(multiRemoteBrowser.addLocatorStrategy)
+                    expect(selected.addLocatorStrategy).toBeDefined()
+                })
+
+                it('should preserve non-command properties when selecting a browser', async () => {
+
+                    const selected = multiRemoteBrowser.unstable_select('browserA', 'browserB')
+
+                    expect(browserA.strategies).toBeInstanceOf(Map)
+                    expect(browserA.isW3C).toBe(true)
+                    expect(browserA.isMobile).toBe(false)
+                    expect(browserA.isIOS).toBe(false)
+                    expect(browserA.isAndroid).toBe(false)
+                    expect(browserA.isFirefox).toBe(false)
+                    expect(browserA.isSauce).toBe(false)
+                    expect(browserA.isSeleniumStandalone).toBe(false)
+                    expect(browserA.isBidi).toBe(true)
+                    expect(browserA.isChromium).toBe(true)
+                    expect(browserA.isWindowsApp).toBe(false)
+                    expect(browserA.isMacApp).toBe(false)
+                    expect(browserA.puppeteer).toBeDefined()
+                    expect(browserA.isNativeContext).toBe(false)
+                    expect(browserA.mobileContext).toBe(undefined)
+                    expect(browserA.isMultiremote).toBe(undefined)
+
+                    expect(multiRemoteBrowser.strategies).toBeInstanceOf(Map) // Should be a map?, see https://github.com/webdriverio/webdriverio/issues/15540
+                    expect(multiRemoteBrowser.isW3C).toBe(true)
+                    expect(multiRemoteBrowser.isMobile).toBe(false)
+                    expect(multiRemoteBrowser.isIOS).toBe(false)
+                    expect(multiRemoteBrowser.isAndroid).toBe(false)
+                    expect(multiRemoteBrowser.isFirefox).toBe(false)
+                    expect(multiRemoteBrowser.isSauce).toBe(false)
+                    expect(multiRemoteBrowser.isSeleniumStandalone).toBe(false)
+                    expect(multiRemoteBrowser.isBidi).toBe(false)
+                    expect(multiRemoteBrowser.isChromium).toBe(false)
+                    expect(multiRemoteBrowser.isWindowsApp).toBe(false)
+                    expect(multiRemoteBrowser.isMacApp).toBe(false)
+                    expect(multiRemoteBrowser.puppeteer).toBeDefined()
+                    expect(multiRemoteBrowser.isNativeContext).toBe(false)
+                    expect(multiRemoteBrowser.mobileContext).toBe(undefined)
+                    expect(multiRemoteBrowser.isMultiremote).toBe(true)
+
+                    expect(selected.strategies).toEqual(multiRemoteBrowser.strategies)
+                    expect(selected.isW3C).toBe(multiRemoteBrowser.isW3C)
+                    expect(selected.isMobile).toBe(multiRemoteBrowser.isMobile)
+                    expect(selected.isIOS).toBe(multiRemoteBrowser.isIOS)
+                    expect(selected.isAndroid).toBe(multiRemoteBrowser.isAndroid)
+                    expect(selected.isFirefox).toBe(multiRemoteBrowser.isFirefox)
+                    expect(selected.isSauce).toBe(multiRemoteBrowser.isSauce)
+                    expect(selected.isSeleniumStandalone).toBe(multiRemoteBrowser.isSeleniumStandalone)
+                    expect(selected.isBidi).toBe(multiRemoteBrowser.isBidi)
+                    expect(selected.isChromium).toBe(multiRemoteBrowser.isChromium)
+                    expect(selected.isWindowsApp).toBe(multiRemoteBrowser.isWindowsApp)
+                    expect(selected.isMacApp).toBe(multiRemoteBrowser.isMacApp)
+                    expect(selected.puppeteer).toBe(multiRemoteBrowser.puppeteer)
+                    expect(selected.isNativeContext).toBe(multiRemoteBrowser.isNativeContext)
+                    expect(selected.mobileContext).toBe(multiRemoteBrowser.mobileContext)
+                    expect(selected.isMultiremote).toBe(multiRemoteBrowser.isMultiremote)
                 })
             })
         })
@@ -368,6 +447,5 @@ describe('multi remote test', () => {
             expect(await browserBH1.isDisplayed()).toBe(true)
             expect(await h1.isDisplayed()).toEqual([false, true, true])
         })
-
     })
 })

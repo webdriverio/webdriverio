@@ -36,6 +36,7 @@ export default class MultiRemote {
     modifier (wrapperClient: WrappedClient) {
         const parentThis: MultiRemote = this
         const enableMultiRemoteSelect = process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT === 'true'
+
         // Allows to preserve element scope custom commands
         const propertiesObject: Record<string, PropertyDescriptor> = enableMultiRemoteSelect ? Object.fromEntries(
             Object.entries(wrapperClient.__propertiesObject__ ?? {}).map(([name, descriptor]) => [name, { ...descriptor }])) : {}
@@ -46,7 +47,7 @@ export default class MultiRemote {
         }
 
         propertiesObject.unstable_select = {
-            value: function (this: WebdriverIO.MultiRemoteBrowser & WrappedClient, ...instanceNames: string[]) {
+            value: function unstableSelect(this: WebdriverIO.MultiRemoteBrowser & WrappedClient, ...instanceNames: string[]) {
                 const newMultiRemote = new MultiRemote()
                 newMultiRemote.instances = instanceNames.reduce((acc, name) => {
                     if (parentThis.instances[name]) {
@@ -66,14 +67,16 @@ export default class MultiRemote {
         }
 
         for (const commandName of wrapperClient.commandList) {
-            // Preserved overridden commands in multi-remote select mode
+            // Preserved overridden commands
             if (enableMultiRemoteSelect && !Object.prototype.hasOwnProperty.call(wrapperClient, commandName)) {
                 delete propertiesObject[commandName]
                 continue
             }
 
+            // Wrap commands only that are functions else it breaks the interface type
+            const isFunction = typeof wrapperClient[commandName] === 'function'
             propertiesObject[commandName] = {
-                value: this.commandWrapper(commandName),
+                value: isFunction ? this.commandWrapper(commandName) : wrapperClient[commandName],
                 configurable: true
             }
         }
@@ -138,7 +141,7 @@ export default class MultiRemote {
             // @ts-expect-error ToDo(Christian): remove eventually
             delete client.sessionId
 
-            client.unstable_select = function (...instanceNames: string[]) {
+            client.unstable_select = function unstableSelect(...instanceNames: string[]) {
                 const selectedResults: unknown[] = []
 
                 const selectedInstances = instanceNames.reduce((acc, name) => {
@@ -171,12 +174,13 @@ export default class MultiRemote {
     /**
      * handle commands for multiremote instances
      */
-    commandWrapper (commandName: keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'unstable_select') {
+    commandWrapper (commandName: keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance') {
         const instances = this.instances
         const self: MultiRemote = this
 
+        // This redefines the command when chaining with for example `$()` else it uses `propertiesObject.getInstance` by default
         if (commandName === 'getInstance') {
-            return function (this: Record<string, WebdriverIO.Browser | WebdriverIO.Element>, browserName: string) {
+            return function commandWrapperGetInstance(this: Record<string, WebdriverIO.Browser | WebdriverIO.Element>, browserName: string) {
                 if (!this[browserName]) {
                     throw new Error(`Multiremote object has no instance named "${browserName}"`)
                 }
