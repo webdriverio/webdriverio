@@ -111,6 +111,22 @@ describe('wdio-sumologic-reporter', () => {
             .toContain('failed send data to Sumo Logic')
     })
 
+    it('should retry queued events after a failed sync', async () => {
+        vi.mocked(fetch)
+            .mockRejectedValueOnce(new Error('network error'))
+            .mockResolvedValueOnce({ status: 200 } as Response)
+
+        reporter = new SumoLogicReporter({ sourceAddress: 'http://localhost:1234' })
+        reporter.onRunnerStart('onRunnerStart' as any)
+
+        await reporter.sync()
+        expect(reporter.isSynchronised).toBe(false)
+
+        await reporter.sync()
+        expect(vi.mocked(fetch)).toHaveBeenCalledTimes(2)
+        expect(reporter.isSynchronised).toBe(true)
+    })
+
     it('should be synchronised when no unsynced messages', async () => {
         reporter = new SumoLogicReporter({ sourceAddress: 'http://localhost:1234' })
         reporter.onRunnerStart('onRunnerStart' as any)
