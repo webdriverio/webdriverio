@@ -63,11 +63,20 @@ export default class MultiRemote {
                     __propertiesObject__: Record<string, PropertyDescriptor>
                 }).__propertiesObject__
 
-                return newMultiRemote.modifier({
+                const selectedBrowser = newMultiRemote.modifier({
                     options: wrapperClient.options,
                     commandList: wrapperClient.commandList,
                     __propertiesObject__
                 })
+
+                // Preserved overridden commands on the selected browser
+                for (const commandName of wrapperClient.commandList) {
+                    if (!Object.prototype.hasOwnProperty.call(this, commandName)) {
+                        delete (selectedBrowser as unknown as Record<string, unknown>)[commandName]
+                    }
+                }
+
+                return selectedBrowser
             },
             configurable: true,
             writable: true
