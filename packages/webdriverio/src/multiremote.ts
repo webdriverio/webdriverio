@@ -9,6 +9,10 @@ import { enhanceElementsArray, getPrototype } from './utils/index.js'
 import type { BrowserCommandsType, Selector, WebdriverIOEventMap } from './types.js'
 
 type EventEmitter = (args: unknown) => void
+type WrappedClient = {
+    options: Options.WebdriverIO,
+    commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'unstable_select')[], __propertiesObject__: Record<string, PropertyDescriptor>
+}
 
 /**
  * Multiremote class
@@ -29,14 +33,11 @@ export default class MultiRemote {
     /**
      * modifier for multibrowser instance
      */
-    modifier (wrapperClient: {
-        options: Options.WebdriverIO,
-        commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'unstable_select')[], __propertiesObject__: Record<string, PropertyDescriptor>
-    }) {
+    modifier (wrapperClient: WrappedClient) {
         const parentThis: MultiRemote = this
-
+        const enableMultiRemoteSelect = process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT === 'true'
         // Allows to preserve element scope custom commands
-        const propertiesObject: Record<string, PropertyDescriptor> = process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT === 'true' ? Object.fromEntries(
+        const propertiesObject: Record<string, PropertyDescriptor> = enableMultiRemoteSelect ? Object.fromEntries(
             Object.entries(wrapperClient.__propertiesObject__ ?? {}).map(([name, descriptor]) => [name, { ...descriptor }])) : {}
         propertiesObject.commandList = { value: wrapperClient.commandList }
         propertiesObject.options = { value: wrapperClient.options }
@@ -45,7 +46,7 @@ export default class MultiRemote {
         }
 
         propertiesObject.unstable_select = {
-            value: function (this: WebdriverIO.MultiRemoteBrowser, ...instanceNames: string[]) {
+            value: function (this: WebdriverIO.MultiRemoteBrowser & WrappedClient, ...instanceNames: string[]) {
                 const newMultiRemote = new MultiRemote()
                 newMultiRemote.instances = instanceNames.reduce((acc, name) => {
                     if (parentThis.instances[name]) {
@@ -58,31 +59,19 @@ export default class MultiRemote {
                     throw new Error('None of the following requested instances are valid: ' + instanceNames.join(', '))
                 }
 
-                // Allows to preserve element scope custom commands
-                const __propertiesObject__= (this as unknown as {
-                    __propertiesObject__: Record<string, PropertyDescriptor>
-                }).__propertiesObject__
-
-                const selectedBrowser = newMultiRemote.modifier({
-                    options: wrapperClient.options,
-                    commandList: wrapperClient.commandList,
-                    __propertiesObject__
-                })
-
-                // Preserved overridden commands on the selected browser
-                for (const commandName of wrapperClient.commandList) {
-                    if (!Object.prototype.hasOwnProperty.call(this, commandName)) {
-                        delete (selectedBrowser as unknown as Record<string, unknown>)[commandName]
-                    }
-                }
-
-                return selectedBrowser
+                return newMultiRemote.modifier(this)
             },
             configurable: true,
             writable: true
         }
 
         for (const commandName of wrapperClient.commandList) {
+            // Preserved overridden commands in multi-remote select mode
+            if (enableMultiRemoteSelect && !Object.prototype.hasOwnProperty.call(wrapperClient, commandName)) {
+                delete propertiesObject[commandName]
+                continue
+            }
+
             propertiesObject[commandName] = {
                 value: this.commandWrapper(commandName),
                 configurable: true
