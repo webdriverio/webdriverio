@@ -39,7 +39,7 @@ export default class MultiRemote {
      * modifier for multibrowser instance
      */
     modifier (wrapperClient: WrappedClient) {
-        const parentThis: MultiRemote = this
+        const modifierThis: MultiRemote = this
         const enableMultiRemoteSelect = process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT === 'true'
 
         // Allows to preserve element scope custom commands
@@ -56,8 +56,8 @@ export default class MultiRemote {
             value: function unstableSelect(this: WebdriverIO.MultiRemoteBrowser & WrappedClient, ...instanceNames: string[]) {
                 const newMultiRemote = new MultiRemote()
                 newMultiRemote.instances = instanceNames.reduce((acc, name) => {
-                    if (parentThis.instances[name]) {
-                        acc[name] = parentThis.instances[name]
+                    if (modifierThis.instances[name]) {
+                        acc[name] = modifierThis.instances[name]
                     }
                     return acc
                 }, {} as Record<string, WebdriverIO.Browser>)
