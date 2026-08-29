@@ -50,10 +50,15 @@ describe('isExisting test', () => {
             }
         })
         const elem = await mobileBrowser.$('#foo')
+
+        // clear the mock so we only assert isExisting's own request,
+        // not the findElement from $('#foo') above
+        vi.mocked(fetch).mockClear()
+
         await elem.isExisting()
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
-            .toBe('/session/foobar-123/element')
+        expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1)
+        const url = vi.mocked(fetch).mock.calls[0][0] as URL | string
+        expect(url.toString().endsWith('/element')).toBe(true)
     })
 
     afterEach(() => {
