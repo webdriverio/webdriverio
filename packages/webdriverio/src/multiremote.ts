@@ -9,9 +9,8 @@ import { addLocatorStrategyHandler, enhanceElementsArray, getPrototype } from '.
 import type { BrowserCommandsType, Selector, WebdriverIOEventMap } from './types.js'
 
 import * as BrowserCommands from './commands/browser.js'
-import * as ElementCommands from './commands/element.js'
 
-const overridableCommands = new Set(Object.keys(BrowserCommands).concat(Object.keys(ElementCommands)))
+const overridableCommands = new Set(Object.keys(BrowserCommands))
 
 type EventEmitter = (args: unknown) => void
 type WrappedClient = {
