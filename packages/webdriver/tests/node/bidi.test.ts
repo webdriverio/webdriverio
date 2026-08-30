@@ -84,7 +84,7 @@ describe('Bidi Node.js implementation', () => {
             expect(candidateUrls).toEqual([
                 'ws://foo/bar',
                 'ws://127.0.0.1/bar',
-                'ws://::1/bar'
+                'ws://[::1]/bar'
             ])
         })
 
@@ -106,7 +106,7 @@ describe('Bidi Node.js implementation', () => {
         expect(instances[0].options).toEqual({})
         expect(instances[1].wsUrl).toBe('ws://127.0.0.1/bar')
         expect(instances[1].options).toEqual({})
-        expect(instances[2].wsUrl).toBe('ws://::1/bar')
+        expect(instances[2].wsUrl).toBe('ws://[::1]/bar')
         expect(instances[2].options).toEqual({})
         expect(instances[0].once).toHaveBeenCalledWith('open', expect.any(Function))
         expect(instances[1].once).toHaveBeenCalledWith('open', expect.any(Function))
@@ -139,7 +139,7 @@ describe('Bidi Node.js implementation', () => {
         expect(instances[0].options).toEqual({ agent: expect.any(Object) })
         expect(instances[1].wsUrl).toBe('ws://127.0.0.1/bar')
         expect(instances[1].options).toEqual({ agent: expect.any(Object) })
-        expect(instances[2].wsUrl).toBe('ws://::1/bar')
+        expect(instances[2].wsUrl).toBe('ws://[::1]/bar')
         expect(instances[2].options).toEqual({ agent: expect.any(Object) })
         expect(instances[0].once).toHaveBeenCalledWith('open', expect.any(Function))
         expect(instances[1].once).toHaveBeenCalledWith('open', expect.any(Function))
@@ -172,7 +172,7 @@ describe('Bidi Node.js implementation', () => {
         expect(instances[0].options).toEqual({})
         expect(instances[1].wsUrl).toBe('ws://127.0.0.1/bar')
         expect(instances[1].options).toEqual({})
-        expect(instances[2].wsUrl).toBe('ws://::1/bar')
+        expect(instances[2].wsUrl).toBe('ws://[::1]/bar')
         expect(instances[2].options).toEqual({ agent: expect.any(Object) })
         expect(instances[0].once).toHaveBeenCalledWith('open', expect.any(Function))
         expect(instances[1].once).toHaveBeenCalledWith('open', expect.any(Function))
@@ -252,7 +252,7 @@ describe('Bidi Node.js implementation', () => {
         expect(await wsPromise).toBeUndefined()
         expect(log.error).toHaveBeenCalledWith(
             'Could not connect to Bidi protocol of any candidate url in time: ' +
-            '"ws://foo/bar", "ws://127.0.0.1/bar", "ws://::1/bar"'
+            '"ws://foo/bar", "ws://127.0.0.1/bar", "ws://[::1]/bar"'
         )
     })
 

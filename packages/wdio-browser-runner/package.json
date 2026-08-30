@@ -1,6 +1,6 @@
 {
   "name": "@wdio/browser-runner",
-  "version": "9.31.2",
+  "version": "9.31.5",
   "description": "A WebdriverIO runner to run unit tests tests in the browser.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browser-runner",
@@ -101,9 +101,9 @@
     "webdriver": "workspace:*"
   },
   "peerDependencies": {
-    "expect-webdriverio": "^6.0.5",
+    "expect-webdriverio": "^6.0.9",
     "webdriver": "^9.0.0",
-    "webdriverio": "^9.0.0"
+    "webdriverio": "^9.28.0"
   },
   "peerDependenciesMeta": {
     "expect-webdriverio": {

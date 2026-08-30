@@ -9,6 +9,8 @@ The trace pipeline lives in [`@wdio/devtools-core`](https://github.com/webdriver
 
 **Capture completeness varies by adapter**, though — WebdriverIO is the most complete; Selenium and Nightwatch cover the core flow with the gaps noted below. Framework-specific enable syntax lives on each adapter page — see [Selenium](/docs/devtools/selenium#trace-mode) and [Nightwatch](/docs/devtools/nightwatch#trace-mode).
 
+The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/selenium) page) is not in this table: it is live-dashboard only and writes no trace archive yet, so the trace-mode rows below do not apply to it. Its live capture - commands, console, network, DOM snapshots, assertions, screencast, run controls and Preserve & Rerun - is on its own page.
+
 | Capability | WebdriverIO | Selenium | Nightwatch |
 |---|---|---|---|
 | Trace mode + `show-trace` player | ✅ | ✅ | ✅ |
