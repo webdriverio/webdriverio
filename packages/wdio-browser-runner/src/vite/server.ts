@@ -67,7 +67,23 @@ export class ViteServer extends EventEmitter {
                 include: DEFAULT_INCLUDE,
                 extension: DEFAULT_FILE_EXTENSIONS,
                 forceBuildInstrument: true,
-                ...options.coverage
+                ...options.coverage,
+                exclude: [
+                    '**/node_modules/**',
+                    '**/.git/**',
+                    '**/.github/**',
+                    '**/.nuxt/**',
+                    '**/.output/**',
+                    '**/.dist/**',
+                    '**/.cache/**',
+                    '**/packages/wdio-browser-runner/**',
+                    '**/packages/wdio-utils/**',
+                    '../packages/wdio-browser-runner/**',
+                    '../packages/wdio-utils/**',
+                    '**/*.test.*',
+                    '**/*.spec.*',
+                    ...(Array.isArray(options.coverage.exclude) ? options.coverage.exclude : [])
+                ]
             }))
         }
     }
