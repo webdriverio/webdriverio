@@ -126,6 +126,8 @@ export default class AllureReporter extends WDIOReporter {
     private _consoleOutput = ''
     private _originalStdoutWrite: typeof process.stdout.write
     private _isFlushing = false
+    private _flushChain: Promise<void> = Promise.resolve()
+    private _pendingFlushes = 0
     private _cid?: string
 
     private _testPlan: TestPlanV1 | undefined
@@ -305,9 +307,44 @@ export default class AllureReporter extends WDIOReporter {
         this._pushRuntimeMessage({ type: 'allure:suite:end', data: {} })
     }
 
+    /**
+     * Write out everything buffered so far without finalising the run, so results of
+     * completed tests reach the results directory while the run is still going. Flushes are
+     * chained so they cannot overlap.
+     */
+    private _flushIncrementally(): void {
+        const state = this._ensureState(this._currentCid())
+
+        this._beginFlush()
+        this._flushChain = this._flushChain
+            .then(() => state.processRuntimeMessage(false))
+            // the state's cursor stays on the message that threw, so the runner end pass
+            // retries it and rethrows if it still fails
+            .catch(() => {})
+            .then(() => this._endFlush())
+    }
+
+    private _beginFlush(): void {
+        this._pendingFlushes++
+        this._isFlushing = true
+    }
+
+    private _endFlush(): void {
+        this._pendingFlushes--
+        if (this._pendingFlushes === 0) {
+            this._isFlushing = false
+        }
+    }
+
     private _startTest(payload: { name: string; start: number; uuid?: string }): void {
         this._pushRuntimeMessage({ type: 'allure:test:start', data: payload })
         this._setTestParameters()
+        /**
+         * flush once the new test:start is buffered: a test is only written when the
+         * following test starts, because its own scope has to stay open past its test:end
+         * for "after each" hooks to attach to
+         */
+        this._flushIncrementally()
     }
 
     private _endTest(payload: {
@@ -523,8 +560,13 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     async onRunnerEnd(_runner: RunnerStats): Promise<void> {
-        this._isFlushing = true
+        /**
+         * counted like any other flush, so an incremental flush finishing while we await it
+         * cannot report the reporter as synchronised while this pass is still writing
+         */
+        this._beginFlush()
         try {
+            await this._flushChain
             for (const [cid, state] of this.allureStatesByCid) {
                 await state.processRuntimeMessage()
                 this.allureStatesByCid.delete(cid)
@@ -533,7 +575,7 @@ export default class AllureReporter extends WDIOReporter {
             if (this._options.addConsoleLogs) {
                 process.stdout.write = this._originalStdoutWrite
             }
-            this._isFlushing = false
+            this._endFlush()
         }
         this._allureRuntime.writeEnvironmentInfo()
     }

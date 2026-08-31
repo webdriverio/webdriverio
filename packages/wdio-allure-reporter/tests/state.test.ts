@@ -209,4 +209,28 @@ describe('state', () => {
             expect(parsed.errors).toHaveLength(0)
         })
     })
+
+    describe('incremental flush', () => {
+        it('writes finished tests before the run is finalised and never replays a message', async () => {
+            state.pushRuntimeMessage({ type: 'allure:suite:start', data: { name: 'suite' } })
+            state.pushRuntimeMessage({ type: 'allure:test:start', data: { name: 'first test', start: Date.now() } })
+            state.pushRuntimeMessage({ type: 'allure:test:end', data: { status: 'passed' as any, stop: Date.now() } })
+            state.pushRuntimeMessage({ type: 'allure:test:start', data: { name: 'second test', start: Date.now() } })
+
+            await state.processRuntimeMessage(false)
+            // a second flush with nothing new must be a no-op
+            await state.processRuntimeMessage(false)
+
+            expect(getResults(outputDir).results.map((r: any) => r.name)).toEqual(['first test'])
+
+            state.pushRuntimeMessage({ type: 'allure:test:end', data: { status: 'failed' as any, stop: Date.now() } })
+            state.pushRuntimeMessage({ type: 'allure:suite:end', data: {} })
+
+            await state.processRuntimeMessage()
+
+            const { results } = getResults(outputDir)
+            expect(results.map((r: any) => r.name).sort()).toEqual(['first test', 'second test'])
+            expect(results.filter((r: any) => r.name === 'first test')).toHaveLength(1)
+        })
+    })
 })
