@@ -11,7 +11,7 @@ import type { Hook } from './stats/hook.js'
 import HookStats from './stats/hook.js'
 import TestStats, { type Test } from './stats/test.js'
 import RunnerStats from './stats/runner.js'
-import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types.js'
+import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument, ClientLogArgs } from './types.js'
 
 type CustomWriteStream = { write: (content: unknown) => boolean }
 
@@ -65,7 +65,9 @@ export default class WDIOReporter extends EventEmitter {
         this.on('client:beforeCommand', this.onBeforeCommand.bind(this))
         this.on('client:afterCommand', this.onAfterCommand.bind(this))
         this.on('client:beforeAssertion', this.onBeforeAssertion.bind(this))
+
         this.on('client:afterAssertion', this.onAfterAssertion.bind(this))
+        this.on('client:logEntry', this.onClientLogEntry.bind(this))
 
         this.on('runner:start', (runner: Options.RunnerStart) => {
             rootSuite.cid = runner.cid
@@ -255,6 +257,7 @@ export default class WDIOReporter extends EventEmitter {
             }
             currentTest.output.push(Object.assign(payload, { type: 'result' }))
         })
+
     }
 
     /**
@@ -279,6 +282,7 @@ export default class WDIOReporter extends EventEmitter {
     onAfterCommand(_commandArgs: AfterCommandArgs) { }
     onBeforeAssertion(_assertionArgs: unknown) { }
     onAfterAssertion(_assertionArgs: unknown) { }
+    onClientLogEntry(_logEntryArgs: ClientLogArgs) { }
     onSuiteStart(_suiteStats: SuiteStats) { }
     onHookStart(_hookStat: HookStats) { }
     onHookEnd(_hookStats: HookStats) { }
@@ -314,5 +318,5 @@ function getBrowserName(caps: WebdriverIO.Capabilities) {
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, Argument, Test, getBrowserName
+    AfterCommandArgs, CommandArgs, Argument, Test, getBrowserName, ClientLogArgs
 }
