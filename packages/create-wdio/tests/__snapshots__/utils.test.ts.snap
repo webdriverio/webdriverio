@@ -71,3 +71,38 @@ exports[`setupTypeScript 1`] = `
     ]
 }"
 `;
+
+exports[`setupTypeScript creates tsconfig.json even if there is already one 1`] = `
+"{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "module": "ESNext",
+        "target": "es2022",
+        "lib": [
+            "es2022",
+            "dom"
+        ],
+        "types": [
+            "node",
+            "@wdio/globals/types",
+            "expect-webdriverio",
+            "foo",
+            "wdio-electron-service"
+        ],
+        "skipLibCheck": true,
+        "noEmit": true,
+        "allowImportingTsExtensions": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true
+    },
+    "extends": "tsconfig.json",
+    "include": [
+        "test",
+        "wdio.conf.ts"
+    ]
+}"
+`;
