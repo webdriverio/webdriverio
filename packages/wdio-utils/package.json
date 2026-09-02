@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@types/split2": "^4.2.3",
-    "@puppeteer/browsers": "^2.2.0",
+    "@puppeteer/browsers": "^3.2.1",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "decamelize": "^6.0.0",
