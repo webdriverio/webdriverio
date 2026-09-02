@@ -1413,8 +1413,8 @@ importers:
   packages/wdio-utils:
     dependencies:
       '@puppeteer/browsers':
-        specifier: ^2.2.0
-        version: 2.11.0
+        specifier: ^3.2.1
+        version: 3.2.1(yauzl@3.4.0)
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
@@ -5528,6 +5528,19 @@ packages:
     resolution: {integrity: sha512-5EUZSUIc37H6aIXyWO0Z4y8NlF8NnjgmqeQgOGiswAU7pY0HOo16ho4+alIWmSfdZnjqBRawMsP3I5YqLSn6kw==}
     engines: {node: '>=18'}
     hasBin: true
+
+  '@puppeteer/browsers@3.2.1':
+    resolution: {integrity: sha512-KDz+3qDRdBAlRlMjmKyj6dEs33YHTk/xRHEENSXq6TNnhgoU15ruSHtEBeVF6OZ9tBDY55Se4P0nFMNsipzU9A==}
+    engines: {node: '>=22.12.0'}
+    hasBin: true
+    peerDependencies:
+      proxy-agent: '>=8.0.1'
+      yauzl: ^3.4.0
+    peerDependenciesMeta:
+      proxy-agent:
+        optional: true
+      yauzl:
+        optional: true
 
   '@rolldown/pluginutils@1.0.0-beta.19':
     resolution: {integrity: sha512-3FL3mnMbPu0muGOCaKAhhFEYmqv9eTfPSJRJmANrCwtgK8VuxpsZDGK+m0LYAGoyO8+0j5uRe4PeyPDK1yA/hA==}
@@ -12136,6 +12149,10 @@ packages:
     resolution: {integrity: sha512-t9VmxaqrmANnEOBhpSDI6HD192Ge48k8vmWqQQL7hSFEqHEYwZbbsu49+aKLWZeRvFs3j1pMhXOqqF4kPlvjkQ==}
     engines: {node: '>=18.0.0'}
 
+  modern-tar@0.8.4:
+    resolution: {integrity: sha512-gN54ddmyzEg10orwZ2u4OOv+bjpMWdIl5jIkodK97bMq8QBSL5c0D7YX0lT1Ooz+99S7+PvFbnxzdjgHo1r41g==}
+    engines: {node: '>=18.0.0'}
+
   modify-values@1.0.1:
     resolution: {integrity: sha512-xV2bxeN6F7oYjZWTe/YPAy6MN2M+sL4u/Rlm2AHCIVGfo2p1yGmBHQ6vHehl4bRTZBdHu3TSkWdYgkwpYzAGSw==}
     engines: {node: '>=0.10.0'}
@@ -17906,7 +17923,7 @@ snapshots:
       '@cucumber/ci-environment': 10.0.1
       '@cucumber/cucumber-expressions': 17.1.0
       '@cucumber/gherkin': 28.0.0
-      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@26.0.1))(@cucumber/messages@24.1.0)
+      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)
       '@cucumber/gherkin-utils': 9.0.0
       '@cucumber/html-formatter': 21.6.0(@cucumber/messages@24.1.0)
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -17946,7 +17963,7 @@ snapshots:
       yaml: 2.8.0
       yup: 1.2.0
 
-  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@26.0.1))(@cucumber/messages@24.1.0)':
+  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)':
     dependencies:
       '@cucumber/gherkin': 28.0.0
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -20794,6 +20811,13 @@ snapshots:
       - react-native-b4a
       - supports-color
 
+  '@puppeteer/browsers@3.2.1(yauzl@3.4.0)':
+    dependencies:
+      modern-tar: 0.8.4
+      yargs: 18.0.0
+    optionalDependencies:
+      yauzl: 3.4.0
+
   '@rolldown/pluginutils@1.0.0-beta.19': {}
 
   '@rollup/plugin-babel@5.3.1(@babel/core@7.29.7)(@types/babel__core@7.20.5)(rollup@2.80.0)':
@@ -22790,6 +22814,21 @@ snapshots:
       - react-native-b4a
       - supports-color
 
+  '@wdio/config@9.31.5':
+    dependencies:
+      '@wdio/logger': 9.29.1
+      '@wdio/types': 9.31.2
+      '@wdio/utils': 9.31.5
+      deepmerge-ts: 7.1.5
+      glob: 10.5.0
+      import-meta-resolve: 4.2.0
+      jiti: 2.7.0
+    transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - react-native-b4a
+      - supports-color
+
   '@wdio/dot-reporter@9.31.2':
     dependencies:
       '@wdio/reporter': 9.31.2
@@ -22918,6 +22957,28 @@ snapshots:
       '@wdio/types': 9.31.2
       decamelize: 6.0.1
       deepmerge-ts: 7.1.6
+      edgedriver: 6.3.0
+      geckodriver: 6.1.1
+      get-port: 7.2.0
+      import-meta-resolve: 4.2.0
+      locate-app: 2.5.0
+      mitt: 3.0.1
+      safaridriver: 1.0.1
+      split2: 4.2.0
+      wait-port: 1.1.0
+    transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - react-native-b4a
+      - supports-color
+
+  '@wdio/utils@9.31.5':
+    dependencies:
+      '@puppeteer/browsers': 2.13.2
+      '@wdio/logger': 9.29.1
+      '@wdio/types': 9.31.2
+      decamelize: 6.0.1
+      deepmerge-ts: 7.1.5
       edgedriver: 6.3.0
       geckodriver: 6.1.1
       get-port: 7.2.0
@@ -25081,7 +25142,7 @@ snapshots:
   dts-bundle-generator@9.5.1:
     dependencies:
       typescript: 5.9.3
-      yargs: 17.7.2
+      yargs: 17.7.3
 
   dunder-proto@1.0.1:
     dependencies:
@@ -29106,6 +29167,8 @@ snapshots:
 
   modern-tar@0.7.7: {}
 
+  modern-tar@0.8.4: {}
+
   modify-values@1.0.1: {}
 
   morgan@1.11.0:
@@ -29415,7 +29478,7 @@ snapshots:
       tsconfig-paths: 4.2.0
       tslib: 2.8.1
       yaml: 2.8.2
-      yargs: 17.7.2
+      yargs: 17.7.3
       yargs-parser: 21.1.1
     optionalDependencies:
       '@nx/nx-darwin-arm64': 22.5.4
