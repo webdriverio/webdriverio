@@ -41,7 +41,7 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "decamelize": "^6.0.0",
-    "deepmerge-ts": "^7.0.3",
+    "deepmerge-ts": "^8.0.0",
     "edgedriver": "^6.1.2",
     "geckodriver": "^6.1.1",
     "get-port": "^7.0.0",

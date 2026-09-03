@@ -694,8 +694,8 @@ importers:
         specifier: workspace:*
         version: link:../wdio-utils
       deepmerge-ts:
-        specifier: ^7.0.3
-        version: 7.1.5
+        specifier: ^8.0.0
+        version: 8.0.0
       expect:
         specifier: 30.4.1
         version: 30.4.1
@@ -892,8 +892,8 @@ importers:
         specifier: workspace:*
         version: link:../wdio-utils
       deepmerge-ts:
-        specifier: ^7.0.3
-        version: 7.1.5
+        specifier: ^8.0.0
+        version: 8.0.0
       glob:
         specifier: ^10.2.2
         version: 10.5.0
@@ -1247,8 +1247,8 @@ importers:
         specifier: workspace:*
         version: link:../wdio-utils
       deepmerge-ts:
-        specifier: ^7.0.3
-        version: 7.1.5
+        specifier: ^8.0.0
+        version: 8.0.0
       expect-webdriverio:
         specifier: ^6.0.9
         version: 6.0.9(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
@@ -1426,8 +1426,8 @@ importers:
         specifier: ^6.0.0
         version: 6.0.1
       deepmerge-ts:
-        specifier: ^7.0.3
-        version: 7.1.5
+        specifier: ^8.0.0
+        version: 8.0.0
       edgedriver:
         specifier: ^6.1.2
         version: 6.3.0
@@ -1518,8 +1518,8 @@ importers:
         specifier: workspace:*
         version: link:../wdio-utils
       deepmerge-ts:
-        specifier: ^7.0.3
-        version: 7.1.5
+        specifier: ^8.0.0
+        version: 8.0.0
       https-proxy-agent:
         specifier: ^7.0.6
         version: 7.0.6
@@ -8916,12 +8916,12 @@ packages:
   deep-is@0.1.4:
     resolution: {integrity: sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==}
 
-  deepmerge-ts@7.1.5:
-    resolution: {integrity: sha512-HOJkrhaYsweh+W+e74Yn7YStZOilkoPb6fycpwNLKzSPtruFs48nYis0zy5yJz1+ktUhHxoRDJ27RQAWLIJVJw==}
-    engines: {node: '>=16.0.0'}
-
   deepmerge-ts@7.1.6:
     resolution: {integrity: sha512-gQhL1ksGBLQbHeAo47YU6cs2ahd3Pv+8PFYoWogNZbQnNwQyOh9Ad5kbeHFiWwbKdeWQJ5Z7Y7mwb9ew2hXBLw==}
+    engines: {node: '>=16.0.0'}
+
+  deepmerge-ts@8.0.0:
+    resolution: {integrity: sha512-ICNjaP0ML+eSdEpJYQC46XiAn/UjAdwbEl0dE8p85ZTeNDinN4Kd4+9jS4OSAuH7st6eC7rQhsqTF5zIDaUm2g==}
     engines: {node: '>=16.0.0'}
 
   deepmerge@4.3.1:
@@ -13310,6 +13310,10 @@ packages:
 
   postcss@8.5.26:
     resolution: {integrity: sha512-u82N74LFzG8ca+dD8puPnplTXoGH4fTPpVGuIbt36G3qvNlkvfD0lEAZSxaly3KX8TS/L1A1gsCEmvKmBcVbkQ==}
+    engines: {node: ^10 || ^12 || >=14}
+
+  postcss@8.5.27:
+    resolution: {integrity: sha512-79Iho8QeYyooJ8e9lCRyTVlyTAkS/kXBYKff6TMzS3kEWGQ8Ds5UEtXpGrSUDLUWok6QTvxeYy0GO8fopHnaSA==}
     engines: {node: ^10 || ^12 || >=14}
 
   postcss@8.5.6:
@@ -17919,7 +17923,7 @@ snapshots:
       '@cucumber/ci-environment': 10.0.1
       '@cucumber/cucumber-expressions': 17.1.0
       '@cucumber/gherkin': 28.0.0
-      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@26.0.1))(@cucumber/messages@24.1.0)
+      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)
       '@cucumber/gherkin-utils': 9.0.0
       '@cucumber/html-formatter': 21.6.0(@cucumber/messages@24.1.0)
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -17959,7 +17963,7 @@ snapshots:
       yaml: 2.8.0
       yup: 1.2.0
 
-  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@26.0.1))(@cucumber/messages@24.1.0)':
+  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)':
     dependencies:
       '@cucumber/gherkin': 28.0.0
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -22778,7 +22782,7 @@ snapshots:
       '@wdio/logger': 9.29.1
       '@wdio/types': 9.31.2
       '@wdio/utils': 9.31.2
-      deepmerge-ts: 7.1.5
+      deepmerge-ts: 7.1.6
       glob: 10.5.0
       import-meta-resolve: 4.2.0
       jiti: 2.7.0
@@ -22886,7 +22890,7 @@ snapshots:
       '@wdio/logger': 9.29.1
       '@wdio/types': 9.31.2
       '@wdio/utils': 9.31.2
-      deepmerge-ts: 7.1.5
+      deepmerge-ts: 7.1.6
       expect-webdriverio: 6.0.9(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.31.5(puppeteer-core@24.34.0))
       webdriver: 9.31.2
       webdriverio: 9.31.5(puppeteer-core@24.34.0)
@@ -22908,7 +22912,7 @@ snapshots:
       '@wdio/logger': 9.29.1
       '@wdio/types': 9.31.2
       decamelize: 6.0.1
-      deepmerge-ts: 7.1.5
+      deepmerge-ts: 7.1.6
       edgedriver: 6.3.0
       geckodriver: 6.1.1
       get-port: 7.2.0
@@ -24867,9 +24871,9 @@ snapshots:
 
   deep-is@0.1.4: {}
 
-  deepmerge-ts@7.1.5: {}
-
   deepmerge-ts@7.1.6: {}
+
+  deepmerge-ts@8.0.0: {}
 
   deepmerge@4.3.1: {}
 
@@ -30437,6 +30441,12 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
+  postcss@8.5.27:
+    dependencies:
+      nanoid: 3.3.18
+      picocolors: 1.1.1
+      source-map-js: 1.2.1
+
   postcss@8.5.6:
     dependencies:
       nanoid: 3.3.18
@@ -32981,7 +32991,7 @@ snapshots:
       esbuild: 0.28.2
       fdir: 6.5.0(picomatch@4.0.7)
       picomatch: 4.0.7
-      postcss: 8.5.26
+      postcss: 8.5.27
       rollup: 4.63.1
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -33149,7 +33159,7 @@ snapshots:
       '@wdio/protocols': 9.31.1
       '@wdio/types': 9.31.2
       '@wdio/utils': 9.31.2
-      deepmerge-ts: 7.1.5
+      deepmerge-ts: 7.1.6
       https-proxy-agent: 7.0.6
       undici: 6.28.0
       ws: 8.21.1
