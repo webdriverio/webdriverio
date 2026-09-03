@@ -99,7 +99,6 @@ describe('XvfbDisplayServer', () => {
 
     describe('install', () => {
         it('returns false immediately when CentOS 10 was detected by a prior isAvailable()', async () => {
-            // Trigger CentOS 10 detection
             mockReadFile.mockResolvedValueOnce('NAME="CentOS Stream"\nVERSION_ID="10"\n')
             const server = new XvfbDisplayServer()
             await server.isAvailable()

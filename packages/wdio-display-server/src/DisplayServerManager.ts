@@ -115,8 +115,7 @@ export class DisplayServerManager {
         const hasDisplay = process.env.DISPLAY || process.env.WAYLAND_DISPLAY
         const inHeadlessEnvironment = !hasDisplay
 
-        // Force display server if headless browser flags are detected. The cast bridges the
-        // resolved→requested capability shapes; the traversal is read-only so it's safe.
+        // The cast bridges the resolved→requested capability shapes; the traversal is read-only so it's safe.
         const hasHeadlessFlag = this.#detectHeadlessMode(capabilities as unknown as WebdriverIO.Config['capabilities'])
 
         return inHeadlessEnvironment || hasHeadlessFlag

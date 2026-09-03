@@ -51,9 +51,7 @@ export async function detectPackageManager(): Promise<string> {
             // check below and avoids an unnecessary shell for a fixed command name.
             await execFileAsync('which', [command])
             return name
-        } catch {
-            // Continue to next
-        }
+        } catch { /* try the next candidate */ }
     }
 
     return 'unknown'

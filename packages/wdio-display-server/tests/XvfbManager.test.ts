@@ -349,22 +349,19 @@ describe('XvfbManager', () => {
             })
 
             it('should not install and return false when xvfb-run is not available and autoInstall is disabled', async () => {
-                // Mock xvfb-run not found
                 mockExecAsync
                     .mockRejectedValueOnce(new Error('Command not found'))
 
                 const manager = new XvfbManager({ displayServer: 'xvfb' })
 
-                // Mock platform and environment
                 mockPlatform.mockReturnValue('linux')
                 delete process.env.DISPLAY
 
                 const result = await manager.init()
 
                 expect(result).toBe(false)
-                // Should only check for xvfb-run
                 expect(mockExecAsync).toHaveBeenCalledWith('which Xvfb')
-                // And should not attempt any package manager detection or install
+                // Should not attempt any package manager detection or install
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['apt-get'])
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['dnf'])
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['yum'])
@@ -387,7 +384,6 @@ describe('XvfbManager', () => {
                         .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
                         .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
-                    // Mock getuid to return root (0) - works on all platforms
                     runAsRoot()
 
                     const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true })
@@ -411,7 +407,6 @@ describe('XvfbManager', () => {
                         .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
                         .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
-                    // Mock getuid to return root (0) - works on all platforms
                     runAsRoot()
 
                     const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true })
@@ -438,7 +433,6 @@ describe('XvfbManager', () => {
                         .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
                         .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
-                    // Mock getuid to return root (0) - works on all platforms
                     runAsRoot()
 
                     const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true })
@@ -517,7 +511,6 @@ describe('XvfbManager', () => {
                 const result = await manager.init()
                 expect(result).toBe(true)
                 expect(mockExecAsync).toHaveBeenCalledWith('which', ['sudo'])
-                // Install runs without sudo prefix
                 expect(mockExecAsync).toHaveBeenCalledWith(
                     'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
                     { timeout: 240000 }
@@ -531,7 +524,6 @@ describe('XvfbManager', () => {
                     .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' }) // install
                     .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
 
-                // Mock getuid to return root (0) - works on all platforms
                 runAsRoot()
 
                 const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true, autoInstallMode: 'root' })
@@ -551,7 +543,6 @@ describe('XvfbManager', () => {
                     .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
                     .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
 
-                // Mock getuid to return non-root (1000) - works on all platforms
                 runAsUser()
 
                 const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true, autoInstallMode: 'root' })
@@ -560,7 +551,6 @@ describe('XvfbManager', () => {
 
                 const result = await manager.init()
                 expect(result).toBe(false)
-                // no sudo check, no install
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['sudo'])
             })
 
@@ -571,7 +561,6 @@ describe('XvfbManager', () => {
                     .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' }) // install
                     .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
 
-                // Mock getuid to return root (0) - works on all platforms
                 runAsRoot()
 
                 const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true, autoInstallMode: 'sudo' })
@@ -615,7 +604,6 @@ describe('XvfbManager', () => {
                     .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
                     .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
-                // Mock getuid to return root (0) - works on all platforms
                 runAsRoot()
 
                 const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true })
@@ -666,7 +654,6 @@ describe('XvfbManager', () => {
                     .mockResolvedValueOnce({ stdout: 'custom ok', stderr: '' }) // install
                     .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
 
-                // Mock getuid to return non-root (1000) - works on all platforms
                 runAsUser()
 
                 const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true, autoInstallMode: 'sudo', autoInstallCommand: 'my-custom-install' })
@@ -688,7 +675,6 @@ describe('XvfbManager', () => {
                     .mockResolvedValueOnce({ stdout: 'array command ok', stderr: '' }) // install
                     .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
 
-                // Mock getuid to return non-root (1000) - works on all platforms
                 runAsUser()
 
                 const manager = new XvfbManager({
@@ -718,7 +704,6 @@ describe('XvfbManager', () => {
                     .mockResolvedValueOnce({ stdout: 'dnf install ok', stderr: '' }) // install
                     .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
 
-                // Mock getuid to return non-root (1000) - works on all platforms
                 runAsUser()
 
                 const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true, autoInstallMode: 'sudo' })
