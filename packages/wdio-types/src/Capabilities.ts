@@ -351,6 +351,24 @@ export interface WebdriverIOCapabilities {
     'wdio:edgedriverOptions'?: WebdriverIO.EdgedriverOptions
 
     /**
+     * Chromium version for Electron applications. Used when testing Electron apps to ensure
+     * the correct Chromedriver version is downloaded. Automatically triggers the Electron
+     * provider for Chromedriver downloads.
+     *
+     * @example '130.0.6723.2'
+     */
+    'wdio:chromiumVersion'?: string
+
+    /**
+     * Electron version for Electron applications. When specified, WebdriverIO will download
+     * Chromedriver from Electron releases instead of Chrome for Testing. This is particularly
+     * useful for platforms like Linux ARM64 where Chrome for Testing binaries aren't available.
+     *
+     * @example '33.2.1'
+     */
+    'wdio:electronVersion'?: string
+
+    /**
     * Maximum number of total parallel running workers (per capability)
     */
     'wdio:maxInstances'?: number
