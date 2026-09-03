@@ -23,7 +23,7 @@ export class ShadowRootManager extends SessionManager {
     #initialize: Promise<boolean>
     #shadowRoots = new Map<string, ShadowRootTree>()
     #currentDocumentIds = new Map<string, string>()
-    #documentElement?: remote.ScriptNodeRemoteValue
+    #documentElements = new Map<string, remote.ScriptNodeRemoteValue>()
     #frameDepth = 0
 
     #handleLogEntryListener = this.handleLogEntry.bind(this)
@@ -85,6 +85,7 @@ export class ShadowRootManager extends SessionManager {
         const params = command.params as remote.BrowsingContextNavigateParameters
         this.#shadowRoots.delete(params.context)
         this.#currentDocumentIds.delete(params.context)
+        this.#documentElements.delete(params.context)
     }
 
     /**
@@ -151,6 +152,7 @@ export class ShadowRootManager extends SessionManager {
                     if (currentDocId && currentDocId !== newDocId) {
                         log.info(`Document changed in context ${ctxId}: ${currentDocId} -> ${newDocId}, purging ${this.#shadowRoots.get(ctxId)?.flat().length ?? 0} stale shadow roots`)
                         this.#shadowRoots.delete(ctxId)
+                        this.#documentElements.delete(ctxId)
                     }
                     this.#currentDocumentIds.set(ctxId, newDocId)
                 }
@@ -186,7 +188,7 @@ export class ShadowRootManager extends SessionManager {
             /**
              * store document element
              */
-            this.#documentElement = documentElement as remote.ScriptNodeRemoteValue
+            this.#documentElements.set(logEntry.source.context, documentElement as remote.ScriptNodeRemoteValue)
 
             const tree = this.#shadowRoots.get(logEntry.source.context)
             if (!tree) {
@@ -268,7 +270,7 @@ export class ShadowRootManager extends SessionManager {
             /**
              * ensure to include to document root if no scope is provided
              */
-            documentElement = this.#documentElement?.sharedId
+            documentElement = this.#documentElements.get(contextId)?.sharedId
         }
 
         const elements = tree.getAllLookupScopes()

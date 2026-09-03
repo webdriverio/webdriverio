@@ -4,6 +4,10 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
 /**
  * The action command is a low-level interface for providing virtualized device input actions to the web browser.
  *
+ * For simple key presses, use [`browser.keys()`](https://webdriver.io/docs/api/browser/keys) instead. To perform
+ * multiple action chains at once, such as holding `Control` while clicking, use
+ * [`browser.actions()`](https://webdriver.io/docs/api/browser/actions).
+ *
  * In addition to high level commands such like `scrollIntoView`, `doubleClick`, the Actions API provides granular
  * control over exactly what designated input devices can do. WebdriverIO provides an interface for 3 kinds of input
  * sources:

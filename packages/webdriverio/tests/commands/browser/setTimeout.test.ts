@@ -56,6 +56,14 @@ describe('setTimeout', () => {
         expect((vi.mocked(fetch).mock.calls[5][0] as any).pathname)
             .toBe('/session/foobar-123/timeouts')
         expect(vi.mocked(fetch).mock.calls[5][1]?.body).toEqual(JSON.stringify({}))
+
+        await browser.setTimeout({ implicit: 1000, script: undefined })
+        expect(vi.mocked(fetch).mock.calls).toHaveLength(7)
+        expect(vi.mocked(fetch).mock.calls[6][1]?.body).toEqual(JSON.stringify({ implicit: 1000 }))
+
+        await browser.setTimeout({ implicit: 1000, custom: 'not-a-timeout' } as any)
+        expect(vi.mocked(fetch).mock.calls).toHaveLength(8)
+        expect(vi.mocked(fetch).mock.calls[7][1]?.body).toEqual(JSON.stringify({ implicit: 1000 }))
     })
 
     it('should throw error on setting invalid timeout', async () => {
@@ -81,6 +89,16 @@ describe('setTimeout', () => {
             .rejects
             .toEqual(invalidTimeoutValueError)
         await expect(browser.setTimeout({ pageLoad: -2000 }))
+            .rejects
+            .toEqual(invalidTimeoutValueError)
+        await expect(browser.setTimeout({ implicit: 1000, script: -1 }))
+            .rejects
+            .toEqual(invalidTimeoutValueError)
+        // @ts-expect-error invalid param mixed with valid timeout
+        await expect(browser.setTimeout({ implicit: 1000, script: '5000' }))
+            .rejects
+            .toEqual(invalidTimeoutValueError)
+        await expect(browser.setTimeout({ implicit: undefined, pageLoad: undefined, script: undefined }))
             .rejects
             .toEqual(invalidTimeoutValueError)
         // @ts-expect-error invalid param
