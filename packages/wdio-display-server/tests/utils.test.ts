@@ -334,7 +334,6 @@ describe('installViaPackageManager', () => {
             })
 
             expect(ok).toBe(false)
-            // Install command was never invoked
             expect(mockExecAsync).not.toHaveBeenCalledWith('apt install -y foo', expect.anything())
         })
     })

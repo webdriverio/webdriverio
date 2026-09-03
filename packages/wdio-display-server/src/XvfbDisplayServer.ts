@@ -24,7 +24,6 @@ export class XvfbDisplayServer implements DisplayServer {
     private static reservedDisplays = new Set<number>()
 
     async isAvailable(): Promise<boolean> {
-        // Check if this is CentOS Stream 10 - Xvfb is not available
         if (await this.checkIsCentOS10()) {
             this.log.info('CentOS Stream 10 detected - Xvfb unavailable, skipping')
             this.isCentOS10 = true

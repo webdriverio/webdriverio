@@ -362,7 +362,6 @@ describe('DisplayServerManager (gap coverage)', () => {
             const ok = await mgr.init()
 
             expect(ok).toBe(false)
-            // Must not have probed xvfb
             expect(mockXvfb.isAvailable).not.toHaveBeenCalled()
         })
 
@@ -403,7 +402,6 @@ describe('optionsFromConfig', () => {
     it('returns undefined values for keys absent from the config (DisplayServerManager fills defaults)', () => {
         const result = optionsFromConfig({} as never)
 
-        // None of the option keys should throw on access; their values are undefined.
         expect(result.enabled).toBeUndefined()
         expect(result.displayServer).toBeUndefined()
         expect(result.autoInstall).toBeUndefined()
