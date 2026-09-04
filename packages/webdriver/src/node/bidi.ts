@@ -36,7 +36,16 @@ export async function listWebsocketCandidateUrls(webSocketUrl: string): Promise<
         // then it does not make sense to try additional candidates
         // as the web socket DNS resolver would do extactly the same
         if (candidateIps.length > 1) {
-            const hostnameMapper = (result: LookupAddress) => webSocketUrl.replace(parsedUrl.hostname, result.address)
+            const hostnameMapper = (result: LookupAddress) => {
+                const candidateUrl = new URL(webSocketUrl)
+
+                candidateUrl.hostname =
+                    isIP(result.address) === 6
+                        ? `[${result.address}]`
+                        : result.address
+
+                return candidateUrl.toString()
+            }
             candidateUrls.push(...candidateIps.map(hostnameMapper))
         }
     } catch (error) {

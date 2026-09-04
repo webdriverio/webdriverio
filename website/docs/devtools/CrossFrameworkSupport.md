@@ -5,9 +5,11 @@ title: Cross-Framework Support
 
 The trace format and the `show-trace` player are identical across WebdriverIO / Selenium / Nightwatch; this page shows where capture completeness differs. For the full trace-mode reference, see [Trace Mode](/docs/devtools/wdio/trace-mode).
 
-The trace pipeline lives in [`@wdio/devtools-core`](https://github.com/webdriverio/devtools/tree/main/packages/core), so the **trace format and the `show-trace` player are identical across all three adapters** — the same `.zip` (or directory) opens in the same player regardless of which adapter produced it, and the core options (`mode`, `traceGranularity`, `tracePolicy`, `traceFormat`, `filmstrip`, `emitArtifactsManifest`, `captureAssertions`) are shared.
+The transforms that build a trace live in [`@wdio/devtools-trace`](https://github.com/webdriverio/devtools/tree/main/packages/trace), one layer below the adapters, so the **trace format and the `show-trace` player are identical for every adapter** — the same `.zip` (or directory) opens in the same player regardless of which produced it. The three adapters below additionally share the core options (`mode`, `traceGranularity`, `tracePolicy`, `traceFormat`, `filmstrip`, `emitArtifactsManifest`, `captureAssertions`).
 
 **Capture completeness varies by adapter**, though — WebdriverIO is the most complete; Selenium and Nightwatch cover the core flow with the gaps noted below. Framework-specific enable syntax lives on each adapter page — see [Selenium](/docs/devtools/selenium#trace-mode) and [Nightwatch](/docs/devtools/nightwatch#trace-mode).
+
+The Python adapter (see the **Python** tabs on the [Selenium](/docs/devtools/selenium) page) writes the same archive and opens in the same player, but is not in this table: it runs no JavaScript in the test process, so the backend builds its trace from the captured stream instead of the adapter building it in-process. Granularity and retention do have Python equivalents — `--devtools-trace-granularity session|test` and `--devtools-trace-policy`, the latter with its retry-aware values degrading to `retain-on-failure` because nothing on that wire carries an attempt number. The rows with no Python equivalent are the per-test-artifact ones: `screenshot`, `video` and inline Allure attach. What it does capture - DOM time-travel, the dense filmstrip, the A11y tree and element overlay, commands, console, network, assertions, run controls and Preserve & Rerun - is on its own page.
 
 | Capability | WebdriverIO | Selenium | Nightwatch |
 |---|---|---|---|

@@ -28,3 +28,30 @@ When you run your tests, the DevTools UI automatically opens in an external brow
 ## Configuring the dashboard window
 
 The `port`, `hostname`, and `devtoolsCapabilities` options control the DevTools UI server and the window it opens in. See the [Configuration Reference](/docs/devtools/reference) for details.
+
+## Running the backend on its own
+
+The adapters start the dashboard server in-process, so you normally never touch it. It also ships as a standalone binary, which is what you want when the dashboard should outlive a single run - or when the tests are not JavaScript, as with the Python adapter (see the [Selenium](/docs/devtools/selenium) page).
+
+```bash
+npx @wdio/devtools-backend
+```
+
+```
+Usage: devtools-backend [options]
+
+Options:
+  --port <number>     Preferred port; a free one is chosen if it is taken
+  --hostname <host>   Host to bind (default: localhost)
+  -h, --help          Show this message
+```
+
+`--port` is a *preference*, not a promise: if that port is taken the server binds a free one instead of failing. It prints the port it actually bound, which is the line to read rather than the one you asked for:
+
+```
+devtools-backend listening at http://localhost:3000
+```
+
+Point a run at an already-listening server with `DEVTOOLS_PORT` (every adapter honours it), and the run will attach instead of starting a second one.
+
+A second binary, `show-trace`, opens a trace archive in the offline player - see [Trace Player](/docs/devtools/trace-player).

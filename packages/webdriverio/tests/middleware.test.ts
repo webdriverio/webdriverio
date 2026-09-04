@@ -71,6 +71,20 @@ describe('middleware', () => {
         vi.mocked(fetch).retryCnt = 0
     })
 
+    it('should refetch an element after a BiDi no such node error', async () => {
+        const isAfterNavigationDisplayed = vi.fn()
+            .mockRejectedValueOnce(new Error(
+                'WebDriver Bidi command "script.callFunction" failed with error: no such node - The node with the reference stale-element-123 is not known'
+            ))
+            .mockResolvedValueOnce(false)
+        browser.addCommand('isAfterNavigationDisplayed', isAfterNavigationDisplayed, true)
+        const elem = await browser.$('#foo')
+
+        // @ts-expect-error undefined custom command
+        await expect(elem.isAfterNavigationDisplayed()).resolves.toBe(false)
+        expect(isAfterNavigationDisplayed).toHaveBeenCalledTimes(2)
+    })
+
     it('should successfully getAttribute of an element that falls stale after being re-found in Safari', async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',

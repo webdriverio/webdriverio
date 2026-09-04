@@ -23,6 +23,83 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.31.5 (2026-08-29)
+
+#### :rocket: New Feature
+* `wdio-utils`, `webdriverio`
+  * [#15538](https://github.com/webdriverio/webdriverio/pull/15538) feat: UNSTABLE Review Multi-remote `select` implementations and remove filter ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :bug: Bug Fix
+* `wdio-utils`, `webdriverio`
+  * [#15538](https://github.com/webdriverio/webdriverio/pull/15538) feat: UNSTABLE Review Multi-remote `select` implementations and remove filter ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `webdriverio`
+  * [#15535](https://github.com/webdriverio/webdriverio/pull/15535) fix(webdriverio): handle BiDi no such node errors as stale ([@Fnine59](https://github.com/Fnine59))
+  * [#15537](https://github.com/webdriverio/webdriverio/pull/15537) fix(webdriverio): require all classic cookie filter attributes ([@ML642](https://github.com/ML642))
+
+#### :memo: Documentation
+* `wdio-protocols`, `webdriverio`
+  * [#15536](https://github.com/webdriverio/webdriverio/pull/15536) Docs/actions api guidance ([@ML642](https://github.com/ML642))
+
+#### Committers: 3
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Fnine59 ([@Fnine59](https://github.com/Fnine59))
+- Martsin Lazouski ([@ML642](https://github.com/ML642))
+
+
+## v9.31.4 (2026-08-27)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#15532](https://github.com/webdriverio/webdriverio/pull/15532) feat: Beta ElementArray under feature flag for `multiRemote.$()` e.g. MultiRemoteElement[] ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-allure-reporter`
+  * [#15278](https://github.com/webdriverio/webdriverio/pull/15278) feat(wdio-allure-reporter): add support for global errors and global attachments ([@todti](https://github.com/todti))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#15478](https://github.com/webdriverio/webdriverio/pull/15478) fix(webdriverio): track document element per context ([@Badisi](https://github.com/Badisi))
+* `webdriver`
+  * [#15516](https://github.com/webdriverio/webdriverio/pull/15516) fix(webdriver): serialize IPv6 BiDi WebSocket candidates correctly ([@ML642](https://github.com/ML642))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#15531](https://github.com/webdriverio/webdriverio/pull/15531) docs(webdriverio): document the $ async iterator methods ([@devangpratap](https://github.com/devangpratap))
+
+#### Committers: 5
+- Alex ([@todti](https://github.com/todti))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Martsin Lazouski ([@ML642](https://github.com/ML642))
+- [@Badisi](https://github.com/Badisi)
+- [@devangpratap](https://github.com/devangpratap)
+
+
+## v9.31.3 (2026-08-25)
+
+#### :bug: Bug Fix
+* `eslint-plugin-wdio`, `wdio-browser-runner`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-local-runner`, `wdio-runner`, `wdio-webdriver-mock-service`
+  * [#15518](https://github.com/webdriverio/webdriverio/pull/15518) fix: typing for `expect-wdio/api` ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-local-runner`, `wdio-runner`
+  * [#15513](https://github.com/webdriverio/webdriverio/pull/15513) fix(@wdio/local-runner): retry spec files when session creation fails ([@lorenaskosinskas](https://github.com/lorenaskosinskas))
+
+#### :memo: Documentation
+* Other
+  * [#15524](https://github.com/webdriverio/webdriverio/pull/15524) docs(website): added Serenity/JS HTML Reporter ([@jan-molak](https://github.com/jan-molak))
+  * [#15526](https://github.com/webdriverio/webdriverio/pull/15526) docs(devtools): document the Python adapter as language tabs on the S… ([@vishnuv688](https://github.com/vishnuv688))
+  * [#15520](https://github.com/webdriverio/webdriverio/pull/15520) doc: A11y doc update ([@vishnuv688](https://github.com/vishnuv688))
+* `webdriverio`
+  * [#15510](https://github.com/webdriverio/webdriverio/pull/15510) docs(sponsor): add Momentic as Premium sponsor ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* [#15517](https://github.com/webdriverio/webdriverio/pull/15517) fix(docs): unbreak non-English docs builds after flowchart component removal ([@AutomatedTester](https://github.com/AutomatedTester))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- David Burns ([@AutomatedTester](https://github.com/AutomatedTester))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Lorenas ([@lorenaskosinskas](https://github.com/lorenaskosinskas))
+- Vishnu Vardhan ([@vishnuv688](https://github.com/vishnuv688))
+
+
 ## v9.31.2 (2026-08-21)
 
 #### :rocket: New Feature
