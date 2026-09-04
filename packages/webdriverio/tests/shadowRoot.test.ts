@@ -7,6 +7,7 @@ const defaultBrowser = {
     sessionId: '123',
     sessionSubscribe: vi.fn().mockResolvedValue({}),
     on: vi.fn(),
+    off: vi.fn(),
     scriptAddPreloadScript: vi.fn().mockResolvedValue({}),
     capabilities: {}
 }
@@ -37,6 +38,62 @@ describe('ShadowRootManager', () => {
         expect(browser.sessionSubscribe).toBeCalledTimes(1)
         expect(browser.on).toBeCalledTimes(4)
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(1)
+
+        manager.removeListeners()
+        expect(browser.off).toHaveBeenCalledWith('browsingContext.navigationCommitted', expect.any(Function))
+    })
+
+    it('does not clear cached shadow roots until a navigation commits', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const listeners = new Map<string, (...args: any[]) => void>()
+        const browser = {
+            ...defaultBrowser,
+            sessionId: 'navigation-session',
+            isBidi: true,
+            on: vi.fn((event: string, listener: (...args: any[]) => void) => listeners.set(event, listener)),
+            options: { capabilities: { webSocketUrl: './' } }
+        } as any
+        const manager = getShadowRootManager(browser)
+        process.env.WDIO_UNIT_TESTS = wid
+
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'f.C1.d.AAAA.e.100', value: {
+                    localName: 'custom-app',
+                    shadowRoot: {
+                        sharedId: 'f.C1.d.AAAA.e.101',
+                        value: { nodeType: 11, mode: 'open' }
+                    }
+                } },
+                { type: 'node', sharedId: 'f.C1.d.AAAA.e.1' },
+                { type: 'boolean', value: true },
+                { type: 'node', sharedId: 'f.C1.d.AAAA.e.1' }
+            ],
+            source: { context: 'navigation-context' }
+        } as any)
+        expect(await manager.getShadowElementsByContextId('navigation-context')).toContain('f.C1.d.AAAA.e.101')
+
+        expect(browser.sessionSubscribe).toHaveBeenCalledWith({
+            events: ['log.entryAdded', 'browsingContext.navigationCommitted']
+        })
+        expect(browser.on).not.toHaveBeenCalledWith('browsingContext.navigationStarted', expect.any(Function))
+        expect(browser.on).not.toHaveBeenCalledWith('bidiCommand', expect.any(Function))
+
+        listeners.get('bidiCommand')?.({
+            method: 'browsingContext.navigate',
+            params: { context: 'navigation-context', url: 'https://example.com', wait: 'complete' }
+        })
+        expect(await manager.getShadowElementsByContextId('navigation-context')).toContain('f.C1.d.AAAA.e.101')
+
+        const navigationCommittedListener = listeners.get('browsingContext.navigationCommitted')
+        expect(navigationCommittedListener).toEqual(expect.any(Function))
+        navigationCommittedListener({ context: 'navigation-context' })
+
+        expect(await manager.getShadowElementsByContextId('navigation-context')).toEqual([])
     })
 
     it('handles a rejected scriptAddPreloadScript so it cannot leak as an unhandledRejection', async () => {
