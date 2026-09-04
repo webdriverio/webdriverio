@@ -9,6 +9,7 @@ import type { Options } from './types.js'
 const log = logger('@wdio/sumologic-reporter')
 
 const MAX_LINES = 100
+const MAX_RETRY_DELAY = 1000
 
 /**
  * Format date to match dateformat pattern 'yyyy-mm-dd HH:mm:ss,l o'
@@ -42,6 +43,8 @@ export default class SumoLogicReporter extends WDIOReporter {
     private _unsynced: string[] = []
     private _isSynchronising = false
     private _hasRunnerEnd = false
+    private _retryDelay = 0
+    private _nextRetryAt = 0
 
     constructor(options: Options) {
         super(options)
@@ -152,8 +155,14 @@ export default class SumoLogicReporter extends WDIOReporter {
          *  - we've already send out a request and are waiting for the successful response
          *  - we have nothing to synchronise
          *  - there is an invalid source address
+         *  - the retry backoff has not elapsed
          */
-        if (this._isSynchronising || this._unsynced.length === 0 || typeof this._options.sourceAddress !== 'string') {
+        if (
+            this._isSynchronising ||
+            this._unsynced.length === 0 ||
+            typeof this._options.sourceAddress !== 'string' ||
+            Date.now() < this._nextRetryAt
+        ) {
             return
         }
 
@@ -171,6 +180,9 @@ export default class SumoLogicReporter extends WDIOReporter {
                 body: JSON.stringify(logLines)
             })
 
+            this._retryDelay = 0
+            this._nextRetryAt = 0
+
             /**
              * remove transfered logs from log bucket
              */
@@ -178,6 +190,11 @@ export default class SumoLogicReporter extends WDIOReporter {
 
             return log.debug(`synchronised collector data, server status: ${resp.status}`)
         } catch (err) {
+            this._retryDelay = Math.min(
+                Math.max(this._options.syncInterval ?? 100, this._retryDelay * 2),
+                MAX_RETRY_DELAY
+            )
+            this._nextRetryAt = Date.now() + this._retryDelay
             return log.error('failed send data to Sumo Logic:\n', (err as Error).stack)
         } finally {
             this._isSynchronising = false
