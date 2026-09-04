@@ -213,6 +213,11 @@ const config: Config = {
                       <a href="https://www.browserstack.com/automation-webdriverio" target="_blank" rel="noreferrer noopener" aria-label="Premium Sponsor BrowserStack">
                         <img src="/img/sponsors/browserstack_white.svg" alt="BrowserStack" />
                       </a>`
+                }, {
+                    html: `
+                      <a href="https://momentic.ai/" target="_blank" rel="noreferrer noopener" aria-label="Premium Sponsor Momentic">
+                        <img src="/img/sponsors/momentic_white.svg" alt="Momentic" />
+                      </a>`
                 }]
             }],
             logo: {

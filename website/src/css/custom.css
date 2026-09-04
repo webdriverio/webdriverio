@@ -65,6 +65,7 @@ html[data-theme=dark] {
     }
     body .footer__item img {
         max-width: 200px;
+        height: auto;
     }
 }
 
@@ -120,6 +121,10 @@ html[data-theme=dark] {
 
 .footer__logo {
     max-width: 125px;
+}
+.footer__item img {
+    max-width: 200px;
+    height: auto;
 }
 .footer__links {
     width: 75%;

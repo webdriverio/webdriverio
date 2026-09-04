@@ -125,17 +125,29 @@ async function getCookiesClassic(
 
     const filter = getCookieFilter(names)
     const allCookies = await this.getAllCookies()
+    const filterValue = typeof filter === 'object' ? getCookieValue(filter.value) : undefined
     return allCookies.filter(cookie => (
-        !filter ||
-        cookie.name && filter.name === cookie.name ||
-        cookie.value && filter.value?.value === cookie.value ||
-        cookie.path && filter.path === cookie.path ||
-        cookie.domain && filter.domain === cookie.domain ||
-        cookie.sameSite && filter.sameSite === cookie.sameSite ||
-        cookie.expiry && filter.expiry === cookie.expiry ||
-        typeof cookie.httpOnly === 'boolean' && filter.httpOnly === cookie.httpOnly ||
-        typeof cookie.secure === 'boolean' && filter.secure === cookie.secure
+        !filter || (typeof filter === 'object' && (
+            (filter.name === undefined || filter.name === cookie.name) &&
+            (filter.value === undefined || filterValue === cookie.value) &&
+            (filter.path === undefined || filter.path === cookie.path) &&
+            (filter.domain === undefined || filter.domain === cookie.domain) &&
+            (filter.sameSite === undefined || filter.sameSite === cookie.sameSite) &&
+            (filter.expiry === undefined || filter.expiry === cookie.expiry) &&
+            (filter.httpOnly === undefined || filter.httpOnly === cookie.httpOnly) &&
+            (filter.secure === undefined || filter.secure === cookie.secure)
+        ))
     ))
+}
+
+function getCookieValue(value?: remote.NetworkBytesValue | null): string | undefined {
+    if (!value) {
+        return
+    }
+
+    return value.type === 'base64'
+        ? Buffer.from(value.value, 'base64').toString('utf-8')
+        : value.value
 }
 
 function getCookieFilter (names?: string | string[] | remote.StorageCookieFilter) {

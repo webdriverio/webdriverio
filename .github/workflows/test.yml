@@ -28,6 +28,11 @@ jobs:
     name: Static Code Analysis
     uses: ./.github/workflows/test-static.yml
 
+  docs_build:
+    name: Docs Build
+    needs: [static_code_analysis]
+    uses: ./.github/workflows/test-docs.yml
+
   typing_tests:
     name: Typing Tests
     needs: [build_core, static_code_analysis]

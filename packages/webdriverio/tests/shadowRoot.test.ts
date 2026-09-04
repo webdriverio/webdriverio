@@ -126,6 +126,52 @@ describe('ShadowRootManager', () => {
         ])
     })
 
+    it('should store the document element per context (regression test for shared document element)', async () => {
+        const browser = { ...defaultBrowser } as any
+        const manager = getShadowRootManager(browser)
+
+        // context A registers a shadow root and its own document element
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'elemA', value: {
+                    shadowRoot: { sharedId: 'shadowA', value: { nodeType: 11, mode: 'open' } }
+                } },
+                { type: 'node', sharedId: 'rootA' },
+                { type: 'boolean', value: true },
+                { type: 'node', sharedId: 'docElemA' }
+            ],
+            source: { context: 'ctxA' }
+        } as any)
+
+        // context B registers a shadow root and a DIFFERENT document element
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'elemB', value: {
+                    shadowRoot: { sharedId: 'shadowB', value: { nodeType: 11, mode: 'open' } }
+                } },
+                { type: 'node', sharedId: 'rootB' },
+                { type: 'boolean', value: true },
+                { type: 'node', sharedId: 'docElemB' }
+            ],
+            source: { context: 'ctxB' }
+        } as any)
+
+        // each context lookup must use its own document element, not the other's
+        const elementsA = await manager.getShadowElementsByContextId('ctxA')
+        expect(elementsA).toContain('docElemA')
+        expect(elementsA).not.toContain('docElemB')
+
+        const elementsB = await manager.getShadowElementsByContextId('ctxB')
+        expect(elementsB).toContain('docElemB')
+        expect(elementsB).not.toContain('docElemA')
+    })
+
     it('should ignore log entries that are not of interest', async () => {
         const browser = { ...defaultBrowser } as any
         const manager = getShadowRootManager(browser)
