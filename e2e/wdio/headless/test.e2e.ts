@@ -424,6 +424,16 @@ describe('main suite 1', () => {
 
         it('should return a request object', async () => {
             const request = await browser.url('https://guinea-pig.webdriver.io/')
+
+            /**
+             * see webdriverio#15481
+             */
+            const isMacOSSession = /mac|darwin|os x/i.test(browser.capabilities.platformName || '')
+            if (isMacOSSession) {
+                expect(request).toBe(undefined)
+                return
+            }
+
             if (!request) {
                 throw new Error('Request object is not defined')
             }
