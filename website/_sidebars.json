@@ -299,6 +299,21 @@
     },
     {
       "type": "category",
+      "label": "Flutter Testing",
+      "items": [
+        "flutter-testing/introduction",
+        "flutter-testing/preparing-flutter-application",
+        "flutter-testing/base-appium-configuration",
+        "flutter-testing/setting-up-webdriverio",
+        "flutter-testing/writing-tests"
+      ],
+      "link": {
+        "type": "doc",
+        "id": "flutter-testing/introduction"
+      }
+    },
+    {
+      "type": "category",
       "label": "MCP",
       "items": [
         "mcp/configuration",
@@ -336,21 +351,6 @@
         "bamboo",
         "seleniumgrid"
       ]
-    },
-    {
-      "type": "category",
-      "label": "Flutter Testing",
-      "items": [
-        "flutter-testing/introduction",
-        "flutter-testing/preparing-flutter-application",
-        "flutter-testing/base-appium-configuration",
-        "flutter-testing/setting-up-webdriverio",
-        "flutter-testing/writing-tests"
-      ],
-      "link": {
-        "type": "doc",
-        "id": "flutter-testing/introduction"
-      }
     }
   ],
   "api": [
