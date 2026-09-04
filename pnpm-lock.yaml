@@ -1414,8 +1414,8 @@ importers:
   packages/wdio-utils:
     dependencies:
       '@puppeteer/browsers':
-        specifier: ^2.2.0
-        version: 2.11.0
+        specifier: ^3.2.0
+        version: 3.2.2(yauzl@3.4.0)
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
@@ -1431,6 +1431,9 @@ importers:
       edgedriver:
         specifier: ^6.1.2
         version: 6.3.0
+      electron-to-chromium:
+        specifier: ^1.5.70
+        version: 1.5.399
       geckodriver:
         specifier: ^6.1.1
         version: 6.1.1
@@ -1455,6 +1458,10 @@ importers:
       wait-port:
         specifier: ^1.1.0
         version: 1.1.0
+    devDependencies:
+      '@types/electron-to-chromium':
+        specifier: ^1.5.0
+        version: 1.5.0
 
   packages/wdio-webdriver-mock-service:
     dependencies:
@@ -5530,6 +5537,19 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
+  '@puppeteer/browsers@3.2.2':
+    resolution: {integrity: sha512-q2BU4YfO9h/Wt7IcWPcggpOOqLk2Tbs1hDwolvKZrweRjy751OJBKMN9zO5bfD0pzU7X/tvKw/exQds4pM/LOg==}
+    engines: {node: '>=22.12.0'}
+    hasBin: true
+    peerDependencies:
+      proxy-agent: '>=8.0.1'
+      yauzl: ^3.4.0
+    peerDependenciesMeta:
+      proxy-agent:
+        optional: true
+      yauzl:
+        optional: true
+
   '@rolldown/pluginutils@1.0.0-beta.19':
     resolution: {integrity: sha512-3FL3mnMbPu0muGOCaKAhhFEYmqv9eTfPSJRJmANrCwtgK8VuxpsZDGK+m0LYAGoyO8+0j5uRe4PeyPDK1yA/hA==}
 
@@ -6537,6 +6557,9 @@ packages:
 
   '@types/ejs@3.1.5':
     resolution: {integrity: sha512-nv+GSx77ZtXiJzwKdsASqi+YQ5Z7vwHsTP0JY2SiQgjGckkBRKZnk8nIM+7oUZ1VCtuTz0+By4qVR7fqzp/Dfg==}
+
+  '@types/electron-to-chromium@1.5.0':
+    resolution: {integrity: sha512-DyruYlDaTi6RhdcarT+ppGNg+n2Jr+hvYLdF/RlJhAspSSFk5ptq+lcHgJZ/eQljH1xwZ5NE103oMJcjbDYnzw==}
 
   '@types/eslint-scope@3.7.7':
     resolution: {integrity: sha512-MzMFlSLBqNF2gcHWO0G1vP/YQyfvrxZ0bF+u7mzUdZ1/xK4A4sru+nraZz5i3iEIk1l1uyicaDVTB4QbbEkAYg==}
@@ -9193,9 +9216,6 @@ packages:
     resolution: {integrity: sha512-UeJmFfOrAQS8OJWPZ4qtgHyWExa088/MtK5UEyoJGFH67cDEXkZSviOiKRCZ4Xij0zxI3JECgYs3oKx+AizQBA==}
     engines: {node: '>=0.10.0'}
     hasBin: true
-
-  electron-to-chromium@1.5.267:
-    resolution: {integrity: sha512-0Drusm6MVRXSOJpGbaSVgcQsuB4hEkMpHXaVstcPmhu5LIedxs1xNK/nIxmQIU/RPC0+1/o0AVZfBTkTNJOdUw==}
 
   electron-to-chromium@1.5.399:
     resolution: {integrity: sha512-lEcqhErbHjXRvd41rnWLpzbyU/IXfIYo7QwaFWmxGeLiLyY2TBCdHnWY88vB+p3ubnihRypDm66panXl7TylLA==}
@@ -12151,6 +12171,10 @@ packages:
 
   modern-tar@0.7.7:
     resolution: {integrity: sha512-t9VmxaqrmANnEOBhpSDI6HD192Ge48k8vmWqQQL7hSFEqHEYwZbbsu49+aKLWZeRvFs3j1pMhXOqqF4kPlvjkQ==}
+    engines: {node: '>=18.0.0'}
+
+  modern-tar@0.8.4:
+    resolution: {integrity: sha512-gN54ddmyzEg10orwZ2u4OOv+bjpMWdIl5jIkodK97bMq8QBSL5c0D7YX0lT1Ooz+99S7+PvFbnxzdjgHo1r41g==}
     engines: {node: '>=18.0.0'}
 
   modify-values@1.0.1:
@@ -17923,7 +17947,7 @@ snapshots:
       '@cucumber/ci-environment': 10.0.1
       '@cucumber/cucumber-expressions': 17.1.0
       '@cucumber/gherkin': 28.0.0
-      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)
+      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@26.0.1))(@cucumber/messages@24.1.0)
       '@cucumber/gherkin-utils': 9.0.0
       '@cucumber/html-formatter': 21.6.0(@cucumber/messages@24.1.0)
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -17963,7 +17987,7 @@ snapshots:
       yaml: 2.8.0
       yup: 1.2.0
 
-  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)':
+  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@26.0.1))(@cucumber/messages@24.1.0)':
     dependencies:
       '@cucumber/gherkin': 28.0.0
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -20790,7 +20814,7 @@ snapshots:
       proxy-agent: 6.5.0
       semver: 7.7.4
       tar-fs: 3.1.1
-      yargs: 17.7.2
+      yargs: 17.7.3
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
@@ -20810,6 +20834,13 @@ snapshots:
       - bare-buffer
       - react-native-b4a
       - supports-color
+
+  '@puppeteer/browsers@3.2.2(yauzl@3.4.0)':
+    dependencies:
+      modern-tar: 0.8.4
+      yargs: 18.0.0
+    optionalDependencies:
+      yauzl: 3.4.0
 
   '@rolldown/pluginutils@1.0.0-beta.19': {}
 
@@ -21961,6 +21992,8 @@ snapshots:
       diff: 8.0.3
 
   '@types/ejs@3.1.5': {}
+
+  '@types/electron-to-chromium@1.5.0': {}
 
   '@types/eslint-scope@3.7.7':
     dependencies:
@@ -23634,7 +23667,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.9.11
       caniuse-lite: 1.0.30001762
-      electron-to-chromium: 1.5.267
+      electron-to-chromium: 1.5.399
       node-releases: 2.0.27
       update-browserslist-db: 1.2.3(browserslist@4.28.1)
 
@@ -25100,7 +25133,7 @@ snapshots:
   dts-bundle-generator@9.5.1:
     dependencies:
       typescript: 5.9.3
-      yargs: 17.7.2
+      yargs: 17.7.3
 
   dunder-proto@1.0.1:
     dependencies:
@@ -25167,8 +25200,6 @@ snapshots:
   ejs@3.1.10:
     dependencies:
       jake: 10.9.2
-
-  electron-to-chromium@1.5.267: {}
 
   electron-to-chromium@1.5.399: {}
 
@@ -29140,6 +29171,8 @@ snapshots:
 
   modern-tar@0.7.7: {}
 
+  modern-tar@0.8.4: {}
+
   modify-values@1.0.1: {}
 
   morgan@1.11.0:
@@ -29449,7 +29482,7 @@ snapshots:
       tsconfig-paths: 4.2.0
       tslib: 2.8.1
       yaml: 2.8.2
-      yargs: 17.7.2
+      yargs: 17.7.3
       yargs-parser: 21.1.1
     optionalDependencies:
       '@nx/nx-darwin-arm64': 22.5.4
