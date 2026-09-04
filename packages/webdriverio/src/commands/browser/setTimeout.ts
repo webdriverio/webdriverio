@@ -46,10 +46,20 @@ export async function setTimeout(
 
     /**
      * If value is not an integer, or it is less than 0 or greater than the maximum safe
-     * integer, return error with error code invalid argument.
+    * integer, return error with error code invalid argument.
      */
-    const timeoutValues = Object.values(timeouts)
-    if (timeoutValues.length && timeoutValues.every(timeout => typeof timeout !== 'number' || timeout < 0 || timeout > Number.MAX_SAFE_INTEGER)) {
+    const timeoutKeys = ['implicit', 'pageLoad', 'script', 'page load'] as const
+    const knownTimeoutValues = Object.entries(timeouts)
+        .filter(([key]) => timeoutKeys.includes(key as typeof timeoutKeys[number]))
+        .map(([, timeout]) => timeout)
+    const timeoutValues = knownTimeoutValues.length > 0
+        ? knownTimeoutValues
+        : Object.values(timeouts)
+    const definedTimeoutValues = timeoutValues.filter(timeout => timeout !== undefined)
+    if (
+        definedTimeoutValues.some(timeout => typeof timeout !== 'number' || timeout < 0 || timeout > Number.MAX_SAFE_INTEGER) ||
+        (timeoutValues.length > 0 && definedTimeoutValues.length === 0)
+    ) {
         throw new Error('Specified timeout values are not valid integer (see https://webdriver.io/docs/api/browser/setTimeout for documentation).')
     }
 

@@ -21,10 +21,12 @@
     "@docusaurus/plugin-pwa": "^3.9.2",
     "@docusaurus/preset-classic": "^3.9.2",
     "@docusaurus/remark-plugin-npm2yarn": "^3.9.2",
+    "@docusaurus/theme-mermaid": "3.9.2",
     "@docusaurus/theme-search-algolia": "^3.9.2",
     "@docusaurus/tsconfig": "^3.9.2",
     "@mdx-js/react": "^3.0.1",
     "@mendable/search": "^0.0.206",
+    "@signalwire/docusaurus-plugin-llms-txt": "^1.2.2",
     "@tsconfig/docusaurus": "^2.0.3",
     "clsx": "^2.1.1",
     "docusaurus-theme-github-codeblock": "^2.0.2",
@@ -36,7 +38,7 @@
     "workbox-strategies": "^7.1.0"
   },
   "engines": {
-    "node": ">=18.0"
+    "node": ">=18.20.0"
   },
   "browserslist": {
     "production": [

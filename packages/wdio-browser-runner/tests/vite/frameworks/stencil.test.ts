@@ -1,6 +1,9 @@
+import path from 'node:path'
+
 import type { Plugin } from 'vite'
 
 import { expect, vi, test } from 'vitest'
+import { transpileSync } from '@stencil/core/compiler/stencil.js'
 import { isUsingStencilJS, optimizeForStencil } from '../../../src/vite/frameworks/stencil.js'
 import { hasFileByExtensions } from '../../../src/vite/utils.js'
 

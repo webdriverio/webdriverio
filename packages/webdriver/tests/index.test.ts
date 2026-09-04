@@ -4,6 +4,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import logger, { logMock } from '@wdio/logger'
 import { sessionEnvironmentDetector } from '@wdio/utils'
 import { startWebDriver } from '@wdio/utils'
+import type { Capabilities } from '@wdio/types'
 
 import '../src/browser.js'
 
@@ -25,6 +26,7 @@ vi.mock('fetch')
 vi.mock('../src/bidi/core.js', () => {
     let initCount = 0
     return {
+        DEFAULT_RESPONSE_TIMEOUT: 1000 * 180,
         BidiCore: class BidiHandlerMock {
             connect = vi.fn().mockResolvedValue({})
             constructor () {
@@ -186,7 +188,31 @@ describe('WebDriver', () => {
                 headers
             })
 
-            expect(utils.initiateBidi).toHaveBeenCalledWith(webSocketUrl, strictSSL, headers)
+            expect(utils.initiateBidi).toHaveBeenCalledWith(
+                webSocketUrl,
+                strictSSL,
+                headers,
+                DEFAULTS.bidiResponseTimeout.default
+            )
+        })
+
+        it('should pass a custom "bidiResponseTimeout" to "initiateBidi"', async () => {
+            const webSocketUrl = 'ws://foo/bar'
+
+            vi.spyOn(utils, 'initiateBidi')
+            vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: { webSocketUrl } }))
+            await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' },
+                bidiResponseTimeout: 300000
+            })
+
+            expect(utils.initiateBidi).toHaveBeenCalledWith(
+                webSocketUrl,
+                undefined,
+                undefined,
+                300000
+            )
         })
     })
 
@@ -332,6 +358,24 @@ describe('WebDriver', () => {
             await WebDriver.reloadSession(session, { browserName: 'chrome' })
             expect(startWebDriver).toHaveBeenCalledOnce()
             expect((session.capabilities as WebdriverIO.Capabilities)['wdio:driverPID']).toBe(1234)
+        })
+
+        it('keeps the PID of the newly spawned driver after reload', async () => {
+            const spawnDriver = (pid: number) => (params: Capabilities.RemoteConfig) => {
+                params.hostname = 'localhost'
+                params.port = 4444
+                return { pid } as any
+            }
+            vi.mocked(startWebDriver)
+                .mockImplementationOnce(spawnDriver(1234))
+                .mockImplementationOnce(spawnDriver(5678))
+            const session = await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' }
+            })
+            expect((session.capabilities as WebdriverIO.Capabilities)['wdio:driverPID']).toBe(1234)
+            await WebDriver.reloadSession(session, { browserName: 'chrome' })
+            expect((session.capabilities as WebdriverIO.Capabilities)['wdio:driverPID']).toBe(5678)
         })
 
         it('connects to the new remote', async () => {

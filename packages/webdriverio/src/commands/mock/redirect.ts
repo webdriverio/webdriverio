@@ -17,5 +17,6 @@
  *
  * @alias mock.request
  * @param {string} url  target resource to redirect requests to
+ * @skipAwait
  */
 // actual implementation is located in packages/webdriverio/src/utils/interception

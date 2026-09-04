@@ -14,10 +14,11 @@ MCP (Model Context Protocol) is an open protocol that enables AI assistants like
 ### What can I automate with WebdriverIO MCP?
 
 You can automate:
--   **Desktop browsers** (Chrome) - navigation, clicking, typing, screenshots
+-   **Desktop browsers** (Chrome, Firefox, Edge, Safari) - navigation, clicking, typing, screenshots
 -   **iOS apps** - on simulators or real devices
 -   **Android apps** - on emulators or real devices
 -   **Hybrid apps** - switching between native and web contexts
+-   **Cloud devices** - via BrowserStack, Sauce Labs, TestMu, and TestingBot device clouds
 
 ### Do I need to write code?
 
@@ -35,9 +36,7 @@ No! That's the main benefit of MCP. You can describe what you want to do in natu
 
 ### How do I install WebdriverIO MCP?
 
-You don't need to install it separately. The MCP server runs automatically via npx when you configure it in Claude Desktop or Claude Code.
-
-Add this to your Claude Desktop config:
+You don't need to install it separately. The MCP server runs automatically via npx when you configure it in your harness. Add this to your config:
 
 ```json
 {
@@ -57,7 +56,7 @@ Add this to your Claude Desktop config:
 
 ### Do I need Appium for browser automation?
 
-No. Browser automation only requires Chrome to be installed. WebdriverIO handles the ChromeDriver automatically.
+No. Browser automation only requires the target browser to be installed. WebdriverIO handles driver management automatically.
 
 ### Do I need Appium for mobile automation?
 
@@ -72,15 +71,18 @@ Yes. Mobile automation requires:
 
 ### Which browsers are supported?
 
-Currently, only **Chrome** is supported. Support for other browsers may be added in future versions.
+Chrome, Firefox, Edge, and Safari are all supported. Use the `browser` parameter in `start_session`:
 
-### Can I run Chrome in headless mode?
-
-Yes! Ask Claude to start the browser in headless mode:
-
+```
+"Start a Firefox session"
 "Start Chrome in headless mode"
+```
 
-Or Claude will use this option when appropriate (e.g., in CI/CD contexts).
+### Can I run the browser in headless mode?
+
+Yes. Headless is the default (`headless: true`). Ask Claude to run headed if you want to see the browser:
+
+"Start Chrome in headed mode (not headless)"
 
 ### Can I set the browser window size?
 
@@ -88,7 +90,7 @@ Yes. You can specify dimensions when starting the browser:
 
 "Start Chrome with a window size of 1920x1080"
 
-Supported dimensions: 400-3840 pixels wide, 400-2160 pixels tall. Default is 1920x1080.
+Supported dimensions: 400–3840 pixels wide, 400–2160 pixels tall. Default is 1920×1080.
 
 ### Can I start the browser and navigate in one step?
 
@@ -100,7 +102,7 @@ This is more efficient than starting the browser and then navigating separately.
 
 ### How do I take screenshots?
 
-Simply ask Claude:
+Simply ask:
 
 "Take a screenshot of the current page"
 
@@ -111,7 +113,7 @@ Screenshots are automatically optimized:
 
 ### Can I interact with iframes?
 
-Currently, the MCP server operates on the main document. iframe interaction may be added in future versions.
+Yes. Use the `switch_frame` tool to switch into an iframe by CSS or XPath selector. All subsequent `click_element`, `set_value`, and `get_elements` calls operate within the switched frame. Omit the selector to switch back to the top-level frame. Iframes must be from the same origin as the main page.
 
 ### Can I execute custom JavaScript?
 
@@ -120,27 +122,34 @@ Yes! Use the `execute_script` tool:
 "Execute script to get the page title"
 "Execute script: return document.querySelectorAll('button').length"
 
+### Can I attach to an existing Chrome session?
+
+Yes. Use `launch_chrome` first (opens Chrome with remote debugging), then `start_session` with `attach: true`.
+
+"Launch Chrome with remote debugging, then attach to it"
+
+### Can I work with multiple tabs?
+
+Yes. Use `get_tabs` to list open tabs and `switch_tab` to focus a specific one:
+
+"Get all open tabs"
+"Switch to the tab at index 1"
+
 ---
 
 ## Mobile Automation
 
-### How do I start an iOS app?
+### How do I start an iOS or Android session?
 
-Ask Claude with the necessary details:
+Use `start_session` with the appropriate platform:
 
 "Start my iOS app located at /path/to/MyApp.app on the iPhone 15 simulator"
 
-Or for an installed app:
-
-"Start the app with noReset enabled on the iPhone 15 simulator"
-
-### How do I start an Android app?
-
 "Start my Android app at /path/to/app.apk on the Pixel 7 emulator"
 
-Or for an installed app:
+Or for an already-installed app:
 
-"Start the app with noReset enabled on the Pixel 7 emulator"
+"Start the app with noReset enabled on the iPhone 15 simulator"
 
 ### Can I test on real devices?
 
@@ -149,7 +158,7 @@ Yes! For real devices, you'll need the device UDID:
 -   **iOS:** Connect device, open Finder, click device, click serial number to reveal UDID
 -   **Android:** Run `adb devices` in terminal
 
-Then ask Claude:
+Then ask:
 
 "Start my iOS app on the real device with UDID abc123..."
 
@@ -161,9 +170,9 @@ By default, permissions are automatically granted (`autoGrantPermissions: true`)
 
 ### What gestures are supported?
 
--   **Tap:** Tap on elements or coordinates
--   **Swipe:** Swipe up, down, left, or right
--   **Drag and Drop:** Drag from one element to another or to coordinates
+-   **Tap:** Tap on elements or coordinates (`tap_element`)
+-   **Swipe:** Swipe up, down, left, or right (`swipe`)
+-   **Drag and Drop:** Drag from one element to another or to coordinates (`drag_and_drop`)
 
 Note: `long_press` is available through `execute_script` with Appium mobile commands.
 
@@ -195,7 +204,7 @@ Yes! Use the `execute_script` tool:
 
 ```
 Execute script "mobile: pressKey" with args [{ keycode: 4 }]  // Press BACK on Android
-Execute script "mobile: activateApp" with args [{ appId: "com.example.app" }]
+Execute script "mobile: activateApp" with args [{ bundleId: "com.example.app" }]
 Execute script "mobile: terminateApp" with args [{ bundleId: "com.example.app" }]
 ```
 
@@ -203,28 +212,18 @@ Execute script "mobile: terminateApp" with args [{ bundleId: "com.example.app" }
 
 ## Element Selection
 
-### How does Claude know which element to interact with?
+### How does the AI assistant know which element to interact with?
 
-Claude uses the `get_visible_elements` tool to identify interactive elements on the page/screen. Each element comes with multiple selector strategies.
+It uses the `wdio://session/current/elements` resource or `get_elements` tool to identify interactive elements on the page/screen. Each element comes with ready-to-use selectors.
 
 ### What if there are too many elements on the page?
 
 Use pagination to manage large element lists:
 
-"Get the first 20 visible elements"
-"Get visible elements with offset 20 and limit 20"
+"Get the first 20 elements"
+"Get elements with offset 20 and limit 20"
 
 The response includes `total`, `showing`, and `hasMore` to help navigate through elements.
-
-### Can I get only specific types of elements?
-
-Yes! Use the `elementType` parameter:
-
--   `interactable` (default): Buttons, links, inputs
--   `visual`: Images, SVGs
--   `all`: Both types
-
-"Get visible visual elements on the page"
 
 ### What if Claude clicks the wrong element?
 
@@ -243,8 +242,8 @@ You can be more specific:
 
 ### What is the accessibility tree and when should I use it?
 
-The accessibility tree provides semantic information about page elements (roles, names, states). Use `get_accessibility` when:
-- `get_visible_elements` doesn't return expected elements
+The accessibility tree provides semantic information about page elements (roles, names, states). Use `get_accessibility_tree` when:
+- `get_elements` doesn't return expected elements
 - You need to find elements by accessibility role (button, link, textbox, etc.)
 - You need detailed semantic information about elements
 
@@ -262,7 +261,7 @@ No. The MCP server uses a single-session model. Only one browser or app session 
 
 It depends on the session type and settings:
 
--   **Browser:** Chrome closes completely
+-   **Browser:** Browser closes completely
 -   **Mobile with `noReset: false`:** App terminates
 -   **Mobile with `noReset: true` or no `appPath`:** App stays open (session detaches automatically)
 
@@ -287,7 +286,7 @@ Increase the command timeout:
 
 "Start my app with newCommandTimeout of 300 seconds"
 
-Default is 60 seconds. For long debugging sessions, try 300-600 seconds.
+Default is 300 seconds. For very long debugging sessions, try 600 seconds.
 
 ---
 
@@ -310,7 +309,7 @@ The element might not be visible or might have a different selector. Try:
 
 ### Browser won't start
 
-1. Ensure Chrome is installed
+1. Ensure the target browser is installed
 2. Check if another process is using the debugging port (9222)
 3. Try headless mode
 
@@ -320,7 +319,7 @@ This is the most common issue when starting mobile automation.
 
 1. **Verify Appium is running**: `curl http://localhost:4723/status`
 2. Start Appium if needed: `appium`
-3. Check your Appium URL configuration matches the server
+3. Check your Appium connection matches the server (use `appiumConfig` in `start_session`)
 4. Ensure drivers are installed: `appium driver list --installed`
 
 :::tip
@@ -373,7 +372,7 @@ Tips for faster automation:
 
 The MCP server already optimizes element detection using XML page source parsing (2 HTTP calls vs 600+ for traditional element queries). Additional tips:
 
--   Keep `inViewportOnly: true` (default)
+-   Set `inViewportOnly: true` to filter off-screen elements
 -   Set `includeContainers: false` (default)
 -   Use `limit` and `offset` for pagination on large screens
 -   Use specific selectors instead of finding all elements
@@ -394,8 +393,7 @@ This optimization reduces processing time and ensures Claude can handle the imag
 ### What are the current limitations?
 
 -   **Single session:** Only one browser/app at a time
--   **Browser support:** Chrome only (for now)
--   **iframe support:** Limited support for iframes
+-   **iframe support:** Same-origin iframes are supported via `switch_frame`; cross-origin iframes are not accessible due to browser security restrictions
 -   **File uploads:** Not directly supported via tools
 -   **Audio/Video:** Cannot interact with media playback
 -   **Browser extensions:** Not supported
@@ -411,6 +409,8 @@ WebdriverIO MCP is designed for interactive AI-assisted automation. For producti
 ### Is my data secure?
 
 The MCP server runs locally on your machine. All automation happens through local browser/Appium connections. No data is sent to external servers beyond what you explicitly navigate to.
+
+When using HTTP transport mode (`--http`), the server defaults to only accepting connections from `localhost`; use `--allowedHosts` and `--allowedOrigins` to control access. See [Transport](./transport) for details.
 
 ### Can Claude access my passwords?
 

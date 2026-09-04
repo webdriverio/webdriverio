@@ -1,13 +1,13 @@
 import path from 'node:path'
 
 import logger from '@wdio/logger'
-import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
+import { describe, expect, it, vi, afterEach, beforeEach, onTestFinished } from 'vitest'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import type { Instances } from 'webdriverio'
 import { attach } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
-import { setOptions, SnapshotService } from 'expect-webdriverio'
+import { setDefaultOptions, SnapshotService } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
 import type { CustomStubCommand, CustomStubCommandWithOptions, LegacyCustomStubCommand } from '../src/types.js'
@@ -18,7 +18,7 @@ vi.mock('fs/promises', async (orig) => ({
 }))
 vi.mock('util')
 vi.mock('expect-webdriverio', () => ({
-    setOptions: vi.fn(),
+    setDefaultOptions: vi.fn(),
     expect: vi.fn(),
     SoftAssertionService: vi.fn(),
     SnapshotService: {
@@ -40,7 +40,7 @@ type MultiRemoteBrowserObject = WebdriverIO.MultiRemoteBrowser
 describe('wdio-runner', () => {
     beforeEach(() => {
         vi.mocked(_setGlobal).mockClear()
-        vi.mocked(setOptions).mockClear()
+        vi.mocked(setDefaultOptions).mockClear()
         process.send = vi.fn()
     })
 
@@ -186,6 +186,49 @@ describe('wdio-runner', () => {
 
             // session capabilities should be passed to reporter
             expect(runner['_reporter']?.caps).toEqual({ browserName: 'chrome' })
+        })
+
+        it('should send the post-beforeSession retry budget with testFrameworkInit', async () => {
+            const runner = new WDIORunner()
+            const config: any = {
+                reporters: [],
+                before: [],
+                beforeSession: [vi.fn()],
+                specFileRetries: 2,
+                framework: 'testWithFailures',
+                runner: 'local'
+            }
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            // @ts-expect-error mock private
+            vi.spyOn(ConfigParser.prototype, 'addConfigFile').mockReturnValue()
+            vi.mocked(executeHooksWithArgs).mockImplementation(async (name: unknown, _hooks: unknown, args: unknown) => {
+                if (name === 'beforeSession') {
+                    (args as any[])[0].specFileRetries = 5
+                }
+                return []
+            })
+            onTestFinished(() => vi.mocked(executeHooksWithArgs).mockReset())
+
+            runner['_shutdown'] = vi.fn()
+            runner['_initSession'] = vi.fn().mockReturnValue({
+                capabilities: { browserName: 'chrome' },
+                options: {}
+            })
+            await runner.run({
+                args: { reporters: [] },
+                cid: '0-0',
+                retries: -1,
+                caps: { browserName: '123' },
+                specs: ['foobar'],
+                configFile: '/foo/bar'
+            })
+
+            expect(process.send).toBeCalledWith(expect.objectContaining({
+                name: 'testFrameworkInit',
+                // budget overridden in `beforeSession` (5) minus the -1 launcher
+                // sentinel, mirroring the `sessionStarted` accounting
+                specFileRetries: 6
+            }))
         })
 
         it('should return failures count', async () => {
@@ -350,6 +393,41 @@ describe('wdio-runner', () => {
             // browser session is started
             expect(runner['_reporter']?.caps).toEqual(caps)
         })
+
+        it('should call afterSession hook when session initialization fails', async () => {
+            const afterSessionHook = vi.fn()
+            const runner = new WDIORunner()
+            const caps = { browserName: '123' }
+            const specs = ['foobar']
+            const config: any = {
+                framework: 'testNoFailures',
+                reporters: [],
+                beforeSession: [],
+                after: [],
+                afterSession: [afterSessionHook],
+                runner: 'local'
+            }
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            runner['_shutdown'] = vi.fn().mockReturnValue('_shutdown')
+            runner['_initSession'] = vi.fn().mockReturnValue(null)
+
+            await runner.run({
+                args: { reporters: [] },
+                cid: '0-0',
+                caps,
+                specs,
+                configFile: '/foo/bar',
+                retries: 0
+            })
+
+            // afterSession must run to allow services to clean up resources
+            // allocated during beforeSession, even when browser init fails
+            expect(executeHooksWithArgs).toBeCalledWith(
+                'afterSession',
+                [afterSessionHook],
+                expect.any(Array)
+            )
+        })
     })
 
     describe('_initSession', () => {
@@ -366,8 +444,8 @@ describe('wdio-runner', () => {
             expect(_setGlobal).toBeCalledWith('$', expect.any(Function), undefined)
             expect(_setGlobal).toBeCalledWith('$$', expect.any(Function), undefined)
 
-            expect(setOptions).toBeCalledTimes(1)
-            expect(setOptions).toBeCalledWith({
+            expect(setDefaultOptions).toBeCalledTimes(1)
+            expect(setDefaultOptions).toBeCalledWith({
                 afterAssertion: expect.any(Function),
                 beforeAssertion: expect.any(Function),
                 wait: 1,
@@ -387,6 +465,7 @@ describe('wdio-runner', () => {
 
             const beforeListener = vi.mocked(browser!.on).mock.calls[0]
             expect(beforeListener[0]).toBe('command')
+            // @ts-expect-error
             beforeListener[1]({ foo: 'bar' })
             expect(reporter.emit).toBeCalledWith(
                 'client:beforeCommand',
@@ -396,6 +475,7 @@ describe('wdio-runner', () => {
 
             const afterListener = vi.mocked(browser!.on).mock.calls[1]
             expect(afterListener[0]).toBe('result')
+            // @ts-expect-error
             afterListener[1]({ bar: 'foo' })
             expect(reporter.emit).toBeCalledWith(
                 'client:afterCommand',
@@ -427,7 +507,7 @@ describe('wdio-runner', () => {
             const browser = await runner['_startSession']({} as any, {} as any)
             expect(typeof browser?.deleteSession).toBe('function')
             expect(_setGlobal).toBeCalledTimes(3)
-            expect(setOptions).toBeCalledTimes(1)
+            expect(setDefaultOptions).toBeCalledTimes(1)
         })
 
         it('transfers custom element commands with options object from old instance to new one', async () => {

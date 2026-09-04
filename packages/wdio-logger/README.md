@@ -107,6 +107,8 @@ export const config: WebdriverIO.Config = {
 }
 ```
 
+For secrets passed via the command line, masking may fail because the wdio.conf.ts file is parsed later in the execution cycle. Using environment variables for these cases is highly recommended and much safer.
+
 Below are examples with the environment variable `WDIO_LOG_MASKING_PATTERNS` in the code directly:
 
 ```javascript

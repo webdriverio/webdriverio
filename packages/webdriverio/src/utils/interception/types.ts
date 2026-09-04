@@ -3,12 +3,14 @@ import type { Cookie } from '@wdio/protocols'
 
 export interface Response extends local.NetworkResponseCompletedParameters {
     body?: string
+    postData?: string
 }
 
 export type MockFilterOptions = {
     method?: string | ((method: string) => boolean)
     requestHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean)
     responseHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean)
+    postData?: string | ((postData?: string) => boolean)
     statusCode?: number | ((statusCode: number) => boolean)
 }
 

@@ -50,5 +50,6 @@
  * @param {Object=}             params.header           overwrite specific headers
  * @param {Number=}             params.statusCode       overwrite response status code
  * @param {Boolean=}            params.fetchResponse    fetch real response before responding with mocked data
+ * @skipAwait
  */
 // actual implementation is located in packages/webdriverio/src/utils/interception

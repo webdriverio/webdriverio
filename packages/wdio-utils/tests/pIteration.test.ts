@@ -462,6 +462,24 @@ test('filter should skip holes in arrays', async () => {
     expect(numbers).toEqual([0, 1, 2, 5])
 })
 
+test('filter keeps an undefined element that passes the test', async () => {
+    // `undefined` cannot double as the marker for a rejected element:
+    // `Array#filter` and `filterSeries` both keep it.
+    const input = [undefined, 1, undefined, 2]
+    const predicate = async () => true
+
+    await expect(filter(input, predicate)).resolves.toEqual(input.filter(() => true))
+    await expect(filter(input, predicate)).resolves.toEqual(
+        await filterSeries(input, predicate)
+    )
+})
+
+test('filter drops an undefined element that fails the test', async () => {
+    await expect(
+        filter([undefined, 1, undefined, 2], async (value: unknown) => typeof value === 'number')
+    ).resolves.toEqual([1, 2])
+})
+
 test('filter, check callbacks are run in parallel', async () => {
     const parallelCheck: number[] = []
     const numbers = await filter([2, 1, '3'], async (num: number, index: number, array: number[]) => {

@@ -1,0 +1,23 @@
+# robots.txt for https://webdriver.io
+#
+# WebdriverIO's documentation is openly licensed and we want it to be findable,
+# both by traditional search engines and by AI assistants that people now ask
+# WebdriverIO questions instead of visiting the site directly.
+#
+# Machine-readable entry points for LLM consumers:
+#   https://webdriver.io/llms.txt       - index of the documentation
+#   https://webdriver.io/llms-full.txt  - full documentation text in one file
+# Any documentation page is also available as clean Markdown by appending
+# `.md` to its URL, e.g. https://webdriver.io/docs/api/browser.md
+#
+# NOTE: no per-crawler stanzas are declared yet. Whether to allow or disallow
+# specific AI training crawlers (GPTBot, ClaudeBot, CCBot, Google-Extended,
+# Applebot-Extended, ...) separately from retrieval/citation agents
+# (OAI-SearchBot, ChatGPT-User, Claude-User, PerplexityBot, ...) is a project
+# policy decision, not a technical one. Until that is settled the site stays
+# open to everything, which matches the behaviour before this file existed.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://webdriver.io/sitemap.xml

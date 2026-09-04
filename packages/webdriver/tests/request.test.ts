@@ -142,7 +142,7 @@ describe('webdriver request', () => {
             expect((url! as URL).href)
                 .toBe('https://localhost:4445/session/foobar12345/element')
             expect([...(requestOptions.headers as unknown as Map<string, string>).keys()])
-                .toEqual(['accept', 'connection', 'content-length', 'content-type', 'foo', 'user-agent'])
+                .toEqual(['accept', 'content-type', 'foo', 'user-agent'])
             expect(requestOptions.signal?.aborted).toBeFalsy()
         })
 
@@ -211,8 +211,7 @@ describe('webdriver request', () => {
                 logLevel: 'warn'
             })
             expect([...(requestOptions.headers as unknown as Map<string, string>).keys()])
-                .toEqual(['accept', 'connection', 'content-length', 'content-type', 'user-agent'])
-            expect((requestOptions.headers as unknown as Map<string, string>).get('Content-Length')).toBe('13')
+                .toEqual(['accept', 'content-type', 'user-agent'])
         })
 
         it('should add Content-Length as well any other header provided in the request options if there is body in the request object', async () => {
@@ -223,7 +222,6 @@ describe('webdriver request', () => {
                 logLevel: 'warn'
             })
             expect((requestOptions.headers as unknown as Map<string, string>).get('foo')).toContain('bar')
-            expect((requestOptions.headers as unknown as Map<string, string>).get('Content-Length')).toBe('13')
         })
 
         it('should add only the headers provided if the request body is empty', async () => {
@@ -234,7 +232,6 @@ describe('webdriver request', () => {
                 headers: { foo: 'bar' },
                 logLevel: 'warn'
             })
-            expect([...(requestOptions.headers as unknown as Map<string, string>).keys()]).not.toContain('content-length')
             expect((requestOptions.headers as unknown as Map<string, string>).get('foo')).toContain('bar')
         })
     })
@@ -260,6 +257,84 @@ describe('webdriver request', () => {
                 retryCount: 0,
                 success: true,
             }))
+        })
+
+        it('should log the request body as plain object', async () => {
+            const onLogData = vi.fn()
+            const body = { foo: 'bar' }
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', body, undefined, false, { onLogData })
+
+            await req.makeRequest(defaultOptions, 'foobar-123')
+            expect(onLogData).toHaveBeenNthCalledWith(1, body)
+        })
+
+        it('should not throw a RangeError when logging large request bodies', async () => {
+            const onLogData = vi.fn()
+            /**
+             * `Object.keys` throws `RangeError: Too many properties to enumerate` beyond
+             * 2^24 properties, so the payload has to exceed that to cover the regression
+             */
+            const body = { file: 'x'.repeat(16_777_217) }
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', body, undefined, false, { onLogData })
+            req['_libRequest'] = vi.fn().mockResolvedValue({ statusCode: 200, body: { value: null } })
+
+            await expect(req.makeRequest(defaultOptions, 'foobar-123')).resolves.toBeTruthy()
+            expect(onLogData).toHaveBeenCalledTimes(1)
+            expect((onLogData.mock.calls[0][0] as { file: string }).file).toHaveLength(16_777_217)
+        })
+
+        it('should log the transformed body if transformRequest modifies it', async () => {
+            const onLogData = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', { password: 'secret' }, undefined, false, { onLogData })
+            const transformRequest = vi.fn().mockImplementation((requestOptions) => ({
+                ...requestOptions,
+                body: JSON.stringify({ password: '**REDACTED**' })
+            }))
+
+            await req.makeRequest({ ...defaultOptions, transformRequest }, 'foobar-123')
+            expect(onLogData).toHaveBeenNthCalledWith(1, { password: '**REDACTED**' })
+        })
+
+        it('should log the serialised value of a body that defines toJSON', async () => {
+            const onLogData = vi.fn()
+            const credential = { token: 'hunter2', toJSON: () => '**REDACTED**' }
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', { args: [credential] }, undefined, false, { onLogData })
+
+            await req.makeRequest(defaultOptions, 'foobar-123')
+            expect(onLogData).toHaveBeenNthCalledWith(1, { args: ['**REDACTED**'] })
+        })
+
+        it('should log a non JSON body as is', async () => {
+            const onLogData = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', { foo: 'bar' }, undefined, false, { onLogData })
+            const transformRequest = vi.fn().mockImplementation((requestOptions) => ({
+                ...requestOptions,
+                body: '<compressed payload>'
+            }))
+            req['_libRequest'] = vi.fn().mockResolvedValue({ statusCode: 200, body: { value: null } })
+
+            await req.makeRequest({ ...defaultOptions, transformRequest }, 'foobar-123')
+            expect(onLogData).toHaveBeenNthCalledWith(1, '<compressed payload>')
+        })
+
+        it('should log a binary body as is', async () => {
+            const onLogData = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', { foo: 'bar' }, undefined, false, { onLogData })
+            const body = new Uint8Array([1, 2, 3])
+            const transformRequest = vi.fn().mockImplementation((requestOptions) => ({ ...requestOptions, body }))
+            req['_libRequest'] = vi.fn().mockResolvedValue({ statusCode: 200, body: { value: null } })
+
+            await req.makeRequest({ ...defaultOptions, transformRequest }, 'foobar-123')
+            expect(onLogData).toHaveBeenCalledTimes(1)
+            expect(onLogData.mock.calls[0][0]).toBe(body)
+        })
+
+        it('should not log an empty request body', async () => {
+            const onLogData = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', {}, undefined, false, { onLogData })
+
+            await req.makeRequest(defaultOptions, 'foobar-123')
+            expect(onLogData).not.toHaveBeenCalled()
         })
 
         it('should short circuit if request throws a stale element exception', async () => {
@@ -436,6 +511,73 @@ describe('webdriver request', () => {
                 )
                 expect(result.code).toBe('ETIMEDOUT')
                 expect(onRetry).toBeCalledTimes(retryCnt)
+            })
+
+            it('should retry a request aborted by "connectionRetryTimeout"', async () => {
+                const onRetry = vi.fn()
+                const req = new WebFetchRequest('POST', '/abortTimeout', {}, undefined, true, { onRetry })
+                const result = await req.makeRequest({
+                    protocol: 'https',
+                    hostname: 'localhost',
+                    port: 4445,
+                    path: '/',
+                    connectionRetryCount: 7,
+                    connectionRetryTimeout: 10000,
+                    logLevel: 'warn'
+                }, 'foobar').then(
+                    (res) => res,
+                    (e) => e
+                )
+
+                expect(result).toEqual({ value: {} })
+                expect(onRetry).toBeCalledTimes(5)
+                expect(onRetry).toBeCalledWith({
+                    error: expect.objectContaining({ code: 'ETIMEDOUT' }),
+                    retryCount: expect.any(Number)
+                })
+
+                /**
+                 * every attempt needs its own signal, sharing one would make each
+                 * retry abort immediately
+                 */
+                const signals = vi.mocked(fetch).mock.calls.map(([, opts]) => opts!.signal)
+                expect(signals).toHaveLength(6)
+                expect(new Set(signals).size).toBe(6)
+            })
+
+            it('should keep honouring a signal supplied by "transformRequest" across retries', async () => {
+                const controller = new AbortController()
+                const transformRequest = vi.fn().mockImplementation((requestOptions) => ({
+                    ...requestOptions,
+                    signal: controller.signal
+                }))
+                const req = new WebFetchRequest('POST', '/abortTimeout', {}, undefined, true)
+                const result = await req.makeRequest({
+                    protocol: 'https',
+                    hostname: 'localhost',
+                    port: 4445,
+                    path: '/',
+                    connectionRetryCount: 7,
+                    connectionRetryTimeout: 10000,
+                    transformRequest,
+                    logLevel: 'warn'
+                }, 'foobar').then(
+                    (res) => res,
+                    (e) => e
+                )
+
+                expect(result).toEqual({ value: {} })
+
+                /**
+                 * each attempt composes a fresh timeout with the caller's signal,
+                 * so aborting it still cancels a retried request
+                 */
+                const signals = vi.mocked(fetch).mock.calls.map(([, opts]) => opts!.signal)
+                expect(signals).toHaveLength(6)
+                expect(signals.every((signal) => !signal!.aborted)).toBe(true)
+
+                controller.abort()
+                expect(signals.every((signal) => signal!.aborted)).toBe(true)
             })
 
             it('should use error from "getRequestError" helper', async () => {

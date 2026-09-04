@@ -1,6 +1,10 @@
 <%
 if (answers.isUsingTypeScript && answers.purpose === 'electron') {
-    %>/// <reference types="wdio-electron-service" />
+    %>/// <reference types="@wdio/electron-service" />
+<% }
+
+if (answers.isUsingTypeScript && answers.purpose === 'tauri') {
+    %>/// <reference types="@wdio/tauri-service" />
 <% }
 
 if (answers.isUsingTypeScript && answers.serenityAdapter) {

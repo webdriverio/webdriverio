@@ -177,6 +177,18 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         }
 
         /**
+         * resolve the spec file retry budget as soon as the framework is initialised,
+         * which happens after `beforeSession` (so config mutations made in the hook
+         * are reflected) but before the session is requested. Without this, a worker
+         * that dies before its session ever started (e.g. session creation timed out)
+         * would exit still carrying the -1 sentinel and the spec file would never be
+         * retried despite `specFileRetries` being set.
+         */
+        if (payload.name === 'testFrameworkInit' && this.retries === -1 && payload.specFileRetries) {
+            this.retries = payload.specFileRetries - 1
+        }
+
+        /**
          * store sessionId and connection data to worker instance
          */
         if (payload.name === 'sessionStarted') {
@@ -290,8 +302,10 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
                 await this.isSetup
             }
 
-            this.childProcess!.send(cmd)
-        })
+            if (this.childProcess) {
+                this.childProcess.send(cmd)
+            }
+        }).catch((err) => log.error(`Failed to send command to worker ${this.cid}: ${err.message}`))
         this.isBusy = true
     }
 }

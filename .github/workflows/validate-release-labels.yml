@@ -1,0 +1,29 @@
+name: Validate Release Labels
+
+on:
+  pull_request:
+    types: [labeled, unlabeled, opened, synchronize, ready_for_review]
+
+jobs:
+  check-labels:
+    if: github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Check for Required PR Type Label for proper GitHub Release notes
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            // Get the labels currently on the PR
+            const prLabels = context.payload.pull_request.labels.map(label => label.name);
+
+            console.log(`Current PR labels: ${prLabels.join(', ')}`);
+
+            // Check if AT LEAST ONE label starts with "PR:"
+            const hasPRLabel = prLabels.some(label => label.startsWith('PR:'));
+
+            if (!hasPRLabel) {
+              core.setFailed("PR is missing a required release categorization label (e.g., 'PR: Bug Fix 🐛', 'PR: Docs 📝', etc.). Please add one.");
+            } else {
+              console.log("Success! PR contains a valid release label.");
+            }

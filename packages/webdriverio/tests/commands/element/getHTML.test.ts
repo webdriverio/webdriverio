@@ -220,6 +220,67 @@ describe('getHTML test', () => {
             expect(result).toContain('<span>Moretext</span>')
         })
 
+        it('should remove comments nested inside <template> content (declarative shadow roots)', async () => {
+            // `<template>` element content lives in a separate document fragment that
+            // `$('*').contents()` does not descend into, which is exactly the case
+            // `getHTML()` builds up in `populateHTML` when piercing shadow roots.
+            const { load } = await import('cheerio')
+            const html = `
+                <my-element>
+                    <template shadowrootmode="open">
+                        <!--?lit$123$-->
+                        <p>Shadow content<!--?lit$123$--></p>
+                    </template>
+                </my-element>
+            `
+            const $ = load(html)
+            const result = sanitizeHTML($, { removeCommentNodes: true, prettify: false })
+
+            expect(result).not.toContain('<!--')
+            expect(result).toContain('<template shadowrootmode="open">')
+            expect(result).toContain('<p>Shadow content</p>')
+        })
+
+        it('should remove comments nested inside multiple levels of <template> content', async () => {
+            // shadow roots can be nested (e.g. a web component using another web
+            // component internally), so comments must be removed at any depth
+            const { load } = await import('cheerio')
+            const html = `
+                <outer-element>
+                    <template shadowrootmode="open">
+                        <!-- outer comment -->
+                        <inner-element>
+                            <template shadowrootmode="open">
+                                <!-- inner comment -->
+                                <span>Nested shadow content</span>
+                            </template>
+                        </inner-element>
+                    </template>
+                </outer-element>
+            `
+            const $ = load(html)
+            const result = sanitizeHTML($, { removeCommentNodes: true, prettify: false })
+
+            expect(result).not.toContain('<!--')
+            expect(result).toContain('<span>Nested shadow content</span>')
+        })
+
+        it('should preserve comments inside <template> content when removeCommentNodes is false', async () => {
+            const { load } = await import('cheerio')
+            const html = `
+                <my-element>
+                    <template shadowrootmode="open">
+                        <!--?lit$123$-->
+                        <p>Shadow content</p>
+                    </template>
+                </my-element>
+            `
+            const $ = load(html)
+            const result = sanitizeHTML($, { removeCommentNodes: false, prettify: false })
+
+            expect(result).toContain('<!--?lit$123$-->')
+        })
+
         it('should exclude elements when specified', async () => {
             const { load } = await import('cheerio')
             const html = `

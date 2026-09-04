@@ -61,6 +61,26 @@ WebdriverIO won't automatically download Safari driver as it is already installe
 
 :::
 
+:::info Firefox / Geckodriver
+
+Firefox uses a different versioning scheme for the browser (e.g. `stable_151.0.1`) than [Geckodriver](https://github.com/mozilla/geckodriver/releases) (e.g. `0.36.0`), so `browserVersion` is **not** used to pick the driver version. By default WebdriverIO downloads the latest Geckodriver. To pin a specific driver version, set `geckoDriverVersion` in `wdio:geckodriverOptions`:
+
+```ts
+{
+    capabilities: [
+        {
+            browserName: 'firefox',
+            browserVersion: 'stable_151.0.1',
+            'wdio:geckodriverOptions': {
+                geckoDriverVersion: '0.36.0'
+            }
+        }
+    ]
+}
+```
+
+:::
+
 :::caution
 
 Avoid specifying a `binary` for the browser and omitting the corresponding driver `binary` or vice-versa. If only one of the `binary` values is specified, WebdriverIO will try to use or download a browser/driver compatible with it. However, in some scenarios it may result in an incompatible combination. Therefore, it's recommended that you always specify both to avoid any problems caused by version incompatibilities.

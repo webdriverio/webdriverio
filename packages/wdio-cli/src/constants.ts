@@ -21,6 +21,8 @@ export const IOS_CONFIG = {
     automationName: 'XCUITest',
     deviceName: 'iPhone Simulator'
 }
+
+export const TS_FILE_EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']
 const SUPPORTED_SNAPSHOTSTATE_OPTIONS = ['all', 'new', 'none'] as const
 
 export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner & { capabilities: unknown }> = {

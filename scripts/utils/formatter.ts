@@ -58,6 +58,7 @@ export default function (docfile: {
     let tagCustomType = ''
     let tagMobileElement = false
     let tagSkipUsage = false
+    let tagSkipAwait = false
     let tagSupport: string[] | undefined
     let returns
 
@@ -151,6 +152,10 @@ export default function (docfile: {
         }
         case 'skipUsage': {
             tagSkipUsage = true
+            break
+        }
+        case 'skipAwait': {
+            tagSkipAwait = true
             break
         }
         case 'support': {
@@ -313,6 +318,7 @@ export default function (docfile: {
         originalId: `api/${scope}/${name}`,
         isElementScope: scope === 'element' || tagMobileElement,
         isSkipUsage: tagSkipUsage,
+        isSkipAwait: tagSkipAwait,
         isNetworkScope : scope === 'network',
         isMockScope : scope === 'mock',
         isDialogScope : scope === 'dialog',

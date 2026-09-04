@@ -8,7 +8,6 @@ on:
 jobs:
   xvfb-e2e-tests:
     runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
       matrix:
@@ -35,11 +34,11 @@ jobs:
 
           # Alpine scenarios
           - distro: alpine
-            version: "3.20"
+            version: "3.23"
             scenario: base
             dockerfile: alpine-base.dockerfile
           - distro: alpine
-            version: "3.20"
+            version: "3.23"
             scenario: with-xvfb
             dockerfile: alpine-with-xvfb.dockerfile
 
@@ -97,7 +96,7 @@ jobs:
 
     steps:
       - name: ⬇️ Checkout Code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: 🧑‍🔧 Get Core Dependencies
         uses: ./.github/workflows/actions/get-core-dependencies
@@ -110,7 +109,7 @@ jobs:
           filename: webdriverio-build.zip
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build test container
         run: |
@@ -169,7 +168,7 @@ jobs:
             cat e2e/wdio/xvfb/logs/wdio-0-0-chromedriver.log
           fi
 
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
           name: xvfb-e2e-logs-${{ matrix.distro }}-${{ matrix.version }}-${{ matrix.scenario }}

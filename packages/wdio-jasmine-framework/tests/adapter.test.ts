@@ -7,12 +7,13 @@ import { jasmine } from 'jasmine'
 import type { EventEmitter } from 'node:events'
 
 import JasmineAdapterFactory, { JasmineAdapter } from '../src/index.js'
+import { wdioCustomMatchers } from 'expect-webdriverio'
 
 vi.mock('jasmine')
 vi.mock('expect-webdriverio', () => ({
     expect: {},
-    matchers: new Map([['toHaveTitle', vi.fn()]]),
-    getConfig: vi.fn()
+    wdioCustomMatchers:  { toHaveTitle: vi.fn() },
+    getDefaultOptions: vi.fn(),
 }))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
@@ -70,7 +71,12 @@ test('comes with a factory', async () => {
         { browserName: 'chrome' },
         wdioReporter
     )
-    instance.setupExpect(expect as any, new Map(), vi.fn())
+    instance.setupExpect(expect as any, wdioCustomMatchers, vi.fn())
+
+    // verify the WDIO matcher bridge fired
+    const asyncMatchersArg = vi.mocked(jasmine.addAsyncMatchers).mock.calls[0]?.[0]
+    expect(asyncMatchersArg).toHaveProperty('toHaveTitle')
+
     const result = await instance.run()
     expect(result).toBe(0)
 

@@ -17,6 +17,14 @@ const log = logger('webdriverio')
  *
  * :::
  *
+ * :::info
+ *
+ * On Desktop/Mobile Web, browsers apply wheel-driven scrolling asynchronously, so this command
+ * waits until the scroll position stops changing before resolving. This ensures the element is
+ * actually in its final position by the time subsequent commands run.
+ *
+ * :::
+ *
  * <example>
     :desktop.mobile.web.scrollIntoView.js
     it('should demonstrate the desktop/mobile web scrollIntoView command', async () => {
@@ -83,26 +91,56 @@ export async function scrollIntoView (
     try {
         /**
          * by default the WebDriver action scrolls the element just into the
-         * viewport. In order to stay complaint with `Element.scrollIntoView()`
+         * viewport. In order to stay compliant with `Element.scrollIntoView()`
          * we need to adjust the values a bit.
+         *
+         * Fetch element rect, viewport size, and current scroll in one execute
+         * round-trip instead of three protocol calls.
          */
-        const elemRect = await browser.getElementRect(this.elementId)
-        const viewport = await browser.getWindowSize()
-        let [scrollX, scrollY] = await browser.execute(() => [
-            window.scrollX, window.scrollY
-        ])
+        const {
+            elemRect,
+            viewport,
+            scroll: { x: windowScrollX, y: windowScrollY }
+        } = await browser.execute((elem: HTMLElement) => {
+            const { left, top, width, height } = elem.getBoundingClientRect()
+            return {
+                elemRect: {
+                    x: left + window.scrollX,
+                    y: top + window.scrollY,
+                    width,
+                    height
+                },
+                viewport: {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                },
+                scroll: {
+                    x: window.scrollX,
+                    y: window.scrollY
+                }
+            }
+        }, {
+            [ELEMENT_KEY]: this.elementId, // w3c compatible
+            ELEMENT: this.elementId, // jsonwp compatible
+        } as unknown as HTMLElement)
 
-        // handle elements outside of the viewport
-        scrollX = elemRect.x <= viewport.width ? elemRect.x : viewport.width / 2
-        scrollY = elemRect.y <= viewport.height ? elemRect.y : viewport.height / 2
-
-        const deltaByOption = {
-            start: { y: elemRect.y - elemRect.height, x: elemRect.x - elemRect.width },
-            center: { y: elemRect.y - Math.round((viewport.height - elemRect.height) / 2), x: elemRect.x - Math.round((viewport.width - elemRect.width) / 2) },
-            end: { y: elemRect.y - (viewport.height - elemRect.height), x: elemRect.x - (viewport.width - elemRect.width) }
+        /**
+         * Target document scroll positions for MDN-like block/inline alignment.
+         * Wheel scroll uses deltaX/deltaY (amount to scroll), not x/y (aim point).
+         */
+        const targetByOption = {
+            start: { y: elemRect.y, x: elemRect.x },
+            center: {
+                y: elemRect.y - (viewport.height - elemRect.height) / 2,
+                x: elemRect.x - (viewport.width - elemRect.width) / 2
+            },
+            end: {
+                y: elemRect.y - (viewport.height - elemRect.height),
+                x: elemRect.x - (viewport.width - elemRect.width)
+            }
         }
 
-        let [deltaX, deltaY] = [deltaByOption.start.x, deltaByOption.start.y]
+        let [deltaX, deltaY] = [targetByOption.start.x, targetByOption.start.y]
         if (options === true) {
             options = { block: 'start', inline: 'nearest' }
         }
@@ -111,27 +149,98 @@ export async function scrollIntoView (
         }
         if (options && typeof options === 'object') {
             const { block, inline } = options
+            const isVisibleY = elemRect.y >= windowScrollY && elemRect.y + elemRect.height <= windowScrollY + viewport.height
+            const isVisibleX = elemRect.x >= windowScrollX && elemRect.x + elemRect.width <= windowScrollX + viewport.width
+            const spansViewportY = elemRect.y <= windowScrollY && elemRect.y + elemRect.height >= windowScrollY + viewport.height
+            const spansViewportX = elemRect.x <= windowScrollX && elemRect.x + elemRect.width >= windowScrollX + viewport.width
+
             if (block === 'nearest') {
-                const nearestYDistance = Math.min(...Object.values(deltaByOption).map(delta => delta.y))
-                deltaY = Object.values(deltaByOption).find(delta => delta.y === nearestYDistance)!.y
+                if (isVisibleY || spansViewportY) {
+                    // already sufficiently visible on this axis, don't move it
+                    deltaY = windowScrollY
+                } else {
+                    const nearestYDistance = Math.min(...Object.values(targetByOption).map(delta => Math.abs(delta.y - windowScrollY)))
+                    deltaY = Object.values(targetByOption).find(delta => Math.abs(delta.y - windowScrollY) === nearestYDistance)!.y
+                }
             } else if (block) {
-                deltaY = deltaByOption[block].y
+                deltaY = targetByOption[block].y
             }
             if (inline === 'nearest') {
-                const nearestXDistance = Math.min(...Object.values(deltaByOption).map(delta => delta.x))
-                deltaX = Object.values(deltaByOption).find(delta => delta.x === nearestXDistance)!.x
+                if (isVisibleX || spansViewportX) {
+                    // already sufficiently visible on this axis, don't move it
+                    deltaX = windowScrollX
+                } else {
+                    const nearestXDistance = Math.min(...Object.values(targetByOption).map(delta => Math.abs(delta.x - windowScrollX)))
+                    deltaX = Object.values(targetByOption).find(delta => Math.abs(delta.x - windowScrollX) === nearestXDistance)!.x
+                }
             } else if (inline) {
-                deltaX = deltaByOption[inline].x
+                deltaX = targetByOption[inline].x
             }
         }
 
-        // take into account the current scroll position
-        deltaX = Math.round(deltaX - scrollX)
-        deltaY = Math.round(deltaY - scrollY)
+        // scroll by the difference between target and current window scroll
+        deltaX = Math.round(deltaX - windowScrollX)
+        deltaY = Math.round(deltaY - windowScrollY)
 
+        // element is already positioned as requested, nothing to scroll
+        if (deltaX === 0 && deltaY === 0) {
+            return
+        }
+
+        /**
+         * per the WebDriver spec, an element `origin` must be scrolled into view before its
+         * coordinates can be resolved - which would silently reposition the page before our
+         * own deltaX/deltaY are applied. Our deltas are already absolute, computed relative to
+         * the current window scroll, so we scroll from the viewport origin instead.
+         */
         await browser.action('wheel')
-            .scroll({ duration: 0, x: deltaX, y: deltaY, origin: this })
+            .scroll({
+                duration: 0,
+                x: 0,
+                y: 0,
+                deltaX,
+                deltaY,
+            })
             .perform()
+
+        /**
+         * real browsers apply wheel-driven scrolling asynchronously (e.g. inertial
+         * scrolling), so `window.scrollX/Y` may not reflect the final position right
+         * after the action resolves. Wait until the scroll position stops changing
+         * across consecutive animation frames instead of assuming it's done.
+         */
+        // `execute` doesn't await promises under the classic WebDriver protocol, only Bidi,
+        // so `executeAsync` is still required here to reliably wait under both protocols
+        // @ts-ignore `executeAsync` is deprecated in favor of `execute`, see comment above
+        await browser.executeAsync((done: () => void) => {
+            try {
+                let lastX = window.scrollX
+                let lastY = window.scrollY
+                let stableFrames = 0
+                let totalFrames = 0
+                const maxFrames = 60
+
+                const check = () => {
+                    totalFrames++
+                    const x = window.scrollX
+                    const y = window.scrollY
+                    if (x === lastX && y === lastY) {
+                        stableFrames++
+                    } else {
+                        stableFrames = 0
+                        lastX = x
+                        lastY = y
+                    }
+                    if (stableFrames >= 2 || totalFrames >= maxFrames) {
+                        return done()
+                    }
+                    requestAnimationFrame(check)
+                }
+                requestAnimationFrame(check)
+            } catch {
+                done()
+            }
+        })
     } catch (err) {
         log.warn(
             `Failed to execute "scrollIntoView" using WebDriver Actions API: ${(err as Error).message}!\n` +

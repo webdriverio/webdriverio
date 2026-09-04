@@ -1,3 +1,4 @@
+import { some } from 'expect-webdriverio/api'
 import { expectType } from 'tsd'
 
 const config: WebdriverIO.Config = {
@@ -22,3 +23,6 @@ const configB: WebdriverIO.Config = {
  * check import of assertion lib
  */
 expect($('foo')).toHaveText('foobar')
+expect($$('foo')).toHaveText('foobar')
+expect(some($$('foo'))).toHaveText(expect.oneOf('foobar', expect.stringContaining('foo')))
+

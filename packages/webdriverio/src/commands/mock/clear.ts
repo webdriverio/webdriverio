@@ -14,5 +14,6 @@
  * </example>
  *
  * @alias mock.clear
+ * @skipAwait
  */
 // actual implementation is located in packages/webdriverio/src/utils/interception

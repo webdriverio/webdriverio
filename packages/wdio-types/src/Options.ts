@@ -97,6 +97,12 @@ export interface WebDriver extends Connection {
      */
     connectionRetryCount?: number
     /**
+     * Timeout (in ms) for a WebDriver Bidi command to receive a response from the browser.
+     *
+     * @default 180000
+     */
+    bidiResponseTimeout?: number
+    /**
      * Specify custom headers to pass into every request.
      */
     headers?: {

@@ -460,12 +460,14 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
  * @param socketUrl url to bidi interface
  * @param strictSSL
  * @param userHeaders
+ * @param responseTimeout timeout for a Bidi command to receive a response from the browser
  * @returns prototype with interface for bidi primitives
  */
 export function initiateBidi (
     socketUrl: string,
     strictSSL: boolean = true,
-    userHeaders?: Record<string, string>
+    userHeaders?: Record<string, string>,
+    responseTimeout?: number
 ): PropertyDescriptorMap {
     /**
      * don't connect and stale unit tests when the websocket url is set to a dummy value
@@ -489,7 +491,7 @@ export function initiateBidi (
     if (userHeaders) {
         bidiReqOpts.headers = userHeaders
     }
-    const handler = new BidiHandler(socketUrl, bidiReqOpts)
+    const handler = new BidiHandler(socketUrl, bidiReqOpts, responseTimeout)
     handler.connect().then((isConnected) => isConnected && log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`))
 
     return {

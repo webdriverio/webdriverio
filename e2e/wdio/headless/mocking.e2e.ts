@@ -111,6 +111,8 @@ describe('network mocking', () => {
 
         await browser.url('https://guinea-pig.webdriver.io/')
 
+        await mock.waitForResponse()
+
         expect(mock.calls[0].body).toContain('<title>WebdriverJS Testpage</title>')
     })
 

@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
-import { expect, setOptions, getConfig, matchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
+import { expect, setDefaultOptions, getDefaultOptions, wdioCustomMatchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
 import type { Browser, Selector } from 'webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
@@ -133,7 +133,14 @@ export default class Runner extends EventEmitter {
          * initialize framework
          */
         this._framework = await this.#initFramework(cid, this._config, this._caps, this._reporter, specs)
-        process.send!({ name: 'testFrameworkInit', content: { cid, caps: this._caps, specs, hasTests: this._framework.hasTests() } })
+        /**
+         * `specFileRetries` is sent along so the worker can resolve its retry budget
+         * before the session is requested — it reflects `beforeSession` overrides as
+         * `this._specFileRetryAttempts` is computed after the hook ran. If only sent
+         * with `sessionStarted`, a failed session start would leave the budget
+         * unresolved and the spec file would never be retried.
+         */
+        process.send!({ name: 'testFrameworkInit', content: { cid, caps: this._caps, specs, hasTests: this._framework.hasTests() }, specFileRetries: this._specFileRetryAttempts })
         if (!this._framework.hasTests()) {
             return this._shutdown(0, retries, true)
         }
@@ -146,6 +153,7 @@ export default class Runner extends EventEmitter {
         if (!browser) {
             const afterArgs: AfterArgs = [1, this._caps, this._specs]
             await executeHooksWithArgs('after', this._config.after as Function, afterArgs)
+            await this.endSession()
             return this._shutdown(1, retries, true)
         }
 
@@ -257,7 +265,21 @@ export default class Runner extends EventEmitter {
             const framework = (await initializePlugin(config.framework as string, 'framework')).default as unknown as TestFramework
             const frameworkInstance = await framework.init(cid, config, specs, capabilities, reporter)
             if (frameworkInstance.setupExpect) {
-                await frameworkInstance.setupExpect(expect, matchers, getConfig)
+                /**
+                 * Backward compatibility, to remove in v10.
+                 * Build a shim that supports both the deprecated Map.entries() API and the
+                 * new Object.entries() API. `entries` is non-enumerable so Object.entries()
+                 * callers only see the actual matchers.
+                 */
+                const matchersShim = Object.defineProperty(
+                    { ...wdioCustomMatchers },
+                    'entries',
+                    {
+                        enumerable: false,
+                        value: () => Object.entries(wdioCustomMatchers)[Symbol.iterator]()
+                    }
+                ) as typeof wdioCustomMatchers
+                await frameworkInstance.setupExpect(expect, matchersShim, getDefaultOptions)
             }
             return frameworkInstance
         }
@@ -369,7 +391,7 @@ export default class Runner extends EventEmitter {
              * import and set options for `expect-webdriverio` assertion lib once
              * the browser was initiated
              */
-            setOptions({
+            setDefaultOptions({
                 wait: config.waitforTimeout, // ms to wait for expectation to succeed
                 interval: config.waitforInterval, // interval between attempts
                 beforeAssertion: async (params) => {

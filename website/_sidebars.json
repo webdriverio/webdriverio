@@ -97,11 +97,43 @@
         "id": "devtools"
       },
       "items": [
-        "devtools/interactive-test-rerunning",
-        "devtools/multi-framework-support",
-        "devtools/console-logs",
-        "devtools/network-logs",
-        "devtools/testlens"
+        "devtools/getting-started",
+        {
+          "type": "category",
+          "label": "Live Mode",
+          "items": [
+            "devtools/dashboard",
+            "devtools/wdio/interactive-test-rerunning",
+            "devtools/wdio/preserve-and-rerun",
+            "devtools/wdio/console-logs",
+            "devtools/wdio/network-logs",
+            "devtools/wdio/metadata",
+            "devtools/wdio/testlens",
+            "devtools/wdio/multi-framework-support",
+            "devtools/wdio/screencast"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Trace Mode",
+          "items": [
+            "devtools/wdio/trace-mode",
+            "devtools/trace-player",
+            "devtools/allure",
+            "devtools/cross-framework",
+            "devtools/limitations"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Frameworks",
+          "items": [
+            "devtools/wdio",
+            "devtools/selenium",
+            "devtools/nightwatch"
+          ]
+        },
+        "devtools/reference"
       ]
     },
     {
@@ -120,8 +152,33 @@
           "items": [
             "desktop-testing/electron/configuration",
             "desktop-testing/electron/api",
-            "desktop-testing/electron/mocking",
-            "desktop-testing/electron/standalone"
+            "desktop-testing/electron/api-reference",
+            "desktop-testing/electron/window-management",
+            "desktop-testing/electron/deeplink-testing",
+            "desktop-testing/electron/standalone",
+            "desktop-testing/electron/debugging",
+            "desktop-testing/electron/common-issues"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Tauri",
+          "link": {
+            "type": "doc",
+            "id": "desktop-testing/tauri"
+          },
+          "items": [
+            "desktop-testing/tauri/quick-start",
+            "desktop-testing/tauri/configuration",
+            "desktop-testing/tauri/api",
+            "desktop-testing/tauri/plugin-setup",
+            "desktop-testing/tauri/platform-support",
+            "desktop-testing/tauri/usage-examples",
+            "desktop-testing/tauri/log-forwarding",
+            "desktop-testing/tauri/edge-webdriver-windows",
+            "desktop-testing/tauri/deeplink-testing",
+            "desktop-testing/tauri/crabnebula-setup",
+            "desktop-testing/tauri/troubleshooting"
           ]
         }
       ]
@@ -204,7 +261,8 @@
           "label": "Options",
           "items": [
             "visual-testing/service-options",
-            "visual-testing/method-options"
+            "visual-testing/method-options",
+            "visual-testing/compare-options"
           ]
         },
         "visual-testing/test-output",
@@ -241,11 +299,29 @@
     },
     {
       "type": "category",
+      "label": "Flutter Testing",
+      "items": [
+        "flutter-testing/introduction",
+        "flutter-testing/preparing-flutter-application",
+        "flutter-testing/base-appium-configuration",
+        "flutter-testing/setting-up-webdriverio",
+        "flutter-testing/writing-tests"
+      ],
+      "link": {
+        "type": "doc",
+        "id": "flutter-testing/introduction"
+      }
+    },
+    {
+      "type": "category",
       "label": "MCP",
       "items": [
-        "mcp/tools",
-        "mcp/selectors",
         "mcp/configuration",
+        "mcp/transport",
+        "mcp/cloud-providers",
+        "mcp/selectors",
+        "mcp/tools",
+        "mcp/resources",
         "mcp/faq"
       ],
       "link": {

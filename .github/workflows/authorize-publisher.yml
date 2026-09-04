@@ -1,0 +1,19 @@
+name: Authorize Team Publisher Only
+
+on:
+  workflow_call:
+  # Make this a reusable workflow, no value needed
+  # https://docs.github.com/en/actions/using-workflows/reusing-workflows
+
+jobs:
+  authorize:
+    permissions: {}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: octokit/request-action@b91aabaa861c777dcdb14e2387e30eddf04619ae # v3.0.0
+        with:
+          route: GET /orgs/:organisation/teams/:team/memberships/${{ github.actor }}
+          team: project-publishers
+          organisation: webdriverio
+        env:
+          GITHUB_TOKEN: ${{ secrets.WDIO_BOT_GITHUB_TOKEN }}

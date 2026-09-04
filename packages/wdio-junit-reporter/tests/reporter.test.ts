@@ -19,6 +19,7 @@ const featuresLog = (await vi.importActual('./__fixtures__/cucumber-features.jso
 const featuresWithFailingThenSkipStepLog = (await vi.importActual('./__fixtures__/cucumber-features-with-failed-then-skipped-steps.json') as any).default
 const featuresWithPendingStepLog = (await vi.importActual('./__fixtures__/cucumber-features-with-pending-step.json') as any).default
 const featuresWithErrorStepAndNoErrorObjectLog = (await vi.importActual('./__fixtures__/cucumber-features-with-error-step-and-no-error-object.json') as any).default
+const featuresScenarioLevelLog = (await vi.importActual('./__fixtures__/cucumber-features-scenario-level.json') as any).default
 const nestedSuites = (await vi.importActual('./__fixtures__/nested-suites.json') as any).default
 const nestedArrayOfSuites = (await vi.importActual('./__fixtures__/nested-array-suites.json') as any).default
 const unorderedFeatureAndScenarioWithError = (await vi.importActual('./__fixtures__/cucumber-features-with-error-step-and-no-error-object-unordered.json') as any).default
@@ -40,7 +41,7 @@ if (os.platform() === 'win32') {
     cucumberRunnerBrowserstackAndroidLogMissingOS.specs = ['file:///C:/features/sample_feature.feature']
     cucumberRunnerBrowserstackAndroidLog.specs = ['file:///C:/features/sample_feature.feature']
     cucumberRunnerBrowserstackIosLog.specs = ['file:///C:/features/sample_feature.feature']
-    for (const fixture of [featuresLog, featuresWithPendingStepLog, unorderedFeatureAndScenarioWithError, featuresWithErrorStepAndNoErrorObjectLog, featuresWithFailingThenSkipStepLog]) {
+    for (const fixture of [featuresLog, featuresWithPendingStepLog, unorderedFeatureAndScenarioWithError, featuresWithErrorStepAndNoErrorObjectLog, featuresWithFailingThenSkipStepLog, featuresScenarioLevelLog]) {
         for (const [, suite] of Object.entries(fixture) as any) {
             suite.file = 'C:\\features\\sample_feature.feature'
         }
@@ -167,6 +168,25 @@ describe('wdio-junit-reporter', () => {
         expect(output).toContain('name="Samplescenario"')
         // Steps should NOT be individual testcases - check no step title as testcase name
         expect(output).not.toContain('name="Givenstepha')
+        expect(output).toMatchSnapshot()
+    })
+
+    it('generates xml output (Cucumber-style) with cucumberOpts.scenarioLevelReporter', () => {
+        reporter.suites = featuresScenarioLevelLog as any
+
+        /**
+         * When `cucumberOpts.scenarioLevelReporter` is true, cucumber-framework reports
+         * whole scenarios as tests directly on the feature suite (no separate `scenario`
+         * suite is emitted). The junit report must still register a <testcase> per scenario.
+         */
+        const output = reporter['_buildJunitXml'](cucumberRunnerLog as any)
+            .replace(/\s/g, '').replace(/C:\//g, '')
+
+        expect(output).toContain('tests="3"')
+        expect(output).toContain('name="Samplescenario"')
+        expect(output).toContain('name="Samplescenariowithfailure"')
+        expect(output).toContain('name="Samplescenariowithpendingstep"')
+        expect(output).toContain('<skipped')
         expect(output).toMatchSnapshot()
     })
 

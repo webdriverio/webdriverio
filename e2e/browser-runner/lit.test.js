@@ -119,18 +119,22 @@ describe('Lit Component testing', () => {
             const closedNode = $('closed-node')
             await expect(closedNode).toHaveText('Hello,')
             await expect(closedNode).toMatchInlineSnapshot(`
-              "<closed-node>Hello,
+              "<closed-node>
+                Hello,
                 <template shadowrootmode="closed">
                   <style>section { color: blue; }</style>
                   <h2>Closed Node</h2>
                   <section>
                     <slot></slot>
-                    <closed-node-nested>hidden
+                    <closed-node-nested>
+                      hidden
                       <template shadowrootmode="closed">
                         <style>.findMe { color: green; }</style>
                         <h2>Deep Closed Node</h2>
-                        <div class="findMe">I am
-                          <slot></slot>!</div>
+                        <div class="findMe">
+                          I am
+                          <slot></slot>!
+                        </div>
                       </template>
                     </closed-node-nested>
                   </section>

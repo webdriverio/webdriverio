@@ -570,18 +570,13 @@ export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
     const rootDir = await getProjectRoot(parsedAnswers)
     const pathToWdioConfig = `./${path.join('.', parsedAnswers.wdioConfigPath.replace(rootDir, ''))}`
 
-    const wdioScripts = {
+    const scripts: Record<string, string> = {
         'wdio': `wdio run ${pathToWdioConfig}`,
     }
 
-    const serenityScripts = {
-        'serenity': 'failsafe serenity:clean wdio serenity:report',
-        'serenity:clean': 'rimraf target',
-        'wdio': `wdio run ${pathToWdioConfig}`,
-        'serenity:report': 'serenity-bdd run',
+    if (parsedAnswers.serenityAdapter) {
+        scripts['serenity:report'] = 'serenity-js serve --dir ./reports/serenity-js --open'
     }
-
-    const scripts = parsedAnswers.serenityAdapter ? serenityScripts : wdioScripts
 
     for (const [script, command] of Object.entries(scripts)) {
 
@@ -649,11 +644,9 @@ export function getSerenityPackages(answers: Questionnair): string[] {
             '@serenity-js/assertions',
             '@serenity-js/console-reporter',
             '@serenity-js/core',
+            '@serenity-js/html-reporter',
             '@serenity-js/rest',
-            '@serenity-js/serenity-bdd',
             '@serenity-js/web',
-            'npm-failsafe',
-            'rimraf',
         ]
     }
 
@@ -755,7 +748,6 @@ export async function generateTestFiles(answers: ParsedAnswers) {
 /* c8 ignore start */
 async function generateSerenityExamples(answers: ParsedAnswers): Promise<void> {
     const templateDirectories = Object.entries({
-        [answers.projectRootDir]: path.join(TEMPLATE_ROOT_DIR, 'serenity-js', 'common', 'config'),
         [answers.destSpecRootPath]: path.join(TEMPLATE_ROOT_DIR, 'serenity-js', answers.serenityAdapter as string),
         [answers.destSerenityLibRootPath]: path.join(TEMPLATE_ROOT_DIR, 'serenity-js', 'common', 'serenity'),
     })
