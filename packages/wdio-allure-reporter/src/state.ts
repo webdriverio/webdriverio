@@ -35,6 +35,7 @@ export class AllureReportState {
     private _currentTestUuid?: string
     private _currentTestName?: string
     messages: WDIORuntimeMessage[] = []
+    private _processedIndex = 0
     private _pendingHookMessages: WDIORuntimeMessage[] = []
     private _isCapturingPendingHook: boolean = false
 
@@ -341,10 +342,20 @@ export class AllureReportState {
         this.messages.push(message)
     }
 
-    async processRuntimeMessage(): Promise<void> {
-        for (let i = 0; i < this.messages.length; i++) {
+    /**
+     * Consume every message that has not been consumed yet.
+     *
+     * Pass `final: false` to flush mid-run: messages are applied and completed tests are
+     * written out, but the run is not finalised, so the reporter can keep going. The
+     * cursor makes this safe to call repeatedly - a message is never applied twice, and a
+     * pass that throws leaves the cursor on the message that threw so the next pass
+     * retries it rather than replaying the whole batch.
+     */
+    async processRuntimeMessage(final: boolean = true): Promise<void> {
+        for (let i = this._processedIndex; i < this.messages.length; i++) {
             const message = this.messages[i]
-            const lastMessage = i === this.messages.length - 1
+            const lastMessage = final && i === this.messages.length - 1
+            this._processedIndex = i
 
             switch (message.type) {
             case 'allure:suite:start':
@@ -431,6 +442,12 @@ export class AllureReportState {
             if (this._isRuntimeMessage(message)) {
                 this.allureRuntime.applyRuntimeMessages(target, [message])
             }
+        }
+
+        this._processedIndex = this.messages.length
+
+        if (!final) {
+            return
         }
 
         if (this._currentTestUuid) {
