@@ -211,7 +211,9 @@ export default class WebDriver {
         const driverPid = instance.capabilities['wdio:driverPID']
         instance.sessionId = sessionId
         instance.capabilities = newSessionCapabilities
-        instance.capabilities['wdio:driverPID'] = driverPid
+        if (!driverProcess?.pid) {
+            instance.capabilities['wdio:driverPID'] = driverPid
+        }
         Object.assign(instance.requestedCapabilities, capabilities)
 
         /**

@@ -4,6 +4,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import logger, { logMock } from '@wdio/logger'
 import { sessionEnvironmentDetector } from '@wdio/utils'
 import { startWebDriver } from '@wdio/utils'
+import type { Capabilities } from '@wdio/types'
 
 import '../src/browser.js'
 
@@ -357,6 +358,24 @@ describe('WebDriver', () => {
             await WebDriver.reloadSession(session, { browserName: 'chrome' })
             expect(startWebDriver).toHaveBeenCalledOnce()
             expect((session.capabilities as WebdriverIO.Capabilities)['wdio:driverPID']).toBe(1234)
+        })
+
+        it('keeps the PID of the newly spawned driver after reload', async () => {
+            const spawnDriver = (pid: number) => (params: Capabilities.RemoteConfig) => {
+                params.hostname = 'localhost'
+                params.port = 4444
+                return { pid } as any
+            }
+            vi.mocked(startWebDriver)
+                .mockImplementationOnce(spawnDriver(1234))
+                .mockImplementationOnce(spawnDriver(5678))
+            const session = await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' }
+            })
+            expect((session.capabilities as WebdriverIO.Capabilities)['wdio:driverPID']).toBe(1234)
+            await WebDriver.reloadSession(session, { browserName: 'chrome' })
+            expect((session.capabilities as WebdriverIO.Capabilities)['wdio:driverPID']).toBe(5678)
         })
 
         it('connects to the new remote', async () => {
