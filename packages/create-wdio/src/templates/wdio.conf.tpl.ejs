@@ -7,6 +7,10 @@ if (answers.isUsingTypeScript && answers.purpose === 'tauri') {
     %>/// <reference types="@wdio/tauri-service" />
 <% }
 
+if (answers.isUsingTypeScript && answers.purpose === 'dioxus') {
+    %>/// <reference types="@wdio/dioxus-service" />
+<% }
+
 if (answers.isUsingTypeScript && answers.serenityAdapter) {
     %>import type { WebdriverIOConfig } from '@serenity-js/webdriverio'
 <% }

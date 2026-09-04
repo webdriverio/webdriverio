@@ -112,7 +112,7 @@ export const SUPPORTED_PACKAGES = {
     runner: [
         { name: 'E2E Testing - of Web or Mobile Applications', value: '@wdio/local-runner$--$local$--$e2e' },
         { name: 'Component or Unit Testing - in the browser\n    > https://webdriver.io/docs/component-testing', value: '@wdio/browser-runner$--$browser$--$component' },
-        { name: 'Desktop Testing - of Electron, Tauri, or macOS Applications\n    > https://webdriver.io/docs/desktop-testing', value: '@wdio/local-runner$--$local$--$desktop' },
+        { name: 'Desktop Testing - of Electron, Tauri, Dioxus, or macOS Applications\n    > https://webdriver.io/docs/desktop-testing', value: '@wdio/local-runner$--$local$--$desktop' },
         { name: 'VS Code Extension Testing\n    > https://webdriver.io/docs/vscode-extension-testing', value: '@wdio/local-runner$--$local$--$vscode' },
         { name: 'Roku Testing - of OTT apps running on RokuOS\n    > https://webdriver.io/docs/wdio-roku-service', value: '@wdio/local-runner$--$local$--$roku' }
     ],
@@ -166,6 +166,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'electron', value: '@wdio/electron-service$--$electron' },
         { name: 'tauri', value: '@wdio/tauri-service$--$tauri' },
         { name: 'tauri-plugin', value: '@wdio/tauri-plugin$--$tauri-plugin' },
+        { name: 'dioxus', value: '@wdio/dioxus-service$--$dioxus' },
         { name: 'appium', value: '@wdio/appium-service$--$appium' },
         // external
         { name: 'camera', value: 'wdio-camera-service$--$camera' },
@@ -302,6 +303,49 @@ export function buildTauriBanner (
     return lines.join('\n')
 }
 
+/**
+ * Build the post-install instructions for Dioxus users. The npm side is auto-installed,
+ * but the Rust side (the wdio-dioxus-bridge crate + its registration) needs manual edits.
+ */
+export function buildDioxusBanner (
+    driverProvider: DioxusDriverProviderChoice | undefined
+) {
+    const lines = [
+        '',
+        '🦀 Dioxus requires a couple of Rust-side additions before tests can run:',
+        '',
+        '  1. Add the WebdriverIO bridge crate to your Cargo.toml:',
+        '',
+        '       [dependencies]',
+        '       wdio-dioxus-bridge = "1"',
+        '',
+        '  2. Install it into your desktop config in `src/main.rs` (debug builds only):',
+        '',
+        '       let mut config = dioxus::desktop::Config::new();',
+        '       #[cfg(debug_assertions)]',
+        '       {',
+        '           config = wdio_dioxus_bridge::install(config);',
+        '       }',
+        '       dioxus::LaunchBuilder::desktop().with_cfg(config).launch(App);',
+        ''
+    ]
+
+    if (driverProvider === DioxusDriverProviderChoice.External) {
+        lines.push(
+            '  The `external` provider (Windows only) also needs the driver binary:',
+            '',
+            '       cargo install wdio-dioxus-driver --locked',
+            ''
+        )
+    }
+
+    lines.push(
+        'Full Dioxus setup docs:',
+        '  🔗 https://webdriver.io/docs/desktop-testing/dioxus'
+    )
+    return lines.join('\n')
+}
+
 enum ProtocolOptions {
     HTTPS = 'https',
     HTTP = 'http'
@@ -329,6 +373,7 @@ export enum ElectronBuildToolChoice {
 export enum DesktopFrameworkChoice {
     Electron = 'Electron (https://www.electronjs.org/)',
     Tauri = 'Tauri (https://tauri.app/)',
+    Dioxus = 'Dioxus (https://dioxuslabs.com/)',
     MacOS = 'Native macOS app'
 }
 
@@ -336,6 +381,11 @@ export enum TauriDriverProviderChoice {
     Official = 'Official tauri-driver (cross-platform, Cargo-installed)',
     CrabNebula = 'CrabNebula tauri-driver (managed cloud / drop-in)',
     Embedded = 'Embedded driver via tauri-plugin-wdio-webdriver crate'
+}
+
+export enum DioxusDriverProviderChoice {
+    Embedded = 'Embedded in-process driver (recommended — no external driver, all platforms)',
+    External = 'External driver via wdio-dioxus-driver (Windows only)'
 }
 
 export const SUPPORTED_BROWSER_RUNNER_PRESETS = [
@@ -353,7 +403,7 @@ function isBrowserRunner (answers: Questionnair) {
     return answers.runner === SUPPORTED_PACKAGES.runner[1].value
 }
 function getTestingPurpose (answers: Questionnair) {
-    return convertPackageHashToObject(answers.runner).purpose as 'e2e' | 'electron' | 'tauri' | 'component' | 'vscode' | 'macos' | 'desktop' | 'roku'
+    return convertPackageHashToObject(answers.runner).purpose as 'e2e' | 'electron' | 'tauri' | 'dioxus' | 'component' | 'vscode' | 'macos' | 'desktop' | 'roku'
 }
 export function getResolvedPurpose (answers: Questionnair) {
     const raw = getTestingPurpose(answers)
@@ -362,6 +412,7 @@ export function getResolvedPurpose (answers: Questionnair) {
     }
     switch (answers.desktopFramework) {
     case DesktopFrameworkChoice.Tauri: return 'tauri'
+    case DesktopFrameworkChoice.Dioxus: return 'dioxus'
     case DesktopFrameworkChoice.MacOS: return 'macos'
     case DesktopFrameworkChoice.Electron:
     default:
@@ -471,6 +522,17 @@ export const QUESTIONNAIRE = [{
     name: 'tauriAppBinaryPath',
     message: 'Path to your built Tauri binary (leave blank to use the default `cargo tauri build` output)?',
     when: /* istanbul ignore next */ (answers: Questionnair) => getResolvedPurpose(answers) === 'tauri'
+}, {
+    type: 'list',
+    name: 'dioxusDriverProvider',
+    message: 'Which WebDriver provider would you like to use for Dioxus?',
+    choices: Object.values(DioxusDriverProviderChoice),
+    when: /* istanbul ignore next */ (answers: Questionnair) => getResolvedPurpose(answers) === 'dioxus'
+}, {
+    type: 'input',
+    name: 'dioxusAppBinaryPath',
+    message: 'Path to your built Dioxus debug binary (e.g. ./target/debug/my-app)?',
+    when: /* istanbul ignore next */ (answers: Questionnair) => getResolvedPurpose(answers) === 'dioxus'
 }, {
     type: 'list',
     name: 'backend',
@@ -632,9 +694,9 @@ export const QUESTIONNAIRE = [{
             return SUPPORTED_PACKAGES.framework.slice(0, 1)
         }
         /**
-         * Serenity tests don't come with proper Electron or Tauri example files
+         * Serenity tests don't come with proper Electron, Tauri or Dioxus example files
          */
-        if (['electron', 'tauri'].includes(getResolvedPurpose(answers))) {
+        if (['electron', 'tauri', 'dioxus'].includes(getResolvedPurpose(answers))) {
             return SUPPORTED_PACKAGES.framework.filter(
                 ({ value }) => !value.startsWith('@serenity-js')
             )
@@ -665,7 +727,7 @@ export const QUESTIONNAIRE = [{
         /**
          * we only have examples for Mocha and Jasmine
          */
-        if (['vscode', 'electron', 'tauri', 'macos'].includes(getResolvedPurpose(answers)) && answers.framework.includes('cucumber')) {
+        if (['vscode', 'electron', 'tauri', 'dioxus', 'macos'].includes(getResolvedPurpose(answers)) && answers.framework.includes('cucumber')) {
             return false
         }
         return true
@@ -706,7 +768,7 @@ export const QUESTIONNAIRE = [{
          * and also not needed when running VS Code tests since the service comes with
          * its own page object implementation, nor when running Electron or MacOS tests
          */
-        !['vscode', 'electron', 'tauri', 'macos'].includes(getResolvedPurpose(answers)) &&
+        !['vscode', 'electron', 'tauri', 'dioxus', 'macos'].includes(getResolvedPurpose(answers)) &&
         /**
          * Serenity/JS generates Lean Page Objects by default, so there's no need to ask about it
          * See https://serenity-js.org/handbook/web-testing/page-objects-pattern/
@@ -783,6 +845,8 @@ export const QUESTIONNAIRE = [{
                 tauriEntries.push(SUPPORTED_PACKAGES.service.find(({ name }) => name === 'tauri-plugin'))
             }
             return tauriEntries
+        } else if (getResolvedPurpose(answers) === 'dioxus') {
+            return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'dioxus')]
         } else if (getResolvedPurpose(answers) === 'macos') {
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'appium')]
         } else if (getResolvedPurpose(answers) === 'roku') {
@@ -809,6 +873,8 @@ export const QUESTIONNAIRE = [{
             if (answers.tauriUseFrontendPlugin) {
                 defaultServices.push('tauri-plugin')
             }
+        } else if (getResolvedPurpose(answers) === 'dioxus') {
+            defaultServices.push('dioxus')
         } else if (getResolvedPurpose(answers) === 'roku') {
             defaultServices.push('roku')
         }

@@ -180,6 +180,28 @@
             "desktop-testing/tauri/crabnebula-setup",
             "desktop-testing/tauri/troubleshooting"
           ]
+        },
+        {
+          "type": "category",
+          "label": "Dioxus",
+          "link": {
+            "type": "doc",
+            "id": "desktop-testing/dioxus"
+          },
+          "items": [
+            "desktop-testing/dioxus/quick-start",
+            "desktop-testing/dioxus/configuration",
+            "desktop-testing/dioxus/api",
+            "desktop-testing/dioxus/plugin-setup",
+            "desktop-testing/dioxus/platform-support",
+            "desktop-testing/dioxus/usage-examples",
+            "desktop-testing/dioxus/browser-mode",
+            "desktop-testing/dioxus/log-forwarding",
+            "desktop-testing/dioxus/edge-webdriver-windows",
+            "desktop-testing/dioxus/deeplink-testing",
+            "desktop-testing/dioxus/coexistence",
+            "desktop-testing/dioxus/troubleshooting"
+          ]
         }
       ]
     },
