@@ -273,10 +273,7 @@ describe('Failed tests', () => {
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.FAILED)
         expect(results[0].parameters).toHaveLength(1)
-        // No browserName/version in capabilities → hash from fullTitle only
-        expect(results[0].historyId).toEqual(
-            '195dd4bd8fdce339d6d2264e50de9e6f',
-        )
+        expect(results[0].historyId).toEqual('195dd4bd8fdce339d6d2264e50de9e6f')
         expect(browserParameter!.value).toEqual('default')
     })
 
@@ -306,10 +303,7 @@ describe('Failed tests', () => {
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.FAILED)
         expect(results[0].parameters).toHaveLength(1)
-        // No browserName/version in capabilities → hash from fullTitle only
-        expect(results[0].historyId).toEqual(
-            '195dd4bd8fdce339d6d2264e50de9e6f',
-        )
+        expect(results[0].historyId).toEqual('195dd4bd8fdce339d6d2264e50de9e6f')
         expect(browserParameter!.value).toEqual('default')
     })
 
@@ -328,7 +322,7 @@ describe('Failed tests', () => {
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.FAILED)
         expect(results[0].historyId).toEqual(
-            '0afaf0cb3770d6ce7ae0665f2eeecf81',
+            '5d73537bda17d2ad7829c91bd248af82',
         )
     })
 
@@ -459,7 +453,7 @@ describe('Pending tests', () => {
         expect(results[0].status).toEqual(Status.SKIPPED)
         expect(results[0].stage).toEqual(Stage.PENDING)
         expect(results[0].historyId).toEqual(
-            '0afaf0cb3770d6ce7ae0665f2eeecf81',
+            '5d73537bda17d2ad7829c91bd248af82',
         )
         expect(results[0].titlePath).toEqual(['foo', 'bar.test.js', 'A passing Suite'])
     })
@@ -482,7 +476,7 @@ describe('Pending tests', () => {
         expect(results[0].status).toEqual(Status.SKIPPED)
         expect(results[0].stage).toEqual(Stage.PENDING)
         expect(results[0].historyId).toEqual(
-            '0afaf0cb3770d6ce7ae0665f2eeecf81',
+            '5d73537bda17d2ad7829c91bd248af82',
         )
         expect(results[0].titlePath).toEqual(['foo', 'bar.test.js', 'A passing Suite'])
     })
@@ -537,7 +531,7 @@ describe('Multi-capability parallel execution', () => {
         clean(outputDir)
     })
 
-    it('should generate distinct historyIds for same test across different capabilities (fixes #14792)', async () => {
+    it('should keep same historyId for same test across different workers/cids', async () => {
         // Simulate two parallel reporters running the same test with different cids
         const reporter1 = new AllureReporter({ outputDir })
         const reporter2 = new AllureReporter({ outputDir })
@@ -572,7 +566,7 @@ describe('Multi-capability parallel execution', () => {
         const uuids = results.map((r: any) => r.uuid)
         expect(new Set(uuids).size).toBe(2)
 
-        // Same logical test (same file + title) => same historyId (cid is NOT in hash)
+        // Same logical test should keep stable historyId across workers (cid is not in hash)
         const historyIds = results.map((r: any) => r.historyId)
         expect(historyIds[0]).toEqual(historyIds[1])
 
@@ -581,7 +575,7 @@ describe('Multi-capability parallel execution', () => {
         expect(results[0].name).toEqual('should can do something')
     })
 
-    it('should derive historyId from fullTitle and capability key (browser/device), not cid', async () => {
+    it('should derive stable historyId from fullTitle + capability family (no cid, no file path, no versions)', async () => {
         const reporter = new AllureReporter({ outputDir })
 
         const runner = { ...runnerStart(), cid: '0-0' }
@@ -597,9 +591,9 @@ describe('Multi-capability parallel execution', () => {
 
         expect(results).toHaveLength(1)
 
-        // historyId = md5(fullTitle + '#' + capabilityKey), e.g. fullTitle#chrome-68 (no cid, no file path)
+        // historyId = md5(fullTitle + '#' + capabilityFamily), e.g. fullTitle#chrome
         expect(results[0].historyId).toEqual(
-            '0afaf0cb3770d6ce7ae0665f2eeecf81',
+            '5d73537bda17d2ad7829c91bd248af82',
         )
     })
 })
