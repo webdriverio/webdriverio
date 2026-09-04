@@ -342,8 +342,8 @@
       "label": "Flutter Testing",
       "items": [
         "flutter-testing/introduction",
-        "flutter-testing/base-appium-configuration",
         "flutter-testing/preparing-flutter-application",
+        "flutter-testing/base-appium-configuration",
         "flutter-testing/setting-up-webdriverio",
         "flutter-testing/writing-tests"
       ],
