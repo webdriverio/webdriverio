@@ -42,6 +42,25 @@ describe('isExisting test', () => {
 
     })
 
+    it('should use findElement (single) on mobile', async () => {
+        const mobileBrowser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'iOS'
+            }
+        })
+        const elem = await mobileBrowser.$('#foo')
+
+        // clear the mock so we only assert isExisting's own request,
+        // not the findElement from $('#foo') above
+        vi.mocked(fetch).mockClear()
+
+        await elem.isExisting()
+        expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1)
+        const url = vi.mocked(fetch).mock.calls[0][0] as URL | string
+        expect(url.toString().endsWith('/element')).toBe(true)
+    })
+
     afterEach(() => {
         vi.mocked(fetch).mockClear()
     })
