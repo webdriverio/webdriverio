@@ -495,7 +495,7 @@ interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanc
     /**
      * get a specific instance to run commands on it
      */
-    getInstance: (browserName: string) => WebdriverIO.Browser
+    getInstance: (browserName: string) => WebdriverIO.Browser | undefined
 
     /**
      * @experimental select one or multiple browsers always wrapped into a multi-remote to run commands on them.
