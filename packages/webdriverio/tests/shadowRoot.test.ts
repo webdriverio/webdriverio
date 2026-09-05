@@ -91,7 +91,7 @@ describe('ShadowRootManager', () => {
 
         const navigationCommittedListener = listeners.get('browsingContext.navigationCommitted')
         expect(navigationCommittedListener).toEqual(expect.any(Function))
-        navigationCommittedListener({ context: 'navigation-context' })
+        navigationCommittedListener?.({ context: 'navigation-context' })
 
         expect(await manager.getShadowElementsByContextId('navigation-context')).toEqual([])
     })
