@@ -485,17 +485,21 @@ describe('main suite 1', () => {
 
         it('should continue autoDismiss after handling a dialog manually with `browser.on`', async () => {
             await browser.url('https://guinea-pig.webdriver.io')
+            let dismissalPromise: Promise<void> | undefined
             const mockedDialog = (dialog: WebdriverIO.Dialog) => {
                 if (dialog.message() === 'expectedDialog' ) {
-                    return dialog.dismiss()
+                    dismissalPromise = dialog.dismiss()
+                    return
                 }
                 throw new Error('Unexpected dialog: ' + dialog.message())
             }
             browser.on('dialog', mockedDialog)
             await browser.execute(() => alert('expectedDialog'))
+            await dismissalPromise
             browser.off('dialog', mockedDialog)
 
             await browser.execute(() => alert('autoDismiss'))
+
             /**
              * in case the alert is not automatically accepted
              * the following line would time out
@@ -516,17 +520,20 @@ describe('main suite 1', () => {
 
         it('should continue autoDismiss after handling a dialog manually with `browser.once`', async () => {
             await browser.url('https://guinea-pig.webdriver.io')
-
+            let dismissalPromise: Promise<void> | undefined
             const mockedDialog = (dialog: WebdriverIO.Dialog) => {
                 if (dialog.message() === 'expectedDialog' ) {
-                    return dialog.dismiss()
+                    dismissalPromise = dialog.dismiss()
+                    return
                 }
                 throw new Error('Unexpected dialog: ' + dialog.message())
             }
             browser.once('dialog', mockedDialog)
             await browser.execute(() => alert('expectedDialog'))
+            await dismissalPromise
 
             await browser.execute(() => alert('autoDimiss'))
+
             /**
              * in case the alert is not automatically accepted
              * the following line would time out
