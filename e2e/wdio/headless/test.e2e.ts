@@ -489,7 +489,7 @@ describe('main suite 1', () => {
                 if (dialog.message() === 'expectedDialog' ) {
                     dialog.dismiss()
                 } else {
-                    console.log('Unexpected dialog:', dialog.message())
+                    throw new Error('Unexpected dialog: ' + dialog.message())
                 }
             }
             browser.on('dialog', mockedDialog)
@@ -522,7 +522,7 @@ describe('main suite 1', () => {
                 if (dialog.message() === 'expectedDialog' ) {
                     dialog.dismiss()
                 } else {
-                    console.log('Unexpected dialog:', dialog.message())
+                    throw new Error('Unexpected dialog: ' + dialog.message())
                 }
             }
             browser.once('dialog', mockedDialog)
