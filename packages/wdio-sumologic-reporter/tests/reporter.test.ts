@@ -111,6 +111,43 @@ describe('wdio-sumologic-reporter', () => {
             .toContain('failed send data to Sumo Logic')
     })
 
+    it('should back off failed syncs with a bounded delay and reset after success', async () => {
+        vi.setSystemTime(0)
+        vi.mocked(fetch).mockRejectedValue(new Error('network error'))
+
+        reporter = new SumoLogicReporter({ sourceAddress: 'http://localhost:1234' })
+        reporter.onRunnerStart('onRunnerStart' as any)
+
+        const retryTimes = [0, 100, 300, 700, 1500, 2500]
+        for (const [index, retryTime] of retryTimes.entries()) {
+            vi.setSystemTime(retryTime)
+            await reporter.sync()
+            expect(vi.mocked(fetch)).toHaveBeenCalledTimes(index + 1)
+
+            const nextRetryTime = retryTimes[index + 1]
+            if (nextRetryTime) {
+                vi.setSystemTime(nextRetryTime - 1)
+                await reporter.sync()
+                expect(vi.mocked(fetch)).toHaveBeenCalledTimes(index + 1)
+            }
+        }
+
+        vi.mocked(fetch).mockResolvedValue({ status: 200 } as Response)
+        vi.setSystemTime(3499)
+        await reporter.sync()
+        expect(vi.mocked(fetch)).toHaveBeenCalledTimes(6)
+
+        vi.setSystemTime(3500)
+        await reporter.sync()
+        expect(vi.mocked(fetch)).toHaveBeenCalledTimes(7)
+        expect(reporter.isSynchronised).toBe(true)
+
+        reporter.onRunnerStart('onRunnerStart' as any)
+        await reporter.sync()
+        expect(vi.mocked(fetch)).toHaveBeenCalledTimes(8)
+        expect(reporter.isSynchronised).toBe(true)
+    })
+
     it('should be synchronised when no unsynced messages', async () => {
         reporter = new SumoLogicReporter({ sourceAddress: 'http://localhost:1234' })
         reporter.onRunnerStart('onRunnerStart' as any)
