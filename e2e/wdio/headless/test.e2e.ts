@@ -251,7 +251,10 @@ describe('main suite 1', () => {
         })
 
         inputs.forEach((input) => {
-            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async function() {
+                // Unstable test, retry up to 3 times `Expected: 90 Received: 504` with when input = `{"xOffset":10}`
+                this.retries(3)
+
                 await setupMouseTracking()
                 await browser.$('#parent').moveTo()
                 const rectBefore = await waitForMousePosition(0)
@@ -260,7 +263,7 @@ describe('main suite 1', () => {
                 const rectAfter = await waitForMousePosition(countBeforeSecondMove)
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
-            })
+            }, )
         })
 
         /**
@@ -456,6 +459,10 @@ describe('main suite 1', () => {
     })
 
     describe('dialog handling', () => {
+        afterEach(() => {
+            browser.removeAllListeners('dialog')
+        })
+
         it('should automatically accept alerts', async () => {
             await browser.url('https://guinea-pig.webdriver.io')
 
@@ -468,17 +475,73 @@ describe('main suite 1', () => {
             await browser.$('div').click()
         })
 
-        /**
-         * fails due to https://github.com/GoogleChromeLabs/chromium-bidi/issues/2556
-         */
-        it('should be able to handle dialogs', async () => {
+        it('should be able to handle dialogs manually with `browser.on`', async () => {
             await browser.url('https://guinea-pig.webdriver.io')
+
             browser.execute(() => alert('123'))
             const dialog = await new Promise<WebdriverIO.Dialog>((resolve) => browser.on('dialog', resolve))
 
             expect(dialog.type()).toBe('alert')
             expect(dialog.message()).toBe('123')
             await dialog.dismiss()
+        })
+
+        it('should continue autoDismiss after handling a dialog manually with `browser.on`', async () => {
+            await browser.url('https://guinea-pig.webdriver.io')
+            let dismissalPromise: Promise<void> | undefined
+            const mockedDialog = (dialog: WebdriverIO.Dialog) => {
+                if (dialog.message() === 'expectedDialog' ) {
+                    dismissalPromise = dialog.dismiss()
+                    return
+                }
+                throw new Error('Unexpected dialog: ' + dialog.message())
+            }
+            browser.on('dialog', mockedDialog)
+            await browser.execute(() => alert('expectedDialog'))
+            await dismissalPromise
+            browser.off('dialog', mockedDialog)
+
+            await browser.execute(() => alert('autoDismiss'))
+
+            /**
+             * in case the alert is not automatically accepted
+             * the following line would time out
+             */
+            await browser.$('div').click()
+        })
+
+        it('should be able to handle dialogs manually with `browser.once`', async () => {
+            await browser.url('https://guinea-pig.webdriver.io')
+
+            browser.execute(() => alert('123'))
+            const dialog = await new Promise<WebdriverIO.Dialog>((resolve) => browser.once('dialog', resolve))
+
+            expect(dialog.type()).toBe('alert')
+            expect(dialog.message()).toBe('123')
+            await dialog.dismiss()
+        })
+
+        it('should continue autoDismiss after handling a dialog manually with `browser.once`', async () => {
+            await browser.url('https://guinea-pig.webdriver.io')
+            let dismissalPromise: Promise<void> | undefined
+            const mockedDialog = (dialog: WebdriverIO.Dialog) => {
+                if (dialog.message() === 'expectedDialog' ) {
+                    dismissalPromise = dialog.dismiss()
+                    return
+                }
+                throw new Error('Unexpected dialog: ' + dialog.message())
+            }
+            browser.once('dialog', mockedDialog)
+            await browser.execute(() => alert('expectedDialog'))
+            await dismissalPromise
+
+            await browser.execute(() => alert('autoDimiss'))
+
+            /**
+             * in case the alert is not automatically accepted
+             * the following line would time out
+             */
+            await browser.$('div').click()
         })
     })
 
