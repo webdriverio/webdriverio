@@ -3,17 +3,17 @@ import cp from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
 
 import split2 from 'split2'
 import waitPort from 'wait-port'
 import { start as startSafaridriver } from 'safaridriver'
 import { start as startGeckodriver } from 'geckodriver'
 import { start as startEdgedriver, download as downloadEdgedriver } from 'edgedriver'
-import { install } from '@puppeteer/browsers'
+import { install, canDownload } from '@puppeteer/browsers'
 
 import { startWebDriver } from '../../src/node/index.js'
-import { DEFAULT_EDGEDRIVER_CDN_URL, setupEdgedriver } from '../../src/node/utils.js'
+import { DEFAULT_EDGEDRIVER_CDN_URL, setupChromedriver, setupEdgedriver } from '../../src/node/utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../../src/constants.js'
 
 vi.mock('split2', () => ({ default: vi.fn() }))
@@ -55,6 +55,7 @@ vi.mock('node:child_process', () => ({
 }))
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+const { logMock } = await import(path.join(process.cwd(), '__mocks__', '@wdio/logger')) as { logMock: Record<string, Mock> }
 vi.mock('webdriver', () => ({ default: 'webdriver package' }))
 vi.mock('safaridriver', () => ({
     start: vi.fn().mockReturnValue({
@@ -93,10 +94,20 @@ vi.mock('../../src/node/utils.js', async (actualMod) => ({
 describe('startWebDriver', () => {
     const WDIO_SKIP_DRIVER_SETUP = process.env.WDIO_SKIP_DRIVER_SETUP
     const EDGEDRIVER_CDNURL = process.env.EDGEDRIVER_CDNURL
+    const CHROMEDRIVER_CDNURL = process.env.CHROMEDRIVER_CDNURL
     beforeEach(() => {
         delete process.env.WDIO_SKIP_DRIVER_SETUP
         delete process.env.EDGEDRIVER_CDNURL
-        vi.mocked(install).mockClear()
+        delete process.env.CHROMEDRIVER_CDNURL
+        vi.mocked(canDownload).mockClear()
+        /**
+         * reset rather than clear so that a test which makes the install fail can
+         * never leak its rejection into the tests that run after it
+         */
+        vi.mocked(install).mockReset()
+        vi.mocked(install).mockResolvedValue({} as never)
+        vi.mocked(logMock.error).mockClear()
+        vi.mocked(logMock.warn).mockClear()
         vi.mocked(fsp.access).mockClear()
         vi.mocked(fsp.mkdir).mockClear()
         vi.mocked(cp.spawn).mockClear()
@@ -112,6 +123,11 @@ describe('startWebDriver', () => {
             process.env.EDGEDRIVER_CDNURL = EDGEDRIVER_CDNURL
         } else {
             delete process.env.EDGEDRIVER_CDNURL
+        }
+        if (CHROMEDRIVER_CDNURL !== undefined) {
+            process.env.CHROMEDRIVER_CDNURL = CHROMEDRIVER_CDNURL
+        } else {
+            delete process.env.CHROMEDRIVER_CDNURL
         }
     })
 
@@ -259,6 +275,155 @@ describe('startWebDriver', () => {
         )
     })
 
+    it('should download Chromedriver from the default CDN if no custom one is set', async () => {
+        await setupChromedriver('/foo/bar/cache', '115.0.5790.171')
+        expect(canDownload).toBeCalledWith(expect.objectContaining({ baseUrl: undefined }))
+        expect(install).toBeCalledWith(expect.objectContaining({ baseUrl: undefined }))
+    })
+
+    it('should download Chromedriver from a custom CDN if CHROMEDRIVER_CDNURL is set', async () => {
+        process.env.CHROMEDRIVER_CDNURL = 'https://artifactory.company.com/chrome-for-testing'
+        await setupChromedriver('/foo/bar/cache', '115.0.5790.171')
+        expect(canDownload).toBeCalledWith(expect.objectContaining({
+            baseUrl: 'https://artifactory.company.com/chrome-for-testing'
+        }))
+        expect(install).toBeCalledWith(expect.objectContaining({
+            baseUrl: 'https://artifactory.company.com/chrome-for-testing'
+        }))
+    })
+
+    it.each(['', '   ', '\n'])('should ignore a blank CHROMEDRIVER_CDNURL (%j)', async (value) => {
+        /**
+         * an empty variable in a CI config must fall back to the default CDN
+         * instead of building an invalid url
+         */
+        process.env.CHROMEDRIVER_CDNURL = value
+        await setupChromedriver('/foo/bar/cache', '115.0.5790.171')
+        expect(canDownload).toBeCalledWith(expect.objectContaining({ baseUrl: undefined }))
+        expect(install).toBeCalledWith(expect.objectContaining({ baseUrl: undefined }))
+    })
+
+    it('should strip trailing slashes from CHROMEDRIVER_CDNURL', async () => {
+        process.env.CHROMEDRIVER_CDNURL = 'https://artifactory.company.com/chrome-for-testing//'
+        await setupChromedriver('/foo/bar/cache', '115.0.5790.171')
+        expect(install).toBeCalledWith(expect.objectContaining({
+            baseUrl: 'https://artifactory.company.com/chrome-for-testing'
+        }))
+    })
+
+    it('should redact credentials of any length', async () => {
+        /**
+         * registry tokens are routinely longer than a few hundred characters, so
+         * the userinfo part must not be capped or a long token would survive
+         */
+        const token = 'T'.repeat(513)
+        process.env.CHROMEDRIVER_CDNURL = `https://svc-ci:${token}@artifactory.company.com/chrome-for-testing`
+        vi.mocked(install).mockRejectedValueOnce(new Error(
+            `Download failed: server returned code 403. URL: https://svc-ci:${token}@artifactory.company.com/chrome-for-testing/115.0.5790.171/win64/chromedriver-win64.zip`
+        ))
+
+        await setupChromedriver('/foo/bar/cache', '115.0.5790.171')
+
+        const loggedError = vi.mocked(logMock.error).mock.calls.at(-1)?.[0] as string
+        expect(loggedError).not.toContain(token)
+        expect(loggedError).not.toContain('svc-ci')
+        expect(loggedError).not.toContain('@artifactory.company.com')
+        /**
+         * only the scheme and everything from the host onwards may remain
+         */
+        expect(loggedError).toContain('https://artifactory.company.com/chrome-for-testing/115.0.5790.171/win64/chromedriver-win64.zip')
+    })
+
+    it('should not leak CHROMEDRIVER_CDNURL credentials when a download fails', async () => {
+        process.env.CHROMEDRIVER_CDNURL = 'https://svc-ci:s3cr3t-token@artifactory.company.com/chrome-for-testing'
+        /**
+         * `@puppeteer/browsers` embeds the full download url in its error message,
+         * so the credentials reach us through the error as well as through the options
+         */
+        vi.mocked(install).mockRejectedValueOnce(new Error(
+            'Download failed: server returned code 403. URL: https://svc-ci:s3cr3t-token@artifactory.company.com/chrome-for-testing/115.0.5790.171/mac-arm64/chromedriver-mac-arm64.zip'
+        ))
+
+        await setupChromedriver('/foo/bar/cache', '115.0.5790.171')
+
+        const loggedError = vi.mocked(logMock.error).mock.calls.at(-1)?.[0] as string
+        expect(loggedError).toContain('Failed downloading chromedriver')
+        expect(loggedError).not.toContain('s3cr3t-token')
+        expect(loggedError).not.toContain('svc-ci')
+        expect(loggedError).toContain('https://artifactory.company.com/chrome-for-testing')
+
+        /**
+         * the download itself must still use the credentials
+         */
+        expect(install).toBeCalledWith(expect.objectContaining({
+            baseUrl: 'https://svc-ci:s3cr3t-token@artifactory.company.com/chrome-for-testing'
+        }))
+    })
+
+    it('should leave urls without credentials untouched when a download fails', async () => {
+        /**
+         * the redaction runs on every failed install, also for users that never set a
+         * custom CDN, so it must not mangle an `@` that is part of a path or query
+         */
+        vi.mocked(install).mockRejectedValueOnce(new Error(
+            'Download failed: server returned code 500. URL: https://storage.googleapis.com/cft?build=115@rev + https://registry.corp/npm/@scope/pkg'
+        ))
+
+        await setupChromedriver('/foo/bar/cache', '115.0.5790.171')
+
+        const loggedError = vi.mocked(logMock.error).mock.calls.at(-1)?.[0] as string
+        expect(loggedError).toContain('https://storage.googleapis.com/cft?build=115@rev')
+        expect(loggedError).toContain('https://registry.corp/npm/@scope/pkg')
+    })
+
+    it.each([
+        ['a plain object', { code: 'ECONNRESET' }, '{"code":"ECONNRESET"}'],
+        ['a string', 'ECONNRESET', 'ECONNRESET'],
+        ['null', null, 'null'],
+        ['undefined', undefined, 'undefined']
+    ])('should describe an install rejection that is %s', async (_name, rejection, expected) => {
+        /**
+         * a rejection is not guaranteed to be an Error: neither assigning to
+         * `message` nor `new Error(obj)` is safe, and the reason has to survive
+         * into the thrown error rather than becoming `[object Object]`
+         */
+        vi.mocked(install).mockRejectedValue(rejection as never)
+
+        const err = await setupChromedriver('/foo/bar/cache', '115.0.5790.171').catch((e: Error) => e) as Error
+
+        expect(err).toBeInstanceOf(Error)
+        expect(err.message).toContain('Failed downloading chromedriver')
+        expect(err.message).toContain(expected)
+        expect(err.message).not.toContain('[object Object]')
+        expect(err.message).not.toContain('Cannot read properties')
+    })
+
+    it('should redact a large message without stalling', async () => {
+        /**
+         * an unbounded scheme quantifier backtracks quadratically, which turned a
+         * 200kb message into a ~48s stall inside the error handler
+         */
+        const huge = `${'a'.repeat(200_000)}://${'b'.repeat(200_000)}`
+        vi.mocked(install).mockRejectedValueOnce(new Error(huge))
+
+        const start = Date.now()
+        await setupChromedriver('/foo/bar/cache', '115.0.5790.171')
+        expect(Date.now() - start).toBeLessThan(2_000)
+    })
+
+    it('should not leak CHROMEDRIVER_CDNURL credentials in the thrown error when the retry fails', async () => {
+        process.env.CHROMEDRIVER_CDNURL = 'https://svc-ci:s3cr3t-token@artifactory.company.com/chrome-for-testing'
+        vi.mocked(install).mockRejectedValue(new Error(
+            'Download failed: server returned code 403. URL: https://svc-ci:s3cr3t-token@artifactory.company.com/chrome-for-testing/115.0.5790.171/mac-arm64/chromedriver-mac-arm64.zip'
+        ))
+
+        const err = await setupChromedriver('/foo/bar/cache', '115.0.5790.171').catch((e: Error) => e) as Error
+
+        expect(err).toBeInstanceOf(Error)
+        expect(err.message).not.toContain('s3cr3t-token')
+        expect(err.message).not.toContain('svc-ci')
+    })
+
     it('should start driver with no prefs if debuggerAddress is set', async () => {
         const options = {
             capabilities: {
@@ -385,6 +550,36 @@ describe('startWebDriver', () => {
             buildId: '115.0.5790.171',
             browser: 'chromedriver'
         }))
+    })
+
+    it('should name the custom CDN when the driver could not be found there', async () => {
+        process.env.CHROMEDRIVER_CDNURL = 'https://svc-ci:s3cr3t-token@artifactory.company.com/chrome-for-testing'
+        vi.mocked(canDownload).mockResolvedValueOnce(false)
+
+        await setupChromedriver('/foo/bar/cache', '115.0.5790.171')
+
+        const warning = vi.mocked(logMock.warn).mock.calls.at(-1)?.[0] as string
+        expect(warning).toContain('CHROMEDRIVER_CDNURL')
+        expect(warning).toContain('https://artifactory.company.com/chrome-for-testing')
+        expect(warning).not.toContain('s3cr3t-token')
+
+        /**
+         * the known good version has to come from the mirror as well, otherwise the
+         * fallback would quietly download from the public CDN
+         */
+        expect(install).toBeCalledWith(expect.objectContaining({
+            baseUrl: 'https://svc-ci:s3cr3t-token@artifactory.company.com/chrome-for-testing'
+        }))
+    })
+
+    it('should not mention a custom CDN when none is configured', async () => {
+        vi.mocked(canDownload).mockResolvedValueOnce(false)
+
+        await setupChromedriver('/foo/bar/cache', '115.0.5790.171')
+
+        const warning = vi.mocked(logMock.warn).mock.calls.at(-1)?.[0] as string
+        expect(warning).toContain('trying to find known good version')
+        expect(warning).not.toContain('CHROMEDRIVER_CDNURL')
     })
 
     it('should pipe logs into a file', async () => {

@@ -28,6 +28,19 @@ export function setDefaultEdgedriverCdnUrl () {
 }
 
 /**
+ * Allows to download Chromedriver from a custom host, e.g. an internal mirror
+ * or artifact registry, in environments where the default CDN is not reachable.
+ * This is the Chrome equivalent to the `EDGEDRIVER_CDNURL` environment variable
+ * that the `edgedriver` package supports.
+ * A blank value is treated as unset so that an empty variable in a CI config
+ * falls back to the default CDN rather than producing an invalid url.
+ * @return the configured CDN url without trailing slashes or `undefined` if not set
+ */
+export function getChromedriverCdnUrl () {
+    return process.env.CHROMEDRIVER_CDNURL?.trim().replace(/\/+$/, '') || undefined
+}
+
+/**
  * Helper utility to check file access
  * @param {string} file file to check access for
  * @return              true if file can be accessed
@@ -128,6 +141,46 @@ export const downloadProgressCallback = (artifact: string, downloadedBytes: numb
 }
 
 /**
+ * A custom CDN url can carry credentials, e.g. when pointing to an internal
+ * artifact registry that requires basic auth. They reach our logs through the
+ * install options as well as through errors raised by `@puppeteer/browsers`,
+ * which embed the full download url in their message, so scrub the composed
+ * message rather than a single source.
+ * Only userinfo is matched: the segment has to sit between `://` and the first
+ * `/`, `?` or `#`, so an `@` inside a path or query string is left alone. The
+ * scheme quantifier is bounded because an unbounded one backtracks quadratically
+ * and a large message could stall the process for seconds. The userinfo part is
+ * deliberately unbounded so that a long token is still scrubbed; it stays linear
+ * because `@` is excluded from the class, leaving nothing to backtrack over.
+ * @param {string} message - a log line or error message that may contain urls
+ * @returns the message with `user:password@` stripped from any url it contains
+ */
+function redactCredentials (message: string) {
+    return message.replace(/([a-zA-Z][\w+.-]{0,30}:\/\/)[^/@\s?#]+@/g, '$1')
+}
+
+/**
+ * Turn whatever a promise rejected with into something worth logging. `String()`
+ * alone would render a plain object as `[object Object]` and hide the reason.
+ * @param {unknown} err - the rejection value
+ * @returns a readable description of the rejection
+ */
+function describeRejection (err: unknown) {
+    if (err instanceof Error) {
+        return err.message
+    }
+    if (typeof err === 'string') {
+        return err
+    }
+
+    try {
+        return JSON.stringify(err) ?? String(err)
+    } catch {
+        return String(err)
+    }
+}
+
+/**
  * Installs a package using the provided installation options and clears the progress log afterward.
  *
  * @description
@@ -142,12 +195,15 @@ export const downloadProgressCallback = (artifact: string, downloadedBytes: numb
  */
 const _install = async (args: InstallOptions & { unpack?: true | undefined }, retry = false): Promise<void> => {
     await install(args).catch((err) => {
-        const error = `Failed downloading ${args.browser} v${args.buildId} using ${JSON.stringify(args)}: ${err.message}, retrying ...`
+        /**
+         * a rejection is not guaranteed to be an Error, so never assume a writable
+         * `message` and never let `new Error()` stringify an object into `[object Object]`
+         */
+        const details = redactCredentials(`Failed downloading ${args.browser} v${args.buildId} using ${JSON.stringify(args)}: ${describeRejection(err)}`)
         if (retry) {
-            err.message += '\n' + error.replace(', retrying ...', '')
-            throw new Error(err)
+            throw new Error(details)
         }
-        log.error(error)
+        log.error(`${details}, retrying ...`)
         return _install(args, true)
     })
     log.progress('')
@@ -313,6 +369,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
             platform,
             browser: Browser.CHROMEDRIVER,
             unpack: true,
+            baseUrl: getChromedriverCdnUrl(),
             downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
         }
         let knownBuild = buildId
@@ -320,7 +377,16 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
             await _install({ ...chromedriverInstallOpts, buildId })
             log.info(`Download of Chromedriver v${buildId} was successful`)
         } else {
-            log.warn(`Chromedriver v${buildId} don't exist, trying to find known good version...`)
+            /**
+             * `canDownload` reports false for any failed request, so with a custom CDN
+             * this is just as likely a wrong url or rejected credentials as a missing
+             * version - name the host so it is clear where to look
+             */
+            const cdnUrl = getChromedriverCdnUrl()
+            log.warn(
+                `Chromedriver v${buildId} don't exist, trying to find known good version...` +
+                (cdnUrl ? ` (checked ${redactCredentials(cdnUrl)} from CHROMEDRIVER_CDNURL, a failed request is reported the same way as a missing version)` : '')
+            )
             knownBuild = await resolveBuildId(Browser.CHROMEDRIVER, platform, getMajorVersionFromString(version))
             if (knownBuild) {
                 await _install({ ...chromedriverInstallOpts, buildId: knownBuild })

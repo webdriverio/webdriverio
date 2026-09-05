@@ -104,6 +104,31 @@ If the driver `binary` is set, WebdriverIO won't attempt to download a driver bu
 
 :::
 
+#### Custom Driver Download Host
+
+If the public driver CDNs are not reachable from your environment, e.g. because you run your tests behind a corporate proxy or mirror the drivers in an internal artifact registry, you can point the download to a custom host using the following environment variables:
+
+- Chrome: `CHROMEDRIVER_CDNURL`, defaults to `https://storage.googleapis.com/chrome-for-testing-public`
+- Microsoft Edge: `EDGEDRIVER_CDNURL`, defaults to `https://msedgedriver.microsoft.com`
+
+The mirror is expected to serve the driver archives under the same paths as the original CDN, e.g. for Chrome:
+
+```sh
+CHROMEDRIVER_CDNURL=https://artifactory.company.com/chrome-for-testing npx wdio run wdio.conf.js
+```
+
+which resolves the driver to `https://artifactory.company.com/chrome-for-testing/<buildId>/<platform>/chromedriver-<platform>.zip`, where `<platform>` is one of `linux64`, `mac-x64`, `mac-arm64`, `win32` or `win64`, e.g. `.../140.0.7339.207/mac-arm64/chromedriver-mac-arm64.zip`.
+
+:::info Fully offline environments
+
+These variables redirect the driver download only. To keep WebdriverIO from reaching the public internet at all, three more conditions have to be met:
+
+- **A browser has to be available locally.** If WebdriverIO can't find an installed Chrome or Firefox it downloads the browser too, and that download does not honor these variables. Either install the browser on the machine or point WebdriverIO at it via `goog:chromeOptions.binary` / `moz:firefoxOptions.binary`.
+- **Use a full version number.** If `browserVersion` is omitted, WebdriverIO reads the exact version from the local browser and no version lookup is needed. If you do set it, use the complete four part version, e.g. `140.0.7339.207`. A release channel (`stable`), a milestone (`140`) or a partial version (`140.0.7339`) requires a version lookup against a public Google endpoint that can't be redirected.
+- **Make sure the mirror actually has the version you need.** If the driver can't be fetched from your host — because the version isn't mirrored, but equally because the url is wrong or the credentials were rejected — WebdriverIO logs a warning and then looks up the closest known good version, which again queries the public endpoint. Check the warning for the host it tried if a run unexpectedly reaches the internet or picks a version you didn't ask for.
+
+:::
+
 #### Browser Specific Driver Options
 
 In order to propagate options to the driver you can use the following custom capabilities:
