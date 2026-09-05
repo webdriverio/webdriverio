@@ -456,6 +456,10 @@ describe('main suite 1', () => {
     })
 
     describe('dialog handling', () => {
+        afterEach(() => {
+            browser.removeAllListeners('dialog')
+        })
+
         it('should automatically accept alerts', async () => {
             await browser.url('https://guinea-pig.webdriver.io')
 
@@ -481,13 +485,18 @@ describe('main suite 1', () => {
 
         it('should continue autoDismiss after handling a dialog manually with `browser.on`', async () => {
             await browser.url('https://guinea-pig.webdriver.io')
-
-            const mockedDialog = (dialog: WebdriverIO.Dialog) => dialog.dismiss()
+            const mockedDialog = (dialog: WebdriverIO.Dialog) => {
+                if (dialog.message() === 'expectedDialog' ) {
+                    dialog.dismiss()
+                } else {
+                    console.log('Unexpected dialog:', dialog.message())
+                }
+            }
             browser.on('dialog', mockedDialog)
-            await browser.execute(() => alert('234'))
+            await browser.execute(() => alert('expectedDialog'))
             browser.off('dialog', mockedDialog)
 
-            await browser.execute(() => alert('123'))
+            await browser.execute(() => alert('autoDismiss'))
             /**
              * in case the alert is not automatically accepted
              * the following line would time out
@@ -509,11 +518,17 @@ describe('main suite 1', () => {
         it('should continue autoDismiss after handling a dialog manually with `browser.once`', async () => {
             await browser.url('https://guinea-pig.webdriver.io')
 
-            const mockedDialog = (dialog: WebdriverIO.Dialog) => dialog.dismiss()
+            const mockedDialog = (dialog: WebdriverIO.Dialog) => {
+                if (dialog.message() === 'expectedDialog' ) {
+                    dialog.dismiss()
+                } else {
+                    console.log('Unexpected dialog:', dialog.message())
+                }
+            }
             browser.once('dialog', mockedDialog)
-            await browser.execute(() => alert('234'))
+            await browser.execute(() => alert('expectedDialog'))
 
-            await browser.execute(() => alert('123'))
+            await browser.execute(() => alert('autoDimiss'))
             /**
              * in case the alert is not automatically accepted
              * the following line would time out
