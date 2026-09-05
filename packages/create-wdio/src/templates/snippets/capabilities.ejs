@@ -49,6 +49,13 @@ capabilities: [{<%
             // custom application args
             appArgs: []
         }<%
+    } else if (answers.purpose === 'dioxus') { %>
+        browserName: 'dioxus',
+        // path to your built Dioxus debug binary
+        // see https://webdriver.io/docs/desktop-testing/dioxus/configuration
+        'dioxus:options': {
+            application: <%- JSON.stringify(answers.dioxusAppBinaryPath || './target/debug/my-app') %>
+        }<%
     } else {
         %>
         // capabilities for local browser web tests
