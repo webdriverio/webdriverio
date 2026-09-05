@@ -12,7 +12,6 @@ import type { remote } from 'webdriver'
 import type { SameSiteOptions } from '../../../packages/wdio-protocols/build/types.js'
 import logger from '@wdio/logger'
 import { some } from 'expect-webdriverio/api'
-import type { Dialog } from '../../../packages/webdriverio/src/session/dialog.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -483,7 +482,7 @@ describe('main suite 1', () => {
         it('should continue autoDismiss after handling a dialog manually with `browser.on`', async () => {
             await browser.url('https://guinea-pig.webdriver.io')
 
-            const mockedDialog = (dialog: Dialog) => dialog.dismiss()
+            const mockedDialog = (dialog: WebdriverIO.Dialog) => dialog.dismiss()
             browser.on('dialog', mockedDialog)
             await browser.execute(() => alert('234'))
             browser.off('dialog', mockedDialog)
@@ -510,7 +509,7 @@ describe('main suite 1', () => {
         it('should continue autoDismiss after handling a dialog manually with `browser.once`', async () => {
             await browser.url('https://guinea-pig.webdriver.io')
 
-            const mockedDialog = (dialog: Dialog) => dialog.dismiss()
+            const mockedDialog = (dialog: WebdriverIO.Dialog) => dialog.dismiss()
             browser.once('dialog', mockedDialog)
             await browser.execute(() => alert('234'))
 
