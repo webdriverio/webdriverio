@@ -50,6 +50,14 @@ describe('initializePlugin', () => {
         expect(service.foo).toBe('foo')
     })
 
+    it('should allow reserved characters in an absolute plugin path', async () => {
+        const servicePath = path.resolve(fixtureDir, 'percent%service.js')
+        vi.mocked(resolve).mockImplementation((specifier: string) => specifier)
+        const { default: Service } = await initializePlugin(servicePath, 'service')
+        const service = new Service({} as any, {}, {}) as TestService
+        expect(service.foo).toBe('percent')
+    })
+
     it('should allow to load a scoped service plugin', async ()=>{
         const name = 'foo'
         const type = 'service'

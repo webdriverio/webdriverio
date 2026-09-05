@@ -1,4 +1,6 @@
 import type { Services } from '@wdio/types'
+import { platform } from 'node:os'
+import { pathToFileURL } from 'node:url'
 
 import { safeImport, isAbsolute, REG_EXP_WINDOWS_ABS_PATH, SLASH } from './utils.js'
 
@@ -57,12 +59,17 @@ function ensureFileURL(path:string) {
 
     // Windows drive path
     if (REG_EXP_WINDOWS_ABS_PATH.test(path)) {
-        return `${FILE_PROTOCOL}/${path.replace(/\\/g, '/')}`
+        if (platform() === 'win32') {
+            return pathToFileURL(path).href
+        }
+
+        const pathname = path.replace(/\\/g, '/').split('/').map(encodeURIComponent).join('/')
+        return `${FILE_PROTOCOL}/${pathname}`
     }
 
     // Unix absolute path
     if (path.startsWith(SLASH)) {
-        return `${FILE_PROTOCOL}${path}`
+        return pathToFileURL(path).href
     }
 
     return path
