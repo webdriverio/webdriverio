@@ -487,10 +487,9 @@ describe('main suite 1', () => {
             await browser.url('https://guinea-pig.webdriver.io')
             const mockedDialog = (dialog: WebdriverIO.Dialog) => {
                 if (dialog.message() === 'expectedDialog' ) {
-                    dialog.dismiss()
-                } else {
-                    throw new Error('Unexpected dialog: ' + dialog.message())
+                    return dialog.dismiss()
                 }
+                throw new Error('Unexpected dialog: ' + dialog.message())
             }
             browser.on('dialog', mockedDialog)
             await browser.execute(() => alert('expectedDialog'))
@@ -520,10 +519,9 @@ describe('main suite 1', () => {
 
             const mockedDialog = (dialog: WebdriverIO.Dialog) => {
                 if (dialog.message() === 'expectedDialog' ) {
-                    dialog.dismiss()
-                } else {
-                    throw new Error('Unexpected dialog: ' + dialog.message())
+                    return dialog.dismiss()
                 }
+                throw new Error('Unexpected dialog: ' + dialog.message())
             }
             browser.once('dialog', mockedDialog)
             await browser.execute(() => alert('expectedDialog'))
