@@ -334,6 +334,26 @@ describe('startWebDriver', () => {
         expect(loggedError).toContain('https://artifactory.company.com/chrome-for-testing/115.0.5790.171/win64/chromedriver-win64.zip')
     })
 
+    it('should redact a password that itself contains an @', async () => {
+        /**
+         * url parsers split userinfo at the *last* `@`, so `pa@ss` is a valid
+         * password and the redaction has to consume all of it, not stop at the first
+         */
+        const url = 'https://svc-ci:pa@ss@artifactory.company.com/chrome-for-testing'
+        process.env.CHROMEDRIVER_CDNURL = url
+        vi.mocked(install).mockRejectedValueOnce(new Error(
+            `Download failed: server returned code 403. URL: ${url}/115.0.5790.171/win64/chromedriver-win64.zip`
+        ))
+
+        await setupChromedriver('/foo/bar/cache', '115.0.5790.171')
+
+        const loggedError = vi.mocked(logMock.error).mock.calls.at(-1)?.[0] as string
+        expect(loggedError).not.toContain('pa@ss')
+        expect(loggedError).not.toContain('ss@artifactory')
+        expect(loggedError).not.toContain('svc-ci')
+        expect(loggedError).toContain('https://artifactory.company.com/chrome-for-testing')
+    })
+
     it('should not leak CHROMEDRIVER_CDNURL credentials when a download fails', async () => {
         process.env.CHROMEDRIVER_CDNURL = 'https://svc-ci:s3cr3t-token@artifactory.company.com/chrome-for-testing'
         /**
