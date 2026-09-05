@@ -12,6 +12,7 @@ import type { remote } from 'webdriver'
 import type { SameSiteOptions } from '../../../packages/wdio-protocols/build/types.js'
 import logger from '@wdio/logger'
 import { some } from 'expect-webdriverio/api'
+import type { Dialog } from '../../../packages/webdriverio/src/session/dialog.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -468,17 +469,57 @@ describe('main suite 1', () => {
             await browser.$('div').click()
         })
 
-        /**
-         * fails due to https://github.com/GoogleChromeLabs/chromium-bidi/issues/2556
-         */
-        it('should be able to handle dialogs', async () => {
+        it('should be able to handle dialogs manually with `browser.on`', async () => {
             await browser.url('https://guinea-pig.webdriver.io')
+
             browser.execute(() => alert('123'))
             const dialog = await new Promise<WebdriverIO.Dialog>((resolve) => browser.on('dialog', resolve))
 
             expect(dialog.type()).toBe('alert')
             expect(dialog.message()).toBe('123')
             await dialog.dismiss()
+        })
+
+        it('should continue autoDismiss after handling a dialog manually with `browser.on`', async () => {
+            await browser.url('https://guinea-pig.webdriver.io')
+
+            const mockedDialog = (dialog: Dialog) => dialog.dismiss()
+            browser.on('dialog', mockedDialog)
+            await browser.execute(() => alert('234'))
+            browser.off('dialog', mockedDialog)
+
+            await browser.execute(() => alert('123'))
+            /**
+             * in case the alert is not automatically accepted
+             * the following line would time out
+             */
+            await browser.$('div').click()
+        })
+
+        it('should be able to handle dialogs manually with `browser.once`', async () => {
+            await browser.url('https://guinea-pig.webdriver.io')
+
+            browser.execute(() => alert('123'))
+            const dialog = await new Promise<WebdriverIO.Dialog>((resolve) => browser.once('dialog', resolve))
+
+            expect(dialog.type()).toBe('alert')
+            expect(dialog.message()).toBe('123')
+            await dialog.dismiss()
+        })
+
+        it('should continue autoDismiss after handling a dialog manually with `browser.once`', async () => {
+            await browser.url('https://guinea-pig.webdriver.io')
+
+            const mockedDialog = (dialog: Dialog) => dialog.dismiss()
+            browser.once('dialog', mockedDialog)
+            await browser.execute(() => alert('234'))
+
+            await browser.execute(() => alert('123'))
+            /**
+             * in case the alert is not automatically accepted
+             * the following line would time out
+             */
+            await browser.$('div').click()
         })
     })
 
