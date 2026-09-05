@@ -147,16 +147,19 @@ export const downloadProgressCallback = (artifact: string, downloadedBytes: numb
  * which embed the full download url in their message, so scrub the composed
  * message rather than a single source.
  * Only userinfo is matched: the segment has to sit between `://` and the first
- * `/`, `?` or `#`, so an `@` inside a path or query string is left alone. The
- * scheme quantifier is bounded because an unbounded one backtracks quadratically
- * and a large message could stall the process for seconds. The userinfo part is
- * deliberately unbounded so that a long token is still scrubbed; it stays linear
- * because `@` is excluded from the class, leaving nothing to backtrack over.
+ * `/`, `?` or `#`, so an `@` inside a path or query string is left alone. It
+ * reaches the *last* `@` in that segment: a password may itself contain an
+ * unescaped `@` and url parsers treat the last one as the delimiter, so stopping
+ * at the first would leave the remainder of the password behind.
+ * The scheme quantifier is bounded because an unbounded one backtracks
+ * quadratically and a large message could stall the process for seconds. The
+ * userinfo part is unbounded so that a long token is still scrubbed; it stays
+ * linear because `/` is excluded, which keeps the run after each `://` disjoint.
  * @param {string} message - a log line or error message that may contain urls
  * @returns the message with `user:password@` stripped from any url it contains
  */
 function redactCredentials (message: string) {
-    return message.replace(/([a-zA-Z][\w+.-]{0,30}:\/\/)[^/@\s?#]+@/g, '$1')
+    return message.replace(/([a-zA-Z][\w+.-]{0,30}:\/\/)[^/\s?#]+@/g, '$1')
 }
 
 /**
