@@ -27,15 +27,12 @@ RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs
 
-# Install pnpm globally as root
 RUN npm install -g pnpm
 
-# Create test user with sudo access
 RUN useradd -m -s /bin/bash testuser && \
     echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 WORKDIR /app
 USER testuser
 
-# Default command
 CMD ["bash"]

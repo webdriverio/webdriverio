@@ -33,16 +33,13 @@ export default class LocalRunner {
         private _options: never,
         protected config: WebdriverIO.Config
     ) {
-        // Manager handles per-worker Chrome / Edge / Electron flag injection;
-        // the daemon (started in initialize()) handles the env vars themselves.
         this.displayServerManager = new DisplayServerManager(optionsFromConfig(this.config))
     }
 
     /**
-     * Start a persistent Xvfb/Weston daemon (if the config requests one) and
-     * publish its env onto `process.env` so workers — and any child process
-     * spawned from a service's `onPrepare` (e.g. `tauri-driver`) — inherit
-     * the display. Runs before any service `onPrepare`.
+     * Start a persistent Xvfb/Weston daemon (if the config requests one) and publish
+     * its env onto `process.env` so workers — and drivers spawned in a service's
+     * `onPrepare` — inherit the display. Runs before any service `onPrepare`.
      */
     async initialize() {
         const capabilities = this.config.capabilities as Capabilities.TestrunnerCapabilities | undefined

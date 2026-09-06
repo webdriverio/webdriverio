@@ -8,12 +8,9 @@ import type { DisplayDaemon } from '../src/types.js'
 
 /**
  * Real-process lifecycle coverage for WaylandDisplayServer.startDaemon()/stop().
- *
- * Unlike WaylandDisplayServer.test.ts (which mocks `spawn`), this suite spawns a
- * real, controllable `weston` stub on PATH and drives the genuine async/process
- * lifecycle — real child process, real SIGTERM/SIGKILL delivery, real socket-file
- * polling, real stderr capture, real runtime-dir cleanup — the bits mocks cannot
- * prove. POSIX-only (signals), so skipped on Windows.
+ * Unlike WaylandDisplayServer.test.ts (which mocks `spawn`), this spawns a real,
+ * controllable `weston` stub on PATH and drives the genuine process lifecycle —
+ * the bits mocks cannot prove. POSIX-only (signals), so skipped on Windows.
  */
 vi.mock('@wdio/logger', () => ({
     default: () => ({ info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() }),
@@ -61,13 +58,11 @@ describe.skipIf(process.platform === 'win32')('WaylandDisplayServer (real proces
         expect(daemon.env.WAYLAND_DISPLAY).toMatch(/^wayland-\d+$/)
         expect(daemon.env.ELECTRON_OZONE_PLATFORM_HINT).toBe('wayland')
         const runtimeDir = daemon.env.XDG_RUNTIME_DIR
-        // The socket the parent polled for actually exists on disk.
         expect(await exists(path.join(runtimeDir, daemon.env.WAYLAND_DISPLAY))).toBe(true)
 
         await daemon.stop()
         daemon = undefined
 
-        // Graceful stop removes the runtime dir.
         expect(await exists(runtimeDir)).toBe(false)
     }, 15_000)
 

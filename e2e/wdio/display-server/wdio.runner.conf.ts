@@ -43,12 +43,9 @@ export const config: WebdriverIO.Config = {
 
     runner: 'local',
 
-    /**
-     * Let the local runner manage the display server. With no DISPLAY /
-     * WAYLAND_DISPLAY in the container env, the runner must spin up Xvfb or
-     * Weston and ensure the worker child process inherits the right env vars
-     * for Chrome to launch.
-     */
+    // Let the local runner manage the display server: with no DISPLAY /
+    // WAYLAND_DISPLAY in the container, it spins up Xvfb/Weston and the worker
+    // inherits the env Chrome needs.
     displayServerEnabled: true,
     displayServer: 'auto',
 

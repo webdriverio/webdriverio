@@ -30,8 +30,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 const { XvfbDisplayServer } = await import('../src/XvfbDisplayServer.js')
 
 const clearReservedDisplays = () => {
-    // Reach into the static set used by findFreeDisplay() and reset it between
-    // tests so we don't leak reservations across cases.
+    // Static set shared across instances — reset between tests so cases don't leak.
     (XvfbDisplayServer as any).reservedDisplays.clear()
 }
 
@@ -40,7 +39,7 @@ describe('XvfbDisplayServer', () => {
         vi.clearAllMocks()
         clearReservedDisplays()
         mockReaddir.mockResolvedValue([])
-        // Default: /etc/os-release reads as non-CentOS-10 so checkIsCentOS10() is false.
+        // '' reads as non-CentOS-10, so checkIsCentOS10() is false.
         mockReadFile.mockResolvedValue('')
     })
 
@@ -54,12 +53,10 @@ describe('XvfbDisplayServer', () => {
 
             const server = new XvfbDisplayServer()
             expect(await server.isAvailable()).toBe(false)
-            // Must not even probe for xvfb-run after CentOS 10 detection
             expect(mockExecAsync).not.toHaveBeenCalled()
         })
 
         it('returns true when Xvfb is on PATH', async () => {
-            // mockReadFile defaults to '' (not CentOS) from beforeEach
             mockExecAsync.mockResolvedValueOnce({ stdout: '/usr/bin/Xvfb', stderr: '' })
 
             const server = new XvfbDisplayServer()
@@ -67,8 +64,7 @@ describe('XvfbDisplayServer', () => {
         })
 
         it('returns true when Xvfb is present even though xvfb-run is missing', async () => {
-            // The daemon spawns Xvfb directly, so only Xvfb must be probed. This is the
-            // minimal-RPM case (xorg-x11-server-Xvfb without the xvfb-run script).
+            // The daemon spawns Xvfb directly, so only Xvfb must be probed, not xvfb-run.
             mockExecAsync.mockImplementation((cmd: string) =>
                 cmd === 'which Xvfb'
                     ? Promise.resolve({ stdout: '/usr/bin/Xvfb', stderr: '' })
@@ -92,7 +88,6 @@ describe('XvfbDisplayServer', () => {
             mockExecAsync.mockResolvedValueOnce({ stdout: '/usr/bin/Xvfb', stderr: '' })
 
             const server = new XvfbDisplayServer()
-            // Not CentOS 10 → continues with the normal probe → available
             expect(await server.isAvailable()).toBe(true)
         })
     })
@@ -107,7 +102,6 @@ describe('XvfbDisplayServer', () => {
             const result = await server.install()
 
             expect(result).toBe(false)
-            // Bail must happen before package-manager probing.
             expect(mockExecAsync).not.toHaveBeenCalled()
         })
 
@@ -166,10 +160,7 @@ describe('XvfbDisplayServer', () => {
             const server = new XvfbDisplayServer()
             const daemon = await server.startDaemon()
 
-            // These force GTK/Electron to the X11 backend even when the host
-            // shell has GDK_BACKEND=wayland,x11 inherited from a Wayland desktop
-            // session — otherwise the toolkit tries Wayland first and fails
-            // because no compositor is listening (we're running Xvfb).
+            // Force GTK/Electron to X11 even when the host inherited GDK_BACKEND=wayland,x11.
             expect(daemon.env.GDK_BACKEND).toBe('x11')
             expect(daemon.env.ELECTRON_OZONE_PLATFORM_HINT).toBe('x11')
         })
@@ -198,8 +189,6 @@ describe('XvfbDisplayServer', () => {
             proc.emit('exit', 1, null)
 
             await expect(startPromise).rejects.toThrow(/Xvfb process exited unexpectedly/)
-            // The reservation for :99 should have been released so a follow-up
-            // start can claim the same number.
             expect((XvfbDisplayServer as any).reservedDisplays.has(99)).toBe(false)
         })
 
@@ -257,7 +246,6 @@ describe('XvfbDisplayServer', () => {
         })
 
         it('throws when the entire :99-:199 range is taken', async () => {
-            // Pre-reserve everything in range.
             for (let n = 99; n < 200; n++) {
                 ;(XvfbDisplayServer as any).reservedDisplays.add(n)
             }
@@ -273,20 +261,15 @@ describe('XvfbDisplayServer', () => {
             const server = new XvfbDisplayServer()
             const daemon = await server.startDaemon()
 
-            // Falls through to :99 when no sockets visible.
             expect(daemon.env.DISPLAY).toBe(':99')
         })
 
         it('skips display numbers with leftover .X<n>-lock files from a crashed Xvfb', async () => {
-            // Reproduces the post-crash scenario: a previous Xvfb died after
-            // creating /tmp/.X99-lock and /tmp/.X100-lock but cleanup removed
-            // /tmp/.X11-unix/X99 and /tmp/.X11-unix/X100. Without scanning the
-            // lock files we'd pick :99, Xvfb would refuse to start ("Server is
-            // already active for display :99"), and every retry would re-pick
-            // the same stale-locked number.
+            // Post-crash case: lock files linger after their sockets are gone, so
+            // those displays must still count as used.
             mockReaddir.mockImplementation(async (dir: string) => {
                 if (dir === '/tmp/.X11-unix') {
-                    return [] // no live sockets
+                    return []
                 }
                 if (dir === '/tmp') {
                     return ['.X99-lock', '.X100-lock', 'unrelated.txt']
@@ -304,10 +287,10 @@ describe('XvfbDisplayServer', () => {
         it('combines socket and lock-file evidence when finding a free display', async () => {
             mockReaddir.mockImplementation(async (dir: string) => {
                 if (dir === '/tmp/.X11-unix') {
-                    return ['X99'] // live display :99
+                    return ['X99']
                 }
                 if (dir === '/tmp') {
-                    return ['.X100-lock'] // stale lock at :100
+                    return ['.X100-lock']
                 }
                 return []
             })
@@ -333,7 +316,6 @@ describe('XvfbDisplayServer', () => {
             const daemon = await server.startDaemon()
 
             expect(daemon.env.DISPLAY).toBeTruthy()
-            // At least three polls (two failures + success)
             expect(mockAccess.mock.calls.length).toBeGreaterThanOrEqual(3)
         })
     })

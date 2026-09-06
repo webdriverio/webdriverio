@@ -204,7 +204,7 @@ describe('WaylandDisplayServer', () => {
             const server = new WaylandDisplayServer()
             const startPromise = server.startDaemon()
 
-            // Let the start path register listeners, then simulate an early exit.
+            // Let the start path register its listeners before we emit.
             await new Promise((r) => setImmediate(r))
             proc.emit('exit', 1, null)
 
@@ -230,7 +230,6 @@ describe('WaylandDisplayServer', () => {
                     { recursive: true, force: true }
                 )
 
-                // Second stop() is a no-op
                 mockRm.mockClear()
                 proc.kill.mockClear()
                 await daemon.stop()
@@ -252,9 +251,7 @@ describe('WaylandDisplayServer', () => {
 
                 daemon.stopSync()
 
-                // 'exit' listeners can't await — sync SIGKILL is the only thing
-                // that guarantees the Weston child is gone, and rmSync is the
-                // only fs call that completes before Node tears down.
+                // 'exit' listeners can't await, so stopSync must use sync SIGKILL + rmSync.
                 expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
                 expect(mockRmSync).toHaveBeenCalledWith(runtimeDir, { recursive: true, force: true })
             })
@@ -269,10 +266,9 @@ describe('WaylandDisplayServer', () => {
                 daemon.stopSync()
                 await daemon.stop()
 
-                // First stopSync did the kill + rmSync; subsequent calls are no-ops.
                 expect(proc.kill).toHaveBeenCalledTimes(1)
                 expect(mockRmSync).toHaveBeenCalledTimes(1)
-                // stop() short-circuits when stopped is already true → no async rm.
+                // stop() short-circuits after stopSync — no redundant async rm.
                 expect(mockRm).not.toHaveBeenCalled()
             })
         })

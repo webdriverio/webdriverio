@@ -349,35 +349,33 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     shard?: ShardOptions
     /**
-     * Enable automatic display server initialization in local runner for headless testing on Linux.
-     * When disabled, tests should manually call display server init() if needed.
+     * Enable automatic display-server setup for headless testing on Linux.
      * @default true
      */
     displayServerEnabled?: boolean
     /**
-     * Enable automatic installation of display server packages if missing.
+     * Enable automatic installation of display-server packages if missing.
      * @default false
      */
     displayServerAutoInstall?: boolean
     /**
-     * Mode for automatic installation when displayServerAutoInstall is true.
+     * Mode for automatic installation.
      * - 'root': install only if running as root (no sudo)
      * - 'sudo': install if root or via non-interactive sudo (`sudo -n`) if available
      * @default 'sudo'
      */
     displayServerAutoInstallMode?: 'root' | 'sudo'
     /**
-     * Custom command to use for display server installation instead of built-in package manager detection.
+     * Custom install command, bypassing built-in package-manager detection.
      */
     displayServerAutoInstallCommand?: string | string[]
     /**
-     * Number of retry attempts for display server startup failures.
+     * Retry attempts for display-server startup failures.
      * @default 3
      */
     displayServerMaxRetries?: number
     /**
-     * Base delay between retries in milliseconds for display server startup failures.
-     * Progressive delay will be: displayServerRetryDelay * attemptNumber
+     * Base delay between retries, in ms. Progressive: displayServerRetryDelay × attemptNumber.
      * @default 1000
      */
     displayServerRetryDelay?: number
@@ -390,17 +388,17 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     displayServer?: 'auto' | 'wayland' | 'xvfb'
     /**
-     * Screen width in pixels for the display-server daemon.
+     * Screen width in pixels.
      * @default 1920
      */
     displayServerWidth?: number
     /**
-     * Screen height in pixels for the display-server daemon.
+     * Screen height in pixels.
      * @default 1080
      */
     displayServerHeight?: number
     /**
-     * Color depth for the display-server daemon (Xvfb only; ignored by Wayland).
+     * Color depth — Xvfb only, ignored by Wayland.
      * @default 24
      */
     displayServerDepth?: number

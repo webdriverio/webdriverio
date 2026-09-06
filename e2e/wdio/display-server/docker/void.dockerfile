@@ -1,6 +1,5 @@
 FROM ghcr.io/void-linux/void-glibc:latest
 
-# Set environment variables
 ENV CI=true
 # Void's chromium package ships /usr/bin/chromedriver (symlink into
 # /usr/lib/chromium/) — use it instead of letting wdio download
@@ -29,15 +28,12 @@ RUN xbps-install -Suy xbps && \
         chromium && \
     xbps-install -Scc
 
-# Install pnpm globally as root
 RUN npm install -g pnpm
 
-# Create test user with sudo access
 RUN useradd -m -s /bin/bash testuser && \
     echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 WORKDIR /app
 USER testuser
 
-# Default command
 CMD ["bash"]

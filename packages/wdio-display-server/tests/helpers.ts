@@ -25,9 +25,9 @@ export class FakeProc extends EventEmitter {
 export const createFakeProc = () => new FakeProc()
 
 /**
- * Wire the spawn mock to return a fresh FakeProc, and (for the common happy
- * path) make the socket-poll `access` resolve immediately. Non-happy tests call
- * this without `mockAccess` and set their own access sequence inline.
+ * Wire the spawn mock to return a fresh FakeProc. For the happy path, also make
+ * the socket-poll `access` resolve immediately; non-happy tests omit `mockAccess`
+ * and set their own access sequence inline.
  */
 export const arrangeSpawn = (mockSpawn: Mock, mockAccess?: Mock) => {
     const proc = new FakeProc()
@@ -38,11 +38,8 @@ export const arrangeSpawn = (mockSpawn: Mock, mockAccess?: Mock) => {
     return proc
 }
 
-// `detectPackageManager` (used by installViaPackageManager) probes
-// `which apt-get`, `which dnf`, ... via execAsync. This helper queues
-// rejections for the package managers checked before the target, then a
-// resolution for the target. Tests using install() can call this to put the
-// detection in a deterministic state.
+// Queue execAsync rejections for the package managers probed before `pm`, then a
+// resolution for `pm`, so install()'s detectPackageManager lands deterministically.
 export const PM_PROBE_ORDER = ['apt-get', 'dnf', 'yum', 'zypper', 'pacman', 'apk', 'xbps-install']
 export const PM_NAME_TO_CMD: Record<string, string> = {
     apt: 'apt-get', dnf: 'dnf', yum: 'yum', zypper: 'zypper',

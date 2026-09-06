@@ -35,7 +35,7 @@ vi.mock('node:child_process', async (importOriginal) => {
 vi.mock('@wdio/display-server', async () => {
     // Use the real optionsFromConfig so the mapping under test runs through;
     // mock only the runtime classes that would otherwise pull in display-server
-    // side-effects (logger init, fs probes, etc.).
+    // side-effects.
     const actual = await vi.importActual<typeof DisplayServerModule>('@wdio/display-server')
     return {
         ...actual,

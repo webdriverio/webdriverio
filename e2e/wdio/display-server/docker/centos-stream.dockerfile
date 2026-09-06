@@ -1,6 +1,5 @@
 FROM quay.io/centos/centos:stream10
 
-# Set environment variables
 ENV CI=true
 
 # Enable CRB repository and install EPEL (required for Wayland in CentOS Stream 10)
@@ -22,7 +21,6 @@ RUN dnf install -y weston && \
 RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash - && \
     dnf install -y nodejs
 
-# Install pnpm globally as root
 RUN npm install -g pnpm
 
 # Install Chrome for testing
@@ -35,12 +33,10 @@ RUN echo '[google-chrome]' > /etc/yum.repos.d/google-chrome.repo && \
     dnf install -y google-chrome-stable && \
     dnf clean all
 
-# Create test user with sudo access
 RUN useradd -m -s /bin/bash testuser && \
     echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 WORKDIR /app
 USER testuser
 
-# Default command
 CMD ["bash"]

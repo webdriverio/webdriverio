@@ -3,12 +3,10 @@ import path from 'node:path'
 
 import { runAsRoot, runAsUser } from './helpers.js'
 
-// Use vi.hoisted to ensure mocks are set up before imports
 const mockExecAsync = vi.hoisted(() => vi.fn())
 const mockPlatform = vi.hoisted(() => vi.fn())
 const mockReadFile = vi.hoisted(() => vi.fn())
 
-// Mock all the modules before importing anything else
 vi.mock('node:child_process', () => ({
     exec: vi.fn(),
     execFile: vi.fn()
@@ -34,10 +32,9 @@ vi.mock('node:os', () => ({
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-// Import after mocks are set up. This suite predates the @wdio/xvfb ->
-// @wdio/display-server rename; it's kept under the legacy describe name for its
-// broad DisplayServerManager coverage. The class is imported directly and locally
-// aliased — there is no public XvfbManager export.
+// This suite predates the @wdio/xvfb -> @wdio/display-server rename; it's kept
+// under the legacy describe name for its broad DisplayServerManager coverage,
+// with the class imported directly and locally aliased.
 const { DisplayServerManager: XvfbManager } = await import('../src/DisplayServerManager.js')
 
 describe('XvfbManager', () => {
@@ -55,8 +52,7 @@ describe('XvfbManager', () => {
 
         manager = new XvfbManager({ displayServer: 'xvfb' })
 
-        // Reset environment — clear both display vars so shouldRun() behaves as
-        // if running headless, regardless of whether the host is a Wayland session.
+        // Clear both display vars so shouldRun() behaves as if headless.
         delete process.env.DISPLAY
         savedWaylandDisplay = process.env.WAYLAND_DISPLAY
         delete process.env.WAYLAND_DISPLAY
@@ -91,7 +87,7 @@ describe('XvfbManager', () => {
     describe('shouldRun', () => {
         it('should return true when forced', () => {
             const manager = new XvfbManager({ displayServer: 'xvfb', force: true })
-            mockPlatform.mockReturnValue('darwin') // Non-Linux platform
+            mockPlatform.mockReturnValue('darwin')
 
             expect(manager.shouldRun()).toBe(true)
         })
@@ -290,7 +286,6 @@ describe('XvfbManager', () => {
 
                 expect(result).toBe(false)
                 expect(mockExecAsync).toHaveBeenCalledWith('which Xvfb')
-                // Should not attempt any package manager detection or install
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['apt-get'])
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['dnf'])
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['yum'])

@@ -69,7 +69,6 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         expect(process.env.WAYLAND_DISPLAY).toBe('wayland-test')
         expect(process.env.XDG_RUNTIME_DIR).toBe('/tmp/wdio-test-runtime')
 
-        // Real fork — child inherits process.env transitively
         const child = fork(shimPath, [], { stdio: ['ignore', 'pipe', 'pipe', 'ipc'] })
         const stdout = await collectStdout(child)
         const env = JSON.parse(stdout.trim())
@@ -77,7 +76,6 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         expect(env.XDG_RUNTIME_DIR).toBe('/tmp/wdio-test-runtime')
         expect(env.ELECTRON_OZONE_PLATFORM_HINT).toBe('wayland')
 
-        // stop() reverses both the daemon and the env mutation
         await daemon!.stop()
         expect(stopSpy).toHaveBeenCalledTimes(1)
         expect(process.env.WAYLAND_DISPLAY).toBeUndefined()
@@ -131,9 +129,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
             manager,
         )
         expect(daemon).toBeNull()
-        // Original DISPLAY untouched
         expect(process.env.DISPLAY).toBe(':42')
-        // No daemon spun up → nothing to stop
         expect(stopSpy).not.toHaveBeenCalled()
     })
 
@@ -162,7 +158,6 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
     })
 
     it('routes daemon startup through manager.executeWithRetry so the configured retry policy applies', async () => {
-        // Flaky-spawn simulation: first two attempts throw, third succeeds.
         const startSpy = vi.fn()
             .mockRejectedValueOnce(new Error('Xvfb spawn flake #1'))
             .mockRejectedValueOnce(new Error('Xvfb spawn flake #2'))
@@ -215,23 +210,19 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         expect(daemon).not.toBeNull()
         expect(process.env.DISPLAY).toBe(':99')
 
-        // Fire the exit listener directly. Node's docs say async work scheduled
-        // here is abandoned, so the daemon's cleanup must be synchronous.
+        // Node abandons async work scheduled in an 'exit' listener, so cleanup must be sync.
         process.emit('exit', 0)
 
         expect(stopSyncSpy).toHaveBeenCalledTimes(1)
-        // Async path was NOT used — important because `void daemon.stop()` in
-        // an exit listener would leave the daemon process running.
+        // Async path was NOT used — `void daemon.stop()` here would leave the daemon running.
         expect(stopSpy).not.toHaveBeenCalled()
         expect(process.env.DISPLAY).toBeUndefined()
     })
 
     it('restores any prior process.env value the daemon overwrote, rather than deleting it', async () => {
-        // Simulate the daemon mutating a key that already had a value (rare but
-        // possible if user sets a partial env before init for some reason).
+        // Simulate the daemon overwriting a key that already had a value.
         process.env.NODE_ENV = 'preserved'
         const stopSpy = vi.fn().mockResolvedValue(undefined)
-        // Server whose env includes a key that's already in process.env
         const server = makeDisplayServer({
             name: 'xvfb',
             startDaemon: async () => makeDaemonHandle({ env: { DISPLAY: ':99', NODE_ENV: 'daemon-set' }, stop: stopSpy }),

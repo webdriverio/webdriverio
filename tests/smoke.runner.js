@@ -1154,8 +1154,7 @@ const jasmineAfterHookArgsValidation = async () => {
 /**
  * Verifies @wdio/display-server's built artifacts load cleanly and honour the
  * platform contract on every OS the smoke matrix exercises. Catches:
- *   - stale build/ dirs that emit CJS code under "type": "module" (an actual
- *     regression we hit during the package rename)
+ *   - stale build/ dirs that emit CJS code under "type": "module"
  *   - missing exports / subpath misconfigurations
  *   - shouldRun() drift across platforms
  */

@@ -1,6 +1,5 @@
 FROM archlinux:latest
 
-# Set environment variables
 ENV CI=true
 # google-chrome lives in the AUR; use chromium from the official extra repo
 # instead. The wdio config honours CHROME_BIN to pick this up.
@@ -8,7 +7,6 @@ ENV CI=true
 ENV CHROME_BIN=/usr/bin/chromium
 ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
 
-# Install requirements including Wayland (weston)
 # Pin to Node 22 LTS. Arch's `nodejs` package follows current (Node 24+),
 # whose tightened undici input validation makes WDIO's session POST fail
 # with UND_ERR_INVALID_ARG. The rest of the matrix runs Node 20/22 and
@@ -30,15 +28,12 @@ RUN pacman -Sy --noconfirm \
         chromium && \
     pacman -Scc --noconfirm
 
-# Install pnpm globally as root
 RUN npm install -g pnpm
 
-# Create test user with sudo access
 RUN useradd -m -s /bin/bash testuser && \
     echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 WORKDIR /app
 USER testuser
 
-# Default command
 CMD ["bash"]

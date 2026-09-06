@@ -71,7 +71,6 @@ describe('DisplayServerManager (gap coverage)', () => {
             const selected = mgr.getDisplayServer()
             expect(mockXvfb.isAvailable).toHaveBeenCalledTimes(1)
 
-            // Second init() must short-circuit rather than probe/select again
             expect(await mgr.init()).toBe(true)
             expect(mockXvfb.isAvailable).toHaveBeenCalledTimes(1)
             expect(mgr.getDisplayServer()).toBe(selected)
@@ -150,7 +149,6 @@ describe('DisplayServerManager (gap coverage)', () => {
 
             await mgr.init()
 
-            // Even after a child process or daemon sets DISPLAY, shouldRun stays true
             process.env.DISPLAY = ':99'
             expect(mgr.shouldRun()).toBe(true)
         })
@@ -159,7 +157,7 @@ describe('DisplayServerManager (gap coverage)', () => {
             mockXvfb.isAvailable.mockResolvedValue(true)
             const mgr = new DisplayServerManager({ displayServer: 'xvfb', enabled: false })
 
-            await mgr.init() // returns false; no init actually performed
+            await mgr.init()
 
             expect(mgr.shouldRun()).toBe(false)
         })
@@ -229,8 +227,6 @@ describe('DisplayServerManager (gap coverage)', () => {
             const mgr = new DisplayServerManager({ displayServer: 'xvfb' })
             await mgr.init()
 
-            // User pre-set --ozone-platform=wayland in their config; we honour
-            // it rather than appending a conflicting --ozone-platform=x11.
             const caps = {
                 'goog:chromeOptions': { args: ['--ozone-platform=wayland'] },
             } as WebdriverIO.Capabilities

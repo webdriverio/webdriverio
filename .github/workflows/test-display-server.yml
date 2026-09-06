@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Ubuntu scenarios - 4 variants
+          # Ubuntu scenarios
           - distro: ubuntu
             version: "24.04"
             scenario: wayland-autoinstall
@@ -36,9 +36,7 @@ jobs:
           # The "runner" scenarios cover the daemon path end-to-end:
           # LocalRunner.initialize() starts a real Xvfb/Weston daemon, sets
           # DISPLAY / WAYLAND_DISPLAY on process.env, forks a worker, and a
-          # real Chrome session is created. This replaces the old "launcher"
-          # scenarios (which tested the now-removed DisplayServerLauncher
-          # service against the same daemon code path).
+          # real Chrome session is created.
           - distro: ubuntu
             version: "24.04"
             scenario: xvfb-runner
@@ -115,7 +113,6 @@ jobs:
 
       - name: Run Display Server E2E tests in container
         run: |
-          # Copy built packages and test files to container
           docker run --rm \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
@@ -131,10 +128,9 @@ jobs:
               sudo chown -R testuser:testuser /workspace/
               sudo chmod -R 755 /workspace/
 
-              # Install dependencies in container (pnpm already installed in Docker image)
+              # pnpm is already installed in the Docker image
               pnpm install --frozen-lockfile
 
-              # Run the appropriate E2E test based on scenario
               cd e2e && pnpm test:display-server:${{ matrix.test }}
             "
 
@@ -143,7 +139,6 @@ jobs:
         run: |
           echo "=== Test failed, displaying diagnostic logs ==="
 
-          # Show WDIO-generated log files
           if [ -f e2e/wdio/display-server/logs/wdio.log ]; then
             echo "=== WDIO Main Log ==="
             cat e2e/wdio/display-server/logs/wdio.log

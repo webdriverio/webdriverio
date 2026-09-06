@@ -65,7 +65,6 @@ describe('runDaemon', () => {
             expect(mockSpawn).toHaveBeenCalledWith('Xvfb', [':1'], {
                 stdio: ['ignore', 'ignore', 'pipe'],
             })
-            // The handle exposes the exact env object it was given.
             expect(daemon.env).toBe(env)
         })
 

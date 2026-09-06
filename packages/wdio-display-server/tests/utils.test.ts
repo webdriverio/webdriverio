@@ -136,7 +136,6 @@ describe('detectPackageManager', () => {
         const result = await detectPackageManager()
 
         expect(result).toBe('unknown')
-        // Should have probed all 7 known package managers
         expect(mockExecFileAsync).toHaveBeenCalledTimes(7)
     })
 
@@ -229,7 +228,7 @@ describe('installViaPackageManager', () => {
 
         expect(ok).toBe(true)
         expect(mockExecAsync).toHaveBeenCalledWith('my-install', { timeout: 240000 })
-        expect(mockExecAsync).toHaveBeenCalledTimes(1) // no `which X` probes
+        expect(mockExecAsync).toHaveBeenCalledTimes(1)
     })
 
     it('runs an array-form custom command via execFile so each element is a true argv token', async () => {
@@ -242,9 +241,8 @@ describe('installViaPackageManager', () => {
             options: { command: ['apt', 'install', 'foo'] },
         })
 
-        // Crucially this is NOT `mockExecAsync(...)` — array form must avoid
-        // the shell so a malicious element like `'foo; rm -rf /'` would be
-        // passed as a single argv token to `apt`, not interpreted as `;`.
+        // Array form must avoid the shell: a malicious element like `'foo; rm -rf /'`
+        // stays a single argv token to `apt`, never interpreted as `;`.
         expect(mockExecFileAsync).toHaveBeenCalledWith('apt', ['install', 'foo'], { timeout: 240000 })
         expect(mockExecAsync).not.toHaveBeenCalled()
     })
