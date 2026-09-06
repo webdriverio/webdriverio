@@ -2,7 +2,7 @@ import os from 'node:os'
 import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 import type { DisplayServer, DisplayServerOptions } from './types.js'
-import { WaylandDisplayServer } from './WaylandDisplayServer.js'
+import { WaylandDisplayServer, WAYLAND_CHROME_FLAGS } from './WaylandDisplayServer.js'
 import { XvfbDisplayServer } from './XvfbDisplayServer.js'
 import { executeWithRetry } from './utils.js'
 
@@ -162,34 +162,35 @@ export class DisplayServerManager {
 
         if (this.#displayServerPreference === 'wayland') {
             this.#log.info('Wayland display server requested')
-            if (await this.#ensureDisplayServerAvailable(wayland)) {
-                this.#setupDisplayEnvironment(wayland, capabilities)
-                return wayland
-            }
-            return null
+            return this.#tryDisplayServer(wayland, capabilities)
         }
 
         if (this.#displayServerPreference === 'xvfb') {
             this.#log.info('Xvfb display server requested')
-            if (await this.#ensureDisplayServerAvailable(xvfb)) {
-                this.#setupDisplayEnvironment(xvfb, capabilities)
-                return xvfb
-            }
-            return null
+            return this.#tryDisplayServer(xvfb, capabilities)
         }
 
         this.#log.info('Auto mode: Trying Wayland first...')
-        if (await this.#ensureDisplayServerAvailable(wayland)) {
-            this.#setupDisplayEnvironment(wayland, capabilities)
-            return wayland
+        const selected = await this.#tryDisplayServer(wayland, capabilities)
+        if (selected) {
+            return selected
         }
 
         this.#log.info('Wayland not available, trying Xvfb fallback...')
-        if (await this.#ensureDisplayServerAvailable(xvfb)) {
-            this.#setupDisplayEnvironment(xvfb, capabilities)
-            return xvfb
-        }
+        return this.#tryDisplayServer(xvfb, capabilities)
+    }
 
+    // Select the display server if it's available (installing it if allowed) and
+    // wire its capability flags. One place for the try/wire/return the four
+    // selection branches above share.
+    async #tryDisplayServer(
+        displayServer: DisplayServer,
+        capabilities?: Capabilities.ResolvedTestrunnerCapabilities,
+    ): Promise<DisplayServer | null> {
+        if (await this.#ensureDisplayServerAvailable(displayServer)) {
+            this.#setupDisplayEnvironment(displayServer, capabilities)
+            return displayServer
+        }
         return null
     }
 
@@ -248,36 +249,32 @@ export class DisplayServerManager {
             edgeOptions = caps['ms:edgeOptions']
         }
 
-        // De-duplicate by `--ozone-platform=...` token so re-injecting (per
-        // worker) or layering a config-level user flag doesn't double up.
-        const hasOzoneFlag = (args: string[] | undefined): boolean =>
-            !!args?.some(arg => typeof arg === 'string' && arg.startsWith('--ozone-platform='))
-
-        if (chromeOptions) {
-            chromeOptions.args = chromeOptions.args || []
-            if (!hasOzoneFlag(chromeOptions.args)) {
-                chromeOptions.args.push(...flags)
-                this.#log.info(`Added display-server flags to Chrome capabilities: ${flags.join(' ')}`)
-            }
-        }
-
-        if (edgeOptions) {
-            edgeOptions.args = edgeOptions.args || []
-            if (!hasOzoneFlag(edgeOptions.args)) {
-                edgeOptions.args.push(...flags)
-                this.#log.info(`Added display-server flags to Edge capabilities: ${flags.join(' ')}`)
-            }
-        }
-
+        this.#applyFlags(chromeOptions, 'args', flags, 'Chrome capabilities')
+        this.#applyFlags(edgeOptions, 'args', flags, 'Edge capabilities')
         // Electron: appArgs reach the spawned Electron process. The env hint
         // ELECTRON_OZONE_PLATFORM_HINT isn't authoritative enough on Wayland
         // hosts; a CLI `--ozone-platform=...` is.
-        if (electronOptions) {
-            electronOptions.appArgs = electronOptions.appArgs || []
-            if (!hasOzoneFlag(electronOptions.appArgs)) {
-                electronOptions.appArgs.push(...flags)
-                this.#log.info(`Added display-server flags to Electron appArgs: ${flags.join(' ')}`)
-            }
+        this.#applyFlags(electronOptions, 'appArgs', flags, 'Electron appArgs')
+    }
+
+    // Push the ozone flags into one options bag, de-duplicated by the
+    // `--ozone-platform=...` token so re-injecting (per worker) or layering a
+    // config-level user flag doesn't double up.
+    #applyFlags(
+        options: { args?: string[] } | { appArgs?: string[] } | undefined,
+        key: 'args' | 'appArgs',
+        flags: string[],
+        label: string,
+    ): void {
+        if (!options) {
+            return
+        }
+        const opts = options as Record<'args' | 'appArgs', string[] | undefined>
+        opts[key] = opts[key] || []
+        const hasOzoneFlag = opts[key]!.some(arg => typeof arg === 'string' && arg.startsWith('--ozone-platform='))
+        if (!hasOzoneFlag) {
+            opts[key]!.push(...flags)
+            this.#log.info(`Added display-server flags to ${label}: ${flags.join(' ')}`)
         }
     }
 
@@ -346,10 +343,7 @@ export class DisplayServerManager {
             return
         }
         if (process.env.WAYLAND_DISPLAY) {
-            this.#injectDisplayServerFlags(capabilities, [
-                '--ozone-platform=wayland',
-                '--enable-features=UseOzonePlatform',
-            ])
+            this.#injectDisplayServerFlags(capabilities, [...WAYLAND_CHROME_FLAGS])
         }
     }
 

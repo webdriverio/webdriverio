@@ -14,6 +14,16 @@ import { runDaemon } from './daemonProcess.js'
 
 const execAsync = promisify(exec)
 
+/**
+ * Chromium/ozone flags that bind Chrome-family browsers to a Wayland compositor.
+ * Referenced by getChromeFlags() here and by DisplayServerManager's
+ * externally-set-WAYLAND_DISPLAY fallback — kept in one place so the two can't drift.
+ */
+export const WAYLAND_CHROME_FLAGS: string[] = [
+    '--ozone-platform=wayland',
+    '--enable-features=UseOzonePlatform',
+]
+
 export class WaylandDisplayServer implements DisplayServer {
     readonly name = 'wayland' as const
     private log = logger('@wdio/display-server:wayland')
@@ -48,10 +58,7 @@ export class WaylandDisplayServer implements DisplayServer {
     }
 
     getChromeFlags(): string[] {
-        return [
-            '--ozone-platform=wayland',
-            '--enable-features=UseOzonePlatform'
-        ]
+        return [...WAYLAND_CHROME_FLAGS]
     }
 
     async startDaemon(options?: DisplayDaemonOptions): Promise<DisplayDaemon> {

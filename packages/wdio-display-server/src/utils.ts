@@ -139,8 +139,8 @@ export async function installViaPackageManager({
 }
 
 /**
- * Generic exponential-backoff retry helper — retries display-server availability
- * / daemon-start operations that can be flaky on their first attempt.
+ * Generic retry helper with progressive (linear) backoff — retries display-server
+ * availability / daemon-start operations that can be flaky on their first attempt.
  */
 export async function executeWithRetry<T>({
     fn,

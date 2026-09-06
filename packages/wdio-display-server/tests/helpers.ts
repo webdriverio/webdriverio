@@ -99,7 +99,6 @@ export const makeManager = (
     init: vi.fn().mockResolvedValue(server !== null),
     getDisplayServer: () => server,
     injectDisplayFlags: vi.fn(),
-    // Pass-through by default; specific tests override to assert retry policy
     executeWithRetry: vi.fn(async (fn: () => Promise<unknown>) => fn()),
 }) as unknown as DisplayServerManager
 

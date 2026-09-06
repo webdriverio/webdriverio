@@ -23,6 +23,7 @@ vi.mock('node:os', () => ({
 
 vi.mock('../src/WaylandDisplayServer.js', () => ({
     WaylandDisplayServer: vi.fn(() => mockWayland),
+    WAYLAND_CHROME_FLAGS: ['--ozone-platform=wayland', '--enable-features=UseOzonePlatform'],
 }))
 
 vi.mock('../src/XvfbDisplayServer.js', () => ({
