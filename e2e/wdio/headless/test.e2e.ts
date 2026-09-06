@@ -123,7 +123,12 @@ describe('main suite 1', () => {
             await browser.setViewport({ width: 900, height: 600 })
         })
 
-        it('should be able to use async-iterators', async () => {
+        it('should be able to use async-iterators', async function() {
+            // Unstable fails with the below simetimes
+            // Expected: "Contribute | WebdriverIO"
+            // Received: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO"
+            this.retries(3)
+
             await browser.url('https://webdriver.io')
             await browser.$('aria/Toggle navigation bar').click()
             const contributeLink = await browser.waitUntil(async () => {
@@ -636,7 +641,13 @@ describe('main suite 1', () => {
         }
 
         afterEach(async () => {
-            await closeAllWindowsButFirst()
+            try {
+                await closeAllWindowsButFirst()
+            } catch (error) {
+                // Unstable with `Timeout of 60000ms exceeded` and can't retry
+                console.error(error)
+            }
+
         })
 
         it('should allow user to switch between contexts', async function() {
@@ -701,7 +712,12 @@ describe('main suite 1', () => {
 
     describe('switchFrame', () => {
         afterEach(async () => {
-            await browser.switchFrame(null)
+            try {
+                await browser.switchFrame(null)
+            } catch (error) {
+                // Unstable with `Error: Timeout` and can't retry
+                console.error(error)
+            }
         })
 
         it('can switch to a frame via url', async function() {
