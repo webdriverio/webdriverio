@@ -1,0 +1,292 @@
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+import path from 'node:path'
+
+import { arrangeSpawn, queuePackageManagerDetection, runAsRoot } from './helpers.js'
+
+const mockExecAsync = vi.hoisted(() => vi.fn())
+const mockSpawn = vi.hoisted(() => vi.fn())
+const mockAccess = vi.hoisted(() => vi.fn())
+const mockMkdir = vi.hoisted(() => vi.fn())
+const mockRm = vi.hoisted(() => vi.fn())
+
+vi.mock('node:child_process', () => ({
+    exec: vi.fn(),
+    execFile: vi.fn(),
+    spawn: mockSpawn,
+}))
+
+vi.mock('node:util', () => ({
+    promisify: vi.fn(() => mockExecAsync),
+}))
+
+const mockRmSync = vi.hoisted(() => vi.fn())
+
+vi.mock('node:fs', () => ({
+    rmSync: mockRmSync,
+}))
+
+vi.mock('node:fs/promises', () => ({
+    access: mockAccess,
+    mkdir: mockMkdir,
+    rm: mockRm,
+}))
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+const { WaylandDisplayServer } = await import('../src/WaylandDisplayServer.js')
+
+describe('WaylandDisplayServer', () => {
+    beforeEach(() => {
+        vi.clearAllMocks()
+        mockMkdir.mockResolvedValue(undefined)
+        mockRm.mockResolvedValue(undefined)
+    })
+
+    afterEach(() => {
+        vi.restoreAllMocks()
+    })
+
+    describe('isAvailable', () => {
+        it('returns true when weston is on PATH', async () => {
+            mockExecAsync.mockResolvedValueOnce({ stdout: '/usr/bin/weston', stderr: '' })
+            const server = new WaylandDisplayServer()
+
+            expect(await server.isAvailable()).toBe(true)
+            expect(mockExecAsync).toHaveBeenCalledWith('which weston')
+        })
+
+        it('returns false when weston is not on PATH', async () => {
+            mockExecAsync.mockRejectedValueOnce(new Error('not found'))
+            const server = new WaylandDisplayServer()
+
+            expect(await server.isAvailable()).toBe(false)
+        })
+    })
+
+    describe('getChromeFlags', () => {
+        it('returns the Ozone Wayland flags', () => {
+            const server = new WaylandDisplayServer()
+            expect(server.getChromeFlags()).toEqual([
+                '--ozone-platform=wayland',
+                '--enable-features=UseOzonePlatform',
+            ])
+        })
+    })
+
+    describe('install', () => {
+        it('uses the custom string command verbatim when provided', async () => {
+            mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
+            const server = new WaylandDisplayServer()
+
+            const result = await server.install({ command: 'my-custom-install' })
+
+            expect(result).toBe(true)
+            expect(mockExecAsync).toHaveBeenCalledWith('my-custom-install', { timeout: 240000 })
+            // Custom command short-circuits before package-manager detection.
+            expect(mockExecAsync).not.toHaveBeenCalledWith('which apt-get')
+        })
+
+        it('runs an array-form custom command via execFile so each element is a true argv token', async () => {
+            mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
+            const server = new WaylandDisplayServer()
+
+            await server.install({ command: ['apt', 'install', 'weston'] })
+
+            expect(mockExecAsync).toHaveBeenCalledWith('apt', ['install', 'weston'], { timeout: 240000 })
+        })
+
+        it('returns false when custom command fails', async () => {
+            mockExecAsync.mockRejectedValueOnce(new Error('install failed'))
+            const server = new WaylandDisplayServer()
+
+            const result = await server.install({ command: 'bad-cmd' })
+
+            expect(result).toBe(false)
+        })
+
+        it('installs via apt when detected and running as root', async () => {
+            queuePackageManagerDetection(mockExecAsync, 'apt')
+            mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
+            runAsRoot()
+            const server = new WaylandDisplayServer()
+
+            const result = await server.install({ mode: 'root' })
+
+            expect(result).toBe(true)
+            expect(mockExecAsync).toHaveBeenCalledWith(
+                'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y weston',
+                { timeout: 240000 }
+            )
+        })
+
+        it.each([
+            ['dnf', 'dnf -y makecache && dnf -y install weston'],
+            ['yum', 'yum -y makecache && yum -y install weston'],
+            ['zypper', 'zypper --non-interactive refresh && zypper --non-interactive install -y weston'],
+            ['pacman', 'pacman -Sy --noconfirm weston'],
+            ['apk', 'apk update && apk add --no-cache weston'],
+            ['xbps', 'xbps-install -Sy weston'],
+        ])('uses the correct install command for %s', async (pm, expectedCmd) => {
+            queuePackageManagerDetection(mockExecAsync, pm)
+            mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
+            runAsRoot()
+            const server = new WaylandDisplayServer()
+
+            const result = await server.install({ mode: 'root' })
+
+            expect(result).toBe(true)
+            expect(mockExecAsync).toHaveBeenCalledWith(expectedCmd, { timeout: 240000 })
+        })
+
+        it('returns false when the install command itself fails', async () => {
+            queuePackageManagerDetection(mockExecAsync, 'apt')
+            mockExecAsync.mockRejectedValueOnce(new Error('apt failed'))
+            runAsRoot()
+            const server = new WaylandDisplayServer()
+
+            const result = await server.install({ mode: 'root' })
+
+            expect(result).toBe(false)
+        })
+    })
+
+    describe('startDaemon', () => {
+        it('spawns weston, awaits its socket, and returns a daemon handle with env vars', async () => {
+            arrangeSpawn(mockSpawn, mockAccess)
+
+            const server = new WaylandDisplayServer()
+            const daemon = await server.startDaemon({ width: 1280, height: 720 })
+
+            expect(mockMkdir).toHaveBeenCalledWith(
+                expect.stringMatching(/^\/tmp\/wdio-wayland-\d+-\d+$/),
+                { recursive: true, mode: 0o700 }
+            )
+            expect(mockSpawn).toHaveBeenCalledWith(
+                'weston',
+                expect.arrayContaining([
+                    '--backend=headless',
+                    '--width=1280',
+                    '--height=720',
+                    '--use-pixman',
+                    expect.stringMatching(/^--socket=wayland-\d+$/),
+                ]),
+                expect.objectContaining({
+                    stdio: ['ignore', 'ignore', 'pipe'],
+                    env: expect.objectContaining({
+                        XDG_RUNTIME_DIR: expect.stringMatching(/^\/tmp\/wdio-wayland-/),
+                    }),
+                })
+            )
+
+            expect(daemon.env.WAYLAND_DISPLAY).toMatch(/^wayland-\d+$/)
+            expect(daemon.env.XDG_RUNTIME_DIR).toMatch(/^\/tmp\/wdio-wayland-/)
+            expect(daemon.env.GDK_BACKEND).toBe('wayland')
+            expect(daemon.env.ELECTRON_OZONE_PLATFORM_HINT).toBe('wayland')
+        })
+
+        it('uses default dimensions when options omitted', async () => {
+            arrangeSpawn(mockSpawn, mockAccess)
+
+            const server = new WaylandDisplayServer()
+            await server.startDaemon()
+
+            expect(mockSpawn).toHaveBeenCalledWith(
+                'weston',
+                expect.arrayContaining(['--width=1920', '--height=1080']),
+                expect.anything()
+            )
+        })
+
+        it('rejects when weston exits before the socket appears', async () => {
+            const proc = arrangeSpawn(mockSpawn)
+            mockAccess.mockRejectedValue(new Error('ENOENT'))
+
+            const server = new WaylandDisplayServer()
+            const startPromise = server.startDaemon()
+
+            // Let the start path register its listeners before we emit.
+            await new Promise((r) => setImmediate(r))
+            proc.emit('exit', 1, null)
+
+            await expect(startPromise).rejects.toThrow(/Weston process exited unexpectedly/)
+        })
+
+        describe('daemon.stop()', () => {
+            it('sends SIGTERM, removes the runtime dir, and is idempotent', async () => {
+                const proc = arrangeSpawn(mockSpawn, mockAccess)
+
+                const server = new WaylandDisplayServer()
+                const daemon = await server.startDaemon()
+
+                const stopPromise = daemon.stop()
+                // Let the stop() handler attach its 'exit' listener before we emit.
+                await new Promise((r) => setImmediate(r))
+                proc.emit('exit', 0, null)
+                await stopPromise
+
+                expect(proc.kill).toHaveBeenCalledWith('SIGTERM')
+                expect(mockRm).toHaveBeenCalledWith(
+                    expect.stringMatching(/^\/tmp\/wdio-wayland-/),
+                    { recursive: true, force: true }
+                )
+
+                mockRm.mockClear()
+                proc.kill.mockClear()
+                await daemon.stop()
+                expect(proc.kill).not.toHaveBeenCalled()
+                expect(mockRm).not.toHaveBeenCalled()
+            })
+
+            // SIGTERM→SIGKILL escalation is shared runDaemon behavior, covered
+            // directly in daemonProcess.test.ts.
+        })
+
+        describe('daemon.stopSync()', () => {
+            it('SIGKILLs the Weston child and rmSyncs the runtime dir', async () => {
+                const proc = arrangeSpawn(mockSpawn, mockAccess)
+
+                const server = new WaylandDisplayServer()
+                const daemon = await server.startDaemon()
+                const runtimeDir = daemon.env.XDG_RUNTIME_DIR
+
+                daemon.stopSync()
+
+                // 'exit' listeners can't await, so stopSync must use sync SIGKILL + rmSync.
+                expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
+                expect(mockRmSync).toHaveBeenCalledWith(runtimeDir, { recursive: true, force: true })
+            })
+
+            it('is idempotent across stop() and itself', async () => {
+                const proc = arrangeSpawn(mockSpawn, mockAccess)
+
+                const server = new WaylandDisplayServer()
+                const daemon = await server.startDaemon()
+
+                daemon.stopSync()
+                daemon.stopSync()
+                await daemon.stop()
+
+                expect(proc.kill).toHaveBeenCalledTimes(1)
+                expect(mockRmSync).toHaveBeenCalledTimes(1)
+                // stop() short-circuits after stopSync — no redundant async rm.
+                expect(mockRm).not.toHaveBeenCalled()
+            })
+        })
+    })
+
+    describe('waitForSocket (via startDaemon)', () => {
+        it('polls until the socket appears', async () => {
+            arrangeSpawn(mockSpawn)
+            mockAccess
+                .mockRejectedValueOnce(new Error('ENOENT'))
+                .mockRejectedValueOnce(new Error('ENOENT'))
+                .mockResolvedValueOnce(undefined)
+
+            const server = new WaylandDisplayServer()
+            const daemon = await server.startDaemon()
+
+            expect(daemon.env.WAYLAND_DISPLAY).toBeTruthy()
+            expect(mockAccess).toHaveBeenCalled()
+        })
+    })
+})
