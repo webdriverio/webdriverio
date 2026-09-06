@@ -225,56 +225,9 @@ describe('XvfbDisplayServer', () => {
                 expect(proc.kill).not.toHaveBeenCalled()
             })
 
-            it('escalates to SIGKILL when SIGTERM does not terminate within 1s', async () => {
-                vi.useFakeTimers()
-                const proc = arrangeSpawn(mockSpawn, mockAccess)
-
-                const server = new XvfbDisplayServer()
-                const daemon = await server.startDaemon()
-
-                proc.kill = vi.fn(() => false) as any
-                ;(proc as any).exitCode = null
-
-                const stopPromise = daemon.stop()
-                await vi.advanceTimersByTimeAsync(1000)
-                expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
-                // SIGKILL takes effect: the process exits, and only then does stop() resolve.
-                proc.emit('exit', null, 'SIGKILL')
-                await stopPromise
-
-                expect(proc.kill).toHaveBeenCalledWith('SIGTERM')
-                vi.useRealTimers()
-            })
-        })
-
-        describe('daemon.stopSync()', () => {
-            it('SIGKILLs the Xvfb child synchronously', async () => {
-                const proc = arrangeSpawn(mockSpawn, mockAccess)
-
-                const server = new XvfbDisplayServer()
-                const daemon = await server.startDaemon()
-
-                daemon.stopSync()
-
-                // 'exit' listeners can't await — sync SIGKILL is the only thing
-                // that guarantees the Xvfb child is gone before Node tears down.
-                expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
-            })
-
-            it('is idempotent across stop() and itself', async () => {
-                const proc = arrangeSpawn(mockSpawn, mockAccess)
-
-                const server = new XvfbDisplayServer()
-                const daemon = await server.startDaemon()
-
-                daemon.stopSync()
-                daemon.stopSync()
-                await daemon.stop()
-
-                // Only the first stopSync() should have killed the process; the
-                // second stopSync() and the subsequent stop() are no-ops.
-                expect(proc.kill).toHaveBeenCalledTimes(1)
-            })
+            // SIGTERM→SIGKILL escalation and stopSync() are shared runDaemon
+            // behavior, covered directly in daemonProcess.test.ts. The test above
+            // stays here because it asserts the Xvfb-specific reservation release.
         })
     })
 

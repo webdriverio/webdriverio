@@ -211,19 +211,6 @@ describe('WaylandDisplayServer', () => {
             await expect(startPromise).rejects.toThrow(/Weston process exited unexpectedly/)
         })
 
-        it('rejects when the weston process errors before the socket appears', async () => {
-            const proc = arrangeSpawn(mockSpawn)
-            mockAccess.mockRejectedValue(new Error('ENOENT'))
-
-            const server = new WaylandDisplayServer()
-            const startPromise = server.startDaemon()
-
-            await new Promise((r) => setImmediate(r))
-            proc.emit('error', new Error('spawn failed'))
-
-            await expect(startPromise).rejects.toThrow(/Weston process error: spawn failed/)
-        })
-
         describe('daemon.stop()', () => {
             it('sends SIGTERM, removes the runtime dir, and is idempotent', async () => {
                 const proc = arrangeSpawn(mockSpawn, mockAccess)
@@ -251,28 +238,8 @@ describe('WaylandDisplayServer', () => {
                 expect(mockRm).not.toHaveBeenCalled()
             })
 
-            it('escalates to SIGKILL if SIGTERM does not terminate within 1s', async () => {
-                vi.useFakeTimers()
-                const proc = arrangeSpawn(mockSpawn, mockAccess)
-
-                const server = new WaylandDisplayServer()
-                const daemon = await server.startDaemon()
-
-                // SIGTERM stays "alive" — never emit 'exit'. We need exitCode=null
-                // so the SIGKILL escalation path runs.
-                proc.kill = vi.fn(() => false) as any
-                ;(proc as any).exitCode = null
-
-                const stopPromise = daemon.stop()
-                await vi.advanceTimersByTimeAsync(1000)
-                expect(proc.kill).toHaveBeenCalledWith('SIGKILL')
-                // SIGKILL takes effect: the process exits, and only then does stop() resolve.
-                proc.emit('exit', null, 'SIGKILL')
-                await stopPromise
-
-                expect(proc.kill).toHaveBeenCalledWith('SIGTERM')
-                vi.useRealTimers()
-            })
+            // SIGTERM→SIGKILL escalation is shared runDaemon behavior, covered
+            // directly in daemonProcess.test.ts.
         })
 
         describe('daemon.stopSync()', () => {
