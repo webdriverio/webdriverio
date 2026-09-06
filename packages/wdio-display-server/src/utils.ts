@@ -136,9 +136,8 @@ export async function installViaPackageManager({
     }
 
     try {
-        // sudo path: pass `command` as a single argv element to sh -c, so any
-        // shell metachars stay inside the inner shell rather than being
-        // re-tokenised by an outer one.
+        // sudo path: pass `command` as one argv element to sh -c, so shell
+        // metacharacters stay inside the inner shell.
         await (sudoWrap
             ? execFileAsync('sudo', ['-n', 'sh', '-c', command], { timeout: 240000 })
             : execAsync(command, { timeout: 240000 }))
@@ -150,10 +149,7 @@ export async function installViaPackageManager({
     }
 }
 
-/**
- * Generic retry helper with progressive (linear) backoff — retries display-server
- * availability / daemon-start operations that can be flaky on their first attempt.
- */
+/** Generic retry helper with progressive (linear) backoff, for first-attempt-flaky operations. */
 export async function executeWithRetry<T>({
     fn,
     maxRetries,

@@ -20,20 +20,18 @@ function daemonOptionsFromConfig(config: WebdriverIO.Config): DisplayDaemonOptio
 }
 
 /**
- * Start a persistent display-server daemon (Wayland/Weston or Xvfb) and
- * publish its env onto `process.env`, so any subsequently `fork()`ed or
- * `spawn()`ed child — including drivers spawned from a service's `onPrepare` —
- * inherits the display.
+ * Start a persistent display-server daemon (Wayland/Weston or Xvfb) and publish
+ * its env onto `process.env`, so any child process — including drivers spawned
+ * from a service's `onPrepare` — inherits the display.
  *
  * Returns `null` (no-op) when:
  *  - not Linux,
  *  - `displayServerEnabled` is false,
  *  - `shouldRun()` says no, or
- *  - `DISPLAY` / `WAYLAND_DISPLAY` is already on `process.env` (children
- *    inherit it; a duplicate daemon would be wasted work).
+ *  - `DISPLAY` / `WAYLAND_DISPLAY` is already on `process.env`.
  *
- * Intended to be called from a `Runner`'s `initialize()` (which runs before
- * any service `onPrepare`).
+ * Intended to be called from a `Runner`'s `initialize()`, which runs before
+ * any service `onPrepare`.
  *
  * @param manager Optional pre-constructed manager; tests inject one to avoid
  *   real Xvfb/Weston spawns.
@@ -65,7 +63,7 @@ export async function startDisplayDaemonFromConfig(
     }
 
     const daemonOptions: DisplayDaemonOptions = daemonOptionsFromConfig(config)
-    // Spawn is the most transient failure mode — port collisions, slow socket, fs hiccups.
+    // Spawn is the most transient failure mode, so it's the step worth retrying.
     const daemon: DisplayDaemon = await manager.executeWithRetry(
         () => server.startDaemon(daemonOptions),
         `${server.name} daemon startup`,
@@ -82,11 +80,9 @@ export async function startDisplayDaemonFromConfig(
     Object.assign(process.env, daemon.env)
     log.info(`Daemon ready (${server.name}); env: ${JSON.stringify(daemon.env)}`)
 
-    // Memoize the in-flight stop promise (rather than a sync `stopped` flag) so
-    // the exit listener can still run daemon.stopSync() while an async stop() is
-    // mid-flight. Without this, a SIGINT racing onComplete would set the flag,
-    // exit would fire before the async stop resolved, and the exit handler would
-    // bail out — orphaning the Weston/Xvfb child.
+    // Memoize the in-flight stop promise (not a sync flag) so the 'exit' listener
+    // can still run daemon.stopSync() while an async stop() is mid-flight —
+    // otherwise 'exit' fires before stop() resolves and orphans the child.
     let stopPromise: Promise<void> | null = null
     let signalHandler: (() => void) | null = null
     let exitHandler: (() => void) | null = null
@@ -129,13 +125,11 @@ export async function startDisplayDaemonFromConfig(
     }
 
     // SIGINT/SIGTERM run with the event loop alive — full async stop() is fine.
-    // 'exit' listeners are sync; async work is abandoned, so unconditionally
-    // call daemon.stopSync() for SIGKILL + rmSync before Node tears down. The
-    // display-server layer guards stopSync() against re-entry, so this is safe
-    // even when async stop() already completed.
+    // 'exit' listeners are sync; async work is abandoned, so call daemon.stopSync()
+    // before Node tears down. The display-server layer guards stopSync() against
+    // re-entry, so it's safe even after an async stop().
     signalHandler = () => {
-        // stop() does its own cleanup in a finally; catch here only to avoid an
-        // unhandled rejection if daemon.stop() itself throws.
+        // Catch only to avoid an unhandled rejection; stop() cleans up in its own finally.
         stop().catch((err) => log.error(`Failed to stop display daemon: ${err instanceof Error ? err.message : String(err)}`))
     }
     exitHandler = () => {

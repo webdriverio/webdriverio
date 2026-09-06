@@ -10,8 +10,7 @@ import { commandExists, installViaPackageManager, resolveDaemonDimensions } from
 import { runDaemon } from './daemonProcess.js'
 
 const X_SOCKET_DIR = '/tmp/.X11-unix'
-// Xvfb hardcodes /tmp for its per-display lock files (`.X<n>-lock`) regardless
-// of TMPDIR; we scan the same path it would write to.
+// Xvfb hardcodes /tmp for its lock files regardless of TMPDIR.
 const X_LOCK_DIR = '/tmp'
 
 export class XvfbDisplayServer implements DisplayServer {
@@ -27,10 +26,9 @@ export class XvfbDisplayServer implements DisplayServer {
             return false
         }
 
-        // Only Xvfb is required: the daemon spawns `Xvfb` directly (not the
-        // `xvfb-run` wrapper), so requiring xvfb-run would wrongly skip the
-        // daemon on systems that ship Xvfb without the xvfb-run script
-        // (e.g. minimal RPM installs of xorg-x11-server-Xvfb).
+        // Only Xvfb is required: the daemon spawns `Xvfb` directly, not the
+        // `xvfb-run` wrapper, so probing xvfb-run would wrongly skip the daemon
+        // on systems that ship Xvfb without it.
         if (await commandExists('Xvfb')) {
             this.log.info('Xvfb found in PATH')
             return true
@@ -88,13 +86,13 @@ export class XvfbDisplayServer implements DisplayServer {
 
         this.log.info(`Starting Xvfb daemon on ${display} (${width}x${height}x${depth})`)
 
-        // No rm of the X socket under /tmp/.X11-unix/X<n>: the X server overwrites
-        // stale ones on next start, so only the display reservation is released.
+        // No rm of the X socket: the X server overwrites stale ones on next
+        // start, so cleanup only releases the display reservation.
         const releaseDisplay = () => { XvfbDisplayServer.reservedDisplays.delete(displayNum) }
 
         // Force GTK/Electron to X11. Without these, a Wayland-host's inherited
-        // `GDK_BACKEND=wayland,x11` makes them try Wayland first, fail (we're running
-        // Xvfb), and surface as `session not created: Chrome instance exited`.
+        // `GDK_BACKEND=wayland,x11` makes them try Wayland first and fail, since
+        // we're running Xvfb.
         return runDaemon({
             command: 'Xvfb',
             args: [display, '-screen', '0', `${width}x${height}x${depth}`, '-nolisten', 'tcp'],
@@ -125,11 +123,9 @@ export class XvfbDisplayServer implements DisplayServer {
         } catch {
             // socket dir may not exist yet — Xvfb will create it
         }
-        // Also treat displays with leftover lock files as in-use. A crashed
-        // Xvfb can leave /tmp/.X<n>-lock behind after the socket is gone; a
-        // fresh Xvfb will refuse to claim that display number with
-        // "Server is already active for display :<n>". Without this scan,
-        // retries pick the same stale-locked number and every attempt fails.
+        // Also treat displays with leftover lock files as in-use. A crashed Xvfb
+        // can leave a lock file after its socket is gone; a fresh Xvfb then refuses
+        // that display, and without this scan every retry re-picks the stale one.
         try {
             const entries = await readdir(X_LOCK_DIR)
             for (const entry of entries) {
@@ -139,7 +135,7 @@ export class XvfbDisplayServer implements DisplayServer {
                 }
             }
         } catch {
-            // /tmp should always exist, but guard anyway
+            // /tmp should always exist
         }
         for (let n = 99; n < 200; n++) {
             if (!used.has(n) && !XvfbDisplayServer.reservedDisplays.has(n)) {

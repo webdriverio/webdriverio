@@ -65,9 +65,9 @@ export class WaylandDisplayServer implements DisplayServer {
 
         return runDaemon({
             command: 'weston',
-            // --use-pixman forces software rendering on the headless, GPU-less CI containers.
-            // Deprecated for --renderer=pixman in weston 10+, but the e2e matrix installs weston
-            // across distros incl. some < 10 that lack --renderer, so the portable flag stays.
+            // --use-pixman forces software rendering on GPU-less CI containers. Deprecated
+            // for --renderer=pixman in weston 10+, but some distros in the e2e matrix ship
+            // weston < 10 without --renderer, so the portable flag stays.
             args: ['--backend=headless', `--width=${width}`, `--height=${height}`, '--use-pixman', `--socket=${socketName}`],
             socketPath,
             spawnEnv: { ...process.env, XDG_RUNTIME_DIR: runtimeDir },
@@ -77,8 +77,8 @@ export class WaylandDisplayServer implements DisplayServer {
             env: {
                 WAYLAND_DISPLAY: socketName,
                 XDG_RUNTIME_DIR: runtimeDir,
-                // Pin GTK to the weston compositor we started; mirrors the Xvfb backend's
-                // GDK_BACKEND=x11 so an inherited GDK_BACKEND doesn't send GTK to a missing X11.
+                // Pin GTK to our weston compositor so an inherited GDK_BACKEND
+                // doesn't send GTK to a missing X11.
                 GDK_BACKEND: 'wayland',
                 ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
             },

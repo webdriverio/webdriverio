@@ -49,9 +49,8 @@ export async function runDaemon({
     proc.once('exit', onExit)
     proc.once('error', onError)
 
-    // Resolve only once the process has actually exited, so cleanup never releases the
-    // display reservation / removes the runtime dir out from under a not-yet-reaped
-    // process. The 2s fallback prevents a wedge if 'exit' is never reported after SIGKILL.
+    // Resolve only once the process has actually exited, so cleanup never runs while
+    // it's still alive. The 2s fallback prevents a wedge if 'exit' is never reported after SIGKILL.
     const terminate = async (): Promise<void> => {
         if (proc.exitCode !== null || proc.signalCode !== null) {
             return
@@ -76,8 +75,8 @@ export async function runDaemon({
         })
     }
 
-    // Abort the socket poll once the race settles so it doesn't keep polling
-    // in the background when exitPromise (a premature crash) wins.
+    // Stop the socket poll once the race settles, so a premature crash doesn't
+    // leave it polling in the background.
     const socketWait = new AbortController()
     try {
         await Promise.race([waitForSocket(socketPath, timeoutMs, socketLabel, socketWait.signal), exitPromise])
@@ -93,10 +92,9 @@ export async function runDaemon({
     proc.removeListener('exit', onExit)
     proc.removeListener('error', onError)
 
-    // syncDone short-circuits stop() so a prior stopSync() (sync teardown during
-    // process exit) isn't undone by a redundant async cleanup, while still allowing
-    // stopSync() to run when an async stop() is mid-flight — otherwise an exit fired
-    // while stop() is awaiting would orphan the child.
+    // syncDone short-circuits stop() so a prior stopSync() isn't undone by a redundant
+    // async cleanup, while still letting stopSync() run during an in-flight stop() —
+    // otherwise an exit mid-stop() would orphan the child.
     let stopPromise: Promise<void> | null = null
     let syncDone = false
     const stop = (): Promise<void> => {

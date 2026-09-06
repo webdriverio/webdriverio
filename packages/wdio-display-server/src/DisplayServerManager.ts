@@ -124,9 +124,8 @@ export class DisplayServerManager {
     async init(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): Promise<boolean> {
         this.#log.info('DisplayServerManager.init() called')
 
-        // Idempotent: once a display server has been selected and prepared, a second
-        // init() must not re-run #selectDisplayServer() and overwrite #displayServer
-        // (which may already back a running daemon).
+        // Idempotent: a second init() must not re-select and overwrite
+        // #displayServer, which may already back a running daemon.
         if (this.#initialized && this.#displayServer) {
             return true
         }
@@ -241,7 +240,7 @@ export class DisplayServerManager {
             caps['goog:chromeOptions'] = { args: [] }
             chromeOptions = caps['goog:chromeOptions']
         }
-        // Selenium accepts both 'MicrosoftEdge' (W3C canonical) and 'msedge'.
+        // Selenium accepts both 'MicrosoftEdge' and 'msedge'.
         if (!edgeOptions && (caps.browserName === 'MicrosoftEdge' || caps.browserName === 'msedge')) {
             caps['ms:edgeOptions'] = { args: [] }
             edgeOptions = caps['ms:edgeOptions']
@@ -249,15 +248,13 @@ export class DisplayServerManager {
 
         this.#applyFlags(chromeOptions, 'args', flags, 'Chrome capabilities')
         this.#applyFlags(edgeOptions, 'args', flags, 'Edge capabilities')
-        // Electron: appArgs reach the spawned Electron process. The env hint
-        // ELECTRON_OZONE_PLATFORM_HINT isn't authoritative enough on Wayland
-        // hosts; a CLI `--ozone-platform=...` is.
+        // Electron needs the CLI --ozone-platform in appArgs; the env hint
+        // ELECTRON_OZONE_PLATFORM_HINT isn't authoritative enough on Wayland hosts.
         this.#applyFlags(electronOptions, 'appArgs', flags, 'Electron appArgs')
     }
 
-    // Push the ozone flags into one options bag, de-duplicated by the
-    // `--ozone-platform=...` token so re-injecting (per worker) or layering a
-    // config-level user flag doesn't double up.
+    // Add the ozone flags to one options bag, de-duplicated by the --ozone-platform=
+    // token so re-injection or a user's own flag doesn't double up.
     #applyFlags(
         options: { args?: string[] } | { appArgs?: string[] } | undefined,
         key: 'args' | 'appArgs',
@@ -328,10 +325,9 @@ export class DisplayServerManager {
         return this.#displayServer
     }
 
-    // When no daemon was started but WAYLAND_DISPLAY is set externally (outer xvfb-run,
-    // existing Wayland session, etc.), Chrome still needs --ozone-platform=wayland so it
-    // doesn't fall back to a missing X11 server. No equivalent for an externally-set
-    // DISPLAY: Chromium defaults to X11 anyway.
+    // When no daemon was started but WAYLAND_DISPLAY is set externally, Chrome still
+    // needs --ozone-platform=wayland so it doesn't fall back to a missing X11 server.
+    // No equivalent for an externally-set DISPLAY: Chromium defaults to X11 anyway.
     injectDisplayFlags(capabilities: Capabilities.ResolvedTestrunnerCapabilities): void {
         if (!capabilities) {
             return
