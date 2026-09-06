@@ -248,9 +248,9 @@ export const config = {
     displayServer: 'auto',         // 'auto' | 'wayland' | 'xvfb' (default: 'auto')
 
     // Auto-install options
-    autoInstall: false,            // Enable automatic installation (default: false)
-    autoInstallMode: 'sudo',       // 'root' | 'sudo' (default: 'sudo')
-    autoInstallCommand: undefined, // Custom install command
+    displayServerAutoInstall: false,            // Enable automatic installation (default: false)
+    displayServerAutoInstallMode: 'sudo',       // 'root' | 'sudo' (default: 'sudo')
+    displayServerAutoInstallCommand: undefined, // Custom install command
 
     capabilities: [{
         browserName: 'chrome',
@@ -258,19 +258,6 @@ export const config = {
             args: ['--headless', '--no-sandbox']
         }
     }]
-};
-```
-
-### Legacy Options (Backward Compatible)
-
-The following options are still supported (deprecated):
-
-```js
-export const config = {
-    autoXvfb: true,           // → maps to 'enabled'
-    xvfbAutoInstall: false,   // → maps to 'autoInstall'
-    xvfbAutoInstallMode: 'sudo', // → maps to 'autoInstallMode'
-    xvfbAutoInstallCommand: undefined // → maps to 'autoInstallCommand'
 };
 ```
 
