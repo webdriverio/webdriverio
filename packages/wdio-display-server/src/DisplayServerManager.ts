@@ -136,7 +136,7 @@ export class DisplayServerManager {
         this.#log.info('Display server should run, selecting implementation...')
 
         try {
-            const displayServer = await this.#selectDisplayServer(capabilities)
+            const displayServer = await this.#selectDisplayServer()
 
             if (displayServer) {
                 this.#displayServer = displayServer
@@ -153,37 +153,33 @@ export class DisplayServerManager {
         }
     }
 
-    async #selectDisplayServer(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): Promise<DisplayServer | null> {
+    async #selectDisplayServer(): Promise<DisplayServer | null> {
         const wayland = new WaylandDisplayServer()
         const xvfb = new XvfbDisplayServer()
 
         if (this.#displayServerPreference === 'wayland') {
             this.#log.info('Wayland display server requested')
-            return this.#tryDisplayServer(wayland, capabilities)
+            return this.#tryDisplayServer(wayland)
         }
 
         if (this.#displayServerPreference === 'xvfb') {
             this.#log.info('Xvfb display server requested')
-            return this.#tryDisplayServer(xvfb, capabilities)
+            return this.#tryDisplayServer(xvfb)
         }
 
         this.#log.info('Auto mode: Trying Wayland first...')
-        const selected = await this.#tryDisplayServer(wayland, capabilities)
+        const selected = await this.#tryDisplayServer(wayland)
         if (selected) {
             return selected
         }
 
         this.#log.info('Wayland not available, trying Xvfb fallback...')
-        return this.#tryDisplayServer(xvfb, capabilities)
+        return this.#tryDisplayServer(xvfb)
     }
 
-    // One place for the try/wire/return that the four selection branches share.
-    async #tryDisplayServer(
-        displayServer: DisplayServer,
-        capabilities?: Capabilities.ResolvedTestrunnerCapabilities,
-    ): Promise<DisplayServer | null> {
+    // One place for the try/return that the four selection branches share.
+    async #tryDisplayServer(displayServer: DisplayServer): Promise<DisplayServer | null> {
         if (await this.#ensureDisplayServerAvailable(displayServer)) {
-            this.#setupDisplayEnvironment(displayServer, capabilities)
             return displayServer
         }
         return null
@@ -207,15 +203,6 @@ export class DisplayServerManager {
             mode: this.#autoInstallMode,
             command: this.#autoInstallCommand
         })
-    }
-
-    // Env vars are not set here; the caller (startDisplayDaemonFromConfig) applies them
-    // only after the daemon socket is ready, so child processes never see a display
-    // address with no server behind it.
-    #setupDisplayEnvironment(displayServer: DisplayServer, capabilities?: Capabilities.ResolvedTestrunnerCapabilities): void {
-        if (capabilities && displayServer.getChromeFlags().length > 0) {
-            this.#injectDisplayServerFlags(capabilities, displayServer.getChromeFlags())
-        }
     }
 
     #injectDisplayServerFlags(
