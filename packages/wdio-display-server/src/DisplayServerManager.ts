@@ -64,10 +64,12 @@ export function optionsFromConfig(config: WebdriverIO.Config): DisplayServerOpti
         autoInstall: config.displayServerAutoInstall,
         autoInstallMode: config.displayServerAutoInstallMode,
         autoInstallCommand: config.displayServerAutoInstallCommand,
-        maxRetries: config.displayServerMaxRetries,
-        retryDelay: config.displayServerRetryDelay,
     }
 }
+
+// Daemon startup can flake transiently (spawn/socket races); retry a few times.
+const DAEMON_START_MAX_RETRIES = 3
+const DAEMON_START_RETRY_DELAY_MS = 1000
 
 export class DisplayServerManager {
     #enabled: boolean
@@ -75,8 +77,6 @@ export class DisplayServerManager {
     #autoInstall: boolean
     #autoInstallMode: 'root' | 'sudo'
     #autoInstallCommand?: string | string[]
-    #maxRetries: number
-    #retryDelay: number
     #force: boolean
     #log: ReturnType<typeof logger>
     #displayServer: DisplayServer | null = null
@@ -88,8 +88,6 @@ export class DisplayServerManager {
         this.#autoInstall = options.autoInstall ?? false
         this.#autoInstallMode = options.autoInstallMode ?? 'sudo'
         this.#autoInstallCommand = options.autoInstallCommand
-        this.#maxRetries = options.maxRetries ?? 3
-        this.#retryDelay = options.retryDelay ?? 1000
         this.#force = options.force ?? false
         this.#log = logger('@wdio/display-server')
     }
@@ -347,8 +345,8 @@ export class DisplayServerManager {
     ): Promise<T> {
         return executeWithRetry({
             fn: commandFn,
-            maxRetries: this.#maxRetries,
-            retryDelay: this.#retryDelay,
+            maxRetries: DAEMON_START_MAX_RETRIES,
+            retryDelay: DAEMON_START_RETRY_DELAY_MS,
             log: this.#log,
             context,
         })

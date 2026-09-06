@@ -370,16 +370,6 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     displayServerAutoInstallCommand?: string | string[]
     /**
-     * Retry attempts for display-server startup failures.
-     * @default 3
-     */
-    displayServerMaxRetries?: number
-    /**
-     * Base delay between retries, in ms. Progressive: displayServerRetryDelay × attemptNumber.
-     * @default 1000
-     */
-    displayServerRetryDelay?: number
-    /**
      * Which display server to use for headless testing on Linux.
      * - 'auto': Try Wayland first, then Xvfb fallback
      * - 'wayland': Force Wayland only

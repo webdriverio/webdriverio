@@ -73,12 +73,6 @@ export interface DisplayServerOptions {
     /** Custom install command; bypasses built-in package-manager detection. */
     autoInstallCommand?: string | string[]
 
-    /** @default 3 */
-    maxRetries?: number
-
-    /** Base delay (ms); progressive: delay × attempt. @default 1000 */
-    retryDelay?: number
-
     /** Run even on non-Linux systems (test seam). */
     force?: boolean
 }

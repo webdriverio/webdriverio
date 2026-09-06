@@ -85,11 +85,9 @@ if (ready) {
 interface DisplayServerOptions {
     enabled?: boolean;              // Authoritative usage toggle (default: true)
     displayServer?: 'auto' | 'wayland' | 'xvfb'; // Which display server to use (default: 'auto')
-    auto          // Enable automatic installation if missing (default: false)
-Install?: boolean;    autoInstallMode?: 'root' | 'sudo'; // Installation mode (default: 'sudo')
+    autoInstall?: boolean;         // Enable automatic installation if missing (default: false)
+    autoInstallMode?: 'root' | 'sudo'; // Installation mode (default: 'sudo')
     autoInstallCommand?: string | string[]; // Custom installation command
-    maxRetries?: number;            // Number of retry attempts (default: 3)
-    retryDelay?: number;            // Base delay between retries in ms (default: 1000)
     force?: boolean;                // Force display server even on non-Linux (for testing)
 }
 ```
@@ -191,31 +189,8 @@ Automatically detected flags:
 
 ## Retry Mechanism
 
-The package includes automatic retry functionality for handling display server failures:
-
-### Progressive Delay Strategy
-
-Retry delays increase progressively:
-- Attempt 1: Immediate execution
-- Attempt 2: Wait `retryDelay × 1` ms (default: 1000ms)
-- Attempt 3: Wait `retryDelay × 2` ms (default: 2000ms)
-- Attempt N: Wait `retryDelay × (N-1)` ms
-
-### Usage Example
-
-```js
-import { DisplayServerManager } from '@wdio/display-server';
-
-const manager = new DisplayServerManager({
-    maxRetries: 5,
-    retryDelay: 1500
-});
-
-// Automatic retry on display server failures
-const result = await manager.executeWithRetry(async () => {
-    return await runHeadlessTests();
-}, 'Running headless tests');
-```
+Daemon startup is retried up to 3 times with progressive backoff
+(1000 ms × attempt) to absorb transient spawn/socket failures.
 
 ## Environment Variables
 
@@ -277,10 +252,6 @@ export const config = {
     autoInstallMode: 'sudo',       // 'root' | 'sudo' (default: 'sudo')
     autoInstallCommand: undefined, // Custom install command
 
-    // Retry settings
-    maxRetries: 3,                 // Max retry attempts (default: 3)
-    retryDelay: 1000,             // Base delay in ms (default: 1000)
-
     capabilities: [{
         browserName: 'chrome',
         'goog:chromeOptions': {
@@ -299,9 +270,7 @@ export const config = {
     autoXvfb: true,           // → maps to 'enabled'
     xvfbAutoInstall: false,   // → maps to 'autoInstall'
     xvfbAutoInstallMode: 'sudo', // → maps to 'autoInstallMode'
-    xvfbAutoInstallCommand: undefined, // → maps to 'autoInstallCommand'
-    xvfbMaxRetries: 3,       // → maps to 'maxRetries'
-    xvfbRetryDelay: 1000      // → maps to 'retryDelay'
+    xvfbAutoInstallCommand: undefined // → maps to 'autoInstallCommand'
 };
 ```
 

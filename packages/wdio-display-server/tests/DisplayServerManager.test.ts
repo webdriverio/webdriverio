@@ -381,8 +381,6 @@ describe('optionsFromConfig', () => {
             displayServerAutoInstall: true,
             displayServerAutoInstallMode: 'sudo',
             displayServerAutoInstallCommand: 'custom-cmd',
-            displayServerMaxRetries: 5,
-            displayServerRetryDelay: 2000,
         } as never)
 
         expect(result).toMatchObject({
@@ -391,8 +389,6 @@ describe('optionsFromConfig', () => {
             autoInstall: true,
             autoInstallMode: 'sudo',
             autoInstallCommand: 'custom-cmd',
-            maxRetries: 5,
-            retryDelay: 2000,
         })
     })
 
@@ -402,7 +398,5 @@ describe('optionsFromConfig', () => {
         expect(result.enabled).toBeUndefined()
         expect(result.displayServer).toBeUndefined()
         expect(result.autoInstall).toBeUndefined()
-        expect(result.maxRetries).toBeUndefined()
-        expect(result.retryDelay).toBeUndefined()
     })
 })

@@ -29,7 +29,7 @@ vi.mock('node:fs/promises', () => ({
     access: mockAccess,
 }))
 
-const { detectPackageManager, waitForSocket, installViaPackageManager } = await import('../src/utils.js')
+const { detectPackageManager, waitForSocket, installViaPackageManager, executeWithRetry } = await import('../src/utils.js')
 
 const makeLogger = () => ({
     info: vi.fn(),
@@ -412,5 +412,52 @@ describe('installViaPackageManager', () => {
         })
 
         expect(ok).toBe(false)
+    })
+})
+
+describe('executeWithRetry', () => {
+    it('returns the result on the first successful attempt', async () => {
+        const fn = vi.fn().mockResolvedValue('ok')
+
+        const result = await executeWithRetry({ fn, maxRetries: 3, retryDelay: 10, log: makeLogger() })
+
+        expect(result).toBe('ok')
+        expect(fn).toHaveBeenCalledTimes(1)
+    })
+
+    it('retries after a rejection and returns the eventual success', async () => {
+        const fn = vi.fn()
+            .mockRejectedValueOnce(new Error('flake'))
+            .mockResolvedValueOnce('ok')
+
+        const result = await executeWithRetry({ fn, maxRetries: 2, retryDelay: 10, log: makeLogger() })
+
+        expect(result).toBe('ok')
+        expect(fn).toHaveBeenCalledTimes(2)
+    })
+
+    it('waits progressively (retryDelay × attempt) between retries', async () => {
+        const fn = vi.fn()
+            .mockRejectedValueOnce(new Error('flake 1'))
+            .mockRejectedValueOnce(new Error('flake 2'))
+            .mockResolvedValueOnce('ok')
+
+        const start = Date.now()
+        await executeWithRetry({ fn, maxRetries: 3, retryDelay: 100, log: makeLogger() })
+
+        // ~100ms before retry 2 + ~200ms before retry 3
+        expect(Date.now() - start).toBeGreaterThan(280)
+        expect(fn).toHaveBeenCalledTimes(3)
+    })
+
+    it('retries on any error up to maxRetries, then throws the last one', async () => {
+        const fn = vi.fn()
+            .mockRejectedValueOnce(new Error('flake'))
+            .mockRejectedValueOnce(new Error('final'))
+
+        await expect(
+            executeWithRetry({ fn, maxRetries: 2, retryDelay: 10, log: makeLogger() })
+        ).rejects.toThrow('final')
+        expect(fn).toHaveBeenCalledTimes(2)
     })
 })
