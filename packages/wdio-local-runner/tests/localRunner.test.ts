@@ -63,8 +63,6 @@ test('should map new displayServer* options through to DisplayServerManager', as
             displayServerAutoInstall: true,
             displayServerAutoInstallMode: 'sudo',
             displayServerAutoInstallCommand: 'custom-cmd',
-            displayServerMaxRetries: 5,
-            displayServerRetryDelay: 2000,
         } as any
     )
 
@@ -75,8 +73,6 @@ test('should map new displayServer* options through to DisplayServerManager', as
             autoInstall: true,
             autoInstallMode: 'sudo',
             autoInstallCommand: 'custom-cmd',
-            maxRetries: 5,
-            retryDelay: 2000,
         })
     )
 })
