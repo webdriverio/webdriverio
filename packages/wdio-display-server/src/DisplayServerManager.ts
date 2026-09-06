@@ -180,9 +180,7 @@ export class DisplayServerManager {
         return this.#tryDisplayServer(xvfb, capabilities)
     }
 
-    // Select the display server if it's available (installing it if allowed) and
-    // wire its capability flags. One place for the try/wire/return the four
-    // selection branches above share.
+    // One place for the try/wire/return that the four selection branches share.
     async #tryDisplayServer(
         displayServer: DisplayServer,
         capabilities?: Capabilities.ResolvedTestrunnerCapabilities,

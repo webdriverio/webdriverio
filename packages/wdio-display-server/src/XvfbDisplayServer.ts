@@ -80,7 +80,7 @@ export class XvfbDisplayServer implements DisplayServer {
     getChromeFlags(): string[] {
         // Forces the X11 ozone backend so a Wayland-host caller using
         // `displayServer: 'xvfb'` doesn't have Chromium try the host's
-        // compositor instead of our Xvfb. No-op on Wayland-less CI.
+        // compositor instead of our Xvfb.
         return ['--ozone-platform=x11']
     }
 

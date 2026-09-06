@@ -8,15 +8,10 @@ const execAsync = promisify(exec)
 const execFileAsync = promisify(execFile)
 
 /**
- * Poll for a Unix socket file at `path` to appear, up to `timeoutMs`. Used by
- * display-server implementations after spawning their daemon process to confirm
- * the socket has been created before returning the daemon handle to the caller.
+ * Poll for the socket file at `path` to appear, up to `timeoutMs`.
  *
- * @param label - human-readable name used in the timeout error message
- *                (e.g. "Wayland socket", "Xvfb socket").
- * @param signal - optional AbortSignal to stop polling early. Callers that race
- *                 this against a process-exit promise abort it once the race is
- *                 settled so the loop doesn't keep polling in the background.
+ * @param label - name used in the timeout error message (e.g. "Xvfb socket").
+ * @param signal - stops polling early; callers abort it once the exit/socket race settles.
  */
 export async function waitForSocket(path: string, timeoutMs: number, label = 'socket', signal?: AbortSignal): Promise<void> {
     const deadline = Date.now() + timeoutMs
@@ -47,8 +42,7 @@ export async function detectPackageManager(): Promise<string> {
 
     for (const { command, name } of packageManagers) {
         try {
-            // execFile (no shell) for the hardcoded probe — matches the `which sudo`
-            // check below and avoids an unnecessary shell for a fixed command name.
+            // execFile (no shell) — no shell needed to run a fixed command name.
             await execFileAsync('which', [command])
             return name
         } catch { /* try the next candidate */ }
@@ -58,9 +52,8 @@ export async function detectPackageManager(): Promise<string> {
 }
 
 /**
- * Install a display server binary via the system package manager. Shared by
- * WaylandDisplayServer and XvfbDisplayServer, which each contribute only their
- * own per-package-manager command table and human-readable name.
+ * Install a display server binary via the system package manager. Shared by the
+ * Wayland and Xvfb backends, which supply only their own command table and name.
  */
 export async function installViaPackageManager({
     name,

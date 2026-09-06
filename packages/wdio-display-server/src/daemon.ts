@@ -6,10 +6,7 @@ import type { DisplayDaemon, DisplayDaemonOptions } from './types.js'
 
 const log = logger('@wdio/display-server:daemon')
 
-/**
- * Handle returned by {@link startDisplayDaemonFromConfig}. Stopping reverses
- * both the daemon process and the env mutation made on `process.env`.
- */
+/** Stopping reverses both the daemon process and the env mutation on `process.env`. */
 export interface RunningDaemon {
     stop(): Promise<void>
 }
@@ -74,8 +71,7 @@ export async function startDisplayDaemonFromConfig(
     }
 
     const daemonOptions: DisplayDaemonOptions = daemonOptionsFromConfig(config)
-    // Spawn is the most transient failure mode (port collisions, slow socket,
-    // fs hiccups); apply the manager's configured retry policy.
+    // Spawn is the most transient failure mode — port collisions, slow socket, fs hiccups.
     const daemon: DisplayDaemon = await manager.executeWithRetry(
         () => server.startDaemon(daemonOptions),
         `${server.name} daemon startup`,
