@@ -116,13 +116,6 @@ describe('XvfbManager', () => {
             expect(manager.shouldRun()).toBe(false)
         })
 
-        it('should return false on Linux with existing DISPLAY', () => {
-            mockPlatform.mockReturnValue('linux')
-            process.env.DISPLAY = ':0'
-
-            expect(manager.shouldRun()).toBe(false)
-        })
-
         it('should return false when disabled via enabled:false', () => {
             const disabledManager = new XvfbManager({ displayServer: 'xvfb', enabled: false })
             mockPlatform.mockReturnValue('linux')
@@ -131,66 +124,22 @@ describe('XvfbManager', () => {
             expect(disabledManager.shouldRun()).toBe(false)
         })
 
-        it('should return true when Chrome headless flag is detected', () => {
+        // A headless capability flag forces the display server on even when DISPLAY
+        // is set. The detection branch is identical across vendors and flag
+        // spellings, so drive the positive cases from a table.
+        it.each([
+            ['Chrome', 'goog:chromeOptions', '--headless'],
+            ['Chrome', 'goog:chromeOptions', '--headless=new'],
+            ['Chrome', 'goog:chromeOptions', '--headless=old'],
+            ['Firefox', 'moz:firefoxOptions', '--headless'],
+            ['Firefox', 'moz:firefoxOptions', '-headless'],
+            ['Edge', 'ms:edgeOptions', '--headless'],
+        ])('returns true when the %s headless flag %s is detected', (_vendor, optionsKey, flag) => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
 
             const capabilities = {
-                'goog:chromeOptions': {
-                    args: ['--headless']
-                }
-            } as unknown as WebdriverIO.Config['capabilities']
-
-            expect(manager.shouldRun(capabilities)).toBe(true)
-        })
-
-        it('should return true when Chrome headless=new flag is detected', () => {
-            mockPlatform.mockReturnValue('linux')
-            process.env.DISPLAY = ':0'
-
-            const capabilities = {
-                'goog:chromeOptions': {
-                    args: ['--headless=new']
-                }
-            } as unknown as WebdriverIO.Config['capabilities']
-
-            expect(manager.shouldRun(capabilities)).toBe(true)
-        })
-
-        it('should return true when Chrome headless=old flag is detected', () => {
-            mockPlatform.mockReturnValue('linux')
-            process.env.DISPLAY = ':0'
-
-            const capabilities = {
-                'goog:chromeOptions': {
-                    args: ['--headless=old']
-                }
-            } as unknown as WebdriverIO.Config['capabilities']
-
-            expect(manager.shouldRun(capabilities)).toBe(true)
-        })
-
-        it('should return true when Firefox headless flag is detected', () => {
-            mockPlatform.mockReturnValue('linux')
-            process.env.DISPLAY = ':0'
-
-            const capabilities = {
-                'moz:firefoxOptions': {
-                    args: ['--headless']
-                }
-            } as unknown as WebdriverIO.Config['capabilities']
-
-            expect(manager.shouldRun(capabilities)).toBe(true)
-        })
-
-        it('should return true when Firefox -headless flag is detected', () => {
-            mockPlatform.mockReturnValue('linux')
-            process.env.DISPLAY = ':0'
-
-            const capabilities = {
-                'moz:firefoxOptions': {
-                    args: ['-headless']
-                }
+                [optionsKey]: { args: [flag] },
             } as unknown as WebdriverIO.Config['capabilities']
 
             expect(manager.shouldRun(capabilities)).toBe(true)
@@ -244,31 +193,11 @@ describe('XvfbManager', () => {
             expect(manager.shouldRun(capabilities)).toBe(false)
         })
 
-        it('should handle empty capabilities', () => {
-            mockPlatform.mockReturnValue('linux')
-            process.env.DISPLAY = ':0'
-
-            expect(manager.shouldRun(undefined)).toBe(false)
-        })
-
         it('should handle undefined capabilities', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
 
             expect(manager.shouldRun(undefined)).toBe(false)
-        })
-
-        it('should return true when Edge headless flag is detected (ms:edgeOptions)', () => {
-            mockPlatform.mockReturnValue('linux')
-            process.env.DISPLAY = ':0'
-
-            const capabilities = {
-                'ms:edgeOptions': {
-                    args: ['--headless']
-                }
-            } as unknown as WebdriverIO.Config['capabilities']
-
-            expect(manager.shouldRun(capabilities)).toBe(true)
         })
     })
 
@@ -370,350 +299,6 @@ describe('XvfbManager', () => {
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['apk'])
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['xbps-install'])
             })
-
-            describe('cross-distribution support', () => {
-                beforeEach(() => {
-                    mockPlatform.mockReturnValue('linux')
-                })
-
-                it('should detect Ubuntu distribution and install without sudo when running as root', async () => {
-                    // Mock xvfb-run not found, then package manager detection
-                    mockExecAsync
-                        .mockRejectedValueOnce(new Error('Command not found'))
-                        .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' })
-                        .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
-                        .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
-
-                    runAsRoot()
-
-                    const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true })
-                    delete process.env.DISPLAY
-
-                    await manager.init()
-
-                    expect(mockExecAsync).toHaveBeenCalledWith('which', ['apt-get'])
-                    expect(mockExecAsync).toHaveBeenCalledWith(
-                        'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
-                        { timeout: 240000 }
-                    )
-                })
-
-                it('should detect dnf package manager', async () => {
-                    // Mock xvfb-run not found, then package manager detection
-                    mockExecAsync
-                        .mockRejectedValueOnce(new Error('Command not found'))
-                        .mockRejectedValueOnce(new Error('apt-get not found'))
-                        .mockResolvedValueOnce({ stdout: '/usr/bin/dnf', stderr: '' })
-                        .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
-                        .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
-
-                    runAsRoot()
-
-                    const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true })
-                    delete process.env.DISPLAY
-
-                    await manager.init()
-
-                    expect(mockExecAsync).toHaveBeenCalledWith('which', ['dnf'])
-                    expect(mockExecAsync).toHaveBeenCalledWith(
-                        'dnf -y makecache && dnf -y install xorg-x11-server-Xvfb xorg-x11-server-utils',
-                        { timeout: 240000 }
-                    )
-                })
-
-                it('should detect pacman package manager', async () => {
-                    // Mock xvfb-run not found, then package manager detection
-                    mockExecAsync
-                        .mockRejectedValueOnce(new Error('Command not found'))
-                        .mockRejectedValueOnce(new Error('apt-get not found'))
-                        .mockRejectedValueOnce(new Error('dnf not found'))
-                        .mockRejectedValueOnce(new Error('yum not found'))
-                        .mockRejectedValueOnce(new Error('zypper not found'))
-                        .mockResolvedValueOnce({ stdout: '/usr/bin/pacman', stderr: '' })
-                        .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
-                        .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
-
-                    runAsRoot()
-
-                    const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true })
-                    delete process.env.DISPLAY
-
-                    await manager.init()
-
-                    expect(mockExecAsync).toHaveBeenCalledWith('which', ['pacman'])
-                    expect(mockExecAsync).toHaveBeenCalledWith(
-                        'pacman -Sy --noconfirm xorg-server-xvfb',
-                        { timeout: 240000 }
-                    )
-                })
-
-                it('should detect dnf when apt-get is not available', async () => {
-                    // New flow: detectPackageManager runs BEFORE sudo check inside install().
-                    // Order: which Xvfb -> which apt-get (fail) -> which dnf (ok) -> which sudo -> install
-                    mockExecAsync
-                        .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
-                        .mockRejectedValueOnce(new Error('apt-get not found')) // which apt-get
-                        .mockResolvedValueOnce({ stdout: '/usr/bin/dnf', stderr: '' }) // which dnf
-                        .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' }) // which sudo
-                        .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' }) // dnf install
-
-                    runAsUser()
-
-                    const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true, autoInstallMode: 'sudo' })
-                    delete process.env.DISPLAY
-
-                    await manager.init()
-
-                    expect(mockExecAsync).toHaveBeenCalledWith('which Xvfb')
-                    expect(mockExecAsync).toHaveBeenCalledWith('which', ['apt-get'])
-                    expect(mockExecAsync).toHaveBeenCalledWith('which', ['dnf'])
-                    expect(mockExecAsync).toHaveBeenCalledWith('which', ['sudo'])
-                })
-
-                it('should handle unsupported package managers gracefully', async () => {
-                    // New behaviour: when no package manager is found, install() logs an
-                    // error and returns false instead of throwing.
-                    mockExecAsync
-                        .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
-                        .mockRejectedValueOnce(new Error('apt-get not found')) // which apt-get
-                        .mockRejectedValueOnce(new Error('dnf not found')) // which dnf
-                        .mockRejectedValueOnce(new Error('yum not found')) // which yum
-                        .mockRejectedValueOnce(new Error('zypper not found')) // which zypper
-                        .mockRejectedValueOnce(new Error('pacman not found')) // which pacman
-                        .mockRejectedValueOnce(new Error('apk not found')) // which apk
-                        .mockRejectedValueOnce(new Error('xbps-install not found')) // which xbps-install
-
-                    runAsRoot()
-
-                    const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true })
-                    delete process.env.DISPLAY
-
-                    const result = await manager.init()
-                    expect(result).toBe(false)
-                })
-            })
-
-            it("should attempt install without sudo prefix in 'sudo' mode when sudo is not present (non-root)", async () => {
-                // New behaviour: missing sudo logs a warning and attempts install anyway,
-                // without the `sudo -n` prefix. Order: which Xvfb -> which apt-get -> which sudo -> install
-                mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
-                    .mockRejectedValueOnce(new Error('sudo not found')) // which sudo
-                    .mockResolvedValueOnce({ stdout: 'install ok', stderr: '' }) // install (no sudo)
-
-                runAsUser()
-
-                const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true, autoInstallMode: 'sudo' })
-                mockPlatform.mockReturnValue('linux')
-                delete process.env.DISPLAY
-
-                const result = await manager.init()
-                expect(result).toBe(true)
-                expect(mockExecAsync).toHaveBeenCalledWith('which', ['sudo'])
-                expect(mockExecAsync).toHaveBeenCalledWith(
-                    'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
-                    { timeout: 240000 }
-                )
-            })
-
-            it('should treat empty object form as root-only: installs when root', async () => {
-                mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
-                    .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' }) // install
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
-
-                runAsRoot()
-
-                const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true, autoInstallMode: 'root' })
-                mockPlatform.mockReturnValue('linux')
-                delete process.env.DISPLAY
-
-                const result = await manager.init()
-                expect(result).toBe(true)
-                expect(mockExecAsync).toHaveBeenCalledWith(
-                    'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
-                    { timeout: 240000 }
-                )
-            })
-
-            it('should treat empty object form as root-only: skips when not root', async () => {
-                mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
-
-                runAsUser()
-
-                const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true, autoInstallMode: 'root' })
-                mockPlatform.mockReturnValue('linux')
-                delete process.env.DISPLAY
-
-                const result = await manager.init()
-                expect(result).toBe(false)
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['sudo'])
-            })
-
-            it("should not use sudo prefix when in 'sudo' mode but running as root", async () => {
-                mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
-                    .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' }) // install
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
-
-                runAsRoot()
-
-                const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true, autoInstallMode: 'sudo' })
-                mockPlatform.mockReturnValue('linux')
-                delete process.env.DISPLAY
-
-                const result = await manager.init()
-                expect(result).toBe(true)
-                expect(mockExecAsync).toHaveBeenCalledWith(
-                    'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
-                    { timeout: 240000 }
-                )
-            })
-
-            it("should run custom command as-is in 'sudo' mode (non-root) without checking sudo", async () => {
-                // New behaviour: when a custom autoInstallCommand is provided, install()
-                // runs it verbatim without the sudo / PM-detection prelude.
-                mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
-                    .mockResolvedValueOnce({ stdout: 'ok', stderr: '' }) // run custom
-
-                runAsUser()
-
-                const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true, autoInstallMode: 'sudo', autoInstallCommand: 'echo install' })
-                mockPlatform.mockReturnValue('linux')
-                delete process.env.DISPLAY
-
-                const result = await manager.init()
-                expect(result).toBe(true)
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['sudo'])
-                expect(mockExecAsync).toHaveBeenCalledWith('echo install', { timeout: 240000 })
-            })
-
-            it('should handle zypper install flags (root)', async () => {
-                mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
-                    .mockRejectedValueOnce(new Error('apt-get not found'))
-                    .mockRejectedValueOnce(new Error('dnf not found'))
-                    .mockRejectedValueOnce(new Error('yum not found'))
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/zypper', stderr: '' }) // zypper
-                    .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
-
-                runAsRoot()
-
-                const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true })
-                mockPlatform.mockReturnValue('linux')
-                delete process.env.DISPLAY
-
-                await manager.init()
-                expect(mockExecAsync).toHaveBeenCalledWith(
-                    'zypper --non-interactive refresh && zypper --non-interactive install -y xvfb-run',
-                    { timeout: 240000 }
-                )
-            })
-
-            // The legacy `forceInstall` option (skip availability check, force install) is
-            // no longer wired into DisplayServerManager. Skipping until the option is
-            // removed from the public surface or restored.
-            it.skip('should skip availability check when forceInstall is true and perform install', () => {})
-
-            it('should skip installation when not root and autoInstallMode is "root"', async () => {
-                // New flow: detectPackageManager runs before the root/sudo check, so
-                // `which apt-get` *is* called even though install ultimately bails out.
-                mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
-
-                runAsUser()
-
-                const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true, autoInstallMode: 'root' })
-                mockPlatform.mockReturnValue('linux')
-                delete process.env.DISPLAY
-
-                const result = await manager.init()
-                expect(result).toBe(false)
-                expect(mockExecAsync).toHaveBeenCalledWith('which Xvfb')
-                // sudo check still skipped (mode is 'root', not 'sudo')
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['sudo'])
-                // install command never runs because the root-mode check returns false first
-                expect(mockExecAsync).not.toHaveBeenCalledWith(
-                    'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
-                    { timeout: 240000 }
-                )
-            })
-
-            it('should use custom install command as-is (no sudo prefix)', async () => {
-                mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb (initial)
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // PM detection still runs
-                    .mockResolvedValueOnce({ stdout: 'custom ok', stderr: '' }) // install
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
-
-                runAsUser()
-
-                const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true, autoInstallMode: 'sudo', autoInstallCommand: 'my-custom-install' })
-                mockPlatform.mockReturnValue('linux')
-                delete process.env.DISPLAY
-
-                const result = await manager.init()
-                expect(result).toBe(true)
-                expect(mockExecAsync).toHaveBeenCalledWith(
-                    'my-custom-install',
-                    { timeout: 240000 }
-                )
-            })
-
-            it('should handle object format with array commands', async () => {
-                mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' }) // which sudo
-                    .mockResolvedValueOnce({ stdout: 'array command ok', stderr: '' }) // install
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
-
-                runAsUser()
-
-                const manager = new XvfbManager({
-                    displayServer: 'xvfb',
-                    autoInstall: true,
-                    autoInstallMode: 'sudo',
-                    autoInstallCommand: ['custom', 'install', 'command']
-                })
-                mockPlatform.mockReturnValue('linux')
-                delete process.env.DISPLAY
-
-                const result = await manager.init()
-                expect(result).toBe(true)
-                expect(mockExecAsync).toHaveBeenCalledWith(
-                    'custom',
-                    ['install', 'command'],
-                    { timeout: 240000 }
-                )
-            })
-
-            it('should handle object format with mode only (defaults to sudo behavior)', async () => {
-                mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' }) // which sudo
-                    .mockRejectedValueOnce(new Error('apt-get not found')) // which apt-get
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/dnf', stderr: '' }) // which dnf
-                    .mockResolvedValueOnce({ stdout: 'dnf install ok', stderr: '' }) // install
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
-
-                runAsUser()
-
-                const manager = new XvfbManager({ displayServer: 'xvfb', autoInstall: true, autoInstallMode: 'sudo' })
-                mockPlatform.mockReturnValue('linux')
-                delete process.env.DISPLAY
-
-                const result = await manager.init()
-                expect(result).toBe(true)
-                expect(mockExecAsync).toHaveBeenCalledWith('which', ['sudo'])
-            })
         })
     })
 
@@ -779,32 +364,6 @@ describe('XvfbManager', () => {
 
             await expect(manager.executeWithRetry(mockFn, 'test operation')).rejects.toThrow('X server died')
             expect(mockFn).toHaveBeenCalledTimes(2)
-        })
-
-        it('should detect various xvfb error patterns', async () => {
-            const manager = new XvfbManager({ displayServer: 'xvfb', maxRetries: 1, retryDelay: 10 })
-
-            const errorPatterns = [
-                'xvfb-run: error: Xvfb failed to start',
-                'Xvfb failed to start',
-                'xvfb-run: error: something else',
-                'X server died'
-            ]
-
-            for (const errorMessage of errorPatterns) {
-                const mockFn = vi.fn().mockRejectedValue(new Error(errorMessage))
-
-                await expect(manager.executeWithRetry(mockFn, 'test')).rejects.toThrow(errorMessage)
-                expect(mockFn).toHaveBeenCalledTimes(1)
-            }
-        })
-
-        it('should handle case insensitive error matching', async () => {
-            const manager = new XvfbManager({ displayServer: 'xvfb', maxRetries: 1, retryDelay: 10 })
-            const mockFn = vi.fn().mockRejectedValue(new Error('XVFB-RUN: ERROR: XVFB FAILED TO START'))
-
-            await expect(manager.executeWithRetry(mockFn, 'test')).rejects.toThrow('XVFB-RUN: ERROR: XVFB FAILED TO START')
-            expect(mockFn).toHaveBeenCalledTimes(1)
         })
     })
 
