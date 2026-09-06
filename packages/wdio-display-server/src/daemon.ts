@@ -11,13 +11,7 @@ export interface RunningDaemon {
     stop(): Promise<void>
 }
 
-interface ResolvedDaemonOptions {
-    width?: number
-    height?: number
-    depth?: number
-}
-
-function daemonOptionsFromConfig(config: WebdriverIO.Config): ResolvedDaemonOptions {
+function daemonOptionsFromConfig(config: WebdriverIO.Config): DisplayDaemonOptions {
     return {
         width: config.displayServerWidth,
         height: config.displayServerHeight,

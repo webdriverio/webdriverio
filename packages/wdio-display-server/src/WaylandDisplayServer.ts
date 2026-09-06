@@ -1,7 +1,5 @@
-import { exec } from 'node:child_process'
 import { rmSync } from 'node:fs'
 import { mkdir, rm } from 'node:fs/promises'
-import { promisify } from 'node:util'
 import logger from '@wdio/logger'
 import type {
     DisplayDaemon,
@@ -9,10 +7,8 @@ import type {
     DisplayServer,
     DisplayServerInstallOptions,
 } from './types.js'
-import { installViaPackageManager } from './utils.js'
+import { commandExists, installViaPackageManager, resolveDaemonDimensions } from './utils.js'
 import { runDaemon } from './daemonProcess.js'
-
-const execAsync = promisify(exec)
 
 // One source of truth: getChromeFlags() and DisplayServerManager's
 // externally-set-WAYLAND_DISPLAY fallback both use these and must not drift.
@@ -27,14 +23,12 @@ export class WaylandDisplayServer implements DisplayServer {
     private static daemonCounter = 0
 
     async isAvailable(): Promise<boolean> {
-        try {
-            await execAsync('which weston')
+        if (await commandExists('weston')) {
             this.log.info('Weston compositor found in PATH')
             return true
-        } catch {
-            this.log.debug('Weston compositor not found')
-            return false
         }
+        this.log.debug('Weston compositor not found')
+        return false
     }
 
     async install(options?: DisplayServerInstallOptions): Promise<boolean> {
@@ -59,8 +53,7 @@ export class WaylandDisplayServer implements DisplayServer {
     }
 
     async startDaemon(options?: DisplayDaemonOptions): Promise<DisplayDaemon> {
-        const width = options?.width ?? 1920
-        const height = options?.height ?? 1080
+        const { width, height } = resolveDaemonDimensions(options)
 
         const id = ++WaylandDisplayServer.daemonCounter
         const runtimeDir = `/tmp/wdio-wayland-${process.pid}-${id}`

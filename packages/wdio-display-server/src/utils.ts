@@ -2,10 +2,29 @@ import { exec, execFile } from 'node:child_process'
 import { access } from 'node:fs/promises'
 import { promisify } from 'node:util'
 import type logger from '@wdio/logger'
-import type { DisplayServerInstallOptions } from './types.js'
+import type { DisplayDaemonOptions, DisplayServerInstallOptions } from './types.js'
 
 const execAsync = promisify(exec)
 const execFileAsync = promisify(execFile)
+
+/** True if `command` is on PATH. */
+export async function commandExists(command: string): Promise<boolean> {
+    try {
+        await execAsync(`which ${command}`)
+        return true
+    } catch {
+        return false
+    }
+}
+
+/** Daemon screen geometry with the shared defaults applied (depth is Xvfb-only). */
+export function resolveDaemonDimensions(options?: DisplayDaemonOptions): { width: number, height: number, depth: number } {
+    return {
+        width: options?.width ?? 1920,
+        height: options?.height ?? 1080,
+        depth: options?.depth ?? 24,
+    }
+}
 
 /**
  * Poll for the socket file at `path` to appear, up to `timeoutMs`.

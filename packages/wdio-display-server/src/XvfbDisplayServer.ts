@@ -1,6 +1,4 @@
-import { exec } from 'node:child_process'
 import { readdir, readFile } from 'node:fs/promises'
-import { promisify } from 'node:util'
 import logger from '@wdio/logger'
 import type {
     DisplayDaemon,
@@ -8,10 +6,9 @@ import type {
     DisplayServer,
     DisplayServerInstallOptions,
 } from './types.js'
-import { installViaPackageManager } from './utils.js'
+import { commandExists, installViaPackageManager, resolveDaemonDimensions } from './utils.js'
 import { runDaemon } from './daemonProcess.js'
 
-const execAsync = promisify(exec)
 const X_SOCKET_DIR = '/tmp/.X11-unix'
 // Xvfb hardcodes /tmp for its per-display lock files (`.X<n>-lock`) regardless
 // of TMPDIR; we scan the same path it would write to.
@@ -30,18 +27,16 @@ export class XvfbDisplayServer implements DisplayServer {
             return false
         }
 
-        try {
-            // Only Xvfb is required: the daemon spawns `Xvfb` directly (not the
-            // `xvfb-run` wrapper), so requiring xvfb-run would wrongly skip the
-            // daemon on systems that ship Xvfb without the xvfb-run script
-            // (e.g. minimal RPM installs of xorg-x11-server-Xvfb).
-            await execAsync('which Xvfb')
+        // Only Xvfb is required: the daemon spawns `Xvfb` directly (not the
+        // `xvfb-run` wrapper), so requiring xvfb-run would wrongly skip the
+        // daemon on systems that ship Xvfb without the xvfb-run script
+        // (e.g. minimal RPM installs of xorg-x11-server-Xvfb).
+        if (await commandExists('Xvfb')) {
             this.log.info('Xvfb found in PATH')
             return true
-        } catch {
-            this.log.debug('Xvfb not found')
-            return false
         }
+        this.log.debug('Xvfb not found')
+        return false
     }
 
     private async checkIsCentOS10(): Promise<boolean> {
@@ -85,15 +80,17 @@ export class XvfbDisplayServer implements DisplayServer {
     }
 
     async startDaemon(options?: DisplayDaemonOptions): Promise<DisplayDaemon> {
-        const width = options?.width ?? 1920
-        const height = options?.height ?? 1080
-        const depth = options?.depth ?? 24
+        const { width, height, depth } = resolveDaemonDimensions(options)
 
         const displayNum = await this.findFreeDisplay()
         const display = `:${displayNum}`
         const socketPath = `${X_SOCKET_DIR}/X${displayNum}`
 
         this.log.info(`Starting Xvfb daemon on ${display} (${width}x${height}x${depth})`)
+
+        // No rm of the X socket under /tmp/.X11-unix/X<n>: the X server overwrites
+        // stale ones on next start, so only the display reservation is released.
+        const releaseDisplay = () => { XvfbDisplayServer.reservedDisplays.delete(displayNum) }
 
         // Force GTK/Electron to X11. Without these, a Wayland-host's inherited
         // `GDK_BACKEND=wayland,x11` makes them try Wayland first, fail (we're running
@@ -110,10 +107,8 @@ export class XvfbDisplayServer implements DisplayServer {
                 GDK_BACKEND: 'x11',
                 ELECTRON_OZONE_PLATFORM_HINT: 'x11',
             },
-            // No rm of the X socket under /tmp/.X11-unix/X<n>: the X server overwrites
-            // stale ones on next start, so only the display reservation is released.
-            cleanup: () => { XvfbDisplayServer.reservedDisplays.delete(displayNum) },
-            cleanupSync: () => { XvfbDisplayServer.reservedDisplays.delete(displayNum) },
+            cleanup: releaseDisplay,
+            cleanupSync: releaseDisplay,
         })
     }
 
