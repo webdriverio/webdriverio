@@ -15,7 +15,7 @@ const X_LOCK_DIR = '/tmp'
 
 export class XvfbDisplayServer implements DisplayServer {
     readonly name = 'xvfb' as const
-    private log = logger('@wdio/display-server: xvfb')
+    private log = logger('@wdio/display-server:xvfb')
     private isCentOS10 = false
     private static reservedDisplays = new Set<number>()
 

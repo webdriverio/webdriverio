@@ -67,12 +67,12 @@ describe('XvfbManager', () => {
     })
 
     describe('constructor', () => {
-        it('should create instance with default options', () => {
+        it('creates an instance with default options', () => {
             const manager = new XvfbManager({ displayServer: 'xvfb' })
             expect(manager).toBeInstanceOf(XvfbManager)
         })
 
-        it('should create instance with custom options', () => {
+        it('creates an instance with custom options', () => {
             const manager = new XvfbManager({
                 displayServer: 'xvfb',
                 force: true,
@@ -83,34 +83,34 @@ describe('XvfbManager', () => {
     })
 
     describe('shouldRun', () => {
-        it('should return true when forced', () => {
+        it('returns true when forced', () => {
             const manager = new XvfbManager({ displayServer: 'xvfb', force: true })
             mockPlatform.mockReturnValue('darwin')
 
             expect(manager.shouldRun()).toBe(true)
         })
 
-        it('should return false on non-Linux platforms', () => {
+        it('returns false on non-Linux platforms', () => {
             mockPlatform.mockReturnValue('darwin')
 
             expect(manager.shouldRun()).toBe(false)
         })
 
-        it('should return true on Linux without DISPLAY', () => {
+        it('returns true on Linux without DISPLAY', () => {
             mockPlatform.mockReturnValue('linux')
             delete process.env.DISPLAY
 
             expect(manager.shouldRun()).toBe(true)
         })
 
-        it('should return false on Linux when DISPLAY is set', () => {
+        it('returns false on Linux when DISPLAY is set', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
 
             expect(manager.shouldRun()).toBe(false)
         })
 
-        it('should return false when disabled via enabled:false', () => {
+        it('returns false when disabled via enabled:false', () => {
             const disabledManager = new XvfbManager({ displayServer: 'xvfb', enabled: false })
             mockPlatform.mockReturnValue('linux')
             delete process.env.DISPLAY
@@ -139,7 +139,7 @@ describe('XvfbManager', () => {
             expect(manager.shouldRun(capabilities)).toBe(true)
         })
 
-        it('should handle array of capabilities (multiremote)', () => {
+        it('handles an array of capabilities (multiremote)', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
 
@@ -163,7 +163,7 @@ describe('XvfbManager', () => {
             expect(manager.shouldRun(capabilities)).toBe(true)
         })
 
-        it('should return false when no headless flags in capabilities', () => {
+        it('returns false when no headless flags in capabilities', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
 
@@ -176,7 +176,7 @@ describe('XvfbManager', () => {
             expect(manager.shouldRun(capabilities)).toBe(false)
         })
 
-        it('should handle capabilities without args', () => {
+        it('handles capabilities without args', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
 
@@ -187,7 +187,7 @@ describe('XvfbManager', () => {
             expect(manager.shouldRun(capabilities)).toBe(false)
         })
 
-        it('should handle undefined capabilities', () => {
+        it('handles undefined capabilities', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
 
@@ -200,7 +200,7 @@ describe('XvfbManager', () => {
             mockPlatform.mockReturnValue('linux')
         })
 
-        it('should setup xvfb-run when needed', async () => {
+        it('sets up xvfb-run when needed', async () => {
             mockExecAsync.mockResolvedValue({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
             const result = await manager.init()
@@ -209,7 +209,7 @@ describe('XvfbManager', () => {
             expect(mockExecAsync).toHaveBeenCalledWith('which Xvfb')
         })
 
-        it('should not setup when not needed', async () => {
+        it('does not set up when not needed', async () => {
             mockPlatform.mockReturnValue('darwin')
 
             const result = await manager.init()
@@ -217,7 +217,7 @@ describe('XvfbManager', () => {
             expect(result).toBe(false)
         })
 
-        it('should setup xvfb-run when headless capabilities are provided', async () => {
+        it('sets up xvfb-run when headless capabilities are provided', async () => {
             process.env.DISPLAY = ':0'
             mockExecAsync.mockResolvedValue({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
@@ -232,7 +232,7 @@ describe('XvfbManager', () => {
             expect(result).toBe(true)
         })
 
-        it('should return false and skip setup when disabled via enabled:false', async () => {
+        it('returns false and skips setup when disabled via enabled:false', async () => {
             const disabledManager = new XvfbManager({ displayServer: 'xvfb', enabled: false })
             mockPlatform.mockReturnValue('linux')
             delete process.env.DISPLAY
@@ -243,7 +243,7 @@ describe('XvfbManager', () => {
         })
 
         describe('autoInstall', () => {
-            it('should install xvfb with sudo -n when allowed and available (non-root, apt)', async () => {
+            it('installs xvfb with sudo -n when allowed and available (non-root, apt)', async () => {
                 // Sequence in install(): which Xvfb -> detectPackageManager (apt-get) -> which sudo -> run install
                 mockExecAsync
                     .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb (initial)
@@ -271,7 +271,7 @@ describe('XvfbManager', () => {
                 )
             })
 
-            it('should not install and return false when xvfb-run is not available and autoInstall is disabled', async () => {
+            it('does not install and returns false when xvfb-run is not available and autoInstall is disabled', async () => {
                 mockExecAsync
                     .mockRejectedValueOnce(new Error('Command not found'))
 

@@ -97,6 +97,7 @@ interface DisplayServerOptions {
 - **`shouldRun(capabilities?): boolean`** - Check if display server should run
 - **`init(capabilities?): Promise<boolean>`** - Initialize display server
 - **`getDisplayServer(): DisplayServer | null`** - Get the active display server instance
+- **`injectDisplayFlags(capabilities): void`** - Inject the display server's ozone flags into a worker's capabilities
 - **`executeWithRetry<T>(commandFn, context?): Promise<T>`** - Execute with automatic retry
 
 #### DisplayServer Interface

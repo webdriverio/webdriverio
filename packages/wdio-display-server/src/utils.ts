@@ -7,6 +7,9 @@ import type { DisplayDaemonOptions, DisplayServerInstallOptions } from './types.
 const execAsync = promisify(exec)
 const execFileAsync = promisify(execFile)
 
+// Package installs pull toolchains/mirrors and are slow; give them 4 minutes.
+const INSTALL_TIMEOUT_MS = 240_000
+
 /** True if `command` is on PATH. */
 export async function commandExists(command: string): Promise<boolean> {
     try {
@@ -96,10 +99,10 @@ export async function installViaPackageManager({
                     log.error(`Failed to install ${name}: options.command array is empty`)
                     return false
                 }
-                await execFileAsync(bin, args, { timeout: 240000 })
+                await execFileAsync(bin, args, { timeout: INSTALL_TIMEOUT_MS })
             } else {
                 // String form = caller wants a shell.
-                await execAsync(options.command, { timeout: 240000 })
+                await execAsync(options.command, { timeout: INSTALL_TIMEOUT_MS })
             }
             log.info(`${name} installed successfully using custom command`)
             return true
@@ -139,8 +142,8 @@ export async function installViaPackageManager({
         // sudo path: pass `command` as one argv element to sh -c, so shell
         // metacharacters stay inside the inner shell.
         await (sudoWrap
-            ? execFileAsync('sudo', ['-n', 'sh', '-c', command], { timeout: 240000 })
-            : execAsync(command, { timeout: 240000 }))
+            ? execFileAsync('sudo', ['-n', 'sh', '-c', command], { timeout: INSTALL_TIMEOUT_MS })
+            : execAsync(command, { timeout: INSTALL_TIMEOUT_MS }))
         log.info(`${name} installed successfully`)
         return true
     } catch (error) {
