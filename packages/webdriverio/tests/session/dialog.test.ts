@@ -1,5 +1,17 @@
+import path from 'node:path'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { DialogManager } from '../../src/session/dialog.js'
+import { DialogManager, Dialog } from '../../src/session/dialog.js'
+import { remote } from '../../src/index.js'
+import * as contextModule from '../../src/session/context.js'
+
+vi.mock('fetch')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('../../src/session/context.js', () => ({
+    getContextManager: vi.fn().mockReturnValue({
+        getCurrentContext: vi.fn().mockResolvedValue('ctx-1'),
+        initialize: vi.fn().mockResolvedValue(true)
+    })
+}))
 
 describe('DialogManager', () => {
     let browser: any
@@ -8,6 +20,7 @@ describe('DialogManager', () => {
     beforeEach(() => {
         browser = {
             isBidi: true,
+            isMobile: false,
             sessionId: 'session-id',
             sessionSubscribe: vi.fn().mockResolvedValue({}),
             on: vi.fn(),
@@ -78,5 +91,91 @@ describe('DialogManager', () => {
             accept: false,
             context: 'some-context'
         })
+    })
+})
+
+describe('Dialog - Browser', () => {
+    let browser: any
+
+    beforeEach(() => {
+        browser = {
+            isMobile: false,
+            isBidi: true,
+            browsingContextHandleUserPrompt: vi.fn().mockResolvedValue(undefined),
+            sessionSubscribe: vi.fn().mockResolvedValue({}),
+            on: vi.fn(),
+            off: vi.fn(),
+            removeAllListeners: vi.fn(),
+            emit: vi.fn(),
+        }
+    })
+
+    it('should accept a browser dialog', async () => {
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Hello', type: 'alert' } as any,
+            browser
+        )
+
+        await dialog.accept()
+
+        expect(browser.browsingContextHandleUserPrompt).toHaveBeenCalledWith({
+            accept: true,
+            context: 'ctx-1',
+        })
+    })
+
+    it('should accept a browser dialog with prompt text', async () => {
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Hello', type: 'prompt', defaultValue: '' } as any,
+            browser
+        )
+
+        await dialog.accept('my input')
+
+        expect(browser.browsingContextHandleUserPrompt).toHaveBeenCalledWith({
+            accept: true,
+            context: 'ctx-1',
+            userText: 'my input',
+        })
+    })
+
+    it('should dismiss a browser dialog', async () => {
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Hello', type: 'confirm' } as any,
+            browser
+        )
+
+        await dialog.dismiss()
+
+        expect(browser.browsingContextHandleUserPrompt).toHaveBeenCalledWith({
+            accept: false,
+            context: 'ctx-1',
+        })
+    })
+
+    it('should return early if context does not match', async () => {
+        // Use vi.doMock for dynamic mocking inside a test callback
+        vi.doMock('../../src/session/context.js', () => ({
+            getContextManager: vi.fn().mockReturnValue({
+                getCurrentContext: vi.fn().mockResolvedValue('different-context'),
+                initialize: vi.fn().mockResolvedValue(true)
+            })
+        }))
+
+        // Fresh import to get the mocked module
+        const { getContextManager } = await import('../../src/session/context.js')
+
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Hello', type: 'alert' } as any,
+            browser
+        )
+
+        await dialog.accept()
+
+        expect(browser.browsingContextHandleUserPrompt).not.toHaveBeenCalled()
+        expect(getContextManager).toHaveBeenCalledWith(browser)
+
+        // Reset the mock
+        vi.doUnmock('../../src/session/context.js')
     })
 })
