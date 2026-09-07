@@ -3,9 +3,10 @@ import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppete
 
 import CommandHandler from './commands.js'
 import type Auditor from './auditor.js'
-import { setUnsupportedCommand, getLighthouseDriver } from './utils.js'
+import { setUnsupportedCommand } from './utils.js'
 import { DEFAULT_THROTTLE_STATE, NETWORK_STATES } from './constants.js'
 import type { DevtoolsConfig, EnablePerformanceAuditsOptions, PWAAudits } from './types.js'
+import { Driver } from 'lighthouse/core/gather/driver.js'
 
 export default class DevToolsService implements Services.ServiceInstance {
     private _command: CommandHandler[] = []
@@ -148,9 +149,9 @@ export default class DevToolsService implements Services.ServiceInstance {
             }
 
             const session = await target.createCDPSession()
-            const driver = await getLighthouseDriver(session, target)
+            const driver = new Driver(page)
+            await driver.connect()
 
-            // TODO change legacy Driver for the new Driver implementation?
             const cmd = new CommandHandler(session, page, driver, this._options, browser)
             await cmd._initCommand()
             this._command.push(cmd)
