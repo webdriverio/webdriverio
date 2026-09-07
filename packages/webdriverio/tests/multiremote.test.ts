@@ -95,6 +95,7 @@ describe('Multi-Remote tests', () => {
     test('should be able to add a command to and element in multiremote', async () => {
         const browser = await multiremote(caps())
 
+        // @ts-expect-error untyped custom command
         browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.MultiRemoteBrowser) {
         // @ts-expect-error invalid params
             const size = await this.getSize()
@@ -114,6 +115,7 @@ describe('Multi-Remote tests', () => {
     test('should be able to overwrite command to and element in multiremote', async () => {
         const browser = await multiremote(caps())
 
+        // @ts-expect-error untyped custom command
         browser.overwriteCommand('getSize', async function (
             this: WebdriverIO.MultiRemoteBrowser,
             origCmd: any
