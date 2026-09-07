@@ -23,6 +23,20 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.31.7 (2026-09-07)
+
+#### :rocket: New Feature
+* `wdio-utils`, `webdriverio`
+  * [#15571](https://github.com/webdriverio/webdriverio/pull/15571) feat: Move select into BETA with env flag still ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :house: Internal
+* `wdio-browser-runner`, `wdio-mocha-framework`
+  * [#15566](https://github.com/webdriverio/webdriverio/pull/15566) chore(deps): Update to mocha 11 ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### Committers: 1
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+
 ## v9.31.6 (2026-09-06)
 
 #### :rocket: New Feature
