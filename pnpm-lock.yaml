@@ -1047,9 +1047,6 @@ importers:
 
   packages/wdio-lighthouse-service:
     dependencies:
-      '@babel/core':
-        specifier: ^7.29.7
-        version: 7.29.7
       '@tracerbench/trace-event':
         specifier: ^8.0.0
         version: 8.0.0
@@ -1087,9 +1084,6 @@ importers:
         specifier: workspace:*
         version: link:../webdriverio
     devDependencies:
-      '@types/babel__core':
-        specifier: ^7.1.19
-        version: 7.20.5
       '@types/istanbul-lib-coverage':
         specifier: ^2.0.6
         version: 2.0.6
