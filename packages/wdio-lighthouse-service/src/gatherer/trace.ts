@@ -1,7 +1,6 @@
 import { EventEmitter } from 'node:events'
 import { NetworkRecorder } from 'lighthouse/core/lib/network-recorder.js'
 import { NetworkMonitor } from 'lighthouse/core/gather/driver/network-monitor.js'
-import { ProtocolSession } from 'lighthouse/core/gather/session.js'
 import type { WaitOptions } from 'lighthouse/core/gather/driver/wait-for-condition.js'
 import { waitForFullyLoaded } from 'lighthouse/core/gather/driver/wait-for-condition.js'
 import logger from '@wdio/logger'
@@ -62,7 +61,7 @@ export default class TraceGatherer extends EventEmitter {
     private _pageUrl?: string
     private _networkStatusMonitor?: NetworkRecorder
     private _networkMonitor: NetworkMonitor
-    private _protocolSession: ProtocolSession
+    private _protocolSession: Driver['defaultSession']
     private _trace?: Trace
     private _traceStart?: number
     private _clickTraceTimeout?: NodeJS.Timeout
@@ -73,7 +72,7 @@ export default class TraceGatherer extends EventEmitter {
 
         this._networkStatusMonitor = new NetworkRecorder()
 
-        this._protocolSession = new ProtocolSession(_session)
+        this._protocolSession = this._driver.defaultSession
         this._networkMonitor = new NetworkMonitor(_driver.targetManager)
 
         NETWORK_RECORDER_EVENTS.forEach((method) => {
@@ -102,9 +101,6 @@ export default class TraceGatherer extends EventEmitter {
         NETWORK_RECORDER_EVENTS.forEach((method) => {
             this._session.on(method, this._networkListeners[method])
         })
-        await this._protocolSession.sendCommand('Network.enable')
-        this._networkMonitor.enable()
-        console.log('Network monitor enabled')
 
         this._traceStart = Date.now()
         console.log('Trace start time recorded:', this._traceStart)
