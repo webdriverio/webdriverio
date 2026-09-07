@@ -1,12 +1,13 @@
 import { EventEmitter } from 'node:events'
-import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder.js'
-import NetworkMonitor from 'lighthouse/lighthouse-core/gather/driver/network-monitor.js'
-import ProtocolSession from 'lighthouse/lighthouse-core/fraggle-rock/gather/session.js'
-import { waitForFullyLoaded } from 'lighthouse/lighthouse-core/gather/driver/wait-for-condition.js'
+import { NetworkRecorder } from 'lighthouse/core/lib/network-recorder.js'
+import { NetworkMonitor } from 'lighthouse/core/gather/driver/network-monitor.js'
+import { ProtocolSession } from 'lighthouse/core/gather/session.js'
+import type { WaitOptions } from 'lighthouse/core/gather/driver/wait-for-condition.js'
+import { waitForFullyLoaded } from 'lighthouse/core/gather/driver/wait-for-condition.js'
 import logger from '@wdio/logger'
 
 import type { Protocol } from 'devtools-protocol'
-import type { TraceEvent, TraceEventArgs } from '@tracerbench/trace-event'
+import type { TraceEvent, TraceEventArgs, TraceStreamJson } from '@tracerbench/trace-event'
 import type { HTTPRequest } from 'puppeteer-core/lib/esm/puppeteer/api/HTTPRequest.js'
 import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
 import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
@@ -18,7 +19,7 @@ import {
     CLICK_TRANSITION, NETWORK_RECORDER_EVENTS
 } from '../constants.js'
 import { isSupportedUrl } from '../utils.js'
-import type { GathererDriver } from '../types.js'
+import type { Driver } from 'lighthouse/core/legacy/gather/driver.js'
 
 const log = logger('@wdio/lighthouse-service:TraceGatherer')
 
@@ -59,19 +60,23 @@ export default class TraceGatherer extends EventEmitter {
     private _frameId?: string
     private _loaderId?: string
     private _pageUrl?: string
-    private _networkStatusMonitor: typeof NetworkRecorder
-    private _networkMonitor: typeof NetworkMonitor
-    private _protocolSession: typeof  ProtocolSession
+    private _networkStatusMonitor?: NetworkRecorder
+    private _networkMonitor: NetworkMonitor
+    private _protocolSession: ProtocolSession
     private _trace?: Trace
     private _traceStart?: number
     private _clickTraceTimeout?: NodeJS.Timeout
-    private _waitConditionPromises: Promise<void>[] = []
+    private _waitConditionPromises: Promise<{ timedOut: boolean }>[] = []
 
-    constructor (private _session: CDPSession, private _page: Page, private _driver: GathererDriver) {
+    constructor (private _session: CDPSession, private _page: Page, private _driver: Driver) {
         super()
 
+        this._networkStatusMonitor = new NetworkRecorder()
         NETWORK_RECORDER_EVENTS.forEach((method) => {
-            this._networkListeners[method] = (params) => this._networkStatusMonitor.dispatch({ method, params })
+            const networkStatusMonitor = this._networkStatusMonitor
+            if (networkStatusMonitor) {
+                this._networkListeners[method] = (params) => networkStatusMonitor.dispatch({ method, params })
+            }
         })
 
         this._protocolSession = new ProtocolSession(_session)
@@ -84,17 +89,31 @@ export default class TraceGatherer extends EventEmitter {
          */
         delete this._trace
 
+        if (!this._networkStatusMonitor) {
+            this._networkStatusMonitor = new NetworkRecorder()
+        }
         /**
          * register listener for network status monitoring
          */
-        this._networkStatusMonitor = new NetworkRecorder()
         NETWORK_RECORDER_EVENTS.forEach((method) => {
             this._session.on(method, this._networkListeners[method])
         })
 
         this._traceStart = Date.now()
         log.info(`Start tracing frame with url ${url}`)
-        await this._driver.beginTrace()
+        await this._protocolSession.sendCommand('Tracing.start', {
+            categories: [
+                '-*',
+                'devtools.timeline',
+                'v8.execute',
+                'disabled-by-default-devtools.timeline',
+                'disabled-by-default-devtools.timeline.frame',
+                'toplevel',
+                'blink.console',
+                'blink.user_timing',
+                'latencyInfo',
+            ].join(','),
+        })
 
         /**
          * if this tracing was started from a click transition
@@ -113,8 +132,17 @@ export default class TraceGatherer extends EventEmitter {
          */
         await this._page.evaluateOnNewDocument(registerPerformanceObserverInPage)
 
+        const waitOptions = {
+            maxWaitForLoadedMs: 1,
+            maxWaitForFcpMs: 1,
+            pauseAfterFcpMs: 1,
+            pauseAfterLoadMs: 1,
+            networkQuietThresholdMs: 1,
+            cpuQuietThresholdMs: 1,
+        } satisfies WaitOptions
+
         this._waitConditionPromises.push(
-            waitForFullyLoaded(this._protocolSession, this._networkMonitor, { timedOut: 1 })
+            waitForFullyLoaded(this._protocolSession, this._networkMonitor, waitOptions)
         )
     }
 
@@ -234,7 +262,10 @@ export default class TraceGatherer extends EventEmitter {
          * in case it fails, continue without capturing any data
          */
         try {
-            const traceEvents = await this._driver.endTrace()
+
+            // TODO: to review
+            const traceEvents = {} as TraceStreamJson
+            await this._protocolSession.sendCommand('Tracing.end')
 
             /**
              * modify pid of renderer frame to be the same as where tracing was started

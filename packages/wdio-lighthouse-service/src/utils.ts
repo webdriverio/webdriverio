@@ -1,11 +1,10 @@
 import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
 import type { Target } from 'puppeteer-core/lib/esm/puppeteer/api/Target.js'
-import Driver from 'lighthouse/lighthouse-core/gather/driver.js'
+import { Driver } from 'lighthouse/core/gather/driver.js'
 
 import ChromeProtocol from './lighthouse/cri.js'
 import { IGNORED_URLS, UNSUPPORTED_ERROR_MESSAGE } from './constants.js'
 import type { RequestPayload } from './handler/network.js'
-import type { GathererDriver } from './types.js'
 
 const CUSTOM_COMMANDS = [
     'getMetrics',
@@ -48,7 +47,7 @@ export function isSupportedUrl (url: string) {
  * Either request the page list directly from the browser or if Selenium
  * or Selenoid is used connect to a target manually
  */
-export async function getLighthouseDriver (session: CDPSession, target: Target): Promise<GathererDriver> {
+export async function getLighthouseDriver (session: CDPSession, target: Target): Promise<Driver> {
     const connection = session.connection()
 
     if (!connection) {
@@ -56,13 +55,14 @@ export async function getLighthouseDriver (session: CDPSession, target: Target):
     }
 
     const cUrl = new URL(connection.url())
-    const cdpConnection = new ChromeProtocol(cUrl.port, cUrl.hostname)
+    const cdpConnection = new ChromeProtocol(Number(cUrl.port), cUrl.hostname)
 
     /**
      * only create a new DevTools session if our WebSocket url doesn't already indicate
      * that we are using one
      */
     if (!cUrl.pathname.startsWith('/devtools/browser')) {
+        // @ts-expect-error -- TODO to review
         await cdpConnection._connectToSocket({
             webSocketDebuggerUrl: connection.url(),
             id: (await target.asPage()).mainFrame()._id
@@ -76,7 +76,9 @@ export async function getLighthouseDriver (session: CDPSession, target: Target):
         return new Driver(cdpConnection)
     }
 
+    // @ts-expect-error -- TODO to review
     const list = await cdpConnection._runJsonCommand('list')
+    // @ts-expect-error -- TODO to review
     await cdpConnection._connectToSocket(list[0])
     return new Driver(cdpConnection)
 }

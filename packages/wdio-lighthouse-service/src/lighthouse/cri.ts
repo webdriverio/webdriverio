@@ -1,7 +1,7 @@
-import CriConnection from 'lighthouse/lighthouse-core/gather/connections/cri.js'
+import { CriConnection } from 'lighthouse/core/legacy/gather/connections/cri.js'
 
 const DEFAULT_HOSTNAME = 'localhost'
-const DEFAULT_PORT = '9222'
+const DEFAULT_PORT = 9222
 
 /**
  * this class got patched to enable connecting to a remote path like
@@ -17,7 +17,7 @@ export default class ChromeProtocolPatched extends CriConnection {
      * @param {string=} hostname Optional hostname. Defaults to localhost.
      * @constructor
      */
-    constructor(port: string = DEFAULT_PORT, hostname: string = DEFAULT_HOSTNAME) {
+    constructor(port: number = DEFAULT_PORT, hostname: string = DEFAULT_HOSTNAME) {
         super(port, hostname)
     }
 
@@ -29,6 +29,7 @@ export default class ChromeProtocolPatched extends CriConnection {
      * force every command to be send with the given session id
      */
     sendCommand(method: string, sessionId?: string, ...paramArgs: unknown[]) {
-        return super.sendCommand(method, sessionId || this._sessionId, ...paramArgs)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return super.sendCommand(method as any, sessionId || this._sessionId, ...paramArgs)
     }
 }
