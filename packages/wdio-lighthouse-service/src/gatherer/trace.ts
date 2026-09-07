@@ -80,7 +80,7 @@ export default class TraceGatherer extends EventEmitter {
         })
 
         this._protocolSession = new ProtocolSession(_session)
-        this._networkMonitor = new NetworkMonitor(_session)
+        this._networkMonitor = new NetworkMonitor(_driver.targetManager)
     }
 
     async startTracing (url: string) {
