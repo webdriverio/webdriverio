@@ -192,17 +192,20 @@ describe('ContextManager', () => {
         expect(manager.getCurrentWindowHandle()).toBeUndefined()
     })
 
-    it('switches to the top-level context when a nested child frame is destroyed (regression test)', async () => {
+    it('switches to the top-level context when a nested child frame is destroyed and child nodes omit parent', async () => {
         const wid = process.env.WDIO_UNIT_TESTS
         delete process.env.WDIO_UNIT_TESTS
         const stub = createBrowserStub({ isBidi: true } as any)
         const browser = stub.browser
         ;(browser as any).browsingContextGetTree.mockResolvedValue({
             contexts: [{
+                context: 'other-window', parent: null, children: [], url: '',
+                clientWindow: 'window-2', originalOpener: null, userContext: 'default'
+            }, {
                 context: 'context-1', parent: null, url: '', clientWindow: 'window-1',
                 originalOpener: null, userContext: 'default',
                 children: [{
-                    context: 'frame-parent', parent: 'context-1', url: '', clientWindow: 'window-1',
+                    context: 'frame-parent', url: '', clientWindow: 'window-1',
                     originalOpener: null, userContext: 'default', children: null
                 }]
             }]
