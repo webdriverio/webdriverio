@@ -14,7 +14,6 @@ import type {
     DevtoolsConfig,
     EnablePerformanceAuditsOptions,
     FormFactor,
-    GathererDriver,
     PWAAudits
 } from './types.js'
 import type { CDPSessionOnMessageObject } from './gatherer/devtools.js'
@@ -22,6 +21,7 @@ import DevtoolsGatherer from './gatherer/devtools.js'
 import Auditor from './auditor.js'
 import PWAGatherer from './gatherer/pwa.js'
 import TraceGatherer from './gatherer/trace.js'
+import type { Driver } from 'lighthouse/core/gather/driver.js'
 
 const log = logger('@wdio/lighthouse-service:CommandHandler')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
@@ -56,7 +56,7 @@ export default class CommandHandler {
     constructor (
         private _session: CDPSession,
         private _page: Page,
-        private _driver: GathererDriver,
+        private _driver: Driver,
         private _options: DevtoolsConfig,
         private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {
@@ -95,6 +95,7 @@ export default class CommandHandler {
         path,
         screenshots = true
     }: TracingOptions = {}) {
+        console.log('startTracing called with options:', { categories, path, screenshots })
         if (this._isTracing) {
             throw new Error('browser is already being traced')
         }
@@ -108,6 +109,7 @@ export default class CommandHandler {
      * Stop tracing the browser.
      */
     async endTracing () {
+        console.log('endTracing called, isTracing:', this._isTracing)
         if (!this._isTracing) {
             throw new Error('No tracing was initiated, call `browser.startTracing()` first')
         }
@@ -180,6 +182,7 @@ export default class CommandHandler {
         cpuThrottling: number = DEFAULT_THROTTLE_STATE.cpuThrottling,
         cacheEnabled: boolean = DEFAULT_THROTTLE_STATE.cacheEnabled
     ) {
+        console.log('Setting throttling profile with', { networkThrottling, cpuThrottling, cacheEnabled })
         if (!this._page || !this._session) {
             throw new Error('No page or session has been captured yet')
         }
@@ -196,6 +199,7 @@ export default class CommandHandler {
     }
 
     private _propagateWSEvents (data: unknown) {
+        console.log('Propagating WS event with data:', data)
         if (!isCDPSessionOnMessageObject(data)) {
             return
         }
@@ -214,6 +218,7 @@ export default class CommandHandler {
     }
 
     async _initCommand () {
+        console.log('Initializing command handler')
         /**
          * enable domains for client
          */
@@ -225,6 +230,7 @@ export default class CommandHandler {
     }
 
     _beforeCmd (commandName: string, params: unknown[]) {
+        console.log(`Before command: ${commandName} with params:`, params)
         const isCommandNavigation = ['url', 'navigateTo'].some(cmdName => cmdName === commandName)
         if (!this._shouldRunPerformanceAudits || !this._traceGatherer || this._traceGatherer.isTracing || !TRACE_COMMANDS.includes(commandName)) {
             return

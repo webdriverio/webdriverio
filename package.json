@@ -155,7 +155,6 @@
       "@cucumber/cucumber@10.9.0>tmp": "0.2.7",
       "@percy/appium-app@2.1.0>tmp": "0.2.7",
       "webdriver@9.16.2>undici": "6.27.0",
-      "lighthouse>ws": "7.5.11",
       "webdriver@9.16.2>ws": "8.21.0",
       "puppeteer-core>ws": "8.21.0",
       "conventional-changelog-writer@6.0.1>handlebars": "4.7.9",

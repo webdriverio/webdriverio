@@ -1,16 +1,16 @@
-import Diagnostics from 'lighthouse/lighthouse-core/audits/diagnostics.js'
-import MainThreadWorkBreakdown from 'lighthouse/lighthouse-core/audits/mainthread-work-breakdown.js'
-import Metrics from 'lighthouse/lighthouse-core/audits/metrics.js'
-import ServerResponseTime from 'lighthouse/lighthouse-core/audits/server-response-time.js'
-import CumulativeLayoutShift from 'lighthouse/lighthouse-core/audits/metrics/cumulative-layout-shift.js'
-import FirstContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/first-contentful-paint.js'
-import LargestContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/largest-contentful-paint.js'
-import SpeedIndex from 'lighthouse/lighthouse-core/audits/metrics/speed-index.js'
-import InteractiveMetric from 'lighthouse/lighthouse-core/audits/metrics/interactive.js'
-import TotalBlockingTime from 'lighthouse/lighthouse-core/audits/metrics/total-blocking-time.js'
+import Diagnostics from 'lighthouse/core/audits/diagnostics.js'
+import MainThreadWorkBreakdown from 'lighthouse/core/audits/mainthread-work-breakdown.js'
+import Metrics from 'lighthouse/core/audits/metrics.js'
+import ServerResponseTime from 'lighthouse/core/audits/server-response-time.js'
+import CumulativeLayoutShift from 'lighthouse/core/audits/metrics/cumulative-layout-shift.js'
+import FirstContentfulPaint from 'lighthouse/core/audits/metrics/first-contentful-paint.js'
+import LargestContentfulPaint from 'lighthouse/core/audits/metrics/largest-contentful-paint.js'
+import SpeedIndex from 'lighthouse/core/audits/metrics/speed-index.js'
+import InteractiveMetric from 'lighthouse/core/audits/metrics/interactive.js'
+import TotalBlockingTime from 'lighthouse/core/audits/metrics/total-blocking-time.js'
 
-import ReportScoring from 'lighthouse/lighthouse-core/scoring.js'
-import defaultConfig from 'lighthouse/lighthouse-core/config/default-config.js'
+import { ReportScoring } from 'lighthouse/core/scoring.js'
+import defaultConfig from 'lighthouse/core/config/default-config.js'
 import logger from '@wdio/logger'
 import type { CustomInstanceCommands } from 'webdriverio'
 
@@ -152,10 +152,10 @@ export default class Auditor {
             return null
         }
 
-        const scores = defaultConfig.categories.performance.auditRefs.filter((auditRef: AuditRef) => auditRef.weight).map((auditRef: AuditRef) => ({
+        const scores = defaultConfig.categories?.performance.auditRefs.filter((auditRef: AuditRef) => auditRef.weight).map((auditRef: AuditRef) => ({
             score: auditResults[auditRef.id].score,
             weight: auditRef.weight,
-        }))
+        })) ?? []
         return ReportScoring.arithmeticMean(scores)
     }
 
