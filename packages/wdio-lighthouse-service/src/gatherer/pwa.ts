@@ -15,7 +15,7 @@ import collectMetaElements from '../scripts/collectMetaElements.js'
 import { NETWORK_RECORDER_EVENTS } from '../constants.js'
 import type { NetworkRequest } from 'lighthouse/core/lib/network-request.js'
 import type { ArbitraryEqualityMap, BaseArtifacts, Config, DevtoolsLog } from 'lighthouse/types/lh.js'
-import type { Driver } from 'lighthouse/core/legacy/gather/driver.js'
+import type { Driver } from 'lighthouse/core/gather/driver.js'
 
 export default class PWAGatherer {
     private _frGatherer: FRGatherer
@@ -78,7 +78,7 @@ export default class PWAGatherer {
                 useIsolation: true,
                 deps: [pageFunctions.getElementsInDocument],
             }),
-            ViewportDimensions: await viewportDimensions.afterPass(passContext, loadData),
+            ViewportDimensions: await viewportDimensions.getArtifact(passContext),
             ServiceWorker: { versions, registrations },
             LinkElements: await linkElements.afterPass(passContext, loadData)
         }

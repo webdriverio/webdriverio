@@ -21,7 +21,7 @@ import DevtoolsGatherer from './gatherer/devtools.js'
 import Auditor from './auditor.js'
 import PWAGatherer from './gatherer/pwa.js'
 import TraceGatherer from './gatherer/trace.js'
-import type { Driver } from 'lighthouse/core/legacy/gather/driver.js'
+import type { Driver } from 'lighthouse/core/gather/driver.js'
 
 const log = logger('@wdio/lighthouse-service:CommandHandler')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']

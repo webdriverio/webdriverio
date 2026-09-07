@@ -19,7 +19,7 @@ import {
     CLICK_TRANSITION, NETWORK_RECORDER_EVENTS
 } from '../constants.js'
 import { isSupportedUrl } from '../utils.js'
-import type { Driver } from 'lighthouse/core/legacy/gather/driver.js'
+import type { Driver } from 'lighthouse/core/gather/driver.js'
 
 const log = logger('@wdio/lighthouse-service:TraceGatherer')
 
