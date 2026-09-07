@@ -315,7 +315,7 @@ describe('BaseReporter', () => {
         await reporter.initReporters()
 
         // @ts-ignore test reporter param
-        setTimeout(() => (reporter['_reporters'][0].inSync = true), 112)
+        setTimeout(() => (reporter['_reporters'][0].inSync = true), 500)
         await expect(reporter.waitForSync())
             .rejects.toEqual(new Error('Some reporters are still unsynced: CustomReporter'))
     })
