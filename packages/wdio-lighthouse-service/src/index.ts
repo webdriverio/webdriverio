@@ -82,6 +82,7 @@ export default class DevToolsService implements Services.ServiceInstance {
         cpuThrottling: number = DEFAULT_THROTTLE_STATE.cpuThrottling,
         cacheEnabled: boolean = DEFAULT_THROTTLE_STATE.cacheEnabled
     ) {
+        console.log('Setting throttling profile with', { networkThrottling, cpuThrottling, cacheEnabled })
         if (this._command.length === 1) {
             this._command[0].setThrottlingProfile(networkThrottling, cpuThrottling, cacheEnabled)
         } else {

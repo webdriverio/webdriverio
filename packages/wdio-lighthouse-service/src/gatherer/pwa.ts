@@ -47,7 +47,18 @@ export default class PWAGatherer {
     }
 
     async gatherData () {
+        console.log('gatherData called for page:', await this._page?.url())
         const pageUrl = await this._page?.url()
+        // const passContext = {
+        //     gatherMode: 'navigation' as const,
+        //     driver: this._driver,
+        //     page: this._page,
+        //     settings,
+        //     baseArtifacts,
+        //     computedCache: new Map<string, ArbitraryEqualityMap>(),
+        //     dependencies: { DevtoolsLog: devtoolsLog },
+        // }
+
         const passContext = {
             url: pageUrl,
             driver: this._driver,

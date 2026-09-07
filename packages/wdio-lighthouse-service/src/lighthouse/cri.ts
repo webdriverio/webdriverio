@@ -18,6 +18,7 @@ export default class ChromeProtocolPatched extends CriConnection {
      * @constructor
      */
     constructor(port: number = DEFAULT_PORT, hostname: string = DEFAULT_HOSTNAME) {
+        console.trace('Creating ChromeProtocolPatched instance with port:', port, 'and hostname:', hostname)
         super(port, hostname)
     }
 
@@ -29,6 +30,7 @@ export default class ChromeProtocolPatched extends CriConnection {
      * force every command to be send with the given session id
      */
     sendCommand(method: string, sessionId?: string, ...paramArgs: unknown[]) {
+        console.log('Sending command:', method, 'with sessionId:', sessionId || this._sessionId, 'and params:', paramArgs)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return super.sendCommand(method as any, sessionId || this._sessionId, ...paramArgs)
     }

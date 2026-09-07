@@ -72,18 +72,22 @@ export default class TraceGatherer extends EventEmitter {
         super()
 
         this._networkStatusMonitor = new NetworkRecorder()
+
+        this._protocolSession = new ProtocolSession(_session)
+        this._networkMonitor = new NetworkMonitor(_driver.targetManager)
+
         NETWORK_RECORDER_EVENTS.forEach((method) => {
             const networkStatusMonitor = this._networkStatusMonitor
             if (networkStatusMonitor) {
+                console.log('Registering network listener for method:', method)
                 this._networkListeners[method] = (params) => networkStatusMonitor.dispatch({ method, params })
             }
         })
 
-        this._protocolSession = new ProtocolSession(_session)
-        this._networkMonitor = new NetworkMonitor(_driver.targetManager)
     }
 
     async startTracing (url: string) {
+        console.log('Starting tracing for URL:', url)
         /**
          * delete old trace
          */
@@ -98,9 +102,12 @@ export default class TraceGatherer extends EventEmitter {
         NETWORK_RECORDER_EVENTS.forEach((method) => {
             this._session.on(method, this._networkListeners[method])
         })
+        await this._protocolSession.sendCommand('Network.enable')
+        this._networkMonitor.enable()
+        console.log('Network monitor enabled')
 
         this._traceStart = Date.now()
-        log.info(`Start tracing frame with url ${url}`)
+        console.log('Trace start time recorded:', this._traceStart)
         await this._protocolSession.sendCommand('Tracing.start', {
             categories: [
                 '-*',
@@ -114,7 +121,7 @@ export default class TraceGatherer extends EventEmitter {
                 'latencyInfo',
             ].join(','),
         })
-
+        console.log('Tracing started for URL:', url)
         /**
          * if this tracing was started from a click transition
          * then we want to discard page trace if no load detected
@@ -127,29 +134,34 @@ export default class TraceGatherer extends EventEmitter {
             }, FRAME_LOAD_START_TIMEOUT)
         }
 
+        console.log('Setting up performance observer in page')
         /**
          * register performance observer
          */
         await this._page.evaluateOnNewDocument(registerPerformanceObserverInPage)
 
+        console.log('Performance observer registered in page')
         const waitOptions = {
-            maxWaitForLoadedMs: 1,
-            maxWaitForFcpMs: 1,
-            pauseAfterFcpMs: 1,
-            pauseAfterLoadMs: 1,
-            networkQuietThresholdMs: 1,
-            cpuQuietThresholdMs: 1,
+            maxWaitForLoadedMs: 10000,
+            maxWaitForFcpMs: 10000,
+            pauseAfterFcpMs: 500,
+            pauseAfterLoadMs: 500,
+            networkQuietThresholdMs: 500,
+            cpuQuietThresholdMs: 500,
         } satisfies WaitOptions
 
+        console.log('Waiting for page to be fully loaded with options:', waitOptions)
         this._waitConditionPromises.push(
             waitForFullyLoaded(this._protocolSession, this._networkMonitor, waitOptions)
         )
+        console.log('Wait condition promise added for page load')
     }
 
     /**
      * store frame id of frames that are being traced
      */
     async onFrameNavigated (msgObj: Protocol.Page.FrameNavigatedEvent) {
+        console.log('onFrameNavigated called', { isTracing: this.isTracing, frameUrl: msgObj.frame.url })
         if (!this.isTracing) {
             return
         }
@@ -208,6 +220,7 @@ export default class TraceGatherer extends EventEmitter {
      * metrics and timing
      */
     async onLoadEventFired () {
+        console.log('onLoadEventFired called', { isTracing: this.isTracing, pageUrl: this._pageUrl })
         if (!this.isTracing) {
             return
         }
@@ -216,6 +229,7 @@ export default class TraceGatherer extends EventEmitter {
          * Ensure that page is fully loaded and all metrics can be calculated.
          */
         const loadPromise = Promise.all(this._waitConditionPromises).then(() => async () => {
+            console.log('All wait condition promises resolved for page load')
             /**
              * ensure that we trace at least for 5s to ensure that we can
              * calculate "interactive"
@@ -235,6 +249,7 @@ export default class TraceGatherer extends EventEmitter {
         ])
 
         this._waitConditionPromises = []
+        console.log('Wait condition promises cleared for page load')
         return cleanupFn()
     }
 
@@ -254,7 +269,9 @@ export default class TraceGatherer extends EventEmitter {
      * once tracing has finished capture trace logs into memory
      */
     async completeTracing () {
+        console.log('completeTracing called for frame:', this._frameId)
         const traceDuration = Date.now() - (this._traceStart || 0)
+        console.log(`Tracing completed after ${traceDuration}ms, capturing performance data for frame ${this._frameId}`)
         log.info(`Tracing completed after ${traceDuration}ms, capturing performance data for frame ${this._frameId}`)
 
         /**
@@ -309,6 +326,7 @@ export default class TraceGatherer extends EventEmitter {
      * clear tracing states and emit tracingFinished
      */
     finishTracing () {
+        console.log(`finishTracing called for frame: ${this._frameId}`)
         log.info(`Tracing for ${this._frameId} completed`)
         this._pageLoadDetected = false
 
@@ -329,6 +347,7 @@ export default class TraceGatherer extends EventEmitter {
     }
 
     waitForMaxTimeout (maxWaitForLoadedMs = MAX_TRACE_WAIT_TIME) {
+        console.log(`waitForMaxTimeout called with maxWaitForLoadedMs: ${maxWaitForLoadedMs} for frame: ${this._frameId}`)
         return new Promise(
             (resolve) => setTimeout(resolve, maxWaitForLoadedMs)
         ).then(() => async () => {
