@@ -1,6 +1,6 @@
 import { ConfigParser } from '@wdio/config/node'
 import logger from '@wdio/logger'
-import fs from 'node:fs'
+import fs from 'node:fs/promises'
 import path from 'node:path'
 import type { CliFlags } from '../commands/flags.js'
 import type { DeepAgentProvider } from '../model/schema.js'
@@ -39,14 +39,19 @@ export const DEFAULT_CONFIG_FILENAMES = ['wdio.conf.ts', 'wdio.conf.js', 'wdio.c
  * `--config`. Mirrors what `wdio run` would load; returns `undefined` when
  * no config exists (the `deepagent` block is optional, so this is fine).
  */
-export function findDefaultConfigPath(cwd = process.cwd()): string | undefined {
-    for (const name of DEFAULT_CONFIG_FILENAMES) {
-        const candidate = path.join(cwd, name)
-        if (fs.existsSync(candidate)) {
-            return candidate
-        }
-    }
-    return undefined
+export async function findDefaultConfigPath(cwd = process.cwd()): Promise<string | undefined> {
+    const probed = await Promise.all(
+        DEFAULT_CONFIG_FILENAMES.map(async (name) => {
+            const candidate = path.join(cwd, name)
+            try {
+                await fs.access(candidate)
+                return candidate
+            } catch {
+                return undefined
+            }
+        }),
+    )
+    return probed.find((candidate) => candidate !== undefined)
 }
 
 /** Parses a `provider:model` string into `{ provider, model }`. */
@@ -111,9 +116,11 @@ export async function loadDeepAgentConfig(
     const env = options.env ?? process.env
     const cwd = options.cwd ?? process.cwd()
 
-    // 1. file block (optional, default: wdio.conf.* in cwd)
+    // 1. file block (optional, default: wdio.conf.* in cwd).
+    // No config path anywhere (no --config, no default file) means no file
+    // to load — skip straight to cli/env/defaults with no warn.
     let fileBlock: Record<string, unknown> | undefined
-    const configPath = options.configPath ?? findDefaultConfigPath(cwd)
+    const configPath = options.configPath ?? await findDefaultConfigPath(cwd)
     if (configPath) {
         try {
             const { deepagent } = await loadProjectConfig(configPath)
@@ -131,14 +138,18 @@ export async function loadDeepAgentConfig(
 
     // 3. merge, lowest → highest precedence
     const modelStr = options.cli?.model ?? envModel
-    const merged: Record<string, unknown> = {
-        ...(fileBlock ?? {}),
-        ...(envHeal ? { heal: envHeal } : {}),
-        ...(modelStr
-            ? { llm: mergeModelOverride(fileBlock?.llm as Record<string, unknown> | undefined, splitModelString(modelStr)) }
-            : {}),
-        ...(options.cli?.heal ? { heal: options.cli.heal } : {}),
-        ...(options.cli?.traceDir ? { traceDir: options.cli.traceDir } : {}),
+    const merged: Record<string, unknown> = { ...(fileBlock ?? {}) }
+    if (envHeal) {
+        merged.heal = envHeal
+    }
+    if (modelStr) {
+        merged.llm = mergeModelOverride(fileBlock?.llm as Record<string, unknown> | undefined, splitModelString(modelStr))
+    }
+    if (options.cli?.heal) {
+        merged.heal = options.cli.heal
+    }
+    if (options.cli?.traceDir) {
+        merged.traceDir = options.cli.traceDir
     }
 
     if (!merged.llm && !options.modelOptional) {

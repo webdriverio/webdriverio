@@ -18,8 +18,8 @@ const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtur
 const MCP_SERVER = path.join(FIXTURES, 'mcp-server.mjs')
 
 describe('resolveLocalMcpBin / resolveMcpSpawn', () => {
-    it('resolves the locally installed @wdio/mcp binary', () => {
-        const bin = resolveLocalMcpBin()
+    it('resolves the locally installed @wdio/mcp binary', async () => {
+        const bin = await resolveLocalMcpBin()
         expect(bin).toBeDefined()
         expect(fs.existsSync(bin!)).toBe(true)
         // must point into the @wdio/mcp package, not npx
@@ -27,20 +27,20 @@ describe('resolveLocalMcpBin / resolveMcpSpawn', () => {
         expect(bin).not.toContain('npx')
     })
 
-    it('prefers the local binary over the npx default and drops the npx args', () => {
-        const { command, args } = resolveMcpSpawn({ command: 'npx', args: ['-y', '@wdio/mcp'] })
+    it('prefers the local binary over the npx default and drops the npx args', async () => {
+        const { command, args } = await resolveMcpSpawn({ command: 'npx', args: ['-y', '@wdio/mcp'] })
         expect(command).not.toBe('npx')
         expect(args).toEqual([])
     })
 
-    it('honors an explicit user-provided command as-is', () => {
-        const { command, args } = resolveMcpSpawn({ command: '/custom/bin', args: ['--flag'] })
+    it('honors an explicit user-provided command as-is', async () => {
+        const { command, args } = await resolveMcpSpawn({ command: '/custom/bin', args: ['--flag'] })
         expect(command).toBe('/custom/bin')
         expect(args).toEqual(['--flag'])
     })
 
-    it('keeps npx + custom args (non-default) instead of swapping to the local bin', () => {
-        const { command, args } = resolveMcpSpawn({ command: 'npx', args: ['--flag'] })
+    it('keeps npx + custom args (non-default) instead of swapping to the local bin', async () => {
+        const { command, args } = await resolveMcpSpawn({ command: 'npx', args: ['--flag'] })
         expect(command).toBe('npx')
         expect(args).toEqual(['--flag'])
     })
@@ -81,12 +81,12 @@ describe('WdioMcpClient (integration over stdio)', () => {
 
 describe('chrome ownership ancestry', () => {
     // /proc ancestry is Linux-only; macOS/Windows skip the sweep entirely
-    it.skipIf(process.platform === 'win32' || process.platform === 'darwin')('walkAncestry finds the current process under init', () => {
-        expect(walkAncestry(process.pid, 1).descendant).toBe(true)
+    it.skipIf(process.platform === 'win32' || process.platform === 'darwin')('walkAncestry finds the current process under init', async () => {
+        expect((await walkAncestry(process.pid, 1)).descendant).toBe(true)
     })
 
-    it.skipIf(process.platform === 'win32' || process.platform === 'darwin')('walkAncestry rejects a non-ancestor', () => {
-        expect(walkAncestry(1, process.pid).descendant).toBe(false)
+    it.skipIf(process.platform === 'win32' || process.platform === 'darwin')('walkAncestry rejects a non-ancestor', async () => {
+        expect((await walkAncestry(1, process.pid)).descendant).toBe(false)
     })
 })
 

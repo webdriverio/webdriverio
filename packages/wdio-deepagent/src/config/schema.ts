@@ -32,7 +32,7 @@ export const DeepAgentConfigSchema = z.object({
      * Healing policy for `diagnose`:
      * - `ask` (default): agent edits specs/page objects, every write is
      *   gated by human approval (interrupt_on)
-     * - `propose`: filesystem is read-only; agent emits diffs only
+     * - `propose`: no agent runs; diagnose ingests the trace and reports reproduce/diff only
      * - `auto`: unattended CI healing; specs/page objects only, never config
      */
     heal: HealModeSchema.default('ask'),

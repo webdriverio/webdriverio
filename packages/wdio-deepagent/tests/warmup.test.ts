@@ -6,24 +6,12 @@ import { warmupModel, WARMUP_TIMEOUT_MS } from '../src/commands/warmup.js'
 const PROBE = 'Warmup probe — reply with a single dot: ready'
 
 describe('warmupModel', () => {
-    it('binds the tool schema and invokes the bound model with the probe prompt', async () => {
+    it('invokes the model directly with the probe prompt (unbound)', async () => {
         const tool = { name: 't', description: 'd' } as unknown as StructuredToolInterface
-        const invoke = vi.fn().mockResolvedValue(undefined)
-        const bindTools = vi.fn().mockReturnValue({ invoke })
-        const model = { bindTools, invoke: vi.fn() } as unknown as BaseChatModel
-
-        await warmupModel(model, [tool])
-
-        expect(bindTools).toHaveBeenCalledWith([tool])
-        expect(invoke).toHaveBeenCalledWith(PROBE, undefined)
-        expect(model.invoke).not.toHaveBeenCalled()
-    })
-
-    it('invokes the model directly when bindTools is unavailable', async () => {
         const invoke = vi.fn().mockResolvedValue(undefined)
         const model = { invoke } as unknown as BaseChatModel
 
-        await warmupModel(model, [])
+        await warmupModel(model, [tool])
 
         expect(invoke).toHaveBeenCalledWith(PROBE, undefined)
     })

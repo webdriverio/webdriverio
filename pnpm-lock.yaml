@@ -997,6 +997,9 @@ importers:
       deepagents:
         specifier: ^1.12.2
         version: 1.12.2(@langchain/core@1.2.5(openai@6.49.0(ws@8.21.1)(zod@4.4.3))(ws@8.21.1))(@langchain/langgraph-checkpoint@1.1.3(@langchain/core@1.2.5(openai@6.49.0(ws@8.21.1)(zod@4.4.3))(ws@8.21.1)))(@langchain/langgraph-sdk@1.9.28(@langchain/core@1.2.5(openai@6.49.0(ws@8.21.1)(zod@4.4.3))(ws@8.21.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(svelte@5.57.0(@typescript-eslint/types@8.56.1))(vue@3.5.29(typescript@5.9.3)))(@langchain/langgraph@1.4.9(@langchain/core@1.2.5(openai@6.49.0(ws@8.21.1)(zod@4.4.3))(ws@8.21.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(svelte@5.57.0(@typescript-eslint/types@8.56.1))(vue@3.5.29(typescript@5.9.3))(zod@4.4.3))(langchain@1.5.5(@langchain/core@1.2.5(openai@6.49.0(ws@8.21.1)(zod@4.4.3))(ws@8.21.1))(openai@6.49.0(ws@8.21.1)(zod@4.4.3))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(svelte@5.57.0(@typescript-eslint/types@8.56.1))(vue@3.5.29(typescript@5.9.3))(ws@8.21.1))(langsmith@0.8.9(openai@6.49.0(ws@8.21.1)(zod@4.4.3))(ws@8.21.1))
+      diff:
+        specifier: ^8.0.3
+        version: 8.0.3
       ink:
         specifier: ^5.2.1
         version: 5.2.1(@types/react@18.3.31)(react@18.3.1)
@@ -1009,6 +1012,9 @@ importers:
       react:
         specifier: ^18.3.1
         version: 18.3.1
+      yargs:
+        specifier: ^17.7.2
+        version: 17.7.3
       zod:
         specifier: ^4.4.3
         version: 4.4.3
@@ -1028,6 +1034,9 @@ importers:
       '@types/react':
         specifier: ^18.3.18
         version: 18.3.31
+      '@types/yargs':
+        specifier: ^17.0.24
+        version: 17.0.35
       ink-testing-library:
         specifier: ^4.0.0
         version: 4.0.0(@types/react@18.3.31)
@@ -7778,10 +7787,6 @@ packages:
   ansi-regex@5.0.1:
     resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
     engines: {node: '>=8'}
-
-  ansi-regex@6.1.0:
-    resolution: {integrity: sha512-7HSX4QQb4CspciLpVFwyRe79O3xsIZDDLER21kERQ71oaPodF8jL725AgJMFAYbooIqolJoRLuM81SpeUkpkvA==}
-    engines: {node: '>=12'}
 
   ansi-regex@6.2.2:
     resolution: {integrity: sha512-Bq3SmSpyFHaWjPk8If9yc6svM8c56dB5BAtW4Qbw5jHTwwXXcTLoRMkpDJp6VL0XzlWaCHTXrkFURMYmD0sLqg==}
@@ -21641,7 +21646,7 @@ snapshots:
       proxy-agent: 6.5.0
       semver: 7.7.4
       tar-fs: 3.1.1
-      yargs: 17.7.2
+      yargs: 17.7.3
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
@@ -24139,8 +24144,6 @@ snapshots:
   ansi-regex@4.1.1: {}
 
   ansi-regex@5.0.1: {}
-
-  ansi-regex@6.1.0: {}
 
   ansi-regex@6.2.2: {}
 
@@ -32671,7 +32674,7 @@ snapshots:
       hash.js: 1.1.7
       query-string: 7.1.3
       tunnel: 0.0.6
-      yargs: 17.7.2
+      yargs: 17.7.3
 
   sax@1.4.1: {}
 
@@ -33320,7 +33323,7 @@ snapshots:
 
   strip-ansi@7.1.0:
     dependencies:
-      ansi-regex: 6.1.0
+      ansi-regex: 6.2.2
 
   strip-ansi@7.1.2:
     dependencies:

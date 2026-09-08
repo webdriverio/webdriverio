@@ -1,11 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
-import {
-    getPendingApproval,
-    rejectPendingApprovals,
-    requestApproval,
-    submitApproval,
-    subscribeApproval,
-} from '../src/commands/ui/approvalBus.js'
+import { createApprovalQueue } from '../src/commands/ui/approvalBus.js'
+
+const { getPendingApproval, rejectPendingApprovals, requestApproval, submitApproval, subscribeApproval } = createApprovalQueue()
 
 const emptyRequest = { actionRequests: [] }
 

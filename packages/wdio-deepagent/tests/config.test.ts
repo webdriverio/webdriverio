@@ -178,6 +178,16 @@ describe('loadDeepAgentConfig', () => {
             .rejects.toThrow(/provider:model/)
     })
 
+    it('skips the config file entirely when CLI provides the model and no file exists', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-nocfg-'))
+        try {
+            const cfg = await loadDeepAgentConfig({ cwd: dir, env: {}, cli: { model: 'openai:gpt-5.5' } })
+            expect(cfg.llm).toMatchObject({ provider: 'openai', model: 'gpt-5.5' })
+        } finally {
+            await fs.rm(dir, { recursive: true, force: true })
+        }
+    })
+
     it('tolerates an unreadable config path (falls back to env/defaults)', async () => {
         const cfg = await loadDeepAgentConfig({
             configPath: '/nonexistent/wdio.conf.ts',
@@ -193,7 +203,7 @@ describe('findDefaultConfigPath', () => {
         const conf = path.join(dir, 'wdio.conf.ts')
         await fs.writeFile(conf, 'export const config = {}')
         try {
-            expect(findDefaultConfigPath(dir)).toBe(conf)
+            await expect(findDefaultConfigPath(dir)).resolves.toBe(conf)
         } finally {
             await fs.rm(dir, { recursive: true, force: true })
         }
@@ -204,7 +214,7 @@ describe('findDefaultConfigPath', () => {
         const conf = path.join(dir, 'wdio.conf.cjs')
         await fs.writeFile(conf, 'exports.config = {}')
         try {
-            expect(findDefaultConfigPath(dir)).toBe(conf)
+            await expect(findDefaultConfigPath(dir)).resolves.toBe(conf)
         } finally {
             await fs.rm(dir, { recursive: true, force: true })
         }
@@ -213,7 +223,7 @@ describe('findDefaultConfigPath', () => {
     it('returns undefined when no wdio config exists', async () => {
         const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-cfg-'))
         try {
-            expect(findDefaultConfigPath(dir)).toBeUndefined()
+            await expect(findDefaultConfigPath(dir)).resolves.toBeUndefined()
         } finally {
             await fs.rm(dir, { recursive: true, force: true })
         }

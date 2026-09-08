@@ -5,7 +5,7 @@ import type { DynamicStructuredTool } from '@langchain/core/tools'
 import { loadMcpTools } from '@langchain/mcp-adapters'
 import logger from '@wdio/logger'
 import { execFile } from 'node:child_process'
-import fs from 'node:fs'
+import fsp from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -39,29 +39,33 @@ export function useChromeLockPath(p: string): void {
     chromeLockDir = p
 }
 
-function claimChromeLock(pid: number): void {
+async function bestEffort(fn: () => Promise<unknown>): Promise<void> {
     try {
-        fs.mkdirSync(chromeLockDir, { recursive: true })
-        fs.writeFileSync(path.join(chromeLockDir, String(pid)), '')
+        await fn()
     } catch {
-        // best-effort: a failed lock write must not break the harness
+        // best-effort: lock-registry fs failures must not break the harness
     }
 }
 
-function releaseChromeLock(pid: number): void {
-    try {
-        fs.rmSync(path.join(chromeLockDir, String(pid)), { force: true })
+async function claimChromeLock(pid: number): Promise<void> {
+    await bestEffort(async () => {
+        await fsp.mkdir(chromeLockDir, { recursive: true })
+        await fsp.writeFile(path.join(chromeLockDir, String(pid)), '')
+    })
+}
+
+async function releaseChromeLock(pid: number): Promise<void> {
+    await bestEffort(async () => {
+        await fsp.rm(path.join(chromeLockDir, String(pid)), { force: true })
         // drop the empty registry dir so a finished mission leaves nothing behind
-        fs.rmdirSync(chromeLockDir)
-    } catch {
-        // still held by others, or already gone — best-effort
-    }
+        await fsp.rmdir(chromeLockDir)
+    })
 }
 
 /** Removes holder files whose mission crashed without releasing. */
-function pruneDeadHolders(): void {
-    try {
-        for (const name of fs.readdirSync(chromeLockDir)) {
+async function pruneDeadHolders(): Promise<void> {
+    await bestEffort(async () => {
+        for (const name of await fsp.readdir(chromeLockDir)) {
             const pid = Number(name)
             if (!Number.isInteger(pid)) {
                 continue
@@ -69,18 +73,16 @@ function pruneDeadHolders(): void {
             try {
                 process.kill(pid, 0)
             } catch {
-                fs.rmSync(path.join(chromeLockDir, name), { force: true })
+                await fsp.rm(path.join(chromeLockDir, name), { force: true })
             }
         }
-    } catch {
-        // lock dir missing — nothing to prune
-    }
+    })
 }
 
 /** Holder file names currently in the shared-profile registry. */
-function chromeHolders(): string[] {
+async function chromeHolders(): Promise<string[]> {
     try {
-        return fs.readdirSync(chromeLockDir)
+        return await fsp.readdir(chromeLockDir)
     } catch {
         return []
     }
@@ -109,13 +111,29 @@ function listChromePids(pattern: string): Promise<Set<number> | null> {
 }
 
 /** (ppid, process group id) of `pid` from one /proc/<pid>/stat read (Linux); undefined where /proc is absent. */
-function procStatOf(pid: number): { ppid: number | undefined; pgrp: number | undefined } | undefined {
+async function procStatOf(pid: number): Promise<{ ppid: number | undefined; pgrp: number | undefined } | undefined> {
     try {
-        const stat = fs.readFileSync(`/proc/${pid}/stat`, 'utf8')
+        const stat = await fsp.readFile(`/proc/${pid}/stat`, 'utf8')
         const after = stat.slice(stat.lastIndexOf(')') + 2).split(' ')
         return { ppid: parseInt(after[1], 10), pgrp: parseInt(after[2], 10) }
     } catch {
         return undefined
+    }
+}
+
+function killPid(pid: number): void {
+    try {
+        process.kill(pid, 'SIGKILL')
+    } catch {
+        // already gone
+    }
+}
+
+function killGroup(group: number): void {
+    try {
+        process.kill(-group, 'SIGKILL')
+    } catch {
+        // group already gone
     }
 }
 
@@ -130,8 +148,8 @@ interface AncestryResult {
  * @wdio/mcp is detached, so its PPID stays the server while the server lives —
  * ancestry is the ownership proof the PID-diff sweep lacked.
  */
-export function walkAncestry(pid: number, ancestor: number, maxDepth = 16): AncestryResult {
-    let stat = procStatOf(pid)
+export async function walkAncestry(pid: number, ancestor: number, maxDepth = 16): Promise<AncestryResult> {
+    let stat = await procStatOf(pid)
     const group = stat?.pgrp
     for (let i = 0; i < maxDepth && stat; i++) {
         const ppid = stat.ppid
@@ -141,7 +159,7 @@ export function walkAncestry(pid: number, ancestor: number, maxDepth = 16): Ance
         if (ppid === undefined || ppid <= 1) {
             return { descendant: false, group }
         }
-        stat = procStatOf(ppid)
+        stat = await procStatOf(ppid)
     }
     return { descendant: false, group }
 }
@@ -162,24 +180,36 @@ export function walkAncestry(pid: number, ancestor: number, maxDepth = 16): Ance
  * Returns `undefined` when no local install is found (caller falls back to
  * `npx -y @wdio/mcp`).
  */
-export function resolveLocalMcpBin(): string | undefined {
+let cachedMcpBin: string | undefined | null = null
+
+/** Test hook: forget the memoized resolveLocalMcpBin result. */
+export function resetLocalMcpBinCache(): void {
+    cachedMcpBin = null
+}
+
+export async function resolveLocalMcpBin(): Promise<string | undefined> {
+    if (cachedMcpBin !== null) {
+        return cachedMcpBin
+    }
     const here = path.dirname(fileURLToPath(import.meta.url))
     let dir = here
     for (let depth = 0; depth < 10; depth++) {
         const pkgJson = path.join(dir, 'node_modules', '@wdio', 'mcp', 'package.json')
-        if (fs.existsSync(pkgJson)) {
-            try {
-                const pkg = JSON.parse(fs.readFileSync(pkgJson, 'utf8')) as { bin?: string | Record<string, string> }
-                const bin = typeof pkg.bin === 'string' ? pkg.bin : pkg.bin?.['wdio-mcp'] ?? pkg.bin?.['mcp']
-                if (bin) {
-                    const full = path.resolve(path.dirname(pkgJson), bin)
-                    if (fs.existsSync(full)) {
-                        return full
-                    }
+        try {
+            const pkg = JSON.parse(await fsp.readFile(pkgJson, 'utf8')) as { bin?: string | Record<string, string> }
+            const bin = typeof pkg.bin === 'string' ? pkg.bin : pkg.bin?.['wdio-mcp'] ?? pkg.bin?.['mcp']
+            if (bin) {
+                const full = path.resolve(path.dirname(pkgJson), bin)
+                try {
+                    await fsp.access(full)
+                    cachedMcpBin = full
+                    return full
+                } catch {
+                    // bin entry points nowhere — keep walking up
                 }
-            } catch {
-                // malformed package.json — fall through to npx
             }
+        } catch {
+            // missing or malformed package.json — keep walking up
         }
         const parent = path.dirname(dir)
         if (parent === dir) {
@@ -187,6 +217,7 @@ export function resolveLocalMcpBin(): string | undefined {
         }
         dir = parent
     }
+    cachedMcpBin = undefined
     return undefined
 }
 
@@ -201,12 +232,12 @@ export function resolveLocalMcpBin(): string | undefined {
  * Prefer configuring `mcp.command` to the full node + server path when
  * running on Windows hosts (known limitation, see USABILITY.md).
  */
-export function resolveMcpSpawn(server: McpServerConfig): { command: string; args: string[] } {
+export async function resolveMcpSpawn(server: McpServerConfig): Promise<{ command: string; args: string[] }> {
     const isDefaultNpx = server.command === DEFAULT_MCP_CONFIG.command
         && server.args.length === DEFAULT_MCP_CONFIG.args.length
         && server.args.every((arg, i) => arg === DEFAULT_MCP_CONFIG.args[i])
     if (isDefaultNpx) {
-        const localBin = resolveLocalMcpBin()
+        const localBin = await resolveLocalMcpBin()
         if (localBin) {
             return { command: localBin, args: [] }
         }
@@ -251,7 +282,7 @@ export class WdioMcpClient {
 
         // Prefer the locally installed (pinned) @wdio/mcp binary over
         // `npx -y @wdio/mcp` so the traversal tool surface cannot drift.
-        const { command, args } = resolveMcpSpawn(this.server)
+        const { command, args } = await resolveMcpSpawn(this.server)
         log.info(`Spawning @wdio/mcp: ${command} ${args.join(' ')}`)
         this.#transport = new StdioClientTransport({
             command,
@@ -275,8 +306,8 @@ export class WdioMcpClient {
             this.#serverPid = this.#transport.pid ?? undefined
             if (this.#serverPid) {
                 // prune holders that crashed without releasing, then claim
-                pruneDeadHolders()
-                claimChromeLock(this.#serverPid)
+                await pruneDeadHolders()
+                await claimChromeLock(this.#serverPid)
             }
             this.#tools = await loadMcpTools('wdio-mcp', this.#client)
         } catch (err) {
@@ -320,14 +351,14 @@ export class WdioMcpClient {
         // non-deepagent @wdio/mcp consumer sharing the profile — the
         // wrongful-kill class this gate exists to prevent.
         const heldElsewhere = this.#serverPid === undefined
-            || chromeHolders().some((name) => name !== String(this.#serverPid))
+            || (await chromeHolders()).some((name) => name !== String(this.#serverPid))
         // Resolve owned Chrome groups while the server is still alive: Chrome
         // is spawned detached by @wdio/mcp and reparents to PID 1 once the
         // server exits, so ancestry must be checked before closing the server.
         // On platforms without /proc (macOS, Windows) the sweep is skipped —
         // the safe direction, since the shared profile means a PID diff
         // cannot prove ownership.
-        const groups = heldElsewhere ? undefined : await this.#ownedChromeGroups()
+        const groups = heldElsewhere ? undefined : await collectOwnedGroups(this.#serverPid)
         try {
             await this.#client?.close()
         } finally {
@@ -346,55 +377,50 @@ export class WdioMcpClient {
             // while this kill loop runs in microseconds. Worst case the
             // claim lands mid-loop, our kill takes the handoff target, and
             // the mission spawns a fresh Chrome: session survives.
-            if (groups && chromeHolders().every((name) => name === String(serverPid))) {
-                for (const group of groups) {
-                    try {
-                        process.kill(-group, 'SIGKILL')
-                    } catch {
-                        // group already gone
-                    }
-                }
+            if (groups && (await chromeHolders()).every((name) => name === String(serverPid))) {
+                killGroups(groups)
             }
             if (serverPid) {
-                releaseChromeLock(serverPid)
+                await releaseChromeLock(serverPid)
             }
         }
-    }
-
-    /**
-     * Process groups of Chrome instances using the @wdio/mcp profile whose
-     * ancestor chain reaches this client's server process. Group SIGKILL
-     * reaches zygote/gpu/utility children a pid-only kill leaves behind.
-     */
-    async #ownedChromeGroups(): Promise<Set<number>> {
-        const groups = new Set<number>()
-        const serverPid = this.#serverPid
-        if (!serverPid) {
-            return groups
-        }
-        const chrome = await listChromePids(MCP_CHROME_PATTERN)
-        if (!chrome) {
-            return groups
-        }
-        for (const pid of chrome) {
-            const { descendant, group } = walkAncestry(pid, serverPid)
-            if (!descendant) {
-                continue
-            }
-            if (group) {
-                groups.add(group)
-            } else {
-                try {
-                    process.kill(pid, 'SIGKILL')
-                } catch {
-                    // already gone
-                }
-            }
-        }
-        return groups
     }
 
     get toolCount(): number {
         return this.#tools?.length ?? 0
     }
+}
+
+function killGroups(groups: Set<number>): void {
+    for (const group of groups) {
+        killGroup(group)
+    }
+}
+
+/**
+ * Process groups of Chrome instances using the @wdio/mcp profile whose
+ * ancestor chain reaches `serverPid`. Group SIGKILL reaches zygote/gpu/utility
+ * children a pid-only kill leaves behind.
+ */
+async function collectOwnedGroups(serverPid: number | undefined): Promise<Set<number>> {
+    const groups = new Set<number>()
+    if (!serverPid) {
+        return groups
+    }
+    const chrome = await listChromePids(MCP_CHROME_PATTERN)
+    if (!chrome) {
+        return groups
+    }
+    const walks = await Promise.all([...chrome].map(async (pid) => ({ pid, ...(await walkAncestry(pid, serverPid)) })))
+    for (const { pid, descendant, group } of walks) {
+        if (!descendant) {
+            continue
+        }
+        if (group) {
+            groups.add(group)
+        } else {
+            killPid(pid)
+        }
+    }
+    return groups
 }

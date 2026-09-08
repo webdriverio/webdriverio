@@ -48,13 +48,16 @@ const rejectWrite = (config: DeepAgentConfig, subject: string): string | undefin
         ? `[@wdio/deepagent] heal mode "propose" is read-only — ${subject} cannot write. Use \`wdio-deepagent diagnose <trace.zip>\` to produce a fix diff without writes.`
         : undefined
 
+const rejectIfAskNonTty = (config: DeepAgentConfig, _flags: CliFlags, _subject: string): string | undefined =>
+    config.heal === 'ask' && !process.stdin.isTTY ? ASK_NON_TTY_ERROR : undefined
+
 const rejectRun = (config: DeepAgentConfig, flags: CliFlags): string | undefined => {
     // `run ""` parses as one empty positional — reject it here, or the agent
     // receives a blank prompt
     if (!flags.positionals?.[0]) {
         return 'run requires a prompt: wdio-deepagent run "<prompt>"'
     }
-    return config.heal === 'ask' && !process.stdin.isTTY ? ASK_NON_TTY_ERROR : rejectWrite(config, '`run`')
+    return rejectIfAskNonTty(config, flags, '`run`') ?? rejectWrite(config, '`run`')
 }
 
 const rejectDiagnose = (config: DeepAgentConfig, flags: CliFlags): string | undefined => {
@@ -63,7 +66,7 @@ const rejectDiagnose = (config: DeepAgentConfig, flags: CliFlags): string | unde
     if (!flags.positionals?.[0]) {
         return 'diagnose requires a trace.zip path: wdio-deepagent diagnose <trace.zip> [--spec <path>]'
     }
-    return config.heal === 'ask' && !process.stdin.isTTY ? ASK_NON_TTY_ERROR : undefined
+    return rejectIfAskNonTty(config, flags, '`diagnose`')
 }
 
 const rejectRepl = (config: DeepAgentConfig): string | undefined => rejectWrite(config, 'the REPL')
@@ -95,13 +98,18 @@ async function loadConfigForFlags(rest: string[], opts: { allowModelless?: boole
     // child with cwd = the project root — a raw relative path would misresolve
     // there. Absolutize at the single flag boundary so every consumer
     // (run_spec args, reproduce, config hints) inherits the absolute path.
-    const configPath = flags.config ? path.resolve(flags.config) : findDefaultConfigPath()
+    const configPath = flags.config ? path.resolve(flags.config) : await findDefaultConfigPath()
     const config = await loadDeepAgentConfig({
         configPath,
         cli: { heal: flags.heal, model: flags.model, traceDir: flags.traceDir },
         modelOptional: opts.allowModelless,
     })
     return { flags, configPath, config }
+}
+
+async function preamble(argv: string[], opts: { allowModelless?: boolean; skipPropose?: boolean; rejectIf?: (config: DeepAgentConfig, flags: CliFlags) => string | undefined } = {}): Promise<BuildHarnessResult & { rl: readline.Interface | undefined }> {
+    const built = await buildHarness(argv, opts)
+    return { ...built, rl: createAskInterface(built.config) }
 }
 
 async function buildHarness(argv: string[], opts: { allowModelless?: boolean; skipPropose?: boolean; rejectIf?: (config: DeepAgentConfig, flags: CliFlags) => string | undefined } = {}): Promise<BuildHarnessResult> {
@@ -165,8 +173,7 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
         break
     }
     case 'run': {
-        const { harness, flags, config } = await buildHarness(rest, { rejectIf: rejectRun })
-        const rl = createAskInterface(config)
+        const { harness, flags, rl } = await preamble(rest, { rejectIf: rejectRun })
         try {
             const prompt = flags.positionals!.join(' ')
             const result = rl
@@ -180,13 +187,13 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
         break
     }
     case 'diagnose': {
-        const built = await buildHarness(rest, { allowModelless: true, skipPropose: true, rejectIf: rejectDiagnose })
+        const built = await preamble(rest, { allowModelless: true, skipPropose: true, rejectIf: rejectDiagnose })
         const tracePath = built.flags.positionals![0]
         if (built.config.heal !== 'propose' && !built.harness) {
             throw new Error(DEFAULT_MODEL_HINT)
         }
         const harness = built.harness
-        const rl = createAskInterface(built.config)
+        const rl = built.rl
         let report: DiagnosisReport
         try {
             report = await runDiagnosis({
@@ -197,6 +204,7 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
                 heal: built.config.heal,
                 maxHealAttempts: built.config.maxHealAttempts,
                 agent: harness?.agent,
+                onProgress: (message) => console.error(message),
                 ...(rl ? { resolveInterrupt: createInterruptResolver(rl) } : {}),
             })
         } finally {

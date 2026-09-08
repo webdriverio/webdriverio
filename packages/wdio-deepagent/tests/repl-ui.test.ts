@@ -14,8 +14,9 @@ const [{ ToolCallCard }, { ApprovalPrompt }, { render }] = await Promise.all([
     import('../src/commands/ui/ApprovalPrompt.js'),
     import('ink-testing-library'),
 ])
-const { ARGS_TRUNCATE, describeActionRequest } = await import('../src/commands/interrupt.js')
-const { getPendingApproval, requestApproval } = await import('../src/commands/ui/approvalBus.js')
+const { ARGS_TRUNCATE, formatToolCallPreview } = await import('../src/commands/interrupt.js')
+const { createApprovalQueue } = await import('../src/commands/ui/approvalBus.js')
+const { getPendingApproval, requestApproval } = createApprovalQueue()
 
 describe('ToolCallCard', () => {
     it('renders the tool name, args preview and duration', () => {
@@ -78,6 +79,7 @@ describe('ApprovalPrompt', () => {
     it('lists the gated action and shows the default-N y/N prompt', () => {
         const { lastFrame } = render(React.createElement(ApprovalPrompt, {
             request: { actionRequests: [{ name: 'write_file', args: {}, description: 'write it' }] },
+            queue: createApprovalQueue(),
         }))
         const frame = lastFrame()
         expect(frame).toContain('write_file')
@@ -87,9 +89,10 @@ describe('ApprovalPrompt', () => {
     })
 
     it('approves via UI: typing y + Enter resolves the parked approval true and clears pending', async () => {
+        const queue = createApprovalQueue()
         const request = { actionRequests: [{ name: 'write_file', args: { path: 'x.txt' }, description: 'write x.txt' }] }
-        const promise = requestApproval(request)
-        const { stdin, unmount } = render(React.createElement(ApprovalPrompt, { request }))
+        const promise = queue.requestApproval(request)
+        const { stdin, unmount } = render(React.createElement(ApprovalPrompt, { request, queue }))
         try {
             // TextInput registers its useInput handler in a passive effect —
             // flush before typing, and again before Enter (same pattern as
@@ -99,26 +102,20 @@ describe('ApprovalPrompt', () => {
             await new Promise<void>((resolve) => setTimeout(resolve, 20))
             stdin.write('\r')
             await expect(promise).resolves.toBe(true)
-            expect(getPendingApproval()).toBeNull()
+            expect(queue.getPendingApproval()).toBeNull()
         } finally {
             unmount()
         }
     })
 })
 
-describe('describeActionRequest', () => {
-    it('puts name and file_path on the header, skips the langchain description and truncates string values', () => {
-        const out = describeActionRequest({
-            name: 'edit_file',
-            args: { file_path: '/wdio.conf.js', old_string: 'a'.repeat(500), replace_all: false },
-            description: 'Tool execution requires approval\n\nTool: edit_file\nArgs: {...}',
-        })
-        const header = out.split('\n').find((line) => line.includes('edit_file'))!
-        expect(header).toContain('edit_file')
-        expect(header).toContain('/wdio.conf.js')
-        expect(out).not.toContain('Tool execution requires approval')
+describe('formatToolCallPreview', () => {
+    it('renders name plus truncated JSON args on one line', () => {
+        const out = formatToolCallPreview('edit_file', { file_path: '/wdio.conf.js', old_string: 'a'.repeat(500), replace_all: false })
+        expect(out).toContain('edit_file')
+        expect(out).toContain('/wdio.conf.js')
         expect(out).toContain('replace_all')
-        expect(out).toContain(`"old_string": "${'a'.repeat(ARGS_TRUNCATE)}…`)
+        expect(out).toContain('a'.repeat(ARGS_TRUNCATE))
         expect(out).not.toContain('a'.repeat(500))
     })
 })

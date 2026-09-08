@@ -82,22 +82,45 @@ export interface TraceParseOptions {
     keepResources?: boolean
 }
 
+/** First string-valued field among `keys` (multi-shape record fallback). */
+function strField(rec: unknown, ...keys: string[]): string | undefined {
+    if (!rec || typeof rec !== 'object') {
+        return undefined
+    }
+    const obj = rec as Record<string, unknown>
+    for (const key of keys) {
+        if (typeof obj[key] === 'string') {
+            return obj[key] as string
+        }
+    }
+    return undefined
+}
+
+/** First number-valued field among `keys`. */
+function numField(rec: unknown, ...keys: string[]): number | undefined {
+    if (!rec || typeof rec !== 'object') {
+        return undefined
+    }
+    const obj = rec as Record<string, unknown>
+    for (const key of keys) {
+        if (typeof obj[key] === 'number') {
+            return obj[key] as number
+        }
+    }
+    return undefined
+}
+
 /**
  * Action id in the devtools trace: `id` (fixture/older format) or
  * `callId` (current @wdio/devtools-service v8 format).
  */
 function recordId(rec: Record<string, unknown>): string | undefined {
-    return typeof rec.id === 'string' ? rec.id : typeof rec.callId === 'string' ? rec.callId : undefined
+    return strField(rec, 'id', 'callId')
 }
 
 /** Timestamp in ms: `ts` (fixture), `timestamp`, or `startTime`/`endTime` (v8). */
 function recordTs(rec: Record<string, unknown>, key: 'start' | 'end'): number | undefined {
-    if (key === 'start') {
-        return typeof rec.ts === 'number'
-            ? rec.ts
-            : typeof rec.timestamp === 'number' ? rec.timestamp : typeof rec.startTime === 'number' ? rec.startTime : undefined
-    }
-    return typeof rec.endTime === 'number' ? rec.endTime : undefined
+    return key === 'start' ? numField(rec, 'ts', 'timestamp', 'startTime') : numField(rec, 'endTime')
 }
 
 /**
@@ -105,29 +128,29 @@ function recordTs(rec: Record<string, unknown>, key: 'start' | 'end'): number | 
  * `{ message }` object.
  */
 function recordError(rec: Record<string, unknown>): string | undefined {
-    if (typeof rec.error === 'string') {
-        return rec.error
-    }
-    if (rec.error && typeof rec.error === 'object') {
-        const msg = (rec.error as { message?: unknown }).message
-        if (typeof msg === 'string') {
-            return msg
-        }
-    }
-    return undefined
+    return strField(rec, 'error') ?? strField(rec.error, 'message')
 }
 
 function forEachNdjsonLine(text: string, fn: (line: Record<string, unknown>) => void): void {
-    for (const line of text.split('\n')) {
-        const trimmed = line.trim()
-        if (!trimmed) {
-            continue
+    let start = 0
+    const emit = (end: number) => {
+        const trimmed = text.slice(start, end).trim()
+        if (trimmed) {
+            try {
+                fn(JSON.parse(trimmed) as Record<string, unknown>)
+            } catch {
+                // skip malformed lines
+            }
         }
-        try {
-            fn(JSON.parse(trimmed) as Record<string, unknown>)
-        } catch {
-            // skip malformed lines
-        }
+        start = end + 1
+    }
+    let nl = text.indexOf('\n', start)
+    while (nl !== -1) {
+        emit(nl)
+        nl = text.indexOf('\n', start)
+    }
+    if (start < text.length) {
+        emit(text.length)
     }
 }
 
@@ -137,16 +160,24 @@ function forEachNdjsonLine(text: string, fn: (line: Record<string, unknown>) => 
  * (raw deflate, no zlib header — verified against adm-zip 0.5.x's
  * `zlib.inflateRawSync`); STORED/other entries are copied, never inflated.
  */
-function inflateEntryData(entry: AdmZip.IZipEntry, maxBytes: number): Buffer {
+function inflateEntryData(entry: AdmZip.IZipEntry, remaining: number, cap: number): Buffer {
     if (entry.header.method !== 8) {
-        return entry.getData()
+        const data = entry.getData()
+        if (data.length > remaining) {
+            throw new Error(
+                `trace.zip exceeds ${cap} bytes decompressed; refusing to parse untrusted archive.`
+            )
+        }
+        return data
     }
     try {
-        return zlib.inflateRawSync(entry.getCompressedData(), { maxOutputLength: maxBytes })
+        return zlib.inflateRawSync(entry.getCompressedData(), { maxOutputLength: remaining })
     } catch (err) {
         if ((err as NodeJS.ErrnoException).code === 'ERR_BUFFER_TOO_LARGE') {
             throw new Error(
-                `trace.zip entry ${entry.entryName} exceeds ${maxBytes} bytes decompressed; refusing to parse untrusted archive.`
+                remaining === cap
+                    ? `trace.zip entry ${entry.entryName} exceeds ${cap} bytes decompressed; refusing to parse untrusted archive.`
+                    : `trace.zip exceeds ${cap} bytes decompressed; refusing to parse untrusted archive.`
             )
         }
         throw err
@@ -169,7 +200,7 @@ function parseActionRecord(rec: Record<string, unknown>): TraceAction {
     }
     // v8 before records carry no `name` — derive it from the CDP call
     if (!actionFields.name) {
-        const derived = typeof rec.apiName === 'string' ? rec.apiName : typeof rec.method === 'string' ? rec.method : undefined
+        const derived = strField(rec, 'apiName', 'method')
         if (derived) {
             actionFields.name = derived
         }
@@ -182,9 +213,9 @@ function parseActionRecord(rec: Record<string, unknown>): TraceAction {
         // after-pairing below, and stays false for orphaned (truncated) actions
         ok: false,
         error: recordError(rec),
-        snapshotFile: typeof rec.snapshotFile === 'string' ? rec.snapshotFile : undefined,
-        elementsFile: typeof rec.elementsFile === 'string' ? rec.elementsFile : undefined,
-        screenshotFile: typeof rec.screenshotFile === 'string' ? rec.screenshotFile : undefined,
+        snapshotFile: strField(rec, 'snapshotFile'),
+        elementsFile: strField(rec, 'elementsFile'),
+        screenshotFile: strField(rec, 'screenshotFile'),
         raw: rec,
     }
 }
@@ -210,13 +241,27 @@ export function parseTraceArchive(
     let transcript = ''
     let hasNetworkData = false
     let hasTranscript = false
-    const afterById = new Map<string, Record<string, unknown>>()
+    const actionById = new Map<string, TraceAction>()
 
     const entries = zip.getEntries()
     if (entries.length > maxEntries) {
         throw new Error(
             `trace.zip has ${entries.length} entries (max ${maxEntries}); refusing to parse untrusted archive.`
         )
+    }
+
+    /** Pair an `after` record into its action in place (no after → ok:false). */
+    const enrichAction = (action: TraceAction, afterRaw: Record<string, unknown>): void => {
+        const end = recordTs(afterRaw, 'end') ?? recordTs(afterRaw, 'start')
+        if (typeof end === 'number' && action.startedAt !== undefined) {
+            action.duration = Math.max(0, end - action.startedAt)
+        }
+        const err = recordError(afterRaw)
+        if (err && !action.error) {
+            action.error = err
+        }
+        // only an explicit error-free `after` clears the not-ok default
+        action.ok = !err
     }
 
     let totalBytes = 0
@@ -240,13 +285,8 @@ export function parseTraceArchive(
                 continue
             }
         }
-        const data = inflateEntryData(entry, maxTotalBytes)
+        const data = inflateEntryData(entry, maxTotalBytes - totalBytes, maxTotalBytes)
         totalBytes += data.length
-        if (totalBytes > maxTotalBytes) {
-            throw new Error(
-                `trace.zip exceeds ${maxTotalBytes} bytes decompressed; refusing to parse untrusted archive.`
-            )
-        }
 
         if (name === 'transcript.md') {
             transcript = data.toString('utf8')
@@ -256,11 +296,12 @@ export function parseTraceArchive(
 
         if (name === 'trace.trace' || name.endsWith('.trace')) {
             forEachNdjsonLine(data.toString('utf8'), (rec) => {
-                if (rec.type === 'context-options' || rec.type === 'after') {
+                if (rec.type === 'after') {
                     // `after` records only enrich their `before` pair
                     const id = recordId(rec)
-                    if (rec.type === 'after' && id) {
-                        afterById.set(id, rec)
+                    const action = id ? actionById.get(id) : undefined
+                    if (action) {
+                        enrichAction(action, rec)
                     }
                     return
                 }
@@ -269,7 +310,11 @@ export function parseTraceArchive(
                 if (rec.type !== 'before') {
                     return
                 }
-                actions.push(parseActionRecord(rec))
+                const action = parseActionRecord(rec)
+                actions.push(action)
+                if (action.id) {
+                    actionById.set(action.id, action)
+                }
             })
             continue
         }
@@ -283,15 +328,15 @@ export function parseTraceArchive(
                 // Network lines are HAR-format `resource-snapshot` records written by
                 // @wdio/devtools-service (core/src/trace-har.ts); fields live under `snapshot`.
                 const snapshot = rec.snapshot && typeof rec.snapshot === 'object'
-                    ? rec.snapshot as { request?: Record<string, unknown>; response?: Record<string, unknown>; time?: unknown }
+                    ? rec.snapshot as Record<string, unknown>
                     : undefined
-                const request = snapshot?.request
-                const response = snapshot?.response
+                const request = snapshot?.request as Record<string, unknown> | undefined
+                const response = snapshot?.response as Record<string, unknown> | undefined
                 network.push({
-                    method: request && typeof request.method === 'string' ? request.method : undefined,
-                    url: request && typeof request.url === 'string' ? request.url : undefined,
-                    status: response && typeof response.status === 'number' ? response.status : undefined,
-                    duration: typeof snapshot?.time === 'number' ? snapshot.time : undefined,
+                    method: strField(request, 'method'),
+                    url: strField(request, 'url'),
+                    status: numField(response, 'status'),
+                    duration: numField(snapshot, 'time'),
                     raw: rec,
                 })
             })
@@ -306,25 +351,6 @@ export function parseTraceArchive(
         if (/\.(jpe?g|png|webp)$/i.test(name)) {
             screenshots.set(name, data)
         }
-    }
-
-    // attach durations + errors: an `after` record with the same id follows
-    // `before`. Fixture format: after has `ts`; v8 format: after has `endTime`.
-    for (const action of actions) {
-        const afterRaw = action.id ? afterById.get(action.id) : undefined
-        if (!afterRaw) {
-            continue
-        }
-        const end = recordTs(afterRaw, 'end') ?? recordTs(afterRaw, 'start')
-        if (typeof end === 'number' && action.startedAt !== undefined) {
-            action.duration = Math.max(0, end - action.startedAt)
-        }
-        const err = recordError(afterRaw)
-        if (err && !action.error) {
-            action.error = err
-        }
-        // only an explicit error-free `after` clears the not-ok default
-        action.ok = !err
     }
 
     return { source, actions, network, transcript, hasNetworkData, hasTranscript, snapshots, screenshots }

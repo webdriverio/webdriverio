@@ -4,8 +4,7 @@ import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
 import type { z } from 'zod'
 import type { DeepAgentToolSurface } from '../agent.js'
 import { VERSION } from '../constants.js'
-import { isZodSchema, jsonSchemaToZodRawShape } from './json-schema-to-zod.js'
-import type { JsonSchemaObject } from './json-schema-to-zod.js'
+import { isZodSchema, jsonSchemaToZodObject } from './json-schema-to-zod.js'
 
 /**
  * Exposes the harness tools (traversal via @wdio/mcp + trace + site KB)
@@ -23,8 +22,8 @@ export async function serveAsMcpServer(surface: DeepAgentToolSurface, transport:
         // MCP-adapter tools carry a plain JSON schema; langchain tool()
         // schemas are zod objects — convert only the former.
         const inputSchema = isZodSchema(tool.schema)
-            ? tool.schema as unknown as z.ZodRawShape
-            : jsonSchemaToZodRawShape(tool.schema as unknown as JsonSchemaObject)
+            ? tool.schema as unknown as z.ZodType
+            : jsonSchemaToZodObject(tool.schema)
         server.registerTool(tool.name, {
             title: tool.name,
             description: tool.description ?? tool.name,

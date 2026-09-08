@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { AIMessage } from '@langchain/core/messages'
 import type { DeepAgent } from 'deepagents'
 import { runStreamedTurn } from '../src/commands/streamedTurn.js'
-import { getPendingApproval } from '../src/commands/ui/approvalBus.js'
+import { createApprovalQueue } from '../src/commands/ui/approvalBus.js'
 
 // ink's layout engine (yoga-layout) loads its wasm through global fetch at
 // import time; the repo's shared fetch mock (setupFiles) returns a
@@ -56,11 +56,11 @@ function UnmountProbe({ onUnmount }: { onUnmount: () => void }) {
     return null
 }
 
-function replTree(agent: DeepAgent, onUnmount?: () => void) {
+function replTree(agent: DeepAgent, onUnmount?: () => void, queue = createApprovalQueue()) {
     return React.createElement(
         React.Fragment,
         null,
-        React.createElement(ReplApp, { agent, onClose: async () => {} }),
+        React.createElement(ReplApp, { agent, queue }),
         ...(onUnmount ? [React.createElement(UnmountProbe, { onUnmount })] : []),
     )
 }
@@ -109,18 +109,19 @@ describe('ReplApp Ctrl-C handling', () => {
         const actionRequests = [{ name: 'write_file', args: { path: 'x.txt' }, description: 'write x.txt' }]
         const streamEvents = vi.fn().mockResolvedValueOnce(interruptedRun(actionRequests))
         const agent = { streamEvents } as unknown as DeepAgent
-        const { stdin, lastFrame } = render(replTree(agent))
+        const queue = createApprovalQueue()
+        const { stdin, lastFrame } = render(replTree(agent, undefined, queue))
 
         await vi.waitFor(() => expect(stripAnsi(lastFrame())).toContain('wdio-deepagent REPL'))
         stdin.write('go')
         await flush()
         stdin.write('\r')
-        await vi.waitFor(() => expect(getPendingApproval()).not.toBeNull())
+        await vi.waitFor(() => expect(queue.getPendingApproval()).not.toBeNull())
         await vi.waitFor(() => expect(stripAnsi(lastFrame())).toContain('Approval required'))
         await flush()
 
         stdin.write('\x03')
-        await vi.waitFor(() => expect(getPendingApproval()).toBeNull())
+        await vi.waitFor(() => expect(queue.getPendingApproval()).toBeNull())
         await vi.waitFor(() => expect(stripAnsi(lastFrame())).toContain('turn failed: turn cancelled'))
         expect(stripAnsi(lastFrame())).not.toContain('Approval required')
         expect(stripAnsi(lastFrame())).toContain('wdio>')

@@ -3,7 +3,7 @@ import { Box, Text, useApp, useInput } from 'ink'
 import { TextInput } from '@inkjs/ui'
 import type { DeepAgent } from 'deepagents'
 import { runStreamedTurn } from '../streamedTurn.js'
-import { getPendingApproval, rejectPendingApprovals, requestApproval, subscribeApproval } from './approvalBus.js'
+import type { ApprovalQueue } from './approvalBus.js'
 import { ApprovalPrompt } from './ApprovalPrompt.js'
 import { StatusFooter } from './StatusFooter.js'
 import { ToolCallCard, type ToolCardState } from './ToolCallCard.js'
@@ -17,7 +17,7 @@ type TranscriptLine =
 
 export interface ReplAppProps {
     agent: DeepAgent
-    onClose: () => Promise<void>
+    queue: ApprovalQueue
     closeSession?: () => Promise<void>
     /** Fired once, on the first submit — lets the caller cancel startup work. */
     onFirstSubmit?: () => void
@@ -51,7 +51,7 @@ const ABORT_ERROR = 'repl closed'
  * session without exiting; `exit`/`quit` shut down cleanly; Ctrl-C
  * cancels a running turn or exits when idle.
  */
-export function ReplApp({ agent, closeSession, onFirstSubmit }: ReplAppProps): React.JSX.Element {
+export function ReplApp({ agent, queue, closeSession, onFirstSubmit }: ReplAppProps): React.JSX.Element {
     const { exit } = useApp()
     const [lines, setLines] = useState<TranscriptLine[]>([])
     const [toolCalls, setToolCalls] = useState<Record<string, ToolCardState>>({})
@@ -60,43 +60,40 @@ export function ReplApp({ agent, closeSession, onFirstSubmit }: ReplAppProps): R
     const [lastTurnMs, setLastTurnMs] = useState<number | undefined>(undefined)
     const [inputTokens, setInputTokens] = useState(0)
     const [outputTokens, setOutputTokens] = useState(0)
-    const pendingApproval = useSyncExternalStore(subscribeApproval, getPendingApproval)
+    const pendingApproval = useSyncExternalStore(queue.subscribeApproval, queue.getPendingApproval)
     const abortRef = useRef<AbortController | null>(null)
     const closedRef = useRef(false)
 
-    useEffect(() => {
-        setLines([{ kind: 'notice', text: 'wdio-deepagent REPL — type a mission, or "exit" to quit. "close session" closes the browser session.' }])
-        // abort the in-flight turn when ink unmounts us (Ctrl-C / exit)
-        return () => {
-            safeAbort()
+    // One abort path: optionally reject the parked approval, always abort the
+    // in-flight turn. reason 'shutdown' also exits ink (exit/quit, Ctrl-C
+    // idle, unmount). A throwing abort listener rethrows out of abort() on
+    // some Node builds — swallowed here; the in-flight langgraph stream
+    // rejects via signal.reason instead of crashing the unmount.
+    const abort = (reason?: 'cancel' | 'shutdown') => {
+        if (reason === 'shutdown') {
+            if (closedRef.current) {
+                return
+            }
+            closedRef.current = true
         }
-    }, [])
-
-    // a throwing abort listener rethrows out of abort() on some Node builds —
-    // the in-flight langgraph stream rejects via signal.reason instead of
-    // crashing the unmount
-    const safeAbort = () => {
         try {
             abortRef.current?.abort()
         } catch {
             // rejection handled by runTurn's AbortError catch
         }
-    }
-
-    const cancelTurn = () => {
-        safeAbort()
-        rejectPendingApprovals(new Error('turn cancelled'))
-    }
-
-    const shutdown = () => {
-        if (closedRef.current) {
-            return
+        queue.rejectPendingApprovals(new Error(reason === 'cancel' ? 'turn cancelled' : `${ABORT_ERROR} — approval abandoned`))
+        if (reason === 'shutdown') {
+            exit()
         }
-        closedRef.current = true
-        safeAbort()
-        rejectPendingApprovals(new Error(`${ABORT_ERROR} — approval abandoned`))
-        exit()
     }
+
+    useEffect(() => {
+        setLines([{ kind: 'notice', text: 'wdio-deepagent REPL — type a mission, or "exit" to quit. "close session" closes the browser session.' }])
+        // abort the in-flight turn when ink unmounts us (Ctrl-C / exit)
+        return () => {
+            abort()
+        }
+    }, [])
 
     const runTurn = async (text: string) => {
         setBusy(true)
@@ -108,7 +105,7 @@ export function ReplApp({ agent, closeSession, onFirstSubmit }: ReplAppProps): R
         abortRef.current = ac
         try {
             await runStreamedTurn(agent, text, {
-                resolveInterrupt: requestApproval,
+                resolveInterrupt: queue.requestApproval,
                 onToken: (delta) => {
                     acc += delta
                     setCurrentReply(acc)
@@ -155,7 +152,7 @@ export function ReplApp({ agent, closeSession, onFirstSubmit }: ReplAppProps): R
         }
         onFirstSubmit?.()
         if (text === 'exit' || text === 'quit') {
-            shutdown()
+            abort('shutdown')
             return
         }
         if (text === 'close' || text === 'close session' || text === 'reset') {
@@ -180,9 +177,9 @@ export function ReplApp({ agent, closeSession, onFirstSubmit }: ReplAppProps): R
             return
         }
         if (busy) {
-            cancelTurn()
+            abort('cancel')
         } else {
-            shutdown()
+            abort('shutdown')
         }
     })
 
@@ -198,7 +195,7 @@ export function ReplApp({ agent, closeSession, onFirstSubmit }: ReplAppProps): R
                 />
             ))}
             {busy && currentReply ? <Text>{currentReply}</Text> : null}
-            {pendingApproval ? <ApprovalPrompt request={pendingApproval.request} /> : null}
+            {pendingApproval ? <ApprovalPrompt request={pendingApproval.request} queue={queue} /> : null}
             {!busy && !pendingApproval ? (
                 <TextInput placeholder="wdio> " onSubmit={onSubmit} />
             ) : busy && !pendingApproval ? (

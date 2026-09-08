@@ -23,11 +23,16 @@ describe('createInterruptResolver', () => {
         await expect(createInterruptResolver(rl)({ actionRequests: [] })).resolves.toBe(true)
     })
 
-    it('prints the agent-provided description before the action header', async () => {
+    it('renders the action via the shared tool-call preview (no langchain description)', async () => {
         const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
         const rl = { question: (_q: string, cb: (a: string) => void) => cb('y'), on: () => {} } as never
-        await createInterruptResolver(rl)({ actionRequests: [{ name: 'write_file', args: {}, description: 'because the selector moved' }] })
-        expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('because the selector moved'))
-        logSpy.mockRestore()
+        try {
+            await createInterruptResolver(rl)({ actionRequests: [{ name: 'write_file', args: { path: 'x.txt' }, description: 'because the selector moved' }] })
+            expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('[!] write_file'))
+            expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('x.txt'))
+            expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining('because the selector moved'))
+        } finally {
+            logSpy.mockRestore()
+        }
     })
 })

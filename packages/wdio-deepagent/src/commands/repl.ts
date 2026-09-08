@@ -23,15 +23,16 @@ export async function runRepl(agent: DeepAgent, onClose: () => Promise<void>, cl
     // ink is lazy-loaded: its layout engine (yoga-layout) fetches a wasm
     // blob through global fetch at import time, so importing it from the CLI
     // entry would break other commands' unit tests and slow their startup.
-    const [{ render }, { createElement }, { ReplApp, ReplAppErrorBoundary }, { rejectPendingApprovals }] = await Promise.all([
+    const [{ render }, { createElement }, { ReplApp, ReplAppErrorBoundary }, { createApprovalQueue }] = await Promise.all([
         import('ink'),
         import('react'),
         import('./ui/ReplApp.js'),
         import('./ui/approvalBus.js'),
     ])
-    const app = render(createElement(ReplAppErrorBoundary, null, createElement(ReplApp, { agent, onClose, closeSession, onFirstSubmit })), { exitOnCtrlC: false })
+    const queue = createApprovalQueue()
+    const app = render(createElement(ReplAppErrorBoundary, null, createElement(ReplApp, { agent, queue, closeSession, onFirstSubmit })), { exitOnCtrlC: false })
     await app.waitUntilExit()
-    rejectPendingApprovals(new Error('repl closed — approval abandoned'))
+    queue.rejectPendingApprovals(new Error('repl closed — approval abandoned'))
     await onClose()
     process.exitCode = 0
 }

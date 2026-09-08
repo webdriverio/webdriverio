@@ -15,11 +15,30 @@ export interface RequestOverrideFn {
  * override) without any per-provider HTTP code: the resolver maps this
  * schema onto the matching LangChain chat model integration.
  */
-export const DeepAgentProviderSchema = z.enum(['openrouter', 'openai', 'anthropic', 'ollama', 'llama-cpp', 'lm-studio'])
-export const PROVIDERS = DeepAgentProviderSchema.options
+export interface ProviderMeta {
+    envKey?: string
+    baseUrlEnvKey?: string
+    keyless?: boolean
+}
+
+const PROVIDER_NAMES = ['openrouter', 'openai', 'anthropic', 'ollama', 'llama-cpp', 'lm-studio'] as const
+
+export const DeepAgentProviderSchema = z.enum(PROVIDER_NAMES)
+export type DeepAgentProvider = (typeof PROVIDER_NAMES)[number]
+
+export const PROVIDERS: Record<DeepAgentProvider, ProviderMeta> = {
+    openrouter: { envKey: 'OPENROUTER_API_KEY' },
+    openai: { envKey: 'OPENAI_API_KEY', baseUrlEnvKey: 'OPENAI_BASE_URL' },
+    anthropic: { envKey: 'ANTHROPIC_API_KEY', baseUrlEnvKey: 'ANTHROPIC_BASE_URL' },
+    ollama: { baseUrlEnvKey: 'OLLAMA_BASE_URL' },
+    'llama-cpp': { keyless: true },
+    'lm-studio': { keyless: true },
+}
 
 /** Providers serving weights fully local: no API key, `baseURL`-driven (or bundled runtime). */
-export const LOCAL_PROVIDERS: DeepAgentProvider[] = ['ollama', 'llama-cpp', 'lm-studio']
+export const LOCAL_PROVIDERS: DeepAgentProvider[] = (Object.keys(PROVIDERS) as DeepAgentProvider[]).filter(
+    (p) => !PROVIDERS[p].envKey,
+)
 
 export const DeepAgentModelConfigSchema = z.object({
     /**
@@ -45,7 +64,6 @@ export const DeepAgentModelConfigSchema = z.object({
 })
 
 export type DeepAgentModelConfig = z.infer<typeof DeepAgentModelConfigSchema>
-export type DeepAgentProvider = z.infer<typeof DeepAgentModelConfigSchema>['provider']
 
 /** Normalizes a plain config object: applies defaults, validates fields. */
 export function parseModelConfig(raw: unknown): DeepAgentModelConfig {

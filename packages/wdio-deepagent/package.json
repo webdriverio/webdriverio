@@ -82,11 +82,13 @@
     "@wdio/mcp": "^3.11.1",
     "@wdio/types": "workspace:*",
     "deepagents": "^1.12.2",
+    "diff": "^8.0.3",
     "@inkjs/ui": "^2.0.0",
     "ink": "^5.2.1",
     "langchain": "^1.5.5",
     "micromatch": "^4.0.8",
     "react": "^18.3.1",
+    "yargs": "^17.7.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -95,6 +97,7 @@
     "@types/micromatch": "^4.0.9",
     "@types/node": "^20.1.0",
     "@types/react": "^18.3.18",
+    "@types/yargs": "^17.0.24",
     "ink-testing-library": "^4.0.0"
   },
   "publishConfig": {

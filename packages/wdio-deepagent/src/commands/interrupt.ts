@@ -34,17 +34,14 @@ const truncateValues = (value: unknown, seen = new WeakSet<object>()): unknown =
     return value
 }
 
-/** Describes a gated action: header with name/file_path, then truncated remaining args. */
-export function describeActionRequest(action: TurnInterruptRequest['actionRequests'][number]): string {
-    // description is langchain boilerplate re-dumping the same args — deliberately ignored
-    const args = (action.args && typeof action.args === 'object' ? action.args : {}) as Record<string, unknown>
-    const { file_path: filePath, ...rest } = args
-    const header = `\n  [!] ${action.name}${typeof filePath === 'string' ? `  ${filePath}` : ''}`
-    if (Object.keys(rest).length === 0) {
-        return header
-    }
-    const body = JSON.stringify(truncateValues(rest), null, 2)
-    return `${header}\n${body.split('\n').map((line) => `      ${line}`).join('\n')}`
+/**
+ * Plain-text tool-call preview shared by the readline resolver and the
+ * `ToolCallCard` React path: name header plus truncated JSON args.
+ */
+export function formatToolCallPreview(name: string, args: unknown): string {
+    const header = `[!] ${name}`
+    const body = JSON.stringify(truncateValues(args ?? {}))
+    return body && body !== '{}' ? `${header} ${body}` : header
 }
 
 /** Interactive y/N approval for gated tool calls (heal=ask). */
@@ -58,11 +55,7 @@ export function createInterruptResolver(rl: readline.Interface): (request: TurnI
     })
     return async (request) => {
         for (const action of request.actionRequests) {
-            const why = typeof action.description === 'string' ? action.description.trim() : ''
-            if (why) {
-                console.log(`  ${truncate(why)}`)
-            }
-            console.log(describeActionRequest(action))
+            console.log(`\n  ${formatToolCallPreview(action.name, action.args)}`)
         }
         const answer = await new Promise<string>((resolve, reject) => {
             rejectPending = reject

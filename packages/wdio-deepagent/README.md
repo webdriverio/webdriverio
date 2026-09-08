@@ -44,7 +44,7 @@ export const config = {
     // ...framework/services as usual...
     deepagent: {
         llm: { provider: 'openrouter', model: 'moonshotai/kimi-k3' },
-        heal: 'ask', // 'ask' (human-approve writes) | 'propose' (read-only diffs) | 'auto' (CI healing)
+        heal: 'ask', // 'ask' (human-approve writes) | 'propose' (trace audit, no agent) | 'auto' (CI healing)
         appendInstructions: 'Use data-testid selectors.', // appended to the built-in instructions
         // appendInstructionsFile: 'agent-notes.md', // file contents appended (cwd-relative)
         // instructionsPath: 'agent-instructions.md', // REPLACES the built-in instructions entirely

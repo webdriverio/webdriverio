@@ -7,59 +7,67 @@ export interface PendingApproval {
 }
 
 /**
- * Bridge between the langgraph event loop and the React tree.
- *
- * Interrupts fire synchronously inside the agent's run (outside React), so
- * `runStreamedTurn` resolves them by awaiting `requestApproval`, which parks
- * the promise here; the React tree renders `ApprovalPrompt` from
- * `getPendingApproval` and settles it with `submitApproval`. Exactly one
- * request is pending at a time — `runStreamedTurn` resolves interrupts
- * sequentially. Shutdown rejects any pending approval (mirrors
- * `createInterruptResolver`'s readline-close rejection).
+ * Per-thread approval queue bridging the langgraph event loop and the React
+ * tree. Created per harness threadId and passed as an explicit dep (from the
+ * repl entry) — no module-global singleton, so concurrent harnesses never
+ * share pending state. Interrupts fire synchronously inside the agent's run
+ * (outside React), so `runStreamedTurn` resolves them by awaiting
+ * `requestApproval`, which parks the promise here; the React tree renders
+ * `ApprovalPrompt` from `getPendingApproval` and settles it with
+ * `submitApproval`. Exactly one request is pending at a time —
+ * `runStreamedTurn` resolves interrupts sequentially. Shutdown rejects any
+ * pending approval (mirrors `createInterruptResolver`'s readline-close
+ * rejection).
  */
-let pending: PendingApproval | null = null
-const listeners = new Set<() => void>()
-
-function notify(): void {
-    for (const listener of listeners) {
-        listener()
-    }
+export interface ApprovalQueue {
+    requestApproval(request: TurnInterruptRequest): Promise<boolean>
+    submitApproval(value: boolean): void
+    rejectPendingApprovals(err: Error): void
+    getPendingApproval(): PendingApproval | null
+    subscribeApproval(listener: () => void): () => void
 }
 
-export function requestApproval(request: TurnInterruptRequest): Promise<boolean> {
-    return new Promise<boolean>((resolve, reject) => {
-        pending = { request, resolve, reject }
+export function createApprovalQueue(): ApprovalQueue {
+    let pending: PendingApproval | null = null
+    const listeners = new Set<() => void>()
+
+    function notify(): void {
+        for (const listener of listeners) {
+            listener()
+        }
+    }
+
+    function settle(fn: (current: PendingApproval) => void): void {
+        const current = pending
+        if (!current) {
+            return
+        }
+        pending = null
+        fn(current)
         notify()
-    })
-}
-
-export function submitApproval(value: boolean): void {
-    const current = pending
-    if (!current) {
-        return
     }
-    pending = null
-    current.resolve(value)
-    notify()
-}
 
-export function rejectPendingApprovals(err: Error): void {
-    const current = pending
-    if (!current) {
-        return
-    }
-    pending = null
-    current.reject(err)
-    notify()
-}
-
-export function getPendingApproval(): PendingApproval | null {
-    return pending
-}
-
-export function subscribeApproval(listener: () => void): () => void {
-    listeners.add(listener)
-    return () => {
-        listeners.delete(listener)
+    return {
+        requestApproval(request: TurnInterruptRequest): Promise<boolean> {
+            return new Promise<boolean>((resolve, reject) => {
+                pending = { request, resolve, reject }
+                notify()
+            })
+        },
+        submitApproval(value: boolean): void {
+            settle((current) => current.resolve(value))
+        },
+        rejectPendingApprovals(err: Error): void {
+            settle((current) => current.reject(err))
+        },
+        getPendingApproval(): PendingApproval | null {
+            return pending
+        },
+        subscribeApproval(listener: () => void): () => void {
+            listeners.add(listener)
+            return () => {
+                listeners.delete(listener)
+            }
+        },
     }
 }

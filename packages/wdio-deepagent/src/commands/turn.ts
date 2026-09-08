@@ -1,7 +1,7 @@
 import { HumanMessage } from '@langchain/core/messages'
 import { Command } from '@langchain/langgraph'
 import type { DeepAgent } from 'deepagents'
-import { MAX_RECURSION_LIMIT } from '../loop-guard.js'
+import { MAX_RECURSION_LIMIT, TOOL_ERROR_PREFIX } from '../loop-guard.js'
 
 export interface ToolCallRecord {
     name: string
@@ -21,6 +21,38 @@ export interface TurnResult {
     failedToolIds: string[]
 }
 
+export const TOOL_OUTPUT_CAP = 4000
+
+/** Single builder for the recursion-limit config passed to every invoke/stream. */
+export function turnConfig(signal?: AbortSignal): { recursionLimit: number; signal?: AbortSignal } {
+    return signal ? { recursionLimit: MAX_RECURSION_LIMIT, signal } : { recursionLimit: MAX_RECURSION_LIMIT }
+}
+
+/**
+ * Single error/output classifier replacing the `isError` flag check and the
+ * `TOOL_ERROR_PREFIX` prefix-unwrap. Unwraps content_and_artifact tuples,
+ * flips finished-with-error-prefix to error status, and caps output text.
+ */
+export function classifyToolOutput(status: 'finished' | 'error', error: string | undefined, output: unknown): { status: 'finished' | 'error'; error?: string; output?: string } {
+    const unwrapped = Array.isArray(output) ? output[0] : output
+    if (status === 'finished' && typeof unwrapped === 'string' && unwrapped.startsWith(TOOL_ERROR_PREFIX)) {
+        return { status: 'error', error: unwrapped }
+    }
+    if (status === 'error') {
+        return { status, error }
+    }
+    if (unwrapped === undefined) {
+        return { status }
+    }
+    const text = typeof unwrapped === 'string' ? unwrapped : JSON.stringify(unwrapped)
+    return { status, output: text.length > TOOL_OUTPUT_CAP ? `${text.slice(0, TOOL_OUTPUT_CAP)}…[truncated ${text.length - TOOL_OUTPUT_CAP} chars]` : text }
+}
+
+/** Renders one message content block to text (text blocks only, joined). */
+export function blockToText(block: { type?: string; text?: unknown }): string | undefined {
+    return block.type === 'text' && typeof block.text === 'string' ? block.text : undefined
+}
+
 /**
  * Extracts the final AI reply text from an agent run's messages. Handles
  * both plain string content and anthropic-style content block arrays
@@ -29,24 +61,23 @@ export interface TurnResult {
  */
 export function extractAgentReply(messages: unknown[]): string {
     for (let i = messages.length - 1; i >= 0; i--) {
-        const m = messages[i]
-        const type = (m as { _getType?: () => string })._getType?.()
-        const content = (m as { content?: unknown }).content
-        if (type !== 'ai') {
+        const m = messages[i] as { _getType?: () => string; content?: unknown }
+        if (m._getType?.() !== 'ai') {
             continue
         }
-        if (typeof content === 'string' && content.trim()) {
-            return content
+        if (typeof m.content === 'string' && m.content.trim()) {
+            return m.content
         }
-        if (Array.isArray(content)) {
-            const text = content
-                .filter((p: { type?: string; text?: unknown }) => p.type === 'text' && typeof p.text === 'string')
-                .map((p: { text: string }) => p.text)
-                .join('\n')
-                .trim()
-            if (text) {
-                return text
-            }
+        if (!Array.isArray(m.content)) {
+            continue
+        }
+        const text = (m.content as Array<{ type?: string; text?: unknown }>)
+            .map(blockToText)
+            .filter((t): t is string => typeof t === 'string')
+            .join('\n')
+            .trim()
+        if (text) {
+            return text
         }
     }
     return ''
@@ -73,22 +104,50 @@ export interface ProcessTurnOptions {
 export const MAX_INTERRUPT_ROUNDS = 5
 
 /** Resolves a batch of pending interrupt requests into resume decisions. */
+export type InterruptDecision = { type: 'approve' } | { type: 'reject'; message: string }
+
 export async function resolveInterruptDecisions(
     items: readonly unknown[],
     requestOf: (item: unknown) => TurnInterruptRequest,
     resolve: (request: TurnInterruptRequest) => Promise<boolean>,
-): Promise<{ decisions: Array<{ type: 'approve' } | { type: 'reject'; message: string }>; declined: boolean }> {
-    const decisions: Array<{ type: 'approve' } | { type: 'reject'; message: string }> = []
-    let declined = false
+): Promise<{ decisions: InterruptDecision[]; declined: boolean }> {
+    const decisions: InterruptDecision[] = []
     for (const item of items) {
-        if (await resolve(requestOf(item))) {
-            decisions.push({ type: 'approve' })
-        } else {
-            declined = true
-            decisions.push({ type: 'reject', message: 'User declined the action.' })
+        const approved = await resolve(requestOf(item))
+        decisions.push(approved ? { type: 'approve' } : { type: 'reject', message: 'User declined the action.' })
+    }
+    return { decisions, declined: decisions.some((d) => d.type === 'reject') }
+}
+
+/**
+ * Shared interrupt/resume loop scaffold. `getPending` returns the currently
+ * pending interrupts (or undefined when the run completed); `resume` resumes
+ * with the approved/rejected decisions. Returns whether the user declined.
+ */
+export async function runInterruptLoop(
+    getPending: () => readonly unknown[] | undefined,
+    resume: (decisions: InterruptDecision[]) => Promise<void>,
+    requestOf: (item: unknown) => TurnInterruptRequest,
+    resolve: (request: TurnInterruptRequest) => Promise<boolean>,
+): Promise<{ declined: boolean; pending?: readonly unknown[] }> {
+    let declined = false
+    for (let round = 0; round < MAX_INTERRUPT_ROUNDS; round++) {
+        const interrupts = getPending()
+        if (!interrupts?.length) {
+            return { declined }
+        }
+        const { decisions } = await resolveInterruptDecisions(interrupts, requestOf, resolve)
+        declined = decisions.some((d) => d.type === 'reject')
+        await resume(decisions)
+        if (declined) {
+            return { declined }
         }
     }
-    return { decisions, declined }
+    const pending = getPending()
+    if (!declined && pending?.length) {
+        warnUnresolvedInterrupts(pending.length)
+    }
+    return { declined, pending }
 }
 
 /** Logs gated actions still pending after the resume-round cap was hit. */
@@ -110,29 +169,15 @@ export function warnUnresolvedInterrupts(count: number): void {
  */
 export async function processTurn(agent: DeepAgent, text: string, options: ProcessTurnOptions = {}): Promise<TurnResult> {
     const resolve = options.resolveInterrupt ?? (async () => false)
-    const config = { recursionLimit: MAX_RECURSION_LIMIT }
+    const config = turnConfig()
     let run = await agent.invoke({ messages: [new HumanMessage(text)] }, config)
-    let declined = false
-    for (let round = 0; round < MAX_INTERRUPT_ROUNDS; round++) {
-        const interrupts = (run as { __interrupt__?: unknown[] }).__interrupt__
-        if (!interrupts?.length) {
-            break
-        }
-        const { decisions, declined: declinedRound } = await resolveInterruptDecisions(
-            interrupts,
-            (item) => (item as { value: TurnInterruptRequest }).value,
-            resolve,
-        )
-        declined = declinedRound
-        run = await agent.invoke(new Command({ resume: { decisions } }), config)
-        if (declined) {
-            break
-        }
-    }
-    const pending = (run as { __interrupt__?: unknown[] }).__interrupt__
-    if (!declined && pending?.length) {
-        warnUnresolvedInterrupts(pending.length)
-    }
+    const requestOf = (item: unknown) => (item as { value: TurnInterruptRequest }).value
+    await runInterruptLoop(
+        () => (run as { __interrupt__?: unknown[] }).__interrupt__,
+        async (decisions) => { run = await agent.invoke(new Command({ resume: { decisions } }), config) },
+        requestOf,
+        resolve,
+    )
     return collectTurnResult((run as { messages: unknown[] }).messages)
 }
 
@@ -154,8 +199,9 @@ export function collectTurnResult(messages: unknown[]): TurnResult {
                 }
             }
         }
-        if ((m as { _getType?: () => string })._getType?.() === 'tool' && (m as { isError?: boolean }).isError) {
-            failedToolIds.push((m as { tool_call_id?: string }).tool_call_id ?? '?')
+        const tm = m as { _getType?: () => string; isError?: boolean; tool_call_id?: string; content?: unknown }
+        if (tm._getType?.() === 'tool' && (tm.isError || (typeof tm.content === 'string' && tm.content.startsWith(TOOL_ERROR_PREFIX)))) {
+            failedToolIds.push(tm.tool_call_id ?? '?')
         }
     }
 

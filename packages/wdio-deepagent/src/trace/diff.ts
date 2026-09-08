@@ -1,3 +1,5 @@
+import { diffArrays } from 'diff'
+
 import type { TraceAction, TraceArtifact, TraceNetworkEntry } from './reader.js'
 import { isNetworkError } from './reader.js'
 
@@ -25,16 +27,27 @@ export interface TraceDiff {
     newHasFailures: boolean
 }
 
+/** `{name, selector, error}` projection of one action for failure reports. */
+export function actionSummary(a: TraceAction): { name?: string; selector?: string; error?: string } {
+    return { name: a.name, selector: a.selector, error: a.error }
+}
+
+/** Failure projections for every failed action, in timeline order. */
+export function failureSummaries(actions: TraceAction[]): Array<{ name?: string; selector?: string; error?: string }> {
+    return actions.filter((a) => !a.ok).map(actionSummary)
+}
+
 /** Structural diff between an old and a new trace artifact. */
 export function diffArtifacts(oldArtifact: TraceArtifact, newArtifact: TraceArtifact): TraceDiff {
-    const oldKeys = new Set(oldArtifact.actions.map(actionKey))
-    const newKeys = new Set(newArtifact.actions.map(actionKey))
+    const changes = diffArrays(oldArtifact.actions, newArtifact.actions, {
+        comparator: (a, b) => actionKey(a) === actionKey(b),
+    })
     return {
         oldActionCount: oldArtifact.actions.length,
         newActionCount: newArtifact.actions.length,
-        added: newArtifact.actions.filter((a) => !oldKeys.has(actionKey(a))),
-        removed: oldArtifact.actions.filter((a) => !newKeys.has(actionKey(a))),
-        failedNow: newArtifact.actions.filter((a) => !a.ok).map((a) => ({ name: a.name, selector: a.selector, error: a.error })),
+        added: changes.filter((c) => c.added).flatMap((c) => c.value),
+        removed: changes.filter((c) => c.removed).flatMap((c) => c.value),
+        failedNow: failureSummaries(newArtifact.actions),
         oldHadFailures: oldArtifact.actions.some((a) => !a.ok),
         newHasFailures: newArtifact.actions.some((a) => !a.ok),
     }

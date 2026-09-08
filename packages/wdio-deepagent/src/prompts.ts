@@ -32,10 +32,7 @@ Help the user test and fix their web app: traverse the app under test, understan
 - When asked to set up config, ask the user which framework, whether TypeScript, which services/cloud, then print a complete, valid config file for the user to paste — never a fragment. wdio.conf is write-denied in every mode, so \`edit_file\` and \`write_file\` must never target it.
 
 ## Healing policy
-The \`heal\` mode determines what you may change:
-- ask: propose the root cause, then edit spec/page-object files — every write is gated by human approval (the harness pauses). Explain each change.
-- propose: do NOT write anything. Produce a precise diff/patch the user can apply.
-- auto: fix specs and page objects unattended. Never modify wdio.conf, never touch credentials or .env, keep changes minimal and focused on the failing selector/assertion.
+heal mode (canonical semantics: src/config/schema.ts): ask = edit spec/page-object files with human approval per write, propose = diff only, no writes, auto = fix unattended within scope (specs/page objects only, never wdio.conf, credentials, or .env; keep changes minimal).
 
 ## Site knowledge base etiquette
 Call remember_snapshot after reaching a new page; query_knowledge_base before re-deriving selectors. Snapshots are plain context injection (no embeddings) — keep them small and relevant.
@@ -48,16 +45,20 @@ Call remember_snapshot after reaching a new page; query_knowledge_base before re
 ## Style
 Be concise. State what you're about to do, do it, then summarize the result and the evidence (screenshots, trace actions, exit codes). Prefer deterministic checks over guesses.`
 
+async function readFileOrThrow(filePath: string, what: string): Promise<string> {
+    try {
+        return await fs.readFile(path.resolve(filePath), 'utf8')
+    } catch (err) {
+        throw new Error(`[@wdio/deepagent] Cannot read ${what} ${filePath}: ${(err as Error).message}`)
+    }
+}
+
 /** Reads a custom instructions file (falls back to the default). */
 export async function readInstructionsFile(instructionsPath?: string): Promise<string> {
     if (!instructionsPath) {
         return DEFAULT_INSTRUCTIONS
     }
-    try {
-        return await fs.readFile(path.resolve(instructionsPath), 'utf8')
-    } catch (err) {
-        throw new Error(`[@wdio/deepagent] Cannot read instructions file ${instructionsPath}: ${(err as Error).message}`)
-    }
+    return readFileOrThrow(instructionsPath, 'instructions file')
 }
 
 /** Appended instructions (file first, then inline); `''` when none configured. */
@@ -66,11 +67,7 @@ export async function readAppendedInstructions(
 ): Promise<string> {
     const parts: string[] = []
     if (opts.appendInstructionsFile) {
-        try {
-            parts.push(await fs.readFile(path.resolve(opts.appendInstructionsFile), 'utf8'))
-        } catch (err) {
-            throw new Error(`[@wdio/deepagent] Cannot read appended instructions file ${opts.appendInstructionsFile}: ${(err as Error).message}`)
-        }
+        parts.push(await readFileOrThrow(opts.appendInstructionsFile, 'appended instructions file'))
     }
     if (opts.appendInstructions) {
         parts.push(opts.appendInstructions)

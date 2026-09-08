@@ -20,6 +20,10 @@ import { createRunSpecTool } from './run-spec.js'
 import { createLoopGuardMiddleware, TOOL_ERROR_PREFIX } from './loop-guard.js'
 import { readInstructionsFile, readAppendedInstructions } from './prompts.js'
 import { extractAgentReply } from './commands/turn.js'
+import { createApprovalQueue } from './commands/ui/approvalBus.js'
+import type { ApprovalQueue } from './commands/ui/approvalBus.js'
+import { createSessionStore } from './session-store.js'
+import type { SessionCaches } from './session-store.js'
 
 const log = logger('@wdio/deepagent')
 
@@ -65,6 +69,8 @@ export interface DeepAgentHarnessOptions {
     modelOverride?: BaseChatModel
     /** Checkpointer thread id (default 'default'); unique ids isolate per-harness MemorySaver state. */
     threadId?: string
+    /** Factory-owned approval queue for per-thread HITL gates; created per threadId when omitted. */
+    approvalQueue?: ApprovalQueue
 }
 
 export interface DeepAgentHarness {
@@ -73,6 +79,10 @@ export interface DeepAgentHarness {
     model: BaseChatModel
     mcpClient: WdioMcpClient | null
     tools: DynamicStructuredTool[]
+    /** Factory-owned per-thread approval queue (commands side implements the queue UI). */
+    approvalQueue: ApprovalQueue
+    /** Bounded per-thread KB/archive caches keyed by threadId. */
+    session: SessionCaches
     /** Shuts down the MCP server process. */
     close(): Promise<void>
 }
@@ -90,65 +100,53 @@ export interface DeepAgentHarness {
  * readable — it is the agent's main source of project structure (framework,
  * spec patterns, services) — but is write-denied with the rest of the infra
  * so a heal cannot rewrite its own harness config and escalate heal/mcp.
- * `auto` additionally write-denies CI config, manifests,
- * lockfiles and git hooks while reads stay allowed — an unrestricted auto
- * heal could otherwise rewrite `.github/workflows/*.yml`, `package.json` or
- * the lockfile and break the build. `ask` additionally gates every write via
- * interrupts (`interruptsForHeal`); `propose` is read-only and denies writes
- * everywhere; `auto` is scoped by the rules alone.
+ * Heal-mode semantics (`ask`/`propose`/`auto`) are canonically defined in
+ * config/schema.ts.
  *
  * `FilesystemBackend` exposes no `execute` tool, so there is no shell-command
  * hole that these permissions cannot cover.
  */
-const WRITE_DENY_GLOBS = [
-    '/wdio.conf*', '/**/wdio.conf*',
-    '/.github/**', '/**/.github/**',
-    '/package.json', '/**/package.json',
-    '/package-lock.json', '/**/package-lock.json',
-    '/pnpm-lock.yaml', '/**/pnpm-lock.yaml',
-    '/yarn.lock', '/**/yarn.lock',
-    '/.husky/**', '/**/.husky/**',
-]
-
-/** All write-denying globs across every rule permissionsForHeal emits — single source of truth for the gate. */
-function writeDeniedGlobs(heal: HealMode): string[] {
-    return permissionsForHeal(heal).flatMap((rule) =>
-        rule.mode === 'deny' && rule.operations.includes('write') ? rule.paths : []
-    )
+function pair(...names: string[]): string[] {
+    return names.flatMap((name) => [name, `/**${name}`])
 }
 
-const SENSITIVE_DENY_GLOBS = [
-    '/.env*', '/**/.env*',
-    '/.git/**', '/**/.git/**',
-    '/node_modules/**', '/**/node_modules/**',
-    '/.npmrc', '/**/.npmrc',
-    '/*.pem', '/**/*.pem',
-    '/*.key', '/**/*.key',
-]
+const WRITE_DENY_GLOBS = pair(
+    '/wdio.conf*',
+    '/.github/**',
+    '/package.json',
+    '/package-lock.json',
+    '/pnpm-lock.yaml',
+    '/yarn.lock',
+    '/.husky/**',
+)
 
-function isWriteDenied(globs: string[], filePath: unknown): boolean {
-    if (typeof filePath !== 'string' || filePath.length === 0) {
-        return false
-    }
-    // tool args can arrive relative ("wdio.conf.ts"); the deny globs are '/'-anchored
-    const normalized = filePath.startsWith('/') ? filePath : `/${filePath}`
-    return micromatch.isMatch(normalized, globs, { dot: true })
-}
+const SENSITIVE_DENY_GLOBS = pair(
+    '/.env*',
+    '/.git/**',
+    '/node_modules/**',
+    '/.npmrc',
+    '/*.pem',
+    '/*.key',
+)
+
+const SENSITIVE_DENY_RULE: FilesystemPermission = { operations: ['read', 'write'], paths: SENSITIVE_DENY_GLOBS, mode: 'deny' }
 
 export function permissionsForHeal(heal: HealMode): FilesystemPermission[] {
     if (heal === 'propose') {
         return [
-            // propose is read-only, but the model still sees the filesystem:
-            // deny sensitive reads (secrets, git metadata, keys) first so the
-            // allow-read rule below cannot shadow them. Reuses the same
-            // glob set as ask/auto — no new carve-outs.
-            { operations: ['read', 'write'], paths: SENSITIVE_DENY_GLOBS, mode: 'deny' },
+            // Dead branch: diagnose never builds a harness in propose mode
+            // (see skipPropose in index.ts), so no agent ever runs under
+            // these rules. Kept so direct API callers get read-only, but the
+            // model still sees the filesystem: deny sensitive reads (secrets,
+            // git metadata, keys) first so the allow-read rule below cannot
+            // shadow them. Reuses the same glob set as ask/auto — no new carve-outs.
+            SENSITIVE_DENY_RULE,
             { operations: ['read'], paths: ['/**'], mode: 'allow' },
             { operations: ['read', 'write'], paths: ['/**'], mode: 'deny' },
         ]
     }
     return [
-        { operations: ['read', 'write'], paths: SENSITIVE_DENY_GLOBS, mode: 'deny' },
+        SENSITIVE_DENY_RULE,
         {
             operations: ['write'],
             paths: WRITE_DENY_GLOBS,
@@ -156,6 +154,22 @@ export function permissionsForHeal(heal: HealMode): FilesystemPermission[] {
         },
         { operations: ['read', 'write'], paths: ['/**'], mode: 'allow' },
     ]
+}
+
+/** Write-denying globs for the ask-mode gate — derived from permissionsForHeal so the gate can never drift from the deny rules it mirrors. */
+export const WRITE_DENIED_GLOBS: string[] = permissionsForHeal('ask').flatMap((rule) =>
+    rule.mode === 'deny' && rule.operations.includes('write') ? rule.paths : []
+)
+
+const isWriteDeniedMatchers = WRITE_DENIED_GLOBS.map((glob) => micromatch.matcher(glob, { dot: true }))
+
+function isWriteDenied(filePath: unknown): boolean {
+    if (typeof filePath !== 'string' || filePath.length === 0) {
+        return false
+    }
+    // tool args can arrive relative ("wdio.conf.ts"); the deny globs are '/'-anchored
+    const normalized = filePath.startsWith('/') ? filePath : `/${filePath}`
+    return isWriteDeniedMatchers.some((matches) => matches(normalized))
 }
 
 /**
@@ -170,10 +184,9 @@ export function interruptsForHeal(heal: HealMode): Record<string, boolean | Inte
         // the human is asked to approve a write that cannot succeed. Globs
         // derived from permissionsForHeal so the gate can never drift from
         // the deny rules it mirrors.
-        const denied = writeDeniedGlobs(heal)
         const gate: InterruptOnConfig = {
             allowedDecisions: ['approve', 'reject'],
-            when: (req: ToolCallRequest) => !isWriteDenied(denied, req.toolCall.args?.file_path),
+            when: (req: ToolCallRequest) => !isWriteDenied(req.toolCall.args?.file_path),
             description: (_toolCall, state) => extractAgentReply(state.messages),
         }
         return { write_file: gate, edit_file: gate }
@@ -207,9 +220,11 @@ export function withErrorRecovery(
     const tuple = (tool as { responseFormat?: string }).responseFormat === 'content_and_artifact'
     tool.func = (async (input: unknown, ...rest: unknown[]) => {
         try {
-            const output = await exec(input, ...rest)
-            if (options.imagesAsText && tuple && Array.isArray(output) && Array.isArray(output[0])) {
-                output[0] = output[0].map((block: unknown) => {
+            const raw = await exec(input, ...rest)
+            const output: unknown = tuple && !Array.isArray(raw) ? [raw, undefined] : raw
+            const content = tuple ? (output as unknown[])[0] : undefined
+            if (options.imagesAsText && Array.isArray(content)) {
+                (output as unknown[])[0] = content.map((block: unknown) => {
                     if (typeof block !== 'object' || block === null || !('type' in block)) {
                         return block
                     }
@@ -217,7 +232,7 @@ export function withErrorRecovery(
                     if (type !== 'image_url' && type !== 'image') {
                         return block
                     }
-                    return { type: 'text', text: imagePlaceholder(block) }
+                    return { type: 'text', text: imagePlaceholder(block as object) }
                 })
             }
             return output
@@ -231,20 +246,21 @@ export function withErrorRecovery(
 
 /** Derives mime + approximate size from an image content block for the placeholder text. */
 function imagePlaceholder(block: object): string {
-    let mime: unknown
-    let base64 = ''
+    let mime: unknown = 'image'
+    let base64Len = 0
     if ('image_url' in block) {
         const url = (block as { image_url?: { url?: string } }).image_url?.url ?? ''
-        const match = /^data:([^;,]+)?;base64,(.*)$/.exec(url)
-        mime = match?.[1] ?? 'image'
-        base64 = match?.[2] ?? ''
+        const match = /^data:([^;,]+)?;base64,/.exec(url)
+        if (match) {
+            mime = match[1] ?? 'image'
+            base64Len = url.length - match[0].length
+        }
     } else {
-        mime = (block as { mimeType?: unknown; mime_type?: unknown }).mimeType
-            ?? (block as { mimeType?: unknown; mime_type?: unknown }).mime_type
-            ?? 'image'
-        base64 = typeof (block as { data?: unknown }).data === 'string' ? (block as { data: string }).data : ''
+        const typed = block as { mimeType?: unknown; mime_type?: unknown; data?: unknown }
+        mime = typed.mimeType ?? typed.mime_type ?? 'image'
+        base64Len = typeof typed.data === 'string' ? typed.data.length : 0
     }
-    const kb = Math.round((base64.length * 3) / 4 / 1024)
+    const kb = Math.round((base64Len * 3) / 4 / 1024)
     return `[Image capture (${String(mime)}, ~${kb} KB) omitted: this model cannot view images in tool results — inspect page state with get_accessibility_tree or get_elements instead.]`
 }
 
@@ -264,14 +280,15 @@ export interface DeepAgentToolSurface {
  * each wrapped with error recovery. Model-independent — the `mcp` CLI
  * command serves this surface without needing a model.
  */
-export async function createToolSurface(options: { mcp?: McpServerConfig | null; traceDir?: string; configPath?: string; imagesAsText?: boolean }): Promise<DeepAgentToolSurface> {
+export async function createToolSurface(options: { mcp?: McpServerConfig | null; traceDir?: string; configPath?: string; imagesAsText?: boolean; session?: SessionCaches }): Promise<DeepAgentToolSurface> {
     const mcpConfig = resolveMcpConfig(options.mcp)
     const mcpClient = mcpConfig ? new WdioMcpClient(mcpConfig) : null
     const traceDir = options.traceDir ?? DEFAULT_TRACE_DIR
 
     const traversalTools = mcpClient ? await mcpClient.getTools() : []
-    const traceTools = createTraceTools({ configPath: options.configPath, traceDir })
-    const knowledgeBaseTools = createKnowledgeBaseTools()
+    const session = options.session ?? createSessionStore()
+    const traceTools = createTraceTools({ configPath: options.configPath, traceDir }, session.archives)
+    const knowledgeBaseTools = createKnowledgeBaseTools(session.knowledgeBase)
     // MCP tools are DynamicStructuredTool; harness tools are too.
     const tools: DynamicStructuredTool[] = [...traversalTools, createRunSpecTool({ configPath: options.configPath }), ...traceTools, ...knowledgeBaseTools].map((tool) => withErrorRecovery(tool, { imagesAsText: options.imagesAsText }))
 
@@ -315,8 +332,16 @@ export async function createDeepAgentHarness(
         )
     }
 
-    const surface = await createToolSurface({ mcp: options.mcp === null ? null : mcpConfig, traceDir, configPath: options.configPath, imagesAsText: !(chatModel instanceof ChatAnthropic) })
-    const instructions = await readInstructionsFile(options.instructionsPath)
+    const threadId = options.threadId ?? 'default'
+    const approvalQueue = options.approvalQueue ?? createApprovalQueue()
+    // Harness instances are already per-thread via the `threadId` option —
+    // instance ownership IS the threading: one store per harness, no globals.
+    const session = createSessionStore()
+    const [surface, instructions, appended] = await Promise.all([
+        createToolSurface({ mcp: options.mcp === null ? null : mcpConfig, traceDir, configPath: options.configPath, imagesAsText: !(chatModel instanceof ChatAnthropic), session }),
+        readInstructionsFile(options.instructionsPath),
+        readAppendedInstructions(options),
+    ])
     const { tools, mcpClient } = surface
 
     // Point the model at the project's wdio config instead of inlining it —
@@ -330,7 +355,7 @@ export async function createDeepAgentHarness(
             systemPrompt = `${instructions}\n\n- The project's wdio config: \`${virtualConfigPath}\` — read it with \`read_file\` before spec or config work.`
         }
     }
-    systemPrompt += await readAppendedInstructions(options)
+    systemPrompt += appended
 
     const agent = createDeepAgent({
         name: '@wdio/deepagent',
@@ -366,7 +391,7 @@ export async function createDeepAgentHarness(
         // to the same conversation thread. The thread is configurable per
         // harness (`options.threadId`, default 'default') — pass a unique
         // id to keep MemorySaver state from leaking across harnesses.
-        configurable: { thread_id: options.threadId ?? 'default' },
+        configurable: { thread_id: threadId },
     }) as unknown as DeepAgent
 
     return {
@@ -374,6 +399,8 @@ export async function createDeepAgentHarness(
         model: chatModel,
         mcpClient,
         tools,
+        approvalQueue,
+        session,
         close: surface.close,
     }
 }

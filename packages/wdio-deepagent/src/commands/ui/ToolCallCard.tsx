@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box, Text, useStdout } from 'ink'
-import { truncate } from '../interrupt.js'
+import { formatToolCallPreview, truncate } from '../interrupt.js'
 
 export interface ToolCardState {
     name: string
@@ -15,8 +15,7 @@ export interface ToolCardState {
 export function ToolCallCard({ card }: { card: ToolCardState }): React.JSX.Element {
     const { stdout } = useStdout()
     const columns = stdout.columns ?? 120
-    const json = JSON.stringify(card.input ?? {})
-    const preview = truncate(json)
+    const preview = formatToolCallPreview(card.name, card.input)
     return (
         <Box borderStyle="round" flexDirection="column" paddingX={1} width={Math.max(40, Math.min(columns - 4, 110))}>
             <Text>

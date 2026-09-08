@@ -1,5 +1,4 @@
 import spawn from 'cross-spawn'
-import { existsSync } from 'node:fs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
@@ -14,14 +13,19 @@ export interface ReproduceOptions extends RunSpecOptions {
     traceDir: string
 }
 
-export interface ReproduceResult {
-    /** Path of the newest `.zip` written after the run started. */
-    artifactPath?: string
+export interface SpecRunResult {
     exitCode: number
     /** Wall-clock duration of the run in ms. */
     duration: number
+    durationMs: number
+    stdout?: string
     stderr: string
+    /** Path of the newest `.zip` written after the run started. */
+    artifactPath?: string
 }
+
+/** @deprecated Use {@link SpecRunResult} instead. */
+export type ReproduceResult = SpecRunResult
 
 /**
  * Overlay config file name. Must end in `.ts` so `wdio run` registers tsx
@@ -39,6 +43,20 @@ export const STDERR_TAIL_CHARS = 2000
 /** Exit code used when a reproduction is killed by the timeout (mirrors `timeout(1)`). */
 export const TIMED_OUT_EXIT_CODE = 124
 export const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000
+
+/** Upper bound for a caller-supplied run timeout (mirrored in the run_spec tool schema). */
+export const MAX_TIMEOUT_MS = 30 * 60 * 1000
+
+/** Max buffered bytes per spawned stream; past the cap output is dropped and flagged. */
+const MAX_RUN_OUTPUT_BYTES = 1024 * 1024
+
+/** Clamp a caller-supplied run timeout into `[1, MAX_TIMEOUT_MS]`, defaulting to DEFAULT_TIMEOUT_MS. */
+export function clampTimeout(ms?: number): number {
+    if (ms === undefined || !Number.isFinite(ms)) {
+        return DEFAULT_TIMEOUT_MS
+    }
+    return Math.min(Math.max(Math.floor(ms), 1), MAX_TIMEOUT_MS)
+}
 
 /** Builds the overlay config: base config + devtools `trace` service. */
 export function buildTraceOverlay(baseConfigPath: string, traceDir: string): string {
@@ -75,17 +93,22 @@ async function findNewestTraceZip(dir: string, afterMs?: number): Promise<string
     } catch {
         return undefined
     }
-    for (const entry of entries) {
-        if (!entry.endsWith('.zip')) {
+    const stats = await Promise.all(entries
+        .filter((entry) => entry.endsWith('.zip'))
+        .map(async (entry) => {
+            const full = path.join(dir, entry)
+            try {
+                return { path: full, mtime: (await fs.stat(full)).mtimeMs }
+            } catch {
+                return undefined
+            }
+        }))
+    for (const stat of stats) {
+        if (!stat || (afterMs !== undefined && stat.mtime < afterMs)) {
             continue
         }
-        const full = path.join(dir, entry)
-        const stat = await fs.stat(full)
-        if (afterMs !== undefined && stat.mtimeMs < afterMs) {
-            continue
-        }
-        if (!newest || stat.mtimeMs > newest.mtime) {
-            newest = { path: full, mtime: stat.mtimeMs }
+        if (!newest || stat.mtime > newest.mtime) {
+            newest = stat
         }
     }
     return newest?.path
@@ -106,6 +129,71 @@ interface SpawnRunOptions {
     timeoutMs: number
 }
 
+/** Bounded per-stream buffer: chunk Buffers accumulate, concatenated once at the end. */
+function cappedOutput() {
+    const chunks: Buffer[] = []
+    let bytes = 0
+    let truncated = false
+    return {
+        push(chunk: Buffer) {
+            if (bytes + chunk.length > MAX_RUN_OUTPUT_BYTES) {
+                truncated = true
+                return
+            }
+            chunks.push(chunk)
+            bytes += chunk.length
+        },
+        text(extra = '') {
+            const out = Buffer.concat(chunks).toString()
+            return truncated ? `${out}\n[@wdio/deepagent] output truncated at ${MAX_RUN_OUTPUT_BYTES} bytes.\n${extra}` : out + extra
+        },
+    }
+}
+
+/**
+ * Forwards parent termination signals to the detached child process group so
+ * Ctrl-C/CI-kill cannot orphan wdio's workers or the browser. Returns the
+ * kill helper plus an unwrap that removes the listeners.
+ */
+function wireSignals(child: ReturnType<typeof spawn>, isSettled: () => boolean): { killRun: (signal: NodeJS.Signals) => void; unwrap: () => void } {
+    // kill(-pid) hits the detached process group so wdio's workers and
+    // the browser it spawned die with it; throws ESRCH once it is gone
+    const killRun = (signal: NodeJS.Signals) => {
+        try {
+            if (process.platform === 'win32') {
+                child.kill(signal)
+            } else if (child.pid) {
+                // process.kill with a negative pid targets the group;
+                // child.kill takes a signal, not a pid
+                process.kill(-child.pid, signal)
+            }
+        } catch {
+            // group already gone or spawn failed
+        }
+    }
+    // detached puts the child in its own session: forward parent
+    // termination signals to the group so Ctrl-C/CI-kill cannot orphan it
+    const forward = (signal: NodeJS.Signals) => () => {
+        if (!isSettled()) {
+            killRun(signal)
+        }
+    }
+    const onSigint = forward('SIGTERM')
+    const onSigterm = forward('SIGTERM')
+    const onExit = forward('SIGKILL')
+    process.once('SIGINT', onSigint)
+    process.once('SIGTERM', onSigterm)
+    process.once('exit', onExit)
+    return {
+        killRun,
+        unwrap: () => {
+            process.removeListener('SIGINT', onSigint)
+            process.removeListener('SIGTERM', onSigterm)
+            process.removeListener('exit', onExit)
+        },
+    }
+}
+
 /** Spawns the wdio run, killing the child after `timeoutMs` if it does not finish. */
 function spawnRun(command: string, args: string[], options: SpawnRunOptions): Promise<{ exitCode: number; stdout: string; stderr: string }> {
     return new Promise((resolve, reject) => {
@@ -115,64 +203,31 @@ function spawnRun(command: string, args: string[], options: SpawnRunOptions): Pr
             stdio: ['ignore', 'pipe', 'pipe'],
             detached: process.platform !== 'win32',
         })
-        let stdout = ''
-        let stderr = ''
+        const out = cappedOutput()
+        const errOut = cappedOutput()
         let settled = false
-        // kill(-pid) hits the detached process group so wdio's workers and
-        // the browser it spawned die with it; throws ESRCH once it is gone
-        const killRun = (signal: NodeJS.Signals) => {
-            try {
-                if (process.platform === 'win32') {
-                    child.kill(signal)
-                } else if (child.pid) {
-                    // process.kill with a negative pid targets the group;
-                    // child.kill takes a signal, not a pid
-                    process.kill(-child.pid, signal)
-                }
-            } catch {
-                // group already gone or spawn failed
-            }
-        }
-        // detached puts the child in its own session: forward parent
-        // termination signals to the group so Ctrl-C/CI-kill cannot orphan it
-        const forward = (signal: NodeJS.Signals) => () => {
-            if (!settled) {
-                killRun(signal)
-            }
-        }
-        const onSigint = forward('SIGTERM')
-        const onSigterm = forward('SIGTERM')
-        const onExit = forward('SIGKILL')
-        process.once('SIGINT', onSigint)
-        process.once('SIGTERM', onSigterm)
-        process.once('exit', onExit)
-        const cleanup = () => {
-            process.removeListener('SIGINT', onSigint)
-            process.removeListener('SIGTERM', onSigterm)
-            process.removeListener('exit', onExit)
-        }
+        const { killRun, unwrap } = wireSignals(child, () => settled)
         const timer = setTimeout(() => {
             if (settled) {
                 return
             }
             settled = true
-            cleanup()
-            stderr += `\n[@wdio/deepagent] reproduction timed out after ${options.timeoutMs} ms; killing the run.\n`
+            unwrap()
             killRun('SIGTERM')
             // Force-kill shortly after in case the group ignores SIGTERM.
             setTimeout(() => killRun('SIGKILL'), 5000).unref()
-            resolve({ exitCode: TIMED_OUT_EXIT_CODE, stdout, stderr })
+            resolve({ exitCode: TIMED_OUT_EXIT_CODE, stdout: out.text(), stderr: errOut.text(`\n[@wdio/deepagent] reproduction timed out after ${options.timeoutMs} ms; killing the run.\n`) })
         }, options.timeoutMs)
         child.stdout?.on('data', (chunk: Buffer) => {
-            stdout += chunk.toString()
+            out.push(chunk)
         })
         child.stderr?.on('data', (chunk: Buffer) => {
-            stderr += chunk.toString()
+            errOut.push(chunk)
         })
         child.on('error', (err) => {
             if (!settled) {
                 settled = true
-                cleanup()
+                unwrap()
                 clearTimeout(timer)
                 reject(err)
             }
@@ -180,9 +235,9 @@ function spawnRun(command: string, args: string[], options: SpawnRunOptions): Pr
         child.on('close', (code) => {
             if (!settled) {
                 settled = true
-                cleanup()
+                unwrap()
                 clearTimeout(timer)
-                resolve({ exitCode: code ?? 1, stdout, stderr })
+                resolve({ exitCode: code ?? 1, stdout: out.text(), stderr: errOut.text() })
             }
         })
     })
@@ -193,12 +248,21 @@ function spawnRun(command: string, args: string[], options: SpawnRunOptions): Pr
  * disk wins; a relative or `/`-virtual path is stripped of its leading `/`
  * and rooted at `root`.
  */
-export function resolveModelPath(root: string, p: string): string {
-    const abs = path.resolve(p)
-    if (path.isAbsolute(p) && existsSync(abs)) {
-        return abs
+export async function resolveIn(root: string, p: string): Promise<string> {
+    if (path.isAbsolute(p)) {
+        try {
+            await fs.stat(path.resolve(p))
+            return path.resolve(p)
+        } catch {
+            // not on host disk — fall through to the virtual mapping
+        }
     }
     return path.resolve(root, p.replace(/^\//, ''))
+}
+
+/** @deprecated Use {@link resolveIn} instead. */
+export async function resolveModelPath(root: string, p: string): Promise<string> {
+    return resolveIn(root, p)
 }
 
 /** Default project root for a config file (its dir), or the cwd. */
@@ -213,8 +277,9 @@ export function projectRootForConfig(configPath?: string): string {
  * path), else a `/`-prefixed virtual path as emitted by the fs tools is
  * mapped onto the root.
  */
-export function resolveSpecPath(projectRoot: string, spec: string): string {
-    return resolveModelPath(projectRoot, spec)
+/** @deprecated Use {@link resolveIn} instead. */
+export async function resolveSpecPath(projectRoot: string, spec: string): Promise<string> {
+    return resolveIn(projectRoot, spec)
 }
 
 export interface RunSpecOptions extends SpawnOverride {
@@ -236,21 +301,48 @@ export interface RunSpecOptions extends SpawnOverride {
     env?: NodeJS.ProcessEnv
 }
 
-export interface RunSpecResult {
-    exitCode: number
-    /** Wall-clock duration of the run in ms. */
-    duration: number
-    stdout: string
-    stderr: string
+/** @deprecated Use {@link SpecRunResult} instead. */
+export type RunSpecResult = SpecRunResult
+
+export type SpecRunCoreResult = SpecRunResult
+export type SpecRunCoreOptions = RunSpecOptions & {
+    /** When true, run under the trace overlay and scan for the fresh trace.zip. */
+    trace: boolean
+    /** Required when trace is true: directory for the overlay config + artifacts. */
+    traceDir?: string
 }
 
 /**
- * Runs `wdio run` against the given config without any trace overlay.
- * The spawned run is killed after `timeoutMs` if it does not finish, and
- * the spec path is validated to stay inside the project root.
+ * Shared run_spec / reproduce_spec core: path confinement, timeout and spawn
+ * live here once; `trace` selects the plain run vs the trace-overlay run.
  */
-export async function runSpec(options: RunSpecOptions): Promise<RunSpecResult> {
-    const projectRoot = path.resolve(options.projectRoot ?? projectRootForConfig(options.configPath))
+export async function runSpecCore(options: SpecRunCoreOptions): Promise<SpecRunCoreResult> {
+    let configPath = options.configPath
+    const projectRoot = path.resolve(options.projectRoot ?? projectRootForConfig(configPath))
+    let traceRunDir: string | undefined
+    let traceStartedAt = 0
+    let env = options.env
+    if (options.trace) {
+        if (!options.traceDir) {
+            throw new Error('traceDir is required for a trace run.')
+        }
+        const traceDir = path.resolve(options.traceDir)
+        await fs.mkdir(traceDir, { recursive: true })
+        // Each trace run gets its own output dir so a concurrent run (or a
+        // second mission sharing `traceDir`) cannot inject a newer trace.zip
+        // into the scan. The overlay pins `outputDir` here; findNewestTraceZip
+        // then only ever sees this run's artifacts.
+        traceRunDir = await fs.mkdtemp(path.join(traceDir, 'repro-'))
+        const overlayPath = path.join(traceRunDir, OVERLAY_FILENAME)
+        await fs.writeFile(overlayPath, buildTraceOverlay(configPath, traceRunDir))
+        traceStartedAt = Date.now()
+        env = { ...env, [TRACE_DIR_ENV]: traceRunDir }
+        // configPath becomes the overlay, but projectRoot above stays the
+        // original config's dir: the overlay lives in the mkdtemp traceDir,
+        // so dirname(overlayPath) would break the confinement check below
+        configPath = overlayPath
+    }
+
     const spec = path.resolve(projectRoot, options.spec)
     const relativeSpec = path.relative(projectRoot, spec)
     if (relativeSpec.startsWith('..') || path.isAbsolute(relativeSpec)) {
@@ -264,48 +356,84 @@ export async function runSpec(options: RunSpecOptions): Promise<RunSpecResult> {
     // forwards it verbatim), but the spawned run's cwd is projectRoot —
     // absolutize before building args or a nested-relative `--config`
     // (e.g. `configs/wdio.conf.ts`) would misresolve in the child.
-    const resolvedConfig = path.resolve(options.configPath)
+    const resolvedConfig = path.resolve(configPath)
     const args = options.spawnArgs ?? ['run', resolvedConfig, '--spec', spec]
-    const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS
+    const timeoutMs = clampTimeout(options.timeoutMs)
     const spawnOptions: SpawnRunOptions = {
         cwd: projectRoot,
-        env: options.env,
+        env,
         timeoutMs,
     }
 
     const startedAt = process.hrtime.bigint()
-    let spawned: { exitCode: number; stdout: string; stderr: string }
-    try {
-        spawned = await spawnRun(wdioBin, args, spawnOptions)
-    } catch (err) {
-        if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
-            throw err
+    // no local wdio bin (npx-driven or globally installed project): fall back to npx.
+    // cross-spawn resolves .cmd/.bat without a shell on win32, so the
+    // spec path embedded in args is never handed to a shell interpreter
+    const candidates: Array<[string, string[]]> = [[wdioBin, args], ['npx', ['wdio', ...args]]]
+    let spawned: { exitCode: number; stdout: string; stderr: string } | undefined
+    let lastErr: unknown
+    for (const [command, cmdArgs] of candidates) {
+        try {
+            spawned = await spawnRun(command, cmdArgs, spawnOptions)
+            break
+        } catch (err) {
+            if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+                throw err
+            }
+            lastErr = err
         }
-        // no local wdio bin (npx-driven or globally installed project): retry via npx.
-        // cross-spawn resolves .cmd/.bat without a shell on win32, so the
-        // spec path embedded in args is never handed to a shell interpreter
-        spawned = await spawnRun('npx', ['wdio', ...args], spawnOptions)
+    }
+    if (!spawned) {
+        throw lastErr
     }
 
+    const duration = Number(process.hrtime.bigint() - startedAt) / 1e6
     return {
         exitCode: spawned.exitCode,
-        duration: Number(process.hrtime.bigint() - startedAt) / 1e6,
+        duration,
+        durationMs: duration,
         stdout: spawned.stdout,
         stderr: spawned.stderr,
+        ...(traceRunDir !== undefined
+            ? { artifactPath: await findNewestTraceZip(traceRunDir, traceStartedAt) }
+            : {}),
     }
 }
 
-export interface RunResult {
-    exitCode: number
-    durationMs: number
-    stdout?: string
-    stderr?: string
-    artifactPath?: string
+/**
+ * Runs `wdio run` against the given config without any trace overlay.
+ * The spawned run is killed after `timeoutMs` if it does not finish, and
+ * the spec path is validated to stay inside the project root.
+ */
+export async function runSpec(options: RunSpecOptions): Promise<SpecRunResult> {
+    return runSpecCore({ ...options, trace: false })
 }
+
+/**
+ * Shared run_spec / reproduce_spec tool invocation: resolves the model
+ * spec against the project root, runs the core with clamped timeout, and
+ * formats the JSON tails. Thin wrappers keep the tool name, missing-config
+ * message and `trace` selection.
+ */
+export async function runSpecTool(options: SpecRunCoreOptions & { projectRoot: string; missingAction: string }): Promise<string> {
+    if (!options.configPath) {
+        return missingConfigMessage(options.missingAction)
+    }
+    const result = await runSpecCore({
+        ...options,
+        spec: await resolveIn(options.projectRoot, options.spec),
+        projectRoot: options.projectRoot,
+        timeoutMs: options.timeoutMs === undefined ? options.timeoutMs : clampTimeout(options.timeoutMs),
+    })
+    return formatRunResult(result)
+}
+
+/** @deprecated Use {@link SpecRunResult} instead. */
+export type RunResult = SpecRunResult
 
 /** Formats a run result as the JSON the tools return to the model. */
 export function formatRunResult(
-    result: RunResult,
+    result: SpecRunResult,
     options?: { stdoutTail?: number; stderrTail?: number },
 ): string {
     const output: Record<string, unknown> = {}
@@ -333,39 +461,12 @@ export function missingConfigMessage(action: string): string {
  * The spawned run is killed after `timeoutMs` if it does not finish, and
  * the spec path is validated to stay inside the project root.
  */
-export async function reproduceSpec(options: ReproduceOptions): Promise<ReproduceResult> {
-    const traceDir = path.resolve(options.traceDir)
-    await fs.mkdir(traceDir, { recursive: true })
-    // Each reproduction gets its own output dir so a concurrent run (or a
-    // second mission sharing `traceDir`) cannot inject a newer trace.zip into
-    // the scan. The overlay pins `outputDir` here; findNewestTraceZip then only
-    // ever sees this run's artifacts.
-    const runDir = await fs.mkdtemp(path.join(traceDir, 'repro-'))
-
-    const projectRoot = projectRootForConfig(options.configPath)
-    const overlayPath = path.join(runDir, OVERLAY_FILENAME)
-    await fs.writeFile(overlayPath, buildTraceOverlay(options.configPath, runDir))
-
-    const startedAt = Date.now()
-    // explicit projectRoot = the original config's dir, not the overlay's:
-    // the overlay lives in the mkdtemp traceDir, so dirname(overlayPath)
-    // would break runSpec's confinement check
-    const result = await runSpec({
-        configPath: overlayPath,
-        spec: options.spec,
-        projectRoot,
-        env: { ...options.env, [TRACE_DIR_ENV]: runDir },
-        timeoutMs: options.timeoutMs,
-        spawnCommand: options.spawnCommand,
-        spawnArgs: options.spawnArgs,
+export async function reproduceSpec(options: ReproduceOptions): Promise<SpecRunResult> {
+    const result = await runSpecCore({
+        ...options,
+        projectRoot: projectRootForConfig(options.configPath),
+        trace: true,
     })
-
-    const artifactPath = await findNewestTraceZip(runDir, startedAt)
-
-    return {
-        artifactPath,
-        exitCode: result.exitCode,
-        duration: result.duration,
-        stderr: result.stderr,
-    }
+    const { stdout: _dropped, ...rest } = result
+    return rest
 }
