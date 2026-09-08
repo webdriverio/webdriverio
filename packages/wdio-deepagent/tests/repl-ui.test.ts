@@ -15,6 +15,7 @@ const [{ ToolCallCard }, { ApprovalPrompt }, { render }] = await Promise.all([
     import('ink-testing-library'),
 ])
 const { ARGS_TRUNCATE, describeActionRequest } = await import('../src/commands/interrupt.js')
+const { getPendingApproval, requestApproval } = await import('../src/commands/ui/approvalBus.js')
 
 describe('ToolCallCard', () => {
     it('renders the tool name, args preview and duration', () => {
@@ -83,6 +84,25 @@ describe('ApprovalPrompt', () => {
         // the langchain description is deliberately not rendered
         expect(frame).not.toContain('write it')
         expect(frame).toContain('y/N')
+    })
+
+    it('approves via UI: typing y + Enter resolves the parked approval true and clears pending', async () => {
+        const request = { actionRequests: [{ name: 'write_file', args: { path: 'x.txt' }, description: 'write x.txt' }] }
+        const promise = requestApproval(request)
+        const { stdin, unmount } = render(React.createElement(ApprovalPrompt, { request }))
+        try {
+            // TextInput registers its useInput handler in a passive effect —
+            // flush before typing, and again before Enter (same pattern as
+            // repl-app.test.ts), otherwise Enter submits the pre-insert value.
+            await new Promise<void>((resolve) => setTimeout(resolve, 20))
+            stdin.write('y')
+            await new Promise<void>((resolve) => setTimeout(resolve, 20))
+            stdin.write('\r')
+            await expect(promise).resolves.toBe(true)
+            expect(getPendingApproval()).toBeNull()
+        } finally {
+            unmount()
+        }
     })
 })
 

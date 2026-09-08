@@ -260,7 +260,12 @@ export async function runSpec(options: RunSpecOptions): Promise<RunSpecResult> {
     }
 
     const wdioBin = options.spawnCommand ?? path.join(projectRoot, 'node_modules', '.bin', 'wdio')
-    const args = options.spawnArgs ?? ['run', options.configPath, '--spec', spec]
+    // configPath can be relative to the *caller's* cwd (createRunSpecTool
+    // forwards it verbatim), but the spawned run's cwd is projectRoot —
+    // absolutize before building args or a nested-relative `--config`
+    // (e.g. `configs/wdio.conf.ts`) would misresolve in the child.
+    const resolvedConfig = path.resolve(options.configPath)
+    const args = options.spawnArgs ?? ['run', resolvedConfig, '--spec', spec]
     const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS
     const spawnOptions: SpawnRunOptions = {
         cwd: projectRoot,

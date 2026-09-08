@@ -104,8 +104,9 @@ export function warnUnresolvedInterrupts(count: number): void {
  * result instead of completing; the gated tool call never executes and the
  * process would otherwise exit 0 with the write silently dropped. Resolve
  * every interrupt and re-invoke with `Command({ resume })` on the same
- * thread (the harness checkpointer is MemorySaver with thread_id 'default'),
- * looping until the graph completes or the user declines.
+ * configurable thread (the harness checkpointer is MemorySaver, threaded
+ * via the `threadId` harness option — default 'default'), looping until
+ * the graph completes or the user declines.
  */
 export async function processTurn(agent: DeepAgent, text: string, options: ProcessTurnOptions = {}): Promise<TurnResult> {
     const resolve = options.resolveInterrupt ?? (async () => false)

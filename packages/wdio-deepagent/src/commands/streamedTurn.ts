@@ -34,7 +34,8 @@ export interface StreamedTurnOptions extends ProcessTurnOptions {
  * `TurnInterruptRequest.actionRequests`); each is resolved through
  * `options.resolveInterrupt` and the run resumes with a new
  * `streamEvents(new Command({ resume: { decisions } }), ...)` on the same
- * thread (harness checkpointer is MemorySaver with thread_id 'default').
+ * configurable thread (harness checkpointer is MemorySaver, threaded via
+ * the `threadId` harness option — default 'default').
  *
  * The v3 engine is experimental — this module is the only consumer;
  * `run`/`diagnose` keep the `processTurn` invoke path.

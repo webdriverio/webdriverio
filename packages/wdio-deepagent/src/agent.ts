@@ -63,6 +63,8 @@ export interface DeepAgentHarnessOptions {
     appendInstructionsFile?: string
     /** Test/advanced escape hatch: use this model instead of resolving from config. */
     modelOverride?: BaseChatModel
+    /** Checkpointer thread id (default 'default'); unique ids isolate per-harness MemorySaver state. */
+    threadId?: string
 }
 
 export interface DeepAgentHarness {
@@ -136,6 +138,11 @@ function isWriteDenied(globs: string[], filePath: unknown): boolean {
 export function permissionsForHeal(heal: HealMode): FilesystemPermission[] {
     if (heal === 'propose') {
         return [
+            // propose is read-only, but the model still sees the filesystem:
+            // deny sensitive reads (secrets, git metadata, keys) first so the
+            // allow-read rule below cannot shadow them. Reuses the same
+            // glob set as ask/auto — no new carve-outs.
+            { operations: ['read', 'write'], paths: SENSITIVE_DENY_GLOBS, mode: 'deny' },
             { operations: ['read'], paths: ['/**'], mode: 'allow' },
             { operations: ['read', 'write'], paths: ['/**'], mode: 'deny' },
         ]
@@ -337,6 +344,10 @@ export async function createDeepAgentHarness(
         //    without one) — every gated write pauses for approval.
         // 2. Multi-turn memory: conversation + todo state persist across
         //    `agent.invoke` calls (repl sessions, repeated missions).
+        //
+        // The checkpointer thread is configurable via the harness `threadId`
+        // option (applied in `.withConfig` below) — fresh ids isolate each
+        // harness's conversation state.
         checkpointer: new MemorySaver(),
         // Real host filesystem mounted at project root in virtual mode:
         // `ls /` lists the project, tool paths are project-relative
@@ -352,8 +363,10 @@ export async function createDeepAgentHarness(
     }).withConfig({
         // The in-memory checkpointer needs a stable thread id so every
         // invoke (repl turns, interrupt resumes, repeated missions) writes
-        // to the same conversation thread.
-        configurable: { thread_id: 'default' },
+        // to the same conversation thread. The thread is configurable per
+        // harness (`options.threadId`, default 'default') — pass a unique
+        // id to keep MemorySaver state from leaking across harnesses.
+        configurable: { thread_id: options.threadId ?? 'default' },
     }) as unknown as DeepAgent
 
     return {

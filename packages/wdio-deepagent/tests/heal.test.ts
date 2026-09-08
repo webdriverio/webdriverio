@@ -1,3 +1,8 @@
+// Eval taxonomy (LangChain-inspired — tool_use, heal, memory, conversation):
+// [tool_use] trace ingestion + reproduction without an agent.
+// [heal] heal orchestration, HITL write gating, green-path/retry and loop-cap trajectories.
+// [memory] state persists across turns on the checkpointer thread.
+// [conversation] turn plumbing — replies, interrupts, resume commands.
 import { describe, expect, it } from 'vitest'
 import AdmZip from 'adm-zip'
 import fs from 'node:fs/promises'
@@ -5,9 +10,11 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { FakeToolCallingModel } from 'langchain'
-import { createDeepAgentHarness } from '../src/agent.js'
+import micromatch from 'micromatch'
+import { createDeepAgentHarness, interruptsForHeal, permissionsForHeal } from '../src/agent.js'
 import { runDiagnosis } from '../src/heal/index.js'
 import { DEFAULT_MAX_TRACE_BYTES } from '../src/trace/reader.js'
+import { assertEfficiency, type IdealTrajectory } from './eval-helpers.js'
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
 const CONFIG = path.join(FIXTURES, 'wdio.conf.ts')
@@ -92,13 +99,15 @@ async function countRuns(logPath: string): Promise<number> {
     return (await fs.readFile(logPath, 'utf8')).split('\n').filter(Boolean).length
 }
 
-async function makeAskHarness() {
+/** Fresh checkpointer thread per test: MemorySaver conversation state keys on thread_id, so a unique id prevents cross-test contamination. */
+async function makeAskHarness(threadId?: string) {
     return createDeepAgentHarness({
         model: FAKE_MODEL,
         modelOverride: new FakeToolCallingModel({ toolCalls: [], toolStyle: 'openai' }),
         mcp: { command: process.execPath, args: [MCP_SERVER] },
         traceDir: 'test-results',
         heal: 'ask',
+        threadId,
     })
 }
 
@@ -278,7 +287,7 @@ describe('runDiagnosis', () => {
         const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
         const tracePath = await makeFailingTrace(dir)
         const { logPath, spec, spawnArgs } = await makeRunner(dir)
-        const harness = await makeAskHarness()
+        const harness = await makeAskHarness('heal-green-path')
         try {
             const report = await runDiagnosis({
                 tracePath,
@@ -294,7 +303,16 @@ describe('runDiagnosis', () => {
             expect(report.verification).toBeDefined()
             expect(report.verification!.healed).toBe(true)
             expect(report.verification!.exitCode).toBe(0)
-            expect(await countRuns(logPath)).toBe(2)
+            const runs = await countRuns(logPath)
+            expect(runs).toBe(2)
+            // [heal] green-path ideal trajectory: 1 step / 2 tool calls → ratios 1.0 against the caps of 1.
+            const GREEN_PATH_TRAJECTORY: IdealTrajectory = { steps: 1, toolCalls: 2 }
+            assertEfficiency(
+                { steps: report.healAttempts, toolCalls: runs },
+                GREEN_PATH_TRAJECTORY,
+                { maxStepRatio: 1, maxToolCallRatio: 1 },
+                'green-path heal should stay on the lean trajectory',
+            )
         } finally {
             await harness.close()
             await fs.rm(dir, { recursive: true, force: true })
@@ -336,7 +354,7 @@ describe('runDiagnosis', () => {
         const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
         const tracePath = await makeFailingTrace(dir)
         const { logPath, spec, spawnArgs } = await makeFlakyRunner(dir, 2)
-        const harness = await makeAskHarness()
+        const harness = await makeAskHarness('heal-green-path-retry')
         try {
             const report = await runDiagnosis({
                 tracePath,
@@ -352,7 +370,16 @@ describe('runDiagnosis', () => {
             expect(report.verification).toBeDefined()
             expect(report.verification!.healed).toBe(true)
             expect(report.verification!.exitCode).toBe(0)
-            expect(await countRuns(logPath)).toBe(3)
+            const runs = await countRuns(logPath)
+            expect(runs).toBe(3)
+            // [heal] retry ideal trajectory: 2 steps / 3 tool calls → ratios 1.0 against caps of 1.
+            const RETRY_TRAJECTORY: IdealTrajectory = { steps: 2, toolCalls: 3 }
+            assertEfficiency(
+                { steps: report.healAttempts, toolCalls: runs },
+                RETRY_TRAJECTORY,
+                { maxStepRatio: 1, maxToolCallRatio: 1 },
+                'retry heal should stay on the lean trajectory',
+            )
         } finally {
             await harness.close()
             await fs.rm(dir, { recursive: true, force: true })
@@ -515,6 +542,76 @@ describe('runDiagnosis', () => {
         } finally {
             await harness.close()
             await fs.rm(dir, { recursive: true, force: true })
+        }
+    })
+
+    it('auto mode applies the fix without any approval and verifies the rerun green', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
+        const tracePath = await makeFailingTrace(dir)
+        const { logPath, spec, spawnArgs } = await makeRunner(dir)
+        const fixedSpec = path.join(dir, 'spec.js')
+        await fs.writeFile(fixedSpec, 'original')
+        const harness = await createDeepAgentHarness({
+            model: FAKE_MODEL,
+            modelOverride: new FakeToolCallingModel({
+                toolCalls: [[{ name: 'write_file', args: { path: '/spec.js', content: 'fixed' }, id: 'call-1' }]],
+                toolStyle: 'openai',
+            }),
+            mcp: { command: process.execPath, args: [MCP_SERVER] },
+            traceDir: 'test-results',
+            // unattended CI path: no interrupt gate, no approval bottleneck
+            heal: 'auto',
+            projectRoot: dir,
+        })
+        try {
+            const report = await runDiagnosis({
+                tracePath,
+                configPath: CONFIG,
+                spec,
+                traceDir: path.join(dir, 'traces'),
+                heal: 'auto',
+                agent: harness.agent,
+                spawnCommand: process.execPath,
+                spawnArgs,
+                // deliberately no resolveInterrupt: auto mode must neither
+                // gate nor hang on approval
+            })
+            expect(report.agentRan).toBe(true)
+            expect(typeof report.agentReply).toBe('string')
+            // the gated write landed with no approver in the loop
+            expect(await fs.readFile(fixedSpec, 'utf8')).toBe('fixed')
+            expect(report.healAttempts).toBe(1)
+            expect(report.verification).toBeDefined()
+            expect(report.verification!.healed).toBe(true)
+            expect(report.verification!.exitCode).toBe(0)
+            expect(await countRuns(logPath)).toBe(2)
+        } finally {
+            await harness.close()
+            await fs.rm(dir, { recursive: true, force: true })
+            await fs.rm(path.join(FIXTURES, 'test-results'), { recursive: true, force: true })
+        }
+    })
+})
+
+describe('heal: auto policy (unattended CI)', () => {
+    it('auto exposes no interrupt gates, unlike ask', () => {
+        expect(interruptsForHeal('auto')).toEqual({})
+        const ask = interruptsForHeal('ask')
+        expect(Object.keys(ask)).toEqual(['write_file', 'edit_file'])
+        expect(ask.write_file).toMatchObject({ allowedDecisions: ['approve', 'reject'] })
+    })
+
+    it('auto permissions deny infra writes but allow spec writes', () => {
+        const rules = permissionsForHeal('auto')
+        // mirrors isWriteDenied semantics: first-match-wins over the rule list
+        const writeDenied = (p: string) => rules.some((r) =>
+            r.mode === 'deny' && r.operations.includes('write') &&
+            micromatch.isMatch(p.startsWith('/') ? p : `/${p}`, r.paths, { dot: true }))
+        for (const infra of ['/wdio.conf.ts', '/package.json', '/pnpm-lock.yaml', '/.husky/pre-commit', '/.github/workflows/ci.yml']) {
+            expect(writeDenied(infra)).toBe(true)
+        }
+        for (const specFile of ['/spec.js', '/test/specs/login.spec.js']) {
+            expect(writeDenied(specFile)).toBe(false)
         }
     })
 })

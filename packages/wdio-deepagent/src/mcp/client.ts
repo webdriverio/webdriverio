@@ -339,9 +339,13 @@ export class WdioMcpClient {
             // Recheck holders right before the kills: a mission that claimed
             // while the sweep (pgrep + /proc walks + MCP close) ran now owns
             // the surviving Chrome via handoff — killing it would end their
-            // session. The window between this readdir and the kill syscalls
-            // is microseconds; a claiming mission's handoff takes ~100ms, so
-            // the contested case is caught.
+            // session. A claim landing after this readdir cannot terminate
+            // that mission: termination requires its handoff to have
+            // completed, and handoff runs only after its claim plus server
+            // spawn, connect and first tool call — tens of ms at least —
+            // while this kill loop runs in microseconds. Worst case the
+            // claim lands mid-loop, our kill takes the handoff target, and
+            // the mission spawns a fresh Chrome: session survives.
             if (groups && chromeHolders().every((name) => name === String(serverPid))) {
                 for (const group of groups) {
                     try {

@@ -3,7 +3,7 @@ import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { buildTraceOverlay, reproduceSpec } from '../src/trace/index.js'
+import { buildTraceOverlay, reproduceSpec, runSpec } from '../src/trace/index.js'
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
 const CONFIG = path.join(FIXTURES, 'wdio.conf.ts')
@@ -133,6 +133,45 @@ describe('reproduceSpec', () => {
             })).rejects.toThrow(/outside the project root/)
         } finally {
             await fs.rm(traceDir, { recursive: true, force: true })
+        }
+    })
+
+    it.skipIf(process.platform === 'win32')('absolutizes a nested relative --config for the spawned child', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-relcfg-'))
+        const argsFile = path.join(dir, 'argv.json')
+        const echo = path.join(dir, 'argv-echo')
+        // records the argv the spawned child actually received — the config
+        // path runSpec embeds in the default args lands at argv[1]. No `.mjs`
+        // extension: node runs extensionless shebang scripts as CommonJS, so
+        // `require` is in scope. slice(2) skips the interpreter + script path
+        // (`env node <script> <args...>`).
+        await fs.writeFile(echo,
+            '#!/usr/bin/env node\n' +
+            `require('node:fs').writeFileSync(${JSON.stringify(argsFile)}, JSON.stringify(process.argv.slice(2)))\n`,
+            { mode: 0o755 })
+        try {
+            // nested-relative config: relative to the caller's cwd, with a
+            // directory component — the shape that used to misresolve once the
+            // child ran with cwd = the project root
+            const relConfig = path.relative(process.cwd(), CONFIG)
+            expect(path.isAbsolute(relConfig)).toBe(false)
+            const result = await runSpec({
+                configPath: relConfig,
+                spec: 'some.spec.js',
+                spawnCommand: echo,
+            })
+
+            expect(result.exitCode).toBe(0)
+            const argv = JSON.parse(await fs.readFile(argsFile, 'utf8'))
+            expect(argv[0]).toBe('run')
+            // the child received the ABSOLUTE config path even though the
+            // caller handed runSpec a nested-relative one
+            expect(argv[1]).toBe(path.resolve(CONFIG))
+            expect(argv[2]).toBe('--spec')
+            // specs are resolved against the project root before the spawn
+            expect(argv[3]).toBe(path.resolve(FIXTURES, 'some.spec.js'))
+        } finally {
+            await fs.rm(dir, { recursive: true, force: true })
         }
     })
 

@@ -15,8 +15,20 @@ const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtur
 const MCP_SERVER = path.join(FIXTURES, 'mcp-server.mjs')
 
 describe('permissionsForHeal / interruptsForHeal', () => {
-    it('propose is read-only: reads allowed everywhere, all writes denied', () => {
+    it('propose is read-only: sensitive paths denied first, reads allowed, all writes denied', () => {
         expect(permissionsForHeal('propose')).toEqual([
+            {
+                operations: ['read', 'write'],
+                paths: [
+                    '/.env*', '/**/.env*',
+                    '/.git/**', '/**/.git/**',
+                    '/node_modules/**', '/**/node_modules/**',
+                    '/.npmrc', '/**/.npmrc',
+                    '/*.pem', '/**/*.pem',
+                    '/*.key', '/**/*.key',
+                ],
+                mode: 'deny',
+            },
             { operations: ['read'], paths: ['/**'], mode: 'allow' },
             { operations: ['read', 'write'], paths: ['/**'], mode: 'deny' },
         ])
@@ -321,6 +333,32 @@ describe('filesystem scope enforcement (real backend)', () => {
                 content: 'x',
             })
             expect(result).toMatch(/permission denied/)
+        } finally {
+            await fs.rm(projRoot, { recursive: true, force: true })
+        }
+    })
+
+    it('propose mode denies sensitive reads while keeping project files readable', async () => {
+        const projRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-propose-'))
+        const secrets = {
+            '.env': 'SECRET=1',
+            '.git/config': '[core]',
+            'deploy.pem': 'PEM-DATA',
+            'id_rsa.key': 'KEY-DATA',
+        }
+        try {
+            for (const [rel, content] of Object.entries(secrets)) {
+                const abs = path.join(projRoot, rel)
+                await fs.mkdir(path.dirname(abs), { recursive: true })
+                await fs.writeFile(abs, content)
+                const read = await runSingleTool('propose', projRoot, 'read_file', { path: `/${rel}` })
+                expect(read).toMatch(/permission denied/, `read ${rel}`)
+            }
+            // non-sensitive project files stay readable in propose mode — the
+            // agent needs the config to diagnose
+            await fs.writeFile(path.join(projRoot, 'wdio.conf.ts'), 'export const config = {}')
+            const configRead = await runSingleTool('propose', projRoot, 'read_file', { path: '/wdio.conf.ts' })
+            expect(configRead).toContain('export const config')
         } finally {
             await fs.rm(projRoot, { recursive: true, force: true })
         }

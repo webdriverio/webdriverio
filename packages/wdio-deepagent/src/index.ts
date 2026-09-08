@@ -38,6 +38,7 @@ Options:
   --model <str>     provider:model, e.g. openrouter:moonshotai/kimi-k3
   --trace-dir <dir> trace artifact directory (default: ${DEFAULT_TRACE_DIR})
   --no-mcp          run without the @wdio/mcp browser tool surface
+  --spec <path>     spec to reproduce (diagnose mode)
 `
 
 const ASK_NON_TTY_ERROR = '[@wdio/deepagent] heal mode is "ask" but stdin is not a TTY — gated writes cannot be approved. Pass `--heal auto` for unattended CI, or use `wdio-deepagent repl` for interactive approval.'
@@ -90,7 +91,11 @@ interface BuildHarnessResult {
 
 async function loadConfigForFlags(rest: string[], opts: { allowModelless?: boolean } = {}): Promise<{ flags: CliFlags; configPath?: string; config: DeepAgentConfig }> {
     const flags = parseFlags(rest)
-    const configPath = flags.config ?? findDefaultConfigPath()
+    // `--config` may be relative to the caller's cwd, but run_spec spawns the
+    // child with cwd = the project root — a raw relative path would misresolve
+    // there. Absolutize at the single flag boundary so every consumer
+    // (run_spec args, reproduce, config hints) inherits the absolute path.
+    const configPath = flags.config ? path.resolve(flags.config) : findDefaultConfigPath()
     const config = await loadDeepAgentConfig({
         configPath,
         cli: { heal: flags.heal, model: flags.model, traceDir: flags.traceDir },
