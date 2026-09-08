@@ -807,6 +807,111 @@ describe('Lit Component testing', () => {
         })
     })
 
+    it('should honor getHTML exclusions without modifying the live element', async () => {
+        const originalHTML = '<span>Keep</span><style>span { color: red }</style><i class="omit">Remove</i>'
+        const fixture = document.createElement('section')
+        fixture.id = 'snapshot-exclusions'
+        fixture.innerHTML = originalHTML
+        document.body.append(fixture)
+
+        try {
+            for (const pierceShadowRoot of [true, false]) {
+                for (const includeSelectorTag of [true, false]) {
+                    const result = await $('#snapshot-exclusions').getHTML({
+                        excludeElements: ['style', '.omit'], pierceShadowRoot, includeSelectorTag, prettify: false
+                    })
+                    expect(result).toBe(includeSelectorTag
+                        ? '<section id="snapshot-exclusions"><span>Keep</span></section>'
+                        : '<span>Keep</span>')
+                    expect(fixture.innerHTML).toBe(originalHTML)
+                }
+            }
+        } finally {
+            fixture.remove()
+        }
+    })
+
+    it('should preserve noscript text in getHTML exclusions', async () => {
+        const fixture = document.createElement('section')
+        fixture.id = 'snapshot-noscript'
+        const noscript = document.createElement('noscript')
+        noscript.append(document.createTextNode('<p>Keep</p>'))
+        const paragraph = document.createElement('p')
+        paragraph.textContent = 'Remove'
+        fixture.append(noscript, paragraph)
+        document.body.append(fixture)
+        const originalHTML = fixture.outerHTML
+
+        try {
+            expect(fixture.querySelectorAll('p').length).toBe(1)
+            expect(await $('#snapshot-noscript').getHTML({
+                excludeElements: ['p'], pierceShadowRoot: false, prettify: false
+            })).toBe('<section id="snapshot-noscript"><noscript><p>Keep</p></noscript></section>')
+            expect(fixture.outerHTML).toBe(originalHTML)
+        } finally {
+            fixture.remove()
+        }
+    })
+
+    it('should preserve SVG attributes in getHTML exclusions', async () => {
+        const namespace = 'http://www.w3.org/2000/svg'
+        const fixture = document.createElementNS(namespace, 'svg')
+        fixture.id = 'snapshot-svg'
+        const group = document.createElementNS(namespace, 'g')
+        group.setAttribute('customFlag', 'active')
+        const style = document.createElementNS(namespace, 'style')
+        style.textContent = 'g { fill: red }'
+        fixture.append(group, style)
+        document.body.append(fixture)
+        const originalHTML = fixture.outerHTML
+
+        try {
+            expect(await $('#snapshot-svg').getHTML({
+                excludeElements: ['style'], pierceShadowRoot: false, prettify: false
+            })).toBe('<svg id="snapshot-svg"><g customFlag="active"></g></svg>')
+            expect(fixture.outerHTML).toBe(originalHTML)
+        } finally {
+            fixture.remove()
+        }
+    })
+
+    it('should apply getHTML exclusions inside real shadow roots', async function () {
+        if (!browser.isBidi) {
+            return this.skip()
+        }
+        const fixture = document.createElement('div')
+        fixture.id = 'snapshot-real-shadow'
+        document.body.append(fixture)
+        const shadow = fixture.attachShadow({ mode: 'open' })
+        const originalHTML = '<style>p { color: red }</style><script>void 0</script><i class="omit">Remove</i><p>Keep shadow</p><span id="nested-shadow"></span>'
+        shadow.innerHTML = originalHTML
+        const nested = shadow.querySelector('#nested-shadow').attachShadow({ mode: 'open' })
+        const nestedHTML = '<style>strong { color: blue }</style><script>void 0</script><i class="omit">Remove nested</i><strong>Keep nested</strong>'
+        nested.innerHTML = nestedHTML
+
+        try {
+            const unfiltered = await $('#snapshot-real-shadow').getHTML({ pierceShadowRoot: true, prettify: false })
+            expect(unfiltered).toContain('shadowrootmode="open"')
+            expect(unfiltered).toContain('<style>')
+            expect(unfiltered).toContain('<script>')
+            expect(unfiltered).toContain('class="omit"')
+
+            const filtered = await $('#snapshot-real-shadow').getHTML({
+                excludeElements: ['style', 'script', '.omit'], pierceShadowRoot: true, prettify: false
+            })
+            expect(filtered.match(/shadowrootmode="open"/g)).toHaveLength(2)
+            expect(filtered).toContain('<p>Keep shadow</p>')
+            expect(filtered).toContain('<strong>Keep nested</strong>')
+            expect(filtered).not.toContain('<style>')
+            expect(filtered).not.toContain('<script>')
+            expect(filtered).not.toContain('class="omit"')
+            expect(shadow.querySelectorAll('style, script, .omit').length).toBe(3)
+            expect(nested.innerHTML).toBe(nestedHTML)
+        } finally {
+            fixture.remove()
+        }
+    })
+
     it('should support WASM', async () => {
         const source = fetch('/browser-runner/wasm/add.wasm')
         const wasmModule = await WebAssembly.instantiateStreaming(source)
