@@ -875,6 +875,43 @@ describe('Lit Component testing', () => {
         }
     })
 
+    it('should apply getHTML exclusions inside real shadow roots', async function () {
+        if (!browser.isBidi) {
+            return this.skip()
+        }
+        const fixture = document.createElement('div')
+        fixture.id = 'snapshot-real-shadow'
+        document.body.append(fixture)
+        const shadow = fixture.attachShadow({ mode: 'open' })
+        const originalHTML = '<style>p { color: red }</style><script>void 0</script><i class="omit">Remove</i><p>Keep shadow</p><span id="nested-shadow"></span>'
+        shadow.innerHTML = originalHTML
+        const nested = shadow.querySelector('#nested-shadow').attachShadow({ mode: 'open' })
+        const nestedHTML = '<style>strong { color: blue }</style><script>void 0</script><i class="omit">Remove nested</i><strong>Keep nested</strong>'
+        nested.innerHTML = nestedHTML
+
+        try {
+            const unfiltered = await $('#snapshot-real-shadow').getHTML({ pierceShadowRoot: true, prettify: false })
+            expect(unfiltered).toContain('shadowrootmode="open"')
+            expect(unfiltered).toContain('<style>')
+            expect(unfiltered).toContain('<script>')
+            expect(unfiltered).toContain('class="omit"')
+
+            const filtered = await $('#snapshot-real-shadow').getHTML({
+                excludeElements: ['style', 'script', '.omit'], pierceShadowRoot: true, prettify: false
+            })
+            expect(filtered.match(/shadowrootmode="open"/g)).toHaveLength(2)
+            expect(filtered).toContain('<p>Keep shadow</p>')
+            expect(filtered).toContain('<strong>Keep nested</strong>')
+            expect(filtered).not.toContain('<style>')
+            expect(filtered).not.toContain('<script>')
+            expect(filtered).not.toContain('class="omit"')
+            expect(shadow.querySelectorAll('style, script, .omit').length).toBe(3)
+            expect(nested.innerHTML).toBe(nestedHTML)
+        } finally {
+            fixture.remove()
+        }
+    })
+
     it('should support WASM', async () => {
         const source = fetch('/browser-runner/wasm/add.wasm')
         const wasmModule = await WebAssembly.instantiateStreaming(source)
