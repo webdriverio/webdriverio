@@ -34,7 +34,7 @@ Commands:
 
 Options:
   --config <path>   wdio.conf path (default: wdio.conf.ts in cwd)
-  --heal <mode>     ask | propose | auto
+  --heal <mode>     ask | propose | auto | audit
   --model <str>     provider:model, e.g. openrouter:moonshotai/kimi-k3
   --trace-dir <dir> trace artifact directory (default: ${DEFAULT_TRACE_DIR})
   --no-mcp          run without the @wdio/mcp browser tool surface
@@ -44,8 +44,8 @@ Options:
 const ASK_NON_TTY_ERROR = '[@wdio/deepagent] heal mode is "ask" but stdin is not a TTY — gated writes cannot be approved. Pass `--heal auto` for unattended CI, or use `wdio-deepagent repl` for interactive approval.'
 
 const rejectWrite = (config: DeepAgentConfig, subject: string): string | undefined =>
-    config.heal === 'propose'
-        ? `[@wdio/deepagent] heal mode "propose" is read-only — ${subject} cannot write. Use \`wdio-deepagent diagnose <trace.zip>\` to produce a fix diff without writes.`
+    config.heal === 'propose' || config.heal === 'audit'
+        ? `[@wdio/deepagent] heal mode "${config.heal}" is read-only — ${subject} cannot write. Use \`wdio-deepagent diagnose <trace.zip>\` to produce a fix diff without writes.`
         : undefined
 
 const rejectIfAskNonTty = (config: DeepAgentConfig, _flags: CliFlags, _subject: string): string | undefined =>
@@ -107,18 +107,18 @@ async function loadConfigForFlags(rest: string[], opts: { allowModelless?: boole
     return { flags, configPath, config }
 }
 
-async function preamble(argv: string[], opts: { allowModelless?: boolean; skipPropose?: boolean; rejectIf?: (config: DeepAgentConfig, flags: CliFlags) => string | undefined } = {}): Promise<BuildHarnessResult & { rl: readline.Interface | undefined }> {
+async function preamble(argv: string[], opts: { allowModelless?: boolean; skipAudit?: boolean; rejectIf?: (config: DeepAgentConfig, flags: CliFlags) => string | undefined } = {}): Promise<BuildHarnessResult & { rl: readline.Interface | undefined }> {
     const built = await buildHarness(argv, opts)
     return { ...built, rl: createAskInterface(built.config) }
 }
 
-async function buildHarness(argv: string[], opts: { allowModelless?: boolean; skipPropose?: boolean; rejectIf?: (config: DeepAgentConfig, flags: CliFlags) => string | undefined } = {}): Promise<BuildHarnessResult> {
+async function buildHarness(argv: string[], opts: { allowModelless?: boolean; skipAudit?: boolean; rejectIf?: (config: DeepAgentConfig, flags: CliFlags) => string | undefined } = {}): Promise<BuildHarnessResult> {
     const { flags, configPath, config } = await loadConfigForFlags(argv, { allowModelless: opts.allowModelless })
     const rejected = opts.rejectIf?.(config, flags)
     if (rejected) {
         throw new Error(rejected)
     }
-    if (config.llm && !(opts.skipPropose && config.heal === 'propose')) {
+    if (config.llm && !(opts.skipAudit && config.heal === 'audit')) {
         log.info(`Model: ${config.llm.provider}:${config.llm.model} · heal: ${config.heal}`)
         const harness = await createDeepAgentHarness({
             model: config.llm,
@@ -187,9 +187,9 @@ async function dispatch(command: string | undefined, rest: string[]): Promise<vo
         break
     }
     case 'diagnose': {
-        const built = await preamble(rest, { allowModelless: true, skipPropose: true, rejectIf: rejectDiagnose })
+        const built = await preamble(rest, { allowModelless: true, skipAudit: true, rejectIf: rejectDiagnose })
         const tracePath = built.flags.positionals![0]
-        if (built.config.heal !== 'propose' && !built.harness) {
+        if (built.config.heal !== 'audit' && !built.harness) {
             throw new Error(DEFAULT_MODEL_HINT)
         }
         const harness = built.harness

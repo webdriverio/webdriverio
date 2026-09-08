@@ -15,7 +15,8 @@ const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtur
 const MCP_SERVER = path.join(FIXTURES, 'mcp-server.mjs')
 
 describe('permissionsForHeal / interruptsForHeal', () => {
-    it('propose is read-only: sensitive paths denied first, reads allowed, all writes denied', () => {
+    it('propose and audit are read-only: sensitive paths denied first, reads allowed, all writes denied', () => {
+        expect(permissionsForHeal('audit')).toEqual(permissionsForHeal('propose'))
         expect(permissionsForHeal('propose')).toEqual([
             {
                 operations: ['read', 'write'],
@@ -67,7 +68,7 @@ describe('permissionsForHeal / interruptsForHeal', () => {
         expect(permissionsForHeal('auto')).toEqual(scoped)
     })
 
-    it('ask gates write tools with interrupts; auto/propose do not', () => {
+    it('ask gates write tools with interrupts; auto/propose/audit do not', () => {
         const ask = interruptsForHeal('ask')
         expect(Object.keys(ask)).toEqual(['write_file', 'edit_file'])
         expect(ask.write_file).toMatchObject({ allowedDecisions: ['approve', 'reject'] })
@@ -81,6 +82,7 @@ describe('permissionsForHeal / interruptsForHeal', () => {
 
         expect(interruptsForHeal('auto')).toEqual({})
         expect(interruptsForHeal('propose')).toEqual({})
+        expect(interruptsForHeal('audit')).toEqual({})
     })
 
     it('ask descriptions pull the last AI message text as approval context', () => {
@@ -161,6 +163,22 @@ describe('withErrorRecovery', () => {
 })
 
 describe('createDeepAgentHarness (smoke, no network)', () => {
+    it('propose harness drops run_spec from the tool surface', async () => {
+        const harness = await createDeepAgentHarness({
+            model: { provider: 'openai', model: 'fake', temperature: 0, maxTokens: 1 },
+            modelOverride: new FakeToolCallingModel({ toolCalls: [], toolStyle: 'openai' }),
+            mcp: null,
+            traceDir: 'test-results',
+            projectRoot: process.cwd(),
+            heal: 'propose',
+        })
+        try {
+            expect(harness.tools.map((t) => t.name)).not.toContain('run_spec')
+        } finally {
+            await harness.close()
+        }
+    })
+
     it('builds an agent with traversal + trace + kb tools and executes a tool call', async () => {
         const markerDir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-marker-'))
         const marker = path.join(markerDir, 'called.json')

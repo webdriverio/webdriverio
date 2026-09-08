@@ -22,7 +22,7 @@ describe('parseFlags', () => {
     })
 
     it('rejects invalid heal values and missing flag values', () => {
-        expect(() => parseFlags(['--heal', 'sometimes'])).toThrow(/ask \| propose \| auto/)
+        expect(() => parseFlags(['--heal', 'sometimes'])).toThrow(/ask \| propose \| auto \| audit/)
         expect(() => parseFlags(['--config'])).toThrow(/requires a value/)
     })
 

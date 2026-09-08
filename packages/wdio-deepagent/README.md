@@ -44,7 +44,7 @@ export const config = {
     // ...framework/services as usual...
     deepagent: {
         llm: { provider: 'openrouter', model: 'moonshotai/kimi-k3' },
-        heal: 'ask', // 'ask' (human-approve writes) | 'propose' (trace audit, no agent) | 'auto' (CI healing)
+        heal: 'ask', // 'ask' (human-approve writes) | 'propose' (read-only agent diff) | 'audit' (trace audit, no agent) | 'auto' (CI healing)
         appendInstructions: 'Use data-testid selectors.', // appended to the built-in instructions
         // appendInstructionsFile: 'agent-notes.md', // file contents appended (cwd-relative)
         // instructionsPath: 'agent-instructions.md', // REPLACES the built-in instructions entirely
@@ -53,7 +53,7 @@ export const config = {
 }
 ```
 
-Env vars: `OPENROUTER_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` (ollama needs none), or `DEEPAGENT_MODEL=provider:model` and `DEEPAGENT_HEAL=ask|propose|auto` to skip the config block entirely.
+Env vars: `OPENROUTER_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` (ollama needs none), or `DEEPAGENT_MODEL=provider:model` and `DEEPAGENT_HEAL=ask|propose|auto|audit` to skip the config block entirely.
 
 Local providers (ollama, llama-cpp, lm-studio) need no API key; llama-cpp and lm-studio need a `baseURL` pointing at the local server. The block the `wdio config` wizard emits omits `heal` — it defaults to `'ask'`.
 

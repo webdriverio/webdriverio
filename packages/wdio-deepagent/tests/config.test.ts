@@ -15,12 +15,12 @@ describe('parseDeepAgentConfig', () => {
         expect(cfg.mcp.command).toBe('npx')
     })
 
-    it('requires a model at load time, not parse time (read-only diagnose needs none)', () => {
-        // parse-level: model is optional (propose diagnose builds no agent)
-        const cfg = parseDeepAgentConfig({ heal: 'propose' })
+    it('requires a model at load time, not parse time (audit diagnose needs none)', () => {
+        // parse-level: model is optional (audit diagnose builds no agent)
+        const cfg = parseDeepAgentConfig({ heal: 'audit' })
         expect(cfg.llm).toBeUndefined()
         // load-level enforcement happens in loadDeepAgentConfig (see below)
-        expect(cfg.heal).toBe('propose')
+        expect(cfg.heal).toBe('audit')
     })
 
     it('rejects invalid heal modes', () => {
@@ -40,7 +40,7 @@ describe('loadDeepAgentConfig', () => {
         await expect(loadDeepAgentConfig({ env: {} })).rejects.toThrow(/wdio config/)
     })
 
-    it('modelOptional allows a model-free config (read-only propose diagnose)', async () => {
+    it('modelOptional allows a model-free config (audit diagnose, mcp)', async () => {
         const cfg = await loadDeepAgentConfig({ env: {}, modelOptional: true })
         expect(cfg.llm).toBeUndefined()
         expect(cfg.heal).toBe('ask')

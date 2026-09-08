@@ -24,7 +24,7 @@ export const config = {
             provider: 'openrouter',               // openrouter | openai | anthropic | ollama | llama-cpp | lm-studio
             model: 'moonshotai/kimi-k3',
         },
-        heal: 'ask',                              // ask | propose | auto
+        heal: 'ask',                              // ask | propose | auto | audit
         appendInstructions: 'Use data-testid selectors and the project page-object layer.', // appended to the built-in instructions
         // instructionsPath: 'agent-instructions.md', // REPLACES the built-in instructions entirely (cwd-relative)
         // appendInstructionsFile: 'notes/agent.md',  // file contents appended (cwd-relative)
@@ -39,7 +39,7 @@ All three instruction options are optional. `appendInstructions` and `appendInst
 export OPENROUTER_API_KEY=sk-…   # or OPENAI_API_KEY / ANTHROPIC_API_KEY; ollama needs no key
 ```
 
-llama-cpp and lm-studio need no API key — point `baseURL` at the local server (if omitted it silently defaults to the standard OpenAI endpoint, which local servers don't serve).
+llama-cpp and lm-studio need no API key — point `baseURL` at the local server (required: omitting it throws a "set baseURL" error).
 
 Or skip the file entirely — env vars work too:
 
@@ -55,8 +55,8 @@ npx wdio config                    # config setup — select the @wdio/deepagent
 wdio-deepagent repl                # interactive agent session
 wdio-deepagent repl --no-mcp       # run without the @wdio/mcp browser tool surface
 wdio-deepagent run "<prompt>"      # one-shot mission (CI-able)
-wdio-deepagent diagnose <trace.zip> [--spec <path>] [--heal mode]
-wdio-deepagent mcp                 # serve the agent/tools as an MCP server
+wdio-deepagent diagnose <trace.zip> [--spec <path>] [--heal ask|propose|auto|audit] [--config <path>] [--model <str>] [--trace-dir <dir>] [--no-mcp]
+wdio-deepagent mcp                 # serve the tool surface as an MCP server (no agent, no model)
 ```
 
 wdio-deepagent is a standalone binary: install it in any project (`npm i -D @wdio/deepagent`) or run it via `npx wdio-deepagent repl`. It reads the project's `deepagent` config block, so the same config drives both.
@@ -67,8 +67,9 @@ wdio-deepagent is a standalone binary: install it in any project (`npm i -D @wdi
 - **Trace** — `diagnose` ingests a devtools `trace.zip` (action NDJSON, network, `transcript.md`, a11y snapshots, screenshots), reproduces the failing spec under a trace-mode overlay, diffs old vs new runs, and heals the spec.
 - **Heal modes**
   - `ask` (default): the agent proposes fixes and **every write is gated by human approval** (`interrupt_on`).
-  - `propose`: the filesystem is **read-only**; the agent emits diffs only.
-  - `auto`: unattended CI healing of specs/page objects — never config or secrets.
+  - `propose`: a read-only single-pass agent analyzes the trace and replies with a fix diff — needs a model key, writes nothing, never re-runs the spec.
+  - `audit`: no agent runs and no model key is needed; `diagnose` ingests the trace, reproduces the spec if `--spec` was passed, and reports the diff as JSON.
+  - `auto`: unattended CI healing of specs/page objects — no approval prompts; writes to `wdio.conf*`, lockfiles, `.github/**`, `package.json`, `.husky/**`, and secrets/keys are denied.
   - `maxHealAttempts` (default 2, minimum 1): how many times the agent may attempt a fix. After each attempt the spec is re-run to verify; if it still fails and attempts remain, the agent gets the new error and tries again — each extra attempt costs one real spec re-run (measured 11-20s). A retry only happens when a spec is available to re-run (i.e. `--spec` was passed / reproduction is on), and the reported `verification.healed` plus `healAttempts` reflect the final attempt.
 - **Site knowledge base** — the agent accumulates per-page a11y snapshots/element maps while browsing (context-injection; no embeddings in v1).
 
@@ -95,7 +96,7 @@ One schema, one resolver — no per-provider HTTP code (the wdio-agent-service p
 | Model/config layer (schema + resolver + config loading) | implemented |
 | MCP client (traversal tools) | implemented |
 | Trace reader + reproduce runner | implemented |
-| Agent core (`createDeepAgent` harness) | implemented |
+| Agent core (`createDeepAgentHarness`) | implemented |
 | `repl` / `run` / `diagnose` / `mcp` CLI | implemented |
-| Heal engine (ask / propose / auto) | implemented |
+| Heal engine (ask / propose / auto / audit) | implemented |
 | RAG over docs/site (embeddings) | later phase |

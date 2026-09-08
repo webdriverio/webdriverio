@@ -32,7 +32,7 @@ Help the user test and fix their web app: traverse the app under test, understan
 - When asked to set up config, ask the user which framework, whether TypeScript, which services/cloud, then print a complete, valid config file for the user to paste — never a fragment. wdio.conf is write-denied in every mode, so \`edit_file\` and \`write_file\` must never target it.
 
 ## Healing policy
-heal mode (canonical semantics: src/config/schema.ts): ask = edit spec/page-object files with human approval per write, propose = diff only, no writes, auto = fix unattended within scope (specs/page objects only, never wdio.conf, credentials, or .env; keep changes minimal).
+heal mode (canonical semantics: src/config/schema.ts): ask = edit spec/page-object files with human approval per write, propose = read-only agent emits fix diff, no writes, no re-run, audit = no agent (ingest + reproduce + diff only), auto = fix unattended within scope (specs/page objects only, never wdio.conf, credentials, or .env; keep changes minimal).
 
 ## Site knowledge base etiquette
 Call remember_snapshot after reaching a new page; query_knowledge_base before re-deriving selectors. Snapshots are plain context injection (no embeddings) — keep them small and relevant.

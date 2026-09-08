@@ -75,7 +75,7 @@ export interface DiagnosisReport {
     /** Result of re-running the spec AFTER the agent's edit. Undefined when no heal ran or reproduction was off. */
     verification?: VerificationInfo
     heal: HealMode
-    /** Whether the agent was invoked to fix (ask/auto only). */
+    /** Whether the agent was invoked (ask/auto/propose; never in audit). */
     agentRan: boolean
     /** Agent turns actually run; 0 when no heal. */
     healAttempts: number
@@ -94,7 +94,7 @@ Run transcript (what the run actually did):
 ${guarded('trace', report.transcript)}
 ${report.diff ? `Diff vs previous run:\n${guarded('diff', JSON.stringify(report.diff))}` : ''}${!report.hasNetworkData || !report.hasTranscript ? '\nNote: this trace lacks network/transcript data (MCP-session trace subset) — diagnosis context is limited.' : ''}
 
-Heal mode: ${report.heal}${report.heal === 'propose' ? ' — do NOT write files, produce a diff instead.' : ''}
+Heal mode: ${report.heal}${report.heal === 'propose' ? ' — do NOT write files. Analyze the failure and reply with a unified diff of the fix plus a short explanation.' : ''}
 Fix the failing spec or page object so the run passes, then summarize what you changed and why.`
 
 /** Follow-up prompt for retry attempts: processTurn keeps the conversation, so this only adds the new evidence. */
@@ -197,7 +197,16 @@ export async function runDiagnosis(options: DiagnosisOptions): Promise<Diagnosis
         }
     }
 
-    if (options.heal !== 'propose' && options.agent) {
+    if (options.heal !== 'audit' && options.agent) {
+        if (options.heal === 'propose') {
+            // single pass: read-only agent emits a diff, never writes,
+            // never re-runs the spec (no verify, no retry)
+            const { reply } = await processTurn(options.agent, (options.healPrompt ?? DEFAULT_HEAL_PROMPT)(report), { resolveInterrupt: options.resolveInterrupt })
+            report.agentRan = true
+            report.agentReply = reply
+            report.healAttempts = 1
+            return report
+        }
         // the schema enforces min(1), but this is an exported API: a direct
         // caller passing 0 must not silently drop the heal
         const maxAttempts = Math.max(1, options.maxHealAttempts ?? DEFAULT_MAX_HEAL_ATTEMPTS)

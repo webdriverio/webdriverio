@@ -132,14 +132,11 @@ const SENSITIVE_DENY_GLOBS = pair(
 const SENSITIVE_DENY_RULE: FilesystemPermission = { operations: ['read', 'write'], paths: SENSITIVE_DENY_GLOBS, mode: 'deny' }
 
 export function permissionsForHeal(heal: HealMode): FilesystemPermission[] {
-    if (heal === 'propose') {
+    if (heal === 'propose' || heal === 'audit') {
         return [
-            // Dead branch: diagnose never builds a harness in propose mode
-            // (see skipPropose in index.ts), so no agent ever runs under
-            // these rules. Kept so direct API callers get read-only, but the
-            // model still sees the filesystem: deny sensitive reads (secrets,
-            // git metadata, keys) first so the allow-read rule below cannot
-            // shadow them. Reuses the same glob set as ask/auto — no new carve-outs.
+            // Read-only: deny sensitive reads (secrets, git metadata, keys)
+            // first so the allow-read rule below cannot shadow them. Reuses
+            // the same glob set as ask/auto — no new carve-outs.
             SENSITIVE_DENY_RULE,
             { operations: ['read'], paths: ['/**'], mode: 'allow' },
             { operations: ['read', 'write'], paths: ['/**'], mode: 'deny' },
@@ -280,7 +277,7 @@ export interface DeepAgentToolSurface {
  * each wrapped with error recovery. Model-independent — the `mcp` CLI
  * command serves this surface without needing a model.
  */
-export async function createToolSurface(options: { mcp?: McpServerConfig | null; traceDir?: string; configPath?: string; imagesAsText?: boolean; session?: SessionCaches }): Promise<DeepAgentToolSurface> {
+export async function createToolSurface(options: { mcp?: McpServerConfig | null; traceDir?: string; configPath?: string; imagesAsText?: boolean; session?: SessionCaches; heal?: HealMode }): Promise<DeepAgentToolSurface> {
     const mcpConfig = resolveMcpConfig(options.mcp)
     const mcpClient = mcpConfig ? new WdioMcpClient(mcpConfig) : null
     const traceDir = options.traceDir ?? DEFAULT_TRACE_DIR
@@ -290,7 +287,9 @@ export async function createToolSurface(options: { mcp?: McpServerConfig | null;
     const traceTools = createTraceTools({ configPath: options.configPath, traceDir }, session.archives)
     const knowledgeBaseTools = createKnowledgeBaseTools(session.knowledgeBase)
     // MCP tools are DynamicStructuredTool; harness tools are too.
-    const tools: DynamicStructuredTool[] = [...traversalTools, createRunSpecTool({ configPath: options.configPath }), ...traceTools, ...knowledgeBaseTools].map((tool) => withErrorRecovery(tool, { imagesAsText: options.imagesAsText }))
+    // propose is read-only: drop run_spec so the agent cannot execute specs
+    const runTools = options.heal === 'propose' ? [] : [createRunSpecTool({ configPath: options.configPath })]
+    const tools: DynamicStructuredTool[] = [...traversalTools, ...runTools, ...traceTools, ...knowledgeBaseTools].map((tool) => withErrorRecovery(tool, { imagesAsText: options.imagesAsText }))
 
     return {
         mcpClient,
@@ -338,7 +337,7 @@ export async function createDeepAgentHarness(
     // instance ownership IS the threading: one store per harness, no globals.
     const session = createSessionStore()
     const [surface, instructions, appended] = await Promise.all([
-        createToolSurface({ mcp: options.mcp === null ? null : mcpConfig, traceDir, configPath: options.configPath, imagesAsText: !(chatModel instanceof ChatAnthropic), session }),
+        createToolSurface({ mcp: options.mcp === null ? null : mcpConfig, traceDir, configPath: options.configPath, imagesAsText: !(chatModel instanceof ChatAnthropic), session, heal }),
         readInstructionsFile(options.instructionsPath),
         readAppendedInstructions(options),
     ])

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { DeepAgentModelConfigSchema } from '../model/schema.js'
 
-export const HealModeSchema = z.enum(['ask', 'propose', 'auto'])
+export const HealModeSchema = z.enum(['ask', 'propose', 'auto', 'audit'])
 export type HealMode = z.infer<typeof HealModeSchema>
 
 /** Default @wdio/mcp spawn. The local (pinned) install is preferred at runtime; `npx -y` is the fallback. */
@@ -16,8 +16,8 @@ export const DEFAULT_MAX_HEAL_ATTEMPTS = 2
 /**
  * The `deepagent` block as it appears in `wdio.conf.ts`. The whole block
  * is optional. `llm` is optional at parse time — `loadDeepAgentConfig`
- * requires it unless `modelOptional` is set (read-only `diagnose` in
- * `propose` mode needs no agent and therefore no model).
+ * requires it unless `modelOptional` is set (`audit` diagnose and the
+ * `mcp` command need no agent and therefore no model).
  */
 export const DeepAgentConfigSchema = z.object({
     /** BYOK model config (see ../model/schema.ts). Required for agent modes. */
@@ -32,7 +32,9 @@ export const DeepAgentConfigSchema = z.object({
      * Healing policy for `diagnose`:
      * - `ask` (default): agent edits specs/page objects, every write is
      *   gated by human approval (interrupt_on)
-     * - `propose`: no agent runs; diagnose ingests the trace and reports reproduce/diff only
+     * - `propose`: read-only single-pass agent emits a fix diff; needs a
+     *   model, writes nothing, never re-runs the spec
+     * - `audit`: no agent runs; diagnose ingests the trace and reports reproduce/diff only
      * - `auto`: unattended CI healing; specs/page objects only, never config
      */
     heal: HealModeSchema.default('ask'),

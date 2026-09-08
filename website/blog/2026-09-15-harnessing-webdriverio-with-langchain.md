@@ -21,7 +21,7 @@ Important framing: this is an AI harness **on top of** WebdriverIO, not a replac
 flowchart LR
     P["Prompt:<br />verify login on Chrome"] --> L["DeepAgent loop<br />reason → tool → observe"]
     L --> M["BYOK LLM<br />(your key)"]
-    L --> T["@wdio/mcp<br />29 tools"]
+    L --> T["@wdio/mcp<br />full tool surface"]
     T --> W["WebdriverIO"]
     W --> B["Browser / Appium"]
 ```
@@ -56,7 +56,7 @@ wdio-deepagent run "Verify the login flow on Chrome and report failures"
 wdio-deepagent diagnose test-results/trace-<session>.zip --spec test/specs/login.e2e.js
 ```
 
-Prefer a config file over env vars? `DEEPAGENT_MODEL=openrouter:moonshotai/kimi-k3` and `DEEPAGENT_HEAL=ask` skip the file block entirely.
+Prefer env vars over a config file? `DEEPAGENT_MODEL=openrouter:moonshotai/kimi-k3` and `DEEPAGENT_HEAL=ask` skip the file block entirely.
 
 ## The Agent Loop
 
@@ -67,7 +67,7 @@ wdio-deepagent run "..." --model ollama:qwen3:8b          # local, no key
 DEEPAGENT_MODEL=anthropic:claude-3-7-sonnet wdio-deepagent repl
 ```
 
-Underneath, each turn is the classic loop: model → tool call → observe → repeat. The MCP client exposes the 29-tool `@wdio/mcp` surface (`navigate`, `get_elements`, `click_element`, `set_value`, `get_screenshot`, …), plus test-native tools (`run_spec`), trace tools (`ingest_trace`, `reproduce_spec`, `diff_traces`), and a site knowledge base (`remember_snapshot`, `query_knowledge_base`). A natural-language mission unfolds as plain tool calls:
+Underneath, each turn is the classic loop: model → tool call → observe → repeat. The MCP client exposes the full `@wdio/mcp` surface (`navigate`, `get_elements`, `click_element`, `set_value`, `get_screenshot`, …), plus test-native tools (`run_spec`), trace tools (`ingest_trace`, `reproduce_spec`, `diff_traces`), and a site knowledge base (`remember_snapshot`, `query_knowledge_base`, `clear_knowledge_base`). A natural-language mission unfolds as plain tool calls:
 
 ```
 "Open webdriver.io, click Get Started, and screenshot the page."
@@ -80,7 +80,7 @@ Underneath, each turn is the classic loop: model → tool call → observe → r
   6. final answer with evidence
 ```
 
-Turns stream token-by-token through deepagents' v3 streaming engine, with a token budget (`maxTokens`, default 8192) and a **loop guard**: three consecutive identical tool calls are met with an explicit *"this is the Nth identical call — it has not worked and will not work on retry"* error, and recursion is capped at 300. Loops get caught, not recited.
+In the REPL, turns stream token-by-token through deepagents' v3 streaming engine (`run`/`diagnose` use the non-streaming path). Every turn carries a token budget (`maxTokens`, default 8192) and a **loop guard**: the third identical tool call short-circuits with an explicit *"it has not worked and will not work on retry — reconsider the approach"* error, and the harness caps LangGraph recursion at 300. Loops get caught, not recited.
 
 ## Self-Healing
 
@@ -92,17 +92,18 @@ wdio-deepagent diagnose test-results/trace-a1b2c3.zip \
   --spec test/specs/login.e2e.js
 ```
 
-The trace reader parses the Vibium-format archive, covering the action timeline, network errors, `transcript.md`, screenshots, and DOM/a11y snapshots, then reproduces the failing spec under a trace-mode overlay, diffs old vs new runs, and hands the whole picture to the LLM. Then the modes kick in:
+The trace reader parses the devtools `trace.zip` archive, covering the action timeline, network errors, `transcript.md`, screenshots, and DOM/a11y snapshots. Pass `--spec` and it reproduces the failing spec under a trace-mode overlay and diffs old vs new runs (without `--spec`, you get ingest-only — no reproduce, no diff). The heal prompt hands the failure summaries, network errors, transcript, and diff to the LLM. Then the modes kick in:
 
 - **`ask`** (default): the agent proposes fixes; *every* write is gated by a human approval prompt.
-- **`propose`**: filesystem is read-only; you get a diff, nothing else.
-- **`auto`**: unattended CI healing of specs and page objects. Never config, never secrets.
+- **`propose`**: a read-only single-pass agent analyzes the failure and replies with a fix diff — needs a model key, writes nothing, never re-runs the spec.
+- **`audit`**: no agent runs and no model key is needed; you get the ingest → reproduce → diff report as JSON, nothing else.
+- **`auto`**: unattended CI healing — no approval prompts; writes to `wdio.conf*`, lockfiles, `.github/**`, `package.json`, `.husky/**`, and secrets/keys are denied, everything else under the project root is fair game.
 
 Each fix attempt re-runs the spec to verify (`maxHealAttempts`, default 2, min 1). `verification.healed` tells you the edit actually fixed the run, while `healAttempts` records how many tries it took.
 
 ## The REPL
 
-`wdio-deepagent repl` is an Ink-based (React-for-terminal) UI: streamed replies, bordered tool-call cards, a status footer that tracks tokens and turn time, and an approval picker in `ask` mode. It's autopilot with a seatbelt:
+`wdio-deepagent repl` is an Ink-based (React-for-terminal) UI: streamed replies, bordered tool-call cards, a status footer that tracks tokens and turn time, and a y/N approval prompt in `ask` mode. It's autopilot with a seatbelt:
 
 ```
 wdio> Verify the login flow on Chrome
@@ -117,7 +118,7 @@ wdio> Verify the login flow on Chrome
   wdio> exit
 ```
 
-`close session`/`reset` recycle the browser without quitting; Ctrl-C cancels a turn or exits when idle. No TTY, no problem: `wdio-deepagent run "<prompt>" --heal auto` is the fully unattended CI path.
+`close session` shuts the browser down without quitting (the next turn opens a fresh one with `start_session`); Ctrl-C cancels a turn or exits when idle. No TTY, no problem: `wdio-deepagent run "<prompt>" --heal auto` is the fully unattended CI path — note `ask` (the default) hard-fails without a TTY, so pass the flag.
 
 ## Safety Guardrails
 
@@ -134,7 +135,7 @@ Nothing here depends on the model being well-behaved. The harness contains the b
 
 The trilogy closes, the story continues. One thing's done; two are directions we're exploring:
 
-1. **Cloud execution** is already shipped, so it's not future work and not even comparable to "MCP cloud". Cloud providers landed in `@wdio/mcp` back in 3.2.0 ([Cloud providers docs](/docs/mcp/cloud-providers)), and DeepAgent specs run through your `wdio.config` via `run_spec`, `reproduce`, and `diagnose`, with no MCP involvement. If your `wdio.config` already targets a cloud provider, DeepAgent runs there today.
+1. **Cloud execution** already works: if your `wdio.config` targets a cloud provider, DeepAgent runs there today via `run_spec`, `reproduce`, and `diagnose`. See the [cloud providers docs](/docs/mcp/cloud-providers).
 2. **Multi-agent collaboration** is exploratory, not a roadmap: a spec-fixer, a flake-hunter, and a docs-scraper that don't share one context window, but do share a plan and a knowledge base. Could that division of labor beat one oversized context? We'd love to find out.
 3. **Coverage-driven test generation** is also exploratory. The site knowledge base already accumulates a11y snapshots per page; the leap would be letting coverage gaps *request* new specs. The coverage tooling doesn't exist yet.
 
@@ -143,7 +144,7 @@ Those last two are directions, not promises.
 ## Learn More
 
 - [DeepAgent docs](/docs/deepagent) — full configuration, commands, and heal-mode reference
-- [MCP docs](/docs/mcp) — the 29-tool browser/mobile surface the agent drives
+- [MCP docs](/docs/mcp) — the browser/mobile surface the agent drives
 - [DevTools Service docs](/docs/wdio-devtools-service) — trace mode and the Vibium recording format
 - [`create-wdio`](/docs/gettingstarted) — `npx wdio config` scaffolding, deepagent included
 

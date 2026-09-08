@@ -45,7 +45,7 @@ export function parseFlags(argv: string[]): CliFlags {
     if (parsed.heal !== undefined) {
         const heal = HealModeSchema.safeParse(parsed.heal)
         if (!heal.success) {
-            throw new Error(`Invalid --heal "${parsed.heal}". Expected ask | propose | auto.`)
+            throw new Error(`Invalid --heal "${parsed.heal}". Expected ask | propose | auto | audit.`)
         }
     }
     const flags: CliFlags = {}

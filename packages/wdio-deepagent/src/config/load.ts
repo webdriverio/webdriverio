@@ -20,7 +20,7 @@ export interface LoadDeepAgentConfigOptions {
     /** Directory to probe for the default config when `configPath` is unset. */
     cwd?: string
     /**
-     * Allow a missing model (read-only `diagnose` in `propose` mode builds
+     * Allow a missing model (`audit` diagnose and the `mcp` command build
      * no agent). Default `false` — agent modes require a model.
      */
     modelOptional?: boolean
@@ -108,7 +108,7 @@ export async function loadProjectConfig(configPath: string): Promise<{ config: W
  *
  * Env vars:
  * - `DEEPAGENT_MODEL` — `provider:model` string
- * - `DEEPAGENT_HEAL` — `ask` | `propose` | `auto`
+ * - `DEEPAGENT_HEAL` — `ask` | `propose` | `auto` | `audit`
  */
 export async function loadDeepAgentConfig(
     options: LoadDeepAgentConfigOptions = {},

@@ -123,7 +123,7 @@ describe('runDiagnosis', () => {
             await expect(runDiagnosis({
                 tracePath,
                 traceDir: path.join(dir, 'traces'),
-                heal: 'propose',
+                heal: 'audit',
             })).rejects.toThrow(/exceeds the .* byte cap/)
         } finally {
             await fs.rm(dir, { recursive: true, force: true })
@@ -136,7 +136,7 @@ describe('runDiagnosis', () => {
         const report = await runDiagnosis({
             tracePath,
             traceDir: path.join(dir, 'traces'),
-            heal: 'propose',
+            heal: 'audit',
         })
         expect(report.source).toBe('trace-failing.zip')
         expect(report.failedActions).toHaveLength(1)
@@ -157,7 +157,7 @@ describe('runDiagnosis', () => {
             configPath: CONFIG,
             spec,
             traceDir: path.join(dir, 'traces'),
-            heal: 'propose',
+            heal: 'audit',
             spawnCommand: process.execPath,
             spawnArgs: [FAKE_WDIO, 'run', 'overlay.mjs', '--spec', spec],
         })
@@ -169,9 +169,35 @@ describe('runDiagnosis', () => {
         await fs.rm(path.join(FIXTURES, 'test-results'), { recursive: true, force: true })
     })
 
-    it('propose mode never invokes the agent', async () => {
+    it('audit mode never invokes the agent', async () => {
         const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
         const tracePath = await makeFailingTrace(dir)
+        const harness = await createDeepAgentHarness({
+            model: FAKE_MODEL,
+            modelOverride: new FakeToolCallingModel({ toolCalls: [], toolStyle: 'openai' }),
+            mcp: { command: process.execPath, args: [MCP_SERVER] },
+            traceDir: 'test-results',
+            heal: 'audit',
+        })
+        try {
+            const report = await runDiagnosis({
+                tracePath,
+                traceDir: path.join(dir, 'traces'),
+                heal: 'audit',
+                agent: harness.agent,
+            })
+            expect(report.agentRan).toBe(false)
+        } finally {
+            await harness.close()
+            await fs.rm(dir, { recursive: true, force: true })
+        }
+    })
+
+    it('propose mode runs a read-only single-pass agent that never verifies', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
+        const tracePath = await makeFailingTrace(dir)
+        const spec = path.join(dir, 'spec.js')
+        await fs.writeFile(spec, 'original')
         const harness = await createDeepAgentHarness({
             model: FAKE_MODEL,
             modelOverride: new FakeToolCallingModel({ toolCalls: [], toolStyle: 'openai' }),
@@ -186,7 +212,11 @@ describe('runDiagnosis', () => {
                 heal: 'propose',
                 agent: harness.agent,
             })
-            expect(report.agentRan).toBe(false)
+            expect(report.agentRan).toBe(true)
+            expect(report.healAttempts).toBe(1)
+            expect(typeof report.agentReply).toBe('string')
+            expect(report.verification).toBeUndefined()
+            expect(await fs.readFile(spec, 'utf8')).toBe('original')
         } finally {
             await harness.close()
             await fs.rm(dir, { recursive: true, force: true })
@@ -470,7 +500,40 @@ describe('runDiagnosis', () => {
         }
     })
 
-    it('propose mode never heals even with an agent attached', async () => {
+    it('audit mode never heals even with an agent attached', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
+        const tracePath = await makeFailingTrace(dir)
+        const { logPath, spec, spawnArgs } = await makeRunner(dir)
+        const harness = await createDeepAgentHarness({
+            model: FAKE_MODEL,
+            modelOverride: new FakeToolCallingModel({ toolCalls: [], toolStyle: 'openai' }),
+            mcp: { command: process.execPath, args: [MCP_SERVER] },
+            traceDir: 'test-results',
+            heal: 'audit',
+        })
+        try {
+            const report = await runDiagnosis({
+                tracePath,
+                configPath: CONFIG,
+                spec,
+                traceDir: path.join(dir, 'traces'),
+                heal: 'audit',
+                agent: harness.agent,
+                spawnCommand: process.execPath,
+                spawnArgs,
+            })
+            expect(report.healAttempts).toBe(0)
+            expect(report.agentRan).toBe(false)
+            expect(report.verification).toBeUndefined()
+            expect(await countRuns(logPath)).toBe(1)
+        } finally {
+            await harness.close()
+            await fs.rm(dir, { recursive: true, force: true })
+            await fs.rm(path.join(FIXTURES, 'test-results'), { recursive: true, force: true })
+        }
+    })
+
+    it('propose mode heals single-pass without verifying: the spec runs once', async () => {
         const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
         const tracePath = await makeFailingTrace(dir)
         const { logPath, spec, spawnArgs } = await makeRunner(dir)
@@ -492,8 +555,8 @@ describe('runDiagnosis', () => {
                 spawnCommand: process.execPath,
                 spawnArgs,
             })
-            expect(report.healAttempts).toBe(0)
-            expect(report.agentRan).toBe(false)
+            expect(report.agentRan).toBe(true)
+            expect(report.healAttempts).toBe(1)
             expect(report.verification).toBeUndefined()
             expect(await countRuns(logPath)).toBe(1)
         } finally {
@@ -503,7 +566,7 @@ describe('runDiagnosis', () => {
         }
     })
 
-    it('propose mode never verifies: the spec runs once', async () => {
+    it('audit mode never verifies: the spec runs once', async () => {
         const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deepagent-dx-'))
         const tracePath = await makeFailingTrace(dir)
         const { logPath, spec, spawnArgs } = await makeRunner(dir)
@@ -513,7 +576,7 @@ describe('runDiagnosis', () => {
                 configPath: CONFIG,
                 spec,
                 traceDir: path.join(dir, 'traces'),
-                heal: 'propose',
+                heal: 'audit',
                 spawnCommand: process.execPath,
                 spawnArgs,
             })
