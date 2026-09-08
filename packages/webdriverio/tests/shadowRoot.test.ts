@@ -154,6 +154,57 @@ describe('ShadowRootManager', () => {
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(0)
     })
 
+    it.each(['open', 'closed'])('registers a detached initial host once with a %s shadow root', async (mode) => {
+        const browser = { ...defaultBrowser } as any
+        const manager = getShadowRootManager(browser)
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'detached-host', value: {
+                    localName: 'div',
+                    shadowRoot: { sharedId: 'host-shadow', value: { nodeType: 11, mode } }
+                } },
+                { type: 'node', sharedId: 'detached-host' },
+                { type: 'boolean', value: false },
+                { type: 'node', sharedId: 'document-element' }
+            ],
+            source: { context: 'detached-context' }
+        } as any)
+
+        expect(await manager.getShadowElementPairsByContextId('detached-context', 'detached-host'))
+            .toEqual([['detached-host', 'host-shadow']])
+        expect(manager.getShadowRootModeById('detached-context', 'detached-host')).toBe(mode)
+    })
+
+    it('preserves detached hosts when a later event identifies the same document root', async () => {
+        const manager = getShadowRootManager({ ...defaultBrowser } as any)
+        const register = (host: string, root: string, isDocument: boolean) => manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: host, value: {
+                    localName: 'div',
+                    shadowRoot: { sharedId: `${host}-shadow`, value: { nodeType: 11, mode: 'open' } }
+                } },
+                { type: 'node', sharedId: root },
+                { type: 'boolean', value: isDocument },
+                { type: 'node', sharedId: 'same-document-element' }
+            ],
+            source: { context: 'same-document-context' }
+        } as any)
+        register('first-host', 'first-host', false)
+        register('second-host', 'document-root', true)
+
+        const pairs = await manager.getShadowElementPairsByContextId('same-document-context')
+        expect(pairs.filter(([, shadow]) => shadow)).toEqual([
+            ['first-host', 'first-host-shadow'],
+            ['second-host', 'second-host-shadow']
+        ])
+    })
+
     it('should capture shadow root elements', async () => {
         const browser = { ...defaultBrowser } as any
         const manager = getShadowRootManager(browser)
