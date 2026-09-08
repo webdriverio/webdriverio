@@ -54,6 +54,7 @@ export const forEachSeries = async <T>(array: T[], callback: Function, thisArg?:
  */
 export const map = async <T>(array: T[], callback: Function, thisArg?: T) => {
     const promiseArray = []
+    promiseArray.length = array.length
     for (let i = 0; i < array.length; i++) {
         if (i in array) {
             promiseArray[i] = Promise.resolve(array[i]).then((currentValue) => {
@@ -73,6 +74,7 @@ export const map = async <T>(array: T[], callback: Function, thisArg?: T) => {
  */
 export const mapSeries = async <T>(array: T[], callback: Function, thisArg?: T) => {
     const result = []
+    result.length = array.length
     for (let i = 0; i < array.length; i++) {
         if (i in array) {
             result[i] = await callback.call(thisArg || this, await array[i], i, array)

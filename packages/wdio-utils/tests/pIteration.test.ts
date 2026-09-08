@@ -167,6 +167,36 @@ test('map should skip holes in arrays', async () => {
     expect(count).toBe(4)
 })
 
+test.each(Object.entries({ map, mapSeries }))('%s preserves length and skips holes in sparse arrays', async (_, iterator) => {
+    const input = new Array<number | undefined>(5)
+    input[1] = 2
+    input[2] = undefined
+    const visited: number[] = []
+
+    const result = await iterator(input, async (value: number | undefined, index: number) => {
+        visited.push(index)
+        return value === undefined ? 'explicit undefined' : value * 2
+    })
+
+    expect(result).toHaveLength(5)
+    expect(result[1]).toBe(4)
+    expect(result[2]).toBe('explicit undefined')
+    expect(visited).toEqual([1, 2])
+    expect(input).toHaveLength(5)
+    expect(Object.keys(input)).toEqual(['1', '2'])
+})
+
+test.each(Object.entries({ map, mapSeries }))('%s preserves length of arrays containing only holes', async (_, iterator) => {
+    let count = 0
+    const result = await iterator(new Array(3), async () => {
+        count++
+        return 'unexpected'
+    })
+
+    expect(result).toHaveLength(3)
+    expect(count).toBe(0)
+})
+
 test('find', async () => {
     const foundNum = await find([1, 2, 3], async (num: number, index: number, array: number[]) => {
         await delay()
