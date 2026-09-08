@@ -604,6 +604,37 @@ exports[`SpecReporter > printReport > with normal setup > should print the repor
 ]
 `;
 
+exports[`SpecReporter > printReport > with normal setup > should print the slowest tests when slowThreshold is configured 1`] = `
+[
+  [
+    "------------------------------------------------------------------
+[loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
+[loremipsum 50 Windows 10 #0-0] Session ID: foobar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /foo/bar/loo.e2e.js
+[loremipsum 50 Windows 10 #0-0] Foo test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo
+[loremipsum 50 Windows 10 #0-0]    green ✓ bar
+[loremipsum 50 Windows 10 #0-0]    green ✓ baz
+[loremipsum 50 Windows 10 #0-0]    cyan ? a never-ending pending test
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/foo/loo.e2e.js
+[loremipsum 50 Windows 10 #0-0] Bar test
+[loremipsum 50 Windows 10 #0-0]    green ✓ baz
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] green 4 passing (5s)
+[loremipsum 50 Windows 10 #0-0] red 1 failing
+[loremipsum 50 Windows 10 #0-0] cyan 1 skipped
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] gray Slowest tests (> 1s):
+[loremipsum 50 Windows 10 #0-0]   8s - Foo test baz
+[loremipsum 50 Windows 10 #0-0]   6s - Bar test baz
+[loremipsum 50 Windows 10 #0-0]   5s - Foo test bar
+",
+  ],
+]
+`;
+
 exports[`SpecReporter > showPreface > false 1`] = `[]`;
 
 exports[`SpecReporter > showPreface > true 1`] = `[]`;

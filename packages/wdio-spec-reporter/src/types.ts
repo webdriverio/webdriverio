@@ -63,6 +63,13 @@ export interface SpecReporterOptions {
     * @default: `true`
     */
     color?: boolean
+    /**
+     * Print a "Slowest tests" summary listing tests that took longer than this
+     * threshold (in ms) to run, sorted from slowest to fastest.
+     *
+     * @default: undefined (disabled)
+     */
+    slowThreshold?: number
 }
 
 export enum ChalkColors {

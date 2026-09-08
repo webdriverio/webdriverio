@@ -9,7 +9,8 @@ import {
     SUITES_MULTIPLE_ERRORS,
     SUITES_WITH_DOC_STRING,
     SUITES_NO_TESTS_WITH_HOOK_ERROR,
-    SUITES_WITH_RETRIES
+    SUITES_WITH_RETRIES,
+    SUITES_WITH_DURATIONS
 } from './__fixtures__/testdata.js'
 import { State } from '../src/types.js'
 import SpecReporter from '../src/index.js'
@@ -91,6 +92,65 @@ describe('SpecReporter', () => {
                 hooks: [{ error: 1 }, {}, { error: 2 }],
                 hooksAndTests: [{}, { error: 11 }, {}, { type: 'test', title: '33' }, {}, { error: 22 }, {}]
             } as any)).toEqual([{ error: 11 }, { type: 'test', title: '33' }, { error: 22 }])
+        })
+    })
+
+    describe('getSlowTestsDisplay', () => {
+        const getReporter = (slowThreshold?: number) => {
+            const slowReporter = new SpecReporter(slowThreshold === undefined ? {} : { slowThreshold }) as any
+            slowReporter['_suiteUids'] = new Set(Object.keys(SUITES_WITH_DURATIONS))
+            slowReporter.suites = SUITES_WITH_DURATIONS
+            return slowReporter
+        }
+
+        it('should return an empty array when no threshold is configured', () => {
+            expect(getReporter().getSlowTestsDisplay()).toEqual([])
+        })
+
+        it('should include a completed test whose duration exceeds the threshold', () => {
+            const display = getReporter(1000).getSlowTestsDisplay()
+            expect(display.some((line: string) => line.includes('baz'))).toBe(true)
+            expect(display.some((line: string) => line.includes('bar'))).toBe(true)
+        })
+
+        it('should not include a completed test whose duration is below the threshold', () => {
+            const display = getReporter(1000).getSlowTestsDisplay()
+            expect(display.some((line: string) => line.includes('foo'))).toBe(false)
+        })
+
+        it('should not include a completed test whose duration exactly equals the threshold', () => {
+            // "bar" has a duration of exactly 5000ms
+            const display = getReporter(5000).getSlowTestsDisplay()
+            expect(display.some((line: string) => line.includes('bar'))).toBe(false)
+            expect(display.some((line: string) => line.includes('baz'))).toBe(true)
+        })
+
+        it('should include the suite title so same-named slow tests in different suites are distinguishable', () => {
+            // both suites have a slow test titled "baz"
+            const display = getReporter(1000).getSlowTestsDisplay()
+            expect(display.some((line: string) => line.includes('Foo test baz'))).toBe(true)
+            expect(display.some((line: string) => line.includes('Bar test baz'))).toBe(true)
+        })
+
+        it('should sort slow tests from slowest to fastest', () => {
+            const display = getReporter(1000).getSlowTestsDisplay()
+            expect(display.findIndex((line: string) => line.includes('baz')))
+                .toBeLessThan(display.findIndex((line: string) => line.includes('bar')))
+        })
+
+        it('should return an empty array when no test exceeds the threshold', () => {
+            expect(getReporter(100000).getSlowTestsDisplay()).toEqual([])
+        })
+
+        // regression test for a reported bug: TestStats.skip() never calls
+        // complete(), so a skipped/pending test's `duration` getter keeps
+        // returning the live elapsed time until the report is generated. A
+        // long-running spec could make that live duration exceed the
+        // threshold even though the test never actually ran.
+        it('should exclude skipped/pending tests even if their unfinished duration exceeds the threshold', () => {
+            // threshold lower than the pending fixture's (unfinished) duration
+            const display = getReporter(1).getSlowTestsDisplay()
+            expect(display.some((line: string) => line.includes('never-ending pending test'))).toBe(false)
         })
     })
 
@@ -183,6 +243,15 @@ describe('SpecReporter', () => {
             })
 
             it('should print the report to the console', () => {
+                const runner = getRunnerConfig({ hostname: 'localhost' })
+                printReporter.printReport(runner)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+
+            it('should print the slowest tests when slowThreshold is configured', () => {
+                printReporter['_slowThreshold'] = 1000
+                printReporter['_suiteUids'] = new Set(Object.keys(SUITES_WITH_DURATIONS))
+                printReporter.suites = SUITES_WITH_DURATIONS
                 const runner = getRunnerConfig({ hostname: 'localhost' })
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()

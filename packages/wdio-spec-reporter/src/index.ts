@@ -53,6 +53,7 @@ export default class SpecReporter extends WDIOReporter {
     private _chalk: ChalkInstance
     private _onlyFailures = false
     private _sauceLabsSharableLinks = true
+    private _slowThreshold?: number
 
     constructor (options: SpecReporterOptions) {
         /**
@@ -64,6 +65,7 @@ export default class SpecReporter extends WDIOReporter {
         this._onlyFailures = options.onlyFailures || false
         this._realtimeReporting = options.realtimeReporting || false
         this._showPreface = options.showPreface !== false
+        this._slowThreshold = options.slowThreshold
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
             ? options.sauceLabsSharableLinks as boolean
             : this._sauceLabsSharableLinks
@@ -247,6 +249,7 @@ export default class SpecReporter extends WDIOReporter {
             ...results,
             ...this.getCountDisplay(duration),
             ...this.getFailureDisplay(),
+            ...this.getSlowTestsDisplay(),
             ...(testLinks.length
                 /**
                  * if we have test links add an empty line
@@ -545,6 +548,42 @@ export default class SpecReporter extends WDIOReporter {
             }
         }
 
+        return output
+    }
+
+    /**
+     * Get display for the slowest tests, sorted from slowest to fastest
+     * @return {Array} Slow tests output
+     */
+    getSlowTestsDisplay () {
+        if (!this._slowThreshold) {
+            return []
+        }
+
+        const threshold = this._slowThreshold
+        const slowTests = this.getOrderedSuites()
+            .flatMap((suite) => (this.getEventsToReport(suite) as TestStats[])
+                /**
+                 * only consider runnables that actually completed (i.e. have an `end`
+                 * timestamp) - a skipped/pending test never calls `complete()`, so its
+                 * `duration` keeps growing until the report is generated and must not
+                 * be evaluated against the threshold
+                 */
+                .filter((test) => test.type === 'test' && test.end && test.duration > threshold)
+                // keep the suite title alongside each test so same-named tests
+                // in different suites don't look identical in the report
+                .map((test) => ({ suiteTitle: suite.title, test }))
+            )
+            .sort((a, b) => b.test.duration - a.test.duration)
+
+        if (!slowTests.length) {
+            return []
+        }
+
+        const output = ['', this.setMessageColor(`Slowest tests (> ${prettyMs(threshold)}):`)]
+        for (const { suiteTitle, test } of slowTests) {
+            output.push(`  ${prettyMs(test.duration)} - ${suiteTitle} ${test.title}`)
+        }
         return output
     }
 
