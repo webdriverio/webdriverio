@@ -175,12 +175,19 @@ test.each(Object.entries({ map, mapSeries }))('%s preserves length and skips hol
 
     const result = await iterator(input, async (value: number | undefined, index: number) => {
         visited.push(index)
-        return value === undefined ? 'explicit undefined' : value * 2
+        return value === undefined ? undefined : value * 2
     })
 
     expect(result).toHaveLength(5)
     expect(result[1]).toBe(4)
-    expect(result[2]).toBe('explicit undefined')
+    expect(result[2]).toBeUndefined()
+    expect(Object.keys(result)).toEqual(['1', '2'])
+    expect(0 in result).toBe(false)
+    expect(2 in result).toBe(true)
+    expect(4 in result).toBe(false)
+    const resultIndexes: number[] = []
+    result.forEach((_, index) => resultIndexes.push(index))
+    expect(resultIndexes).toEqual([1, 2])
     expect(visited).toEqual([1, 2])
     expect(input).toHaveLength(5)
     expect(Object.keys(input)).toEqual(['1', '2'])
@@ -194,6 +201,7 @@ test.each(Object.entries({ map, mapSeries }))('%s preserves length of arrays con
     })
 
     expect(result).toHaveLength(3)
+    expect(Object.keys(result)).toEqual([])
     expect(count).toBe(0)
 })
 
