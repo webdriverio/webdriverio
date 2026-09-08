@@ -1,0 +1,71 @@
+import { z } from 'zod'
+
+/**
+ * Signature of the `request` override: a plain prompt→text function with
+ * no HTTP code required. Mirrors wdio-agent-service's `request`.
+ */
+export interface RequestOverrideFn {
+    (input: { system?: string; user?: string }): Promise<string> | string
+}
+
+/**
+ * BYOK model configuration — one schema for every supported provider.
+ *
+ * Mirrors the wdio-agent-service pattern (schema + optional `request`
+ * override) without any per-provider HTTP code: the resolver maps this
+ * schema onto the matching LangChain chat model integration.
+ */
+export interface ProviderMeta {
+    envKey?: string
+    baseUrlEnvKey?: string
+    keyless?: boolean
+}
+
+const PROVIDER_NAMES = ['openrouter', 'openai', 'anthropic', 'ollama', 'llama-cpp', 'lm-studio'] as const
+
+export const DeepAgentProviderSchema = z.enum(PROVIDER_NAMES)
+export type DeepAgentProvider = (typeof PROVIDER_NAMES)[number]
+
+export const PROVIDERS: Record<DeepAgentProvider, ProviderMeta> = {
+    openrouter: { envKey: 'OPENROUTER_API_KEY' },
+    openai: { envKey: 'OPENAI_API_KEY', baseUrlEnvKey: 'OPENAI_BASE_URL' },
+    anthropic: { envKey: 'ANTHROPIC_API_KEY', baseUrlEnvKey: 'ANTHROPIC_BASE_URL' },
+    ollama: { baseUrlEnvKey: 'OLLAMA_BASE_URL' },
+    'llama-cpp': { keyless: true },
+    'lm-studio': { keyless: true },
+}
+
+/** Providers serving weights fully local: no API key, `baseURL`-driven (or bundled runtime). */
+export const LOCAL_PROVIDERS: DeepAgentProvider[] = (Object.keys(PROVIDERS) as DeepAgentProvider[]).filter(
+    (p) => !PROVIDERS[p].envKey,
+)
+
+export const DeepAgentModelConfigSchema = z.object({
+    /**
+     * LLM provider. `openrouter` covers dozens of models with one key;
+     * `openai` also covers OpenAI-compatible endpoints (LM Studio, …) via
+     * `baseURL`; `ollama` runs fully local.
+     */
+    provider: DeepAgentProviderSchema,
+    /** Model identifier, e.g. `moonshotai/kimi-k3` or `gpt-5.5`. */
+    model: z.string().min(1),
+    /** Override endpoint. OpenAI-compatible base URL or Ollama server. */
+    baseURL: z.string().url().optional(),
+    /** API key; falls back to the provider's env var when omitted. */
+    apiKey: z.string().optional(),
+    temperature: z.number().min(0).max(2).default(0.1),
+    maxTokens: z.number().int().positive().default(8192),
+    /**
+     * Escape hatch: fully custom LLM request, e.g.
+     * `async ({ system, user }) => string`. Takes priority over provider
+     * settings (which are still validated). Text-only — no tool calling.
+     */
+    request: z.custom<RequestOverrideFn>((v) => typeof v === 'function').optional(),
+})
+
+export type DeepAgentModelConfig = z.infer<typeof DeepAgentModelConfigSchema>
+
+/** Normalizes a plain config object: applies defaults, validates fields. */
+export function parseModelConfig(raw: unknown): DeepAgentModelConfig {
+    return DeepAgentModelConfigSchema.parse(raw)
+}
