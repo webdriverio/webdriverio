@@ -172,13 +172,20 @@ export class ShadowRootManager extends SessionManager {
                     throw new Error(`Expected "sharedId" parameter from object ${rootElem}`)
                 }
 
-                /**
-                 * only overwrite if `root.sharedId` is different, otherwise it's another shadow component
-                 * within the same context/document
-                 */
                 const tree = this.#shadowRoots.get(logEntry.source.context)
                 if (tree?.element !== rootElem.sharedId) {
-                    this.#shadowRoots.set(logEntry.source.context, new ShadowRootTree(rootElem.sharedId))
+                    const documentTree = new ShadowRootTree(rootElem.sharedId)
+                    // A detached host may have been the initial root. Preserve its hosts
+                    // when the document element confirms this is still the same document.
+                    if (
+                        tree && documentElement?.type === 'node' && documentElement.sharedId &&
+                        this.#documentElements.get(logEntry.source.context)?.sharedId === documentElement.sharedId
+                    ) {
+                        for (const host of tree.shadowRoot ? [tree] : tree.children) {
+                            documentTree.addShadowElement(host)
+                        }
+                    }
+                    this.#shadowRoots.set(logEntry.source.context, documentTree)
                 }
             }
 
@@ -208,6 +215,13 @@ export class ShadowRootManager extends SessionManager {
                 shadowElem.value.shadowRoot.sharedId,
                 shadowElem.value.shadowRoot.value.mode
             )
+            // A detached initial host is its own root. Update that entry instead of
+            // adding the same element as its own descendant in the snapshot tree.
+            if (tree.element === newTree.element) {
+                tree.shadowRoot = newTree.shadowRoot
+                tree.mode = newTree.mode
+                return
+            }
             if (rootElem.sharedId) {
                 tree.addShadowElement(rootElem.sharedId, newTree)
             } else {
