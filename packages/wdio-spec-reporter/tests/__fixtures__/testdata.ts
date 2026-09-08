@@ -132,6 +132,24 @@ export const SUITES_WITH_DURATIONS = {
             },
         ],
     },
+    [suiteIds[1]]: {
+        uid: suiteIds[1],
+        title: suiteIds[1].slice(0, -1),
+        file: '/bar/foo/loo.e2e.js',
+        hooks: [],
+        tests: [
+            {
+                uid: 'baz2',
+                // same title as the slow "baz" test in the first suite, to
+                // prove suite context disambiguates same-named slow tests
+                title: 'baz',
+                state: 'passed',
+                type: 'test',
+                end: new Date(),
+                duration: 6000,
+            },
+        ],
+    },
 }
 Object.values(SUITES_WITH_DURATIONS).forEach((suite) => {
     // @ts-expect-error

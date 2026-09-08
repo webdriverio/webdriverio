@@ -562,24 +562,28 @@ export default class SpecReporter extends WDIOReporter {
         }
 
         const threshold = this._slowThreshold
-        const slowTests = (this.getOrderedSuites()
-            .flatMap((suite) => this.getEventsToReport(suite)) as TestStats[])
-            /**
-             * only consider runnables that actually completed (i.e. have an `end`
-             * timestamp) - a skipped/pending test never calls `complete()`, so its
-             * `duration` keeps growing until the report is generated and must not
-             * be evaluated against the threshold
-             */
-            .filter((test) => test.type === 'test' && test.end && test.duration > threshold)
-            .sort((a, b) => b.duration - a.duration)
+        const slowTests = this.getOrderedSuites()
+            .flatMap((suite) => (this.getEventsToReport(suite) as TestStats[])
+                /**
+                 * only consider runnables that actually completed (i.e. have an `end`
+                 * timestamp) - a skipped/pending test never calls `complete()`, so its
+                 * `duration` keeps growing until the report is generated and must not
+                 * be evaluated against the threshold
+                 */
+                .filter((test) => test.type === 'test' && test.end && test.duration > threshold)
+                // keep the suite title alongside each test so same-named tests
+                // in different suites don't look identical in the report
+                .map((test) => ({ suiteTitle: suite.title, test }))
+            )
+            .sort((a, b) => b.test.duration - a.test.duration)
 
         if (!slowTests.length) {
             return []
         }
 
         const output = ['', this.setMessageColor(`Slowest tests (> ${prettyMs(threshold)}):`)]
-        for (const test of slowTests) {
-            output.push(`  ${prettyMs(test.duration)} - ${test.title}`)
+        for (const { suiteTitle, test } of slowTests) {
+            output.push(`  ${prettyMs(test.duration)} - ${suiteTitle} ${test.title}`)
         }
         return output
     }

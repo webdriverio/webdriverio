@@ -618,13 +618,18 @@ exports[`SpecReporter > printReport > with normal setup > should print the slowe
 [loremipsum 50 Windows 10 #0-0]    green ✓ baz
 [loremipsum 50 Windows 10 #0-0]    cyan ? a never-ending pending test
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/foo/loo.e2e.js
+[loremipsum 50 Windows 10 #0-0] Bar test
+[loremipsum 50 Windows 10 #0-0]    green ✓ baz
+[loremipsum 50 Windows 10 #0-0]
 [loremipsum 50 Windows 10 #0-0] green 4 passing (5s)
 [loremipsum 50 Windows 10 #0-0] red 1 failing
 [loremipsum 50 Windows 10 #0-0] cyan 1 skipped
 [loremipsum 50 Windows 10 #0-0]
 [loremipsum 50 Windows 10 #0-0] gray Slowest tests (> 1s):
-[loremipsum 50 Windows 10 #0-0]   8s - baz
-[loremipsum 50 Windows 10 #0-0]   5s - bar
+[loremipsum 50 Windows 10 #0-0]   8s - Foo test baz
+[loremipsum 50 Windows 10 #0-0]   6s - Bar test baz
+[loremipsum 50 Windows 10 #0-0]   5s - Foo test bar
 ",
   ],
 ]

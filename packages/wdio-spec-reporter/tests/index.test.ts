@@ -125,6 +125,13 @@ describe('SpecReporter', () => {
             expect(display.some((line: string) => line.includes('baz'))).toBe(true)
         })
 
+        it('should include the suite title so same-named slow tests in different suites are distinguishable', () => {
+            // both suites have a slow test titled "baz"
+            const display = getReporter(1000).getSlowTestsDisplay()
+            expect(display.some((line: string) => line.includes('Foo test baz'))).toBe(true)
+            expect(display.some((line: string) => line.includes('Bar test baz'))).toBe(true)
+        })
+
         it('should sort slow tests from slowest to fastest', () => {
             const display = getReporter(1000).getSlowTestsDisplay()
             expect(display.findIndex((line: string) => line.includes('baz')))
