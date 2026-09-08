@@ -564,7 +564,13 @@ export default class SpecReporter extends WDIOReporter {
         const threshold = this._slowThreshold
         const slowTests = (this.getOrderedSuites()
             .flatMap((suite) => this.getEventsToReport(suite)) as TestStats[])
-            .filter((test) => test.type === 'test' && test.duration > threshold)
+            /**
+             * only consider runnables that actually completed (i.e. have an `end`
+             * timestamp) - a skipped/pending test never calls `complete()`, so its
+             * `duration` keeps growing until the report is generated and must not
+             * be evaluated against the threshold
+             */
+            .filter((test) => test.type === 'test' && test.end && test.duration > threshold)
             .sort((a, b) => b.duration - a.duration)
 
         if (!slowTests.length) {

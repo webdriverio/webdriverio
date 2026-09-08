@@ -616,6 +616,7 @@ exports[`SpecReporter > printReport > with normal setup > should print the slowe
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo
 [loremipsum 50 Windows 10 #0-0]    green ✓ bar
 [loremipsum 50 Windows 10 #0-0]    green ✓ baz
+[loremipsum 50 Windows 10 #0-0]    cyan ? a never-ending pending test
 [loremipsum 50 Windows 10 #0-0]
 [loremipsum 50 Windows 10 #0-0] green 4 passing (5s)
 [loremipsum 50 Windows 10 #0-0] red 1 failing

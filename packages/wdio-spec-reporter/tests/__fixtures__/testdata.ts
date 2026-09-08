@@ -102,6 +102,7 @@ export const SUITES_WITH_DURATIONS = {
                 title: 'foo',
                 state: 'passed',
                 type: 'test',
+                end: new Date(),
                 duration: 500,
             },
             {
@@ -109,6 +110,7 @@ export const SUITES_WITH_DURATIONS = {
                 title: 'bar',
                 state: 'passed',
                 type: 'test',
+                end: new Date(),
                 duration: 5000,
             },
             {
@@ -116,7 +118,17 @@ export const SUITES_WITH_DURATIONS = {
                 title: 'baz',
                 state: 'passed',
                 type: 'test',
+                end: new Date(),
                 duration: 8000,
+            },
+            {
+                uid: 'pending1',
+                title: 'a never-ending pending test',
+                state: 'pending',
+                type: 'test',
+                // no `end` timestamp: mimics a skipped/pending test whose
+                // duration keeps growing because `complete()` was never called
+                duration: 999999,
             },
         ],
     },
