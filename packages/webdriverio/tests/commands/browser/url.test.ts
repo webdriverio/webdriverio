@@ -2,6 +2,9 @@ import path from 'node:path'
 import { expect, describe, it, beforeAll, beforeEach, afterEach, vi, type MockInstance } from 'vitest'
 
 import { remote } from '../../../src/index.js'
+import { requiresBidiNavigation } from '../../../src/commands/browser/url.js'
+import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
+import { getContextManager } from '../../../src/session/context.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -86,7 +89,6 @@ describe('url', () => {
 
     describe('bidi', () => {
         let browsingContextNavigate: MockInstance
-        let url: MockInstance
         let addInitScript: MockInstance
         let mock: MockInstance
 
@@ -106,7 +108,6 @@ describe('url', () => {
             browsingContextNavigate.mockImplementation((async () => ({
                 navigation: '123'
             })) as any)
-            url = vi.spyOn(browser, 'url')
             addInitScript = vi.spyOn(browser, 'addInitScript').mockImplementation(() => Promise.resolve({
                 remove: vi.fn()
             } as any))
@@ -115,14 +116,27 @@ describe('url', () => {
 
         beforeEach(() => {
             browsingContextNavigate.mockClear()
-            url.mockClear()
             addInitScript.mockClear()
             mock.mockClear()
             mockMock.requestOnce.mockClear()
             mockMock.restore.mockClear()
         })
 
-        it('should use browsingContextNavigate', async () => {
+        it('should use classic navigateTo on a darwin platformName when no BiDi-only options are set', async () => {
+            browser.capabilities.platformName = 'darwin'
+            const navigateTo = vi.spyOn(browser, 'navigateTo').mockResolvedValue(null as never)
+            const req = await browser.url('http://google.com')
+            expect(browsingContextNavigate).toBeCalledTimes(0)
+            expect(navigateTo).toBeCalledTimes(1)
+            expect(navigateTo).toBeCalledWith('http://google.com/')
+            expect(req).toBeUndefined()
+            navigateTo.mockRestore()
+            delete browser.capabilities.platformName
+        })
+
+        it('should use browsingContextNavigate on non-macOS browser when no BiDi-only options are set', async () => {
+            browser.capabilities.platformName = 'linux'
+            const navigateTo = vi.spyOn(browser, 'navigateTo').mockResolvedValue(null as never)
             const req = await browser.url('http://google.com')
             expect(browsingContextNavigate).toBeCalledTimes(1)
             expect(browsingContextNavigate).toBeCalledWith({
@@ -130,12 +144,55 @@ describe('url', () => {
                 url: 'http://google.com/',
                 wait: 'complete'
             })
+            expect(navigateTo).toBeCalledTimes(0)
             expect(req).toEqual({ some: 'request' })
+            navigateTo.mockRestore()
+            delete browser.capabilities.platformName
+        })
+
+        it('should use browsingContextNavigate on macOS browser when BiDi-only options are set', async () => {
+            browser.capabilities.platformName = 'mac'
+            const req = await browser.url('http://google.com', { wait: 'none' })
+            expect(browsingContextNavigate).toBeCalledTimes(1)
+            expect(browsingContextNavigate).toBeCalledWith({
+                context: { context: '123' },
+                url: 'http://google.com/',
+                wait: 'none'
+            })
+            expect(req).toEqual({ some: 'request' })
+            delete browser.capabilities.platformName
+        })
+
+        it('uses BiDi navigation on macOS when an active mock exists, even without BiDi-only options', async () => {
+            browser.capabilities.platformName = 'darwin'
+            const navigateTo = vi.spyOn(browser, 'navigateTo').mockResolvedValue(null as never)
+            SESSION_MOCKS['some-context'] = new Set([{} as never])
+
+            try {
+                await browser.url('http://google.com')
+                expect(browsingContextNavigate).toBeCalledTimes(1)
+                expect(navigateTo).toBeCalledTimes(0)
+            } finally {
+                delete SESSION_MOCKS['some-context']
+                navigateTo.mockRestore()
+                delete browser.capabilities.platformName
+            }
+        })
+
+        it('resolves the browsing context even on the classic macOS fast path', async () => {
+            browser.capabilities.platformName = 'darwin'
+            vi.spyOn(browser, 'navigateTo').mockResolvedValue(null as never)
+            const callsBefore = vi.mocked(getContextManager).mock.calls.length
+
+            await browser.url('http://google.com')
+
+            expect(vi.mocked(getContextManager).mock.calls.length).toBeGreaterThan(callsBefore)
+            delete browser.capabilities.platformName
         })
 
         it('allows to define different page load strategy', async () => {
             browser.capabilities.pageLoadStrategy = 'eager'
-            await browser.url('http://google.com')
+            await browser.url('http://google.com', { wait: 'interactive' })
             expect(browsingContextNavigate).toBeCalledWith(expect.objectContaining({
                 wait: 'interactive'
             }))
@@ -169,21 +226,43 @@ describe('url', () => {
             expect(mockMock.restore).toBeCalledTimes(1)
         })
 
-        it('should fallback to url on concurrent navigation', async () => {
+        it('should fallback to navigateTo on concurrent navigation', async () => {
             browsingContextNavigate.mockImplementation((async () => {
                 throw new Error('navigation canceled by concurrent navigation')
             }) as any)
-            await browser.url('http://google.com')
+            const navigateTo = vi.spyOn(browser, 'navigateTo').mockResolvedValue(null as never)
+            await browser.url('http://google.com', { wait: 'none' })
             expect(browsingContextNavigate).toBeCalledTimes(1)
-            expect(url).toBeCalledTimes(1)
-            expect(url).toBeCalledWith('http://google.com')
+            expect(navigateTo).toBeCalledTimes(1)
+            navigateTo.mockRestore()
         })
 
         it('should throw error if navigation fails', async () => {
             browsingContextNavigate.mockImplementation((async () => {
                 throw new Error('navigation failed')
             }) as any)
-            await expect(browser.url('http://google.com')).rejects.toThrow('navigation failed')
+            await expect(browser.url('http://google.com', { wait: 'none' })).rejects.toThrow('navigation failed')
+        })
+    })
+
+    describe('requiresBidiNavigation', () => {
+        it('stays classic for empty / complete / unused timeout', () => {
+            expect(requiresBidiNavigation()).toBe(false)
+            expect(requiresBidiNavigation({})).toBe(false)
+            expect(requiresBidiNavigation({ wait: 'complete' })).toBe(false)
+            expect(requiresBidiNavigation({ timeout: 1000 })).toBe(false)
+            expect(requiresBidiNavigation({ wait: 'complete', timeout: 1000 })).toBe(false)
+        })
+
+        it('requires BiDi for known BiDi-only options and unknown future keys', () => {
+            expect(requiresBidiNavigation({ wait: 'none' })).toBe(true)
+            expect(requiresBidiNavigation({ wait: 'networkIdle' })).toBe(true)
+            expect(requiresBidiNavigation({ auth: { user: 'a', pass: 'b' } })).toBe(true)
+            expect(requiresBidiNavigation({ headers: { 'X-Foo': '1' } })).toBe(true)
+            expect(requiresBidiNavigation({ headers: {} })).toBe(true)
+            expect(requiresBidiNavigation({ onBeforeLoad: () => {} })).toBe(true)
+            // future option → BiDi by default (do not silently ignore)
+            expect(requiresBidiNavigation({ somethingNew: true } as never)).toBe(true)
         })
     })
 })
