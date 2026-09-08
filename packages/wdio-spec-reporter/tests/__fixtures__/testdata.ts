@@ -90,6 +90,42 @@ Object.values(SUITES).forEach((suite) => {
     suite.hooksAndTests = [...suite.tests]
 })
 
+export const SUITES_WITH_DURATIONS = {
+    [suiteIds[0]]: {
+        uid: suiteIds[0],
+        title: suiteIds[0].slice(0, -1),
+        file: '/foo/bar/loo.e2e.js',
+        hooks: [],
+        tests: [
+            {
+                uid: 'foo1',
+                title: 'foo',
+                state: 'passed',
+                type: 'test',
+                duration: 500,
+            },
+            {
+                uid: 'bar1',
+                title: 'bar',
+                state: 'passed',
+                type: 'test',
+                duration: 5000,
+            },
+            {
+                uid: 'baz1',
+                title: 'baz',
+                state: 'passed',
+                type: 'test',
+                duration: 8000,
+            },
+        ],
+    },
+}
+Object.values(SUITES_WITH_DURATIONS).forEach((suite) => {
+    // @ts-expect-error
+    suite.hooksAndTests = [...suite.tests]
+})
+
 export const SUITES_WITH_DATA_TABLE = {
     [suiteIds[0]]: {
         uid: suiteIds[0],

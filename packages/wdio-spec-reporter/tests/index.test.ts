@@ -9,7 +9,8 @@ import {
     SUITES_MULTIPLE_ERRORS,
     SUITES_WITH_DOC_STRING,
     SUITES_NO_TESTS_WITH_HOOK_ERROR,
-    SUITES_WITH_RETRIES
+    SUITES_WITH_RETRIES,
+    SUITES_WITH_DURATIONS
 } from './__fixtures__/testdata.js'
 import { State } from '../src/types.js'
 import SpecReporter from '../src/index.js'
@@ -91,6 +92,34 @@ describe('SpecReporter', () => {
                 hooks: [{ error: 1 }, {}, { error: 2 }],
                 hooksAndTests: [{}, { error: 11 }, {}, { type: 'test', title: '33' }, {}, { error: 22 }, {}]
             } as any)).toEqual([{ error: 11 }, { type: 'test', title: '33' }, { error: 22 }])
+        })
+    })
+
+    describe('getSlowTestsDisplay', () => {
+        it('should return an empty array when no threshold is configured', () => {
+            const noThresholdReporter = new SpecReporter({}) as any
+            noThresholdReporter['_suiteUids'] = new Set(Object.keys(SUITES_WITH_DURATIONS))
+            noThresholdReporter.suites = SUITES_WITH_DURATIONS
+            expect(noThresholdReporter.getSlowTestsDisplay()).toEqual([])
+        })
+
+        it('should return tests exceeding the threshold, sorted from slowest to fastest', () => {
+            const slowReporter = new SpecReporter({ slowThreshold: 1000 }) as any
+            slowReporter['_suiteUids'] = new Set(Object.keys(SUITES_WITH_DURATIONS))
+            slowReporter.suites = SUITES_WITH_DURATIONS
+            const display = slowReporter.getSlowTestsDisplay()
+            expect(display.some((line: string) => line.includes('baz'))).toBe(true)
+            expect(display.some((line: string) => line.includes('bar'))).toBe(true)
+            expect(display.some((line: string) => line.includes('foo'))).toBe(false)
+            expect(display.findIndex((line: string) => line.includes('baz')))
+                .toBeLessThan(display.findIndex((line: string) => line.includes('bar')))
+        })
+
+        it('should return an empty array when no test exceeds the threshold', () => {
+            const slowReporter = new SpecReporter({ slowThreshold: 100000 }) as any
+            slowReporter['_suiteUids'] = new Set(Object.keys(SUITES_WITH_DURATIONS))
+            slowReporter.suites = SUITES_WITH_DURATIONS
+            expect(slowReporter.getSlowTestsDisplay()).toEqual([])
         })
     })
 
@@ -183,6 +212,15 @@ describe('SpecReporter', () => {
             })
 
             it('should print the report to the console', () => {
+                const runner = getRunnerConfig({ hostname: 'localhost' })
+                printReporter.printReport(runner)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+
+            it('should print the slowest tests when slowThreshold is configured', () => {
+                printReporter['_slowThreshold'] = 1000
+                printReporter['_suiteUids'] = new Set(Object.keys(SUITES_WITH_DURATIONS))
+                printReporter.suites = SUITES_WITH_DURATIONS
                 const runner = getRunnerConfig({ hostname: 'localhost' })
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
