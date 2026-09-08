@@ -93,14 +93,14 @@ export async function getHTML(
         pierceShadowRoot: true,
         removeCommentNodes: true,
         prettify: true,
-        excludeElements: []
+        excludeElements: [] as string[]
     }, options)
 
     const basicGetHTML = (elementId: string, includeSelectorTag: boolean) => {
         return browser.execute(getHTMLScript, {
             [ELEMENT_KEY]: elementId, // w3c compatible
             ELEMENT: elementId // jsonwp compatible
-        } as unknown as HTMLElement, includeSelectorTag)
+        } as unknown as HTMLElement, includeSelectorTag, excludeElements)
     }
 
     if (pierceShadowRoot && this.isBidi) {
@@ -110,7 +110,7 @@ export async function getHTML(
         if (globalThis.wdio) {
             return globalThis.wdio.executeWithScope(
                 'getHTML' as const, this.elementId,
-                { includeSelectorTag, pierceShadowRoot, removeCommentNodes, prettify }
+                { includeSelectorTag, pierceShadowRoot, removeCommentNodes, prettify, excludeElements }
             )
         }
 
