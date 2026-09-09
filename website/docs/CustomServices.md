@@ -98,6 +98,51 @@ export default class CustomWorkerService implements Services.ServiceInstance {
 }
 ```
 
+## Conditional Worker Services
+
+A service can decide whether its worker code is needed for a test run or for a particular worker. There are two optional checks:
+
+| Check | Where it runs | Arguments | Effect of returning `false` |
+| --- | --- | --- | --- |
+| Named module export `shouldLoad` | Launcher process, after importing the service module | Configuration, all configured capabilities | The service module is not imported in any worker. Its launcher service still runs. |
+| Static worker service method `shouldRun` | Worker process, before constructing the service | Service options, that worker's capabilities, configuration | The worker service is not constructed, so none of its hooks run in that worker. |
+
+Use `shouldLoad(config, capabilities)` for service modules configured by name or path. This is a package-wide decision: if the same service appears more than once with different options, the result applies to all of those entries. For example, a custom service that requires remote credentials could export:
+
+```js
+// wdio-custom-service/index.js
+import CustomLauncherService from './launcher.js'
+import CustomWorkerService from './service.js'
+
+export function shouldLoad(config, capabilities) {
+    return Boolean(config.user && config.key)
+}
+
+export default CustomWorkerService
+export const launcher = CustomLauncherService
+```
+
+Use `static shouldRun(options, capabilities, config)` to decide separately for each service entry and worker. It also works with custom service classes passed directly in `services`. For example, this service can restrict its hooks to a configured browser:
+
+```js
+// wdio-custom-service/service.js
+export default class CustomWorkerService {
+    static shouldRun(options, capabilities, config) {
+        return !options.browserName || options.browserName === capabilities.browserName
+    }
+
+    before(capabilities, specs, browser) {
+        // Runs only in workers that passed shouldRun.
+    }
+}
+```
+
+With `services: [['custom', { browserName: 'chrome' }]]`, this worker service is constructed only for Chrome capabilities, provided the package's `shouldLoad` check also allows it. The worker must import the service module to call `shouldRun`; returning `false` from this method does not prevent that import or affect the launcher service.
+
+Both checks can return a boolean or a promise of a boolean. WebdriverIO awaits each result, and only `false` disables loading or construction. Services without these checks keep their existing behavior. Already constructed service objects containing hooks are unchanged.
+
+If either check throws or rejects, service initialization fails with an error identifying the service. This differs from errors thrown by service hooks, described below.
+
 ## Service Error Handling
 
 An Error thrown during a service hook will be logged while the runner continues. If a hook in your service is critical to the setup or teardown of the test runner, the `SevereServiceError` exposed from the `webdriverio` package can be used to stop the runner.
