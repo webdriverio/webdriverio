@@ -79,9 +79,39 @@ By default, WebdriverIO attempts to establish a WebDriver Bidi session. If you d
 
 Type: `boolean`
 
+#### `wdio:electronVersion`
+
+Specify the Electron version to use for downloading Chromedriver. When set, WebdriverIO downloads the Chromedriver bundled with that Electron release instead of using Chrome for Testing. This is useful for:
+
+- Testing Electron applications (the app's Chromium is an Electron-shipped build by construction)
+- Sourcing a native ARM64 Chromedriver on a Linux ARM64 milestone Chrome for Testing doesn't serve yet
+
+If it isn't set, WebdriverIO still picks the right source automatically per platform; see the **ARM64 Platform Support** note below.
+
+Type: `string`
+
+Example:
+```js
+{
+  browserName: 'chrome',
+  'wdio:electronVersion': '33.2.1'
+}
+```
+
+:::info ARM64 Platform Support
+
+On ARM64 systems WebdriverIO sets up Chromedriver automatically; see [Chromedriver on ARM64](arm64-chromedriver) for the full picture:
+
+- **Windows ARM64**: uses the `win64` (x64) Chromedriver under Windows' transparent x64 emulation, which drives native ARM64 Chrome. No configuration required.
+- **Linux ARM64**: Chrome for Testing where it serves the build (Chromium `153.0.8001.0`+), with a matching Electron release as an automatic fallback below that floor.
+
+Set `wdio:electronVersion` to opt into an Electron-release Chromedriver explicitly, e.g. for an Electron app.
+
+:::
+
 #### Common Driver Options
 
-While all driver offer different parameters for configuration, there are some common ones that WebdriverIO understand and uses for setting up your driver or browser:
+Whilst all drivers offer different parameters for configuration, there are some common ones that WebdriverIO understands and uses for setting up your driver or browser:
 
 ##### `cacheDir`
 

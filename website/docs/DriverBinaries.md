@@ -9,6 +9,10 @@ To run automation based on the WebDriver protocol you need to have browser drive
 
 With WebdriverIO `v8.14` and above there is no need to manually download and setup any browser drivers anymore as this is handled by WebdriverIO. All you have to do is specify the browser you want to test and WebdriverIO will do the rest.
 
+:::info Running on ARM64?
+See [Chromedriver on ARM64](arm64-chromedriver) for how driver setup works on Windows and Linux ARM64, and how to handle the one case that can't be served automatically.
+:::
+
 ### Customizing the level of automation
 
 WebdriverIO's have three levels of automation:
