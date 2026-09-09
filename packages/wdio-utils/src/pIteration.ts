@@ -211,6 +211,9 @@ export const some = <T>(array: T[], callback: Function, thisArg?: T) => {
                 .then(check)
                 .catch(reject)
         }
+        if (counter === array.length + 1) {
+            resolve(false)
+        }
     })
 }
 
@@ -263,6 +266,9 @@ export const every = <T>(array: T[], callback: Function, thisArg?: T) => {
                 .then((elem) => callback.call(thisArg || this, elem, i, array))
                 .then(check)
                 .catch(reject)
+        }
+        if (counter === array.length + 1) {
+            resolve(true)
         }
     })
 }
