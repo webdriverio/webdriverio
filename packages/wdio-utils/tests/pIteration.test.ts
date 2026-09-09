@@ -7,6 +7,20 @@ import {
 
 const delay = (ms?: number) => new Promise(resolve => setTimeout(() => resolve(ms), ms || 0))
 
+test('some resolves false for an array containing only holes', async () => {
+    const result = await some(new Array(3), () => {
+        throw new Error('callback should not run for a hole')
+    })
+    expect(result).toBe(false)
+}, 1000)
+
+test('every resolves true for an array containing only holes', async () => {
+    const result = await every(new Array(3), () => {
+        throw new Error('callback should not run for a hole')
+    })
+    expect(result).toBe(true)
+}, 1000)
+
 test('forEach, check callbacks are run in parallel', async () => {
     let total = 0
     const parallelCheck: number[] = []
