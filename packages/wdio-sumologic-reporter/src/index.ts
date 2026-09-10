@@ -180,6 +180,10 @@ export default class SumoLogicReporter extends WDIOReporter {
                 body: JSON.stringify(logLines)
             })
 
+            if (!resp.ok) {
+                throw new Error(`Sumo Logic responded with ${resp.status}`)
+            }
+
             this._retryDelay = 0
             this._nextRetryAt = 0
 
