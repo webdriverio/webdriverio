@@ -46,6 +46,7 @@ export const config: WebdriverIO.Config = {
         },
         {
             browserName: 'edge',
+            browserVersion: 'stable', // Forcing stable version since v152 having missing driver architecture making pipeline fails.
             webSocketUrl: true,
             'ms:edgeOptions': {
                 args: [
