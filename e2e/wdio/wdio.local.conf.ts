@@ -46,6 +46,7 @@ export const config: WebdriverIO.Config = {
         },
         {
             browserName: 'edge',
+            browserVersion: '152.0.4191.62', // Forcing a version having all driver architecture available
             webSocketUrl: true,
             'ms:edgeOptions': {
                 args: [

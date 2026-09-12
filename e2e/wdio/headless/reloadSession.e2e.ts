@@ -6,6 +6,7 @@ describe('reloadSession', () => {
         expect(browser.capabilities.browserName).toBe('chrome')
         await browser.reloadSession({
             browserName: 'edge',
+            browserVersion: '152.0.4191.62', // Forcing a version having all driver architecture available
             'ms:edgeOptions': {
                 args: ['headless', 'disable-gpu']
             }
