@@ -240,6 +240,60 @@ describe('main suite 1', () => {
             ) as unknown as Promise<{ x: number, y: number }>
         }
 
+        type Point = { x: number, y: number }
+
+        /**
+         * the in-view centre point WebDriver moves the pointer to, in the same
+         * coordinate space that `clientX`/`clientY` are reported in
+         */
+        const getInViewCenter = () => browser.execute(() => {
+            const r = document.querySelector('#parent')!.getBoundingClientRect()
+            return {
+                x: Math.floor(r.width / 2) + Math.floor(r.left),
+                y: Math.floor(r.height / 2) + Math.floor(r.top)
+            }
+        }) as unknown as Promise<Point>
+
+        const getMousePosition = () => browser.execute(
+            () => (window as unknown as { mouseMoveTo: Point }).mouseMoveTo
+        ) as unknown as Promise<Point>
+
+        /**
+         * A measurement has to satisfy two things, and neither alone is enough:
+         *
+         * - a mousemove must have fired *since* `countBefore`, otherwise the pointer
+         *   already sitting on the target would let a `moveTo()` that does nothing
+         *   pass, which is what makes the no-offset case worth asserting at all
+         * - it must report the position we expect, otherwise the mousemove a headed
+         *   browser emits when the page renders under the OS cursor gets mistaken for
+         *   the result of our own move - the race this test used to flake on
+         */
+        const waitForMouseAt = async (expected: Point, countBefore: number) => {
+            let actual: Point | undefined
+            try {
+                await browser.waitUntil(
+                    async () => {
+                        if ((await getMouseMoveCount()) <= countBefore) {
+                            return false
+                        }
+                        actual = await getMousePosition()
+                        return actual.x === expected.x && actual.y === expected.y
+                    },
+                    { timeout: 5000 }
+                )
+            } catch {
+                /**
+                 * build the message here, not in `timeoutMsg`: that is interpolated
+                 * when the options object is created, before any polling has happened
+                 */
+                throw new Error(
+                    `expected a mousemove putting the pointer at (${expected.x}, ${expected.y}) after moveTo(), ` +
+                    (actual ? `last saw (${actual.x}, ${actual.y})` : 'but no mousemove fired at all')
+                )
+            }
+            return actual as Point
+        }
+
         beforeEach(async () => {
             await browser.url('https://guinea-pig.webdriver.io/pointer.html')
             await browser.$('#parent').waitForExist()
@@ -256,16 +310,18 @@ describe('main suite 1', () => {
         })
 
         inputs.forEach((input) => {
-            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async function() {
-                // Unstable test, retry up to 3 times `Expected: 90 Received: 504` with when input = `{"xOffset":10}`
-                this.retries(3)
-
+            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await setupMouseTracking()
+                const countBeforeFirstMove = await getMouseMoveCount()
                 await browser.$('#parent').moveTo()
-                const rectBefore = await waitForMousePosition(0)
+                const center = await getInViewCenter()
+                const rectBefore = await waitForMouseAt(center, countBeforeFirstMove)
                 const countBeforeSecondMove = await getMouseMoveCount()
                 await browser.$('#parent').moveTo(input)
-                const rectAfter = await waitForMousePosition(countBeforeSecondMove)
+                const rectAfter = await waitForMouseAt({
+                    x: center.x + (input?.xOffset ?? 0),
+                    y: center.y + (input?.yOffset ?? 0)
+                }, countBeforeSecondMove)
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
             })
