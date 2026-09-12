@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { TraceStreamJson } from '@tracerbench/trace-event'
 import type { ReportOptions } from 'istanbul-reports'
 import type { Totals, CoverageSummaryData } from 'istanbul-lib-coverage'
 import type { Viewport } from 'puppeteer-core/lib/esm/puppeteer/common/Viewport.js'
@@ -185,8 +184,9 @@ export interface PerformanceAuditOptions {
     cacheEnabled?: boolean
 }
 
-export interface GathererDriver {
-    beginTrace (): Promise<void>
-    endTrace (): Promise<TraceStreamJson>
-    evaluate (script: Function, args: unknown): Promise<any>
-}
+// TODO to bring back?
+// export interface GathererDriver {
+//     beginTrace (): Promise<void>
+//     endTrace (): Promise<TraceStreamJson>
+//     evaluate (script: Function, args: unknown): Promise<any>
+// }

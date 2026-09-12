@@ -14,12 +14,11 @@ async function bar() {
     expectType<number>(metrics.totalBlockingTime)
     expectType<number>(metrics.maxPotentialFID)
 
-    const diagnostics = await browser.getDiagnostics()
     const mainThreadWorkBreakdown = await browser.getMainThreadWorkBreakdown()
     expectType<number>(mainThreadWorkBreakdown[0].duration)
 
-    const performanceScore: number = await browser.getPerformanceScore()
-    expectType<number>(performanceScore)
+    const performanceScore = await browser.getPerformanceScore()
+    expectType<number|null>(performanceScore)
 
     const pwaCheck = await browser.checkPWA()
     pwaCheck.passed
@@ -33,7 +32,7 @@ async function bar() {
     browser.endTracing()
 
     const traceLogs = await browser.getTraceLogs()
-    expectType<string>(traceLogs[0].cat)
+    expectType<string>(traceLogs![0].cat)
 
     const pageWeight = await browser.getPageWeight()
     expectType<number>(pageWeight.requestCount)

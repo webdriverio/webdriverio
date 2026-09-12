@@ -5,12 +5,12 @@ import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
 import PWAGatherer from '../../src/gatherer/pwa.js'
 import type { GathererDriver } from '../../src/types.js'
 
-vi.mock('lighthouse/lighthouse-core/fraggle-rock/gather/session')
-vi.mock('lighthouse/lighthouse-core/gather/gatherers/installability-errors')
-vi.mock('lighthouse/lighthouse-core/gather/gatherers/web-app-manifest')
-vi.mock('lighthouse/lighthouse-core/gather/gatherers/link-elements')
-vi.mock('lighthouse/lighthouse-core/gather/gatherers/viewport-dimensions')
-vi.mock('lighthouse/lighthouse-core/gather/driver/service-workers')
+vi.mock('lighthouse/core/fraggle-rock/gather/session')
+vi.mock('lighthouse/core/gather/gatherers/installability-errors')
+vi.mock('lighthouse/core/gather/gatherers/web-app-manifest')
+vi.mock('lighthouse/core/gather/gatherers/link-elements')
+vi.mock('lighthouse/core/gather/gatherers/viewport-dimensions')
+vi.mock('lighthouse/core/gather/driver/service-workers')
 
 const pageMock = {
     on: vi.fn(),

@@ -11,8 +11,8 @@ import type { GathererDriver } from '../../src/types.js'
 
 import TRACELOG from '../__fixtures__/tracelog.json' with { type: 'json' }
 
-vi.mock('lighthouse/lighthouse-core/fraggle-rock/gather/session')
-vi.mock('lighthouse/lighthouse-core/gather/driver/wait-for-condition')
+vi.mock('lighthouse/core/fraggle-rock/gather/session')
+vi.mock('lighthouse/core/gather/driver/wait-for-condition')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 let traceGatherer: TraceGatherer

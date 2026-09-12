@@ -9,7 +9,7 @@ import logger from '@wdio/logger'
 
 vi.mock('ws')
 vi.mock('puppeteer-core')
-vi.mock('lighthouse/lighthouse-core/fraggle-rock/gather/session')
+vi.mock('lighthouse/core/fraggle-rock/gather/session')
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../src/commands', () => {

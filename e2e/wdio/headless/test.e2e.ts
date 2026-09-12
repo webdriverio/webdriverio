@@ -150,33 +150,6 @@ describe('main suite 1', () => {
         })
     })
 
-    describe.skip('Lighthouse Service Performance Testing capabilities', () => {
-        before(() => browser.enablePerformanceAudits())
-
-        it('should allow to do performance tests', async () => {
-            await browser.url('http://json.org')
-            const metrics = await browser.getMetrics()
-            expect(typeof metrics.serverResponseTime).toBe('number')
-            expect(typeof metrics.domContentLoaded).toBe('number')
-            expect(typeof metrics.firstVisualChange).toBe('number')
-            expect(typeof metrics.firstPaint).toBe('number')
-            expect(typeof metrics.firstContentfulPaint).toBe('number')
-            expect(typeof metrics.firstMeaningfulPaint).toBe('number')
-            expect(typeof metrics.largestContentfulPaint).toBe('number')
-            expect(typeof metrics.lastVisualChange).toBe('number')
-            expect(typeof metrics.interactive).toBe('number')
-            expect(typeof metrics.load).toBe('number')
-            expect(typeof metrics.speedIndex).toBe('number')
-            expect(typeof metrics.totalBlockingTime).toBe('number')
-            expect(typeof metrics.maxPotentialFID).toBe('number')
-            expect(typeof metrics.cumulativeLayoutShift).toBe('number')
-            const score = await browser.getPerformanceScore()
-            expect(typeof score).toBe('number')
-        })
-
-        after(() => browser.disablePerformanceAudits())
-    })
-
     it.skip('should be able to scroll up and down', async () => {
         if (os.platform() === 'win32') {
             console.warn('Skipping scroll tests on Windows')

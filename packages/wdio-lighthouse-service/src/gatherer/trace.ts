@@ -1,12 +1,12 @@
 import { EventEmitter } from 'node:events'
-import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder.js'
-import NetworkMonitor from 'lighthouse/lighthouse-core/gather/driver/network-monitor.js'
-import ProtocolSession from 'lighthouse/lighthouse-core/fraggle-rock/gather/session.js'
-import { waitForFullyLoaded } from 'lighthouse/lighthouse-core/gather/driver/wait-for-condition.js'
+import { NetworkRecorder } from 'lighthouse/core/lib/network-recorder.js'
+import { NetworkMonitor } from 'lighthouse/core/gather/driver/network-monitor.js'
+import type { WaitOptions } from 'lighthouse/core/gather/driver/wait-for-condition.js'
+import { waitForFullyLoaded } from 'lighthouse/core/gather/driver/wait-for-condition.js'
 import logger from '@wdio/logger'
 
 import type { Protocol } from 'devtools-protocol'
-import type { TraceEvent, TraceEventArgs } from '@tracerbench/trace-event'
+import type { TraceEvent, TraceEventArgs, TraceStreamJson } from '@tracerbench/trace-event'
 import type { HTTPRequest } from 'puppeteer-core/lib/esm/puppeteer/api/HTTPRequest.js'
 import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
 import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
@@ -18,7 +18,7 @@ import {
     CLICK_TRANSITION, NETWORK_RECORDER_EVENTS
 } from '../constants.js'
 import { isSupportedUrl } from '../utils.js'
-import type { GathererDriver } from '../types.js'
+import type { Driver } from 'lighthouse/core/gather/driver.js'
 
 const log = logger('@wdio/lighthouse-service:TraceGatherer')
 
@@ -59,43 +59,65 @@ export default class TraceGatherer extends EventEmitter {
     private _frameId?: string
     private _loaderId?: string
     private _pageUrl?: string
-    private _networkStatusMonitor: typeof NetworkRecorder
-    private _networkMonitor: typeof NetworkMonitor
-    private _protocolSession: typeof  ProtocolSession
+    private _networkStatusMonitor?: NetworkRecorder
+    private _networkMonitor: NetworkMonitor
+    private _protocolSession: Driver['defaultSession']
     private _trace?: Trace
     private _traceStart?: number
     private _clickTraceTimeout?: NodeJS.Timeout
-    private _waitConditionPromises: Promise<void>[] = []
+    private _waitConditionPromises: Promise<{ timedOut: boolean }>[] = []
 
-    constructor (private _session: CDPSession, private _page: Page, private _driver: GathererDriver) {
+    constructor (private _session: CDPSession, private _page: Page, private _driver: Driver) {
         super()
 
+        this._networkStatusMonitor = new NetworkRecorder()
+
+        this._protocolSession = this._driver.defaultSession
+        this._networkMonitor = new NetworkMonitor(_driver.targetManager)
+
         NETWORK_RECORDER_EVENTS.forEach((method) => {
-            this._networkListeners[method] = (params) => this._networkStatusMonitor.dispatch({ method, params })
+            const networkStatusMonitor = this._networkStatusMonitor
+            if (networkStatusMonitor) {
+                console.log('Registering network listener for method:', method)
+                this._networkListeners[method] = (params) => networkStatusMonitor.dispatch({ method, params })
+            }
         })
 
-        this._protocolSession = new ProtocolSession(_session)
-        this._networkMonitor = new NetworkMonitor(_session)
     }
 
     async startTracing (url: string) {
+        console.log('Starting tracing for URL:', url)
         /**
          * delete old trace
          */
         delete this._trace
 
+        if (!this._networkStatusMonitor) {
+            this._networkStatusMonitor = new NetworkRecorder()
+        }
         /**
          * register listener for network status monitoring
          */
-        this._networkStatusMonitor = new NetworkRecorder()
         NETWORK_RECORDER_EVENTS.forEach((method) => {
             this._session.on(method, this._networkListeners[method])
         })
 
         this._traceStart = Date.now()
-        log.info(`Start tracing frame with url ${url}`)
-        await this._driver.beginTrace()
-
+        console.log('Trace start time recorded:', this._traceStart)
+        await this._protocolSession.sendCommand('Tracing.start', {
+            categories: [
+                '-*',
+                'devtools.timeline',
+                'v8.execute',
+                'disabled-by-default-devtools.timeline',
+                'disabled-by-default-devtools.timeline.frame',
+                'toplevel',
+                'blink.console',
+                'blink.user_timing',
+                'latencyInfo',
+            ].join(','),
+        })
+        console.log('Tracing started for URL:', url)
         /**
          * if this tracing was started from a click transition
          * then we want to discard page trace if no load detected
@@ -108,20 +130,34 @@ export default class TraceGatherer extends EventEmitter {
             }, FRAME_LOAD_START_TIMEOUT)
         }
 
+        console.log('Setting up performance observer in page')
         /**
          * register performance observer
          */
         await this._page.evaluateOnNewDocument(registerPerformanceObserverInPage)
 
+        console.log('Performance observer registered in page')
+        const waitOptions = {
+            maxWaitForLoadedMs: 10000,
+            maxWaitForFcpMs: 10000,
+            pauseAfterFcpMs: 500,
+            pauseAfterLoadMs: 500,
+            networkQuietThresholdMs: 500,
+            cpuQuietThresholdMs: 500,
+        } satisfies WaitOptions
+
+        console.log('Waiting for page to be fully loaded with options:', waitOptions)
         this._waitConditionPromises.push(
-            waitForFullyLoaded(this._protocolSession, this._networkMonitor, { timedOut: 1 })
+            waitForFullyLoaded(this._protocolSession, this._networkMonitor, waitOptions)
         )
+        console.log('Wait condition promise added for page load')
     }
 
     /**
      * store frame id of frames that are being traced
      */
     async onFrameNavigated (msgObj: Protocol.Page.FrameNavigatedEvent) {
+        console.log('onFrameNavigated called', { isTracing: this.isTracing, frameUrl: msgObj.frame.url })
         if (!this.isTracing) {
             return
         }
@@ -180,6 +216,7 @@ export default class TraceGatherer extends EventEmitter {
      * metrics and timing
      */
     async onLoadEventFired () {
+        console.log('onLoadEventFired called', { isTracing: this.isTracing, pageUrl: this._pageUrl })
         if (!this.isTracing) {
             return
         }
@@ -188,6 +225,7 @@ export default class TraceGatherer extends EventEmitter {
          * Ensure that page is fully loaded and all metrics can be calculated.
          */
         const loadPromise = Promise.all(this._waitConditionPromises).then(() => async () => {
+            console.log('All wait condition promises resolved for page load')
             /**
              * ensure that we trace at least for 5s to ensure that we can
              * calculate "interactive"
@@ -207,6 +245,7 @@ export default class TraceGatherer extends EventEmitter {
         ])
 
         this._waitConditionPromises = []
+        console.log('Wait condition promises cleared for page load')
         return cleanupFn()
     }
 
@@ -226,7 +265,9 @@ export default class TraceGatherer extends EventEmitter {
      * once tracing has finished capture trace logs into memory
      */
     async completeTracing () {
+        console.log('completeTracing called for frame:', this._frameId)
         const traceDuration = Date.now() - (this._traceStart || 0)
+        console.log(`Tracing completed after ${traceDuration}ms, capturing performance data for frame ${this._frameId}`)
         log.info(`Tracing completed after ${traceDuration}ms, capturing performance data for frame ${this._frameId}`)
 
         /**
@@ -234,7 +275,10 @@ export default class TraceGatherer extends EventEmitter {
          * in case it fails, continue without capturing any data
          */
         try {
-            const traceEvents = await this._driver.endTrace()
+
+            // TODO: to review
+            const traceEvents = {} as TraceStreamJson
+            await this._protocolSession.sendCommand('Tracing.end')
 
             /**
              * modify pid of renderer frame to be the same as where tracing was started
@@ -278,6 +322,7 @@ export default class TraceGatherer extends EventEmitter {
      * clear tracing states and emit tracingFinished
      */
     finishTracing () {
+        console.log(`finishTracing called for frame: ${this._frameId}`)
         log.info(`Tracing for ${this._frameId} completed`)
         this._pageLoadDetected = false
 
@@ -298,6 +343,7 @@ export default class TraceGatherer extends EventEmitter {
     }
 
     waitForMaxTimeout (maxWaitForLoadedMs = MAX_TRACE_WAIT_TIME) {
+        console.log(`waitForMaxTimeout called with maxWaitForLoadedMs: ${maxWaitForLoadedMs} for frame: ${this._frameId}`)
         return new Promise(
             (resolve) => setTimeout(resolve, maxWaitForLoadedMs)
         ).then(() => async () => {

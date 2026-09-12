@@ -8,8 +8,6 @@ updates:
   open-pull-requests-limit: 10
   versioning-strategy: increase-if-necessary
   ignore:
-    # requires manual upgrade as we use internal interfaces
-    - dependency-name: "lighthouse"
     # Eslint v9 comes with breaking changes that require manual upgrade
     - dependency-name: "eslint"
     - dependency-name: "@typescript-eslint/eslint-plugin"

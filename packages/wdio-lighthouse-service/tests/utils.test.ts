@@ -10,7 +10,7 @@ vi.mock('fs', () => ({
     existsSync: vi.fn()
 }))
 
-vi.mock('lighthouse/lighthouse-core/gather/connections/cri.js', () => ({
+vi.mock('lighthouse/core/gather/connections/cri.js', () => ({
     default: class ChromeProtocol {
         public _runJsonCommand = vi.fn().mockReturnValue(['foobar'])
         public _connectToSocket = vi.fn()

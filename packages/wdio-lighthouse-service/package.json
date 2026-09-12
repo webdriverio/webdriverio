@@ -40,7 +40,6 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@babel/core": "^7.18.0",
     "@tracerbench/trace-event": "^8.0.0",
     "@types/node": "^20.1.0",
     "@wdio/logger": "workspace:*",
@@ -50,7 +49,7 @@
     "istanbul-lib-coverage": "^3.2.0",
     "istanbul-lib-report": "^3.0.0",
     "istanbul-reports": "^3.1.4",
-    "lighthouse": "8.6.0",
+    "lighthouse": "10.4.0",
     "puppeteer-core": "^24.12.1",
     "webdriverio": "workspace:*"
   },
@@ -58,7 +57,6 @@
     "access": "public"
   },
   "devDependencies": {
-    "@types/babel__core": "^7.1.19",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.0",
     "@types/istanbul-reports": "^3.0.4",
