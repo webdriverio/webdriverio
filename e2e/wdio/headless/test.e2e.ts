@@ -240,6 +240,44 @@ describe('main suite 1', () => {
             ) as unknown as Promise<{ x: number, y: number }>
         }
 
+        type Point = { x: number, y: number }
+
+        /**
+         * the in-view centre point WebDriver moves the pointer to, in the same
+         * coordinate space that `clientX`/`clientY` are reported in
+         */
+        const getInViewCenter = () => browser.execute(() => {
+            const r = document.querySelector('#parent')!.getBoundingClientRect()
+            return {
+                x: Math.floor(r.width / 2) + Math.floor(r.left),
+                y: Math.floor(r.height / 2) + Math.floor(r.top)
+            }
+        }) as unknown as Promise<Point>
+
+        /**
+         * Waiting for "any mousemove" is not enough: a headed browser also emits one
+         * when the page renders under the OS cursor, and that stray event was being
+         * mistaken for the result of our own move, which is what made this test flake
+         * on the Windows CI runner. Wait for the position we actually expect, which no
+         * unrelated event can satisfy.
+         */
+        const waitForMouseAt = async (expected: Point) => {
+            let actual: Point = { x: -1, y: -1 }
+            await browser.waitUntil(
+                async () => {
+                    actual = await browser.execute(
+                        () => (window as unknown as { mouseMoveTo: Point }).mouseMoveTo
+                    ) as unknown as Point
+                    return actual.x === expected.x && actual.y === expected.y
+                },
+                {
+                    timeout: 5000,
+                    timeoutMsg: `expected the mouse at (${expected.x}, ${expected.y}) after moveTo(), last saw (${actual.x}, ${actual.y})`
+                }
+            )
+            return actual
+        }
+
         beforeEach(async () => {
             await browser.url('https://guinea-pig.webdriver.io/pointer.html')
             await browser.$('#parent').waitForExist()
@@ -256,16 +294,16 @@ describe('main suite 1', () => {
         })
 
         inputs.forEach((input) => {
-            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async function() {
-                // Unstable test, retry up to 3 times `Expected: 90 Received: 504` with when input = `{"xOffset":10}`
-                this.retries(3)
-
+            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await setupMouseTracking()
                 await browser.$('#parent').moveTo()
-                const rectBefore = await waitForMousePosition(0)
-                const countBeforeSecondMove = await getMouseMoveCount()
+                const center = await getInViewCenter()
+                const rectBefore = await waitForMouseAt(center)
                 await browser.$('#parent').moveTo(input)
-                const rectAfter = await waitForMousePosition(countBeforeSecondMove)
+                const rectAfter = await waitForMouseAt({
+                    x: center.x + (input?.xOffset ?? 0),
+                    y: center.y + (input?.yOffset ?? 0)
+                })
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
             })
