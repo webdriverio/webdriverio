@@ -57,8 +57,10 @@ describe('isExisting test', () => {
 
         await elem.isExisting()
         expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1)
-        const url = vi.mocked(fetch).mock.calls[0][0] as URL | string
-        expect(url.toString().endsWith('/element')).toBe(true)
+        expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+            expect.toSatisfy((url: URL | string) => url.toString().endsWith('/element')),
+            expect.any(Object)
+        )
     })
 
     afterEach(() => {
