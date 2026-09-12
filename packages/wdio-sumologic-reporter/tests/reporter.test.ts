@@ -126,9 +126,36 @@ describe('wdio-sumologic-reporter', () => {
         }
     )
 
-    it('should log if it fails syncing', async () => {
+    it('should not expose response details for failed HTTP requests', async () => {
+        const responseText = vi.fn().mockResolvedValue('reflected test payload: secret-test-data')
+        const collectorSecret = 'collector-secret'
+        const payloadSecret = 'test-payload-secret'
         vi.mocked(logger('').error).mockClear()
-        vi.mocked(fetch).mockRejectedValue(new Error('network error'))
+        reporter['_options'].sourceAddress = `http://localhost:1234/${collectorSecret}`
+        reporter.onRunnerStart(payloadSecret as any)
+        vi.mocked(fetch).mockResolvedValue({
+            ok: false,
+            status: 400,
+            statusText: collectorSecret,
+            text: responseText
+        } as unknown as Response)
+
+        await reporter.sync()
+
+        const errorMessage = vi.mocked(logger('').error).mock.calls[0][0] as string
+        expect(responseText).not.toHaveBeenCalled()
+        expect(vi.mocked(logger('').error).mock.calls[0]).toEqual([
+            'failed to send data to Sumo Logic (HTTP 400); retrying'
+        ])
+        expect(errorMessage).not.toContain(collectorSecret)
+        expect(errorMessage).not.toContain(payloadSecret)
+        expect(errorMessage).not.toContain('secret-test-data')
+    })
+
+    it('should log if it fails syncing', async () => {
+        const networkErrorSecret = 'network-error-secret'
+        vi.mocked(logger('').error).mockClear()
+        vi.mocked(fetch).mockRejectedValue(new Error(`network error: ${networkErrorSecret}`))
 
         reporter['_options'].sourceAddress = 'http://localhost:1234/sumoerror'
         reporter.onRunnerStart('onRunnerStart' as any)
@@ -136,8 +163,11 @@ describe('wdio-sumologic-reporter', () => {
         await reporter.sync()
 
         expect(vi.mocked(logger('').error).mock.calls).toHaveLength(1)
-        expect(vi.mocked(logger('').error).mock.calls[0][0])
-            .toContain('failed send data to Sumo Logic')
+        const errorMessage = vi.mocked(logger('').error).mock.calls[0][0] as string
+        expect(vi.mocked(logger('').error).mock.calls[0]).toEqual([
+            'failed to send data to Sumo Logic; retrying'
+        ])
+        expect(errorMessage).not.toContain(networkErrorSecret)
     })
 
     it('should back off failed syncs with a bounded delay and reset after success', async () => {

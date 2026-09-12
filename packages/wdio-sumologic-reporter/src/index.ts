@@ -174,6 +174,8 @@ export default class SumoLogicReporter extends WDIOReporter {
         this._isSynchronising = true
         log.debug('start synchronization')
 
+        let failedStatus: number | undefined
+
         try {
             const resp = await fetch(this._options.sourceAddress, {
                 method: 'POST',
@@ -181,6 +183,12 @@ export default class SumoLogicReporter extends WDIOReporter {
             })
 
             if (!resp.ok) {
+                /**
+                 * The collector endpoint is user-configurable, so response body, status text,
+                 * headers, and URL may contain sensitive or reflected request data. Only log
+                 * the numeric HTTP status, which is enough to diagnose the failed delivery.
+                 */
+                failedStatus = resp.status
                 throw new Error(`Sumo Logic responded with ${resp.status}`)
             }
 
@@ -193,13 +201,14 @@ export default class SumoLogicReporter extends WDIOReporter {
             this._unsynced.splice(0, MAX_LINES)
 
             return log.debug(`synchronised collector data, server status: ${resp.status}`)
-        } catch (err) {
+        } catch {
             this._retryDelay = Math.min(
                 Math.max(this._options.syncInterval ?? 100, this._retryDelay * 2),
                 MAX_RETRY_DELAY
             )
             this._nextRetryAt = Date.now() + this._retryDelay
-            return log.error('failed send data to Sumo Logic:\n', (err as Error).stack)
+            const status = failedStatus === undefined ? '' : ` (HTTP ${failedStatus})`
+            return log.error(`failed to send data to Sumo Logic${status}; retrying`)
         } finally {
             this._isSynchronising = false
         }
