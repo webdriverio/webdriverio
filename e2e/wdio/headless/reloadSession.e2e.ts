@@ -6,7 +6,7 @@ describe('reloadSession', () => {
         expect(browser.capabilities.browserName).toBe('chrome')
         await browser.reloadSession({
             browserName: 'edge',
-            browserVersion: '153', // Forcing 153 version since v152 having missing driver architecture making pipeline fails.
+            browserVersion: '152.0.4191.62', // Forcing a version having all driver architecture available
             'ms:edgeOptions': {
                 args: ['headless', 'disable-gpu']
             }

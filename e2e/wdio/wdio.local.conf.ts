@@ -46,7 +46,7 @@ export const config: WebdriverIO.Config = {
         },
         {
             browserName: 'edge',
-            browserVersion: '153', // Forcing 153 version since v152 having missing driver architecture making pipeline fails.
+            browserVersion: '152.0.4191.62', // Forcing a version having all driver architecture available
             webSocketUrl: true,
             'ms:edgeOptions': {
                 args: [
