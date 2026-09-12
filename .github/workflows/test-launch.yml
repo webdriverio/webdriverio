@@ -30,6 +30,9 @@ jobs:
           filename: webdriverio-build.zip
 
       - name: E2E Launch Tests
+        env:
+            # Todo remove once the containers edge browser installed version are no more 152
+            EDGEDRIVER_VERSION: 152.0.4191.62 # Latest 152 are missing driver for some architecture so forcing this version!
         run: pnpm run test:e2e:webdriver
         shell: bash
 
