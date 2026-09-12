@@ -254,28 +254,44 @@ describe('main suite 1', () => {
             }
         }) as unknown as Promise<Point>
 
+        const getMousePosition = () => browser.execute(
+            () => (window as unknown as { mouseMoveTo: Point }).mouseMoveTo
+        ) as unknown as Promise<Point>
+
         /**
-         * Waiting for "any mousemove" is not enough: a headed browser also emits one
-         * when the page renders under the OS cursor, and that stray event was being
-         * mistaken for the result of our own move, which is what made this test flake
-         * on the Windows CI runner. Wait for the position we actually expect, which no
-         * unrelated event can satisfy.
+         * A measurement has to satisfy two things, and neither alone is enough:
+         *
+         * - a mousemove must have fired *since* `countBefore`, otherwise the pointer
+         *   already sitting on the target would let a `moveTo()` that does nothing
+         *   pass, which is what makes the no-offset case worth asserting at all
+         * - it must report the position we expect, otherwise the mousemove a headed
+         *   browser emits when the page renders under the OS cursor gets mistaken for
+         *   the result of our own move - the race this test used to flake on
          */
-        const waitForMouseAt = async (expected: Point) => {
-            let actual: Point = { x: -1, y: -1 }
-            await browser.waitUntil(
-                async () => {
-                    actual = await browser.execute(
-                        () => (window as unknown as { mouseMoveTo: Point }).mouseMoveTo
-                    ) as unknown as Point
-                    return actual.x === expected.x && actual.y === expected.y
-                },
-                {
-                    timeout: 5000,
-                    timeoutMsg: `expected the mouse at (${expected.x}, ${expected.y}) after moveTo(), last saw (${actual.x}, ${actual.y})`
-                }
-            )
-            return actual
+        const waitForMouseAt = async (expected: Point, countBefore: number) => {
+            let actual: Point | undefined
+            try {
+                await browser.waitUntil(
+                    async () => {
+                        if ((await getMouseMoveCount()) <= countBefore) {
+                            return false
+                        }
+                        actual = await getMousePosition()
+                        return actual.x === expected.x && actual.y === expected.y
+                    },
+                    { timeout: 5000 }
+                )
+            } catch {
+                /**
+                 * build the message here, not in `timeoutMsg`: that is interpolated
+                 * when the options object is created, before any polling has happened
+                 */
+                throw new Error(
+                    `expected a mousemove putting the pointer at (${expected.x}, ${expected.y}) after moveTo(), ` +
+                    (actual ? `last saw (${actual.x}, ${actual.y})` : 'but no mousemove fired at all')
+                )
+            }
+            return actual as Point
         }
 
         beforeEach(async () => {
@@ -296,14 +312,16 @@ describe('main suite 1', () => {
         inputs.forEach((input) => {
             it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await setupMouseTracking()
+                const countBeforeFirstMove = await getMouseMoveCount()
                 await browser.$('#parent').moveTo()
                 const center = await getInViewCenter()
-                const rectBefore = await waitForMouseAt(center)
+                const rectBefore = await waitForMouseAt(center, countBeforeFirstMove)
+                const countBeforeSecondMove = await getMouseMoveCount()
                 await browser.$('#parent').moveTo(input)
                 const rectAfter = await waitForMouseAt({
                     x: center.x + (input?.xOffset ?? 0),
                     y: center.y + (input?.yOffset ?? 0)
-                })
+                }, countBeforeSecondMove)
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
             })
