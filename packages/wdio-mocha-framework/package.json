@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-mocha-framework",
   "license": "MIT",
   "engines": {
-    "node": "^18.20.0 || ^20.20.0 || >=21.7.0"
+    "node": ">=18.20.0"
   },
   "repository": {
     "type": "git",
@@ -36,12 +36,12 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/mocha": "^10.0.10",
+    "@types/mocha": "^10.0.6",
     "@types/node": "^20.11.28",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "mocha": "^11.8.0"
+    "mocha": "^10.3.0"
   },
   "publishConfig": {
     "access": "public"
