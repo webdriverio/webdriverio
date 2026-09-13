@@ -58,6 +58,16 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
     link="https://www.browserstack.com/automation-webdriverio"
 />
 
+<ImageSwitcher
+    lightImageSrc="/img/sponsors/momentic_black.svg"
+    darkImageSrc="/img/sponsors/momentic_white.svg"
+    alt="Momentic"
+    target="_blank"
+    link="https://momentic.ai/"
+    width="300"
+    style={{ marginLeft: '30px', position: 'relative', top: '6px' }}
+/>
+
 <br />
 <br />
 
@@ -93,6 +103,15 @@ Become a [Gold Sponsor](https://opencollective.com/webdriverio/contribute/gold-s
     darkImageSrc="/img/sponsors/testingbot.svg"
     alt="TestingBot"
     link="https://testingbot.com/"
+    width="150"
+    target="_blank"
+/>
+
+<ImageSwitcher
+    lightImageSrc="/img/sponsors/sap.png"
+    darkImageSrc="/img/sponsors/sap.png"
+    alt="SAP"
+    link="https://www.sap.com/"
     width="150"
     target="_blank"
 />

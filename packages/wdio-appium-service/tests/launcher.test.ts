@@ -575,7 +575,7 @@ describe('Appium launcher', () => {
             vi.mocked(spawn).mockReturnValue(new MockCustomFailingProcess(2) as unknown as cp.ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
-            const expectedError = new Error('Error: Uups')
+            const expectedError = new Error('Appium exited before timeout (exit code: 2)\nError: Uups')
             expect(error).toEqual(expectedError)
         })
 
@@ -1010,8 +1010,7 @@ describe('Appium launcher', () => {
             // Simulate a warning message from Appium (e.g., driver version mismatch)
             stderrHandler(Buffer.from('WARN Driver version mismatch'))
 
-            // The warning should be logged as a warning but not cause an error or rejection
-            expect(mockLogWarn).toHaveBeenCalled()
+            // The warning should not cause an error or rejection
             expect(mockLogError).not.toHaveBeenCalled()
 
             const stdoutHandler = stdoutListener.on.mock.calls

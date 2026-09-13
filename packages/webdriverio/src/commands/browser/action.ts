@@ -4,6 +4,10 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
 /**
  * The action command is a low-level interface for providing virtualized device input actions to the web browser.
  *
+ * For simple key presses, use [`browser.keys()`](https://webdriver.io/docs/api/browser/keys) instead. To perform
+ * multiple action chains at once, such as holding `Control` while clicking, use
+ * [`browser.actions()`](https://webdriver.io/docs/api/browser/actions).
+ *
  * In addition to high level commands such like `scrollIntoView`, `doubleClick`, the Actions API provides granular
  * control over exactly what designated input devices can do. WebdriverIO provides an interface for 3 kinds of input
  * sources:
@@ -43,14 +47,15 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
  * #### Special Characters
  *
  * If you like to use special characters like e.g. `Control`, `Page Up` or `Shift`, make sure to import the
- * [`Key`](https://github.com/webdriverio/webdriverio/blob/main/packages/webdriverio/src/constants.ts#L352-L417) object
- * from the `webdriverio` package like so:
+ * [`Key`](/docs/api/modules#key) object from the `webdriverio` package like so:
  *
  * ```ts
  * import { Key } from 'webdriverio'
  * ```
  *
- * The object allows you to access the unicode representation of the desired special character.
+ * The `Key` object provides constants for all special keys including `Key.Ctrl` (cross-platform), `Key.Enter`,
+ * `Key.Tab`, `Key.ArrowLeft`, arrow keys, function keys, and more. See the [Key API docs](/docs/api/modules#key)
+ * for a complete list.
  *
  * ### Pointer input source
  *
@@ -147,6 +152,7 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
  *
  * @alias browser.action
  * @type utility
+ * @skipAwait returns a chainable action builder, the `perform()` call at the end of the chain is what gets awaited
  *
  */
 export function action (

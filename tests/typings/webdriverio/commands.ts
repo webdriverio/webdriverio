@@ -54,4 +54,8 @@ describe('WebdriverIO commands', async () => {
         const chainableElFromActive = $(activeEl)
         expectTypeOf(chainableElFromActive).toEqualTypeOf(chainableEl)
     })
+
+    it('getValue', async () => {
+        expectTypeOf(await el.getValue()).toEqualTypeOf<string>()
+    })
 })

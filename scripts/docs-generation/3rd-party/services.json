@@ -36,10 +36,18 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-intercept-service"
   },
   {
-    "packageName": "wdio-electron-service",
+    "packageName": "@wdio/electron-service",
     "title": "Electron",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-electron-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-electron-service"
+    "location": "packages/electron-service/README.md",
+    "githubUrl": "https://github.com/webdriverio/desktop-mobile",
+    "npmUrl": "https://www.npmjs.com/package/@wdio/electron-service"
+  },
+  {
+    "packageName": "@wdio/tauri-service",
+    "title": "Tauri",
+    "location": "packages/tauri-service/README.md",
+    "githubUrl": "https://github.com/webdriverio/desktop-mobile",
+    "npmUrl": "https://www.npmjs.com/package/@wdio/tauri-service"
   },
   {
     "packageName": "wdio-gmail-service",
@@ -237,5 +245,12 @@
     "title": "Camera Service",
     "githubUrl": "https://github.com/webdriverio-community/wdio-camera-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-camera-service"
+  },
+  {
+    "packageName": "wdio-null-driver-service",
+    "title": "Null Driver",
+    "branch": "master",
+    "githubUrl": "https://github.com/ccharnkij/wdio-null-driver-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-null-driver-service"
   }
 ]
