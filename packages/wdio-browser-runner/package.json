@@ -73,7 +73,7 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@originjs/vite-plugin-commonjs": "^1.0.3",
-    "@vitest/spy": "^2.0.4",
+    "@vitest/spy": "^3.2.7",
     "@wdio/globals": "workspace:*",
     "@wdio/local-runner": "workspace:*",
     "@wdio/logger": "workspace:*",
