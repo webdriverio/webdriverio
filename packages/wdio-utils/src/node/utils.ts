@@ -155,11 +155,17 @@ export const downloadProgressCallback = (artifact: string, downloadedBytes: numb
  * quadratically and a large message could stall the process for seconds. The
  * userinfo part is unbounded so that a long token is still scrubbed; it stays
  * linear because `/` is excluded, which keeps the run after each `://` disjoint.
+ * A credential can also travel in the query string - an `?access_token=`, or a
+ * signed-url signature - so the query is dropped too. Nothing downstream needs it
+ * to diagnose a failed download, and the classes stop at a quote so that redacting
+ * inside `JSON.stringify(args)` cannot eat the rest of the serialized object.
  * @param {string} message - a log line or error message that may contain urls
- * @returns the message with `user:password@` stripped from any url it contains
+ * @returns the message with credentials stripped from any url it contains
  */
 function redactCredentials (message: string) {
-    return message.replace(/([a-zA-Z][\w+.-]{0,30}:\/\/)[^/\s?#]+@/g, '$1')
+    return message
+        .replace(/([a-zA-Z][\w+.-]{0,30}:\/\/)[^/\s?#]+@/g, '$1')
+        .replace(/([a-zA-Z][\w+.-]{0,30}:\/\/[^\s"'?#]*)\?[^\s"']*/g, '$1?[redacted]')
 }
 
 /**

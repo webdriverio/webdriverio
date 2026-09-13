@@ -334,6 +334,32 @@ describe('startWebDriver', () => {
         expect(loggedError).toContain('https://artifactory.company.com/chrome-for-testing/115.0.5790.171/win64/chromedriver-win64.zip')
     })
 
+    it.each([
+        ['an access token', 'https://artifactory.company.com/cft?access_token=s3cr3t-token'],
+        ['a signed url signature', 'https://acct.blob.core.windows.net/cft?sv=2022-11-02&sig=s3cr3t-token']
+    ])('should redact a credential passed in the query string (%s)', async (_name, url) => {
+        /**
+         * a registry url can carry its credential in the query rather than in the
+         * userinfo, and such a url always fails the download because the driver path
+         * ends up inside the query string - so this path is hit every time
+         */
+        process.env.CHROMEDRIVER_CDNURL = url
+        vi.mocked(install).mockRejectedValueOnce(new Error(
+            `Download failed: server returned code 403. URL: ${url}/115.0.5790.171/win64/chromedriver-win64.zip`
+        ))
+
+        await setupChromedriver('/foo/bar/cache', '115.0.5790.171')
+
+        const loggedError = vi.mocked(logMock.error).mock.calls.at(-1)?.[0] as string
+        expect(loggedError).not.toContain('s3cr3t-token')
+        expect(loggedError).toContain('[redacted]')
+        /**
+         * the serialized options must stay parseable - the redaction must not eat
+         * the rest of the JSON after the url
+         */
+        expect(loggedError).toContain('"cacheDir"')
+    })
+
     it('should redact a password that itself contains an @', async () => {
         /**
          * url parsers split userinfo at the *last* `@`, so `pa@ss` is a valid
@@ -383,7 +409,9 @@ describe('startWebDriver', () => {
     it('should leave urls without credentials untouched when a download fails', async () => {
         /**
          * the redaction runs on every failed install, also for users that never set a
-         * custom CDN, so it must not mangle an `@` that is part of a path or query
+         * custom CDN, so an `@` that is part of a path must survive. A query string is
+         * dropped on purpose - it can carry a token - but the host and path it belongs
+         * to stay readable so the failure is still diagnosable.
          */
         vi.mocked(install).mockRejectedValueOnce(new Error(
             'Download failed: server returned code 500. URL: https://storage.googleapis.com/cft?build=115@rev + https://registry.corp/npm/@scope/pkg'
@@ -392,7 +420,7 @@ describe('startWebDriver', () => {
         await setupChromedriver('/foo/bar/cache', '115.0.5790.171')
 
         const loggedError = vi.mocked(logMock.error).mock.calls.at(-1)?.[0] as string
-        expect(loggedError).toContain('https://storage.googleapis.com/cft?build=115@rev')
+        expect(loggedError).toContain('https://storage.googleapis.com/cft?[redacted]')
         expect(loggedError).toContain('https://registry.corp/npm/@scope/pkg')
     })
 
