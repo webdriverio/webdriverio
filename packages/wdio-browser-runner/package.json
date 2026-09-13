@@ -1,6 +1,6 @@
 {
   "name": "@wdio/browser-runner",
-  "version": "9.31.7",
+  "version": "9.31.8",
   "description": "A WebdriverIO runner to run unit tests tests in the browser.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browser-runner",
@@ -73,7 +73,7 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@originjs/vite-plugin-commonjs": "^1.0.3",
-    "@vitest/spy": "^2.0.4",
+    "@vitest/spy": "^3.2.7",
     "@wdio/globals": "workspace:*",
     "@wdio/local-runner": "workspace:*",
     "@wdio/logger": "workspace:*",
