@@ -23,6 +23,17 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.31.8 (2026-09-12)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#15533](https://github.com/webdriverio/webdriverio/pull/15533) fix(webdriverio): restore nested/Shadow DOM scrolling in scrollIntoView ([@mccmrunal](https://github.com/mccmrunal))
+
+#### Committers: 2
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Martsin Lazouski ([@ML642](https://github.com/ML642))
+
+
 ## v9.31.7 (2026-09-07)
 
 #### :rocket: New Feature
