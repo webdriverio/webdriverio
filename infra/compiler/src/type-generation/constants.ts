@@ -25,6 +25,7 @@ export const returnTypeMap = {
     getStrings: 'StringsReturn',
     getSettings: 'SettingsReturn',
     getWindowSize: 'RectReturn',
+    getActiveElement: 'ElementReference',
     findElement: 'ElementReference',
     findElements: 'ElementReference[]',
     findElementFromElement: 'ElementReference',
