@@ -32,7 +32,12 @@ export interface EndMessage {
     cid: string, // is actually rid
     exitCode: number,
     specs: string[],
-    retries: number
+    retries: number,
+    /**
+     * set if the worker was terminated by a signal instead of exiting on its
+     * own, in which case `exitCode` is derived from that signal
+     */
+    signal?: NodeJS.Signals | null
 }
 
 class Launcher {

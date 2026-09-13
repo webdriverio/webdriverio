@@ -589,7 +589,7 @@ Gets executed just after a worker process has exited.
 Parameters:
 
 - `cid` (`string`): capability id (e.g 0-0)
-- `exitCode` (`number`): 0 - success, 1 - fail
+- `exitCode` (`number`): 0 - success, 1 - fail. A worker that was terminated by a signal reports `128` + the signal number instead, e.g. `139` for a `SIGSEGV`
 - `specs` (`string[]`): specs to be run in the worker process
 - `retries` (`number`): number of spec level retries used as defined in [_"Add retries on a per-specfile basis"_](./Retry.md#add-retries-on-a-per-specfile-basis)
 
