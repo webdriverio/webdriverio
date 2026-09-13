@@ -58,6 +58,17 @@ describe('refetchElement', () => {
         expect(refetchedElement2.elementId).toEqual(subElem2.elementId)
     })
 
+    it('should not throw if the element list is empty when refetching an indexed element', async () => {
+        const elems = await browser.$$('#foo')
+        const elem = elems[1]
+        // @ts-ignore mock feature
+        vi.mocked(fetch).customResponseFor(/\/elements$/, { value: [] })
+        // @ts-ignore mock feature
+        vi.mocked(fetch).customResponseFor(/\/element$/, { value: { elementId: null } })
+        const refetchedElement = await refetchElement(elem, 'isDisplayed')
+        expect(refetchedElement.elementId).toBeUndefined()
+    })
+
     it('should successfully refetch an element that isn\'t immediately present', async () => {
         const elem = await browser.$('#foo')
         // @ts-ignore
