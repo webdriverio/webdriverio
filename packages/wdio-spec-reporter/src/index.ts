@@ -148,6 +148,9 @@ export default class SpecReporter extends WDIOReporter {
 
         if (this._passedTests.delete(testStat)) {
             this._stateCounts.passed--
+            if (!this._isSuiteRetry) {
+                this._passingTestsSinceLastRetry--
+            }
         }
 
         this._stateCounts.failed++

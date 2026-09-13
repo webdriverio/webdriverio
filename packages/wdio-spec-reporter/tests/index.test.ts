@@ -123,6 +123,20 @@ describe('SpecReporter', () => {
         })
     })
 
+    it('should not subtract a late failure twice when its suite is retried', () => {
+        const test = { uid: 'late-failure' } as any
+
+        tmpReporter.onTestPass(test)
+        tmpReporter.onTestFail(test)
+        tmpReporter.onSuiteRetry()
+
+        expect(tmpReporter['_stateCounts']).toMatchObject({
+            passed: 0,
+            failed: 0,
+            retried: 1
+        })
+    })
+
     it('should retain a passed test when another test with the same UID fails', () => {
         const passedTest = { uid: 'same-title' } as any
         const failedTest = { uid: 'same-title' } as any
