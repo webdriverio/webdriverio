@@ -118,7 +118,7 @@ export async function getHTML(
         const shadowRootManager = getShadowRootManager(browser)
         const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
-        const shadowRootElementPairs = shadowRootManager.getShadowElementPairsByContextId(context, (this as WebdriverIO.Element).elementId)
+        const shadowRootElementPairs = await shadowRootManager.getShadowElementPairsByContextId(context, (this as WebdriverIO.Element).elementId)
 
         /**
          * verify that shadow elements captured by the shadow root manager is still attached to the DOM
@@ -196,6 +196,33 @@ function populateHTML (
 }
 
 /**
+ * cheerio doesn't publicly export its node type (`AnyNode` from `domhandler`),
+ * so we derive it structurally from the `CheerioAPI` type we already have.
+ */
+type CheerioNode = ReturnType<ReturnType<CheerioAPI['root']>['contents']>[number]
+
+/**
+ * recursively removes comment nodes from a Cheerio tree.
+ *
+ * `$('*').contents()` only walks the "regular" DOM tree and does not descend
+ * into the content of `<template>` elements (e.g. the declarative shadow
+ * roots built up in `populateHTML`), since their children live in a separate
+ * document fragment. Walking the tree manually via `.contents()` on each
+ * node ensures we also reach comments nested inside (potentially multiple
+ * levels of) shadow roots, e.g. the marker comments Lit adds to track
+ * dynamic template parts.
+ */
+function removeCommentNodesDeep ($: CheerioAPI, node: CheerioNode) {
+    $(node).contents().each((_, child) => {
+        if (child.type === 'comment') {
+            $(child).remove()
+            return
+        }
+        removeCommentNodesDeep($, child)
+    })
+}
+
+/**
  * cleans up HTML based on command options
  * @param $       Cheerio object with our virtual DOM
  * @param options command options
@@ -219,12 +246,17 @@ export function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = 
         /**
          * Remove HTML comments using Cheerio's built-in functionality
          * This is more secure and reliable than regex-based removal
+         *
+         * Note: `$('*').contents()` does not descend into the content of
+         * `<template>` elements (e.g. the declarative shadow roots built up
+         * in `populateHTML`), as their children live in a separate document
+         * fragment. We therefore walk the tree manually so comment nodes
+         * nested inside (potentially multiple levels of) shadow roots are
+         * removed too, e.g. the marker comments Lit adds to track dynamic
+         * template parts.
          */
         if (options.removeCommentNodes) {
-            // Find all comment nodes and remove them
-            $('*').contents().filter(function() {
-                return this.type === 'comment'
-            }).remove()
+            removeCommentNodesDeep($, $.root()[0])
         }
     }
 

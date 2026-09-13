@@ -14,7 +14,7 @@ const SCRIPT_PREFIX = '/* __wdio script__ */'
 const SCRIPT_SUFFIX = '/* __wdio script end__ */'
 
 const log = logger('webdriver')
-const RESPONSE_TIMEOUT = 1000 * 60
+export const DEFAULT_RESPONSE_TIMEOUT = 1000 * 180
 
 export class BidiCore {
     #id = 0
@@ -23,6 +23,7 @@ export class BidiCore {
     #resolveWaitForConnected: (value: boolean) => void
     #webSocketUrl: string
     #clientOptions: ClientOptions | undefined
+    #responseTimeout: number
     #pendingCommands: Map<number, (value: CommandResponse) => void> = new Map()
 
     client: Client | undefined
@@ -31,9 +32,18 @@ export class BidiCore {
      */
     private _isConnected = false
 
-    constructor (webSocketUrl: string, opts?: ClientOptions) {
+    constructor (
+        webSocketUrl: string,
+        opts?: ClientOptions,
+        responseTimeout = DEFAULT_RESPONSE_TIMEOUT
+    ) {
+        if (!Number.isFinite(responseTimeout) || responseTimeout <= 0) {
+            throw new TypeError('The option "bidiResponseTimeout" needs to be a positive number')
+        }
+
         this.#webSocketUrl = webSocketUrl
         this.#clientOptions = opts
+        this.#responseTimeout = responseTimeout
         this.#resolveWaitForConnected = () => {}
         this.#waitForConnected = new Promise((resolve) => {
             this.#resolveWaitForConnected = resolve
@@ -153,9 +163,12 @@ export class BidiCore {
         const failError = new Error(`WebDriver Bidi command "${params.method}" failed`)
         const payload = await new Promise<CommandResponse | ErrorResponse>((resolve, reject) => {
             const t = setTimeout(() => {
-                reject(new Error(`Command ${params.method} with id ${id} (with the following parameter: ${JSON.stringify(params.params)}) timed out`))
+                reject(new Error(
+                    `Command ${params.method} with id ${id} timed out after ${this.#responseTimeout}ms! ` +
+                    'Consider increasing the "bidiResponseTimeout" option.'
+                ))
                 this.#pendingCommands.delete(id)
-            }, RESPONSE_TIMEOUT)
+            }, this.#responseTimeout)
             this.#pendingCommands.set(id, (payload) => {
                 clearTimeout(t)
                 resolve(payload)

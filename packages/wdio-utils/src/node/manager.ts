@@ -17,8 +17,6 @@ enum BrowserDriverTaskLabel {
     DRIVER = 'browser driver'
 }
 
-const firefoxChannels: string[] = ['stable', 'latest'] as const
-
 function mapCapabilities (
     options: Options.WebdriverIO,
     caps: Capabilities.TestrunnerCapabilities,
@@ -113,15 +111,8 @@ export async function setupDriver (options: Omit<Options.WebDriver, 'capabilitie
         if (isEdge(cap.browserName)) {
             return setupEdgedriver(cacheDir, cap.browserVersion)
         } else if (isFirefox(cap.browserName)) {
-            /**
-             * Some Firefox channels are allowed to be set for the browserVersion.
-             * We unset these variables here to make `node-geckodriver` download
-             * the latest driver version.
-             */
-            const version = firefoxChannels.includes(cap.browserVersion ?? '')
-                ? undefined
-                : cap.browserVersion
-            return setupGeckodriver(cacheDir, version)
+            const driverVersion = cap['wdio:geckodriverOptions']?.geckoDriverVersion
+            return setupGeckodriver(cacheDir, driverVersion)
         } else if (isChrome(cap.browserName)) {
             return setupChromedriver(cacheDir, cap.browserVersion)
         }
@@ -137,6 +128,16 @@ export function setupBrowser (options: Omit<Options.WebDriver, 'capabilities'>, 
             // not yet implemented
             return Promise.resolve()
         } else if (isChrome(cap.browserName) || isFirefox(cap.browserName)) {
+            /**
+             * skip desktop browser download when androidPackage is set,
+             * as the browser runs on the Android device, not the host
+             */
+            const browserOptions = isFirefox(cap.browserName)
+                ? cap['moz:firefoxOptions']
+                : cap['goog:chromeOptions']
+            if (browserOptions?.androidPackage) {
+                return Promise.resolve()
+            }
             return setupPuppeteerBrowser(cacheDir, cap)
         }
 

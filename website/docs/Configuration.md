@@ -119,6 +119,13 @@ Maximum count of request retries to the Selenium server.
 Type: `Number`<br />
 Default: `3`
 
+### bidiResponseTimeout
+
+Timeout (in ms) for a WebDriver Bidi command to receive a response from the browser. Increase this if you run commands, e.g. [`execute`](/docs/api/browser/execute), that legitimately take longer than the default to resolve, otherwise WebdriverIO gives up waiting before the browser is done.
+
+Type: `Number`<br />
+Default: `180000`
+
 ### agent
 
 Allows you to use a custom` http`/`https`/`http2` [agent](https://www.npmjs.com/package/got#agent) to make requests.
@@ -311,13 +318,14 @@ Default: `10485760` (10MB)
 
 ### region
 
-If running on Sauce Labs, you can choose to run tests between different data centers: US or EU.
-To change your region to EU, add `region: 'eu'` to your config.
+If running on Sauce Labs, you can choose to run tests between different data centers.
+Use short region handles `us` (default, maps to `us-west-1`) or `eu` (maps to `eu-central-1`), or the full region names directly.
 
 __Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
 
 Type: `String`<br />
-Default: `us`
+Default: `us`<br />
+Options: `us` | `eu` | `us-west-1` | `eu-central-1` | `us-east-4` | `staging`
 
 *(only for vm and or em/simulators)*
 
@@ -451,7 +459,7 @@ Defines the test framework to be used by the WDIO testrunner.
 
 Type: `String`<br />
 Default: `mocha`<br />
-Options: `mocha` | `jasmine`
+Options: `mocha` | `jasmine` | `cucumber`
 
 ### mochaOpts, jasmineOpts and cucumberOpts
 

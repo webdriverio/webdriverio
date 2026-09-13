@@ -10,7 +10,7 @@ import type { Capabilities, Services } from '@wdio/types'
 
 import CLInterface from './interface.js'
 import { runLauncherHook, runOnCompleteHook, runServiceHook, nodeVersion, type HookError } from './utils.js'
-import { TESTRUNNER_DEFAULTS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
+import { TESTRUNNER_DEFAULTS, TS_FILE_EXTENSIONS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
 import type { RunCommandArguments } from './types.js'
 const log = logger('@wdio/cli:launcher')
 
@@ -34,8 +34,6 @@ export interface EndMessage {
     specs: string[],
     retries: number
 }
-
-const TS_FILE_EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']
 
 class Launcher {
     #isInitialized: boolean = false

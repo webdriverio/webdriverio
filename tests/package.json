@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "expect-webdriverio": "^5.6.5",
+    "expect-webdriverio": "^6.0.9",
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*",
     "@wdio/cli": "workspace:*",
@@ -22,7 +22,6 @@
     "@wdio/spec-reporter": "workspace:*",
     "@wdio/sumologic-reporter": "workspace:*",
     "@wdio/appium-service": "workspace:*",
-    "@wdio/browserstack-service": "workspace:*",
     "@wdio/lighthouse-service": "workspace:*",
     "@wdio/firefox-profile-service": "workspace:*",
     "@wdio/sauce-service": "workspace:*",

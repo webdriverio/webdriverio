@@ -149,6 +149,102 @@ console.log(await matrix.getTitle())
 // returns ['Google', 'JSON']
 ```
 
+#### `Key`
+
+An object containing special character constants for use with the [`browser.keys`](/docs/api/browser/keys) command. These constants represent special keys that can be sent to the browser, such as `Enter`, `Tab`, `Escape`, arrow keys, function keys, and more.
+
+##### Example
+
+```js
+import { Key } from 'webdriverio'
+
+// Press Enter key
+await browser.keys(Key.Enter)
+
+// Use Ctrl+A to select all (works cross-platform)
+await browser.keys([Key.Ctrl, 'a'])
+
+// Navigate with arrow keys
+await browser.keys([Key.ArrowDown, Key.ArrowDown, Key.Enter])
+```
+
+##### Available Keys
+
+The following special keys are available via the `Key` object:
+
+**Modifier Keys:**
+
+| Constant | Description |
+|----------|-------------|
+| `Key.Ctrl` | Cross-platform control key (Command on Mac, Control on Windows/Linux) |
+| `Key.Control` | Control key |
+| `Key.Shift` | Shift key |
+| `Key.Alt` | Alt key |
+| `Key.Command` | Command key (Mac) |
+| `Key.NULL` | Null/release key — releases all currently held modifier keys |
+
+**Navigation Keys:**
+
+| Constant | Description |
+|----------|-------------|
+| `Key.Cancel` | Cancel key |
+| `Key.Help` | Help key |
+| `Key.Backspace` | Backspace key |
+| `Key.Tab` | Tab key |
+| `Key.Clear` | Clear key |
+| `Key.Return` | Return key |
+| `Key.Enter` | Enter key |
+| `Key.Pause` | Pause key |
+| `Key.Escape` | Escape key |
+| `Key.Space` | Space key |
+| `Key.PageUp` | Page Up key |
+| `Key.PageDown` | Page Down key |
+| `Key.End` | End key |
+| `Key.Home` | Home key |
+| `Key.ArrowLeft` | Left Arrow key |
+| `Key.ArrowUp` | Up Arrow key |
+| `Key.ArrowRight` | Right Arrow key |
+| `Key.ArrowDown` | Down Arrow key |
+| `Key.Insert` | Insert key |
+| `Key.Delete` | Delete key |
+
+**Character Keys:**
+
+| Constant | Description |
+|----------|-------------|
+| `Key.Semicolon` | Semicolon key |
+| `Key.Equals` | Equals key |
+
+**Numpad Keys:**
+
+| Constant | Description |
+|----------|-------------|
+| `Key.Numpad0` - `Key.Numpad9` | Numpad 0-9 |
+| `Key.Multiply` | Numpad Multiply |
+| `Key.Add` | Numpad Add |
+| `Key.Separator` | Numpad Separator |
+| `Key.Subtract` | Numpad Subtract |
+| `Key.Decimal` | Numpad Decimal |
+| `Key.Divide` | Numpad Divide |
+
+**Function Keys:**
+
+| Constant | Description |
+|----------|-------------|
+| `Key.F1` - `Key.F12` | Function keys F1 through F12 |
+
+**Other Keys:**
+
+| Constant | Description |
+|----------|-------------|
+| `Key.ZenkakuHankaku` | Zenkaku/Hankaku key (Japanese) |
+
+:::info Cross-Platform Modifier Keys
+
+The `Key.Ctrl` constant provides a convenient way to use the "control" modifier across different operating systems. On macOS, it maps to the `Command` key, while on Windows and Linux it maps to the `Control` key. This is useful when writing tests that need to work across multiple platforms, e.g., for select-all (`Ctrl+A`), copy (`Ctrl+C`), or paste (`Ctrl+V`) operations.
+
+:::
+
 ## `@wdio/cli`
 
 Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment. For that, you'll need to require the `@wdio/cli` package as module, like this:

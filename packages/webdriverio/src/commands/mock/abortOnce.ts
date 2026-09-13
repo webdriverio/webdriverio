@@ -23,5 +23,6 @@
  *
  * @alias mock.abort
  * @param {ErrorCode} errorCode  error code of the response, can be one of: `Failed`, `Aborted`, `TimedOut`, `AccessDenied`, `ConnectionClosed`, `ConnectionReset`, `ConnectionRefused`, `ConnectionAborted`, `ConnectionFailed`, `NameNotResolved`, `InternetDisconnected`, `AddressUnreachable`, `BlockedByClient`, `BlockedByResponse`
+ * @skipAwait
  */
 // actual implementation is located in packages/webdriverio/src/utils/interception

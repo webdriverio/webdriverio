@@ -1,5 +1,5 @@
 import type { Capabilities, Services, Workers } from '@wdio/types'
-import type { getConfig, matchers } from 'expect-webdriverio'
+import type { getDefaultOptions, wdioCustomMatchers } from 'expect-webdriverio'
 import type { AddCommandFunction, CustomCommandOptions, Instances } from 'webdriverio'
 
 import type BaseReporter from './reporter.js'
@@ -46,11 +46,21 @@ export interface TestFramework {
     ) => TestFramework
     run (): Promise<number>
     hasTests (): boolean
-    setupExpect?: (
-        wdioExpect: ExpectWebdriverIO.Expect,
-        wdioMatchers: typeof matchers,
-        getExpectConfig: typeof getConfig
-    ) => void
+    setupExpect?: {
+        /**
+         * @deprecated Iterate matchers with `Object.entries(wdioMatchers)` instead of `wdioMatchers.entries()`. Legacy Map form will be removed in v10
+         */
+        (
+            wdioExpect: ExpectWebdriverIO.Expect,
+            wdioMatchers: Map<string, (...args: unknown[]) => unknown>,
+            getExpectConfig: () => Record<string, unknown>
+        ): void | Promise<void>,
+        (
+            wdioExpect: ExpectWebdriverIO.Expect,
+            wdioMatchers: typeof wdioCustomMatchers,
+            getExpectConfig: typeof getDefaultOptions
+        ): void | Promise<void>
+    }
 }
 
 export interface SessionStartedMessage {

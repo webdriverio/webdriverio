@@ -1,0 +1,51 @@
+# Builds the documentation website on pull requests.
+#
+# The docs site is otherwise only ever built by `deploy.yml`, which is manually
+# dispatched — so a broken Docusaurus config, plugin or MDX page could only be
+# discovered at deploy time.
+#
+# This deliberately builds a non-English locale as well as `en`. Translated pages are
+# downloaded from the `webdriverio/i18n` repo at generate time and lag behind the
+# English source, so an `en`-only build cannot catch a translation referencing an MDX
+# component that no longer exists.
+name: Docs Build
+
+on:
+  workflow_call:
+
+jobs:
+  docs_build:
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 🧑‍🔧 Get Core Dependencies
+        uses: ./.github/workflows/actions/get-core-dependencies
+
+      - name: 📖 Generate Docs
+        run: pnpm run docs:setup && pnpm run docs:generate
+        env:
+          # required by scripts/docs-generation/downloadDocsTranslations.ts to fetch
+          # translations from the public webdriverio/i18n repo; the default read-only
+          # token is sufficient, including for pull requests from forks
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
+
+      # Both locales must be passed to a single invocation: Docusaurus disables baseUrl
+      # localization when exactly one --locale is given, so two separate builds would
+      # each emit at the site root and the second would overwrite the first.
+      - name: 🏗️ Build Site (en + ar)
+        run: pnpm exec docusaurus build --locale en --locale ar
+        working-directory: ./website
+
+      - name: ✅ Verify Machine-Readable Output
+        run: |
+          set -euo pipefail
+          for f in robots.txt llms.txt llms-full.txt sitemap.xml; do
+            test -s "website/build/$f" || { echo "::error::website/build/$f missing or empty"; exit 1; }
+            echo "ok: website/build/$f ($(wc -c < "website/build/$f") bytes)"
+          done
+          grep -q '<lastmod>' website/build/sitemap.xml || { echo "::error::sitemap.xml has no <lastmod> entries"; exit 1; }
+          echo "ok: sitemap.xml contains $(grep -c '<lastmod>' website/build/sitemap.xml) <lastmod> entries"

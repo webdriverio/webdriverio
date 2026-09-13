@@ -30,6 +30,7 @@ export class ContextManager extends SessionManager {
     #onCommandListener: (event: { command: string, body: unknown }) => void
     #onCommandResultMobileListener: (event: { command: string, result: unknown }) => void
     #navigationStartedListener: (nav: local.BrowsingContextNavigationInfo) => void
+    #destroyedListener: (destroyed: local.BrowsingContextInfo) => void
 
     constructor(browser: WebdriverIO.Browser) {
         super(browser, ContextManager.name)
@@ -46,6 +47,7 @@ export class ContextManager extends SessionManager {
         this.#onCommandListener = this.#onCommand.bind(this)
         this.#onCommandResultMobileListener = this.#onCommandResultMobile.bind(this)
         this.#navigationStartedListener = this.#navigationStarted.bind(this)
+        this.#destroyedListener = this.#contextDestroyed.bind(this)
 
         /**
          * Listens for the 'closeWindow' browser command to handle context changes.
@@ -77,9 +79,10 @@ export class ContextManager extends SessionManager {
              * through navigation within e.g. frames.
              */
             this.#browser.sessionSubscribe({
-                events: ['browsingContext.navigationStarted']
+                events: ['browsingContext.navigationStarted', 'browsingContext.contextDestroyed']
             })
             this.#browser.on('browsingContext.navigationStarted', this.#navigationStartedListener)
+            this.#browser.on('browsingContext.contextDestroyed', this.#destroyedListener)
         }
     }
 
@@ -91,6 +94,7 @@ export class ContextManager extends SessionManager {
             this.#browser.off('result', this.#onCommandResultMobileListener)
         } else {
             this.#browser.off('browsingContext.navigationStarted', this.#navigationStartedListener)
+            this.#browser.off('browsingContext.contextDestroyed', this.#destroyedListener)
         }
     }
 
@@ -121,6 +125,93 @@ export class ContextManager extends SessionManager {
             await this.#browser.switchToWindow(this.#currentContext)
             return
         }
+    }
+
+    async #contextDestroyed(destroyed: local.BrowsingContextInfo) {
+        /**
+         * no need to do anything if the destroyed context is not the current one
+         */
+        if (!this.#currentContext || destroyed.context !== this.#currentContext) {
+            return
+        }
+
+        /**
+         * the current context was destroyed, e.g. when the user closes a tab or
+         * popup window, so reset the current context and switch to a remaining
+         * window to avoid running subsequent commands against a context that no
+         * longer exists.
+         */
+        this.#currentWindowHandle = undefined
+        this.#currentContext = undefined
+
+        let handle: string | undefined
+        try {
+            /**
+             * if the destroyed context is a child frame, resolve the top-level
+             * context it belongs to rather than switching to a potentially
+             * unrelated top-level window
+             */
+            if (destroyed.parent) {
+                handle = await this.#getTopLevelContext(destroyed.parent)
+            }
+
+            if (!handle) {
+                const windowHandles = await this.#browser.getWindowHandles()
+                handle = windowHandles.find((windowHandle) => windowHandle !== destroyed.context) ?? windowHandles[0]
+            }
+
+            if (!handle) {
+                return
+            }
+
+            /**
+             * a newer context transition may have happened while the recovery
+             * was resolving, in which case the cached context is already set
+             * and must not be overwritten
+             */
+            if (this.#currentContext) {
+                return
+            }
+
+            await this.#browser.switchToWindow(handle)
+
+            /**
+             * a newer context transition may also happen while the recovery
+             * switch is pending, so only cache the handle if no other
+             * transition took over in the meantime
+             */
+            if (this.#currentContext && this.#currentContext !== handle) {
+                return
+            }
+            this.setCurrentContext(handle)
+        } catch (err) {
+            /**
+             * the recovery switch failed (e.g. the target handle is already
+             * gone), so clear the cached context to force a re-initialization
+             * on the next `getCurrentContext()` call, unless a newer transition
+             * already took over
+             */
+            if (!this.#currentContext || this.#currentContext === handle) {
+                this.#currentContext = undefined
+                this.#currentWindowHandle = undefined
+            }
+            log.warn(`Failed to switch context after "${destroyed.context}" was destroyed: ${(err as Error).message}`)
+        }
+    }
+
+    /**
+     * Resolve the top-level context of a given context id, e.g. the top-level
+     * browsing context a child frame belongs to.
+     * @param contextId the context id to resolve the top-level context for
+     * @returns the top-level context id, or undefined if it can't be found
+     */
+    async #getTopLevelContext(contextId: string) {
+        const { contexts } = await this.#browser.browsingContextGetTree({})
+        let context = this.findContext(contextId, contexts, 'byContextId')
+        while (context?.parent) {
+            context = this.findContext(context.parent, contexts, 'byContextId')
+        }
+        return context?.context
     }
 
     #onCommandResultBidiAndClassic(event: { command: string, result: unknown, body: unknown }) {

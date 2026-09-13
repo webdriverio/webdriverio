@@ -6,7 +6,7 @@ import type { Argv } from 'yargs'
 import Launcher from '../launcher.js'
 import Watcher from '../watcher.js'
 import { coerceOptsFor, } from '../utils.js'
-import { CLI_EPILOGUE } from '../constants.js'
+import { CLI_EPILOGUE, TS_FILE_EXTENSIONS } from '../constants.js'
 import type { RunCommandArguments } from '../types.js'
 import { config } from 'create-wdio/config/cli'
 import { ConfigParser } from '@wdio/config/node'
@@ -117,6 +117,10 @@ export const cmdArgs = {
     coverage: {
         desc: 'Enable coverage for browser runner'
     },
+    headless: {
+        desc: 'run all browser instances in headless mode, overrides capability settings in wdio.conf.js',
+        type: 'boolean'
+    },
     shard: {
         desc: 'Shard tests and execute only the selected shard. Specify in the one-based form like `--shard x/y`, where x is the current and y the total shard.',
         coerce: (shard: string) => {
@@ -135,6 +139,8 @@ export const builder = (yargs: Argv) => {
         .example('$0 run wdio.conf.js --suite foobar', 'Run suite on testsuite "foobar"')
         .example('$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run suite on specific specs')
         .example('$0 run wdio.conf.js --shard 1/4', 'Run only the first shard of 4 shards')
+        .example('$0 run wdio.conf.js --headless', 'Run all tests in headless mode')
+        .example('$0 run wdio.conf.js --headless=false', 'Run all tests in headed (non-headless) mode')
         .example('$0 run wdio.conf.js --mochaOpts.timeout 60000', 'Run suite with custom Mocha timeout')
         .example('$0 run wdio.conf.js --tsConfigPath=./configs/bdd-tsconfig.json', 'Run suite with tsx using custom tsconfig.json')
         .epilogue(CLI_EPILOGUE)
@@ -211,7 +217,6 @@ export async function handler(argv: RunCommandArguments) {
      * Load tsx before attempting to read the config file if it's TypeScript.
      * This prevents "Unknown file extension" errors when calling tsConfigPathFromConfigFile.
      */
-    const TS_FILE_EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']
     if (TS_FILE_EXTENSIONS.some((ext) => confAccess.endsWith(ext))) {
         const { resolve } = await import('import-meta-resolve')
         const tsxPath = resolve('tsx', import.meta.url)

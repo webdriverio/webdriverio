@@ -121,6 +121,10 @@ describe('Passing tests', () => {
         expect(allureResult.name).toEqual('should can do something')
     })
 
+    it('should add title path', () => {
+        expect(allureResult.titlePath).toEqual(['foo', 'bar.test.js', 'A passing Suite'])
+    })
+
     it('should detect passed test case', () => {
         expect(allureResult.name).toEqual('should can do something')
         expect(allureResult.status).toEqual(Status.PASSED)
@@ -457,6 +461,7 @@ describe('Pending tests', () => {
         expect(results[0].historyId).toEqual(
             '0afaf0cb3770d6ce7ae0665f2eeecf81',
         )
+        expect(results[0].titlePath).toEqual(['foo', 'bar.test.js', 'A passing Suite'])
     })
 
     it('should detect not started pending test case', async () => {
@@ -479,6 +484,7 @@ describe('Pending tests', () => {
         expect(results[0].historyId).toEqual(
             '0afaf0cb3770d6ce7ae0665f2eeecf81',
         )
+        expect(results[0].titlePath).toEqual(['foo', 'bar.test.js', 'A passing Suite'])
     })
 
     it('should detect not started pending test case after completed test', async () => {

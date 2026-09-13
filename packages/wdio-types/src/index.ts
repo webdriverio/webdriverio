@@ -80,12 +80,24 @@ declare global {
         interface CucumberOpts { [key: string]: any }
         interface Config extends Options.Testrunner, Capabilities.WithRequestedTestrunnerCapabilities {}
         interface RemoteConfig extends Options.WebdriverIO, Capabilities.WithRequestedCapabilities {}
+        /**
+         * To rename to MultiRemoteConfig in v10 to follow camelCase naming convention and avoid confusion with MultiRemoteBrowser
+         */
         interface MultiremoteConfig extends Options.Testrunner, Capabilities.WithRequestedMultiremoteCapabilities {}
         interface HookFunctionExtension {}
         interface WDIOVSCodeServiceOptions {}
         interface BrowserRunnerOptions {}
         interface ChromedriverOptions extends DriverOptions {}
-        interface GeckodriverOptions extends DriverOptions {}
+        interface GeckodriverOptions extends DriverOptions {
+            /**
+             * Version of Geckodriver to download. Firefox browser versions use a
+             * different versioning scheme than Geckodriver, so the `browserVersion`
+             * capability cannot be used to select the driver. Defaults to the
+             * latest available Geckodriver version.
+             * @see https://github.com/mozilla/geckodriver/releases
+             */
+            geckoDriverVersion?: string
+        }
         interface EdgedriverOptions extends DriverOptions {}
         interface SafaridriverOptions {}
     }
