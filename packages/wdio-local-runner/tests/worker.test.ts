@@ -19,14 +19,9 @@ const workerConfig = {
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-// Mock XvfbManager
-const mockXvfbManager = {
-    init: vi.fn().mockResolvedValue(true)
-}
-
 describe('handleMessage', () => {
     it('should emit payload with cid', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = vi.fn()
 
         worker['_handleMessage']({ foo: 'bar' } as unknown as Workers.WorkerMessage)
@@ -37,27 +32,27 @@ describe('handleMessage', () => {
     })
 
     it('should un mark worker as busy if command is finished', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.isBusy = true
         worker['_handleMessage']({ name: 'finishedCommand' } as unknown as Workers.WorkerMessage)
         expect(worker.isBusy).toBe(false)
     })
 
     it('should mark worker as ready if ready message was received', async () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker['_handleMessage']({ name: 'ready' } as unknown as Workers.WorkerMessage)
         expect(await worker.isReady).toBe(true)
     })
 
     it('resolves the retry budget on testFrameworkInit so it survives a failed session start', () => {
-        const worker = new Worker({} as any, { ...workerConfig, retries: -1 }, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, { ...workerConfig, retries: -1 }, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = vi.fn()
         worker['_handleMessage']({ name: 'testFrameworkInit', specFileRetries: 3 } as unknown as Workers.WorkerMessage)
         expect(worker.retries).toBe(2)
     })
 
     it('propagates the resolved retry budget with the exit event when the session never started', () => {
-        const worker = new Worker({} as any, { ...workerConfig, retries: -1 }, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, { ...workerConfig, retries: -1 }, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = vi.fn()
         worker['_handleMessage']({ name: 'testFrameworkInit', specFileRetries: 3 } as unknown as Workers.WorkerMessage)
         worker['_handleExit'](1)
@@ -65,14 +60,14 @@ describe('handleMessage', () => {
     })
 
     it('does not touch an already resolved retry budget on testFrameworkInit', () => {
-        const worker = new Worker({} as any, { ...workerConfig, retries: 1 }, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, { ...workerConfig, retries: 1 }, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = vi.fn()
         worker['_handleMessage']({ name: 'testFrameworkInit', specFileRetries: 3 } as unknown as Workers.WorkerMessage)
         expect(worker.retries).toBe(1)
     })
 
     it('stores sessionId and connection data to worker instance', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = vi.fn()
         const payload = {
             name: 'sessionStarted',
@@ -86,7 +81,7 @@ describe('handleMessage', () => {
     })
 
     it('stores instances to worker instance in Multiremote mode', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const payload = {
             name: 'sessionStarted',
             content: {
@@ -102,7 +97,7 @@ describe('handleMessage', () => {
 
 describe('handleError', () => {
     it('should emit error', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = vi.fn()
         worker['_handleError']({ foo: 'bar' } as unknown as Error)
         expect(worker.emit).toBeCalledWith('error', {
@@ -114,7 +109,7 @@ describe('handleError', () => {
 
 describe('handleExit', () => {
     it('should handle it', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const childProcess = { kill: vi.fn() }
         worker.childProcess = childProcess as unknown as ChildProcess
         worker.isBusy = true
@@ -134,7 +129,7 @@ describe('handleExit', () => {
 
 describe('kill', () => {
     it('should kill child process with given signal and clean up', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const childProcess = { kill: vi.fn() }
         worker.childProcess = childProcess as unknown as ChildProcess
         worker.isBusy = true
@@ -148,7 +143,7 @@ describe('kill', () => {
     })
 
     it('should use SIGTERM as default signal', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const childProcess = { kill: vi.fn() }
         worker.childProcess = childProcess as unknown as ChildProcess
 
@@ -158,7 +153,7 @@ describe('kill', () => {
     })
 
     it('should kill with SIGKILL when specified', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const childProcess = { kill: vi.fn() }
         worker.childProcess = childProcess as unknown as ChildProcess
 
@@ -169,7 +164,7 @@ describe('kill', () => {
     })
 
     it('should handle missing child process gracefully', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.childProcess = undefined
 
         expect(() => worker.kill('SIGTERM')).not.toThrow()
@@ -177,7 +172,7 @@ describe('kill', () => {
     })
 
     it('should handle kill errors gracefully', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const childProcess = { kill: vi.fn().mockImplementation(() => { throw new Error('Kill failed') }) }
         worker.childProcess = childProcess as unknown as ChildProcess
 
@@ -189,7 +184,7 @@ describe('kill', () => {
 
 describe('postMessage', () => {
     it('should log if the cid is busy and exit', async () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const log = logger('webdriver')
         vi.spyOn(log, 'info').mockImplementation((string) => string)
 
@@ -201,7 +196,7 @@ describe('postMessage', () => {
     })
 
     it('should create a process if it does not have one', async () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.isReady = Promise.resolve(true)
         worker.childProcess = undefined
         vi.spyOn(worker, 'startProcess').mockImplementation(
@@ -215,7 +210,7 @@ describe('postMessage', () => {
     })
 
     it('should wait sending the command until worker is ready', async () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.childProcess = { send: vi.fn() } as any
         await worker.postMessage('test-message', {})
         expect(worker.childProcess!.send).toBeCalledTimes(0)
@@ -225,7 +220,7 @@ describe('postMessage', () => {
     })
 
     it('should not throw unhandled rejection when worker is killed before isReady resolves', async () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.childProcess = { send: vi.fn(), kill: vi.fn() } as any
 
         // postMessage queues send behind isReady (not yet resolved)
