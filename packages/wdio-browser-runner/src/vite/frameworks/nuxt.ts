@@ -2,13 +2,12 @@ import url from 'node:url'
 import path from 'node:path'
 import logger from '@wdio/logger'
 import { resolve } from 'import-meta-resolve'
-import type { Options } from '@wdio/types'
 import type { InlineConfig } from 'vite'
 
 import { hasFileByExtensions, hasDir } from '../utils.js'
 
 declare global {
-    // eslint-disable-next-line no-var
+
     var defineNuxtConfig: Function
 }
 
@@ -23,7 +22,7 @@ export async function isNuxtFramework (rootDir: string) {
     ).filter(Boolean).length > 0
 }
 
-export async function optimizeForNuxt (options: WebdriverIO.BrowserRunnerOptions, config: Options.Testrunner): Promise<InlineConfig> {
+export async function optimizeForNuxt (options: WebdriverIO.BrowserRunnerOptions, config: WebdriverIO.Config): Promise<InlineConfig> {
     const Unimport = (await import('unimport/unplugin')).default
     const { scanDirExports, scanExports } = await import('unimport')
     const { loadNuxtConfig } = await import('@nuxt/kit')

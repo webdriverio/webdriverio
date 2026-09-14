@@ -5,9 +5,9 @@ import logger from '@wdio/logger'
 import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
-import { expect, setOptions, SnapshotService } from 'expect-webdriverio'
+import { expect, setDefaultOptions, getDefaultOptions, wdioCustomMatchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
-import type { Selector } from 'webdriverio'
+import type { Browser, Selector } from 'webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
 
 import BrowserFramework from './browser.js'
@@ -15,7 +15,8 @@ import BaseReporter from './reporter.js'
 import { initializeInstance, getInstancesData } from './utils.js'
 import type {
     BeforeArgs, AfterArgs, BeforeSessionArgs, AfterSessionArgs, RunParams,
-    TestFramework, SessionStartedMessage, SessionEndedMessage, SnapshotResultMessage
+    TestFramework, SessionStartedMessage, SessionEndedMessage, SnapshotResultMessage,
+    CustomStubCommand
 } from './types.js'
 
 const log = logger('@wdio/runner')
@@ -29,7 +30,7 @@ export default class Runner extends EventEmitter {
 
     private _reporter?: BaseReporter
     private _framework?: TestFramework
-    private _config?: Options.Testrunner
+    private _config?: WebdriverIO.Config
     private _cid?: string
     private _specs?: string[]
     private _caps?: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
@@ -61,8 +62,12 @@ export default class Runner extends EventEmitter {
         }
 
         this._config = this._configParser.getConfig()
-        this._specFileRetryAttempts = (this._config.specFileRetries || 0) - (retries || 0)
+
         logger.setLogLevelsConfig(this._config.logLevels, this._config.logLevel)
+        if (this._config.maskingPatterns) {
+            logger.setMaskingPatterns(this._config.maskingPatterns)
+        }
+
         const capabilities = this._configParser.getCapabilities()
         const isMultiremote = this._isMultiremote = !Array.isArray(capabilities) ||
             (Object.values(caps).length > 0 && Object.values(caps).every(c => typeof c === 'object' && c.capabilities))
@@ -70,13 +75,16 @@ export default class Runner extends EventEmitter {
         /**
          * add built-in services
          */
+        const softAssertionService = new SoftAssertionService({
+            autoAssertOnTestEnd: this._config.autoAssertOnTestEnd || true
+        }, this._caps, this._config)
+
         const snapshotService = SnapshotService.initiate({
             updateState: this._config.updateSnapshots,
             resolveSnapshotPath: this._config.resolveSnapshotPath
         })
-        // ToDo(Christian): resolve type incompatibility between v8 and v9
-        this._configParser.addService(snapshotService as any)
-
+        this._configParser.addService(softAssertionService)
+        this._configParser.addService(snapshotService)
         this._caps = this._isMultiremote
             /**
              * Filter driver instances based on 'wdio:exclude' capability and allow
@@ -109,13 +117,14 @@ export default class Runner extends EventEmitter {
          * run `beforeSession` command before framework and browser are initiated
          */
         ;(await initializeWorkerService(
-            this._config as Options.Testrunner,
+            this._config as WebdriverIO.Config,
             this._caps as WebdriverIO.Capabilities,
             args.ignoredWorkerServices
         )).map(this._configParser.addService.bind(this._configParser))
 
         const beforeSessionParams: BeforeSessionArgs = [this._config, this._caps, this._specs, this._cid]
         await executeHooksWithArgs('beforeSession', this._config.beforeSession, beforeSessionParams)
+        this._specFileRetryAttempts = (this._config.specFileRetries || 0) - (retries || 0)
 
         this._reporter = new BaseReporter(this._config, this._cid, { ...this._caps })
         await this._reporter.initReporters()
@@ -124,7 +133,14 @@ export default class Runner extends EventEmitter {
          * initialize framework
          */
         this._framework = await this.#initFramework(cid, this._config, this._caps, this._reporter, specs)
-        process.send!({ name: 'testFrameworkInit', content: { cid, caps: this._caps, specs, hasTests: this._framework.hasTests() } })
+        /**
+         * `specFileRetries` is sent along so the worker can resolve its retry budget
+         * before the session is requested — it reflects `beforeSession` overrides as
+         * `this._specFileRetryAttempts` is computed after the hook ran. If only sent
+         * with `sessionStarted`, a failed session start would leave the budget
+         * unresolved and the spec file would never be retried.
+         */
+        process.send!({ name: 'testFrameworkInit', content: { cid, caps: this._caps, specs, hasTests: this._framework.hasTests() }, specFileRetries: this._specFileRetryAttempts })
         if (!this._framework.hasTests()) {
             return this._shutdown(0, retries, true)
         }
@@ -137,6 +153,7 @@ export default class Runner extends EventEmitter {
         if (!browser) {
             const afterArgs: AfterArgs = [1, this._caps, this._specs]
             await executeHooksWithArgs('after', this._config.after as Function, afterArgs)
+            await this.endSession()
             return this._shutdown(1, retries, true)
         }
 
@@ -192,6 +209,7 @@ export default class Runner extends EventEmitter {
         process.send!(<SessionStartedMessage>{
             origin: 'worker',
             name: 'sessionStarted',
+            specFileRetries: this._specFileRetryAttempts,
             content: {
                 automationProtocol, sessionId, isW3C, protocol, hostname, port, path, queryParams, isMultiremote, instances,
                 capabilities: browser.capabilities,
@@ -233,7 +251,7 @@ export default class Runner extends EventEmitter {
 
     async #initFramework (
         cid: string,
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities,
         reporter: BaseReporter,
         specs: string[]
@@ -245,7 +263,25 @@ export default class Runner extends EventEmitter {
          */
         if (runner === 'local') {
             const framework = (await initializePlugin(config.framework as string, 'framework')).default as unknown as TestFramework
-            return framework.init(cid, config, specs, capabilities, reporter)
+            const frameworkInstance = await framework.init(cid, config, specs, capabilities, reporter)
+            if (frameworkInstance.setupExpect) {
+                /**
+                 * Backward compatibility, to remove in v10.
+                 * Build a shim that supports both the deprecated Map.entries() API and the
+                 * new Object.entries() API. `entries` is non-enumerable so Object.entries()
+                 * callers only see the actual matchers.
+                 */
+                const matchersShim = Object.defineProperty(
+                    { ...wdioCustomMatchers },
+                    'entries',
+                    {
+                        enumerable: false,
+                        value: () => Object.entries(wdioCustomMatchers)[Symbol.iterator]()
+                    }
+                ) as typeof wdioCustomMatchers
+                await frameworkInstance.setupExpect(expect, matchersShim, getDefaultOptions)
+            }
+            return frameworkInstance
         }
 
         /**
@@ -267,7 +303,7 @@ export default class Runner extends EventEmitter {
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
     private async _initSession (
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
     ) {
         const browser = await this._startSession(config, caps) as WebdriverIO.Browser
@@ -309,7 +345,7 @@ export default class Runner extends EventEmitter {
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
     private async _startSession (
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
     ) {
         try {
@@ -317,10 +353,11 @@ export default class Runner extends EventEmitter {
              * get all custom or overwritten commands users tried to register before the
              * test started, e.g. after all imports
              */
-            const customStubCommands: [string, (...args: any[]) => any, boolean][] = (this._browser as any | undefined)?.customCommands || []
+            const customStubCommands: CustomStubCommand[] = (this._browser as any | undefined)?.customCommands || []
             const overwrittenCommands: [any, (...args: any[]) => any, boolean][] = (this._browser as any | undefined)?.overwrittenCommands || []
 
-            this._browser = await initializeInstance(config, caps, this._isMultiremote)
+            const browser = await initializeInstance(config, caps, this._isMultiremote)
+            this._browser = browser
             _setGlobal('browser', this._browser, config.injectGlobals)
             _setGlobal('driver', this._browser, config.injectGlobals)
 
@@ -333,20 +370,28 @@ export default class Runner extends EventEmitter {
             }
 
             /**
-             * re-assign previously registered custom commands to the actual instance
+             * re-assign previously registered custom commands to the actual instance.
+             * Casting to Browser since union & generic types cause too much issues with type inference and overload resolution
              */
-            for (const params of customStubCommands) {
-                this._browser.addCommand(...params)
+            const commandTarget: Browser = browser as unknown as Browser
+            for (const [name, func, thirdArg, proto, instances] of customStubCommands) {
+                if (typeof thirdArg === 'object' && thirdArg !== null) {
+                    commandTarget.addCommand(name, func, thirdArg)
+                } else if (typeof thirdArg === 'boolean') {
+                    commandTarget.addCommand(name, func, thirdArg, proto, instances)
+                } else {
+                    commandTarget.addCommand(name, func)
+                }
             }
             for (const params of overwrittenCommands) {
-                this._browser.overwriteCommand(...params)
+                browser.overwriteCommand(...params)
             }
 
             /**
              * import and set options for `expect-webdriverio` assertion lib once
              * the browser was initiated
              */
-            setOptions({
+            setDefaultOptions({
                 wait: config.waitforTimeout, // ms to wait for expectation to succeed
                 interval: config.waitforInterval, // interval between attempts
                 beforeAssertion: async (params) => {
@@ -368,6 +413,7 @@ export default class Runner extends EventEmitter {
              */
             if (this._isMultiremote) {
                 _setGlobal('multiremotebrowser', this._browser, config.injectGlobals)
+                _setGlobal('multiRemoteBrowser', this._browser, config.injectGlobals)
             }
         } catch (error: any) {
             log.error(error)
@@ -425,15 +471,15 @@ export default class Runner extends EventEmitter {
         /**
          * make sure instance(s) exist and have `sessionId`
          */
-        const multiremoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
+        const multiRemoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
         const browser = this._browser as WebdriverIO.Browser
         const hasSessionId = Boolean(this._browser) && (this._isMultiremote
             /**
              * every multiremote instance should exist and should have `sessionId`
              */
-            ? !multiremoteBrowser.instances.some((browserName: string) => (
-                multiremoteBrowser.getInstance(browserName) &&
-                !multiremoteBrowser.getInstance(browserName).sessionId)
+            ? !multiRemoteBrowser.instances.some((browserName: string) => (
+                multiRemoteBrowser.getInstance(browserName) &&
+                !multiRemoteBrowser.getInstance(browserName).sessionId)
             )
 
             /**
@@ -465,9 +511,9 @@ export default class Runner extends EventEmitter {
          */
         const capabilities = (this._browser?.capabilities as WebdriverIO.Capabilities) || ({} as Capabilities.RequestedMultiremoteCapabilities)
         if (this._isMultiremote) {
-            const multiremoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
-            multiremoteBrowser.instances.forEach((browserName: string) => {
-                (capabilities as Capabilities.RequestedMultiremoteCapabilities)[browserName] = multiremoteBrowser.getInstance(browserName).capabilities as any
+            const multiRemoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
+            multiRemoteBrowser.instances.forEach((browserName: string) => {
+                (capabilities as Capabilities.RequestedMultiremoteCapabilities)[browserName] = multiRemoteBrowser.getInstance(browserName).capabilities as any
             })
         }
 
@@ -482,9 +528,9 @@ export default class Runner extends EventEmitter {
          * delete session(s)
          */
         if (this._isMultiremote) {
-            multiremoteBrowser.instances.forEach((browserName: string) => {
+            multiRemoteBrowser.instances.forEach((browserName: string) => {
                 // @ts-ignore sessionId is usually required
-                delete multiremoteBrowser.getInstance(browserName).sessionId
+                delete multiRemoteBrowser.getInstance(browserName).sessionId
             })
         } else if (browser) {
             browser.sessionId = undefined as unknown as string

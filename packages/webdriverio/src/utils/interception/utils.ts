@@ -19,22 +19,11 @@ export function parseOverwrite<
         const bodyOverwrite = typeof overwrite.body === 'function'
             ? overwrite.body(request as local.NetworkBeforeRequestSentParameters)
             : overwrite.body
-        result.body = typeof bodyOverwrite === 'string' ?
-            /**
-             * if body is a string we can pass it as is
-             */
-            {
-                type: 'string',
-                value: bodyOverwrite
-            }
-            :
-            /**
-             * if body is an object we need to encode it
-             */
-            {
-                type: 'base64',
-                value: Buffer.from(JSON.stringify(bodyOverwrite || '')).toString('base64')
-            }
+        result.body = (bodyOverwrite?.type === 'string' || bodyOverwrite?.type === 'base64')
+            ? bodyOverwrite
+            : typeof bodyOverwrite === 'string'
+                ? { type: 'string', value: bodyOverwrite }
+                : { type: 'base64', value: btoa(JSON.stringify(bodyOverwrite || '')) }
     }
 
     if ('headers' in overwrite) {
@@ -70,7 +59,7 @@ export function parseOverwrite<
         const statusCodeOverwrite = typeof overwrite.statusCode === 'function'
             ? overwrite.statusCode(request as local.NetworkResponseCompletedParameters)
             : overwrite.statusCode
-        ;(result as RespondWithOptions).statusCode = statusCodeOverwrite
+            ; (result as RespondWithOptions).statusCode = statusCodeOverwrite
     }
 
     if ('method' in overwrite) {
@@ -88,8 +77,9 @@ export function parseOverwrite<
     return result
 }
 
-export function getPatternParam (pattern: URLPattern, key: keyof Omit<remote.NetworkUrlPatternPattern, 'type'>) {
-    if (key !== 'pathname' && pattern[key] === '*') {
+export function getPatternParam(pattern: URLPattern, key: keyof Omit<remote.NetworkUrlPatternPattern, 'type'>) {
+    const value = pattern[key]
+    if (value === '*' || value.includes('*')) {
         return
     }
 
@@ -97,5 +87,5 @@ export function getPatternParam (pattern: URLPattern, key: keyof Omit<remote.Net
         return pattern.protocol === 'https' ? '443' : '80'
     }
 
-    return pattern[key].replaceAll('*', '\\*')
+    return value
 }

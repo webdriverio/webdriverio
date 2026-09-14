@@ -2,10 +2,10 @@
 
 /// <reference path="../types.d.ts" />
 
-type SupportedGlobals = 'browser' | 'driver' | 'multiremotebrowser' | '$' | '$$' | 'expect'
+type SupportedGlobals = 'browser' | 'driver' | 'multiremotebrowser' | '$' | '$$' | 'expect' | 'multiRemoteBrowser'
 
 declare global {
-    // eslint-disable-next-line no-var
+
     var _wdioGlobals: Map<SupportedGlobals, any>
     namespace WebdriverIO {
         interface Browser {}
@@ -49,10 +49,18 @@ export const driver: WebdriverIO.Browser = new Proxy(
     class Browser {} as unknown as WebdriverIO.Browser,
     proxyHandler('driver')
 )
+/**
+ * @deprecated Use `multiRemoteBrowser` instead.
+ */
 export const multiremotebrowser: WebdriverIO.MultiRemoteBrowser = new Proxy(
     class Browser {} as unknown as WebdriverIO.MultiRemoteBrowser,
     proxyHandler('multiremotebrowser')
 )
+export const multiRemoteBrowser: WebdriverIO.MultiRemoteBrowser = new Proxy(
+    class Browser {} as unknown as WebdriverIO.MultiRemoteBrowser,
+    proxyHandler('multiRemoteBrowser')
+)
+
 // @ts-ignore
 export const $: WebdriverIO.Browser['$'] = (...args: any) => {
     if (!globals.has('$')) {
@@ -81,6 +89,8 @@ const ASYNC_MATCHERS = [
     'objectContaining',
     'stringContaining',
     'stringMatching',
+    'oneOf',
+    'closeTo'
 ] as const
 
 for (const matcher of ASYNC_MATCHERS) {
@@ -90,6 +100,17 @@ for (const matcher of ASYNC_MATCHERS) {
         }
         return globals.get('expect')[matcher](...args)
     }
+}
+
+/**
+ * Custom modifiers exposed on expect for the browser-runner for now!
+ * Outside the browser-runner context, use `import { some } from 'expect-webdriverio/api'` to get access to the same modifiers.
+ */
+(expect as any).some = (...args: any) => {
+    if (!globals.has('expect')) {
+        throw new Error(GLOBALS_ERROR_MESSAGE)
+    }
+    return globals.get('expect')['some'](...args)
 }
 
 expect.not = ASYNC_MATCHERS.reduce((acc, matcher) => {

@@ -1,4 +1,4 @@
-import type { Services, Options, Capabilities } from '@wdio/types'
+import type { Services, Capabilities } from '@wdio/types'
 import logger from '@wdio/logger'
 
 import initializePlugin from './initializePlugin.js'
@@ -92,13 +92,14 @@ function sanitizeServiceArray (service: Services.ServiceEntry): ServiceWithOptio
  *                            required in the worker
  */
 export async function initializeLauncherService (
-    config: Omit<Options.Testrunner, 'capabilities' | keyof Services.HookFunctions>,
+    config: Omit<WebdriverIO.Config, 'capabilities' | keyof Services.HookFunctions>,
     caps: Capabilities.TestrunnerCapabilities
 ): Promise<{
-        ignoredWorkerServices: string[];
-        launcherServices: Services.ServiceInstance[];
-    }> {
-    const ignoredWorkerServices = []
+    ignoredWorkerServices: string[];
+    launcherServices: Services.ServiceInstance[];
+}> {
+    const ignoredWorkerServices: string[] = []
+    const workerServiceLoadDecisions = new Map<Services.ServicePlugin, boolean>()
     const launcherServices: Services.ServiceInstance[] = []
     let serviceLabelToBeInitialised = 'unknown'
 
@@ -132,13 +133,26 @@ export async function initializeLauncherService (
             }
 
             /**
+             * Package-wide activation decisions are made once in the launcher, so disabled
+             * packages need not be imported into any workers. Launcher hooks are unaffected.
+             */
+            const servicePlugin = service as Services.ServicePlugin
+            if (serviceName && typeof servicePlugin.shouldLoad === 'function' && !workerServiceLoadDecisions.has(servicePlugin)) {
+                serviceLabelToBeInitialised = `"${serviceName}"`
+                workerServiceLoadDecisions.set(servicePlugin, await servicePlugin.shouldLoad(config, caps) !== false)
+            }
+
+            /**
              * check if service has a default export, if not we can later filter it out so the
              * service module is not even loaded in the worker process
              */
             if (
                 serviceName &&
-                typeof (service as { default: Function }).default !== 'function' &&
-                typeof service !== 'function'
+                (
+                    (typeof servicePlugin.default !== 'function' && typeof service !== 'function') ||
+                    workerServiceLoadDecisions.get(servicePlugin) === false
+                ) &&
+                !ignoredWorkerServices.includes(serviceName)
             ) {
                 ignoredWorkerServices.push(serviceName)
             }
@@ -159,7 +173,7 @@ export async function initializeLauncherService (
  * @return {Object[]}                      list if worker initiated worker services
  */
 export async function initializeWorkerService (
-    config: Options.Testrunner,
+    config: WebdriverIO.Config,
     caps: WebdriverIO.Capabilities,
     ignoredWorkerServices: string[] = []
 ): Promise<Services.ServiceInstance[]> {
@@ -183,7 +197,10 @@ export async function initializeWorkerService (
 
             const Service = (service as Services.ServicePlugin).default || service as Services.ServiceClass
             if (typeof Service === 'function') {
-                serviceLabelToBeInitialised = serviceName || Service.constructor?.name || Service.toString()
+                serviceLabelToBeInitialised = serviceName || Service.name || Service.toString()
+                if (typeof Service.shouldRun === 'function' && await Service.shouldRun(serviceConfig, caps, config) === false) {
+                    continue
+                }
                 initializedServices.push(new Service(serviceConfig, caps, config))
                 continue
             }

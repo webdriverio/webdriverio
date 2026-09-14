@@ -78,13 +78,13 @@ describe('isDisplayed test', () => {
         // @ts-expect-error mock feature
         fetch.customResponseFor(/\/css\/display/, { value: 'contents' })
         expect(await elem.isDisplayed()).toBe(true)
-        expect(fetch).toBeCalledTimes(3)
+        expect(fetch).toBeCalledTimes(2)
 
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/execute/sync')
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/execute/sync')
     })
 
@@ -168,7 +168,7 @@ describe('isDisplayed test', () => {
         // @ts-ignore test scenario
         delete elem.elementId
         expect(await elem.isDisplayed()).toBe(true)
-        expect(fetch).toBeCalledTimes(4)
+        expect(fetch).toBeCalledTimes(3)
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/element')

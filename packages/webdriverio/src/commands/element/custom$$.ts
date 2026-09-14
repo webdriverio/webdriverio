@@ -28,7 +28,7 @@ import type { CustomStrategyFunction } from '../../types.js'
  * @alias custom$$
  * @param {string} strategyName
  * @param {*} strategyArguments
- * @return {ElementArray}
+ * @return {WebdriverIO.ElementArray}
  */
 export async function custom$$ (
     this: WebdriverIO.Element,

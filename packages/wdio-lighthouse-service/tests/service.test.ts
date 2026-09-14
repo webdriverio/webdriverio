@@ -116,11 +116,11 @@ test('if supported by browser', async () => {
     await service._setupHandler()
 
     expect(service['_browser']?.addCommand).toBeCalledWith(
-        'enablePerformanceAudits', expect.any(Function))
+        'enablePerformanceAudits', expect.any(Function), expect.any(Object))
     expect(service['_browser']?.addCommand).toBeCalledWith(
-        'disablePerformanceAudits', expect.any(Function))
+        'disablePerformanceAudits', expect.any(Function), expect.any(Object))
     expect(service['_browser']?.addCommand).toBeCalledWith(
-        'checkPWA', expect.any(Function))
+        'checkPWA', expect.any(Function), expect.any(Object))
 })
 
 test('beforeCommand', async () => {

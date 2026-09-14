@@ -1,6 +1,6 @@
 import nock from 'nock'
 import { v4 as uuidv4 } from 'uuid'
-import type { Services, Options } from '@wdio/types'
+import type { Services } from '@wdio/types'
 
 import WebDriverMock from './WebDriverMock.js'
 
@@ -38,7 +38,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._mock.command.getLogTypes().reply(200, { value: [] })
     }
 
-    beforeSession(config: Options.Testrunner): void {
+    beforeSession(config: WebdriverIO.Config): void {
         config.hostname = 'localhost'
         config.port = 4444
     }
@@ -48,7 +48,8 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         specs: unknown,
         browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {
-        this._browser = browser
+        // TODO: remove casting once intersect typing issue with WebdriverIO.MultiRemoteBrowser is resolved
+        this._browser = browser as WebdriverIO.Browser
 
         /**
          * register request interceptors for specific scenarios
@@ -124,7 +125,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
 
         this._mock.command.findElement().times(1).reply(404, NO_SUCH_ELEMENT)
         this._mock.command.findElement().times(2).reply(200, { value: elemResponse })
-        this._mock.command.executeScript(ELEMENT_ID).once().reply(200, { value: true })
+        this._mock.command.executeScript(ELEMENT_ID).times(2).reply(200, { value: true })
     }
 
     staleElementRefetchScenario() {
@@ -237,7 +238,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         const elemResponse = { [ELEM_PROP]: ELEMENT_ID }
         this._mock.command.findElement().once().reply(200, { value: elemResponse })
         this._mock.command.executeScript(ELEMENT_ID).times(4).reply(200, { value: false })
-        this._mock.command.executeScript(ELEMENT_ID).once().reply(200, { value: true })
+        this._mock.command.executeScript(ELEMENT_ID).times(2).reply(200, { value: true })
     }
 
     cucumberScenario() {

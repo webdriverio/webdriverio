@@ -21,7 +21,7 @@ vi.spyOn(global, 'fetch').mockImplementation((URL: string | URL | globalThis.Req
 })
 
 const port = 3000
-const baseUrl = `http://localhost:${port}`
+const baseUrl = `http://127.0.0.1:${port}`
 const headers = {
     'Content-Type': 'application/json'
 }
@@ -32,9 +32,9 @@ describe('client', () => {
     })
 
     describe('when used in launcher process', () => {
-        it('Error should be thrown when attempting to retrieve a value before server initialization', () => {
-            expect(getValue('*')).rejects.toThrowError('Attempting to use `getValue` before the server has been initialized.')
-            expect(getValueFromPool('*')).rejects.toThrowError('Attempting to use `getValueFromPool` before the server has been initialized.')
+        it('Error should be thrown when attempting to retrieve a value before server initialization', async () => {
+            await expect(getValue('*')).rejects.toThrowError('Attempting to use `getValue` before the server has been initialized.')
+            await expect(getValueFromPool('*')).rejects.toThrowError('Attempting to use `getValueFromPool` before the server has been initialized.')
             expect(addValueToPool('*', '')).rejects.toThrowError('Attempting to use `addValueToPool` before the server has been initialized.')
         })
 

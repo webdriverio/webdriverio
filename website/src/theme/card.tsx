@@ -45,7 +45,7 @@ export default function Card ({
                 <h4 className="avatar__name">
                     { name }
                     <GitHubLink url={github && `https://github.com/${github}`} />
-                    <TwitterLink url={twitter && `https://twitter.com/${twitter}`} />
+                    <TwitterLink url={twitter && `https://x.com/${twitter}`} />
                 </h4>
                 <small className="avatar__subtitle">{ children }</small>
             </div>

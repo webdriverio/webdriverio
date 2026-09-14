@@ -52,3 +52,23 @@ exports[`switchContext test > should throw an error when no matching context is 
   - App bundleId 'com.foo' did not match: 'WEBVIEW_86152.1'
   - Title 'No matching Title' did not match: 'Apple']
 `;
+
+exports[`switchContext test > should throw an error when the provided appIdentifier does not match any context 1`] = `
+[Error: We parsed a total of 5 Webviews but did not find a matching context. The reasons are:
+- Webview 1: 'NATIVE_APP'
+  - Skipped context because it is NATIVE_APP
+- Webview 2: 'WEBVIEW_com.wdiodemoapp'
+  - App packageName 'com.nonexistent.app' did not match: 'WEBVIEW_com.wdiodemoapp'
+  - Title 'Some Title' did not match: 'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO'
+- Webview 3: 'WEBVIEW_com.otherApp'
+  - App packageName 'com.nonexistent.app' did not match: 'WEBVIEW_com.otherApp'
+  - Title 'Some Title' did not match: 'Other Apps · I am just another app'
+- Webview 4: 'WEBVIEW_com.otherNonVisibleApp'
+  - App packageName 'com.nonexistent.app' did not match: 'WEBVIEW_com.otherNonVisibleApp'
+  - Title 'Some Title' did not match: 'Other Apps · I am just another app which is not visible'
+  - Additional Android checks failed
+- Webview 5: 'WEBVIEW_chrome'
+  - App packageName 'com.nonexistent.app' did not match: 'WEBVIEW_chrome'
+  - Title 'Some Title' did not match: 'Android | Get more done with Google on Android-phones and devices'
+  - Additional Android checks failed]
+`;

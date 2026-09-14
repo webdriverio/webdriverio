@@ -81,5 +81,6 @@ export default class WDIOReporter extends EventEmitter {
     /* istanbul ignore next */
     onRunnerEnd () {}
 }
+const { getBrowserName } = await vi.importActual<typeof import('../../packages/wdio-reporter/src/index')>('../../packages/wdio-reporter/src/index')
 
-export { HookStats, RunnerStats, SuiteStats, TestStats }
+export { HookStats, RunnerStats, SuiteStats, TestStats, getBrowserName }

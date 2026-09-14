@@ -95,14 +95,21 @@ function isFirefox(capabilities?: WebdriverIO.Capabilities) {
     )
 }
 
+// Some drivers (e.g. Appium for Windows) return capabilities with flattened,
+// non-namespaced keys like `automationName` instead of `appium:automationName`.
+// We extend the base type here to safely support those runtime shapes.
+interface ExtendedCapabilities extends WebdriverIO.Capabilities {
+    automationName?: string;
+}
+
 /**
  * get the automation name value of the session
  *
  * @param  {Object}  capabilities  capabilities
  * @return {Boolean}               true if platform is mobile device
  */
-function getAutomationName(capabilities: WebdriverIO.Capabilities) {
-    return capabilities['appium:options']?.automationName || capabilities['appium:automationName']
+function getAutomationName(capabilities: ExtendedCapabilities) {
+    return capabilities['appium:options']?.automationName || capabilities['appium:automationName'] || capabilities['automationName']
 }
 
 /**
@@ -192,12 +199,17 @@ function isAndroid(capabilities?: WebdriverIO.Capabilities) {
         return false
     }
 
-    return Boolean(
+    const hasAndroidPlatform = Boolean(
         (capabilities.platformName && capabilities.platformName.match(/Android/i)) ||
         (/Android/i.test(bsOptions.platformName || '')) ||
         (/Android/i.test(bsOptions.browserName || '')) ||
         (capabilities.browserName && capabilities.browserName.match(/Android/i))
     )
+
+    const deviceName = bsOptions.deviceName || ''
+    const hasAndroidDeviceName = /android|galaxy|pixel|nexus|oneplus|lg|htc|motorola|sony|huawei|vivo|oppo|xiaomi|redmi|realme|samsung/i.test(deviceName)
+
+    return Boolean(hasAndroidPlatform || hasAndroidDeviceName)
 }
 
 /**

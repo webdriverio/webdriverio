@@ -4,9 +4,9 @@ import type { EventEmitter } from 'node:events'
 import Jasmine from 'jasmine'
 import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
-import { expect as expectImport, matchers, getConfig } from 'expect-webdriverio'
 import { _setGlobal } from '@wdio/globals'
-import type { Options, Services, Capabilities } from '@wdio/types'
+import type { Services, Capabilities } from '@wdio/types'
+import type { expect as wdioExpectImport, wdioCustomMatchers as wdioMatchersImport, getDefaultOptions as wdioGetOptions } from 'expect-webdriverio'
 
 import JasmineReporter from './reporter.js'
 import { jestResultToJasmine } from './utils.js'
@@ -38,7 +38,7 @@ type HooksArray = {
     [K in keyof Required<Services.HookFunctions>]: Required<Services.HookFunctions>[K][]
 }
 
-interface WebdriverIOJasmineConfig extends Omit<Options.Testrunner, keyof HooksArray>, HooksArray {
+interface WebdriverIOJasmineConfig extends Omit<WebdriverIO.Config, keyof HooksArray>, HooksArray {
     jasmineOpts: Omit<jasmineNodeOpts, 'cleanStack'>
 }
 
@@ -98,6 +98,18 @@ class JasmineAdapter {
 
         // @ts-ignore only way to hack timeout into jasmine
         jasmine.DEFAULT_TIMEOUT_INTERVAL = this._jasmineOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL
+        const origSpecStarted = this._reporter.specStarted.bind(this._reporter)
+        this._reporter.specStarted = (test: jasmine.SpecResult) => {
+            self._lastTest = test
+            // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
+            self._lastTest.start = new Date().getTime()
+            // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
+            self._lastTest.file = test.filename
+            globalThis._wdioDynamicJasmineResultErrorList = test.failedExpectations
+            globalThis._jasmineTestResult = test
+            return origSpecStarted(test)
+        }
+
         jasmineEnv.addReporter(this._reporter)
 
         /**
@@ -198,27 +210,51 @@ class JasmineAdapter {
             beforeAllMock.apply(this, args)
         }
         const executeMock = jasmine.Spec.prototype.execute
-        jasmine.Spec.prototype.execute = function (...args: unknown[]) {
-            self._lastTest = this.result
-            // @ts-ignore overwrite existing type
-            self._lastTest.start = new Date().getTime()
-            globalThis._wdioDynamicJasmineResultErrorList = this.result.failedExpectations
-            globalThis._jasmineTestResult = this.result
-            executeMock.apply(this, args)
+        if (typeof executeMock === 'function') {
+            jasmine.Spec.prototype.execute = function (...args: unknown[]) {
+                self._lastTest = this.result
+                // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
+                self._lastTest.start = new Date().getTime()
+                // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
+                self._lastTest.file = this.result.filename
+                globalThis._wdioDynamicJasmineResultErrorList = this.result.failedExpectations
+                globalThis._jasmineTestResult = this.result
+                executeMock.apply(this, args)
+            }
         }
+
+        return this
+    }
+
+    /**
+     * We have to ensure that `@wdio/runner` and `@wdio/jasmine-framework` are using the same `expect` and `matchers` globals.
+     * This is why we have the `@wdio/runner` package pass on these primitives to the jasmine framework so that we can use them
+     * to setup the jasmine environment.
+     *
+     * @param wdioExpect - WebdriverIO expect
+     * @param wdioMatchers - WebdriverIO matchers
+     * @param getConfig - WebdriverIO getConfig
+     */
+    async setupExpect(
+        wdioExpect: typeof wdioExpectImport,
+        wdioMatchers: typeof wdioMatchersImport,
+        getConfig: typeof wdioGetOptions
+    ) {
+        const { jasmine } = this._jrunner
+        // @ts-ignore outdated
+        const jasmineEnv = jasmine.getEnv()
 
         /**
          * set up WebdriverIO matchers with Jasmine
          */
         const expect = jasmineEnv.expectAsync
-        const matchers = this.#setupMatchers(jasmine)
+        const matchers = this.#setupMatchers(jasmine, wdioMatchers, getConfig)
         jasmineEnv.beforeAll(() => jasmineEnv.addAsyncMatchers(matchers))
 
         /**
          * make Jasmine and WebdriverIOs expect global more compatible by attaching
          * support asymmetric matchers to the `expect` global
          */
-        const wdioExpect = expectImport as ExpectWebdriverIO.Expect
         for (const matcher of EXPECT_ASYMMETRIC_MATCHERS) {
             expect[matcher] = wdioExpect[matcher]
         }
@@ -235,8 +271,6 @@ class JasmineAdapter {
          * overwrite Jasmine global expect with WebdriverIOs expect
          */
         _setGlobal('expect', expect, this._config.injectGlobals)
-
-        return this
     }
 
     async _loadFiles() {
@@ -427,7 +461,11 @@ class JasmineAdapter {
         }, {} as jasmine.CustomAsyncMatcherFactories)
     }
 
-    #setupMatchers (jasmine: jasmine.Jasmine): jasmine.CustomAsyncMatcherFactories {
+    #setupMatchers (
+        jasmine: jasmine.Jasmine,
+        wdioCustomMatchers: typeof wdioMatchersImport,
+        getOptions: typeof wdioGetOptions
+    ): jasmine.CustomAsyncMatcherFactories {
         /**
          * overwrite "jasmine.addMatchers" to be always async since the `expect` global we
          * have is the `expectAsync` from Jasmine, so we need to ensure that synchronous
@@ -437,16 +475,17 @@ class JasmineAdapter {
 
         // @ts-expect-error not exported in jasmine
         const syncMatchers: jasmine.CustomAsyncMatcherFactories = this.#transformMatchers(jasmine.matchers)
-        const wdioMatchers: jasmine.CustomAsyncMatcherFactories = [...matchers.entries()].reduce((prev, [name, fn]) => {
+        const wdioMatchers: jasmine.CustomAsyncMatcherFactories = Object.entries(wdioCustomMatchers).reduce((prev, [name, fn]) => {
             prev[name] = () => ({
                 async compare (...args: unknown[]) {
-                    const context = getConfig()
-                    const result = fn.apply({ ...context, isNot: false }, args)
+                    const context = getOptions()
+                    // TODO: be better than casting to as unknown, need to expose MatcherContext type from expect-webdriverio package?
+                    const result = fn.apply({ ...context, isNot: false } as unknown, args)
                     return jestResultToJasmine(result, false)
                 },
                 async negativeCompare (...args: unknown[]) {
-                    const context = getConfig()
-                    const result = fn.apply({ ...context, isNot: true }, args)
+                    const context = getOptions()
+                    const result = fn.apply({ ...context, isNot: true } as unknown, args)
                     return jestResultToJasmine(result, true)
                 }
             })

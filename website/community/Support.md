@@ -26,4 +26,4 @@ There are many online forums which are a great place for discussion about Webdri
 
 ## News
 
-For the latest news about WebdriverIO, [follow @webdriverio on Twitter](https://twitter.com/webdriverio) and the official [WebdriverIO blog](/blog) on this website.
+For the latest news about WebdriverIO, [follow @webdriverio on 𝕏](https://x.com/webdriverio) and the official [WebdriverIO blog](/blog) on this website.

@@ -116,6 +116,18 @@ test('should throw runtime error if spec could not be loaded', async () => {
     await expect(adapter.run()).rejects.toEqual(runtimeError)
 })
 
+test('should pass error to hook if spec could not be loaded', async () => {
+    const runtimeError = new Error('Uuups')
+    const adapter = adapterFactory({ mochaOpts: { mockFailureCount: 0 } })
+    await adapter.init()
+    adapter['_specLoadError'] = runtimeError
+    await expect(adapter.run()).rejects.toEqual(runtimeError)
+
+    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][0]).toBe('after')
+    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][2]).toHaveLength(3)
+    expect((vi.mocked(executeHooksWithArgs).mock.calls[0][2] as any)[0]).toBe(runtimeError)
+})
+
 test('wrapHook if successful', async () => {
     const config = { beforeAll: 'somehook' }
     const adapter = adapterFactory(config)

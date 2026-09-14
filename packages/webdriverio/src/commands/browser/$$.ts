@@ -38,7 +38,7 @@ import type { Selector } from '../../types.js'
  *
  * @alias $$
  * @param {String|Function} selector  selector or JS Function to fetch multiple elements
- * @return {ElementArray}
+ * @return {WebdriverIO.ElementArray}
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/example.html
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/multipleElements.js#L6-L7
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/multipleElements.js#L15-L24
@@ -66,12 +66,12 @@ export async function $$ (
                 ? await globalThis.wdio.executeWithScope(command, this.elementId, selector) as unknown as ElementReference[]
                 : await globalThis.wdio.execute(command, selector) as unknown as ElementReference[]
             const elements = await getElements.call(this, selector as Selector, res)
-            return enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
+            return enhanceElementsArray(elements, this, selector as Selector)
         }
 
         const res = await findDeepElements.call(this, selector)
         const elements = await getElements.call(this, selector as Selector, res)
-        return enhanceElementsArray(elements, getParent.call(this, res), selector as Selector) as WebdriverIO.ElementArray
+        return enhanceElementsArray(elements, getParent.call(this, res), selector as Selector)
     }
 
     let res: (ElementReference | Error)[] = Array.isArray(selector)
@@ -92,7 +92,7 @@ export async function $$ (
     }
 
     const elements = await getElements.call(this, selector as Selector, res)
-    return enhanceElementsArray(elements, getParent.call(this, res), selector as Selector) as WebdriverIO.ElementArray
+    return enhanceElementsArray(elements, getParent.call(this, res), selector as Selector)
 }
 
 function getParent (this: WebdriverIO.Browser | WebdriverIO.Element, res: ElementReference[]) {

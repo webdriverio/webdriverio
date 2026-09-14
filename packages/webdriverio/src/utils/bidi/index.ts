@@ -128,7 +128,7 @@ export function deserialize(result: remote.ScriptLocalValue) {
     return deserializedValue
 }
 
-function deserializeValue(result: remote.ScriptLocalValue) {
+function deserializeValue(result: remote.ScriptLocalValue & { value?: unknown }) {
     /**
      * handle `internalId` references
      */

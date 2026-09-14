@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { transformCommandLogResult, sleep } from '@wdio/utils'
+import { sleep } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
 import  { WebDriverResponseError, WebDriverRequestError } from './error.js'
@@ -19,12 +19,43 @@ const ERRORS_TO_EXCLUDE_FROM_RETRY = [
 
 const DEFAULT_HEADERS = {
     'Content-Type': 'application/json; charset=utf-8',
-    'Connection': 'keep-alive',
     'Accept': 'application/json',
     'User-Agent': 'webdriver/' + pkg.version
 }
 
 const log = logger('webdriver')
+
+function hasLoggableBody (body: BodyInit | Record<string, unknown>): boolean {
+    if (typeof body === 'string') {
+        return body.length > 0
+    }
+
+    if (body instanceof URLSearchParams || body instanceof FormData) {
+        return !(body as URLSearchParams).keys().next().done
+    }
+
+    if (body instanceof Blob) {
+        return body.size > 0
+    }
+
+    if (body instanceof ArrayBuffer || ArrayBuffer.isView(body)) {
+        return body.byteLength > 0
+    }
+
+    return Object.keys(body).length > 0
+}
+
+function toLoggableBody (body: BodyInit): BodyInit | Record<string, unknown> {
+    if (typeof body !== 'string') {
+        return body
+    }
+
+    try {
+        return JSON.parse(body)
+    } catch {
+        return body
+    }
+}
 
 export abstract class WebDriverRequest {
     protected abstract fetch(url: URL, opts: RequestInit): Promise<Response>
@@ -36,6 +67,7 @@ export abstract class WebDriverRequest {
     requiresSessionId: boolean
     eventHandler: RequestEventHandler
     abortSignal?: AbortSignal
+    connectionRetryTimeout = DEFAULTS.connectionRetryTimeout.default!
     constructor (
         method: string,
         endpoint: string,
@@ -59,15 +91,19 @@ export abstract class WebDriverRequest {
         return this._request(url, requestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
+    private createAbortSignal (signal?: AbortSignal | null) {
+        return AbortSignal.any([
+            AbortSignal.timeout(this.connectionRetryTimeout),
+            ...(signal ? [signal] : [])
+        ])
+    }
+
     async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{ url: URL; requestOptions: RequestInit; }> {
-        const timeout = options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default as number
+        this.connectionRetryTimeout = options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default!
         const requestOptions: RequestInit = {
             method: this.method,
             redirect: 'follow',
-            signal: AbortSignal.any([
-                AbortSignal.timeout(timeout),
-                ...(this.abortSignal ? [this.abortSignal] : [])
-            ])
+            signal: this.abortSignal
         }
 
         const requestHeaders: HeadersInit = new Headers({
@@ -81,9 +117,7 @@ export abstract class WebDriverRequest {
          * only apply body property if existing
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
-            const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
-            requestOptions.body = this.body as unknown as BodyInit
-            requestHeaders.set('Content-Length', `${contentLength}`)
+            requestOptions.body = JSON.stringify(this.body)
         }
 
         /**
@@ -124,21 +158,8 @@ export abstract class WebDriverRequest {
 
     protected async _libRequest (url: URL, opts: RequestInit): Promise<Options.RequestLibResponse> {
         try {
-            const response = await this.fetch(url, {
-                method: opts.method,
-                body: JSON.stringify(opts.body),
-                headers: opts.headers as Record<string, string>,
-                signal: opts.signal,
-                redirect: opts.redirect
-            })
-
-            // Cloning the response to prevent body unusable error
-            const resp = response.clone()
-
-            return {
-                statusCode: resp.status,
-                body: await resp.json() ?? {},
-            } as Options.RequestLibResponse
+            const response = await this.fetch(url, opts)
+            return await this.parseResponse(response)
         } catch (err) {
             if (!(err instanceof Error)) {
                 throw new WebDriverRequestError(
@@ -152,6 +173,23 @@ export abstract class WebDriverRequest {
         }
     }
 
+    private async parseResponse (response: Response): Promise<Options.RequestLibResponse> {
+        const rawBody = await response.text()
+        try {
+            return {
+                statusCode: response.status,
+                body: rawBody ? JSON.parse(rawBody) : {},
+            } satisfies Options.RequestLibResponse
+        } catch {
+            throw new Error(`Could not parse response body: "${rawBody}"`, {
+                cause: {
+                    statusCode: response.status,
+                    body: rawBody
+                }
+            })
+        }
+    }
+
     protected async _request (
         url: URL,
         fullRequestOptions: RequestInit,
@@ -160,12 +198,19 @@ export abstract class WebDriverRequest {
         retryCount = 0
     ): Promise<WebDriverResponse> {
         log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
-
-        if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
-            log.info('DATA', transformCommandLogResult(fullRequestOptions.body))
+        const loggableBody = fullRequestOptions.body && toLoggableBody(fullRequestOptions.body)
+        if (loggableBody && hasLoggableBody(loggableBody)) {
+            this.eventHandler.onLogData?.(loggableBody)
         }
 
-        const { ...requestLibOptions } = fullRequestOptions
+        /**
+         * every attempt gets its own timeout, a retry must not inherit the
+         * already aborted signal of the attempt before it
+         */
+        const requestLibOptions = {
+            ...fullRequestOptions,
+            signal: this.createAbortSignal(fullRequestOptions.signal)
+        }
         const startTime = performance.now()
         let response = await this._libRequest(url!, requestLibOptions)
             .catch((err: WebDriverRequestError) => err)

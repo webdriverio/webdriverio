@@ -7,13 +7,14 @@ import type * as Reporters from './Reporters.js'
 import type * as Frameworks from './Frameworks.js'
 import type * as Workers from './Workers.js'
 import type * as Network from './Network.js'
+import type * as CustomCommands from './CustomCommands.js'
 
 /**
  * exported constant values
  */
 export { MESSAGE_TYPES } from './Workers.js'
 
-export type { Automation, Capabilities, Options, Services, Frameworks, Reporters, Workers }
+export type { Automation, Capabilities, Options, Services, Frameworks, Reporters, Workers, CustomCommands }
 
 export type JsonPrimitive = string | number | boolean | null
 export type JsonObject = { [x: string]: JsonPrimitive | JsonObject | JsonArray }
@@ -79,12 +80,24 @@ declare global {
         interface CucumberOpts { [key: string]: any }
         interface Config extends Options.Testrunner, Capabilities.WithRequestedTestrunnerCapabilities {}
         interface RemoteConfig extends Options.WebdriverIO, Capabilities.WithRequestedCapabilities {}
+        /**
+         * To rename to MultiRemoteConfig in v10 to follow camelCase naming convention and avoid confusion with MultiRemoteBrowser
+         */
         interface MultiremoteConfig extends Options.Testrunner, Capabilities.WithRequestedMultiremoteCapabilities {}
         interface HookFunctionExtension {}
         interface WDIOVSCodeServiceOptions {}
         interface BrowserRunnerOptions {}
         interface ChromedriverOptions extends DriverOptions {}
-        interface GeckodriverOptions extends DriverOptions {}
+        interface GeckodriverOptions extends DriverOptions {
+            /**
+             * Version of Geckodriver to download. Firefox browser versions use a
+             * different versioning scheme than Geckodriver, so the `browserVersion`
+             * capability cannot be used to select the driver. Defaults to the
+             * latest available Geckodriver version.
+             * @see https://github.com/mozilla/geckodriver/releases
+             */
+            geckoDriverVersion?: string
+        }
         interface EdgedriverOptions extends DriverOptions {}
         interface SafaridriverOptions {}
     }

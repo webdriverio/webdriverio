@@ -40,7 +40,7 @@ exports[`swipe test > should be able to swipe based on provided coordinates 1`] 
       "type": "pointerUp",
     },
   ],
-  "id": "action4",
+  "id": "pointer4",
   "parameters": {
     "pointerType": "touch",
   },
@@ -80,7 +80,7 @@ exports[`swipe test > should call a swipe down command with 25% for a scrollable
       "type": "pointerUp",
     },
   ],
-  "id": "action8",
+  "id": "pointer8",
   "parameters": {
     "pointerType": "touch",
   },
@@ -120,7 +120,7 @@ exports[`swipe test > should call a swipe down command with duration 5000 for a 
       "type": "pointerUp",
     },
   ],
-  "id": "action12",
+  "id": "pointer12",
   "parameters": {
     "pointerType": "touch",
   },
@@ -160,7 +160,7 @@ exports[`swipe test > should call a swipe left command with 50% for a scrollable
       "type": "pointerUp",
     },
   ],
-  "id": "action10",
+  "id": "pointer10",
   "parameters": {
     "pointerType": "touch",
   },
@@ -200,7 +200,7 @@ exports[`swipe test > should call a swipe right command with 75% for a scrollabl
       "type": "pointerUp",
     },
   ],
-  "id": "action11",
+  "id": "pointer11",
   "parameters": {
     "pointerType": "touch",
   },
@@ -240,7 +240,7 @@ exports[`swipe test > should call a swipe up command with 45% for a scrollable e
       "type": "pointerUp",
     },
   ],
-  "id": "action9",
+  "id": "pointer9",
   "parameters": {
     "pointerType": "touch",
   },

@@ -1,6 +1,5 @@
 import path from 'node:path'
 import assert from 'node:assert'
-import type { Options } from '@wdio/types'
 
 describe('Mocha smoke test', () => {
     const testJs = path.join('tests', 'mocha', 'test.ts')
@@ -30,7 +29,7 @@ describe('Mocha smoke test', () => {
     })
 
     it('has a testrunner config object', () => {
-        const opts = browser.options as Options.Testrunner
+        const opts = browser.options as WebdriverIO.Config
         expect(Array.isArray(opts.services)).toBe(true)
         expect(opts).toHaveProperty('mochaOpts')
         expect(opts).toHaveProperty('jasmineOpts')
@@ -429,5 +428,15 @@ describe('Mocha smoke test', () => {
             expect(elem.error).toBeUndefined()
             expect(elem.elementId).toBeDefined()
         })
+    })
+
+    it('supports inline snapshots', () => {
+        expect({ deep: { foo: 'bar' } }).toMatchInlineSnapshot(`
+          {
+            "deep": {
+              "foo": "bar",
+            },
+          }
+        `)
     })
 })

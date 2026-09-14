@@ -72,8 +72,8 @@ export type EventMap = {
     [Event in EventData['method']]: GetParam<EventData, Event>
 } & WebDriverClassicEvents
 interface BidiEventHandler {
-    on<K extends keyof EventMap>(event: K, listener: (this: Client, param: EventMap[K]) => void): this
-    once<K extends keyof EventMap>(event: K, listener: (this: Client, param: EventMap[K]) => void): this
+    on<K extends keyof EventMap>(event: K, listener: (this: Client, param: EventMap[K]) => unknown): this
+    once<K extends keyof EventMap>(event: K, listener: (this: Client, param: EventMap[K]) => unknown): this
 }
 
 export interface BaseClient extends EventEmitter, SessionFlags {
@@ -95,4 +95,17 @@ export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.We
     capabilities?: WebdriverIO.Capabilities
     // original requested capabilities
     requestedCapabilities?: Capabilities.WithRequestedCapabilities['capabilities']
+}
+
+/**
+ * Additional options outside of the WebDriver spec, exclusively for WebdriverIO, only for runtime, and not sent to Appium
+ */
+export class CommandRuntimeOptions {
+
+    // mask the text parameter value of the command
+    mask?: boolean
+
+    constructor (options: { mask?: boolean }) {
+        this.mask = options.mask
+    }
 }

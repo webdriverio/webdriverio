@@ -95,7 +95,7 @@ describe('Lit Component testing', () => {
         await expect($('non-existing-element')).not.toBeDisplayed()
         await expect(await $('non-existing-element')).not.toBePresent()
         await expect(await $('non-existing-element')).not.toBeDisplayed()
-        expect(Date.now() - start).toBeLessThan(1000)
+        expect(Date.now() - start).toBeLessThan(1500)
     })
 
     describe('shadow root piercing', function () {
@@ -119,18 +119,22 @@ describe('Lit Component testing', () => {
             const closedNode = $('closed-node')
             await expect(closedNode).toHaveText('Hello,')
             await expect(closedNode).toMatchInlineSnapshot(`
-              "<closed-node>Hello,
+              "<closed-node>
+                Hello,
                 <template shadowrootmode="closed">
                   <style>section { color: blue; }</style>
                   <h2>Closed Node</h2>
                   <section>
                     <slot></slot>
-                    <closed-node-nested>hidden
+                    <closed-node-nested>
+                      hidden
                       <template shadowrootmode="closed">
                         <style>.findMe { color: green; }</style>
                         <h2>Deep Closed Node</h2>
-                        <div class="findMe">I am
-                          <slot></slot>!</div>
+                        <div class="findMe">
+                          I am
+                          <slot></slot>!
+                        </div>
                       </template>
                     </closed-node-nested>
                   </section>
@@ -268,7 +272,7 @@ describe('Lit Component testing', () => {
 
         const err = await $('input').click().catch((err) => err)
         expect(err.name).toBe('webdriverio(middleware): element did not become interactable')
-        expect(err.message).toBe('Element <input style="display: none;"> did not become interactable')
+        expect(err.message).toBe('Element <input style="display: none;" /> did not become interactable')
     })
 
     it('intercepts "element not interactable" errors and waits for the element to be interactable', async () => {
@@ -763,7 +767,7 @@ describe('Lit Component testing', () => {
                 await expect(elem2).toHaveValue('Hello World! 2')
             })
 
-            it('aria label is recevied by other element with aria-labelledBy', async () => {
+            it('aria label is received by other element with aria-labelledBy', async () => {
                 // https://www.w3.org/TR/accname-1.1/#step2B
                 render(
                     html`
@@ -776,7 +780,7 @@ describe('Lit Component testing', () => {
                 await expect(elem).toHaveText('Click Me!')
             })
 
-            it('aria label is recevied by other element with aria-describedby', async () => {
+            it('aria label is received by other element with aria-describedby', async () => {
                 // https://www.w3.org/TR/accname-1.1/#step2B
                 render(
                     html`

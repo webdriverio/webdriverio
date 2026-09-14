@@ -27,7 +27,7 @@ export async function setWindowSize(
     this: WebdriverIO.Browser,
     width: number,
     height: number
-) {
+): Promise<void> {
     /**
      * type check
      */

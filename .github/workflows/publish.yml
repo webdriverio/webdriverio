@@ -19,48 +19,42 @@ on:
         default: 'latest'
 
 env:
-  NPM_TOKEN: ${{secrets.NPM_TOKEN}}
-  # disable provenance check as it stopped working with Lerna:
-  #   > lerna ERR! E422 Error verifying sigstore provenance bundle: Failed to validate the provenance
-  #   > subject against the package name, version and tarball integrity. Please try re-publishing with
-  #   > the latest stable version of npm
-  # NPM_CONFIG_PROVENANCE: true
+  NPM_CONFIG_PROVENANCE: true
 
 jobs:
   authorize:
     name: Authorize Actor
-    uses: ./.github/workflows/authorize.yml
+    uses: ./.github/workflows/authorize-publisher.yml
     secrets: inherit
   release:
     permissions:
       contents: write
       id-token: write
+      packages: read
     needs: [authorize]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: 'main'
           fetch-depth: 0
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
-      - name: NPM Setup
-        run: |
-          npm set registry "https://registry.npmjs.org/"
-          npm set //registry.npmjs.org/:_authToken $NPM_TOKEN
-          npm whoami
       - name: Git Setup
         run: |
           git config --global user.email "bot@webdriver.io"
           git config --global user.name "WebdriverIO Release Bot"
       - name: Install Dependencies
         run: pnpm install
+      - name: Build
+        run: pnpm run setup
+        env:
+          NODE_ENV: production
       - name: Release
         run: |
-          pnpm run setup
           pnpm -r --filter=@wdio/lerna-patch run patch
           pnpm lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
           pnpm run pushReleaseTag

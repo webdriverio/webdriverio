@@ -75,6 +75,6 @@ import type { TouchActions } from '../../types.js'
 export function touchAction (
     this: WebdriverIO.Browser,
     actions: TouchActions
-) {
+): Promise<void> {
     return touchActionCommand.call(this, actions)
 }

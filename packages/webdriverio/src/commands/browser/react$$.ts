@@ -36,14 +36,14 @@ import type { ReactSelectorOptions } from '../../types.js'
  * @param {ReactSelectorOptions=}                    options         React selector options
  * @param {Object=}                                  options.props   React props the element should contain
  * @param {`Array<any>|number|string|object|boolean`=} options.state  React state the element should be in
- * @return {ElementArray}
+ * @return {WebdriverIO.ElementArray}
  *
  */
 export async function react$$ (
     this: WebdriverIO.Browser,
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}
-) {
+): Promise<WebdriverIO.ElementArray> {
     await this.executeScript(resqScript, [])
     await this.execute(waitToLoadReact)
     const res = await this.execute(

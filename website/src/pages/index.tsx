@@ -14,6 +14,7 @@ import Highlight from '../components/Highlight.tsx'
 import Robot from '../components/Robot.tsx'
 import Sponsors from '../components/Sponsors.tsx'
 import { CreateProjectAnimation } from '../components/CreateProjectAnimation.tsx'
+import ContributorList from '../components/Contributors/Contributors.tsx'
 
 import styles from './styles.module.css'
 import { logos, features, LHIntregrationExample, SetupExample, ComponentTestingExample } from '../constants.tsx'
@@ -66,7 +67,7 @@ function Home() {
                             )}
                             to={useBaseUrl('/docs/gettingstarted')}
                         >
-                            <Translate>Get Started</Translate>
+                            <Translate id="homepage.getStarted">Get Started</Translate>
                         </Link>
                         <Link
                             to="/docs/why-webdriverio"
@@ -75,7 +76,7 @@ function Home() {
                                 styles.getStarted,
                             )}
                         >
-                            <Translate>Why WebdriverIO?</Translate>
+                            <Translate id="homepage.whyWebdriverIO">Why WebdriverIO?</Translate>
                         </Link>
                         <Link
                             to="https://github.com/webdriverio"
@@ -84,7 +85,7 @@ function Home() {
                                 styles.getStarted,
                             )}
                         >
-                            <Translate>View on GitHub</Translate>
+                            <Translate id="homepage.viewOnGitHub">View on GitHub</Translate>
                         </Link>
                         <Link
                             to="https://youtube.com/@webdriverio"
@@ -93,17 +94,27 @@ function Home() {
                                 styles.getStarted,
                             )}
                         >
-                            <Translate>Watch on YouTube</Translate>
+                            <Translate id="homepage.watchOnYouTube">Watch on YouTube</Translate>
                         </Link>
                     </div>
                     <section className="sponsorSection">
                         <div>
-                            <em>Sponsored by</em>
+                            <em><Translate id="homepage.sponsorSection.sponsoredBy">Sponsored by</Translate></em>
                             <ImageSwitcher
+                                target="_blank"
                                 lightImageSrc="/img/sponsors/browserstack_black.svg"
                                 darkImageSrc="/img/sponsors/browserstack_white.svg"
                                 alt="BrowserStack"
                                 link="https://www.browserstack.com/automation-webdriverio"
+                            />
+                            <em style={{ marginRight: 0 }}>&nbsp; and &nbsp;</em>
+                            <ImageSwitcher
+                                target="_blank"
+                                lightImageSrc="/img/sponsors/momentic_black.svg"
+                                darkImageSrc="/img/sponsors/momentic_white.svg"
+                                alt="Momentic"
+                                link="https://momentic.ai/"
+                                style={{ width: '220px', maxWidth: '220px' }}
                             />
                         </div>
                     </section>
@@ -123,8 +134,8 @@ function Home() {
                             <Translate
                                 id="homepage.componentTesting.para1"
                                 values={{
-                                    allInOne: (<b><Translate>all in one</Translate></b>),
-                                    usedBy: (<b><Translate>used by your users</Translate></b>)
+                                    allInOne: (<b><Translate id="homepage.componentTesting.allInOne">all in one</Translate></b>),
+                                    usedBy: (<b><Translate id="homepage.componentTesting.usedBy">used by your users</Translate></b>)
                                 }}>
                                 {'WebdriverIO is an {allInOne} framework for your web app development. It enables you to run ' +
                                     'small and lightweight component tests as well as running e2e test scenarios in the browser or on ' +
@@ -141,8 +152,8 @@ function Home() {
                             </Translate>
                         </p>
                         <div>
-                            <h4><Translate>Easy setup for web component testing with:</Translate></h4>
-                            <a href="/docs/component-testing/react" className={styles.frameworkLogos}><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9Ii0xMS41IC0xMC4yMzE3NCAyMyAyMC40NjM0OCI+CiAgPHRpdGxlPlJlYWN0IExvZ288L3RpdGxlPgogIDxjaXJjbGUgY3g9IjAiIGN5PSIwIiByPSIyLjA1IiBmaWxsPSIjNjFkYWZiIi8+CiAgPGcgc3Ryb2tlPSIjNjFkYWZiIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiPgogICAgPGVsbGlwc2Ugcng9IjExIiByeT0iNC4yIi8+CiAgICA8ZWxsaXBzZSByeD0iMTEiIHJ5PSI0LjIiIHRyYW5zZm9ybT0icm90YXRlKDYwKSIvPgogICAgPGVsbGlwc2Ugcng9IjExIiByeT0iNC4yIiB0cmFuc2Zvcm09InJvdGF0ZSgxMjApIi8+CiAgPC9nPgo8L3N2Zz4K" alt="" /></a>
+                            <h4><Translate id="homepage.componentTesting.easySetup">Easy setup for web component testing with:</Translate></h4>
+                            <a href="/docs/component-testing/react" className={styles.frameworkLogos}><img src="/img/icons/react.svg" alt="React" /></a>
                             <a href="/docs/component-testing/vue" className={styles.frameworkLogos}><img src="/img/icons/vue.png" alt="Vue.js" /></a>
                             <a href="/docs/component-testing/vue#testing-vue-components-in-nuxt" className={styles.frameworkLogos}><img src="/img/icons/nuxt.svg" alt="Nuxt" /></a>
                             <a href="/docs/component-testing/svelte" className={styles.frameworkLogos}><img src="/img/icons/svelte.png" alt="Svelte" /></a>
@@ -161,7 +172,7 @@ function Home() {
                     })}
                     text={<>
                         <p>
-                            <Translate>
+                            <Translate id="homepage.hightlight.createProject.para1">
                                 The WebdriverIO testrunner comes with a command line interface that
                                 provides a powerful configuration utility and helps you to create your
                                 test setup in less than a minute. It lets you pick from available
@@ -170,7 +181,7 @@ function Home() {
                             </Translate>
                             <br />
                             <br />
-                            <Translate>
+                            <Translate id="homepage.hightlight.createProject.para2">
                                 With just one simple command you can set up a complete test suite:
                             </Translate>
                         </p>
@@ -223,7 +234,7 @@ function Home() {
                                         </Link>
                                     ),
                                     videoAuthor: (
-                                        <Link to="https://twitter.com/ailuj876">
+                                        <Link to="https://x.com/ailuj876">
                                             Julia Pottinger
                                         </Link>
                                     ),
@@ -294,22 +305,25 @@ function Home() {
                                 {'WebdriverIO not only runs automation based on the WebDriver protocol, it also leverages ' +
                                     'native browser APIs to enable integrations to popular developer tools such as ' +
                                     '{devtoolsLink} or {lighthouseLink}. With the {devtoolsServiceLink} plugin you have access to ' +
-                                    'commands for validating if you app is a valid PWA application as well as to commands for ' +
+                                    'commands for validating if your app is a valid PWA application as well as to commands for ' +
                                     'capturing frontend performance metrics such as `speedIndex` and others.'}
                             </Translate>
                         </p>
                         <div>
-                            <h4><Translate>Integration to developer tools such as:</Translate></h4>
+                            <h4><Translate id="homepage.hightlight.devtools">Integration to developer tools such as:</Translate></h4>
                             <a href="https://chromedevtools.github.io/devtools-protocol" className={styles.frameworkLogos}><img src="/img/icons/devtools.png" alt="Chrome DevTools" /></a>
                             <a href="https://developers.google.com/web/tools/lighthouse" className={styles.frameworkLogos}><img src="/img/icons/lighthouse-logo.svg" alt="Google Lighthouse" /></a>
                             <a href="https://www.deque.com/axe/" className={styles.frameworkLogos}><img src="/img/icons/axe.png" alt="Axe Accessibility Engine" /></a>
                         </div>
                     </>} isDark={undefined} />
-                <Section isDark>
+                <Section isDark={true}>
                     <LogoCarousel logos={logos}></LogoCarousel>
                 </Section>
                 <Section>
                     <Sponsors />
+                </Section>
+                <Section isDark={true}>
+                    <ContributorList />
                 </Section>
             </main>
         </Layout>
@@ -317,3 +331,4 @@ function Home() {
 }
 
 export default Home
+

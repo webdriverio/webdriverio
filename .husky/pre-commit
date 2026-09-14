@@ -1,1 +1,1 @@
-git diff-index --cached --name-only --diff-filter=d HEAD | grep -E ".*\\.[cm]?[jt]sx?$" | xargs -r node_modules/eslint/bin/eslint.js
+git diff-index --cached --name-only --diff-filter=d HEAD | grep -E ".*\\.[cm]?[jt]sx?$" | xargs -r node_modules/.bin/eslint

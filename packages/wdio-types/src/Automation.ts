@@ -3,7 +3,8 @@ export interface Driver<T> {
         options: T,
         modifier?: (...args: unknown[]) => unknown,
         userPrototype?: Record<string, unknown>,
-        customCommandWrapper?: (...args: unknown[]) => unknown
+        customCommandWrapper?: (...args: unknown[]) => unknown,
+        implicitWaitExclusionList?: string[]
     ): unknown
 
     attachToSession(

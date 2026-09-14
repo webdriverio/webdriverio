@@ -3,7 +3,7 @@ import path from 'node:path'
 
 import { getBrowserObject } from '@wdio/utils'
 import type { remote } from 'webdriver'
-import { getAbsoluteFilepath, assertDirectoryExists } from './utils.js'
+import { assertDirectoryExists } from './utils.js'
 import { getContextManager } from '../session/context.js'
 import type { SaveScreenshotOptions } from '../types.js'
 /**
@@ -44,7 +44,7 @@ export async function saveScreenshot (
         throw new Error('saveScreenshot expects a filepath of type string and ".png" file ending')
     }
 
-    const absoluteFilepath = getAbsoluteFilepath(filepath)
+    const absoluteFilepath = path.resolve(filepath)
     await assertDirectoryExists(absoluteFilepath)
 
     const screenBuffer = this.isBidi

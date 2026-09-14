@@ -31,7 +31,7 @@ describe('pinch test', () => {
         })
         // @ts-expect-error
         elem = await browser.$('#foo')
-        expect(elem.pinch()).rejects.toThrow('The pinch command is only available for mobile platforms.')
+        await expect(elem.pinch()).rejects.toThrow('The pinch command is only available for mobile platforms.')
     })
 
     it('should execute a pinch for iOS with the correct values', async () => {

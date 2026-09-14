@@ -7,7 +7,7 @@ WebdriverIO comes with built-in support for modifying network responses that all
 
 :::info
 
-Note that using the `mock` command requires support for Chrome DevTools protocol. That support is given if you run tests locally in a Chromium-based browser, via a Selenium Grid v4 or higher, or through a cloud vendor with support for the Chrome DevTools protocol (e.g. SauceLabs, BrowserStack, LambdaTest). Full cross-browser support will be available once the required primitives land in [Webdriver Bidi](https://wpt.fyi/results/webdriver/tests/bidi/network?label=experimental&label=master&aligned) and get implemented in the respective browser.
+Note that using the `mock` command requires support for Chrome DevTools protocol. That support is given if you run tests locally in a Chromium-based browser, via a Selenium Grid v4 or higher, or through a cloud vendor with support for the Chrome DevTools protocol (e.g. SauceLabs, BrowserStack, TestMu AI (Formerly LambdaTest)). Full cross-browser support will be available once the required primitives land in [Webdriver Bidi](https://wpt.fyi/results/webdriver/tests/bidi/network?label=experimental&label=master&aligned) and get implemented in the respective browser.
 
 :::
 
@@ -187,3 +187,5 @@ expect(mock.calls.length).toBe(1)
 // assert response
 expect(mock.calls[0].body).toEqual({ success: true })
 ```
+
+If you need to wait until a matching request has responded, use `mock.waitForResponse(options)`. See the API reference: [waitForResponse](/docs/api/mock/waitForResponse).

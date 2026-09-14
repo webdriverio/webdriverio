@@ -51,13 +51,15 @@ export default function (docfile: {
     const fires: string[] = []
     const listens: string[] = []
     const exampleReferences: string[] = []
-    let tagDeprecated = false
+    let tagDeprecated = ''
     let tagSee = ''
     let tagVersion = ''
     let tagAuthor = ''
     let tagCustomType = ''
     let tagMobileElement = false
     let tagSkipUsage = false
+    let tagSkipAwait = false
+    let tagSupport: string[] | undefined
     let returns
 
     for (const tag of javadoc.tags) {
@@ -141,7 +143,7 @@ export default function (docfile: {
             break
         }
         case 'deprecated': {
-            tagDeprecated = true
+            tagDeprecated = source[0].source.split('@deprecated')[1].trim()
             break
         }
         case 'mobileElement': {
@@ -150,6 +152,19 @@ export default function (docfile: {
         }
         case 'skipUsage': {
             tagSkipUsage = true
+            break
+        }
+        case 'skipAwait': {
+            tagSkipAwait = true
+            break
+        }
+        case 'support': {
+            try {
+                const parsed = JSON.parse(source[0].source.split('@support')[1].trim())
+                tagSupport = Array.isArray(parsed) ? parsed : Object.keys(parsed)
+            } catch {
+                // ignore malformed support tag
+            }
             break
         }
         case 'author': {
@@ -303,10 +318,12 @@ export default function (docfile: {
         originalId: `api/${scope}/${name}`,
         isElementScope: scope === 'element' || tagMobileElement,
         isSkipUsage: tagSkipUsage,
+        isSkipAwait: tagSkipAwait,
         isNetworkScope : scope === 'network',
         isMockScope : scope === 'mock',
         isDialogScope : scope === 'dialog',
         isClockScope : scope === 'clock',
+        support: tagSupport,
     }
 
     return commandDescription

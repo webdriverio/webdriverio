@@ -5,10 +5,11 @@ import path from 'node:path'
 
 import { downloadFromGitHub } from '../utils/index.js'
 import { buildPreface } from '../utils/helpers.js'
+import { sanitizeHtmlForMdx } from './docsUtils.js'
 
-import reporters3rdParty from './3rd-party/reporters.json' assert { type: 'json' }
-import services3rdParty from './3rd-party/services.json' assert { type: 'json' }
-import api3rdParty from './3rd-party/api.json' assert { type: 'json' }
+import reporters3rdParty from './3rd-party/reporters.json' with { type: 'json' }
+import services3rdParty from './3rd-party/services.json' with { type: 'json' }
+import api3rdParty from './3rd-party/api.json' with { type: 'json' }
 
 interface Plugin {
     packageName: string
@@ -127,7 +128,7 @@ function normalizeDoc(readme: string, githubUrl: string, branch: string, preface
      */
     let sliceIdx = 0
     for (let i = 0; i < readmeHeaderLines && sliceIdx === 0; i++) {
-        if (readmeHeaders.some(x => readmeArr[i].startsWith(x))) {
+        if (typeof readmeArr[i] === 'string' && readmeHeaders.some(x => readmeArr[i].startsWith(x))) {
             sliceIdx = i + 1
         }
     }
@@ -174,9 +175,9 @@ function normalizeDoc(readme: string, githubUrl: string, branch: string, preface
         readmeArr = [docsFixes[packageName](readmeArr.join('\n'))]
     }
 
-    return [...preface, ...repoInfo, ...readmeArr]
-        .join('\n')
-        .replace(/<br>/g, '<br />')
+    return sanitizeHtmlForMdx(
+        [...preface, ...repoInfo, ...readmeArr].join('\n')
+    )
 }
 
 /**

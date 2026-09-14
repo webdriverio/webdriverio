@@ -26,6 +26,18 @@ const log = logger('webdriver')
  * For Native Apps, this command differs from the `click` command as it will <strong>automatically swipe</strong> to the element using the `scrollIntoView command`,
  * which is not supported for native apps with the `click` command. In hybrid apps or web environments, automatic scrolling is supported for both `click` and `tap` commands.
  *
+ * :::info
+ *
+ * This command only works with the following up-to-date components:
+ *  - Appium server (version 2.0.0 or higher)
+ *  - `appium-uiautomator2-driver` (for Android)
+ *  - `appium-xcuitest-driver` (for iOS)
+ *
+ * Make sure your local or cloud-based Appium environment is regularly updated to avoid compatibility issues.
+ *
+ * :::
+ *
+ *
  * :::caution For Screen taps
  *
  * If you want to tap on a specific coordinate on the screen and you use a screenshot to determine the coordinates, remember that the
@@ -84,6 +96,8 @@ const log = logger('webdriver')
  * @param {number=}     options.maxScrolls          The max amount of scrolls until it will stop searching for the element, default is `10`. <br /><strong>Only for ELEMENT tap, not for SCREEN tap</strong><br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
  * @param {Element=}    options.scrollableElement   Element that is used to scroll within. If no element is provided it will use the following selector for iOS `-ios predicate string:type == "XCUIElementTypeApplication"` and the following for Android `//android.widget.ScrollView'`. If more elements match the default selector, then by default it will pick the first matching element. <br /><strong>Only for ELEMENT tap, not for SCREEN tap</strong><br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
  * @skipUsage
+ *
+ * @support ["ios","android"]
  */
 export async function tap(
     this: WebdriverIO.Browser | WebdriverIO.Element,

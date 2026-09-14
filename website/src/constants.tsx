@@ -9,7 +9,7 @@ export const features = [{
         message: 'Test in Real Environments'
     }),
     description: (
-        <Translate>
+        <Translate id="features.realEnvironments.description">
             WebdriverIO allows you to test in actual browser or mobile devices used by your users.
         </Translate>
     ),
@@ -21,7 +21,7 @@ export const features = [{
         message: 'Versatile and Feature Rich'
     }),
     description: (
-        <Translate>
+        <Translate id="features.versatile.description">
             Use WebdriverIO for full e2e or unit and component testing in the browser.
         </Translate>
     ),
@@ -32,7 +32,7 @@ export const features = [{
         message: 'Auto Wait'
     }),
     description: (
-        <Translate>
+        <Translate id="features.autoWait.description">
             WebdriverIO automatically waits for elements to appear before interacting with them.
         </Translate>
     ),
@@ -84,7 +84,11 @@ export const features = [{
             id="homepage.features.support"
             values={{
                 supportChannelLink: (
-                    <Link to="https://discord.webdriver.io">support channel</Link>
+                    <Link to="https://discord.webdriver.io">
+                        <Translate id="sponsors.supportChannel">
+                            support channel
+                        </Translate>
+                    </Link>
                 )
             }}>
             {'Running a {supportChannelLink} with over 8k members and a rich ecosystem of community maintained plugins.'}

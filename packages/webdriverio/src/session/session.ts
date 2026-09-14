@@ -1,3 +1,5 @@
+import { environment } from '../environment.js'
+
 const sessionManager = new Map<string, Map<WebdriverIO.Browser, SessionManager>>()
 
 const listenerRegisteredSession = new Set<string>()
@@ -18,10 +20,12 @@ export class SessionManager {
         this.#scope = scope
         const registrationId = `${this.#browser.sessionId}-${this.#scope}`
         if (!listenerRegisteredSession.has(registrationId)) {
-            this.#browser.on('command', this.#onCommand.bind(this))
+            this.#browser.on('command', this.#onCommandListener)
             listenerRegisteredSession.add(registrationId)
         }
     }
+
+    #onCommandListener = this.#onCommand.bind(this)
 
     #onCommand(ev: { command: string }) {
         if (ev.command === 'deleteSession') {
@@ -35,7 +39,7 @@ export class SessionManager {
     }
 
     removeListeners() {
-        this.#browser.off('command', this.#onCommand.bind(this))
+        this.#browser.off('command', this.#onCommandListener)
     }
 
     initialize(): unknown {
@@ -50,7 +54,7 @@ export class SessionManager {
             // we are in a Bidi session
             this.#browser.isBidi &&
             // we are not running unit tests
-            !process.env.WDIO_UNIT_TESTS
+            !environment.value.variables.WDIO_UNIT_TESTS
         )
     }
 

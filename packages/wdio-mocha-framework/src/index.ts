@@ -7,7 +7,7 @@ import { handleRequires } from 'mocha/lib/cli/run-helpers.js'
 
 import logger from '@wdio/logger'
 import { executeHooksWithArgs } from '@wdio/utils'
-import type { Services, Options } from '@wdio/types'
+import type { Services } from '@wdio/types'
 
 import { formatMessage, setupEnv } from './common.js'
 import { EVENTS, NOOP } from './constants.js'
@@ -19,7 +19,7 @@ const FILE_PROTOCOL = 'file://'
 
 type EventTypes = 'hook' | 'test' | 'suite'
 type EventTypeProps = '_hookCnt' | '_testCnt' | '_suiteCnt'
-interface ParsedConfiguration extends Required<Options.Testrunner> {
+interface ParsedConfiguration extends Required<WebdriverIO.Config> {
     rootDir: string
     mochaOpts: MochaOptsImport
 }
@@ -139,7 +139,7 @@ class MochaAdapter {
             this._runner.suite.beforeAll(this.wrapHook('beforeSuite'))
             this._runner.suite.afterAll(this.wrapHook('afterSuite'))
         })
-        await executeHooksWithArgs('after', this._config.after as Function, [runtimeError || result, this._capabilities, this._specs])
+        await executeHooksWithArgs('after', this._config.after as Function, [runtimeError || this._specLoadError || result, this._capabilities, this._specs])
 
         /**
          * in case the spec has a runtime error throw after the wdio hook

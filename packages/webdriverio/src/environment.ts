@@ -12,9 +12,14 @@ import type { saveElementScreenshot } from './node/saveElementScreenshot.js'
  */
 export const isNode = !!(typeof process !== 'undefined' && process.version)
 
-export interface EnvironmentDependencies {
-    readFileSync: typeof fs.readFileSync
+export interface EnvironmentVariables {
+    WDIO_UNIT_TESTS?: string
+    WDIO_WORKER_ID?: string
+}
 
+export interface EnvironmentDependencies {
+    variables: EnvironmentVariables
+    readFileSync: typeof fs.readFileSync
     downloadFile: typeof downloadFile,
     savePDF: typeof savePDF,
     saveRecordingScreen: typeof saveRecordingScreen,
@@ -55,6 +60,12 @@ export const environment: {
         },
         get osType() {
             return () => 'browser'
+        },
+        get variables() {
+            /**
+             * In unit tests we need to use the process.env object to set the environment variables.
+             */
+            return isNode ? process.env as EnvironmentVariables : {} as EnvironmentVariables
         }
     }
 }

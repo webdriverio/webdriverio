@@ -1,10 +1,37 @@
 import { expect, type MatcherContext, type ExpectationResult, type SyncExpectationResult } from 'expect'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 import { $ } from '@wdio/globals'
-import type { ChainablePromiseElement } from 'webdriverio'
+import type { ChainablePromiseElement, ChainablePromiseArray } from 'webdriverio'
 
 import { getCID } from './utils.js'
 import { WDIO_EVENT_NAME } from '../constants.js'
+
+// Define AsymmetricMatcher class matching Jest/Expect internals
+class AsymmetricMatcher {
+    $$typeof = asymmetricMatcher
+    constructor(public sample: unknown, public matcherName?: string) {}
+    toString() {
+        return this.matcherName
+    }
+}
+
+type Expect = typeof expect & {
+    // Modifiers fake as an asymmetric matcher for now, but we can implement a proper modifier later
+    some(elements: WebdriverIO.Element[] | WebdriverIO.ElementArray | ChainablePromiseArray): AsymmetricMatcher
+    oneOf(...sample: string[]): AsymmetricMatcher
+}
+const expectWithHelpers = expect as Expect
+
+/**
+ * Attach serializable asymmetric matchers helpers to the browser expect object
+ *
+ * For real asymmetric matchers, name must match the name of the matcher in SUPPORTED_ASYMMETRIC_MATCHER
+ * @see packages/wdio-runner/src/utils.ts#SUPPORTED_ASYMMETRIC_MATCHER
+ *
+ * For modifiers `some`, it is custom handled.
+ */
+expectWithHelpers.oneOf = (...sample: string[]) => new AsymmetricMatcher(sample, 'OneOf')
+expectWithHelpers.some = (sample: WebdriverIO.Element[] | WebdriverIO.ElementArray | ChainablePromiseArray) => new AsymmetricMatcher(sample, 'Some')
 
 declare type RawMatcherFn<Context extends MatcherContext = MatcherContext> = {
     (this: Context, actual: unknown, ...expected: Array<unknown>): ExpectationResult;
@@ -32,7 +59,7 @@ const COMMAND_TIMEOUT = 30 * 1000 // 30s
  */
 function createMatcher (matcherName: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return async function (this: MatcherContext, context: WebdriverIO.Browser | WebdriverIO.Element | ChainablePromiseElement | ChainablePromiseArray, ...args: any[]) {
+    return async function (this: MatcherContext, context: WebdriverIO.Browser | WebdriverIO.Element | ChainablePromiseElement | ChainablePromiseArray | WebdriverIO.Element[] | WebdriverIO.ElementArray, ...args: any[]) {
         const cid = getCID()
         if (!import.meta.hot || !cid) {
             return {
@@ -41,36 +68,40 @@ function createMatcher (matcherName: string) {
             }
         }
 
-        if (typeof args[0] === 'object' && '$$typeof' in args[0] && args[0].$$typeof === asymmetricMatcher && args[0].asymmetricMatch) {
-            args[0] = {
-                $$typeof: args[0].toString(),
-                sample: args[0].sample,
-                inverse: args[0].inverse
-            }
-        }
+        const serializedArgs = args.map(serializeAsymmetricMatchers)
 
         const expectRequest: Workers.ExpectRequestEvent = {
             id: matcherRequestCount++,
             cid,
             scope: this,
             matcherName,
-            args: args
+            args: serializedArgs
+        }
+
+        if (context instanceof AsymmetricMatcher && context.matcherName === 'Some') {
+            expectRequest.scope.isSome = true
+            context = context.sample as WebdriverIO.Element[] | WebdriverIO.ElementArray | ChainablePromiseArray
         }
 
         const isContextObject = typeof context === 'object'
 
-        /**
-         * Check if context is an WebdriverIO.Element
-         */
-        if (isContextObject && 'selector' in context && 'selector' in context) {
-            expectRequest.element = context
-        }
-
-        /**
-         * Check if context is ChainablePromiseElement
-         */
-        if (isContextObject && 'then' in context && typeof (context as { selector: string }).selector === 'object') {
-            expectRequest.element = await context
+        if (context && isContextObject) {
+            /**
+             * Check if context is a Chainable (ChainablePromiseElement or ChainablePromiseArray)
+             */
+            if ('then' in context && typeof (context as { selector?: string }).selector === 'object') {
+                expectRequest.element = await context
+            } else if ('selector' in context) {
+                /**
+                 * Check if context is an WebdriverIO.Element or WebdriverIO.ElementArray
+                 */
+                expectRequest.element = context
+            } if (Array.isArray(context) && context.every((el) => 'selector' in el)) {
+                /**
+                 * Check if context is an array of elements (WebdriverIO.Element[]) aka filtered ElementArray
+                 */
+                expectRequest.element = context
+            }
         }
 
         /**
@@ -78,7 +109,7 @@ function createMatcher (matcherName: string) {
          */
         if (context instanceof Element) {
             expectRequest.element = await $(context as unknown as HTMLElement)
-        } else if (isContextObject && !('sessionId' in context)) {
+        } else if (context && isContextObject && !('sessionId' in context)) {
             /**
              * check if context is an object or promise and resolve it
              * but not pass through the browser object
@@ -99,8 +130,8 @@ function createMatcher (matcherName: string) {
          * an element from an existing HTMLElement, it might have custom properties
          * attached to it that can't be serialized.
          */
-        if (expectRequest.element && typeof expectRequest.element.selector !== 'string') {
-            expectRequest.element.selector = undefined
+        if (expectRequest.element && typeof (expectRequest.element as { selector: unknown }).selector !== 'string') {
+            (expectRequest.element as { selector: unknown }).selector = undefined
         }
 
         /**
@@ -186,4 +217,26 @@ import.meta.hot?.on(WDIO_EVENT_NAME, (message: Workers.SocketMessage) => {
     })
 })
 
-export { expect }
+function serializeAsymmetricMatchers(arg: unknown): unknown {
+    if (!arg || typeof arg !== 'object') {
+        return arg
+    }
+
+    const asymmetricArg = arg as { $$typeof?: symbol, sample?: unknown, inverse?: boolean, matcherName?: string, asymmetricMatch?: (other: unknown) => boolean }
+    // Handle asymmetric matchers (like expect.oneOf, expect.stringContaining)
+    if ('$$typeof' in asymmetricArg && asymmetricArg.$$typeof === asymmetricMatcher) {
+        return {
+            $$typeof: asymmetricArg.toString(),
+            matcherName: asymmetricArg.matcherName,
+            sample: serializeAsymmetricMatchers(asymmetricArg.sample)
+        }
+    }
+
+    if (Array.isArray(arg)) {
+        return arg.map(serializeAsymmetricMatchers)
+    }
+
+    return arg
+}
+
+export { expectWithHelpers as expect }

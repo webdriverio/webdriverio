@@ -119,6 +119,58 @@ class JunitReporter extends WDIOReporter {
         return suite
     }
 
+    /**
+     * Build a single <testcase> element from a TestStats entry. Shared between plain
+     * Mocha/Jasmine suites (`_addSuiteToBuilder`) and Cucumber feature suites whose
+     * scenarios are reported directly as tests (`cucumberOpts.scenarioLevelReporter`).
+     */
+    private _buildTestCase(testSuiteBuilder: any, test: TestStats, filePath: string, classNameFormat: string) {
+        const testName = this._prepareName(test.title)
+        const testCase = testSuiteBuilder.testCase()
+            .className(classNameFormat)
+            .name(testName)
+            .time(test._duration / 1000)
+
+        if (this.options.addFileAttribute) {
+            testCase.file(filePath)
+        }
+
+        if (test.state === 'pending' || test.state === 'skipped') {
+            testCase.skipped()
+            if (test.error) {
+                testCase.standardError(`\n${test.error.stack?.replace(ansiRegex, '') ?? ''}\n`)
+            }
+        } else if (test.state === 'failed') {
+            if (test.error) {
+                if (test.error.message) {
+                    test.error.message = test.error.message.replace(ansiRegex, '')
+                }
+
+                if (this.options.errorOptions) {
+                    const errorOptions = this.options.errorOptions
+                    for (const key of Object.keys(errorOptions)) {
+                        testCase[key]((test.error as any)[errorOptions[key]])
+                    }
+                } else {
+                    // default
+                    testCase.failure(test.error.message)
+                }
+                testCase.standardError(`\n${test.error.stack?.replace(ansiRegex, '') ?? ''}\n`)
+            } else {
+                testCase.failure()
+            }
+        }
+
+        for (const propName of Object.keys(this._testToAdditionalInformation[test.uid]?.properties ?? {})) {
+            testCase.property(propName, this._testToAdditionalInformation[test.uid].properties[propName])
+        }
+
+        const output = this._getStandardOutput(test)
+        if (output) {
+            testCase.standardOutput(`\n${output}\n`)
+        }
+    }
+
     private _addCucumberFeatureToBuilder(builder: any, runner: RunnerStats, specFileName: string, suite: SuiteStats) {
         const featureName = !this.options.suiteNameFormat || this.options.suiteNameFormat instanceof RegExp
             ? this._prepareName(suite.title)
@@ -137,6 +189,23 @@ class JunitReporter extends WDIOReporter {
                 .property(this._fileNameLabel, filePath)
             this._activeFeature = feature
             this._activeFeatureName = featureName
+
+            /**
+             * When `cucumberOpts.scenarioLevelReporter` is enabled, whole scenarios are
+             * reported as tests directly on the feature suite (no separate `scenario`
+             * suite is ever emitted), so we need to add them as test cases here.
+             */
+            for (const testKey of Object.keys(suite.tests)) {
+                if (testKey === 'undefined') {
+                    continue
+                }
+
+                const test = suite.tests[testKey as any]
+                const classNameFormat = this.options.classNameFormat
+                    ? this.options.classNameFormat({ packageName: this._packageName, activeFeatureName: featureName })
+                    : `${this._packageName}.${featureName}`
+                this._buildTestCase(feature, test, filePath, classNameFormat)
+            }
         } else if (this._activeFeature) {
             let scenario = suite
             const testName = this._prepareName(suite.title)
@@ -168,6 +237,10 @@ class JunitReporter extends WDIOReporter {
                     stepEmoji = '⚠️'
                 } else if (step.state === 'failed') {
                     if (step.error) {
+                        if (step.error.message) {
+                            step.error.message = step.error.message.replace(ansiRegex, '')
+                        }
+
                         if (this.options.errorOptions) {
                             const errorOptions = this.options.errorOptions
                             for (const key of Object.keys(errorOptions)) {
@@ -180,7 +253,7 @@ class JunitReporter extends WDIOReporter {
                             // default
                             testCase.failure(step.error.message)
                         }
-                        testCase.standardError(`\n${step.error.stack}\n`)
+                        testCase.standardError(`\n${step.error.stack?.replace(ansiRegex, '') ?? ''}\n`)
                     } else {
                         testCase.failure()
                     }
@@ -190,6 +263,18 @@ class JunitReporter extends WDIOReporter {
                 const output = this._getStandardOutput(step)
                 stepsOutput += output ? stepEmoji + ' ' + step.title : stepEmoji + ' ' + step.title + '\n' + output
             }
+
+            // Add properties for each step (Cucumber steps are tests in the scenario)
+            for (const stepKey of Object.keys(scenario.tests)) {
+                if (stepKey === 'undefined') {
+                    continue
+                }
+                const step = scenario.tests[stepKey as any]
+                for (const propName of Object.keys(this._testToAdditionalInformation[step.uid]?.properties ?? {})) {
+                    testCase.property(propName, this._testToAdditionalInformation[step.uid].properties[propName])
+                }
+            }
+
             testCase.standardOutput(`\n${stepsOutput}\n`)
         }
         return builder
@@ -224,53 +309,10 @@ class JunitReporter extends WDIOReporter {
             }
 
             const test = suite.tests[testKey as any]
-            const testName = this._prepareName(test.title)
             const classNameFormat = this.options.classNameFormat
                 ? this.options.classNameFormat({ packageName: this._packageName, suite })
                 : `${this._packageName}.${(suite.fullTitle || suite.title).replace(/\s/g, '_')}`
-            const testCase = testSuite.testCase()
-                .className(classNameFormat)
-                .name(testName)
-                .time(test._duration / 1000)
-
-            if (this.options.addFileAttribute) {
-                testCase.file(filePath)
-            }
-
-            if (test.state === 'pending' || test.state === 'skipped') {
-                testCase.skipped()
-                if (test.error) {
-                    testCase.standardError(`\n${test.error.stack?.replace(ansiRegex, '')}\n`)
-                }
-            } else if (test.state === 'failed') {
-                if (test.error) {
-                    if (test.error.message) {
-                        test.error.message = test.error.message.replace(ansiRegex, '')
-                    }
-
-                    if (this.options.errorOptions) {
-                        const errorOptions = this.options.errorOptions
-                        for (const key of Object.keys(errorOptions)) {
-                            testCase[key]((test.error as any)[errorOptions[key]])
-                        }
-                    } else {
-                        // default
-                        testCase.failure(test.error.message)
-                    }
-                    testCase.standardError(`\n${test.error.stack?.replace(ansiRegex, '')}\n`)
-                } else {
-                    testCase.failure()
-                }
-            }
-
-            for (const propName of Object.keys(this._testToAdditionalInformation[test.uid]?.properties ?? {})) {
-                testCase.property(propName, this._testToAdditionalInformation[test.uid].properties[propName])
-            }
-
-            const output = this._getStandardOutput(test)
-            if (output) {
-                testCase.standardOutput(`\n${output}\n`)
-            }
+            this._buildTestCase(testSuite, test, filePath, classNameFormat)
         }
         return builder
     }
@@ -297,6 +339,7 @@ class JunitReporter extends WDIOReporter {
             this._packageName = this.options.packageName || runner.sanitizedCapabilities
         }
         const isCucumberFrameworkRunner = runner.config.framework === 'cucumber'
+            || Object.values(this.suites).some((suite) => suite.type === 'feature' || suite.type === 'scenario')
         if (isCucumberFrameworkRunner) {
             this._packageName = `CucumberJUnitReport-${this._packageName}`
             this._suiteTitleLabel = 'featureName'
@@ -321,8 +364,20 @@ class JunitReporter extends WDIOReporter {
         const suiteKeys = Object.keys(this.suites)
 
         if (suiteKeys.length === 0) {
-            const error = this.runnerStat?.error ?? 'No tests found'
-            return builder.testCase().failure(error)
+            /**
+             * Because this function gets called twice for Cucumber, this conditional is to ensure that
+             * Cucumber and Mocha generate the same Junit report for empty suites. Otherwise, Cucumber reporter
+             * would generate two <testsuite>.
+             */
+            if (!isCucumberFrameworkRunner || (isCucumberFrameworkRunner && type === 'feature')) {
+                // Only create a test case if there was an actual error
+                // When no tests match filters (e.g., Cucumber tags), we should not report any tests
+                if (this.runnerStat?.error) {
+                    const testCase = builder.testSuite().testCase().className('').name('')
+                    return testCase.failure(this.runnerStat.error)
+                }
+                return builder
+            }
         }
 
         for (const suiteKey of Object.keys(this.suites)) {

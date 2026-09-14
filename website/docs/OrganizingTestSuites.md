@@ -215,6 +215,28 @@ To exclude all specs with the word “dialog” in the spec file names, you coul
 wdio wdio.conf.js --exclude dialog
 ```
 
+### Exclude an Entire Suite
+
+You can also exclude an entire suite by name. If the exclusion value matches a suite name defined in your config and doesn't look like a file path, the entire suite will be skipped:
+
+```sh
+wdio wdio.conf.js --suite login --suite checkout --exclude login
+```
+
+This will run only the `checkout` suite, skipping the `login` suite entirely.
+
+Mixed exclusions (suites and spec patterns) work as expected:
+
+```sh
+wdio wdio.conf.js --suite login --exclude dialog --exclude signup
+```
+
+In this example, if `signup` is a defined suite name, that suite will be excluded. The pattern `dialog` will filter out any spec files containing "dialog" in their filename.
+
+:::note
+If you specify both `--suite X` and `--exclude X`, the exclusion takes precedence and suite `X` will not run.
+:::
+
 When the `--exclude` option is provided, it will override any patterns defined by the config or capability level's `exclude` parameter.
 
 ## Run Suites and Test Specs

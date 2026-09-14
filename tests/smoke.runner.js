@@ -140,8 +140,7 @@ const jasmineTestrunner = async () => {
     }
 
     assert.strictEqual(skippedSpecs, 1)
-    assert.equal(
-        (await fs.readFile(logFile, 'utf-8')).toString(),
+    expect((await fs.readFile(logFile, 'utf-8')).toString()).toBe(
         [
             'expect(number).toBe(number)',
             'expect(number).toBe(number)',
@@ -160,6 +159,7 @@ const jasmineTestrunner = async () => {
             'expect(object).toBeDefined(function)',
             'expect(function).toBeInstanceOf(function)',
             'expect(object).testMatcher(number)',
+            'expect(string).toMatchInlineSnapshot(object)',
             ''
         ].join('\n')
     )
@@ -483,6 +483,38 @@ const cucumberFileOption = async () => {
 }
 
 /**
+ * Cucumber @skip() tag
+ */
+const cucumberSkipTag = async () => {
+    for (const capability of [
+        { browserName: 'chrome' },
+        { browserName: 'firefox' },
+        { browserName: 'edge', platformName: 'windows 10' },
+        { browserName: 'edge', platformName: 'MacOS' }
+    ]) {
+        const { skippedSpecs } = await launch(
+            'cucumberSkipTag',
+            path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
+            {
+                capabilities: [capability],
+                specs: [
+                    path.resolve(__dirname, 'cucumber', 'test.feature'),
+                    path.resolve(__dirname, 'cucumber', 'test-skipped.feature')
+                ],
+                cucumberOpts: {
+                    tags: '(not @SKIPPED_TAG)',
+                    ignoreUndefinedDefinitions: true,
+                    retry: 1,
+                    retryTagFilter: '@retry',
+                    scenarioLevelReporter: true
+                }
+            }
+        )
+        assert.strictEqual(skippedSpecs, 1)
+    }
+}
+
+/**
  * wdio test run with custom service
  */
 const customService = async () => {
@@ -638,7 +670,7 @@ const retryFail = async () => {
  */
 const retryPass = async () => {
     const retryFilename = path.resolve(__dirname, '.retry_succeeded')
-    const logfiles = ['wdio-0-0.log', 'wdio-0-1.log'].map(f => path.join(__dirname, f))
+    const logfiles = ['retry_and_pass-0-0.log', 'retry_and_pass-0-1.log'].map(f => path.join(__dirname, f))
     const rmfiles = [retryFilename, ...logfiles]
     for (const filename of rmfiles) {
         if (await fileExists(filename)) {
@@ -1098,15 +1130,19 @@ const jasmineAfterHookArgsValidation = async () => {
     // Remove dynamic values that will be different every time you run tests, e.g. start time or filepaths
     delete actualPassedTestLogs.test.start
     delete actualPassedTestLogs.test.filename
+    delete actualPassedTestLogs.test.file
     delete actualPassedTestLogs.result.start
     delete actualPassedTestLogs.result.filename
+    delete actualPassedTestLogs.result.file
     delete actualPassedTestLogs.duration
     delete actualFailedTestLogs.test.start
     delete actualFailedTestLogs.test.filename
+    delete actualFailedTestLogs.test.file
     delete actualFailedTestLogs.test.failedExpectations[0].stack
     delete actualFailedTestLogs.error.stack
     delete actualFailedTestLogs.result.start
     delete actualFailedTestLogs.result.filename
+    delete actualFailedTestLogs.result.file
     delete actualFailedTestLogs.result.failedExpectations[0].stack
     delete actualFailedTestLogs.duration
 
@@ -1132,6 +1168,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberPendingTest,
         cucumberReporter,
         cucumberFileOption,
+        cucumberSkipTag,
         standaloneTest,
         mochaAsyncTestrunner,
         customService,

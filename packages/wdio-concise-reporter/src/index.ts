@@ -1,4 +1,4 @@
-import type { SuiteStats, RunnerStats } from '@wdio/reporter'
+import { getBrowserName, type SuiteStats, type RunnerStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import chalk from 'chalk'
 
@@ -105,8 +105,7 @@ export default class ConciseReporter extends WDIOReporter {
     getEnviromentCombo (caps: WebdriverIO.Capabilities) {
         // @ts-expect-error `deviceName` and `device` are outdated JSONWP caps
         const device = caps.deviceName || caps['appium:deviceName'] || caps.device
-        // @ts-expect-error `browser` is an outdated JSONWP cap
-        const browser = caps.browserName || caps.browser
+        const browser = getBrowserName(caps)
         // @ts-expect-error `version` and `browser_version` are outdated JSONWP caps
         const version = caps.browserVersion || caps.version || caps['appium:platformVersion'] || caps.browser_version
         // @ts-expect-error `os`, `os_version` and `platform` are outdated JSONWP caps

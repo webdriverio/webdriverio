@@ -70,4 +70,14 @@ describe('Jasmine smoke test', () => {
             expect(1).testMatcher()
         })
     })
+
+    it('should support inline snapshots', () => {
+        expect({ deep: { foo: 'bar' } }).toMatchInlineSnapshot(`
+          {
+            "deep": {
+              "foo": "bar",
+            },
+          }
+        `)
+    })
 })

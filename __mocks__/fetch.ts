@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { vi } from 'vitest'
+import { beforeEach, vi } from 'vitest'
 
 /**
  * This flag helps to indicate that WebdriverIO is running in a unit test environment.
@@ -18,6 +18,23 @@ let manualMockResponse: any
 const path = '/session'
 
 const customResponses = new Set<{ pattern, response }>()
+/**
+ * simulates the cumulative effect of "wheel" scroll actions performed via
+ * `POST .../actions`, so a later `scrollIntoView` measurement (`execute/sync`
+ * evaluating `getBoundingClientRect` + `scrollX`) reflects the scroll a real
+ * browser would have applied, instead of always reporting the same
+ * unscrolled position.
+ */
+let simulatedScroll = { x: 0, y: 0 }
+
+// this file is a `setupFiles` entry, so this hook applies to every test in every file:
+// reset the module-level mock state above automatically, so no individual test file has
+// to remember to do it (and can't forget to, leaking state into later tests)
+beforeEach(() => {
+    customResponses.clear()
+    simulatedScroll = { x: 0, y: 0 }
+})
+
 const defaultSessionId = 'foobar-123'
 let sessionId = defaultSessionId
 const genericElementId = 'some-elem-123'
@@ -106,6 +123,7 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     ) {
         sessionResponse.capabilities.app = 'mockApp'
         delete sessionResponse.capabilities.browserName
+        delete sessionResponse.capabilities.browserVersion
     }
 
     if (
@@ -141,6 +159,25 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     }
 
     switch (uri.pathname) {
+    case `${path}/${sessionId}/actions`:
+        // accumulate any "wheel" scroll deltas so a later scrollIntoView
+        // measurement reflects the resulting scroll position
+        for (const action of body?.actions ?? []) {
+            if (action.type !== 'wheel') {
+                continue
+            }
+            for (const tick of action.actions ?? []) {
+                if (tick.type !== 'scroll') {
+                    continue
+                }
+                simulatedScroll = {
+                    x: simulatedScroll.x + (tick.deltaX || 0),
+                    y: simulatedScroll.y + (tick.deltaY || 0)
+                }
+            }
+        }
+        value = null
+        break
     case path:
         value = sessionResponse
 
@@ -152,6 +189,9 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
 
         if (body.capabilities.alwaysMatch.platformName && body.capabilities.alwaysMatch.platformName.includes('iOS')) {
             value.capabilities.platformName = 'iOS'
+        }
+        if (body.capabilities.alwaysMatch.platformName && body.capabilities.alwaysMatch.platformName.includes('Android')) {
+            value.capabilities.platformName = 'Android'
         }
 
         break
@@ -307,6 +347,18 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
             result = body.args[0][ELEMENT_KEY] === genericElementId
                 ? { [ELEMENT_KEY]: 'some-next-elem' }
                 : {}
+        } else if (body.script.includes('getBoundingClientRect') && body.script.includes('scrollX')) {
+            // scrollIntoView: combined rect + viewport + scroll metrics. `scroll`
+            // reflects any wheel actions simulated so far (see the `/actions` case)
+            // so a post-scroll re-measurement doesn't look identical to the first.
+            result = {
+                elemRect: { x: 15, y: 20, height: 30, width: 50 },
+                viewport: { width: 600, height: 800 },
+                scroll: { ...simulatedScroll },
+                // this default fixture models a simple, unobstructed page: the element is
+                // always genuinely visible/painted, matching the pre-`isPainted` mock behavior
+                isPainted: true
+            }
         } else if (body.script.includes('scrollX')) {
             result = [0, 0]
         } else if (body.script.includes('function isFocused')) {
@@ -403,6 +455,19 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         return Promise.reject(timeoutError)
     }
 
+    if (uri.pathname.endsWith('abortTimeout')) {
+        if (params?.signal?.aborted) {
+            return Promise.reject(params.signal.reason)
+        }
+
+        if (requestMock.retryCnt < 5) {
+            ++requestMock.retryCnt
+            return Promise.reject(
+                new DOMException('The operation was aborted due to timeout', 'TimeoutError')
+            )
+        }
+    }
+
     if (uri.pathname.startsWith(`/session/${sessionId}/element/`) && uri.pathname.includes('/attribute/')) {
         value = `${uri.pathname.substring(uri.pathname.lastIndexOf('/') + 1)}-value`
     }
@@ -484,6 +549,35 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     }
 
     /**
+     * simulate failing response with HTML
+     */
+    if (uri.pathname === '/failing-html') {
+        ++requestMock.retryCnt
+
+        /**
+         * success this request if you retry 3 times
+         */
+        if (requestMock.retryCnt > 3) {
+            const response = { value: 'caught-html' }
+
+            return Response.json(response, {
+                status: 200,
+                headers: { foo: 'bar' }
+            })
+        }
+
+        return new Response('<html>\n' +
+            '<head><title>504 Gateway Time-out</title></head>\n' +
+            '<body>\n' +
+            '<center><h1>504 Gateway Time-out</h1></center>\n' +
+            '</body>\n' +
+            '</html>', {
+            status: 504,
+            headers: { 'Content-Type': 'text/html' }
+        })
+    }
+
+    /**
      * overwrite if manual response is set
      */
     let statusCode = 200
@@ -528,6 +622,21 @@ requestMock.customResponseFor = (pattern: RegExp, response: any) => {
         customResponses.delete(existingEntry)
     }
     customResponses.add({ pattern, response })
+}
+/**
+ * `customResponseFor` registrations are otherwise permanent for the lifetime of this
+ * module - call this (e.g. in an `afterEach`) to undo a temporary override once a test
+ * is done with it, so it doesn't leak into later tests.
+ */
+requestMock.resetCustomResponses = () => {
+    customResponses.clear()
+}
+/**
+ * resets the scroll position simulated for `wheel` actions (see `simulatedScroll`) -
+ * call this (e.g. in an `afterEach`) so it doesn't leak between tests.
+ */
+requestMock.resetSimulatedScroll = () => {
+    simulatedScroll = { x: 0, y: 0 }
 }
 
 requestMock.getSessionId = () => sessionId

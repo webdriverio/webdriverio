@@ -26,7 +26,7 @@
 export async function throttleCPU (
     this: WebdriverIO.Browser,
     factor: number
-) {
+): Promise<void> {
     if (typeof factor !== 'number') {
         throw new Error('Invalid factor for "throttleCPU". Expected it to be a number (int)')
     }

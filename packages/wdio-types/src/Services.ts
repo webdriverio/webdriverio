@@ -32,11 +32,27 @@ export interface ServiceOption {
 
 export interface ServiceClass {
     new(options: WebdriverIO.ServiceOption, capabilities: ResolvedTestrunnerCapabilities, config: WebdriverIOOptions): ServiceInstance
+    /**
+     * Runs in a worker before construction. Return false to skip this service for the worker.
+     */
+    shouldRun?(
+        options: WebdriverIO.ServiceOption,
+        capabilities: ResolvedTestrunnerCapabilities,
+        config: WebdriverIOOptions
+    ): boolean | Promise<boolean>
 }
 
 export interface ServicePlugin extends ServiceClass {
     default: ServiceClass
     launcher?: ServiceClass
+    /**
+     * Runs once per package in the launcher. Return false to skip importing the package in workers.
+     * Launcher services are still initialized.
+     */
+    shouldLoad?(
+        config: Omit<TestrunnerOptions, 'capabilities' | keyof HookFunctions>,
+        capabilities: TestrunnerCapabilities
+    ): boolean | Promise<boolean>
 }
 
 export interface ServiceInstance extends HookFunctions {

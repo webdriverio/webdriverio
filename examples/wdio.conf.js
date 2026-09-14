@@ -289,8 +289,8 @@ exports.config = {
      * Runs after a WebdriverIO command gets executed.
      * @param {string} commandName hook command name
      * @param {Array} args arguments that command would receive
-     * @param {number} result 0 - command success, 1 - command error
-     * @param {object} error error object if any
+     * @param {*} result result of the command
+     * @param {Error} error error object if any
      */
     afterCommand: function (commandName, args, result, error) {
     },

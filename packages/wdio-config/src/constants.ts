@@ -1,12 +1,14 @@
-import type { Options, Services } from '@wdio/types'
+import type { Services } from '@wdio/types'
 
 const DEFAULT_TIMEOUT = 10000
+const DEFAULT_MAX_INSTANCES_PER_CAPABILITY = 100
 
 /* istanbul ignore next */
-export const DEFAULT_CONFIGS: () => Options.Testrunner = () => ({
+export const DEFAULT_CONFIGS: () => WebdriverIO.Config = () => ({
     specs: [],
     suites: {},
     exclude: [],
+    capabilities: [],
     outputDir: undefined,
     logLevel: 'info' as const,
     logLevels: {},
@@ -19,7 +21,7 @@ export const DEFAULT_CONFIGS: () => Options.Testrunner = () => ({
     reporters: [],
     services: [],
     maxInstances: 100,
-    maxInstancesPerCapability: 100,
+    maxInstancesPerCapability: DEFAULT_MAX_INSTANCES_PER_CAPABILITY,
     injectGlobals: true,
     filesToWatch: [],
     connectionRetryTimeout: 120000,
@@ -34,6 +36,7 @@ export const DEFAULT_CONFIGS: () => Options.Testrunner = () => ({
     specFileRetries: 0,
     specFileRetriesDelay: 0,
     specFileRetriesDeferred: false,
+    autoAssertOnTestEnd: true,
     reporterSyncInterval: 100,
     reporterSyncTimeout: 5000,
     cucumberFeaturesWithLineNumbers: [],
@@ -85,6 +88,8 @@ export const DEFAULT_CONFIGS: () => Options.Testrunner = () => ({
     afterFeature: []
 })
 
+export const DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE = DEFAULT_MAX_INSTANCES_PER_CAPABILITY
+
 export const SUPPORTED_HOOKS: (keyof Services.Hooks)[] = [
     'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
@@ -95,7 +100,7 @@ export const SUPPORTED_HOOKS: (keyof Services.Hooks)[] = [
 ]
 
 export const SUPPORTED_FILE_EXTENSIONS = [
-    '.js', '.jsx', '.mjs', '.mts', '.es6', '.ts', '.tsx', '.feature', '.coffee', '.cjs'
+    '.js', '.jsx', '.mjs', '.mts', '.es6', '.ts', '.tsx', '.feature', '.coffee', '.cjs', '.cts'
 ]
 
 export const NO_NAMED_CONFIG_EXPORT = (

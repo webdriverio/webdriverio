@@ -52,6 +52,12 @@ const DEFAULT_WAIT_STATE = 'complete'
  *
  * The command supports the following options:
  *
+ * :::note
+ *
+ * These features unfortunately won't be available to you if your remote environment doesn't support WebDriver Bidi. You can check if Bidi is support in your session by looking into the `browser.isBidi` property.
+ *
+ * :::
+ *
  * ### wait
  * The desired state the requested resource should be in before finishing the command.
  * It supports the following states:
@@ -223,7 +229,9 @@ export async function url (
                 // Chrome error message
                 err.message.includes('navigation canceled by concurrent navigation') ||
                 // Firefox error message
-                err.message.includes('failed with error: unknown error')
+                err.message.includes('failed with error: unknown error') ||
+                // Race condition where the context is destroyed before navigation
+                err.message.includes('no such frame')
             ) {
                 return this.navigateTo(validateUrl(path))
             }

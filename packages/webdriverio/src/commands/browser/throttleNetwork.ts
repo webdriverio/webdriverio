@@ -114,7 +114,7 @@ const NETWORK_PRESET_TYPES = Object.keys(NETWORK_PRESETS)
 export async function throttleNetwork (
     this: WebdriverIO.Browser,
     params: ThrottleOptions
-) {
+): Promise<void> {
     if (
         /**
          * check string parameter
@@ -134,7 +134,7 @@ export async function throttleNetwork (
     if (this.isSauce) {
         const browser = getBrowserObject(this)
         await browser.sauceThrottleNetwork(params)
-        return null
+        return
     }
 
     const failedConnectionMessage = 'No Puppeteer connection could be established which is required to use this command'
@@ -161,5 +161,5 @@ export async function throttleNetwork (
             : params
     )
 
-    return null
+    return
 }

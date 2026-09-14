@@ -37,7 +37,7 @@ test('sumByKey', () => {
 test('setUnsupportedCommand', () => {
     const browser = { addCommand: vi.fn() }
     setUnsupportedCommand(browser as unknown as WebdriverIO.Browser)
-    expect(browser.addCommand).toHaveBeenCalledWith('getMetrics', expect.any(Function))
+    expect(browser.addCommand).toHaveBeenCalledWith('getMetrics', expect.any(Function), expect.any(Object))
     const fn = browser.addCommand.mock.calls[0][1]
     expect(fn).toThrow()
 })

@@ -4,7 +4,7 @@ import { wrapGlobalTestMethod } from '@wdio/utils'
 
 import { loadModule, formatMessage, setupEnv, requireExternalModules } from '../src/common.js'
 declare global {
-    // eslint-disable-next-line no-var
+
     var foo: string | undefined
 }
 

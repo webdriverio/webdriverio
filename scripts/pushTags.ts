@@ -6,7 +6,7 @@
  */
 import shell from 'shelljs'
 
-import pkg from '../lerna.json' assert { type: 'json' }
+import pkg from '../lerna.json' with { type: 'json' }
 
 console.log('\nPushing release tag...')
 shell.exec(`git push origin refs/tags/v${pkg.version} -f --no-verify`)

@@ -46,7 +46,7 @@ async function bar() {
     const location = await mElem.getLocation('x')
     expectType<number[]>(location)
 
-    const url = await multiremotebrowser.getUrl()
+    const url = await multiRemoteBrowser.getUrl()
     expectType<string[]>(url)
 
     multiremote({
@@ -92,13 +92,9 @@ async function bar() {
     // element
     browser.addCommand('getClass', async function () {
         return this.getAttribute('class').catch()
-    }, true)
+    }, { attachToElement: true })
 
     // browser
-    browser.addCommand('sleep', async function (ms: number) {
-        return this.pause(ms).catch()
-    }, false)
-
     browser.addCommand('sleep', async function (ms: number) {
         return this.pause(ms).catch()
     })
@@ -220,7 +216,7 @@ async function bar() {
         left: 5,
         right: 5,
         shrinkToFit: true,
-        pageRanges: [{}]
+        pageRanges: ['1', 2]
     })
 
     await browser.savePDF('./packages/bar.pdf')
@@ -468,6 +464,17 @@ async function bar() {
     expectType<void>(
         await browser.$$('foo').forEach(() => true)
     )
+    expectType<void>(
+        await browser.$$('foo').forEach(async (el) => {
+            expectType<WebdriverIO.Element>(el)
+            await el.getText()
+        })
+    )
+    expectType<void>(
+        await browser.$$('foo').forEachSeries(async (el) => {
+            await el.getText()
+        })
+    )
     expectType<string[]>(
         await browser.$('foo').$$('bar').map((el) => {
             expectType<WebdriverIO.Element>(el)
@@ -518,6 +525,15 @@ async function bar() {
     const elemArrayTest: WebdriverIO.ElementArray = {} as any
     expectType<string>(elemArrayTest.foundWith)
     expectType<WebdriverIO.Element>(elemArrayTest[123])
+
+    // event listeners support both sync and async functions
+    browser.on('dialog', (dialog) => dialog.dismiss())
+    browser.on('dialog', async (dialog) => {
+        await dialog.dismiss()
+    })
+    browser.once('dialog', async (dialog) => {
+        await dialog.dismiss()
+    })
 
     // getElement type check
     const singleChainedElement = await browser.$('foo').getElement()

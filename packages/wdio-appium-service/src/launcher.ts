@@ -18,6 +18,8 @@ import { isAppiumCapability } from '@wdio/utils'
 import { getFilePath, formatCliArgs } from './utils.js'
 import type { AppiumServerArguments, AppiumServiceConfig } from './types.js'
 import treeKill from 'tree-kill'
+import { aggregateSelectorPerformanceData } from './mobileSelectorPerformanceOptimizer/aggregator.js'
+import { determineReportDirectory } from './mobileSelectorPerformanceOptimizer/utils/index.js'
 
 const log = logger('@wdio/appium-service')
 const DEFAULT_APPIUM_PORT = 4723
@@ -164,7 +166,9 @@ export default class AppiumLauncher implements Services.ServiceInstance {
          * start Appium
          */
         const command = await this._getCommand(this._options.command)
-        this._process = await this._startAppium(command, this._appiumCliArgs)
+
+        const timeout = this._options.appiumStartTimeout ?? APPIUM_START_TIMEOUT
+        this._process = await this._startAppium(command, this._appiumCliArgs, timeout)
 
         if (this._logPath) {
             this._redirectLogStream(this._logPath)
@@ -184,8 +188,32 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     }
 
     private promisifiedTreeKill = promisify<number, string>(treeKill)
-    async onComplete() {
+    async onComplete(exitCode: number, config: Options.Testrunner, capabilities: Capabilities.TestrunnerCapabilities) {
         this._isShuttingDown = true
+
+        const trackConfig = this._options.trackSelectorPerformance
+        if (trackConfig && typeof trackConfig === 'object' && !Array.isArray(trackConfig)) {
+            try {
+                const reportDirectory = determineReportDirectory(
+                    trackConfig.reportPath,
+                    this._config,
+                    this._options
+                )
+                const maxLineLength = trackConfig.maxLineLength || 100
+                const enableCliReport = trackConfig.enableCliReport === true
+                const enableMarkdownReport = trackConfig.enableMarkdownReport === true
+                await aggregateSelectorPerformanceData(
+                    capabilities,
+                    maxLineLength,
+                    undefined,
+                    reportDirectory,
+                    { enableCliReport, enableMarkdownReport }
+                )
+            } catch (err) {
+                log.error('Failed to aggregate selector performance data:', err)
+            }
+        }
+
         /**
          * Kill appium and all process' spawned from it
          */
@@ -221,7 +249,12 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     }
     private _startAppium(command: string, args: Array<string>, timeout = APPIUM_START_TIMEOUT) {
         log.info(`Will spawn Appium process: ${command} ${args.join(' ')}`)
-        const appiumProcess: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+        /**
+         * We need to pass a clean NODE_OPTIONS to prevent the child process from inheriting
+         * the tsx loader from the parent process (when running with TypeScript config).
+         */
+        const appiumEnv = { ...process.env, NODE_OPTIONS: '' }
+        const appiumProcess: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'], env: appiumEnv })
         // just for validate the first error
         let errorCaptured = false
         // to set a timeout for the promise
@@ -255,17 +288,22 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             }
 
             /**
-             * only capture first error to print it in case Appium failed to start.
+             * Appium writes all log output (debug, info, warn, error) to stderr, so we cannot
+             * distinguish real errors from normal log output in the data handler.
+             * Accumulate stderr for error reporting and let the exit/timeout handlers detect failures.
              */
             const onErrorMessage = (data: Buffer) => {
-                /**
-                 * filter 'Debugger attached' message as it is not an error
-                 */
-                error = data.toString() || 'Appium exited without unknown error message'
-                if (!data.toString().includes('Debugger attached')) {
-                    log.error(error)
+                const message = data.toString()
+
+                const isDebuggerMessage = message.includes('Debugger attached') ||
+                    message.includes('Debugger listening on') ||
+                    message.includes('For help, see: https://nodejs.org/en/docs/inspector')
+
+                if (isDebuggerMessage) {
+                    return
                 }
-                rejectOnce(new Error(error))
+
+                error = (error || '') + message
             }
 
             const onStdout = (data: Buffer) => {
@@ -282,16 +320,16 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             }
 
             appiumProcess.stdout.on('data', onStdout)
-            appiumProcess.stderr.once('data', onErrorMessage)
+            appiumProcess.stderr.on('data', onErrorMessage)
             appiumProcess.once('exit', (exitCode: number) => {
                 if (this._isShuttingDown) {
                     return
                 }
                 let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
                 if (exitCode === 2) {
-                    errorMessage += '\n' + (error?.toString() || 'Check that you don\'t already have a running Appium service.')
-                } else if (errorCaptured) {
-                    errorMessage += `\n${error?.toString()}`
+                    errorMessage += '\n' + (error || 'Check that you don\'t already have a running Appium service.')
+                } else if (error) {
+                    errorMessage += `\n${error}`
                 }
                 if (exitCode !== 0) {
                     log.error(errorMessage)
@@ -302,7 +340,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     }
 
     private async _redirectLogStream(logPath: string) {
-        if (!this._process){
+        if (!this._process) {
             throw Error('No Appium process to redirect log stream')
         }
         const logFile = getFilePath(logPath, DEFAULT_LOG_FILENAME)
@@ -316,7 +354,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         this._process.stderr.pipe(logStream)
     }
 
-    private static async _getAppiumCommand (command = 'appium') {
+    private static async _getAppiumCommand(command = 'appium') {
         try {
             const entryPath = await resolve(command, import.meta.url)
             return url.fileURLToPath(entryPath)

@@ -3,17 +3,18 @@ import type { ClientOptions, RawData, WebSocket } from 'ws'
 
 import { environment } from '../environment.js'
 import type * as remote from './remoteTypes.js'
+import type * as local from './localTypes.js'
 import type { CommandData } from './remoteTypes.js'
 import type { CommandResponse, ErrorResponse } from './localTypes.js'
 
 import type { Client } from '../types.js'
+import { isBase64Safe } from './utils.js'
 
 const SCRIPT_PREFIX = '/* __wdio script__ */'
 const SCRIPT_SUFFIX = '/* __wdio script end__ */'
-const base64Regex = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$/
 
 const log = logger('webdriver')
-const RESPONSE_TIMEOUT = 1000 * 60
+export const DEFAULT_RESPONSE_TIMEOUT = 1000 * 180
 
 export class BidiCore {
     #id = 0
@@ -22,6 +23,7 @@ export class BidiCore {
     #resolveWaitForConnected: (value: boolean) => void
     #webSocketUrl: string
     #clientOptions: ClientOptions | undefined
+    #responseTimeout: number
     #pendingCommands: Map<number, (value: CommandResponse) => void> = new Map()
 
     client: Client | undefined
@@ -30,9 +32,18 @@ export class BidiCore {
      */
     private _isConnected = false
 
-    constructor (webSocketUrl: string, opts?: ClientOptions) {
+    constructor (
+        webSocketUrl: string,
+        opts?: ClientOptions,
+        responseTimeout = DEFAULT_RESPONSE_TIMEOUT
+    ) {
+        if (!Number.isFinite(responseTimeout) || responseTimeout <= 0) {
+            throw new TypeError('The option "bidiResponseTimeout" needs to be a positive number')
+        }
+
         this.#webSocketUrl = webSocketUrl
         this.#clientOptions = opts
+        this.#responseTimeout = responseTimeout
         this.#resolveWaitForConnected = () => {}
         this.#waitForConnected = new Promise((resolve) => {
             this.#resolveWaitForConnected = resolve
@@ -124,7 +135,7 @@ export class BidiCore {
              * of the result instead of the raw base64 encoded string
              */
             let resultLog = data.toString()
-            if (typeof payload.result === 'object' && payload.result && 'data' in payload.result && typeof payload.result.data === 'string' && base64Regex.test(payload.result.data)) {
+            if (typeof payload.result === 'object' && payload.result && 'data' in payload.result && typeof payload.result.data === 'string' && isBase64Safe(payload.result.data)) {
                 resultLog = JSON.stringify({
                     ...payload.result,
                     data: `Base64 string [${payload.result.data.length} chars]`
@@ -152,9 +163,12 @@ export class BidiCore {
         const failError = new Error(`WebDriver Bidi command "${params.method}" failed`)
         const payload = await new Promise<CommandResponse | ErrorResponse>((resolve, reject) => {
             const t = setTimeout(() => {
-                reject(new Error(`Command ${params.method} with id ${id} (with the following parameter: ${JSON.stringify(params.params)}) timed out`))
+                reject(new Error(
+                    `Command ${params.method} with id ${id} timed out after ${this.#responseTimeout}ms! ` +
+                    'Consider increasing the "bidiResponseTimeout" option.'
+                ))
                 this.#pendingCommands.delete(id)
-            }, RESPONSE_TIMEOUT)
+            }, this.#responseTimeout)
             this.#pendingCommands.set(id, (payload) => {
                 clearTimeout(t)
                 resolve(payload)
@@ -162,9 +176,10 @@ export class BidiCore {
         })
 
         if (payload.type === 'error' || 'error' in payload) {
-            failError.message += ` with error: ${payload.error} - ${payload.message}`
-            if (payload.stacktrace && typeof payload.stacktrace === 'string') {
-                const driverStack = payload.stacktrace
+            const error = payload as local.ErrorResponse
+            failError.message += ` with error: ${payload.error} - ${error.message}`
+            if (error.stacktrace && typeof error.stacktrace === 'string') {
+                const driverStack = error.stacktrace
                     .split('\n')
                     .filter(Boolean)
                     .map((line: string) => `    at ${line}`)

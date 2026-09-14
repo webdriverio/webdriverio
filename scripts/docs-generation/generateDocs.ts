@@ -3,15 +3,17 @@ import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
 
-import sidebars from '../../website/_sidebars.json' assert { type: 'json' }
+import sidebars from '../../website/_sidebars.json' with { type: 'json' }
 import { generateProtocolDocs } from './protocolDocs.js'
 import { generateWdioDocs } from './wdioDocs.js'
 import { generateReportersAndServicesDocs } from './packagesDocs.js'
 import { generate3rdPartyDocs } from './3rdPartyDocs.js'
 import { generateElectronDocs } from './electronDocs.js'
+import { generateTauriDocs } from './tauriDocs.js'
 import { generateEventDocs } from './eventDocs.js'
 import { copyContributingDocs } from './copyContributingDocs.js'
 import { downloadAwesomeResources } from './downloadAwesomeResources.js'
+import { downloadDocsTranslations } from './downloadDocsTranslations.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -43,12 +45,15 @@ try {
     await generate3rdPartyDocs(sidebars)
     print('Generate Event Docs')
     await generateEventDocs()
-    print('Copy over Electron Service Resources')
+    print('Generate Desktop Service Docs (Electron + Tauri)')
     await generateElectronDocs()
+    await generateTauriDocs()
     print('Copy over Contributing Guidelines')
     await copyContributingDocs()
     print('Copy over Awesome Resources')
     await downloadAwesomeResources()
+    print('Download docs translations')
+    await downloadDocsTranslations()
 
     writeSidebars(sidebars)
 

@@ -61,4 +61,17 @@ describe('waitForStable', () => {
         await expect(elem.waitForStable()).rejects.toThrowError('You are checking for animations on an inactive tab, animations do not run for inactive tabs')
     })
 
+    it('should throw an error if in native context', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'Android',
+                mobileMode: true,
+                nativeAppMode: true,
+            } as any
+        })
+        const elem = await browser.$('#foo')
+
+        await expect(elem.waitForStable()).rejects.toThrow('The `waitForStable` command is only available for desktop and mobile browsers.')
+    })
 })

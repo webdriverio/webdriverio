@@ -248,6 +248,28 @@ describe('cli interface', () => {
             }, 3, 'msg')).toEqual(['[cid]', 'msg', 'in', 'foo', '- bar', '(3 retries)'])
         })
 
+        it('browser version appears well', ()=>{
+            expect(wdioClInterface.onJobComplete('cid', {
+                caps: { browserName: 'foo', browserVersion: 'stable' },
+                specs: ['bar'],
+                hasTests: true
+            }, 3, 'msg')).toEqual(['[cid]', 'msg', 'in', 'foo(stable)', '- bar', '(3 retries)'])
+        })
+
+        it('platform name appears well', ()=>{
+            expect(wdioClInterface.onJobComplete('cid', {
+                caps: { browserName: 'foo', platformName: 'mac' },
+                specs: ['bar'],
+                hasTests: true
+            }, 3, 'msg')).toEqual(['[cid]', 'msg', 'in', 'foo', 'on', 'mac', '- bar', '(3 retries)'])
+
+            expect(wdioClInterface.onJobComplete('cid', {
+                caps: { browserName: 'foo', 'appium:deviceName': 'iPhone 12' },
+                specs: ['bar'],
+                hasTests: true
+            }, 3, 'msg')).toEqual(['[cid]', 'msg', 'in', 'foo', 'on', 'iPhone 12', '- bar', '(3 retries)'])
+        })
+
         it('job is undefined without retries', () => {
             expect(wdioClInterface.onJobComplete('cid', undefined, 0, 'msg')).toEqual(['[cid]', 'msg'])
         })

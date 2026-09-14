@@ -46,14 +46,14 @@ Default: `undefined`
 
 ### user
 
-Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
+Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [TestMu AI](https://www.testmuai.com/) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
 
 Type: `String`<br />
 Default: `undefined`
 
 ### key
 
-Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
+Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [TestMu AI](https://www.testmuai.com/) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
 
 Type: `String`<br />
 Default: `undefined`
@@ -86,7 +86,7 @@ Default: `null`
 }
 ```
 
-If you’re running web or native tests on mobile devices, `capabilities` differs from the WebDriver protocol. See the [Appium Docs](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) for more details.
+If you’re running web or native tests on mobile devices, `capabilities` differs from the WebDriver protocol. See the [Appium Docs](https://appium.io/docs/en/latest/guides/caps/) for more details.
 
 ### logLevel
 
@@ -118,6 +118,13 @@ Maximum count of request retries to the Selenium server.
 
 Type: `Number`<br />
 Default: `3`
+
+### bidiResponseTimeout
+
+Timeout (in ms) for a WebDriver Bidi command to receive a response from the browser. Increase this if you run commands, e.g. [`execute`](/docs/api/browser/execute), that legitimately take longer than the default to resolve, otherwise WebdriverIO gives up waiting before the browser is done.
+
+Type: `Number`<br />
+Default: `180000`
 
 ### agent
 
@@ -196,6 +203,23 @@ The path to the root of the cache directory. This directory is used to store all
 
 Type: `String`<br />
 Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
+
+### maskingPatterns
+
+For more secure logging, regular expressions set with `maskingPatterns` can obfuscate sensitive information from the log.
+ - The string format is a regular expression with or without flags (e.g. `/.../i`) and comma-separated for multiple regular expressions.
+ - For more details on masking patterns, see the [Masking Patterns section in the WDIO Logger README](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-logger/README.md#masking-patterns).
+
+Type: `String`<br />
+Default: `undefined`
+
+**Example:**
+
+```js
+{
+    maskingPatterns: '/--key=([^ ]*)/i,/RESULT (.*)/'
+}
+```
 
 ---
 
@@ -285,15 +309,23 @@ Default interval for all `waitFor*` commands to check if an expected state (e.g.
 Type: `Number`<br />
 Default: `100`
 
+### maxSpyCollectedBodySize
+
+Maximum size of the response body (in bytes) that can be returned when using the [`mock`](/docs/api/browser/mock) command. Use `0` to disable data collection of the spied payload.
+
+Type: `Number`<br />
+Default: `10485760` (10MB)
+
 ### region
 
-If running on Sauce Labs, you can choose to run tests between different data centers: US or EU.
-To change your region to EU, add `region: 'eu'` to your config.
+If running on Sauce Labs, you can choose to run tests between different data centers.
+Use short region handles `us` (default, maps to `us-west-1`) or `eu` (maps to `eu-central-1`), or the full region names directly.
 
 __Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
 
 Type: `String`<br />
-Default: `us`
+Default: `us`<br />
+Options: `us` | `eu` | `us-west-1` | `eu-central-1` | `us-east-4` | `staging`
 
 *(only for vm and or em/simulators)*
 
@@ -319,7 +351,7 @@ Default: `[]`
 
 ### suites
 
-An object describing various of suites, which you can then specify with the `--suite` option on the `wdio` CLI.
+An object describing various suites, which you can then specify with the `--suite` option on the `wdio` CLI.
 
 Type: `Object`<br />
 Default: `{}`
@@ -407,6 +439,13 @@ By default, it is set to `false` so logs are printed in real-time.
 Type: `Boolean`<br />
 Default: `false`
 
+### autoAssertOnTestEnd
+
+Controls whether WebdriverIO automatically asserts all soft assertions at the end of each test. When set to `true`, any accumulated soft assertions will be automatically checked and cause the test to fail if any assertions failed. When set to `false`, you must manually call the assert method to check soft assertions.
+
+Type: `Boolean`<br />
+Default: `true`
+
 ### services
 
 Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort.
@@ -420,7 +459,7 @@ Defines the test framework to be used by the WDIO testrunner.
 
 Type: `String`<br />
 Default: `mocha`<br />
-Options: `mocha` | `jasmine`
+Options: `mocha` | `jasmine` | `cucumber`
 
 ### mochaOpts, jasmineOpts and cucumberOpts
 
@@ -627,7 +666,7 @@ Parameters:
 
 - `commandName` (`string`): command name
 - `args` (`*`): arguments that command would receive
-- `result` (`number`): 0 - command success, 1 - command error
+- `result` (`*`): result of the command
 - `error` (`Error`): error object if any
 
 ### afterTest

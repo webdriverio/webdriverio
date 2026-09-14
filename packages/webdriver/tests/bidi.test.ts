@@ -1,6 +1,5 @@
 import path from 'node:path'
 import { describe, it, vi, expect, beforeAll, afterAll } from 'vitest'
-import { WebSocket as ws } from 'ws'
 
 import '../src/node.js'
 import { BidiCore, parseBidiCommand } from '../src/bidi/core.js'
@@ -83,11 +82,23 @@ describe('BidiCore', () => {
                 .rejects.toMatchSnapshot()
         })
 
+        it('rejects a non-positive responseTimeout', () => {
+            expect(() => new BidiCore('ws://foo/bar', undefined, 0)).toThrow(
+                'The option "bidiResponseTimeout" needs to be a positive number'
+            )
+            expect(() => new BidiCore('ws://foo/bar', undefined, -1)).toThrow(
+                'The option "bidiResponseTimeout" needs to be a positive number'
+            )
+            expect(() => new BidiCore('ws://foo/bar', undefined, NaN)).toThrow(
+                'The option "bidiResponseTimeout" needs to be a positive number'
+            )
+        })
+
         it('sends and waits for result', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()
-            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => {}]
-            cb.call(this as  any)
+            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => { }]
+            cb.call(this as any)
 
             vi.mocked(handler.socket?.on)?.mockClear()
             const promise = handler.send({ method: 'session.new', params: {} })
@@ -102,8 +113,8 @@ describe('BidiCore', () => {
         it('has a proper error stack that contains the line where the command is called', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()
-            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => {}]
-            cb.call(this as  any)
+            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => { }]
+            cb.call(this as any)
 
             const promise = handler.send({ method: 'session.new', params: {} })
             setTimeout(
@@ -117,9 +128,38 @@ describe('BidiCore', () => {
 
             const error = await promise.catch((err) => err)
             const errorMessage = 'WebDriver Bidi command "session.new" failed with error: foobar - I am an error!'
-            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:108:').slice(1))
+            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:119:').slice(1))
             expect(error.stack).toContain(errorMessage)
             expect(error.message).toBe(errorMessage)
+        })
+
+        it('times out if the browser does not respond in time', async () => {
+            vi.useFakeTimers()
+            const handler = new BidiCore('ws://foo/bar', undefined, 1000)
+            await handler.connect()
+
+            const promise = handler.send({ method: 'session.new', params: {} })
+            const error = promise.catch((err: Error) => err)
+            await vi.advanceTimersByTimeAsync(1000)
+            expect((await error).message).toContain('timed out after 1000ms')
+
+            /**
+             * a late response should not resolve the already rejected command
+             */
+            handler.__handleResponse.call(this as any, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
+            vi.useRealTimers()
+        })
+
+        it('does not time out before the configured response timeout', async () => {
+            vi.useFakeTimers()
+            const handler = new BidiCore('ws://foo/bar', undefined, 100000)
+            await handler.connect()
+
+            const promise = handler.send({ method: 'session.new', params: {} })
+            await vi.advanceTimersByTimeAsync(90000)
+            handler.__handleResponse.call(this as any, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
+            await expect(promise).resolves.toEqual({ id: 1, result: 'foobar' })
+            vi.useRealTimers()
         })
 
         it('should pass custom headers to Bidi Core', async () => {
@@ -150,8 +190,8 @@ describe('BidiCore', () => {
         it('can send without getting an result', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()
-            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => {}]
-            cb.call(this as  any)
+            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => { }]
+            cb.call(this as any)
 
             expect(handler.sendAsync({ method: 'session.new', params: {} }))
                 .toEqual(1)

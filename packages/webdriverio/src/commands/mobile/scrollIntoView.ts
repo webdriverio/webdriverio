@@ -6,6 +6,13 @@
  *
  * Scrolling for Mobile Native Apps is done based on the mobile `swipe` command.
  *
+ * This command only works with the following up-to-date components:
+ *  - Appium server (version 2.0.0 or higher)
+ *  - `appium-uiautomator2-driver` (for Android)
+ *  - `appium-xcuitest-driver` (for iOS)
+ *
+ * Make sure your local or cloud-based Appium environment is regularly updated to avoid compatibility issues.
+ *
  * :::
  *
  * <example>

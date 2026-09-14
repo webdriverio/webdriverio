@@ -8,19 +8,23 @@ import { getContextManager } from './context.js'
  * register all session relevant singletons on the instance
  */
 export function registerSessionManager(instance: WebdriverIO.Browser) {
+    // Register ContextManager for all sessions
+    const initializationPromises: Promise<unknown>[] = [
+        getContextManager(instance).initialize(),
+    ]
+
     /**
      * only register session manager for sessions that appear to support
      * WebDriver Bidi
      */
-    if (typeof instance.capabilities.webSocketUrl !== 'string') {
-        return
+    if (typeof instance.capabilities.webSocketUrl === 'string') {
+        initializationPromises.push(
+            getPolyfillManager(instance).initialize(),
+            getShadowRootManager(instance).initialize(),
+            getNetworkManager(instance).initialize(),
+            getDialogManager(instance).initialize()
+        )
     }
 
-    return Promise.all([
-        getPolyfillManager(instance).initialize(),
-        getShadowRootManager(instance).initialize(),
-        getNetworkManager(instance).initialize(),
-        getDialogManager(instance).initialize(),
-        getContextManager(instance).initialize()
-    ])
+    return Promise.all(initializationPromises)
 }

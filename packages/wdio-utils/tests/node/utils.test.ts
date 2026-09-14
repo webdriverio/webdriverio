@@ -3,13 +3,13 @@ import path from 'node:path'
 import url from 'node:url'
 import cp from 'node:child_process'
 import fs from 'node:fs'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { canDownload, resolveBuildId, detectBrowserPlatform } from '@puppeteer/browsers'
 import { locateChrome, locateApp } from 'locate-app'
 
 import {
     parseParams, getBuildIdByChromePath, getBuildIdByFirefoxPath, setupPuppeteerBrowser,
-    canAccess
+    canAccess, getCacheDir
 } from '../../src/node/utils.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -59,7 +59,8 @@ vi.mock('node:fs/promises', () => ({
 
 vi.mock('node:child_process', () => ({
     default: {
-        execSync: vi.fn()
+        execSync: vi.fn(),
+        spawnSync: vi.fn()
     }
 }))
 
@@ -75,7 +76,34 @@ vi.mock('@puppeteer/browsers', () => ({
 
 describe('driver utils', () => {
     beforeEach(() => {
-        vi.mocked(cp.execSync).mockReturnValue(Buffer.from('Google Chrome 116.0.5845.110 \n'))
+        vi.mocked(cp.spawnSync).mockReturnValue({
+            pid: 123,
+            output: [],
+            stdout: 'Google Chrome 116.0.5845.110 \n',
+            stderr: '',
+            status: 0,
+            signal: null
+        })
+    })
+
+    describe('getCacheDir', () => {
+        afterEach(() => vi.unstubAllEnvs())
+
+        it('uses WEBDRIVER_CACHE_DIR when no cache directory is configured', () => {
+            vi.stubEnv('WEBDRIVER_CACHE_DIR', '/environment/cache')
+
+            expect(getCacheDir({}, {})).toBe('/environment/cache')
+        })
+
+        it('prefers configured cache directories over WEBDRIVER_CACHE_DIR', () => {
+            vi.stubEnv('WEBDRIVER_CACHE_DIR', '/environment/cache')
+
+            expect(getCacheDir({ cacheDir: '/options/cache' }, {})).toBe('/options/cache')
+            expect(getCacheDir(
+                { cacheDir: '/options/cache' },
+                { 'wdio:chromedriverOptions': { cacheDir: '/driver/cache' } }
+            )).toBe('/driver/cache')
+        })
     })
 
     it('should parse params', () => {
@@ -86,10 +114,24 @@ describe('driver utils', () => {
     it('getBuildIdByChromePath', () => {
         expect(getBuildIdByChromePath()).toBe(undefined)
         expect(getBuildIdByChromePath('/foo/bar')).toBe('116.0.5845.110')
-        expect(cp.execSync).toBeCalledWith('"/foo/bar" --version --no-sandbox')
-        vi.mocked(cp.execSync).mockReturnValue(Buffer.from('Chromium 117.0.5938.88 Fedora Project \n'))
+        expect(cp.spawnSync).toBeCalledWith('/foo/bar', ['--version', '--no-sandbox'], expect.any(Object))
+        vi.mocked(cp.spawnSync).mockReturnValue({
+            pid: 123,
+            output: [],
+            stdout: 'Chromium 117.0.5938.88 Fedora Project \n',
+            stderr: '',
+            status: 0,
+            signal: null
+        })
         expect(getBuildIdByChromePath('/foo/bar')).toBe('117.0.5938.88')
-        vi.mocked(cp.execSync).mockReturnValue(Buffer.from('Chromium 117.0.5938.92 snap \n'))
+        vi.mocked(cp.spawnSync).mockReturnValue({
+            pid: 123,
+            output: [],
+            stdout: 'Chromium 117.0.5938.92 snap \n',
+            stderr: '',
+            status: 0,
+            signal: null
+        })
         expect(getBuildIdByChromePath('/foo/bar')).toBe('117.0.5938.92')
         vi.mocked(os.platform).mockReturnValueOnce('win32')
         expect(getBuildIdByChromePath('/foo/bar')).toBe('115.0.5790.110')

@@ -1,130 +1,212 @@
-import { sep } from 'node:path'
+import fs from 'node:fs'
+import path from 'node:path'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { temporaryDirectory } from 'tempy'
-import { AllureRuntime, AllureTest, AllureGroup } from 'allure-js-commons'
-import { AllureReporterState } from '../src/state.js'
-import { clean } from './helpers/wdio-allure-helper.js'
+import { ReporterRuntime } from 'allure-js-commons/sdk/reporter'
+import { FileSystemWriter } from 'allure-js-commons/sdk/reporter'
+import { AllureReportState } from '../src/state.js'
+import { clean, getResultFiles, getResults } from './helpers/wdio-allure-helper.js'
 
 describe('state', () => {
     const outputDir = temporaryDirectory()
-    let runtime: AllureRuntime
-    let state: AllureReporterState
+    let runtime: ReporterRuntime
+    let state: AllureReportState
 
     beforeEach(() => {
         clean(outputDir)
 
-        runtime = new AllureRuntime({ resultsDir: outputDir })
-        state = new AllureReporterState()
+        runtime = new ReporterRuntime({
+            writer: new FileSystemWriter({ resultsDir: outputDir })
+        })
+        state = new AllureReportState(runtime)
     })
 
     it('allows to add units', () => {
-        expect(state.runningUnits).toHaveLength(0)
+        const scopeUuid = runtime.startScope()
+        state.pushRuntimeMessage({ type: 'allure:suite:start', data: { name: 'test suite' } })
 
-        state.push(new AllureGroup(runtime))
-
-        expect(state.runningUnits).toHaveLength(1)
+        expect(state.hasPendingSuite).toBe(true)
     })
 
     it('allows to pop units keeping the order', () => {
-        state.push(new AllureGroup(runtime))
-        state.push(new AllureTest(runtime))
+        const scopeUuid = runtime.startScope()
+        state.pushRuntimeMessage({ type: 'allure:suite:start', data: { name: 'test suite' } })
+        state.pushRuntimeMessage({ type: 'allure:test:start', data: { name: 'test case', start: Date.now() } })
 
-        expect(state.runningUnits).toHaveLength(2)
+        expect(state.hasPendingSuite).toBe(true)
+        expect(state.hasPendingTest).toBe(true)
 
-        const test = state.pop()
-        const suite = state.pop()
+        state.pushRuntimeMessage({ type: 'allure:test:end', data: { status: 'passed' as any } })
+        state.pushRuntimeMessage({ type: 'allure:suite:end', data: {} })
 
-        expect(state.runningUnits).toHaveLength(0)
-        expect(test).toBeInstanceOf(AllureTest)
-        expect(suite).toBeInstanceOf(AllureGroup)
+        expect(state.hasPendingSuite).toBe(false)
+        expect(state.hasPendingTest).toBe(false)
     })
 
     describe('with suite', () => {
         it('returns last added suite', () => {
-            const firstSuite = new AllureGroup(runtime)
-            const secondSuite = new AllureGroup(runtime)
+            state.pushRuntimeMessage({ type: 'allure:suite:start', data: { name: 'first suite', feature: true } })
+            state.pushRuntimeMessage({ type: 'allure:suite:start', data: { name: 'second suite', feature: true } })
 
-            firstSuite.name = 'first'
-            secondSuite.name = 'second'
-
-            state.push(firstSuite)
-            state.push(secondSuite)
-
-            expect(state.currentSuite).not.toBeUndefined()
-            expect(state.currentSuite?.name).toEqual('second')
+            expect(state.hasPendingSuite).toBe(true)
+            expect(state.currentFeature).toBe('second suite')
         })
     })
 
     describe('without suite', () => {
         it('returns undefined', () => {
-            expect(state.currentSuite).toBeUndefined()
+            expect(state.hasPendingSuite).toBe(false)
         })
     })
 
     describe('with test', () => {
         it('returns last added test', () => {
-            const firstTest = new AllureTest(runtime)
-            const secondTest = new AllureTest(runtime)
+            state.pushRuntimeMessage({ type: 'allure:suite:start', data: { name: 'test suite' } })
+            state.pushRuntimeMessage({ type: 'allure:test:start', data: { name: 'test case', start: Date.now() } })
 
-            firstTest.name = 'first'
-            secondTest.name = 'second'
+            expect(state.hasPendingTest).toBe(true)
+        })
 
-            state.push(firstTest)
-            state.push(secondTest)
+        it('writes title path from test info', async () => {
+            state.pushRuntimeMessage({ type: 'allure:test:start', data: { name: 'test case', start: Date.now() } })
+            state.pushRuntimeMessage({
+                type: 'allure:test:info',
+                data: {
+                    fullName: 'foo/bar.test.js#test suite test case',
+                    titlePath: ['foo', 'bar.test.js', 'test suite']
+                }
+            })
+            state.pushRuntimeMessage({ type: 'allure:test:end', data: { status: 'passed' as any } })
 
-            expect(state.currentTest).not.toBeUndefined()
-            expect(state.currentTest?.wrappedItem?.name).toEqual('second')
-            expect(state.currentAllureStepableEntity).not.toBeUndefined()
-            expect(state.currentAllureStepableEntity?.wrappedItem?.name).toEqual('second')
+            await state.processRuntimeMessage()
+
+            const { results } = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            expect(results[0].titlePath).toEqual(['foo', 'bar.test.js', 'test suite'])
         })
     })
 
     describe('without test', () => {
         it('returns undefined', () => {
-            expect(state.currentTest).toBeUndefined()
+            expect(state.hasPendingTest).toBe(false)
         })
     })
 
     describe('with step', () => {
         it('returns last added step', () => {
-            const firstTest = new AllureTest(runtime)
-            const firstStep = firstTest.startStep('first')
-            const secondStep = firstStep.startStep('second')
+            state.pushRuntimeMessage({ type: 'allure:test:start', data: { name: 'test case', start: Date.now() } })
+            state.pushRuntimeMessage({ type: 'step_start', data: { name: 'first step', start: Date.now() } })
+            state.pushRuntimeMessage({ type: 'step_start', data: { name: 'second step', start: Date.now() } })
 
-            state.push(firstTest)
-            state.push(firstStep)
-            state.push(secondStep)
-
-            expect(state.currentStep).not.toBeUndefined()
-            expect(state.currentStep?.wrappedItem?.name).toEqual('second')
-            expect(state.currentAllureStepableEntity).not.toBeUndefined()
-            expect(state.currentAllureStepableEntity?.wrappedItem?.name).toEqual('second')
+            expect(state.hasPendingStep).toBe(true)
         })
     })
 
     describe('without step', () => {
         it('returns undefined', () => {
-            const firstTest = new AllureTest(runtime)
-
-            state.push(firstTest)
-
-            expect(state.currentStep).toBeUndefined()
+            expect(state.hasPendingStep).toBe(false)
         })
     })
 
     describe('with current file', () => {
         it('returns package label', () => {
-            state.currentFile = ['foo', 'bar', 'baz.test.js'].join(sep)
-
-            expect(state.currentPackageLabel).toEqual('foo.bar.baz.test.js')
+            state.pushRuntimeMessage({ type: 'allure:hook:start', data: { name: '"before each" hook', type: 'before', start: Date.now() } })
+            expect(state.hasPendingHook).toBe(true)
+            state.pushRuntimeMessage({ type: 'allure:hook:end', data: { status: 'passed', stop: Date.now() } as any })
+            expect(state.hasPendingHook).toBe(false)
         })
     })
 
     describe('without current file', () => {
         it('returns undefined instead of package label', () => {
-            state.currentFile = undefined
+            expect(state.hasPendingHook).toBe(false)
+        })
+    })
 
-            expect(state.currentPackageLabel).toEqual(undefined)
+    describe('global errors', () => {
+        it('writes globals file when global_error is sent outside of any test', async () => {
+            state.pushRuntimeMessage({
+                type: 'global_error',
+                data: { message: 'something went wrong', trace: 'Error: something went wrong\n  at foo.ts:1' }
+            })
+            await state.processRuntimeMessage()
+
+            const globalsFiles = getResultFiles(outputDir, [/-globals\.json$/])
+            expect(globalsFiles).toHaveLength(1)
+
+            const content = JSON.parse(fs.readFileSync(path.join(outputDir, globalsFiles[0]), 'utf-8'))
+            expect(content.errors).toHaveLength(1)
+            expect(content.errors[0]).toMatchObject({
+                message: 'something went wrong',
+                trace: 'Error: something went wrong\n  at foo.ts:1'
+            })
+            expect(content.attachments).toHaveLength(0)
+        })
+
+        it('writes globals file when global_error is sent during an active test', async () => {
+            state.pushRuntimeMessage({ type: 'allure:suite:start', data: { name: 'suite' } })
+            state.pushRuntimeMessage({ type: 'allure:test:start', data: { name: 'test', start: Date.now() } })
+            state.pushRuntimeMessage({
+                type: 'global_error',
+                data: { message: 'global failure' }
+            })
+            state.pushRuntimeMessage({ type: 'allure:test:end', data: { status: 'passed' as any } })
+            state.pushRuntimeMessage({ type: 'allure:suite:end', data: {} })
+            await state.processRuntimeMessage()
+
+            const globalsFiles = getResultFiles(outputDir, [/-globals\.json$/])
+            expect(globalsFiles).toHaveLength(1)
+
+            const content = JSON.parse(fs.readFileSync(path.join(outputDir, globalsFiles[0]), 'utf-8'))
+            expect(content.errors[0]).toMatchObject({ message: 'global failure' })
+        })
+    })
+
+    describe('global attachments', () => {
+        it('writes globals file when global_attachment_content is sent outside of any test', async () => {
+            const content = Buffer.from('attachment body', 'utf8')
+            state.pushRuntimeMessage({
+                type: 'global_attachment_content',
+                data: {
+                    name: 'my attachment',
+                    content: content.toString('base64'),
+                    encoding: 'base64',
+                    contentType: 'text/plain',
+                }
+            })
+            await state.processRuntimeMessage()
+
+            const globalsFiles = getResultFiles(outputDir, [/-globals\.json$/])
+            expect(globalsFiles).toHaveLength(1)
+
+            const parsed = JSON.parse(fs.readFileSync(path.join(outputDir, globalsFiles[0]), 'utf-8'))
+            expect(parsed.attachments).toHaveLength(1)
+            expect(parsed.attachments[0]).toMatchObject({ name: 'my attachment', type: 'text/plain' })
+            expect(parsed.errors).toHaveLength(0)
+        })
+
+        it('writes globals file when global_attachment_path is sent outside of any test', async () => {
+            fs.mkdirSync(outputDir, { recursive: true })
+            const tmpFile = path.join(outputDir, 'fixture.txt')
+            fs.writeFileSync(tmpFile, 'file content', 'utf-8')
+
+            state.pushRuntimeMessage({
+                type: 'global_attachment_path',
+                data: {
+                    name: 'my file attachment',
+                    path: tmpFile,
+                    contentType: 'text/plain',
+                }
+            })
+            await state.processRuntimeMessage()
+
+            const globalsFiles = getResultFiles(outputDir, [/-globals\.json$/])
+            expect(globalsFiles).toHaveLength(1)
+
+            const parsed = JSON.parse(fs.readFileSync(path.join(outputDir, globalsFiles[0]), 'utf-8'))
+            expect(parsed.attachments).toHaveLength(1)
+            expect(parsed.attachments[0]).toMatchObject({ name: 'my file attachment', type: 'text/plain' })
+            expect(parsed.errors).toHaveLength(0)
         })
     })
 })

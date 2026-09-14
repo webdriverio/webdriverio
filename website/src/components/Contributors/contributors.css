@@ -1,0 +1,98 @@
+.grid {
+  display: grid;
+  grid-template-rows: repeat(2, 1fr);
+  overflow: hidden;
+  place-items: center;
+}
+
+.grid-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  width: 100%;
+  overflow: hidden;
+}
+
+.circle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 1px solid #ff8800;
+  }
+
+.md-text {
+    font-size: large;
+}
+
+.fade-horizontal {
+    position: relative;
+    color: black;
+
+    -webkit-mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+
+.father-flex-div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-wrap: nowrap;
+    align-items: center;
+    width: 100%;
+    max-width: 100vw;
+}
+
+.intro {
+    line-height: 1.6;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    max-width: 600px;
+    word-wrap: break-word;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+@media (max-width: 700px) {
+.circle {
+    width: 14px;
+    height: 14px;
+}
+}
+
+@media (min-width: 701px) and (max-width: 1024px) {
+    .circle {
+      width: 17px;
+      height: 17px;
+    }
+  }
+
+@media (min-width: 1025px) and (max-width: 1440px) {
+        .circle {
+            width: 28px;
+            height: 28px;
+        }
+
+    }
+
+@media (min-width: 1441px) {
+    .circle {
+        width: 31px;
+        height: 31px;
+    }
+}

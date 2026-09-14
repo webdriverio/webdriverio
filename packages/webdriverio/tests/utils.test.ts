@@ -1,4 +1,3 @@
-import path from 'node:path'
 import { ELEMENT_KEY } from 'webdriver'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
