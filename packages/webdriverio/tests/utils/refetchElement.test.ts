@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { describe, it, beforeAll, expect, vi } from 'vitest'
+import { describe, it, afterEach, beforeAll, expect, vi } from 'vitest'
 
 import { remote } from '../../src/index.js'
 import refetchElement from '../../src/utils/refetchElement.js'
@@ -24,6 +24,11 @@ describe('refetchElement', () => {
             waitforInterval: 20,
             waitforTimeout: 100
         })
+    })
+
+    afterEach(() => {
+        // @ts-ignore mock feature
+        vi.mocked(fetch).resetCustomResponses()
     })
 
     it('should successfully refetch a non chained element', async () => {
@@ -67,6 +72,18 @@ describe('refetchElement', () => {
         vi.mocked(fetch).customResponseFor(/\/element$/, { value: { elementId: null } })
         const refetchedElement = await refetchElement(elem, 'isDisplayed')
         expect(refetchedElement.elementId).toBeUndefined()
+    })
+
+    it('should not resolve to the first match if the element list shrunk below the index', async () => {
+        const elems = await browser.$$('#foo')
+        const elem = elems[2]
+        expect(elem.elementId).toBe('some-elem-789')
+        // @ts-ignore mock feature
+        vi.mocked(fetch).customResponseFor(/\/elements$/, { value: [{ 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' }] })
+        const refetchedElement = await refetchElement(elem, 'click')
+        expect(refetchedElement.elementId).toBeUndefined()
+        expect(refetchedElement.selector).toBe('#foo')
+        expect(refetchedElement.index).toBe(2)
     })
 
     it('should successfully refetch an element that isn\'t immediately present', async () => {
