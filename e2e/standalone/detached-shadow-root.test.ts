@@ -18,6 +18,7 @@ test.each(cases)('serializes $mode shadow host once (initiallyConnected: $initia
 
     try {
         await browser.url('data:text/html,<main>Detached shadow host</main>')
+        await browser.waitUntil(() => browser.execute(() => Boolean(document.body)))
         await browser.execute(({ mode, initiallyConnected }) => {
             const host = document.createElement('div') as HTMLDivElement & { testShadowRoot: ShadowRoot }
             host.id = 'detached-shadow-host'
@@ -52,6 +53,7 @@ test.each(['open', 'closed'] as const)('keeps a detached %s host when another ho
     })
     try {
         await browser.url('data:text/html,<main id="area"></main>')
+        await browser.waitUntil(() => browser.execute(() => Boolean(document.querySelector('#area'))))
         await browser.execute((mode) => {
             const first = document.createElement('div') as HTMLDivElement & { testShadowRoot: ShadowRoot }
             first.id = 'first-host'
