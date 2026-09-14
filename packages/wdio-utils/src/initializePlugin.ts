@@ -1,6 +1,8 @@
+import { pathToFileURL } from 'node:url'
+
 import type { Services } from '@wdio/types'
 
-import { safeImport, isAbsolute, REG_EXP_WINDOWS_ABS_PATH, SLASH } from './utils.js'
+import { safeImport, isAbsolute, REG_EXP_WINDOWS_ABS_PATH } from './utils.js'
 
 const FILE_PROTOCOL = 'file://'
 
@@ -50,20 +52,19 @@ export default async function initializePlugin (name: string, type?: string): Pr
     )
 }
 
-function ensureFileURL(path:string) {
+function ensureFileURL(path: string) {
     if (path.startsWith(FILE_PROTOCOL)) {
         return path
     }
 
-    // Windows drive path
+    /**
+     * `pathToFileURL` follows the host operating system's path rules. Handle
+     * Windows drive paths explicitly so they keep working on POSIX hosts too.
+     */
     if (REG_EXP_WINDOWS_ABS_PATH.test(path)) {
-        return `${FILE_PROTOCOL}/${path.replace(/\\/g, '/')}`
+        const [drive, ...segments] = path.replace(/\\/g, '/').split('/')
+        return `${FILE_PROTOCOL}/${drive}/${segments.map(encodeURIComponent).join('/')}`
     }
 
-    // Unix absolute path
-    if (path.startsWith(SLASH)) {
-        return `${FILE_PROTOCOL}${path}`
-    }
-
-    return path
+    return pathToFileURL(path).href
 }
