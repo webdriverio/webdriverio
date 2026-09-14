@@ -15,7 +15,7 @@ vi.mock('../src/utils.js', async (importActual) => {
     return {
         ...actual,
         safeImport: vi.fn(),
-        isAbsolute: vi.fn().mockReturnValue(true) }
+        isAbsolute: vi.fn(actual.isAbsolute) }
 })
 const log = logger('test')
 
@@ -314,8 +314,8 @@ describe('service activation', () => {
             const firstShouldLoad = vi.fn().mockReturnValueOnce(false).mockReturnValueOnce(true)
             const secondShouldLoad = vi.fn().mockReturnValueOnce(true).mockReturnValueOnce(false)
             const packages = {
-                first: { default: class {}, shouldLoad: firstShouldLoad },
-                second: { default: class {}, shouldLoad: secondShouldLoad }
+                '@wdio/first-service': { default: class {}, shouldLoad: firstShouldLoad },
+                '@wdio/second-service': { default: class {}, shouldLoad: secondShouldLoad }
             }
             vi.mocked(safeImport).mockImplementation(async (name) => packages[name as keyof typeof packages] as any)
             const config = { services: ['first', 'second'] }
@@ -327,8 +327,8 @@ describe('service activation', () => {
             vi.mocked(safeImport).mockClear()
             const services = await initializeWorkerService(config, caps[0], firstLaunch.ignoredWorkerServices)
             expect(services).toHaveLength(1)
-            expect(services[0]).toBeInstanceOf(packages.second.default)
-            expect(safeImport).toHaveBeenCalledExactlyOnceWith('second')
+            expect(services[0]).toBeInstanceOf(packages['@wdio/second-service'].default)
+            expect(safeImport).toHaveBeenCalledExactlyOnceWith('@wdio/second-service')
 
             const secondLaunch = await initializeLauncherService(config, caps)
             expect(secondLaunch.ignoredWorkerServices).toEqual(['second'])
