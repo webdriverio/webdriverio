@@ -40,7 +40,13 @@ vi.mock('../../../src/vite/utils.js', () => ({
     hasDir: vi.fn()
 }))
 
-vi.mock('/foo/bar/stencil.config.ts', () => ({
+const { stencilConfigUrl } = await vi.hoisted(async () => {
+    const { join } = await import('node:path')
+    const { pathToFileURL } = await import('node:url')
+    return { stencilConfigUrl: pathToFileURL(join('/foo/bar', 'stencil.config.ts')).href }
+})
+
+vi.mock(stencilConfigUrl, () => ({
     config: {
         plugins: [{
             name: 'esbuild-plugin',

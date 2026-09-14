@@ -1,4 +1,5 @@
 import path from 'node:path'
+import url from 'node:url'
 import { EventEmitter } from 'node:events'
 
 import getPort from 'get-port'
@@ -94,7 +95,7 @@ export class ViteServer extends EventEmitter {
         if (this.#options.viteConfig) {
             const { plugins, ...configToMerge } = typeof this.#options.viteConfig === 'string'
                 ? (
-                    await import(path.resolve(this.#config.rootDir || process.cwd(), this.#options.viteConfig))
+                    await import(url.pathToFileURL(path.resolve(this.#config.rootDir || process.cwd(), this.#options.viteConfig)).href)
                 ).default as InlineConfig
                 : typeof this.#options.viteConfig === 'function'
                     ? await this.#options.viteConfig(DEFAULT_CONFIG_ENV)
