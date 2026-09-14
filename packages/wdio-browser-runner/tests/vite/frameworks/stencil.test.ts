@@ -65,6 +65,7 @@ test('isNuxtFramework', async () => {
 })
 
 test('optimizeForStencil', async () => {
+    vi.mocked(hasFileByExtensions).mockResolvedValueOnce(path.join('/foo/bar', 'stencil.config.ts'))
     const opt = await optimizeForStencil('/foo/bar')
     expect(opt).toEqual({
         optimizeDeps: {
@@ -89,6 +90,15 @@ test('optimizeForStencil', async () => {
     ).toEqual({
         code: "import { Component, Prop, h } from 'something else'"
     })
+})
+
+test('optimizeForStencil without a Stencil config', async () => {
+    vi.mocked(hasFileByExtensions).mockResolvedValueOnce(undefined)
+    const opt = await optimizeForStencil('/foo/bar')
+    expect(opt.optimizeDeps).toEqual({
+        include: ['@wdio/browser-runner/stencil > @stencil/core/internal/testing/index.js']
+    })
+    expect(hasFileByExtensions).toHaveBeenLastCalledWith(path.join('/foo/bar', 'stencil.config.ts'), [])
 })
 
 test('auto imports "h" from Stencil', async () => {
