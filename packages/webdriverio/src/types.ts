@@ -498,11 +498,11 @@ interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanc
     getInstance: (browserName: string) => WebdriverIO.Browser
 
     /**
-     * @experimental select one or multiple browsers always wrapped into a multi-remote to run commands on them.
+     * @experimental (Beta) select one or multiple browsers always wrapped into a multi-remote to run commands on them.
      * Even if only one instance is selected, it will still return a multi-remote browser.
      * Use getInstance to have exclusive access to a single instance.
      */
-    unstable_select: (...browserNames: string[]) => WebdriverIO.MultiRemoteBrowser
+    select: (...browserNames: string[]) => WebdriverIO.MultiRemoteBrowser
 
 }
 interface MultiRemoteElementBase {
@@ -523,11 +523,11 @@ interface MultiRemoteElementBase {
      */
     getInstance: (browserName: string) => WebdriverIO.Element
     /**
-     * @experimental select one or multiple browsers always wrapped into a multi-remote to run commands on them.
+     * @experimental (Beta) select one or multiple browsers always wrapped into a multi-remote to run commands on them.
      * Even if only one instance is selected, it will still return a multi-remote element.
      * Use getInstance to have exclusive access to a single element.
      */
-    unstable_select: (...browserNames: string[]) => WebdriverIO.MultiRemoteElement
+    select: (...browserNames: string[]) => WebdriverIO.MultiRemoteElement
     /**
      * @private
      */

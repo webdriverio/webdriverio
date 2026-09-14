@@ -23,6 +23,102 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.31.9 (2026-09-13)
+
+#### :rocket: New Feature
+* `wdio-utils`
+  * [#15563](https://github.com/webdriverio/webdriverio/pull/15563) feat(@wdio/utils): support CHROMEDRIVER_CDNURL for custom driver mirrors ([@mccmrunal](https://github.com/mccmrunal))
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#15586](https://github.com/webdriverio/webdriverio/pull/15586) fix: Upgrade EdgeDriver accounting browser's version missing corresponding driver architecture ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :house: Internal
+* `wdio-utils`
+  * [#15586](https://github.com/webdriverio/webdriverio/pull/15586) fix: Upgrade EdgeDriver accounting browser's version missing corresponding driver architecture ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### Committers: 2
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+
+
+## v9.31.8 (2026-09-12)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#15533](https://github.com/webdriverio/webdriverio/pull/15533) fix(webdriverio): restore nested/Shadow DOM scrolling in scrollIntoView ([@mccmrunal](https://github.com/mccmrunal))
+
+#### Committers: 2
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Martsin Lazouski ([@ML642](https://github.com/ML642))
+
+
+## v9.31.7 (2026-09-07)
+
+#### :rocket: New Feature
+* `wdio-utils`, `webdriverio`
+  * [#15571](https://github.com/webdriverio/webdriverio/pull/15571) feat: Move select into BETA with env flag still ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :house: Internal
+* `wdio-browser-runner`, `wdio-mocha-framework`
+  * [#15566](https://github.com/webdriverio/webdriverio/pull/15566) chore(deps): Update to mocha 11 ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### Committers: 1
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+
+## v9.31.6 (2026-09-06)
+
+#### :rocket: New Feature
+* `create-wdio`
+  * [#15539](https://github.com/webdriverio/webdriverio/pull/15539) Third party service null-driver ([@ccharnkij](https://github.com/ccharnkij))
+
+#### :bug: Bug Fix
+* `wdio-sumologic-reporter`
+  * [#15547](https://github.com/webdriverio/webdriverio/pull/15547) fix(sumologic-reporter): retry after failed sync ([@Fnine59](https://github.com/Fnine59))
+* `wdio-utils`
+  * [#15562](https://github.com/webdriverio/webdriverio/pull/15562) fix(wdio-utils): track dialog listener lifecycle ([@Fnine59](https://github.com/Fnine59))
+* `webdriverio`
+  * [#15470](https://github.com/webdriverio/webdriverio/pull/15470) fix(webdriverio): clear shadow roots when navigation starts ([@iamhaseebn](https://github.com/iamhaseebn))
+  * [#15552](https://github.com/webdriverio/webdriverio/pull/15552) fix(webdriverio):reject invalid timeout values ([@ML642](https://github.com/ML642))
+* `wdio-config`
+  * [#15561](https://github.com/webdriverio/webdriverio/pull/15561) fix(wdio-config): apply keyword exclude to grouped specs ([@harsha509](https://github.com/harsha509))
+* `webdriver`
+  * [#15559](https://github.com/webdriverio/webdriverio/pull/15559) fix(webdriver): keep new driver PID after reloadSession ([@harsha509](https://github.com/harsha509))
+
+#### :nail_care: Polish
+* `wdio-utils`
+  * [#15562](https://github.com/webdriverio/webdriverio/pull/15562) fix(wdio-utils): track dialog listener lifecycle ([@Fnine59](https://github.com/Fnine59))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#15564](https://github.com/webdriverio/webdriverio/pull/15564) docs: Dialog auto dismis and once ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* Other
+  * [#15301](https://github.com/webdriverio/webdriverio/pull/15301) Feat/add mobile flutter docs remastered ([@Kauanldsbarbosa](https://github.com/Kauanldsbarbosa))
+  * [#15557](https://github.com/webdriverio/webdriverio/pull/15557) docs(devtools): document Python trace mode, granularity and retention ([@vishnuv688](https://github.com/vishnuv688))
+
+#### :house: Internal
+* Other
+  * [#15549](https://github.com/webdriverio/webdriverio/pull/15549) chore(deps): bump actions/checkout from 6.0.3 to 7.0.1 in the major-deps-updates group ([@dependabot[bot]](https://github.com/apps/dependabot))
+  * [#15555](https://github.com/webdriverio/webdriverio/pull/15555) chore(deps): bump @xmldom/xmldom from 0.9.8 to 0.9.12 ([@dependabot[bot]](https://github.com/apps/dependabot))
+  * [#15548](https://github.com/webdriverio/webdriverio/pull/15548) chore(deps): bump lewagon/wait-on-check-action from 1.8.0 to 1.9.1 in the minor-deps-updates group ([@dependabot[bot]](https://github.com/apps/dependabot))
+* `wdio-browser-runner`, `wdio-config`, `wdio-runner`, `wdio-utils`, `webdriver`
+  * [#15509](https://github.com/webdriverio/webdriverio/pull/15509) chore(deps): bump deepmerge-ts from 7.1.5 to 8.0.0 ([@dependabot[bot]](https://github.com/apps/dependabot))
+* `wdio-browser-runner`
+  * [#15556](https://github.com/webdriverio/webdriverio/pull/15556) chore(deps): Upgrade to svelte 5 + unskip e2e ([@dprevost-LMI](https://github.com/dprevost-LMI))
+  * [#15334](https://github.com/webdriverio/webdriverio/pull/15334) chore(deps): bump vite from 5.4.21 to 6.4.3 ([@dependabot[bot]](https://github.com/apps/dependabot))
+
+#### Committers: 8
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Fnine59 ([@Fnine59](https://github.com/Fnine59))
+- Haseeb Nazir ([@iamhaseebn](https://github.com/iamhaseebn))
+- Kauan Barbosa ([@Kauanldsbarbosa](https://github.com/Kauanldsbarbosa))
+- Martsin Lazouski ([@ML642](https://github.com/ML642))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- Vishnu Vardhan ([@vishnuv688](https://github.com/vishnuv688))
+
+
 ## v9.31.5 (2026-08-29)
 
 #### :rocket: New Feature

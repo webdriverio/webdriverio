@@ -245,5 +245,12 @@
     "title": "Camera Service",
     "githubUrl": "https://github.com/webdriverio-community/wdio-camera-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-camera-service"
+  },
+  {
+    "packageName": "wdio-null-driver-service",
+    "title": "Null Driver",
+    "branch": "master",
+    "githubUrl": "https://github.com/ccharnkij/wdio-null-driver-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-null-driver-service"
   }
 ]

@@ -86,7 +86,7 @@ describe('multi remote test', () => {
                 await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
 
                 const title = multiRemoteBrowser.$('header').$('h1')
-                const browserAHeader = title.unstable_select('browserA')
+                const browserAHeader = title.select('browserA')
 
                 expect(await browserAHeader.instances).toEqual(['browserA'])
                 expect(await browserAHeader.isExisting()).toEqual([true])
@@ -99,7 +99,7 @@ describe('multi remote test', () => {
                 await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
 
                 const title = multiRemoteBrowser.$('header').$('h1')
-                const browserAHeader = title.unstable_select('browserA', 'browserC')
+                const browserAHeader = title.select('browserA', 'browserC')
 
                 expect(await browserAHeader.instances).toEqual(['browserA', 'browserC'])
                 expect(await browserAHeader.isExisting()).toEqual([true, true])
@@ -112,7 +112,7 @@ describe('multi remote test', () => {
                 await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
 
                 const title = multiRemoteBrowser.$('header').$('h1')
-                const browserAHeader = title.unstable_select('browserA', 'browserC', 'non-existing')
+                const browserAHeader = title.select('browserA', 'browserC', 'non-existing')
 
                 expect(await browserAHeader.instances).toEqual(['browserA', 'browserC'])
                 expect(await browserAHeader.isExisting()).toEqual([true, true])
@@ -126,7 +126,7 @@ describe('multi remote test', () => {
 
                 const title = multiRemoteBrowser.$('header').$('h1')
                 // @ts-expect-error: rejects seems missing...
-                await expect(() => title.unstable_select('non-existing').instances).rejects.toThrow('None of the following requested instances are valid: non-existing')
+                await expect(() => title.select('non-existing').instances).rejects.toThrow('None of the following requested instances are valid: non-existing')
             })
 
             it('should be able to select 1 instance on the multi-remote browser', async () => {
@@ -134,7 +134,7 @@ describe('multi remote test', () => {
                 await browserB.url('about:blank')
 
                 // Select only browserA, so browserB's missing element shouldn't matter
-                const header = await multiRemoteBrowser.unstable_select('browserA').$('header')
+                const header = await multiRemoteBrowser.select('browserA').$('header')
 
                 expect(await header.instances).toEqual(['browserA'])
                 expect(await header.isExisting()).toEqual([true])
@@ -144,7 +144,7 @@ describe('multi remote test', () => {
                 await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
                 await browserB.url('about:blank')
 
-                const header = await multiRemoteBrowser.unstable_select('browserA', 'browserB').$('header')
+                const header = await multiRemoteBrowser.select('browserA', 'browserB').$('header')
 
                 expect(await header.instances).toEqual(expect.arrayContaining(['browserA', 'browserB']))
                 expect(await header.isExisting()).toEqual([true, false])
@@ -154,7 +154,7 @@ describe('multi remote test', () => {
                 await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
                 await browserB.url('about:blank')
 
-                const header = await multiRemoteBrowser.unstable_select('browserA', 'browserB', 'non-existing').$('header')
+                const header = await multiRemoteBrowser.select('browserA', 'browserB', 'non-existing').$('header')
 
                 expect(await header.instances).toEqual(expect.arrayContaining(['browserA', 'browserB']))
                 expect(await header.isExisting()).toEqual([true, false])
@@ -165,13 +165,13 @@ describe('multi remote test', () => {
                 await browserB.url('about:blank')
 
                 // @ts-expect-error: rejects seems missing...
-                await expect(async () => multiRemoteBrowser.unstable_select('non-existing')).rejects.toThrow('None of the following requested instances are valid: non-existing')
+                await expect(async () => multiRemoteBrowser.select('non-existing')).rejects.toThrow('None of the following requested instances are valid: non-existing')
             })
 
             it('should allow chaining select with 1 browser on element query', async () => {
                 await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
 
-                const header = await multiRemoteBrowser.unstable_select('browserA').$('header').$('h1').getText()
+                const header = await multiRemoteBrowser.select('browserA').$('header').$('h1').getText()
 
                 expect(header).toEqual(['WebdriverJS Testpage'])
             })
@@ -179,7 +179,7 @@ describe('multi remote test', () => {
             it('should allow chaining select with 2 browser on element query', async () => {
                 await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
 
-                const header = await multiRemoteBrowser.unstable_select('browserA', 'browserC').$('header').$('h1').getText()
+                const header = await multiRemoteBrowser.select('browserA', 'browserC').$('header').$('h1').getText()
 
                 expect(header).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
             })
@@ -190,15 +190,15 @@ describe('multi remote test', () => {
                 expect(await browserA.$('header').$('h1').getText()).toEqual('WebdriverJS Testpage')
 
                 // On browser, using select we do keep the selected instance scope, so we can chain $ and get the element from the selected browser
-                const browserChainedText = await multiRemoteBrowser.unstable_select('browserA').$('header').$('h1').getText()
+                const browserChainedText = await multiRemoteBrowser.select('browserA').$('header').$('h1').getText()
                 expect(browserChainedText).toEqual(['WebdriverJS Testpage'])
 
                 // Selecting only for value it works!
-                const elementTextFromChainedSelected = await multiRemoteBrowser.$('header').$('h1').unstable_select('browserA').getText()
+                const elementTextFromChainedSelected = await multiRemoteBrowser.$('header').$('h1').select('browserA').getText()
                 expect(elementTextFromChainedSelected).toEqual(['WebdriverJS Testpage'])
 
                 // However, should we do the same when selecting on a element and chaining $()?
-                const elementTextFromChainedParentSelected = await multiRemoteBrowser.$('header').unstable_select('browserA').$('h1').getText()
+                const elementTextFromChainedParentSelected = await multiRemoteBrowser.$('header').select('browserA').$('h1').getText()
                 expect(elementTextFromChainedParentSelected).toEqual(['WebdriverJS Testpage'])
             })
 
@@ -226,7 +226,7 @@ describe('multi remote test', () => {
                 })
 
                 it('should be able to select 2 instances on the browser', async () => {
-                    const selected = await customMultiRemoteBrowser.unstable_select('browserA', 'browserB')
+                    const selected = await customMultiRemoteBrowser.select('browserA', 'browserB')
 
                     expect(selected.instances).toEqual(['browserA', 'browserB'])
                     expect(selected.getInstance('browserA')).toBeDefined()
@@ -234,7 +234,7 @@ describe('multi remote test', () => {
                 })
 
                 it('should be able to select 2 instances on the element', async () => {
-                    const selected = await customMultiRemoteBrowser.$('h1').unstable_select('browserA', 'browserB')
+                    const selected = await customMultiRemoteBrowser.$('h1').select('browserA', 'browserB')
 
                     expect(selected.instances).toEqual(['browserA', 'browserB'])
                     expect(selected.getInstance('browserA')).toBeDefined()
@@ -243,7 +243,7 @@ describe('multi remote test', () => {
                 })
 
                 it('should be able to chain select', async () => {
-                    const selected = await customMultiRemoteBrowser.$('h1').unstable_select('browserA', 'browserB').unstable_select('browserA')
+                    const selected = await customMultiRemoteBrowser.$('h1').select('browserA', 'browserB').select('browserA')
 
                     expect(selected.instances).toEqual(['browserA'])
                     expect(selected.getInstance('browserA')).toBeDefined()
@@ -289,7 +289,7 @@ describe('multi remote test', () => {
                 })
 
                 it('should preserve custom commands when selecting browser', async () => {
-                    const selectedBrowser = multiRemoteBrowser.unstable_select('browserA', 'browserB')
+                    const selectedBrowser = multiRemoteBrowser.select('browserA', 'browserB')
 
                     // @ts-expect-error custom element command is not part of the default type
                     expect(await selectedBrowser.customCommand()).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
@@ -301,7 +301,7 @@ describe('multi remote test', () => {
                     })
 
                     expect(await multiRemoteBrowser.getCookies()).toBe('getCookies (overwritten)')
-                    expect(await multiRemoteBrowser.unstable_select('browserA', 'browserB').getCookies()).toBe('getCookies (overwritten)')
+                    expect(await multiRemoteBrowser.select('browserA', 'browserB').getCookies()).toBe('getCookies (overwritten)')
                 })
 
                 it('preserve overridden elements commands on multiRemoteBrowser', async () => {
@@ -310,14 +310,14 @@ describe('multi remote test', () => {
                     }, true)
 
                     expect(await multiRemoteBrowser.$('header').$('h1').getValue()).toEqual(['getValue (overwritten)', 'getValue (overwritten)', 'getValue (overwritten)'])
-                    expect(await multiRemoteBrowser.unstable_select('browserA', 'browserB').$('header').$('h1').getValue()).toEqual(['getValue (overwritten)', 'getValue (overwritten)'])
-                    expect(await multiRemoteBrowser.$('header').$('h1').unstable_select('browserA', 'browserB').getValue()).toEqual(['getValue (overwritten)', 'getValue (overwritten)'])
+                    expect(await multiRemoteBrowser.select('browserA', 'browserB').$('header').$('h1').getValue()).toEqual(['getValue (overwritten)', 'getValue (overwritten)'])
+                    expect(await multiRemoteBrowser.$('header').$('h1').select('browserA', 'browserB').getValue()).toEqual(['getValue (overwritten)', 'getValue (overwritten)'])
                 })
 
                 it('should preserve custom commands when selecting element', async () => {
 
-                    const selectedHeaderOnBrowser = await multiRemoteBrowser.unstable_select('browserA', 'browserB').$('header').$('h1')
-                    const selectedHeaderOnElement = await multiRemoteBrowser.$('header').$('h1').unstable_select('browserA', 'browserB')
+                    const selectedHeaderOnBrowser = await multiRemoteBrowser.select('browserA', 'browserB').$('header').$('h1')
+                    const selectedHeaderOnElement = await multiRemoteBrowser.$('header').$('h1').select('browserA', 'browserB')
 
                     // @ts-expect-error custom element command is not part of the default type
                     expect(await selectedHeaderOnBrowser.customElementCommand()).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage'])
@@ -327,7 +327,7 @@ describe('multi remote test', () => {
 
                 it('should preserved addLocatorStrategy', async () => {
                     multiRemoteBrowser.addLocatorStrategy('staticStrategy', (_selector: any) => ({ elementId: 'static' }) as unknown as HTMLElement)
-                    const selected = multiRemoteBrowser.unstable_select('browserA')
+                    const selected = multiRemoteBrowser.select('browserA')
 
                     expect(multiRemoteBrowser.addLocatorStrategy).toBeDefined()
                     expect(selected.addLocatorStrategy).toBeDefined()
@@ -335,7 +335,7 @@ describe('multi remote test', () => {
 
                 it('should preserve non-command properties when selecting a browser', async () => {
 
-                    const selected = multiRemoteBrowser.unstable_select('browserA', 'browserB')
+                    const selected = multiRemoteBrowser.select('browserA', 'browserB')
 
                     expect(browserA.strategies).toBeInstanceOf(Map)
                     expect(browserA.isW3C).toBe(true)
