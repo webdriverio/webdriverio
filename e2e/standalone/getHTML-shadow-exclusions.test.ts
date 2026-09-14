@@ -24,6 +24,7 @@ test.each(['open', 'closed'] as const)('excludes elements from reconstructed %s 
     expect(browser.isBidi).toBe(true)
 
     await browser.url('data:text/html,<section id="snapshot"><span>Keep light</span><style>.light{color:red}</style><script type="application/json">{"level":"light"}</script><i class="omit">Drop light</i><x-outer></x-outer></section>')
+    await browser.waitUntil(() => browser.execute(() => Boolean(document.querySelector('x-outer'))))
     await browser.execute((outerMode: ShadowRootMode) => {
         const host = document.querySelector('x-outer')!
         const outer = host.attachShadow({ mode: outerMode })
