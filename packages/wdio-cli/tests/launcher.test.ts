@@ -316,7 +316,16 @@ describe('launcher', () => {
             await launcher['_endHandler']({ cid: '0-1', exitCode: 1, specs: [], retries: 0 } as any)
             expect(launcher.interface!.emit).toBeCalledWith('job:end', { cid: '0-1', passed: false, retries: 0 })
             expect(launcher['_resolve']).toBeCalledWith(1)
-            expect(config.onWorkerEnd).toBeCalledWith('0-1', 1, [], 0)
+            expect(config.onWorkerEnd).toBeCalledWith('0-1', 1, [], 0, undefined)
+        })
+
+        it('should pass the terminating signal on to the onWorkerEnd hook', async () => {
+            launcher['_getNumberOfRunningInstances'] = vi.fn().mockReturnValue(1)
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
+            launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
+            launcher['_resolve'] = vi.fn()
+            await launcher['_endHandler']({ cid: '0-1', exitCode: 139, specs: [], retries: 0, signal: 'SIGSEGV' })
+            expect(config.onWorkerEnd).toBeCalledWith('0-1', 139, [], 0, 'SIGSEGV')
         })
 
         it('should emit and resolve passed status', async () => {

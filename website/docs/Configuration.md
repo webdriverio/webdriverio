@@ -592,6 +592,7 @@ Parameters:
 - `exitCode` (`number`): 0 - success, 1 - fail. A worker that was terminated by a signal reports `128` + the signal number instead, e.g. `139` for a `SIGSEGV`
 - `specs` (`string[]`): specs to be run in the worker process
 - `retries` (`number`): number of spec level retries used as defined in [_"Add retries on a per-specfile basis"_](./Retry.md#add-retries-on-a-per-specfile-basis)
+- `signal` (`string`): signal that terminated the worker, e.g. `SIGSEGV`, or `null` if it exited on its own
 
 ### beforeSession
 
