@@ -40,7 +40,7 @@
     "@puppeteer/browsers": "^1.6.0",
     "@wdio/logger": "8.38.0",
     "@wdio/types": "8.41.0",
-    "decamelize": "^6.0.0",
+    "decamelize": "^6.0.1",
     "deepmerge-ts": "^5.1.0",
     "edgedriver": "^5.5.0",
     "geckodriver": "~4.2.0",
