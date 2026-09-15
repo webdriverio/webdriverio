@@ -9307,11 +9307,6 @@ packages:
     engines: {node: '>=20.0.0'}
     hasBin: true
 
-  edgedriver@6.3.1:
-    resolution: {integrity: sha512-wCL/Ydgt0DPkWecjhhPj2/lnDxsGeHLPKeJYKKMTNol+ULFVg4WaTvxoB19GU4tieM6LSA3vZEdZxmDC0DwIpQ==}
-    engines: {node: '>=20.0.0'}
-    hasBin: true
-
   editorconfig@1.0.4:
     resolution: {integrity: sha512-L9Qe08KWTlqYMVvMcTIvMAdl1cDUubzRNYL+WfA4bLDMHe4nemKkpmYzkznE1FwLKu0EEmy6obgQKzMJrg4x9Q==}
     engines: {node: '>=14'}
@@ -25317,18 +25312,6 @@ snapshots:
     dependencies:
       '@types/which': 2.0.2
       which: 2.0.2
-
-  edgedriver@6.3.1:
-    dependencies:
-      '@wdio/logger': 9.29.1
-      '@zip.js/zip.js': 2.8.11
-      decamelize: 6.0.1
-      edge-paths: 3.0.5
-      http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.6
-      which: 6.0.1
-    transitivePeerDependencies:
-      - supports-color
 
   edgedriver@6.3.1:
     dependencies:
