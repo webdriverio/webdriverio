@@ -61,7 +61,7 @@ describe('handleMessage', () => {
         worker.emit = vi.fn()
         worker['_handleMessage']({ name: 'testFrameworkInit', specFileRetries: 3 } as unknown as Workers.WorkerMessage)
         worker['_handleExit'](1)
-        expect(worker.emit).toBeCalledWith('exit', { cid: '0-3', exitCode: 1, specs: ['/some/spec'], retries: 2 })
+        expect(worker.emit).toBeCalledWith('exit', { cid: '0-3', exitCode: 1, specs: ['/some/spec'], retries: 2, signal: null })
     })
 
     it('does not touch an already resolved retry budget on testFrameworkInit', () => {
@@ -127,8 +127,78 @@ describe('handleExit', () => {
             cid: '0-3',
             exitCode: 42,
             retries: 0,
-            specs: ['/some/spec']
+            specs: ['/some/spec'],
+            signal: null
         })
+    })
+
+    it('derives a non zero exit code from the signal if the worker was killed by one', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const childProcess = { kill: vi.fn() }
+        worker.childProcess = childProcess as unknown as ChildProcess
+        worker.emit = vi.fn()
+        worker['_handleExit'](null, 'SIGSEGV')
+
+        expect(worker.emit).toBeCalledWith('exit', {
+            cid: '0-3',
+            exitCode: 139,
+            retries: 0,
+            specs: ['/some/spec'],
+            signal: 'SIGSEGV'
+        })
+    })
+
+    it('reports a crashed worker as failed so it is not swallowed by the launcher', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        worker.emit = vi.fn()
+        worker['_handleExit'](null, 'SIGSEGV')
+
+        const { exitCode } = vi.mocked(worker.emit).mock.calls[0][1] as { exitCode: number }
+        expect(exitCode).not.toBe(0)
+        expect(exitCode).toBeTruthy()
+    })
+
+    it('falls back to a generic failure code if neither exit code nor signal is known', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        worker.emit = vi.fn()
+        worker['_handleExit'](null, null)
+
+        expect(worker.emit).toBeCalledWith('exit', expect.objectContaining({ exitCode: 1, signal: null }))
+    })
+
+    it('logs an error explaining the crash', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const log = logger('@wdio/local-runner')
+        worker.emit = vi.fn()
+        vi.mocked(log.error).mockClear()
+        worker['_handleExit'](null, 'SIGSEGV')
+
+        expect(log.error).toBeCalledTimes(1)
+        expect(vi.mocked(log.error).mock.calls[0][0]).toContain('SIGSEGV')
+        expect(vi.mocked(log.error).mock.calls[0][0]).toContain('/some/spec')
+    })
+
+    it('does not report an expected shutdown signal as a crash', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const log = logger('@wdio/local-runner')
+        worker.emit = vi.fn()
+        vi.mocked(log.error).mockClear()
+        worker['_handleExit'](null, 'SIGTERM')
+
+        expect(log.error).not.toBeCalled()
+        expect(worker.emit).toBeCalledWith('exit', expect.objectContaining({ exitCode: 143, signal: 'SIGTERM' }))
+    })
+
+    it('does not report a deliberately killed worker as a crash', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const log = logger('@wdio/local-runner')
+        worker.childProcess = { kill: vi.fn() } as unknown as ChildProcess
+        worker.emit = vi.fn()
+        vi.mocked(log.error).mockClear()
+        worker.kill('SIGKILL')
+        worker['_handleExit'](null, 'SIGKILL')
+
+        expect(log.error).not.toBeCalled()
     })
 })
 
