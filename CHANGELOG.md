@@ -23,6 +23,36 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.31.9 (2026-09-13)
+
+#### :rocket: New Feature
+* `wdio-utils`
+  * [#15563](https://github.com/webdriverio/webdriverio/pull/15563) feat(@wdio/utils): support CHROMEDRIVER_CDNURL for custom driver mirrors ([@mccmrunal](https://github.com/mccmrunal))
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#15586](https://github.com/webdriverio/webdriverio/pull/15586) fix: Upgrade EdgeDriver accounting browser's version missing corresponding driver architecture ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :house: Internal
+* `wdio-utils`
+  * [#15586](https://github.com/webdriverio/webdriverio/pull/15586) fix: Upgrade EdgeDriver accounting browser's version missing corresponding driver architecture ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### Committers: 2
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+
+
+## v9.31.8 (2026-09-12)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#15533](https://github.com/webdriverio/webdriverio/pull/15533) fix(webdriverio): restore nested/Shadow DOM scrolling in scrollIntoView ([@mccmrunal](https://github.com/mccmrunal))
+
+#### Committers: 2
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Martsin Lazouski ([@ML642](https://github.com/ML642))
+
+
 ## v9.31.7 (2026-09-07)
 
 #### :rocket: New Feature

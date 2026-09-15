@@ -67,6 +67,8 @@ const log = logger('webdriverio')
  * @type utility
  *
  */
+const VERIFY_TOLERANCE_PX = 1
+
 export async function scrollIntoView (
     this: WebdriverIO.Element,
     options: CustomScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
@@ -88,6 +90,15 @@ export async function scrollIntoView (
         return scrollIntoViewWeb.call(this, options)
     }
 
+    // normalized up front (not inside the `try`) so a mid-flight failure still
+    // falls back using the options the caller actually passed, not `true`/`false`
+    if (options === true) {
+        options = { block: 'start', inline: 'nearest' }
+    }
+    if (options === false) {
+        options = { block: 'end', inline: 'nearest' }
+    }
+
     try {
         /**
          * by default the WebDriver action scrolls the element just into the
@@ -97,12 +108,34 @@ export async function scrollIntoView (
          * Fetch element rect, viewport size, and current scroll in one execute
          * round-trip instead of three protocol calls.
          */
-        const {
-            elemRect,
-            viewport,
-            scroll: { x: windowScrollX, y: windowScrollY }
-        } = await browser.execute((elem: HTMLElement) => {
+        const measure = async () => browser.execute((elem: HTMLElement) => {
             const { left, top, width, height } = elem.getBoundingClientRect()
+            // ground truth for "is this actually visible right now", independent of any
+            // window-bounds arithmetic: is the element really the thing painted at its
+            // own center point? This correctly accounts for clipping by a nested scroll
+            // container *and* for occlusion by an unrelated overlapping element (a fixed
+            // header/footer, a sticky toolbar) - things pure geometry against
+            // `window.innerWidth/Height` can't see. Point can legitimately be outside the
+            // current viewport (that's still "not painted", which is the right answer),
+            // so this never throws.
+            //
+            // `(Document|ShadowRoot).elementsFromPoint()` does NOT pierce into an open
+            // shadow root on its own - it stops at the shadow host - so for an element
+            // nested inside one or more shadow roots (the exact scenario this whole
+            // command exists to handle) it would never find it. Recurse into each hit's
+            // own `.shadowRoot.elementsFromPoint()` until the hit stack stops bottoming
+            // out on a shadow host.
+            let isPainted = false
+            try {
+                const cx = left + width / 2
+                const cy = top + height / 2
+                const deepElementsFromPoint = (root: Document | ShadowRoot): Element[] => {
+                    const hits = root.elementsFromPoint(cx, cy)
+                    const topHit = hits[0] as (Element & { shadowRoot?: ShadowRoot | null }) | undefined
+                    return topHit?.shadowRoot ? deepElementsFromPoint(topHit.shadowRoot) : hits
+                }
+                isPainted = deepElementsFromPoint(document).includes(elem)
+            } catch { /* keep isPainted: false */ }
             return {
                 elemRect: {
                     x: left + window.scrollX,
@@ -117,7 +150,8 @@ export async function scrollIntoView (
                 scroll: {
                     x: window.scrollX,
                     y: window.scrollY
-                }
+                },
+                isPainted
             }
         }, {
             [ELEMENT_KEY]: this.elementId, // w3c compatible
@@ -125,111 +159,158 @@ export async function scrollIntoView (
         } as unknown as HTMLElement)
 
         /**
-         * Target document scroll positions for MDN-like block/inline alignment.
-         * Wheel scroll uses deltaX/deltaY (amount to scroll), not x/y (aim point).
+         * Whether the element is already fully (or, for an element bigger than the
+         * viewport, at least as fully as possible) visible on each axis - used both to
+         * implement "nearest" alignment and, after a scroll attempt, as the success bar
+         * (not exact-target-match: unreachable inside a small nested container). A
+         * small tolerance absorbs subpixel `getBoundingClientRect` rounding.
          */
-        const targetByOption = {
-            start: { y: elemRect.y, x: elemRect.x },
-            center: {
-                y: elemRect.y - (viewport.height - elemRect.height) / 2,
-                x: elemRect.x - (viewport.width - elemRect.width) / 2
-            },
-            end: {
-                y: elemRect.y - (viewport.height - elemRect.height),
-                x: elemRect.x - (viewport.width - elemRect.width)
+        const getVisibility = ({ elemRect, viewport, scroll: { x: windowScrollX, y: windowScrollY } }: Awaited<ReturnType<typeof measure>>) => {
+            const TOL = VERIFY_TOLERANCE_PX
+            const isVisibleY = elemRect.y >= windowScrollY - TOL && elemRect.y + elemRect.height <= windowScrollY + viewport.height + TOL
+            const isVisibleX = elemRect.x >= windowScrollX - TOL && elemRect.x + elemRect.width <= windowScrollX + viewport.width + TOL
+            const spansViewportY = elemRect.y <= windowScrollY + TOL && elemRect.y + elemRect.height >= windowScrollY + viewport.height - TOL
+            const spansViewportX = elemRect.x <= windowScrollX + TOL && elemRect.x + elemRect.width >= windowScrollX + viewport.width - TOL
+            return {
+                y: isVisibleY || spansViewportY,
+                x: isVisibleX || spansViewportX
             }
         }
 
-        let [deltaX, deltaY] = [targetByOption.start.x, targetByOption.start.y]
-        if (options === true) {
-            options = { block: 'start', inline: 'nearest' }
-        }
-        if (options === false) {
-            options = { block: 'end', inline: 'nearest' }
-        }
-        if (options && typeof options === 'object') {
-            const { block, inline } = options
-            const isVisibleY = elemRect.y >= windowScrollY && elemRect.y + elemRect.height <= windowScrollY + viewport.height
-            const isVisibleX = elemRect.x >= windowScrollX && elemRect.x + elemRect.width <= windowScrollX + viewport.width
-            const spansViewportY = elemRect.y <= windowScrollY && elemRect.y + elemRect.height >= windowScrollY + viewport.height
-            const spansViewportX = elemRect.x <= windowScrollX && elemRect.x + elemRect.width >= windowScrollX + viewport.width
-
-            if (block === 'nearest') {
-                if (isVisibleY || spansViewportY) {
-                    // already sufficiently visible on this axis, don't move it
-                    deltaY = windowScrollY
-                } else {
-                    const nearestYDistance = Math.min(...Object.values(targetByOption).map(delta => Math.abs(delta.y - windowScrollY)))
-                    deltaY = Object.values(targetByOption).find(delta => Math.abs(delta.y - windowScrollY) === nearestYDistance)!.y
+        /**
+         * Given a measurement, compute the deltaX/deltaY needed to reach the
+         * requested block/inline alignment relative to the *top-level* viewport.
+         */
+        const computeDelta = (measurement: Awaited<ReturnType<typeof measure>>) => {
+            const { elemRect, viewport, scroll: { x: windowScrollX, y: windowScrollY } } = measurement
+            const targetByOption = {
+                start: { y: elemRect.y, x: elemRect.x },
+                center: {
+                    y: elemRect.y - (viewport.height - elemRect.height) / 2,
+                    x: elemRect.x - (viewport.width - elemRect.width) / 2
+                },
+                end: {
+                    y: elemRect.y - (viewport.height - elemRect.height),
+                    x: elemRect.x - (viewport.width - elemRect.width)
                 }
-            } else if (block) {
-                deltaY = targetByOption[block].y
             }
-            if (inline === 'nearest') {
-                if (isVisibleX || spansViewportX) {
-                    // already sufficiently visible on this axis, don't move it
-                    deltaX = windowScrollX
-                } else {
-                    const nearestXDistance = Math.min(...Object.values(targetByOption).map(delta => Math.abs(delta.x - windowScrollX)))
-                    deltaX = Object.values(targetByOption).find(delta => Math.abs(delta.x - windowScrollX) === nearestXDistance)!.x
+
+            let [deltaX, deltaY] = [targetByOption.start.x, targetByOption.start.y]
+            if (options && typeof options === 'object') {
+                const { block, inline } = options
+                const isVisible = getVisibility(measurement)
+
+                if (block === 'nearest') {
+                    if (isVisible.y) {
+                        // already sufficiently visible on this axis, don't move it
+                        deltaY = windowScrollY
+                    } else {
+                        const nearestYDistance = Math.min(...Object.values(targetByOption).map(delta => Math.abs(delta.y - windowScrollY)))
+                        deltaY = Object.values(targetByOption).find(delta => Math.abs(delta.y - windowScrollY) === nearestYDistance)!.y
+                    }
+                } else if (block) {
+                    deltaY = targetByOption[block].y
                 }
-            } else if (inline) {
-                deltaX = targetByOption[inline].x
+                if (inline === 'nearest') {
+                    if (isVisible.x) {
+                        // already sufficiently visible on this axis, don't move it
+                        deltaX = windowScrollX
+                    } else {
+                        const nearestXDistance = Math.min(...Object.values(targetByOption).map(delta => Math.abs(delta.x - windowScrollX)))
+                        deltaX = Object.values(targetByOption).find(delta => Math.abs(delta.x - windowScrollX) === nearestXDistance)!.x
+                    }
+                } else if (inline) {
+                    deltaX = targetByOption[inline].x
+                }
+            }
+
+            // scroll by the difference between target and current window scroll
+            return {
+                deltaX: Math.round(deltaX - windowScrollX),
+                deltaY: Math.round(deltaY - windowScrollY)
             }
         }
 
-        // scroll by the difference between target and current window scroll
-        deltaX = Math.round(deltaX - windowScrollX)
-        deltaY = Math.round(deltaY - windowScrollY)
+        const initialMeasurement = await measure()
+        const initialDelta = computeDelta(initialMeasurement)
 
-        // element is already positioned as requested, nothing to scroll
-        if (deltaX === 0 && deltaY === 0) {
+        // element is already positioned as requested, nothing to scroll - but only trust
+        // that when it's actually painted there. For "nearest" alignment, `computeDelta`
+        // itself decides an axis needs no delta using the same window-bounds arithmetic
+        // that can't see clipping/occlusion (see `isPainted` below); trusting a zero delta
+        // alone here would skip the probe *and* the fallback entirely for a genuinely
+        // clipped element, doing nothing at all.
+        if (initialMeasurement.isPainted && initialDelta.deltaX === 0 && initialDelta.deltaY === 0) {
             return
         }
 
-        /**
-         * per the WebDriver spec, an element `origin` must be scrolled into view before its
-         * coordinates can be resolved - which would silently reposition the page before our
-         * own deltaX/deltaY are applied. Our deltas are already absolute, computed relative to
-         * the current window scroll, so we scroll from the viewport origin instead.
-         */
-        await browser.action('wheel')
-            .scroll({
-                duration: 0,
-                x: 0,
-                y: 0,
-                deltaX,
-                deltaY,
-            })
+        const wheelScroll = (deltaX: number, deltaY: number) => browser.action('wheel')
+            .scroll({ duration: 0, x: 0, y: 0, deltaX, deltaY, origin: this })
             .perform()
 
         /**
+         * Per the WebDriver spec, resolving an element `origin` requires the browser to
+         * scroll that element into view first (natively, via the same machinery as
+         * `Element.scrollIntoView()`), before the wheel deltas below are even applied.
+         * That's exactly what nested/Shadow DOM scrolling needs - a wheel event
+         * dispatched at a manually-computed page coordinate only hits whatever is
+         * actually painted there, which for a clipped element is nothing - but it means
+         * the deltas we already computed (against the *pre*-scroll position) would be
+         * applied on top of wherever that pre-scroll landed, overshooting.
+         *
+         * If the element is already visible, that pre-scroll is a no-op, so applying
+         * `initialDelta` directly in one wheel action is safe and cheaper. Only pay for
+         * a throwaway zero-delta probe (to let the pre-scroll happen in isolation) and a
+         * re-measured delta when the element actually starts off-screen/clipped.
+         *
+         * "Already visible" is judged by `isPainted` (a real hit-test at the element's
+         * own center point), not window-bounds arithmetic: an element can have a layout
+         * rect that's fully inside the window and still be invisible - clipped by a
+         * nested scroll container, or covered by an unrelated overlapping element - and
+         * geometry alone can't tell the difference. Trusting geometry here would let the
+         * fast path skip the probe for a genuinely-clipped element, hitting exactly the
+         * overshoot this whole probe exists to avoid.
+         */
+        if (initialMeasurement.isPainted) {
+            await wheelScroll(initialDelta.deltaX, initialDelta.deltaY)
+        } else {
+            await wheelScroll(0, 0)
+            const remainingDelta = computeDelta(await measure())
+            if (remainingDelta.deltaX !== 0 || remainingDelta.deltaY !== 0) {
+                await wheelScroll(remainingDelta.deltaX, remainingDelta.deltaY)
+            }
+        }
+
+        /**
          * real browsers apply wheel-driven scrolling asynchronously (e.g. inertial
-         * scrolling), so `window.scrollX/Y` may not reflect the final position right
-         * after the action resolves. Wait until the scroll position stops changing
-         * across consecutive animation frames instead of assuming it's done.
+         * scrolling), so the element's position may not reflect its final resting place
+         * right after the action resolves. Wait until it stops changing across
+         * consecutive animation frames instead of assuming it's done.
+         *
+         * Tracks the element's own `getBoundingClientRect()`, not `window.scrollX/Y`:
+         * a nested-container scroll never touches the window's own scroll position, so
+         * polling only that would report "settled" immediately (nothing to compare
+         * against ever changes) while the container's own inertial scroll is still
+         * animating underneath.
          */
         // `execute` doesn't await promises under the classic WebDriver protocol, only Bidi,
         // so `executeAsync` is still required here to reliably wait under both protocols
         // @ts-ignore `executeAsync` is deprecated in favor of `execute`, see comment above
-        await browser.executeAsync((done: () => void) => {
+        await browser.executeAsync((elem: HTMLElement, done: () => void) => {
             try {
-                let lastX = window.scrollX
-                let lastY = window.scrollY
+                let last = elem.getBoundingClientRect()
                 let stableFrames = 0
                 let totalFrames = 0
                 const maxFrames = 60
 
                 const check = () => {
                     totalFrames++
-                    const x = window.scrollX
-                    const y = window.scrollY
-                    if (x === lastX && y === lastY) {
+                    const current = elem.getBoundingClientRect()
+                    if (current.top === last.top && current.left === last.left) {
                         stableFrames++
                     } else {
                         stableFrames = 0
-                        lastX = x
-                        lastY = y
+                        last = current
                     }
                     if (stableFrames >= 2 || totalFrames >= maxFrames) {
                         return done()
@@ -240,7 +321,32 @@ export async function scrollIntoView (
             } catch {
                 done()
             }
-        })
+        }, {
+            [ELEMENT_KEY]: this.elementId, // w3c compatible
+            ELEMENT: this.elementId, // jsonwp compatible
+        } as unknown as HTMLElement)
+
+        /**
+         * Not every WebDriver implementation performs the element-origin pre-scroll
+         * above the same way (e.g. geckodriver resolves the origin from the element's
+         * un-scrolled position and, unlike throwing when that's off-screen, silently
+         * dispatches in place when it happens to still be in-bounds - no exception to
+         * catch). Verify the outcome instead of trusting it, using the same `isPainted`
+         * ground truth as the fast-path decision above - not window-bounds arithmetic,
+         * which can't tell "visible" from "clipped by a nested container" or "covered
+         * by an unrelated overlapping element", and not an exact match against the
+         * requested alignment either, since that can be unreachable inside a small
+         * nested container even when the element is correctly, fully visible.
+         */
+        const finalMeasurement = await measure()
+
+        if (!finalMeasurement.isPainted) {
+            log.warn(
+                'scrollIntoView via the WebDriver Actions API did not bring the element into view! ' +
+                'Re-attempting using `Element.scrollIntoView` via Web API.'
+            )
+            await scrollIntoViewWeb.call(this, options)
+        }
     } catch (err) {
         log.warn(
             `Failed to execute "scrollIntoView" using WebDriver Actions API: ${(err as Error).message}!\n` +

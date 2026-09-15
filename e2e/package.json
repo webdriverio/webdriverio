@@ -72,7 +72,7 @@
     "expect": "^30.4.1",
     "graphql-request": "^6.1.0",
     "is-url": "^1.2.4",
-    "mocha": "^11.8.0",
+    "mocha": "^10.8.2",
     "puppeteer-core": "^24.12.1",
     "string-width": "^7.1.0",
     "tailwindcss": "^3.4.1",
