@@ -1428,8 +1428,8 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0
       edgedriver:
-        specifier: ^6.1.2
-        version: 6.3.0
+        specifier: ^6.3.1
+        version: 6.3.1
       geckodriver:
         specifier: ^6.1.1
         version: 6.1.1
@@ -9167,6 +9167,11 @@ packages:
 
   edgedriver@6.3.0:
     resolution: {integrity: sha512-ggEQL+oEyIcM4nP2QC3AtCQ04o4kDNefRM3hja0odvlPSnsaxiruMxEZ93v3gDCKWYW6BXUr51PPradb+3nffw==}
+    engines: {node: '>=20.0.0'}
+    hasBin: true
+
+  edgedriver@6.3.1:
+    resolution: {integrity: sha512-wCL/Ydgt0DPkWecjhhPj2/lnDxsGeHLPKeJYKKMTNol+ULFVg4WaTvxoB19GU4tieM6LSA3vZEdZxmDC0DwIpQ==}
     engines: {node: '>=20.0.0'}
     hasBin: true
 
@@ -25120,6 +25125,18 @@ snapshots:
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
       which: 6.0.0
+    transitivePeerDependencies:
+      - supports-color
+
+  edgedriver@6.3.1:
+    dependencies:
+      '@wdio/logger': 9.29.1
+      '@zip.js/zip.js': 2.8.11
+      decamelize: 6.0.1
+      edge-paths: 3.0.5
+      http-proxy-agent: 7.0.2
+      https-proxy-agent: 7.0.6
+      which: 6.0.1
     transitivePeerDependencies:
       - supports-color
 
