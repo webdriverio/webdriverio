@@ -17,7 +17,8 @@ describe('wdio-sumologic-reporter', () => {
     let reporter: SumoLogicReporter
 
     beforeEach(() => {
-        vi.mocked(fetch).mockClear()
+        vi.mocked(fetch).mockReset()
+        vi.mocked(fetch).mockResolvedValue({ ok: true, status: 200 } as Response)
         vi.mocked(logger('').error).mockClear()
         reporter = new SumoLogicReporter({})
     })
@@ -87,6 +88,10 @@ describe('wdio-sumologic-reporter', () => {
     it('should sync', async () => {
         reporter['_options'].sourceAddress = 'http://localhost:1234'
         reporter.onRunnerStart('onRunnerStart' as any)
+        vi.mocked(fetch).mockResolvedValue({
+            ok: true,
+            status: 200
+        } as Response)
         await reporter.sync()
 
         expect(vi.mocked(fetch).mock.calls).toHaveLength(1)
@@ -98,8 +103,32 @@ describe('wdio-sumologic-reporter', () => {
         expect(reporter['_unsynced']).toHaveLength(0)
     })
 
+    it.each([400, 429, 500])('should retain logs and schedule a retry for HTTP %i',
+        async (status) => {
+            reporter['_options'].sourceAddress = 'http://localhost:1234'
+            reporter.onRunnerStart('onRunnerStart' as any)
+
+            vi.mocked(fetch).mockResolvedValue({
+                ok: false,
+                status,
+                statusText: 'Request failed'
+            } as Response)
+
+            await reporter.sync()
+
+            expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1)
+            expect(reporter['_unsynced']).toHaveLength(1)
+            expect(reporter['_retryDelay']).toBe(100)
+
+            await reporter.sync()
+            expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1)
+
+        }
+    )
+
     it('should log if it fails syncing', async () => {
         vi.mocked(logger('').error).mockClear()
+        vi.mocked(fetch).mockRejectedValue(new Error('network error'))
 
         reporter['_options'].sourceAddress = 'http://localhost:1234/sumoerror'
         reporter.onRunnerStart('onRunnerStart' as any)
@@ -132,7 +161,7 @@ describe('wdio-sumologic-reporter', () => {
             }
         }
 
-        vi.mocked(fetch).mockResolvedValue({ status: 200 } as Response)
+        vi.mocked(fetch).mockResolvedValue({ ok: true, status: 200 } as Response)
         vi.setSystemTime(3499)
         await reporter.sync()
         expect(vi.mocked(fetch)).toHaveBeenCalledTimes(6)
@@ -160,6 +189,7 @@ describe('wdio-sumologic-reporter', () => {
         reporter = new SumoLogicReporter({ sourceAddress: 'http://localhost:1234' })
         reporter.onRunnerStart('onRunnerStart' as any)
         reporter.onRunnerEnd('onRunnerStart' as any)
+
         expect(clearInterval).toBeCalledTimes(0)
         await reporter.sync()
         expect(clearInterval).toBeCalledTimes(0)

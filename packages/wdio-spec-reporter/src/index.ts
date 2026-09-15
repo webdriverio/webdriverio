@@ -43,6 +43,8 @@ export default class SpecReporter extends WDIOReporter {
         retried: 0
     }
 
+    private _passedTests = new WeakSet<TestStats>()
+
     private _symbols: Symbols = {
         passed: '✓',
         skipped: '-',
@@ -134,6 +136,7 @@ export default class SpecReporter extends WDIOReporter {
         this.printCurrentStats(testStat)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.passed++
+        this._passedTests.add(testStat)
         if (!this._isSuiteRetry) {
             this._passingTestsSinceLastRetry++
         }
@@ -142,6 +145,14 @@ export default class SpecReporter extends WDIOReporter {
     onTestFail (testStat: TestStats) {
         this.printCurrentStats(testStat)
         this._consoleLogs.push(this._consoleOutput)
+
+        if (this._passedTests.delete(testStat)) {
+            this._stateCounts.passed--
+            if (!this._isSuiteRetry) {
+                this._passingTestsSinceLastRetry--
+            }
+        }
+
         this._stateCounts.failed++
     }
 
