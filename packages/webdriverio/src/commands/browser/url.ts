@@ -1,6 +1,7 @@
 import { validateUrl } from '../../utils/index.js'
 import { getNetworkManager } from '../../session/networkManager.js'
 import { getContextManager } from '../../session/context.js'
+import { SESSION_MOCKS } from './mock.js'
 import type { InitScript } from './addInitScript.js'
 
 type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
@@ -50,6 +51,21 @@ const DEFAULT_WAIT_STATE = 'complete'
  * }
  * ```
  *
+ * :::info macOS performance
+ *
+ * On **macOS**, Chrome's BiDi `browsingContext.navigate` is significantly slower than
+ * classic `navigateTo` for a simple page load (see
+ * [webdriverio#15481](https://github.com/webdriverio/webdriverio/issues/15481)).
+ * Therefore a plain `browser.url(url)` (no BiDi-only options) uses classic navigation
+ * when the session reports a macOS browser (W3C `capabilities.platformName`, including
+ * `mac` / `macOS` / `darwin` / `OS X`) and returns
+ * `undefined` instead of a `Request` object. Pass a BiDi-only option (`headers`, `auth`,
+ * `onBeforeLoad`, or `wait` other than `'complete'`) if you need request/response
+ * metadata on macOS. On Linux and Windows the BiDi path (and `Request` return value)
+ * remains the default for `browser.url(url)`.
+ *
+ * :::
+ *
  * The command supports the following options:
  *
  * :::note
@@ -90,11 +106,18 @@ const DEFAULT_WAIT_STATE = 'complete'
  * <example>
     :url.js
     // navigate to a new URL
-    const request = await browser.url('https://webdriver.io');
-    // log url
-    console.log(request.url); // outputs: "https://webdriver.io"
-    console.log(request.response?.status); // outputs: 200
-    console.log(request.response?.headers); // outputs: { 'content-type': 'text/html; charset=UTF-8' }
+    // On Linux/Windows (BiDi): returns Request with response metadata
+    // On macOS browsers: uses classic navigateTo for speed; returns undefined
+    const request = await browser.url('https://webdriver.io')
+    console.log(request?.url) // "https://webdriver.io" (undefined on macOS without BiDi options)
+    console.log(request?.response?.status) // e.g. 200 (undefined on macOS without BiDi options)
+
+    :urlRequestMacOS.js
+    // On a macOS browser session, pass a BiDi-only option to get Request metadata
+    const request = await browser.url('https://webdriver.io', { wait: 'networkIdle' })
+    console.log(request.url)
+    console.log(request.response?.status)
+    console.log(request.response?.headers)
 
     :baseUrlResolutions.js
     // With a base URL of http://example.com/site, the following url parameters resolve as such:
@@ -149,7 +172,7 @@ const DEFAULT_WAIT_STATE = 'complete'
  * mock the environment, e.g. overwrite Web APIs that your application uses.
  * @param {`{user: string, pass: string}`=} options.auth  basic authentication credentials
  * @param {`Record<string, string>`=} options.headers  headers to be sent with the request
- * @returns {WebdriverIO.Request} a request object of the page load with information about the request and response data
+ * @returns {WebdriverIO.Request|void} request/response data for the page load when the BiDi path is used; `undefined` on classic navigation (including the macOS-browser fast path for plain `url()`)
  *
  * @see  https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get
  * @see  https://nodejs.org/api/url.html#url_url_resolve_from_to
@@ -169,11 +192,11 @@ export async function url (
         path = (new URL(path, this.options.baseUrl)).href
     }
 
-    if (this.isBidi && path.startsWith('http')) {
-        let resetPreloadScript: InitScript | undefined
-        const contextManager = getContextManager(this)
-        const context = await contextManager.getCurrentContext()
+    const { useBidi, context } = await planNavigation(this, path, options)
 
+    if (useBidi) {
+        let resetPreloadScript: InitScript | undefined
+        const bidiContext = context as string
         /**
          * set up preload script if `onBeforeLoad` option is provided
          */
@@ -217,7 +240,7 @@ export async function url (
             ? 'complete'
             : options.wait || classicPageLoadStrategy || DEFAULT_WAIT_STATE
         const navigation = await this.browsingContextNavigate({
-            context,
+            context: bidiContext,
             url: path,
             wait
         }).catch((err) => {
@@ -248,10 +271,10 @@ export async function url (
         if (options.wait === 'networkIdle') {
             const timeout = options.timeout || DEFAULT_NETWORK_IDLE_TIMEOUT
             await this.waitUntil(async () => {
-                return network.getPendingRequests(context).length === 0
+                return network.getPendingRequests(bidiContext).length === 0
             }, {
                 timeout,
-                timeoutMsg: `Navigation to '${path}' timed out after ${timeout}ms with ${network.getPendingRequests(context).length} (${network.getPendingRequests(context).map((r) => r.url).join(', ')}) pending requests`
+                timeoutMsg: `Navigation to '${path}' timed out after ${timeout}ms with ${network.getPendingRequests(bidiContext).length} (${network.getPendingRequests(bidiContext).map((r) => r.url).join(', ')}) pending requests`
             })
         }
 
@@ -282,11 +305,103 @@ export async function url (
         return request
     }
 
-    if (Object.keys(options).length > 0) {
+    if (Object.keys(options).length > 0 && !this.isBidi) {
         throw new Error('Setting url options is only supported when automating browser using WebDriver Bidi protocol')
     }
 
     await this.navigateTo(validateUrl(path))
+}
+
+interface NavigationPlan {
+    /**
+     * whether to navigate via BiDi `browsingContext.navigate` (`true`) or
+     * classic `navigateTo` (`false`)
+     */
+    useBidi: boolean
+    /**
+     * the session's current browsing context, resolved whenever `isBidi` is
+     * true regardless of `useBidi`
+     */
+    context?: string
+}
+
+/**
+ * Decide how to navigate, and resolve the browsing context needed either way.
+ *
+ * ### Context resolution
+ *
+ * Added context resolution here, skipping this would leave them blind to the next
+ * context transition (e.g. a `newWindow()` call right after).
+ *
+ * ### Mocks
+ *
+ * Added hasActiveMocks here, when mocks are active, we need to use BiDi and need to accept
+ * the latency on Mac. Paused requests are only released as part of the
+ * BiDi navigation flow; classic `navigateTo` blocks until the full page load
+ * completes, so a request stuck waiting on a mock would hang the whole call.
+ */
+async function planNavigation (
+    browser: WebdriverIO.Browser,
+    path: string,
+    options: UrlCommandOptions
+): Promise<NavigationPlan> {
+    const context = browser.isBidi
+        ? await getContextManager(browser).getCurrentContext()
+        : undefined
+
+    const useBidi = (
+        browser.isBidi &&
+        path.startsWith('http') &&
+        (requiresBidiNavigation(options) || hasActiveMocks() || !isMacOSPlatform(browser.capabilities.platformName))
+    )
+
+    return { useBidi, context }
+}
+
+/**
+ * Keys that classic `navigateTo` can honor (or ignore as a no-op).
+ */
+const CLASSIC_SAFE_OPTION_KEYS = new Set(['wait', 'timeout'])
+
+/**
+ * Whether navigation needs BiDi `browsingContext.navigate`. Fail-safe for new
+ * options: only an empty options object (or classic-safe `wait: 'complete'` /
+ * unused `timeout`) stays on classic; everything else, including unknown
+ * keys, uses BiDi so we never silently drop features.
+ */
+export function requiresBidiNavigation (options: UrlCommandOptions = {}): boolean {
+    for (const [key, value] of Object.entries(options)) {
+        if (value === undefined) {
+            continue
+        }
+
+        if (!CLASSIC_SAFE_OPTION_KEYS.has(key)) {
+            return true
+        }
+
+        if (key === 'wait' && value !== 'complete') {
+            return true
+        }
+    }
+
+    return false
+}
+
+/**
+ * macOS Chrome pays a large BiDi `browsingContext.navigate` cost vs classic
+ * `navigateTo` for simple loads (webdriverio#15481). Session `platformName` is
+ * already the W3C value (`mac`, `macOS`, `darwin`, `OS X`, …).
+ */
+function isMacOSPlatform (platformName?: string) {
+    return Boolean(platformName && /mac|darwin|os x/i.test(platformName))
+}
+
+/**
+ * Whether any browsing context in this session currently has an active
+ * `browser.mock()` interception.
+ */
+function hasActiveMocks (): boolean {
+    return Object.values(SESSION_MOCKS).some((mocks) => mocks.size > 0)
 }
 
 interface UrlCommandOptions {
