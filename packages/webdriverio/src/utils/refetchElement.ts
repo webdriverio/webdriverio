@@ -1,4 +1,5 @@
 import implicitWait from './implicitWait.js'
+import { getElement } from './getElementObject.js'
 import type { Selector } from '../types.js'
 
 /**
@@ -28,14 +29,37 @@ export default async function refetchElement (
     /**
      * Beginning with the browser object, re-chain
      */
-    return selectors.reduce(async (elementPromise, { selector, index }, currentIndex) => {
-        const resolvedElement = await elementPromise
-        let nextElement = index > 0 ? await resolvedElement.$$(selector as string)[index]?.getElement() : null
-        nextElement = nextElement || await resolvedElement.$(selector).getElement()
+    let resolvedElement = currentElement
+    for (const [currentIndex, { selector, index }] of selectors.entries()) {
+        let nextElement: WebdriverIO.Element
+        if (index > 0) {
+            const elements = await resolvedElement.$$(selector as string).getElements()
+
+            /**
+             * if the list shrunk below the index we are looking for, the element is gone,
+             * so return a missing element rather than falling back to the first match
+             */
+            if (!elements[index]) {
+                const missingElement = getElement.call(
+                    resolvedElement,
+                    selector,
+                    new Error(`Index out of bounds! $$(${selector}) returned only ${elements.length} elements.`)
+                )
+                missingElement.index = index
+                return missingElement
+            }
+
+            nextElement = elements[index]
+        } else {
+            nextElement = await resolvedElement.$(selector).getElement()
+        }
+
         /**
          *  For error purposes, changing command name to '$' if we aren't
          *  on the last element of the array
          */
-        return await implicitWait(nextElement, currentIndex + 1 < length ? '$' : commandName)
-    }, Promise.resolve(currentElement))
+        resolvedElement = await implicitWait(nextElement, currentIndex + 1 < length ? '$' : commandName)
+    }
+
+    return resolvedElement
 }
