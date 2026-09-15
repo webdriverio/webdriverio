@@ -84,26 +84,6 @@ describe('main suite 1', () => {
         })
     })
 
-    it.skip('should allow to check for PWA', async () => {
-        await browser.url('https://webdriver.io')
-
-        await browser.pause(100)
-        expect((await browser.checkPWA([
-            'isInstallable',
-            'splashScreen',
-            'themedOmnibox',
-            'contentWith',
-            'viewport',
-            'appleTouchIcon',
-            'maskableIcon'
-        ])).passed).toBe(true)
-    })
-
-    it.skip('should also detect non PWAs', async () => {
-        await browser.url('https://json.org')
-        expect((await browser.checkPWA()).passed).toBe(false)
-    })
-
     it('can query shadow elements', async () => {
         await browser.url('https://the-internet.herokuapp.com/shadowdom')
         await $('h1').waitForDisplayed()
