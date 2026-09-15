@@ -110,5 +110,6 @@ describe('uploadFile', () => {
             vi.mocked(archiverMock.append).mockClear()
             vi.mocked(archiverMock.finalize).mockClear()
         }
+        vi.mocked(ZipArchive).mockClear()
     })
 })
