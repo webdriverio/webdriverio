@@ -90,6 +90,72 @@ Object.values(SUITES).forEach((suite) => {
     suite.hooksAndTests = [...suite.tests]
 })
 
+export const SUITES_WITH_DURATIONS = {
+    [suiteIds[0]]: {
+        uid: suiteIds[0],
+        title: suiteIds[0].slice(0, -1),
+        file: '/foo/bar/loo.e2e.js',
+        hooks: [],
+        tests: [
+            {
+                uid: 'foo1',
+                title: 'foo',
+                state: 'passed',
+                type: 'test',
+                end: new Date(),
+                duration: 500,
+            },
+            {
+                uid: 'bar1',
+                title: 'bar',
+                state: 'passed',
+                type: 'test',
+                end: new Date(),
+                duration: 5000,
+            },
+            {
+                uid: 'baz1',
+                title: 'baz',
+                state: 'passed',
+                type: 'test',
+                end: new Date(),
+                duration: 8000,
+            },
+            {
+                uid: 'pending1',
+                title: 'a never-ending pending test',
+                state: 'pending',
+                type: 'test',
+                // no `end` timestamp: mimics a skipped/pending test whose
+                // duration keeps growing because `complete()` was never called
+                duration: 999999,
+            },
+        ],
+    },
+    [suiteIds[1]]: {
+        uid: suiteIds[1],
+        title: suiteIds[1].slice(0, -1),
+        file: '/bar/foo/loo.e2e.js',
+        hooks: [],
+        tests: [
+            {
+                uid: 'baz2',
+                // same title as the slow "baz" test in the first suite, to
+                // prove suite context disambiguates same-named slow tests
+                title: 'baz',
+                state: 'passed',
+                type: 'test',
+                end: new Date(),
+                duration: 6000,
+            },
+        ],
+    },
+}
+Object.values(SUITES_WITH_DURATIONS).forEach((suite) => {
+    // @ts-expect-error
+    suite.hooksAndTests = [...suite.tests]
+})
+
 export const SUITES_WITH_DATA_TABLE = {
     [suiteIds[0]]: {
         uid: suiteIds[0],
