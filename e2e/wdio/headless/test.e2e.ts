@@ -1,5 +1,3 @@
-/// <reference types="@wdio/lighthouse-service" />
-
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import url from 'node:url'
@@ -86,26 +84,6 @@ describe('main suite 1', () => {
         })
     })
 
-    it.skip('should allow to check for PWA', async () => {
-        await browser.url('https://webdriver.io')
-
-        await browser.pause(100)
-        expect((await browser.checkPWA([
-            'isInstallable',
-            'splashScreen',
-            'themedOmnibox',
-            'contentWith',
-            'viewport',
-            'appleTouchIcon',
-            'maskableIcon'
-        ])).passed).toBe(true)
-    })
-
-    it.skip('should also detect non PWAs', async () => {
-        await browser.url('https://json.org')
-        expect((await browser.checkPWA()).passed).toBe(false)
-    })
-
     it('can query shadow elements', async () => {
         await browser.url('https://the-internet.herokuapp.com/shadowdom')
         await $('h1').waitForDisplayed()
@@ -148,33 +126,6 @@ describe('main suite 1', () => {
 
             await browser.setViewport(viewport)
         })
-    })
-
-    describe.skip('Lighthouse Service Performance Testing capabilities', () => {
-        before(() => browser.enablePerformanceAudits())
-
-        it('should allow to do performance tests', async () => {
-            await browser.url('http://json.org')
-            const metrics = await browser.getMetrics()
-            expect(typeof metrics.serverResponseTime).toBe('number')
-            expect(typeof metrics.domContentLoaded).toBe('number')
-            expect(typeof metrics.firstVisualChange).toBe('number')
-            expect(typeof metrics.firstPaint).toBe('number')
-            expect(typeof metrics.firstContentfulPaint).toBe('number')
-            expect(typeof metrics.firstMeaningfulPaint).toBe('number')
-            expect(typeof metrics.largestContentfulPaint).toBe('number')
-            expect(typeof metrics.lastVisualChange).toBe('number')
-            expect(typeof metrics.interactive).toBe('number')
-            expect(typeof metrics.load).toBe('number')
-            expect(typeof metrics.speedIndex).toBe('number')
-            expect(typeof metrics.totalBlockingTime).toBe('number')
-            expect(typeof metrics.maxPotentialFID).toBe('number')
-            expect(typeof metrics.cumulativeLayoutShift).toBe('number')
-            const score = await browser.getPerformanceScore()
-            expect(typeof score).toBe('number')
-        })
-
-        after(() => browser.disablePerformanceAudits())
     })
 
     it.skip('should be able to scroll up and down', async () => {

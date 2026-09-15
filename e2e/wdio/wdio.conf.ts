@@ -31,7 +31,6 @@ export const config: WebdriverIO.Config = {
         }
     }],
     bail: 1,
-    services: ['lighthouse'],
 
     /**
      * test configurations
