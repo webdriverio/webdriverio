@@ -61,6 +61,22 @@ export async function isExisting (this: WebdriverIO.Element) {
         )
     }
 
+    /**
+     * on mobile, `findElements` can be very expensive (e.g. large scrollable
+     * lists on iOS take 30+ seconds), so use a single `findElement` lookup to
+     * check existence. On web we keep `findElements` to avoid the implicitWait
+     * penalty on non-existent elements.
+     */
+    if (this.isMobile) {
+        const command = this.isReactElement
+            ? this.parent.react$.bind(this.parent)
+            : this.isShadowElement
+                ? this.shadow$.bind(this.parent)
+                : this.parent.$.bind(this.parent)
+        const element = await command(this.selector as string)
+        return Boolean(element.elementId)
+    }
+
     const command = this.isReactElement
         ? this.parent.react$$.bind(this.parent)
         : this.isShadowElement
