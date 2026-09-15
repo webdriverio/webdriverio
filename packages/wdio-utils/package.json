@@ -20,7 +20,7 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=22.12.0"
   },
   "repository": {
     "type": "git",
@@ -37,7 +37,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@puppeteer/browsers": "^2.2.0",
+    "@puppeteer/browsers": "^3.2.1",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "decamelize": "^6.0.0",
