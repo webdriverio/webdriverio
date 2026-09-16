@@ -1,0 +1,58 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`xpath-conditions > convertConditionToPredicate > should convert beginswith operator 1`] = `"name BEGINSWITH 'Submit'"`;
+
+exports[`xpath-conditions > convertConditionToPredicate > should convert contains operator 1`] = `"name CONTAINS 'Submit'"`;
+
+exports[`xpath-conditions > convertConditionToPredicate > should convert endswith operator 1`] = `"name ENDSWITH 'Submit'"`;
+
+exports[`xpath-conditions > convertConditionToPredicate > should convert equals operator with double quotes 1`] = `"name == "Submit""`;
+
+exports[`xpath-conditions > convertConditionToPredicate > should convert equals operator with single quotes 1`] = `"name == 'Submit'"`;
+
+exports[`xpath-conditions > convertConditionToPredicate > should convert greater than operator 1`] = `"value > '10'"`;
+
+exports[`xpath-conditions > convertConditionToPredicate > should convert greater than or equal operator 1`] = `"value >= '10'"`;
+
+exports[`xpath-conditions > convertConditionToPredicate > should convert less than operator 1`] = `"value < '10'"`;
+
+exports[`xpath-conditions > convertConditionToPredicate > should convert less than or equal operator 1`] = `"value <= '10'"`;
+
+exports[`xpath-conditions > convertConditionToPredicate > should convert not equals operator 1`] = `"name != 'Submit'"`;
+
+exports[`xpath-conditions > convertConditionToPredicate > should default to equals for unknown operator 1`] = `"name == 'Submit'"`;
+
+exports[`xpath-conditions > convertConditionToPredicate > should handle <> as not equals 1`] = `"name != 'Submit'"`;
+
+exports[`xpath-conditions > groupOrConditions > should group OR conditions together 1`] = `
+[
+  "(name == 'Allow' OR name == 'OK')",
+  "enabled == 'true'",
+]
+`;
+
+exports[`xpath-conditions > groupOrConditions > should handle multiple OR groups for different attributes 1`] = `
+[
+  "(name == 'A' OR name == 'B')",
+  "(type == 'C' OR type == 'D')",
+]
+`;
+
+exports[`xpath-conditions > groupOrConditions > should handle regular conditions without OR 1`] = `
+[
+  "name == 'Submit'",
+  "enabled == 'true'",
+]
+`;
+
+exports[`xpath-conditions > groupOrConditions > should handle single OR condition without grouping parentheses 1`] = `
+[
+  "name == 'Allow'",
+]
+`;
+
+exports[`xpath-conditions > groupOrConditions > should use double quotes for class chain style 1`] = `
+[
+  "name == "Submit"",
+]
+`;

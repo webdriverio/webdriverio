@@ -25,6 +25,10 @@ export const getTestStatus = (
     }
 
     if (test.error) {
+        if (test.error.name && test.error.name.toLowerCase().includes('assert')) {
+            return AllureStatus.FAILED
+        }
+
         if (test.error.message) {
             const message = test.error.message.trim().toLowerCase()
 
@@ -282,7 +286,7 @@ export function isEmptyObject(value: unknown): boolean {
 export const toPackageLabel = (p?: string) => {
     if (!p) {return ''}
     const fsPath = fromUrlish(p)
-    const noPos = fsPath.split(':')[0]
+    const noPos = dropPosSuffix(fsPath)
     const rel = relNoSlash(noPos)
     return rel.replace(/\//g, '.')
 }

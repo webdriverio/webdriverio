@@ -75,7 +75,10 @@ export interface Timeouts {
     script?: number
 }
 
-export type SameSiteOptions = 'lax' | 'strict' | 'none'
+/**
+ * TODO to review since when used with classic Api, the enum is PascalCase and not reflected in the types.
+ */
+export type SameSiteOptions = 'lax' | 'strict' | 'none' | 'default'
 export interface Cookie {
     /**
      * The name of the cookie.

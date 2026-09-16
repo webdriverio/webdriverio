@@ -6,6 +6,7 @@ export type PM = typeof SUPPORTED_PACKAGE_MANAGERS[number]
 
 export interface RunCommandArguments {
     coverage?: boolean
+    headless?: boolean
     watch?: boolean
     hostname?: string
     port?: number

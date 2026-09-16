@@ -42,6 +42,15 @@ export default function Sponsors () {
                         target="_blank"
                         style={{ width: '200px' }}
                     />
+
+                    <ImageSwitcher
+                        lightImageSrc="/img/sponsors/momentic_black.svg"
+                        darkImageSrc="/img/sponsors/momentic_white.svg"
+                        alt="Momentic"
+                        link="https://momentic.ai/"
+                        target="_blank"
+                        style={{ width: '260px' }}
+                    />
                 </div>
             </div>
             <div className="gold">

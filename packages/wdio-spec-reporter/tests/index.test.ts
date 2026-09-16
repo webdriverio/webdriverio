@@ -107,6 +107,49 @@ describe('SpecReporter', () => {
         })
     })
 
+    it('should replace a passed test when the same test later fails', () => {
+        const test = {
+            uid: 'late-failure',
+            title: 'passes its body',
+            state: State.PASSED
+        } as any
+
+        tmpReporter.onTestPass(test)
+        tmpReporter.onTestFail(test)
+
+        expect(tmpReporter['_stateCounts']).toMatchObject({
+            passed: 0,
+            failed: 1
+        })
+    })
+
+    it('should not subtract a late failure twice when its suite is retried', () => {
+        const test = { uid: 'late-failure' } as any
+
+        tmpReporter.onTestPass(test)
+        tmpReporter.onTestFail(test)
+        tmpReporter.onSuiteRetry()
+
+        expect(tmpReporter['_stateCounts']).toMatchObject({
+            passed: 0,
+            failed: 0,
+            retried: 1
+        })
+    })
+
+    it('should retain a passed test when another test with the same UID fails', () => {
+        const passedTest = { uid: 'same-title' } as any
+        const failedTest = { uid: 'same-title' } as any
+
+        tmpReporter.onTestPass(passedTest)
+        tmpReporter.onTestFail(failedTest)
+
+        expect(tmpReporter['_stateCounts']).toMatchObject({
+            passed: 1,
+            failed: 1
+        })
+    })
+
     describe('onTestFail', () => {
         beforeAll(() => {
             reporter.onTestFail({
@@ -790,15 +833,16 @@ describe('SpecReporter', () => {
 
         it('should group retried test suites', () => {
             runner.failures = 0
-            printReporter.onTestPass({})
-            printReporter.onTestPass({})
-            printReporter.onTestFail({})
+            printReporter.onTestPass({ uid: 'first-run-foo' })
+            printReporter.onTestPass({ uid: 'first-run-bar' })
+            printReporter.onTestFail({ uid: 'first-run-failure' })
             printReporter.onSuiteRetry()
-            printReporter.onTestPass({})
-            printReporter.onTestPass({})
+            printReporter.onTestPass({ uid: 'retry-foo' })
+            printReporter.onTestPass({ uid: 'retry-bar' })
             printReporter.printReport(runner)
             expect(printReporter.write.mock.calls).toMatchSnapshot()
         })
+
     })
 
     describe('showPreface', () => {

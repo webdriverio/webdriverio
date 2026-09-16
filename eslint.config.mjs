@@ -52,13 +52,27 @@ export default wdioEslint.config([
         files: [
             'tests/**/*.ts',
             'tests/**/*.js',
+            'e2e/**/*.ts',
+            'e2e/**/*.js',
         ],
         languageOptions: {
             globals: {
                 ...globals.mocha,
                 ...globals.jasmine,
                 browser: true,
-                $: true
+                $: true,
+                ...globals.document,
+                ...globals.customElements,
+                ...globals.window,
+                ...globals.node,
+                ...globals.react,
+                window: true,
+                document: true,
+                HTMLElement: true,
+                alert: true,
+                prompt: true,
+                confirm: true,
+                customElements: true,
             }
         },
         rules: {

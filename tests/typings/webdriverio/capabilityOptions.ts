@@ -12,6 +12,10 @@ const config: myConfig = {
             'wdio:maxInstances': 3,
             'wdio:specs': ['foo'],
             'wdio:exclude': ['bar']
+        },
+        {
+            browserName: 'firefox',
+            'wdio:specs': [['a.spec.ts', 'b.spec.ts'], 'c.spec.ts'],
         }
     ]
 }

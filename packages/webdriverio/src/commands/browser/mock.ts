@@ -108,7 +108,7 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
  * </example>
  *
  * @alias browser.mock
- * @param {String}              url                             url to mock
+ * @param {String|URLPattern}   url                             url to mock
  * @param {MockFilterOptions=}  filterOptions                   filter mock resource by additional options
  * @param {String|Function=}    filterOptions.method            filter resource by HTTP method
  * @param {Object|Function=}    filterOptions.requestHeaders    filter resource by specific request headers
@@ -121,7 +121,7 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
  */
 export async function mock(
     this: WebdriverIO.Browser,
-    url: string,
+    url: string | URLPattern,
     filterOptions?: MockFilterOptions
 ): Promise<WebdriverIO.Mock> {
     if (!this.isBidi) {
@@ -136,5 +136,5 @@ export async function mock(
     }
     const networkInterception = await WebDriverInterception.initiate(url, filterOptions || {}, this)
     SESSION_MOCKS[context].add(networkInterception)
-    return networkInterception as WebdriverIO.Mock
+    return networkInterception satisfies WebdriverIO.Mock
 }

@@ -1,6 +1,6 @@
 {
   "name": "@wdio/cli",
-  "version": "9.23.3",
+  "version": "9.31.9",
   "description": "WebdriverIO testrunner command line interface",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cli",
@@ -39,7 +39,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@vitest/snapshot": "^2.1.1",
+    "@vitest/snapshot": "^3.2.7",
     "@wdio/config": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",
