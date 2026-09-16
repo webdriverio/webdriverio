@@ -50,6 +50,32 @@ describe('initializePlugin', () => {
         expect(service.foo).toBe('foo')
     })
 
+    it('should allow to load a plugin from an absolute path with URL-reserved characters', async () => {
+        const pluginPath = path.resolve(fixtureDir, 'plugin%fixture.mjs')
+
+        vi.mocked(resolve).mockImplementation(
+            createMockResolver(pathToFileURL(pluginPath).href, path.basename(pluginPath))
+        )
+
+        const { default: Service } = await initializePlugin(pluginPath, 'service')
+        const service = new Service({} as any, {}, {}) as TestService
+
+        expect(service.foo).toBe('percent')
+    })
+
+    it('should preserve Windows paths on all operating systems', async () => {
+        const pluginPath = 'C:\\plugins\\plugin%fixture.mjs'
+
+        vi.mocked(resolve).mockImplementation(
+            createMockResolver('file:///C:/plugins/plugin%25fixture.mjs', 'plugin%fixture.mjs')
+        )
+
+        const { default: Service } = await initializePlugin(pluginPath, 'service')
+        const service = new Service({} as any, {}, {}) as TestService
+
+        expect(service.foo).toBe('percent')
+    })
+
     it('should allow to load a scoped service plugin', async ()=>{
         const name = 'foo'
         const type = 'service'

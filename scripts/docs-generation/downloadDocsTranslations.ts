@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import type { Dirent } from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
 import unzipper from 'unzipper'
@@ -22,6 +23,134 @@ const octokit = new Octokit({ auth: GITHUB_TOKEN })
 
 export function downloadDocsTranslations() {
     return downloadAndExtractRepo(REPO_OWNER, REPO_NAME)
+}
+
+const FLOWCHARTS_DIR = path.resolve(__dirname, '..', '..', 'website', 'docs', 'flowcharts')
+const CREATE_FLOWCHARTS_TAG = /^[^\S\n]*<CreateFlowcharts\s+id=['"]([^'"]+)['"]\s*\/>[^\S\n]*$/gm
+
+/**
+ * Reads the English flowchart docs and maps each page's `id` to its diagram body
+ * (everything from the first heading or ```mermaid fence onwards, i.e. skipping the
+ * frontmatter and intro paragraph).
+ *
+ * The English markdown is the single source of truth: the diagrams themselves were
+ * never translated — they used to be rendered from a shared React component — so
+ * splicing the English body into a translated page loses nothing.
+ */
+async function getFlowchartDiagrams() {
+    const diagrams = new Map<string, string>()
+    const files = await fs.readdir(FLOWCHARTS_DIR).catch((err: NodeJS.ErrnoException) => {
+        if (err.code === 'ENOENT') {
+            return [] as string[]
+        }
+        throw err
+    })
+
+    for (const file of files.filter((f) => f.endsWith('.md'))) {
+        const source = await fs.readFile(path.join(FLOWCHARTS_DIR, file), 'utf-8')
+        const id = source.match(/^---\n(?:.*\n)*?id:\s*(\S+)\s*$/m)?.[1]
+        const bodyStart = source.search(/^(##\s|```mermaid\s*$)/m)
+        if (id && bodyStart !== -1) {
+            diagrams.set(id, source.slice(bodyStart).trimEnd())
+        }
+    }
+
+    return diagrams
+}
+
+/**
+ * Patches known stale links in translated i18n files that become broken when English
+ * source docs are restructured but translations haven't been updated yet.
+ *
+ * Add entries here whenever a doc restructure breaks translated pages.
+ */
+async function applyTranslationFixes(i18nPath: string) {
+    const entries = await fs.readdir(i18nPath, { withFileTypes: true }).catch((err: NodeJS.ErrnoException) => {
+        if (err.code === 'ENOENT') {
+            return [] as Dirent[]
+        }
+        throw err
+    })
+    // only iterate locale directories; ignore stray files (e.g. .gitkeep, config)
+    const locales = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
+
+    const flowchartDiagrams = await getFlowchartDiagrams()
+
+    for (const locale of locales) {
+        const contentPath = path.join(i18nPath, locale, 'docusaurus-plugin-content-docs', 'current')
+
+        // Fix: translated flowchart pages still reference the <CreateFlowcharts /> component,
+        // which was replaced by inline ```mermaid fences in the English docs. Without this
+        // the MDX compiler fails every non-English locale with "Expected component
+        // `CreateFlowcharts` to be defined". Remove once webdriverio/i18n is updated.
+        const flowchartsPath = path.join(contentPath, 'flowcharts')
+        const flowchartFiles = await fs.readdir(flowchartsPath).catch((err: NodeJS.ErrnoException) => {
+            if (err.code === 'ENOENT') {
+                return [] as string[]
+            }
+            throw err
+        })
+        for (const file of flowchartFiles.filter((f) => f.endsWith('.md'))) {
+            const filePath = path.join(flowchartsPath, file)
+            const content = await fs.readFile(filePath, 'utf-8')
+            let unresolvedId: string | undefined
+            const fixed = content.replace(CREATE_FLOWCHARTS_TAG, (match, id: string) => {
+                const diagram = flowchartDiagrams.get(id)
+                if (!diagram) {
+                    unresolvedId = id
+                    return match
+                }
+                return diagram
+            })
+            if (unresolvedId) {
+                throw new Error(`No English flowchart diagram found for id '${unresolvedId}' referenced by ${locale}/flowcharts/${file}. Add the diagram to website/docs/flowcharts, or remove the <CreateFlowcharts /> reference from the translation.`)
+            }
+            if (fixed !== content) {
+                await fs.writeFile(filePath, `${fixed.trimEnd()}\n`)
+                console.log(`Applied flowchart mermaid fix to ${locale}/flowcharts/${file}`)
+            }
+        }
+
+        // Fix: Devtools.md links missing wdio/ prefix after devtools section was restructured
+        // Old: devtools/interactive-test-rerunning  New: devtools/wdio/interactive-test-rerunning
+        const devtoolsPath = path.join(contentPath, 'Devtools.md')
+        try {
+            const content = await fs.readFile(devtoolsPath, 'utf-8')
+            const fixed = content.replace(
+                /\(devtools\/(interactive-test-rerunning|multi-framework-support|console-logs|network-logs|testlens|screencast)([^)]*)\)/g,
+                '(devtools/wdio/$1$2)'
+            )
+            if (fixed !== content) {
+                await fs.writeFile(devtoolsPath, fixed)
+                console.log(`Applied devtools link fix to ${locale}/Devtools.md`)
+            }
+        } catch (err) {
+            // ignore missing translation file for this locale; rethrow real errors
+            if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+                throw err
+            }
+        }
+
+        // Fix: Electron.md links to /mocking page which no longer exists — point to
+        // /api-reference instead (matches the English source's "how to mock" link)
+        const electronPath = path.join(contentPath, 'desktop-testing', 'Electron.md')
+        try {
+            const content = await fs.readFile(electronPath, 'utf-8')
+            const fixed = content.replace(
+                /\/docs\/desktop-testing\/electron\/mocking/g,
+                '/docs/desktop-testing/electron/api-reference'
+            )
+            if (fixed !== content) {
+                await fs.writeFile(electronPath, fixed)
+                console.log(`Applied electron mocking link fix to ${locale}/desktop-testing/Electron.md`)
+            }
+        } catch (err) {
+            // ignore missing translation file for this locale; rethrow real errors
+            if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+                throw err
+            }
+        }
+    }
 }
 
 async function downloadAndExtractRepo(owner: string, repo: string, branch?: string) {
@@ -98,6 +227,7 @@ async function downloadAndExtractRepo(owner: string, repo: string, branch?: stri
         }
 
         console.log(`Repository extracted to ${finalExtractPath}`)
+        await applyTranslationFixes(finalExtractPath)
     } finally {
         // Clean up temp directory
         try {

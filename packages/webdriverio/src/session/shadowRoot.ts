@@ -5,6 +5,7 @@ import type { remote } from 'webdriver'
 
 import { SessionManager } from './session.js'
 import customElementWrapper from '../scripts/customElement.js'
+import { checkElementsContainedIn } from '../utils/elementChecks.js'
 
 const log = logger('webdriverio:ShadowRootManager')
 
@@ -22,12 +23,12 @@ export class ShadowRootManager extends SessionManager {
     #initialize: Promise<boolean>
     #shadowRoots = new Map<string, ShadowRootTree>()
     #currentDocumentIds = new Map<string, string>()
-    #documentElement?: remote.ScriptNodeRemoteValue
+    #documentElements = new Map<string, remote.ScriptNodeRemoteValue>()
     #frameDepth = 0
 
     #handleLogEntryListener = this.handleLogEntry.bind(this)
     #commandResultHandlerListener = this.#commandResultHandler.bind(this)
-    #handleBidiCommandListener = this.#handleBidiCommand.bind(this)
+    #handleNavigationCommittedListener = this.#handleNavigationCommitted.bind(this)
 
     constructor(browser: WebdriverIO.Browser) {
         super(browser, ShadowRootManager.name)
@@ -45,13 +46,21 @@ export class ShadowRootManager extends SessionManager {
          * listen on required bidi events
          */
         this.#initialize = this.#browser.sessionSubscribe({
-            events: ['log.entryAdded', 'browsingContext.navigationStarted']
+            events: ['log.entryAdded', 'browsingContext.navigationCommitted']
         }).then(() => true, () => false)
         this.#browser.on('log.entryAdded', this.#handleLogEntryListener)
         this.#browser.on('result', this.#commandResultHandlerListener)
-        this.#browser.on('bidiCommand', this.#handleBidiCommandListener)
+        this.#browser.on('browsingContext.navigationCommitted', this.#handleNavigationCommittedListener)
         this.#browser.scriptAddPreloadScript({
             functionDeclaration: customElementWrapper.toString()
+        }).catch((err: Error) => {
+            /**
+             * This fire-and-forget call may reject if the remote end does not implement
+             * `script.addPreloadScript` (e.g. Appium drivers that only support a subset of
+             * WebDriver Bidi). Swallow the rejection so it does not surface as an
+             * unhandledRejection after session setup.
+             */
+            log.warn(`Could not register shadow root preload script, shadow DOM will not be pierced in this session: ${err.message}`)
         })
     }
 
@@ -59,23 +68,21 @@ export class ShadowRootManager extends SessionManager {
         super.removeListeners()
         this.#browser.off('log.entryAdded', this.#handleLogEntryListener)
         this.#browser.off('result', this.#commandResultHandlerListener)
-        this.#browser.off('bidiCommand', this.#handleBidiCommandListener)
+        this.#browser.off('browsingContext.navigationCommitted', this.#handleNavigationCommittedListener)
     }
 
     async initialize () {
         return this.#initialize
     }
 
-    /**
-     * keep track of navigation events and remove shadow roots when they are no longer needed
-     */
-    #handleBidiCommand (command: Omit<remote.CommandData, 'id'>) {
-        if (command.method !== 'browsingContext.navigate') {
-            return
-        }
-        const params = command.params as remote.BrowsingContextNavigateParameters
-        this.#shadowRoots.delete(params.context)
-        this.#currentDocumentIds.delete(params.context)
+    #handleNavigationCommitted({ context }: local.BrowsingContextNavigationInfo) {
+        this.#clearContext(context)
+    }
+
+    #clearContext(context: string) {
+        this.#shadowRoots.delete(context)
+        this.#currentDocumentIds.delete(context)
+        this.#documentElements.delete(context)
     }
 
     /**
@@ -142,6 +149,7 @@ export class ShadowRootManager extends SessionManager {
                     if (currentDocId && currentDocId !== newDocId) {
                         log.info(`Document changed in context ${ctxId}: ${currentDocId} -> ${newDocId}, purging ${this.#shadowRoots.get(ctxId)?.flat().length ?? 0} stale shadow roots`)
                         this.#shadowRoots.delete(ctxId)
+                        this.#documentElements.delete(ctxId)
                     }
                     this.#currentDocumentIds.set(ctxId, newDocId)
                 }
@@ -164,20 +172,27 @@ export class ShadowRootManager extends SessionManager {
                     throw new Error(`Expected "sharedId" parameter from object ${rootElem}`)
                 }
 
-                /**
-                 * only overwrite if `root.sharedId` is different, otherwise it's another shadow component
-                 * within the same context/document
-                 */
                 const tree = this.#shadowRoots.get(logEntry.source.context)
                 if (tree?.element !== rootElem.sharedId) {
-                    this.#shadowRoots.set(logEntry.source.context, new ShadowRootTree(rootElem.sharedId))
+                    const documentTree = new ShadowRootTree(rootElem.sharedId)
+                    // A detached host may have been the initial root. Preserve its hosts
+                    // when the document element confirms this is still the same document.
+                    if (
+                        tree && documentElement?.type === 'node' && documentElement.sharedId &&
+                        this.#documentElements.get(logEntry.source.context)?.sharedId === documentElement.sharedId
+                    ) {
+                        for (const host of tree.shadowRoot ? [tree] : tree.children) {
+                            documentTree.addShadowElement(host)
+                        }
+                    }
+                    this.#shadowRoots.set(logEntry.source.context, documentTree)
                 }
             }
 
             /**
              * store document element
              */
-            this.#documentElement = documentElement as remote.ScriptNodeRemoteValue
+            this.#documentElements.set(logEntry.source.context, documentElement as remote.ScriptNodeRemoteValue)
 
             const tree = this.#shadowRoots.get(logEntry.source.context)
             if (!tree) {
@@ -200,6 +215,13 @@ export class ShadowRootManager extends SessionManager {
                 shadowElem.value.shadowRoot.sharedId,
                 shadowElem.value.shadowRoot.value.mode
             )
+            // A detached initial host is its own root. Update that entry instead of
+            // adding the same element as its own descendant in the snapshot tree.
+            if (tree.element === newTree.element) {
+                tree.shadowRoot = newTree.shadowRoot
+                tree.mode = newTree.mode
+                return
+            }
             if (rootElem.sharedId) {
                 tree.addShadowElement(rootElem.sharedId, newTree)
             } else {
@@ -228,7 +250,7 @@ export class ShadowRootManager extends SessionManager {
         throw new Error(`Invalid parameters for "${eventType}" event: ${args.join(', ')}`)
     }
 
-    getShadowElementsByContextId (contextId: string, scope?: string): string[] {
+    async getShadowElementsByContextId (contextId: string, scope?: string): Promise<string[]> {
         let tree = this.#shadowRoots.get(contextId)
         if (!tree) {
             return []
@@ -241,14 +263,25 @@ export class ShadowRootManager extends SessionManager {
          */
         if (scope) {
             const subTree = tree.find(scope)
-            if (subTree) {
-                tree = subTree
+            if (!subTree) {
+                /**
+                 * `scope` is a regular DOM element that isn't itself tracked as a shadow
+                 * host or root, e.g. `$(parent).$(child)` where `parent` is a plain
+                 * wrapper. It may still be a real DOM ancestor of one or more shadow
+                 * hosts further down the light DOM (the tree only tracks hosts/roots,
+                 * not every ancestor), so fall back to a DOM containment check instead
+                 * of assuming `scope` has no shadow descendants at all.
+                 */
+                const containedHosts = await this.#findContainedShadowHosts(contextId, scope)
+                const elements = containedHosts.flatMap((host) => host.getAllLookupScopes())
+                return [...new Set(elements).values()]
             }
+            tree = subTree
         } else {
             /**
              * ensure to include to document root if no scope is provided
              */
-            documentElement = this.#documentElement?.sharedId
+            documentElement = this.#documentElements.get(contextId)?.sharedId
         }
 
         const elements = tree.getAllLookupScopes()
@@ -262,7 +295,7 @@ export class ShadowRootManager extends SessionManager {
         ]
     }
 
-    getShadowElementPairsByContextId (contextId: string, scope?: string): [string, string | undefined][] {
+    async getShadowElementPairsByContextId (contextId: string, scope?: string): Promise<[string, string | undefined][]> {
         let tree = this.#shadowRoots.get(contextId)
         if (!tree) {
             return []
@@ -270,12 +303,82 @@ export class ShadowRootManager extends SessionManager {
 
         if (scope) {
             const subTree = tree.find(scope)
-            if (subTree) {
-                tree = subTree
+            if (!subTree) {
+                // see comment in getShadowElementsByContextId for why we check DOM containment
+                const containedHosts = await this.#findContainedShadowHosts(contextId, scope)
+                return containedHosts.flatMap((host) => host.flat().map((t): [string, string | undefined] => [t.element, t.shadowRoot]))
             }
+            tree = subTree
         }
 
         return tree.flat().map((tree) => [tree.element, tree.shadowRoot])
+    }
+
+    /**
+     * Find all tracked shadow hosts that are real DOM descendants of `scope`, even though
+     * `scope` itself isn't tracked in the shadow tree (e.g. a plain wrapper element around
+     * a web component). Hosts nested inside another contained host are excluded since
+     * they're already covered by that host's own (recursive) lookup scopes.
+     */
+    async #findContainedShadowHosts (contextId: string, scope: string): Promise<ShadowRootTree[]> {
+        const tree = this.#shadowRoots.get(contextId)
+        if (!tree) {
+            return []
+        }
+
+        const hosts = tree.flat().filter((t) => t.shadowRoot)
+        if (hosts.length === 0) {
+            return []
+        }
+
+        const staleHosts: string[] = []
+        const containmentResults = await checkElementsContainedIn(
+            this.#browser, scope, hosts.map((host) => host.element), contextId,
+            (elementId) => staleHosts.push(elementId)
+        )
+        const containedHosts = hosts.filter((_, i) => containmentResults[i])
+
+        /**
+         * Prune hosts whose containment check threw (likely GC'd/detached during SPA
+         * navigation without a usable `removeShadowRoot` event) so a single stale entry
+         * doesn't keep failing the batched check — and degrading every subsequent scoped
+         * lookup to per-host round trips — forever. If *every* check failed, the scope
+         * itself is probably the stale reference, so don't punish the hosts for it.
+         * `ShadowRootTree.remove()` deletes the whole subtree, so also skip pruning a
+         * stale host while any host nested under it just passed its containment check —
+         * removing the parent would silently drop the healthy child from the tree too.
+         */
+        if (staleHosts.length > 0 && staleHosts.length < hosts.length) {
+            const containedSet = new Set(containedHosts)
+            for (const elementId of staleHosts) {
+                const staleHost = hosts.find((host) => host.element === elementId)
+                if (staleHost && staleHost.flat().some((descendant) => containedSet.has(descendant))) {
+                    continue
+                }
+                log.info(`Pruning stale shadow host ${elementId} from shadow tree of context ${contextId}`)
+                tree.remove(elementId)
+            }
+        }
+
+        /**
+         * Drop hosts that are already covered by another contained host's own subtree,
+         * to avoid returning the same nested shadow root twice. `hosts`/`containedHosts`
+         * are in pre-order (parents before children, per `ShadowRootTree.flat()`), so a
+         * single forward pass suffices — track already-covered descendants and skip any
+         * host that's already in that set, instead of comparing every pair.
+         */
+        const covered = new Set<ShadowRootTree>()
+        const topLevelContained: ShadowRootTree[] = []
+        for (const host of containedHosts) {
+            if (covered.has(host)) {
+                continue
+            }
+            topLevelContained.push(host)
+            for (const descendant of host.flat()) {
+                covered.add(descendant)
+            }
+        }
+        return topLevelContained
     }
 
     getShadowRootModeById (contextId: string, element: string): ShadowRootMode | undefined {

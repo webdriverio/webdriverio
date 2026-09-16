@@ -1,8 +1,11 @@
 import path from 'node:path'
 import { expect, describe, it, afterEach, vi } from 'vitest'
+import { ELEMENT_KEY } from 'webdriver'
 
 import { remote } from '../../../src/index.js'
 import { sanitizeHTML } from '../../../src/commands/element/getHTML.js'
+import { getContextManager } from '../../../src/session/context.js'
+import { getShadowRootManager } from '../../../src/session/shadowRoot.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -29,6 +32,74 @@ describe('getHTML test', () => {
 
         result = await elem.getHTML({ includeSelectorTag: false })
         expect(result).toBe('some inner html')
+    })
+
+    it('should exclude elements from reconstructed nested shadow roots in Node.js', async ({ onTestFinished }) => {
+        expect(globalThis.wdio).toBeUndefined()
+        const browser = await remote({
+            capabilities: {
+                browserName: 'bidi'
+            }
+        })
+        const elem = await browser.$({ [ELEMENT_KEY]: 'outer-host' })
+        const shadowRootManager = getShadowRootManager(browser)
+        const mocks: { mockRestore: () => void }[] = [
+            vi.spyOn(getContextManager(browser), 'getCurrentContext').mockResolvedValue('context-id'),
+            vi.spyOn(shadowRootManager, 'getShadowElementPairsByContextId').mockResolvedValue([
+                ['outer-host', 'outer-root'],
+                ['inner-host', 'inner-root']
+            ]),
+            vi.spyOn(shadowRootManager, 'getShadowRootModeById').mockReturnValue('open'),
+            vi.spyOn(browser, 'execute').mockResolvedValue('CUSTOM-ELEMENT')
+        ]
+        onTestFinished(() => mocks.forEach((mock) => mock.mockRestore()))
+        mocks.push(vi.spyOn(elem, 'execute').mockResolvedValue({
+            html: `<outer-element data-wdio-shadow-id="outer-host">
+                <style>.light-style { color: red; }</style>
+                <script>"light-script"</script>
+                <span class="omit">light-omit</span>
+                <p>Keep light content</p>
+            </outer-element>`,
+            shadowElementHTML: [{
+                id: 'outer-host',
+                styles: ['.outer-adopted-style { color: blue; }'],
+                html: `<style>.outer-style { color: red; }</style>
+                    <script>"outer-script"</script>
+                    <span class="omit">outer-omit</span>
+                    <p>Keep outer shadow content</p>
+                    <inner-element data-wdio-shadow-id="inner-host"></inner-element>`
+            }, {
+                id: 'inner-host',
+                styles: ['.inner-adopted-style { color: blue; }'],
+                html: `<style>.inner-style { color: red; }</style>
+                    <script>"inner-script"</script>
+                    <span class="omit">inner-omit</span>
+                    <p>Keep inner shadow content</p>`
+            }]
+        }))
+
+        const unfiltered = await elem.getHTML({ prettify: false })
+        for (const level of ['light', 'outer', 'inner']) {
+            expect(unfiltered).toContain(`${level}-style`)
+            expect(unfiltered).toContain(`${level}-script`)
+            expect(unfiltered).toContain(`${level}-omit`)
+        }
+        expect(unfiltered).toContain('outer-adopted-style')
+        expect(unfiltered).toContain('inner-adopted-style')
+
+        const result = await elem.getHTML({
+            excludeElements: ['style', 'script', '.omit'],
+            prettify: false
+        })
+
+        expect(result).not.toContain('<style>')
+        expect(result).not.toContain('<script>')
+        expect(result).not.toContain('-omit')
+        expect(result).not.toContain('data-wdio-shadow-id')
+        expect(result.match(/<template shadowrootmode="open">/g)).toHaveLength(2)
+        expect(result).toContain('<p>Keep light content</p>')
+        expect(result).toContain('<p>Keep outer shadow content</p>')
+        expect(result).toContain('<p>Keep inner shadow content</p>')
     })
 
     describe('sanitizeHTML', () => {
@@ -218,6 +289,67 @@ describe('getHTML test', () => {
             expect(result).not.toContain('<!--')
             expect(result).toContain('<p>Text  content</p>')
             expect(result).toContain('<span>Moretext</span>')
+        })
+
+        it('should remove comments nested inside <template> content (declarative shadow roots)', async () => {
+            // `<template>` element content lives in a separate document fragment that
+            // `$('*').contents()` does not descend into, which is exactly the case
+            // `getHTML()` builds up in `populateHTML` when piercing shadow roots.
+            const { load } = await import('cheerio')
+            const html = `
+                <my-element>
+                    <template shadowrootmode="open">
+                        <!--?lit$123$-->
+                        <p>Shadow content<!--?lit$123$--></p>
+                    </template>
+                </my-element>
+            `
+            const $ = load(html)
+            const result = sanitizeHTML($, { removeCommentNodes: true, prettify: false })
+
+            expect(result).not.toContain('<!--')
+            expect(result).toContain('<template shadowrootmode="open">')
+            expect(result).toContain('<p>Shadow content</p>')
+        })
+
+        it('should remove comments nested inside multiple levels of <template> content', async () => {
+            // shadow roots can be nested (e.g. a web component using another web
+            // component internally), so comments must be removed at any depth
+            const { load } = await import('cheerio')
+            const html = `
+                <outer-element>
+                    <template shadowrootmode="open">
+                        <!-- outer comment -->
+                        <inner-element>
+                            <template shadowrootmode="open">
+                                <!-- inner comment -->
+                                <span>Nested shadow content</span>
+                            </template>
+                        </inner-element>
+                    </template>
+                </outer-element>
+            `
+            const $ = load(html)
+            const result = sanitizeHTML($, { removeCommentNodes: true, prettify: false })
+
+            expect(result).not.toContain('<!--')
+            expect(result).toContain('<span>Nested shadow content</span>')
+        })
+
+        it('should preserve comments inside <template> content when removeCommentNodes is false', async () => {
+            const { load } = await import('cheerio')
+            const html = `
+                <my-element>
+                    <template shadowrootmode="open">
+                        <!--?lit$123$-->
+                        <p>Shadow content</p>
+                    </template>
+                </my-element>
+            `
+            const $ = load(html)
+            const result = sanitizeHTML($, { removeCommentNodes: false, prettify: false })
+
+            expect(result).toContain('<!--?lit$123$-->')
         })
 
         it('should exclude elements when specified', async () => {

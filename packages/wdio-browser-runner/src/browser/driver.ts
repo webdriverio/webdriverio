@@ -81,7 +81,7 @@ export default class ProxyDriver {
             ? params.capabilities.alwaysMatch?.webSocketUrl
             : params.capabilities!.webSocketUrl
         if (webSocketUrl) {
-            Object.assign(bidiPrototype, initiateBidi(webSocketUrl as unknown as string))
+            Object.assign(bidiPrototype, initiateBidi(webSocketUrl as unknown as string, undefined, undefined, params.bidiResponseTimeout))
         }
 
         /**

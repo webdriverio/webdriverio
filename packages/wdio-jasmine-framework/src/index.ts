@@ -6,7 +6,7 @@ import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
 import { _setGlobal } from '@wdio/globals'
 import type { Services, Capabilities } from '@wdio/types'
-import type { expect as wdioExpectImport, matchers as wdioMatchersImport, getConfig as wdioGetConfig } from 'expect-webdriverio'
+import type { expect as wdioExpectImport, wdioCustomMatchers as wdioMatchersImport, getDefaultOptions as wdioGetOptions } from 'expect-webdriverio'
 
 import JasmineReporter from './reporter.js'
 import { jestResultToJasmine } from './utils.js'
@@ -238,7 +238,7 @@ class JasmineAdapter {
     async setupExpect(
         wdioExpect: typeof wdioExpectImport,
         wdioMatchers: typeof wdioMatchersImport,
-        getConfig: typeof wdioGetConfig
+        getConfig: typeof wdioGetOptions
     ) {
         const { jasmine } = this._jrunner
         // @ts-ignore outdated
@@ -463,8 +463,8 @@ class JasmineAdapter {
 
     #setupMatchers (
         jasmine: jasmine.Jasmine,
-        matchers: typeof wdioMatchersImport,
-        getConfig: typeof wdioGetConfig
+        wdioCustomMatchers: typeof wdioMatchersImport,
+        getOptions: typeof wdioGetOptions
     ): jasmine.CustomAsyncMatcherFactories {
         /**
          * overwrite "jasmine.addMatchers" to be always async since the `expect` global we
@@ -475,16 +475,17 @@ class JasmineAdapter {
 
         // @ts-expect-error not exported in jasmine
         const syncMatchers: jasmine.CustomAsyncMatcherFactories = this.#transformMatchers(jasmine.matchers)
-        const wdioMatchers: jasmine.CustomAsyncMatcherFactories = [...matchers.entries()].reduce((prev, [name, fn]) => {
+        const wdioMatchers: jasmine.CustomAsyncMatcherFactories = Object.entries(wdioCustomMatchers).reduce((prev, [name, fn]) => {
             prev[name] = () => ({
                 async compare (...args: unknown[]) {
-                    const context = getConfig()
-                    const result = fn.apply({ ...context, isNot: false }, args)
+                    const context = getOptions()
+                    // TODO: be better than casting to as unknown, need to expose MatcherContext type from expect-webdriverio package?
+                    const result = fn.apply({ ...context, isNot: false } as unknown, args)
                     return jestResultToJasmine(result, false)
                 },
                 async negativeCompare (...args: unknown[]) {
-                    const context = getConfig()
-                    const result = fn.apply({ ...context, isNot: true }, args)
+                    const context = getOptions()
+                    const result = fn.apply({ ...context, isNot: true } as unknown, args)
                     return jestResultToJasmine(result, true)
                 }
             })

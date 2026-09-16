@@ -17,8 +17,14 @@ After your initial test run completes, click on any test case or suite in the De
 
 ## Demo
 
-### 🛠️ Test Rerunner & Snapshot
-![Test Rerunner & Snapshot Demo](/img/devtools/test-rerunner.gif)
+### ▶️ Test Runner
+![Test Runner Demo](/img/devtools/test-runner.gif)
+
+### 🛠️ Test Rerunner
+![Test Rerunner Demo](/img/devtools/test-rerunner.gif)
 
 ### 🛑 Stop Test Runner
 ![Stop Test Runner Demo](/img/devtools/stop-runner.gif)
+
+### ⚡ Actions, Snapshot & Command Logs
+![Actions, Snapshot & Command Logs Demo](/img/devtools/actions-command-logs.gif)
