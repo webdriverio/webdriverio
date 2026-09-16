@@ -62,4 +62,21 @@ describe('DialogManager', () => {
 
         await expect(userPromptHandler(log)).rejects.toThrow(msg)
     })
+
+    it('should ignore "no such frame" error when context is gone', async () => {
+        const log = { context: 'some-context' } as any
+        browser.browsingContextHandleUserPrompt.mockRejectedValue(
+            new Error('no such frame - Context some-context not found')
+        )
+
+        const calls = browser.on.mock.calls
+        const userPromptHandler = calls.find((call: unknown[]) => call[0] === 'browsingContext.userPromptOpened')?.[1]
+
+        expect(userPromptHandler).toBeDefined()
+        await expect(userPromptHandler(log)).resolves.toBeUndefined()
+        expect(browser.browsingContextHandleUserPrompt).toHaveBeenCalledWith({
+            accept: false,
+            context: 'some-context'
+        })
+    })
 })

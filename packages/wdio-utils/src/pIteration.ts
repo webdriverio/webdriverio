@@ -1,3 +1,8 @@
+/* Marks an element the callback rejected. A plain `undefined` cannot do it:
+ * an element that is itself `undefined` and passes the test has to survive.
+ */
+const REJECTED = Symbol('rejected')
+
 /**
  * Implements ES5 [`Array#forEach()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach) method.<br><br>
  * Executes the provided callback once for each element.<br>
@@ -48,15 +53,19 @@ export const forEachSeries = async <T>(array: T[], callback: Function, thisArg?:
  * @return {Promise} - Returns a Promise with the resultant *Array* as value.
  */
 export const map = async <T>(array: T[], callback: Function, thisArg?: T) => {
+    const result = new Array(array.length)
     const promiseArray = []
     for (let i = 0; i < array.length; i++) {
         if (i in array) {
-            promiseArray[i] = Promise.resolve(array[i]).then((currentValue) => {
+            promiseArray.push(Promise.resolve(array[i]).then((currentValue) => {
                 return callback.call(thisArg || this, currentValue, i, array)
-            })
+            }).then((value) => {
+                result[i] = value
+            }))
         }
     }
-    return Promise.all(promiseArray)
+    await Promise.all(promiseArray)
+    return result
 }
 
 /**
@@ -68,6 +77,7 @@ export const map = async <T>(array: T[], callback: Function, thisArg?: T) => {
  */
 export const mapSeries = async <T>(array: T[], callback: Function, thisArg?: T) => {
     const result = []
+    result.length = array.length
     for (let i = 0; i < array.length; i++) {
         if (i in array) {
             result[i] = await callback.call(thisArg || this, await array[i], i, array)
@@ -302,14 +312,25 @@ export const filter = <T>(array: T[], callback: Function, thisArg?: T) => {
             }
         }
 
-        return Promise.all(
-            promiseArray.map(async (p, i) => {
-                if (await p) {
-                    return await array[i]
-                }
-                return undefined
-            })).then((result) => result.filter((val) => typeof val !== 'undefined')
-        ).then(resolve, reject)
+        /* `undefined` cannot mark a rejected element: an element that is
+         * itself `undefined` and passes the test has to survive, the way
+         * `Array#filter` and `filterSeries` keep it. Holes are dropped here
+         * rather than by the value, since a hole never ran the callback.
+         */
+        const results: Promise<T | typeof REJECTED>[] = []
+        for (let i = 0; i < array.length; i++) {
+            if (!(i in array)) {
+                continue
+            }
+            const passed = promiseArray[i]
+            results.push(
+                (async () => ((await passed) ? await array[i] : REJECTED))()
+            )
+        }
+
+        return Promise.all(results)
+            .then((result) => result.filter((val) => val !== REJECTED) as T[])
+            .then(resolve, reject)
     })
 }
 

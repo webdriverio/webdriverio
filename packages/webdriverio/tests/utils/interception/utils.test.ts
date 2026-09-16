@@ -96,4 +96,14 @@ describe('getPatternParam', () => {
         expect(getPatternParam({ pathname: '*', hostname: '*' } as any, 'pathname')).toBe(undefined)
         expect(getPatternParam({ pathname: '*', hostname: '*' } as any, 'hostname')).toBe(undefined)
     })
+
+    it('should omit components that use URLPattern syntax so they are matched locally', () => {
+        expect(getPatternParam({ pathname: '/users/:id' } as any, 'pathname')).toBe(undefined)
+        expect(getPatternParam({ pathname: '/files/(\\d+)' } as any, 'pathname')).toBe(undefined)
+        expect(getPatternParam({ pathname: '/books{/:id}?' } as any, 'pathname')).toBe(undefined)
+        expect(getPatternParam({ pathname: '/img/*.png' } as any, 'pathname')).toBe(undefined)
+        expect(getPatternParam({ hostname: ':sub.example.com' } as any, 'hostname')).toBe(undefined)
+        expect(getPatternParam({ search: 'page=:n' } as any, 'search')).toBe(undefined)
+        expect(getPatternParam({ pathname: '/users/list' } as any, 'pathname')).toBe('/users/list')
+    })
 })

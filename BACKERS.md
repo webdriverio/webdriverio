@@ -17,6 +17,8 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 
 <p align="center">
     <a href="https://www.browserstack.com/automation-webdriverio"><img src="https://webdriver.io/img/sponsors/browserstack_black.svg" alt="BrowserStack" /></a>
+    &nbsp; &nbsp; &nbsp;
+    <a href="https://momentic.ai/"><img src="https://webdriver.io/img/sponsors/momentic_black.svg" alt="Momentic" width="400" /></a>
 </p>
 
 ### 🥇 Gold Sponsor
@@ -33,6 +35,8 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 
 <p align="center">
     <a href="https://testingbot.com"><img src="https://webdriver.io/img/sponsors/testingbot.svg" width="250" alt="TestingBot" /></a>
+    &nbsp; &nbsp; &nbsp;
+    <a href="https://www.sap.com/"><img src="https://webdriver.io/img/sponsors/sap.png" width="250" alt="SAP" /></a>
 </p>
 
 [Become a Silver Sponsor](https://github.com/sponsors/christian-bromann/sponsorships?tier_id=303966&preview=false)

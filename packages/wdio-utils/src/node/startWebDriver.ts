@@ -11,12 +11,12 @@ import { deepmerge } from 'deepmerge-ts'
 
 import { start as startSafaridriver, type SafaridriverOptions as SafaridriverParameters } from 'safaridriver'
 import { start as startGeckodriver, type GeckodriverParameters } from 'geckodriver'
-import { start as startEdgedriver, findEdgePath, type EdgedriverParameters } from 'edgedriver'
 import type { InstallOptions } from '@puppeteer/browsers'
+import type { EdgedriverParameters } from 'edgedriver'
 
 import type { Capabilities } from '@wdio/types'
 
-import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir, generateDefaultPrefs } from './utils.js'
+import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir, generateDefaultPrefs, setDefaultEdgedriverCdnUrl } from './utils.js'
 import { isChrome, isFirefox, isEdge, isSafari, isAppiumCapability } from '../utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 
@@ -73,6 +73,11 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
     if (isChrome(caps.browserName)) {
         /**
          * Chrome
+         *
+         * When goog:chromeOptions.androidPackage is set, chromedriver will launch
+         * Chrome on the Android device over ADB — downloading a desktop Chrome
+         * binary is unnecessary and injecting its path as `binary` conflicts with
+         * `androidPackage` (they are mutually exclusive in chromedriver).
          */
         const chromedriverOptions = caps['wdio:chromedriverOptions'] || ({} as WebdriverIO.ChromedriverOptions)
         /**
@@ -80,36 +85,41 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
          * other drivers do as well
          */
         const chromedriverBinary = chromedriverOptions.binary || process.env.CHROMEDRIVER_PATH
-        const { executablePath: chromeExecuteablePath, browserVersion } = await setupPuppeteerBrowser(cacheDir, caps)
+        let browserVersion: string | undefined
+        if (!caps['goog:chromeOptions']?.androidPackage) {
+            const puppeteerResult = await setupPuppeteerBrowser(cacheDir, caps)
+            browserVersion = puppeteerResult.browserVersion
+
+            const prefs = generateDefaultPrefs(caps)
+            caps['goog:chromeOptions'] = deepmerge(
+                { binary: puppeteerResult.executablePath },
+                prefs,
+                caps['goog:chromeOptions'] || {}
+            )
+
+            /**
+             * Add unique user data directory for each worker to prevent
+             * "user data directory is already in use" errors on Windows
+             * when multiple workers start Chrome simultaneously
+             */
+            if (process.platform === 'win32' && process.env.WDIO_WORKER_ID) {
+                const existingArgs = caps['goog:chromeOptions']?.args || []
+                const hasUserDataDir = existingArgs.some(arg =>
+                    typeof arg === 'string' && arg.includes('user-data-dir'))
+
+                if (!hasUserDataDir) {
+                    const userDataDir = path.join(
+                        options.outputDir || os.tmpdir(),
+                        `wdio-chrome-${process.env.WDIO_WORKER_ID}-${Date.now()}`
+                    )
+                    caps['goog:chromeOptions'].args = [...existingArgs, `--user-data-dir=${userDataDir}`]
+                }
+            }
+        }
+
         const { executablePath: chromedriverExcecuteablePath } = chromedriverBinary
             ? { executablePath: chromedriverBinary }
             : await setupChromedriver(cacheDir, browserVersion)
-
-        const prefs = generateDefaultPrefs(caps)
-        caps['goog:chromeOptions'] = deepmerge(
-            { binary: chromeExecuteablePath },
-            prefs,
-            caps['goog:chromeOptions'] || {}
-        )
-
-        /**
-         * Add unique user data directory for each worker to prevent
-         * "user data directory is already in use" errors on Windows
-         * when multiple workers start Chrome simultaneously
-         */
-        if (process.platform === 'win32' && process.env.WDIO_WORKER_ID) {
-            const existingArgs = caps['goog:chromeOptions']?.args || []
-            const hasUserDataDir = existingArgs.some(arg =>
-                typeof arg === 'string' && arg.includes('user-data-dir'))
-
-            if (!hasUserDataDir) {
-                const userDataDir = path.join(
-                    options.outputDir || os.tmpdir(),
-                    `wdio-chrome-${process.env.WDIO_WORKER_ID}-${Date.now()}`
-                )
-                caps['goog:chromeOptions'].args = [...existingArgs, `--user-data-dir=${userDataDir}`]
-            }
-        }
 
         chromedriverOptions.allowedOrigins = chromedriverOptions.allowedOrigins || ['*']
         chromedriverOptions.allowedIps = chromedriverOptions.allowedIps || ['0.0.0.0']
@@ -136,12 +146,19 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
     } else if (isFirefox(caps.browserName)) {
         /**
          * Firefox
+         *
+         * When moz:firefoxOptions.androidPackage is set, geckodriver will launch
+         * Firefox on the Android device over ADB — downloading a desktop Firefox
+         * binary is unnecessary and injecting its path as `binary` conflicts with
+         * `androidPackage` (they are mutually exclusive in geckodriver).
          */
-        const { executablePath } = await setupPuppeteerBrowser(cacheDir, caps)
-        caps['moz:firefoxOptions'] = deepmerge(
-            { binary: executablePath },
-            caps['moz:firefoxOptions'] || {}
-        )
+        if (!caps['moz:firefoxOptions']?.androidPackage) {
+            const { executablePath } = await setupPuppeteerBrowser(cacheDir, caps)
+            caps['moz:firefoxOptions'] = deepmerge(
+                { binary: executablePath },
+                caps['moz:firefoxOptions'] || {}
+            )
+        }
 
         /**
          * the "binary" parameter refers to the driver binary in the WebdriverIO.GeckodriverOptions and
@@ -164,6 +181,8 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
             edgedriverOptions.customEdgeDriverPath = binary
         }
 
+        setDefaultEdgedriverCdnUrl()
+        const { start: startEdgedriver, findEdgePath } = await import('edgedriver')
         driver = 'EdgeDriver'
         driverProcess = await startEdgedriver({ ...edgedriverOptions, cacheDir, port, allowedIps: ['0.0.0.0'] }).catch((err) => {
             log.warn(`Couldn't start EdgeDriver: ${err.message}, retry ...`)

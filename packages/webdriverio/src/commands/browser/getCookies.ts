@@ -37,12 +37,14 @@ const log = logger('webdriverio')
  *
  * @alias browser.getCookies
  * @param {remote.StorageCookieFilter}  filter  an object that allows to filter for cookies with specific attributes
+ * @param {string|null} sourceOrigin  an optional source origin to fetch cookies for, if not provided it will default to the current page's origin, if explicitly set to null it will fetch cookies without a partition (only supported in BiDi)
  * @return {Cookie[]}                           requested cookies
  *
  */
 export async function getCookies(
     this: WebdriverIO.Browser,
-    filter?: string | string[] | remote.StorageCookieFilter
+    filter?: string | string[] | remote.StorageCookieFilter,
+    sourceOrigin?: string | null
 ): Promise<Cookie[]> {
     /**
      * check if filter is a string array and let users know that this feature
@@ -65,12 +67,16 @@ export async function getCookies(
         return getCookiesClassic.call(this, filter)
     }
 
-    const params: remote.StorageGetCookiesParameters = {
-        partition: {
-            type: 'storageKey',
-            sourceOrigin: url.origin
+    // In some cases, the forced origin in BiDi does not allow to find back the cookies, so by using null we can bypass the partition and filter by name only.
+    const params: remote.StorageGetCookiesParameters = sourceOrigin === null
+        ? {}
+        : {
+            partition: {
+                type: 'storageKey',
+                sourceOrigin: sourceOrigin || url.origin
+            }
         }
-    }
+
     if (typeof cookieFilter !== 'undefined') {
         params.filter = cookieFilter
     }
@@ -88,7 +94,7 @@ export async function getCookies(
             ...cookie,
             value: cookie.value.type === 'base64'
                 ? Buffer.from(cookie.value.value, 'base64').toString('utf-8')
-                : cookie.value.value
+                : cookie.value.value,
         }))
     } catch (err) {
         log.warn(`BiDi getCookies failed, falling back to classic: ${(err as Error).message}`)
@@ -119,17 +125,29 @@ async function getCookiesClassic(
 
     const filter = getCookieFilter(names)
     const allCookies = await this.getAllCookies()
+    const filterValue = typeof filter === 'object' ? getCookieValue(filter.value) : undefined
     return allCookies.filter(cookie => (
-        !filter ||
-        cookie.name && filter.name === cookie.name ||
-        cookie.value && filter.value?.value === cookie.value ||
-        cookie.path && filter.path === cookie.path ||
-        cookie.domain && filter.domain === cookie.domain ||
-        cookie.sameSite && filter.sameSite === cookie.sameSite ||
-        cookie.expiry && filter.expiry === cookie.expiry ||
-        typeof cookie.httpOnly === 'boolean' && filter.httpOnly === cookie.httpOnly ||
-        typeof cookie.secure === 'boolean' && filter.secure === cookie.secure
+        !filter || (typeof filter === 'object' && (
+            (filter.name === undefined || filter.name === cookie.name) &&
+            (filter.value === undefined || filterValue === cookie.value) &&
+            (filter.path === undefined || filter.path === cookie.path) &&
+            (filter.domain === undefined || filter.domain === cookie.domain) &&
+            (filter.sameSite === undefined || filter.sameSite === cookie.sameSite) &&
+            (filter.expiry === undefined || filter.expiry === cookie.expiry) &&
+            (filter.httpOnly === undefined || filter.httpOnly === cookie.httpOnly) &&
+            (filter.secure === undefined || filter.secure === cookie.secure)
+        ))
     ))
+}
+
+function getCookieValue(value?: remote.NetworkBytesValue | null): string | undefined {
+    if (!value) {
+        return
+    }
+
+    return value.type === 'base64'
+        ? Buffer.from(value.value, 'base64').toString('utf-8')
+        : value.value
 }
 
 function getCookieFilter (names?: string | string[] | remote.StorageCookieFilter) {

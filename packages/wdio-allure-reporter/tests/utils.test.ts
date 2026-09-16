@@ -3,6 +3,7 @@ import type { CommandArgs } from '@wdio/type'
 import process from 'node:process'
 import { Status } from 'allure-js-commons'
 import CompoundError from '../src/compoundError.js'
+import path from 'node:path'
 import {
     convertSuiteTagsToLabels,
     findLast,
@@ -14,6 +15,7 @@ import {
     isEachTypeHooks,
     isEmpty,
     isScreenshotCommand,
+    toPackageLabel,
 } from '../src/utils.js'
 import { linkPlaceholder } from '../src/constants.js'
 
@@ -59,6 +61,24 @@ describe('utils', () => {
         it('failed for AssertionError stacktrace', () => {
             const config: any = { framework: 'mocha' }
             const test = { error: { stack: 'AssertionError' } }
+            expect(getTestStatus(test as any, config)).toEqual(Status.FAILED)
+        })
+
+        it('failed for AssertionError with custom message via error name', () => {
+            const config: any = { framework: 'mocha' }
+            const test = { error: { name: 'AssertionError', message: 'Login failed' } }
+            expect(getTestStatus(test as any, config)).toEqual(Status.FAILED)
+        })
+
+        it('failed for error name containing assert (e.g. AssertionError [ERR_ASSERTION])', () => {
+            const config: any = { framework: 'mocha' }
+            const test = { error: { name: 'AssertionError [ERR_ASSERTION]', message: 'Custom message' } }
+            expect(getTestStatus(test as any, config)).toEqual(Status.FAILED)
+        })
+
+        it('failed for error with only name AssertionError and no message or stack', () => {
+            const config: any = { framework: 'mocha' }
+            const test = { error: { name: 'AssertionError' } }
             expect(getTestStatus(test as any, config)).toEqual(Status.FAILED)
         })
 
@@ -239,6 +259,30 @@ describe('utils', () => {
                     []
                 )
             })
+        })
+    })
+
+    describe('toPackageLabel', () => {
+        it('should not collapse a Windows absolute path into just the drive letter (#15496)', () => {
+            const file = path.join(process.cwd(), 'test', 'specs', 'mySuite.e2e.js')
+
+            const pkg = toPackageLabel(file)
+
+            expect(pkg).not.toEqual('C')
+            expect(pkg).toEqual('test.specs.mySuite.e2e.js')
+        })
+
+        it('should still strip a trailing :line:column position suffix', () => {
+            const file = `${path.join(process.cwd(), 'test', 'specs', 'mySuite.e2e.js')}:10:5`
+
+            const pkg = toPackageLabel(file)
+
+            expect(pkg).toEqual('test.specs.mySuite.e2e.js')
+        })
+
+        it('should return an empty string for an empty path', () => {
+            expect(toPackageLabel()).toEqual('')
+            expect(toPackageLabel('')).toEqual('')
         })
     })
 })

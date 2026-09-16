@@ -36,7 +36,6 @@ export class SimpleGreeting extends LitElement {
 
     // Declare reactive properties
     @property()
-    // eslint-disable-next-line indent
     name?: string = 'World'
 
     // Render the UI as a function of component state

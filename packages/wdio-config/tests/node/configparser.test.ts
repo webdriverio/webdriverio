@@ -663,6 +663,15 @@ describe('ConfigParser', () => {
             expect(specs[0]).not.toContain(path.join(__dirname, 'validateConfig.test.ts'))
         })
 
+        it('should exclude files from arrays by keyword without duplicating the group', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
+            await configParser.initialize({ exclude: ['FileSystemPathService'] })
+
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(1)
+            expect(specs.flat()).not.toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
+        })
+
         it('should exclude/include capability excludes', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize()

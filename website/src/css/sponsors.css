@@ -12,13 +12,14 @@
 .sponsorSection > div {
     display: flex;
     flex-direction: row;
-    width: 280px;
+    width: min(560px, 100%);
     border: 1px solid var(--ifm-color-primary);
     border-radius: 10px;
     margin: 0 auto;
     background-color: var(--wdio-section-background-color);
     transform: translateY(-50%);
     justify-content: center;
+    align-items: center;
 }
 .sponsorSection em {
     font-size: .8em;
@@ -31,6 +32,7 @@
 }
 .sponsorSection img {
     max-width: 150px;
+    height: auto;
 }
 
 @media (max-width: 996px) {
@@ -80,5 +82,6 @@
 .sponsors .logos {
     display: flex;
     flex-direction: row;
+    align-items: center;
     gap: 30px;
 }

@@ -30,6 +30,26 @@ import type { Selector } from '../../types.js'
  * }
  * ```
  *
+ * ### Iterating over elements
+ *
+ * The result of `$$` also provides asynchronous versions of the `Array` iteration methods `forEach`, `map`,
+ * `find`, `findIndex`, `some`, `every`, `filter` and `reduce`. They accept `async` callbacks and can be
+ * called on `$$` directly:
+ *
+ * ```js
+ * const texts = await $$('h3').map((h3) => h3.getText())
+ * ```
+ *
+ * Every method except `reduce` also has a `*Series` variant (`forEachSeries`, `mapSeries`, and so on).
+ * The base method runs all callbacks **concurrently**, while the `*Series` variant runs **one callback at a
+ * time**, in list order. `reduce` always runs one callback at a time. Use a `*Series` variant when the order
+ * of your interactions with the page matters.
+ *
+ * The concurrent `find` and `findIndex` resolve with the first match to finish, which is not necessarily the
+ * earliest match in the list, and the concurrent `find`, `findIndex`, `some` and `every` keep running the
+ * remaining callbacks after the result is known. Use the `*Series` variant to get the earliest match and
+ * stop there.
+ *
  * :::info
  *
  * For more information on how to select specific elements, check out the [Selectors](/docs/selectors) guide.
@@ -66,12 +86,12 @@ export async function $$ (
                 ? await globalThis.wdio.executeWithScope(command, this.elementId, selector) as unknown as ElementReference[]
                 : await globalThis.wdio.execute(command, selector) as unknown as ElementReference[]
             const elements = await getElements.call(this, selector as Selector, res)
-            return enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
+            return enhanceElementsArray(elements, this, selector as Selector)
         }
 
         const res = await findDeepElements.call(this, selector)
         const elements = await getElements.call(this, selector as Selector, res)
-        return enhanceElementsArray(elements, getParent.call(this, res), selector as Selector) as WebdriverIO.ElementArray
+        return enhanceElementsArray(elements, getParent.call(this, res), selector as Selector)
     }
 
     let res: (ElementReference | Error)[] = Array.isArray(selector)
@@ -92,7 +112,7 @@ export async function $$ (
     }
 
     const elements = await getElements.call(this, selector as Selector, res)
-    return enhanceElementsArray(elements, getParent.call(this, res), selector as Selector) as WebdriverIO.ElementArray
+    return enhanceElementsArray(elements, getParent.call(this, res), selector as Selector)
 }
 
 function getParent (this: WebdriverIO.Browser | WebdriverIO.Element, res: ElementReference[]) {

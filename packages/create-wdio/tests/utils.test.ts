@@ -94,7 +94,7 @@ test('runProgram', async () => {
 
     await runProgram('foobarloo', [], {}).catch((e) => e)
 
-    expect(vi.mocked(console.log).mock.calls[1][0]).toMatch(/spawn foobarloo ENOENT/)
+    expect(vi.mocked(console.log).mock.calls[1][0]).toMatch(/spawn foobarloo (ENOENT|EACCES)/)
     expect(process.exit).toBeCalledTimes(2)
 })
 
@@ -624,7 +624,7 @@ test('setupTypeScript', async () => {
             framework: 'foo',
             services: [
                 'wdio-foobar-service$--$foobar',
-                'wdio-electron-service$--$electron'
+                '@wdio/electron-service$--$electron'
             ]
         },
         packagesToInstall: [],
@@ -642,7 +642,7 @@ test('setupTypeScript does not create tsconfig.json if TypeScript was not select
             framework: 'foo',
             services: [
                 'wdio-foobar-service$--$foobar',
-                'wdio-electron-service$--$electron'
+                '@wdio/electron-service$--$electron'
             ]
         },
         packagesToInstall: [],
@@ -661,7 +661,7 @@ test('setupTypeScript does not create tsconfig.json if there is already one', as
             framework: 'foo',
             services: [
                 'wdio-foobar-service$--$foobar',
-                'wdio-electron-service$--$electron'
+                '@wdio/electron-service$--$electron'
             ]
         },
         packagesToInstall: [],
