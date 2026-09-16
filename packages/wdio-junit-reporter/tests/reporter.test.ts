@@ -468,6 +468,8 @@ describe('wdio-junit-reporter', () => {
         expect(xml).toContain('should can do something')
         expect(xml).toContain('testsuite')
         expect(xml).not.toMatch(/<testsuites\s*\/>/)
+        // Unique basename → safe to report the full runner spec path
+        expect(xml).toContain('test/specs/sync.spec.js')
     })
 
     it('does not duplicate suites when grouped specs share a basename (issue #13052)', () => {
@@ -521,6 +523,23 @@ describe('wdio-junit-reporter', () => {
         expect(xml.match(/name="desktop test"/g)).toHaveLength(1)
         expect(xml.match(/name="mobile test"/g)).toHaveLength(1)
         expect(xml.match(/<testsuite /g)).toHaveLength(2)
+        // Ambiguous basename → do not attribute either suite to a specific full path
+        const reportedFiles = [...xml.matchAll(/<property name="file" value="([^"]+)"/g)].map((match) => match[1])
+        expect(reportedFiles).toEqual(['spec.js', 'spec.js'])
+    })
+
+    it('_reportFileName - uses the full spec path only when the basename is unique', () => {
+        reporter = new WDIOJunitReporter({ stdout: true })
+        const desktopSpec = os.platform() === 'win32'
+            ? 'C:\\path\\to\\project\\test\\desktop\\spec.js'
+            : '/path/to/project/test/desktop/spec.js'
+        const mobileSpec = os.platform() === 'win32'
+            ? 'C:\\path\\to\\project\\test\\mobile\\spec.js'
+            : '/path/to/project/test/mobile/spec.js'
+
+        expect(reporter['_reportFileName'](desktopSpec, 'spec.js', [desktopSpec])).toBe(desktopSpec)
+        expect(reporter['_reportFileName'](desktopSpec, 'spec.js', [desktopSpec, mobileSpec])).toBe('spec.js')
+        expect(reporter['_reportFileName'](desktopSpec, desktopSpec, [desktopSpec, mobileSpec])).toBe(desktopSpec)
     })
 
     const options = { stdout: true, addWorkerLogs: true }
