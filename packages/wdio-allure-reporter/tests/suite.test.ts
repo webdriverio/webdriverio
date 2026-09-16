@@ -1317,3 +1317,65 @@ describe('command reporting', () => {
         expect(consoleAttachments).toHaveLength(0)
     })
 })
+
+describe('Incremental flush', () => {
+    const outputDir = temporaryDirectory()
+
+    beforeEach(() => clean(outputDir))
+
+    const namedTest = (title: string) => Object.assign(testStart(), { uid: title, title, fullTitle: title })
+    const settle = async (reporter: AllureReporter) => {
+        while (!reporter.isSynchronised) {
+            await new Promise((resolve) => setImmediate(resolve))
+        }
+    }
+
+    it('writes a finished test before the runner ends and reports itself unsynchronised while doing so', async () => {
+        const reporter = new AllureReporter({ outputDir })
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(namedTest('first test'))
+        reporter.onTestPass(Object.assign(testPassed(), { uid: 'first test', title: 'first test' }))
+        reporter.onTestStart(namedTest('second test'))
+
+        expect(reporter.isSynchronised).toBe(false)
+        await settle(reporter)
+
+        expect(getResults(outputDir).results.map((r: any) => r.name)).toEqual(['first test'])
+
+        reporter.onTestPass(Object.assign(testPassed(), { uid: 'second test', title: 'second test' }))
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.map((r: any) => r.name).sort()).toEqual(['first test', 'second test'])
+    })
+
+    it('produces the same results as a run that is only flushed at the end', async () => {
+        const run = async (dir: string, flushDuringRun: boolean) => {
+            const reporter = new AllureReporter({ outputDir: dir })
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            for (const title of ['one', 'two', 'three']) {
+                reporter.onTestStart(namedTest(title))
+                if (flushDuringRun) {
+                    await settle(reporter)
+                }
+                reporter.onTestPass(Object.assign(testPassed(), { uid: title, title }))
+            }
+            reporter.onSuiteEnd(suiteEnd())
+            await reporter.onRunnerEnd(runnerEnd())
+
+            return getResults(dir).results.map((r: any) => r.name).sort()
+        }
+
+        const flushedDir = temporaryDirectory()
+        const endOnlyDir = temporaryDirectory()
+        clean(flushedDir)
+        clean(endOnlyDir)
+
+        expect(await run(flushedDir, true)).toEqual(await run(endOnlyDir, false))
+    })
+})
