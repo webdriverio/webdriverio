@@ -32,7 +32,12 @@ export interface EndMessage {
     cid: string, // is actually rid
     exitCode: number,
     specs: string[],
-    retries: number
+    retries: number,
+    /**
+     * set if the worker was terminated by a signal instead of exiting on its
+     * own, in which case `exitCode` is derived from that signal
+     */
+    signal?: NodeJS.Signals | null
 }
 
 class Launcher {
@@ -590,8 +595,9 @@ class Launcher {
      * @param  {number} exitCode  exit code of child process
      * @param  {Array} specs      Specs that were run
      * @param  {number} retries   Number or retries remaining
+     * @param  {string} signal    signal that terminated the worker, if any
      */
-    private async _endHandler({ cid: rid, exitCode, specs, retries }: EndMessage): Promise<void> {
+    private async _endHandler({ cid: rid, exitCode, specs, retries, signal }: EndMessage): Promise<void> {
         const passed = this._isWatchModeHalted() || exitCode === 0
 
         if (!passed && retries > 0) {
@@ -621,9 +627,9 @@ class Launcher {
 
         log.info('Run onWorkerEnd hook')
         const config = this.configParser.getConfig()
-        await runLauncherHook(config.onWorkerEnd, rid, exitCode, specs, retries)
+        await runLauncherHook(config.onWorkerEnd, rid, exitCode, specs, retries, signal)
             .catch((error) => this._workerHookError(error))
-        await runServiceHook(this._launcher!, 'onWorkerEnd', rid, exitCode, specs, retries)
+        await runServiceHook(this._launcher!, 'onWorkerEnd', rid, exitCode, specs, retries, signal)
             .catch((error) => this._workerHookError(error))
 
         /**
