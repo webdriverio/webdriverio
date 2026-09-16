@@ -207,11 +207,10 @@ export class ContextManager extends SessionManager {
      */
     async #getTopLevelContext(contextId: string) {
         const { contexts } = await this.#browser.browsingContextGetTree({})
-        let context = this.findContext(contextId, contexts, 'byContextId')
-        while (context?.parent) {
-            context = this.findContext(context.parent, contexts, 'byContextId')
-        }
-        return context?.context
+        // Child entries in getTree omit parent, so find the root containing the context.
+        return contexts.find((context) =>
+            this.findContext(contextId, [context], 'byContextId')
+        )?.context
     }
 
     #onCommandResultBidiAndClassic(event: { command: string, result: unknown, body: unknown }) {
