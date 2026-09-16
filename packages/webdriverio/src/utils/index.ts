@@ -317,6 +317,30 @@ function toClassicSelector(using: string, value: string): { using: string, value
     return { using, value }
 }
 
+function findElementViaClassic(
+    ctx: WebdriverIO.Browser | WebdriverIO.Element,
+    browser: WebdriverIO.Browser,
+    using: string,
+    value: string
+) {
+    const classic = toClassicSelector(using, value)
+    return ctx && 'elementId' in ctx && ctx.elementId
+        ? ctx.findElementFromElement(ctx.elementId, classic.using, classic.value)
+        : browser.findElement(classic.using, classic.value)
+}
+
+function findElementsViaClassic(
+    ctx: WebdriverIO.Browser | WebdriverIO.Element,
+    browser: WebdriverIO.Browser,
+    using: string,
+    value: string
+) {
+    const classic = toClassicSelector(using, value)
+    return ctx && 'elementId' in ctx && ctx.elementId
+        ? ctx.findElementsFromElement(ctx.elementId, classic.using, classic.value)
+        : browser.findElements(classic.using, classic.value)
+}
+
 /**
  * Returns true when the connected Firefox browser is older than v150, which has a BiDi bug
  * where browsingContext.locateNodes returns empty nodes for CSS root selectors (issue #15233).
@@ -468,12 +492,21 @@ export async function findDeepElement(
             }
         }
         return scopedNodes[0]
+    }).then((found) => {
+        /**
+         * BiDi accessibility locators use the computed accessible name, which
+         * does not cover every case the Classic XPath heuristic matches
+         * (e.g. generic text nodes, title fallbacks, aria-describedby).
+         * Fall back so existing `aria/` selectors keep working.
+         */
+        if (using === 'aria' && !found) {
+            log.info(`BiDi accessibility locator found no nodes for "aria/${value}", falling back to XPath`)
+            return findElementViaClassic(this, browser, using, value)
+        }
+        return found
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
-        const classic = toClassicSelector(using, value)
-        return this && 'elementId' in this && this.elementId
-            ? this.findElementFromElement(this.elementId, classic.using, classic.value)
-            : browser.findElement(classic.using, classic.value)
+        return findElementViaClassic(this, browser, using, value)
     })
 
     return deepElementResult
@@ -594,12 +627,15 @@ export async function findDeepElements(
             }
         }
         return scopedNodes
+    }).then((found) => {
+        if (using === 'aria' && (!found || found.length === 0)) {
+            log.info(`BiDi accessibility locator found no nodes for "aria/${value}", falling back to XPath`)
+            return findElementsViaClassic(this, browser, using, value)
+        }
+        return found
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
-        const classic = toClassicSelector(using, value)
-        return this && 'elementId' in this && this.elementId
-            ? this.findElementsFromElement(this.elementId, classic.using, classic.value)
-            : browser.findElements(classic.using, classic.value)
+        return findElementsViaClassic(this, browser, using, value)
     })
     return deepElementResult as ElementReference[]
 }

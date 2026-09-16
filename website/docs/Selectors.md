@@ -171,7 +171,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 Query elements by their accessible name. The accessible name is what is announced by a screen reader when that element receives focus. The value of the accessible name can be both visual content or hidden text alternatives.
 
-On [WebDriver BiDi](https://w3c.github.io/webdriver-bidi/) sessions (Chrome, Edge, Firefox and other BiDi-capable browsers) WebdriverIO uses [`browsingContext.locateNodes`](https://w3c.github.io/webdriver-bidi/#command-browsingContext-locateNodes) with an accessibility locator. That queries the browser accessibility tree directly and is typically much faster than the XPath approximation used for WebDriver Classic sessions.
+On [WebDriver BiDi](https://w3c.github.io/webdriver-bidi/) sessions (Chrome, Edge, Firefox and other BiDi-capable browsers) WebdriverIO first uses [`browsingContext.locateNodes`](https://w3c.github.io/webdriver-bidi/#command-browsingContext-locateNodes) with an accessibility locator. That queries the browser accessibility tree directly and is typically much faster than the XPath approximation. If the accessibility locator finds nothing, WebdriverIO falls back to the Classic XPath heuristic so existing `aria/` queries keep matching.
 
 :::info
 

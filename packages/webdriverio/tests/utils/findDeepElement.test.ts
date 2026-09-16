@@ -593,6 +593,20 @@ describe('findDeepElement - aria accessibility locator', () => {
         )
         expect(result).toEqual({ [ELEMENT_KEY]: 'xpath-node' })
     })
+
+    it('should fall back to xpath when BiDi accessibility locator returns no nodes', async () => {
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [] })
+        browser.findElement.mockResolvedValue({ [ELEMENT_KEY]: 'xpath-node' })
+
+        const result = await findDeepElement.call(browser, 'aria/Submit')
+
+        expect(browser.findElement).toHaveBeenCalledWith(
+            'xpath',
+            expect.stringContaining('@aria-label = "Submit"')
+        )
+        expect(result).toEqual({ [ELEMENT_KEY]: 'xpath-node' })
+    })
 })
 
 // Firefox < 150 BiDi root selector workaround (issue #15233)
