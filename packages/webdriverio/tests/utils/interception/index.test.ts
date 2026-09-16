@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { type local } from 'webdriver'
+import { URLPattern } from 'urlpattern-polyfill'
 import WebDriverInterception from '../../../src/utils/interception/index.js'
 import logger from '@wdio/logger'
 
@@ -1102,6 +1103,38 @@ describe('WebDriverInterception', () => {
                     body: { type: 'string', value: 'mocked response' }
                 })
             )
+        })
+    })
+
+    describe('url pattern matching', () => {
+        const emitBlockedRequest = (browser: WebdriverIO.Browser, url: string) => browser.emit('network.beforeRequestSent', {
+            isBlocked: true,
+            request: {
+                request: 123,
+                url,
+                method: 'GET',
+                headers: []
+            }
+        })
+
+        it('should match a glob pattern without leading slash', async () => {
+            const browser = getResponseCollectionBrowserMock()
+            const mock = await WebDriverInterception.initiate('**/api/users*', {}, browser)
+
+            mock.abort()
+            emitBlockedRequest(browser, 'https://foobar.com/api/users/123')
+
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
+        })
+
+        it('should accept a URLPattern', async () => {
+            const browser = getResponseCollectionBrowserMock()
+            const mock = await WebDriverInterception.initiate(new URLPattern({ pathname: '/api/users/*' }), {}, browser)
+
+            mock.abort()
+            emitBlockedRequest(browser, 'https://foobar.com/api/users/123')
+
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
         })
     })
 })

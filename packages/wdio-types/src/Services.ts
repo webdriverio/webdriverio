@@ -32,11 +32,27 @@ export interface ServiceOption {
 
 export interface ServiceClass {
     new(options: WebdriverIO.ServiceOption, capabilities: ResolvedTestrunnerCapabilities, config: WebdriverIOOptions): ServiceInstance
+    /**
+     * Runs in a worker before construction. Return false to skip this service for the worker.
+     */
+    shouldRun?(
+        options: WebdriverIO.ServiceOption,
+        capabilities: ResolvedTestrunnerCapabilities,
+        config: WebdriverIOOptions
+    ): boolean | Promise<boolean>
 }
 
 export interface ServicePlugin extends ServiceClass {
     default: ServiceClass
     launcher?: ServiceClass
+    /**
+     * Runs once per package in the launcher. Return false to skip importing the package in workers.
+     * Launcher services are still initialized.
+     */
+    shouldLoad?(
+        config: Omit<TestrunnerOptions, 'capabilities' | keyof HookFunctions>,
+        capabilities: TestrunnerCapabilities
+    ): boolean | Promise<boolean>
 }
 
 export interface ServiceInstance extends HookFunctions {
@@ -154,15 +170,17 @@ export interface HookFunctions {
     /**
      * Gets executed just after a worker process has exited.
      * @param  {string} cid      capability id (e.g 0-0)
-     * @param  {number} exitCode 0 - success, 1 - fail
+     * @param  {number} exitCode 0 - success, 1 - fail, `128` + signal number if terminated by a signal
      * @param  {object} specs    specs to be run in the worker process
      * @param  {number} retries  number of retries used
+     * @param  {string} signal   signal that terminated the worker, if any, e.g. `SIGSEGV`
      */
     onWorkerEnd?(
         cid: string,
         exitCode: number,
         specs: string[],
         retries: number,
+        signal?: NodeJS.Signals | null,
     ): unknown | Promise<unknown>
 
     /**

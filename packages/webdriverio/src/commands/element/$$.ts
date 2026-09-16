@@ -34,6 +34,9 @@
  * }
  * ```
  *
+ * The result also provides asynchronous versions of the `Array` iteration methods, like `map` and
+ * `mapSeries`. See [Iterating over elements](/docs/api/browser/$$#iterating-over-elements) for how they work.
+ *
  * :::info
  *
  * For more information on how to select specific elements, check out the [Selectors](/docs/selectors) guide.

@@ -1,4 +1,4 @@
-import { vi, describe, it, expect } from 'vitest'
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { wrapCommand, executeAsync } from '../src/shim.js'
 
 describe('wrapCommand', () => {
@@ -84,10 +84,94 @@ describe('wrapCommand', () => {
 })
 
 describe('executeAsync', () => {
-    it('should trigger a timeout exception if the function finishes within the specified timeframe', async () => {
-        const fn = () => new Promise((resolve) => setTimeout(resolve, 300))
-        const result = await executeAsync.call({}, fn, { attempts: 1, limit: 1 }, [], 200).catch((err) => err.message)
-        expect(result).toEqual('Timeout')
+    describe('timeout context', () => {
+        beforeEach(() => vi.useFakeTimers())
+        afterEach(() => {
+            vi.clearAllTimers()
+            vi.useRealTimers()
+            vi.unstubAllGlobals()
+        })
+
+        it('should report the effective deadline and original runnable title', async () => {
+            const runnable = {
+                _timeout: 200,
+                title: 'timed test',
+                fullTitle () { return `suite "${this.title}"` }
+            }
+            const scope = { _runnable: runnable }
+            const result = executeAsync.call(
+                scope as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 50
+            ).catch((err: Error) => err)
+            const settled = vi.fn()
+            const observed = result.then(settled)
+
+            scope._runnable = { _timeout: 500, title: 'next test', fullTitle: () => 'next suite next test' }
+            await vi.advanceTimersByTimeAsync(196)
+            expect(settled).not.toHaveBeenCalled()
+            await vi.advanceTimersByTimeAsync(1)
+
+            expect(await result).toEqual(new Error('Timeout after 197ms in "suite \\"timed test\\"" (WDIO attempt 1/1)'))
+            await observed
+            expect(vi.getTimerCount()).toBe(0)
+        })
+
+        it.each([undefined, 'non-callable metadata'])('should identify a hook when fullTitle is %s', async (fullTitle) => {
+            const scope = { _runnable: { title: 'before each hook', fullTitle } }
+            const result = executeAsync.call(
+                scope as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(197)
+            expect(await result).toEqual(new Error('Timeout after 197ms in "before each hook" (WDIO attempt 1/1)'))
+        })
+
+        it('should use a named callback when runnable titles are empty', async () => {
+            const scope = { _runnable: { title: '', fullTitle: () => '' } }
+            function stalledHook () { return new Promise(() => {}) }
+            const result = executeAsync.call(
+                scope as any, stalledHook, { attempts: 0, limit: 0 }, [], 200
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(197)
+            expect(await result).toEqual(new Error('Timeout after 197ms in "stalledHook" (WDIO attempt 1/1)'))
+        })
+
+        it('should support anonymous callbacks without a runnable', async () => {
+            const result = executeAsync.call(
+                {}, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(197)
+            expect(await result).toEqual(new Error('Timeout after 197ms in "unknown test or hook" (WDIO attempt 1/1)'))
+        })
+
+        it('should use the Jasmine deadline when no runnable is available', async () => {
+            vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 100 })
+            function jasmineHook () { return new Promise(() => {}) }
+            const result = executeAsync.call(
+                {}, jasmineHook, { attempts: 0, limit: 0 }, [], 200
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(97)
+            expect(await result).toEqual(new Error('Timeout after 97ms in "jasmineHook" (WDIO attempt 1/1)'))
+        })
+
+        it('should report the final WDIO attempt after timeout retries are exhausted', async () => {
+            const scope = { _runnable: { title: 'retrying test', _currentRetry: 4 }, wdioRetries: 0 }
+            const retries = { attempts: 0, limit: 1 }
+            const fn = vi.fn(() => new Promise(() => {}))
+            const result = executeAsync.call(scope as any, fn, retries, [], 200).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(197)
+            expect(fn).toHaveBeenCalledTimes(2)
+            expect(scope.wdioRetries).toBe(1)
+            await vi.advanceTimersByTimeAsync(197)
+
+            expect(await result).toEqual(new Error('Timeout after 197ms in "retrying test" (WDIO attempt 2/2)'))
+            expect(retries).toEqual({ attempts: 1, limit: 1 })
+            expect(fn).toHaveBeenCalledTimes(2)
+            expect(vi.getTimerCount()).toBe(0)
+        })
     })
 
     it('should not trigger a timeout exception if the function finishes within the specified timeframe', async () => {

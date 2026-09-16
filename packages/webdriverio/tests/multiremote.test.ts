@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { test, expect, vi, afterEach, describe } from 'vitest'
+import { test, expect, vi, afterEach, describe, beforeAll, afterAll } from 'vitest'
 import type { Capabilities } from '@wdio/types'
 
 import { multiremote } from '../src/index.js'
@@ -95,6 +95,7 @@ describe('Multi-Remote tests', () => {
     test('should be able to add a command to and element in multiremote', async () => {
         const browser = await multiremote(caps())
 
+        // @ts-expect-error untyped custom command
         browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.MultiRemoteBrowser) {
         // @ts-expect-error invalid params
             const size = await this.getSize()
@@ -114,6 +115,7 @@ describe('Multi-Remote tests', () => {
     test('should be able to overwrite command to and element in multiremote', async () => {
         const browser = await multiremote(caps())
 
+        // @ts-expect-error untyped custom command
         browser.overwriteCommand('getSize', async function (
             this: WebdriverIO.MultiRemoteBrowser,
             origCmd: any
@@ -136,35 +138,36 @@ describe('Multi-Remote tests', () => {
         expect(sizeB).toEqual(result)
     })
 
-    test('should preserve filtered instances when chaining $ on a selected element', async () => {
-        const browser = await multiremote(caps())
+    describe('select', () => {
+        beforeAll(() => {
+            process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT = 'true'
+        })
 
-        const h1 = await browser.$('#foo')
+        afterAll(() => {
+            delete process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT
+        })
 
-        // narrow to browserA only
-        const selectedH1 = h1.unstable_select('browserA')
-        expect(selectedH1.instances).toEqual(['browserA'])
+        test('should preserve filtered instances when chaining $ on a selected element', async () => {
+            const browser = await multiremote(caps())
 
-        // Should preserve the instance scope when chaining $() on a selected element
-        const child = await selectedH1.$('#child')
-        expect(child.instances).toEqual(['browserA'])
-    })
+            const h1 = await browser.$('#foo')
 
-    // TODO part of unstable API, to fix later
-    // ─── Bug 2: empty selection falls through to full-browser dispatch ────────────
-    test.skip('should not dispatch to any instance when unstable_select matches nothing', async () => {
-        const browser = await multiremote(caps())
+            // narrow to browserA only
+            const selectedH1 = h1.select('browserA')
+            expect(selectedH1.instances).toEqual(['browserA'])
 
-        const h1 = await browser.$('#foo')
-        // select a name that does not exist → empty set, selector === null
-        // const empty = h1.unstable_select('nonExistentBrowser')
-        const empty = h1
-        expect(empty.instances).toEqual([])
+            // Should preserve the instance scope when chaining $() on a selected element
+            const child = await selectedH1.$('#child')
+            expect(child.instances).toEqual(['browserA'])
+        })
 
-        // Bug 2: selector is null so commandWrapper falls to Object.entries(instances)
-        // and dispatches getText() to ALL browsers instead of none
-        const result = await empty.getText()
-        expect(result).toEqual([]) // ← fails today: returns two values (one per browser)
+        test('should throw an error when select matches nothing', async () => {
+            const browser = await multiremote(caps())
+
+            const h1 = await browser.$('#foo')
+
+            expect(() => h1.select('nonExistentBrowser')).toThrowError('None of the following requested instances are valid: nonExistentBrowser')
+        })
     })
 })
 

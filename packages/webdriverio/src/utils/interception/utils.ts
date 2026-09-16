@@ -77,9 +77,11 @@ export function parseOverwrite<
     return result
 }
 
+const URL_PATTERN_SYNTAX = /[*:(){}?+\\]/
+
 export function getPatternParam(pattern: URLPattern, key: keyof Omit<remote.NetworkUrlPatternPattern, 'type'>) {
     const value = pattern[key]
-    if (value === '*' || value.includes('*')) {
+    if (URL_PATTERN_SYNTAX.test(value)) {
         return
     }
 
