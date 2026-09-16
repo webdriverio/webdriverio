@@ -20,11 +20,11 @@ npm install eslint-plugin-wdio --save-dev
 
 ## Recommended configuration
 
-This plugin export a recommended configuration that enforce good practices.
+This plugin exports a recommended configuration that enforces good practices.
 
-### With Eslint v8 and below
+### With ESLint v8 and below
 
-To enable this configuration use the extends property in your `.eslintrc` config file:
+To enable this configuration use the `extends` property in your `.eslintrc` config file:
 
 ```json
 {
@@ -36,37 +36,46 @@ To enable this configuration use the extends property in your `.eslintrc` config
 }
 ```
 
-### With Eslint v9 and Flat Config
+### With ESLint v9 and Flat Config
 
-If you are using the latest version of Eslint with the [flat configuration](https://eslint.org/docs/latest/use/configure/migration-guide), you can embed this plugin as follows:
+If you are using the latest version of ESLint with the [flat configuration](https://eslint.org/docs/latest/use/configure/migration-guide), you can embed this plugin as follows:
 
 ```js
 // eslint.config.mjs
 import { configs as wdioConfig } from "eslint-plugin-wdio";
 
 export default [
-    {
-        extends: [
-            wdioConfig['flat/recommended'],
-            // ...
-        ]
-    }
+    wdioConfig['flat/recommended'],
 ];
 ```
 
 See [ESLint documentation](https://eslint.org/docs/latest/use/configure/configuration-files) for more information about extending configuration files.
 
+## TypeScript Support
+
+When `typescript` and `@typescript-eslint/eslint-plugin` are detected, the recommended configuration automatically replaces `wdio/await-expect` with `wdio/no-floating-promise` for stricter, type-aware promise handling.
+
+To enable this, install the required dependencies:
+
+```sh
+npm install --save-dev typescript @typescript-eslint/eslint-plugin
+```
+
 ## List of supported rules
 
 
-- [`wdio/await-expect`](./docs/async-methods.md)
+- [`wdio/await-expect`](./docs/rules/await-expect.md)
 
 `expect` calls must be prefixed with an `await`
 
-- [`wdio/no-debug`](./docs/no-debug.md)
+- [`wdio/no-debug`](./docs/rules/no-debug.md)
 
 Don't allow `browser.debug()` statements
 
-- [`wdio/no-pause`](./docs/no-pause.md)
+- [`wdio/no-pause`](./docs/rules/no-pause.md)
 
 Don't allow `browser.pause(<number>)` statements
+
+- [`wdio/no-floating-promise`](./docs/rules/no-floating-promise.md)
+
+Check for unhandled promises

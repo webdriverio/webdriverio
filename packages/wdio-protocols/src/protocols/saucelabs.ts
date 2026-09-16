@@ -190,7 +190,7 @@ export default {
                     name: 'metrics',
                     type: 'string[]',
                     description:
-                        'Name of metrics you want to assert agains the baseline.',
+                        'Name of metrics you want to assert against the baseline.',
                     required: false,
                 },
             ],

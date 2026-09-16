@@ -1171,7 +1171,7 @@ export default {
         POST: {
             command: 'performActions',
             description:
-                'The Perform Actions command is used to execute complex user actions. See [spec](https://github.com/jlipps/simple-wd-spec#perform-actions) for more details.',
+                'The Perform Actions command is used to execute complex user actions. Most users should prefer the higher-level [`browser.action()`](https://webdriver.io/docs/api/browser/action) API. See [spec](https://github.com/jlipps/simple-wd-spec#perform-actions) for more details.',
             ref: 'https://w3c.github.io/webdriver/#dfn-perform-actions',
             parameters: [
                 {

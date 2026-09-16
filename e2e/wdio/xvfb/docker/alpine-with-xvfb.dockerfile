@@ -1,4 +1,4 @@
-FROM alpine:3.20
+FROM alpine:3.23
 
 # Set environment variables
 ENV CI=true
@@ -26,7 +26,7 @@ RUN apk add --no-cache \
         libstdc++
 
 # Install pnpm globally as root
-RUN npm install -g pnpm
+RUN npm install -g pnpm@10
 
 # Install Chromium for testing
 RUN apk add --no-cache chromium@latest

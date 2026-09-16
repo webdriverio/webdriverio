@@ -116,6 +116,8 @@ const log = logger('webdriver')
  * @param {number=}             options.androidWebviewConnectTimeout        The maximum amount of time in milliseconds to wait for a web view page to be detected. Default is `5000` ms (optional). <br /><strong>ANDROID-ONLY</strong>
  * @param {number=}             options.waitForWebviewMs                    The time in milliseconds to wait for webviews to become available before returning contexts. This parameter is passed directly to the Appium `mobile: getContexts` command. Default is `0` ms (optional). <br /><strong>ANDROID-ONLY</strong> <br />This is useful when you know that a webview is loading but needs additional time to become available. This option works at the Appium level, before WebdriverIO's retry logic (`androidWebviewConnectionRetryTime` and `androidWebviewConnectTimeout`) is applied.
  * @skipUsage
+ *
+ * @support ["ios","android"]
  */
 export async function getContext(
     this: WebdriverIO.Browser,

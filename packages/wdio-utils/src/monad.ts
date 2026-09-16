@@ -19,6 +19,34 @@ interface PropertiesObject {
     [key: string | symbol]: PropertyDescriptor
 }
 
+function composeElementOverrides(previousCommand: Function | undefined, nextCommand: Function): Function {
+    if (!previousCommand) {
+        return nextCommand
+    }
+
+    const previousElementCommand = previousCommand
+
+    return function composedElementOverride(this: WebdriverIO.Element, originalCommand: Function, ...args: unknown[]) {
+        const element = this
+
+        function previousCommandAsOriginal(this: WebdriverIO.Element, ...previousArgs: unknown[]) {
+            const context = this || element
+
+            function originalForPrevious(this: WebdriverIO.Element, ...originalArgs: unknown[]) {
+                return originalCommand.apply(this || context, originalArgs)
+            }
+
+            return previousElementCommand.call(context, originalForPrevious, ...previousArgs)
+        }
+
+        return nextCommand.call(element, previousCommandAsOriginal, ...args)
+    }
+}
+
+function setElementOverride(overrides: Record<string, Function>, name: string, command: Function): void {
+    overrides[name] = composeElementOverrides(overrides[name], command)
+}
+
 export default function WebDriver(options: object, modifier?: Function, propertiesObject: PropertiesObject = {}) {
     /**
      * In order to allow named scopes for elements we have to propagate that
@@ -33,25 +61,111 @@ export default function WebDriver(options: object, modifier?: Function, properti
 
     const mittInstance = mitt()
 
+    type EventHandler = (event: unknown) => void
+    const dialogListeners: Array<{ listener: EventHandler, registered: EventHandler }> = []
+
+    const emitDialogListenerTransition = (previousCount: number) => {
+        if (previousCount === 0 && dialogListeners.length > 0) {
+            mittInstance.emit('_dialogListenerRegistered')
+        } else if (previousCount > 0 && dialogListeners.length === 0) {
+            mittInstance.emit('_dialogListenerRemoved')
+        }
+    }
+
+    const addDialogListener = (listener: EventHandler, registered = listener) => {
+        const previousCount = dialogListeners.length
+        mittInstance.on('dialog', registered)
+        dialogListeners.push({ listener, registered })
+        emitDialogListenerTransition(previousCount)
+    }
+
+    const removeDialogListener = (listener?: EventHandler, registered?: EventHandler) => {
+        const previousCount = dialogListeners.length
+        let index = -1
+
+        for (let i = dialogListeners.length - 1; i >= 0; i--) {
+            const entry = dialogListeners[i]
+            if (registered ? entry.registered === registered : entry.listener === listener) {
+                index = i
+                break
+            }
+        }
+
+        if (index === -1) {
+            return
+        }
+
+        const [entry] = dialogListeners.splice(index, 1)
+        mittInstance.off('dialog', entry.registered)
+        emitDialogListenerTransition(previousCount)
+    }
+
+    const removeAllDialogListeners = () => {
+        const previousCount = dialogListeners.length
+        mittInstance.off('dialog')
+        dialogListeners.length = 0
+        emitDialogListenerTransition(previousCount)
+    }
+
     // Create EventEmitter-compatible interface
     const eventHandler = {
-        on: mittInstance.on.bind(mittInstance),
-        off: mittInstance.off.bind(mittInstance),
-        emit: mittInstance.emit.bind(mittInstance),
-        once: (type: string, handler: Function) => {
-            const onceWrapper = (...args: unknown[]) => {
-                mittInstance.off(type, onceWrapper)
-                handler(...args)
+        on: (type: string, handler: EventHandler) => {
+            if (type === 'dialog') {
+                addDialogListener(handler)
+            } else {
+                mittInstance.on(type, handler)
             }
-            mittInstance.on(type, onceWrapper)
         },
-        removeListener: mittInstance.off.bind(mittInstance),
+        off: (type: string, handler?: EventHandler) => {
+            if (type === 'dialog') {
+                if (handler) {
+                    removeDialogListener(handler)
+                } else {
+                    removeAllDialogListeners()
+                }
+            } else {
+                mittInstance.off(type, handler)
+            }
+        },
+        emit: mittInstance.emit.bind(mittInstance),
+        once: (type: string, handler: EventHandler) => {
+            const onceWrapper = (event: unknown) => {
+                if (type === 'dialog') {
+                    removeDialogListener(handler, onceWrapper)
+                } else {
+                    mittInstance.off(type, onceWrapper)
+                }
+                handler(event)
+            }
+
+            if (type === 'dialog') {
+                addDialogListener(handler, onceWrapper)
+            } else {
+                mittInstance.on(type, onceWrapper)
+            }
+        },
+        removeListener: (type: string, handler?: EventHandler) => {
+            if (type === 'dialog') {
+                if (handler) {
+                    removeDialogListener(handler)
+                } else {
+                    removeAllDialogListeners()
+                }
+            } else {
+                mittInstance.off(type, handler)
+            }
+        },
         removeAllListeners: (type?: string) => {
-            if (type) {
+            if (type === 'dialog') {
+                removeAllDialogListeners()
+            } else if (type) {
                 mittInstance.off(type)
             } else {
-                // Clear all event handlers by creating new mitt instance
-                Object.assign(mittInstance, mitt())
+                const previousCount = dialogListeners.length
+                mittInstance.off('dialog')
+                dialogListeners.length = 0
+                emitDialogListenerTransition(previousCount)
+                mittInstance.all.clear()
             }
         }
     }
@@ -188,13 +302,13 @@ export default function WebDriver(options: object, modifier?: Function, properti
                      * add command to every multiremote instance
                      */
                     Object.values(instances).forEach(instance => {
-                        instance.__propertiesObject__.__elementOverrides__.value[name] = customCommand
+                        setElementOverride(instance.__propertiesObject__.__elementOverrides__.value, name, customCommand)
                     })
                 } else {
                     /**
                      * regular mode
                      */
-                    this.__propertiesObject__.__elementOverrides__.value[name] = customCommand
+                    setElementOverride(this.__propertiesObject__.__elementOverrides__.value, name, customCommand)
                 }
             } else if (client[name]) {
                 const origCommand = client[name]
@@ -273,19 +387,6 @@ export default function WebDriver(options: object, modifier?: Function, properti
      */
     for (const eventCommand of EVENTHANDLER_FUNCTIONS) {
         prototype[eventCommand] = function (...args: [unknown, unknown]) {
-            /**
-             * Emit an event when a dialog listener is registered or unregistered.
-             * This is used in `packages/webdriverio/src/dialog.ts`
-             * to decide whether to propagate a `dialog` event to
-             * the user or automatically accept or dismiss the dialog.
-             */
-            if (eventCommand === 'on' && args[0] === 'dialog') {
-                eventHandler.emit('_dialogListenerRegistered')
-            }
-            if (eventCommand === 'off' && args[0] === 'dialog') {
-                eventHandler.emit('_dialogListenerRemoved')
-            }
-
             // Call the appropriate method based on eventCommand
             switch (eventCommand) {
             case 'on':

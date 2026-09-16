@@ -29,6 +29,7 @@ const config: Config = {
     organizationName: 'webdriverio',
     projectName: 'webdriverio',
     markdown: {
+        mermaid: true,
         hooks: {
             onBrokenMarkdownLinks: 'throw',
         },
@@ -71,6 +72,9 @@ const config: Config = {
         prism: {
             theme: themes.github,
             darkTheme: themes.dracula
+        },
+        mermaid: {
+            theme: { light: 'neutral', dark: 'dark' },
         },
         algolia: {
             apiKey: 'f86258c57f779a1358e0a9054aeadad5',
@@ -209,6 +213,11 @@ const config: Config = {
                       <a href="https://www.browserstack.com/automation-webdriverio" target="_blank" rel="noreferrer noopener" aria-label="Premium Sponsor BrowserStack">
                         <img src="/img/sponsors/browserstack_white.svg" alt="BrowserStack" />
                       </a>`
+                }, {
+                    html: `
+                      <a href="https://momentic.ai/" target="_blank" rel="noreferrer noopener" aria-label="Premium Sponsor Momentic">
+                        <img src="/img/sponsors/momentic_white.svg" alt="Momentic" />
+                      </a>`
                 }]
             }],
             logo: {
@@ -216,7 +225,14 @@ const config: Config = {
                 src: 'https://raw.githubusercontent.com/openjs-foundation/artwork/main/openjs_foundation/openjs_foundation-logo-horizontal-color-dark_background.svg',
                 href: 'https://openjsf.org/'
             },
-            copyright: `Copyright © ${new Date().getFullYear()} OpenJS Foundation`,
+            copyright: `
+              <p>
+                Copyright ${new Date().getFullYear()} <a href="https://openjsf.org">OpenJS Foundation</a> and WebdriverIO contributors. All rights reserved. The <a href="https://openjsf.org">OpenJS Foundation</a> has registered trademarks and uses trademarks. For a list of trademarks of the <a href="https://openjsf.org">OpenJS Foundation</a>, please see our <a href="https://trademark-policy.openjsf.org/">Trademark Policy</a> and <a href="https://trademark-list.openjsf.org/">Trademark List</a>. Trademarks and logos not indicated on the <a href="https://trademark-list.openjsf.org">list of OpenJS Foundation trademarks</a> are trademarks&trade; or registered&reg; trademarks of their respective holders. Use of them does not imply any affiliation with or endorsement by them.
+              </p>
+              <p>
+                <a href="https://openjsf.org/">The OpenJS Foundation</a> | <a href="https://terms-of-use.openjsf.org/">Terms of Use</a> | <a href="https://privacy-policy.openjsf.org/">Privacy Policy</a> | <a href="https://bylaws.openjsf.org/">Bylaws</a> | <a href="https://code-of-conduct.openjsf.org/">Code of Conduct</a> | <a href="https://trademark-policy.openjsf.org/">Trademark Policy</a> | <a href="https://trademark-list.openjsf.org/">Trademark List</a> | <a href="https://www.linuxfoundation.org/cookies/">Cookie Policy</a>
+              </p>
+            `,
         },
         codeblock: {
             showRunmeLink: true,
@@ -256,6 +272,14 @@ const config: Config = {
                     trackingID: 'UA-47063382-1',
                     anonymizeIP: true,
                 },
+                sitemap: {
+                    /**
+                     * emit <lastmod> so search engines and AI crawlers can tell
+                     * which pages actually changed
+                     */
+                    lastmod: 'date',
+                    changefreq: 'weekly',
+                },
             },
         ]
     ],
@@ -282,6 +306,9 @@ const config: Config = {
                 }, {
                     from: '/docs/clioptions',
                     to: '/docs/testrunner'
+                }, {
+                    from: '/docs/devtools-service',
+                    to: '/docs/wdio-devtools-service'
                 }]
             }
         ],
@@ -353,17 +380,52 @@ const config: Config = {
                 ],
             },
         ],
+        [
+            '@signalwire/docusaurus-plugin-llms-txt',
+            {
+                /**
+                 * emits `/llms.txt` (an annotated index of the docs), plus a
+                 * clean Markdown twin for every page, e.g. `/docs/api/browser.md`.
+                 * Without this, anything reading the site has to scrape the
+                 * rendered HTML and strip the navbar, announcement bar and footer
+                 * off every page.
+                 */
+                siteTitle: 'WebdriverIO',
+                siteDescription: 'Next-gen browser and mobile automation test framework for Node.js',
+                depth: 2,
+                content: {
+                    enableMarkdownFiles: true,
+                    /**
+                     * `/llms-full.txt` inlines the whole corpus into one file, for
+                     * consumers that would otherwise crawl every page individually
+                     */
+                    enableLlmsFullTxt: true,
+                    /**
+                     * docs only for now. Whether the blog and community pages
+                     * should be included too is still an open question
+                     */
+                    includeDocs: true,
+                    includeBlog: false,
+                    includePages: false,
+                    excludeRoutes: [
+                        '/search',
+                        '/404',
+                    ],
+                },
+            },
+        ],
     ],
-    themes: [path.resolve(__dirname, 'node_modules', 'docusaurus-theme-github-codeblock', 'build', 'index.js')],
+    themes: [
+        path.resolve(__dirname, 'node_modules', 'docusaurus-theme-github-codeblock', 'build', 'index.js'),
+        '@docusaurus/theme-mermaid',
+    ],
     stylesheets: [
         'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700&display=block',
         'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=block'
     ],
     scripts: [
-        'https://unpkg.com/mermaid@8.5.1/dist/mermaid.min.js',
         'https://buttons.github.io/buttons.js',
-        '/js/ribbons.js',
-        '/js/flowchart.js'
+        '/js/ribbons.js'
     ]
 }
 

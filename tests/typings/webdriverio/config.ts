@@ -58,11 +58,6 @@ const config: WebdriverIO.Config = {
             }
         }],
         // @ts-expect-error test wrong parameter
-        ['browserstack', {
-            browserstackLocal: true,
-            forcedStop: 'no'
-        }],
-        // @ts-expect-error test wrong parameter
         ['devtools', {
             coverageReporter: {
                 enable: true,

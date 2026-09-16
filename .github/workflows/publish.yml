@@ -24,7 +24,7 @@ env:
 jobs:
   authorize:
     name: Authorize Actor
-    uses: ./.github/workflows/authorize.yml
+    uses: ./.github/workflows/authorize-publisher.yml
     secrets: inherit
   release:
     permissions:
@@ -34,12 +34,12 @@ jobs:
     needs: [authorize]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: 'main'
           fetch-depth: 0
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
@@ -49,9 +49,12 @@ jobs:
           git config --global user.name "WebdriverIO Release Bot"
       - name: Install Dependencies
         run: pnpm install
+      - name: Build
+        run: pnpm run setup
+        env:
+          NODE_ENV: production
       - name: Release
         run: |
-          pnpm run setup
           pnpm -r --filter=@wdio/lerna-patch run patch
           pnpm lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
           pnpm run pushReleaseTag

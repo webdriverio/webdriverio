@@ -16,6 +16,10 @@ vi.mock('node:fs/promises', () => ({
     }
 }))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
+vi.mock('@wdio/utils/node', () => ({
+    setupDriver: vi.fn(),
+    setupBrowser: vi.fn()
+}))
 vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
 vi.mock('@wdio/config/node', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config/node')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -312,7 +316,16 @@ describe('launcher', () => {
             await launcher['_endHandler']({ cid: '0-1', exitCode: 1, specs: [], retries: 0 } as any)
             expect(launcher.interface!.emit).toBeCalledWith('job:end', { cid: '0-1', passed: false, retries: 0 })
             expect(launcher['_resolve']).toBeCalledWith(1)
-            expect(config.onWorkerEnd).toBeCalledWith('0-1', 1, [], 0)
+            expect(config.onWorkerEnd).toBeCalledWith('0-1', 1, [], 0, undefined)
+        })
+
+        it('should pass the terminating signal on to the onWorkerEnd hook', async () => {
+            launcher['_getNumberOfRunningInstances'] = vi.fn().mockReturnValue(1)
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
+            launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
+            launcher['_resolve'] = vi.fn()
+            await launcher['_endHandler']({ cid: '0-1', exitCode: 139, specs: [], retries: 0, signal: 'SIGSEGV' })
+            expect(config.onWorkerEnd).toBeCalledWith('0-1', 139, [], 0, 'SIGSEGV')
         })
 
         it('should emit and resolve passed status', async () => {

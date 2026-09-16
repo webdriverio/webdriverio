@@ -3,6 +3,7 @@ import type { CommandArgs } from '@wdio/type'
 import process from 'node:process'
 import { Status } from 'allure-js-commons'
 import CompoundError from '../src/compoundError.js'
+import path from 'node:path'
 import {
     convertSuiteTagsToLabels,
     findLast,
@@ -14,6 +15,7 @@ import {
     isEachTypeHooks,
     isEmpty,
     isScreenshotCommand,
+    toPackageLabel,
 } from '../src/utils.js'
 import { linkPlaceholder } from '../src/constants.js'
 
@@ -239,6 +241,30 @@ describe('utils', () => {
                     []
                 )
             })
+        })
+    })
+
+    describe('toPackageLabel', () => {
+        it('should not collapse a Windows absolute path into just the drive letter (#15496)', () => {
+            const file = path.join(process.cwd(), 'test', 'specs', 'mySuite.e2e.js')
+
+            const pkg = toPackageLabel(file)
+
+            expect(pkg).not.toEqual('C')
+            expect(pkg).toEqual('test.specs.mySuite.e2e.js')
+        })
+
+        it('should still strip a trailing :line:column position suffix', () => {
+            const file = `${path.join(process.cwd(), 'test', 'specs', 'mySuite.e2e.js')}:10:5`
+
+            const pkg = toPackageLabel(file)
+
+            expect(pkg).toEqual('test.specs.mySuite.e2e.js')
+        })
+
+        it('should return an empty string for an empty path', () => {
+            expect(toPackageLabel()).toEqual('')
+            expect(toPackageLabel('')).toEqual('')
         })
     })
 })

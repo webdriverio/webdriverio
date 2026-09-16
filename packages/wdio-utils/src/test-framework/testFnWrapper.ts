@@ -86,6 +86,22 @@ export const testFrameworkFnWrapper = async function (
     }
     await logHookError(`Before${type}`, await executeHooksWithArgs(`before${type}`, beforeFn, beforeArgs), cid)
 
+    /**
+     * Snapshot the runnable identity BEFORE running the spec/hook body.
+     *
+     * On a timeout, the framework's own race timer can fire fractionally before the framework
+     * records the failure, after which the framework synchronously advances its runnable pointer
+     * to the NEXT runnable. The awaited continuation below would then read a stale `context.test`
+     * and emit the after-hook with the WRONG (next) identity, leaving the runnable that actually
+     * timed out without a matching finish event.
+     *
+     * `afterFnArgs(this)` returns `[identityObject, context]` (see HookFnArgs). We capture that
+     * array here and reuse its identity element (index 0) at emit time; the result/error/duration
+     * args are still computed post-await, so result data stays accurate. Framework-agnostic: this
+     * path also serves jasmine, and `afterFnArgs` is guarded in case it is undefined.
+     */
+    const identitySnapshot = typeof afterFnArgs === 'function' ? afterFnArgs(this) : undefined
+
     let result
     let error
     let skip = false
@@ -121,7 +137,23 @@ export const testFrameworkFnWrapper = async function (
         }
     }
     const duration = Date.now() - testStart
-    const afterArgs = afterFnArgs(this)
+    /**
+     * Reuse the pre-await identity snapshot so a timed-out runnable reports its OWN identity.
+     *
+     * The snapshot is `[identityObject, context]`. We keep the snapshotted identity (index 0,
+     * the `{...context.test, parent}` object that may have gone stale post-await) but re-read the
+     * live `context` (index 1) so anything the after-hook derives from the live framework context
+     * stays current. If `afterFnArgs` was undefined we fall back to an empty args array.
+     *
+     * `identitySnapshot` and `liveAfterArgs` both come from the same `afterFnArgs` callback, so when
+     * it is a function they share the same 2-tuple shape — `slice(1)` can never drop a context that
+     * was present; and when it is not a function both are absent (`undefined`/`[]`), so this branch
+     * is not taken and no context is lost.
+     */
+    const liveAfterArgs = typeof afterFnArgs === 'function' ? afterFnArgs(this) : []
+    const afterArgs = (identitySnapshot && identitySnapshot.length > 0)
+        ? [identitySnapshot[0], ...liveAfterArgs.slice(1)]
+        : liveAfterArgs
     afterArgs.push({
         retries,
         error,

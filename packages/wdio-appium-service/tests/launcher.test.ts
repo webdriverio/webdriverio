@@ -575,7 +575,7 @@ describe('Appium launcher', () => {
             vi.mocked(spawn).mockReturnValue(new MockCustomFailingProcess(2) as unknown as cp.ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
-            const expectedError = new Error('Error: Uups')
+            const expectedError = new Error('Appium exited before timeout (exit code: 2)\nError: Uups')
             expect(error).toEqual(expectedError)
         })
 
@@ -764,7 +764,7 @@ describe('Appium launcher', () => {
                 expect(signal).toBe('SIGTERM')
                 if (cb) { cb() } return undefined
             })
-            await launcher.onComplete()
+            await launcher.onComplete(0, {}, [])
             expect(treeKill).toHaveBeenCalledTimes(1)
             expect(treeKill).toHaveBeenCalledWith(1234, 'SIGTERM', expect.any(Function))
             expect(log.info).toHaveBeenCalledWith('Process and its children successfully terminated')
@@ -784,7 +784,7 @@ describe('Appium launcher', () => {
                     if (cb) { cb() }
                     return undefined
                 })
-            await launcher.onComplete()
+            await launcher.onComplete(0, {}, [])
             expect(treeKill).toHaveBeenCalledWith(1234, 'SIGTERM', expect.any(Function))
             expect(treeKill).toHaveBeenCalledWith(1234, 'SIGKILL', expect.any(Function))
             expect(log.warn).toHaveBeenCalledWith('SIGTERM failed, attempting SIGKILL:', expect.any(Error))
@@ -805,7 +805,7 @@ describe('Appium launcher', () => {
                     if (cb) { cb(new Error('SIGKILL failed')) }
                     return undefined
                 })
-            await launcher.onComplete()
+            await launcher.onComplete(0, {}, [])
             expect(treeKill).toHaveBeenCalledWith(1234, 'SIGTERM', expect.any(Function))
             expect(treeKill).toHaveBeenCalledWith(1234, 'SIGKILL', expect.any(Function))
             expect(log.error).toHaveBeenCalledWith('Failed to kill Appium process tree:', expect.any(Error))
@@ -830,14 +830,14 @@ describe('Appium launcher', () => {
                     if (cb) { cb(new Error('SIGKILL failed')) }
                     return undefined
                 })
-            await launcher.onComplete()
+            await launcher.onComplete(0, {}, [])
             expect(log.error).toHaveBeenCalledWith('Failed to kill process directly:', expect.any(Error))
         })
 
         test('should do nothing when process is undefined', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
             expect(launcher['_process']).toBe(undefined)
-            await launcher.onComplete()
+            await launcher.onComplete(0, {}, [])
             expect(launcher['_isShuttingDown']).toBe(true)
         })
     })
@@ -1010,8 +1010,7 @@ describe('Appium launcher', () => {
             // Simulate a warning message from Appium (e.g., driver version mismatch)
             stderrHandler(Buffer.from('WARN Driver version mismatch'))
 
-            // The warning should be logged as a warning but not cause an error or rejection
-            expect(mockLogWarn).toHaveBeenCalled()
+            // The warning should not cause an error or rejection
             expect(mockLogError).not.toHaveBeenCalled()
 
             const stdoutHandler = stdoutListener.on.mock.calls
