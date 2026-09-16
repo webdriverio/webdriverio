@@ -1,8 +1,9 @@
 import type { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index.js'
 
 /**
- * Allows to run multiple action interaction at once, e.g. to simulate a pinch zoom.
- * For more information on the `action` command, check out the [docs](/docs/api/browser/action).
+ * Allows to run multiple action interactions at once, e.g. to simulate a pinch zoom or hold a modifier key while
+ * clicking. Build each action chain with [`browser.action()`](/docs/api/browser/action), then pass the chains to this
+ * command.
  *
  * <example>
     :action.js

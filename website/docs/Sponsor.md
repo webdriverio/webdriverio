@@ -58,6 +58,16 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
     link="https://www.browserstack.com/automation-webdriverio"
 />
 
+<ImageSwitcher
+    lightImageSrc="/img/sponsors/momentic_black.svg"
+    darkImageSrc="/img/sponsors/momentic_white.svg"
+    alt="Momentic"
+    target="_blank"
+    link="https://momentic.ai/"
+    width="300"
+    style={{ marginLeft: '30px', position: 'relative', top: '6px' }}
+/>
+
 <br />
 <br />
 
@@ -74,11 +84,11 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
 />
 
 <ImageSwitcher
-    lightImageSrc="/img/sponsors/lambdatest_black.svg"
-    darkImageSrc="/img/sponsors/lambdatest_white.svg"
-    alt="Lambdatest"
+    lightImageSrc="/img/sponsors/testmu_ai_black.svg"
+    darkImageSrc="/img/sponsors/testmu_ai_white.svg"
+    alt="TestMu AI (Formerly LambdaTest)"
     target="_blank"
-    link="https://www.lambdatest.com/"
+    link="https://www.testmuai.com/"
     width="250"
 />
 
@@ -93,6 +103,15 @@ Become a [Gold Sponsor](https://opencollective.com/webdriverio/contribute/gold-s
     darkImageSrc="/img/sponsors/testingbot.svg"
     alt="TestingBot"
     link="https://testingbot.com/"
+    width="150"
+    target="_blank"
+/>
+
+<ImageSwitcher
+    lightImageSrc="/img/sponsors/sap.png"
+    darkImageSrc="/img/sponsors/sap.png"
+    alt="SAP"
+    link="https://www.sap.com/"
     width="150"
     target="_blank"
 />

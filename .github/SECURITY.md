@@ -30,7 +30,7 @@ WebdriverIO is a next-generation browser and mobile automation test framework fo
 - Browser automation via WebDriver and WebDriver BiDi protocols
 - Mobile automation via Appium
 - Test framework integrations (Mocha, Jasmine, Cucumber)
-- Cloud service integrations (BrowserStack, Sauce Labs, TestingBot, LambdaTest)
+- Cloud service integrations (BrowserStack, Sauce Labs, TestingBot, TestMu AI (Formerly LambdaTest))
 - CLI tools and test runners
 - File upload/download capabilities
 - Browser and component testing support
@@ -75,7 +75,7 @@ The following threat actors are considered relevant to the WebdriverIO applicati
 - Test framework adapters (Mocha, Jasmine, Cucumber)
 
 ##### **Cloud Service Integrations**
-- BrowserStack, Sauce Labs, TestingBot, LambdaTest integrations
+- BrowserStack, Sauce Labs, TestingBot, TestMu AI (Formerly LambdaTest) integrations
 - API key and credential management
 - Tunnel connections for local testing
 - Session management and reporting
@@ -578,6 +578,8 @@ export const config = {
   key: process.env.BROWSERSTACK_ACCESS_KEY,
 }
 ```
+
+For secrets passed via the command line, masking may fail because the wdio.conf.ts file is parsed later in the execution cycle. Using environment variables for these cases is highly recommended and much safer.
 
 **Environment Variable Configuration:**
 ```bash

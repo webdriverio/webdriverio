@@ -3,7 +3,7 @@ id: cloudservices
 title: Using Cloud Services
 ---
 
-Using on-demand services like Sauce Labs, Browserstack, TestingBot, LambdaTest or Perfecto with WebdriverIO is pretty simple. All you need to do is to set your service's `user` and `key` in your options.
+Using on-demand services like Sauce Labs, Browserstack, TestingBot, TestMu AI (Formerly LambdaTest) or Perfecto with WebdriverIO is pretty simple. All you need to do is to set your service's `user` and `key` in your options.
 
 Optionally, you can also parametrize your test by setting cloud-specific capabilities like `build`. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
 
@@ -75,7 +75,7 @@ It is out of the scope of WebdriverIO to support this, so you must start it by y
 
 If you do use local, you should set `browserstack.local` to `true` in your capabilities.
 
-If you are using the WDIO testrunner, download and configure the [`@wdio/browserstack-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-browserstack-service) in your `wdio.conf.js`. It helps get BrowserStack running, and comes with additional features that better integrate your tests into the BrowserStack service.
+If you are using the WDIO testrunner, download and configure the [`@wdio/browserstack-service`](https://github.com/browserstack/wdio-browserstack-service) in your `wdio.conf.js`. It helps get BrowserStack running, and comes with additional features that better integrate your tests into the BrowserStack service.
 
 ### With Travis CI
 
@@ -117,23 +117,23 @@ Their tunnel support page contains the information necessary to get this up and 
 
 If you are using the WDIO testrunner, download and configure the [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) in your `wdio.conf.js`. It helps get TestingBot running, and comes with additional features that better integrate your tests into the TestingBot service.
 
-## LambdaTest
+## TestMu AI (Formerly LambdaTest)
 
-[LambdaTest](https://www.lambdatest.com) integration is also built-in.
+[TestMu AI](https://www.testmuai.com/) integration is also built-in.
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your LambdaTest account username and access key.
+The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your TestMu AI account username and access key.
 
-You can also pass in any optional [supported capabilities](https://www.lambdatest.com/capabilities-generator/) as a key/value in the capabilities for any browser. If you set `visual` to `true` it will record a screencast of the session, which might be helpful.
+You can also pass in any optional [supported capabilities](https://www.testmuai.com/capabilities-generator/) as a key/value in the capabilities for any browser. If you set `visual` to `true` it will record a screencast of the session, which might be helpful.
 
 ### Tunnel for local testing
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://www.lambdatest.com/support/docs/testing-locally-hosted-pages/).
+If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://www.testmuai.com/support/docs/testing-locally-hosted-pages/).
 
 It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
 
 If you do use local, you should set `tunnel` to `true` in your capabilities.
 
-If you are using the WDIO testrunner, download and configure the [`wdio-lambdatest-service`](https://github.com/LambdaTest/wdio-lambdatest-service) in your `wdio.conf.js`. It helps get LambdaTest running, and comes with additional features that better integrate your tests into the LambdaTest service.
+If you are using the WDIO testrunner, download and configure the [`wdio-lambdatest-service`](https://github.com/LambdaTest/wdio-lambdatest-service) in your `wdio.conf.js`. It helps get TestMu AI running, and comes with additional features that better integrate your tests into the TestMu AI service.
 
 ### With Travis CI
 
@@ -180,4 +180,58 @@ In addition, you need to add cloud configuration, as follows:
   path: "/nexperience/perfectomobile/wd/hub",
   port: 443,
   protocol: "https",
+```
+
+## RobotActions
+
+[RobotActions](https://robotactions.com) provides real Android and iOS devices alongside browser nodes behind a single endpoint. It authenticates with an API token rather than a `user` and `key` pair. Send the token as a bearer header:
+
+```js
+export const config = {
+  protocol: 'https',
+  hostname: 'grid.robotactions.com',
+  port: 443,
+  path: '/',
+  headers: {
+    Authorization: `Bearer ${process.env.RA_API_TOKEN}`
+  },
+  capabilities: [{
+    browserName: 'chrome'
+  }]
+}
+```
+
+Alternatively, pass the token as a path prefix, which the grid strips before forwarding the request:
+
+```js
+export const config = {
+  protocol: 'https',
+  hostname: 'grid.robotactions.com',
+  port: 443,
+  path: `/t/${process.env.RA_API_TOKEN}/`,
+  capabilities: [{
+    browserName: 'chrome'
+  }]
+}
+```
+
+The grid additionally accepts credentials embedded in the URL (`https://user:token@host`) for other WebDriver clients, but that form cannot be used from WebdriverIO: it is fetch-based, and Node 18 and above reject URL-embedded credentials.
+
+To run against a real device, pass the browser as an Appium capability alongside either connection style above:
+
+```js
+export const config = {
+  protocol: 'https',
+  hostname: 'grid.robotactions.com',
+  port: 443,
+  path: '/',
+  headers: {
+    Authorization: `Bearer ${process.env.RA_API_TOKEN}`
+  },
+  capabilities: [{
+    platformName: 'Android',
+    'appium:browserName': 'chrome',
+    'appium:automationName': 'UiAutomator2'
+  }]
+}
 ```

@@ -42,6 +42,15 @@ export default function Sponsors () {
                         target="_blank"
                         style={{ width: '200px' }}
                     />
+
+                    <ImageSwitcher
+                        lightImageSrc="/img/sponsors/momentic_black.svg"
+                        darkImageSrc="/img/sponsors/momentic_white.svg"
+                        alt="Momentic"
+                        link="https://momentic.ai/"
+                        target="_blank"
+                        style={{ width: '260px' }}
+                    />
                 </div>
             </div>
             <div className="gold">
@@ -61,10 +70,10 @@ export default function Sponsors () {
                     />
 
                     <ImageSwitcher
-                        lightImageSrc="/img/sponsors/lambdatest_black.svg"
-                        darkImageSrc="/img/sponsors/lambdatest_white.svg"
-                        alt="Lambdatest"
-                        link="https://www.lambdatest.com/"
+                        lightImageSrc="/img/sponsors/testmu_ai_black.svg"
+                        darkImageSrc="/img/sponsors/testmu_ai_white.svg"
+                        alt="TestMu AI (Formerly LambdaTest)"
+                        link="https://www.testmuai.com/"
                         width="200"
                         target="_blank"
                     />

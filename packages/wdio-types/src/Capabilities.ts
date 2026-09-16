@@ -295,7 +295,7 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
     'sauce:visual'?: SauceLabsVisualCapabilities
     // Experitest Access Keys
     'experitest:accessKey'?: string
-    //LambdaTest w3c specific
+    //TestMu AI (Formerly LambdaTest) w3c specific
     'LT:Options'?: LambdaTestCapabilities
     // LT w3c specific as "officially" documented
     'lt:options'?: LambdaTestCapabilities
@@ -360,7 +360,7 @@ export interface WebdriverIOCapabilities {
     * pattern to match multiple files at once or wrap a glob or set of
     * paths into an array to run them within a single worker process.
     */
-    'wdio:specs'?: string[]
+    'wdio:specs'?: (string | string[])[]
 
     /**
      * Exclude specs from test execution.
@@ -476,6 +476,20 @@ export interface ChromeOptions {
      * to <webview> elements, include "webview" in this list.
      */
     windowTypes?: string[]
+    /**
+     * The package name of the Chrome browser to run on Android (e.g. 'com.android.chrome').
+     * When set, chromedriver will connect to the browser on Android over ADB
+     * instead of launching a desktop Chrome.
+     */
+    androidPackage?: string
+    /**
+     * Serial number of the Android device to use (as reported by `adb devices`).
+     */
+    androidDeviceSerial?: string
+    /**
+     * The activity name for the Android activity to launch.
+     */
+    androidActivity?: string
 }
 
 /**
@@ -501,6 +515,20 @@ export interface FirefoxOptions {
     prefs?: {
         [name: string]: string[] | string | number | boolean
     }
+    /**
+     * The package name of the Firefox browser to run on Android (e.g. 'org.mozilla.fenix').
+     * When set, geckodriver will connect to Firefox on Android over ADB
+     * instead of launching a desktop Firefox.
+     */
+    androidPackage?: string
+    /**
+     * Serial number of the Android device to use (as reported by `adb devices`).
+     */
+    androidDeviceSerial?: string
+    /**
+     * The activity name for the Android activity to launch.
+     */
+    androidActivity?: string
 }
 
 // Aerokube Selenoid specific
@@ -1493,9 +1521,9 @@ export interface LambdaTestCapabilities {
     visual?: boolean
     video?: boolean
     /**
-     * Test locally hosted websites on LambdaTest.
+     * Test locally hosted websites on TestMu AI (Formerly LambdaTest).
      * To enable access to the local machine you need to setup the
-     * LambdaTest Tunnel (https://www.lambdatest.com/support/docs/testing-locally-hosted-pages).
+     * TestMu AI Tunnel (https://www.testmuai.com/support/docs/testing-locally-hosted-pages/).
      */
     tunnel?: boolean
     tunnelName?: string

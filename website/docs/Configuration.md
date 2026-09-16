@@ -46,14 +46,14 @@ Default: `undefined`
 
 ### user
 
-Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
+Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [TestMu AI](https://www.testmuai.com/) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
 
 Type: `String`<br />
 Default: `undefined`
 
 ### key
 
-Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
+Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [TestMu AI](https://www.testmuai.com/) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
 
 Type: `String`<br />
 Default: `undefined`
@@ -118,6 +118,13 @@ Maximum count of request retries to the Selenium server.
 
 Type: `Number`<br />
 Default: `3`
+
+### bidiResponseTimeout
+
+Timeout (in ms) for a WebDriver Bidi command to receive a response from the browser. Increase this if you run commands, e.g. [`execute`](/docs/api/browser/execute), that legitimately take longer than the default to resolve, otherwise WebdriverIO gives up waiting before the browser is done.
+
+Type: `Number`<br />
+Default: `180000`
 
 ### agent
 
@@ -302,15 +309,23 @@ Default interval for all `waitFor*` commands to check if an expected state (e.g.
 Type: `Number`<br />
 Default: `100`
 
+### maxSpyCollectedBodySize
+
+Maximum size of the response body (in bytes) that can be returned when using the [`mock`](/docs/api/browser/mock) command. Use `0` to disable data collection of the spied payload.
+
+Type: `Number`<br />
+Default: `10485760` (10MB)
+
 ### region
 
-If running on Sauce Labs, you can choose to run tests between different data centers: US or EU.
-To change your region to EU, add `region: 'eu'` to your config.
+If running on Sauce Labs, you can choose to run tests between different data centers.
+Use short region handles `us` (default, maps to `us-west-1`) or `eu` (maps to `eu-central-1`), or the full region names directly.
 
 __Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
 
 Type: `String`<br />
-Default: `us`
+Default: `us`<br />
+Options: `us` | `eu` | `us-west-1` | `eu-central-1` | `us-east-4` | `staging`
 
 *(only for vm and or em/simulators)*
 
@@ -444,7 +459,7 @@ Defines the test framework to be used by the WDIO testrunner.
 
 Type: `String`<br />
 Default: `mocha`<br />
-Options: `mocha` | `jasmine`
+Options: `mocha` | `jasmine` | `cucumber`
 
 ### mochaOpts, jasmineOpts and cucumberOpts
 
@@ -574,9 +589,10 @@ Gets executed just after a worker process has exited.
 Parameters:
 
 - `cid` (`string`): capability id (e.g 0-0)
-- `exitCode` (`number`): 0 - success, 1 - fail
+- `exitCode` (`number`): 0 - success, 1 - fail. A worker that was terminated by a signal reports `128` + the signal number instead, e.g. `139` for a `SIGSEGV`
 - `specs` (`string[]`): specs to be run in the worker process
 - `retries` (`number`): number of spec level retries used as defined in [_"Add retries on a per-specfile basis"_](./Retry.md#add-retries-on-a-per-specfile-basis)
+- `signal` (`string`): signal that terminated the worker, e.g. `SIGSEGV`, or `null` if it exited on its own
 
 ### beforeSession
 

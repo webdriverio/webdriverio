@@ -6,8 +6,10 @@ import { validateConfig } from '@wdio/config'
 
 import detectBackend from '../src/utils/detectBackend.js'
 import { remote, multiremote, attach, Key, SevereServiceError } from '../src/index.js'
+import { registerSessionManager } from '../src/session/index.js'
 
 vi.mock('../src/utils/detectBackend', () => ({ default: vi.fn() }))
+vi.mock('../src/session/index.js', () => ({ registerSessionManager: vi.fn() }))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('webdriver', () => {
     const client = {
@@ -68,6 +70,7 @@ describe('WebdriverIO module interface', () => {
         vi.mocked(WebDriver.newSession).mockClear()
         vi.mocked(WebDriver.attachToSession).mockClear()
         vi.mocked(detectBackend).mockClear()
+        vi.mocked(registerSessionManager).mockClear()
     })
 
     it('should provide all exports', () => {
@@ -87,6 +90,7 @@ describe('WebdriverIO module interface', () => {
             const browser = await remote(options)
             expect(browser.sessionId).toBe('foobar-123')
             expect(logger.setLogLevelsConfig).toBeCalledWith(undefined, 'trace')
+            expect(registerSessionManager).toBeCalledTimes(1)
         })
 
         it('allows to propagate a modifier', async () => {
@@ -170,6 +174,21 @@ describe('WebdriverIO module interface', () => {
                 isWindowsApp: false,
                 isMacApp: false,
             })
+            expect(registerSessionManager).not.toBeCalled()
+        })
+
+        it('should not initialize session managers for protocol stub sessions', async () => {
+            const browser = await remote({
+                automationProtocol: './protocol-stub.js',
+                capabilities: {
+                    browserName: 'Safari',
+                    platformName: 'iOS',
+                    'appium:options': { automationName: 'XCUITest' }
+                }
+            })
+
+            expect(browser.isMobile).toBe(true)
+            expect(registerSessionManager).not.toBeCalled()
         })
 
         it('should use the element disable implicitWait exclusion list', async () => {

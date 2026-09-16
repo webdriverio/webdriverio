@@ -57,7 +57,7 @@ export interface Connection {
     /**
      * Your cloud service username (only works for [Sauce Labs](https://saucelabs.com),
      * [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or
-     * [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
+     * [TestMu AI (Formerly LambdaTest)](https://www.testmuai.com/) accounts). If set, WebdriverIO will
      * automatically set connection options for you. If you don't use a cloud provider this
      * can be used to authenticate any other WebDriver backend.
      */
@@ -65,7 +65,7 @@ export interface Connection {
     /**
      * Your cloud service access key or secret key (only works for
      * [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com),
-     * [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts).
+     * [TestingBot](https://testingbot.com) or [TestMu AI (Formerly LambdaTest)](https://www.testmuai.com/) accounts).
      * If set, WebdriverIO will automatically set connection options for you. If you don't use
      * a cloud provider this can be used to authenticate any other WebDriver backend.
      */
@@ -96,6 +96,12 @@ export interface WebDriver extends Connection {
      * @default 3
      */
     connectionRetryCount?: number
+    /**
+     * Timeout (in ms) for a WebDriver Bidi command to receive a response from the browser.
+     *
+     * @default 180000
+     */
+    bidiResponseTimeout?: number
     /**
      * Specify custom headers to pass into every request.
      */
@@ -178,6 +184,14 @@ export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'before
      * @default 500
      */
     waitforInterval?: number
+
+    /**
+     * Maximum size of the response body (in bytes) that can be returned when using the `mock` command.
+     * Use 0 to disable data collection of the spied response payload.
+     *
+     * @default 10485760 (10MB)
+     */
+    maxSpyCollectedBodySize?: number
 }
 
 export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunctionExtension {

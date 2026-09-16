@@ -521,14 +521,7 @@ export default {
                         'the id of an element returned in a previous call to Find Element(s)',
                 },
             ],
-            parameters: [
-                {
-                    name: 'scroll',
-                    type: 'boolean',
-                    description: 'scroll into view the element. Default: true',
-                    required: false,
-                },
-            ],
+            parameters: [],
             returns: {
                 type: 'String',
                 name: 'screenshot',

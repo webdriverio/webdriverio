@@ -216,7 +216,7 @@ async function bar() {
         left: 5,
         right: 5,
         shrinkToFit: true,
-        pageRanges: [{}]
+        pageRanges: ['1', 2]
     })
 
     await browser.savePDF('./packages/bar.pdf')
@@ -415,6 +415,7 @@ async function bar() {
         latency: 500
     })
     browser.mock('**/image.jpg')
+    browser.mock(new URLPattern({ pathname: '/image.jpg' }))
     const mock = await browser.mock('**/image.jpg', {
         method: 'get',
         requestHeaders: { foo: 'bar' }
@@ -463,6 +464,17 @@ async function bar() {
 
     expectType<void>(
         await browser.$$('foo').forEach(() => true)
+    )
+    expectType<void>(
+        await browser.$$('foo').forEach(async (el) => {
+            expectType<WebdriverIO.Element>(el)
+            await el.getText()
+        })
+    )
+    expectType<void>(
+        await browser.$$('foo').forEachSeries(async (el) => {
+            await el.getText()
+        })
     )
     expectType<string[]>(
         await browser.$('foo').$$('bar').map((el) => {
@@ -514,6 +526,15 @@ async function bar() {
     const elemArrayTest: WebdriverIO.ElementArray = {} as any
     expectType<string>(elemArrayTest.foundWith)
     expectType<WebdriverIO.Element>(elemArrayTest[123])
+
+    // event listeners support both sync and async functions
+    browser.on('dialog', (dialog) => dialog.dismiss())
+    browser.on('dialog', async (dialog) => {
+        await dialog.dismiss()
+    })
+    browser.once('dialog', async (dialog) => {
+        await dialog.dismiss()
+    })
 
     // getElement type check
     const singleChainedElement = await browser.$('foo').getElement()

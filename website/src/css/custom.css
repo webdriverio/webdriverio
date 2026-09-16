@@ -4,7 +4,6 @@
 @import url(buttons.css);
 @import url(codeblock.css);
 @import url(youtube.css);
-@import url(flowcharts.css);
 @import url(sponsors.css);
 @import url(events.css);
 
@@ -66,6 +65,7 @@ html[data-theme=dark] {
     }
     body .footer__item img {
         max-width: 200px;
+        height: auto;
     }
 }
 
@@ -121,6 +121,10 @@ html[data-theme=dark] {
 
 .footer__logo {
     max-width: 125px;
+}
+.footer__item img {
+    max-width: 200px;
+    height: auto;
 }
 .footer__links {
     width: 75%;

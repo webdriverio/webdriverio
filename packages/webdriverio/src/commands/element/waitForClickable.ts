@@ -44,7 +44,11 @@ export async function waitForClickable (
     }: WaitForOptions = {}
 ) {
     const browser = getBrowserObject(this)
-    if (browser.isMobile && browser.isNativeContext) {
+    if (
+        browser.isMobile &&
+        browser.isNativeContext &&
+        !browser.capabilities?.browserName
+    ) {
         throw new Error('The `waitForClickable` command is only available for desktop and mobile browsers.')
     }
 

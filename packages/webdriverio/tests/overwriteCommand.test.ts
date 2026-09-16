@@ -53,16 +53,8 @@ describe('overwriteCommand', () => {
                 const browser = await remote(remoteConfig)
                 browser.overwriteCommand('pause', customBrowserCommand)
 
-                // @ts-expect-error command overwritten
-                expect(await browser.pause(10, 10)).toBeGreaterThanOrEqual(20)
-            })
-
-            test('should be able to handle async', async () => {
-                const browser = await remote(remoteConfig)
-                browser.overwriteCommand('pause', customBrowserCommand)
-
-                // @ts-expect-error command overwritten
-                expect(await browser.pause(10, 10)).toBeGreaterThanOrEqual(20)
+                // @ts-expect-error command overwritten. Using 19 instead of 20 since rounding down of 19.8 can happen.
+                expect(await browser.pause(10, 10)).toBeGreaterThanOrEqual(19)
             })
 
             test('should still work on browser calls after fetching an element', async () => {
@@ -166,6 +158,25 @@ describe('overwriteCommand', () => {
                 expect(await elem.getAttribute('foo', 'bar')).toBe('foo-value foo bar')
             })
 
+            test('should compose sequential element command overwrites', async () => {
+                const browser = await remote(remoteConfig)
+                const calls: string[] = []
+
+                browser.overwriteCommand('click', async function firstOverride(originalCommand, ...args) {
+                    calls.push('first')
+                    return originalCommand(...args)
+                }, isElementScope)
+                browser.overwriteCommand('click', async function secondOverride(originalCommand, ...args) {
+                    calls.push('second')
+                    return originalCommand(...args)
+                }, isElementScope)
+
+                const elem = await browser.$('#foo')
+                await elem.click()
+
+                expect(calls).toEqual(['second', 'first'])
+            })
+
             test('should properly throw exceptions on the element scope', async () => {
                 const browser = await remote(remoteConfig)
                 browser.overwriteCommand('click', function () {
@@ -257,8 +268,8 @@ describe('overwriteCommand', () => {
             const browser = await multiremote(multiremoteConfig as any)
             browser.overwriteCommand('pause', customBrowserCommand)
 
-            // @ts-expect-error command overwritten
-            expect(await browser.pause(10, 10)).toBeGreaterThanOrEqual(20)
+            // @ts-expect-error command overwritten. Using 19 instead of 20 since rounding down of 19.8 can happen.
+            expect(await browser.pause(10, 10)).toBeGreaterThanOrEqual(19)
         })
 
         test.skip('should allow to overwrite commands for a single multiremote instance', async () => {
@@ -266,7 +277,7 @@ describe('overwriteCommand', () => {
             browser.getInstance('browserA').overwriteCommand('pause', customBrowserCommand)
 
             // @ts-expect-error command overwritten
-            expect(await browser.browserA.pause(10, 10)).toBeGreaterThanOrEqual(20)
+            expect(await browser.browserA.pause(10, 10)).toBeGreaterThanOrEqual(19)
             // @ts-expect-error command overwritten
             expect(await browser.browserB.pause(10)).toBe(undefined)
 

@@ -7,13 +7,13 @@ WebdriverIO comes with built-in support for modifying network responses that all
 
 :::info
 
-Note that using the `mock` command requires support for Chrome DevTools protocol. That support is given if you run tests locally in a Chromium-based browser, via a Selenium Grid v4 or higher, or through a cloud vendor with support for the Chrome DevTools protocol (e.g. SauceLabs, BrowserStack, LambdaTest). Full cross-browser support will be available once the required primitives land in [Webdriver Bidi](https://wpt.fyi/results/webdriver/tests/bidi/network?label=experimental&label=master&aligned) and get implemented in the respective browser.
+Note that using the `mock` command requires support for WebDriver Bidi. That is usually the case when running tests locally in a Chromium based browser or on Firefox as well as if you use a Selenium Grid v4 or higher. If you run tests in the cloud, make sure that your cloud provider supports WebDriver Bidi.
 
 :::
 
 ## Creating a mock
 
-Before you can modify any responses you have define a mock first. This mock is described by the resource url and can be filtered by the [request method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) or [headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers). The resource supports glob expressions by [minimatch](https://www.npmjs.com/package/minimatch):
+Before you can modify any responses you have define a mock first. This mock is described by the resource url and can be filtered by the [request method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) or [headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers). The resource is matched using a [`URLPattern`](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern), where `*` matches any sequence of characters. A url without a protocol is matched against the path of the request only, so `**/users/list` matches that path on any origin:
 
 ```js
 // mock all resources ending with "/users/list"
@@ -27,6 +27,11 @@ const strictMock = await browser.mock('**', {
     // that were successful
     statusCode: 200
 })
+
+// instead of a string you can also pass in a `URLPattern`; Node.js has no
+// global `URLPattern` yet, so import a polyfill first
+import { URLPattern } from 'urlpattern-polyfill'
+const patternMock = await browser.mock(new URLPattern({ pathname: '/users/list' }))
 ```
 
 ## Specifying custom responses
