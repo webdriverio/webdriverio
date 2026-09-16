@@ -2,8 +2,10 @@
  * A message displayed in the dialog.
  *
  * :::info
- * Only works with browser dialogs (via BiDi protocol). For mobile native dialogs,
- * use the [`browser.dialog()`](/docs/api/mobile/dialog) command instead.
+ * Only works with browser dialogs (via BiDi protocol). Native mobile dialogs do
+ * not expose their message through WebDriver. Use
+ * [`browser.acceptDialog`](/docs/api/mobile/acceptDialog) or
+ * [`browser.dismissDialog`](/docs/api/mobile/dismissDialog) to handle them.
  * :::
  *
  * <example>

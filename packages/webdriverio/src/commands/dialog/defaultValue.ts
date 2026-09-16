@@ -2,8 +2,10 @@
  * If dialog is prompt, returns default prompt value. Otherwise, returns empty string.
  *
  * :::info
- * Only works with browser dialogs (via BiDi protocol). For mobile native dialogs,
- * use the [`browser.dialog()`](/docs/api/mobile/dialog) command instead.
+ * Only works with browser dialogs (via BiDi protocol). Native mobile dialogs do
+ * not expose a default value through WebDriver. Use
+ * [`browser.acceptDialog`](/docs/api/mobile/acceptDialog) or
+ * [`browser.dismissDialog`](/docs/api/mobile/dismissDialog) to handle them.
  * :::
  *
  * <example>

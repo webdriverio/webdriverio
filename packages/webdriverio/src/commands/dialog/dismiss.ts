@@ -3,7 +3,7 @@
  *
  * :::info
  * Only works with browser dialogs (via BiDi protocol). For mobile native dialogs,
- * use the [`browser.dialog()`](/docs/api/mobile/dialog) command instead.
+ * use [`browser.dismissDialog`](/docs/api/mobile/dismissDialog) instead.
  * :::
  *
  * <example>
