@@ -462,6 +462,78 @@ describe('WebDriverInterception', () => {
         await expect(mock.waitForResponse()).resolves.toBeDefined()
     })
 
+    it('should apply a dynamic respond payload when the request is intercepted', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+        const payload = vi.fn((request: local.NetworkResponseCompletedParameters) => ({
+            requestId: request.request.request,
+            foo: 'bar'
+        }))
+
+        mock.respond(payload, { statusCode: 200 })
+        expect(payload).not.toHaveBeenCalled()
+
+        browser.emit('network.responseStarted', getResponseCollectionRequestStub())
+
+        expect(payload).toHaveBeenCalledTimes(1)
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            body: { type: 'string', value: '{"requestId":"req-123","foo":"bar"}' },
+            statusCode: 200
+        })
+    })
+
+    it('should allow a dynamic respond payload to return a string or Buffer', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond((request) => `id=${request.request.request}`)
+        browser.emit('network.responseStarted', getResponseCollectionRequestStub())
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            body: { type: 'string', value: 'id=req-123' }
+        })
+
+        vi.mocked(browser.networkProvideResponse).mockClear()
+        mock.reset()
+        mock.respond(() => Buffer.from('hello'))
+        browser.emit('network.responseStarted', getResponseCollectionRequestStub())
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            body: { type: 'base64', value: Buffer.from('hello').toString('base64') }
+        })
+    })
+
+    it('should apply function overwrites for status code and headers with a dynamic body', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond((request) => ({ id: request.request.request }), {
+            statusCode: () => 201,
+            headers: () => ({ foo: 'bar' })
+        })
+        browser.emit('network.responseStarted', getResponseCollectionRequestStub())
+
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            body: { type: 'string', value: '{"id":"req-123"}' },
+            statusCode: 201,
+            headers: [{ name: 'foo', value: { type: 'string', value: 'bar' } }]
+        })
+    })
+
+    it('should throw when a mock.respond payload cannot be serialized', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        expect(() => mock.respond(undefined as never)).toThrow(/Failed to serialize mock.respond/)
+
+        mock.respond(() => undefined as never)
+        expect(() => browser.emit('network.responseStarted', getResponseCollectionRequestStub()))
+            .toThrow(/Failed to serialize mock.respond/)
+    })
+
     it('handles non-binary response correctly', async () => {
         const browser = getResponseCollectionBrowserMock()
 

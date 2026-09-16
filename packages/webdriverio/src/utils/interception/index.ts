@@ -15,7 +15,8 @@ const DEFAULT_SPY_COLLECTED_BODY_SIZE = 10 * 1024 * 1024
 
 let hasSubscribedToEvents = false
 
-type RespondBody = string | JsonCompatible | Buffer
+type RespondBodyValue = string | JsonCompatible | Buffer
+type RespondBody = RespondBodyValue | ((request: local.NetworkResponseCompletedParameters) => RespondBodyValue)
 interface Overwrite {
     overwrite?: RequestWithOptions | RespondWithOptions
     once?: boolean
@@ -24,6 +25,35 @@ interface Overwrite {
 
 type RequestWithPostData<T extends local.NetworkBeforeRequestSentParameters | Response> = T & {
     postData?: string
+}
+
+function toStringBody(payload: Exclude<RespondBodyValue, Buffer>) {
+    if (typeof payload === 'string') {
+        return payload
+    }
+
+    /**
+     * `JSON.stringify` is typed as returning `string`, but at runtime it returns
+     * `undefined` for values it cannot serialize (functions, symbols, undefined).
+     * Fail loudly instead of silently sending an invalid BiDi body.
+     */
+    const serialized = JSON.stringify(payload) as string | undefined
+    if (typeof serialized !== 'string') {
+        throw new Error(
+            `Failed to serialize mock.respond() payload of type "${typeof payload}". ` +
+            'The response body must be a string, Buffer, or JSON-serializable value.'
+        )
+    }
+
+    return serialized
+}
+
+function toNetworkBody(payload: RespondBodyValue) {
+    if (Buffer.isBuffer(payload)) {
+        return { type: 'base64' as const, value: payload.toString('base64') }
+    }
+
+    return { type: 'string' as const, value: toStringBody(payload) }
 }
 
 /**
@@ -604,9 +634,9 @@ export default class WebDriverInterception {
      */
     respond(payload: RespondBody, params: Omit<RespondWithOptions, 'body'> = {}, once?: boolean) {
         this.#ensureNotRestored()
-        const body = Buffer.isBuffer(payload)
-            ? { type: 'base64', value: payload.toString('base64') }
-            : { type: 'string', value: typeof payload === 'string' ? payload : JSON.stringify(payload) }
+        const body = typeof payload === 'function'
+            ? (request: local.NetworkResponseCompletedParameters) => toNetworkBody(payload(request))
+            : toNetworkBody(payload)
         const overwrite: RespondWithOptions = { body, ...params }
         this.#respondOverwrites = this.#setOverwrite(this.#respondOverwrites, { overwrite, once })
         return this

@@ -104,6 +104,28 @@ describe('network mocking', () => {
         })
     })
 
+    it('should mock with a dynamic function payload', async () => {
+        const mock = await browser.mock('https://guinea-pig.webdriver.io/dynamic-mock.json')
+        mock.respond((request) => ({
+            mocked: true,
+            url: request.request.url
+        }), {
+            headers: { 'content-type': 'application/json' }
+        })
+
+        await browser.url('https://guinea-pig.webdriver.io/')
+        const result = await browser.execute(async () => {
+            const res = await fetch('/dynamic-mock.json')
+            return res.json()
+        })
+
+        expect(result).toEqual({
+            mocked: true,
+            url: 'https://guinea-pig.webdriver.io/dynamic-mock.json'
+        })
+        expect(mock.calls.length).toBeGreaterThanOrEqual(1)
+    })
+
     it('should be able to see the response body', async () => {
         // Navigate away or clear cache to force a fresh request
         await browser.url('about:blank')
