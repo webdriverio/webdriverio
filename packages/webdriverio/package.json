@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "9.30.1",
+  "version": "9.31.9",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <mail@bromann.dev>",
   "license": "MIT",
@@ -67,7 +67,7 @@
   "typeScriptVersion": "3.8.3",
   "devDependencies": {
     "@sinonjs/fake-timers": "^14.0.0",
-    "@types/archiver": "^6.0.2",
+    "@types/archiver": "^8.0.0",
     "@types/aria-query": "^5.0.4",
     "@types/lodash.clonedeep": "^4.5.9",
     "@types/lodash.zip": "^4.2.9",
@@ -83,7 +83,7 @@
     "@wdio/repl": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "archiver": "^7.0.1",
+    "archiver": "^8.0.0",
     "aria-query": "^5.3.0",
     "cheerio": "^1.0.0-rc.12",
     "css-shorthand-properties": "^1.1.1",

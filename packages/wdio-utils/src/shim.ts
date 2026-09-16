@@ -10,11 +10,11 @@ let inCommandHook = false
 
 const ELEMENT_QUERY_COMMANDS = [
     '$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$',
-    'react$$', 'nextElement', 'previousElement', 'parentElement'
+    'react$$', 'nextElement', 'previousElement', 'parentElement', 'select'
 ]
 const ELEMENT_PROPS = [
     'elementId', 'error', 'selector', 'parent', 'index', 'isReactElement',
-    'length'
+    'length', 'instances'
 ]
 const ACTION_COMMANDS = ['action', 'actions']
 const PROMISE_METHODS = ['then', 'catch', 'finally']
@@ -117,6 +117,7 @@ export async function executeHooksWithArgs<T>(this: unknown, hookName: string, h
  * @param fn          command function
  */
 export function wrapCommand<T>(commandName: string, fn: Function): (...args: unknown[]) => Promise<T> {
+
     async function wrapCommandFn(this: { options: Services.Hooks }, ...args: unknown[]) {
         const beforeHookArgs = [commandName, args]
         if (!inCommandHook && this.options.beforeCommand) {
@@ -372,10 +373,16 @@ export async function executeAsync(
          * properly without affecting the overall test execution timing.
          */
         // @ts-expect-error - _runnable is set by Mocha/Jasmine at runtime
-        const runnableTimeout = this?._runnable?._timeout
+        const runnable = this?._runnable
+        const runnableTimeout = runnable?._timeout
         // @ts-expect-error - jasmine is set by Jasmine at runtime
         const frameworkTimeout = runnableTimeout ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
         const _timeout = (frameworkTimeout ?? timeout) - TIME_BUFFER
+        // Capture the identity before execution, as the framework may advance to another runnable on timeout.
+        const fullTitle = typeof runnable?.fullTitle === 'function' ? runnable.fullTitle() : undefined
+        const testTitle = fullTitle || runnable?.title || fn.name || 'unknown test or hook'
+        const attempt = retries.attempts + 1
+        const totalAttempts = retries.limit + 1
         /**
          * Executes the function with specified timeout and returns the result, or throws an error if the timeout is exceeded.
          */
@@ -386,7 +393,7 @@ export async function executeAsync(
                     if (done) {
                         resolve()
                     } else {
-                        reject(new Error('Timeout'))
+                        reject(new Error(`Timeout after ${_timeout}ms in ${JSON.stringify(testTitle)} (WDIO attempt ${attempt}/${totalAttempts})`))
                     }
                 }, _timeout)
             })

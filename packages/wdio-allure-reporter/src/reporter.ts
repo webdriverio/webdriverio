@@ -108,6 +108,15 @@ function hasCucumberKeywordInTitle(title?: string): boolean {
     return /^(Given|When|Then|And|But)\b/.test(title)
 }
 
+function splitTitlePathPart(part?: string): string[] {
+    if (!part) { return [] }
+    return part
+        .replace(/\\/g, '/')
+        .split('/')
+        .map((p) => p.trim())
+        .filter(Boolean)
+}
+
 export default class AllureReporter extends WDIOReporter {
     private _allureRuntime: ReporterRuntime
     private _capabilities: Capabilities.ResolvedTestrunnerCapabilities
@@ -117,6 +126,8 @@ export default class AllureReporter extends WDIOReporter {
     private _consoleOutput = ''
     private _originalStdoutWrite: typeof process.stdout.write
     private _isFlushing = false
+    private _flushChain: Promise<void> = Promise.resolve()
+    private _pendingFlushes = 0
     private _cid?: string
 
     private _testPlan: TestPlanV1 | undefined
@@ -129,6 +140,7 @@ export default class AllureReporter extends WDIOReporter {
     private _suiteStack = (cid: string) =>
         this._suiteStackByCid.get(cid) ?? this._suiteStackByCid.set(cid, []).get(cid)!
     private _pkgByCid: Map<string, string> = new Map()
+    private _titlePathFileByCid: Map<string, string> = new Map()
 
     private _cukeScenarioActiveByCid = new Map<string, boolean>()
 
@@ -295,9 +307,44 @@ export default class AllureReporter extends WDIOReporter {
         this._pushRuntimeMessage({ type: 'allure:suite:end', data: {} })
     }
 
+    /**
+     * Write out everything buffered so far without finalising the run, so results of
+     * completed tests reach the results directory while the run is still going. Flushes are
+     * chained so they cannot overlap.
+     */
+    private _flushIncrementally(): void {
+        const state = this._ensureState(this._currentCid())
+
+        this._beginFlush()
+        this._flushChain = this._flushChain
+            .then(() => state.processRuntimeMessage(false))
+            // the state's cursor stays on the message that threw, so the runner end pass
+            // retries it and rethrows if it still fails
+            .catch(() => {})
+            .then(() => this._endFlush())
+    }
+
+    private _beginFlush(): void {
+        this._pendingFlushes++
+        this._isFlushing = true
+    }
+
+    private _endFlush(): void {
+        this._pendingFlushes--
+        if (this._pendingFlushes === 0) {
+            this._isFlushing = false
+        }
+    }
+
     private _startTest(payload: { name: string; start: number; uuid?: string }): void {
         this._pushRuntimeMessage({ type: 'allure:test:start', data: payload })
         this._setTestParameters()
+        /**
+         * flush once the new test:start is buffered: a test is only written when the
+         * following test starts, because its own scope has to stay open past its test:end
+         * for "after each" hooks to attach to
+         */
+        this._flushIncrementally()
     }
 
     private _endTest(payload: {
@@ -444,14 +491,16 @@ export default class AllureReporter extends WDIOReporter {
 
             if (file) {
                 this._pkgByCid.set(cid, absPosix(file))
+                this._titlePathFileByCid.set(cid, file)
             }
 
             const fileStr = (file || '').replace(/\\/g, '/')
             if (/\.feature$/i.test(fileStr)) {
                 const ft = Array.isArray(testPath) ? testPath.map(String).join(' ') : ''
                 const fullName = `${relNoSlash(file)}#${ft}`
+                const titlePath = this._titlePath(cid, Array.isArray(testPath) ? testPath.slice(0, -1) : undefined)
 
-                this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName, fullTitle: ft } })
+                this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName, fullTitle: ft, titlePath } })
                 applyTestPlanLabel(this._testPlan, (m) => this._pushRuntimeMessage(m), {
                     file,
                     testPath,
@@ -506,12 +555,18 @@ export default class AllureReporter extends WDIOReporter {
         const specs = (runner as unknown as { specs?: string[] }).specs || []
         if (specs.length) {
             this._pkgByCid.set(runner.cid, absPosix(specs[0]))
+            this._titlePathFileByCid.set(runner.cid, specs[0])
         }
     }
 
     async onRunnerEnd(_runner: RunnerStats): Promise<void> {
-        this._isFlushing = true
+        /**
+         * counted like any other flush, so an incremental flush finishing while we await it
+         * cannot report the reporter as synchronised while this pass is still writing
+         */
+        this._beginFlush()
         try {
+            await this._flushChain
             for (const [cid, state] of this.allureStatesByCid) {
                 await state.processRuntimeMessage()
                 this.allureStatesByCid.delete(cid)
@@ -520,7 +575,7 @@ export default class AllureReporter extends WDIOReporter {
             if (this._options.addConsoleLogs) {
                 process.stdout.write = this._originalStdoutWrite
             }
-            this._isFlushing = false
+            this._endFlush()
         }
         this._allureRuntime.writeEnvironmentInfo()
     }
@@ -536,6 +591,7 @@ export default class AllureReporter extends WDIOReporter {
             const featureFile = (suite as unknown as MaybeFile).file
             if (isFeatureFilePath(featureFile)) {
                 this._pkgByCid.set(cid, absPosix(featureFile!))
+                this._titlePathFileByCid.set(cid, featureFile!)
             }
             break
         }
@@ -556,7 +612,10 @@ export default class AllureReporter extends WDIOReporter {
             this._emitHistoryIdsFrom(fullTitleForHash)
 
             const fullName = toFullName(this._pkgByCid.get(cid)!, fullTitleForHash)
-            this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName, fullTitle: fullTitleForHash } })
+            this._pushRuntimeMessage({
+                type: 'allure:test:info',
+                data: { fullName, fullTitle: fullTitleForHash, titlePath: this._titlePath(cid, this._suiteStack(cid)) }
+            })
 
             applyTestPlanLabel(this._testPlan, (m) => this._pushRuntimeMessage(m), {
                 fullTitle: fullTitleForHash,
@@ -601,6 +660,10 @@ export default class AllureReporter extends WDIOReporter {
         }
         default: {
             this._suiteStack(cid).push(suite.title)
+            const suiteFile = (suite as unknown as MaybeFile).file
+            if (suiteFile) {
+                this._titlePathFileByCid.set(cid, suiteFile)
+            }
             this._startSuite({ name: suite.title })
         }
         }
@@ -726,7 +789,10 @@ export default class AllureReporter extends WDIOReporter {
         this._emitHistoryIdsFrom(fullTitleForHash)
 
         const fullName = toFullName(this._pkgByCid.get(cid)!, fullTitleForHash)
-        this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName, fullTitle: fullTitleForHash } })
+        this._pushRuntimeMessage({
+            type: 'allure:test:info',
+            data: { fullName, fullTitle: fullTitleForHash, titlePath: this._titlePath(cid) }
+        })
 
         this._emitBaseLabels(cid)
 
@@ -771,6 +837,10 @@ export default class AllureReporter extends WDIOReporter {
 
         const fullTitle = (test as TestStats).fullTitle
         const file = (test as MaybeFile).file
+        const cid = this._currentCid()
+        if (file) {
+            this._titlePathFileByCid.set(cid, file)
+        }
         applyTestPlanLabel(this._testPlan, (m) => this._pushRuntimeMessage(m), { file, fullTitle })
 
         if (this._inCucumberStepMode(test)) {
@@ -795,7 +865,6 @@ export default class AllureReporter extends WDIOReporter {
             })
         }
 
-        const cid = this._currentCid()
         this._ensureSuitesStarted(cid)
         const start = AllureReporter.getTimeOrNow((test as TestStats).start)
         const uuid = (test as MaybeUid).uid
@@ -805,7 +874,10 @@ export default class AllureReporter extends WDIOReporter {
         if (testCaseTitle) { this._emitHistoryIdsFrom(testCaseTitle) }
 
         const fullName = toFullName(this._pkgByCid.get(cid)!, fullTitle || test.title)
-        this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName: fullName } })
+        this._pushRuntimeMessage({
+            type: 'allure:test:info',
+            data: { fullName: fullName, titlePath: this._titlePath(cid) }
+        })
 
         const suitePath = [...this._suiteStack(cid)]
         const pkg = isFeatureFilePath(this._pkgByCid.get(cid)) ? toPackageLabelCucumber(this._pkgByCid.get(cid) || '') : toPackageLabel(this._pkgByCid.get(cid) || '')
@@ -893,8 +965,9 @@ export default class AllureReporter extends WDIOReporter {
         const start = AllureReporter.getTimeOrNow(test.start)
         this._startTest({ name: test.title, start })
         if (test.fullTitle) { this._emitHistoryIdsFrom(test.fullTitle) }
-        const fullName = toFullName(this._pkgByCid.get(this._currentCid())!, test.fullTitle || test.title)
-        this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName } })
+        const cid = this._currentCid()
+        const fullName = toFullName(this._pkgByCid.get(cid)!, test.fullTitle || test.title)
+        this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName, titlePath: this._titlePath(cid) } })
         this._attachLogs()
         this._skipTest()
     }
@@ -1145,6 +1218,23 @@ export default class AllureReporter extends WDIOReporter {
         const parts = [...this._suiteStack(cid)]
         if (leaf) { parts.push(leaf) }
         return parts.map((s) => String(s).trim()).filter(Boolean).join(' ')
+    }
+
+    private _titlePath(cid: string, cucumberPath?: string[]): string[] {
+        const file = this._titlePathFileByCid.get(cid) ?? this._pkgByCid.get(cid)
+        const relativeFilePath = relNoSlash(file)
+        const fileParts = splitTitlePathPart(relativeFilePath)
+        const suitePath = this._suiteStack(cid).map(String).map((s) => s.trim()).filter(Boolean)
+        const normalizedCucumberPath = cucumberPath?.map(String).map((s) => s.trim()).filter(Boolean)
+
+        if (isFeatureFilePath(file)) {
+            return [
+                ...fileParts.slice(0, -1),
+                ...(normalizedCucumberPath && normalizedCucumberPath.length > 0 ? normalizedCucumberPath : suitePath.slice(0, 1)),
+            ].filter(Boolean)
+        }
+
+        return [...fileParts, ...suitePath]
     }
 
     private _deriveHookType(hook: HookStats): 'before' | 'after' {

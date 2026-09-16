@@ -32,6 +32,7 @@ export const returnTypeMap = {
     findElementFromShadowRoot: 'ElementReference',
     findElementsFromShadowRoot: 'ElementReference[]',
     getElementShadowRoot: 'ShadowElementReference',
+    getActiveElement: 'ElementReference',
     getAllCookies: 'Cookie[]',
     send: 'BidiResponse',
     getAppiumContext: 'Context',

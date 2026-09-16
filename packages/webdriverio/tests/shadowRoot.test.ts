@@ -7,6 +7,7 @@ const defaultBrowser = {
     sessionId: '123',
     sessionSubscribe: vi.fn().mockResolvedValue({}),
     on: vi.fn(),
+    off: vi.fn(),
     scriptAddPreloadScript: vi.fn().mockResolvedValue({}),
     capabilities: {}
 }
@@ -37,6 +38,62 @@ describe('ShadowRootManager', () => {
         expect(browser.sessionSubscribe).toBeCalledTimes(1)
         expect(browser.on).toBeCalledTimes(4)
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(1)
+
+        manager.removeListeners()
+        expect(browser.off).toHaveBeenCalledWith('browsingContext.navigationCommitted', expect.any(Function))
+    })
+
+    it('does not clear cached shadow roots until a navigation commits', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const listeners = new Map<string, (...args: any[]) => void>()
+        const browser = {
+            ...defaultBrowser,
+            sessionId: 'navigation-session',
+            isBidi: true,
+            on: vi.fn((event: string, listener: (...args: any[]) => void) => listeners.set(event, listener)),
+            options: { capabilities: { webSocketUrl: './' } }
+        } as any
+        const manager = getShadowRootManager(browser)
+        process.env.WDIO_UNIT_TESTS = wid
+
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'f.C1.d.AAAA.e.100', value: {
+                    localName: 'custom-app',
+                    shadowRoot: {
+                        sharedId: 'f.C1.d.AAAA.e.101',
+                        value: { nodeType: 11, mode: 'open' }
+                    }
+                } },
+                { type: 'node', sharedId: 'f.C1.d.AAAA.e.1' },
+                { type: 'boolean', value: true },
+                { type: 'node', sharedId: 'f.C1.d.AAAA.e.1' }
+            ],
+            source: { context: 'navigation-context' }
+        } as any)
+        expect(await manager.getShadowElementsByContextId('navigation-context')).toContain('f.C1.d.AAAA.e.101')
+
+        expect(browser.sessionSubscribe).toHaveBeenCalledWith({
+            events: ['log.entryAdded', 'browsingContext.navigationCommitted']
+        })
+        expect(browser.on).not.toHaveBeenCalledWith('browsingContext.navigationStarted', expect.any(Function))
+        expect(browser.on).not.toHaveBeenCalledWith('bidiCommand', expect.any(Function))
+
+        listeners.get('bidiCommand')?.({
+            method: 'browsingContext.navigate',
+            params: { context: 'navigation-context', url: 'https://example.com', wait: 'complete' }
+        })
+        expect(await manager.getShadowElementsByContextId('navigation-context')).toContain('f.C1.d.AAAA.e.101')
+
+        const navigationCommittedListener = listeners.get('browsingContext.navigationCommitted')
+        expect(navigationCommittedListener).toEqual(expect.any(Function))
+        navigationCommittedListener?.({ context: 'navigation-context' })
+
+        expect(await manager.getShadowElementsByContextId('navigation-context')).toEqual([])
     })
 
     it('handles a rejected scriptAddPreloadScript so it cannot leak as an unhandledRejection', async () => {
@@ -97,6 +154,57 @@ describe('ShadowRootManager', () => {
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(0)
     })
 
+    it.each(['open', 'closed'])('registers a detached initial host once with a %s shadow root', async (mode) => {
+        const browser = { ...defaultBrowser } as any
+        const manager = getShadowRootManager(browser)
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'detached-host', value: {
+                    localName: 'div',
+                    shadowRoot: { sharedId: 'host-shadow', value: { nodeType: 11, mode } }
+                } },
+                { type: 'node', sharedId: 'detached-host' },
+                { type: 'boolean', value: false },
+                { type: 'node', sharedId: 'document-element' }
+            ],
+            source: { context: 'detached-context' }
+        } as any)
+
+        expect(await manager.getShadowElementPairsByContextId('detached-context', 'detached-host'))
+            .toEqual([['detached-host', 'host-shadow']])
+        expect(manager.getShadowRootModeById('detached-context', 'detached-host')).toBe(mode)
+    })
+
+    it('preserves detached hosts when a later event identifies the same document root', async () => {
+        const manager = getShadowRootManager({ ...defaultBrowser } as any)
+        const register = (host: string, root: string, isDocument: boolean) => manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: host, value: {
+                    localName: 'div',
+                    shadowRoot: { sharedId: `${host}-shadow`, value: { nodeType: 11, mode: 'open' } }
+                } },
+                { type: 'node', sharedId: root },
+                { type: 'boolean', value: isDocument },
+                { type: 'node', sharedId: 'same-document-element' }
+            ],
+            source: { context: 'same-document-context' }
+        } as any)
+        register('first-host', 'first-host', false)
+        register('second-host', 'document-root', true)
+
+        const pairs = await manager.getShadowElementPairsByContextId('same-document-context')
+        expect(pairs.filter(([, shadow]) => shadow)).toEqual([
+            ['first-host', 'first-host-shadow'],
+            ['second-host', 'second-host-shadow']
+        ])
+    })
+
     it('should capture shadow root elements', async () => {
         const browser = { ...defaultBrowser } as any
         const manager = getShadowRootManager(browser)
@@ -124,6 +232,52 @@ describe('ShadowRootManager', () => {
             ['barfoo', undefined],
             ['foobar', 'shadowFoobar']
         ])
+    })
+
+    it('should store the document element per context (regression test for shared document element)', async () => {
+        const browser = { ...defaultBrowser } as any
+        const manager = getShadowRootManager(browser)
+
+        // context A registers a shadow root and its own document element
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'elemA', value: {
+                    shadowRoot: { sharedId: 'shadowA', value: { nodeType: 11, mode: 'open' } }
+                } },
+                { type: 'node', sharedId: 'rootA' },
+                { type: 'boolean', value: true },
+                { type: 'node', sharedId: 'docElemA' }
+            ],
+            source: { context: 'ctxA' }
+        } as any)
+
+        // context B registers a shadow root and a DIFFERENT document element
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'elemB', value: {
+                    shadowRoot: { sharedId: 'shadowB', value: { nodeType: 11, mode: 'open' } }
+                } },
+                { type: 'node', sharedId: 'rootB' },
+                { type: 'boolean', value: true },
+                { type: 'node', sharedId: 'docElemB' }
+            ],
+            source: { context: 'ctxB' }
+        } as any)
+
+        // each context lookup must use its own document element, not the other's
+        const elementsA = await manager.getShadowElementsByContextId('ctxA')
+        expect(elementsA).toContain('docElemA')
+        expect(elementsA).not.toContain('docElemB')
+
+        const elementsB = await manager.getShadowElementsByContextId('ctxB')
+        expect(elementsB).toContain('docElemB')
+        expect(elementsB).not.toContain('docElemA')
     })
 
     it('should ignore log entries that are not of interest', async () => {

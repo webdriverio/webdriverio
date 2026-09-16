@@ -23,12 +23,12 @@ export class ShadowRootManager extends SessionManager {
     #initialize: Promise<boolean>
     #shadowRoots = new Map<string, ShadowRootTree>()
     #currentDocumentIds = new Map<string, string>()
-    #documentElement?: remote.ScriptNodeRemoteValue
+    #documentElements = new Map<string, remote.ScriptNodeRemoteValue>()
     #frameDepth = 0
 
     #handleLogEntryListener = this.handleLogEntry.bind(this)
     #commandResultHandlerListener = this.#commandResultHandler.bind(this)
-    #handleBidiCommandListener = this.#handleBidiCommand.bind(this)
+    #handleNavigationCommittedListener = this.#handleNavigationCommitted.bind(this)
 
     constructor(browser: WebdriverIO.Browser) {
         super(browser, ShadowRootManager.name)
@@ -46,11 +46,11 @@ export class ShadowRootManager extends SessionManager {
          * listen on required bidi events
          */
         this.#initialize = this.#browser.sessionSubscribe({
-            events: ['log.entryAdded', 'browsingContext.navigationStarted']
+            events: ['log.entryAdded', 'browsingContext.navigationCommitted']
         }).then(() => true, () => false)
         this.#browser.on('log.entryAdded', this.#handleLogEntryListener)
         this.#browser.on('result', this.#commandResultHandlerListener)
-        this.#browser.on('bidiCommand', this.#handleBidiCommandListener)
+        this.#browser.on('browsingContext.navigationCommitted', this.#handleNavigationCommittedListener)
         this.#browser.scriptAddPreloadScript({
             functionDeclaration: customElementWrapper.toString()
         }).catch((err: Error) => {
@@ -68,23 +68,21 @@ export class ShadowRootManager extends SessionManager {
         super.removeListeners()
         this.#browser.off('log.entryAdded', this.#handleLogEntryListener)
         this.#browser.off('result', this.#commandResultHandlerListener)
-        this.#browser.off('bidiCommand', this.#handleBidiCommandListener)
+        this.#browser.off('browsingContext.navigationCommitted', this.#handleNavigationCommittedListener)
     }
 
     async initialize () {
         return this.#initialize
     }
 
-    /**
-     * keep track of navigation events and remove shadow roots when they are no longer needed
-     */
-    #handleBidiCommand (command: Omit<remote.CommandData, 'id'>) {
-        if (command.method !== 'browsingContext.navigate') {
-            return
-        }
-        const params = command.params as remote.BrowsingContextNavigateParameters
-        this.#shadowRoots.delete(params.context)
-        this.#currentDocumentIds.delete(params.context)
+    #handleNavigationCommitted({ context }: local.BrowsingContextNavigationInfo) {
+        this.#clearContext(context)
+    }
+
+    #clearContext(context: string) {
+        this.#shadowRoots.delete(context)
+        this.#currentDocumentIds.delete(context)
+        this.#documentElements.delete(context)
     }
 
     /**
@@ -151,6 +149,7 @@ export class ShadowRootManager extends SessionManager {
                     if (currentDocId && currentDocId !== newDocId) {
                         log.info(`Document changed in context ${ctxId}: ${currentDocId} -> ${newDocId}, purging ${this.#shadowRoots.get(ctxId)?.flat().length ?? 0} stale shadow roots`)
                         this.#shadowRoots.delete(ctxId)
+                        this.#documentElements.delete(ctxId)
                     }
                     this.#currentDocumentIds.set(ctxId, newDocId)
                 }
@@ -173,20 +172,27 @@ export class ShadowRootManager extends SessionManager {
                     throw new Error(`Expected "sharedId" parameter from object ${rootElem}`)
                 }
 
-                /**
-                 * only overwrite if `root.sharedId` is different, otherwise it's another shadow component
-                 * within the same context/document
-                 */
                 const tree = this.#shadowRoots.get(logEntry.source.context)
                 if (tree?.element !== rootElem.sharedId) {
-                    this.#shadowRoots.set(logEntry.source.context, new ShadowRootTree(rootElem.sharedId))
+                    const documentTree = new ShadowRootTree(rootElem.sharedId)
+                    // A detached host may have been the initial root. Preserve its hosts
+                    // when the document element confirms this is still the same document.
+                    if (
+                        tree && documentElement?.type === 'node' && documentElement.sharedId &&
+                        this.#documentElements.get(logEntry.source.context)?.sharedId === documentElement.sharedId
+                    ) {
+                        for (const host of tree.shadowRoot ? [tree] : tree.children) {
+                            documentTree.addShadowElement(host)
+                        }
+                    }
+                    this.#shadowRoots.set(logEntry.source.context, documentTree)
                 }
             }
 
             /**
              * store document element
              */
-            this.#documentElement = documentElement as remote.ScriptNodeRemoteValue
+            this.#documentElements.set(logEntry.source.context, documentElement as remote.ScriptNodeRemoteValue)
 
             const tree = this.#shadowRoots.get(logEntry.source.context)
             if (!tree) {
@@ -209,6 +215,13 @@ export class ShadowRootManager extends SessionManager {
                 shadowElem.value.shadowRoot.sharedId,
                 shadowElem.value.shadowRoot.value.mode
             )
+            // A detached initial host is its own root. Update that entry instead of
+            // adding the same element as its own descendant in the snapshot tree.
+            if (tree.element === newTree.element) {
+                tree.shadowRoot = newTree.shadowRoot
+                tree.mode = newTree.mode
+                return
+            }
             if (rootElem.sharedId) {
                 tree.addShadowElement(rootElem.sharedId, newTree)
             } else {
@@ -268,7 +281,7 @@ export class ShadowRootManager extends SessionManager {
             /**
              * ensure to include to document root if no scope is provided
              */
-            documentElement = this.#documentElement?.sharedId
+            documentElement = this.#documentElements.get(contextId)?.sharedId
         }
 
         const elements = tree.getAllLookupScopes()

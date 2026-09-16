@@ -25,6 +25,10 @@ export const getTestStatus = (
     }
 
     if (test.error) {
+        if (test.error.name && test.error.name.toLowerCase().includes('assert')) {
+            return AllureStatus.FAILED
+        }
+
         if (test.error.message) {
             const message = test.error.message.trim().toLowerCase()
 
