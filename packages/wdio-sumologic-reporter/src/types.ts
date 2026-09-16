@@ -6,6 +6,8 @@ export interface Options extends Partial<Reporters.Options> {
      * @default 100
      */
     syncInterval?: number
+    maxRetries?: number
+    requestTimeout?: number
     /**
      * endpoint of collector source
      * @default
