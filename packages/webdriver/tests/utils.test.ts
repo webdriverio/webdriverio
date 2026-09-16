@@ -6,7 +6,7 @@ import '../src/browser.js'
 
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
-    startWebDriverSession, setupDirectConnect, validateCapabilities
+    startWebDriverSession, setupDirectConnect, validateCapabilities, getBidiRequestOptions
 } from '../src/utils.js'
 import type { Client, RemoteConfig } from '../src/types.js'
 
@@ -94,6 +94,42 @@ describe('utils', () => {
         })
         expect(saucePrototype instanceof Object).toBe(true)
         expect(typeof saucePrototype.getPageLogs.value).toBe('function')
+    })
+
+    describe('getBidiRequestOptions', () => {
+        it('should always include followRedirects and maxRedirects', () => {
+            expect(getBidiRequestOptions()).toEqual({
+                followRedirects: true,
+                maxRedirects: 10
+            })
+        })
+
+        it('should include rejectUnauthorized false when strictSSL is false', () => {
+            expect(getBidiRequestOptions(false)).toEqual({
+                followRedirects: true,
+                maxRedirects: 10,
+                rejectUnauthorized: false
+            })
+        })
+
+        it('should include provided headers', () => {
+            const headers = { Authorization: 'Bearer token' }
+            expect(getBidiRequestOptions(true, headers)).toEqual({
+                followRedirects: true,
+                maxRedirects: 10,
+                headers
+            })
+        })
+
+        it('should include all options when strictSSL is false and headers are passed', () => {
+            const headers = { Authorization: 'Bearer token' }
+            expect(getBidiRequestOptions(false, headers)).toEqual({
+                followRedirects: true,
+                maxRedirects: 10,
+                rejectUnauthorized: false,
+                headers
+            })
+        })
     })
 
     describe('setupDirectConnect', () => {
