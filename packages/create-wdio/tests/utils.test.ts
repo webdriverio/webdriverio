@@ -655,7 +655,7 @@ test('setupTypeScript does not create tsconfig.json if TypeScript was not select
     expect(parsedAnswers.packagesToInstall).toEqual([])
 })
 
-test('setupTypeScript creates tsconfig.json even if there is already one', async () => {
+test('setupTypeScript creates a dedicated tsconfig even if there is already one', async () => {
     const parsedAnswers = {
         isUsingTypeScript: true,
         esmSupport: true,
@@ -667,14 +667,36 @@ test('setupTypeScript creates tsconfig.json even if there is already one', async
             ]
         },
         packagesToInstall: [],
-        tsConfigFilePath: '/foobar/tsconfig.json',
+        tsConfigFilePath: '/foobar/tsconfig.e2e.json',
         hasRootTSConfig: true,
         projectRootDir: '/foobar'
     } as any
     await setupTypeScript(parsedAnswers)
     const writtenContent = vi.mocked(fs.writeFile).mock.calls[0][1] as string
-    expect(writtenContent).toContain('"extends"')
+    expect(writtenContent).toContain('"extends": "./tsconfig.json"')
+    expect(writtenContent).not.toContain('"extends": "tsconfig.json"')
+    expect(vi.mocked(fs.writeFile).mock.calls[0][0]).toBe('/foobar/tsconfig.e2e.json')
     expect(writtenContent).toMatchSnapshot()
+})
+
+test('setupTypeScript extends the root config with a relative path from a nested directory', async () => {
+    const parsedAnswers = {
+        isUsingTypeScript: true,
+        esmSupport: true,
+        rawAnswers: {
+            framework: 'foo',
+            services: []
+        },
+        packagesToInstall: [],
+        tsConfigFilePath: '/foobar/test/tsconfig.json',
+        hasRootTSConfig: true,
+        projectRootDir: '/foobar',
+        destSpecRootPath: '/foobar/test'
+    } as any
+    await setupTypeScript(parsedAnswers)
+    const writtenContent = JSON.parse(vi.mocked(fs.writeFile).mock.calls[0][1] as string)
+    expect(writtenContent.extends).toBe('../tsconfig.json')
+    expect(writtenContent.include).toEqual(['.', '../wdio.conf.ts'])
 })
 
 describe.skip('createWDIOScript', () => {

@@ -297,8 +297,10 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     }
 
     /**
-     * Set up TypeScript if a `tsconfig.json` already exists
-     * We still need to generate it, usually as tsconfig.e2e.json
+     * Always generate a dedicated WDIO TypeScript config. If a root
+     * `tsconfig.json` already exists, the generated file (typically
+     * `tsconfig.e2e.json`) extends it so WDIO types are available without
+     * overwriting project compiler options.
      */
 
     console.log('Setting up TypeScript...')
@@ -385,13 +387,32 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     }
 
     const tsConfigDir = path.dirname(parsedAnswers.tsConfigFilePath)
-    const getIncludePath = (target: string) => {
-        const p = path.relative(tsConfigDir, path.resolve(parsedAnswers.projectRootDir, target)).replace(/\\/g, '/')
-        return p || '.'
+    const toPosix = (value: string) => value.replace(/\\/g, '/')
+    const getRelativePath = (target: string) => {
+        const relativePath = toPosix(
+            path.relative(tsConfigDir, path.resolve(parsedAnswers.projectRootDir, target))
+        )
+        return relativePath || '.'
+    }
+    /**
+     * TypeScript treats a non-relative `extends` value as a package name, so
+     * same-directory references must be explicit, e.g. `./tsconfig.json`.
+     */
+    const toExtendsPath = (target: string) => {
+        const relativePath = getRelativePath(target)
+        if (
+            relativePath === '.' ||
+            relativePath.startsWith('./') ||
+            relativePath.startsWith('../') ||
+            path.isAbsolute(relativePath)
+        ) {
+            return relativePath
+        }
+        return `./${relativePath}`
     }
 
     if (parsedAnswers.hasRootTSConfig) {
-        config.extends = getIncludePath('tsconfig.json')
+        config.extends = toExtendsPath('tsconfig.json')
     }
 
     const defaultSpecInclude = (
@@ -422,10 +443,10 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
                 defaultWdioConfigInclude && defaultWdioConfigInclude !== '.' ? defaultWdioConfigInclude : 'wdio.conf.ts'
             ]
 
-    Object.assign(config, { include: baseIncludes.map(getIncludePath) })
+    Object.assign(config, { include: baseIncludes.map(getRelativePath) })
 
     if (parsedAnswers.framework === 'cucumber') {
-        config.include!.push(getIncludePath('features'))
+        config.include!.push(getRelativePath('features'))
     }
 
     await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })

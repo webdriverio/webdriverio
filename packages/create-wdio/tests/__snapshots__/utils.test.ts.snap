@@ -72,7 +72,7 @@ exports[`setupTypeScript 1`] = `
 }"
 `;
 
-exports[`setupTypeScript creates tsconfig.json even if there is already one 1`] = `
+exports[`setupTypeScript creates a dedicated tsconfig even if there is already one 1`] = `
 "{
     "compilerOptions": {
         "moduleResolution": "node",
@@ -87,7 +87,7 @@ exports[`setupTypeScript creates tsconfig.json even if there is already one 1`] 
             "@wdio/globals/types",
             "expect-webdriverio",
             "foo",
-            "wdio-electron-service"
+            "@wdio/electron-service"
         ],
         "skipLibCheck": true,
         "noEmit": true,
@@ -99,7 +99,7 @@ exports[`setupTypeScript creates tsconfig.json even if there is already one 1`] 
         "noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true
     },
-    "extends": "tsconfig.json",
+    "extends": "./tsconfig.json",
     "include": [
         "test",
         "wdio.conf.ts"
