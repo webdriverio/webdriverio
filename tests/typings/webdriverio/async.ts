@@ -430,6 +430,9 @@ async function bar() {
     })
     mock.respond(Buffer.from('foobar'))
     mock.respond({ foo: 'bar' })
+    mock.respond((request) => ({ url: request.request.url, foo: 'bar' }))
+    mock.respond((request) => `id=${request.request.request}`)
+    mock.respond(() => Buffer.from('foobar'))
     mock.respondOnce('/other/resource.jpg')
     mock.respondOnce('/other/resource.jpg', {
         statusCode: 100,
