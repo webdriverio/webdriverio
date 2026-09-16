@@ -95,6 +95,7 @@ describe('Multi-Remote tests', () => {
     test('should be able to add a command to and element in multiremote', async () => {
         const browser = await multiremote(caps())
 
+        // @ts-expect-error untyped custom command
         browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.MultiRemoteBrowser) {
         // @ts-expect-error invalid params
             const size = await this.getSize()
@@ -114,6 +115,7 @@ describe('Multi-Remote tests', () => {
     test('should be able to overwrite command to and element in multiremote', async () => {
         const browser = await multiremote(caps())
 
+        // @ts-expect-error untyped custom command
         browser.overwriteCommand('getSize', async function (
             this: WebdriverIO.MultiRemoteBrowser,
             origCmd: any
@@ -151,7 +153,7 @@ describe('Multi-Remote tests', () => {
             const h1 = await browser.$('#foo')
 
             // narrow to browserA only
-            const selectedH1 = h1.unstable_select('browserA')
+            const selectedH1 = h1.select('browserA')
             expect(selectedH1.instances).toEqual(['browserA'])
 
             // Should preserve the instance scope when chaining $() on a selected element
@@ -159,12 +161,12 @@ describe('Multi-Remote tests', () => {
             expect(child.instances).toEqual(['browserA'])
         })
 
-        test('should throw an error when unstable_select matches nothing', async () => {
+        test('should throw an error when select matches nothing', async () => {
             const browser = await multiremote(caps())
 
             const h1 = await browser.$('#foo')
 
-            expect(() => h1.unstable_select('nonExistentBrowser')).toThrowError('None of the following requested instances are valid: nonExistentBrowser')
+            expect(() => h1.select('nonExistentBrowser')).toThrowError('None of the following requested instances are valid: nonExistentBrowser')
         })
     })
 })

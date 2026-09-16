@@ -415,6 +415,7 @@ async function bar() {
         latency: 500
     })
     browser.mock('**/image.jpg')
+    browser.mock(new URLPattern({ pathname: '/image.jpg' }))
     const mock = await browser.mock('**/image.jpg', {
         method: 'get',
         requestHeaders: { foo: 'bar' }

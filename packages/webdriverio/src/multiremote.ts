@@ -15,7 +15,7 @@ const overridableCommands = new Set(Object.keys(BrowserCommands))
 type EventEmitter = (args: unknown) => void
 type WrappedClient = {
     options: Options.WebdriverIO,
-    commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'unstable_select')[],
+    commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'select')[],
     __propertiesObject__?: Record<string, PropertyDescriptor>
 }
 
@@ -52,7 +52,7 @@ export default class MultiRemote {
             value: (browserName: string) => this.instances[browserName]
         }
 
-        propertiesObject.unstable_select = {
+        propertiesObject.select = {
             value: function unstableSelect(this: WebdriverIO.MultiRemoteBrowser & WrappedClient, ...instanceNames: string[]) {
                 const newMultiRemote = new MultiRemote()
                 newMultiRemote.instances = instanceNames.reduce((acc, name) => {
@@ -158,7 +158,7 @@ export default class MultiRemote {
             // @ts-expect-error ToDo(Christian): remove eventually
             delete client.sessionId
 
-            client.unstable_select = function unstableSelect(...instanceNames: string[]) {
+            client.select = function select(...instanceNames: string[]) {
                 const selectedResults: unknown[] = []
 
                 const selectedInstances = instanceNames.reduce((acc, name) => {

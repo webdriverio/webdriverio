@@ -70,7 +70,7 @@ export default class WebDriverInterception {
     }
 
     static async initiate(
-        url: string,
+        url: string | URLPattern,
         filterOptions: MockFilterOptions,
         browser: WebdriverIO.Browser
     ) {

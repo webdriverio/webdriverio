@@ -554,9 +554,7 @@ export default class ConfigParser {
         const filteredSpec = specs.reduce((returnVal: Spec[], currSpec) => {
             if (Array.isArray(currSpec)) {
                 returnVal.push(currSpec.filter(specItem => !excludeList.some(excludeVal => specItem.includes(excludeVal))))
-            }
-            const isSpecExcluded = excludeList.some(excludedVal => currSpec.includes(excludedVal))
-            if (!isSpecExcluded) {
+            } else if (!excludeList.some(excludedVal => currSpec.includes(excludedVal))) {
                 returnVal.push(currSpec)
             }
             return returnVal

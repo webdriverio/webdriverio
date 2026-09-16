@@ -395,6 +395,61 @@ describe('monad', () => {
         expect(client.commandList).toHaveLength(0)
     })
 
+    it('tracks dialog listener state through once and removals', () => {
+        const client = webdriverMonad({}, (browser: any) => browser, { ...prototype })(sessionId)
+        const registered = vi.fn()
+        const removed = vi.fn()
+        const onceListener = vi.fn()
+        const firstListener = vi.fn()
+        const secondListener = vi.fn()
+
+        client.on('_dialogListenerRegistered', registered)
+        client.on('_dialogListenerRemoved', removed)
+
+        client.once('dialog', onceListener)
+        expect(registered, 'once dialog listener registration must disable auto handling').toHaveBeenCalledTimes(1)
+
+        client.on('dialog', firstListener)
+        client.on('dialog', secondListener)
+        expect(registered).toHaveBeenCalledTimes(1)
+
+        const dialog = { message: 'confirmation' }
+        client.emit('dialog', dialog)
+        expect(onceListener).toHaveBeenCalledWith(dialog)
+        expect(onceListener).toHaveBeenCalledTimes(1)
+        expect(removed).not.toHaveBeenCalled()
+
+        client.removeListener('dialog', firstListener)
+        expect(removed).not.toHaveBeenCalled()
+
+        client.off('dialog', secondListener)
+        expect(removed).toHaveBeenCalledTimes(1)
+
+        const removedOnceListener = vi.fn()
+        client.once('dialog', removedOnceListener)
+        expect(registered).toHaveBeenCalledTimes(2)
+        client.removeListener('dialog', removedOnceListener)
+        expect(removed).toHaveBeenCalledTimes(2)
+        client.emit('dialog', dialog)
+        expect(removedOnceListener).not.toHaveBeenCalled()
+
+        client.on('dialog', firstListener)
+        client.on('dialog', secondListener)
+        expect(registered).toHaveBeenCalledTimes(3)
+        client.removeAllListeners('dialog')
+        expect(removed).toHaveBeenCalledTimes(3)
+
+        client.on('dialog', firstListener)
+        expect(registered).toHaveBeenCalledTimes(4)
+        client.removeAllListeners()
+        expect(removed).toHaveBeenCalledTimes(4)
+
+        const ordinaryListener = vi.fn()
+        client.on('result', ordinaryListener)
+        client.emit('result', dialog)
+        expect(ordinaryListener).toHaveBeenCalledWith(dialog)
+    })
+
     describe('given custom command', () => {
         let client: any
         beforeEach(() => {
