@@ -46,6 +46,21 @@ describe('acceptDialog command', () => {
             'The `acceptDialog` command is only available for mobile platforms in the NATIVE context.'
         )
     })
+
+    it('should throw an error for Windows native sessions', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                windowsAppMode: true,
+            } as any
+        })
+
+        await expect(browser.acceptDialog()).rejects.toThrow(
+            'The `acceptDialog` command is only available for iOS and Android.'
+        )
+    })
 })
 
 describe('acceptDialog - iOS', () => {
@@ -169,6 +184,14 @@ describe('acceptDialog - Android', () => {
 
     it('should handle no dialog found on Android silently', async () => {
         clickSpy.mockRejectedValue(new Error('no such element'))
+
+        await expect(browser.acceptDialog('Allow')).resolves.toBeUndefined()
+    })
+
+    it('should treat Appium missing-element responses as a no-op', async () => {
+        clickSpy.mockRejectedValue(new Error(
+            'An element could not be located on the page using the given search parameters.'
+        ))
 
         await expect(browser.acceptDialog('Allow')).resolves.toBeUndefined()
     })

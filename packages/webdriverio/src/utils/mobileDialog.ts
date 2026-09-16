@@ -38,19 +38,36 @@ export function assertMobileNativeDialogCommand(
     if (!browser.isMobile) {
         throw new Error(`The \`${commandName}\` command is only available for mobile platforms.`)
     }
+    if (!browser.isIOS && !browser.isAndroid) {
+        throw new Error(`The \`${commandName}\` command is only available for iOS and Android.`)
+    }
     if (!browser.isNativeContext) {
         throw new Error(`The \`${commandName}\` command is only available for mobile platforms in the NATIVE context.`)
     }
 }
 
-function isMissingDialogError(err: unknown): boolean {
+/**
+ * True when the driver reports that no dialog/button/alert is present.
+ * Matches the same Appium and W3C variants that WebdriverIO already treats
+ * as a missing element in shared response handling.
+ */
+export function isMissingDialogError(err: unknown): boolean {
     if (!(err instanceof Error)) {
         return false
     }
+
+    const message = err.message.toLowerCase()
+    const errorCode = (
+        'error' in err && typeof err.error === 'string' ? err.error : err.name
+    ).toLowerCase()
+
     return (
-        err.message.includes('no such element') ||
-        err.message.includes('Unable to find an element') ||
-        err.message.includes('no such alert')
+        message.includes('no such element') ||
+        message.includes('no such alert') ||
+        (message.includes('unable to find') && message.includes('element')) ||
+        message.includes('could not be located on the page') ||
+        errorCode === 'no such element' ||
+        errorCode === 'no such alert'
     )
 }
 

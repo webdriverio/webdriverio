@@ -46,6 +46,21 @@ describe('dismissDialog command', () => {
             'The `dismissDialog` command is only available for mobile platforms in the NATIVE context.'
         )
     })
+
+    it('should throw an error for macOS native sessions', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                macAppMode: true,
+            } as any
+        })
+
+        await expect(browser.dismissDialog()).rejects.toThrow(
+            'The `dismissDialog` command is only available for iOS and Android.'
+        )
+    })
 })
 
 describe('dismissDialog - iOS', () => {
