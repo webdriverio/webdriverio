@@ -412,10 +412,20 @@ class JunitReporter extends WDIOReporter {
             const sameSpecFileName = this._sameFileName(specFileName, suite.file)
             if (isCucumberFrameworkRunner && suite.type === type && sameSpecFileName) {
                 assignedSuiteKeys.add(suiteKey)
-                builder = this._addCucumberFeatureToBuilder(builder, runner, specFileName, suite)
+                builder = this._addCucumberFeatureToBuilder(
+                    builder,
+                    runner,
+                    this._reportFileName(specFileName, suite.file, runner?.specs),
+                    suite
+                )
             } else if (!isCucumberFrameworkRunner && sameSpecFileName) {
                 assignedSuiteKeys.add(suiteKey)
-                builder = this._addSuiteToBuilder(builder, runner, specFileName, suite)
+                builder = this._addSuiteToBuilder(
+                    builder,
+                    runner,
+                    this._reportFileName(specFileName, suite.file, runner?.specs),
+                    suite
+                )
             }
         }
         return builder
@@ -463,6 +473,41 @@ class JunitReporter extends WDIOReporter {
         return JSON.stringify(limit(val))
     }
 
+    private _toFilePath(file: string) {
+        return file.startsWith('file://') ? url.fileURLToPath(file) : file
+    }
+
+    private _isBasenameOnly(file: string) {
+        return !file.includes('/') && !file.includes('\\')
+    }
+
+    private _fileNamesEqual(file1: string, file2: string) {
+        return file1.localeCompare(file2, undefined, { sensitivity: this._isWindows ? 'accent' : 'variant' }) === 0
+    }
+
+    /**
+     * Use the runner spec path only when the suite can be uniquely associated
+     * with that file. Filename-only Jasmine suites that match multiple grouped
+     * specs keep their basename so we do not attribute them to the first spec.
+     */
+    private _reportFileName(specFileName: string, suiteFile?: string, runnerSpecs: string[] = []) {
+        if (!suiteFile) {
+            return specFileName
+        }
+
+        const suitePath = this._toFilePath(suiteFile)
+        if (!this._isBasenameOnly(suitePath)) {
+            return specFileName
+        }
+
+        const suiteBase = path.basename(suitePath)
+        const matchingSpecs = runnerSpecs.filter((spec) => (
+            this._fileNamesEqual(path.basename(this._toFilePath(spec)), suiteBase)
+        ))
+
+        return matchingSpecs.length > 1 ? suiteFile : specFileName
+    }
+
     private _sameFileName(file1?: string, file2?: string) {
         if (!file1 && !file2) {
             return true
@@ -471,22 +516,20 @@ class JunitReporter extends WDIOReporter {
             return false
         }
 
-        file1 = file1.startsWith('file://') ? url.fileURLToPath(file1) : file1
-        file2 = file2.startsWith('file://') ? url.fileURLToPath(file2) : file2
+        file1 = this._toFilePath(file1)
+        file2 = this._toFilePath(file2)
 
         /**
          * Jasmine provides only filenames (e.g. `happyPath.spec.js`) while
          * `runner.specs` contains full paths. Compare basenames when either
          * side has no directory separator (issue #13052).
          */
-        const isBasename1 = !file1.includes('/') && !file1.includes('\\')
-        const isBasename2 = !file2.includes('/') && !file2.includes('\\')
-        if (isBasename1 || isBasename2) {
+        if (this._isBasenameOnly(file1) || this._isBasenameOnly(file2)) {
             file1 = path.basename(file1)
             file2 = path.basename(file2)
         }
 
-        return file1.localeCompare(file2, undefined, { sensitivity: this._isWindows ? 'accent' : 'variant' }) === 0
+        return this._fileNamesEqual(file1, file2)
     }
 }
 
