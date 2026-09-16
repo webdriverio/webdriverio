@@ -554,6 +554,47 @@ describe('findDeepElements - isConnected validation', () => {
     })
 })
 
+describe('findDeepElement - aria accessibility locator', () => {
+    beforeEach(() => {
+        vi.clearAllMocks()
+        mockGetCurrentContext.mockResolvedValue('ctx-1')
+        mockGetShadowElementsByContextId.mockReturnValue([])
+    })
+
+    it('should use BiDi accessibility locator for aria selectors', async () => {
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockResolvedValue({
+            nodes: [{ sharedId: 'aria-node' }],
+        })
+
+        const result = await findDeepElement.call(browser, 'aria/Submit')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(
+            expect.objectContaining({
+                locator: { type: 'accessibility', value: { name: 'Submit' } },
+            })
+        )
+        expect(result).toEqual({
+            [ELEMENT_KEY]: 'aria-node',
+            locator: { type: 'accessibility', value: { name: 'Submit' } },
+        })
+    })
+
+    it('should fall back to xpath when BiDi accessibility locator fails', async () => {
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockRejectedValue(new Error('unsupported locator'))
+        browser.findElement.mockResolvedValue({ [ELEMENT_KEY]: 'xpath-node' })
+
+        const result = await findDeepElement.call(browser, 'aria/Submit')
+
+        expect(browser.findElement).toHaveBeenCalledWith(
+            'xpath',
+            expect.stringContaining('@aria-label = "Submit"')
+        )
+        expect(result).toEqual({ [ELEMENT_KEY]: 'xpath-node' })
+    })
+})
+
 // Firefox < 150 BiDi root selector workaround (issue #15233)
 describe.each([
     {

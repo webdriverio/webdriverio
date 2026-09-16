@@ -554,4 +554,10 @@ describe('selector strategies helper', () => {
         expect(element.using).toBe('xpath')
         expect(element.value).toMatchSnapshot()
     })
+
+    it('should use the BiDi accessibility strategy for aria selectors', () => {
+        const element = findStrategy('aria/foobar', true, false, true)
+        expect(element.using).toBe('aria')
+        expect(element.value).toBe('foobar')
+    })
 })
