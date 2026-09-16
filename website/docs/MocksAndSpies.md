@@ -28,7 +28,9 @@ const strictMock = await browser.mock('**', {
     statusCode: 200
 })
 
-// instead of a string you can also pass in a `URLPattern`
+// instead of a string you can also pass in a `URLPattern`; Node.js has no
+// global `URLPattern` yet, so import a polyfill first
+import { URLPattern } from 'urlpattern-polyfill'
 const patternMock = await browser.mock(new URLPattern({ pathname: '/users/list' }))
 ```
 
