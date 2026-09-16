@@ -16,6 +16,7 @@ import {
     isEmpty,
     isScreenshotCommand,
     toPackageLabel,
+    normalizeCapabilityName,
 } from '../src/utils.js'
 import { linkPlaceholder } from '../src/constants.js'
 
@@ -283,6 +284,27 @@ describe('utils', () => {
         it('should return an empty string for an empty path', () => {
             expect(toPackageLabel()).toEqual('')
             expect(toPackageLabel('')).toEqual('')
+        })
+    })
+
+    describe('normalizeCapabilityName', () => {
+        it('collapses Google Chrome aliases including space-separated names', () => {
+            expect(normalizeCapabilityName('chrome')).toEqual('chrome')
+            expect(normalizeCapabilityName('googlechrome')).toEqual('chrome')
+            expect(normalizeCapabilityName('Google Chrome')).toEqual('chrome')
+            expect(normalizeCapabilityName('  Google   Chrome  ')).toEqual('chrome')
+        })
+
+        it('collapses Microsoft Edge aliases including space-separated names', () => {
+            expect(normalizeCapabilityName('edge')).toEqual('edge')
+            expect(normalizeCapabilityName('msedge')).toEqual('edge')
+            expect(normalizeCapabilityName('microsoftedge')).toEqual('edge')
+            expect(normalizeCapabilityName('Microsoft Edge')).toEqual('edge')
+        })
+
+        it('lowercases and collapses spaces for other names without aliasing them', () => {
+            expect(normalizeCapabilityName('iPhone 12')).toEqual('iphone 12')
+            expect(normalizeCapabilityName('Firefox')).toEqual('firefox')
         })
     })
 })
