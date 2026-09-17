@@ -11,7 +11,8 @@ const log = logger('@wdio/sumologic-reporter')
 const MAX_LINES = 100
 const MAX_RETRY_DELAY = 1000
 const DEFAULT_MAX_RETRIES = 5
-const DEFAULT_REQUEST_TIMEOUT = 250
+const DEFAULT_REQUEST_TIMEOUT = 30000
+const DEFAULT_SHUTDOWN_TIMEOUT = 4000
 const MAX_REQUEST_TIMEOUT = 2_147_483_647
 
 /**
@@ -42,6 +43,8 @@ function formatDate(date: Date): string {
 export default class SumoLogicReporter extends WDIOReporter {
     private _options: Options
     private _interval?: NodeJS.Timeout
+    private _shutdownTimer?: NodeJS.Timeout
+    private _requestController?: AbortController
 
     private _unsynced: string[] = []
     private _isSynchronising = false
@@ -182,6 +185,11 @@ export default class SumoLogicReporter extends WDIOReporter {
             event: 'runner:end',
             data: runner
         }))
+        if (!this._shutdownTimer) {
+            this._shutdownTimer = setTimeout(() => {
+                this._disable(`Sumo Logic reporter shutdown timeout reached; discarding ${this._unsynced.length} queued events`)
+            }, this._getShutdownTimeout())
+        }
     }
 
     async sync() {
@@ -224,13 +232,20 @@ export default class SumoLogicReporter extends WDIOReporter {
          */
         this._isSynchronising = true
         log.debug('start synchronization')
+        const controller = new AbortController()
+        this._requestController = controller
+        const requestTimer = setTimeout(() => controller.abort(), this._getRequestTimeout())
 
         try {
             const resp = await fetch(sourceAddress, {
                 method: 'POST',
                 body: JSON.stringify(logLines),
-                signal: AbortSignal.timeout(this._getRequestTimeout())
+                signal: controller.signal
             })
+
+            if (this._isDisabled) {
+                return
+            }
 
             if (!resp.ok) {
                 if (!this._isRetryableStatus(resp.status)) {
@@ -256,8 +271,13 @@ export default class SumoLogicReporter extends WDIOReporter {
 
             return log.debug(`synchronised collector data, server status: ${resp.status}`)
         } catch {
-            this._retry()
+            if (!this._isDisabled) {
+                this._retry()
+            }
         } finally {
+            clearTimeout(requestTimer)
+            controller.abort()
+            this._requestController = undefined
             this._isSynchronising = false
         }
     }
@@ -303,10 +323,22 @@ export default class SumoLogicReporter extends WDIOReporter {
         this._unsynced = []
         this._nextRetryAt = 0
         this._stopInterval()
+        this._requestController?.abort()
         log.error(message)
     }
 
+    private _getShutdownTimeout() {
+        const { shutdownTimeout } = this._options
+        return typeof shutdownTimeout === 'number' && Number.isFinite(shutdownTimeout) && shutdownTimeout > 0
+            ? Math.min(Math.ceil(shutdownTimeout), MAX_REQUEST_TIMEOUT)
+            : DEFAULT_SHUTDOWN_TIMEOUT
+    }
+
     private _stopInterval() {
+        if (this._shutdownTimer) {
+            clearTimeout(this._shutdownTimer)
+            this._shutdownTimer = undefined
+        }
         if (this._interval) {
             clearInterval(this._interval)
             this._interval = undefined

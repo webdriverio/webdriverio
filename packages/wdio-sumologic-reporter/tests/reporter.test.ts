@@ -240,9 +240,9 @@ describe('wdio-sumologic-reporter', () => {
         )
     })
 
-    it('should normalize requestTimeout to a value AbortSignal.timeout accepts', async () => {
+    it('should normalize requestTimeout to a supported timer delay', async () => {
         reporter = new SumoLogicReporter({ sourceAddress: 'http://localhost:1234', requestTimeout: 0 })
-        expect(reporter['_getRequestTimeout']()).toBe(250)
+        expect(reporter['_getRequestTimeout']()).toBe(30000)
 
         reporter = new SumoLogicReporter({ sourceAddress: 'http://localhost:1234', requestTimeout: 0.5 })
         reporter.onRunnerStart('onRunnerStart' as any)
@@ -257,7 +257,7 @@ describe('wdio-sumologic-reporter', () => {
         expect(() => AbortSignal.timeout(reporter['_getRequestTimeout']())).not.toThrow()
     })
 
-    it('should disable after all default retries for timed out requests before the runner timeout', async () => {
+    it('should abort after the default request timeout while the runner is active', async () => {
         vi.setSystemTime(0)
         reporter.onRunnerStart('onRunnerStart' as any)
         reporter['_stopInterval']()
@@ -266,20 +266,143 @@ describe('wdio-sumologic-reporter', () => {
             signal?.addEventListener('abort', () => reject(new Error('timed out')))
         }))
 
-        for (const retryDelay of [100, 200, 400, 800, 1000]) {
-            const syncing = reporter.sync()
-            await vi.advanceTimersByTimeAsync(250)
-            await syncing
-            await vi.advanceTimersByTimeAsync(retryDelay)
-        }
-
         const syncing = reporter.sync()
-        await vi.advanceTimersByTimeAsync(250)
+        await vi.advanceTimersByTimeAsync(29999)
+        expect(reporter['_isSynchronising']).toBe(true)
+        expect(logger('').error).not.toHaveBeenCalled()
+        await vi.advanceTimersByTimeAsync(1)
         await syncing
 
-        expect(vi.mocked(fetch)).toHaveBeenCalledTimes(6)
-        expect(Date.now()).toBe(4000)
+        expect(fetch).toHaveBeenCalledTimes(1)
+        expect(reporter['_isDisabled']).toBe(false)
+        expect(reporter['_retryAttempts']).toBe(1)
+        expect(reporter['_isSynchronising']).toBe(false)
+    })
+
+    it('should accept a slow successful response while the runner is active', async () => {
+        reporter.onRunnerStart('onRunnerStart' as any)
+        vi.mocked(fetch).mockImplementation(() => new Promise(resolve => {
+            setTimeout(() => resolve({ ok: true, status: 200 } as Response), 5000)
+        }))
+        const syncing = reporter.sync()
+        await vi.advanceTimersByTimeAsync(5000)
+        await syncing
+
+        expect(fetch).toHaveBeenCalledTimes(1)
+        expect(reporter['_isDisabled']).toBe(false)
+        expect(reporter.isSynchronised).toBe(true)
+        expect(logger('').error).not.toHaveBeenCalled()
+    })
+
+    it('should abort an active request at the default shutdown deadline', async () => {
+        reporter.onRunnerStart('onRunnerStart' as any)
+        reporter.onRunnerEnd('onRunnerEnd' as any)
+        let signal: AbortSignal
+        vi.mocked(fetch).mockImplementation((_input, init) => new Promise((_, reject) => {
+            signal = (init as RequestInit).signal!
+            signal.addEventListener('abort', () => reject(new Error('secret network error')))
+        }))
+
+        await vi.advanceTimersByTimeAsync(3999)
+        expect(reporter.isSynchronised).toBe(false)
+        expect(signal!.aborted).toBe(false)
+        await vi.advanceTimersByTimeAsync(1)
+
+        expect(signal!.aborted).toBe(true)
         expect(reporter['_isDisabled']).toBe(true)
+        expect(reporter['_isSynchronising']).toBe(false)
+        expect(reporter.isSynchronised).toBe(true)
+        expect(vi.getTimerCount()).toBe(0)
+        expect(logger('').error).toHaveBeenCalledExactlyOnceWith(
+            'Sumo Logic reporter shutdown timeout reached; discarding 2 queued events'
+        )
+        await vi.advanceTimersByTimeAsync(30000)
+        expect(fetch).toHaveBeenCalledTimes(1)
+    })
+
+    it('should abort a request started before runner:end at the custom shutdown deadline', async () => {
+        reporter['_options'].shutdownTimeout = 200
+        reporter.onRunnerStart('onRunnerStart' as any)
+        let signal: AbortSignal
+        vi.mocked(fetch).mockImplementation((_input, init) => new Promise((_, reject) => {
+            signal = (init as RequestInit).signal!
+            signal.addEventListener('abort', () => reject(new Error('timed out')))
+        }))
+        const syncing = reporter.sync()
+        await vi.advanceTimersByTimeAsync(5000)
+        expect(signal!.aborted).toBe(false)
+        reporter.onRunnerEnd('onRunnerEnd' as any)
+        await vi.advanceTimersByTimeAsync(200)
+        await syncing
+
+        expect(signal!.aborted).toBe(true)
+        expect(fetch).toHaveBeenCalledTimes(1)
+        expect(logger('').error).toHaveBeenCalledTimes(1)
+        expect(reporter.isSynchronised).toBe(true)
+        expect(vi.getTimerCount()).toBe(0)
+    })
+
+    it('should not extend shutdown after a successful batch', async () => {
+        reporter['_options'].shutdownTimeout = 250
+        for (let index = 0; index < 201; index++) {
+            reporter.onTestStart({ index } as any)
+        }
+        reporter.onRunnerEnd('onRunnerEnd' as any)
+        vi.mocked(fetch).mockResolvedValueOnce({ ok: true, status: 200 } as Response)
+            .mockResolvedValue({ ok: false, status: 500 } as Response)
+
+        await vi.advanceTimersByTimeAsync(250)
+
+        expect(fetch).toHaveBeenCalledTimes(2)
+        expect(reporter['_isDisabled']).toBe(true)
+        expect(logger('').error).toHaveBeenLastCalledWith(
+            'Sumo Logic reporter shutdown timeout reached; discarding 102 queued events'
+        )
+        expect(vi.getTimerCount()).toBe(0)
+    })
+
+    it('should clear the shutdown timer after a successful final flush', async () => {
+        reporter.onRunnerEnd('onRunnerEnd' as any)
+        await reporter.sync()
+        expect(vi.getTimerCount()).toBe(0)
+
+        await vi.advanceTimersByTimeAsync(5000)
+        expect(reporter['_isDisabled']).toBe(false)
+        expect(logger('').error).not.toHaveBeenCalled()
+    })
+
+    it('should ignore a late successful response after the shutdown deadline', async () => {
+        reporter['_options'].shutdownTimeout = 50
+        let resolveResponse: (response: Response) => void
+        vi.mocked(fetch).mockImplementation(() => new Promise(resolve => { resolveResponse = resolve }))
+        reporter.onRunnerEnd('onRunnerEnd' as any)
+        const syncing = reporter.sync()
+        await vi.advanceTimersByTimeAsync(50)
+        resolveResponse!({ ok: true, status: 200 } as Response)
+        await syncing
+
+        expect(reporter['_isDisabled']).toBe(true)
+        expect(logger('').error).toHaveBeenCalledTimes(1)
+        expect(vi.getTimerCount()).toBe(0)
+    })
+
+    it('should clear the shutdown timer on a permanent HTTP failure', async () => {
+        reporter.onRunnerEnd('onRunnerEnd' as any)
+        vi.mocked(fetch).mockResolvedValue({ ok: false, status: 401 } as Response)
+        await reporter.sync()
+        await vi.advanceTimersByTimeAsync(5000)
+
+        expect(reporter['_isDisabled']).toBe(true)
+        expect(logger('').error).toHaveBeenCalledTimes(1)
+        expect(vi.getTimerCount()).toBe(0)
+    })
+
+    it.each([
+        [undefined, 4000], [0, 4000], [-1, 4000], [NaN, 4000], [Infinity, 4000],
+        [0.5, 1], [200, 200], [Number.MAX_VALUE, 2_147_483_647]
+    ])('should normalize shutdownTimeout %s to %s', (value, expected) => {
+        reporter['_options'].shutdownTimeout = value
+        expect(reporter['_getShutdownTimeout']()).toBe(expected)
     })
 
     it('should disable itself after the configured number of transient failures', async () => {

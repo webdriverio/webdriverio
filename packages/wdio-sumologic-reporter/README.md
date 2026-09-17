@@ -39,7 +39,8 @@ module.exports = {
         // define sync interval how often logs get pushed to Sumologic
         syncInterval: 100,
         maxRetries: 5,
-        requestTimeout: 250,
+        requestTimeout: 30000,
+        shutdownTimeout: 4000,
         // endpoint of collector source
         sourceAddress: process.env.SUMO_SOURCE_ADDRESS
     }]
@@ -50,9 +51,11 @@ module.exports = {
 
 ### Delivery behaviour
 
-Each collector request is limited to a positive `requestTimeout` in milliseconds (default: `250`); non-positive or invalid values use the default. Transient failures — network errors, `408`, `429`, and `5xx` responses — are retried with backoff. `maxRetries` counts retries after the initial delivery attempt and defaults to `5`.
+Each collector request is limited to a positive `requestTimeout` in milliseconds (default: `30000`); non-positive or invalid values use the default. Transient failures — network errors, `408`, `429`, and `5xx` responses — are retried with backoff. `maxRetries` counts retries after the initial delivery attempt and defaults to `5`. A successful batch resets the retry counter.
 
-Other unsuccessful HTTP responses disable the reporter immediately. When its retry limit is reached, the reporter stops its timer, discards its remaining queued logs, and no longer blocks WebdriverIO shutdown. Retries provide at-least-once delivery, so a request that times out after the collector accepts it can produce duplicate logs. If you increase `requestTimeout`, `syncInterval`, or `maxRetries`, increase WebdriverIO's `reporterSyncTimeout` enough to cover the full delivery budget.
+Other unsuccessful HTTP responses disable the reporter immediately. When its retry limit is reached, the reporter stops its timer and discards its remaining queued logs. Delivery is best effort: logs may be lost, and retries can produce duplicates if the collector accepts a request before it times out.
+
+After `runner:end`, `shutdownTimeout` limits the total time for remaining delivery attempts (default: `4000` milliseconds). Successful batches do not reset this deadline. When it expires, the reporter aborts the active request, stops its timers, discards pending logs, and logs their count. Non-positive or invalid values use the default; positive finite values are rounded up and capped at `2147483647`. Keep `shutdownTimeout` below WebdriverIO's `reporterSyncTimeout` (default: `5000`), with enough margin for `reporterSyncInterval` polling. A longer shutdown budget may require increasing both options. The shutdown deadline may expire before all configured retries are used.
 
 After running the first tests with the reporter you should be able to check out the tests logs with the following query:
 
