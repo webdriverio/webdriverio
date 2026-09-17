@@ -127,6 +127,7 @@ describe('url', () => {
             mockMock.requestOnce.mockClear()
             mockMock.restore.mockClear()
             networkManager.getPendingRequests.mockClear()
+            networkManager.getRequestResponseData.mockClear()
         })
 
         it('should use browsingContextNavigate', async () => {
@@ -205,6 +206,50 @@ describe('url', () => {
             expect(browsingContextNavigate).toBeCalledWith(expect.objectContaining({
                 wait: 'complete' // Default fallback for networkIdle in browsingContextNavigate
             }))
+        })
+
+        it('should skip network idle wait when navigation id is null', async () => {
+            browsingContextNavigate.mockImplementation((async () => ({
+                navigation: null
+            })) as any)
+
+            await expect(browser.url('http://google.com', { wait: 'networkIdle' }))
+                .resolves.toBeUndefined()
+            expect(networkManager.getPendingRequests).not.toHaveBeenCalled()
+            expect(networkManager.getRequestResponseData).not.toHaveBeenCalled()
+        })
+
+        it('should remove preload script when navigation falls back to classic', async () => {
+            const remove = vi.fn()
+            addInitScript.mockResolvedValue({ remove } as any)
+            browsingContextNavigate.mockImplementation((async () => {
+                throw new Error('navigation canceled by concurrent navigation')
+            }) as any)
+
+            await expect(browser.url('http://google.com', {
+                onBeforeLoad: () => {
+                    console.log('onBeforeLoad')
+                }
+            })).resolves.toBeUndefined()
+
+            expect(addInitScript).toBeCalledTimes(1)
+            expect(remove).toHaveBeenCalledTimes(1)
+        })
+
+        it('should remove preload script when navigation fails', async () => {
+            const remove = vi.fn()
+            addInitScript.mockResolvedValue({ remove } as any)
+            browsingContextNavigate.mockImplementation((async () => {
+                throw new Error('navigation failed')
+            }) as any)
+
+            await expect(browser.url('http://google.com', {
+                onBeforeLoad: () => {
+                    console.log('onBeforeLoad')
+                }
+            })).rejects.toThrow('navigation failed')
+
+            expect(remove).toHaveBeenCalledTimes(1)
         })
     })
 })
