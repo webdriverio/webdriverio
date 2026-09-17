@@ -76,40 +76,112 @@ export default class SumoLogicReporter extends WDIOReporter {
     }
 
     onRunnerStart(runner: RunnerStats) {
-        this._addEvent('runner:start', runner)
+        if (this._isDisabled) {
+            return
+        }
+
+        this._unsynced.push(stringify({
+            time: formatDate(new Date()),
+            event: 'runner:start',
+            data: runner
+        }))
     }
 
     onSuiteStart(suite: SuiteStats) {
-        this._addEvent('suite:start', suite)
+        if (this._isDisabled) {
+            return
+        }
+
+        this._unsynced.push(stringify({
+            time: formatDate(new Date()),
+            event: 'suite:start',
+            data: suite
+        }))
     }
 
     onTestStart(test: TestStats) {
-        this._addEvent('test:start', test)
+        if (this._isDisabled) {
+            return
+        }
+
+        this._unsynced.push(stringify({
+            time: formatDate(new Date()),
+            event: 'test:start',
+            data: test
+        }))
     }
 
     onTestSkip(test: TestStats) {
-        this._addEvent('test:skip', test)
+        if (this._isDisabled) {
+            return
+        }
+
+        this._unsynced.push(stringify({
+            time: formatDate(new Date()),
+            event: 'test:skip',
+            data: test
+        }))
     }
 
     onTestPass(test: TestStats) {
-        this._addEvent('test:pass', test)
+        if (this._isDisabled) {
+            return
+        }
+
+        this._unsynced.push(stringify({
+            time: formatDate(new Date()),
+            event: 'test:pass',
+            data: test
+        }))
     }
 
     onTestFail(test: TestStats) {
-        this._addEvent('test:fail', test)
+        if (this._isDisabled) {
+            return
+        }
+
+        this._unsynced.push(stringify({
+            time: formatDate(new Date()),
+            event: 'test:fail',
+            data: test
+        }))
     }
 
     onTestEnd(test: TestStats) {
-        this._addEvent('test:end', test)
+        if (this._isDisabled) {
+            return
+        }
+
+        this._unsynced.push(stringify({
+            time: formatDate(new Date()),
+            event: 'test:end',
+            data: test
+        }))
     }
 
     onSuiteEnd(suite: SuiteStats) {
-        this._addEvent('suite:end', suite)
+        if (this._isDisabled) {
+            return
+        }
+
+        this._unsynced.push(stringify({
+            time: formatDate(new Date()),
+            event: 'suite:end',
+            data: suite
+        }))
     }
 
     onRunnerEnd(runner: RunnerStats) {
         this._hasRunnerEnd = true
-        this._addEvent('runner:end', runner)
+        if (this._isDisabled) {
+            return
+        }
+
+        this._unsynced.push(stringify({
+            time: formatDate(new Date()),
+            event: 'runner:end',
+            data: runner
+        }))
     }
 
     async sync() {
@@ -188,18 +260,6 @@ export default class SumoLogicReporter extends WDIOReporter {
         } finally {
             this._isSynchronising = false
         }
-    }
-
-    private _addEvent(event: string, data: unknown) {
-        if (this._isDisabled) {
-            return
-        }
-
-        this._unsynced.push(stringify({
-            time: formatDate(new Date()),
-            event,
-            data
-        }))
     }
 
     private _isRetryableStatus(status: number) {
