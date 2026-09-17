@@ -761,44 +761,6 @@ describe('startWebDriver', () => {
             )
         )
     })
-    it('should add a unique user-data-dir on Windows for standalone Chrome sessions', async () => {
-        // @ts-ignore
-        os.__setPlatform('win32')
-
-        const originalPlatform = process.platform
-        Object.defineProperty(process, 'platform', {
-            value: 'win32',
-            writable: true,
-            configurable: true
-        })
-        delete process.env.WDIO_WORKER_ID
-        vi.mocked(cp.spawn).mockClear()
-
-        const options: any = {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        }
-
-        await startWebDriver(options)
-
-        const chromeArgs = options.capabilities['goog:chromeOptions'].args
-        const userDataArg = chromeArgs.find((a: string) =>
-            a.startsWith('--user-data-dir=')
-        )
-
-        expect(userDataArg).toBeDefined()
-        expect(userDataArg).toContain('wdio-chrome-standalone-')
-
-        // @ts-ignore
-        os.__setPlatform('linux')
-        Object.defineProperty(process, 'platform', {
-            value: originalPlatform,
-            writable: true,
-            configurable: true
-        })
-    })
-
     it('should add a unique user-data-dir on Windows for Chrome workers', async () => {
         // Change the mocked OS to Windows
         // @ts-ignore

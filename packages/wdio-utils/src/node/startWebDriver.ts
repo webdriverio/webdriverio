@@ -123,20 +123,19 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
             )
 
             /**
-             * Add unique user data directory for each session to prevent
+             * Add unique user data directory for each worker to prevent
              * "user data directory is already in use" errors on Windows
-             * when multiple Chrome instances start simultaneously.
+             * when multiple workers start Chrome simultaneously
              */
-            if (process.platform === 'win32') {
+            if (process.platform === 'win32' && process.env.WDIO_WORKER_ID) {
                 const existingArgs = caps['goog:chromeOptions']?.args || []
                 const hasUserDataDir = existingArgs.some(arg =>
                     typeof arg === 'string' && arg.includes('user-data-dir'))
 
                 if (!hasUserDataDir) {
-                    const sessionId = process.env.WDIO_WORKER_ID || `standalone-${process.pid}`
                     const userDataDir = path.join(
                         options.outputDir || os.tmpdir(),
-                        `wdio-chrome-${sessionId}-${Date.now()}`
+                        `wdio-chrome-${process.env.WDIO_WORKER_ID}-${Date.now()}`
                     )
                     caps['goog:chromeOptions'].args = [...existingArgs, `--user-data-dir=${userDataDir}`]
                 }
