@@ -251,5 +251,21 @@ describe('url', () => {
 
             expect(remove).toHaveBeenCalledTimes(1)
         })
+
+        it('should preserve the navigation error when preload cleanup also fails', async () => {
+            const remove = vi.fn().mockRejectedValue(new Error('script.removePreloadScript'))
+            addInitScript.mockResolvedValue({ remove } as any)
+            browsingContextNavigate.mockImplementation((async () => {
+                throw new Error('navigation failed')
+            }) as any)
+
+            await expect(browser.url('http://google.com', {
+                onBeforeLoad: () => {
+                    console.log('onBeforeLoad')
+                }
+            })).rejects.toThrow('navigation failed')
+
+            expect(remove).toHaveBeenCalledTimes(1)
+        })
     })
 })
