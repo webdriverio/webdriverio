@@ -25,6 +25,7 @@ const log = logger('webdriver')
 interface SessionClient extends Client {
     __protocolCommandNames__?: string[]
     __environmentEncoding__?: boolean
+    __commandWrapper__?: (...args: any[]) => any
 }
 
 const getProtocolCommandNames = (instance: SessionClient): string[] => instance.__protocolCommandNames__ ?? []
@@ -49,6 +50,17 @@ const applyProtocolCommandNames = (client: Client, protocolCommands: Record<stri
  */
 const applyEnvironmentEncoding = (client: Client, isSeleniumStandalone?: boolean) => {
     ;(client as SessionClient).__environmentEncoding__ = isSeleniumStandalone
+    return client
+}
+
+/**
+ * stores the command wrapper that was applied to the command surface at
+ * creation time (e.g. WebdriverIO's `wrapCommand` to enable `beforeCommand`
+ * and `afterCommand` hooks) so that `reloadSession` can rebuild commands
+ * through the same wrapper instead of installing raw descriptors.
+ */
+const applyCommandWrapper = (client: Client, commandWrapper?: (...args: any[]) => any) => {
+    ;(client as SessionClient).__commandWrapper__ = commandWrapper
     return client
 }
 
@@ -110,6 +122,7 @@ export default class WebDriver {
         )
         const client = applyProtocolCommandNames(monad(sessionId, customCommandWrapper, implicitWaitExclusionList), protocolCommands, userPrototype)
         applyEnvironmentEncoding(client, environment.isSeleniumStandalone)
+        applyCommandWrapper(client, customCommandWrapper)
 
         /**
          * parse and propagate all Bidi events to the browser instance
@@ -186,6 +199,7 @@ export default class WebDriver {
         const monad = webdriverMonad(options, modifier, prototype)
         const client = applyProtocolCommandNames(monad(options.sessionId, commandWrapper), protocolCommands, userPrototype)
         applyEnvironmentEncoding(client, (options as Partial<SessionFlags>).isSeleniumStandalone)
+        applyCommandWrapper(client, commandWrapper)
 
         /**
          * parse and propagate all Bidi events to the browser instance
@@ -291,6 +305,20 @@ export default class WebDriver {
         const encodingChanged = previousEncoding !== environment.isSeleniumStandalone
 
         /**
+         * rebuild protocol commands through the same command wrapper that was
+         * applied at creation time (e.g. WebdriverIO's `wrapCommand` for
+         * `beforeCommand`/`afterCommand` hooks) so that the hooks keep
+         * applying to commands that are recreated or added on reload
+         */
+        const commandWrapper = (instance as SessionClient).__commandWrapper__
+        const installCommand = (commandName: string, descriptor: PropertyDescriptor) => {
+            const value = typeof commandWrapper === 'function'
+                ? commandWrapper(commandName, descriptor.value)
+                : descriptor.value
+            Object.defineProperty(instance, commandName, { ...descriptor, value })
+        }
+
+        /**
          * rebuild the protocol command surface of the instance:
          * - commands that were contributed by the protocols at creation time
          *   are kept (or recreated if the URL variable encoding changed) and
@@ -319,7 +347,7 @@ export default class WebDriver {
                  * since it reads the session id dynamically.
                  */
                 if (encodingChanged) {
-                    Object.defineProperty(instance, commandName, descriptor)
+                    installCommand(commandName, descriptor)
                 }
                 nextProtocolCommandNames.push(commandName)
                 continue
@@ -329,7 +357,7 @@ export default class WebDriver {
                 continue
             }
 
-            Object.defineProperty(instance, commandName, descriptor)
+            installCommand(commandName, descriptor)
             nextProtocolCommandNames.push(commandName)
         }
         ;(instance as SessionClient).__protocolCommandNames__ = nextProtocolCommandNames

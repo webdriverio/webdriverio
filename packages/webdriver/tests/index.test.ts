@@ -532,6 +532,38 @@ describe('WebDriver', () => {
             await (session as TestClient).elementClick('some id').catch(() => {})
             expect(endpoints.pop()).toBe('/session/:sessionId/element/some%2520id/click')
         })
+
+        it('rebuilds recreated commands through the command wrapper on reload', async () => {
+            const wrappedCommands: string[] = []
+            const customCommandWrapper = function (name: string, fn: Function) {
+                return async function (this: unknown, ...args: unknown[]) {
+                    wrappedCommands.push(name)
+                    return fn.apply(this, args)
+                }
+            }
+            const session = await WebDriver.newSession(
+                { path: '/', capabilities: { browserName: 'firefox' } },
+                undefined,
+                {},
+                customCommandWrapper
+            )
+            await (session as TestClient).elementClick('some-id')
+            expect(wrappedCommands).toEqual(['elementClick'])
+
+            wrappedCommands.length = 0
+            // @ts-expect-error mock feature
+            vi.mocked(fetch).customResponseFor(/\/session/, {
+                value: {
+                    sessionId: 'standalone-session',
+                    capabilities: { browserName: 'chrome', 'se:cdp': {} }
+                },
+                sessionId: 'standalone-session'
+            })
+            await WebDriver.reloadSession(session, { browserName: 'chrome' })
+
+            await (session as TestClient).elementClick('some-id').catch(() => {})
+            expect(wrappedCommands).toContain('elementClick')
+        })
     })
 
     it('ensure that WebDriver interface exports protocols and other objects', () => {
