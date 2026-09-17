@@ -336,7 +336,14 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isAppium
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
         for (const [method, commandData] of Object.entries(methods)) {
-            prototype[commandData.command] = { value: command(method, endpoint, commandData, isSeleniumStandalone) }
+            prototype[commandData.command] = {
+                /**
+                 * commands need to be configurable so that `reloadSession` can
+                 * replace the command surface for a recreated session
+                 */
+                value: command(method, endpoint, commandData, isSeleniumStandalone),
+                configurable: true
+            }
         }
     }
 
@@ -350,15 +357,19 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isAppium
  * @return {Object}           prototype object
  */
 export function getEnvironmentVars({ isW3C, isMobile, isAppium, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium, isWindowsApp, isMacApp }: Partial<SessionFlags>): PropertyDescriptorMap {
+    /**
+     * all flags need to be configurable so that `reloadSession` can re-apply
+     * the environment detection result of the recreated session
+     */
     return {
-        isW3C: { value: isW3C },
-        isMobile: { value: isMobile },
-        isAppium: { value: isAppium },
-        isIOS: { value: isIOS },
-        isAndroid: { value: isAndroid },
-        isFirefox: { value: isFirefox },
-        isSauce: { value: isSauce },
-        isSeleniumStandalone: { value: isSeleniumStandalone },
+        isW3C: { value: isW3C, configurable: true },
+        isMobile: { value: isMobile, configurable: true },
+        isAppium: { value: isAppium, configurable: true },
+        isIOS: { value: isIOS, configurable: true },
+        isAndroid: { value: isAndroid, configurable: true },
+        isFirefox: { value: isFirefox, configurable: true },
+        isSauce: { value: isSauce, configurable: true },
+        isSeleniumStandalone: { value: isSeleniumStandalone, configurable: true },
         isBidi: {
             /**
              * Return the value of this flag dynamically based on whether the
@@ -367,11 +378,12 @@ export function getEnvironmentVars({ isW3C, isMobile, isAppium, isIOS, isAndroid
              */
             get: function (this: Client & { _bidiHandler?: BidiHandler }) {
                 return Boolean(this._bidiHandler?.isConnected)
-            }
+            },
+            configurable: true
         },
-        isChromium: { value: isChromium },
-        isWindowsApp: { value: isWindowsApp },
-        isMacApp: { value: isMacApp }
+        isChromium: { value: isChromium, configurable: true },
+        isWindowsApp: { value: isWindowsApp, configurable: true },
+        isMacApp: { value: isMacApp, configurable: true }
     }
 }
 

@@ -16,6 +16,31 @@ import type { Client, AttachOptions, SessionFlags } from './types.js'
 
 const log = logger('webdriver')
 
+/**
+ * client session with the protocol command surface that was derived from the
+ * environment detection at session creation time. This is needed by
+ * `reloadSession` to know which commands have been contributed by the protocols
+ * so that the command surface can be rebuilt for a recreated session.
+ */
+interface SessionClient extends Client {
+    __protocolCommandNames__?: string[]
+}
+
+const getProtocolCommandNames = (instance: SessionClient): string[] => instance.__protocolCommandNames__ ?? []
+
+/**
+ * stores the names of all commands contributed by the protocol definitions so
+ * that `reloadSession` can remove commands that are no longer supported by the
+ * new session and add the ones that are. Commands that are overridden by user
+ * defined commands (e.g. `browser.throttleCPU` is provided by WebdriverIO but
+ * also exists in the Sauce Labs protocol) are excluded as they are not owned by
+ * the protocols and must not be removed on reload.
+ */
+const applyProtocolCommandNames = (client: Client, protocolCommands: Record<string, PropertyDescriptor>, userPrototype: Record<string, PropertyDescriptor>) => {
+    ;(client as SessionClient).__protocolCommandNames__ = Object.keys(protocolCommands).filter((name) => !(name in userPrototype))
+    return client
+}
+
 export default class WebDriver {
     static async newSession(
         options: Capabilities.RemoteConfig,
@@ -72,7 +97,7 @@ export default class WebDriver {
                 ...bidiPrototype
             }
         )
-        const client = monad(sessionId, customCommandWrapper, implicitWaitExclusionList)
+        const client = applyProtocolCommandNames(monad(sessionId, customCommandWrapper, implicitWaitExclusionList), protocolCommands, userPrototype)
 
         /**
          * parse and propagate all Bidi events to the browser instance
@@ -147,7 +172,7 @@ export default class WebDriver {
 
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype, ...bidiPrototype }
         const monad = webdriverMonad(options, modifier, prototype)
-        const client = monad(options.sessionId, commandWrapper)
+        const client = applyProtocolCommandNames(monad(options.sessionId, commandWrapper), protocolCommands, userPrototype)
 
         /**
          * parse and propagate all Bidi events to the browser instance
@@ -215,6 +240,51 @@ export default class WebDriver {
             instance.capabilities['wdio:driverPID'] = driverPid
         }
         Object.assign(instance.requestedCapabilities, capabilities)
+
+        /**
+         * re-run the environment detection based on the capabilities of the
+         * replacement session and rebuild the protocol command surface of the
+         * instance, e.g. the `isAppium` flag and the Appium commands have to be
+         * refreshed when reloading between Appium and non-Appium sessions
+         */
+        const environment = sessionEnvironmentDetector({
+            capabilities: newSessionCapabilities,
+            requestedCapabilities: capabilities
+        })
+        const environmentPrototype = getEnvironmentVars(environment)
+        const protocolCommands = getPrototype(environment)
+
+        for (const [flag, descriptor] of Object.entries(environmentPrototype)) {
+            Object.defineProperty(instance, flag, descriptor)
+        }
+
+        /**
+         * remove protocol commands that are no longer supported by the new
+         * session while keeping user defined commands untouched
+         */
+        const previousProtocolCommandNames = getProtocolCommandNames(instance)
+        for (const commandName of previousProtocolCommandNames) {
+            if (!(commandName in protocolCommands) && Object.prototype.hasOwnProperty.call(instance, commandName)) {
+                delete instance[commandName]
+            }
+        }
+
+        /**
+         * add protocol commands that the new session contributes and that are
+         * not already defined (e.g. by user defined commands)
+         */
+        const nextProtocolCommandNames: string[] = []
+        for (const [commandName, descriptor] of Object.entries(protocolCommands)) {
+            if (Object.prototype.hasOwnProperty.call(instance, commandName)) {
+                if (previousProtocolCommandNames.includes(commandName)) {
+                    nextProtocolCommandNames.push(commandName)
+                }
+                continue
+            }
+            Object.defineProperty(instance, commandName, descriptor)
+            nextProtocolCommandNames.push(commandName)
+        }
+        ;(instance as SessionClient).__protocolCommandNames__ = nextProtocolCommandNames
 
         /**
          * reconnect to new Bidi session

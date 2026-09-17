@@ -62,6 +62,9 @@ interface TestClient extends Client {
     rotateDevice (): void
     takeElementScreenshot (): void
     getDeviceTime (): void
+    getAppiumCommands (): void
+    appiumLock (): void
+    findElement (): void
 }
 
 beforeEach(() => {
@@ -410,6 +413,66 @@ describe('WebDriver', () => {
             expect(session.options.protocol).toBe('http')
             expect(session.options.hostname).toBe('localhost')
             expect((session.requestedCapabilities as WebdriverIO.Capabilities)['browserName']).toBe('firefox')
+        })
+
+        it('refreshes the environment flags and adds Appium commands when reloading into a non-mobile Appium session', async () => {
+            const session = await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' }
+            })
+            expect(session.isAppium).toBe(false)
+            // @ts-expect-error mock feature
+            expect((session as TestClient).getAppiumCommands).toBeUndefined()
+
+            vi.mocked(startWebDriver).mockClear()
+            // @ts-expect-error mock feature
+            vi.mocked(fetch).customResponseFor(/\/session/, {
+                value: {
+                    sessionId: 'appium-session',
+                    capabilities: { 'appium:automationName': 'chrome', browserName: 'chrome' }
+                },
+                sessionId: 'appium-session'
+            })
+            await WebDriver.reloadSession(session, { 'appium:automationName': 'chrome', browserName: 'chrome' })
+
+            expect(session.isAppium).toBe(true)
+            expect(session.isMobile).toBe(false)
+            expect(typeof (session as TestClient).getAppiumCommands).toBe('function')
+            expect(typeof (session as TestClient).appiumLock).toBe('function')
+        })
+
+        it('clears stale Appium state when reloading into a regular browser session', async () => {
+            // @ts-expect-error mock feature
+            vi.mocked(fetch).customResponseFor(/\/session/, {
+                value: {
+                    sessionId: 'appium-session',
+                    capabilities: { 'appium:automationName': 'chrome', browserName: 'chrome' }
+                },
+                sessionId: 'appium-session'
+            })
+            const session = await WebDriver.newSession({
+                path: '/',
+                capabilities: { 'appium:automationName': 'chrome', browserName: 'chrome' }
+            })
+            expect(session.isAppium).toBe(true)
+            expect(typeof (session as TestClient).getAppiumCommands).toBe('function')
+
+            vi.mocked(startWebDriver).mockClear()
+            // @ts-expect-error mock feature
+            vi.mocked(fetch).customResponseFor(/\/session/, {
+                value: {
+                    sessionId: 'browser-session',
+                    capabilities: { browserName: 'firefox' }
+                },
+                sessionId: 'browser-session'
+            })
+            await WebDriver.reloadSession(session, { browserName: 'firefox' })
+
+            expect(session.isAppium).toBe(false)
+            expect((session as TestClient).getAppiumCommands).toBeUndefined()
+            expect((session as TestClient).appiumLock).toBeUndefined()
+            // non-Appium commands should still be available
+            expect(typeof (session as TestClient).findElement).toBe('function')
         })
     })
 
