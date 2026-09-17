@@ -14,7 +14,7 @@ import type { WaitUntilOptions } from '../../types.js'
  * @param {Function}          condition  condition to wait on until returning a truthy value
  * @param {WaitUntilOptions=} options    command options
  * @param {Number=}           options.timeout     time in ms (default set based on [`waitforTimeout`](/docs/configuration#waitfortimeout) config value)
- * @param {String=}           options.timeoutMsg  error message to throw when waitUntil times out
+ * @param {String|Function=}  options.timeoutMsg  error message to throw when waitUntil times out. A function is evaluated only after the timeout, so the message can include state from that moment.
  * @param {Number=}           options.interval    interval between condition checks (default set based on [`waitforInterval`](/docs/configuration#waitforinterval) config value)
  * @return {Boolean} true if condition is fulfilled
  * @uses utility/pause
