@@ -153,13 +153,38 @@ export async function throttleNetwork (
 
     const client = await pages[0].target().createCDPSession()
 
-    // Set throttling property
+    /**
+     * Enable the Network domain so that `Network.emulateNetworkConditions`
+     * applies to the page and any newly-registered service workers.
+     */
+    await client.send('Network.enable')
+
+    /**
+     * Set throttling property. Service workers that are already registered
+     * when throttling is applied will NOT pick up the new network conditions.
+     * To ensure the throttling takes effect for service-worker-controlled
+     * pages, we reload the page after setting the conditions. This forces
+     * the browser to re-evaluate the service worker registration under
+     * the new network constraints.
+     * @see https://github.com/webdriverio/webdriverio/issues/7452
+     */
     await client.send(
         'Network.emulateNetworkConditions',
         typeof params === 'string'
             ? NETWORK_PRESETS[params]
             : params
     )
+
+    /**
+     * Reload the page so that service workers pick up the new network
+     * conditions. This is particularly important for offline-first
+     * applications that rely on service workers for caching and network
+     * handling.
+     */
+    await client.send('Page.reload', {
+        ignoreCache: false,
+        scriptToEvaluateOnLoad: ''
+    })
 
     return
 }
