@@ -258,17 +258,14 @@ export class ContextManager extends SessionManager {
          * update frame context if user switches using 'switchToParentFrame'
          */
         if (event.command === 'switchToParentFrame') {
-            if (!this.#currentContext) {
-                return
+            if (this.#currentContext) {
+                this.#browser.browsingContextGetTree({}).then(({ contexts }) => {
+                    const parentContext = this.findParentContext(this.#currentContext!, contexts)
+                    if (parentContext) {
+                        this.setCurrentContext(parentContext.context)
+                    }
+                })
             }
-
-            return this.#browser.browsingContextGetTree({}).then(({ contexts }) => {
-                const parentContext = this.findParentContext(this.#currentContext!, contexts)
-                if (!parentContext) {
-                    return
-                }
-                this.setCurrentContext(parentContext.context)
-            })
         }
 
         /**
@@ -370,7 +367,31 @@ export class ContextManager extends SessionManager {
         if (!this.#currentContext) {
             return this.initialize()
         }
-        return this.#currentContext
+        /**
+         * Verify the cached context is still valid before returning it.
+         * If the context was destroyed (e.g., iframe closed by the page),
+         * re-initialize to get a valid context.
+         */
+        if (this.#browser.isMobile) {
+            return this.#currentContext
+        }
+        try {
+            const { contexts } = await this.#browser.browsingContextGetTree({})
+            const validContext = this.findContext(this.#currentContext, contexts, 'byContextId')
+            if (validContext) {
+                return this.#currentContext
+            }
+            /**
+             * The cached context is no longer valid, re-initialize
+             */
+            this.#currentContext = undefined
+            return this.initialize()
+        } catch {
+            /**
+             * If validation fails, fall back to the cached context
+             */
+            return this.#currentContext
+        }
     }
 
     /**
