@@ -55,10 +55,23 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                 }
 
                 if (err.name === 'stale element reference' || isStaleElementError(err)) {
-                    const element = await refetchElement(this, commandName)
-                    this.elementId = element.elementId
-                    this.parent = element.parent
-                    return await fn(commandName, commandFn).apply(this, args)
+                    try {
+                        const element = await refetchElement(this, commandName)
+                        this.elementId = element.elementId
+                        this.parent = element.parent
+                        return await fn(commandName, commandFn).apply(this, args)
+                    } catch (refetchErr) {
+                        /**
+                         * If refetch fails (e.g., page navigated away and elements
+                         * are no longer found), re-throw the original stale element
+                         * error instead of masking it with "Index out of bounds"
+                         * or other refetch errors.
+                         */
+                        if (!isStaleElementError(refetchErr)) {
+                            throw err
+                        }
+                        throw refetchErr
+                    }
                 }
 
                 throw err
