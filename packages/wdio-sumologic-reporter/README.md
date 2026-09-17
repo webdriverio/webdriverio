@@ -50,9 +50,9 @@ module.exports = {
 
 ### Delivery behaviour
 
-Each collector request is limited to `requestTimeout` milliseconds (default: `250`). Transient failures — network errors, `408`, `429`, and `5xx` responses — are retried with backoff. `maxRetries` counts retries after the initial delivery attempt and defaults to `5`.
+Each collector request is limited to a positive `requestTimeout` in milliseconds (default: `250`); non-positive or invalid values use the default. Transient failures — network errors, `408`, `429`, and `5xx` responses — are retried with backoff. `maxRetries` counts retries after the initial delivery attempt and defaults to `5`.
 
-Other unsuccessful HTTP responses disable the reporter immediately. When its retry limit is reached, the reporter stops its timer, discards its remaining queued logs, and no longer blocks WebdriverIO shutdown. If you increase `requestTimeout`, `syncInterval`, or `maxRetries`, increase WebdriverIO's `reporterSyncTimeout` enough to cover the full delivery budget.
+Other unsuccessful HTTP responses disable the reporter immediately. When its retry limit is reached, the reporter stops its timer, discards its remaining queued logs, and no longer blocks WebdriverIO shutdown. Retries provide at-least-once delivery, so a request that times out after the collector accepts it can produce duplicate logs. If you increase `requestTimeout`, `syncInterval`, or `maxRetries`, increase WebdriverIO's `reporterSyncTimeout` enough to cover the full delivery budget.
 
 After running the first tests with the reporter you should be able to check out the tests logs with the following query:
 

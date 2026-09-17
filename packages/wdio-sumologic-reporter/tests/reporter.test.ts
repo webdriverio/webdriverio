@@ -240,6 +240,23 @@ describe('wdio-sumologic-reporter', () => {
         )
     })
 
+    it('should normalize requestTimeout to a value AbortSignal.timeout accepts', async () => {
+        reporter = new SumoLogicReporter({ sourceAddress: 'http://localhost:1234', requestTimeout: 0 })
+        expect(reporter['_getRequestTimeout']()).toBe(250)
+
+        reporter = new SumoLogicReporter({ sourceAddress: 'http://localhost:1234', requestTimeout: 0.5 })
+        reporter.onRunnerStart('onRunnerStart' as any)
+
+        await reporter.sync()
+
+        expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1)
+        expect(reporter['_getRequestTimeout']()).toBe(1)
+
+        reporter = new SumoLogicReporter({ sourceAddress: 'http://localhost:1234', requestTimeout: Number.MAX_VALUE })
+        expect(reporter['_getRequestTimeout']()).toBe(2_147_483_647)
+        expect(() => AbortSignal.timeout(reporter['_getRequestTimeout']())).not.toThrow()
+    })
+
     it('should disable after all default retries for timed out requests before the runner timeout', async () => {
         vi.setSystemTime(0)
         reporter.onRunnerStart('onRunnerStart' as any)

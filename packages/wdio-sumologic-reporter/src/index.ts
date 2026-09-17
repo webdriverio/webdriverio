@@ -12,6 +12,7 @@ const MAX_LINES = 100
 const MAX_RETRY_DELAY = 1000
 const DEFAULT_MAX_RETRIES = 5
 const DEFAULT_REQUEST_TIMEOUT = 250
+const MAX_REQUEST_TIMEOUT = 2_147_483_647
 
 /**
  * Format date to match dateformat pattern 'yyyy-mm-dd HH:mm:ss,l o'
@@ -232,8 +233,8 @@ export default class SumoLogicReporter extends WDIOReporter {
 
     private _getRequestTimeout() {
         const { requestTimeout } = this._options
-        return typeof requestTimeout === 'number' && Number.isFinite(requestTimeout) && requestTimeout >= 0
-            ? requestTimeout
+        return typeof requestTimeout === 'number' && Number.isFinite(requestTimeout) && requestTimeout > 0
+            ? Math.min(Math.ceil(requestTimeout), MAX_REQUEST_TIMEOUT)
             : DEFAULT_REQUEST_TIMEOUT
     }
 
