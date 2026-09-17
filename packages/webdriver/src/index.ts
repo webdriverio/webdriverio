@@ -24,6 +24,7 @@ const log = logger('webdriver')
  */
 interface SessionClient extends Client {
     __protocolCommandNames__?: string[]
+    __environmentEncoding__?: boolean
 }
 
 const getProtocolCommandNames = (instance: SessionClient): string[] => instance.__protocolCommandNames__ ?? []
@@ -38,6 +39,16 @@ const getProtocolCommandNames = (instance: SessionClient): string[] => instance.
  */
 const applyProtocolCommandNames = (client: Client, protocolCommands: Record<string, PropertyDescriptor>, userPrototype: Record<string, PropertyDescriptor>) => {
     ;(client as SessionClient).__protocolCommandNames__ = Object.keys(protocolCommands).filter((name) => !(name in userPrototype))
+    return client
+}
+
+/**
+ * stores the `isSeleniumStandalone` flag that was baked into the protocol
+ * command closures so that `reloadSession` can detect when the URL variable
+ * encoding policy changes and recreate the affected commands.
+ */
+const applyEnvironmentEncoding = (client: Client, isSeleniumStandalone?: boolean) => {
+    ;(client as SessionClient).__environmentEncoding__ = isSeleniumStandalone
     return client
 }
 
@@ -98,6 +109,7 @@ export default class WebDriver {
             }
         )
         const client = applyProtocolCommandNames(monad(sessionId, customCommandWrapper, implicitWaitExclusionList), protocolCommands, userPrototype)
+        applyEnvironmentEncoding(client, environment.isSeleniumStandalone)
 
         /**
          * parse and propagate all Bidi events to the browser instance
@@ -173,6 +185,7 @@ export default class WebDriver {
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype, ...bidiPrototype }
         const monad = webdriverMonad(options, modifier, prototype)
         const client = applyProtocolCommandNames(monad(options.sessionId, commandWrapper), protocolCommands, userPrototype)
+        applyEnvironmentEncoding(client, (options as Partial<SessionFlags>).isSeleniumStandalone)
 
         /**
          * parse and propagate all Bidi events to the browser instance
@@ -270,21 +283,57 @@ export default class WebDriver {
         }
 
         /**
-         * add protocol commands that the new session contributes and that are
-         * not already defined (e.g. by user defined commands)
+         * the URL variable encoding policy is baked into the command closures
+         * at creation time (`isSeleniumStandalone` enables double encoding of
+         * URL variables), so all commands have to be recreated if it changed
+         */
+        const previousEncoding = (instance as SessionClient).__environmentEncoding__ ?? false
+        const encodingChanged = previousEncoding !== environment.isSeleniumStandalone
+
+        /**
+         * rebuild the protocol command surface of the instance:
+         * - commands that were contributed by the protocols at creation time
+         *   are kept (or recreated if the URL variable encoding changed) and
+         *   stay tracked. If their own property is missing they have been
+         *   overridden via `overwriteCommand`, which lifts the override onto
+         *   the instance prototype - defining the built-in command here would
+         *   shadow the user's override, so they are left untouched.
+         * - commands that were not contributed by the protocols (user defined
+         *   commands and commands the user overrode through the user
+         *   prototype) are never touched, even if they collide with a command
+         *   of the new protocol surface.
+         * - commands that are genuinely new to the protocol surface are added
+         *   and tracked.
          */
         const nextProtocolCommandNames: string[] = []
         for (const [commandName, descriptor] of Object.entries(protocolCommands)) {
-            if (Object.prototype.hasOwnProperty.call(instance, commandName)) {
-                if (previousProtocolCommandNames.includes(commandName)) {
-                    nextProtocolCommandNames.push(commandName)
+            if (previousProtocolCommandNames.includes(commandName)) {
+                if (!Object.prototype.hasOwnProperty.call(instance, commandName)) {
+                    continue
                 }
+
+                /**
+                 * only recreate a command when the encoding policy changed. In
+                 * all other cases the existing command - including any wrapper
+                 * - is kept as is and keeps working against the new session
+                 * since it reads the session id dynamically.
+                 */
+                if (encodingChanged) {
+                    Object.defineProperty(instance, commandName, descriptor)
+                }
+                nextProtocolCommandNames.push(commandName)
                 continue
             }
+
+            if (commandName in instance) {
+                continue
+            }
+
             Object.defineProperty(instance, commandName, descriptor)
             nextProtocolCommandNames.push(commandName)
         }
         ;(instance as SessionClient).__protocolCommandNames__ = nextProtocolCommandNames
+        ;(instance as SessionClient).__environmentEncoding__ = environment.isSeleniumStandalone
 
         /**
          * reconnect to new Bidi session
