@@ -292,7 +292,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: unknown) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone, isAppium }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ProtocolCommands = deepmerge<any>(
@@ -314,6 +314,11 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
          */
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         isMobile ? deepmerge<any>(MJsonWProtocol, AppiumProtocol) : {},
+        /**
+         * apply Appium protocol commands for non-mobile Appium sessions, e.g.
+         * desktop browser drivers wrapped by an Appium server (see #15600)
+         */
+        !isMobile && isAppium ? AppiumProtocol : {},
         /**
          * only apply special Chromium commands if session is using Chrome or Edge
          */
@@ -349,7 +354,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium, isWindowsApp, isMacApp }: Partial<SessionFlags>): PropertyDescriptorMap {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium, isWindowsApp, isMacApp, isAppium }: Partial<SessionFlags>): PropertyDescriptorMap {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
@@ -370,7 +375,8 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefo
         },
         isChromium: { value: isChromium },
         isWindowsApp: { value: isWindowsApp },
-        isMacApp: { value: isMacApp }
+        isMacApp: { value: isMacApp },
+        isAppium: { value: isAppium }
     }
 }
 

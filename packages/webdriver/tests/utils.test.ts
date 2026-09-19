@@ -94,6 +94,15 @@ describe('utils', () => {
         })
         expect(saucePrototype instanceof Object).toBe(true)
         expect(typeof saucePrototype.getPageLogs.value).toBe('function')
+
+        const appiumDesktopPrototype = getPrototype({
+            isW3C: true, isChromium, isMobile: false, isSauce, isSeleniumStandalone, isIOS, isAndroid, isAppium: true
+        })
+        expect(appiumDesktopPrototype instanceof Object).toBe(true)
+        // Appium protocol commands are available for non-mobile Appium sessions (#15600)
+        expect(typeof appiumDesktopPrototype.appiumLock.value).toBe('function')
+        // MJSONWP legacy commands stay mobile-only
+        expect(typeof appiumDesktopPrototype.getNetworkConnection).toBe('undefined')
     })
 
     describe('getBidiRequestOptions', () => {

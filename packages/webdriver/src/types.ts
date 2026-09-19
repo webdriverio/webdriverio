@@ -29,6 +29,7 @@ export interface SessionFlags {
     isBidi: boolean
     isWindowsApp: boolean
     isMacApp: boolean
+    isAppium: boolean
 }
 
 type Fn = (...args: unknown[]) => unknown

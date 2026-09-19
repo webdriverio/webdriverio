@@ -422,6 +422,29 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: standalonev4Caps, requestedCapabilities }).isSeleniumStandalone).toBe(true)
     })
 
+    it('isAppium', () => {
+        const requestedCapabilities = { browserName: '' }
+        // Appium session responses carry an automationName
+        expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isAppium).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: experitestAppiumCaps, requestedCapabilities }).isAppium).toBe(true)
+        // desktop browser driver wrapped by Appium: not mobile, but still Appium (#15600)
+        const appiumWrappedSafariCaps = { browserName: 'safari', platformName: 'mac', 'appium:automationName': 'safari' } as WebdriverIO.Capabilities
+        const detected = sessionEnvironmentDetector({ capabilities: appiumWrappedSafariCaps, requestedCapabilities })
+        expect(detected.isAppium).toBe(true)
+        expect(detected.isMobile).toBe(false)
+        // namespaced capabilities without automationName still indicate Appium
+        const appiumOptionsCaps = { browserName: 'chrome', 'appium:options': { automationName: 'uiautomator2' } } as unknown as WebdriverIO.Capabilities
+        expect(sessionEnvironmentDetector({ capabilities: appiumOptionsCaps, requestedCapabilities }).isAppium).toBe(true)
+        // plain driver sessions are not Appium
+        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isAppium).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isAppium).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isAppium).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: safariCaps, requestedCapabilities }).isAppium).toBe(false)
+        // capabilitiesEnvironmentDetector exposes the flag as well
+        expect(capabilitiesEnvironmentDetector(appiumWrappedSafariCaps).isAppium).toBe(true)
+        expect(capabilitiesEnvironmentDetector(chromeCaps).isAppium).toBe(false)
+    })
+
     it('should not detect mobile app for browserName===undefined', function () {
         const requestedCapabilities = { browserName: '' }
         const capabilities = {}

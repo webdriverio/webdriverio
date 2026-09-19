@@ -113,6 +113,28 @@ function getAutomationName(capabilities: ExtendedCapabilities) {
 }
 
 /**
+ * check if the session is backed by an Appium server, regardless of whether the
+ * session targets a mobile device or a desktop browser driver wrapped by Appium
+ * (e.g. Appium's `safari` or `gecko` driver). Sessions like the latter have
+ * `isMobile: false` but still expose Appium protocol endpoints on the server,
+ * so Appium specific commands should be available on them. See also
+ * https://github.com/webdriverio/webdriverio/issues/15600
+ *
+ * Detects W3C namespaced (`appium:*`) as well as legacy non-namespaced
+ * Appium capabilities (e.g. `automationName`, `appiumVersion`).
+ *
+ * @param  {Object}  capabilities  capabilities
+ * @return {Boolean}               true if session is served by Appium
+ */
+function isAppium(capabilities: WebdriverIO.Capabilities) {
+    return Boolean(
+        getAutomationName(capabilities) ||
+        capabilities['appium:options'] ||
+        Object.keys(capabilities).some((cap) => cap.startsWith('appium'))
+    )
+}
+
+/**
  * check if current platform is mobile device
  *
  * @param  {Object}  capabilities  capabilities
@@ -332,7 +354,8 @@ export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabi
         isBidi: isBidi(capabilities),
         isChromium: isChromium(capabilities),
         isWindowsApp: isWindowsApp(capabilities),
-        isMacApp: isMacApp(capabilities)
+        isMacApp: isMacApp(capabilities),
+        isAppium: isAppium(capabilities)
     }
 }
 
@@ -361,6 +384,7 @@ export function sessionEnvironmentDetector({
         isBidi: isBidi(capabilities),
         isChromium: isChromium(capabilities),
         isWindowsApp: isWindowsApp(capabilities),
-        isMacApp: isMacApp(capabilities)
+        isMacApp: isMacApp(capabilities),
+        isAppium: isAppium(capabilities)
     }
 }
