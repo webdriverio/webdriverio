@@ -3,7 +3,7 @@ import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppete
 
 import CommandHandler from './commands.js'
 import type Auditor from './auditor.js'
-import { setUnsupportedCommand, getLighthouseDriver } from './utils.js'
+import { setUnsupportedCommand } from './utils.js'
 import { DEFAULT_THROTTLE_STATE, NETWORK_STATES } from './constants.js'
 import type { DevtoolsConfig, EnablePerformanceAuditsOptions, PWAAudits } from './types.js'
 
@@ -148,9 +148,7 @@ export default class DevToolsService implements Services.ServiceInstance {
             }
 
             const session = await target.createCDPSession()
-            const driver = await getLighthouseDriver(session, target)
-
-            const cmd = new CommandHandler(session, page, driver, this._options, browser)
+            const cmd = new CommandHandler(session, page, this._options, browser)
             await cmd._initCommand()
             this._command.push(cmd)
         }
@@ -166,7 +164,7 @@ export default class DevToolsService implements Services.ServiceInstance {
 export * from './types.js'
 
 type CommandHandlerCommands = FunctionProperties<CommandHandler>
-type AuditorCommands = Omit<FunctionProperties<Auditor>, '_audit' | '_auditPWA' | 'updateCommands'>
+type AuditorCommands = Omit<FunctionProperties<Auditor>, 'updateCommands'>
 
 /**
  * ToDo(Christian): use key remapping with TS 4.1

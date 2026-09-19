@@ -9,7 +9,10 @@ import logger from '@wdio/logger'
 
 vi.mock('ws')
 vi.mock('puppeteer-core')
-vi.mock('lighthouse/lighthouse-core/fraggle-rock/gather/session')
+vi.mock('lighthouse', () => ({
+    desktopConfig: {},
+    startFlow: vi.fn()
+}))
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../src/commands', () => {
@@ -33,31 +36,16 @@ vi.mock('../src/auditor', () => {
     const updateCommandsMock = vi.fn()
     return {
         default: class {
-            traceEvents: any
-            logs: any
             updateCommands = updateCommandsMock
-
-            constructor (traceEvents: any, logs: any) {
-                this.traceEvents = traceEvents
-                this.logs = logs
-            }
         }
     }
 })
 
 vi.mock('../src/utils', async () => {
-    let wasCalled = false
-
     return {
-        findCDPInterface: vi.fn().mockImplementation(() => {
-            if (!wasCalled) {
-                wasCalled = true
-                return 42
-            }
-            throw new Error('boom')
-        }),
         setUnsupportedCommand: vi.fn(),
-        getLighthouseDriver: vi.fn()
+        sumByKey: vi.fn(),
+        isSupportedUrl: vi.fn()
     }
 })
 
@@ -257,4 +245,37 @@ test('onReload hook', async () => {
     ;(service['_browser'] as any).puppeteer = 'suppose to be reset after reload' as any
     service.onReload()
     expect(service._setupHandler).toBeCalledTimes(1)
+})
+
+test('onReload hook without a browser does nothing', async () => {
+    const service = new DevToolsService({})
+    service._setupHandler = vi.fn()
+    await service.onReload()
+    expect(service._setupHandler).not.toBeCalled()
+})
+
+test('throws if no page target is found', async () => {
+    const puppeteerInstance = await puppeteer.connect({})
+    vi.mocked(puppeteerInstance.waitForTarget).mockResolvedValueOnce(undefined as never)
+    const service = new DevToolsService({})
+    service['_browser'] = {
+        ...browser,
+        getPuppeteer: vi.fn().mockResolvedValue(puppeteerInstance)
+    } as any
+
+    await expect(service._setupHandler()).rejects.toThrow('No page target found')
+})
+
+test('throws if the target has no page', async () => {
+    const puppeteerInstance = await puppeteer.connect({})
+    vi.mocked(puppeteerInstance.waitForTarget).mockResolvedValueOnce({
+        page: vi.fn().mockResolvedValue(undefined)
+    } as never)
+    const service = new DevToolsService({})
+    service['_browser'] = {
+        ...browser,
+        getPuppeteer: vi.fn().mockResolvedValue(puppeteerInstance)
+    } as any
+
+    await expect(service._setupHandler()).rejects.toThrow('No page found')
 })

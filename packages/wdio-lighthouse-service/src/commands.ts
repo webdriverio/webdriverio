@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { desktopConfig, startFlow } from 'lighthouse'
 
 import type { TraceEvent } from '@tracerbench/trace-event'
 import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
@@ -8,23 +9,28 @@ import type { TracingOptions } from 'puppeteer-core/lib/esm/puppeteer/cdp/Tracin
 import type { RequestPayload } from './handler/network.js'
 import NetworkHandler from './handler/network.js'
 
-import { CLICK_TRANSITION, DEFAULT_THROTTLE_STATE, DEFAULT_TRACING_CATEGORIES, NETWORK_STATES } from './constants.js'
-import { sumByKey } from './utils.js'
+import {
+    CLICK_TRANSITION,
+    DEFAULT_THROTTLE_STATE,
+    DEFAULT_TRACING_CATEGORIES,
+    FRAME_LOAD_START_TIMEOUT,
+    NETWORK_STATES,
+    TRACE_COMMANDS
+} from './constants.js'
+import { isSupportedUrl, sumByKey } from './utils.js'
 import type {
     DevtoolsConfig,
     EnablePerformanceAuditsOptions,
     FormFactor,
-    GathererDriver,
+    LighthouseFlow,
     PWAAudits
 } from './types.js'
 import type { CDPSessionOnMessageObject } from './gatherer/devtools.js'
 import DevtoolsGatherer from './gatherer/devtools.js'
 import Auditor from './auditor.js'
-import PWAGatherer from './gatherer/pwa.js'
-import TraceGatherer from './gatherer/trace.js'
+import PWAAuditor from './pwa.js'
 
 const log = logger('@wdio/lighthouse-service:CommandHandler')
-const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
 
 function isCDPSessionOnMessageObject(
     data: unknown
@@ -35,6 +41,10 @@ function isCDPSessionOnMessageObject(
         Object.prototype.hasOwnProperty.call(data, 'params') &&
         Object.prototype.hasOwnProperty.call(data, 'method')
     )
+}
+
+function isTraceCommand (commandName: string): commandName is typeof TRACE_COMMANDS[number] {
+    return (TRACE_COMMANDS as readonly string[]).includes(commandName)
 }
 
 export default class CommandHandler {
@@ -49,27 +59,24 @@ export default class CommandHandler {
     private _networkThrottling?: keyof typeof NETWORK_STATES
     private _formFactor?: FormFactor
 
-    private _traceGatherer?: TraceGatherer
     private _devtoolsGatherer?: DevtoolsGatherer
-    private _pwaGatherer?: PWAGatherer
+    private _pwaAuditor: PWAAuditor
+    private _flow?: LighthouseFlow
+    private _flowInProgress = false
+    private _pageLoadDetected = false
+    private _clickTraceTimeout?: NodeJS.Timeout
+    private _onFrameNavigated = this._handleFrameNavigated.bind(this)
 
     constructor (
         private _session: CDPSession,
         private _page: Page,
-        private _driver: GathererDriver,
         private _options: DevtoolsConfig,
         private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {
         this._networkHandler = new NetworkHandler(_session)
-        this._traceGatherer = new TraceGatherer(_session, _page, _driver)
-        this._pwaGatherer = new PWAGatherer(_session, _page, _driver)
+        this._pwaAuditor = new PWAAuditor(_session, _page)
 
-        _session.on('Page.loadEventFired', this._traceGatherer.onLoadEventFired.bind(this._traceGatherer))
-        _session.on('Page.frameNavigated', this._traceGatherer.onFrameNavigated.bind(this._traceGatherer))
-
-        _page.on('requestfailed', this._traceGatherer.onFrameLoadFail.bind(this._traceGatherer))
-
-        this._pwaGatherer = new PWAGatherer(_session, _page, _driver)
+        _session.on('Page.frameNavigated', this._onFrameNavigated)
 
         /**
          * register browser commands
@@ -120,6 +127,7 @@ export default class CommandHandler {
             this._traceEvents = JSON.parse(traceBuffer.toString())
             this._isTracing = false
         } catch (err) {
+            this._isTracing = false
             throw new Error(`Couldn't parse trace events: ${(err as Error).message}`)
         }
 
@@ -190,9 +198,7 @@ export default class CommandHandler {
     }
 
     async checkPWA (auditsToBeRun?: PWAAudits[]) {
-        const auditor = new Auditor()
-        const artifacts = await this._pwaGatherer!.gatherData()
-        return auditor._auditPWA(artifacts, auditsToBeRun)
+        return this._pwaAuditor.audit(auditsToBeRun)
     }
 
     private _propagateWSEvents (data: unknown) {
@@ -224,56 +230,137 @@ export default class CommandHandler {
         ))
     }
 
-    _beforeCmd (commandName: string, params: unknown[]) {
-        const isCommandNavigation = ['url', 'navigateTo'].some(cmdName => cmdName === commandName)
-        if (!this._shouldRunPerformanceAudits || !this._traceGatherer || this._traceGatherer.isTracing || !TRACE_COMMANDS.includes(commandName)) {
+    async _beforeCmd (commandName: string, params: unknown[]) {
+        const isCommandNavigation = ['url', 'navigateTo'].includes(commandName)
+        if (!this._shouldRunPerformanceAudits || this._flowInProgress || !isTraceCommand(commandName)) {
             return
         }
 
         /**
          * set browser profile
          */
-        this.setThrottlingProfile(this._networkThrottling, this._cpuThrottling, this._cacheEnabled)
+        await this.setThrottlingProfile(this._networkThrottling, this._cpuThrottling, this._cacheEnabled)
 
         const url = isCommandNavigation
             ? params[0] as string
             : CLICK_TRANSITION
-        return this._traceGatherer.startTracing(url)
+
+        this._pageLoadDetected = false
+        this._flowInProgress = true
+
+        if (url === CLICK_TRANSITION) {
+            this._clickTraceTimeout = setTimeout(() => {
+                if (!this._pageLoadDetected) {
+                    log.info('No page load detected, canceling Lighthouse navigation')
+                }
+            }, FRAME_LOAD_START_TIMEOUT)
+        }
+
+        try {
+            this._flow = await startFlow(this._page as never, this._getFlowOptions()) as unknown as LighthouseFlow
+            await this._flow.startNavigation({ name: `WebdriverIO ${commandName}` })
+        } catch (error) {
+            this._resetFlowState()
+            throw error
+        }
     }
 
-    _afterCmd (commandName: string) {
-        if (!this._traceGatherer || !this._traceGatherer.isTracing || !TRACE_COMMANDS.includes(commandName)) {
+    async _afterCmd (commandName: string) {
+        if (!this._flow || !this._flowInProgress || !isTraceCommand(commandName)) {
             return
         }
 
-        /**
-         * update custom commands once tracing finishes
-         */
-        this._traceGatherer.once('tracingComplete', (traceEvents) => {
-            const auditor = new Auditor(traceEvents, this._devtoolsGatherer?.getLogs(), this._formFactor)
-            auditor.updateCommands(this._browser as WebdriverIO.Browser)
-        })
+        const skipClickWithoutNavigation = commandName === 'click' && !this._pageLoadDetected
+        try {
+            if (skipClickWithoutNavigation) {
+                log.info('Click did not trigger a page load, skipping Lighthouse navigation')
+                await this._cancelNavigation('click did not trigger a page load')
+                return
+            }
 
-        this._traceGatherer.once('tracingError', (err: Error) => {
+            await this._flow.endNavigation()
+            const result = await this._flow.createFlowResult()
+            const lhr = result.steps.at(-1)?.lhr
+            const auditor = new Auditor(lhr, this._formFactor)
+            auditor.updateCommands(this._browser as WebdriverIO.Browser)
+        } catch (err) {
+            log.error(`Couldn't capture performance due to: ${(err as Error).message}`)
+            this._disposeFlow()
             const auditor = new Auditor()
             auditor.updateCommands(this._browser as WebdriverIO.Browser, /* istanbul ignore next */() => {
-                throw new Error(`Couldn't capture performance due to: ${err.message}`)
+                throw new Error(`Couldn't capture performance due to: ${(err as Error).message}`)
             })
+        } finally {
+            this._resetFlowState()
+            log.info('Disable throttling')
+            await this.setThrottlingProfile('online', 0, true)
+        }
+    }
+
+    private _getFlowOptions () {
+        const formFactor = this._formFactor === 'mobile' ? 'mobile' as const : 'desktop' as const
+
+        return {
+            name: 'WebdriverIO performance flow',
+            config: formFactor === 'desktop' ? desktopConfig : undefined,
+            flags: {
+                formFactor,
+                screenEmulation: { disabled: true },
+                throttlingMethod: 'provided' as const,
+                disableStorageReset: true,
+                skipAboutBlank: true,
+                onlyCategories: ['performance'],
+                logLevel: 'error' as const
+            }
+        }
+    }
+
+    private _handleFrameNavigated (event: { frame?: { parentId?: string, url?: string } }) {
+        if (!this._flowInProgress || event.frame?.parentId || !event.frame?.url || !isSupportedUrl(event.frame.url)) {
+            return
+        }
+
+        this._pageLoadDetected = true
+        if (this._clickTraceTimeout) {
+            clearTimeout(this._clickTraceTimeout)
+            this._clickTraceTimeout = undefined
+        }
+    }
+
+    private async _cancelNavigation (reason: string) {
+        this._disposeFlow()
+        try {
+            await Promise.race([
+                this._flow?.endNavigation() ?? Promise.resolve(),
+                new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error(reason)), FRAME_LOAD_START_TIMEOUT)
+                })
+            ])
+        } catch (error) {
+            log.debug(`Lighthouse navigation cancelled: ${(error as Error).message}`)
+        }
+
+        const auditor = new Auditor()
+        auditor.updateCommands(this._browser as WebdriverIO.Browser, /* istanbul ignore next */() => {
+            throw new Error(`Couldn't capture performance due to: ${reason}`)
         })
+    }
 
-        return new Promise<void>((resolve) => {
-            log.info(`Wait until tracing for command ${commandName} finishes`)
+    private _disposeFlow () {
+        try {
+            this._flow?.dispose?.()
+        } catch (error) {
+            log.debug(`Failed to dispose Lighthouse flow: ${(error as Error).message}`)
+        }
+    }
 
-            /**
-             * wait until tracing stops
-             */
-            this._traceGatherer?.once('tracingFinished', async () => {
-                log.info('Disable throttling')
-                await this.setThrottlingProfile('online', 0, true)
-
-                log.info('continuing with next WebDriver command')
-                resolve()
-            })
-        })
+    private _resetFlowState () {
+        if (this._clickTraceTimeout) {
+            clearTimeout(this._clickTraceTimeout)
+            this._clickTraceTimeout = undefined
+        }
+        this._flow = undefined
+        this._flowInProgress = false
+        this._pageLoadDetected = false
     }
 }

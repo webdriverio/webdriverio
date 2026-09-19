@@ -30,7 +30,9 @@ export const config = {
 
 ## Usage
 
-The `@wdio/lighthouse-service` allows you to run Google Lighthouse accessibility and performance tests through WebdriverIO.
+The `@wdio/lighthouse-service` allows you to run Google Lighthouse accessibility and performance tests through WebdriverIO. The service uses [Lighthouse 13](https://github.com/GoogleChrome/lighthouse/releases/tag/v13.4.1) and its public user-flow API (`startFlow`) to audit page loads performed by WebdriverIO.
+
+**Note:** Lighthouse 13 requires Node.js 22.19 or newer. The rest of WebdriverIO continues to support the versions listed in the project engines field.
 
 ### Performance Testing
 
@@ -94,7 +96,8 @@ console.log(await browser.getMetrics())
  *   speedIndex: 3259,
  *   totalBlockingTime: 31,
  *   maxPotentialFID: 161,
- *   cumulativeLayoutShift: 2822 }
+ *   cumulativeLayoutShift: 0.01,
+ *   interactionToNextPaint: 120 }
  */
 ```
 
@@ -143,7 +146,7 @@ console.log(await browser.getMainThreadWorkBreakdown())
 
 #### getPerformanceScore
 
-Returns the [Lighthouse Performance Score](https://developers.google.com/web/tools/lighthouse/scoring) which is a weighted mean of the following metrics: `firstContentfulPaint`, `speedIndex`, `largestContentfulPaint`, `cumulativeLayoutShift`, `totalBlockingTime`, `interactive`, `maxPotentialFID` or `cumulativeLayoutShift`.
+Returns the [Lighthouse Performance Score](https://developer.chrome.com/docs/lighthouse/performance/performance-scoring) which is a weighted mean of `firstContentfulPaint`, `speedIndex`, `largestContentfulPaint`, `cumulativeLayoutShift` and `totalBlockingTime`. Lighthouse still reports `interactive` (TTI) and `maxPotentialFID`, but they are no longer weighted into the score.
 
 ```js
 console.log(await browser.getPerformanceScore())
@@ -154,7 +157,7 @@ console.log(await browser.getPerformanceScore())
 
 #### enablePerformanceAudits
 
-Enables auto performance audits for all page loads that are caused by calling the `url` command or clicking on a link or anything that causes a page load. You can pass in a config object to determine some throttling options. The default throttling profile is `Good 3G` network with a 4x CPU throttling.
+Enables auto performance audits for all page loads that are caused by calling the `url` command or clicking on a link or anything that causes a page load. You can pass in a config object to determine some throttling options. The default throttling profile is `online` (no network throttling) with no CPU throttling.
 
 ```js
 await browser.enablePerformanceAudits({
@@ -169,7 +172,7 @@ The following network throttling profiles are available: `offline`, `GPRS`, `Reg
 
 ### PWA Testing
 
-With the `checkPWA` command, you can validate if your web app is compliant to the latest web standards when it comes to progressive web apps. It checks:
+With the `checkPWA` command, you can validate if your web app is compliant to the latest web standards when it comes to progressive web apps. Lighthouse 12 removed its PWA category, so this service now performs the same checks with Chrome DevTools Protocol and page inspection. It checks:
 
 - whether your app is installable
 - provides a service worker

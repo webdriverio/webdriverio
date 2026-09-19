@@ -1,78 +1,34 @@
-import Diagnostics from 'lighthouse/lighthouse-core/audits/diagnostics.js'
-import MainThreadWorkBreakdown from 'lighthouse/lighthouse-core/audits/mainthread-work-breakdown.js'
-import Metrics from 'lighthouse/lighthouse-core/audits/metrics.js'
-import ServerResponseTime from 'lighthouse/lighthouse-core/audits/server-response-time.js'
-import CumulativeLayoutShift from 'lighthouse/lighthouse-core/audits/metrics/cumulative-layout-shift.js'
-import FirstContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/first-contentful-paint.js'
-import LargestContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/largest-contentful-paint.js'
-import SpeedIndex from 'lighthouse/lighthouse-core/audits/metrics/speed-index.js'
-import InteractiveMetric from 'lighthouse/lighthouse-core/audits/metrics/interactive.js'
-import TotalBlockingTime from 'lighthouse/lighthouse-core/audits/metrics/total-blocking-time.js'
-
-import ReportScoring from 'lighthouse/lighthouse-core/scoring.js'
-import defaultConfig from 'lighthouse/lighthouse-core/config/default-config.js'
 import logger from '@wdio/logger'
 import type { CustomInstanceCommands } from 'webdriverio'
 
-import { DEFAULT_FORM_FACTOR, PWA_AUDITS } from './constants.js'
 import type {
-    FormFactor, Audit, AuditResults, AuditRef, MainThreadWorkBreakdownResult,
-    DiagnosticsResults, ResponseTimeResult, MetricsResult, MetricsResults,
-    AuditResult, LHAuditResult, ErrorAudit, PWAAudits
+    FormFactor,
+    DiagnosticsResult,
+    PerformanceMetrics,
+    LighthouseResultLike,
+    MainThreadWorkBreakdownResult
 } from './types.js'
-import type { Trace } from './gatherer/trace.js'
-import type { CDPSessionOnMessageObject } from './gatherer/devtools.js'
 
 const log = logger('@wdio/lighthouse-service:Auditor')
 
-type RunAuditResult = [string, LHAuditResult | ErrorAudit]
+function asNumber (value: unknown): number | undefined {
+    return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+function roundMetric (value: unknown): number | undefined {
+    const numeric = asNumber(value)
+    return numeric === undefined ? undefined : Math.round(numeric)
+}
 
 export default class Auditor {
-    private _url?: string
-
     constructor (
-        private _traceLogs?: Trace,
-        private _devtoolsLogs?: CDPSessionOnMessageObject[],
+        private _lhr?: LighthouseResultLike,
         private _formFactor?: FormFactor
-    ) {
-        if (_traceLogs) {
-            this._url = _traceLogs.pageUrl
-        }
-    }
-
-    _audit (AUDIT: Audit, params = {}): Promise<LHAuditResult> | ErrorAudit {
-        const auditContext = {
-            options: {
-                ...AUDIT.defaultOptions
-            },
-            settings: {
-                throttlingMethod: 'devtools',
-                formFactor: this._formFactor || DEFAULT_FORM_FACTOR
-            },
-            LighthouseRunWarnings: false,
-            computedCache: new Map()
-        }
-
-        try {
-            return AUDIT.audit({
-                traces: { defaultPass: this._traceLogs },
-                devtoolsLogs: { defaultPass: this._devtoolsLogs },
-                TestedAsMobileDevice: true,
-                GatherContext: { gatherMode: 'navigation' },
-                ...params
-            }, auditContext)
-        } catch (error: unknown) {
-            log.error(error)
-            return {
-                score: 0,
-                error: error as Error
-            }
-        }
-    }
+    ) {}
 
     /**
-     * an Auditor instance is created for every trace so provide an updateCommands
-     * function to receive the latest performance metrics with the browser instance
+     * an Auditor instance is created for every Lighthouse run so provide an
+     * updateCommands function to receive the latest performance metrics
      */
     updateCommands (browser: WebdriverIO.Browser, customFn?: CustomInstanceCommands<WebdriverIO.Browser>['addCommand']) {
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
@@ -81,101 +37,71 @@ export default class Auditor {
     }
 
     /**
-     * Returns a list with a breakdown of all main thread task and their total duration
+     * Returns a list with a breakdown of all main thread tasks and their total duration
      */
-    async getMainThreadWorkBreakdown () {
-        const result = await this._audit(MainThreadWorkBreakdown) as MainThreadWorkBreakdownResult
-        return result.details.items.map(
-            ({ group, duration }) => ({ group, duration })
-        )
+    async getMainThreadWorkBreakdown (): Promise<MainThreadWorkBreakdownResult[]> {
+        const items = this._lhr?.audits?.['mainthread-work-breakdown']?.details?.items
+        if (!Array.isArray(items)) {
+            return []
+        }
+
+        return items.map((item) => ({
+            group: String(item.group ?? ''),
+            duration: asNumber(item.duration) ?? 0
+        }))
     }
 
     /**
      * Get some useful diagnostics about the page load
      */
-    async getDiagnostics () {
-        const result = await this._audit(Diagnostics) as DiagnosticsResults
-
-        /**
-         * return null if Audit fails
-         */
-        if (!Object.prototype.hasOwnProperty.call(result, 'details')) {
+    async getDiagnostics (): Promise<DiagnosticsResult | null> {
+        const details = this._lhr?.audits?.diagnostics?.details
+        if (!details || !Array.isArray(details.items) || !details.items[0]) {
             return null
         }
 
-        return result.details.items[0]
+        return details.items[0] as DiagnosticsResult
     }
 
     /**
-     * Get most common used performance metrics
+     * Get most commonly used performance metrics
      */
-    async getMetrics () {
-        const serverResponseTime = await this._audit(ServerResponseTime, { URL: this._url }) as ResponseTimeResult
-        const cumulativeLayoutShift = await this._audit(CumulativeLayoutShift) as ResponseTimeResult
-        const result = await this._audit(Metrics) as MetricsResults
-        const metrics = result.details.items[0] || {}
+    async getMetrics (): Promise<PerformanceMetrics> {
+        const audits = this._lhr?.audits ?? {}
+        const metrics = audits.metrics?.details?.items?.[0] ?? {}
+
         return {
-            timeToFirstByte: Math.round(serverResponseTime.numericValue),
-            serverResponseTime: Math.round(serverResponseTime.numericValue),
-            domContentLoaded: metrics.observedDomContentLoaded,
-            firstVisualChange: metrics.observedFirstVisualChange,
-            firstPaint: metrics.observedFirstPaint,
-            firstContentfulPaint: metrics.firstContentfulPaint,
-            firstMeaningfulPaint: metrics.firstMeaningfulPaint,
-            largestContentfulPaint: metrics.largestContentfulPaint,
-            lastVisualChange: metrics.observedLastVisualChange,
-            interactive: metrics.interactive,
-            load: metrics.observedLoad,
-            speedIndex: metrics.speedIndex,
-            totalBlockingTime: metrics.totalBlockingTime,
-            maxPotentialFID: metrics.maxPotentialFID,
-            cumulativeLayoutShift: cumulativeLayoutShift.numericValue,
+            timeToFirstByte: roundMetric(audits['server-response-time']?.numericValue),
+            serverResponseTime: roundMetric(audits['server-response-time']?.numericValue),
+            domContentLoaded: asNumber(metrics.observedDomContentLoaded),
+            firstVisualChange: asNumber(metrics.observedFirstVisualChange),
+            firstPaint: asNumber(metrics.observedFirstPaint),
+            firstContentfulPaint: asNumber(metrics.firstContentfulPaint ?? audits['first-contentful-paint']?.numericValue),
+            firstMeaningfulPaint: asNumber(metrics.firstMeaningfulPaint),
+            largestContentfulPaint: asNumber(metrics.largestContentfulPaint ?? audits['largest-contentful-paint']?.numericValue),
+            lastVisualChange: asNumber(metrics.observedLastVisualChange),
+            interactive: asNumber(metrics.interactive ?? audits.interactive?.numericValue),
+            load: asNumber(metrics.observedLoad),
+            speedIndex: asNumber(metrics.speedIndex ?? audits['speed-index']?.numericValue),
+            totalBlockingTime: asNumber(metrics.totalBlockingTime ?? audits['total-blocking-time']?.numericValue),
+            maxPotentialFID: asNumber(metrics.maxPotentialFID ?? audits['max-potential-fid']?.numericValue),
+            cumulativeLayoutShift: asNumber(
+                audits['cumulative-layout-shift']?.numericValue ?? metrics.cumulativeLayoutShift
+            ),
+            interactionToNextPaint: asNumber(audits['interaction-to-next-paint']?.numericValue)
         }
     }
 
     /**
-     * Returns the Lighthouse Performance Score which is a weighted mean of the following metrics: firstMeaningfulPaint, interactive, speedIndex
+     * Returns the Lighthouse Performance Score, a weighted mean of FCP, SI, LCP, TBT and CLS.
      */
-    async getPerformanceScore () {
-        const auditResults: AuditResults = {
-            'speed-index': await this._audit(SpeedIndex) as MetricsResult,
-            'first-contentful-paint': await this._audit(FirstContentfulPaint) as MetricsResult,
-            'largest-contentful-paint': await this._audit(LargestContentfulPaint) as MetricsResult,
-            'cumulative-layout-shift': await this._audit(CumulativeLayoutShift) as MetricsResult,
-            'total-blocking-time': await this._audit(TotalBlockingTime) as MetricsResult,
-            interactive: await this._audit(InteractiveMetric) as MetricsResult
-        }
-
-        if (!auditResults.interactive || !auditResults['cumulative-layout-shift'] || !auditResults['first-contentful-paint'] ||
-            !auditResults['largest-contentful-paint'] || !auditResults['speed-index'] || !auditResults['total-blocking-time']) {
-            log.info('One or multiple required metrics couldn\'t be found, setting performance score to: null')
+    async getPerformanceScore (): Promise<number | null> {
+        const score = this._lhr?.categories?.performance?.score
+        if (typeof score !== 'number' || Number.isNaN(score)) {
+            log.info('Performance score couldn\'t be found, setting performance score to: null')
             return null
         }
 
-        const scores = defaultConfig.categories.performance.auditRefs.filter((auditRef: AuditRef) => auditRef.weight).map((auditRef: AuditRef) => ({
-            score: auditResults[auditRef.id].score,
-            weight: auditRef.weight,
-        }))
-        return ReportScoring.arithmeticMean(scores)
-    }
-
-    async _auditPWA (
-        params: unknown,
-        auditsToBeRun = Object.keys(PWA_AUDITS) as PWAAudits[]
-    ): Promise<AuditResult> {
-        const audits: RunAuditResult[] = await Promise.all(
-            Object.entries(PWA_AUDITS)
-                .filter(([name]) => auditsToBeRun.includes(name as PWAAudits))
-                .map<Promise<RunAuditResult>>(
-                    async ([name, Audit]) => [name, await this._audit(Audit, params as object)]
-                )
-        )
-        return {
-            passed: !audits.find(([, result]) => result.score < 1),
-            details: audits.reduce((details, [name, result]) => {
-                details[name] = result
-                return details
-            }, {} as Record<string, LHAuditResult>)
-        }
+        return score
     }
 }

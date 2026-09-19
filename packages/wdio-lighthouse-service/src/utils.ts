@@ -1,11 +1,5 @@
-import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
-import type { Target } from 'puppeteer-core/lib/esm/puppeteer/api/Target.js'
-import Driver from 'lighthouse/lighthouse-core/gather/driver.js'
-
-import ChromeProtocol from './lighthouse/cri.js'
 import { IGNORED_URLS, UNSUPPORTED_ERROR_MESSAGE } from './constants.js'
 import type { RequestPayload } from './handler/network.js'
-import type { GathererDriver } from './types.js'
 
 const CUSTOM_COMMANDS = [
     'getMetrics',
@@ -15,7 +9,11 @@ const CUSTOM_COMMANDS = [
     'enablePerformanceAudits',
     'disablePerformanceAudits',
     'getMainThreadWorkBreakdown',
-    'checkPWA'
+    'checkPWA',
+    'getPerformanceScore',
+    'getTraceLogs',
+    'getPageWeight',
+    'endTracing'
 ]
 
 export function setUnsupportedCommand (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
@@ -42,41 +40,4 @@ export function sumByKey (list: RequestPayload[], key: keyof RequestPayload) {
  */
 export function isSupportedUrl (url: string) {
     return IGNORED_URLS.filter((ignoredUrl) => url.startsWith(ignoredUrl)).length === 0
-}
-
-/**
- * Either request the page list directly from the browser or if Selenium
- * or Selenoid is used connect to a target manually
- */
-export async function getLighthouseDriver (session: CDPSession, target: Target): Promise<GathererDriver> {
-    const connection = session.connection()
-
-    if (!connection) {
-        throw new Error('Couldn\'t find a CDP connection')
-    }
-
-    const cUrl = new URL(connection.url())
-    const cdpConnection = new ChromeProtocol(cUrl.port, cUrl.hostname)
-
-    /**
-     * only create a new DevTools session if our WebSocket url doesn't already indicate
-     * that we are using one
-     */
-    if (!cUrl.pathname.startsWith('/devtools/browser')) {
-        await cdpConnection._connectToSocket({
-            webSocketDebuggerUrl: connection.url(),
-            id: (await target.asPage()).mainFrame()._id
-        })
-        const { sessionId } = await cdpConnection.sendCommand(
-            'Target.attachToTarget',
-            undefined,
-            { targetId: (await target.asPage()).mainFrame()._id, flatten: true }
-        )
-        cdpConnection.setSessionId(sessionId)
-        return new Driver(cdpConnection)
-    }
-
-    const list = await cdpConnection._runJsonCommand('list')
-    await cdpConnection._connectToSocket(list[0])
-    return new Driver(cdpConnection)
 }

@@ -1,133 +1,153 @@
 import path from 'node:path'
 import { expect, test, vi, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
-import type { Trace } from '../src/gatherer/trace.js'
 
 import Auditor from '../src/auditor.js'
+import type { LighthouseResultLike } from '../src/types.js'
 
-vi.mock('lighthouse/lighthouse-core/audits/diagnostics')
-vi.mock('lighthouse/lighthouse-core/audits/mainthread-work-breakdown')
-vi.mock('lighthouse/lighthouse-core/audits/metrics')
-vi.mock('lighthouse/lighthouse-core/audits/server-response-time')
-vi.mock('lighthouse/lighthouse-core/audits/metrics/cumulative-layout-shift')
-vi.mock('lighthouse/lighthouse-core/audits/metrics/first-contentful-paint')
-vi.mock('lighthouse/lighthouse-core/audits/metrics/largest-contentful-paint')
-vi.mock('lighthouse/lighthouse-core/audits/metrics/speed-index')
-vi.mock('lighthouse/lighthouse-core/audits/metrics/interactive')
-vi.mock('lighthouse/lighthouse-core/audits/metrics/total-blocking-time')
-vi.mock('lighthouse/lighthouse-core/config/default-config')
-vi.mock('lighthouse/lighthouse-core/audits/installable-manifest')
-vi.mock('lighthouse/lighthouse-core/audits/service-worker')
-vi.mock('lighthouse/lighthouse-core/audits/splash-screen')
-vi.mock('lighthouse/lighthouse-core/audits/themed-omnibox')
-vi.mock('lighthouse/lighthouse-core/audits/content-width')
-vi.mock('lighthouse/lighthouse-core/audits/viewport')
-vi.mock('lighthouse/lighthouse-core/audits/apple-touch-icon')
-vi.mock('lighthouse/lighthouse-core/audits/maskable-icon')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+const lighthouseResult: LighthouseResultLike = {
+    audits: {
+        diagnostics: {
+            score: 1,
+            details: {
+                items: [{
+                    numRequests: 8,
+                    numScripts: 1,
+                    totalByteWeight: 62929,
+                    mainDocumentTransferSize: 8023
+                }]
+            }
+        },
+        'mainthread-work-breakdown': {
+            score: 1,
+            details: {
+                items: [
+                    { group: 'styleLayout', duration: 130.59 },
+                    { group: 'scriptEvaluation', duration: 2.43 }
+                ]
+            }
+        },
+        metrics: {
+            score: 1,
+            details: {
+                items: [{
+                    observedDomContentLoaded: 3397,
+                    observedFirstVisualChange: 2610,
+                    observedFirstPaint: 2822,
+                    firstContentfulPaint: 2822,
+                    firstMeaningfulPaint: 2822,
+                    largestContentfulPaint: 2822,
+                    observedLastVisualChange: 15572,
+                    interactive: 6135,
+                    observedLoad: 8429,
+                    speedIndex: 3259,
+                    totalBlockingTime: 31,
+                    maxPotentialFID: 161
+                }]
+            }
+        },
+        'server-response-time': { score: 1, numericValue: 566.4 },
+        'first-contentful-paint': { score: 0.99, numericValue: 2822 },
+        'largest-contentful-paint': { score: 0.95, numericValue: 2822 },
+        'speed-index': { score: 0.9, numericValue: 3259 },
+        'total-blocking-time': { score: 1, numericValue: 31 },
+        'cumulative-layout-shift': { score: 1, numericValue: 0.01 },
+        interactive: { score: 0.8, numericValue: 6135 },
+        'max-potential-fid': { score: 0.7, numericValue: 161 },
+        'interaction-to-next-paint': { score: null, numericValue: 120 }
+    },
+    categories: {
+        performance: { score: 0.94 }
+    }
+}
 
 let auditor: Auditor
 
 beforeEach(() => {
-    auditor = new Auditor({} as unknown as Trace, [])
+    auditor = new Auditor(lighthouseResult)
 })
 
 test('getMainThreadWorkBreakdown', async () => {
-    expect(await auditor.getMainThreadWorkBreakdown()).toMatchSnapshot()
+    expect(await auditor.getMainThreadWorkBreakdown()).toEqual([
+        { group: 'styleLayout', duration: 130.59 },
+        { group: 'scriptEvaluation', duration: 2.43 }
+    ])
+})
+
+test('getMainThreadWorkBreakdown returns empty list without Lighthouse data', async () => {
+    expect(await new Auditor().getMainThreadWorkBreakdown()).toEqual([])
 })
 
 test('getDiagnostics', async () => {
-    expect(await auditor.getDiagnostics()).toMatchSnapshot()
+    expect(await auditor.getDiagnostics()).toEqual({
+        numRequests: 8,
+        numScripts: 1,
+        totalByteWeight: 62929,
+        mainDocumentTransferSize: 8023
+    })
 })
 
 test('getDiagnostics failing', async () => {
-    auditor._audit = vi.fn().mockReturnValue(Promise.resolve({}))
-    expect(await auditor.getDiagnostics()).toBe(null)
+    expect(await new Auditor({ audits: { diagnostics: { score: 0 } } }).getDiagnostics()).toBe(null)
 })
 
 test('getMetrics', async () => {
-    expect(await auditor.getMetrics()).toMatchSnapshot()
+    expect(await auditor.getMetrics()).toEqual({
+        timeToFirstByte: 566,
+        serverResponseTime: 566,
+        domContentLoaded: 3397,
+        firstVisualChange: 2610,
+        firstPaint: 2822,
+        firstContentfulPaint: 2822,
+        firstMeaningfulPaint: 2822,
+        largestContentfulPaint: 2822,
+        lastVisualChange: 15572,
+        interactive: 6135,
+        load: 8429,
+        speedIndex: 3259,
+        totalBlockingTime: 31,
+        maxPotentialFID: 161,
+        cumulativeLayoutShift: 0.01,
+        interactionToNextPaint: 120
+    })
+})
+
+test('getMetrics falls back to individual audit numeric values', async () => {
+    const fallbackAuditor = new Auditor({
+        audits: {
+            'server-response-time': { score: 1, numericValue: 100.2 },
+            'first-contentful-paint': { score: 1, numericValue: 200 },
+            'largest-contentful-paint': { score: 1, numericValue: 300 },
+            'speed-index': { score: 1, numericValue: 400 },
+            'total-blocking-time': { score: 1, numericValue: 5 },
+            'cumulative-layout-shift': { score: 1, numericValue: 0.2 },
+            interactive: { score: 1, numericValue: 500 },
+            'max-potential-fid': { score: 1, numericValue: 12 }
+        }
+    })
+
+    expect(await fallbackAuditor.getMetrics()).toMatchObject({
+        timeToFirstByte: 100,
+        firstContentfulPaint: 200,
+        largestContentfulPaint: 300,
+        speedIndex: 400,
+        totalBlockingTime: 5,
+        cumulativeLayoutShift: 0.2,
+        interactive: 500,
+        maxPotentialFID: 12
+    })
 })
 
 test('getPerformanceScore', async () => {
-    expect(await auditor.getPerformanceScore()).toMatchSnapshot()
+    expect(await auditor.getPerformanceScore()).toBe(0.94)
 })
 
-test('getPerformanceScore: returns null if any of the metrics is not available', async () => {
-    auditor._audit = vi.fn().mockReturnValueOnce(Promise.resolve({}))
-    expect(await auditor.getPerformanceScore()).toBe(null)
-
-    auditor._audit = vi.fn().mockReturnValueOnce(Promise.resolve({
-        'first-contentful-paint': {
-            score: 1
-        },
-    }))
-    expect(await auditor.getPerformanceScore()).toBe(null)
-
-    auditor._audit = vi.fn().mockReturnValueOnce(Promise.resolve({
-        'first-contentful-paint': {
-            score: 1
-        },
-        'speed-index': {
-            score: 1
-        },
-    }))
-    expect(await auditor.getPerformanceScore()).toBe(null)
-
-    auditor.getMetrics = vi.fn().mockReturnValueOnce(Promise.resolve({
-        'first-contentful-paint': {
-            score: 1
-        },
-        'speed-index': {
-            score: 1
-        },
-        'largest-contentful-paint': {
-            score: 1
-        },
-    }))
-    expect(await auditor.getPerformanceScore()).toBe(null)
-
-    auditor._audit = vi.fn().mockReturnValueOnce(Promise.resolve({
-        'first-contentful-paint': {
-            score: 1
-        },
-        'speed-index': {
-            score: 1
-        },
-        'largest-contentful-paint': {
-            score: 1
-        },
-        'cumulative-layout-shift': {
-            score: 1
-        },
-        'total-blocking-time': {
-            score: 1
-        }
-    }))
-    expect(await auditor.getPerformanceScore()).toBe(null)
-
-    auditor._audit = vi.fn().mockReturnValue(Promise.resolve({
-        'first-contentful-paint': {
-            score: 1
-        },
-        'speed-index': {
-            score: 1
-        },
-        'largest-contentful-paint': {
-            score: 1
-        },
-        'cumulative-layout-shift': {
-            score: 1
-        },
-        'total-blocking-time': {
-            score: 1
-        },
-        'interactive': {
-            score: 1
-        },
-    }))
-    expect(await auditor.getPerformanceScore())
-        .toEqual(expect.any(Number))
+test('getPerformanceScore: returns null if the performance score is not available', async () => {
+    expect(await new Auditor().getPerformanceScore()).toBe(null)
+    expect(await new Auditor({ categories: { performance: { score: null } } }).getPerformanceScore()).toBe(null)
+    expect(logger('').info).toBeCalled()
 })
 
 test('updateCommands', () => {
@@ -144,31 +164,14 @@ test('updateCommands', () => {
         .toBeCalledWith('getPerformanceScore', expect.any(Function))
 })
 
+test('updateCommands can install a failing command wrapper', async () => {
+    const browser: any = { addCommand: vi.fn() }
+    const error = new Error('boom')
+    auditor.updateCommands(browser, () => { throw error })
+
+    expect(() => browser.addCommand.mock.calls[0][1]()).toThrow(error)
+})
+
 test('should not throw if no args passed', () => {
-    const auditor = new Auditor()
-    expect(auditor).toBeTruthy()
-})
-
-test('should throw if something fails', () => {
-    const error = new Error('uups')
-    const Audit = {
-        defaultOptions: {},
-        audit: vi.fn().mockImplementation(() => {
-            throw error
-        })
-    }
-    expect(auditor._audit(Audit)).toEqual({
-        score: 0,
-        error
-    })
-    expect(logger('').error).toBeCalledTimes(1)
-})
-
-test('should allow to audit PWA results', async () => {
-    const auditor = new Auditor()
-    expect(await auditor._auditPWA({ foo: 'bar' })).toMatchSnapshot()
-    expect(await auditor._auditPWA(
-        { foo: 'bar' },
-        ['maskableIcon', 'serviceWorker']
-    )).toMatchSnapshot()
+    expect(new Auditor()).toBeTruthy()
 })

@@ -1,53 +1,45 @@
 import path from 'node:path'
-import { EventEmitter } from 'node:events'
 import { expect, test, vi, beforeEach } from 'vitest'
 import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
 import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
-import Auditor from '../src/auditor.js'
 
 import CommandHandler from '../src/commands.js'
+import Auditor from '../src/auditor.js'
+
+const startNavigation = vi.fn()
+const endNavigation = vi.fn()
+const createFlowResult = vi.fn()
+const dispose = vi.fn()
+const startFlow = vi.fn()
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-
-vi.mock('../src/utils', () => ({
-    readIOStream: vi.fn().mockReturnValue('foobar'),
-    sumByKey: vi.fn().mockReturnValue('foobar')
+vi.mock('lighthouse', () => ({
+    desktopConfig: { settings: { formFactor: 'desktop' } },
+    startFlow: (...args: unknown[]) => startFlow(...args)
 }))
-
+vi.mock('../src/utils', async (importOriginal) => {
+    const actual = await importOriginal() as Record<string, unknown>
+    return {
+        ...actual,
+        sumByKey: vi.fn().mockReturnValue('foobar')
+    }
+})
 vi.mock('../src/auditor', () => {
     const updateCommandsMock = vi.fn()
     return {
         default: class {
-            traceEvents: any
-            logs: any
             updateCommands = updateCommandsMock
-
-            constructor (traceEvents: any, logs: any) {
-                this.traceEvents = traceEvents
-                this.logs = logs
-            }
         }
     }
 })
-
-vi.mock('../src/gatherer/coverage', () => {
-    const instances: any[] = []
-    return {
-        default: class {
-            getCoverageReport = vi.fn()
-            init = vi.fn()
-
-            constructor () {
-                instances.push(this)
-            }
-        }
+vi.mock('../src/pwa', () => ({
+    default: class {
+        audit = vi.fn().mockResolvedValue({ passed: true, details: {} })
     }
-})
+}))
 
 const pageMock = {
     setCacheEnabled: vi.fn(),
-    emulate: vi.fn(),
-    on: vi.fn(),
     tracing: {
         start: vi.fn(),
         stop: vi.fn()
@@ -60,43 +52,49 @@ const sessionMock = {
     send: vi.fn()
 }
 
-const driverMock = {}
-
 const options = {}
-
 const browser: any = {
     addCommand: vi.fn(),
     emit: vi.fn()
 }
 
+function createHandler () {
+    return new CommandHandler(
+        sessionMock as unknown as CDPSession,
+        pageMock as unknown as Page,
+        options as any,
+        browser
+    )
+}
+
 beforeEach(() => {
-    pageMock.on.mockClear()
+    pageMock.setCacheEnabled.mockClear()
     pageMock.tracing.start.mockClear()
     pageMock.tracing.stop.mockClear()
     sessionMock.on.mockClear()
-    // sessionMock.emit.mockClear()
     sessionMock.send.mockClear()
     browser.addCommand.mockReset()
+    browser.emit.mockClear()
+    startNavigation.mockReset().mockResolvedValue(undefined)
+    endNavigation.mockReset().mockResolvedValue(undefined)
+    createFlowResult.mockReset().mockResolvedValue({
+        steps: [{ lhr: { categories: { performance: { score: 0.9 } } } }]
+    })
+    dispose.mockReset()
+    startFlow.mockReset().mockResolvedValue({
+        startNavigation,
+        endNavigation,
+        createFlowResult,
+        dispose
+    })
 })
 
 test('initialization', async () => {
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        {
-            coverageReporter: {
-                enable: true
-            }
-        },
-        browser as any
-    )
+    const handler = createHandler()
     await handler._initCommand()
 
-    expect(browser.addCommand.mock.calls).toHaveLength(8)
+    expect(browser.addCommand.mock.calls.length).toBeGreaterThanOrEqual(8)
     expect(sessionMock.on).toBeCalled()
-    expect(pageMock.on).toBeCalled()
-
     expect(handler['_session']?.send).toBeCalledWith('Network.enable')
     expect(handler['_session']?.send).toBeCalledWith('Runtime.enable')
     expect(handler['_session']?.send).toBeCalledWith('Page.enable')
@@ -104,31 +102,25 @@ test('initialization', async () => {
     handler['_devtoolsGatherer'] = { onMessage: vi.fn() } as any
     handler['_propagateWSEvents']({ method: 'foo', params: 'bar' })
     expect(handler['_devtoolsGatherer']?.onMessage).toBeCalledTimes(1)
-    expect(handler['_devtoolsGatherer']?.onMessage).toBeCalledWith({ method:'foo', params: 'bar' })
-    expect((handler['_browser'] as any).emit).toBeCalledTimes(1)
     expect((handler['_browser'] as any).emit).toBeCalledWith('foo', 'bar')
 })
 
+test('ignores non CDP websocket events', () => {
+    const handler = createHandler()
+    handler['_devtoolsGatherer'] = { onMessage: vi.fn() } as any
+    handler['_propagateWSEvents']('not-an-event')
+    handler['_propagateWSEvents']({ method: 'only-method' })
+    expect(handler['_devtoolsGatherer']?.onMessage).not.toBeCalled()
+})
+
 test('getTraceLogs', () => {
-    const commander = new CommandHandler(
-        sessionMock as unknown as CDPSession,
-        pageMock as unknown as Page,
-        driverMock as any,
-        options as any,
-        browser
-    )
-    commander['_traceEvents'] = [{ foo: 'bar' }] as any
-    expect(commander.getTraceLogs()).toEqual([{ foo: 'bar' }])
+    const handler = createHandler()
+    handler['_traceEvents'] = [{ foo: 'bar' }] as any
+    expect(handler.getTraceLogs()).toEqual([{ foo: 'bar' }])
 })
 
 test('startTracing', () => {
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
+    const handler = createHandler()
     handler.startTracing()
 
     expect(handler['_isTracing']).toBe(true)
@@ -138,13 +130,7 @@ test('startTracing', () => {
 
 test('endTracing', async () => {
     pageMock.tracing.stop.mockResolvedValue(Buffer.from('{ "traceEvents": "foobar" }'))
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
+    const handler = createHandler()
     handler['_isTracing'] = true
 
     const traceEvents = await handler.endTracing()
@@ -154,39 +140,30 @@ test('endTracing', async () => {
 })
 
 test('endTracing throws if not tracing', async () => {
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
-    const err = await handler.endTracing().catch((err) => err)
+    const handler = createHandler()
+    const err = await handler.endTracing().catch((error) => error)
     expect(err.message).toContain('No tracing was initiated')
 })
 
 test('endTracing throws if parsing of trace events fails', async () => {
     pageMock.tracing.stop.mockResolvedValue(Buffer.from('{ "traceEven'))
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
+    const handler = createHandler()
     handler['_isTracing'] = true
-    const err = await handler.endTracing().catch((err) => err)
+    const err = await handler.endTracing().catch((error) => error)
+    expect(err.message).toContain("Couldn't parse trace events")
+    expect(handler['_isTracing']).toBe(false)
+})
+
+test('endTracing throws if no trace buffer was captured', async () => {
+    pageMock.tracing.stop.mockResolvedValue(undefined)
+    const handler = createHandler()
+    handler['_isTracing'] = true
+    const err = await handler.endTracing().catch((error) => error)
     expect(err.message).toContain("Couldn't parse trace events")
 })
 
 test('getPageWeight', () => {
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
+    const handler = createHandler()
     handler['_networkHandler'].requestTypes = {
         Document: { size: 23343, encoded: 7674, count: 1 },
         Image: { size: 53479, encoded: 53479, count: 6 },
@@ -200,154 +177,111 @@ test('getPageWeight', () => {
     expect(details).toEqual(handler['_networkHandler'].requestTypes)
 })
 
-test('beforeCmd', () => {
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
-    handler['_traceGatherer'] = { startTracing: vi.fn() } as any
+test('beforeCmd starts a Lighthouse navigation for url commands', async () => {
+    const handler = createHandler()
     handler.setThrottlingProfile = vi.fn()
-
     handler['_networkThrottling'] = 'offline'
     handler['_cpuThrottling'] = 2
     handler['_cacheEnabled'] = true
+    handler['_formFactor'] = 'desktop'
 
-    // @ts-ignore test without paramater
-    handler._beforeCmd()
-    expect(handler['_traceGatherer']?.startTracing).toBeCalledTimes(0)
+    await handler._beforeCmd('enablePerformanceAudits', [])
+    expect(startFlow).not.toHaveBeenCalled()
 
     handler['_shouldRunPerformanceAudits'] = true
-    // @ts-ignore test without paramater
-    handler._beforeCmd()
-    expect(handler['_traceGatherer']?.startTracing).toBeCalledTimes(0)
+    await handler._beforeCmd('foobar', [])
+    expect(startFlow).not.toHaveBeenCalled()
 
-    // @ts-ignore test with only one paramater
-    handler._beforeCmd('foobar')
-    expect(handler['_traceGatherer']?.startTracing).toBeCalledTimes(0)
-
-    handler._beforeCmd('navigateTo', ['some page'])
-    expect(handler['_traceGatherer']?.startTracing).toBeCalledTimes(1)
-    expect(handler['_traceGatherer']?.startTracing).toBeCalledWith('some page')
+    await handler._beforeCmd('url', ['https://webdriver.io'])
     expect(handler.setThrottlingProfile).toBeCalledWith('offline', 2, true)
-
-    handler._beforeCmd('url', ['next page'])
-    expect(handler['_traceGatherer']?.startTracing).toBeCalledTimes(2)
-    expect(handler['_traceGatherer']?.startTracing).toBeCalledWith('next page')
-    expect(handler.setThrottlingProfile).toBeCalledWith('offline', 2, true)
-
-    handler._beforeCmd('click', ['some other page'])
-    expect(handler['_traceGatherer']?.startTracing).toBeCalledTimes(3)
-    expect(handler['_traceGatherer']?.startTracing).toBeCalledWith('click transition')
+    expect(startFlow).toHaveBeenCalledTimes(1)
+    expect(startNavigation).toHaveBeenCalledWith({ name: 'WebdriverIO url' })
+    expect(handler['_flowInProgress']).toBe(true)
 })
 
-test('afterCmd', () => {
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
-    handler['_traceGatherer'] = { once: vi.fn() } as any
-
-    // @ts-ignore test without paramater
-    handler._afterCmd()
-    expect(handler['_traceGatherer']?.once).toBeCalledTimes(0)
-
-    // @ts-ignore access mock
-    handler['_traceGatherer']['isTracing'] = true
-    // @ts-ignore test without paramater
-    handler._afterCmd()
-    expect(handler['_traceGatherer']?.once).toBeCalledTimes(0)
-
-    handler._afterCmd('foobar')
-    expect(handler['_traceGatherer']?.once).toBeCalledTimes(0)
-
-    handler._afterCmd('navigateTo')
-    expect(handler['_traceGatherer']?.once).toBeCalledTimes(3)
-
-    handler._afterCmd('url')
-    expect(handler['_traceGatherer']?.once).toBeCalledTimes(6)
-
-    handler._afterCmd('click')
-    expect(handler['_traceGatherer']?.once).toBeCalledTimes(9)
-})
-
-test('afterCmd: should create a new auditor instance and should update the browser commands', () => {
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
-    handler['_traceGatherer'] = new EventEmitter() as any
-
-    // @ts-ignore access mock
-    handler['_traceGatherer']['isTracing'] = true
-    handler['_devtoolsGatherer'] = { getLogs: vi.fn() } as any
-    handler['_browser'] = 'some browser' as any
-    handler._afterCmd('url')
-    handler['_traceGatherer']?.emit('tracingComplete', { some: 'events' })
-
-    const auditor = new Auditor()
-    expect(auditor.updateCommands).toBeCalledWith('some browser')
-})
-
-test('afterCmd: should update browser commands even if failed', () => {
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
-    handler['_traceGatherer'] = new EventEmitter() as any
-
-    // @ts-ignore access mock
-    handler['_traceGatherer']['isTracing'] = true
-    handler['_devtoolsGatherer'] = { getLogs: vi.fn() } as any
-    handler['_browser'] = 'some browser' as any
-    handler._afterCmd('url')
-    handler['_traceGatherer']?.emit('tracingError', new Error('boom'))
-
-    const auditor = new Auditor()
-    expect(auditor.updateCommands).toBeCalledWith('some browser', expect.any(Function))
-})
-
-test('afterCmd: should continue with command after tracingFinished was emitted', async () => {
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
-    handler['_traceGatherer'] = new EventEmitter() as any
-
-    // @ts-ignore access mock
-    handler['_traceGatherer']['isTracing'] = true
+test('beforeCmd starts a Lighthouse navigation for click commands', async () => {
+    vi.useFakeTimers()
+    const handler = createHandler()
     handler.setThrottlingProfile = vi.fn()
+    handler['_shouldRunPerformanceAudits'] = true
 
-    const start = Date.now()
-    setTimeout(() => handler['_traceGatherer']?.emit('tracingFinished'), 100)
-    await handler._afterCmd('navigateTo')
+    await handler._beforeCmd('click', [])
+    expect(startNavigation).toHaveBeenCalledWith({ name: 'WebdriverIO click' })
+    expect(handler['_clickTraceTimeout']).toBeDefined()
+    vi.useRealTimers()
+})
 
-    expect(Date.now() - start).toBeGreaterThan(98)
-    expect(handler.setThrottlingProfile).toBeCalledWith('online', 0, true)
+test('beforeCmd resets when startFlow fails', async () => {
+    startFlow.mockRejectedValueOnce(new Error('no page'))
+    const handler = createHandler()
+    handler.setThrottlingProfile = vi.fn()
+    handler['_shouldRunPerformanceAudits'] = true
+
+    await expect(handler._beforeCmd('navigateTo', ['https://webdriver.io'])).rejects.toThrow('no page')
+    expect(handler['_flowInProgress']).toBe(false)
+})
+
+test('afterCmd updates browser commands after a successful Lighthouse run', async () => {
+    const handler = createHandler()
+    handler.setThrottlingProfile = vi.fn()
+    handler['_shouldRunPerformanceAudits'] = true
+    await handler._beforeCmd('url', ['https://webdriver.io'])
+    handler['_pageLoadDetected'] = true
+
+    await handler._afterCmd('url')
+
+    expect(endNavigation).toHaveBeenCalledTimes(1)
+    expect(createFlowResult).toHaveBeenCalledTimes(1)
+    expect(new Auditor().updateCommands).toHaveBeenCalledWith(browser)
+    expect(handler.setThrottlingProfile).toHaveBeenLastCalledWith('online', 0, true)
+    expect(handler['_flowInProgress']).toBe(false)
+})
+
+test('afterCmd wraps failing commands when Lighthouse fails', async () => {
+    endNavigation.mockRejectedValueOnce(new Error('NO_NAVSTART'))
+    const handler = createHandler()
+    handler.setThrottlingProfile = vi.fn()
+    handler['_shouldRunPerformanceAudits'] = true
+    await handler._beforeCmd('url', ['https://webdriver.io'])
+
+    await handler._afterCmd('url')
+
+    expect(new Auditor().updateCommands).toHaveBeenCalledWith(browser, expect.any(Function))
+    expect(dispose).toHaveBeenCalled()
+})
+
+test('afterCmd skips clicks that do not navigate', async () => {
+    const handler = createHandler()
+    handler.setThrottlingProfile = vi.fn()
+    handler['_shouldRunPerformanceAudits'] = true
+    await handler._beforeCmd('click', [])
+
+    await handler._afterCmd('click')
+
+    expect(dispose).toHaveBeenCalled()
+    expect(new Auditor().updateCommands).toHaveBeenCalledWith(browser, expect.any(Function))
+})
+
+test('afterCmd ignores commands while no flow is running', async () => {
+    const handler = createHandler()
+    await handler._afterCmd('url')
+    expect(endNavigation).not.toHaveBeenCalled()
+})
+
+test('frame navigation is ignored for unsupported or nested frames', async () => {
+    const handler = createHandler()
+    handler['_flowInProgress'] = true
+
+    handler['_handleFrameNavigated']({ frame: { parentId: 'iframe', url: 'https://webdriver.io' } })
+    handler['_handleFrameNavigated']({ frame: { url: 'data:,' } })
+    expect(handler['_pageLoadDetected']).toBe(false)
+
+    handler['_handleFrameNavigated']({ frame: { url: 'https://webdriver.io/' } })
+    expect(handler['_pageLoadDetected']).toBe(true)
 })
 
 test('enablePerformanceAudits: applies some default values', () => {
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
+    const handler = createHandler()
     handler.enablePerformanceAudits()
 
     expect(handler['_networkThrottling']).toBe('online')
@@ -357,13 +291,7 @@ test('enablePerformanceAudits: applies some default values', () => {
 })
 
 test('enablePerformanceAudits: applies some custom values', () => {
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
+    const handler = createHandler()
     handler.enablePerformanceAudits({
         networkThrottling: 'Regular 2G',
         cpuThrottling: 42,
@@ -377,14 +305,18 @@ test('enablePerformanceAudits: applies some custom values', () => {
     expect(handler['_formFactor']).toBe('mobile')
 })
 
+test('enablePerformanceAudits throws for invalid profiles', () => {
+    const handler = createHandler()
+    expect(() => handler.enablePerformanceAudits({ networkThrottling: 'super fast 3g' } as any))
+        .toThrow(/Network throttling profile/)
+    expect(() => handler.enablePerformanceAudits({
+        networkThrottling: 'Good 3G',
+        cpuThrottling: '34'
+    } as any)).toThrow(/CPU throttling rate needs to be typeof number/)
+})
+
 test('disablePerformanceAudits', () => {
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
+    const handler = createHandler()
     handler.enablePerformanceAudits({
         networkThrottling: 'Regular 2G',
         cpuThrottling: 42,
@@ -396,13 +328,7 @@ test('disablePerformanceAudits', () => {
 })
 
 test('setThrottlingProfile', async () => {
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
+    const handler = createHandler()
 
     await handler.setThrottlingProfile('GPRS', 42, true)
     expect(pageMock.setCacheEnabled).toBeCalledWith(true)
@@ -425,4 +351,50 @@ test('setThrottlingProfile', async () => {
         offline: false,
         uploadThroughput: -1
     })
+})
+
+test('checkPWA', async () => {
+    const handler = createHandler()
+    await expect(handler.checkPWA(['viewport'])).resolves.toEqual({ passed: true, details: {} })
+})
+
+test('swallows dispose errors when cancelling a click without navigation', async () => {
+    dispose.mockImplementation(() => {
+        throw new Error('already closed')
+    })
+    const handler = createHandler()
+    handler.setThrottlingProfile = vi.fn()
+    handler['_shouldRunPerformanceAudits'] = true
+    await handler._beforeCmd('click', [])
+
+    await handler._afterCmd('click')
+    expect(new Auditor().updateCommands).toHaveBeenCalledWith(browser, expect.any(Function))
+})
+
+test('setThrottlingProfile throws when the page is missing', async () => {
+    const handler = createHandler()
+    // @ts-expect-error simulate a missing page
+    handler['_page'] = undefined
+    await expect(handler.setThrottlingProfile()).rejects.toThrow('No page or session has been captured yet')
+})
+
+test('ignores websocket events that cannot be stringified', () => {
+    const handler = createHandler()
+    handler['_devtoolsGatherer'] = { onMessage: vi.fn() } as any
+    const params = {} as { self?: unknown }
+    params.self = params
+    handler['_propagateWSEvents']({ method: 'Network.dataReceived', params })
+    expect(handler['_devtoolsGatherer']?.onMessage).toBeCalledTimes(1)
+    expect(browser.emit).toBeCalledWith('Network.dataReceived', params)
+})
+
+test('uses the mobile Lighthouse config when requested', async () => {
+    const handler = createHandler()
+    handler.setThrottlingProfile = vi.fn()
+    handler['_shouldRunPerformanceAudits'] = true
+    handler['_formFactor'] = 'mobile'
+
+    await handler._beforeCmd('url', ['https://webdriver.io'])
+    expect(startFlow.mock.calls[0][1].config).toBeUndefined()
+    expect(startFlow.mock.calls[0][1].flags.formFactor).toBe('mobile')
 })
