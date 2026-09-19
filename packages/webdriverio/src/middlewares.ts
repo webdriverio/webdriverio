@@ -67,7 +67,7 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                          * error instead of masking it with "Index out of bounds"
                          * or other refetch errors.
                          */
-                        if (!isStaleElementError(refetchErr)) {
+                        if (!(refetchErr instanceof Error) || !isStaleElementError(refetchErr)) {
                             throw err
                         }
                         throw refetchErr
