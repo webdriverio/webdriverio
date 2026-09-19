@@ -203,7 +203,7 @@ function describeRejection (err: unknown) {
  * @returns {Promise<void>} A Promise that resolves once the package is installed and clear the progress log.
  */
 const _install = async (args: InstallOptions & { unpack?: true | undefined }, retry = false): Promise<void> => {
-    await install(args).catch((err) => {
+    await install(args).catch(async (err) => {
         /**
          * a rejection is not guaranteed to be an Error, so never assume a writable
          * `message` and never let `new Error()` stringify an object into `[object Object]`
@@ -213,6 +213,27 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
             throw new Error(details)
         }
         log.error(`${details}, retrying ...`)
+        /**
+         * Clean up any partially extracted files before retrying.
+         * Without this, @puppeteer/browsers may see an existing (incomplete)
+         * output directory and skip re-downloading, causing the retry to fail
+         * with "exists but executable is missing" (see issue #15608).
+         */
+        try {
+            const executablePath = computeExecutablePath({
+                browser: args.browser,
+                buildId: args.buildId,
+                platform: detectBrowserPlatform(),
+                cacheDir: args.cacheDir,
+            })
+            const buildDir = path.dirname(executablePath)
+            await fsp.rm(buildDir, { recursive: true, force: true }).catch(() => {})
+        } catch {
+            /**
+             * If cleanup fails, continue with retry anyway — it may still succeed
+             * if the partial directory issue resolves itself.
+             */
+        }
         return _install(args, true)
     })
     log.progress('')

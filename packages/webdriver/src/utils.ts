@@ -9,6 +9,7 @@ import {
 } from '@wdio/protocols'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options } from '@wdio/types'
+import type { ClientOptions } from 'ws'
 
 import command from './command.js'
 import { environment } from './environment.js'
@@ -456,6 +457,29 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
 }
 
 /**
+ * Build WebSocket client options for a BiDi connection.
+ *
+ * Always enables redirect following so Grid proxies that 301/302 from
+ * `ws://` to `wss://` (or another node) can be used. Custom headers are
+ * forwarded as-is, including to redirect targets. Grid redirects are
+ * expected to stay within trusted infrastructure; a misconfigured
+ * cross-host redirect would also forward credentials.
+ */
+export function getBidiRequestOptions (
+    strictSSL: boolean = true,
+    headers?: Record<string, string>
+): ClientOptions {
+    const bidiReqOpts: ClientOptions = { followRedirects: true, maxRedirects: 10 }
+    if (!strictSSL) {
+        bidiReqOpts.rejectUnauthorized = false
+    }
+    if (headers) {
+        bidiReqOpts.headers = headers
+    }
+    return bidiReqOpts
+}
+
+/**
  * Enhance the monad with WebDriver Bidi primitives if a connection can be established successfully
  * @param socketUrl url to bidi interface
  * @param strictSSL
@@ -487,10 +511,7 @@ export function initiateBidi (
     }
 
     socketUrl = socketUrl.replace('localhost', '127.0.0.1')
-    const bidiReqOpts: { rejectUnauthorized?: boolean, headers?: Record<string, string> } = strictSSL ? {} : { rejectUnauthorized: false }
-    if (userHeaders) {
-        bidiReqOpts.headers = userHeaders
-    }
+    const bidiReqOpts = getBidiRequestOptions(strictSSL, userHeaders)
     const handler = new BidiHandler(socketUrl, bidiReqOpts, responseTimeout)
     handler.connect().then((isConnected) => isConnected && log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`))
 
