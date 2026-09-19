@@ -19,7 +19,7 @@ describe('newSession', () => {
                 foo: 'bar'
             }
         })
-        expect(Object.keys(session)).toHaveLength(21)
+        expect(Object.keys(session)).toHaveLength(22)
         expect(session.isAndroid).toBe(false)
         expect(session.isChrome).toBe(false)
         expect(session.isChromium).toBe(false)
@@ -30,6 +30,9 @@ describe('newSession', () => {
         expect(session.isBidi).toBe(false)
         expect(session.isWindowsApp).toBe(false)
         expect(session.isMacApp).toBe(false)
+        // the protocol stub strips the `appium:` vendor prefix from capabilities,
+        // so the emulated session response carries no Appium markers
+        expect(session.isAppium).toBe(false)
         expect(session.capabilities).toEqual({
             deviceName: 'Some Device',
             platformName: 'iOS',

@@ -173,6 +173,7 @@ describe('WebdriverIO module interface', () => {
                 isBidi: false,
                 isWindowsApp: false,
                 isMacApp: false,
+                isAppium: false,
             })
             expect(registerSessionManager).not.toBeCalled()
         })
