@@ -94,6 +94,13 @@ export default class MultiRemote {
             }
         }
 
+        /**
+         * the wrapper client needs its own strategies map so
+         * `addLocatorStrategy` does not crash and can be propagated to
+         * the instances by `addLocatorStrategyHandler` (#15540)
+         */
+        propertiesObject.strategies = { value: new Map() }
+
         propertiesObject.__propertiesObject__ = {
             value: propertiesObject
         }
