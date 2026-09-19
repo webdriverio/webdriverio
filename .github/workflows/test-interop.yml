@@ -10,6 +10,7 @@ jobs:
     name: CJS Interoperability Tests
     permissions:
       contents: read
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout Code
