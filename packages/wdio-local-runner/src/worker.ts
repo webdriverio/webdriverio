@@ -120,9 +120,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         const { cid, execArgv } = this
         const argv = process.argv.slice(2)
 
-        const runnerEnv = Object.assign({
-            NODE_OPTIONS: '--enable-source-maps',
-        }, process.env, this.config.runnerEnv, {
+        const runnerEnv = Object.assign({}, process.env, this.config.runnerEnv, {
             WDIO_WORKER_ID: cid,
             NODE_ENV: process.env.NODE_ENV || 'test'
         })
@@ -137,9 +135,18 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         }
 
         /**
-         * propagate node flags to child process, e.g. `--import tsx`
+         * Propagate the parent's node flags to the worker (e.g. `--import tsx`)
+         * while guaranteeing `--enable-source-maps` so worker stack traces map
+         * back to source. Merge the two token lists and de-duplicate: the parent
+         * NODE_OPTIONS may be unset (must not leak a literal `"undefined"`) or may
+         * already contain `--enable-source-maps` (must not be added twice).
          */
-        runnerEnv.NODE_OPTIONS = process.env.NODE_OPTIONS + ' ' + (runnerEnv.NODE_OPTIONS || '')
+        runnerEnv.NODE_OPTIONS = [
+            ...(process.env.NODE_OPTIONS ?? '').split(' '),
+            '--enable-source-maps',
+        ]
+            .filter((flag, index, flags) => flag !== '' && flags.indexOf(flag) === index)
+            .join(' ')
 
         log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
 
