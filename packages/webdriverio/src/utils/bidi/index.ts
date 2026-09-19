@@ -2,6 +2,7 @@ import { ELEMENT_KEY, type remote, type local } from 'webdriver'
 
 import { EvaluateResultType, NonPrimitiveType, PrimitiveType, RemoteType } from './constants.js'
 import { WebdriverBidiExeception } from './error.js'
+import { isSerializedBlobValue, createBlobFromSerializedValue } from './serialize.js'
 
 export function parseScriptResult(params: remote.ScriptCallFunctionParameters, result: local.ScriptEvaluateResult) {
     const type = result.type
@@ -184,9 +185,13 @@ function deserializeValue(result: remote.ScriptLocalValue & { value?: unknown })
         return null
     }
     if (type === NonPrimitiveType.Object) {
-        return Object.fromEntries((value || []).map(([key, value]: [string, remote.ScriptLocalValue]) => {
+        const obj = Object.fromEntries((value || []).map(([key, value]: [string, remote.ScriptLocalValue]) => {
             return [typeof key === 'string' ? key : deserializeValue(key), deserializeValue(value)]
         }))
+        if (isSerializedBlobValue(obj)) {
+            return createBlobFromSerializedValue(obj)
+        }
+        return obj
     }
     if (type === RemoteType.Node) {
         return { [ELEMENT_KEY]: (result as { sharedId: string }).sharedId }
