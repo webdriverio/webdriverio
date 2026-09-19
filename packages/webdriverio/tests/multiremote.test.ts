@@ -24,6 +24,19 @@ const caps = (): Capabilities.RequestedMultiremoteCapabilities => ({
 })
 
 describe('Multi-Remote tests', () => {
+    test('should add locator strategy on multi-remote and propagate to instances (#15540)', async () => {
+        const browser = await multiremote(caps())
+        const strategy = (selector: string) => document.querySelector(selector) as HTMLElement
+
+        expect(() => browser.addLocatorStrategy('selectHeader', strategy)).not.toThrow()
+        expect(browser.strategies.get('selectHeader')).toBe(strategy)
+        expect(browser.getInstance('browserA').strategies.get('selectHeader')).toBe(strategy)
+        expect(browser.getInstance('browserB').strategies.get('selectHeader')).toBe(strategy)
+
+        expect(() => browser.addLocatorStrategy('selectHeader', strategy))
+            .toThrow('Strategy selectHeader already exists')
+    })
+
     test('should run command on all instances', async () => {
         const browser = await multiremote(caps())
 
