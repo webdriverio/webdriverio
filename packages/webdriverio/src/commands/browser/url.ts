@@ -193,6 +193,7 @@ export async function url (
         }
 
         let navigationError: unknown
+        let request: WebdriverIO.Request | undefined = undefined
         try {
             let mock: WebdriverIO.Mock | undefined
             if (options.headers) {
@@ -272,7 +273,7 @@ export async function url (
             /**
              * wait until we have a request object
              */
-            return await this.waitUntil(
+            request = await this.waitUntil(
                 () => network.getRequestResponseData(navigationId),
                 /**
                  * set a short interval to immediately return once the first request payload comes in
@@ -303,6 +304,8 @@ export async function url (
         if (navigationError) {
             throw navigationError
         }
+
+        return request
     }
 
     if (Object.keys(options).length > 0) {
