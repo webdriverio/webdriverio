@@ -17,7 +17,7 @@ import {
     NETWORK_STATES,
     TRACE_COMMANDS
 } from './constants.js'
-import { isSupportedUrl, sumByKey } from './utils.js'
+import { isSupportedUrl, parseTraceBuffer, sumByKey } from './utils.js'
 import type {
     DevtoolsConfig,
     EnablePerformanceAuditsOptions,
@@ -124,7 +124,8 @@ export default class CommandHandler {
             if (!traceBuffer) {
                 throw new Error('No tracebuffer captured')
             }
-            this._traceEvents = JSON.parse(traceBuffer.toString())
+            const parsed = parseTraceBuffer(traceBuffer)
+            this._traceEvents = (parsed.traceEvents ?? parsed) as TraceEvent[]
             this._isTracing = false
         } catch (err) {
             this._isTracing = false

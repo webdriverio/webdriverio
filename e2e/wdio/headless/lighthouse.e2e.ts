@@ -38,7 +38,9 @@ describe('Lighthouse service', () => {
         await browser.startTracing()
         await browser.url('https://guinea-pig.webdriver.io/')
         const traceLogs = await browser.endTracing()
-        expect(traceLogs).toBeTruthy()
+        expect(Array.isArray(traceLogs)).toBe(true)
+        expect(traceLogs.length).toBeGreaterThan(0)
+        expect(traceLogs.some((event) => typeof event.name === 'string')).toBe(true)
 
         const storedLogs = await browser.getTraceLogs()
         expect(storedLogs).toEqual(traceLogs)

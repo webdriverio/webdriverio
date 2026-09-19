@@ -41,3 +41,21 @@ export function sumByKey (list: RequestPayload[], key: keyof RequestPayload) {
 export function isSupportedUrl (url: string) {
     return IGNORED_URLS.filter((ignoredUrl) => url.startsWith(ignoredUrl)).length === 0
 }
+
+/**
+ * Puppeteer 24+ returns a Uint8Array from `page.tracing.stop()`.
+ * `Uint8Array#toString()` joins bytes with commas, so decode as UTF-8 first.
+ */
+export function parseTraceBuffer (buffer: Buffer | Uint8Array | string): { traceEvents?: unknown[] } & Record<string, unknown> {
+    const raw = typeof buffer === 'string'
+        ? buffer
+        : Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength).toString('utf8')
+    const parsed = JSON.parse(raw.replace(/^\uFEFF/, ''))
+    if (Array.isArray(parsed)) {
+        return { traceEvents: parsed }
+    }
+    if (parsed && typeof parsed === 'object') {
+        return parsed as { traceEvents?: unknown[] } & Record<string, unknown>
+    }
+    throw new Error('Trace buffer did not contain JSON trace data')
+}

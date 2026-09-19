@@ -129,13 +129,26 @@ test('startTracing', () => {
 })
 
 test('endTracing', async () => {
-    pageMock.tracing.stop.mockResolvedValue(Buffer.from('{ "traceEvents": "foobar" }'))
+    pageMock.tracing.stop.mockResolvedValue(Buffer.from(JSON.stringify({
+        traceEvents: [{ name: 'navigationStart' }]
+    })))
     const handler = createHandler()
     handler['_isTracing'] = true
 
     const traceEvents = await handler.endTracing()
     expect(pageMock.tracing.stop).toBeCalledTimes(1)
-    expect(traceEvents).toEqual({ traceEvents: 'foobar' })
+    expect(traceEvents).toEqual([{ name: 'navigationStart' }])
+    expect(handler['_isTracing']).toBe(false)
+})
+
+test('endTracing decodes a Uint8Array trace buffer from Puppeteer', async () => {
+    const payload = { traceEvents: [{ name: 'navigationStart' }] }
+    pageMock.tracing.stop.mockResolvedValue(new TextEncoder().encode(JSON.stringify(payload)))
+    const handler = createHandler()
+    handler['_isTracing'] = true
+
+    const traceEvents = await handler.endTracing()
+    expect(traceEvents).toEqual(payload.traceEvents)
     expect(handler['_isTracing']).toBe(false)
 })
 
