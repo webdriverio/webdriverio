@@ -40,6 +40,16 @@ export class SessionManager {
 
     removeListeners() {
         this.#browser.off('command', this.#onCommandListener)
+        /**
+         * Release the registration marker together with the listener it guards.
+         * It is what stops a second manager for the same session and scope from
+         * registering a duplicate listener, so leaving it behind after the
+         * listener is gone means a manager created later for that same session
+         * never registers one at all - and then never cleans itself up on
+         * `deleteSession`. It also keeps the set growing for the lifetime of the
+         * process, one entry per session and scope.
+         */
+        listenerRegisteredSession.delete(`${this.#browser.sessionId}-${this.#scope}`)
     }
 
     initialize(): unknown {
