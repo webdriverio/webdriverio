@@ -3,10 +3,19 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 
 import { waitForExist } from '../src/commands/element/waitForExist.js'
+import refetchElement from '../src/utils/refetchElement.js'
 import { remote } from '../src/index.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+/**
+ * Delegate to the real implementation by default so the other specs keep
+ * exercising the actual refetch path; individual tests can override it once.
+ */
+vi.mock('../src/utils/refetchElement.js', async (importOriginal) => {
+    const actual = (await importOriginal()) as { default: typeof refetchElement }
+    return { __esModule: true, default: vi.fn(actual.default) }
+})
 vi.mock('../src/commands/element/waitUntil', () => ({
     __esModule: true,
     waitUntil: vi.fn().mockImplementation(() => { return true })
@@ -114,6 +123,27 @@ describe('middleware', () => {
         expect(await subSubElem.click()).toEqual(null)
         expect(vi.mocked(warn).mock.calls).toHaveLength(1)
         expect(vi.mocked(warn).mock.calls).toEqual([['Request encountered a stale element - terminating request']])
+    })
+
+    it('re-throws the original stale error when the refetch itself fails', async () => {
+        // If the page navigated away, the refetch can fail with an unrelated
+        // error ("Index out of bounds"). That must not mask the original stale
+        // element error, which is the actionable one for the user.
+        const staleError = new Error(
+            'WebDriver Bidi command "script.callFunction" failed with error: no such node - The node with the reference stale-element-123 is not known'
+        )
+        const staleCheck = vi.fn().mockRejectedValueOnce(staleError)
+        browser.addCommand('rethrowStaleCheck', staleCheck, true)
+        const elem = await browser.$('#foo')
+
+        vi.mocked(refetchElement).mockRejectedValueOnce(new Error('Index out of bounds'))
+
+        // @ts-expect-error undefined custom command
+        const error = await elem.rethrowStaleCheck().then(() => null, (e: Error) => e)
+        expect(vi.mocked(refetchElement)).toHaveBeenCalled()
+        expect(error).toBeInstanceOf(Error)
+        expect(error?.message).toContain('stale-element-123')
+        expect(error?.message).not.toContain('Index out of bounds')
     })
 
     it('should assign elementId and w3c identifier to element scope after re-found', async () => {

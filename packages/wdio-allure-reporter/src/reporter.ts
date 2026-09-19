@@ -46,6 +46,7 @@ import {
     toFullName,
     toPackageLabel,
     toPackageLabelCucumber,
+    normalizeCapabilityName,
 } from './utils.js'
 import type { AddTestInfoEventArgs, AllureReporterOptions, WDIORuntimeMessage } from './types.js'
 import { DEFAULT_CID, events } from './constants.js'
@@ -155,7 +156,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     constructor(options: AllureReporterOptions) {
-        const { outputDir, resultsDir, ...rest } = options
+        const { outputDir, resultsDir, includeVersionInHistoryId: _includeVersionInHistoryId, ...rest } = options
 
         const normalizeTpl = (tpl?: string) => (tpl ? tpl.replace(/\{\}/g, '%s') : tpl)
 
@@ -377,27 +378,35 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     /**
-     * Stable key from current capabilities (browser/device + version) for hash.
+     * Stable key from current capabilities for historyId.
+     * Uses the browser/device family by default so history survives version bumps.
      * Must NOT include cid. Used to make historyId unique per environment.
      */
     private _getCapabilityKey(): string {
         if (this._isMultiremote) { return 'multiremote' }
         const capsUnknown: unknown = this._capabilities
-        const browserName = getStringField(capsUnknown, 'browserName')
-        const device = getStringField(capsUnknown, 'device')
         const desired: Record<string, unknown> | undefined = ((): Record<string, unknown> | undefined => {
             const maybe = (capsUnknown as Record<string, unknown>)?.['desired']
             return isRecord(maybe) ? maybe : undefined
         })()
+        const browserName = getStringField(capsUnknown, 'browserName')
+        const device = getStringField(capsUnknown, 'device')
         const deviceName =
             getStringField(desired, 'deviceName') ||
             getStringField(desired, 'appium:deviceName') ||
             getStringField(capsUnknown, 'deviceName') ||
             getStringField(capsUnknown, 'appium:deviceName')
-        let targetName = device || browserName || deviceName || ''
+        const targetName = device || browserName || deviceName || ''
+        if (!targetName) { return '' }
+
+        if (!this._options.includeVersionInHistoryId) {
+            return normalizeCapabilityName(targetName)
+        }
+
+        let versionedName = targetName.trim()
         const desiredPlatformVersion = getStringField(desired, 'appium:platformVersion')
         if (desired && deviceName && desiredPlatformVersion) {
-            targetName = `${device || deviceName} ${desiredPlatformVersion}`
+            versionedName = `${device || deviceName} ${desiredPlatformVersion}`
         }
         const version =
             getStringField(capsUnknown, 'os_version') ||
@@ -406,7 +415,7 @@ export default class AllureReporter extends WDIOReporter {
             getStringField(capsUnknown, 'version') ||
             getStringField(capsUnknown, 'appium:platformVersion') ||
             ''
-        return version ? `${targetName}-${version}`.trim() : targetName.trim()
+        return version ? `${versionedName}-${version}`.trim() : versionedName.trim()
     }
 
     /**
