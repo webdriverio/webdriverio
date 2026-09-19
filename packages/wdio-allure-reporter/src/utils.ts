@@ -275,6 +275,23 @@ export const relNoSlash = (p?: string) => {
     return rel.replace(/^\.\/+/, '')
 }
 export const toFullName = (file: string, title: string) => `${relNoSlash(file)}#${title}`
+
+/**
+ * Normalize a browser/device family name for Allure historyId.
+ * Vendor aliases such as `Google Chrome` / `googlechrome` collapse to `chrome`
+ * so history stays stable across Appium and desktop capability spellings.
+ */
+export function normalizeCapabilityName(value: string): string {
+    const trimmed = value.trim().toLowerCase().replace(/\s+/g, ' ')
+    const compact = trimmed.replace(/[^a-z0-9]/g, '')
+    if (compact === 'googlechrome' || compact === 'chrome') {
+        return 'chrome'
+    }
+    if (compact === 'microsoftedge' || compact === 'msedge' || compact === 'edge') {
+        return 'edge'
+    }
+    return trimmed
+}
 export function isObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null
 }

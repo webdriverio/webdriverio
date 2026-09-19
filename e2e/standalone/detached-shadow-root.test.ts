@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { remote } from 'webdriverio'
+import { startStandaloneChrome } from './helpers.js'
 
 const cases = [
     { mode: 'open', initiallyConnected: false },
@@ -9,12 +9,7 @@ const cases = [
 ] as const
 
 test.each(cases)('serializes $mode shadow host once (initiallyConnected: $initiallyConnected)', async (options) => {
-    const browser = await remote({
-        capabilities: {
-            browserName: 'chrome',
-            'goog:chromeOptions': { args: ['--headless=new'] }
-        }
-    })
+    const browser = await startStandaloneChrome()
 
     try {
         await browser.url('data:text/html,<main>Detached shadow host</main>')
@@ -48,9 +43,7 @@ test.each(cases)('serializes $mode shadow host once (initiallyConnected: $initia
 })
 
 test.each(['open', 'closed'] as const)('keeps a detached %s host when another host registers the document root', async (mode) => {
-    const browser = await remote({
-        capabilities: { browserName: 'chrome', 'goog:chromeOptions': { args: ['--headless=new'] } }
-    })
+    const browser = await startStandaloneChrome()
     try {
         await browser.url('data:text/html,<main id="area"></main>')
         await browser.waitUntil(() => browser.execute(() => Boolean(document.querySelector('#area'))))

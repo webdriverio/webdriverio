@@ -17,7 +17,7 @@ import type { EdgedriverParameters } from 'edgedriver'
 import type { Capabilities } from '@wdio/types'
 
 import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir, generateDefaultPrefs, setDefaultEdgedriverCdnUrl } from './utils.js'
-import { isChrome, isFirefox, isEdge, isSafari, isAppiumCapability } from '../utils.js'
+import { isChrome, isFirefox, isEdge, isSafari, isAppiumCapability, sleep } from '../utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 
 export type ChromedriverParameters = (
@@ -37,6 +37,31 @@ declare global {
 const log = logger('@wdio/utils')
 const DRIVER_WAIT_TIMEOUT = 10 * 1000 // 10s
 const DRIVER_RETRY_INTERVAL = 100
+const TRANSIENT_SPAWN_CODES = new Set(['EBUSY', 'EAGAIN', 'EACCES'])
+const SPAWN_RETRY_ATTEMPTS = 5
+const SPAWN_RETRY_DELAY = 200
+
+/**
+ * Spawn a driver binary and retry when Windows still holds a lock on the
+ * executable after the previous session was killed (`spawn EBUSY`).
+ */
+async function spawnDriver (command: string, args: readonly string[], options: cp.SpawnOptions) {
+    let lastError: unknown
+    for (let attempt = 1; attempt <= SPAWN_RETRY_ATTEMPTS; attempt++) {
+        try {
+            return cp.spawn(command, args, options)
+        } catch (err) {
+            lastError = err
+            const code = (err as NodeJS.ErrnoException).code
+            if (!code || !TRANSIENT_SPAWN_CODES.has(code) || attempt === SPAWN_RETRY_ATTEMPTS) {
+                throw err
+            }
+            log.warn(`Failed to spawn ${command} (${code}), retrying ${attempt}/${SPAWN_RETRY_ATTEMPTS} ...`)
+            await sleep(SPAWN_RETRY_DELAY * attempt)
+        }
+    }
+    throw lastError
+}
 
 export async function startWebDriver(options: Capabilities.RemoteConfig) {
     /**
@@ -127,7 +152,7 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
         /**
          * Set NODE_OPTIONS empty to avoid passing it to the chromedriver process so that Electron doesn't crash
          */
-        driverProcess = cp.spawn(chromedriverExcecuteablePath, driverParams, {
+        driverProcess = await spawnDriver(chromedriverExcecuteablePath, driverParams, {
             env: { ...process.env, NODE_OPTIONS: '' },
             ...(chromedriverOptions.spawnOpts || {})
         })
