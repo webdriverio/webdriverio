@@ -32,7 +32,7 @@ export const config = {
 
 The `@wdio/lighthouse-service` allows you to run Google Lighthouse accessibility and performance tests through WebdriverIO. The service uses [Lighthouse 13](https://github.com/GoogleChrome/lighthouse/releases/tag/v13.4.1) and its public user-flow API (`startFlow`) to audit page loads performed by WebdriverIO.
 
-**Note:** Lighthouse 13 requires Node.js 22.19 or newer. The rest of WebdriverIO continues to support the versions listed in the project engines field.
+**Note:** this service requires Node.js 22.19 or newer because it depends on [Lighthouse 13](https://github.com/GoogleChrome/lighthouse/releases/tag/v13.4.1). The rest of WebdriverIO continues to support the versions listed in the project engines field.
 
 ### Performance Testing
 
