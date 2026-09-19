@@ -221,6 +221,9 @@ test('beforeCmd starts a Lighthouse navigation for click commands', async () => 
     await handler._beforeCmd('click', [])
     expect(startNavigation).toHaveBeenCalledWith({ name: 'WebdriverIO click' })
     expect(handler['_clickTraceTimeout']).toBeDefined()
+
+    vi.advanceTimersByTime(2000)
+    expect(handler['_pageLoadDetected']).toBe(false)
     vi.useRealTimers()
 })
 
@@ -291,6 +294,32 @@ test('frame navigation is ignored for unsupported or nested frames', async () =>
 
     handler['_handleFrameNavigated']({ frame: { url: 'https://webdriver.io/' } })
     expect(handler['_pageLoadDetected']).toBe(true)
+})
+
+test('frame navigation clears the pending click timeout', async () => {
+    vi.useFakeTimers()
+    const handler = createHandler()
+    handler['_flowInProgress'] = true
+    handler['_clickTraceTimeout'] = setTimeout(() => {}, 45_000)
+
+    handler['_handleFrameNavigated']({ frame: { url: 'https://webdriver.io/' } })
+
+    expect(handler['_pageLoadDetected']).toBe(true)
+    expect(handler['_clickTraceTimeout']).toBeUndefined()
+    vi.useRealTimers()
+})
+
+test('afterCmd logs when cancelling a click whose navigation never starts', async () => {
+    endNavigation.mockRejectedValueOnce(new Error('NO_NAVSTART'))
+    const handler = createHandler()
+    handler.setThrottlingProfile = vi.fn()
+    handler['_shouldRunPerformanceAudits'] = true
+    await handler._beforeCmd('click', [])
+
+    await handler._afterCmd('click')
+
+    expect(dispose).toHaveBeenCalled()
+    expect(new Auditor().updateCommands).toHaveBeenCalledWith(browser, expect.any(Function))
 })
 
 test('enablePerformanceAudits: applies some default values', () => {

@@ -91,6 +91,32 @@ describe('evaluatePWAChecks', () => {
         expect(details.contentWith.score).toBe(0)
     })
 
+    it('skips malformed icon sizes and still accepts a valid one', () => {
+        const details = evaluatePWAChecks({
+            ...passingState,
+            manifest: {
+                ...passingState.manifest!,
+                icons: [
+                    { src: '/icon.png', sizes: 'huge 64x', purpose: 'any' },
+                    { src: '/icon-512.png', sizes: '512x512', purpose: 'any maskable' }
+                ]
+            }
+        }, [])
+        expect(details.isInstallable.score).toBe(1)
+        expect(details.splashScreen.score).toBe(1)
+    })
+
+    it('fails installability when the manifest prefers related applications', () => {
+        const details = evaluatePWAChecks({
+            ...passingState,
+            manifest: {
+                ...passingState.manifest!,
+                prefer_related_applications: true
+            }
+        }, [])
+        expect(details.isInstallable.score).toBe(0)
+    })
+
     it('treats any-sized icons as large enough for splash and installability', () => {
         const details = evaluatePWAChecks({
             ...passingState,

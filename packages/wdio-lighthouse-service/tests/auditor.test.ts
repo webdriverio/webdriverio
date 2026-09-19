@@ -80,6 +80,21 @@ test('getMainThreadWorkBreakdown returns empty list without Lighthouse data', as
     expect(await new Auditor().getMainThreadWorkBreakdown()).toEqual([])
 })
 
+test('getMainThreadWorkBreakdown defaults missing group and duration', async () => {
+    const incomplete = new Auditor({
+        audits: {
+            'mainthread-work-breakdown': {
+                score: 1,
+                details: { items: [{}, { group: 'scriptEvaluation', duration: 2 }] }
+            }
+        }
+    })
+    expect(await incomplete.getMainThreadWorkBreakdown()).toEqual([
+        { group: '', duration: 0 },
+        { group: 'scriptEvaluation', duration: 2 }
+    ])
+})
+
 test('getDiagnostics', async () => {
     expect(await auditor.getDiagnostics()).toEqual({
         numRequests: 8,
@@ -138,6 +153,21 @@ test('getMetrics falls back to individual audit numeric values', async () => {
         interactive: 500,
         maxPotentialFID: 12
     })
+})
+
+test('getMetrics ignores non-finite values and falls back to observed CLS', async () => {
+    const sparse = new Auditor({
+        audits: {
+            'server-response-time': { score: 1, numericValue: Number.NaN },
+            metrics: {
+                score: 1,
+                details: { items: [{ cumulativeLayoutShift: 0.05 }] }
+            }
+        }
+    })
+    const metrics = await sparse.getMetrics()
+    expect(metrics.timeToFirstByte).toBeUndefined()
+    expect(metrics.cumulativeLayoutShift).toBe(0.05)
 })
 
 test('getPerformanceScore', async () => {
