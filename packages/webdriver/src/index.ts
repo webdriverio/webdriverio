@@ -16,6 +16,54 @@ import type { Client, AttachOptions, SessionFlags } from './types.js'
 
 const log = logger('webdriver')
 
+/**
+ * client session with the protocol command surface that was derived from the
+ * environment detection at session creation time. This is needed by
+ * `reloadSession` to know which commands have been contributed by the protocols
+ * so that the command surface can be rebuilt for a recreated session.
+ */
+interface SessionClient extends Client {
+    __protocolCommandNames__?: string[]
+    __environmentEncoding__?: boolean
+    __commandWrapper__?: (...args: any[]) => any
+}
+
+const getProtocolCommandNames = (instance: SessionClient): string[] => instance.__protocolCommandNames__ ?? []
+
+/**
+ * stores the names of all commands contributed by the protocol definitions so
+ * that `reloadSession` can remove commands that are no longer supported by the
+ * new session and add the ones that are. Commands that are overridden by user
+ * defined commands (e.g. `browser.throttleCPU` is provided by WebdriverIO but
+ * also exists in the Sauce Labs protocol) are excluded as they are not owned by
+ * the protocols and must not be removed on reload.
+ */
+const applyProtocolCommandNames = (client: Client, protocolCommands: Record<string, PropertyDescriptor>, userPrototype: Record<string, PropertyDescriptor>) => {
+    ;(client as SessionClient).__protocolCommandNames__ = Object.keys(protocolCommands).filter((name) => !(name in userPrototype))
+    return client
+}
+
+/**
+ * stores the `isSeleniumStandalone` flag that was baked into the protocol
+ * command closures so that `reloadSession` can detect when the URL variable
+ * encoding policy changes and recreate the affected commands.
+ */
+const applyEnvironmentEncoding = (client: Client, isSeleniumStandalone?: boolean) => {
+    ;(client as SessionClient).__environmentEncoding__ = isSeleniumStandalone
+    return client
+}
+
+/**
+ * stores the command wrapper that was applied to the command surface at
+ * creation time (e.g. WebdriverIO's `wrapCommand` to enable `beforeCommand`
+ * and `afterCommand` hooks) so that `reloadSession` can rebuild commands
+ * through the same wrapper instead of installing raw descriptors.
+ */
+const applyCommandWrapper = (client: Client, commandWrapper?: (...args: any[]) => any) => {
+    ;(client as SessionClient).__commandWrapper__ = commandWrapper
+    return client
+}
+
 export default class WebDriver {
     static async newSession(
         options: Capabilities.RemoteConfig,
@@ -72,7 +120,9 @@ export default class WebDriver {
                 ...bidiPrototype
             }
         )
-        const client = monad(sessionId, customCommandWrapper, implicitWaitExclusionList)
+        const client = applyProtocolCommandNames(monad(sessionId, customCommandWrapper, implicitWaitExclusionList), protocolCommands, userPrototype)
+        applyEnvironmentEncoding(client, environment.isSeleniumStandalone)
+        applyCommandWrapper(client, customCommandWrapper)
 
         /**
          * parse and propagate all Bidi events to the browser instance
@@ -147,7 +197,9 @@ export default class WebDriver {
 
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype, ...bidiPrototype }
         const monad = webdriverMonad(options, modifier, prototype)
-        const client = monad(options.sessionId, commandWrapper)
+        const client = applyProtocolCommandNames(monad(options.sessionId, commandWrapper), protocolCommands, userPrototype)
+        applyEnvironmentEncoding(client, (options as Partial<SessionFlags>).isSeleniumStandalone)
+        applyCommandWrapper(client, commandWrapper)
 
         /**
          * parse and propagate all Bidi events to the browser instance
@@ -215,6 +267,101 @@ export default class WebDriver {
             instance.capabilities['wdio:driverPID'] = driverPid
         }
         Object.assign(instance.requestedCapabilities, capabilities)
+
+        /**
+         * re-run the environment detection based on the capabilities of the
+         * replacement session and rebuild the protocol command surface of the
+         * instance, e.g. the `isAppium` flag and the Appium commands have to be
+         * refreshed when reloading between Appium and non-Appium sessions
+         */
+        const environment = sessionEnvironmentDetector({
+            capabilities: newSessionCapabilities,
+            requestedCapabilities: capabilities
+        })
+        const environmentPrototype = getEnvironmentVars(environment)
+        const protocolCommands = getPrototype(environment)
+
+        for (const [flag, descriptor] of Object.entries(environmentPrototype)) {
+            Object.defineProperty(instance, flag, descriptor)
+        }
+
+        /**
+         * remove protocol commands that are no longer supported by the new
+         * session while keeping user defined commands untouched
+         */
+        const previousProtocolCommandNames = getProtocolCommandNames(instance)
+        for (const commandName of previousProtocolCommandNames) {
+            if (!(commandName in protocolCommands) && Object.prototype.hasOwnProperty.call(instance, commandName)) {
+                delete instance[commandName]
+            }
+        }
+
+        /**
+         * the URL variable encoding policy is baked into the command closures
+         * at creation time (`isSeleniumStandalone` enables double encoding of
+         * URL variables), so all commands have to be recreated if it changed
+         */
+        const previousEncoding = (instance as SessionClient).__environmentEncoding__ ?? false
+        const encodingChanged = previousEncoding !== environment.isSeleniumStandalone
+
+        /**
+         * rebuild protocol commands through the same command wrapper that was
+         * applied at creation time (e.g. WebdriverIO's `wrapCommand` for
+         * `beforeCommand`/`afterCommand` hooks) so that the hooks keep
+         * applying to commands that are recreated or added on reload
+         */
+        const commandWrapper = (instance as SessionClient).__commandWrapper__
+        const installCommand = (commandName: string, descriptor: PropertyDescriptor) => {
+            const value = typeof commandWrapper === 'function'
+                ? commandWrapper(commandName, descriptor.value)
+                : descriptor.value
+            Object.defineProperty(instance, commandName, { ...descriptor, value })
+        }
+
+        /**
+         * rebuild the protocol command surface of the instance:
+         * - commands that were contributed by the protocols at creation time
+         *   are kept (or recreated if the URL variable encoding changed) and
+         *   stay tracked. If their own property is missing they have been
+         *   overridden via `overwriteCommand`, which lifts the override onto
+         *   the instance prototype - defining the built-in command here would
+         *   shadow the user's override, so they are left untouched.
+         * - commands that were not contributed by the protocols (user defined
+         *   commands and commands the user overrode through the user
+         *   prototype) are never touched, even if they collide with a command
+         *   of the new protocol surface.
+         * - commands that are genuinely new to the protocol surface are added
+         *   and tracked.
+         */
+        const nextProtocolCommandNames: string[] = []
+        for (const [commandName, descriptor] of Object.entries(protocolCommands)) {
+            if (previousProtocolCommandNames.includes(commandName)) {
+                if (!Object.prototype.hasOwnProperty.call(instance, commandName)) {
+                    continue
+                }
+
+                /**
+                 * only recreate a command when the encoding policy changed. In
+                 * all other cases the existing command - including any wrapper
+                 * - is kept as is and keeps working against the new session
+                 * since it reads the session id dynamically.
+                 */
+                if (encodingChanged) {
+                    installCommand(commandName, descriptor)
+                }
+                nextProtocolCommandNames.push(commandName)
+                continue
+            }
+
+            if (commandName in instance) {
+                continue
+            }
+
+            installCommand(commandName, descriptor)
+            nextProtocolCommandNames.push(commandName)
+        }
+        ;(instance as SessionClient).__protocolCommandNames__ = nextProtocolCommandNames
+        ;(instance as SessionClient).__environmentEncoding__ = environment.isSeleniumStandalone
 
         /**
          * reconnect to new Bidi session

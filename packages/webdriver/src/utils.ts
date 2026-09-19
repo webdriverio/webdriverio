@@ -292,16 +292,16 @@ export function isSuccessfulResponse (statusCode?: number, body?: unknown) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isAppium, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ProtocolCommands = deepmerge<any>(
         /**
-         * if mobile apply JSONWire and WebDriver protocol because
-         * some legacy JSONWire commands are still used in Appium
-         * (e.g. set/get geolocation)
+         * if mobile or Appium apply Appium and WebDriver protocol because
+         * some Appium commands are still used in Appium sessions
+         * (e.g. get/set appium session details, settings, extensions, etc.)
          */
-        isMobile
+        isMobile || isAppium
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ? deepmerge<any>(AppiumProtocol as Protocol, WebDriverProtocol as Protocol) as Protocol
             : WebDriverProtocol,
@@ -336,7 +336,14 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
         for (const [method, commandData] of Object.entries(methods)) {
-            prototype[commandData.command] = { value: command(method, endpoint, commandData, isSeleniumStandalone) }
+            prototype[commandData.command] = {
+                /**
+                 * commands need to be configurable so that `reloadSession` can
+                 * replace the command surface for a recreated session
+                 */
+                value: command(method, endpoint, commandData, isSeleniumStandalone),
+                configurable: true
+            }
         }
     }
 
@@ -349,15 +356,20 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium, isWindowsApp, isMacApp }: Partial<SessionFlags>): PropertyDescriptorMap {
+export function getEnvironmentVars({ isW3C, isMobile, isAppium, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium, isWindowsApp, isMacApp }: Partial<SessionFlags>): PropertyDescriptorMap {
+    /**
+     * all flags need to be configurable so that `reloadSession` can re-apply
+     * the environment detection result of the recreated session
+     */
     return {
-        isW3C: { value: isW3C },
-        isMobile: { value: isMobile },
-        isIOS: { value: isIOS },
-        isAndroid: { value: isAndroid },
-        isFirefox: { value: isFirefox },
-        isSauce: { value: isSauce },
-        isSeleniumStandalone: { value: isSeleniumStandalone },
+        isW3C: { value: isW3C, configurable: true },
+        isMobile: { value: isMobile, configurable: true },
+        isAppium: { value: isAppium, configurable: true },
+        isIOS: { value: isIOS, configurable: true },
+        isAndroid: { value: isAndroid, configurable: true },
+        isFirefox: { value: isFirefox, configurable: true },
+        isSauce: { value: isSauce, configurable: true },
+        isSeleniumStandalone: { value: isSeleniumStandalone, configurable: true },
         isBidi: {
             /**
              * Return the value of this flag dynamically based on whether the
@@ -366,11 +378,12 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefo
              */
             get: function (this: Client & { _bidiHandler?: BidiHandler }) {
                 return Boolean(this._bidiHandler?.isConnected)
-            }
+            },
+            configurable: true
         },
-        isChromium: { value: isChromium },
-        isWindowsApp: { value: isWindowsApp },
-        isMacApp: { value: isMacApp }
+        isChromium: { value: isChromium, configurable: true },
+        isWindowsApp: { value: isWindowsApp, configurable: true },
+        isMacApp: { value: isMacApp, configurable: true }
     }
 }
 

@@ -62,6 +62,11 @@ interface TestClient extends Client {
     rotateDevice (): void
     takeElementScreenshot (): void
     getDeviceTime (): void
+    getAppiumCommands (): void
+    appiumLock (): void
+    findElement (): void
+    elementClick (elementId: string): unknown
+    overwriteCommand (name: string, fn: Function): void
 }
 
 beforeEach(() => {
@@ -410,6 +415,154 @@ describe('WebDriver', () => {
             expect(session.options.protocol).toBe('http')
             expect(session.options.hostname).toBe('localhost')
             expect((session.requestedCapabilities as WebdriverIO.Capabilities)['browserName']).toBe('firefox')
+        })
+
+        it('refreshes the environment flags and adds Appium commands when reloading into a non-mobile Appium session', async () => {
+            const session = await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' }
+            })
+            expect(session.isAppium).toBe(false)
+            // @ts-expect-error mock feature
+            expect((session as TestClient).getAppiumCommands).toBeUndefined()
+
+            vi.mocked(startWebDriver).mockClear()
+            // @ts-expect-error mock feature
+            vi.mocked(fetch).customResponseFor(/\/session/, {
+                value: {
+                    sessionId: 'appium-session',
+                    capabilities: { 'appium:automationName': 'chrome', browserName: 'chrome' }
+                },
+                sessionId: 'appium-session'
+            })
+            await WebDriver.reloadSession(session, { 'appium:automationName': 'chrome', browserName: 'chrome' })
+
+            expect(session.isAppium).toBe(true)
+            expect(session.isMobile).toBe(false)
+            expect(typeof (session as TestClient).getAppiumCommands).toBe('function')
+            expect(typeof (session as TestClient).appiumLock).toBe('function')
+        })
+
+        it('clears stale Appium state when reloading into a regular browser session', async () => {
+            // @ts-expect-error mock feature
+            vi.mocked(fetch).customResponseFor(/\/session/, {
+                value: {
+                    sessionId: 'appium-session',
+                    capabilities: { 'appium:automationName': 'chrome', browserName: 'chrome' }
+                },
+                sessionId: 'appium-session'
+            })
+            const session = await WebDriver.newSession({
+                path: '/',
+                capabilities: { 'appium:automationName': 'chrome', browserName: 'chrome' }
+            })
+            expect(session.isAppium).toBe(true)
+            expect(typeof (session as TestClient).getAppiumCommands).toBe('function')
+
+            vi.mocked(startWebDriver).mockClear()
+            // @ts-expect-error mock feature
+            vi.mocked(fetch).customResponseFor(/\/session/, {
+                value: {
+                    sessionId: 'browser-session',
+                    capabilities: { browserName: 'firefox' }
+                },
+                sessionId: 'browser-session'
+            })
+            await WebDriver.reloadSession(session, { browserName: 'firefox' })
+
+            expect(session.isAppium).toBe(false)
+            expect((session as TestClient).getAppiumCommands).toBeUndefined()
+            expect((session as TestClient).appiumLock).toBeUndefined()
+            // non-Appium commands should still be available
+            expect(typeof (session as TestClient).findElement).toBe('function')
+        })
+
+        it('does not shadow commands overridden via overwriteCommand on reload', async () => {
+            const session = await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' }
+            })
+            ;(session as TestClient).overwriteCommand(
+                'elementClick',
+                async function (this: unknown, orig: Function) {
+                    return `custom elementClick (${orig.name})`
+                }
+            )
+            expect(await (session as TestClient).elementClick('some-id')).toBe('custom elementClick ()')
+
+            await WebDriver.reloadSession(session, { browserName: 'chrome' })
+
+            expect(await (session as TestClient).elementClick('some-id')).toBe('custom elementClick ()')
+        })
+
+        it('keeps the command closures when the URL variable encoding policy does not change on reload', async () => {
+            const session = await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' }
+            })
+            const origElementClick = Object.getOwnPropertyDescriptor(session as TestClient, 'elementClick')?.value
+
+            await WebDriver.reloadSession(session, { browserName: 'chrome' })
+
+            expect(Object.getOwnPropertyDescriptor(session as TestClient, 'elementClick')?.value).toBe(origElementClick)
+        })
+
+        it('recreates protocol commands when the URL variable encoding policy changes on reload', async () => {
+            const session = await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' }
+            })
+            const endpoints: string[] = []
+            // @ts-expect-error mock event
+            session.on('command', (command: { endpoint: string }) => endpoints.push(command.endpoint))
+            await (session as TestClient).elementClick('some id').catch(() => {})
+            expect(endpoints.pop()).toBe('/session/:sessionId/element/some%20id/click')
+
+            vi.mocked(startWebDriver).mockClear()
+            // @ts-expect-error mock feature
+            vi.mocked(fetch).customResponseFor(/\/session/, {
+                value: {
+                    sessionId: 'standalone-session',
+                    capabilities: { browserName: 'chrome', 'se:cdp': {} }
+                },
+                sessionId: 'standalone-session'
+            })
+            await WebDriver.reloadSession(session, { browserName: 'chrome' })
+
+            await (session as TestClient).elementClick('some id').catch(() => {})
+            expect(endpoints.pop()).toBe('/session/:sessionId/element/some%2520id/click')
+        })
+
+        it('rebuilds recreated commands through the command wrapper on reload', async () => {
+            const wrappedCommands: string[] = []
+            const customCommandWrapper = function (name: string, fn: Function) {
+                return async function (this: unknown, ...args: unknown[]) {
+                    wrappedCommands.push(name)
+                    return fn.apply(this, args)
+                }
+            }
+            const session = await WebDriver.newSession(
+                { path: '/', capabilities: { browserName: 'firefox' } },
+                undefined,
+                {},
+                customCommandWrapper
+            )
+            await (session as TestClient).elementClick('some-id')
+            expect(wrappedCommands).toEqual(['elementClick'])
+
+            wrappedCommands.length = 0
+            // @ts-expect-error mock feature
+            vi.mocked(fetch).customResponseFor(/\/session/, {
+                value: {
+                    sessionId: 'standalone-session',
+                    capabilities: { browserName: 'chrome', 'se:cdp': {} }
+                },
+                sessionId: 'standalone-session'
+            })
+            await WebDriver.reloadSession(session, { browserName: 'chrome' })
+
+            await (session as TestClient).elementClick('some-id').catch(() => {})
+            expect(wrappedCommands).toContain('elementClick')
         })
     })
 
