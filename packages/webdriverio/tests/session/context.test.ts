@@ -334,4 +334,40 @@ describe('ContextManager', () => {
         expect(manager.getCurrentWindowHandle()).toBeUndefined()
         process.env.WDIO_UNIT_TESTS = wid
     })
+
+    it('resets the current context on switchToParentFrame even when the parent is not found (regression for #15570)', () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub({ isBidi: true } as any)
+        const browser = stub.browser
+        ;(browser as any).browsingContextGetTree.mockResolvedValue({ contexts: [] })
+        const manager = getContextManager(browser)
+        process.env.WDIO_UNIT_TESTS = wid
+        manager.setCurrentContext('stale-context')
+
+        const commandHandlers = stub.getListeners().command || []
+        for (const handler of commandHandlers) {
+            handler({ command: 'switchToParentFrame', body: {} })
+        }
+
+        // COMMANDS_REQUIRING_RESET should clear the cached context
+        expect(manager.getCurrentContext()).toBeUndefined()
+    })
+
+    it('resets the current context on switchToParentFrame even when no cached context exists (regression for #15570)', () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub({ isBidi: true } as any)
+        const browser = stub.browser
+        const manager = getContextManager(browser)
+        process.env.WDIO_UNIT_TESTS = wid
+
+        const commandHandlers = stub.getListeners().command || []
+        for (const handler of commandHandlers) {
+            handler({ command: 'switchToParentFrame', body: {} })
+        }
+
+        // Should still reach the reset logic and not throw
+        expect(manager.getCurrentContext()).toBeUndefined()
+    })
 })
