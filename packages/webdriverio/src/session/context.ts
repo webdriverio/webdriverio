@@ -375,11 +375,12 @@ export class ContextManager extends SessionManager {
         if (this.#browser.isMobile) {
             return this.#currentContext
         }
+        const cachedContext = this.#currentContext
         try {
             const { contexts } = await this.#browser.browsingContextGetTree({})
-            const validContext = this.findContext(this.#currentContext, contexts, 'byContextId')
+            const validContext = this.findContext(cachedContext, contexts, 'byContextId')
             if (validContext) {
-                return this.#currentContext
+                return cachedContext
             }
             /**
              * The cached context is no longer valid, re-initialize
@@ -390,7 +391,7 @@ export class ContextManager extends SessionManager {
             /**
              * If validation fails, fall back to the cached context
              */
-            return this.#currentContext
+            return cachedContext
         }
     }
 
