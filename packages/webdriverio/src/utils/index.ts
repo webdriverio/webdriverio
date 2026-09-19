@@ -13,7 +13,7 @@ import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { checkElementsContainedIn, checkElementsConnected } from './elementChecks.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
 import { DEEP_SELECTOR, Key } from '../constants.js'
-import { findStrategy } from './findStrategy.js'
+import { findStrategy, getAriaXPathSelector } from './findStrategy.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
@@ -277,7 +277,7 @@ export function elementPromiseHandler<T extends object>(handle: string, shadowRo
     }
 }
 
-export function transformClassicToBidiSelector(using: string, value: string): remote.BrowsingContextCssLocator | remote.BrowsingContextXPathLocator | remote.BrowsingContextInnerTextLocator {
+export function transformClassicToBidiSelector(using: string, value: string): remote.BrowsingContextLocator {
     if (using === 'css selector' || using === 'tag name') {
         return { type: 'css', value }
     }
@@ -294,7 +294,51 @@ export function transformClassicToBidiSelector(using: string, value: string): re
         return { type: 'innerText', value, matchType: 'partial' }
     }
 
+    if (using === 'aria') {
+        return {
+            type: 'accessibility',
+            value: {
+                name: value,
+            },
+        }
+    }
+
     throw new Error(`Can't transform classic selector ${using} to Bidi selector`)
+}
+
+/**
+ * Convert a selector strategy into something WebDriver Classic understands.
+ * BiDi-only strategies such as `aria` fall back to the XPath approximation.
+ */
+function toClassicSelector(using: string, value: string): { using: string, value: string } {
+    if (using === 'aria') {
+        return { using: 'xpath', value: getAriaXPathSelector(value) }
+    }
+    return { using, value }
+}
+
+function findElementViaClassic(
+    ctx: WebdriverIO.Browser | WebdriverIO.Element,
+    browser: WebdriverIO.Browser,
+    using: string,
+    value: string
+) {
+    const classic = toClassicSelector(using, value)
+    return ctx && 'elementId' in ctx && ctx.elementId
+        ? ctx.findElementFromElement(ctx.elementId, classic.using, classic.value)
+        : browser.findElement(classic.using, classic.value)
+}
+
+function findElementsViaClassic(
+    ctx: WebdriverIO.Browser | WebdriverIO.Element,
+    browser: WebdriverIO.Browser,
+    using: string,
+    value: string
+) {
+    const classic = toClassicSelector(using, value)
+    return ctx && 'elementId' in ctx && ctx.elementId
+        ? ctx.findElementsFromElement(ctx.elementId, classic.using, classic.value)
+        : browser.findElements(classic.using, classic.value)
 }
 
 /**
@@ -347,7 +391,7 @@ export async function findDeepElement(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    let { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+    let { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isBidi)
 
     /**
      * if we are using a relative xpath selector and we have a parent element
@@ -448,11 +492,21 @@ export async function findDeepElement(
             }
         }
         return scopedNodes[0]
+    }).then((found) => {
+        /**
+         * BiDi accessibility locators use the computed accessible name, which
+         * does not cover every case the Classic XPath heuristic matches
+         * (e.g. generic text nodes, title fallbacks, aria-describedby).
+         * Fall back so existing `aria/` selectors keep working.
+         */
+        if (using === 'aria' && !found) {
+            log.info(`BiDi accessibility locator found no nodes for "aria/${value}", falling back to XPath`)
+            return findElementViaClassic(this, browser, using, value)
+        }
+        return found
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
-        return this && 'elementId' in this && this.elementId
-            ? this.findElementFromElement(this.elementId, using, value)
-            : browser.findElement(using, value)
+        return findElementViaClassic(this, browser, using, value)
     })
 
     return deepElementResult
@@ -478,7 +532,7 @@ export async function findDeepElements(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    let { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+    let { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isBidi)
 
     /**
      * if we are using a relative xpath selector and we have a parent element
@@ -573,11 +627,15 @@ export async function findDeepElements(
             }
         }
         return scopedNodes
+    }).then((found) => {
+        if (using === 'aria' && (!found || found.length === 0)) {
+            log.info(`BiDi accessibility locator found no nodes for "aria/${value}", falling back to XPath`)
+            return findElementsViaClassic(this, browser, using, value)
+        }
+        return found
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
-        return this && 'elementId' in this && this.elementId
-            ? this.findElementsFromElement(this.elementId, using, value)
-            : browser.findElements(using, value)
+        return findElementsViaClassic(this, browser, using, value)
     })
     return deepElementResult as ElementReference[]
 }
