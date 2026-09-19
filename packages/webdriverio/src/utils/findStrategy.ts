@@ -137,7 +137,7 @@ export function escapeXPathString(value: string) {
         if (segment.length > 0) {
             parts.push(`"${segment}"`)
         }
-        parts.push(`'"'`)
+        parts.push('\'"\'')
     }
     parts.pop()
     return `concat(${parts.join(', ')})`

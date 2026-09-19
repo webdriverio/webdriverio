@@ -16,15 +16,15 @@ describe('escapeXPathString', () => {
     })
 
     it('wraps strings that contain double quotes in single quotes', () => {
-        expect(escapeXPathString('foo"bar')).toBe(`'foo"bar'`)
+        expect(escapeXPathString('foo"bar')).toBe('\'foo"bar\'')
     })
 
     it('wraps strings that contain single quotes in double quotes', () => {
-        expect(escapeXPathString("foo'bar")).toBe(`"foo'bar"`)
+        expect(escapeXPathString("foo'bar")).toBe('"foo\'bar"')
     })
 
     it('uses concat when a string contains both quote types', () => {
-        expect(escapeXPathString(`foo"bar'baz`)).toBe(`concat("foo", '"', "bar'baz")`)
+        expect(escapeXPathString('foo"bar\'baz')).toBe('concat("foo", \'"\', "bar\'baz")')
     })
 })
 
@@ -582,10 +582,10 @@ describe('selector strategies helper', () => {
     it('should escape quotes in aria xpath selectors', () => {
         const doubleQuoted = findStrategy('aria/foo"bar')
         expect(doubleQuoted.using).toBe('xpath')
-        expect(doubleQuoted.value).toContain(`@aria-label = 'foo"bar'`)
-        expect(doubleQuoted.value).not.toContain(`@aria-label = "foo"bar"`)
+        expect(doubleQuoted.value).toContain('@aria-label = \'foo"bar\'')
+        expect(doubleQuoted.value).not.toContain('@aria-label = "foo"bar"')
 
-        const mixed = findStrategy(`aria/foo"bar'baz`)
-        expect(mixed.value).toContain(`concat("foo", '"', "bar'baz")`)
+        const mixed = findStrategy('aria/foo"bar\'baz')
+        expect(mixed.value).toContain('concat("foo", \'"\', "bar\'baz")')
     })
 })
