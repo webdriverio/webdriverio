@@ -415,6 +415,7 @@ async function bar() {
         latency: 500
     })
     browser.mock('**/image.jpg')
+    browser.mock(new URLPattern({ pathname: '/image.jpg' }))
     const mock = await browser.mock('**/image.jpg', {
         method: 'get',
         requestHeaders: { foo: 'bar' }
@@ -429,6 +430,9 @@ async function bar() {
     })
     mock.respond(Buffer.from('foobar'))
     mock.respond({ foo: 'bar' })
+    mock.respond((request) => ({ url: request.request.url, foo: 'bar' }))
+    mock.respond((request) => `id=${request.request.request}`)
+    mock.respond(() => Buffer.from('foobar'))
     mock.respondOnce('/other/resource.jpg')
     mock.respondOnce('/other/resource.jpg', {
         statusCode: 100,

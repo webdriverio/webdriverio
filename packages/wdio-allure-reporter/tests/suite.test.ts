@@ -6,7 +6,7 @@ import { LabelName, LinkType, Stage, Status } from 'allure-js-commons'
 import { temporaryDirectory } from 'tempy'
 
 import AllureReporter from '../src/reporter.js'
-import { DescriptionType } from '../src/types.js'
+import { DescriptionType, type AllureReporterOptions } from '../src/types.js'
 
 /**
  * this is not a real package and only used to utilize helper
@@ -36,6 +36,23 @@ vi.mock(
     '@wdio/reporter',
     () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')),
 )
+
+async function runHistoryIdCase(
+    outputDir: string,
+    capabilities: Record<string, unknown>,
+    options: AllureReporterOptions = {},
+) {
+    const reporter = new AllureReporter({ outputDir, ...options })
+    const runner = { ...runnerStart(), capabilities }
+    reporter.onRunnerStart(runner as any)
+    reporter.onSuiteStart(suiteStart())
+    reporter.onTestStart(testStart())
+    reporter.onTestPass(testPassed())
+    reporter.onSuiteEnd(suiteEnd())
+    await reporter.onRunnerEnd(runnerEnd())
+    const { results } = getResults(outputDir)
+    return results[0].historyId as string
+}
 
 let processOnSpy: ReturnType<typeof vi.spyOn>
 beforeAll(() => {
@@ -273,10 +290,7 @@ describe('Failed tests', () => {
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.FAILED)
         expect(results[0].parameters).toHaveLength(1)
-        // No browserName/version in capabilities → hash from fullTitle only
-        expect(results[0].historyId).toEqual(
-            '195dd4bd8fdce339d6d2264e50de9e6f',
-        )
+        expect(results[0].historyId).toEqual('195dd4bd8fdce339d6d2264e50de9e6f')
         expect(browserParameter!.value).toEqual('default')
     })
 
@@ -306,10 +320,7 @@ describe('Failed tests', () => {
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.FAILED)
         expect(results[0].parameters).toHaveLength(1)
-        // No browserName/version in capabilities → hash from fullTitle only
-        expect(results[0].historyId).toEqual(
-            '195dd4bd8fdce339d6d2264e50de9e6f',
-        )
+        expect(results[0].historyId).toEqual('195dd4bd8fdce339d6d2264e50de9e6f')
         expect(browserParameter!.value).toEqual('default')
     })
 
@@ -328,7 +339,7 @@ describe('Failed tests', () => {
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.FAILED)
         expect(results[0].historyId).toEqual(
-            '0afaf0cb3770d6ce7ae0665f2eeecf81',
+            '5d73537bda17d2ad7829c91bd248af82',
         )
     })
 
@@ -459,7 +470,7 @@ describe('Pending tests', () => {
         expect(results[0].status).toEqual(Status.SKIPPED)
         expect(results[0].stage).toEqual(Stage.PENDING)
         expect(results[0].historyId).toEqual(
-            '0afaf0cb3770d6ce7ae0665f2eeecf81',
+            '5d73537bda17d2ad7829c91bd248af82',
         )
         expect(results[0].titlePath).toEqual(['foo', 'bar.test.js', 'A passing Suite'])
     })
@@ -482,7 +493,7 @@ describe('Pending tests', () => {
         expect(results[0].status).toEqual(Status.SKIPPED)
         expect(results[0].stage).toEqual(Stage.PENDING)
         expect(results[0].historyId).toEqual(
-            '0afaf0cb3770d6ce7ae0665f2eeecf81',
+            '5d73537bda17d2ad7829c91bd248af82',
         )
         expect(results[0].titlePath).toEqual(['foo', 'bar.test.js', 'A passing Suite'])
     })
@@ -537,7 +548,7 @@ describe('Multi-capability parallel execution', () => {
         clean(outputDir)
     })
 
-    it('should generate distinct historyIds for same test across different capabilities (fixes #14792)', async () => {
+    it('should keep same historyId for same test across different workers/cids', async () => {
         // Simulate two parallel reporters running the same test with different cids
         const reporter1 = new AllureReporter({ outputDir })
         const reporter2 = new AllureReporter({ outputDir })
@@ -572,7 +583,7 @@ describe('Multi-capability parallel execution', () => {
         const uuids = results.map((r: any) => r.uuid)
         expect(new Set(uuids).size).toBe(2)
 
-        // Same logical test (same file + title) => same historyId (cid is NOT in hash)
+        // Same logical test should keep stable historyId across workers (cid is not in hash)
         const historyIds = results.map((r: any) => r.historyId)
         expect(historyIds[0]).toEqual(historyIds[1])
 
@@ -581,7 +592,7 @@ describe('Multi-capability parallel execution', () => {
         expect(results[0].name).toEqual('should can do something')
     })
 
-    it('should derive historyId from fullTitle and capability key (browser/device), not cid', async () => {
+    it('should derive stable historyId from fullTitle + capability family (no cid, no file path, no versions)', async () => {
         const reporter = new AllureReporter({ outputDir })
 
         const runner = { ...runnerStart(), cid: '0-0' }
@@ -597,10 +608,95 @@ describe('Multi-capability parallel execution', () => {
 
         expect(results).toHaveLength(1)
 
-        // historyId = md5(fullTitle + '#' + capabilityKey), e.g. fullTitle#chrome-68 (no cid, no file path)
+        // historyId = md5(fullTitle + '#' + capabilityFamily), e.g. fullTitle#chrome
         expect(results[0].historyId).toEqual(
-            '0afaf0cb3770d6ce7ae0665f2eeecf81',
+            '5d73537bda17d2ad7829c91bd248af82',
         )
+    })
+
+    it('should keep the same historyId across browser version changes', async () => {
+        const chrome68 = await runHistoryIdCase(outputDir, { browserName: 'chrome', version: '68' })
+        clean(outputDir)
+        outputDir = temporaryDirectory()
+        const chrome120 = await runHistoryIdCase(outputDir, { browserName: 'chrome', browserVersion: '120.0.0' })
+
+        expect(chrome68).toEqual(chrome120)
+        expect(chrome68).toEqual('5d73537bda17d2ad7829c91bd248af82')
+    })
+
+    it('should collapse Google Chrome aliases to the same historyId', async () => {
+        const aliases = ['chrome', 'googlechrome', 'Google Chrome', 'Google  Chrome']
+        const historyIds: string[] = []
+
+        for (const browserName of aliases) {
+            const historyId = await runHistoryIdCase(outputDir, { browserName })
+            historyIds.push(historyId)
+            clean(outputDir)
+            outputDir = temporaryDirectory()
+        }
+
+        expect(new Set(historyIds).size).toBe(1)
+        expect(historyIds[0]).toEqual('5d73537bda17d2ad7829c91bd248af82')
+    })
+
+    it('should collapse Microsoft Edge aliases to the same historyId', async () => {
+        const aliases = ['msedge', 'microsoftedge', 'Microsoft Edge']
+        const historyIds: string[] = []
+
+        for (const browserName of aliases) {
+            const historyId = await runHistoryIdCase(outputDir, { browserName })
+            historyIds.push(historyId)
+            clean(outputDir)
+            outputDir = temporaryDirectory()
+        }
+
+        expect(new Set(historyIds).size).toBe(1)
+        expect(historyIds[0]).not.toEqual('5d73537bda17d2ad7829c91bd248af82')
+    })
+
+    it('should generate distinct historyIds for different browser families', async () => {
+        const chrome = await runHistoryIdCase(outputDir, { browserName: 'chrome' })
+        clean(outputDir)
+        outputDir = temporaryDirectory()
+        const firefox = await runHistoryIdCase(outputDir, { browserName: 'firefox' })
+
+        expect(chrome).not.toEqual(firefox)
+    })
+
+    it('should share historyId for the same Appium device across OS versions by default', async () => {
+        const ios14 = await runHistoryIdCase(outputDir, {
+            desired: { deviceName: 'iPhone 12', 'appium:platformVersion': '14.0' },
+        })
+        clean(outputDir)
+        outputDir = temporaryDirectory()
+        const ios15 = await runHistoryIdCase(outputDir, {
+            desired: { deviceName: 'iPhone 12', 'appium:platformVersion': '15.0' },
+        })
+
+        expect(ios14).toEqual(ios15)
+    })
+
+    it('should keep distinct Appium historyIds when includeVersionInHistoryId is enabled', async () => {
+        const ios14 = await runHistoryIdCase(outputDir, {
+            desired: { deviceName: 'iPhone 12', 'appium:platformVersion': '14.0' },
+        }, { includeVersionInHistoryId: true })
+        clean(outputDir)
+        outputDir = temporaryDirectory()
+        const ios15 = await runHistoryIdCase(outputDir, {
+            desired: { deviceName: 'iPhone 12', 'appium:platformVersion': '15.0' },
+        }, { includeVersionInHistoryId: true })
+
+        expect(ios14).not.toEqual(ios15)
+    })
+
+    it('should keep the previous versioned historyId when includeVersionInHistoryId is enabled', async () => {
+        const historyId = await runHistoryIdCase(
+            outputDir,
+            { browserName: 'chrome', version: '68' },
+            { includeVersionInHistoryId: true },
+        )
+
+        expect(historyId).toEqual('0afaf0cb3770d6ce7ae0665f2eeecf81')
     })
 })
 
@@ -1315,5 +1411,67 @@ describe('command reporting', () => {
 
         expect(results).toHaveLength(1)
         expect(consoleAttachments).toHaveLength(0)
+    })
+})
+
+describe('Incremental flush', () => {
+    const outputDir = temporaryDirectory()
+
+    beforeEach(() => clean(outputDir))
+
+    const namedTest = (title: string) => Object.assign(testStart(), { uid: title, title, fullTitle: title })
+    const settle = async (reporter: AllureReporter) => {
+        while (!reporter.isSynchronised) {
+            await new Promise((resolve) => setImmediate(resolve))
+        }
+    }
+
+    it('writes a finished test before the runner ends and reports itself unsynchronised while doing so', async () => {
+        const reporter = new AllureReporter({ outputDir })
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(namedTest('first test'))
+        reporter.onTestPass(Object.assign(testPassed(), { uid: 'first test', title: 'first test' }))
+        reporter.onTestStart(namedTest('second test'))
+
+        expect(reporter.isSynchronised).toBe(false)
+        await settle(reporter)
+
+        expect(getResults(outputDir).results.map((r: any) => r.name)).toEqual(['first test'])
+
+        reporter.onTestPass(Object.assign(testPassed(), { uid: 'second test', title: 'second test' }))
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        expect(results.map((r: any) => r.name).sort()).toEqual(['first test', 'second test'])
+    })
+
+    it('produces the same results as a run that is only flushed at the end', async () => {
+        const run = async (dir: string, flushDuringRun: boolean) => {
+            const reporter = new AllureReporter({ outputDir: dir })
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            for (const title of ['one', 'two', 'three']) {
+                reporter.onTestStart(namedTest(title))
+                if (flushDuringRun) {
+                    await settle(reporter)
+                }
+                reporter.onTestPass(Object.assign(testPassed(), { uid: title, title }))
+            }
+            reporter.onSuiteEnd(suiteEnd())
+            await reporter.onRunnerEnd(runnerEnd())
+
+            return getResults(dir).results.map((r: any) => r.name).sort()
+        }
+
+        const flushedDir = temporaryDirectory()
+        const endOnlyDir = temporaryDirectory()
+        clean(flushedDir)
+        clean(endOnlyDir)
+
+        expect(await run(flushedDir, true)).toEqual(await run(endOnlyDir, false))
     })
 })

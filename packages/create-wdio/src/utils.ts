@@ -297,12 +297,11 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     }
 
     /**
-     * don't set up TypeScript if a `tsconfig.json` already exists but ensure we install `tsx`
-     * as it is a requirement for running tests with TypeScript
+     * Always generate a dedicated WDIO TypeScript config. If a root
+     * `tsconfig.json` already exists, the generated file (typically
+     * `tsconfig.e2e.json`) extends it so WDIO types are available without
+     * overwriting project compiler options.
      */
-    if (parsedAnswers.hasRootTSConfig) {
-        return
-    }
 
     console.log('Setting up TypeScript...')
     const frameworkPackage = convertPackageHashToObject(parsedAnswers.rawAnswers.framework)
@@ -332,7 +331,7 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     ]
 
     const preset = getPreset(parsedAnswers)
-    const config = {
+    const config: Record<string, unknown> & { include?: string[] } = {
         compilerOptions: {
             // compiler
             moduleResolution: 'node',
@@ -384,16 +383,70 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
                     }
                     : {}
             )
-        },
-        include: preset === 'svelte'
-            ? ['src/**/*.d.ts', 'src/**/*.ts', 'src/**/*.js', 'src/**/*.svelte']
-            : preset === 'vue'
-                ? ['src/**/*.ts', 'src/**/*.d.ts', 'src/**/*.tsx', 'src/**/*.vue']
-                : ['test', 'wdio.conf.ts']
+        }
     }
 
+    const tsConfigDir = path.dirname(parsedAnswers.tsConfigFilePath)
+    const toPosix = (value: string) => value.replace(/\\/g, '/')
+    const getRelativePath = (target: string) => {
+        const relativePath = toPosix(
+            path.relative(tsConfigDir, path.resolve(parsedAnswers.projectRootDir, target))
+        )
+        return relativePath || '.'
+    }
+    /**
+     * TypeScript treats a non-relative `extends` value as a package name, so
+     * same-directory references must be explicit, e.g. `./tsconfig.json`.
+     */
+    const toExtendsPath = (target: string) => {
+        const relativePath = getRelativePath(target)
+        if (
+            relativePath === '.' ||
+            relativePath.startsWith('./') ||
+            relativePath.startsWith('../') ||
+            path.isAbsolute(relativePath)
+        ) {
+            return relativePath
+        }
+        return `./${relativePath}`
+    }
+
+    if (parsedAnswers.hasRootTSConfig) {
+        config.extends = toExtendsPath('tsconfig.json')
+    }
+
+    const defaultSpecInclude = (
+        (parsedAnswers.destSpecRootPath && path.relative(parsedAnswers.projectRootDir, parsedAnswers.destSpecRootPath)) ||
+        (
+            parsedAnswers.specs &&
+            path.dirname(
+                parsedAnswers.specs
+                    .split(/[\\/]/)
+                    .filter((segment) => !segment.includes('*'))
+                    .join(path.sep)
+            )
+        ) ||
+        'test'
+    ).replace(/\\/g, '/')
+
+    const defaultWdioConfigInclude = (
+        (parsedAnswers.wdioConfigPath && path.relative(parsedAnswers.projectRootDir, parsedAnswers.wdioConfigPath)) ||
+        'wdio.conf.ts'
+    ).replace(/\\/g, '/')
+
+    const baseIncludes = preset === 'svelte'
+        ? ['src/**/*.d.ts', 'src/**/*.ts', 'src/**/*.js', 'src/**/*.svelte']
+        : preset === 'vue'
+            ? ['src/**/*.ts', 'src/**/*.d.ts', 'src/**/*.tsx', 'src/**/*.vue']
+            : [
+                defaultSpecInclude && defaultSpecInclude !== '.' ? defaultSpecInclude : 'test',
+                defaultWdioConfigInclude && defaultWdioConfigInclude !== '.' ? defaultWdioConfigInclude : 'wdio.conf.ts'
+            ]
+
+    Object.assign(config, { include: baseIncludes.map(getRelativePath) })
+
     if (parsedAnswers.framework === 'cucumber') {
-        config.include.push('features')
+        config.include!.push(getRelativePath('features'))
     }
 
     await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })

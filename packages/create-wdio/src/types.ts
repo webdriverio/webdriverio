@@ -1,4 +1,4 @@
-import type { BackendChoice, RegionOptions, ElectronBuildToolChoice, DesktopFrameworkChoice, TauriDriverProviderChoice } from './constants.js'
+import type { BackendChoice, RegionOptions, ElectronBuildToolChoice, DesktopFrameworkChoice, TauriDriverProviderChoice, DioxusDriverProviderChoice } from './constants.js'
 import type { PackageJson as typeFestPackageJson } from 'type-fest'
 import type { Package as normalizePackage } from 'normalize-package-data'
 export type NormalizedPackageJson = PackageJson & normalizePackage
@@ -22,6 +22,8 @@ export interface Questionnair {
     tauriDriverProvider?: TauriDriverProviderChoice
     tauriUseFrontendPlugin?: boolean
     tauriAppBinaryPath?: string
+    dioxusDriverProvider?: DioxusDriverProviderChoice
+    dioxusAppBinaryPath?: string
     backend?: BackendChoice
     hostname?: string
     port?: string
