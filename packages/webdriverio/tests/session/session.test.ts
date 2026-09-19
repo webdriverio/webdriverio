@@ -57,6 +57,31 @@ describe('SessionManager', () => {
         expect(browser.on).toHaveBeenCalledTimes(2)
     })
 
+    it('does not release the registration of another manager that owns the same key', () => {
+        const browser = {
+            on: vi.fn(),
+            off: vi.fn(),
+            sessionId: 'shared-session'
+        } as any as WebdriverIO.Browser
+
+        const owner = new SessionManager(browser, 'scope')
+        const passenger = new SessionManager(browser, 'scope')
+        expect(browser.on).toHaveBeenCalledTimes(1)
+
+        /**
+         * the passenger never registered a listener, so its `off()` cannot
+         * detach the owner's one - releasing the key here would let the next
+         * manager add a second listener alongside it
+         */
+        passenger.removeListeners()
+        new SessionManager(browser, 'scope')
+        expect(browser.on).toHaveBeenCalledTimes(1)
+
+        owner.removeListeners()
+        new SessionManager(browser, 'scope')
+        expect(browser.on).toHaveBeenCalledTimes(2)
+    })
+
     it('should remove ContextManager listeners using the same references as they were registered', () => {
         const browser = {
             sessionId: '1234',

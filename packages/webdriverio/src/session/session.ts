@@ -7,6 +7,11 @@ const listenerRegisteredSession = new Set<string>()
 export class SessionManager {
     #browser: WebdriverIO.Browser
     #scope: string
+    /**
+     * the marker this instance added, or undefined when another instance
+     * already owned the key and this one registered no listener
+     */
+    #ownedRegistrationId?: string
 
     /**
      * SessionManager constructor
@@ -22,6 +27,7 @@ export class SessionManager {
         if (!listenerRegisteredSession.has(registrationId)) {
             this.#browser.on('command', this.#onCommandListener)
             listenerRegisteredSession.add(registrationId)
+            this.#ownedRegistrationId = registrationId
         }
     }
 
@@ -41,15 +47,27 @@ export class SessionManager {
     removeListeners() {
         this.#browser.off('command', this.#onCommandListener)
         /**
-         * Release the registration marker together with the listener it guards.
-         * It is what stops a second manager for the same session and scope from
-         * registering a duplicate listener, so leaving it behind after the
-         * listener is gone means a manager created later for that same session
-         * never registers one at all - and then never cleans itself up on
-         * `deleteSession`. It also keeps the set growing for the lifetime of the
-         * process, one entry per session and scope.
+         * Release the registration marker together with the listener it guards,
+         * but only the marker this instance added. It is what stops a second
+         * manager for the same session and scope from registering a duplicate
+         * listener, so leaving it behind after the listener is gone means a
+         * manager created later for that same session never registers one at
+         * all - and then never cleans itself up on `deleteSession`. It also
+         * keeps the set growing for the lifetime of the process, one entry per
+         * session and scope.
+         *
+         * An instance that did not register the listener must not clear the
+         * marker either: its `off()` does not detach the owner's listener, so
+         * releasing the key would let a later instance add a second one and
+         * have two handlers act on the same `deleteSession`.
+         *
+         * The id is the one used at registration time rather than one rebuilt
+         * from the current `sessionId`, which can have changed since.
          */
-        listenerRegisteredSession.delete(`${this.#browser.sessionId}-${this.#scope}`)
+        if (this.#ownedRegistrationId) {
+            listenerRegisteredSession.delete(this.#ownedRegistrationId)
+            this.#ownedRegistrationId = undefined
+        }
     }
 
     initialize(): unknown {
