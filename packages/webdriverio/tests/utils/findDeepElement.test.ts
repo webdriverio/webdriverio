@@ -677,6 +677,24 @@ describe('findDeepElement - aria accessibility locator', () => {
         )
         expect(result).toEqual([{ [ELEMENT_KEY]: 'shadow-collection-node' }])
     })
+
+    it('should propagate Classic collection errors when no shadow-root match is found', async () => {
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockRejectedValue(new Error('unsupported locator'))
+        browser.findElements.mockRejectedValue(new Error('invalid selector: ['))
+
+        await expect(findDeepElements.call(browser, '[')).rejects.toThrow('invalid selector: [')
+    })
+
+    it('should keep Classic collection errors when shadow-root fallback also finds nothing', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockRejectedValue(new Error('unsupported locator'))
+        browser.findElements.mockRejectedValue(new Error('stale element reference'))
+        browser.findElementsFromElement.mockRejectedValue(new Error('detached shadow root'))
+
+        await expect(findDeepElements.call(browser, '.child')).rejects.toThrow('stale element reference')
+    })
 })
 
 // Firefox < 150 BiDi root selector workaround (issue #15233)

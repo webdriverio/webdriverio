@@ -382,6 +382,7 @@ async function findElementsViaClassic(
     const classic = toClassicSelector(using, value)
     const elementId = getScopedElementId(ctx)
     const collected: ElementReference[] = []
+    let lightDomError: unknown
 
     try {
         const lightDom = await (elementId
@@ -390,8 +391,8 @@ async function findElementsViaClassic(
         if (Array.isArray(lightDom)) {
             collected.push(...lightDom.filter((node) => getElementFromResponse(node)))
         }
-    } catch {
-        // light-DOM lookup failed; still search shadow roots
+    } catch (err) {
+        lightDomError = err
     }
 
     for (const rootId of shadowRoots.filter((id) => id !== elementId)) {
@@ -406,10 +407,15 @@ async function findElementsViaClassic(
     }
 
     const ids = new Set<string>()
-    return collected.filter((node) => {
+    const unique = collected.filter((node) => {
         const id = node[ELEMENT_KEY]
         return Boolean(id) && !ids.has(id) && ids.add(id)
     })
+
+    if (unique.length === 0 && lightDomError) {
+        throw lightDomError
+    }
+    return unique
 }
 
 type BidiStartNode = { sharedId: string }
