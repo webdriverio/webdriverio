@@ -49,6 +49,7 @@ jobs:
           filters: |
             ci:
               - '.github/workflows/**'
+              - '.nvmrc'
               - 'package.json'
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
@@ -103,7 +104,7 @@ jobs:
   typing_tests:
     name: Typing Tests
     needs: [changes, build_core, static_code_analysis]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true'
     uses: ./.github/workflows/test-typings.yml
 
   interop_tests:
