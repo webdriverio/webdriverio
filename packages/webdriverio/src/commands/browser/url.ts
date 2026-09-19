@@ -192,93 +192,119 @@ export async function url (
             }
         }
 
-        let mock: WebdriverIO.Mock | undefined
-        if (options.headers) {
-            mock = await this.mock(path)
-            mock.requestOnce({ headers: options.headers })
-        }
+        let navigationError: unknown
+        let request: WebdriverIO.Request | void
+        try {
+            let mock: WebdriverIO.Mock | undefined
+            if (options.headers) {
+                mock = await this.mock(path)
+                mock.requestOnce({ headers: options.headers })
+            }
 
-        /**
-         * WebDriver Classic allowed to provide a `pageLoadStrategy` capability.
-         * To ensure backwards combatibility, we need to map the `pageLoadStrategy`
-         * to the WebDriver Bidi spec.
-         *
-         * see https://www.w3.org/TR/webdriver2/#navigation
-         */
-        const classicPageLoadStrategy = this.capabilities.pageLoadStrategy === 'none'
-            ? 'none'
-            : this.capabilities.pageLoadStrategy === 'normal'
+            /**
+             * WebDriver Classic allowed to provide a `pageLoadStrategy` capability.
+             * To ensure backwards combatibility, we need to map the `pageLoadStrategy`
+             * to the WebDriver Bidi spec.
+             *
+             * see https://www.w3.org/TR/webdriver2/#navigation
+             */
+            const classicPageLoadStrategy = this.capabilities.pageLoadStrategy === 'none'
+                ? 'none'
+                : this.capabilities.pageLoadStrategy === 'normal'
+                    ? 'complete'
+                    : this.capabilities.pageLoadStrategy === 'eager'
+                        ? 'interactive'
+                        : undefined
+
+            const wait = options.wait === 'networkIdle'
                 ? 'complete'
-                : this.capabilities.pageLoadStrategy === 'eager'
-                    ? 'interactive'
-                    : undefined
+                : options.wait || classicPageLoadStrategy || DEFAULT_WAIT_STATE
+            const navigation = await this.browsingContextNavigate({
+                context,
+                url: path,
+                wait
+            }).catch((err) => {
+                /**
+                 * It seems that WebDriver Bidi runs into issue with concurrent navigation.
+                 * @see https://github.com/w3c/webdriver-bidi/issues/878
+                 */
+                if (
+                    // Chrome error message
+                    err.message.includes('navigation canceled by concurrent navigation') ||
+                    // Firefox error message
+                    err.message.includes('failed with error: unknown error') ||
+                    // Race condition where the context is destroyed before navigation
+                    err.message.includes('no such frame')
+                ) {
+                    return this.navigateTo(validateUrl(path))
+                }
 
-        const wait = options.wait === 'networkIdle'
-            ? 'complete'
-            : options.wait || classicPageLoadStrategy || DEFAULT_WAIT_STATE
-        const navigation = await this.browsingContextNavigate({
-            context,
-            url: path,
-            wait
-        }).catch((err) => {
-            /**
-             * It seems that WebDriver Bidi runs into issue with concurrent navigation.
-             * @see https://github.com/w3c/webdriver-bidi/issues/878
-             */
-            if (
-                // Chrome error message
-                err.message.includes('navigation canceled by concurrent navigation') ||
-                // Firefox error message
-                err.message.includes('failed with error: unknown error') ||
-                // Race condition where the context is destroyed before navigation
-                err.message.includes('no such frame')
-            ) {
-                return this.navigateTo(validateUrl(path))
-            }
-
-            throw err
-        })
-
-        if (mock) {
-            await mock.restore()
-        }
-
-        const network = getNetworkManager(this)
-
-        if (options.wait === 'networkIdle') {
-            const timeout = options.timeout || DEFAULT_NETWORK_IDLE_TIMEOUT
-            await this.waitUntil(async () => {
-                return network.getPendingRequests(context).length === 0
-            }, {
-                timeout,
-                timeoutMsg: `Navigation to '${path}' timed out after ${timeout}ms with ${network.getPendingRequests(context).length} (${network.getPendingRequests(context).map((r) => r.url).join(', ')}) pending requests`
+                throw err
             })
-        }
 
-        /**
-         * clear up preload script
-         */
-        if (resetPreloadScript) {
-            await resetPreloadScript.remove()
-        }
-
-        if (!navigation) {
-            return
-        }
-
-        /**
-         * wait until we have a request object
-         */
-        const request = await this.waitUntil(
-            () => network.getRequestResponseData(navigation.navigation as string),
-            /**
-             * set a short interval to immediately return once the first request payload comes in
-             */
-            {
-                interval: 1,
-                timeoutMsg: `Navigation to '${path}' timed out as no request payload was received`
+            if (mock) {
+                await mock.restore()
             }
-        )
+
+            /**
+             * Classic fallback (`navigateTo`) and some BiDi navigations (e.g. same-document)
+             * do not provide a navigation id. Skip network tracking in those cases.
+             */
+            const navigationId = navigation?.navigation
+            if (!navigationId) {
+                return
+            }
+
+            const network = getNetworkManager(this)
+
+            if (options.wait === 'networkIdle') {
+                const timeout = options.timeout || DEFAULT_NETWORK_IDLE_TIMEOUT
+                await this.waitUntil(async () => {
+                    return network.getPendingRequests(navigationId).length === 0
+                }, {
+                    timeout,
+                    timeoutMsg: () => {
+                        const pendingRequests = network.getPendingRequests(navigationId)
+                        return `Navigation to '${path}' timed out after ${timeout}ms with ${pendingRequests.length} (${pendingRequests.map((r) => r.url).join(', ')}) pending requests`
+                    }
+                })
+            }
+
+            /**
+             * wait until we have a request object
+             */
+            request = await this.waitUntil(
+                () => network.getRequestResponseData(navigationId),
+                /**
+                 * set a short interval to immediately return once the first request payload comes in
+                 */
+                {
+                    interval: 1,
+                    timeoutMsg: `Navigation to '${path}' timed out as no request payload was received`
+                }
+            )
+        } catch (err) {
+            navigationError = err
+        } finally {
+            /**
+             * Always clear the preload script, including fallback and error paths.
+             * If cleanup also fails, keep the original navigation error.
+             */
+            if (resetPreloadScript) {
+                try {
+                    await resetPreloadScript.remove()
+                } catch (cleanupError) {
+                    if (!navigationError) {
+                        navigationError = cleanupError
+                    }
+                }
+            }
+        }
+
+        if (navigationError) {
+            throw navigationError
+        }
+
         return request
     }
 
