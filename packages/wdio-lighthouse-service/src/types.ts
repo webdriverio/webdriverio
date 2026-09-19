@@ -5,6 +5,26 @@ export interface DevtoolsConfig {
     coverageReporter?: CoverageReporterOptions
 }
 
+/**
+ * Report formats previously provided by `istanbul-reports`.
+ * Kept as a local union so the public service options stay strict
+ * without depending on Istanbul at runtime.
+ */
+export type CoverageReportType =
+    | 'clover'
+    | 'cobertura'
+    | 'html-spa'
+    | 'html'
+    | 'json'
+    | 'json-summary'
+    | 'lcov'
+    | 'lcovonly'
+    | 'none'
+    | 'teamcity'
+    | 'text'
+    | 'text-lcov'
+    | 'text-summary'
+
 export interface CoverageReporterOptions {
     /**
      * whether or not to enable code coverage reporting
@@ -19,7 +39,7 @@ export interface CoverageReporterOptions {
      * format of report
      * @default json
      */
-    type?: string
+    type?: CoverageReportType
     /**
      * Options for coverage report
      */

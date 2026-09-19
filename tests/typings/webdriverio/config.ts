@@ -58,10 +58,16 @@ const config: WebdriverIO.Config = {
             }
         }],
         // @ts-expect-error test wrong parameter
-        ['devtools', {
+        ['lighthouse', {
             coverageReporter: {
                 enable: true,
                 type: 'foo'
+            }
+        }],
+        ['lighthouse', {
+            coverageReporter: {
+                enable: true,
+                type: 'json'
             }
         }],
         ['firefox-profile', {
