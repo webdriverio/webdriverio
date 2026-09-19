@@ -1,18 +1,12 @@
 import { afterAll, beforeAll, expect, test } from 'vitest'
-import { remote } from 'webdriverio'
+import { startStandaloneChrome } from './helpers.js'
 
 type FixtureWindow = Window & { readSnapshotFixture: () => string[] }
 
 let browser: WebdriverIO.Browser
 
 beforeAll(async () => {
-    browser = await remote({
-        logLevel: 'error',
-        capabilities: {
-            browserName: 'chrome',
-            'goog:chromeOptions': { args: ['--headless=new', '--disable-gpu'] }
-        }
-    })
+    browser = await startStandaloneChrome({ logLevel: 'error' })
 })
 
 afterAll(async () => {

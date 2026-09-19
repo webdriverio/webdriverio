@@ -223,7 +223,9 @@ describe('main suite 1', () => {
             await browser.$('#parent').waitForExist()
         })
 
-        it('moveTo without iframe', async () => {
+        it('moveTo without iframe', async function () {
+            // Unstable on Windows: expected "center", received "center\nout"
+            this.retries(3)
             await browser.$('#parent').moveTo()
             await expect(browser.$('#text')).toHaveValue('center')
         })

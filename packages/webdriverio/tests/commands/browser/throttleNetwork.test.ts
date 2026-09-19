@@ -88,3 +88,57 @@ test('should allow to send objects as param', async () => {
         'Network.emulateNetworkConditions',
         { foo: 'bar' })
 })
+
+test('should apply throttling to registered service workers', async () => {
+    const browser = await remote({
+        capabilities: {
+            browserName: 'devtools'
+        }
+    })
+
+    const serviceWorkerSession = { send: vi.fn() }
+    const serviceWorkerTarget = {
+        type: vi.fn().mockReturnValue('service_worker'),
+        createCDPSession: vi.fn().mockResolvedValue(serviceWorkerSession)
+    }
+    /**
+     * every connect call creates a new mock instance without a `connected`
+     * flag, so pin `puppeteer.connect` to a single instance we control
+     */
+    const puppeteerMock = new (puppeteer as any).PuppeteerMock()
+    puppeteerMock.targets = vi.fn().mockReturnValue([serviceWorkerTarget])
+    vi.mocked(puppeteer.connect).mockResolvedValue(puppeteerMock)
+
+    await browser.throttleNetwork('offline')
+
+    expect(serviceWorkerTarget.createCDPSession).toBeCalledTimes(1)
+    expect(serviceWorkerSession.send).toBeCalledWith('Network.enable')
+    expect(serviceWorkerSession.send).toBeCalledWith('Network.emulateNetworkConditions', {
+        offline: true,
+        downloadThroughput: 0,
+        uploadThroughput: 0,
+        latency: 1
+    })
+})
+
+test('should not touch sessions of non service worker targets', async () => {
+    const browser = await remote({
+        capabilities: {
+            browserName: 'devtools'
+        }
+    })
+
+    const otherSession = { send: vi.fn() }
+    const otherTarget = {
+        type: vi.fn().mockReturnValue('iframe'),
+        createCDPSession: vi.fn().mockResolvedValue(otherSession)
+    }
+    const puppeteerMock = new (puppeteer as any).PuppeteerMock()
+    puppeteerMock.targets = vi.fn().mockReturnValue([otherTarget])
+    vi.mocked(puppeteer.connect).mockResolvedValue(puppeteerMock)
+
+    await browser.throttleNetwork('offline')
+
+    expect(otherTarget.createCDPSession).not.toBeCalled()
+    expect(otherSession.send).not.toBeCalled()
+})
