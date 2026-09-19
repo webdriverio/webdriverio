@@ -49,7 +49,10 @@
  *
  */
 import { getBrowserObject } from '@wdio/utils'
+import logger from '@wdio/logger'
 import type { ThrottleOptions } from '../../types.js'
+
+const log = logger('webdriverio:throttleNetwork')
 
 const NETWORK_PRESETS = {
     'offline': {
@@ -179,9 +182,18 @@ export async function throttleNetwork (
         .filter((target) => target.type() === 'service_worker')
 
     for (const serviceWorker of serviceWorkers) {
-        const serviceWorkerClient = await serviceWorker.createCDPSession()
-        await serviceWorkerClient.send('Network.enable')
-        await serviceWorkerClient.send('Network.emulateNetworkConditions', conditions)
+        try {
+            const serviceWorkerClient = await serviceWorker.createCDPSession()
+            await serviceWorkerClient.send('Network.enable')
+            await serviceWorkerClient.send('Network.emulateNetworkConditions', conditions)
+        } catch {
+            /**
+             * the worker can terminate between enumerating the targets and
+             * attaching to it — skip it instead of failing the whole command
+             * after the page session was already throttled
+             */
+            log.debug('Skipped network throttling for a service worker that terminated during attach')
+        }
     }
 
     return
