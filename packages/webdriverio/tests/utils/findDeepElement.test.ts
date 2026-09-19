@@ -554,6 +554,149 @@ describe('findDeepElements - isConnected validation', () => {
     })
 })
 
+describe('findDeepElement - aria accessibility locator', () => {
+    beforeEach(() => {
+        vi.clearAllMocks()
+        mockGetCurrentContext.mockResolvedValue('ctx-1')
+        mockGetShadowElementsByContextId.mockReturnValue([])
+    })
+
+    it('should use BiDi accessibility locator for aria selectors', async () => {
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockResolvedValue({
+            nodes: [{ sharedId: 'aria-node' }],
+        })
+
+        const result = await findDeepElement.call(browser, 'aria/Submit')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(
+            expect.objectContaining({
+                locator: { type: 'accessibility', value: { name: 'Submit' } },
+            })
+        )
+        expect(result).toEqual({
+            [ELEMENT_KEY]: 'aria-node',
+            locator: { type: 'accessibility', value: { name: 'Submit' } },
+        })
+    })
+
+    it('should fall back to xpath when BiDi accessibility locator fails', async () => {
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockRejectedValue(new Error('unsupported locator'))
+        browser.findElement.mockResolvedValue({ [ELEMENT_KEY]: 'xpath-node' })
+
+        const result = await findDeepElement.call(browser, 'aria/Submit')
+
+        expect(browser.findElement).toHaveBeenCalledWith(
+            'xpath',
+            expect.stringContaining('@aria-label = "Submit"')
+        )
+        expect(result).toEqual({ [ELEMENT_KEY]: 'xpath-node' })
+    })
+
+    it('should fall back to xpath when BiDi accessibility locator returns no nodes', async () => {
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [] })
+        browser.findElement.mockResolvedValue({ [ELEMENT_KEY]: 'xpath-node' })
+
+        const result = await findDeepElement.call(browser, 'aria/Submit')
+
+        expect(browser.findElement).toHaveBeenCalledWith(
+            'xpath',
+            expect.stringContaining('@aria-label = "Submit"')
+        )
+        expect(result).toEqual({ [ELEMENT_KEY]: 'xpath-node' })
+    })
+
+    it('should retry aria xpath via BiDi using known shadow roots as startNodes', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes
+            .mockResolvedValueOnce({ nodes: [] })
+            .mockResolvedValueOnce({ nodes: [{ sharedId: 'shadow-aria-node' }] })
+
+        const result = await findDeepElement.call(browser, 'aria/Submit')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenNthCalledWith(
+            2,
+            expect.objectContaining({
+                locator: expect.objectContaining({
+                    type: 'xpath',
+                    value: expect.stringContaining('@aria-label = "Submit"'),
+                }),
+                startNodes: [{ sharedId: 'shadow-1' }],
+            })
+        )
+        expect(result).toEqual({
+            [ELEMENT_KEY]: 'shadow-aria-node',
+            locator: expect.objectContaining({ type: 'xpath' }),
+        })
+        expect(browser.findElement).not.toHaveBeenCalled()
+        expect(browser.findElementFromElement).not.toHaveBeenCalled()
+    })
+
+    it('should search known shadow roots via Classic when BiDi aria xpath fallback is empty', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1', 'shadow-2'])
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [] })
+        browser.findElement.mockResolvedValue({})
+        browser.findElementFromElement
+            .mockResolvedValueOnce({})
+            .mockResolvedValueOnce({ [ELEMENT_KEY]: 'shadow-xpath-node' })
+
+        const result = await findDeepElement.call(browser, 'aria/Described')
+
+        expect(browser.findElementFromElement).toHaveBeenCalledWith(
+            'shadow-1',
+            'xpath',
+            expect.stringContaining('@aria-describedby')
+        )
+        expect(browser.findElementFromElement).toHaveBeenCalledWith(
+            'shadow-2',
+            'xpath',
+            expect.stringContaining('@aria-describedby')
+        )
+        expect(result).toEqual({ [ELEMENT_KEY]: 'shadow-xpath-node' })
+    })
+
+    it('should search known shadow roots via Classic for aria collections', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [] })
+        browser.findElements.mockResolvedValue([])
+        browser.findElementsFromElement.mockResolvedValue([
+            { [ELEMENT_KEY]: 'shadow-collection-node' },
+        ])
+
+        const result = await findDeepElements.call(browser, 'aria/Find me')
+
+        expect(browser.findElementsFromElement).toHaveBeenCalledWith(
+            'shadow-1',
+            'xpath',
+            expect.stringContaining('normalize-space(text()) = "Find me"')
+        )
+        expect(result).toEqual([{ [ELEMENT_KEY]: 'shadow-collection-node' }])
+    })
+
+    it('should propagate Classic collection errors when no shadow-root match is found', async () => {
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockRejectedValue(new Error('unsupported locator'))
+        browser.findElements.mockRejectedValue(new Error('invalid selector: ['))
+
+        await expect(findDeepElements.call(browser, '[')).rejects.toThrow('invalid selector: [')
+    })
+
+    it('should keep Classic collection errors when shadow-root fallback also finds nothing', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockRejectedValue(new Error('unsupported locator'))
+        browser.findElements.mockRejectedValue(new Error('stale element reference'))
+        browser.findElementsFromElement.mockRejectedValue(new Error('detached shadow root'))
+
+        await expect(findDeepElements.call(browser, '.child')).rejects.toThrow('stale element reference')
+    })
+})
+
 // Firefox < 150 BiDi root selector workaround (issue #15233)
 describe.each([
     {

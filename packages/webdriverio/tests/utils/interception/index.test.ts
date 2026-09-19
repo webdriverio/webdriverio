@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { type local } from 'webdriver'
+import { URLPattern } from 'urlpattern-polyfill'
 import WebDriverInterception from '../../../src/utils/interception/index.js'
 import logger from '@wdio/logger'
 
@@ -8,6 +9,7 @@ type WebDriverInterceptionClass = typeof WebDriverInterception
 
 const { loggerMock } = vi.hoisted(() => ({
     loggerMock: {
+        error: vi.fn(),
         warn: vi.fn(),
         info: vi.fn(),
         debug: vi.fn(),
@@ -459,6 +461,89 @@ describe('WebDriverInterception', () => {
 
         await waitForAsyncHandlers()
         await expect(mock.waitForResponse()).resolves.toBeDefined()
+    })
+
+    it('should apply a dynamic respond payload when the request is intercepted', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+        const payload = vi.fn((request: local.NetworkResponseCompletedParameters) => ({
+            requestId: request.request.request,
+            foo: 'bar'
+        }))
+
+        mock.respond(payload, { statusCode: 200 })
+        expect(payload).not.toHaveBeenCalled()
+
+        browser.emit('network.responseStarted', getResponseCollectionRequestStub())
+
+        expect(payload).toHaveBeenCalledTimes(1)
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            body: { type: 'string', value: '{"requestId":"req-123","foo":"bar"}' },
+            statusCode: 200
+        })
+    })
+
+    it('should allow a dynamic respond payload to return a string or Buffer', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond((request) => `id=${request.request.request}`)
+        browser.emit('network.responseStarted', getResponseCollectionRequestStub())
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            body: { type: 'string', value: 'id=req-123' }
+        })
+
+        vi.mocked(browser.networkProvideResponse).mockClear()
+        mock.reset()
+        mock.respond(() => Buffer.from('hello'))
+        browser.emit('network.responseStarted', getResponseCollectionRequestStub())
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            body: { type: 'base64', value: Buffer.from('hello').toString('base64') }
+        })
+    })
+
+    it('should apply function overwrites for status code and headers with a dynamic body', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond((request) => ({ id: request.request.request }), {
+            statusCode: () => 201,
+            headers: () => ({ foo: 'bar' })
+        })
+        browser.emit('network.responseStarted', getResponseCollectionRequestStub())
+
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            body: { type: 'string', value: '{"id":"req-123"}' },
+            statusCode: 201,
+            headers: [{ name: 'foo', value: { type: 'string', value: 'bar' } }]
+        })
+    })
+
+    it('should throw when a mock.respond payload cannot be serialized', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        expect(() => mock.respond(undefined as never)).toThrow(/Failed to serialize mock.respond/)
+    })
+
+    it('should fail the intercepted request when a dynamic respond payload cannot be serialized', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond(() => undefined as never)
+        expect(() => browser.emit('network.responseStarted', getResponseCollectionRequestStub()))
+            .not.toThrow()
+
+        expect(loggerMock.error).toHaveBeenCalledWith(
+            expect.stringMatching(/Failed to apply mock.respond\(\) overwrite: Failed to serialize mock.respond/)
+        )
+        expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-123' })
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
     })
 
     it('handles non-binary response correctly', async () => {
@@ -1102,6 +1187,38 @@ describe('WebDriverInterception', () => {
                     body: { type: 'string', value: 'mocked response' }
                 })
             )
+        })
+    })
+
+    describe('url pattern matching', () => {
+        const emitBlockedRequest = (browser: WebdriverIO.Browser, url: string) => browser.emit('network.beforeRequestSent', {
+            isBlocked: true,
+            request: {
+                request: 123,
+                url,
+                method: 'GET',
+                headers: []
+            }
+        })
+
+        it('should match a glob pattern without leading slash', async () => {
+            const browser = getResponseCollectionBrowserMock()
+            const mock = await WebDriverInterception.initiate('**/api/users*', {}, browser)
+
+            mock.abort()
+            emitBlockedRequest(browser, 'https://foobar.com/api/users/123')
+
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
+        })
+
+        it('should accept a URLPattern', async () => {
+            const browser = getResponseCollectionBrowserMock()
+            const mock = await WebDriverInterception.initiate(new URLPattern({ pathname: '/api/users/*' }), {}, browser)
+
+            mock.abort()
+            emitBlockedRequest(browser, 'https://foobar.com/api/users/123')
+
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
         })
     })
 })

@@ -7,7 +7,8 @@ import { test, expect } from 'vitest'
  *   $ npm install webdriverio
  *
  */
-import { remote, attach } from 'webdriverio'
+import { attach } from 'webdriverio'
+import { startStandaloneChrome } from './helpers.js'
 
 test('allow to attach to an existing session', async () => {
     /**
@@ -18,7 +19,7 @@ test('allow to attach to an existing session', async () => {
         return
     }
 
-    const browser = await remote({
+    const browser = await startStandaloneChrome({
         capabilities: {
             browserName: 'chrome',
             'goog:chromeOptions': {

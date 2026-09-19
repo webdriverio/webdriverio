@@ -175,6 +175,8 @@ export const config = {
 
 - `reportedEnvironmentVars` (**type:** `Record<string, string>`) - Set this option to display the environment variables in the report. Note that setting this, does not modify the actual environment variables.
 
+- `includeVersionInHistoryId` - optional parameter (`false` by default). Allure `historyId` is derived from the test title plus the browser or device family (`chrome`, `iphone 12`, …), not the worker `cid` and not the browser/OS version. That keeps trends stable when Chrome or a mobile OS updates between runs. Vendor aliases such as `Google Chrome` / `googlechrome` and `msedge` / `Microsoft Edge` are collapsed to the same family. Allure still records the full version on the test as a `browser`/`device` parameter. Set this to `true` only if you run the same test against multiple versions of the same browser or device (for example iOS 14 vs iOS 15 on an iPhone 12) and need separate history trends per version.
+
 ## Supported Allure API
 
 ### Core API Functions

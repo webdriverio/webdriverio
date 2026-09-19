@@ -29,7 +29,7 @@ We __do__ and __do not__ recommend the following selectors:
 | `$(() => document.queryElement('button'))` | ⚠️ Sparingly | Effective querying, complex to write. |
 | `$('button[name="submission"]')` | ⚠️ Sparingly | Coupled to the `name` attribute which has HTML semantics. |
 | `$('button[data-testid="submit"]')` | ✅ Good | Requires additional attribute, not connected to a11y. |
-| `$('aria/Submit')` | ✅ Good | Good. Resembles how the user interacts with the page. It is recommended to use translation files so your tests don't break when translations are updated. Note: This selector can be slower than others on large pages. |
+| `$('aria/Submit')` | ✅ Good | Good. Resembles how the user interacts with the page. It is recommended to use translation files so your tests don't break when translations are updated. On WebDriver BiDi sessions this uses the browser accessibility tree. On Classic sessions it falls back to XPath and can be slower on large pages. |
 | `$('button=Submit')` | ✅ Always | Best. Resembles how the user interacts with the page and is fast. It is recommended to use translation files so your tests don't break when translations are updated. |
 
 ## CSS Query Selector
@@ -170,6 +170,8 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 ## Accessibility Name Selector
 
 Query elements by their accessible name. The accessible name is what is announced by a screen reader when that element receives focus. The value of the accessible name can be both visual content or hidden text alternatives.
+
+On [WebDriver BiDi](https://w3c.github.io/webdriver-bidi/) sessions (Chrome, Edge, Firefox and other BiDi-capable browsers) WebdriverIO first uses [`browsingContext.locateNodes`](https://w3c.github.io/webdriver-bidi/#command-browsingContext-locateNodes) with an accessibility locator. That queries the browser accessibility tree directly and is typically much faster than the XPath approximation. If the accessibility locator finds nothing, WebdriverIO falls back to the Classic XPath heuristic so existing `aria/` queries keep matching.
 
 :::info
 
