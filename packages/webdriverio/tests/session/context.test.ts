@@ -334,4 +334,42 @@ describe('ContextManager', () => {
         expect(manager.getCurrentWindowHandle()).toBeUndefined()
         process.env.WDIO_UNIT_TESTS = wid
     })
+
+    it('resets the current context on switchToParentFrame even when the parent is not found (regression for #15570)', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub({ isBidi: true } as any)
+        const browser = stub.browser
+        ;(browser as any).browsingContextGetTree.mockResolvedValue({ contexts: [] })
+        ;(browser as any).getWindowHandle.mockResolvedValue('reinitialized-handle')
+        const manager = getContextManager(browser)
+        manager.setCurrentContext('stale-context')
+
+        const commandHandlers = stub.getListeners().command || []
+        for (const handler of commandHandlers) {
+            handler({ command: 'switchToParentFrame', body: {} })
+        }
+
+        // COMMANDS_REQUIRING_RESET cleared the stale id, so the next call re-initializes
+        expect(await manager.getCurrentContext()).toBe('reinitialized-handle')
+        process.env.WDIO_UNIT_TESTS = wid
+    })
+
+    it('resets the current context on switchToParentFrame even when no cached context exists (regression for #15570)', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub({ isBidi: true } as any)
+        const browser = stub.browser
+        ;(browser as any).getWindowHandle.mockResolvedValue('reinitialized-handle')
+        const manager = getContextManager(browser)
+
+        const commandHandlers = stub.getListeners().command || []
+        for (const handler of commandHandlers) {
+            handler({ command: 'switchToParentFrame', body: {} })
+        }
+
+        // Should still reach the reset logic and not throw
+        expect(await manager.getCurrentContext()).toBe('reinitialized-handle')
+        process.env.WDIO_UNIT_TESTS = wid
+    })
 })
