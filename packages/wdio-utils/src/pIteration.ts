@@ -198,6 +198,7 @@ export const some = <T>(array: T[], callback: Function, thisArg?: T) => {
             return resolve(false)
         }
         let counter = 1
+        let scheduled = 0
         for (let i = 0; i < array.length; i++) {
             if (!(i in array)) {
                 counter++
@@ -211,10 +212,18 @@ export const some = <T>(array: T[], callback: Function, thisArg?: T) => {
                 }
                 counter++
             }
+            scheduled++
             Promise.resolve(array[i])
                 .then((elem) => callback.call(thisArg || this, elem, i, array))
                 .then(check)
                 .catch(reject)
+        }
+
+        /* An array of nothing but holes runs no callback, so no `check` would
+         * ever settle this promise. `Array#some` reports false for it.
+         */
+        if (scheduled === 0) {
+            resolve(false)
         }
     })
 }
@@ -251,6 +260,7 @@ export const every = <T>(array: T[], callback: Function, thisArg?: T) => {
             return resolve(true)
         }
         let counter = 1
+        let scheduled = 0
         for (let i = 0; i < array.length; i++) {
             if (!(i in array)) {
                 counter++
@@ -264,10 +274,18 @@ export const every = <T>(array: T[], callback: Function, thisArg?: T) => {
                 }
                 counter++
             }
+            scheduled++
             Promise.resolve(array[i])
                 .then((elem) => callback.call(thisArg || this, elem, i, array))
                 .then(check)
                 .catch(reject)
+        }
+
+        /* An array of nothing but holes runs no callback, so no `check` would
+         * ever settle this promise. `Array#every` reports true for it.
+         */
+        if (scheduled === 0) {
+            resolve(true)
         }
     })
 }
