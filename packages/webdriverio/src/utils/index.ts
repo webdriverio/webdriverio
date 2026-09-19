@@ -317,28 +317,172 @@ function toClassicSelector(using: string, value: string): { using: string, value
     return { using, value }
 }
 
-function findElementViaClassic(
-    ctx: WebdriverIO.Browser | WebdriverIO.Element,
-    browser: WebdriverIO.Browser,
-    using: string,
-    value: string
-) {
-    const classic = toClassicSelector(using, value)
-    return ctx && 'elementId' in ctx && ctx.elementId
-        ? ctx.findElementFromElement(ctx.elementId, classic.using, classic.value)
-        : browser.findElement(classic.using, classic.value)
+function toAriaXPathLocator(value: string): remote.BrowsingContextLocator {
+    return { type: 'xpath', value: getAriaXPathSelector(value) }
 }
 
-function findElementsViaClassic(
+function getScopedElementId(ctx: WebdriverIO.Browser | WebdriverIO.Element) {
+    return ctx && 'elementId' in ctx ? ctx.elementId : undefined
+}
+
+/**
+ * Classic XPath cannot cross shadow boundaries. After searching the
+ * document or host, also query each known shadow root so legacy-only
+ * `aria/` matches (e.g. aria-describedby, title, generic text) stay
+ * findable inside Shadow DOM.
+ */
+async function findElementViaClassic(
     ctx: WebdriverIO.Browser | WebdriverIO.Element,
     browser: WebdriverIO.Browser,
     using: string,
-    value: string
+    value: string,
+    shadowRoots: string[] = []
 ) {
     const classic = toClassicSelector(using, value)
-    return ctx && 'elementId' in ctx && ctx.elementId
-        ? ctx.findElementsFromElement(ctx.elementId, classic.using, classic.value)
-        : browser.findElements(classic.using, classic.value)
+    const elementId = getScopedElementId(ctx)
+
+    let lightDom: ElementReference | undefined
+    let lightDomError: unknown
+    try {
+        lightDom = await (elementId
+            ? ctx.findElementFromElement(elementId, classic.using, classic.value)
+            : browser.findElement(classic.using, classic.value)) as ElementReference
+    } catch (err) {
+        lightDomError = err
+    }
+
+    if (getElementFromResponse(lightDom)) {
+        return lightDom
+    }
+
+    for (const rootId of shadowRoots.filter((id) => id !== elementId)) {
+        try {
+            const result = await browser.findElementFromElement(rootId, classic.using, classic.value) as ElementReference
+            if (getElementFromResponse(result)) {
+                return result
+            }
+        } catch {
+            // stale or detached shadow root — keep looking
+        }
+    }
+
+    if (lightDomError) {
+        throw lightDomError
+    }
+    return lightDom
+}
+
+async function findElementsViaClassic(
+    ctx: WebdriverIO.Browser | WebdriverIO.Element,
+    browser: WebdriverIO.Browser,
+    using: string,
+    value: string,
+    shadowRoots: string[] = []
+) {
+    const classic = toClassicSelector(using, value)
+    const elementId = getScopedElementId(ctx)
+    const collected: ElementReference[] = []
+
+    try {
+        const lightDom = await (elementId
+            ? ctx.findElementsFromElement(elementId, classic.using, classic.value)
+            : browser.findElements(classic.using, classic.value))
+        if (Array.isArray(lightDom)) {
+            collected.push(...lightDom.filter((node) => getElementFromResponse(node)))
+        }
+    } catch {
+        // light-DOM lookup failed; still search shadow roots
+    }
+
+    for (const rootId of shadowRoots.filter((id) => id !== elementId)) {
+        try {
+            const result = await browser.findElementsFromElement(rootId, classic.using, classic.value)
+            if (Array.isArray(result)) {
+                collected.push(...result.filter((node) => getElementFromResponse(node)))
+            }
+        } catch {
+            // stale or detached shadow root — keep looking
+        }
+    }
+
+    const ids = new Set<string>()
+    return collected.filter((node) => {
+        const id = node[ELEMENT_KEY]
+        return Boolean(id) && !ids.has(id) && ids.add(id)
+    })
+}
+
+type BidiStartNode = { sharedId: string }
+
+/**
+ * Retry an `aria/` lookup with the XPath heuristic, searching the same
+ * shadow-root start nodes as the primary BiDi query. Classic XPath is
+ * used when BiDi rejects the relative expression or finds nothing.
+ */
+async function findAriaElementViaXPathFallback(
+    ctx: WebdriverIO.Browser | WebdriverIO.Element,
+    browser: WebdriverIO.Browser,
+    using: string,
+    value: string,
+    context: string,
+    startNodes: BidiStartNode[] | undefined,
+    shadowRoots: string[]
+) {
+    const xpathLocator = toAriaXPathLocator(value)
+    if (startNodes && startNodes.length > 0) {
+        try {
+            const result = await browser.browsingContextLocateNodes({
+                locator: xpathLocator,
+                context,
+                startNodes
+            })
+            const nodes = returnUniqueNodes(
+                result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
+                    [ELEMENT_KEY]: node.sharedId as string,
+                    locator: xpathLocator
+                }))
+            )
+            if (nodes[0]) {
+                return nodes[0]
+            }
+        } catch (err) {
+            log.warn(`BiDi XPath fallback for "aria/${value}" failed due to ${err}, using Classic`)
+        }
+    }
+    return findElementViaClassic(ctx, browser, using, value, shadowRoots)
+}
+
+async function findAriaElementsViaXPathFallback(
+    ctx: WebdriverIO.Browser | WebdriverIO.Element,
+    browser: WebdriverIO.Browser,
+    using: string,
+    value: string,
+    context: string,
+    startNodes: BidiStartNode[] | undefined,
+    shadowRoots: string[]
+) {
+    const xpathLocator = toAriaXPathLocator(value)
+    if (startNodes && startNodes.length > 0) {
+        try {
+            const result = await browser.browsingContextLocateNodes({
+                locator: xpathLocator,
+                context,
+                startNodes
+            })
+            const nodes = returnUniqueNodes(
+                result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
+                    [ELEMENT_KEY]: node.sharedId as string,
+                    locator: xpathLocator
+                }))
+            )
+            if (nodes.length > 0) {
+                return nodes
+            }
+        } catch (err) {
+            log.warn(`BiDi XPath fallback for "aria/${value}" failed due to ${err}, using Classic`)
+        }
+    }
+    return findElementsViaClassic(ctx, browser, using, value, shadowRoots)
 }
 
 /**
@@ -492,21 +636,30 @@ export async function findDeepElement(
             }
         }
         return scopedNodes[0]
-    }).then((found) => {
+    }).then(async (found) => {
         /**
          * BiDi accessibility locators use the computed accessible name, which
          * does not cover every case the Classic XPath heuristic matches
          * (e.g. generic text nodes, title fallbacks, aria-describedby).
-         * Fall back so existing `aria/` selectors keep working.
+         * Fall back so existing `aria/` selectors keep working, including
+         * matches inside known shadow roots that Classic document XPath
+         * cannot reach.
          */
         if (using === 'aria' && !found) {
             log.info(`BiDi accessibility locator found no nodes for "aria/${value}", falling back to XPath`)
-            return findElementViaClassic(this, browser, using, value)
+            return findAriaElementViaXPathFallback(
+                this, browser, using, value, context, startNodes, shadowRoots
+            )
         }
         return found
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
-        return findElementViaClassic(this, browser, using, value)
+        if (using === 'aria') {
+            return findAriaElementViaXPathFallback(
+                this, browser, using, value, context, startNodes, shadowRoots
+            )
+        }
+        return findElementViaClassic(this, browser, using, value, shadowRoots)
     })
 
     return deepElementResult
@@ -627,15 +780,22 @@ export async function findDeepElements(
             }
         }
         return scopedNodes
-    }).then((found) => {
+    }).then(async (found) => {
         if (using === 'aria' && (!found || found.length === 0)) {
             log.info(`BiDi accessibility locator found no nodes for "aria/${value}", falling back to XPath`)
-            return findElementsViaClassic(this, browser, using, value)
+            return findAriaElementsViaXPathFallback(
+                this, browser, using, value, context, startNodes, shadowRoots
+            )
         }
         return found
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
-        return findElementsViaClassic(this, browser, using, value)
+        if (using === 'aria') {
+            return findAriaElementsViaXPathFallback(
+                this, browser, using, value, context, startNodes, shadowRoots
+            )
+        }
+        return findElementsViaClassic(this, browser, using, value, shadowRoots)
     })
     return deepElementResult as ElementReference[]
 }

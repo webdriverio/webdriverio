@@ -121,46 +121,70 @@ const defineStrategy = function (selector: SelectorStrategy) {
     }
 }
 /**
+ * Quote a string as an XPath 1.0 literal so user-provided labels cannot
+ * break out of the surrounding quotes.
+ */
+export function escapeXPathString(value: string) {
+    if (!value.includes('"')) {
+        return `"${value}"`
+    }
+    if (!value.includes("'")) {
+        return `'${value}'`
+    }
+
+    const parts: string[] = []
+    for (const segment of value.split('"')) {
+        if (segment.length > 0) {
+            parts.push(`"${segment}"`)
+        }
+        parts.push(`'"'`)
+    }
+    parts.pop()
+    return `concat(${parts.join(', ')})`
+}
+
+/**
  * XPath approximation of an accessible name lookup.
  * Used for WebDriver Classic sessions and as a fallback when BiDi
  * accessibility locators are unavailable.
  */
 export function getAriaXPathSelector(label: string) {
+    const escaped = escapeXPathString(label)
     const conditions = [
         // aria label is recevied by other element with aria-labelledBy
         // https://www.w3.org/TR/accname-1.1/#step2B
-        `.//*[@aria-labelledby=(//*[normalize-space(text()) = "${label}"]/@id)]`,
+        `.//*[@aria-labelledby=(//*[normalize-space(text()) = ${escaped}]/@id)]`,
         // aria label is recevied by other element with aria-labelledBy
         // https://www.w3.org/TR/accname-1.1/#step2B
-        `.//*[@aria-describedby=(//*[normalize-space(text()) = "${label}"]/@id)]`,
+        `.//*[@aria-describedby=(//*[normalize-space(text()) = ${escaped}]/@id)]`,
         // element has direct aria label
         // https://www.w3.org/TR/accname-1.1/#step2C
-        `.//*[@aria-label = "${label}"]`,
+        `.//*[@aria-label = ${escaped}]`,
         // input and textarea with a label
         // https://www.w3.org/TR/accname-1.1/#step2D
-        `.//input[@id = (//label[normalize-space() = "${label}"]/@for)]`,
-        `.//textarea[@id = (//label[normalize-space() = "${label}"]/@for)]`,
+        `.//input[@id = (//label[normalize-space() = ${escaped}]/@for)]`,
+        `.//textarea[@id = (//label[normalize-space() = ${escaped}]/@for)]`,
         // input and textarea with a label as parent
         // https://www.w3.org/TR/accname-1.1/#step2D
-        `.//input[ancestor::label[normalize-space(text()) = "${label}"]]`,
-        `.//textarea[ancestor::label[normalize-space(text()) = "${label}"]]`,
+        `.//input[ancestor::label[normalize-space(text()) = ${escaped}]]`,
+        `.//textarea[ancestor::label[normalize-space(text()) = ${escaped}]]`,
         // aria label is received by a placeholder
         // https://www.w3.org/TR/accname-1.1/#step2D
-        `.//input[@placeholder="${label}"]`,
-        `.//textarea[@placeholder="${label}"]`,
+        `.//input[@placeholder=${escaped}]`,
+        `.//textarea[@placeholder=${escaped}]`,
         // aria label is received by a aria-placeholder
         // https://www.w3.org/TR/accname-1.1/#step2D
-        `.//input[@aria-placeholder="${label}"]`,
-        `.//textarea[@aria-placeholder="${label}"]`,
+        `.//input[@aria-placeholder=${escaped}]`,
+        `.//textarea[@aria-placeholder=${escaped}]`,
         // aria label is received by a title
         // https://www.w3.org/TR/accname-1.1/#step2D
-        `.//*[not(self::label)][@title="${label}"]`,
+        `.//*[not(self::label)][@title=${escaped}]`,
         // images with an alt tag
         // https://www.w3.org/TR/accname-1.1/#step2D
-        `.//img[@alt="${label}"]`,
+        `.//img[@alt=${escaped}]`,
         // aria label is received from element text content
         // https://www.w3.org/TR/accname-1.1/#step2G
-        `.//*[not(self::label)][normalize-space(text()) = "${label}"]`
+        `.//*[not(self::label)][normalize-space(text()) = ${escaped}]`
     ]
     return conditions.join(' | ')
 }

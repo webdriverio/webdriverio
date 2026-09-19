@@ -607,6 +607,76 @@ describe('findDeepElement - aria accessibility locator', () => {
         )
         expect(result).toEqual({ [ELEMENT_KEY]: 'xpath-node' })
     })
+
+    it('should retry aria xpath via BiDi using known shadow roots as startNodes', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes
+            .mockResolvedValueOnce({ nodes: [] })
+            .mockResolvedValueOnce({ nodes: [{ sharedId: 'shadow-aria-node' }] })
+
+        const result = await findDeepElement.call(browser, 'aria/Submit')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenNthCalledWith(
+            2,
+            expect.objectContaining({
+                locator: expect.objectContaining({
+                    type: 'xpath',
+                    value: expect.stringContaining('@aria-label = "Submit"'),
+                }),
+                startNodes: [{ sharedId: 'shadow-1' }],
+            })
+        )
+        expect(result).toEqual({
+            [ELEMENT_KEY]: 'shadow-aria-node',
+            locator: expect.objectContaining({ type: 'xpath' }),
+        })
+        expect(browser.findElement).not.toHaveBeenCalled()
+        expect(browser.findElementFromElement).not.toHaveBeenCalled()
+    })
+
+    it('should search known shadow roots via Classic when BiDi aria xpath fallback is empty', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1', 'shadow-2'])
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [] })
+        browser.findElement.mockResolvedValue({})
+        browser.findElementFromElement
+            .mockResolvedValueOnce({})
+            .mockResolvedValueOnce({ [ELEMENT_KEY]: 'shadow-xpath-node' })
+
+        const result = await findDeepElement.call(browser, 'aria/Described')
+
+        expect(browser.findElementFromElement).toHaveBeenCalledWith(
+            'shadow-1',
+            'xpath',
+            expect.stringContaining('@aria-describedby')
+        )
+        expect(browser.findElementFromElement).toHaveBeenCalledWith(
+            'shadow-2',
+            'xpath',
+            expect.stringContaining('@aria-describedby')
+        )
+        expect(result).toEqual({ [ELEMENT_KEY]: 'shadow-xpath-node' })
+    })
+
+    it('should search known shadow roots via Classic for aria collections', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [] })
+        browser.findElements.mockResolvedValue([])
+        browser.findElementsFromElement.mockResolvedValue([
+            { [ELEMENT_KEY]: 'shadow-collection-node' },
+        ])
+
+        const result = await findDeepElements.call(browser, 'aria/Find me')
+
+        expect(browser.findElementsFromElement).toHaveBeenCalledWith(
+            'shadow-1',
+            'xpath',
+            expect.stringContaining('normalize-space(text()) = "Find me"')
+        )
+        expect(result).toEqual([{ [ELEMENT_KEY]: 'shadow-collection-node' }])
+    })
 })
 
 // Firefox < 150 BiDi root selector workaround (issue #15233)
