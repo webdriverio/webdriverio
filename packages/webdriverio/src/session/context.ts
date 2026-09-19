@@ -265,6 +265,16 @@ export class ContextManager extends SessionManager {
             return this.#browser.browsingContextGetTree({}).then(({ contexts }) => {
                 const parentContext = this.findParentContext(this.#currentContext!, contexts)
                 if (!parentContext) {
+                    /**
+                     * There is no parent to step up to. Either the cached context is a
+                     * top-level one, or - the case this guards - it was destroyed by the
+                     * page rather than by a command, so it is no longer in the tree at all.
+                     * Keeping it cached would send every following BiDi command to a frame
+                     * that does not exist, with no way for a user to clear it. Dropping it
+                     * makes the next command resolve the active context again.
+                     */
+                    this.#currentContext = undefined
+                    this.#currentWindowHandle = undefined
                     return
                 }
                 this.setCurrentContext(parentContext.context)
