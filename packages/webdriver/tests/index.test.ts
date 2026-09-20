@@ -62,6 +62,9 @@ interface TestClient extends Client {
     rotateDevice (): void
     takeElementScreenshot (): void
     getDeviceTime (): void
+    getAppiumCommands (): void
+    appiumLock (): void
+    getPageIndex (): void
 }
 
 beforeEach(() => {
@@ -214,6 +217,31 @@ describe('WebDriver', () => {
                 undefined,
                 300000
             )
+        })
+
+        it('should expose Appium commands but no mobile-only commands in a non-mobile Appium session', async () => {
+            // @ts-expect-error mock feature
+            vi.mocked(fetch).customResponseFor(/\/session/, {
+                value: {
+                    sessionId: 'appium-session',
+                    capabilities: { 'appium:automationName': 'chrome', browserName: 'chrome' }
+                },
+                sessionId: 'appium-session'
+            })
+            const session = await WebDriver.newSession({
+                path: '/',
+                capabilities: { 'appium:automationName': 'chrome', browserName: 'chrome' }
+            })
+
+            expect(session.isAppium).toBe(true)
+            expect(session.isMobile).toBe(false)
+            expect(typeof (session as TestClient).getAppiumCommands).toBe('function')
+            expect(typeof (session as TestClient).appiumLock).toBe('function')
+            /**
+             * `getPageIndex` is a mobile-only command that is only contributed
+             * by `MJsonWProtocol`, which stays gated behind `isMobile`
+             */
+            expect((session as TestClient).getPageIndex).toBeUndefined()
         })
     })
 
