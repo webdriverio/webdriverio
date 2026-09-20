@@ -1,0 +1,11 @@
+{
+  "name": "@wdio/repo-utils",
+  "private": true,
+  "type": "module",
+  "description": "Shared helpers and protocol metadata used by internal WebdriverIO infra packages",
+  "exports": {
+    ".": "./src/index.ts",
+    "./protocols": "./src/protocols.ts",
+    "./constants": "./src/constants.ts"
+  }
+}

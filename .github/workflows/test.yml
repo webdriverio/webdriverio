@@ -59,8 +59,7 @@ jobs:
               - 'eslint.config.mjs'
             docs:
               - 'website/**'
-              - 'scripts/docs-generation/**'
-              - 'scripts/updateDocs.ts'
+              - 'infra/docs/**'
             component:
               - 'packages/wdio-browser-runner/**'
               - 'e2e/browser-runner/**'
@@ -78,9 +77,8 @@ jobs:
               - 'e2e/**'
               - '!e2e/wdio/xvfb/**'
               - '!e2e/browser-runner/**'
-              - 'scripts/**'
-              - '!scripts/docs-generation/**'
               - 'infra/**'
+              - '!infra/docs/**'
               - 'test-headless-flag/**'
               - '@types/**'
               - '__mocks__/**'

@@ -28,7 +28,7 @@ jobs:
       - name: 📖 Generate Docs
         run: pnpm run docs:setup && pnpm run docs:generate
         env:
-          # required by scripts/docs-generation/downloadDocsTranslations.ts to fetch
+          # required by infra/docs/src/downloadDocsTranslations.ts to fetch
           # translations from the public webdriverio/i18n repo; the default read-only
           # token is sufficient, including for pull requests from forks
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}

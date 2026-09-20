@@ -27,6 +27,8 @@ export default wdioEslint.config([
             'examples/**/*.js',
             'packages/**/*.test.ts',
             'packages/**/tests/**/*.ts',
+            'infra/**/*.test.ts',
+            'infra/**/tests/**/*.ts',
             'e2e/**/*.js',
             'e2e/**/*.ts',
             'e2e/**/*.tsx'

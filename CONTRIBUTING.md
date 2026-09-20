@@ -211,7 +211,7 @@ When a PR gets submitted, WebdriverIO runs the following checks. Suites are
 selected from the files you change (see [`.github/workflows/test.yml`](https://github.com/webdriverio/webdriverio/blob/main/.github/workflows/test.yml)):
 component tests run for `@wdio/browser-runner` / `e2e/browser-runner`, Xvfb
 distro tests run for `@wdio/xvfb`, `@wdio/local-runner` and `e2e/wdio/xvfb`,
-and the docs site build runs for `website/` and docs-generation scripts.
+and the docs site build runs for `website/` and `infra/docs`.
 Pushes to `main` (and PRs that touch CI or root package config) still run
 every suite. Pull requests also use a smaller OS × Node matrix; the full
 matrix stays on `main`.
@@ -349,9 +349,11 @@ This repository contains everything to set up, build and deploy the WebdriverIO 
 
 - the guidelines pages from markdown files of the [docs directory](https://github.com/webdriverio/webdriverio/tree/main/website/docs)
 - service and reporter docs from the readme files of those packages within this repository
-- service and reporter docs from 3rd party plugins (defined in [these JSON files](https://github.com/webdriverio/webdriverio/tree/main/scripts/docs-generation/3rd-party)) that are downloaded from GitHub and parsed
+- service and reporter docs from 3rd party plugins (defined in [these JSON files](https://github.com/webdriverio/webdriverio/tree/main/infra/docs/src/3rd-party)) that are downloaded from GitHub and parsed
 - the protocol APIs from the [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols) package
 - the WebdriverIO API that is parsed out of the JSDoc comments of individual commands (e.g., [`execute`](https://github.com/webdriverio/webdriverio/blob/main/packages/webdriverio/src/commands/browser/execute.ts#L3-L37) command)
+
+Generation and deploy live in the internal [`@wdio/docs`](https://github.com/webdriverio/webdriverio/tree/main/infra/docs) package. WebDriver Bidi types are produced by [`@wdio/bidi-codegen`](https://github.com/webdriverio/webdriverio/tree/main/infra/bidiCodegen).
 
 Changes to the docs need to be done in one of these places. Please note that changes to e.g. the config file have to be updated in multiple places given that config files are wide spread (as examples or test files) within this repository. A good way to go about this is to look for all occurrences of a certain string of the config and update changes in all findings.
 
@@ -413,7 +415,7 @@ If during the process a cherry-pick fails, you can always abort and manually tro
 $ pnpm run backport
 
 > webdriverio-monorepo@ backport /path/to/webdriverio/webdriverio
-> node ./scripts/backport.js
+> pnpm -r --filter=@wdio/release run backport
 
 ? You want to backport "Backporting Test PR" by christian-bromann?
 (See PR https://github.com/webdriverio/webdriverio/pull/4890) Yes

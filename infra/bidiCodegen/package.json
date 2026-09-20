@@ -1,0 +1,22 @@
+{
+  "name": "@wdio/bidi-codegen",
+  "private": true,
+  "type": "module",
+  "description": "Generate WebDriver Bidi TypeScript types and protocol definitions from the W3C CDDL spec",
+  "scripts": {
+    "generate": "tsx ./src/index.ts"
+  },
+  "dependencies": {
+    "@wdio/repo-utils": "workspace:*",
+    "@octokit/rest": "^22.0.0",
+    "camelcase": "^8.0.0",
+    "cddl": "^0.21.0",
+    "cddl2ts": "^0.10.0",
+    "recast": "^0.23.11",
+    "tsx": "^4.17.0",
+    "unzipper": "^0.12.3"
+  },
+  "devDependencies": {
+    "@types/unzipper": "^0.10.11"
+  }
+}
