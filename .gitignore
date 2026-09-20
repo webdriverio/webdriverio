@@ -110,7 +110,7 @@ website/community/Resources.md
 website/docs/desktop-testing/electron/
 website/docs/desktop-testing/tauri/
 website/docs/desktop-testing/dioxus/
-scripts/bidi/cddl
+infra/bidiCodegen/cddl
 temp_extract/
 browserstack.err
 e2e/tailwind.config.js

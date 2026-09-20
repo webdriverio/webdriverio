@@ -152,6 +152,12 @@ These packages are not released to NPM and used to work on this codebase.
 - [@wdio/compiler](https://github.com/webdriverio/webdriverio/tree/main/infra/compiler) - Esbuild script to
 compile the source code all of all packages
 - [@wdio/lerna-patch](https://github.com/webdriverio/webdriverio/tree/main/infra/lernaPatch) - This sub-package is being used to patch Lerna to not run `pnpm install` after it prepared all packages for release
+- [@wdio/repo-utils](https://github.com/webdriverio/webdriverio/tree/main/infra/utils) - Shared helpers and protocol metadata used by other infra packages
+- [@wdio/bidi-codegen](https://github.com/webdriverio/webdriverio/tree/main/infra/bidiCodegen) - Generate WebDriver Bidi TypeScript types and protocol definitions from the W3C CDDL spec
+- [@wdio/docs](https://github.com/webdriverio/webdriverio/tree/main/infra/docs) - Generate and deploy the documentation website
+- [@wdio/release](https://github.com/webdriverio/webdriverio/tree/main/infra/release) - Changelog generation, GitHub releases, annotated tags, and PR backports
+- [@wdio/create-package](https://github.com/webdriverio/webdriverio/tree/main/infra/createPackage) - Scaffold a new reporter, service, runner, or framework package
+- [@wdio/depcheck](https://github.com/webdriverio/webdriverio/tree/main/infra/depcheck) - Check sub-packages for missing dependencies
 
 ## :handshake: Project Governance
 

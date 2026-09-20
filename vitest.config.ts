@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
     test: {
         dangerouslyIgnoreUnhandledErrors: true,
-        include: ['packages/**/*.test.ts'],
+        include: ['packages/**/*.test.ts', 'infra/**/*.test.ts'],
         typecheck: {
             enabled: true,
             ignoreSourceErrors : true

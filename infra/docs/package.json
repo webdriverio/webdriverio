@@ -1,0 +1,28 @@
+{
+  "name": "@wdio/docs",
+  "private": true,
+  "type": "module",
+  "description": "Generate and deploy the WebdriverIO documentation website",
+  "scripts": {
+    "generate": "tsx ./src/index.ts",
+    "deploy": "tsx ./src/deploy.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cloudfront": "^3.840.0",
+    "@aws-sdk/client-s3": "^3.840.0",
+    "@aws-sdk/lib-storage": "^3.840.0",
+    "@octokit/rest": "^22.0.0",
+    "@wdio/repo-utils": "workspace:*",
+    "comment-parser": "^1.4.1",
+    "eta": "^3.5.0",
+    "mime-types": "^3.0.1",
+    "recursive-readdir": "^2.2.3",
+    "tsx": "^4.17.0",
+    "unzipper": "^0.12.3"
+  },
+  "devDependencies": {
+    "@types/mime-types": "^3.0.1",
+    "@types/recursive-readdir": "^2.2.4",
+    "@types/unzipper": "^0.10.11"
+  }
+}

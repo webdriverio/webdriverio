@@ -1,0 +1,14 @@
+{
+  "name": "@wdio/depcheck",
+  "private": true,
+  "type": "module",
+  "description": "Check WebdriverIO sub-packages for missing dependencies",
+  "scripts": {
+    "check": "tsx ./src/cli.ts"
+  },
+  "dependencies": {
+    "@wdio/repo-utils": "workspace:*",
+    "depcheck": "^1.4.7",
+    "tsx": "^4.17.0"
+  }
+}

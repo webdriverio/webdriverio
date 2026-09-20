@@ -7,7 +7,7 @@ import camelCase from 'camelcase'
 import { type Plugin } from 'esbuild'
 
 import { paramTypeMap, returnTypeMap } from './constants.js'
-import { PROTOCOLS } from '../../../../scripts/protocols.js'
+import { PROTOCOLS } from '@wdio/repo-utils/protocols'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const TYPINGS_PATH = path.join(__dirname, '..', '..', '..', '..', 'packages', 'wdio-protocols', 'src', 'commands')

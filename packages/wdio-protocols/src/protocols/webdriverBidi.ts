@@ -10,7 +10,7 @@
  * ```
  *
  * from the project root. You can find the scripts that generates this file in
- * ./scripts/bidi/**
+ * ./infra/bidiCodegen/**
  */
 
 const protocol = {

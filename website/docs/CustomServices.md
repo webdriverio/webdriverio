@@ -217,4 +217,4 @@ We really appreciate every new plugin that could help other people run better te
 Please raise a pull request with the following changes:
 
 - add your service to the list of [supported services](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/constants.ts#L92-L128)) in the CLI module
-- enhance the [service list](https://github.com/webdriverio/webdriverio/blob/main/scripts/docs-generation/3rd-party/services.json) for adding your docs to the official Webdriver.io page
+- enhance the [service list](https://github.com/webdriverio/webdriverio/blob/main/infra/docs/src/3rd-party/services.json) for adding your docs to the official Webdriver.io page
