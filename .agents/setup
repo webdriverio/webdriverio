@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Bootstrap a checkout so coding agents match CI (Node from .nvmrc, pinned pnpm).
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+if ! command -v node >/dev/null 2>&1; then
+    echo "node is not on PATH. Install Node $(tr -d '[:space:]' < .nvmrc) (see .nvmrc)." >&2
+    exit 1
+fi
+
+EXPECTED_NODE="$(tr -d 'v[:space:]' < .nvmrc)"
+ACTUAL_NODE="$(node -p "process.versions.node")"
+ACTUAL_MAJOR="${ACTUAL_NODE%%.*}"
+EXPECTED_MAJOR="${EXPECTED_NODE%%.*}"
+if (( ACTUAL_MAJOR < 18 )); then
+    echo "Node $ACTUAL_NODE is too old. Install Node $EXPECTED_NODE (see .nvmrc) or at least Node 18." >&2
+    exit 1
+fi
+if [[ "$ACTUAL_MAJOR" != "$EXPECTED_MAJOR" ]]; then
+    echo "Warning: Node $ACTUAL_NODE; CI uses .nvmrc ($EXPECTED_NODE). Prefer: nvm install && nvm use" >&2
+fi
+
+if ! command -v pnpm >/dev/null 2>&1; then
+    echo "pnpm is not on PATH. Enable Corepack or use the packageManager pin in package.json." >&2
+    exit 1
+fi
+
+if [[ ! -d node_modules ]]; then
+    pnpm install
+fi
+
+if [[ ! -d packages/webdriverio/build ]]; then
+    pnpm run setup
+fi
+
+echo "WebdriverIO agent setup ok (node $ACTUAL_NODE, pnpm $(pnpm --version))."
