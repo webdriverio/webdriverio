@@ -194,6 +194,12 @@ export interface LighthouseResultLike {
             score: number | null
         }
     }
+    finalDisplayedUrl?: string
+    finalUrl?: string
+    runtimeError?: {
+        code?: string
+        message?: string
+    }
 }
 
 export interface LighthouseFlowResultLike {
@@ -206,6 +212,7 @@ export interface LighthouseFlowResultLike {
 export interface LighthouseFlow {
     startNavigation: (flags?: Record<string, unknown>) => Promise<void>
     endNavigation: () => Promise<void>
+    navigate: (url: string | (() => Promise<void>), flags?: Record<string, unknown>) => Promise<void>
     startTimespan: (flags?: Record<string, unknown>) => Promise<void>
     endTimespan: () => Promise<void>
     snapshot: (flags?: Record<string, unknown>) => Promise<void>

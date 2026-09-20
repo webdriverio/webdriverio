@@ -17,6 +17,7 @@ export const config: WebdriverIO.Config = {
             args: [
                 'headless',
                 'disable-gpu',
+                'window-size=1920,1080',
                 ...(isLinux && isCI ? ['no-sandbox'] : []),
                 ...(isCI ? ['disable-dev-shm-usage'] : [])
             ]

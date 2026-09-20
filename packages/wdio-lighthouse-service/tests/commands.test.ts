@@ -8,6 +8,7 @@ import Auditor from '../src/auditor.js'
 
 const startNavigation = vi.fn()
 const endNavigation = vi.fn()
+const navigate = vi.fn()
 const createFlowResult = vi.fn()
 const dispose = vi.fn()
 const startFlow = vi.fn()
@@ -40,6 +41,10 @@ vi.mock('../src/pwa', () => ({
 
 const pageMock = {
     setCacheEnabled: vi.fn(),
+    url: vi.fn().mockReturnValue('https://webdriver.io'),
+    browser: vi.fn(() => ({
+        pages: vi.fn().mockResolvedValue([])
+    })),
     tracing: {
         start: vi.fn(),
         stop: vi.fn()
@@ -55,7 +60,18 @@ const sessionMock = {
 const options = {}
 const browser: any = {
     addCommand: vi.fn(),
-    emit: vi.fn()
+    emit: vi.fn(),
+    getUrl: vi.fn().mockResolvedValue('https://webdriver.io/')
+}
+
+const successfulLhr = {
+    audits: {
+        'first-contentful-paint': { score: 1, numericValue: 200 },
+        'largest-contentful-paint': { score: 1, numericValue: 300 },
+        'speed-index': { score: 1, numericValue: 250 }
+    },
+    categories: { performance: { score: 0.9 } },
+    finalDisplayedUrl: 'https://webdriver.io/'
 }
 
 function createHandler () {
@@ -77,16 +93,19 @@ beforeEach(() => {
     browser.emit.mockClear()
     startNavigation.mockReset().mockResolvedValue(undefined)
     endNavigation.mockReset().mockResolvedValue(undefined)
+    navigate.mockReset().mockResolvedValue(undefined)
     createFlowResult.mockReset().mockResolvedValue({
-        steps: [{ lhr: { categories: { performance: { score: 0.9 } } } }]
+        steps: [{ lhr: successfulLhr }]
     })
     dispose.mockReset()
     startFlow.mockReset().mockResolvedValue({
         startNavigation,
         endNavigation,
+        navigate,
         createFlowResult,
         dispose
     })
+    browser.getUrl.mockReset().mockResolvedValue('https://webdriver.io/')
 })
 
 test('initialization', async () => {
@@ -208,6 +227,7 @@ test('beforeCmd starts a Lighthouse navigation for url commands', async () => {
     await handler._beforeCmd('url', ['https://webdriver.io'])
     expect(handler.setThrottlingProfile).toBeCalledWith('offline', 2, true)
     expect(startFlow).toHaveBeenCalledTimes(1)
+    expect(startFlow.mock.calls[0][1].flags.screenEmulation).toBeUndefined()
     expect(startNavigation).toHaveBeenCalledWith({ name: 'WebdriverIO url' })
     expect(handler['_flowInProgress']).toBe(true)
 })
@@ -248,9 +268,69 @@ test('afterCmd updates browser commands after a successful Lighthouse run', asyn
 
     expect(endNavigation).toHaveBeenCalledTimes(1)
     expect(createFlowResult).toHaveBeenCalledTimes(1)
+    expect(navigate).not.toHaveBeenCalled()
     expect(new Auditor().updateCommands).toHaveBeenCalledWith(browser)
     expect(handler.setThrottlingProfile).toHaveBeenLastCalledWith('online', 0, true)
     expect(handler['_flowInProgress']).toBe(false)
+})
+
+test('afterCmd falls back to Lighthouse navigate when the wrap has no metrics', async () => {
+    createFlowResult
+        .mockResolvedValueOnce({
+            steps: [{
+                lhr: {
+                    runtimeError: { code: 'NO_FCP', message: 'Unable to find first contentful paint' },
+                    categories: { performance: { score: null } }
+                }
+            }]
+        })
+        .mockResolvedValueOnce({
+            steps: [{ lhr: successfulLhr }]
+        })
+    const handler = createHandler()
+    handler.setThrottlingProfile = vi.fn()
+    handler['_shouldRunPerformanceAudits'] = true
+    await handler._beforeCmd('url', ['https://webdriver.io'])
+    handler['_pageLoadDetected'] = true
+
+    await handler._afterCmd('url')
+
+    expect(navigate).toHaveBeenCalledWith('https://webdriver.io/')
+    expect(createFlowResult).toHaveBeenCalledTimes(2)
+    expect(new Auditor().updateCommands).toHaveBeenCalledWith(browser)
+})
+
+test('afterCmd does not fall back when the current URL is unsupported', async () => {
+    createFlowResult.mockResolvedValue({
+        steps: [{ lhr: { runtimeError: { code: 'NO_FCP', message: 'no paint' } } }]
+    })
+    browser.getUrl.mockResolvedValue('about:blank')
+    const handler = createHandler()
+    handler.setThrottlingProfile = vi.fn()
+    handler['_shouldRunPerformanceAudits'] = true
+    await handler._beforeCmd('url', ['https://webdriver.io'])
+    handler['_pageLoadDetected'] = true
+
+    await handler._afterCmd('url')
+
+    expect(navigate).not.toHaveBeenCalled()
+    expect(new Auditor().updateCommands).toHaveBeenCalledWith(browser, expect.any(Function))
+})
+
+test('afterCmd fails commands when fallback navigate also lacks metrics', async () => {
+    createFlowResult.mockResolvedValue({
+        steps: [{ lhr: { categories: { performance: { score: null } } } }]
+    })
+    const handler = createHandler()
+    handler.setThrottlingProfile = vi.fn()
+    handler['_shouldRunPerformanceAudits'] = true
+    await handler._beforeCmd('url', ['https://webdriver.io'])
+    handler['_pageLoadDetected'] = true
+
+    await handler._afterCmd('url')
+
+    expect(navigate).toHaveBeenCalledWith('https://webdriver.io/')
+    expect(new Auditor().updateCommands).toHaveBeenCalledWith(browser, expect.any(Function))
 })
 
 test('afterCmd wraps failing commands when Lighthouse fails', async () => {
@@ -439,4 +519,15 @@ test('uses the mobile Lighthouse config when requested', async () => {
     await handler._beforeCmd('url', ['https://webdriver.io'])
     expect(startFlow.mock.calls[0][1].config).toBeUndefined()
     expect(startFlow.mock.calls[0][1].flags.formFactor).toBe('mobile')
+    expect(startFlow.mock.calls[0][1].flags.screenEmulation).toBeUndefined()
+})
+
+test('disables Lighthouse screen emulation only for formFactor none', async () => {
+    const handler = createHandler()
+    handler.setThrottlingProfile = vi.fn()
+    handler['_shouldRunPerformanceAudits'] = true
+    handler['_formFactor'] = 'none'
+
+    await handler._beforeCmd('url', ['https://webdriver.io'])
+    expect(startFlow.mock.calls[0][1].flags.screenEmulation).toEqual({ disabled: true })
 })

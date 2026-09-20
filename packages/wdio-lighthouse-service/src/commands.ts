@@ -17,7 +17,15 @@ import {
     NETWORK_STATES,
     TRACE_COMMANDS
 } from './constants.js'
-import { isSupportedUrl, parseTraceBuffer, sumByKey } from './utils.js'
+import {
+    describeLighthouseResult,
+    getAuditablePuppeteerPage,
+    hasCorePerformanceMetrics,
+    isSupportedUrl,
+    parseTraceBuffer,
+    selectLighthouseResult,
+    sumByKey
+} from './utils.js'
 import type {
     DevtoolsConfig,
     EnablePerformanceAuditsOptions,
@@ -258,6 +266,7 @@ export default class CommandHandler {
         }
 
         try {
+            await this._refreshAuditablePage()
             this._flow = await startFlow(this._page as never, this._getFlowOptions()) as unknown as LighthouseFlow
             await this._flow.startNavigation({ name: `WebdriverIO ${commandName}` })
         } catch (error) {
@@ -280,8 +289,18 @@ export default class CommandHandler {
             }
 
             await this._flow.endNavigation()
-            const result = await this._flow.createFlowResult()
-            const lhr = result.steps.at(-1)?.lhr
+            let lhr = selectLighthouseResult(await this._flow.createFlowResult())
+
+            if (!hasCorePerformanceMetrics(lhr)) {
+                log.warn(`Wrapped navigation produced no performance metrics (${describeLighthouseResult(lhr)})`)
+                lhr = await this._navigateWithLighthouse() ?? lhr
+            }
+
+            if (!hasCorePerformanceMetrics(lhr)) {
+                throw new Error(`Lighthouse did not capture core performance metrics (${describeLighthouseResult(lhr)})`)
+            }
+
+            log.info(`Captured Lighthouse performance metrics (${describeLighthouseResult(lhr)})`)
             const auditor = new Auditor(lhr, this._formFactor)
             auditor.updateCommands(this._browser as WebdriverIO.Browser)
         } catch (err) {
@@ -299,14 +318,20 @@ export default class CommandHandler {
     }
 
     private _getFlowOptions () {
-        const formFactor = this._formFactor === 'mobile' ? 'mobile' as const : 'desktop' as const
+        const requestedFormFactor = this._formFactor
+        const formFactor = requestedFormFactor === 'mobile' ? 'mobile' as const : 'desktop' as const
 
         return {
             name: 'WebdriverIO performance flow',
             config: formFactor === 'desktop' ? desktopConfig : undefined,
             flags: {
                 formFactor,
-                screenEmulation: { disabled: true },
+                /**
+                 * Let Lighthouse apply its own desktop/mobile viewport. The Puppeteer
+                 * connection uses `defaultViewport: null`, and headless Chrome on some
+                 * CI hosts otherwise paints into a 0×0 window (no FCP / empty LHR).
+                 */
+                ...(requestedFormFactor === 'none' ? { screenEmulation: { disabled: true } } : {}),
                 throttlingMethod: 'provided' as const,
                 disableStorageReset: true,
                 skipAboutBlank: true,
@@ -326,6 +351,36 @@ export default class CommandHandler {
             clearTimeout(this._clickTraceTimeout)
             this._clickTraceTimeout = undefined
         }
+    }
+
+    private async _refreshAuditablePage () {
+        try {
+            const puppeteer = this._page.browser()
+            const currentUrl = await (this._browser as WebdriverIO.Browser).getUrl()
+            const page = await getAuditablePuppeteerPage(puppeteer, currentUrl)
+            if (page) {
+                this._page = page as Page
+            }
+        } catch (error) {
+            log.debug(`Could not refresh Puppeteer page: ${(error as Error).message}`)
+        }
+    }
+
+    private async _navigateWithLighthouse () {
+        const currentUrl = await (this._browser as WebdriverIO.Browser).getUrl()
+        if (!isSupportedUrl(currentUrl)) {
+            log.warn(`Cannot fall back to Lighthouse navigate for unsupported url: ${currentUrl}`)
+            return undefined
+        }
+
+        log.info(`Falling back to Lighthouse-controlled navigation (${currentUrl})`)
+        await this._refreshAuditablePage()
+        if (!this._flow?.navigate) {
+            this._disposeFlow()
+            this._flow = await startFlow(this._page as never, this._getFlowOptions()) as unknown as LighthouseFlow
+        }
+        await this._flow.navigate(currentUrl)
+        return selectLighthouseResult(await this._flow.createFlowResult())
     }
 
     private async _cancelNavigation (reason: string) {

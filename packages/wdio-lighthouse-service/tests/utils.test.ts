@@ -1,7 +1,18 @@
 import path from 'node:path'
 import { expect, test, vi } from 'vitest'
 
-import { sumByKey, setUnsupportedCommand, isSupportedUrl, parseTraceBuffer } from '../src/utils.js'
+import {
+    sumByKey,
+    setUnsupportedCommand,
+    isSupportedUrl,
+    parseTraceBuffer,
+    isInternalBrowserPage,
+    resolveAuditablePage,
+    getAuditablePuppeteerPage,
+    hasCorePerformanceMetrics,
+    selectLighthouseResult,
+    describeLighthouseResult
+} from '../src/utils.js'
 import type { RequestPayload } from '../src/handler/network.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -69,4 +80,54 @@ test('parseTraceBuffer throws when the buffer is not JSON', () => {
 test('parseTraceBuffer throws when JSON is not an object or array', () => {
     expect(() => parseTraceBuffer('42')).toThrow('Trace buffer did not contain JSON trace data')
     expect(() => parseTraceBuffer('null')).toThrow('Trace buffer did not contain JSON trace data')
+})
+
+test('isInternalBrowserPage detects mapper and DevTools targets', () => {
+    expect(isInternalBrowserPage('http://localhost:1/BiDi-CDP Mapper')).toBe(true)
+    expect(isInternalBrowserPage('devtools://devtools/bundled/inspector.html')).toBe(true)
+    expect(isInternalBrowserPage('chrome-extension://abc/popup.html')).toBe(true)
+    expect(isInternalBrowserPage('https://webdriver.io')).toBe(false)
+})
+
+test('resolveAuditablePage prefers the page that matches the current URL', () => {
+    const mapper = { url: () => 'http://localhost:1/BiDi-CDP Mapper' }
+    const blank = { url: () => 'about:blank' }
+    const guinea = { url: () => 'https://guinea-pig.webdriver.io/' }
+
+    expect(resolveAuditablePage([mapper, blank, guinea], 'https://guinea-pig.webdriver.io/')).toBe(guinea)
+    expect(resolveAuditablePage([mapper, blank], 'about:blank')).toBe(blank)
+    expect(resolveAuditablePage([mapper], 'https://webdriver.io')).toBeUndefined()
+    expect(resolveAuditablePage([mapper, guinea])).toBe(guinea)
+})
+
+test('getAuditablePuppeteerPage falls back to waitForTarget when pages() is empty', async () => {
+    const page = { url: () => 'https://webdriver.io/' }
+    const puppeteer = {
+        pages: vi.fn().mockResolvedValue([]),
+        waitForTarget: vi.fn().mockResolvedValue({ page: vi.fn().mockResolvedValue(page) })
+    }
+
+    await expect(getAuditablePuppeteerPage(puppeteer, 'https://webdriver.io/')).resolves.toBe(page)
+    expect(puppeteer.waitForTarget).toHaveBeenCalled()
+})
+
+test('getAuditablePuppeteerPage returns undefined when no page can be resolved', async () => {
+    await expect(getAuditablePuppeteerPage({ pages: async () => [] })).resolves.toBeUndefined()
+})
+
+test('hasCorePerformanceMetrics and selectLighthouseResult inspect Lighthouse LHRs', () => {
+    const empty = { categories: { performance: { score: null } } }
+    const withFcp = {
+        audits: { 'first-contentful-paint': { score: 1, numericValue: 120 } },
+        finalDisplayedUrl: 'https://webdriver.io/'
+    }
+
+    expect(hasCorePerformanceMetrics(undefined)).toBe(false)
+    expect(hasCorePerformanceMetrics(empty)).toBe(false)
+    expect(hasCorePerformanceMetrics(withFcp)).toBe(true)
+    expect(selectLighthouseResult({ steps: [{ lhr: empty }, { lhr: withFcp }] })).toBe(withFcp)
+    expect(selectLighthouseResult({ steps: [{ lhr: empty }] })).toBe(empty)
+    expect(describeLighthouseResult(withFcp)).toContain('url=https://webdriver.io/')
+    expect(describeLighthouseResult({ runtimeError: { code: 'NO_FCP', message: 'missing paint' } }))
+        .toContain('NO_FCP: missing paint')
 })

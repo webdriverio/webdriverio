@@ -3,6 +3,10 @@
 import { browser, expect } from '@wdio/globals'
 
 describe('Lighthouse service', () => {
+    afterEach(async () => {
+        await browser.disablePerformanceAudits()
+    })
+
     it('collects Lighthouse performance data for a page load', async () => {
         await browser.enablePerformanceAudits({
             networkThrottling: 'online',

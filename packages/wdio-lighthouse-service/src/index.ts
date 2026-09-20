@@ -3,7 +3,7 @@ import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppete
 
 import CommandHandler from './commands.js'
 import type Auditor from './auditor.js'
-import { setUnsupportedCommand } from './utils.js'
+import { getAuditablePuppeteerPage, setUnsupportedCommand } from './utils.js'
 import { DEFAULT_THROTTLE_STATE, NETWORK_STATES } from './constants.js'
 import type { DevtoolsConfig, EnablePerformanceAuditsOptions, PWAAudits } from './types.js'
 
@@ -121,33 +121,12 @@ export default class DevToolsService implements Services.ServiceInstance {
             }
 
             const url = await (browser as WebdriverIO.Browser).getUrl()
-            const target = url !== 'data:,'
-                ? await puppeteer.waitForTarget(
-                    async (t) => (
-                        t.url().includes(url) &&
-                        !t.url().includes('BiDi-CDP Mapper') &&
-                        Boolean(await t.page())
-                    )
-                )
-                : await puppeteer.waitForTarget(
-                    async (t) => (
-                        t.type() === 'page' ||
-                        // @ts-expect-error
-                        Boolean(t._getTargetInfo().browserContextId) &&
-                        !!(await t.page())
-                    )
-                )
-
-            if (!target) {
-                throw new Error('No page target found')
-            }
-
-            const page = await target.page()
+            const page = await getAuditablePuppeteerPage(puppeteer, url)
             if (!page) {
                 throw new Error('No page found')
             }
 
-            const session = await target.createCDPSession()
+            const session = await page.target().createCDPSession()
             const cmd = new CommandHandler(session, page, this._options, browser)
             await cmd._initCommand()
             this._command.push(cmd)

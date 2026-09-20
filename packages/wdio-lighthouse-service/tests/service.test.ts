@@ -41,11 +41,11 @@ vi.mock('../src/auditor', () => {
     }
 })
 
-vi.mock('../src/utils', async () => {
+vi.mock('../src/utils', async (importOriginal) => {
+    const actual = await importOriginal() as Record<string, unknown>
     return {
-        setUnsupportedCommand: vi.fn(),
-        sumByKey: vi.fn(),
-        isSupportedUrl: vi.fn()
+        ...actual,
+        setUnsupportedCommand: vi.fn()
     }
 })
 
@@ -254,8 +254,9 @@ test('onReload hook without a browser does nothing', async () => {
     expect(service._setupHandler).not.toBeCalled()
 })
 
-test('throws if no page target is found', async () => {
+test('throws if no page is found', async () => {
     const puppeteerInstance = await puppeteer.connect({})
+    vi.mocked(puppeteerInstance.pages).mockResolvedValueOnce([])
     vi.mocked(puppeteerInstance.waitForTarget).mockResolvedValueOnce(undefined as never)
     const service = new DevToolsService({})
     service['_browser'] = {
@@ -263,19 +264,30 @@ test('throws if no page target is found', async () => {
         getPuppeteer: vi.fn().mockResolvedValue(puppeteerInstance)
     } as any
 
-    await expect(service._setupHandler()).rejects.toThrow('No page target found')
+    await expect(service._setupHandler()).rejects.toThrow('No page found')
 })
 
-test('throws if the target has no page', async () => {
+test('prefers the Puppeteer page that matches the browser URL', async () => {
     const puppeteerInstance = await puppeteer.connect({})
-    vi.mocked(puppeteerInstance.waitForTarget).mockResolvedValueOnce({
-        page: vi.fn().mockResolvedValue(undefined)
-    } as never)
+    const createMapperSession = vi.fn()
+    const createMatchingSession = vi.fn().mockResolvedValue({ send: vi.fn(), on: vi.fn() })
+    const mapperPage = {
+        url: () => 'http://localhost:0/BiDi-CDP Mapper',
+        target: () => ({ createCDPSession: createMapperSession })
+    }
+    const matchingPage = {
+        url: () => 'https://guinea-pig.webdriver.io/',
+        target: () => ({ createCDPSession: createMatchingSession })
+    }
+    vi.mocked(puppeteerInstance.pages).mockResolvedValueOnce([mapperPage, matchingPage] as never)
     const service = new DevToolsService({})
     service['_browser'] = {
         ...browser,
+        getUrl: vi.fn().mockResolvedValue('https://guinea-pig.webdriver.io/'),
         getPuppeteer: vi.fn().mockResolvedValue(puppeteerInstance)
     } as any
 
-    await expect(service._setupHandler()).rejects.toThrow('No page found')
+    await service._setupHandler()
+    expect(createMatchingSession).toHaveBeenCalled()
+    expect(createMapperSession).not.toHaveBeenCalled()
 })
