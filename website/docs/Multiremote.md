@@ -224,7 +224,7 @@ When(/^User (.) types a message into the chat/, async (userId) => {
 If you are using TypeScript and like to access the driver instance from the multiremote object directly, you can also extend the multiremote types to do so. For example, given the following capabilities:
 
 ```ts title=wdio.conf.ts
-export const config: WebdriverIO.MultiremoteConfig = {
+export const config: WebdriverIO.MultiRemoteConfig = {
     // ...
     capabilities: {
         myAppiumDriver: {

@@ -9,7 +9,7 @@ const config: WebdriverIO.Config = {
     capabilities: [{}]
 }
 
-const mrconfig: WebdriverIO.MultiremoteConfig = {
+const mrconfig: WebdriverIO.MultiRemoteConfig = {
     mochaOpts: {
         ui: 'qunit',
         // @ts-expect-error
@@ -18,7 +18,7 @@ const mrconfig: WebdriverIO.MultiremoteConfig = {
     capabilities: {}
 }
 
-const mrconfig2: WebdriverIO.MultiremoteConfig = {
+const mrconfig2: WebdriverIO.MultiRemoteConfig = {
     mochaOpts: {
         ui: 'qunit',
         // @ts-expect-error

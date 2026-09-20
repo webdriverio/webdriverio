@@ -115,7 +115,7 @@ export type RemoteConfig = WebDriverOptions & WithRequestedCapabilities
  * Configuration object for the `webdriverio` package
  */
 export type WebdriverIOConfig = WebDriverIOOptions & WithRequestedCapabilities
-export type WebdriverIOMultiremoteConfig = WebDriverIOOptions & { capabilities: RequestedMultiremoteCapabilities }
+export type WebdriverIOMultiRemoteConfig = WebDriverIOOptions & { capabilities: RequestedMultiremoteCapabilities }
 
 /**
  * A type referencing all possible capability types when using Testrunner
