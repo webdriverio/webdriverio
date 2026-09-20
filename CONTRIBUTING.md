@@ -207,7 +207,17 @@ This will run a simple test suite using the testrunner with Mochajs. There are s
 
 #### Test Pipeline
 
-When a PR gets submitted, WebdriverIO runs the following checks:
+When a PR gets submitted, WebdriverIO runs the following checks. Suites are
+selected from the files you change (see [`.github/workflows/test.yml`](https://github.com/webdriverio/webdriverio/blob/main/.github/workflows/test.yml)):
+component tests run for `@wdio/browser-runner` / `e2e/browser-runner`, Xvfb
+distro tests run for `@wdio/xvfb`, `@wdio/local-runner` and `e2e/wdio/xvfb`,
+and the docs site build runs for `website/` and docs-generation scripts.
+Pushes to `main` (and PRs that touch CI or root package config) still run
+every suite. Pull requests also use a smaller OS × Node matrix; the full
+matrix stays on `main`.
+
+A single **CI** check reports the overall result so skipped suites do not
+block the PR.
 
 - *Dependency Checks*
   We automatically check if every sub-package has all the dependencies from its `package.json` installed.
