@@ -97,9 +97,15 @@ export default class MultiRemote {
         /**
          * the wrapper client needs its own strategies map so
          * `addLocatorStrategy` does not crash and can be propagated to
-         * the instances by `addLocatorStrategyHandler` (#15540)
+         * the instances by `addLocatorStrategyHandler` (#15540).
+         * When `select()` re-runs the modifier, the map is already carried
+         * over via `__propertiesObject__`, so preserve it rather than
+         * replacing it with an empty one — otherwise the selected browser
+         * would lose previously registered strategies.
          */
-        propertiesObject.strategies = { value: new Map() }
+        if (!propertiesObject.strategies) {
+            propertiesObject.strategies = { value: new Map() }
+        }
 
         propertiesObject.__propertiesObject__ = {
             value: propertiesObject
