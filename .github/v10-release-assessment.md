@@ -6,14 +6,22 @@ Scope: this monorepo (`webdriverio`, `@wdio/*`, `create-wdio`, `eslint-plugin-wd
 
 Current baseline: **v9.31.x**, `engines.node: ">=18.20.0"`, CI matrix `20 / 22 / 24 / 26`.
 
-Tracking issue: [#15646](https://github.com/webdriverio/webdriverio/issues/15646). Individual work items: #15647–#15664.
+Tracking issue: [#15646](https://github.com/webdriverio/webdriverio/issues/15646). Individual work items: #15647–#15666.
+
+The original community wishlist was [#14959](https://github.com/webdriverio/webdriverio/issues/14959) (closed in favor of the `v10` issue list). Items from that thread that are **not** already covered above:
+
+- Drop Appium 1 and 2 entirely ([@eglitise / Appium team](https://github.com/webdriverio/webdriverio/issues/14959#issuecomment-5617937376)) — [#15665](https://github.com/webdriverio/webdriverio/issues/15665). Broader than the HTTP-fallback slice in #15663.
+- Make `$()` throw when it matches multiple elements (#14703) — [#15666](https://github.com/webdriverio/webdriverio/issues/15666).
+- `expect-webdriverio` augmentation / Jasmine `expectAsync` / possible Vitest `expect` (discussion on #14959; no dedicated issue yet — decide with that repo).
+- Single-process parallel workers ([#13220](https://github.com/webdriverio/webdriverio/pull/13220)) and `setExtraHTTPHeaders` are features, not housekeeping breaks.
 
 The opener token can create issues but cannot apply labels (`Resource not accessible by integration`). A maintainer should run:
 
 ```sh
 gh issue edit --repo webdriverio/webdriverio --add-label v10 \
   15646 15647 15648 15649 15650 15651 15652 15653 15654 \
-  15655 15656 15657 15658 15659 15660 15661 15662 15663 15664
+  15655 15656 15657 15658 15659 15660 15661 15662 15663 15664 \
+  15665 15666
 ```
 
 Also add `Tracking 🗒` and `Project Tracker` to #15646.
@@ -201,7 +209,9 @@ Plus `index.cts` shims, `tests/interop`, and `@wdio/smoke-test-cjs-service`.
 | Session / execute `__name` polyfill | Keep — esbuild/tsx, not Node-version related. |
 | Browser-runner Node built-in polyfills | Keep — browser environment. |
 
-### 3.3 JSONWP / MJSONWP leftovers — [#15663](https://github.com/webdriverio/webdriverio/issues/15663)
+### 3.3 Drop Appium 1 and 2 — [#15665](https://github.com/webdriverio/webdriverio/issues/15665)
+
+Requested by the Appium team on [#14959](https://github.com/webdriverio/webdriverio/issues/14959#issuecomment-5617937376). v9 (#15141) stayed compatible with Appium 2 via HTTP fallbacks. v10 should **require Appium 3+** and fail closed. #15663 is the fallback-deletion slice of this work.
 
 v9 removed JSON Wire Protocol commands and pointed leftovers at `@wdio/jsonwp-service`. The monorepo still has:
 
@@ -211,7 +221,7 @@ v9 removed JSON Wire Protocol commands and pointed leftovers at `@wdio/jsonwp-se
 - reporter reads of `browser_version` / `platform`
 - mobile commands falling back to deprecated Appium 2 HTTP endpoints (`packages/webdriverio/src/utils/mobile.ts`)
 
-**Recommendation:** do not delete MJSONWP wholesale — Appium still uses pieces of it. Do remove WDIO-owned fallbacks that already have `mobile:` execute replacements, and stop advertising JSONWP in `packages/webdriver/README.md`. Appium 3 command renames already landed ([#15141](https://github.com/webdriverio/webdriverio/pull/15141)).
+**Recommendation:** require Appium 3+ (server + current official drivers). Remove every Appium 2 HTTP fallback and fail with an upgrade error instead. Keep only MJSONWP/Appium protocol entries that Appium 3 drivers still implement. `@wdio/appium-service` / `create-wdio` should peer/install `appium@^3`. Appium 3 command renames already landed in v9 ([#15141](https://github.com/webdriverio/webdriverio/pull/15141)); the leftover work is dropping the compatibility layer.
 
 ### 3.4 ElementArray rewrite
 
