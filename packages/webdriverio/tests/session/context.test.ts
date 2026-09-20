@@ -369,6 +369,31 @@ describe('ContextManager', () => {
         expect(await manager.getCurrentContext()).not.toBe('destroyed-frame')
     })
 
+    it('keeps a valid top-level context when switchToParentFrame finds no parent', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub({ isBidi: true } as any)
+        const browser = stub.browser
+        /**
+         * the cached context is top-level: it has no parent, but it is very much
+         * still in the tree, so stepping up is a no-op rather than a recovery
+         */
+        ;(browser as any).browsingContextGetTree.mockResolvedValue({
+            contexts: [{
+                context: 'context-1', parent: null, children: [],
+                url: '', clientWindow: 'window-1', originalOpener: null, userContext: 'default'
+            }]
+        })
+        const manager = getContextManager(browser)
+        process.env.WDIO_UNIT_TESTS = wid
+        manager.setCurrentContext('context-1')
+
+        const commandHandlers = stub.getListeners().command
+        await commandHandlers![commandHandlers!.length - 1]({ command: 'switchToParentFrame', body: {} })
+
+        expect(await manager.getCurrentContext()).toBe('context-1')
+    })
+
     it('still switches to the parent frame when one exists', async () => {
         const wid = process.env.WDIO_UNIT_TESTS
         delete process.env.WDIO_UNIT_TESTS
