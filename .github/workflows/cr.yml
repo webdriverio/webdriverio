@@ -6,6 +6,10 @@ on:
       - main
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     permissions:
@@ -13,6 +17,7 @@ jobs:
       pull-requests: write
       packages: read
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: ⬇️ Checkout Code

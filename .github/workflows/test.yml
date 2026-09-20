@@ -1,5 +1,12 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+# Orchestrates the WebdriverIO test pipeline.
+#
+# Pull requests detect which areas changed and skip expensive suites that
+# cannot be affected (Xvfb distro matrix, component tests, docs site build,
+# etc.). PRs also use a reduced OS × Node matrix. Pushes to main (and PRs
+# that touch CI config) still run the full matrix so merge coverage stays
+# complete.
+#
+# Typical PR (e.g. a webdriverio package change): ~25 jobs instead of ~70.
 name: Test
 
 on:
@@ -20,8 +27,68 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      # Full suite + full matrix: every push, or a PR that touches CI/root config.
+      run-all: ${{ github.event_name != 'pull_request' || steps.filter.outputs.ci == 'true' }}
+      docs: ${{ github.event_name != 'pull_request' || steps.filter.outputs.docs == 'true' }}
+      code: ${{ github.event_name != 'pull_request' || steps.filter.outputs.code == 'true' }}
+      component: ${{ github.event_name != 'pull_request' || steps.filter.outputs.component == 'true' }}
+      xvfb: ${{ github.event_name != 'pull_request' || steps.filter.outputs.xvfb == 'true' }}
+    steps:
+      - name: 🔎 Filter changed paths
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            ci:
+              - '.github/workflows/**'
+              - '.nvmrc'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'lerna.json'
+              - 'tsconfig.json'
+              - 'vitest.config.ts'
+              - 'eslint.config.mjs'
+            docs:
+              - 'website/**'
+              - 'scripts/docs-generation/**'
+              - 'scripts/updateDocs.ts'
+            component:
+              - 'packages/wdio-browser-runner/**'
+              - 'e2e/browser-runner/**'
+            xvfb:
+              - 'packages/wdio-xvfb/**'
+              - 'packages/wdio-local-runner/**'
+              - 'e2e/wdio/xvfb/**'
+            # Core product / test code. Xvfb and browser-runner trees are
+            # excluded so those dedicated suites can run on their own.
+            code:
+              - 'packages/**'
+              - '!packages/wdio-xvfb/**'
+              - '!packages/wdio-browser-runner/**'
+              - 'tests/**'
+              - 'e2e/**'
+              - '!e2e/wdio/xvfb/**'
+              - '!e2e/browser-runner/**'
+              - 'scripts/**'
+              - '!scripts/docs-generation/**'
+              - 'infra/**'
+              - 'test-headless-flag/**'
+              - '@types/**'
+              - '__mocks__/**'
+
   build_core:
     name: Build
+    needs: [changes]
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true' || needs.changes.outputs.xvfb == 'true'
     uses: ./.github/workflows/build.yml
 
   static_code_analysis:
@@ -30,61 +97,111 @@ jobs:
 
   docs_build:
     name: Docs Build
-    needs: [static_code_analysis]
+    needs: [changes, static_code_analysis]
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.docs == 'true'
     uses: ./.github/workflows/test-docs.yml
 
   typing_tests:
     name: Typing Tests
-    needs: [build_core, static_code_analysis]
+    needs: [changes, build_core, static_code_analysis]
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true'
     uses: ./.github/workflows/test-typings.yml
 
   interop_tests:
     name: Interop Tests
-    needs: [build_core, static_code_analysis]
+    needs: [changes, build_core, static_code_analysis]
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/test-interop.yml
 
   unit_tests:
     name: Unit Tests
-    needs: [build_core, static_code_analysis]
+    needs: [changes, build_core, static_code_analysis]
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true' || needs.changes.outputs.xvfb == 'true'
     uses: ./.github/workflows/test-unit.yml
+    with:
+      full_matrix: ${{ needs.changes.outputs.run-all == 'true' }}
 
   smoke_tests:
     name: Smoke Tests
-    needs: [build_core, static_code_analysis]
+    needs: [changes, build_core, static_code_analysis]
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/test-smoke.yml
+    with:
+      full_matrix: ${{ needs.changes.outputs.run-all == 'true' }}
 
   component_tests:
     name: Component Tests
-    needs: [build_core, static_code_analysis]
+    needs: [changes, build_core, static_code_analysis]
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.component == 'true'
     uses: ./.github/workflows/test-component.yml
+    with:
+      full_matrix: ${{ needs.changes.outputs.run-all == 'true' }}
 
   launch_tests:
     name: E2E Tests
-    needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
+    needs: [changes, smoke_tests, unit_tests, interop_tests, typing_tests]
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/test-launch.yml
 
   cloud_tests:
     name: Cloud E2E Tests
-    needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
+    needs: [changes, smoke_tests, unit_tests, interop_tests, typing_tests]
+    if: github.ref == 'refs/heads/main' && (needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true')
     uses: ./.github/workflows/test-cloud.yml
     secrets: inherit
 
   testrunner_tests:
     name: Testrunner E2E Tests
-    needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
+    needs: [changes, smoke_tests, unit_tests, interop_tests, typing_tests]
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/test-testrunner.yml
 
   multiremote_tests:
     name: Multiremote E2E Tests
-    needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
+    needs: [changes, smoke_tests, unit_tests, interop_tests, typing_tests]
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/test-multiremote.yml
 
   standalone_tests:
     name: Standalone E2E Tests
-    needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
+    needs: [changes, smoke_tests, unit_tests, interop_tests, typing_tests]
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/test-standalone.yml
 
   xvfb_tests:
     name: XVFB E2E Tests
-    needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
+    needs: [changes, build_core, static_code_analysis]
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.xvfb == 'true'
     uses: ./.github/workflows/test-xvfb-e2e.yml
+    with:
+      full_matrix: ${{ needs.changes.outputs.run-all == 'true' }}
+
+  # Stable required check. Individual matrix cells are skipped on most PRs;
+  # this job succeeds when every job that *did* run succeeded (skipped is OK).
+  ci:
+    name: CI
+    if: always() && !cancelled()
+    needs:
+      - changes
+      - build_core
+      - static_code_analysis
+      - docs_build
+      - typing_tests
+      - interop_tests
+      - unit_tests
+      - smoke_tests
+      - component_tests
+      - launch_tests
+      - cloud_tests
+      - testrunner_tests
+      - multiremote_tests
+      - standalone_tests
+      - xvfb_tests
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Fail if any required job failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: |
+          echo "One or more CI jobs failed or were cancelled."
+          exit 1
