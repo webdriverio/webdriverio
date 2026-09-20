@@ -1,0 +1,28 @@
+/**
+ * Overrides for third-party AI assistant widget (@mendable/search)
+ */
+
+/* 1. Prevent top-right controls (Reset button) from overlapping the message scrollbar (scoped to Mendable) */
+div[id^="headlessui-dialog-panel-"][class*="ms-"] .top-right-menu,
+div[id^="headlessui-dialog-panel-"]:has(#ms-reset-button) .top-right-menu,
+.top-right-menu:has(#ms-reset-button) {
+    right: 1.75rem !important;
+}
+
+html[dir="rtl"] div[id^="headlessui-dialog-panel-"][class*="ms-"] .top-right-menu,
+html[dir="rtl"] div[id^="headlessui-dialog-panel-"]:has(#ms-reset-button) .top-right-menu,
+html[dir="rtl"] .top-right-menu:has(#ms-reset-button),
+div[id^="headlessui-dialog-panel-"][class*="ms-"] .top-right-menu.ms-left-3,
+.top-right-menu.ms-left-3:has(#ms-reset-button) {
+    left: 1.75rem !important;
+    right: auto !important;
+}
+
+/* 2. Ensure Mendable scrollable message list shrinks on shorter viewports so input box and footer stay visible */
+div[id^="headlessui-dialog-panel-"][class*="ms-"] .ms-max-h-\[550px\],
+div[id^="headlessui-dialog-panel-"][class*="ms-"] div[class*="ms-max-h-[550px]"],
+div[id^="headlessui-dialog-panel-"]:has(#ms-reset-button) .ms-max-h-\[550px\],
+div[id^="headlessui-dialog-panel-"]:has(#ms-reset-button) div[class*="ms-max-h-[550px]"] {
+    max-height: min(550px, calc(100vh - 320px)) !important;
+    max-height: min(550px, calc(100dvh - 320px)) !important;
+}
