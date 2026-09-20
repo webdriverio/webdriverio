@@ -57,6 +57,7 @@
     "@wdio/dot-reporter": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@wdio/junit-reporter": "workspace:*",
+    "@wdio/lighthouse-service": "workspace:*",
     "@wdio/local-runner": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/mocha-framework": "workspace:*",
