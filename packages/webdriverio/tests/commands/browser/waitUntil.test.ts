@@ -235,6 +235,19 @@ describe('waitUntil', () => {
         }
     })
 
+    it('should evaluate timeoutMsg callback only after the wait times out', async () => {
+        const timeoutMsg = vi.fn(() => 'deferred timeout message')
+        const waitPromise = browser.waitUntil(() => false, {
+            timeout: 200,
+            timeoutMsg,
+            interval: 50
+        })
+
+        expect(timeoutMsg).not.toHaveBeenCalled()
+        await expect(waitPromise).rejects.toThrow('deferred timeout message')
+        expect(timeoutMsg).toHaveBeenCalledTimes(1)
+    })
+
     it.each([false, '', 0])('if no timeousMsg is given, Should throw a default error message when the waitUntil always returns false: %i', async (n) => {
         let error
         let val
