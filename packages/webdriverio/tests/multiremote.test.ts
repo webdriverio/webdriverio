@@ -24,6 +24,36 @@ const caps = (): Capabilities.RequestedMultiremoteCapabilities => ({
 })
 
 describe('Multi-Remote tests', () => {
+    test('should add locator strategy on multi-remote and propagate to instances (#15540)', async () => {
+        const browser = await multiremote(caps())
+        const strategy = (selector: string) => document.querySelector(selector) as HTMLElement
+
+        expect(() => browser.addLocatorStrategy('selectHeader', strategy)).not.toThrow()
+        expect(browser.strategies.get('selectHeader')).toBe(strategy)
+        expect(browser.getInstance('browserA').strategies.get('selectHeader')).toBe(strategy)
+        expect(browser.getInstance('browserB').strategies.get('selectHeader')).toBe(strategy)
+
+        expect(() => browser.addLocatorStrategy('selectHeader', strategy))
+            .toThrow('Strategy selectHeader already exists')
+
+        expect(browser.strategies).toBeInstanceOf(Map)
+    })
+
+    test('should preserve the strategies map across select() (#15540)', async () => {
+        process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT = 'true'
+        try {
+            const browser = await multiremote(caps())
+            const strategy = (selector: string) => document.querySelector(selector) as HTMLElement
+            browser.addLocatorStrategy('selectHeader', strategy)
+
+            const selected = browser.select('browserA', 'browserB')
+            expect(selected.strategies).toEqual(browser.strategies)
+            expect(selected.strategies.get('selectHeader')).toBe(strategy)
+        } finally {
+            delete process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT
+        }
+    })
+
     test('should run command on all instances', async () => {
         const browser = await multiremote(caps())
 
