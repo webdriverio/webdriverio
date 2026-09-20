@@ -7,7 +7,7 @@ export type CddlType = 'local' | 'remote'
 
 /**
  * write generated ts file so it
- *   - passes our eslint rules (no crlf)
+ *   - passes our oxlint rules (no crlf)
  *   - and has a note at the top that the file is generated
  *
  * @param filePath path to file to write

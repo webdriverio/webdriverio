@@ -49,5 +49,5 @@ vscode:
   extensions:
     - EditorConfig.EditorConfig
     - DigitalBrainstem.javascript-ejs-support
-    - dbaeumer.vscode-eslint
+    - oxc.oxc-vscode
     - eamodio.gitlens

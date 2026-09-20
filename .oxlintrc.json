@@ -1,0 +1,167 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "unicorn"],
+  "jsPlugins": [
+    "@stylistic/eslint-plugin",
+    "./scripts/oxlint-wdio-plugin.mjs"
+  ],
+  "env": {
+    "node": true
+  },
+  "ignorePatterns": [
+    "tests/typings",
+    "**/*.d.ts",
+    "packages/wdio-protocols/src/protocols/webdriverBidi.ts",
+    "packages/webdriverio/third_party/fake-timers.js",
+    "packages/wdio-protocols/src/commands"
+  ],
+  "options": {
+    "typeAware": false,
+    "respectEslintDisableDirectives": true
+  },
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "@stylistic/quotes": ["error", "single", { "avoidEscape": true }],
+    "@stylistic/semi": ["error", "never"],
+    "@stylistic/indent": ["error", 4, { "SwitchCase": 0 }],
+    "@stylistic/no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 1 }],
+    "@stylistic/array-bracket-spacing": ["error", "never"],
+    "@stylistic/brace-style": ["error", "1tbs", { "allowSingleLine": true }],
+    "@stylistic/comma-spacing": ["error", { "before": false, "after": true }],
+    "@stylistic/no-tabs": "error",
+    "@stylistic/no-trailing-spaces": ["error", { "skipBlankLines": false, "ignoreComments": false }],
+    "@stylistic/object-curly-spacing": ["error", "always"],
+    "@stylistic/keyword-spacing": "error",
+    "@stylistic/linebreak-style": ["error", "unix"],
+
+    "eqeqeq": ["error", "always"],
+    "prefer-const": "error",
+    "no-lonely-if": "error",
+    "dot-notation": "error",
+    "no-else-return": "error",
+    "no-var": "error",
+    "unicode-bom": ["error", "never"],
+    "curly": ["error", "all"],
+    "no-dupe-class-members": "off",
+    "no-eval": "off",
+    "no-unsafe-optional-chaining": "off",
+    "no-unassigned-vars": "off",
+    "unicorn/prefer-node-protocol": "error",
+    "unicorn/prefer-ternary": "error",
+    "unicorn/no-empty-file": "off",
+    "unicorn/no-new-array": "off",
+    "unicorn/no-useless-fallback-in-spread": "off",
+    "unicorn/no-useless-spread": "off",
+    "unicorn/prefer-string-starts-ends-with": "off",
+    "unicorn/no-thenable": "off",
+    "unicorn/no-single-promise-in-promise-methods": "off",
+
+    "typescript/no-array-constructor": "error",
+    "typescript/no-duplicate-enum-values": "off",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-extra-non-null-assertion": "error",
+    "typescript/no-misused-new": "error",
+    "typescript/no-non-null-asserted-optional-chain": "error",
+    "typescript/no-require-imports": "error",
+    "typescript/no-unnecessary-parameter-property-assignment": "off",
+    "typescript/no-unnecessary-type-constraint": "error",
+    "typescript/no-unsafe-declaration-merging": "error",
+    "typescript/no-unused-expressions": "error",
+    "typescript/no-wrapper-object-types": "error",
+    "typescript/prefer-as-const": "error",
+    "typescript/prefer-namespace-keyword": "error",
+    "typescript/consistent-type-imports": "error",
+    "typescript/ban-ts-comment": "off",
+    "typescript/no-unsafe-function-type": "off",
+    "typescript/triple-slash-reference": "off",
+    "typescript/no-namespace": "off",
+    "typescript/no-empty-object-type": "off",
+    "typescript/no-this-alias": "off",
+
+    "wdio/await-expect": "error",
+    "wdio/no-debug": "error",
+    "wdio/no-pause": "error"
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx", "*.mts", "*.cts", "**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
+      "rules": {
+        "dot-notation": "off",
+        "no-unused-vars": "off",
+        "typescript/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+        "no-undef": "off",
+        "no-redeclare": "off"
+      }
+    },
+    {
+      "files": [
+        "examples/**/*.ts",
+        "examples/**/*.js",
+        "packages/**/*.test.ts",
+        "packages/**/tests/**/*.ts",
+        "e2e/**/*.js",
+        "e2e/**/*.ts",
+        "e2e/**/*.tsx"
+      ],
+      "env": {
+        "mocha": true,
+        "jasmine": true
+      },
+      "globals": {
+        "browser": "readonly",
+        "$": "readonly"
+      },
+      "rules": {
+        "no-undef": "off",
+        "no-unused-vars": "off",
+        "typescript/no-unused-vars": "off",
+        "typescript/no-explicit-any": "off",
+        "wdio/no-pause": "off",
+        "wdio/no-debug": "off"
+      }
+    },
+    {
+      "files": [
+        "tests/**/*.ts",
+        "tests/**/*.js",
+        "e2e/**/*.ts",
+        "e2e/**/*.js"
+      ],
+      "env": {
+        "mocha": true,
+        "jasmine": true,
+        "browser": true,
+        "node": true
+      },
+      "globals": {
+        "browser": "readonly",
+        "$": "readonly",
+        "window": "readonly",
+        "document": "readonly",
+        "HTMLElement": "readonly",
+        "alert": "readonly",
+        "prompt": "readonly",
+        "confirm": "readonly",
+        "customElements": "readonly"
+      },
+      "rules": {
+        "dot-notation": "off",
+        "wdio/no-pause": "off",
+        "wdio/no-debug": "off",
+        "typescript/no-explicit-any": "off",
+        "typescript/no-require-imports": "off"
+      }
+    },
+    {
+      "files": [
+        "packages/webdriverio/src/scripts/**",
+        "packages/wdio-lighthouse-service/src/scripts/**"
+      ],
+      "env": {
+        "browser": true
+      }
+    }
+  ]
+}

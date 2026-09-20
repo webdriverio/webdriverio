@@ -11,6 +11,7 @@ updates:
     # requires manual upgrade as we use internal interfaces
     - dependency-name: "lighthouse"
     # Eslint v9 comes with breaking changes that require manual upgrade
+    # (still used by packages/eslint-plugin-wdio)
     - dependency-name: "eslint"
     - dependency-name: "@typescript-eslint/eslint-plugin"
     - dependency-name: "@typescript-eslint/parser"

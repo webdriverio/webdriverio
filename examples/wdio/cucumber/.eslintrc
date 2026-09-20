@@ -1,8 +1,0 @@
-{
-  globals: {
-    browser: true,
-    expect: true,
-    $: true,
-    $$: true
-  }
-}
