@@ -37,6 +37,51 @@ describe('SessionManager', () => {
         expect(browser.off).toBeCalledWith('command', listener)
     })
 
+    it('registers a listener again for a manager created after the previous one was removed', () => {
+        const browser = {
+            on: vi.fn(),
+            off: vi.fn(),
+            sessionId: 'reused-session'
+        } as any as WebdriverIO.Browser
+
+        const first = new SessionManager(browser, 'scope')
+        expect(browser.on).toHaveBeenCalledTimes(1)
+        first.removeListeners()
+
+        /**
+         * a manager for the same session and scope may be created again, e.g.
+         * after the previous one removed itself on `deleteSession`; without a
+         * listener it can never clean itself up in turn
+         */
+        new SessionManager(browser, 'scope')
+        expect(browser.on).toHaveBeenCalledTimes(2)
+    })
+
+    it('does not release the registration of another manager that owns the same key', () => {
+        const browser = {
+            on: vi.fn(),
+            off: vi.fn(),
+            sessionId: 'shared-session'
+        } as any as WebdriverIO.Browser
+
+        const owner = new SessionManager(browser, 'scope')
+        const passenger = new SessionManager(browser, 'scope')
+        expect(browser.on).toHaveBeenCalledTimes(1)
+
+        /**
+         * the passenger never registered a listener, so its `off()` cannot
+         * detach the owner's one - releasing the key here would let the next
+         * manager add a second listener alongside it
+         */
+        passenger.removeListeners()
+        new SessionManager(browser, 'scope')
+        expect(browser.on).toHaveBeenCalledTimes(1)
+
+        owner.removeListeners()
+        new SessionManager(browser, 'scope')
+        expect(browser.on).toHaveBeenCalledTimes(2)
+    })
+
     it('should remove ContextManager listeners using the same references as they were registered', () => {
         const browser = {
             sessionId: '1234',

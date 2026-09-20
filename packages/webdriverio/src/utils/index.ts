@@ -1090,6 +1090,19 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
         }
 
         scope.strategies.set(name, func)
+
+        /**
+         * multiremote dispatches commands to each instance individually, so
+         * `custom$` / `custom$$` resolve strategies on the instances rather
+         * than on the wrapper client — propagate the strategy to all of them
+         */
+        if ((scope as WebdriverIO.MultiRemoteBrowser).isMultiremote) {
+            const multiRemoteScope = scope as WebdriverIO.MultiRemoteBrowser
+            for (const instanceName of multiRemoteScope.instances) {
+                const instance = multiRemoteScope.getInstance(instanceName)
+                instance?.strategies?.set(name, func)
+            }
+        }
     }
 }
 

@@ -2,19 +2,23 @@ import path from 'node:path'
 import { expect, describe, it, beforeAll, beforeEach, afterEach, vi, type MockInstance } from 'vitest'
 
 import { remote } from '../../../src/index.js'
+import { getNetworkManager } from '../../../src/session/networkManager.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-vi.mock('../../../src/session/networkManager.js', () => ({
-    getNetworkManager: vi.fn().mockImplementation(() => ({
-        getPendingRequests: vi.fn().mockResolvedValue([]),
+vi.mock('../../../src/session/networkManager.js', () => {
+    const networkManagerMock = {
+        getPendingRequests: vi.fn().mockReturnValue([]),
         initialize: vi.fn(),
         getRequestResponseData: vi.fn().mockResolvedValue({
             some: 'request'
         })
-    }))
-}))
+    }
+    return {
+        getNetworkManager: vi.fn().mockReturnValue(networkManagerMock)
+    }
+})
 
 vi.mock('../../../src/session/context.js', () => ({
     getContextManager: vi.fn().mockImplementation(() => ({
@@ -89,6 +93,7 @@ describe('url', () => {
         let url: MockInstance
         let addInitScript: MockInstance
         let mock: MockInstance
+        let networkManager: any
 
         const mockMock = {
             requestOnce: vi.fn(),
@@ -111,6 +116,7 @@ describe('url', () => {
                 remove: vi.fn()
             } as any))
             mock = vi.spyOn(browser, 'mock').mockImplementation(() => Promise.resolve(mockMock) as any)
+            networkManager = getNetworkManager(browser)
         })
 
         beforeEach(() => {
@@ -120,6 +126,8 @@ describe('url', () => {
             mock.mockClear()
             mockMock.requestOnce.mockClear()
             mockMock.restore.mockClear()
+            networkManager.getPendingRequests.mockClear()
+            networkManager.getRequestResponseData.mockClear()
         })
 
         it('should use browsingContextNavigate', async () => {
@@ -184,6 +192,80 @@ describe('url', () => {
                 throw new Error('navigation failed')
             }) as any)
             await expect(browser.url('http://google.com')).rejects.toThrow('navigation failed')
+        })
+
+        it('should wait for network idle using navigation ID', async () => {
+            // Restore implementation for success
+            browsingContextNavigate.mockImplementation((async () => ({
+                navigation: 'nav-123'
+            })) as any)
+
+            await browser.url('http://google.com', { wait: 'networkIdle' })
+
+            expect(networkManager.getPendingRequests).toBeCalledWith('nav-123')
+            expect(browsingContextNavigate).toBeCalledWith(expect.objectContaining({
+                wait: 'complete' // Default fallback for networkIdle in browsingContextNavigate
+            }))
+        })
+
+        it('should skip network idle wait when navigation id is null', async () => {
+            browsingContextNavigate.mockImplementation((async () => ({
+                navigation: null
+            })) as any)
+
+            await expect(browser.url('http://google.com', { wait: 'networkIdle' }))
+                .resolves.toBeUndefined()
+            expect(networkManager.getPendingRequests).not.toHaveBeenCalled()
+            expect(networkManager.getRequestResponseData).not.toHaveBeenCalled()
+        })
+
+        it('should remove preload script when navigation falls back to classic', async () => {
+            const remove = vi.fn()
+            addInitScript.mockResolvedValue({ remove } as any)
+            browsingContextNavigate.mockImplementation((async () => {
+                throw new Error('navigation canceled by concurrent navigation')
+            }) as any)
+
+            await expect(browser.url('http://google.com', {
+                onBeforeLoad: () => {
+                    console.log('onBeforeLoad')
+                }
+            })).resolves.toBeUndefined()
+
+            expect(addInitScript).toBeCalledTimes(1)
+            expect(remove).toHaveBeenCalledTimes(1)
+        })
+
+        it('should remove preload script when navigation fails', async () => {
+            const remove = vi.fn()
+            addInitScript.mockResolvedValue({ remove } as any)
+            browsingContextNavigate.mockImplementation((async () => {
+                throw new Error('navigation failed')
+            }) as any)
+
+            await expect(browser.url('http://google.com', {
+                onBeforeLoad: () => {
+                    console.log('onBeforeLoad')
+                }
+            })).rejects.toThrow('navigation failed')
+
+            expect(remove).toHaveBeenCalledTimes(1)
+        })
+
+        it('should preserve the navigation error when preload cleanup also fails', async () => {
+            const remove = vi.fn().mockRejectedValue(new Error('script.removePreloadScript'))
+            addInitScript.mockResolvedValue({ remove } as any)
+            browsingContextNavigate.mockImplementation((async () => {
+                throw new Error('navigation failed')
+            }) as any)
+
+            await expect(browser.url('http://google.com', {
+                onBeforeLoad: () => {
+                    console.log('onBeforeLoad')
+                }
+            })).rejects.toThrow('navigation failed')
+
+            expect(remove).toHaveBeenCalledTimes(1)
         })
     })
 })

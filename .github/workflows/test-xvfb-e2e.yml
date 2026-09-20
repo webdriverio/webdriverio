@@ -2,95 +2,62 @@ name: XVFB E2E Tests
 
 on:
   workflow_call:
-    # Make this a reusable workflow, no value needed
-    # https://docs.github.com/en/actions/using-workflows/reusing-workflows
+    inputs:
+      full_matrix:
+        description: Run every distro × scenario combination. When false, PRs cover Ubuntu (both scenarios) and Alpine base (musl / auto-install).
+        type: boolean
+        default: true
 
 jobs:
-  xvfb-e2e-tests:
+  resolve-matrix:
+    name: Resolve XVFB Matrix
     runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      include: ${{ steps.set.outputs.include }}
+    steps:
+      - id: set
+        name: Select distro matrix
+        shell: bash
+        run: |
+          if [ "${{ inputs.full_matrix }}" = "true" ]; then
+            include='[
+              {"distro":"ubuntu","version":"24.04","scenario":"base","dockerfile":"ubuntu-base.dockerfile"},
+              {"distro":"ubuntu","version":"24.04","scenario":"with-xvfb","dockerfile":"ubuntu-with-xvfb.dockerfile"},
+              {"distro":"fedora","version":"40","scenario":"base","dockerfile":"fedora-base.dockerfile"},
+              {"distro":"fedora","version":"40","scenario":"with-xvfb","dockerfile":"fedora-with-xvfb.dockerfile"},
+              {"distro":"alpine","version":"3.23","scenario":"base","dockerfile":"alpine-base.dockerfile"},
+              {"distro":"alpine","version":"3.23","scenario":"with-xvfb","dockerfile":"alpine-with-xvfb.dockerfile"},
+              {"distro":"debian","version":"12","scenario":"base","dockerfile":"debian-base.dockerfile"},
+              {"distro":"debian","version":"12","scenario":"with-xvfb","dockerfile":"debian-with-xvfb.dockerfile"},
+              {"distro":"centos-stream","version":"9","scenario":"base","dockerfile":"centos-stream-base.dockerfile"},
+              {"distro":"centos-stream","version":"9","scenario":"with-xvfb","dockerfile":"centos-stream-with-xvfb.dockerfile"},
+              {"distro":"arch","version":"latest","scenario":"base","dockerfile":"arch-base.dockerfile"},
+              {"distro":"arch","version":"latest","scenario":"with-xvfb","dockerfile":"arch-with-xvfb.dockerfile"},
+              {"distro":"suse","version":"15.6","scenario":"base","dockerfile":"suse-base.dockerfile"},
+              {"distro":"suse","version":"15.6","scenario":"with-xvfb","dockerfile":"suse-with-xvfb.dockerfile"},
+              {"distro":"void","version":"latest","scenario":"base","dockerfile":"void-base.dockerfile"},
+              {"distro":"void","version":"latest","scenario":"with-xvfb","dockerfile":"void-with-xvfb.dockerfile"}
+            ]'
+          else
+            include='[
+              {"distro":"ubuntu","version":"24.04","scenario":"base","dockerfile":"ubuntu-base.dockerfile"},
+              {"distro":"ubuntu","version":"24.04","scenario":"with-xvfb","dockerfile":"ubuntu-with-xvfb.dockerfile"},
+              {"distro":"alpine","version":"3.23","scenario":"base","dockerfile":"alpine-base.dockerfile"}
+            ]'
+          fi
+          echo "include<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$include" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+  xvfb-e2e-tests:
+    needs: [resolve-matrix]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        include:
-          # Ubuntu scenarios
-          - distro: ubuntu
-            version: "24.04"
-            scenario: base
-            dockerfile: ubuntu-base.dockerfile
-          - distro: ubuntu
-            version: "24.04"
-            scenario: with-xvfb
-            dockerfile: ubuntu-with-xvfb.dockerfile
-
-          # Fedora scenarios
-          - distro: fedora
-            version: "40"
-            scenario: base
-            dockerfile: fedora-base.dockerfile
-          - distro: fedora
-            version: "40"
-            scenario: with-xvfb
-            dockerfile: fedora-with-xvfb.dockerfile
-
-          # Alpine scenarios
-          - distro: alpine
-            version: "3.23"
-            scenario: base
-            dockerfile: alpine-base.dockerfile
-          - distro: alpine
-            version: "3.23"
-            scenario: with-xvfb
-            dockerfile: alpine-with-xvfb.dockerfile
-
-          # Debian scenarios
-          - distro: debian
-            version: "12"
-            scenario: base
-            dockerfile: debian-base.dockerfile
-          - distro: debian
-            version: "12"
-            scenario: with-xvfb
-            dockerfile: debian-with-xvfb.dockerfile
-
-          # CentOS Stream scenarios (upstream RHEL)
-          - distro: centos-stream
-            version: "9"
-            scenario: base
-            dockerfile: centos-stream-base.dockerfile
-          - distro: centos-stream
-            version: "9"
-            scenario: with-xvfb
-            dockerfile: centos-stream-with-xvfb.dockerfile
-
-          # Arch Linux scenarios
-          - distro: arch
-            version: "latest"
-            scenario: base
-            dockerfile: arch-base.dockerfile
-          - distro: arch
-            version: "latest"
-            scenario: with-xvfb
-            dockerfile: arch-with-xvfb.dockerfile
-
-          # SUSE scenarios
-          - distro: suse
-            version: "15.6"
-            scenario: base
-            dockerfile: suse-base.dockerfile
-          - distro: suse
-            version: "15.6"
-            scenario: with-xvfb
-            dockerfile: suse-with-xvfb.dockerfile
-
-          # Void Linux scenarios
-          - distro: void
-            version: "latest"
-            scenario: base
-            dockerfile: void-base.dockerfile
-          - distro: void
-            version: "latest"
-            scenario: with-xvfb
-            dockerfile: void-with-xvfb.dockerfile
+        include: ${{ fromJSON(needs.resolve-matrix.outputs.include) }}
 
     name: "XVFB E2E: ${{ matrix.distro }}:${{ matrix.version }} (${{ matrix.scenario }})"
 
@@ -175,4 +142,3 @@ jobs:
           path: |
             e2e/wdio/xvfb/logs/
             e2e/wdio/xvfb/screenshots/
-

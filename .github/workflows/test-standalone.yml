@@ -10,6 +10,7 @@ jobs:
     name: E2E Standalone Tests (${{ matrix.os }})
     permissions:
       contents: read
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
