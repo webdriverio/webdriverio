@@ -274,6 +274,33 @@ test('afterCmd updates browser commands after a successful Lighthouse run', asyn
     expect(handler['_flowInProgress']).toBe(false)
 })
 
+test('afterCmd falls back to Lighthouse navigate when the wrap is missing a core metric', async () => {
+    createFlowResult
+        .mockResolvedValueOnce({
+            steps: [{
+                lhr: {
+                    audits: {
+                        'first-contentful-paint': { score: 1, numericValue: 120 }
+                    },
+                    categories: { performance: { score: 0.4 } }
+                }
+            }]
+        })
+        .mockResolvedValueOnce({
+            steps: [{ lhr: successfulLhr }]
+        })
+    const handler = createHandler()
+    handler.setThrottlingProfile = vi.fn()
+    handler['_shouldRunPerformanceAudits'] = true
+    await handler._beforeCmd('url', ['https://webdriver.io'])
+    handler['_pageLoadDetected'] = true
+
+    await handler._afterCmd('url')
+
+    expect(navigate).toHaveBeenCalledWith('https://webdriver.io/')
+    expect(new Auditor().updateCommands).toHaveBeenCalledWith(browser)
+})
+
 test('afterCmd falls back to Lighthouse navigate when the wrap has no metrics', async () => {
     createFlowResult
         .mockResolvedValueOnce({

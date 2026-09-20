@@ -155,7 +155,7 @@ export function hasCorePerformanceMetrics (lhr?: LighthouseResultLike): lhr is L
         return false
     }
 
-    return CORE_METRIC_KEYS.some((key) => {
+    return CORE_METRIC_KEYS.every((key) => {
         const auditId = key === 'firstContentfulPaint'
             ? 'first-contentful-paint'
             : key === 'largestContentfulPaint'

@@ -117,17 +117,26 @@ test('getAuditablePuppeteerPage returns undefined when no page can be resolved',
 
 test('hasCorePerformanceMetrics and selectLighthouseResult inspect Lighthouse LHRs', () => {
     const empty = { categories: { performance: { score: null } } }
-    const withFcp = {
+    const partial = {
         audits: { 'first-contentful-paint': { score: 1, numericValue: 120 } },
+        finalDisplayedUrl: 'https://webdriver.io/'
+    }
+    const complete = {
+        audits: {
+            'first-contentful-paint': { score: 1, numericValue: 120 },
+            'largest-contentful-paint': { score: 1, numericValue: 180 },
+            'speed-index': { score: 1, numericValue: 150 }
+        },
         finalDisplayedUrl: 'https://webdriver.io/'
     }
 
     expect(hasCorePerformanceMetrics(undefined)).toBe(false)
     expect(hasCorePerformanceMetrics(empty)).toBe(false)
-    expect(hasCorePerformanceMetrics(withFcp)).toBe(true)
-    expect(selectLighthouseResult({ steps: [{ lhr: empty }, { lhr: withFcp }] })).toBe(withFcp)
+    expect(hasCorePerformanceMetrics(partial)).toBe(false)
+    expect(hasCorePerformanceMetrics(complete)).toBe(true)
+    expect(selectLighthouseResult({ steps: [{ lhr: empty }, { lhr: complete }] })).toBe(complete)
     expect(selectLighthouseResult({ steps: [{ lhr: empty }] })).toBe(empty)
-    expect(describeLighthouseResult(withFcp)).toContain('url=https://webdriver.io/')
+    expect(describeLighthouseResult(complete)).toContain('url=https://webdriver.io/')
     expect(describeLighthouseResult({ runtimeError: { code: 'NO_FCP', message: 'missing paint' } }))
         .toContain('NO_FCP: missing paint')
 })
