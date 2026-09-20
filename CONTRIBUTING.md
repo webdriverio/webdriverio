@@ -21,7 +21,7 @@ You can participate by:
 - make feature requests if you are missing something in the project
 - if you'd like to support us monetarily, consider [donating to the project](https://webdriver.io/community/donate)
 
-If you are an AI coding agent (Cursor, Claude Code, Copilot, Codex, …), start with [`AGENTS.md`](./AGENTS.md) and the nearest scoped `AGENTS.md` in the tree you will change. This file remains the human contributor guide; the agent files are a shorter, command-oriented map of the same process.
+If you are an AI coding agent (Cursor, Claude Code, Copilot, Codex, …), start with [`AGENTS.md`](https://github.com/webdriverio/webdriverio/blob/main/AGENTS.md) and the nearest scoped `AGENTS.md` in the tree you will change. This file remains the human contributor guide; the agent files are a shorter, command-oriented map of the same process.
 
 The maintainers of the project try to organize all [issues](https://github.com/webdriverio/webdriverio/issues) in the way that should allow anyone to have enough context to start working on it. If this is not the case please mention it in the issue thread so that either the issue creator or a maintainer can provide more information.
 
