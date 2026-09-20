@@ -22,6 +22,8 @@ export {
     readSmokeSuites
 } from './smoke-list.js'
 export {
+    findTestRoot,
+    hasPackageTests,
     parsePackageArgs,
     resolvePackageDir,
     resolveTestTarget

@@ -4,7 +4,9 @@ import { describe, expect, it } from 'vitest'
 
 import {
     classify,
+    collectChangedFiles,
     collectDocEntries,
+    hasPackageTests,
     listSmokeSuites,
     matchGlob,
     matchesFilters,
@@ -12,6 +14,7 @@ import {
     parseArgs,
     parsePackageArgs,
     planChecks,
+    resolveBase,
     resolvePackageDir,
     workspaceRoot
 } from '../src/index.js'
@@ -132,6 +135,32 @@ describe('planChecks', () => {
         expect(dry.some((step) => step.name === 'smoke' && !step.cmd)).toBe(true)
         const withSmoke = planChecks(report, { smoke: true })
         expect(withSmoke.some((step) => step.cmd?.join(' ') === 'pnpm run test:smoke')).toBe(true)
+    })
+
+    it('does not schedule Vitest for packages that have no local tests', () => {
+        const steps = planChecks(classify(['packages/wdio-protocols/src/index.ts']))
+        expect(steps.some((step) => step.cmd?.join(' ') === 'pnpm run test:package wdio-protocols')).toBe(false)
+        expect(steps.some((step) => (
+            step.name === 'test:package wdio-protocols' &&
+            step.reason?.includes('no package-local Vitest tests')
+        ))).toBe(true)
+        expect(steps.some((step) => step.cmd?.join(' ') === 'pnpm run test:typings:webdriver')).toBe(true)
+    })
+})
+
+describe('hasPackageTests', () => {
+    it('detects packages with and without Vitest files', () => {
+        expect(hasPackageTests(path.join(workspaceRoot, 'packages', 'webdriverio'))).toBe(true)
+        expect(hasPackageTests(path.join(workspaceRoot, 'packages', 'wdio-protocols'))).toBe(false)
+        expect(hasPackageTests(path.join(workspaceRoot, 'packages', 'wdio-types'))).toBe(false)
+        expect(hasPackageTests(path.join(workspaceRoot, 'infra', 'repo-tools'))).toBe(true)
+    })
+})
+
+describe('collectChangedFiles', () => {
+    it('fails instead of hiding committed changes when the base is invalid', () => {
+        expect(() => collectChangedFiles('not-a-real-git-ref')).toThrow(/does not exist/)
+        expect(() => resolveBase('not-a-real-git-ref')).toThrow(/Unknown git base/)
     })
 })
 

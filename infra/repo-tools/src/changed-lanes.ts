@@ -172,12 +172,16 @@ export function parseArgs (argv: readonly string[] = process.argv.slice(2)): Lan
     return opts
 }
 
-function git (args: readonly string[]): string {
+function git (args: readonly string[], options: { optional?: boolean } = {}): string {
     const result = spawnSync('git', [...args], { cwd: workspaceRoot, encoding: 'utf8' })
-    if (result.status !== 0) {
+    if (result.status === 0) {
+        return result.stdout
+    }
+    if (options.optional) {
         return ''
     }
-    return result.stdout
+    const detail = (result.stderr || result.stdout || '').trim()
+    throw new Error(`git ${args.join(' ')} failed${detail ? `: ${detail}` : ''}`)
 }
 
 function refExists (ref: string): boolean {
@@ -188,15 +192,16 @@ function refExists (ref: string): boolean {
 }
 
 export function resolveBase (explicit?: string): string {
-    if (explicit) {
-        return explicit
-    }
-    if (process.env.CHANGED_BASE) {
-        return process.env.CHANGED_BASE
+    const requested = explicit || process.env.CHANGED_BASE
+    if (requested) {
+        if (!refExists(requested)) {
+            throw new Error(`Unknown git base "${requested}"`)
+        }
+        return requested
     }
     for (const candidate of DEFAULT_BASES) {
         if (refExists(candidate)) {
-            const mergeBase = git(['merge-base', 'HEAD', candidate]).trim()
+            const mergeBase = git(['merge-base', 'HEAD', candidate], { optional: true }).trim()
             return mergeBase || candidate
         }
     }
@@ -204,11 +209,14 @@ export function resolveBase (explicit?: string): string {
 }
 
 export function collectChangedFiles (base: string): string[] {
+    if (!refExists(base)) {
+        throw new Error(`Cannot classify changes: git base "${base}" does not exist`)
+    }
     const listed = [
         git(['diff', '--name-only', '--diff-filter=ACMRD', `${base}...HEAD`]),
-        git(['diff', '--name-only', '--diff-filter=ACMRD']),
-        git(['diff', '--name-only', '--cached', '--diff-filter=ACMRD']),
-        git(['ls-files', '--others', '--exclude-standard'])
+        git(['diff', '--name-only', '--diff-filter=ACMRD'], { optional: true }),
+        git(['diff', '--name-only', '--cached', '--diff-filter=ACMRD'], { optional: true }),
+        git(['ls-files', '--others', '--exclude-standard'], { optional: true })
     ].join('\n')
     return listed.split('\n').map((line) => line.trim()).filter(Boolean)
 }
@@ -236,19 +244,24 @@ function printReport (report: ChangeReport): void {
 }
 
 function main (): void {
-    const opts = parseArgs()
-    const files = opts.files
-        ? opts.files.split(',').map((file) => file.trim()).filter(Boolean)
-        : collectChangedFiles(resolveBase(opts.base))
-    const report = buildReport({
-        base: opts.base || resolveBase(opts.base),
-        files
-    })
-    if (opts.json) {
-        console.log(JSON.stringify(report, null, 2))
-        return
+    try {
+        const opts = parseArgs()
+        const files = opts.files
+            ? opts.files.split(',').map((file) => file.trim()).filter(Boolean)
+            : collectChangedFiles(resolveBase(opts.base))
+        const report = buildReport({
+            base: opts.base || resolveBase(opts.base),
+            files
+        })
+        if (opts.json) {
+            console.log(JSON.stringify(report, null, 2))
+            return
+        }
+        printReport(report)
+    } catch (err) {
+        console.error(err instanceof Error ? err.message : err)
+        process.exit(1)
     }
-    printReport(report)
 }
 
 if (isMainModule(import.meta.url)) {

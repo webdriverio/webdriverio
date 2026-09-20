@@ -27,12 +27,33 @@ if ! command -v pnpm >/dev/null 2>&1; then
     exit 1
 fi
 
+HEAD="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+STAMP="packages/webdriverio/build/.agent-rev"
+need_install=0
+need_compile=0
+
 if [[ ! -d node_modules ]]; then
-    pnpm install
+    need_install=1
+fi
+if [[ ! -d packages/webdriverio/build ]]; then
+    need_compile=1
+fi
+if [[ ! -f "$STAMP" ]] || [[ "$(cat "$STAMP")" != "$HEAD" ]]; then
+    need_install=1
+    need_compile=1
 fi
 
-if [[ ! -d packages/webdriverio/build ]]; then
-    pnpm run setup
+if (( need_install )); then
+    pnpm install
 fi
+if (( need_compile )); then
+    if [[ ! -d packages/webdriverio/build ]]; then
+        pnpm run setup
+    else
+        pnpm run compile
+    fi
+fi
+mkdir -p "$(dirname "$STAMP")"
+printf '%s\n' "$HEAD" > "$STAMP"
 
 echo "WebdriverIO agent setup ok (node $ACTUAL_NODE, pnpm $(pnpm --version))."

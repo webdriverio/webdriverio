@@ -69,9 +69,53 @@ export function resolvePackageDir (input: string): string | undefined {
     return undefined
 }
 
-export function resolveTestTarget (pkgDir: string): string {
+const SKIP_TEST_DIRS: ReadonlySet<string> = new Set([
+    'node_modules',
+    'build',
+    'cjs',
+    'coverage',
+    '.git'
+])
+
+function containsTestFile (dir: string): boolean {
+    if (!fs.existsSync(dir)) {
+        return false
+    }
+    for (const dirent of fs.readdirSync(dir, { withFileTypes: true })) {
+        const abs = path.join(dir, dirent.name)
+        if (dirent.isDirectory()) {
+            if (SKIP_TEST_DIRS.has(dirent.name)) {
+                continue
+            }
+            if (containsTestFile(abs)) {
+                return true
+            }
+            continue
+        }
+        if (dirent.name.endsWith('.test.ts')) {
+            return true
+        }
+    }
+    return false
+}
+
+export function findTestRoot (pkgDir: string): string | undefined {
     const testsDir = path.join(pkgDir, 'tests')
-    return fs.existsSync(testsDir) ? testsDir : pkgDir
+    if (containsTestFile(testsDir)) {
+        return testsDir
+    }
+    if (containsTestFile(pkgDir)) {
+        return pkgDir
+    }
+    return undefined
+}
+
+export function hasPackageTests (pkgDir: string): boolean {
+    return Boolean(findTestRoot(pkgDir))
+}
+
+export function resolveTestTarget (pkgDir: string): string | undefined {
+    return findTestRoot(pkgDir)
 }
 
 export function parsePackageArgs (argv: readonly string[]): PackageArgs {
@@ -98,6 +142,16 @@ function main (): void {
     }
 
     const target = resolveTestTarget(pkgDir)
+    if (!target) {
+        const relative = toPosix(path.relative(workspaceRoot, pkgDir))
+        if (print) {
+            console.error(`No Vitest files in ${relative}`)
+            process.exit(1)
+        }
+        console.log(`No Vitest files in ${relative}; skipping.`)
+        process.exit(0)
+    }
+
     if (print) {
         console.log(toPosix(path.relative(workspaceRoot, target)))
         process.exit(0)
