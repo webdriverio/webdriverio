@@ -24,6 +24,9 @@ command types under `src/commands/` — that directory is generated and gitignor
 
 Register a brand-new protocol file in `scripts/protocols.ts`.
 
+See [type generation](../../website/docs/flowcharts/TypeGeneration.md) for the
+spec → compiler → `src/commands` → typings path.
+
 ## Commands
 
 ```sh

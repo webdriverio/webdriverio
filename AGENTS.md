@@ -30,7 +30,9 @@ website/                 Docusaurus site (many pages are generated)
 Architecture sketches: [High-level overview](website/docs/flowcharts/HighLevelOverview.md),
 [test execution](website/docs/flowcharts/TestExecution.md),
 [worker creation](website/docs/flowcharts/CreateLocalWorkerProcess.md),
-[CLI commands](website/docs/flowcharts/WDIOCommands.md).
+[CLI commands](website/docs/flowcharts/WDIOCommands.md),
+[type generation](website/docs/flowcharts/TypeGeneration.md).
+Ownership: [.github/OWNERSHIP.md](.github/OWNERSHIP.md).
 
 ## Setup
 
@@ -74,9 +76,10 @@ Prefer the smallest proof that covers the touched contract. Do not start with
 
 | Change | Minimum local proof |
 |--------|---------------------|
+| Mixed / unsure | `pnpm run test:changed --dry-run` then `pnpm run test:changed` |
 | One command / util in a package | `pnpm run test:package <name>` or `npx vitest packages/<pkg>/tests/.../<file>.test.ts` |
 | Public command / interface shape | package unit tests **and** `pnpm run test:typings` (or the matching `test:typings:*`) |
-| Testrunner, CLI, reporter, service, framework wiring | `pnpm run test:smoke <suite>` (see [tests/AGENTS.md](tests/AGENTS.md)) |
+| Testrunner, CLI, reporter, service, framework wiring | `pnpm run test:smoke:list` then `pnpm run test:smoke <suite>` (see [tests/AGENTS.md](tests/AGENTS.md)) |
 | `@wdio/browser-runner` / `e2e/browser-runner` | `pnpm run test:component` |
 | `@wdio/xvfb` / xvfb e2e | `pnpm run test:e2e:xvfb` |
 | Docs-only (`website/docs`, JSDoc, package README) | `pnpm run docs:list` then `pnpm run docs:generate` |
@@ -86,8 +89,10 @@ Unit tests mirror source: `src/commands/element/getCSSProperty.ts` →
 `tests/commands/element/getCSSProperty.test.ts`. Mock other packages; do not
 spin up a browser in unit tests.
 
-CI already path-filters suites in [`.github/workflows/test.yml`](.github/workflows/test.yml).
-Match that locally. Pushes to `main` still run the full matrix.
+`pnpm run changed:lanes --json` classifies a diff with the same filters as
+[`.github/workflows/test.yml`](.github/workflows/test.yml). `pnpm run test:changed`
+runs the local equivalent (package unit tests + typings; pass `--smoke` or
+`--e2e` for those lanes). Pushes to `main` still run the full matrix.
 
 ## Package ownership
 
@@ -154,4 +159,5 @@ Read the matching guide in full before editing that tree.
 - **E2E / component:** [e2e/AGENTS.md](e2e/AGENTS.md)
 - **Docs site:** [website/AGENTS.md](website/AGENTS.md)
 - **Testing skill:** [.agents/skills/wdio-testing/SKILL.md](.agents/skills/wdio-testing/SKILL.md)
+- **Ownership map:** [.github/OWNERSHIP.md](.github/OWNERSHIP.md)
 - **Docs skill:** [.agents/skills/wdio-docs/SKILL.md](.agents/skills/wdio-docs/SKILL.md)

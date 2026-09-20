@@ -1,7 +1,7 @@
 # Proposal: Agent-oriented development infrastructure
 
-**Status:** proposed
-**Related:** this PR implements Phase 1
+**Status:** Phase 1 and 2 implemented on `v10`
+**Related:** this PR
 
 WebdriverIO already has excellent human contributor docs. It does not yet have
 the structured, executable context that coding agents need to move quickly
@@ -96,7 +96,7 @@ Copy OpenClaw's *shape*. Do not copy Crabbox, ClawSweeper, maturity
 scorecards, or a 40-skill catalog. WebdriverIO is a test framework, not an
 agent runtime; our agent infra should stay small and boring.
 
-### Phase 1 — this PR (cheap, immediately useful)
+### Phase 1 — implemented (cheap, immediately useful)
 
 1. **Root `AGENTS.md`** with a repo map, compile-first rule, test decision
    table, generated-file ban, and a routing index.
@@ -119,16 +119,17 @@ Expected effect: an agent fixing `getCSSProperty` reads ~200 lines instead of
 the whole CONTRIBUTING + CI YAML, compiles the right package, and runs one
 Vitest file plus typings.
 
-### Phase 2 — next (medium cost, high payoff)
+### Phase 2 — implemented in this PR
 
-| Item | Why |
-|------|-----|
-| `pnpm run test:changed` / `check:changed` | Encode `test.yml` path filters as a local script. Biggest remaining time saver. |
-| Align Codespaces with pnpm + Node 24 | `.devcontainer` still runs `npm` on Node 18. |
-| `.github/CODEOWNERS` or `docs/OWNERSHIP.md` | Make "who owns X" discoverable. Start with package clusters, not every file. |
-| Smoke-suite index command | `test:smoke` accepts a suite name but the names live only in `smoke.runner.js`. |
-| Package README contributor footer | Standard "tests / compile / consumers" blurb so agents do not treat READMEs as user-only. |
-| Architecture page for type generation | Protocol spec → compiler plugin → `src/commands` → typings tests. Missing from the flowcharts. |
+| Item | What landed |
+|------|-------------|
+| `pnpm run test:changed` / `changed:lanes` | Same path filters as `test.yml`; `--dry-run`, `--smoke`, `--e2e` |
+| Align Codespaces with pnpm + Node 24 | `.devcontainer` uses the Node 24 image, Corepack/pnpm, and `pnpm` scripts. Gitpod unit-coverage task no longer calls `npm`. |
+| `CODEOWNERS` + `OWNERSHIP.md` | Review still routes to `@webdriverio/project-committers`; the map is for agents. |
+| `pnpm run test:smoke:list` | Named suites without launching WDIO. |
+| Type generation flowchart | `website/docs/flowcharts/TypeGeneration.md` |
+
+Package README contributor footers were **not** added: those READMEs are published as user docs. Contributor commands stay in `AGENTS.md` / `OWNERSHIP.md`.
 
 ### Phase 3 — only if agent PR volume justifies it
 

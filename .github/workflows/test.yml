@@ -15,6 +15,7 @@ on:
       - main
       - v7
       - v8
+      - v10
       - '!l10n_main'
     paths-ignore:
       - '**/*.md'

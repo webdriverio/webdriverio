@@ -7,7 +7,7 @@ here; regenerate API and package pages from source.
 
 | Edit this | To change |
 |-----------|-----------|
-| `website/docs/*.md` (and topic folders) | Guides, flowcharts, migration pages |
+| `website/docs/*.md` (and topic folders) | Guides, flowcharts, migration pages. Type pipeline: `flowcharts/TypeGeneration.md` |
 | `packages/<reporter-or-service>/README.md` | That plugin's docs page |
 | JSDoc on `webdriverio` commands | `website/docs/api` command pages |
 | `@wdio/protocols` specs | Protocol API pages |

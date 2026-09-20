@@ -387,7 +387,8 @@
       "flowcharts/wdiocommands",
       "flowcharts/createlocalworkerprocess",
       "flowcharts/testexecution",
-      "flowcharts/highleveloverview"
+      "flowcharts/highleveloverview",
+      "flowcharts/typegeneration"
     ]
   }
 }

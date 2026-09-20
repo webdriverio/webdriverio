@@ -21,6 +21,9 @@ pnpm run dev [package]
 `pnpm run setup` is `clean` + `generate` + `compile:all`. Need that after a
 fresh clone or after deleting `packages/*/build`.
 
+The type-generation plugin is documented in
+[website/docs/flowcharts/TypeGeneration.md](../../website/docs/flowcharts/TypeGeneration.md).
+
 ## Guardrails
 
 - Type generation lives in `src/type-generation/`. Changes there affect every

@@ -73,7 +73,8 @@ for (const [file, hint] of [
     ['README.md', 'project overview + package list'],
     ['ROADMAP.md', 'product direction'],
     ['GOVERNANCE.md', 'roles and review rules'],
-    ['.github/proposals/agent-development-velocity.md', 'why AGENTS.md exists']
+    ['.github/proposals/agent-development-velocity.md', 'why AGENTS.md exists'],
+    ['.github/OWNERSHIP.md', 'package ownership map']
 ]) {
     add(file, hint)
 }

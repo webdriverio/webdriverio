@@ -19,7 +19,8 @@ pnpm run test:e2e:cloud        # Sauce — needs credentials, main-branch CI
 ```
 
 `pnpm run test:e2e` runs every `test:e2e:*` script, including cloud. Do not
-use it in routine agent work.
+use it in routine agent work. `pnpm run test:changed --e2e` runs component
+or xvfb only when those CI lanes are in the diff.
 
 ## When CI already skips these
 

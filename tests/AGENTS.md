@@ -10,6 +10,7 @@ package-level unit tests here.
 ## Run
 
 ```sh
+pnpm run test:smoke:list            # names only (no WDIO launch)
 pnpm run test:smoke                 # all suites
 pnpm run test:smoke mochaTestrunner # one suite (function name)
 ```

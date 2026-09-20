@@ -11,12 +11,14 @@ first.
 
 ## Pick a lane
 
-1. Identify the owning package (see the root repo map).
+1. Identify the owning package (see the root repo map or [OWNERSHIP.md](../../../.github/OWNERSHIP.md)).
 2. Compile that package (`pnpm run dev <name>` or `pnpm run compile:all`).
-3. Run the first matching row, then stop unless a lower row also applies.
+3. Prefer `pnpm run test:changed --dry-run` to see the CI lanes for this diff.
+4. Run the first matching row, then stop unless a lower row also applies.
 
 | If you touched | Run |
 |----------------|-----|
+| Mixed paths / unsure | `pnpm run test:changed` (add `--smoke` or `--e2e` when those lanes apply) |
 | `packages/<pkg>/src/**` | `pnpm run test:package <pkg>` or a single `npx vitest` file next to the source |
 | Exported types / new commands | matching `pnpm run test:typings:*` |
 | CLI flags, spec filters, retries, custom services/reporters, framework adapters | `pnpm run test:smoke <suite>` |
@@ -41,6 +43,6 @@ Never start with `pnpm test` or `pnpm run ci`.
 
 ## Smoke suite names
 
-`pnpm run test:smoke` with a wrong name prints the valid list. Common ones:
+`pnpm run test:smoke:list` prints every named suite. Common ones:
 `mochaTestrunner`, `standaloneTest`, `customService`, `customReporterString`,
 `retryFail`, `cucumberTestrunner`. Full list: [tests/AGENTS.md](../../../tests/AGENTS.md).

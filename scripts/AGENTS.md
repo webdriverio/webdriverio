@@ -7,6 +7,10 @@ files with raw `node` / `tsx` unless you are changing the script itself.
 |------|---------|--------|
 | Docs index | `pnpm run docs:list` | `docs-list.mjs` |
 | One package of unit tests | `pnpm run test:package <name>` | `test-package.mjs` |
+| Diff → CI lanes | `pnpm run changed:lanes --json` | `changed-lanes.mjs` |
+| Local proof for a diff | `pnpm run test:changed` | `check-changed.mjs` |
+| Smoke suite names | `pnpm run test:smoke:list` | `smoke-list.mjs` |
+| Lane-script unit tests | `pnpm run test:scripts` | `changed-lanes.test.mjs` |
 | API / protocol / package docs | `pnpm run docs:generate` | `docs-generation/` |
 | BiDi types | `pnpm run generate:bidi` | `bidi/` |
 | New workspace package | `pnpm run create` | `generateSubPackage.ts` |

@@ -1,0 +1,23 @@
+# Review routing for humans and agents. This does not change GOVERNANCE.md:
+# committers still review the areas they know, and TSC still owns releases.
+# Path clusters below exist so GitHub and agents can find the owning surface.
+
+* @webdriverio/project-committers
+
+# Core automation API
+/packages/webdriverio/ @webdriverio/project-committers
+/packages/webdriver/ @webdriverio/project-committers
+/packages/wdio-protocols/ @webdriverio/project-committers
+/packages/wdio-types/ @webdriverio/project-committers
+
+# Testrunner
+/packages/wdio-cli/ @webdriverio/project-committers
+/packages/wdio-runner/ @webdriverio/project-committers
+/packages/wdio-local-runner/ @webdriverio/project-committers
+/packages/wdio-config/ @webdriverio/project-committers
+
+# Build, CI, agent guides
+/infra/compiler/ @webdriverio/project-committers
+/.github/workflows/ @webdriverio/project-committers
+/AGENTS.md @webdriverio/project-committers
+/.agents/ @webdriverio/project-committers
