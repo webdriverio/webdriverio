@@ -22,12 +22,16 @@ describe('validateZipEntryPath', () => {
         expect(validateZipEntryPath('local.cddl', dir)).toBe(path.join(dir, 'local.cddl'))
     })
 
-    it('rejects directory traversal and absolute paths', () => {
+    it('rejects directory traversal and treats leading slashes as relative', () => {
         const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-cddl-'))
         tempDirs.push(dir)
         expect(validateZipEntryPath('../etc/passwd', dir)).toBeUndefined()
-        expect(validateZipEntryPath('/etc/passwd', dir)).toBeUndefined()
         expect(validateZipEntryPath('foo/../../etc/passwd', dir)).toBeUndefined()
+        /**
+         * a leading slash is stripped so the entry stays inside targetDir
+         * rather than being written to the host filesystem
+         */
+        expect(validateZipEntryPath('/etc/passwd', dir)).toBe(path.join(dir, 'etc/passwd'))
     })
 })
 
