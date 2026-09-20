@@ -9,7 +9,10 @@ import logger from '@wdio/logger'
 
 vi.mock('ws')
 vi.mock('puppeteer-core')
-vi.mock('lighthouse/lighthouse-core/fraggle-rock/gather/session')
+vi.mock('lighthouse', () => ({
+    desktopConfig: {},
+    startFlow: vi.fn()
+}))
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../src/commands', () => {
@@ -33,31 +36,16 @@ vi.mock('../src/auditor', () => {
     const updateCommandsMock = vi.fn()
     return {
         default: class {
-            traceEvents: any
-            logs: any
             updateCommands = updateCommandsMock
-
-            constructor (traceEvents: any, logs: any) {
-                this.traceEvents = traceEvents
-                this.logs = logs
-            }
         }
     }
 })
 
-vi.mock('../src/utils', async () => {
-    let wasCalled = false
-
+vi.mock('../src/utils', async (importOriginal) => {
+    const actual = await importOriginal() as Record<string, unknown>
     return {
-        findCDPInterface: vi.fn().mockImplementation(() => {
-            if (!wasCalled) {
-                wasCalled = true
-                return 42
-            }
-            throw new Error('boom')
-        }),
-        setUnsupportedCommand: vi.fn(),
-        getLighthouseDriver: vi.fn()
+        ...actual,
+        setUnsupportedCommand: vi.fn()
     }
 })
 
@@ -257,4 +245,49 @@ test('onReload hook', async () => {
     ;(service['_browser'] as any).puppeteer = 'suppose to be reset after reload' as any
     service.onReload()
     expect(service._setupHandler).toBeCalledTimes(1)
+})
+
+test('onReload hook without a browser does nothing', async () => {
+    const service = new DevToolsService({})
+    service._setupHandler = vi.fn()
+    await service.onReload()
+    expect(service._setupHandler).not.toBeCalled()
+})
+
+test('throws if no page is found', async () => {
+    const puppeteerInstance = await puppeteer.connect({})
+    vi.mocked(puppeteerInstance.pages).mockResolvedValueOnce([])
+    vi.mocked(puppeteerInstance.waitForTarget).mockResolvedValueOnce(undefined as never)
+    const service = new DevToolsService({})
+    service['_browser'] = {
+        ...browser,
+        getPuppeteer: vi.fn().mockResolvedValue(puppeteerInstance)
+    } as any
+
+    await expect(service._setupHandler()).rejects.toThrow('No page found')
+})
+
+test('prefers the Puppeteer page that matches the browser URL', async () => {
+    const puppeteerInstance = await puppeteer.connect({})
+    const createMapperSession = vi.fn()
+    const createMatchingSession = vi.fn().mockResolvedValue({ send: vi.fn(), on: vi.fn() })
+    const mapperPage = {
+        url: () => 'http://localhost:0/BiDi-CDP Mapper',
+        target: () => ({ createCDPSession: createMapperSession })
+    }
+    const matchingPage = {
+        url: () => 'https://guinea-pig.webdriver.io/',
+        target: () => ({ createCDPSession: createMatchingSession })
+    }
+    vi.mocked(puppeteerInstance.pages).mockResolvedValueOnce([mapperPage, matchingPage] as never)
+    const service = new DevToolsService({})
+    service['_browser'] = {
+        ...browser,
+        getUrl: vi.fn().mockResolvedValue('https://guinea-pig.webdriver.io/'),
+        getPuppeteer: vi.fn().mockResolvedValue(puppeteerInstance)
+    } as any
+
+    await service._setupHandler()
+    expect(createMatchingSession).toHaveBeenCalled()
+    expect(createMapperSession).not.toHaveBeenCalled()
 })

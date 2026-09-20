@@ -30,8 +30,7 @@ export const config = {
                 '/path/to/extensionB' // or path to unpacked Firefox extension
             ],
             'xpinstall.signatures.required': false,
-            'browser.startup.homepage': 'https://webdriver.io',
-            legacy: true // only use for firefox <= 55
+            'browser.startup.homepage': 'https://webdriver.io'
         }]
     ],
     // ...
@@ -124,13 +123,6 @@ Example:
         // ...
     };
     ```
-
-### legacy
-
-Please set this flag to `true` if you use Firefox v55 or lower.
-
-Type: `Boolean`<br />
-Default: `false`
 
 ----
 
