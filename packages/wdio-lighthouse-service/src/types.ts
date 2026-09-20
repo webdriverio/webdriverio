@@ -1,13 +1,29 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { TraceStreamJson } from '@tracerbench/trace-event'
-import type { ReportOptions } from 'istanbul-reports'
-import type { Totals, CoverageSummaryData } from 'istanbul-lib-coverage'
 import type { Viewport } from 'puppeteer-core/lib/esm/puppeteer/common/Viewport.js'
-import type { NETWORK_STATES, PWA_AUDITS } from './constants.js'
+import type { NETWORK_STATES, PWA_AUDIT_NAMES } from './constants.js'
 
 export interface DevtoolsConfig {
     coverageReporter?: CoverageReporterOptions
 }
+
+/**
+ * Report formats previously provided by `istanbul-reports`.
+ * Kept as a local union so the public service options stay strict
+ * without depending on Istanbul at runtime.
+ */
+export type CoverageReportType =
+    | 'clover'
+    | 'cobertura'
+    | 'html-spa'
+    | 'html'
+    | 'json'
+    | 'json-summary'
+    | 'lcov'
+    | 'lcovonly'
+    | 'none'
+    | 'teamcity'
+    | 'text'
+    | 'text-lcov'
+    | 'text-summary'
 
 export interface CoverageReporterOptions {
     /**
@@ -23,10 +39,11 @@ export interface CoverageReporterOptions {
      * format of report
      * @default json
      */
-    type?: keyof ReportOptions
+    type?: CoverageReportType
     /**
      * Options for coverage report
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     options?: any
     /**
      * Exclude code coverage files
@@ -67,101 +84,71 @@ export interface DeviceOptions {
     inLandscape: boolean
 }
 
-export interface Audit {
-    audit: (opts: any, context: any) => Promise<any>,
-    defaultOptions: Record<string, any>
-}
-
-export interface AuditResults {
-    'speed-index': MetricsResult
-    'first-contentful-paint': MetricsResult
-    'largest-contentful-paint': MetricsResult
-    'cumulative-layout-shift': MetricsResult
-    'total-blocking-time': MetricsResult
-    interactive: MetricsResult
-}
-
-export interface AuditRef {
-    id: keyof AuditResults
-    weight: number
-}
-
 export interface MainThreadWorkBreakdownResult {
-    details: {
-        items: {
-            group: string,
-            duration: number
-        }[]
-    }
+    group: string
+    duration: number
 }
 
-export interface DiagnosticsResults {
-    details: {
-        items: any[]
-    }
+export interface DiagnosticsResult {
+    numRequests?: number
+    numScripts?: number
+    numStylesheets?: number
+    numFonts?: number
+    numTasks?: number
+    numTasksOver10ms?: number
+    numTasksOver25ms?: number
+    numTasksOver50ms?: number
+    numTasksOver100ms?: number
+    numTasksOver500ms?: number
+    rtt?: number
+    throughput?: number
+    maxRtt?: number
+    maxServerLatency?: number
+    totalByteWeight?: number
+    totalTaskTime?: number
+    mainDocumentTransferSize?: number
+    [key: string]: number | undefined
 }
 
-export interface ResponseTimeResult {
-    numericValue: number
-}
-
-export interface MetricsResult {
-    score: number
-}
-
-export interface MetricsResults {
-    details: {
-        items: {
-            observedDomContentLoaded: number
-            observedFirstVisualChange: number
-            observedFirstPaint: number
-            firstContentfulPaint: number
-            firstMeaningfulPaint: number
-            largestContentfulPaint: number
-            observedLastVisualChange: number
-            interactive: number
-            observedLoad: number
-            speedIndex: number
-            totalBlockingTime: number
-            maxPotentialFID: number
-        }[]
-    }
+export interface PerformanceMetrics {
+    timeToFirstByte?: number
+    serverResponseTime?: number
+    domContentLoaded?: number
+    firstVisualChange?: number
+    firstPaint?: number
+    firstContentfulPaint?: number
+    firstMeaningfulPaint?: number
+    largestContentfulPaint?: number
+    lastVisualChange?: number
+    interactive?: number
+    load?: number
+    speedIndex?: number
+    totalBlockingTime?: number
+    maxPotentialFID?: number
+    cumulativeLayoutShift?: number
+    interactionToNextPaint?: number
 }
 
 export interface LHAuditResult {
     score: number
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     warnings?: any[]
     notApplicable?: boolean
     numericValue?: number
     numericUnit?: string
-    displayValue?: {
-        i18nId: string
-        values: any
-        formattedDefault: string
-    }
+    displayValue?: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     details?: any
+    explanation?: string
 }
 
 export interface AuditResult {
     passed: boolean
-    details: Record<string, LHAuditResult | ErrorAudit>
+    details: Record<string, LHAuditResult>
 }
 
-export interface ErrorAudit {
-    score: 0
-    error: Error
-}
-
-export type PWAAudits = keyof typeof PWA_AUDITS
+export type PWAAudits = typeof PWA_AUDIT_NAMES[number]
 export type NetworkStates = 'offline' | 'GPRS' | 'Regular 2G' | 'Good 2G' | 'Regular 3G' | 'Good 3G' | 'Regular 4G' | 'DSL' | 'Wifi' | 'online'
-
-export interface Coverage {
-    lines: Totals
-    statements: Totals
-    functions: Totals
-    branches: Totals
-    files: Record<string, CoverageSummaryData>
-}
 
 export interface CustomDevice {
     viewport: Viewport,
@@ -185,8 +172,50 @@ export interface PerformanceAuditOptions {
     cacheEnabled?: boolean
 }
 
-export interface GathererDriver {
-    beginTrace (): Promise<void>
-    endTrace (): Promise<TraceStreamJson>
-    evaluate (script: Function, args: unknown): Promise<any>
+/**
+ * Subset of a Lighthouse result used by the service commands.
+ */
+export interface LighthouseResultLike {
+    audits?: Record<string, {
+        id?: string
+        score: number | null
+        numericValue?: number
+        displayValue?: string
+        warnings?: unknown[]
+        notApplicable?: boolean
+        explanation?: string
+        details?: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            items?: any[]
+        }
+    }>
+    categories?: {
+        performance?: {
+            score: number | null
+        }
+    }
+    finalDisplayedUrl?: string
+    finalUrl?: string
+    runtimeError?: {
+        code?: string
+        message?: string
+    }
+}
+
+export interface LighthouseFlowResultLike {
+    steps: Array<{
+        lhr: LighthouseResultLike
+        name?: string
+    }>
+}
+
+export interface LighthouseFlow {
+    startNavigation: (flags?: Record<string, unknown>) => Promise<void>
+    endNavigation: () => Promise<void>
+    navigate: (url: string | (() => Promise<void>), flags?: Record<string, unknown>) => Promise<void>
+    startTimespan: (flags?: Record<string, unknown>) => Promise<void>
+    endTimespan: () => Promise<void>
+    snapshot: (flags?: Record<string, unknown>) => Promise<void>
+    createFlowResult: () => Promise<LighthouseFlowResultLike>
+    dispose?: () => void
 }
