@@ -338,9 +338,11 @@ Remaining majors (yargs, Vite, Jasmine, `typeScriptVersion`, eslint legacy, vite
 - [ ] puppeteer-core peer range
 - [ ] Jasmine latest
 
-### Platform
+### Platform / mobile / selectors
 
 - [ ] `@wdio/display-server` replaces `@wdio/xvfb` ([#15088](https://github.com/webdriverio/webdriverio/pull/15088))
+- [ ] Require Appium 3+; drop Appium 1/2 ([#15665](https://github.com/webdriverio/webdriverio/issues/15665), includes #15663)
+- [ ] `$()` throws when the selector matches multiple elements ([#15666](https://github.com/webdriverio/webdriverio/issues/15666), from #14703 / #14959)
 
 ### Docs / release
 
