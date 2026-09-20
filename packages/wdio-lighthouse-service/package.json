@@ -41,10 +41,10 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@tracerbench/trace-event": "^8.0.0",
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.20.4",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
-    "devtools-protocol": "^0.0.1646372",
+    "devtools-protocol": "^0.0.1701330",
     "lighthouse": "13.4.1",
     "puppeteer-core": "^24.12.1",
     "webdriverio": "workspace:*"
