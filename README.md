@@ -152,6 +152,7 @@ These packages are not released to NPM and used to work on this codebase.
 - [@wdio/compiler](https://github.com/webdriverio/webdriverio/tree/main/infra/compiler) - Esbuild script to
 compile the source code all of all packages
 - [@wdio/lerna-patch](https://github.com/webdriverio/webdriverio/tree/main/infra/lernaPatch) - This sub-package is being used to patch Lerna to not run `pnpm install` after it prepared all packages for release
+- [@wdio/repo-tools](https://github.com/webdriverio/webdriverio/tree/main/infra/repo-tools) - Typed helpers for docs discovery, scoped package tests, and CI lane selection
 
 ## :handshake: Project Governance
 

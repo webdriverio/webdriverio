@@ -18,6 +18,7 @@
 
 # Build, CI, agent guides
 /infra/compiler/ @webdriverio/project-committers
+/infra/repo-tools/ @webdriverio/project-committers
 /.github/workflows/ @webdriverio/project-committers
 /AGENTS.md @webdriverio/project-committers
 /.agents/ @webdriverio/project-committers

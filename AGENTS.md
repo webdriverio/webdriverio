@@ -21,6 +21,7 @@ packages/@wdio/runner    worker that runs one capability
 packages/@wdio/local-runner
 packages/@wdio/*-framework | *-reporter | *-service
 infra/compiler           esbuild + protocol type generation
+infra/repo-tools         docs index, scoped tests, CI lane helpers
 scripts/                 docs generation, BiDi CDDL, release helpers
 tests/                   smoke suites (mock driver, no real browser)
 e2e/                     real-browser / component / xvfb suites
@@ -111,6 +112,7 @@ package to work around a missing export — extend the owner and update callers.
 | Worker / hooks | `@wdio/runner` |
 | CLI / launcher | `@wdio/cli` |
 | Build + type generation | `infra/compiler` |
+| Docs index / scoped tests / CI lanes | `infra/repo-tools` |
 
 New packages: `pnpm run create`. Do not invent a package layout by hand.
 
@@ -154,6 +156,7 @@ Read the matching guide in full before editing that tree.
 - **CLI / launcher:** [packages/wdio-cli/AGENTS.md](packages/wdio-cli/AGENTS.md)
 - **Reporters:** [packages/wdio-reporter/AGENTS.md](packages/wdio-reporter/AGENTS.md)
 - **Compiler / types:** [infra/compiler/AGENTS.md](infra/compiler/AGENTS.md)
+- **Repo helpers:** [infra/repo-tools/AGENTS.md](infra/repo-tools/AGENTS.md)
 - **Scripts:** [scripts/AGENTS.md](scripts/AGENTS.md)
 - **Smoke tests:** [tests/AGENTS.md](tests/AGENTS.md)
 - **E2E / component:** [e2e/AGENTS.md](e2e/AGENTS.md)

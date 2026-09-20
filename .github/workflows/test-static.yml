@@ -32,7 +32,3 @@ jobs:
         run: pnpm run test:ejslint
         shell: bash
 
-      - name: Changed-lane scripts
-        run: pnpm run test:scripts
-        shell: bash
-

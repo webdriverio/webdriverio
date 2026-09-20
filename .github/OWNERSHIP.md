@@ -38,6 +38,7 @@ published as user docs — do not add developer footers there.
 | Browser component tests | `@wdio/browser-runner` | CI `component` lane |
 | Xvfb helper | `@wdio/xvfb` | CI `xvfb` lane |
 | Type generation / esbuild | `@wdio/compiler` | `infra/compiler` |
+| Docs index / scoped tests / CI lanes | `@wdio/repo-tools` | `infra/repo-tools` |
 | Mock driver for smoke tests | `@wdio/webdriver-mock-service` | Not `@wdio/smoke-test-service` |
 | Docs site | `website/` + `scripts/docs-generation/` | See [website/AGENTS.md](../website/AGENTS.md) |
 

@@ -1,16 +1,13 @@
-#!/usr/bin/env node
 /**
  * Run the local equivalent of CI's path-filtered suites.
  * Usage: pnpm run test:changed [--base <ref>] [--dry-run] [--smoke] [--e2e]
  */
 import { spawnSync } from 'node:child_process'
-import path from 'node:path'
-import url from 'node:url'
-import { buildReport, collectChangedFiles, parseArgs, resolveBase } from './changed-lanes.mjs'
+import { buildReport, collectChangedFiles, parseArgs, resolveBase } from './changed-lanes.js'
+import type { ChangeReport, CheckArgs, CheckStep } from './types.js'
+import { isMainModule, workspaceRoot } from './workspace.js'
 
-const root = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..')
-
-const TYPINGS_SCRIPT = {
+const TYPINGS_SCRIPT: Readonly<Record<string, string>> = {
     webdriver: 'test:typings:webdriver',
     webdriverio: 'test:typings:webdriverio',
     'wdio-mocha-framework': 'test:typings:mocha',
@@ -21,18 +18,22 @@ const TYPINGS_SCRIPT = {
     'wdio-globals': 'test:typings:webdriverio'
 }
 
-function parseCheckArgs (argv) {
-    const lanesArgs = parseArgs(argv)
+export function parseCheckArgs (argv: readonly string[]): CheckArgs {
     return {
-        ...lanesArgs,
+        ...parseArgs(argv),
         dryRun: argv.includes('--dry-run'),
         smoke: argv.includes('--smoke'),
         e2e: argv.includes('--e2e')
     }
 }
 
-export function planChecks (report, { smoke = false, e2e = false } = {}) {
-    const steps = []
+export function planChecks (
+    report: Omit<ChangeReport, 'base'> | ChangeReport,
+    options: { smoke?: boolean, e2e?: boolean } = {}
+): CheckStep[] {
+    const smoke = options.smoke === true
+    const e2e = options.e2e === true
+    const steps: CheckStep[] = []
 
     if (!report.files.length) {
         return [{ name: 'none', reason: 'no changed files' }]
@@ -59,7 +60,11 @@ export function planChecks (report, { smoke = false, e2e = false } = {}) {
         steps.push({ name: `test:package ${pkg}`, cmd: ['pnpm', 'run', 'test:package', pkg] })
     }
 
-    const typings = new Set(report.typings.map((pkg) => TYPINGS_SCRIPT[pkg]).filter(Boolean))
+    const typings = new Set(
+        report.typings
+            .map((pkg) => TYPINGS_SCRIPT[pkg])
+            .filter((script): script is string => Boolean(script))
+    )
     for (const script of typings) {
         steps.push({ name: script, cmd: ['pnpm', 'run', script] })
     }
@@ -101,13 +106,17 @@ export function planChecks (report, { smoke = false, e2e = false } = {}) {
     return steps.length ? steps : [{ name: 'none', reason: 'changed files are outside CI test lanes' }]
 }
 
-function runStep (step) {
+function runStep (step: CheckStep): number {
     if (!step.cmd) {
         console.log(`skip  ${step.name}: ${step.reason}`)
         return 0
     }
     console.log(`\n==> ${step.cmd.join(' ')}\n`)
-    const result = spawnSync(step.cmd[0], step.cmd.slice(1), { cwd: root, stdio: 'inherit', shell: false })
+    const result = spawnSync(step.cmd[0], step.cmd.slice(1), {
+        cwd: workspaceRoot,
+        stdio: 'inherit',
+        shell: false
+    })
     if (result.error) {
         console.error(result.error)
         return 1
@@ -115,7 +124,7 @@ function runStep (step) {
     return result.status ?? 1
 }
 
-function main () {
+function main (): void {
     const opts = parseCheckArgs(process.argv.slice(2))
     const base = resolveBase(opts.base)
     const files = opts.files
@@ -146,9 +155,6 @@ function main () {
     process.exit(failed ? 1 : 0)
 }
 
-const invokedDirectly = process.argv[1] &&
-    path.resolve(process.argv[1]) === url.fileURLToPath(import.meta.url)
-
-if (invokedDirectly) {
+if (isMainModule(import.meta.url)) {
     main()
 }

@@ -1,16 +1,14 @@
-#!/usr/bin/env node
 /**
  * Print named smoke suites from tests/smoke.runner.js without launching WDIO.
  * Usage: pnpm run test:smoke:list
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import url from 'node:url'
+import { isMainModule, workspaceRoot } from './workspace.js'
 
-const root = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..')
-const runner = path.join(root, 'tests', 'smoke.runner.js')
+export const SMOKE_RUNNER_PATH: string = path.join(workspaceRoot, 'tests', 'smoke.runner.js')
 
-export function listSmokeSuites (source) {
+export function listSmokeSuites (source: string): string[] {
     const block = source.match(/const smokeTests = \[([\s\S]*?)\]\s*\n/)
     if (!block) {
         throw new Error('Could not find `const smokeTests = [` in tests/smoke.runner.js')
@@ -18,13 +16,18 @@ export function listSmokeSuites (source) {
     return [...block[1].matchAll(/^\s*([A-Za-z][A-Za-z0-9]*)\s*,?\s*$/gm)].map((match) => match[1])
 }
 
-const invokedDirectly = process.argv[1] &&
-    path.resolve(process.argv[1]) === url.fileURLToPath(import.meta.url)
+export function readSmokeSuites (runnerPath: string = SMOKE_RUNNER_PATH): string[] {
+    return listSmokeSuites(fs.readFileSync(runnerPath, 'utf8'))
+}
 
-if (invokedDirectly) {
-    const names = listSmokeSuites(fs.readFileSync(runner, 'utf8'))
+function main (): void {
+    const names = readSmokeSuites()
     for (const name of names) {
         console.log(name)
     }
     console.log(`\n${names.length} suites. Run one with: pnpm run test:smoke <name>`)
+}
+
+if (isMainModule(import.meta.url)) {
+    main()
 }

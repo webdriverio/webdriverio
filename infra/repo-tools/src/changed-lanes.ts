@@ -1,15 +1,19 @@
-#!/usr/bin/env node
 /**
  * Classify a git diff into the same lanes as .github/workflows/test.yml.
  * Usage: pnpm run changed:lanes [--json] [--base <ref>] [--files a,b]
  */
 import { spawnSync } from 'node:child_process'
-import path from 'node:path'
-import url from 'node:url'
+import type {
+    ChangeReport,
+    GlobMatch,
+    LaneArgs,
+    LaneFilters,
+    LaneFlags,
+    LaneName
+} from './types.js'
+import { isMainModule, toPosix, workspaceRoot } from './workspace.js'
 
-const root = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..')
-
-export const LANE_FILTERS = {
+export const LANE_FILTERS: LaneFilters = {
     ci: [
         '.github/workflows/**',
         '.nvmrc',
@@ -52,7 +56,7 @@ export const LANE_FILTERS = {
     ]
 }
 
-const TYPINGS_PACKAGES = new Set([
+const TYPINGS_PACKAGES: ReadonlySet<string> = new Set([
     'webdriver',
     'webdriverio',
     'wdio-protocols',
@@ -63,7 +67,7 @@ const TYPINGS_PACKAGES = new Set([
     'wdio-cucumber-framework'
 ])
 
-const SMOKE_PACKAGES = new Set([
+const SMOKE_PACKAGES: ReadonlySet<string> = new Set([
     'wdio-cli',
     'wdio-local-runner',
     'wdio-runner',
@@ -78,8 +82,10 @@ const SMOKE_PACKAGES = new Set([
     'wdio-smoke-test-reporter'
 ])
 
-export function matchGlob (file, pattern) {
-    const normalized = file.replace(/\\/g, '/').replace(/^\.\//, '')
+const DEFAULT_BASES: readonly string[] = ['origin/v10', 'v10', 'origin/main', 'main']
+
+export function matchGlob (file: string, pattern: string): GlobMatch {
+    const normalized = toPosix(file)
     const negated = pattern.startsWith('!')
     const raw = negated ? pattern.slice(1) : pattern
     let regexSource = raw
@@ -91,11 +97,13 @@ export function matchGlob (file, pattern) {
         const prefix = raw.slice(0, -3)
         regexSource = `(?:${prefix.replace(/[.+^${}()|[\]\\]/g, '\\$&')}(?:/.*)?)`
     }
-    const matched = new RegExp(`^${regexSource}$`).test(normalized)
-    return { matched, negated }
+    return {
+        matched: new RegExp(`^${regexSource}$`).test(normalized),
+        negated
+    }
 }
 
-export function matchesFilters (file, patterns) {
+export function matchesFilters (file: string, patterns: readonly string[]): boolean {
     let hit = false
     for (const pattern of patterns) {
         const { matched, negated } = matchGlob(file, pattern)
@@ -107,23 +115,33 @@ export function matchesFilters (file, patterns) {
     return hit
 }
 
-export function packageFromFile (file) {
-    const normalized = file.replace(/\\/g, '/')
-    const match = normalized.match(/^packages\/([^/]+)\//)
-    return match ? match[1] : undefined
+export function packageFromFile (file: string): string | undefined {
+    const normalized = toPosix(file)
+    const workspaceMatch = normalized.match(/^(?:packages|infra)\/([^/]+)\//)
+    return workspaceMatch?.[1]
 }
 
-export function classify (files) {
-    const unique = [...new Set(files.map((file) => file.replace(/\\/g, '/').replace(/^\.\//, '')))]
-        .filter(Boolean)
-    const lanes = {}
-    for (const [lane, patterns] of Object.entries(LANE_FILTERS)) {
-        lanes[lane] = unique.some((file) => matchesFilters(file, patterns))
+export function classify (files: readonly string[]): Omit<ChangeReport, 'base'> {
+    const unique = [...new Set(files.map(toPosix))].filter(Boolean)
+    const lanes: LaneFlags = {
+        ci: false,
+        docs: false,
+        component: false,
+        xvfb: false,
+        code: false
     }
-    const packages = [...new Set(unique.map(packageFromFile).filter(Boolean))].sort()
+    for (const lane of Object.keys(LANE_FILTERS) as LaneName[]) {
+        lanes[lane] = unique.some((file) => matchesFilters(file, LANE_FILTERS[lane]))
+    }
+    const packages = [...new Set(unique.map(packageFromFile).filter((name): name is string => Boolean(name)))].sort()
     const typings = packages.filter((pkg) => TYPINGS_PACKAGES.has(pkg))
     const smoke = unique.some((file) => file.startsWith('tests/')) ||
-        packages.some((pkg) => SMOKE_PACKAGES.has(pkg) || pkg.endsWith('-reporter') || pkg.endsWith('-service') || pkg.endsWith('-framework'))
+        packages.some((pkg) => (
+            SMOKE_PACKAGES.has(pkg) ||
+            pkg.endsWith('-reporter') ||
+            pkg.endsWith('-service') ||
+            pkg.endsWith('-framework')
+        ))
 
     return {
         files: unique,
@@ -135,8 +153,8 @@ export function classify (files) {
     }
 }
 
-export function parseArgs (argv = process.argv.slice(2)) {
-    const opts = { json: false, base: undefined, files: undefined }
+export function parseArgs (argv: readonly string[] = process.argv.slice(2)): LaneArgs {
+    const opts: LaneArgs = { json: false, base: undefined, files: undefined }
     for (let i = 0; i < argv.length; i++) {
         const arg = argv[i]
         if (arg === '--json') {
@@ -154,26 +172,29 @@ export function parseArgs (argv = process.argv.slice(2)) {
     return opts
 }
 
-function git (args) {
-    const result = spawnSync('git', args, { cwd: root, encoding: 'utf8' })
+function git (args: readonly string[]): string {
+    const result = spawnSync('git', [...args], { cwd: workspaceRoot, encoding: 'utf8' })
     if (result.status !== 0) {
         return ''
     }
     return result.stdout
 }
 
-function refExists (ref) {
-    return spawnSync('git', ['rev-parse', '--verify', ref], { cwd: root, encoding: 'utf8' }).status === 0
+function refExists (ref: string): boolean {
+    return spawnSync('git', ['rev-parse', '--verify', ref], {
+        cwd: workspaceRoot,
+        encoding: 'utf8'
+    }).status === 0
 }
 
-export function resolveBase (explicit) {
+export function resolveBase (explicit?: string): string {
     if (explicit) {
         return explicit
     }
     if (process.env.CHANGED_BASE) {
         return process.env.CHANGED_BASE
     }
-    for (const candidate of ['origin/v10', 'v10', 'origin/main', 'main']) {
+    for (const candidate of DEFAULT_BASES) {
         if (refExists(candidate)) {
             const mergeBase = git(['merge-base', 'HEAD', candidate]).trim()
             return mergeBase || candidate
@@ -182,7 +203,7 @@ export function resolveBase (explicit) {
     return 'HEAD~1'
 }
 
-export function collectChangedFiles (base) {
+export function collectChangedFiles (base: string): string[] {
     const listed = [
         git(['diff', '--name-only', '--diff-filter=ACMRD', `${base}...HEAD`]),
         git(['diff', '--name-only', '--diff-filter=ACMRD']),
@@ -192,23 +213,11 @@ export function collectChangedFiles (base) {
     return listed.split('\n').map((line) => line.trim()).filter(Boolean)
 }
 
-export function buildReport ({ base, files }) {
-    return { base, ...classify(files) }
+export function buildReport (input: { base: string, files: readonly string[] }): ChangeReport {
+    return { base: input.base, ...classify(input.files) }
 }
 
-function main () {
-    const opts = parseArgs()
-    const files = opts.files
-        ? opts.files.split(',').map((file) => file.trim()).filter(Boolean)
-        : collectChangedFiles(resolveBase(opts.base))
-    const report = buildReport({
-        base: opts.base || resolveBase(opts.base),
-        files
-    })
-    if (opts.json) {
-        console.log(JSON.stringify(report, null, 2))
-        return
-    }
+function printReport (report: ChangeReport): void {
     console.log(`base: ${report.base}`)
     console.log(`files: ${report.files.length}`)
     console.log(`lanes: ${Object.entries(report.lanes).filter(([, on]) => on).map(([name]) => name).join(', ') || '(none)'}`)
@@ -226,9 +235,22 @@ function main () {
     }
 }
 
-const invokedDirectly = process.argv[1] &&
-    path.resolve(process.argv[1]) === url.fileURLToPath(import.meta.url)
+function main (): void {
+    const opts = parseArgs()
+    const files = opts.files
+        ? opts.files.split(',').map((file) => file.trim()).filter(Boolean)
+        : collectChangedFiles(resolveBase(opts.base))
+    const report = buildReport({
+        base: opts.base || resolveBase(opts.base),
+        files
+    })
+    if (opts.json) {
+        console.log(JSON.stringify(report, null, 2))
+        return
+    }
+    printReport(report)
+}
 
-if (invokedDirectly) {
+if (isMainModule(import.meta.url)) {
     main()
 }
