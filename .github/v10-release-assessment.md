@@ -6,6 +6,18 @@ Scope: this monorepo (`webdriverio`, `@wdio/*`, `create-wdio`, `eslint-plugin-wd
 
 Current baseline: **v9.31.x**, `engines.node: ">=18.20.0"`, CI matrix `20 / 22 / 24 / 26`.
 
+Tracking issue: [#15646](https://github.com/webdriverio/webdriverio/issues/15646). Individual work items: #15647–#15664.
+
+The opener token can create issues but cannot apply labels (`Resource not accessible by integration`). A maintainer should run:
+
+```sh
+gh issue edit --repo webdriverio/webdriverio --add-label v10 \
+  15646 15647 15648 15649 15650 15651 15652 15653 15654 \
+  15655 15656 15657 15658 15659 15660 15661 15662 15663 15664
+```
+
+Also add `Tracking 🗒` and `Project Tracker` to #15646.
+
 ---
 
 ## Recommended Node.js floor
@@ -49,15 +61,15 @@ Align these at the same time (they currently disagree):
 
 These have in-tree `TODO in v10` markers, a `v10` label, or cannot ship on v9.
 
-### 0.1 Drop Node 18 and 20
+### 0.1 Drop Node 18 and 20 — [#15647](https://github.com/webdriverio/webdriverio/issues/15647)
 
 See above. Also drop the `--loader` path and `nodeVersion()` helper in `@wdio/cli` once `--import` is universal.
 
-### 0.2 Upgrade `@puppeteer/browsers` to v3
+### 0.2 Upgrade `@puppeteer/browsers` to v3 — [#15648](https://github.com/webdriverio/webdriverio/issues/15648)
 
 Open PR: [#15553](https://github.com/webdriverio/webdriverio/pull/15553) (`v10` + `PR: Breaking Change`). Fixes CVE-2026-19693. Maintainers already said this cannot land on v9.
 
-### 0.3 Browser build target: Safari 12 → Safari 14.1
+### 0.3 Browser build target: Safari 12 → Safari 14.1 — [#15649](https://github.com/webdriverio/webdriverio/issues/15649)
 
 `infra/compiler/src/index.ts` still targets `['es2021', 'chrome90', 'edge90', 'firefox90', 'safari12']`. esbuild 0.28.1 cannot emit valid destructuring for Safari 12; [#15324](https://github.com/webdriverio/webdriverio/pull/15324) kept Safari 12 by setting `supported.destructuring = true` and marked both the target bump and the shim as **TODO in v10**.
 
@@ -66,13 +78,13 @@ v10 should:
 - target `safari14.1` (and consider bumping Chrome/Edge/Firefox floors)
 - remove the `destructuring` workaround
 
-### 0.4 Make MultiRemote `$$` return an ElementArray
+### 0.4 Make MultiRemote `$$` return an ElementArray — [#15650](https://github.com/webdriverio/webdriverio/issues/15650)
 
 `process.env.WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY` is a v9 beta gate. Comments in `packages/webdriverio/src/multiremote.ts` say **remove the flag in v10** and introduce a real `MultiRemoteElementArray` type (also `packages/webdriverio/src/types.ts`). Merged precursor: [#15532](https://github.com/webdriverio/webdriverio/pull/15532).
 
 Default the new behavior, delete the env var, stop casting.
 
-### 0.5 Remove runner shims marked “remove in v10”
+### 0.5 Remove runner shims marked “remove in v10” — [#15651](https://github.com/webdriverio/webdriverio/issues/15651)
 
 | Shim | File |
 | --- | --- |
@@ -81,11 +93,11 @@ Default the new behavior, delete the env var, stop casting.
 
 Framework adapters that still pass a `Map` of matchers must switch to `Object.entries(wdioMatchers)`.
 
-### 0.6 Rename `WebdriverIO.MultiremoteConfig`
+### 0.6 Rename `WebdriverIO.MultiremoteConfig` — [#15652](https://github.com/webdriverio/webdriverio/issues/15652)
 
 `packages/wdio-types/src/index.ts` is already annotated: rename to `MultiRemoteConfig` in v10 (camelCase, match `MultiRemoteBrowser`). Keep a deprecated alias for one major only if ecosystem types still import the old name.
 
-### 0.7 Replace `@wdio/xvfb` with `@wdio/display-server`
+### 0.7 Replace `@wdio/xvfb` with `@wdio/display-server` — [#15653](https://github.com/webdriverio/webdriverio/issues/15653)
 
 Open PR: [#15088](https://github.com/webdriverio/webdriverio/pull/15088) (`PR: Breaking Change`, WIP). Hard cut, no xvfb back-compat:
 
@@ -101,7 +113,7 @@ Types already live in `packages/wdio-types/src/Options.ts`. This is the last cha
 
 Ship these in v10 or they sit another year.
 
-### Commands to delete
+### Commands to delete — [#15654](https://github.com/webdriverio/webdriverio/issues/15654)
 
 | Command | Replacement | Notes |
 | --- | --- | --- |
@@ -111,7 +123,7 @@ Ship these in v10 or they sit another year.
 
 Keep `switchToFrame` as an **internal** protocol call (`switchFrame.ts` still needs it). Do not keep it as a user-facing command; it is already deprecated in `packages/wdio-protocols/src/protocols/webdriver.ts`.
 
-### Legacy command signatures
+### Legacy command signatures — [#15655](https://github.com/webdriverio/webdriverio/issues/15655)
 
 | Legacy | Replacement |
 | --- | --- |
@@ -122,7 +134,7 @@ Keep `switchToFrame` as an **internal** protocol call (`switchFrame.ts` still ne
 | `newWindow(url, { windowName, windowFeatures })` | drop Classic-only options (already warned) |
 | `startActivity` positional args | object form (`commands/mobile/startActivity.ts`) |
 
-### Config, globals, reporter APIs
+### Config, globals, reporter APIs — [#15656](https://github.com/webdriverio/webdriverio/issues/15656)
 
 | Deprecated | Replacement | Location |
 | --- | --- | --- |
@@ -136,7 +148,7 @@ Keep `switchToFrame` as an **internal** protocol call (`switchFrame.ts` still ne
 | Sauce `tunnelIdentifier` / `parentTunnel` | `tunnelName` / `tunnelOwner` | `@wdio/types` Capabilities |
 | exported `Element` / `MultiRemoteBrowser` / `MultiRemoteElement` interfaces | `WebdriverIO.*` | `packages/webdriverio/src/types.ts` |
 
-### MultiRemote instance attachment
+### MultiRemote instance attachment — [#15657](https://github.com/webdriverio/webdriverio/issues/15657)
 
 `packages/webdriverio/src/multiremote.ts` still copies each browser onto the wrapper as `client[identifier]` with `ToDo(Christian): deprecate and remove`. v10 should stop attaching instances as enumerable own properties and require `select(...)` / `getInstance(...)` instead. That is a real user-facing break for `browser.chrome.$('…')`-style access — land it now or it waits another year.
 
@@ -150,13 +162,13 @@ v9 is stuck on old majors because of Node 18/20. Once the floor is 22.19, take t
 
 | Dependency | In tree | Target | Why it is a v10 item |
 | --- | --- | --- | --- |
-| `@puppeteer/browsers` | 2.x | 3.x | [#15553](https://github.com/webdriverio/webdriverio/pull/15553), CVE |
-| `lighthouse` | **8.6.0** (pinned) | **13.x** | [#15635](https://github.com/webdriverio/webdriverio/pull/15635) ready for merge; LH 12 removed the PWA category (`checkPWA` rewritten via CDP) |
-| `mocha` | **10.8.2** | **12.x** (or 11.x first) | [#15566](https://github.com/webdriverio/webdriverio/pull/15566) landed Mocha 11 and was reverted ([#15593](https://github.com/webdriverio/webdriverio/pull/15593)) because it broke `expect-webdriverio` playgrounds ([#15589](https://github.com/webdriverio/webdriverio/issues/15589)). Mocha 12 also drops Node 18 and is ESM-first. **Coordinate with `expect-webdriverio` before the cut.** Also drop leftover `mochaOpts.compilers` if Mocha 12 no longer supports it. |
-| `@cucumber/cucumber` | **10.3.1** | **12 or 13** | Cucumber 13 drops Node 20 and removes deprecated `Cli` / ambiguous formats. Adapter + formatter will need a dedicated PR. |
+| `@puppeteer/browsers` | 2.x | 3.x | [#15648](https://github.com/webdriverio/webdriverio/issues/15648), [#15553](https://github.com/webdriverio/webdriverio/pull/15553), CVE |
+| `lighthouse` | **8.6.0** (pinned) | **13.x** | [#15658](https://github.com/webdriverio/webdriverio/issues/15658), [#15635](https://github.com/webdriverio/webdriverio/pull/15635) ready for merge; LH 12 removed the PWA category (`checkPWA` rewritten via CDP) |
+| `mocha` | **10.8.2** | **12.x** (or 11.x first) | [#15659](https://github.com/webdriverio/webdriverio/issues/15659). [#15566](https://github.com/webdriverio/webdriverio/pull/15566) landed Mocha 11 and was reverted ([#15593](https://github.com/webdriverio/webdriverio/pull/15593)) because it broke `expect-webdriverio` playgrounds ([#15589](https://github.com/webdriverio/webdriverio/issues/15589)). Mocha 12 also drops Node 18 and is ESM-first. **Coordinate with `expect-webdriverio` before the cut.** Also drop leftover `mochaOpts.compilers` if Mocha 12 no longer supports it. |
+| `@cucumber/cucumber` | **10.3.1** | **12 or 13** | [#15660](https://github.com/webdriverio/webdriverio/issues/15660). Cucumber 13 drops Node 20 and removes deprecated `Cli` / ambiguous formats. Adapter + formatter will need a dedicated PR. |
 | `jasmine` | ^5.0.0 | latest 5.x / 6 if released | Confirm whether Jasmine 6 exists and what it breaks. |
-| `yargs` | ^17.7.2 | 18.x | CLI + `create-wdio`. |
-| `vite` | ^6.4.3 | 7.x if stable | `@wdio/browser-runner`. Closed attempt: [#15407](https://github.com/webdriverio/webdriverio/pull/15407). |
+| `yargs` | ^17.7.2 | 18.x | [#15661](https://github.com/webdriverio/webdriverio/issues/15661). CLI + `create-wdio`. |
+| `vite` | ^6.4.3 | 7.x if stable | [#15661](https://github.com/webdriverio/webdriverio/issues/15661). `@wdio/browser-runner`. Closed attempt: [#15407](https://github.com/webdriverio/webdriverio/pull/15407). |
 | `puppeteer-core` peer | `>=22.x <=24.x` | include 25+ if current | `webdriverio` + lighthouse-service. |
 | `@types/node` | ^20.x | ^22.x (or ^24.x) | Matches the new engine. |
 | `typeScriptVersion` field | **3.8.3** on ~38 packages | current supported TS (5.8+ / 6 if ready) | Published API floor is a decade behind the compiler used in-repo (`typescript@^5.8.3`). |
@@ -189,7 +201,7 @@ Plus `index.cts` shims, `tests/interop`, and `@wdio/smoke-test-cjs-service`.
 | Session / execute `__name` polyfill | Keep — esbuild/tsx, not Node-version related. |
 | Browser-runner Node built-in polyfills | Keep — browser environment. |
 
-### 3.3 JSONWP / MJSONWP leftovers
+### 3.3 JSONWP / MJSONWP leftovers — [#15663](https://github.com/webdriverio/webdriverio/issues/15663)
 
 v9 removed JSON Wire Protocol commands and pointed leftovers at `@wdio/jsonwp-service`. The monorepo still has:
 
@@ -205,7 +217,7 @@ v9 removed JSON Wire Protocol commands and pointed leftovers at `@wdio/jsonwp-se
 
 Open PR: [#14285](https://github.com/webdriverio/webdriverio/pull/14285) (`for await` of `$$`, class instead of shim). Not labelled breaking, but changing `$$` identity is easy to get wrong. If it changes `instanceof`, spread, or matcher iteration, it belongs in v10 next to MultiRemote ElementArray. If it is purely additive, it can still land on v9.
 
-### 3.5 Firefox profile `legacy: true`
+### 3.5 Firefox profile `legacy: true` — [#15662](https://github.com/webdriverio/webdriverio/issues/15662)
 
 `@wdio/firefox-profile-service` still documents `legacy` for Firefox ≤55. Safe to delete.
 
@@ -265,7 +277,9 @@ Niche but public: `@wdio/sumologic-reporter`, `@wdio/testingbot-service`, `@wdio
 
 ---
 
-## Checklist (copy into the v10 tracking issue)
+Remaining majors (yargs, Vite, Jasmine, `typeScriptVersion`, eslint legacy, vitest): [#15661](https://github.com/webdriverio/webdriverio/issues/15661). Migration docs / blog / codemod: [#15664](https://github.com/webdriverio/webdriverio/issues/15664).
+
+## Checklist (see [#15646](https://github.com/webdriverio/webdriverio/issues/15646))
 
 ### Runtime and build
 
