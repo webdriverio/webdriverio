@@ -35,7 +35,7 @@ describe('normalizeDoc', () => {
         expect(result).toContain('> info')
         expect(result).not.toContain('# Video Reporter')
         expect(result).not.toContain('badge.fury.io')
-        expect(result).toContain('### Usage')
+        expect(result).toContain('## Usage')
         expect(result).toContain('https://github.com/example/video/blob/main/docs/guide.md')
         expect(result).toContain('https://example.com')
         expect(result).toContain('#usage')

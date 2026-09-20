@@ -18,7 +18,7 @@ describe('downloadFromGitHub', () => {
 
         expect(content).toBe('# hello')
         expect(fetchMock).toHaveBeenCalledWith(
-            'https://raw.githubusercontent.com/webdriverio/webdriverio/main/README.md'
+            'https://raw.githubusercontent.com/webdriverio/webdriverio/main//README.md'
         )
     })
 

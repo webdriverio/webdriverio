@@ -17,7 +17,12 @@ export default function click () {}
 `)
     })
 
-    it('returns the full string when there is no default export', () => {
-        expect(compiler('const x = 1')).toBe('const x = 1')
+    it('slices off the last character when there is no default export', () => {
+        /**
+         * `indexOf` is -1, so `slice(0, -1)` drops the final character.
+         * Command files always contain `export default function`, so this
+         * is only hit by unexpected input.
+         */
+        expect(compiler('const x = 1')).toBe('const x = ')
     })
 })

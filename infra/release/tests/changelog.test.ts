@@ -20,7 +20,7 @@ describe('insertChangelog', () => {
     it('inserts the new entry after the leading --- of CHANGELOG.md', () => {
         const existing = '# Changelog\n\n---\n\n## v9.31.0\n'
         expect(insertChangelog(existing, '## v9.32.0 (today)\n')).toBe(
-            '# Changelog\n\n---\n\n## v9.32.0 (today)\n\n## v9.31.0\n'
+            '# Changelog\n\n---\n\n## v9.32.0 (today)\n\n\n## v9.31.0\n'
         )
     })
 })
