@@ -135,18 +135,22 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         }
 
         /**
-         * Propagate the parent's node flags to the worker (e.g. `--import tsx`)
-         * while guaranteeing `--enable-source-maps` so worker stack traces map
-         * back to source. Merge the two token lists and de-duplicate: the parent
-         * NODE_OPTIONS may be unset (must not leak a literal `"undefined"`) or may
-         * already contain `--enable-source-maps` (must not be added twice).
+         * Guarantee `--enable-source-maps` in the worker so its stack traces map
+         * back to source, without discarding any node flags the user already set.
+         * `runnerEnv.NODE_OPTIONS` here is the resolved value (`config.runnerEnv`
+         * takes precedence over the parent `process.env`), so it may carry
+         * user-supplied flags with operands, e.g. `--import tsx` or repeated
+         * `--require a.js --require b.js`. Append the flag as a whole token only
+         * when it is not already present, rather than splitting and de-duplicating
+         * every token (which would detach an option from its value).
          */
-        runnerEnv.NODE_OPTIONS = [
-            ...(process.env.NODE_OPTIONS ?? '').split(' '),
-            '--enable-source-maps',
-        ]
-            .filter((flag, index, flags) => flag !== '' && flags.indexOf(flag) === index)
-            .join(' ')
+        const nodeOptions = (runnerEnv.NODE_OPTIONS ?? '').trim()
+        const hasSourceMaps = nodeOptions
+            .split(' ')
+            .includes('--enable-source-maps')
+        runnerEnv.NODE_OPTIONS = hasSourceMaps
+            ? nodeOptions
+            : `${nodeOptions} --enable-source-maps`.trim()
 
         log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
 
