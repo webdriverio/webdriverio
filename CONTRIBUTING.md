@@ -21,6 +21,8 @@ You can participate by:
 - make feature requests if you are missing something in the project
 - if you'd like to support us monetarily, consider [donating to the project](https://webdriver.io/community/donate)
 
+If you are an AI coding agent (Cursor, Claude Code, Copilot, Codex, …), start with [`AGENTS.md`](./AGENTS.md) and the nearest scoped `AGENTS.md` in the tree you will change. This file remains the human contributor guide; the agent files are a shorter, command-oriented map of the same process.
+
 The maintainers of the project try to organize all [issues](https://github.com/webdriverio/webdriverio/issues) in the way that should allow anyone to have enough context to start working on it. If this is not the case please mention it in the issue thread so that either the issue creator or a maintainer can provide more information.
 
 If you want to contribute code, a general good first way to find a task to work on is to look into all tickets with the label [`help wanted`](https://github.com/webdriverio/webdriverio/labels/help%20wanted) and/or [`good first pick`](https://github.com/webdriverio/webdriverio/issues?q=is%3Aopen+label%3A%22good+first+pick%22+sort%3Aupdated-desc). All these tickets are up for grab if they haven't a user assigned to them. If you find something that interests you, ensure to let us know in the issue thread that you have the intend to work on it.
@@ -145,7 +147,7 @@ You can immediately start working on the code using [a pre-setup Gitpod environm
 
     * Compiles the project ```pnpm run compile:all```
 
-        As the last step you need to build all sub-packages in order to resolve the internal dependencies. WebdriverIO uses [`@wdio/compiler`](https://github.com/webdriverio/webdriverio/tree/main/infa/compiler) which is an internal package that uses Esbuild to compile the project.
+        As the last step you need to build all sub-packages in order to resolve the internal dependencies. WebdriverIO uses [`@wdio/compiler`](https://github.com/webdriverio/webdriverio/tree/main/infra/compiler) which is an internal package that uses Esbuild to compile the project.
 
 * Run Tests to ensure that everything is set up correctly
 
@@ -154,6 +156,7 @@ You can immediately start working on the code using [a pre-setup Gitpod environm
     $ pnpm test
 
     # run test for a specific sub project (e.g. webdriver)
+    $ pnpm run test:package webdriver
     $ npx vitest ./packages/webdriver/tests
     ```
 
@@ -248,7 +251,7 @@ block the PR.
 - *Smoke Tests*
   While unit tests already cover a lot of cases, we run in addition to that smoke tests that simulate test scenarios which are difficult to test
   on a unit level as they include functionality of dependencies that are stubbed out in unit tests. Such scenarios are, for example, proper
-  test retries or failure handling. Smoke tests run actual e2e tests where the driver is being stubbed (via [`@wdio/smoke-test-service`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-smoke-test-service/package.json)) to return fake results.
+  test retries or failure handling. Smoke tests run actual e2e tests where the driver is being stubbed (via [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-webdriver-mock-service/package.json)) to return fake results. `@wdio/smoke-test-service` is only a fixture service used *inside* some of those suites.
   You can manually trigger this check by calling:
   ```sh
   $ pnpm run test:smoke
@@ -310,7 +313,7 @@ To make sure that we don't accidentally change the types and cause users' test t
 pnpm run test:typings
 ```
 
-This will run all the tests for all the type definitions WebdriverIO provides. These tests just check if TypeScript can compile them according to the generated type definitions. All the type checks are located in `/webdriverio/tests/typings`. If you extend a WebdriverIO command or interfaces for other type definitions, please ensure that you have used it in these files. The directory contains tests for the asynchronous usage of WebdriverIO.
+This will run all the tests for all the type definitions WebdriverIO provides. These tests just check if TypeScript can compile them according to the generated type definitions. All the type checks are located in [`tests/typings`](https://github.com/webdriverio/webdriverio/tree/main/tests/typings). If you extend a WebdriverIO command or interfaces for other type definitions, please ensure that you have used it in these files. The directory contains tests for the asynchronous usage of WebdriverIO.
 
 For example, to test the `touchActions` properties, we have it tested in `/tests/typings/webdriverio/async.ts`:
 
@@ -367,7 +370,7 @@ $ pnpm start
 
 This will set up everything needed to run the page on [`localhost:3000`](http://localhost:3000/). If you need to run on a different host or port, pass them as additional arguments to pnpm start, like `-- --host 0.0.0.0`.
 
-You can now modify the content of the [`/website/docs`](https://github.com/webdriverio/webdriverio/tree/main/website/docs) files as well as change styles and templates. The page will be automatically updated. If you add documentation in other places, you have to rerun the `pnpm start` script to re-generate the docs.
+You can now modify the content of the [`/website/docs`](https://github.com/webdriverio/webdriverio/tree/main/website/docs) files as well as change styles and templates. The page will be automatically updated. If you add documentation in other places, you have to rerun `pnpm run docs:generate` and then the `pnpm start` script to re-generate the docs. `pnpm run docs:list` prints a path + title index of contributor-relevant docs.
 
 ### Deploying the Documentation in Production
 

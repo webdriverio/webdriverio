@@ -49,7 +49,7 @@ WebdriverIO is a test automation framework, for e2e as well as unit and componen
 
 ## :woman_technologist: :man_technologist: Contributing
 
-Do you like WebdriverIO and want to help make it better? Awesome! Have a look into our [Contributor Documentation](CONTRIBUTING.md) to get started and find out what contributions can be and how to make them.
+Do you like WebdriverIO and want to help make it better? Awesome! Have a look into our [Contributor Documentation](CONTRIBUTING.md) to get started and find out what contributions can be and how to make them. AI coding agents should start with [`AGENTS.md`](AGENTS.md).
 
 ### Getting started with GitHub Codespaces
 
