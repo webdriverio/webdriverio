@@ -37,6 +37,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@types/split2": "^4.2.3",
     "@puppeteer/browsers": "^2.2.0",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",

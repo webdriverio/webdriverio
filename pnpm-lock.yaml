@@ -1056,6 +1056,9 @@ importers:
       '@types/node':
         specifier: ^20.1.0
         version: 20.19.37
+      '@types/split2':
+        specifier: ^4.2.3
+        version: 4.2.3
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
@@ -1362,6 +1365,9 @@ importers:
       '@puppeteer/browsers':
         specifier: ^2.2.0
         version: 2.11.0
+      '@types/split2':
+        specifier: ^4.2.3
+        version: 4.2.3
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
@@ -6744,6 +6750,9 @@ packages:
 
   '@types/sockjs@0.3.36':
     resolution: {integrity: sha512-MK9V6NzAS1+Ud7JV9lJLFqW85VbC9dq3LmwZCuBe4wBDgKC0Kj/jd8Xl+nSviU+Qc3+m7umHHyHg//2KSa0a0Q==}
+
+  '@types/split2@4.2.3':
+    resolution: {integrity: sha512-59OXIlfUsi2k++H6CHgUQKEb2HKRokUA39HY1i1dS8/AIcqVjtAAFdf8u+HxTWK/4FUHMJQlKSZ4I6irCBJ1Zw==}
 
   '@types/stack-utils@2.0.3':
     resolution: {integrity: sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==}
@@ -21425,6 +21434,10 @@ snapshots:
   '@types/sinonjs__fake-timers@8.1.5': {}
 
   '@types/sockjs@0.3.36':
+    dependencies:
+      '@types/node': 20.19.43
+
+  '@types/split2@4.2.3':
     dependencies:
       '@types/node': 20.19.43
 
