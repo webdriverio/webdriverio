@@ -8,7 +8,7 @@ import decamelize from 'decamelize'
 import logger from '@wdio/logger'
 import {
     install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel,
-    computeExecutablePath, type InstallOptions
+    computeExecutablePath, type InstallOptions, type BrowserPlatform
 } from '@puppeteer/browsers'
 import { download as downloadGeckodriver } from 'geckodriver'
 import { locateChrome, locateFirefox, locateApp } from 'locate-app'
@@ -404,20 +404,27 @@ function shareDriverSetup<T> (key: string, setup: () => Promise<T>): Promise<T> 
     return setupPromise
 }
 
-export function setupChromedriver (cacheDir: string, driverVersion?: string) {
-    return shareDriverSetup(
-        `chromedriver:${cacheDir}:${driverVersion ?? ''}`,
-        () => installChromedriver(cacheDir, driverVersion)
-    )
-}
-
-async function installChromedriver (cacheDir: string, driverVersion?: string) {
+export async function setupChromedriver (cacheDir: string, driverVersion?: string) {
     const platform = detectBrowserPlatform()
     if (!platform) {
         throw new Error('The current platform is not supported.')
     }
+
+    /**
+     * resolve before sharing, so that requests which only look different - `undefined`,
+     * `'stable'` and an explicit version that all point at the same build - land on the
+     * same key. Resolving reads no state and writes nothing, so doing it twice is free.
+     */
     const version = driverVersion || getBuildIdByChromePath(await locateChromeSafely()) || ChromeReleaseChannel.STABLE
     const buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
+
+    return shareDriverSetup(
+        `chromedriver:${cacheDir}:${platform}:${buildId}`,
+        () => installChromedriver(cacheDir, platform, version, buildId)
+    )
+}
+
+async function installChromedriver (cacheDir: string, platform: BrowserPlatform, version: string, buildId: string) {
     let executablePath = computeExecutablePath({
         browser: Browser.CHROMEDRIVER,
         buildId,

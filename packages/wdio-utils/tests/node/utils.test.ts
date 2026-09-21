@@ -103,6 +103,58 @@ describe('setupChromedriver', () => {
         }
     })
 
+    it('shares one install between version requests that resolve to the same build', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(install).mockClear()
+        vi.mocked(install).mockImplementation(
+            () => new Promise((resolve) => setTimeout(() => resolve({} as never), 10))
+        )
+
+        try {
+            /**
+             * `resolveBuildId` maps both of these onto the same build, so keying on the
+             * raw version string would let them race even though they want one download
+             */
+            await Promise.all([
+                setupChromedriver('/some/cache', 'stable'),
+                setupChromedriver('/some/cache', '116')
+            ])
+
+            expect(install).toBeCalledTimes(1)
+        } finally {
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+            vi.mocked(install).mockResolvedValue({} as never)
+        }
+    })
+
+    it('lets a later call retry after a shared install failed', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(install).mockClear()
+        vi.mocked(install).mockRejectedValue(new Error('network is down'))
+
+        try {
+            await expect(setupChromedriver('/retry/cache', '116.0.5845.110')).rejects.toThrow()
+            const callsAfterFailure = vi.mocked(install).mock.calls.length
+            expect(callsAfterFailure).toBeGreaterThan(0)
+
+            /**
+             * the rejected promise must not stay in the map, otherwise every later
+             * setup for the same driver would fail without ever downloading again
+             */
+            vi.mocked(install).mockResolvedValue({} as never)
+            await setupChromedriver('/retry/cache', '116.0.5845.110')
+
+            expect(vi.mocked(install).mock.calls.length).toBeGreaterThan(callsAfterFailure)
+        } finally {
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+            vi.mocked(install).mockResolvedValue({} as never)
+        }
+    })
+
     it('does not share an install between different cache directories', async () => {
         const fsp = (await import('node:fs/promises')).default
         vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
