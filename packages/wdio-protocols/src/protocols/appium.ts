@@ -27,18 +27,21 @@ export default {
     '/session/:sessionId/context': {
         GET: {
             command: 'getAppiumContext',
+            description: 'Retrieve the active application context.',
             ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#getcurrentcontext',
+            deprecated: 'Use `getAppiumProtocolContext` starting from Appium 3.7',
             parameters: [],
             returns: {
                 type: 'Context',
                 name: 'context',
-                description:
-                    "a string representing the current context or null representing 'no context'",
+                description: "a string representing the current context",
             },
         },
         POST: {
             command: 'switchAppiumContext',
+            description: 'Set the active application context.',
             ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#setcontext',
+            deprecated: 'Use `switchAppiumProtocolContext` starting from Appium 3.7',
             parameters: [
                 {
                     name: 'name',
@@ -52,7 +55,49 @@ export default {
     '/session/:sessionId/contexts': {
         GET: {
             command: 'getAppiumContexts',
+            description: 'Retrieve all available application contexts.',
             ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#getcontexts',
+            deprecated: 'Use `getAppiumProtocolContexts` starting from Appium 3.7',
+            parameters: [],
+            returns: {
+                type: 'Context[]',
+                name: 'contexts',
+                description:
+                    "an array of strings representing available contexts, e.g. 'WEBVIEW', or 'NATIVE'",
+            },
+        },
+    },
+    '/session/:sessionId/appium/context': {
+        GET: {
+            command: 'getAppiumProtocolContext',
+            description: 'Retrieve the active application context. Requires Appium 3.7 or later.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getcurrentappiumcontext',
+            parameters: [],
+            returns: {
+                type: 'Context',
+                name: 'context',
+                description: "a string representing the current context",
+            },
+        },
+        POST: {
+            command: 'switchAppiumProtocolContext',
+            description: 'Set the active application context. Requires Appium 3.7 or later.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#setappiumcontext',
+            parameters: [
+                {
+                    name: 'name',
+                    type: 'string',
+                    description: 'a string representing an available context',
+                    required: true,
+                },
+            ],
+        },
+    },
+    '/session/:sessionId/appium/contexts': {
+        GET: {
+            command: 'getAppiumProtocolContexts',
+            description: 'Retrieve all available application contexts. Requires Appium 3.7 or later.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getappiumcontexts',
             parameters: [],
             returns: {
                 type: 'Context[]',
@@ -424,6 +469,7 @@ export default {
             command: 'rotateDevice',
             description: 'Rotate the device in three dimensions.',
             ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#setrotation',
+            deprecated: 'Use `setAppiumRotation` starting from Appium 3.7',
             parameters: [
                 {
                     name: 'x',
@@ -458,6 +504,50 @@ export default {
                     UiAutomator: '4.2+',
                 },
             },
+        },
+    },
+    '/session/:sessionId/appium/device/rotation': {
+        GET: {
+            command: 'getAppiumRotation',
+            description: 'Get the current spatial orientation of the device. Requires Appium 3.7 or later.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getappiumrotation',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'rotation',
+                description: 'Object containing device positional offsets in degrees for the X, Y and Z axis',
+            },
+        },
+        POST: {
+            command: 'setAppiumRotation',
+            description: 'Rotate the device in three dimensions. Requires Appium 3.7 or later.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#setappiumrotation',
+            parameters: [
+                {
+                    name: 'x',
+                    type: 'number',
+                    description:
+                        'x offset to use for the center of the rotate gesture',
+                    required: true,
+                    default: 0,
+                },
+                {
+                    name: 'y',
+                    type: 'number',
+                    description:
+                        'y offset to use for the center of the rotate gesture',
+                    required: true,
+                    default: 0,
+                },
+                {
+                    name: 'z',
+                    type: 'number',
+                    description:
+                        'z offset to use for the center of the rotate gesture',
+                    required: true,
+                    default: 0,
+                },
+            ],
         },
     },
     '/session/:sessionId/appium/device/current_activity': {
@@ -2355,6 +2445,7 @@ export default {
             command: 'getOrientation',
             description: 'Get the current device orientation.',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#getorientation',
+            deprecated: 'Use `getAppiumOrientation` starting from Appium 3.7',
             parameters: [],
             returns: {
                 type: 'String',
@@ -2375,6 +2466,7 @@ export default {
             command: 'setOrientation',
             description: 'Set the device orientation',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#setorientation',
+            deprecated: 'Use `setAppiumOrientation` starting from Appium 3.7',
             parameters: [
                 {
                     name: 'orientation',
@@ -2392,6 +2484,34 @@ export default {
                     XCUITest: '9.3+',
                 },
             },
+        },
+    },
+    '/session/:sessionId/appium/device/orientation': {
+        GET: {
+            command: 'getAppiumOrientation',
+            description: 'Get the current device orientation. Requires Appium 3.7 or later.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getappiumorientation',
+            parameters: [],
+            returns: {
+                type: 'String',
+                name: 'orientation',
+                description:
+                    'The current orientation corresponding to a value defined in ScreenOrientation: `LANDSCAPE|PORTRAIT`.',
+            },
+        },
+        POST: {
+            command: 'setOrientation',
+            description: 'Set the device orientation. Requires Appium 3.7 or later.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#setappiumorientation',
+            parameters: [
+                {
+                    name: 'orientation',
+                    type: 'string',
+                    description:
+                        'the new device orientation as defined in ScreenOrientation: `LANDSCAPE|PORTRAIT`',
+                    required: true,
+                },
+            ],
         },
     },
     '/session/:sessionId/location': {
