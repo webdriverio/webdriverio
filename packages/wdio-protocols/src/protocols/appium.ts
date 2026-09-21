@@ -2597,7 +2597,7 @@ export default {
             },
         },
         POST: {
-            command: 'setOrientation',
+            command: 'setAppiumOrientation',
             description: 'Set the device orientation. Requires Appium 3.7 or later.',
             ref: 'https://appium.io/docs/en/latest/reference/api/appium/#setappiumorientation',
             parameters: [
