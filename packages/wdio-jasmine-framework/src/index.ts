@@ -507,6 +507,7 @@ export default adapterFactory
 export { JasmineAdapter, adapterFactory }
 export * from './types.js'
 
+// eslint-disable-next-line no-unused-vars -- referenced as `jasmine.*` in the global augmentation below
 type jasmine = typeof Jasmine
 declare global {
     /**
