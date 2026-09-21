@@ -1345,7 +1345,7 @@ export default {
             command: 'endCoverage',
             description: 'Get test coverage data.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/end-test-coverage/',
-            deprecated: 'Use `driver.execute(\'mobile: shell\', { ... })` instead',
+            deprecated: 'Use `driver.execute(\'mobile: shell\', { ... })` instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'intent',
@@ -1408,7 +1408,7 @@ export default {
         POST: {
             command: 'setValueImmediate',
             ref: 'https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints',
-            deprecated: 'Use `driver.addValue(...)` or `driver.setValue(...)` instead',
+            deprecated: 'Use `driver.addValue(...)` or `driver.setValue(...)` instead. No longer supported since Appium 3.',
             variables: [
                 {
                     name: 'elementId',
@@ -1439,7 +1439,7 @@ export default {
             command: 'replaceValue',
             description: 'Replace the value to element directly.',
             ref: 'https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints',
-            deprecated: 'Use `driver.addValue(...)` or `driver.setValue(...)` instead',
+            deprecated: 'Use `driver.addValue(...)` or `driver.setValue(...)` instead. No longer supported since Appium 3.',
             variables: [
                 {
                     name: 'elementId',
@@ -1523,7 +1523,7 @@ export default {
             description:
                 'Callback url for asynchronous execution of JavaScript.',
             ref: 'https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints',
-            deprecated: 'Use `driver.executeAsyncScript(...)` instead',
+            deprecated: 'Use `driver.executeAsyncScript(...)` instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'response',
@@ -1790,7 +1790,7 @@ export default {
             description:
                 "This functionality is only available from within a native context. 'Touch Perform' works similarly to the other singular touch interactions, except that this allows you to chain together more than one touch action as one command. This is useful because Appium commands are sent over the network and there's latency between commands. This latency can make certain touch interactions impossible because some interactions need to be performed in one sequence. Vertical, for example, requires pressing down, moving to a different y coordinate, and then releasing. For it to work, there can't be a delay between the interactions.",
             ref: 'https://appium.github.io/appium.io/docs/en/commands/interactions/touch/touch-perform/',
-            deprecated: 'Use `driver.performActions(...)` instead',
+            deprecated: 'Use `driver.performActions(...)` instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'actions',
@@ -1859,7 +1859,7 @@ export default {
             description:
                 'This functionality is only available from within a native context. Perform a multi touch action sequence.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/interactions/touch/multi-touch-perform/',
-            deprecated: 'Use `driver.performActions(...)` instead',
+            deprecated: 'Use `driver.performActions(...)` instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'actions',
@@ -2093,7 +2093,7 @@ export default {
             description:
                 'Set the amount of time the driver should wait when searching for elements. When searching for a single element, the driver should poll the page until an element is found or the timeout expires, whichever occurs first. When searching for multiple elements, the driver should poll the page until at least one element is found or the timeout expires, at which point it should return an empty list. If this command is never sent, the driver should default to an implicit wait of 0ms.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            deprecated: 'Use `driver.setTimeouts(...)` instead',
+            deprecated: 'Use `driver.setTimeouts(...)` instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'ms',
@@ -2119,7 +2119,7 @@ export default {
             description:
                 "Determine an element's location on the screen once it has been scrolled into view.<br /><br />__Note:__ This is considered an internal command and should only be used to determine an element's location for correctly generating native events.",
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            deprecated: 'Use `driver.getElementRect(...)` or `element.getLocation()` instead',
+            deprecated: 'Use `driver.getElementRect(...)` or `element.getLocation()` instead. No longer supported since Appium 3.',
             variables: [
                 {
                     name: 'elementId',
@@ -2148,7 +2148,7 @@ export default {
             command: 'sendKeys',
             description: 'Send a sequence of key strokes to the active element',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            deprecated: 'Use `driver.performActions(...)` with `keyUp` and `keyDown` actions instead',
+            deprecated: 'Use `driver.performActions(...)` with `keyUp` and `keyDown` actions instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'value',
@@ -2262,7 +2262,7 @@ export default {
             description:
                 'Set the amount of time, in milliseconds, that asynchronous scripts executed by `/session/:sessionId/execute_async` are permitted to run before they are aborted and a `Timeout` error is returned to the client.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            deprecated: 'Use `driver.setTimeouts(...)` instead',
+            deprecated: 'Use `driver.setTimeouts(...)` instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'ms',
@@ -2284,7 +2284,7 @@ export default {
             command: 'submit',
             description: 'Submit a form element.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            deprecated: 'Please explicitly find and click the submit element',
+            deprecated: 'Please explicitly find and click the submit element. No longer supported since Appium 3.',
             variables: [
                 {
                     name: 'elementId',
@@ -2305,7 +2305,7 @@ export default {
             description:
                 "Determine an element's size in pixels. The size will be returned as a JSON object with `width` and `height` properties.",
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            deprecated: 'Use `driver.getElementRect(...)` or `element.getSize()` instead',
+            deprecated: 'Use `driver.getElementRect(...)` or `element.getSize()` instead. No longer supported since Appium 3.',
             variables: [
                 {
                     name: 'elementId',
@@ -2334,7 +2334,7 @@ export default {
             description:
                 "Determine an element's location on the page. The point `(0, 0)` refers to the upper-left corner of the page. The element's coordinates are returned as a JSON object with `x` and `y` properties.",
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            deprecated: 'Use `driver.getElementRect(...)` or `element.getLocation()` instead',
+            deprecated: 'Use `driver.getElementRect(...)` or `element.getLocation()` instead. No longer supported since Appium 3.',
             variables: [
                 {
                     name: 'elementId',
@@ -2363,7 +2363,7 @@ export default {
             command: 'touchClick',
             description: 'Single tap on the touch enabled device.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            deprecated: 'Use `driver.performActions(...)` with `pointerDown` and `pointerUp` actions instead',
+            deprecated: 'Use `driver.performActions(...)` with `pointerDown` and `pointerUp` actions instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'element',
@@ -2387,7 +2387,7 @@ export default {
             command: 'touchDown',
             description: 'Finger down on the screen.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            deprecated: 'Use `driver.performActions(...)` with a `pointerDown` action instead',
+            deprecated: 'Use `driver.performActions(...)` with a `pointerDown` action instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'x',
@@ -2414,7 +2414,7 @@ export default {
             command: 'touchUp',
             description: 'Finger up on the screen.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            deprecated: 'Use `driver.performActions(...)` with a `pointerUp` action instead',
+            deprecated: 'Use `driver.performActions(...)` with a `pointerUp` action instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'x',
@@ -2441,7 +2441,7 @@ export default {
             command: 'touchMove',
             description: 'Finger move on the screen.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            deprecated: 'Use `driver.performActions(...)` with a `pointerMove` action instead',
+            deprecated: 'Use `driver.performActions(...)` with a `pointerMove` action instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'x',
@@ -2469,7 +2469,7 @@ export default {
             description:
                 'Long press on the touch screen using finger motion events.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            deprecated: 'Use `driver.performActions(...)` with `pointerDown`, `pause` and `pointerUp` actions instead',
+            deprecated: 'Use `driver.performActions(...)` with `pointerDown`, `pause` and `pointerUp` actions instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'element',
@@ -2491,7 +2491,7 @@ export default {
             description:
                 'Flick on the touch screen using finger motion events. This flick command starts at a particular screen location.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            deprecated: 'Use `driver.performActions(...)` with `pointerDown`, `pointerMove` and `pointerUp` actions instead',
+            deprecated: 'Use `driver.performActions(...)` with `pointerDown`, `pointerMove` and `pointerUp` actions instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'xoffset',
