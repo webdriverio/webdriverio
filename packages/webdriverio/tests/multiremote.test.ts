@@ -260,6 +260,25 @@ describe('Multi-Remote tests', () => {
             expect(selected.strategies.get('selectHeader')).toBe(strategy)
         })
 
+        test('does not let a narrowed browser register strategies on its parent', async () => {
+            const browser = await multiremote(caps())
+            const strategy = (selector: string) => document.querySelector(selector) as HTMLElement
+
+            const selected = browser.select('browserA')
+            selected.addLocatorStrategy('onlyOnA', strategy)
+
+            // the strategy reached the instance it was registered through
+            expect(browser.getInstance('browserA').strategies.get('onlyOnA')).toBe(strategy)
+            // but not an instance that was not part of the narrowing
+            expect(browser.getInstance('browserB').strategies.has('onlyOnA')).toBe(false)
+            /**
+             * and the parent does not claim a strategy only some of its instances
+             * can resolve, so registering it there properly is still possible
+             */
+            expect(browser.strategies.has('onlyOnA')).toBe(false)
+            expect(() => browser.addLocatorStrategy('onlyOnA', strategy)).not.toThrow()
+        })
+
         test('should throw an error when select matches nothing', async () => {
             const browser = await multiremote(caps())
 
