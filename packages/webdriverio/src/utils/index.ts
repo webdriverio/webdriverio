@@ -1119,13 +1119,32 @@ type Entries<T> = {
  * @param   {Array}             props       additional properties required to fetch elements again
  * @returns {object[]}  elements
  */
-export const enhanceElementsArray = (
+export function enhanceElementsArray(
     elements: WebdriverIO.Element[],
     parent: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[],
+    foundWith?: string,
+    props?: unknown[]
+): WebdriverIO.ElementArray
+/**
+ * On a multiremote browser every entry is a `MultiRemoteElement`, so the array
+ * that comes back is a `MultiRemoteElementArray`. The body is the same; only the
+ * element and parent types differ.
+ */
+export function enhanceElementsArray(
+    elements: WebdriverIO.MultiRemoteElement[],
+    parent: WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement,
+    selector: Selector,
+    foundWith?: string,
+    props?: unknown[]
+): WebdriverIO.MultiRemoteElementArray
+export function enhanceElementsArray(
+    elements: WebdriverIO.Element[] | WebdriverIO.MultiRemoteElement[],
+    parent: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement,
+    selector: Selector | ElementReference[] | WebdriverIO.Element[],
     foundWith = '$$',
     props: unknown[] = []
-) => {
+): WebdriverIO.ElementArray | WebdriverIO.MultiRemoteElementArray {
     /**
      * as we enhance the element array in this method we need to cast its
      * type as well
@@ -1159,7 +1178,7 @@ export const enhanceElementsArray = (
         elementArray[name] = fn.bind(null, elementArray as unknown)
     }
 
-    elementArray.parent = parent
+    elementArray.parent = parent as WebdriverIO.ElementArray['parent']
     elementArray.foundWith = foundWith
     elementArray.props = props
     elementArray.getElements = async () => elementArray

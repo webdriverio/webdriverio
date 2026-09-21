@@ -1,5 +1,4 @@
 import { multiRemoteBrowser, expect } from '@wdio/globals'
-import type { ElementArray } from 'webdriverio'
 import { Key, multiremote } from 'webdriverio'
 
 let browserA: WebdriverIO.Browser
@@ -389,30 +388,21 @@ describe('multi remote test', () => {
             expect(elements[1].selector).toBe('h1')
         })
 
-        describe('when enabling process.env.WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY', () => {
-            before(() => {
-                process.env.WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY = 'true'
-            })
+        it('should return a MultiRemoteElementArray at runtime', async () => {
+            await multiRemoteBrowser.getInstance('browserA').url('about:blank')
+            await multiRemoteBrowser.getInstance('browserB').url('about:blank')
+            await multiRemoteBrowser.getInstance('browserC').url('about:blank')
 
-            after(() => {
-                process.env.WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY = 'false'
-            })
+            const elements = await multiRemoteBrowser.$$('h1')
 
-            it('should return an ElementArray at runtime', async () => {
-                await multiRemoteBrowser.getInstance('browserA').url('about:blank')
-                await multiRemoteBrowser.getInstance('browserB').url('about:blank')
-                await multiRemoteBrowser.getInstance('browserC').url('about:blank')
-
-                const elements = await multiRemoteBrowser.$$('h1')
-
-                expect(elements).toHaveLength(0)
-                expect(elements).toHaveProperty('selector')
-                expect((elements as unknown as ElementArray).selector).toBe('h1')
-                expect((elements as unknown as ElementArray).foundWith).toBe('$$')
-                expect((elements as unknown as ElementArray).parent).toBeDefined()
-                expect((elements as unknown as ElementArray).getElements).toBeDefined()
-                expect(Array.isArray(elements)).toBe(true)
-            })
+            expect(elements).toHaveLength(0)
+            expect(elements).toHaveProperty('selector')
+            expect(elements.selector).toBe('h1')
+            expect(elements.foundWith).toBe('$$')
+            expect(elements.parent).toBeDefined()
+            expect(elements.getElements).toBeDefined()
+            expect(elements.isMultiremote).toBe(true)
+            expect(Array.isArray(elements)).toBe(true)
         })
 
         it('should be able to query isDisplayed on element no longer existing', async () => {

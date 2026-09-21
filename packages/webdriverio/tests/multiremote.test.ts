@@ -24,6 +24,43 @@ const caps = (): Capabilities.RequestedMultiremoteCapabilities => ({
 })
 
 describe('Multi-Remote tests', () => {
+    describe('$$', () => {
+        test('returns a MultiRemoteElementArray without any opt-in', async () => {
+            const browser = await multiremote(caps())
+
+            const elements = await browser.$$('#foo')
+
+            expect(Array.isArray(elements)).toBe(true)
+            expect(elements.selector).toBe('#foo')
+            expect(elements.foundWith).toBe('$$')
+            expect(elements.parent).toBeDefined()
+            expect(elements.isMultiremote).toBe(true)
+        })
+
+        test('gives every entry the instances of the multiremote browser', async () => {
+            const browser = await multiremote(caps())
+
+            const elements = await browser.$$('#foo')
+
+            expect(elements.length).toBeGreaterThan(0)
+            for (const element of elements) {
+                expect([...element.instances].sort()).toEqual(['browserA', 'browserB'])
+            }
+        })
+
+        test('exposes the async array helpers', async () => {
+            const browser = await multiremote(caps())
+
+            const elements = await browser.$$('#foo')
+
+            expect(typeof elements.map).toBe('function')
+            expect(typeof elements.filter).toBe('function')
+            expect(typeof elements.forEach).toBe('function')
+            expect(typeof elements.getElements).toBe('function')
+            expect(await elements.getElements()).toBe(elements)
+        })
+    })
+
     test('should add locator strategy on multi-remote and propagate to instances (#15540)', async () => {
         const browser = await multiremote(caps())
         const strategy = (selector: string) => document.querySelector(selector) as HTMLElement
