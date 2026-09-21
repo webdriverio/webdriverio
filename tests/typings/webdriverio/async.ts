@@ -55,6 +55,18 @@ async function bar() {
         }
     }).then(() => {}, () => {})
 
+    // $$ on a multiremote browser resolves to a MultiRemoteElementArray
+    const mrElems = await mr.$$('foobar')
+    expectType<true>(mrElems.isMultiremote)
+    expectType<Selector>(mrElems.selector)
+    expectType<string>(mrElems.foundWith)
+    expectType<WebdriverIO.MultiRemoteElement>(mrElems[0])
+
+    // the async iterators keep the multiremote element type
+    expectType<string[][]>(await mrElems.map((el) => el.instances))
+    expectType<WebdriverIO.MultiRemoteElement[]>(await mrElems.filter(async () => true))
+    await mrElems.forEach((el) => el.click())
+
     // interact with specific instance
     const mrSingleElem = await mr.getInstance('myBrowserInstance').$('')
     await mrSingleElem.click()
@@ -315,6 +327,8 @@ async function bar() {
     const iteratorResult = await $$('').map((el) => el.getText())
     expectType<string[]>(iteratorResult)
     expectType<string[]>(await elems.map((el) => el.getText()))
+    expectType<WebdriverIO.Element[]>(await elems.filter(async () => true))
+    expectType<WebdriverIO.Element>(await elems.find(async () => true))
 
     // An examples of addValue command with enabled/disabled translation to Unicode
     const elem = await $('')
