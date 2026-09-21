@@ -1,11 +1,8 @@
 {
-  // Linting using ESLint.
-  "eslint.validate": [
-    "javascript",
-    "typescript",
-  ],
+  // Linting using Oxlint.
+  "oxc.enable": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit"
+    "source.fixAll.oxc": "explicit"
   },
   // Debugging.
   "debug.javascript.unmapMissingSources": true,
@@ -51,7 +48,6 @@
     "webdriverio"
   ],
 
-  // Fix conflict between ESLint and Prettier.
-  "prettier.enable": false,
-  "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  // Fix conflict between Oxlint and Prettier.
+  "prettier.enable": false
 }

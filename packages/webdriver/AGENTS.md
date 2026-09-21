@@ -19,7 +19,7 @@ pnpm run generate:bidi
 ```
 
 Do not hand-edit generated files under `src/bidi/`. Change the CDDL pipeline
-in `scripts/bidi/` and regenerate. `pnpm run generate:bidi` also eslint-fixes
+in `scripts/bidi/` and regenerate. `pnpm run generate:bidi` also oxlint-fixes
 the output.
 
 ## Commands

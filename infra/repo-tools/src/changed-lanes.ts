@@ -23,7 +23,7 @@ export const LANE_FILTERS: LaneFilters = {
         'lerna.json',
         'tsconfig.json',
         'vitest.config.ts',
-        'eslint.config.mjs'
+        '.oxlintrc.json'
     ],
     docs: [
         'website/**',

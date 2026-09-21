@@ -64,6 +64,12 @@ const config: WebdriverIO.Config = {
                 type: 'foo'
             }
         }],
+        ['lighthouse', {
+            coverageReporter: {
+                enable: true,
+                type: 'json'
+            }
+        }],
         ['firefox-profile', {
             extensions: [],
             profileDirectory: '/foo/bar',

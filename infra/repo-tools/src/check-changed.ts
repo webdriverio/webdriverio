@@ -51,7 +51,7 @@ export function planChecks (
     }
 
     if (report.lanes.code || report.lanes.component || report.lanes.xvfb) {
-        steps.push({ name: 'test:eslint', cmd: ['pnpm', 'run', 'test:eslint'] })
+        steps.push({ name: 'test:oxlint', cmd: ['pnpm', 'run', 'test:oxlint'] })
     }
 
     for (const pkg of report.packages) {

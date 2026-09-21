@@ -231,11 +231,11 @@ block the PR.
   ```sh
   $ pnpm run test:depcheck
   ```
-- *ESLint*
-  A common ESLint test to align code styles and detect syntax errors early.
+- *Oxlint*
+  A common Oxlint test to align code styles and detect syntax errors early.
   You can manually trigger this check by calling:
   ```sh
-  $ pnpm run test:eslint
+  $ pnpm run test:oxlint
   ```
 - *TypeScript Definition Tests*
   As we generate our type definitions, we want to be cautious that the generated definitions actually define the interface as expected. Read more

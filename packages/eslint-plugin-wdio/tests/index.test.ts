@@ -141,6 +141,10 @@ test('should export proper plugin configuration', () => {
                 },
                 plugins: {
                     wdio: {
+                        meta: {
+                            name: 'eslint-plugin-wdio',
+                            version: pkg.version
+                        },
                         configs: {},
                         rules: {
                             'await-expect': expect.any(Object),

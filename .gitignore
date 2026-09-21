@@ -45,8 +45,9 @@ tests/typings/**/dist
 # Optional npm cache directory
 .npm
 
-# Optional eslint cache
+# Optional lint cache
 .eslintcache
+.oxlintcache
 
 # Optional REPL history
 .node_repl_history
@@ -70,9 +71,8 @@ packages/**/cjs/
 /*.js
 /*.mjs
 /*.ts
-!.eslintrc.js
 !vitest.config.ts
-!eslint.config.mjs
+!.oxlintrc.json
 packages/**/package-lock.json
 .DS_Store
 e2e/screenshot.pdf

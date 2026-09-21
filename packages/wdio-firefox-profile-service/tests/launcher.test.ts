@@ -110,7 +110,7 @@ describe('Firefox profile service', () => {
                 'browser.startup.homepage': 'https://webdriver.io',
             }
 
-            const capabilities: WebdriverIO.MultiremoteConfig['capabilities'] = [{
+            const capabilities: WebdriverIO.MultiRemoteConfig['capabilities'] = [{
                 firefox0 : {
                     capabilities : {
                         browserName : 'firefox',

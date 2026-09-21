@@ -45,7 +45,7 @@ export default class FirefoxProfileLauncher {
         }
 
         for (const [preference, value] of Object.entries(this._options)) {
-            if (['extensions', 'proxy', 'legacy', 'profileDirectory'].includes(preference)) {
+            if (['extensions', 'proxy', 'profileDirectory'].includes(preference)) {
                 continue
             }
 

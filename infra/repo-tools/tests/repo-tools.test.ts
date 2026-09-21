@@ -66,6 +66,7 @@ describe('classify', () => {
         const report = classify(['package.json', 'pnpm-lock.yaml'])
         expect(report.lanes.ci).toBe(true)
         expect(report.runAll).toBe(true)
+        expect(classify(['.oxlintrc.json']).runAll).toBe(true)
     })
 
     it('does not treat docs-generation as code', () => {
@@ -110,7 +111,7 @@ describe('parseArgs', () => {
 describe('planChecks', () => {
     it('plans package unit tests and typings for a command change', () => {
         const steps = planChecks(classify(['packages/webdriverio/src/commands/element/click.ts']))
-        expect(steps.some((step) => step.cmd?.join(' ') === 'pnpm run test:eslint')).toBe(true)
+        expect(steps.some((step) => step.cmd?.join(' ') === 'pnpm run test:oxlint')).toBe(true)
         expect(steps.some((step) => step.cmd?.join(' ') === 'pnpm run test:package webdriverio')).toBe(true)
         expect(steps.some((step) => step.cmd?.join(' ') === 'pnpm run test:typings:webdriverio')).toBe(true)
         expect(steps.some((step) => step.name === 'smoke')).toBe(false)

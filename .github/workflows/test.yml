@@ -57,7 +57,7 @@ jobs:
               - 'lerna.json'
               - 'tsconfig.json'
               - 'vitest.config.ts'
-              - 'eslint.config.mjs'
+              - '.oxlintrc.json'
             docs:
               - 'website/**'
               - 'scripts/docs-generation/**'
