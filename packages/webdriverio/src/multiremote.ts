@@ -98,18 +98,12 @@ export default class MultiRemote {
          * browser's `commandList`, so the loop would otherwise wrap it as a
          * command function and shadow the map.
          *
-         * When `select()` re-runs the modifier, copy the existing map carried
+         * When `select()` re-runs the modifier, reuse the existing map carried
          * over via `__propertiesObject__` so the selected browser keeps
          * previously registered strategies; otherwise start with a fresh map.
-         *
-         * It is a copy rather than the same map on purpose. A strategy registered
-         * on a narrowed browser only reaches the instances it selected, so sharing
-         * the map would let the parent claim a strategy that only some of its
-         * instances can resolve - and then reject registering it properly, because
-         * the name is already taken.
          */
         const inheritedStrategies = wrapperClient.__propertiesObject__?.strategies?.value as Map<unknown, unknown> | undefined
-        propertiesObject.strategies = { value: new Map(inheritedStrategies) }
+        propertiesObject.strategies = { value: inheritedStrategies ?? new Map() }
 
         propertiesObject.__propertiesObject__ = {
             value: propertiesObject
