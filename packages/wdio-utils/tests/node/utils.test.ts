@@ -4,12 +4,12 @@ import url from 'node:url'
 import cp from 'node:child_process'
 import fs from 'node:fs'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { canDownload, resolveBuildId, detectBrowserPlatform } from '@puppeteer/browsers'
+import { canDownload, resolveBuildId, detectBrowserPlatform, install } from '@puppeteer/browsers'
 import { locateChrome, locateApp } from 'locate-app'
 
 import {
     parseParams, getBuildIdByChromePath, getBuildIdByFirefoxPath, setupPuppeteerBrowser,
-    canAccess, getCacheDir
+    canAccess, getCacheDir, setupChromedriver
 } from '../../src/node/utils.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -73,6 +73,58 @@ vi.mock('@puppeteer/browsers', () => ({
     computeExecutablePath: vi.fn().mockReturnValue('/foo/bar/executable'),
     install: vi.fn().mockResolvedValue({})
 }))
+
+describe('setupChromedriver', () => {
+    /**
+     * `chrome` and `chromium` are both in the Chrome browser family, so a config with
+     * both asks for Chromedriver twice at the same time. The two installs used to race
+     * on one cache directory and the loser saw a folder that existed but had no
+     * executable in it yet (#15676).
+     */
+    it('shares one install between concurrent setups of the same driver', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(install).mockClear()
+        vi.mocked(install).mockImplementation(
+            () => new Promise((resolve) => setTimeout(() => resolve({} as never), 10))
+        )
+
+        try {
+            await Promise.all([
+                setupChromedriver('/some/cache', '116.0.5845.110'),
+                setupChromedriver('/some/cache', '116.0.5845.110')
+            ])
+
+            expect(install).toBeCalledTimes(1)
+        } finally {
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+            vi.mocked(install).mockResolvedValue({} as never)
+        }
+    })
+
+    it('does not share an install between different cache directories', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(install).mockClear()
+        vi.mocked(install).mockImplementation(
+            () => new Promise((resolve) => setTimeout(() => resolve({} as never), 10))
+        )
+
+        try {
+            await Promise.all([
+                setupChromedriver('/cache/one', '116.0.5845.110'),
+                setupChromedriver('/cache/two', '116.0.5845.110')
+            ])
+
+            expect(install).toBeCalledTimes(2)
+        } finally {
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+            vi.mocked(install).mockResolvedValue({} as never)
+        }
+    })
+})
 
 describe('driver utils', () => {
     beforeEach(() => {
