@@ -46,6 +46,7 @@ import {
     toFullName,
     toPackageLabel,
     toPackageLabelCucumber,
+    normalizeCapabilityName,
 } from './utils.js'
 import type { AddTestInfoEventArgs, AllureReporterOptions, WDIORuntimeMessage } from './types.js'
 import { DEFAULT_CID, events } from './constants.js'
@@ -126,6 +127,8 @@ export default class AllureReporter extends WDIOReporter {
     private _consoleOutput = ''
     private _originalStdoutWrite: typeof process.stdout.write
     private _isFlushing = false
+    private _flushChain: Promise<void> = Promise.resolve()
+    private _pendingFlushes = 0
     private _cid?: string
 
     private _testPlan: TestPlanV1 | undefined
@@ -153,7 +156,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     constructor(options: AllureReporterOptions) {
-        const { outputDir, resultsDir, ...rest } = options
+        const { outputDir, resultsDir, includeVersionInHistoryId: _includeVersionInHistoryId, ...rest } = options
 
         const normalizeTpl = (tpl?: string) => (tpl ? tpl.replace(/\{\}/g, '%s') : tpl)
 
@@ -305,9 +308,44 @@ export default class AllureReporter extends WDIOReporter {
         this._pushRuntimeMessage({ type: 'allure:suite:end', data: {} })
     }
 
+    /**
+     * Write out everything buffered so far without finalising the run, so results of
+     * completed tests reach the results directory while the run is still going. Flushes are
+     * chained so they cannot overlap.
+     */
+    private _flushIncrementally(): void {
+        const state = this._ensureState(this._currentCid())
+
+        this._beginFlush()
+        this._flushChain = this._flushChain
+            .then(() => state.processRuntimeMessage(false))
+            // the state's cursor stays on the message that threw, so the runner end pass
+            // retries it and rethrows if it still fails
+            .catch(() => {})
+            .then(() => this._endFlush())
+    }
+
+    private _beginFlush(): void {
+        this._pendingFlushes++
+        this._isFlushing = true
+    }
+
+    private _endFlush(): void {
+        this._pendingFlushes--
+        if (this._pendingFlushes === 0) {
+            this._isFlushing = false
+        }
+    }
+
     private _startTest(payload: { name: string; start: number; uuid?: string }): void {
         this._pushRuntimeMessage({ type: 'allure:test:start', data: payload })
         this._setTestParameters()
+        /**
+         * flush once the new test:start is buffered: a test is only written when the
+         * following test starts, because its own scope has to stay open past its test:end
+         * for "after each" hooks to attach to
+         */
+        this._flushIncrementally()
     }
 
     private _endTest(payload: {
@@ -340,27 +378,35 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     /**
-     * Stable key from current capabilities (browser/device + version) for hash.
+     * Stable key from current capabilities for historyId.
+     * Uses the browser/device family by default so history survives version bumps.
      * Must NOT include cid. Used to make historyId unique per environment.
      */
     private _getCapabilityKey(): string {
         if (this._isMultiremote) { return 'multiremote' }
         const capsUnknown: unknown = this._capabilities
-        const browserName = getStringField(capsUnknown, 'browserName')
-        const device = getStringField(capsUnknown, 'device')
         const desired: Record<string, unknown> | undefined = ((): Record<string, unknown> | undefined => {
             const maybe = (capsUnknown as Record<string, unknown>)?.['desired']
             return isRecord(maybe) ? maybe : undefined
         })()
+        const browserName = getStringField(capsUnknown, 'browserName')
+        const device = getStringField(capsUnknown, 'device')
         const deviceName =
             getStringField(desired, 'deviceName') ||
             getStringField(desired, 'appium:deviceName') ||
             getStringField(capsUnknown, 'deviceName') ||
             getStringField(capsUnknown, 'appium:deviceName')
-        let targetName = device || browserName || deviceName || ''
+        const targetName = device || browserName || deviceName || ''
+        if (!targetName) { return '' }
+
+        if (!this._options.includeVersionInHistoryId) {
+            return normalizeCapabilityName(targetName)
+        }
+
+        let versionedName = targetName.trim()
         const desiredPlatformVersion = getStringField(desired, 'appium:platformVersion')
         if (desired && deviceName && desiredPlatformVersion) {
-            targetName = `${device || deviceName} ${desiredPlatformVersion}`
+            versionedName = `${device || deviceName} ${desiredPlatformVersion}`
         }
         const version =
             getStringField(capsUnknown, 'os_version') ||
@@ -369,7 +415,7 @@ export default class AllureReporter extends WDIOReporter {
             getStringField(capsUnknown, 'version') ||
             getStringField(capsUnknown, 'appium:platformVersion') ||
             ''
-        return version ? `${targetName}-${version}`.trim() : targetName.trim()
+        return version ? `${versionedName}-${version}`.trim() : versionedName.trim()
     }
 
     /**
@@ -523,8 +569,13 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     async onRunnerEnd(_runner: RunnerStats): Promise<void> {
-        this._isFlushing = true
+        /**
+         * counted like any other flush, so an incremental flush finishing while we await it
+         * cannot report the reporter as synchronised while this pass is still writing
+         */
+        this._beginFlush()
         try {
+            await this._flushChain
             for (const [cid, state] of this.allureStatesByCid) {
                 await state.processRuntimeMessage()
                 this.allureStatesByCid.delete(cid)
@@ -533,7 +584,7 @@ export default class AllureReporter extends WDIOReporter {
             if (this._options.addConsoleLogs) {
                 process.stdout.write = this._originalStdoutWrite
             }
-            this._isFlushing = false
+            this._endFlush()
         }
         this._allureRuntime.writeEnvironmentInfo()
     }

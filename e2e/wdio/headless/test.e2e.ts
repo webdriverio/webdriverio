@@ -1,9 +1,10 @@
-/// <reference types="@wdio/lighthouse-service" />
-
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
+import { createServer } from 'node:http'
+import { once } from 'node:events'
+import type { AddressInfo } from 'node:net'
 import { browser, $, expect } from '@wdio/globals'
 
 import { imageSize } from 'image-size'
@@ -16,6 +17,30 @@ import { some } from 'expect-webdriverio/api'
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 describe('main suite 1', () => {
+    const navigationPages: Record<string, string> = {
+        '/window-a': '<title>Window Alpha</title><p id="alpha">Alpha</p>',
+        '/window-b': '<title>Window Beta</title><p id="beta">Beta</p>',
+        '/frames': '<title>Frame Demo</title><iframe src="/frame-a"></iframe>',
+        '/frame-a': '<title>IFrame A</title><iframe src="/frame-a2"></iframe>',
+        '/frame-a2': '<title>IFrame A2</title><h1>Nested frame</h1>'
+    }
+    const navigationServer = createServer((request, response) => {
+        response.setHeader('Content-Type', 'text/html; charset=utf-8')
+        response.end(navigationPages[request.url || '/'] || '')
+    })
+    let navigationOrigin: string
+
+    before(async () => {
+        navigationServer.listen(0, '127.0.0.1')
+        await once(navigationServer, 'listening')
+        navigationOrigin = `http://127.0.0.1:${(navigationServer.address() as AddressInfo).port}`
+    })
+
+    after(async () => {
+        const closed = new Promise<void>((resolve, reject) => navigationServer.close((error) => error ? reject(error) : resolve()))
+        navigationServer.closeAllConnections()
+        await closed
+    })
 
     it('supports snapshot testing', async () => {
         await browser.url('https://guinea-pig.webdriver.io/')
@@ -86,26 +111,6 @@ describe('main suite 1', () => {
         })
     })
 
-    it.skip('should allow to check for PWA', async () => {
-        await browser.url('https://webdriver.io')
-
-        await browser.pause(100)
-        expect((await browser.checkPWA([
-            'isInstallable',
-            'splashScreen',
-            'themedOmnibox',
-            'contentWith',
-            'viewport',
-            'appleTouchIcon',
-            'maskableIcon'
-        ])).passed).toBe(true)
-    })
-
-    it.skip('should also detect non PWAs', async () => {
-        await browser.url('https://json.org')
-        expect((await browser.checkPWA()).passed).toBe(false)
-    })
-
     it('can query shadow elements', async () => {
         await browser.url('https://the-internet.herokuapp.com/shadowdom')
         await $('h1').waitForDisplayed()
@@ -148,33 +153,6 @@ describe('main suite 1', () => {
 
             await browser.setViewport(viewport)
         })
-    })
-
-    describe.skip('Lighthouse Service Performance Testing capabilities', () => {
-        before(() => browser.enablePerformanceAudits())
-
-        it('should allow to do performance tests', async () => {
-            await browser.url('http://json.org')
-            const metrics = await browser.getMetrics()
-            expect(typeof metrics.serverResponseTime).toBe('number')
-            expect(typeof metrics.domContentLoaded).toBe('number')
-            expect(typeof metrics.firstVisualChange).toBe('number')
-            expect(typeof metrics.firstPaint).toBe('number')
-            expect(typeof metrics.firstContentfulPaint).toBe('number')
-            expect(typeof metrics.firstMeaningfulPaint).toBe('number')
-            expect(typeof metrics.largestContentfulPaint).toBe('number')
-            expect(typeof metrics.lastVisualChange).toBe('number')
-            expect(typeof metrics.interactive).toBe('number')
-            expect(typeof metrics.load).toBe('number')
-            expect(typeof metrics.speedIndex).toBe('number')
-            expect(typeof metrics.totalBlockingTime).toBe('number')
-            expect(typeof metrics.maxPotentialFID).toBe('number')
-            expect(typeof metrics.cumulativeLayoutShift).toBe('number')
-            const score = await browser.getPerformanceScore()
-            expect(typeof score).toBe('number')
-        })
-
-        after(() => browser.disablePerformanceAudits())
     })
 
     it.skip('should be able to scroll up and down', async () => {
@@ -245,7 +223,9 @@ describe('main suite 1', () => {
             await browser.$('#parent').waitForExist()
         })
 
-        it('moveTo without iframe', async () => {
+        it('moveTo without iframe', async function () {
+            // Unstable on Windows: expected "center", received "center\nout"
+            this.retries(3)
             await browser.$('#parent').moveTo()
             await expect(browser.$('#text')).toHaveValue('center')
         })
@@ -651,20 +631,22 @@ describe('main suite 1', () => {
         })
 
         it('should allow user to switch between contexts', async function() {
-            this.retries(3) // Unstable fails with `Error: Timeout`
-            await browser.url('https://guinea-pig.webdriver.io/')
+            await browser.url(`${navigationOrigin}/window-a`)
+            const firstHandle = await browser.getWindowHandle()
 
-            await browser.newWindow('https://webdriver.io')
-            await expect($('.hero__subtitle')).toBePresent()
-            await expect($('.red')).not.toBePresent()
+            const { handle: secondHandle } = await browser.newWindow(`${navigationOrigin}/window-b`)
+            await expect($('#beta')).toBePresent()
+            await expect($('#alpha')).not.toBePresent()
 
-            await browser.switchWindow('guinea-pig.webdriver.io')
-            await expect($('.red')).toBePresent()
-            await expect($('.hero__subtitle')).not.toBePresent()
+            await browser.switchWindow(`${navigationOrigin}/window-a`)
+            expect(await browser.getWindowHandle()).toBe(firstHandle)
+            await expect($('#alpha')).toBePresent()
+            await expect($('#beta')).not.toBePresent()
 
-            await browser.switchWindow('Next-gen browser and mobile automation test framework for Node.js')
-            await expect($('.hero__subtitle')).toBePresent()
-            await expect($('.red')).not.toBePresent()
+            await browser.switchWindow('Window Beta')
+            expect(await browser.getWindowHandle()).toBe(secondHandle)
+            await expect($('#beta')).toBePresent()
+            await expect($('#alpha')).not.toBePresent()
         })
 
         it.skip('should not switch window if requested window was not found', async () => {
@@ -721,11 +703,11 @@ describe('main suite 1', () => {
         })
 
         it('can switch to a frame via url', async function() {
-            this.retries(3) // Unstable fails with `Error: Timeout`
-            await browser.url('https://guinea-pig.webdriver.io/iframe.html')
-            await browser.switchFrame('https://guinea-pig.webdriver.io/iframeA2.html')
+            await browser.url(`${navigationOrigin}/frames`)
+            await browser.switchFrame(`${navigationOrigin}/frame-a2`)
             expect(await browser.execute(() => [document.title, document.URL]))
-                .toEqual(['IFrame A2', 'https://guinea-pig.webdriver.io/iframeA2.html'])
+                .toEqual(['IFrame A2', `${navigationOrigin}/frame-a2`])
+            expect(await browser.getElementText((await $('h1')).elementId)).toBe('Nested frame')
         })
 
         it('can switch to a frame via element', async () => {

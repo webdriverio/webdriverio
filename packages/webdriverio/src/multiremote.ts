@@ -94,6 +94,23 @@ export default class MultiRemote {
             }
         }
 
+        /**
+         * The wrapper client needs its own `strategies` map so
+         * `addLocatorStrategy` does not crash and can be propagated to the
+         * instances by `addLocatorStrategyHandler` (#15540). This is set after
+         * the command-wrapping loop above on purpose: `strategies` is part of a
+         * browser's `commandList`, so the loop would otherwise wrap it as a
+         * command function and shadow the map.
+         *
+         * When `select()` re-runs the modifier, reuse the existing map carried
+         * over via `__propertiesObject__` so the selected browser keeps
+         * previously registered strategies; otherwise start with a fresh map.
+         */
+        const inheritedStrategies = enableMultiRemoteSelect
+            ? (wrapperClient.__propertiesObject__?.strategies?.value as Map<unknown, unknown> | undefined)
+            : undefined
+        propertiesObject.strategies = { value: inheritedStrategies ?? new Map() }
+
         propertiesObject.__propertiesObject__ = {
             value: propertiesObject
         }
@@ -278,42 +295,42 @@ export class MultiRemoteDriver {
     }
 
     on (this: WebdriverIO.MultiRemoteBrowser, eventName: keyof WebdriverIOEventMap, emitter: EventEmitter) {
-        this.instances.forEach((instanceName) => this.getInstance(instanceName).on(eventName, emitter))
+        this.instances.forEach((instanceName) => this.getInstance(instanceName)!.on(eventName, emitter))
         return undefined
     }
 
     once (this: WebdriverIO.MultiRemoteBrowser, eventName: keyof WebdriverIOEventMap, emitter: EventEmitter) {
-        this.instances.forEach((instanceName) => this.getInstance(instanceName).once(eventName, emitter))
+        this.instances.forEach((instanceName) => this.getInstance(instanceName)!.once(eventName, emitter))
         return undefined
     }
 
     emit (this: WebdriverIO.MultiRemoteBrowser, eventName: keyof WebdriverIOEventMap, emitter: EventEmitter) {
         return this.instances.map(
-            (instanceName) => this.getInstance(instanceName).emit(eventName, emitter)
+            (instanceName) => this.getInstance(instanceName)!.emit(eventName, emitter)
         ).some(Boolean)
     }
 
     eventNames (this: WebdriverIO.MultiRemoteBrowser) {
         return this.instances.map(
-            (instanceName) => this.getInstance(instanceName).eventNames()
+            (instanceName) => this.getInstance(instanceName)!.eventNames()
         )
     }
 
     getMaxListeners (this: WebdriverIO.MultiRemoteBrowser) {
         return this.instances.map(
-            (instanceName) => this.getInstance(instanceName).getMaxListeners()
+            (instanceName) => this.getInstance(instanceName)!.getMaxListeners()
         )
     }
 
     listenerCount (this: WebdriverIO.MultiRemoteBrowser, eventName: string) {
         return this.instances.map(
-            (instanceName) => this.getInstance(instanceName).listenerCount(eventName)
+            (instanceName) => this.getInstance(instanceName)!.listenerCount(eventName)
         )
     }
 
     listeners (this: WebdriverIO.MultiRemoteBrowser, eventName: string) {
         return this.instances.map(
-            (instanceName) => this.getInstance(instanceName).listeners(eventName)
+            (instanceName) => this.getInstance(instanceName)!.listeners(eventName)
         ).reduce((prev, cur) => {
             prev.concat(cur)
             return prev
@@ -321,12 +338,12 @@ export class MultiRemoteDriver {
     }
 
     removeListener (this: WebdriverIO.MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
-        this.instances.forEach((instanceName) => this.getInstance(instanceName).removeListener(eventName, emitter))
+        this.instances.forEach((instanceName) => this.getInstance(instanceName)!.removeListener(eventName, emitter))
         return undefined
     }
 
     removeAllListeners (this: WebdriverIO.MultiRemoteBrowser, eventName: string) {
-        this.instances.forEach((instanceName) => this.getInstance(instanceName).removeAllListeners(eventName))
+        this.instances.forEach((instanceName) => this.getInstance(instanceName)!.removeAllListeners(eventName))
         return undefined
     }
 }

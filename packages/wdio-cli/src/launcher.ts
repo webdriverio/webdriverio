@@ -1,3 +1,4 @@
+import fs from 'node:fs/promises'
 import exitHook from 'async-exit-hook'
 import { resolve } from 'import-meta-resolve'
 
@@ -32,7 +33,12 @@ export interface EndMessage {
     cid: string, // is actually rid
     exitCode: number,
     specs: string[],
-    retries: number
+    retries: number,
+    /**
+     * set if the worker was terminated by a signal instead of exiting on its
+     * own, in which case `exitCode` is derived from that signal
+     */
+    signal?: NodeJS.Signals | null
 }
 
 class Launcher {
@@ -50,6 +56,7 @@ class Launcher {
     private _rid: number[] = []
     private _runnerStarted = 0
     private _runnerFailed = 0
+    private _hasLoggedProfiling = false
 
     private _launcher?: Services.ServiceInstance[]
     private _resolve?: Function
@@ -503,6 +510,51 @@ class Launcher {
 
         // if you would like to add --debug-brk, use a different port, etc...
         const capExecArgs = [...(config.execArgv || [])]
+        const profilingArgs: string[] = []
+        const enableCpuProf = Boolean(this._args.cpuProf || config.cpuProf)
+        const enableHeapProf = Boolean(this._args.heapProf || config.heapProf)
+        const profileOutputDir = config.profileOutputDir || './profiles'
+
+        if (enableCpuProf || enableHeapProf) {
+            try {
+                await fs.mkdir(profileOutputDir, { recursive: true })
+            } catch (err) {
+                log.warn(`Failed to create profiling output directory "${profileOutputDir}": ${(err as Error).message}`)
+            }
+
+            if (!this._hasLoggedProfiling) {
+                const enabled = [
+                    enableCpuProf ? 'CPU' : undefined,
+                    enableHeapProf ? 'Heap' : undefined
+                ].filter(Boolean).join(' + ')
+                log.info(`Profiling enabled (${enabled}). Output: ${profileOutputDir}`)
+                this._hasLoggedProfiling = true
+            }
+        }
+
+        const hasExecArg = (argPrefix: string) => capExecArgs.some((arg) => (
+            arg === `--${argPrefix}` || arg.startsWith(`--${argPrefix}=`)
+        ))
+
+        if (enableCpuProf) {
+            if (!hasExecArg('cpu-prof')) {
+                profilingArgs.push('--cpu-prof')
+            }
+            if (!hasExecArg('cpu-prof-dir')) {
+                profilingArgs.push(`--cpu-prof-dir=${profileOutputDir}`)
+            }
+        }
+
+        if (enableHeapProf) {
+            if (!hasExecArg('heap-prof')) {
+                profilingArgs.push('--heap-prof')
+            }
+            if (!hasExecArg('heap-prof-dir')) {
+                profilingArgs.push(`--heap-prof-dir=${profileOutputDir}`)
+            }
+        }
+
+        capExecArgs.push(...profilingArgs)
 
         // The default value for child.fork execArgs is process.execArgs,
         // so continue to use this unless another value is specified in config.
@@ -590,8 +642,9 @@ class Launcher {
      * @param  {number} exitCode  exit code of child process
      * @param  {Array} specs      Specs that were run
      * @param  {number} retries   Number or retries remaining
+     * @param  {string} signal    signal that terminated the worker, if any
      */
-    private async _endHandler({ cid: rid, exitCode, specs, retries }: EndMessage): Promise<void> {
+    private async _endHandler({ cid: rid, exitCode, specs, retries, signal }: EndMessage): Promise<void> {
         const passed = this._isWatchModeHalted() || exitCode === 0
 
         if (!passed && retries > 0) {
@@ -621,9 +674,9 @@ class Launcher {
 
         log.info('Run onWorkerEnd hook')
         const config = this.configParser.getConfig()
-        await runLauncherHook(config.onWorkerEnd, rid, exitCode, specs, retries)
+        await runLauncherHook(config.onWorkerEnd, rid, exitCode, specs, retries, signal)
             .catch((error) => this._workerHookError(error))
-        await runServiceHook(this._launcher!, 'onWorkerEnd', rid, exitCode, specs, retries)
+        await runServiceHook(this._launcher!, 'onWorkerEnd', rid, exitCode, specs, retries, signal)
             .catch((error) => this._workerHookError(error))
 
         /**

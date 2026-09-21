@@ -517,6 +517,27 @@ Node arguments to specify when launching child processes.
 Type: `String[]`<br />
 Default: `null`
 
+### cpuProf
+
+Enable CPU profiling for the worker process. The profile will be generated automatically when the worker process exits.
+
+Type: `Boolean`<br />
+Default: `false`
+
+### heapProf
+
+Enable Heap profiling for the worker process. The snapshot will be generated automatically when the worker process exits (uses sampling heap profiler).
+
+Type: `Boolean`<br />
+Default: `false`
+
+### profileOutputDir
+
+Directory where the CPU profiles (`.cpuprofile`) and Heap profiles (`.heapprofile`) will be saved.
+
+Type: `String`<br />
+Default: `./profiles`
+
 ### filesToWatch
 
 A list of glob supporting string patterns that tell the testrunner to have it additionally watch other files, e.g. application files, when running it with the `--watch` flag. By default the testrunner already watches all spec files.
@@ -589,9 +610,10 @@ Gets executed just after a worker process has exited.
 Parameters:
 
 - `cid` (`string`): capability id (e.g 0-0)
-- `exitCode` (`number`): 0 - success, 1 - fail
+- `exitCode` (`number`): 0 - success, 1 - fail. A worker that was terminated by a signal reports `128` + the signal number instead, e.g. `139` for a `SIGSEGV`
 - `specs` (`string[]`): specs to be run in the worker process
 - `retries` (`number`): number of spec level retries used as defined in [_"Add retries on a per-specfile basis"_](./Retry.md#add-retries-on-a-per-specfile-basis)
+- `signal` (`string`): signal that terminated the worker, e.g. `SIGSEGV`, or `null` if it exited on its own
 
 ### beforeSession
 

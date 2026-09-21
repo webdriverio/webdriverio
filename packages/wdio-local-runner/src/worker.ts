@@ -1,5 +1,6 @@
 import url from 'node:url'
 import path from 'node:path'
+import { constants } from 'node:os'
 import { EventEmitter } from 'node:events'
 import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
@@ -22,6 +23,26 @@ const stdOutStream = new RunnerStream()
 const stdErrStream = new RunnerStream()
 stdOutStream.pipe(process.stdout)
 stdErrStream.pipe(process.stderr)
+
+/**
+ * signals that are expected while the test run is shutting down and therefore
+ * shouldn't be reported as a crash
+ */
+const GRACEFUL_SHUTDOWN_SIGNALS: NodeJS.Signals[] = ['SIGTERM', 'SIGINT']
+const SIGNAL_EXIT_CODE_OFFSET = 128
+const UNKNOWN_SIGNAL_EXIT_CODE = 1
+
+/**
+ * a process terminated by a signal carries no exit code, so fall back to the
+ * shell convention of `128 + signal number` (e.g. 139 for `SIGSEGV`). Returning
+ * a real number matters beyond the log line: the launcher accumulates worker
+ * results with `this._exitCode || exitCode`, so a falsy `null` is dropped and a
+ * crashed worker can end up reporting a passing run.
+ */
+function getExitCodeForSignal (signal: NodeJS.Signals | null) {
+    const signalNumber = signal ? constants.signals[signal] : undefined
+    return signalNumber ? SIGNAL_EXIT_CODE_OFFSET + signalNumber : UNKNOWN_SIGNAL_EXIT_CODE
+}
 
 /**
  * WorkerInstance
@@ -99,9 +120,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         const { cid, execArgv } = this
         const argv = process.argv.slice(2)
 
-        const runnerEnv = Object.assign({
-            NODE_OPTIONS: '--enable-source-maps',
-        }, process.env, this.config.runnerEnv, {
+        const runnerEnv = Object.assign({}, process.env, this.config.runnerEnv, {
             WDIO_WORKER_ID: cid,
             NODE_ENV: process.env.NODE_ENV || 'test'
         })
@@ -116,9 +135,22 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         }
 
         /**
-         * propagate node flags to child process, e.g. `--import tsx`
+         * Guarantee `--enable-source-maps` in the worker so its stack traces map
+         * back to source, without discarding any node flags the user already set.
+         * `runnerEnv.NODE_OPTIONS` here is the resolved value (`config.runnerEnv`
+         * takes precedence over the parent `process.env`), so it may carry
+         * user-supplied flags with operands, e.g. `--import tsx` or repeated
+         * `--require a.js --require b.js`. Append the flag as a whole token only
+         * when it is not already present, rather than splitting and de-duplicating
+         * every token (which would detach an option from its value).
          */
-        runnerEnv.NODE_OPTIONS = process.env.NODE_OPTIONS + ' ' + (runnerEnv.NODE_OPTIONS || '')
+        const nodeOptions = (runnerEnv.NODE_OPTIONS ?? '').trim()
+        const hasSourceMaps = nodeOptions
+            .split(' ')
+            .includes('--enable-source-maps')
+        runnerEnv.NODE_OPTIONS = hasSourceMaps
+            ? nodeOptions
+            : `${nodeOptions} --enable-source-maps`.trim()
 
         log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
 
@@ -233,8 +265,14 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         this.emit('error', Object.assign(payload, { cid }))
     }
 
-    private _handleExit (exitCode: number) {
+    /**
+     * Node calls this with `(code, signal)` where `code` is `null` whenever the
+     * worker was terminated by a signal rather than exiting on its own, e.g. on
+     * a segmentation fault. Only the second argument identifies that case.
+     */
+    private _handleExit (exitCode: number | null, signal: NodeJS.Signals | null = null) {
         const { cid, childProcess, specs, retries } = this
+        const wasKilledIntentionally = this.isKilled
 
         /**
          * delete process of worker
@@ -243,8 +281,24 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         this.isBusy = false
         this.isKilled = true
 
-        log.debug(`Runner ${cid} finished with exit code ${exitCode}`)
-        this.emit('exit', { cid, exitCode, specs, retries })
+        const resolvedExitCode = exitCode ?? getExitCodeForSignal(signal)
+        const crashed = signal !== null && !wasKilledIntentionally && !GRACEFUL_SHUTDOWN_SIGNALS.includes(signal)
+
+        /**
+         * a crashing worker produces no output of its own, so this is the only
+         * chance to tell the user why the spec disappeared
+         */
+        if (crashed) {
+            log.error(
+                `Runner ${cid} was terminated by ${signal} and did not report an exit code. ` +
+                `The spec file(s) ${specs.join(', ')} are reported as failed with exit code ${resolvedExitCode}. ` +
+                'This usually means the process ran out of memory or a native module crashed.'
+            )
+        } else {
+            log.debug(`Runner ${cid} finished with exit code ${resolvedExitCode}`)
+        }
+
+        this.emit('exit', { cid, exitCode: resolvedExitCode, specs, retries, signal })
 
         if (childProcess) {
             childProcess.kill('SIGTERM')

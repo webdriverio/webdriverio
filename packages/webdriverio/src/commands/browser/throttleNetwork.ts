@@ -11,6 +11,11 @@
  *
  * :::info
  *
+ * Service workers initiate requests through their own network stack. This
+ * command applies the throttling conditions to every service worker that is
+ * registered at the time of the call. If your app registers a service worker
+ * afterwards, call `throttleNetwork` again to cover it.
+ *
  * Note that using the `throttleNetwork` command requires support for Chrome DevTools protocol and e.g.
  * can not be used when running automated tests in the cloud. Chrome DevTools protocol is not installed by default,
  * use `npm install puppeteer-core` to install it.
@@ -44,7 +49,10 @@
  *
  */
 import { getBrowserObject } from '@wdio/utils'
+import logger from '@wdio/logger'
 import type { ThrottleOptions } from '../../types.js'
+
+const log = logger('webdriverio:throttleNetwork')
 
 const NETWORK_PRESETS = {
     'offline': {
@@ -151,15 +159,42 @@ export async function throttleNetwork (
         throw new Error(failedConnectionMessage)
     }
 
+    const conditions = typeof params === 'string'
+        ? NETWORK_PRESETS[params]
+        : params
+
     const client = await pages[0].target().createCDPSession()
 
     // Set throttling property
-    await client.send(
-        'Network.emulateNetworkConditions',
-        typeof params === 'string'
-            ? NETWORK_PRESETS[params]
-            : params
-    )
+    await client.send('Network.emulateNetworkConditions', conditions)
+
+    /**
+     * `Network.emulateNetworkConditions` is scoped to the CDP session it is
+     * sent on, and service workers run in their own target with their own
+     * session. Requests initiated by a service worker therefore bypass the
+     * page level emulation entirely. Apply the same conditions to every
+     * registered service worker so that offline-first apps can actually be
+     * tested. Service workers registered after this command ran are not
+     * covered and need `throttleNetwork` to be called again.
+     */
+    const serviceWorkers = this.puppeteer
+        .targets()
+        .filter((target) => target.type() === 'service_worker')
+
+    for (const serviceWorker of serviceWorkers) {
+        try {
+            const serviceWorkerClient = await serviceWorker.createCDPSession()
+            await serviceWorkerClient.send('Network.enable')
+            await serviceWorkerClient.send('Network.emulateNetworkConditions', conditions)
+        } catch {
+            /**
+             * the worker can terminate between enumerating the targets and
+             * attaching to it — skip it instead of failing the whole command
+             * after the page session was already throttled
+             */
+            log.debug('Skipped network throttling for a service worker that terminated during attach')
+        }
+    }
 
     return
 }

@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import { describe, it, expect, vi } from 'vitest'
-import { findStrategy } from '../src/utils/findStrategy.js'
+import { escapeXPathString, findStrategy } from '../src/utils/findStrategy.js'
 
 import '../src/node.js'
 
@@ -9,6 +9,24 @@ vi.mock('fs', () => ({
         readFileSync: vi.fn().mockReturnValue('random string')
     }
 }))
+
+describe('escapeXPathString', () => {
+    it('wraps strings without quotes in double quotes', () => {
+        expect(escapeXPathString('foobar')).toBe('"foobar"')
+    })
+
+    it('wraps strings that contain double quotes in single quotes', () => {
+        expect(escapeXPathString('foo"bar')).toBe('\'foo"bar\'')
+    })
+
+    it('wraps strings that contain single quotes in double quotes', () => {
+        expect(escapeXPathString("foo'bar")).toBe('"foo\'bar"')
+    })
+
+    it('uses concat when a string contains both quote types', () => {
+        expect(escapeXPathString('foo"bar\'baz')).toBe('concat("foo", \'"\', "bar\'baz")')
+    })
+})
 
 describe('selector strategies helper', () => {
     it('should find an element using "css selector" method', () => {
@@ -553,5 +571,21 @@ describe('selector strategies helper', () => {
         const element = findStrategy('aria/foobar')
         expect(element.using).toBe('xpath')
         expect(element.value).toMatchSnapshot()
+    })
+
+    it('should use the BiDi accessibility strategy for aria selectors', () => {
+        const element = findStrategy('aria/foobar', true, false, true)
+        expect(element.using).toBe('aria')
+        expect(element.value).toBe('foobar')
+    })
+
+    it('should escape quotes in aria xpath selectors', () => {
+        const doubleQuoted = findStrategy('aria/foo"bar')
+        expect(doubleQuoted.using).toBe('xpath')
+        expect(doubleQuoted.value).toContain('@aria-label = \'foo"bar\'')
+        expect(doubleQuoted.value).not.toContain('@aria-label = "foo"bar"')
+
+        const mixed = findStrategy('aria/foo"bar\'baz')
+        expect(mixed.value).toContain('concat("foo", \'"\', "bar\'baz")')
     })
 })

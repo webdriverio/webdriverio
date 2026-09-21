@@ -50,6 +50,13 @@
     "npmUrl": "https://www.npmjs.com/package/@wdio/tauri-service"
   },
   {
+    "packageName": "@wdio/dioxus-service",
+    "title": "Dioxus",
+    "location": "packages/dioxus-service/README.md",
+    "githubUrl": "https://github.com/webdriverio/desktop-mobile",
+    "npmUrl": "https://www.npmjs.com/package/@wdio/dioxus-service"
+  },
+  {
     "packageName": "wdio-gmail-service",
     "title": "Gmail",
     "githubUrl": "https://github.com/webdriverio-community/wdio-gmail-service",

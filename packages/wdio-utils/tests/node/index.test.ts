@@ -275,6 +275,29 @@ describe('startWebDriver', () => {
         )
     })
 
+    it('should retry Chromedriver spawn on EBUSY', async () => {
+        const busy = Object.assign(new Error('spawn EBUSY'), { code: 'EBUSY', errno: -4082, syscall: 'spawn' })
+        const child = {
+            stdout: { pipe: vi.fn().mockReturnValue({ on: vi.fn() }) },
+            stderr: { pipe: vi.fn().mockReturnValue({ on: vi.fn() }) }
+        }
+        vi.mocked(cp.spawn)
+            .mockImplementationOnce(() => { throw busy })
+            .mockImplementationOnce(() => { throw busy })
+            .mockImplementationOnce(() => child as never)
+
+        const options = {
+            capabilities: {
+                browserName: 'chrome',
+                'wdio:chromedriverOptions': { foo: 'bar' }
+            } as any
+        }
+        const res = await startWebDriver(options)
+        expect(Boolean(res?.stdout)).toBe(true)
+        expect(cp.spawn).toBeCalledTimes(3)
+        expect(logMock.warn).toHaveBeenCalled()
+    })
+
     it('should download Chromedriver from the default CDN if no custom one is set', async () => {
         await setupChromedriver('/foo/bar/cache', '115.0.5790.171')
         expect(canDownload).toBeCalledWith(expect.objectContaining({ baseUrl: undefined }))
@@ -784,7 +807,6 @@ describe('startWebDriver', () => {
         expect(userDataArg).toContain('0-1')
 
         delete process.env.WDIO_WORKER_ID
-        // @ts-ignore
         // @ts-ignore
         os.__setPlatform('linux')
         Object.defineProperty(process, 'platform', {

@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import logger from '@wdio/logger'
 import type { Workers } from '@wdio/types'
+import { ProcessFactory } from '@wdio/xvfb'
 
 import Worker from '../src/worker.js'
 
@@ -61,7 +62,7 @@ describe('handleMessage', () => {
         worker.emit = vi.fn()
         worker['_handleMessage']({ name: 'testFrameworkInit', specFileRetries: 3 } as unknown as Workers.WorkerMessage)
         worker['_handleExit'](1)
-        expect(worker.emit).toBeCalledWith('exit', { cid: '0-3', exitCode: 1, specs: ['/some/spec'], retries: 2 })
+        expect(worker.emit).toBeCalledWith('exit', { cid: '0-3', exitCode: 1, specs: ['/some/spec'], retries: 2, signal: null })
     })
 
     it('does not touch an already resolved retry budget on testFrameworkInit', () => {
@@ -127,8 +128,78 @@ describe('handleExit', () => {
             cid: '0-3',
             exitCode: 42,
             retries: 0,
-            specs: ['/some/spec']
+            specs: ['/some/spec'],
+            signal: null
         })
+    })
+
+    it('derives a non zero exit code from the signal if the worker was killed by one', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const childProcess = { kill: vi.fn() }
+        worker.childProcess = childProcess as unknown as ChildProcess
+        worker.emit = vi.fn()
+        worker['_handleExit'](null, 'SIGSEGV')
+
+        expect(worker.emit).toBeCalledWith('exit', {
+            cid: '0-3',
+            exitCode: 139,
+            retries: 0,
+            specs: ['/some/spec'],
+            signal: 'SIGSEGV'
+        })
+    })
+
+    it('reports a crashed worker as failed so it is not swallowed by the launcher', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        worker.emit = vi.fn()
+        worker['_handleExit'](null, 'SIGSEGV')
+
+        const { exitCode } = vi.mocked(worker.emit).mock.calls[0][1] as { exitCode: number }
+        expect(exitCode).not.toBe(0)
+        expect(exitCode).toBeTruthy()
+    })
+
+    it('falls back to a generic failure code if neither exit code nor signal is known', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        worker.emit = vi.fn()
+        worker['_handleExit'](null, null)
+
+        expect(worker.emit).toBeCalledWith('exit', expect.objectContaining({ exitCode: 1, signal: null }))
+    })
+
+    it('logs an error explaining the crash', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const log = logger('@wdio/local-runner')
+        worker.emit = vi.fn()
+        vi.mocked(log.error).mockClear()
+        worker['_handleExit'](null, 'SIGSEGV')
+
+        expect(log.error).toBeCalledTimes(1)
+        expect(vi.mocked(log.error).mock.calls[0][0]).toContain('SIGSEGV')
+        expect(vi.mocked(log.error).mock.calls[0][0]).toContain('/some/spec')
+    })
+
+    it('does not report an expected shutdown signal as a crash', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const log = logger('@wdio/local-runner')
+        worker.emit = vi.fn()
+        vi.mocked(log.error).mockClear()
+        worker['_handleExit'](null, 'SIGTERM')
+
+        expect(log.error).not.toBeCalled()
+        expect(worker.emit).toBeCalledWith('exit', expect.objectContaining({ exitCode: 143, signal: 'SIGTERM' }))
+    })
+
+    it('does not report a deliberately killed worker as a crash', () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const log = logger('@wdio/local-runner')
+        worker.childProcess = { kill: vi.fn() } as unknown as ChildProcess
+        worker.emit = vi.fn()
+        vi.mocked(log.error).mockClear()
+        worker.kill('SIGKILL')
+        worker['_handleExit'](null, 'SIGKILL')
+
+        expect(log.error).not.toBeCalled()
     })
 })
 
@@ -242,5 +313,88 @@ describe('postMessage', () => {
 
         // and no unhandled rejection — the send is safely skipped
         await worker.isReady
+    })
+})
+
+describe('startProcess NODE_OPTIONS', () => {
+    const runStartProcess = async (
+        parentNodeOptions: string | undefined,
+        runnerEnv?: Record<string, string>
+    ) => {
+        const original = process.env.NODE_OPTIONS
+        if (parentNodeOptions === undefined) {
+            delete process.env.NODE_OPTIONS
+        } else {
+            process.env.NODE_OPTIONS = parentNodeOptions
+        }
+
+        const createWorkerProcess = vi
+            .spyOn(ProcessFactory.prototype, 'createWorkerProcess')
+            .mockResolvedValue({
+                on: vi.fn(),
+                stdout: null,
+                stderr: null,
+            } as unknown as ChildProcess)
+
+        try {
+            const worker = new Worker(
+                (runnerEnv ? { runnerEnv } : {}) as any,
+                workerConfig,
+                new WritableStreamBuffer(),
+                new WritableStreamBuffer(),
+                mockXvfbManager as any
+            )
+            await worker.startProcess()
+            const options = createWorkerProcess.mock.calls[0]![2] as { env: Record<string, string> }
+            return options.env.NODE_OPTIONS
+        } finally {
+            createWorkerProcess.mockRestore()
+            if (original === undefined) {
+                delete process.env.NODE_OPTIONS
+            } else {
+                process.env.NODE_OPTIONS = original
+            }
+        }
+    }
+
+    it('always enables source maps in the worker when the parent has no NODE_OPTIONS', async () => {
+        const nodeOptions = await runStartProcess(undefined)
+        // must not leak a literal "undefined" and must keep source maps
+        expect(nodeOptions).toBe('--enable-source-maps')
+    })
+
+    it('preserves parent node flags and still enables source maps', async () => {
+        const nodeOptions = await runStartProcess('--import tsx')
+        const flags = nodeOptions.split(' ')
+        expect(flags).toContain('--import')
+        expect(flags).toContain('tsx')
+        expect(flags).toContain('--enable-source-maps')
+    })
+
+    it('does not duplicate parent flags or --enable-source-maps', async () => {
+        const nodeOptions = await runStartProcess('--enable-source-maps --import tsx')
+        const occurrences = nodeOptions
+            .split(' ')
+            .filter((flag) => flag === '--enable-source-maps').length
+        expect(occurrences).toBe(1)
+        expect(nodeOptions).not.toContain('undefined')
+    })
+
+    it('preserves worker NODE_OPTIONS set via config.runnerEnv', async () => {
+        const nodeOptions = await runStartProcess(undefined, { NODE_OPTIONS: '--import tsx' })
+        const flags = nodeOptions.split(' ')
+        // config.runnerEnv is the supported worker-env injection point and must
+        // not be discarded in favour of the (here empty) parent NODE_OPTIONS
+        expect(flags).toContain('--import')
+        expect(flags).toContain('tsx')
+        expect(flags).toContain('--enable-source-maps')
+    })
+
+    it('keeps repeated option/value pairs intact', async () => {
+        const nodeOptions = await runStartProcess('--require a.js --require b.js')
+        // both operands must stay attached to their --require option
+        expect(nodeOptions).toContain('--require a.js')
+        expect(nodeOptions).toContain('--require b.js')
+        expect(nodeOptions).toContain('--enable-source-maps')
     })
 })

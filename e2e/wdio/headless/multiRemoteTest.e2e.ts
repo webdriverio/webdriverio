@@ -13,21 +13,6 @@ describe('multi remote test', () => {
         browserB = multiRemoteBrowser.getInstance('browserB')
     })
 
-    it.skip('should also detect non PWAs', async () => {
-        await browserA.url('https://json.org')
-        await browserB.url('https://webdriver.io')
-
-        await multiRemoteBrowser.pause(1000)
-
-        /**
-         * Unfortunately we don't know which result is from which browser
-         */
-        const results = (await multiRemoteBrowser.checkPWA() as unknown as []).map((result: { passed: boolean }) => result.passed)
-        expect(typeof results[0]).toBe('boolean')
-        expect(typeof results[1]).toBe('boolean')
-        expect(results[0] !== results[1]).toBeTruthy()
-    })
-
     describe('chat test', () => {
         it('should open chat application', async () => {
             browserA = await multiRemoteBrowser.getInstance('browserA')

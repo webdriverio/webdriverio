@@ -495,7 +495,7 @@ interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanc
     /**
      * get a specific instance to run commands on it
      */
-    getInstance: (browserName: string) => WebdriverIO.Browser
+    getInstance: (browserName: string) => WebdriverIO.Browser | undefined
 
     /**
      * @experimental (Beta) select one or multiple browsers always wrapped into a multi-remote to run commands on them.
@@ -761,7 +761,7 @@ export type ActiveAppInfo = {
 
 export type WaitUntilOptions = {
     timeout?: number,
-    timeoutMsg?: string,
+    timeoutMsg?: string | (() => string),
     interval?: number
 }
 

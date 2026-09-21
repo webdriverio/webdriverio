@@ -207,11 +207,10 @@ export class ContextManager extends SessionManager {
      */
     async #getTopLevelContext(contextId: string) {
         const { contexts } = await this.#browser.browsingContextGetTree({})
-        let context = this.findContext(contextId, contexts, 'byContextId')
-        while (context?.parent) {
-            context = this.findContext(context.parent, contexts, 'byContextId')
-        }
-        return context?.context
+        // Child entries in getTree omit parent, so find the root containing the context.
+        return contexts.find((context) =>
+            this.findContext(contextId, [context], 'byContextId')
+        )?.context
     }
 
     #onCommandResultBidiAndClassic(event: { command: string, result: unknown, body: unknown }) {
@@ -266,6 +265,22 @@ export class ContextManager extends SessionManager {
             return this.#browser.browsingContextGetTree({}).then(({ contexts }) => {
                 const parentContext = this.findParentContext(this.#currentContext!, contexts)
                 if (!parentContext) {
+                    /**
+                     * Nothing in the tree has this context as a child, which means one of
+                     * two very different things. If the context is still in the tree it is
+                     * simply a top-level one and there is nowhere to step up to, so this
+                     * stays a no-op. If it is gone from the tree the page destroyed it,
+                     * and keeping it cached would send every following BiDi command to a
+                     * frame that does not exist with no way for a user to clear it, so
+                     * drop it and let the next command resolve the context again.
+                     */
+                    const stillInTree = this.findContext(this.#currentContext!, contexts, 'byContextId')
+                    if (stillInTree) {
+                        return
+                    }
+
+                    this.#currentContext = undefined
+                    this.#currentWindowHandle = undefined
                     return
                 }
                 this.setCurrentContext(parentContext.context)

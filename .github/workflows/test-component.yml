@@ -2,8 +2,11 @@ name: Component Tests
 
 on:
   workflow_call:
-    # Make this a reusable workflow, no value needed
-    # https://docs.github.com/en/actions/using-workflows/reusing-workflows
+    inputs:
+      full_matrix:
+        description: Run every supported Node version on macOS. When false, PRs run a single Node version.
+        type: boolean
+        default: true
 
 jobs:
   check:
@@ -11,15 +14,17 @@ jobs:
     permissions:
       contents: read
       actions: write
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        node: ['18', '20', '22', '24', '26']
-        os: [
-          # 'ubuntu-latest',
-          'windows-latest',
-          'macos-latest'
-        ]
+        # Windows cells were kept in the matrix even though the test step was
+        # skipped (https://github.com/webdriverio/webdriverio/actions/runs/9075112951/job/24935302330#step:7:30).
+        # They only burned checkout/install minutes, so they are omitted.
+        # Ubuntu is still disabled — the suite has historically been macOS-only
+        # in this workflow besides the skipped Windows jobs.
+        node: ${{ fromJSON(inputs.full_matrix && '["18","20","22","24","26"]' || '["24"]') }}
+        os: ['macos-latest']
     runs-on: ${{ matrix.os }}
     steps:
       - name: ⬇️ Checkout Code
@@ -43,13 +48,9 @@ jobs:
 
       - name: Component Tests
         run: pnpm run test:component
-        # component testing on Windows is currently broken
-        # https://github.com/webdriverio/webdriverio/actions/runs/9075112951/job/24935302330#step:7:30
-        if: matrix.os != 'windows-latest'
         shell: bash
 
       - name: Check Git Context
-        if: matrix.os != 'windows-latest'
         uses: ./.github/workflows/actions/check-git-context
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
