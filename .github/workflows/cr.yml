@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - v10
   pull_request:
 
 concurrency:

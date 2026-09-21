@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-xvfb",
   "license": "MIT",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=22.12.0"
   },
   "repository": {
     "type": "git",
@@ -41,7 +41,7 @@
     "@wdio/logger": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.20.4",
     "@wdio/types": "workspace:*"
   },
   "publishConfig": {
