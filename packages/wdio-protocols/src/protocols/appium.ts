@@ -2073,6 +2073,7 @@ export default {
             command: 'listAppiumStorageItems',
             description: 'List all files in the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later.***',
             ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#liststorageitems',
+            parameters: [],
             returns: {
                 type: 'Object[]',
                 name: 'StorageItems',
@@ -2085,6 +2086,7 @@ export default {
             command: 'resetAppiumStorage',
             description: 'Reset the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later.***',
             ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#resetstorage',
+            parameters: [],
         },
     },
     '/session/:sessionId/timeouts/implicit_wait': {
