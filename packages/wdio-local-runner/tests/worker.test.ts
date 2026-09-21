@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import logger from '@wdio/logger'
 import type { Workers } from '@wdio/types'
+import { ProcessFactory } from '@wdio/xvfb'
 
 import Worker from '../src/worker.js'
 
@@ -312,5 +313,88 @@ describe('postMessage', () => {
 
         // and no unhandled rejection — the send is safely skipped
         await worker.isReady
+    })
+})
+
+describe('startProcess NODE_OPTIONS', () => {
+    const runStartProcess = async (
+        parentNodeOptions: string | undefined,
+        runnerEnv?: Record<string, string>
+    ) => {
+        const original = process.env.NODE_OPTIONS
+        if (parentNodeOptions === undefined) {
+            delete process.env.NODE_OPTIONS
+        } else {
+            process.env.NODE_OPTIONS = parentNodeOptions
+        }
+
+        const createWorkerProcess = vi
+            .spyOn(ProcessFactory.prototype, 'createWorkerProcess')
+            .mockResolvedValue({
+                on: vi.fn(),
+                stdout: null,
+                stderr: null,
+            } as unknown as ChildProcess)
+
+        try {
+            const worker = new Worker(
+                (runnerEnv ? { runnerEnv } : {}) as any,
+                workerConfig,
+                new WritableStreamBuffer(),
+                new WritableStreamBuffer(),
+                mockXvfbManager as any
+            )
+            await worker.startProcess()
+            const options = createWorkerProcess.mock.calls[0]![2] as { env: Record<string, string> }
+            return options.env.NODE_OPTIONS
+        } finally {
+            createWorkerProcess.mockRestore()
+            if (original === undefined) {
+                delete process.env.NODE_OPTIONS
+            } else {
+                process.env.NODE_OPTIONS = original
+            }
+        }
+    }
+
+    it('always enables source maps in the worker when the parent has no NODE_OPTIONS', async () => {
+        const nodeOptions = await runStartProcess(undefined)
+        // must not leak a literal "undefined" and must keep source maps
+        expect(nodeOptions).toBe('--enable-source-maps')
+    })
+
+    it('preserves parent node flags and still enables source maps', async () => {
+        const nodeOptions = await runStartProcess('--import tsx')
+        const flags = nodeOptions.split(' ')
+        expect(flags).toContain('--import')
+        expect(flags).toContain('tsx')
+        expect(flags).toContain('--enable-source-maps')
+    })
+
+    it('does not duplicate parent flags or --enable-source-maps', async () => {
+        const nodeOptions = await runStartProcess('--enable-source-maps --import tsx')
+        const occurrences = nodeOptions
+            .split(' ')
+            .filter((flag) => flag === '--enable-source-maps').length
+        expect(occurrences).toBe(1)
+        expect(nodeOptions).not.toContain('undefined')
+    })
+
+    it('preserves worker NODE_OPTIONS set via config.runnerEnv', async () => {
+        const nodeOptions = await runStartProcess(undefined, { NODE_OPTIONS: '--import tsx' })
+        const flags = nodeOptions.split(' ')
+        // config.runnerEnv is the supported worker-env injection point and must
+        // not be discarded in favour of the (here empty) parent NODE_OPTIONS
+        expect(flags).toContain('--import')
+        expect(flags).toContain('tsx')
+        expect(flags).toContain('--enable-source-maps')
+    })
+
+    it('keeps repeated option/value pairs intact', async () => {
+        const nodeOptions = await runStartProcess('--require a.js --require b.js')
+        // both operands must stay attached to their --require option
+        expect(nodeOptions).toContain('--require a.js')
+        expect(nodeOptions).toContain('--require b.js')
+        expect(nodeOptions).toContain('--enable-source-maps')
     })
 })
