@@ -128,7 +128,7 @@ describe('handleExit', () => {
     })
 
     it('derives a non zero exit code from the signal if the worker was killed by one', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const childProcess = { kill: vi.fn() }
         worker.childProcess = childProcess as unknown as ChildProcess
         worker.emit = vi.fn()
@@ -144,7 +144,7 @@ describe('handleExit', () => {
     })
 
     it('reports a crashed worker as failed so it is not swallowed by the launcher', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = vi.fn()
         worker['_handleExit'](null, 'SIGSEGV')
 
@@ -154,7 +154,7 @@ describe('handleExit', () => {
     })
 
     it('falls back to a generic failure code if neither exit code nor signal is known', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = vi.fn()
         worker['_handleExit'](null, null)
 
@@ -162,7 +162,7 @@ describe('handleExit', () => {
     })
 
     it('logs an error explaining the crash', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const log = logger('@wdio/local-runner')
         worker.emit = vi.fn()
         vi.mocked(log.error).mockClear()
@@ -174,7 +174,7 @@ describe('handleExit', () => {
     })
 
     it('does not report an expected shutdown signal as a crash', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const log = logger('@wdio/local-runner')
         worker.emit = vi.fn()
         vi.mocked(log.error).mockClear()
@@ -185,7 +185,7 @@ describe('handleExit', () => {
     })
 
     it('does not report a deliberately killed worker as a crash', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer(), mockXvfbManager as any)
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const log = logger('@wdio/local-runner')
         worker.childProcess = { kill: vi.fn() } as unknown as ChildProcess
         worker.emit = vi.fn()
