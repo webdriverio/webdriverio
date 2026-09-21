@@ -139,6 +139,47 @@ describe('strict selectors', () => {
         expect(elem.elementId).toBe('some-elem-123')
     })
 
+    it('forwards a per-call opt-out through the browser runner bridge', async () => {
+        matches(SINGLE_MATCH)
+        const browser = await strictSession()
+        const parent = await browser.$('#foo')
+
+        const execute = vi.fn().mockResolvedValue({ [ELEMENT_KEY]: 'some-elem-123' })
+        const executeWithScope = vi.fn().mockResolvedValue({ [ELEMENT_KEY]: 'some-elem-123' })
+        const previous = (globalThis as { wdio?: unknown }).wdio
+        ;(globalThis as { wdio?: unknown }).wdio = { execute, executeWithScope }
+
+        try {
+            await browser.$('button', { strict: false })
+            expect(execute).toHaveBeenCalledWith('$', 'button', { strict: false })
+
+            await parent.$('button', { strict: false })
+            expect(executeWithScope).toHaveBeenCalledWith('$', 'some-elem-123', 'button', { strict: false })
+        } finally {
+            ;(globalThis as { wdio?: unknown }).wdio = previous
+        }
+    })
+
+    it('surfaces a strict violation that appears while implicitly waiting', async () => {
+        matches([])
+        const browser = await strictSession()
+
+        /**
+         * the element does not exist yet, so no violation on the first query
+         */
+        const elem = await browser.$('button')
+        expect(elem.elementId).toBeUndefined()
+
+        /**
+         * by the time a command implicitly waits for it, multiple elements match -
+         * the strict violation must not be masked as a generic "not found" error
+         */
+        matches(MULTIPLE_MATCHES)
+        const err = await elem.click().catch((e: Error) => e)
+        expect(err).toBeInstanceOf(StrictSelectorError)
+        expect((err as Error).message).not.toContain('wasn\'t found')
+    })
+
     it('remembers the strictness of an element so re-fetching keeps working', async () => {
         matches(MULTIPLE_MATCHES)
         const browser = await strictSession()

@@ -1,6 +1,8 @@
 import logger from '@wdio/logger'
 import { getBrowserObject } from '@wdio/utils'
 
+import { StrictSelectorError } from './strictMode.js'
+
 const log = logger('webdriverio')
 
 /**
@@ -29,7 +31,15 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
             return (currentElement.parent as WebdriverIO.Element)
                 .$(currentElement.selector, { strict: currentElement.strict })
                 .getElement()
-        } catch {
+        } catch (err) {
+            /**
+             * a strict-mode violation that surfaced while waiting is a real
+             * error the user needs to see - don't mask it as "element wasn't found"
+             */
+            if (err instanceof StrictSelectorError) {
+                throw err
+            }
+
             if (currentElement.selector.toString().includes('this.previousElementSibling')) {
                 throw new Error(
                     `Can't call ${commandName} on previous element of element with selector "${(currentElement.parent as WebdriverIO.Element).selector}" because sibling wasn't found`)

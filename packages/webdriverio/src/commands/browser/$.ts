@@ -108,11 +108,13 @@ export async function $ (
 
         /**
          * `res` is an element reference as we strip down the element
-         * result to its element id
+         * result to its element id. Forward the options so a per-call
+         * `{ strict: false }` opt-out survives the worker bridge - otherwise the
+         * worker would recompute strictness from the global config and throw.
          */
         const res: ElementReference = 'elementId' in this
-            ? await globalThis.wdio.executeWithScope('$' as const, this.elementId, selector)
-            : await globalThis.wdio.execute('$' as const, selector)
+            ? await globalThis.wdio.executeWithScope('$' as const, this.elementId, selector, options)
+            : await globalThis.wdio.execute('$' as const, selector, options)
         return getElement.call(this, selector as string, res, { strict })
     }
 
