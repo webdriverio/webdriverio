@@ -110,7 +110,7 @@ export default {
     '/session/:sessionId/appium/commands': {
         GET: {
             command: 'getAppiumCommands',
-            description: 'Retrieve the endpoints and BiDi commands supported in the current session.',
+            description: 'Retrieve the endpoints and BiDi commands supported in the current session. Requires Appium 2.16 or later.',
             ref: 'https://appium.io/docs/en/latest/reference/api/appium/#listcommands',
             parameters: [],
             returns: {
@@ -124,7 +124,7 @@ export default {
     '/session/:sessionId/appium/extensions': {
         GET: {
             command: 'getAppiumExtensions',
-            description: 'Retrieve the extension commands supported in the current session.',
+            description: 'Retrieve the extension commands supported in the current session. Requires Appium 2.16 or later.',
             ref: 'https://appium.io/docs/en/latest/reference/api/appium/#listextensions',
             parameters: [],
             returns: {
@@ -138,7 +138,7 @@ export default {
     '/session/:sessionId/appium/capabilities': {
         GET: {
             command: 'getAppiumSessionCapabilities',
-            description: 'Retrieve the capabilities of the current session.',
+            description: 'Retrieve the capabilities of the current session. Requires Appium 2.16 or later.',
             ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getappiumsessioncapabilities',
             parameters: [],
             returns: {
