@@ -10,6 +10,19 @@ const chromiumLogCommands = {
 
 export default {
     ...chromiumLogCommands,
+    '/appium/sessions': {
+        GET: {
+            command: 'getAppiumSessions',
+            description: 'Retrieve information about all active Appium sessions. Requires Appium 2.19 or later. ***Using this command requires enabling Appium\'s [`session_discovery`](https://appium.io/docs/en/latest/reference/cli/insecure-features/) insecure server feature.***',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getappiumsessions',
+            parameters: [],
+            returns: {
+                type: 'Object[]',
+                name: 'sessionData',
+                description: "an array of session data objects",
+            },
+        },
+    },
     '/session/:sessionId': {
         GET: {
             command: 'getSession',
