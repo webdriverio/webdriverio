@@ -15,12 +15,12 @@ export default {
             command: 'getSession',
             description: 'Retrieve the capabilities of the current session.',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#getsession',
-            deprecated: 'Use `getAppiumSessionCapabilities` instead',
+            deprecated: 'Use `getAppiumSessionCapabilities` starting from Appium 2.16. No longer supported since Appium 4.',
             parameters: [],
             returns: {
                 type: 'Object',
                 name: 'capabilities',
-                description: "An object describing the session's capabilities.",
+                description: "an object describing the session's capabilities",
             },
         },
     },
@@ -2519,6 +2519,7 @@ export default {
             command: 'getGeoLocation',
             description: 'Get the current geo location.',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#getgeolocation',
+            deprecated: 'Use driver-specific methods like `driver.execute(\'mobile: getGeoLocation\')` or `driver.execute(\'mobile: getSimulatedLocation\')` instead. No longer supported since Appium 4.',
             parameters: [],
             returns: {
                 type: 'Object',
@@ -2530,6 +2531,7 @@ export default {
             command: 'setGeoLocation',
             description: 'Set the current geo location.',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#setgeolocation',
+            deprecated: 'Use driver-specific methods like `driver.execute(\'mobile: setGeoLocation\', { ... })` or `driver.execute(\'mobile: setSimulatedLocation\', { ... })` instead. No longer supported since Appium 4.',
             parameters: [
                 {
                     name: 'location',
