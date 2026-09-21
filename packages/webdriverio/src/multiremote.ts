@@ -40,12 +40,11 @@ export default class MultiRemote {
      */
     modifier (wrapperClient: WrappedClient) {
         const modifierThis: MultiRemote = this
-        const enableMultiRemoteSelect = process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT === 'true'
 
         // Allows to preserve element scope custom commands
-        const propertiesObject: Record<string, PropertyDescriptor> = enableMultiRemoteSelect ? Object.fromEntries(
+        const propertiesObject: Record<string, PropertyDescriptor> = Object.fromEntries(
             Object.entries(wrapperClient.__propertiesObject__ ?? {}).map(([name, descriptor]) => [name, { ...descriptor }])
-        ) : {}
+        )
         propertiesObject.commandList = { value: wrapperClient.commandList }
         propertiesObject.options = { value: wrapperClient.options }
         propertiesObject.getInstance = {
@@ -53,7 +52,7 @@ export default class MultiRemote {
         }
 
         propertiesObject.select = {
-            value: function unstableSelect(this: WebdriverIO.MultiRemoteBrowser & WrappedClient, ...instanceNames: string[]) {
+            value: function select(this: WebdriverIO.MultiRemoteBrowser & WrappedClient, ...instanceNames: string[]) {
                 const newMultiRemote = new MultiRemote()
                 newMultiRemote.instances = instanceNames.reduce((acc, name) => {
                     if (modifierThis.instances[name]) {
@@ -74,23 +73,20 @@ export default class MultiRemote {
 
         for (const commandName of wrapperClient.commandList) {
             // Preserved overridden commands
-            if (enableMultiRemoteSelect && !Object.prototype.hasOwnProperty.call(wrapperClient, commandName) && overridableCommands.has(commandName)) {
+            if (!Object.prototype.hasOwnProperty.call(wrapperClient, commandName) && overridableCommands.has(commandName)) {
                 delete propertiesObject[commandName]
                 continue
             }
 
-            if (enableMultiRemoteSelect) {
-            // Wrap commands only that are functions else it breaks the interface type
-                const isFunction = typeof wrapperClient[commandName] === 'function'
-                propertiesObject[commandName] = {
-                    value: isFunction ? this.commandWrapper(commandName) : wrapperClient[commandName],
-                    configurable: true
-                }
-            } else {
-                propertiesObject[commandName] = {
-                    value: this.commandWrapper(commandName),
-                    configurable: true
-                }
+            /**
+             * Wrap commands only that are functions, else it breaks the interface type:
+             * `strategies` is a Map on the command list, and wrapping it would shadow
+             * the map with a command function (#15540).
+             */
+            const isFunction = typeof wrapperClient[commandName] === 'function'
+            propertiesObject[commandName] = {
+                value: isFunction ? this.commandWrapper(commandName) : wrapperClient[commandName],
+                configurable: true
             }
         }
 
@@ -106,9 +102,7 @@ export default class MultiRemote {
          * over via `__propertiesObject__` so the selected browser keeps
          * previously registered strategies; otherwise start with a fresh map.
          */
-        const inheritedStrategies = enableMultiRemoteSelect
-            ? (wrapperClient.__propertiesObject__?.strategies?.value as Map<unknown, unknown> | undefined)
-            : undefined
+        const inheritedStrategies = wrapperClient.__propertiesObject__?.strategies?.value as Map<unknown, unknown> | undefined
         propertiesObject.strategies = { value: inheritedStrategies ?? new Map() }
 
         propertiesObject.__propertiesObject__ = {
@@ -119,7 +113,7 @@ export default class MultiRemote {
         const client = Object.create(this.baseInstance, propertiesObject)
 
         // Preserve addLocatorStrategy if it exists on the wrapper client
-        if (enableMultiRemoteSelect && Object.prototype.hasOwnProperty.call(wrapperClient, 'addLocatorStrategy')) {
+        if (Object.prototype.hasOwnProperty.call(wrapperClient, 'addLocatorStrategy')) {
             client.addLocatorStrategy = addLocatorStrategyHandler(client)
         }
         /**
@@ -239,7 +233,7 @@ export default class MultiRemote {
             )
 
             // Narrow instances to only those actually used in this command call
-            const activeInstances = isElementScope && process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT === 'true'
+            const activeInstances = isElementScope
                 ? thisElement.instances.reduce((instance, instanceName) => (
                     { ...instance, [instanceName]: instances[instanceName] }
                 ), {} as Record<string, WebdriverIO.Browser>)

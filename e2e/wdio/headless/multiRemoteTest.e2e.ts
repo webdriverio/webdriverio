@@ -4,8 +4,6 @@ import { Key, multiremote } from 'webdriverio'
 let browserA: WebdriverIO.Browser
 let browserB: WebdriverIO.Browser
 
-process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT = 'true'
-
 describe('multi remote test', () => {
     before(() => {
         browserA = multiRemoteBrowser.getInstance('browserA')

@@ -77,18 +77,13 @@ describe('Multi-Remote tests', () => {
     })
 
     test('should preserve the strategies map across select() (#15540)', async () => {
-        process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT = 'true'
-        try {
-            const browser = await multiremote(caps())
-            const strategy = (selector: string) => document.querySelector(selector) as HTMLElement
-            browser.addLocatorStrategy('selectHeader', strategy)
+        const browser = await multiremote(caps())
+        const strategy = (selector: string) => document.querySelector(selector) as HTMLElement
+        browser.addLocatorStrategy('selectHeader', strategy)
 
-            const selected = browser.select('browserA', 'browserB')
-            expect(selected.strategies).toEqual(browser.strategies)
-            expect(selected.strategies.get('selectHeader')).toBe(strategy)
-        } finally {
-            delete process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT
-        }
+        const selected = browser.select('browserA', 'browserB')
+        expect(selected.strategies).toEqual(browser.strategies)
+        expect(selected.strategies.get('selectHeader')).toBe(strategy)
     })
 
     test('should run command on all instances', async () => {
@@ -206,14 +201,6 @@ describe('Multi-Remote tests', () => {
     })
 
     describe('select', () => {
-        beforeAll(() => {
-            process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT = 'true'
-        })
-
-        afterAll(() => {
-            delete process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT
-        })
-
         test('should preserve filtered instances when chaining $ on a selected element', async () => {
             const browser = await multiremote(caps())
 
@@ -226,6 +213,51 @@ describe('Multi-Remote tests', () => {
             // Should preserve the instance scope when chaining $() on a selected element
             const child = await selectedH1.$('#child')
             expect(child.instances).toEqual(['browserA'])
+        })
+
+        test('carries custom commands onto the selected browser', async () => {
+            const browser = await multiremote(caps())
+
+            // @ts-expect-error untyped custom command
+            browser.addCommand('myCustomCommand', async function () {
+                return 'from the custom command'
+            })
+
+            const selected = browser.select('browserA')
+
+            // @ts-expect-error untyped custom command
+            expect(typeof selected.myCustomCommand).toBe('function')
+            // the selected browser answers exactly as the one it was narrowed from
+            // @ts-expect-error untyped custom command
+            expect(await selected.myCustomCommand()).toEqual(await browser.myCustomCommand())
+        })
+
+        test('carries element-scope custom commands onto the selected browser', async () => {
+            const browser = await multiremote(caps())
+
+            // @ts-expect-error untyped custom command
+            browser.addCommand('myCustomElementCommand', async function () {
+                return 'from the element command'
+            }, true)
+
+            const selected = browser.select('browserA')
+            const elem = await selected.$('#foo')
+
+            // @ts-expect-error untyped custom command
+            expect(typeof elem.myCustomElementCommand).toBe('function')
+            // @ts-expect-error untyped custom command
+            expect(await elem.myCustomElementCommand()).toEqual(['from the element command'])
+        })
+
+        test('keeps addLocatorStrategy available on the selected browser', async () => {
+            const browser = await multiremote(caps())
+            const strategy = (selector: string) => document.querySelector(selector) as HTMLElement
+            browser.addLocatorStrategy('selectHeader', strategy)
+
+            const selected = browser.select('browserA')
+
+            expect(typeof selected.addLocatorStrategy).toBe('function')
+            expect(selected.strategies.get('selectHeader')).toBe(strategy)
         })
 
         test('should throw an error when select matches nothing', async () => {
