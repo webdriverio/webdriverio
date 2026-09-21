@@ -1,7 +1,7 @@
 WDIO Cucumber Framework Adapter
 ===============================
 
-> A WebdriverIO plugin. Adapter for CucumberJS v5 testing framework.
+> A WebdriverIO plugin. Adapter for Cucumber.js.
 
 ## Installation
 
@@ -28,6 +28,10 @@ module.exports = {
   // ...
 };
 ```
+
+## Upgrading to Cucumber 13
+
+This adapter depends on `@cucumber/cucumber` 13, which requires Node.js 22, 24, or 26. `cucumberOpts.tagExpression` has been removed; use [`tags`](#tags). Cucumber no longer exports `Cli`. See [Cucumber's upgrade guide](https://github.com/cucumber/cucumber-js/blob/main/UPGRADING.md#1300) for the rest of the 13.0.0 breaks.
 
 ## `cucumberOpts` Options
 
@@ -150,19 +154,6 @@ Type: `Boolean`<br />
 Default: `false`
 
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
-
-### tagExpression
-Only execute the features or scenarios with tags matching the expression. Note that untagged
-features will still spawn a Selenium session (see issue [webdriverio/webdriverio#1247](https://github.com/webdriverio/webdriverio/issues/1247)).
-Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
-If passing as a command-line argument, compound expressions may need to be enclosed in three sets of double quotes if WebdriverIO is invoked using `npx` on Windows.
-
-E.g.: `npx wdio wdio.config.js --cucumberOpts.tagExpression """@Smoke and not @Pending"""`
-
-Type: `String`<br />
-Default: ``
-
-***Please note that this option would be deprecated in future. Use [`tags`](#tags) config property instead***
 
 ### profile
 Specify the profile to use.

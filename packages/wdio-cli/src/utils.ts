@@ -235,7 +235,6 @@ const cucumberTypes: Record<string, string> = {
     tagsInTitle: 'boolean',
     ignoreUndefinedDefinitions: 'boolean',
     failAmbiguousDefinitions: 'boolean',
-    tagExpression: 'string',
     profiles: 'array',
     file: 'string'
 }

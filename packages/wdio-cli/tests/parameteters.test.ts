@@ -50,7 +50,6 @@ describe('framework parameter conversion', () => {
             '--cucumberOpts.tagsInTitle', 'true',
             '--cucumberOpts.ignoreUndefinedDefinitions', 'true',
             '--cucumberOpts.failAmbiguousDefinitions', 'true',
-            '--cucumberOpts.tagExpression', 'foo',
             '--cucumberOpts.profiles', 'foo',
             '--cucumberOpts.file', 'foo'
         )
@@ -93,7 +92,6 @@ describe('framework parameter conversion', () => {
             "retry": 123,
             "scenarioLevelReporter": true,
             "strict": true,
-            "tagExpression": "foo",
             "tags": "foo",
             "tagsInTitle": true,
             "timeout": 123,

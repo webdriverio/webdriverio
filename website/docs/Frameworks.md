@@ -268,7 +268,7 @@ npm install @wdio/cucumber-framework --save-dev
 
 If you want to use Cucumber, set the `framework` property to `cucumber` by adding `framework: 'cucumber'` to the [config file](configurationfile) .
 
-Options for Cucumber can be given in the config file with `cucumberOpts`. Check out the whole list of options [here](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options).
+Options for Cucumber can be given in the config file with `cucumberOpts`. Check out the whole list of options [here](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options). The adapter uses Cucumber 13. `tagExpression` has been removed; filter with `tags`. See the [v10 migration guide](v10-migration#cucumber).
 
 To get up and running quickly with Cucumber, have a look on our [`cucumber-boilerplate`](https://github.com/webdriverio/cucumber-boilerplate) project that comes with all the step definitions you need to get stared, and you'll be writing feature files right away.
 
@@ -435,15 +435,6 @@ Default: `false`
 
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
-#### tagExpression
-Only execute the features or scenarios with tags matching the expression.
-Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
-
-Type: `String`<br />
-Default: ``
-
-***Please note that this option would be deprecated in future. Use [`tags`](#tags) config property instead***
-
 #### profile
 Specify the profile to use.
 
@@ -460,7 +451,7 @@ Note that if you want to skip a test using regular cucumber test filtering capab
 
 were condition is an optional combination of capabilities properties with their values that when **all** matched with cause the tagged scenario or feature to be skipped. Of course you can add several tags to scenarios and features to skip a tests under several different conditions.
 
-You can also use the '@skip' annotation to skip tests without changing `tagExpression'. In this case the skipped tests will be displayed in the test report.
+You can also use the '@skip' annotation to skip tests without changing `tags`. In this case the skipped tests will be displayed in the test report.
 
 Here you have some examples of this syntax:
 - `@skip` or `@skip()`: will always skip the tagged item
