@@ -287,21 +287,7 @@ export default class Runner extends EventEmitter {
             const framework = (await initializePlugin(config.framework as string, 'framework')).default as unknown as TestFramework
             const frameworkInstance = await framework.init(cid, config, specs, capabilities, reporter)
             if (frameworkInstance.setupExpect) {
-                /**
-                 * Backward compatibility, to remove in v10.
-                 * Build a shim that supports both the deprecated Map.entries() API and the
-                 * new Object.entries() API. `entries` is non-enumerable so Object.entries()
-                 * callers only see the actual matchers.
-                 */
-                const matchersShim = Object.defineProperty(
-                    { ...wdioCustomMatchers },
-                    'entries',
-                    {
-                        enumerable: false,
-                        value: () => Object.entries(wdioCustomMatchers)[Symbol.iterator]()
-                    }
-                ) as typeof wdioCustomMatchers
-                await frameworkInstance.setupExpect(expect, matchersShim, getDefaultOptions)
+                await frameworkInstance.setupExpect(expect, wdioCustomMatchers, getDefaultOptions)
             }
             return frameworkInstance
         }
@@ -396,14 +382,8 @@ export default class Runner extends EventEmitter {
              * Casting to Browser since union & generic types cause too much issues with type inference and overload resolution
              */
             const commandTarget: Browser = browser as unknown as Browser
-            for (const [name, func, thirdArg, proto, instances] of customStubCommands) {
-                if (typeof thirdArg === 'object' && thirdArg !== null) {
-                    commandTarget.addCommand(name, func, thirdArg)
-                } else if (typeof thirdArg === 'boolean') {
-                    commandTarget.addCommand(name, func, thirdArg, proto, instances)
-                } else {
-                    commandTarget.addCommand(name, func)
-                }
+            for (const [name, func, options] of customStubCommands) {
+                commandTarget.addCommand(name, func, options)
             }
             for (const params of overwrittenCommands) {
                 browser.overwriteCommand(...params)

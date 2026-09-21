@@ -1,21 +1,15 @@
 import type { Capabilities, Services, Workers } from '@wdio/types'
 import type { getDefaultOptions, wdioCustomMatchers } from 'expect-webdriverio'
-import type { AddCommandFunction, CustomCommandOptions, Instances } from 'webdriverio'
+import type { AddCommandFunction, CustomCommandOptions } from 'webdriverio'
 
 import type BaseReporter from './reporter.js'
 
 /**
  * Represents a custom command stored by the protocol stub before the session starts.
- * Supports both:
- * - options object format: [name, fn, CustomCommandOptions]
- * - deprecated positional format: [name, fn, attachToElement, proto?, instances?]
+ * The stub folds the deprecated positional `addCommand` form into the options object,
+ * so only `[name, fn, CustomCommandOptions]` reaches the runner.
  */
-export type CustomStubCommand =
-    | CustomStubCommandWithOptions
-    | LegacyCustomStubCommand
-export type CustomStubCommandWithOptions = [string, AddCommandFunction<boolean>, CustomCommandOptions<boolean>]
-/** @deprecated use CustomStubCommandWithOptions, to remove in v10 */
-export type LegacyCustomStubCommand = [string, AddCommandFunction<boolean>, boolean?, Record<string, unknown>?, Record<string, Instances>?]
+export type CustomStubCommand = [string, AddCommandFunction<boolean>, CustomCommandOptions<boolean>]
 
 export type BeforeArgs = Parameters<Required<Services.HookFunctions>['before']>
 export type AfterArgs = Parameters<Required<Services.HookFunctions>['after']>
@@ -46,21 +40,11 @@ export interface TestFramework {
     ) => TestFramework
     run (): Promise<number>
     hasTests (): boolean
-    setupExpect?: {
-        /**
-         * @deprecated Iterate matchers with `Object.entries(wdioMatchers)` instead of `wdioMatchers.entries()`. Legacy Map form will be removed in v10
-         */
-        (
-            wdioExpect: ExpectWebdriverIO.Expect,
-            wdioMatchers: Map<string, (...args: unknown[]) => unknown>,
-            getExpectConfig: () => Record<string, unknown>
-        ): void | Promise<void>,
-        (
-            wdioExpect: ExpectWebdriverIO.Expect,
-            wdioMatchers: typeof wdioCustomMatchers,
-            getExpectConfig: typeof getDefaultOptions
-        ): void | Promise<void>
-    }
+    setupExpect?: (
+        wdioExpect: ExpectWebdriverIO.Expect,
+        wdioMatchers: typeof wdioCustomMatchers,
+        getExpectConfig: typeof getDefaultOptions
+    ) => void | Promise<void>
 }
 
 export interface SessionStartedMessage {

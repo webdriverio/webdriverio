@@ -38,6 +38,55 @@ describe('newSession', () => {
     })
 })
 
+describe('recording custom commands', () => {
+    const newSession = () => ProtocolStub.newSession({ capabilities: { browserName: 'chrome' } })
+    const recorded = (session: WebdriverIO.Browser) =>
+        (session as unknown as { customCommands: unknown[] }).customCommands
+
+    it('records the options object as given', async () => {
+        const session = await newSession()
+        const fn = () => {}
+        const options = { attachToElement: true, disableElementImplicitWait: true }
+
+        session.addCommand('myCommand', fn, options)
+
+        expect(recorded(session)).toEqual([['myCommand', fn, options]])
+    })
+
+    /**
+     * `addCommand` still accepts the deprecated positional form, so the stub has to
+     * fold it into the options object - the runner only replays `[name, fn, options]`.
+     */
+    it('folds the deprecated positional form into the options object', async () => {
+        const session = await newSession()
+        const fn = () => {}
+        const proto = { foo: 'bar' }
+        const instances = { baz: 'qux' }
+
+        // @ts-expect-error deprecated positional signature
+        session.addCommand('myCommand', fn, true, proto, instances)
+
+        expect(recorded(session)).toEqual([[
+            'myCommand',
+            fn,
+            { attachToElement: true, proto, instances }
+        ]])
+    })
+
+    it('records an options object even when only a name and a function are given', async () => {
+        const session = await newSession()
+        const fn = () => {}
+
+        session.addCommand('myCommand', fn)
+
+        const [command] = recorded(session) as [[string, unknown, unknown]]
+        expect(command).toHaveLength(3)
+        expect(command[0]).toBe('myCommand')
+        expect(command[1]).toBe(fn)
+        expect(typeof command[2]).toBe('object')
+    })
+})
+
 describe('attachToSession', () => {
     it('should throw if not multiremote', async () => {
         const modifier = vi.fn()
