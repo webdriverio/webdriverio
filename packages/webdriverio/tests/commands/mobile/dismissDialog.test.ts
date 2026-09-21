@@ -104,7 +104,7 @@ describe('dismissDialog - iOS', () => {
     it('should dismiss a dialog by button label on iOS', async () => {
         await browser.dismissDialog("Don't Allow")
 
-        expect(browser.$).toHaveBeenCalledWith("~Don't Allow")
+        expect(browser.$).toHaveBeenCalledWith("~Don't Allow", { strict: false })
         expect(clickSpy).toHaveBeenCalledOnce()
         expect(dismissAlertSpy).not.toHaveBeenCalled()
     })
@@ -140,7 +140,7 @@ describe('dismissDialog - Android', () => {
     it('should dismiss a dialog by button text on Android', async () => {
         await browser.dismissDialog('Cancel')
 
-        expect(browser.$).toHaveBeenCalledWith("//android.widget.Button[@text='Cancel']")
+        expect(browser.$).toHaveBeenCalledWith("//android.widget.Button[@text='Cancel']", { strict: false })
         expect(clickSpy).toHaveBeenCalledOnce()
         expect(dismissAlertSpy).not.toHaveBeenCalled()
     })
@@ -148,7 +148,7 @@ describe('dismissDialog - Android', () => {
     it('should use a valid XPath for button labels containing apostrophes', async () => {
         await browser.dismissDialog("Don't Allow")
 
-        expect(browser.$).toHaveBeenCalledWith('//android.widget.Button[@text="Don\'t Allow"]')
+        expect(browser.$).toHaveBeenCalledWith('//android.widget.Button[@text="Don\'t Allow"]', { strict: false })
         expect(clickSpy).toHaveBeenCalledOnce()
     })
 

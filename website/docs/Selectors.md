@@ -32,6 +32,33 @@ We __do__ and __do not__ recommend the following selectors:
 | `$('aria/Submit')` | ✅ Good | Good. Resembles how the user interacts with the page. It is recommended to use translation files so your tests don't break when translations are updated. On WebDriver BiDi sessions this uses the browser accessibility tree. On Classic sessions it falls back to XPath and can be slower on large pages. |
 | `$('button=Submit')` | ✅ Always | Best. Resembles how the user interacts with the page and is fast. It is recommended to use translation files so your tests don't break when translations are updated. |
 
+## Strict Mode
+
+As of v10 the [`$`](/docs/api/browser/$) command is __strict__: it represents exactly one element. If the selector matches more than one element, the command throws a `StrictSelectorError` instead of silently picking the first match:
+
+```js
+// there are 12 buttons on the page
+await $('button').click()
+// StrictSelectorError: strict mode violation: `$("button")` resolved to 12 elements, expected 1.
+```
+
+This is the same behavior as [Playwright locators](https://playwright.dev/docs/locators#strictness). Cypress differs: its queries may resolve to several elements, and it is the action commands such as [`.click()`](https://docs.cypress.io/api/commands/click#Click-all-elements-with-id-starting-with-btn) that reject a multi-element subject by default. Strict mode surfaces selectors that are too broad, which would otherwise silently interact with the wrong element as soon as the page grows.
+
+The rule applies to every step of a [chain](#chain-selectors) and to every selector type `$` accepts — string selectors (including ones that pierce the shadow DOM), [JS functions](#js-function), [mobile selectors](#mobile-selectors) and [custom strategy](#custom-selector-strategies) references.
+
+### What is not affected
+
+- `$$` keeps returning zero or many elements.
+- The dedicated helper commands `custom$`, `shadow$` and `react$` are not strict — they still return their first match, as do their `$$` counterparts.
+- A selector that matches nothing still returns a lazily-resolved element, so [`waitForExist`](/docs/api/element/waitForExist) and the [auto-waiting](/docs/autowait) behavior are unchanged.
+- Passing an element reference, e.g. `$(await browser.getActiveElement())`, always refers to a single node and is never checked.
+
+:::info Migrating to v10
+
+For how to audit your suite for strict-mode violations, narrow or opt out of individual queries, and disable strict mode project-wide, see the [v10 migration guide](/docs/v10-migration).
+
+:::
+
 ## CSS Query Selector
 
 If not indicated otherwise, WebdriverIO will query elements using the [CSS selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) pattern, e.g.:

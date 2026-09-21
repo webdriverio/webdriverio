@@ -309,6 +309,17 @@ Default interval for all `waitFor*` commands to check if an expected state (e.g.
 Type: `Number`<br />
 Default: `100`
 
+### strictSelectors
+
+Makes the [`$`](/docs/api/browser/$) command throw a `StrictSelectorError` when the given selector resolves to more than one element, instead of silently using the first match. `$$` is unaffected.
+
+You can opt out for a single query by passing `{ strict: false }` as second argument, e.g. `$('button', { strict: false })`.
+
+See the [Selectors](/docs/selectors#strict-mode) guide for details.
+
+Type: `Boolean`<br />
+Default: `true`
+
 ### maxSpyCollectedBodySize
 
 Maximum size of the response body (in bytes) that can be returned when using the [`mock`](/docs/api/browser/mock) command. Use `0` to disable data collection of the spied payload.
