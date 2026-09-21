@@ -33,6 +33,6 @@ graph TD
 | Command API docs text | JSDoc on the webdriverio command | `pnpm run docs:generate` |
 | Protocol API docs text | the protocol spec `description` / `ref` | `pnpm run docs:generate` |
 
-See also [High level overview](./HighLevelOverview.md). Protocol specs are
+See also [High level overview](/docs/flowcharts/highleveloverview). Protocol specs are
 owned by `packages/wdio-protocols`; the compiler plugin lives in
 `infra/compiler/src/type-generation`.
