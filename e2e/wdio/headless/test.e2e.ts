@@ -230,7 +230,9 @@ describe('main suite 1', () => {
             await expect(browser.$('#text')).toHaveValue('center')
         })
 
-        it('moveTo without iframe with 0 offsets', async () => {
+        it('moveTo without iframe with 0 offsets', async function () {
+            // Unstable on Windows: expected "center", received "center\nout"
+            this.retries(3)
             await browser.$('#parent').moveTo({ xOffset: 0, yOffset: 0 })
             await expect(browser.$('#text')).toHaveValue('center')
         })
