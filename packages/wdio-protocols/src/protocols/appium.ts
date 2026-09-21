@@ -19,7 +19,7 @@ export default {
             returns: {
                 type: 'Object[]',
                 name: 'sessionData',
-                description: "an array of session data objects",
+                description: 'an array of session data objects',
             },
         },
     },
@@ -47,7 +47,7 @@ export default {
             returns: {
                 type: 'string',
                 name: 'context',
-                description: "a string representing the current context",
+                description: 'a string representing the current context',
             },
         },
         POST: {
@@ -89,7 +89,7 @@ export default {
             returns: {
                 type: 'string',
                 name: 'context',
-                description: "a string representing the current context",
+                description: 'a string representing the current context',
             },
         },
         POST: {
