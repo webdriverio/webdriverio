@@ -181,6 +181,12 @@ describe('transformClassicToBidiSelector', () => {
         expect(bidiSelector.value).toBe('new')
         expect((bidiSelector as local.BrowsingContextInnerTextLocator).matchType).toBe('partial')
     })
+
+    it('transforms aria selector to BiDi accessibility locator', () => {
+        const bidiSelector = transformClassicToBidiSelector('aria', 'Submit')
+        expect(bidiSelector.type).toBe('accessibility')
+        expect(bidiSelector.value).toEqual({ name: 'Submit' })
+    })
 })
 
 describe('createFunctionDeclarationFromString', () => {

@@ -265,6 +265,22 @@ export class ContextManager extends SessionManager {
             return this.#browser.browsingContextGetTree({}).then(({ contexts }) => {
                 const parentContext = this.findParentContext(this.#currentContext!, contexts)
                 if (!parentContext) {
+                    /**
+                     * Nothing in the tree has this context as a child, which means one of
+                     * two very different things. If the context is still in the tree it is
+                     * simply a top-level one and there is nowhere to step up to, so this
+                     * stays a no-op. If it is gone from the tree the page destroyed it,
+                     * and keeping it cached would send every following BiDi command to a
+                     * frame that does not exist with no way for a user to clear it, so
+                     * drop it and let the next command resolve the context again.
+                     */
+                    const stillInTree = this.findContext(this.#currentContext!, contexts, 'byContextId')
+                    if (stillInTree) {
+                        return
+                    }
+
+                    this.#currentContext = undefined
+                    this.#currentWindowHandle = undefined
                     return
                 }
                 this.setCurrentContext(parentContext.context)

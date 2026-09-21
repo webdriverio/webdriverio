@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import path from 'node:path'
 import url from 'node:url'
 import os from 'node:os'
 
@@ -349,18 +350,37 @@ class JunitReporter extends WDIOReporter {
             this._fileNameLabel = 'file'
         }
 
+        /**
+         * Each suite is associated with at most one spec. Basename matching is
+         * required for Jasmine (suite.file is filename-only, issue #13052), but
+         * grouped specs can share that basename. Without this set the same
+         * suites would be emitted once per matching spec.
+         *
+         * Ambiguous filename-only suites are not claimed by the first matching
+         * spec. They are emitted afterwards with the suite's own basename so
+         * results are not attributed to an arbitrary full path.
+         */
+        const assignedSuiteKeys = new Set<string>()
         runner.specs.forEach((specFileName) => {
             if (isCucumberFrameworkRunner) {
-                this._buildOrderedReport(builder, runner, specFileName, 'feature', isCucumberFrameworkRunner)
-                this._buildOrderedReport(builder, runner, specFileName, 'scenario', isCucumberFrameworkRunner)
+                this._buildOrderedReport(builder, runner, specFileName, 'feature', isCucumberFrameworkRunner, assignedSuiteKeys)
+                this._buildOrderedReport(builder, runner, specFileName, 'scenario', isCucumberFrameworkRunner, assignedSuiteKeys)
             } else {
-                this._buildOrderedReport(builder, runner, specFileName, '', isCucumberFrameworkRunner)
+                this._buildOrderedReport(builder, runner, specFileName, '', isCucumberFrameworkRunner, assignedSuiteKeys)
             }
         })
+        this._addAmbiguousBasenameSuites(builder, runner, isCucumberFrameworkRunner, assignedSuiteKeys)
         return builder.build() as unknown as string
     }
 
-    private _buildOrderedReport(builder: JUnitReportBuilder, runner: RunnerStats, specFileName: string, type: string, isCucumberFrameworkRunner: boolean) {
+    private _buildOrderedReport(
+        builder: JUnitReportBuilder,
+        runner: RunnerStats,
+        specFileName: string,
+        type: string,
+        isCucumberFrameworkRunner: boolean,
+        assignedSuiteKeys: Set<string> = new Set()
+    ) {
         const suiteKeys = Object.keys(this.suites)
 
         if (suiteKeys.length === 0) {
@@ -389,12 +409,65 @@ class JunitReporter extends WDIOReporter {
                 continue
             }
 
+            if (assignedSuiteKeys.has(suiteKey)) {
+                continue
+            }
+
             const suite = this.suites[suiteKey]
-            const sameSpecFileName = this._sameFileName(specFileName, suite.file)
-            if (isCucumberFrameworkRunner && suite.type === type && sameSpecFileName) {
+            /**
+             * Only assign a suite to this spec when the file match is unique.
+             * Filename-only Jasmine suites that collide across grouped specs
+             * are left unassigned here and emitted later without a full path.
+             */
+            if (this._suiteFileAssociation(specFileName, suite.file, runner?.specs) !== 'unique') {
+                continue
+            }
+
+            if (isCucumberFrameworkRunner && suite.type === type) {
+                assignedSuiteKeys.add(suiteKey)
                 builder = this._addCucumberFeatureToBuilder(builder, runner, specFileName, suite)
-            } else if (!isCucumberFrameworkRunner && sameSpecFileName) {
+            } else if (!isCucumberFrameworkRunner) {
+                assignedSuiteKeys.add(suiteKey)
                 builder = this._addSuiteToBuilder(builder, runner, specFileName, suite)
+            }
+        }
+        return builder
+    }
+
+    /**
+     * Emit filename-only suites that matched more than one grouped spec. They
+     * still belong in the report (issue #13052) but must not inherit the first
+     * spec's full path.
+     */
+    private _addAmbiguousBasenameSuites(
+        builder: JUnitReportBuilder,
+        runner: RunnerStats,
+        isCucumberFrameworkRunner: boolean,
+        assignedSuiteKeys: Set<string>
+    ) {
+        const types = isCucumberFrameworkRunner ? ['feature', 'scenario'] : ['']
+        for (const type of types) {
+            for (const suiteKey of Object.keys(this.suites)) {
+                if (suiteKey.match(/^"before all"/) || assignedSuiteKeys.has(suiteKey)) {
+                    continue
+                }
+
+                const suite = this.suites[suiteKey]
+                if (isCucumberFrameworkRunner && suite.type !== type) {
+                    continue
+                }
+                if (
+                    !suite.file ||
+                    !this._isBasenameOnly(this._toFilePath(suite.file)) ||
+                    this._matchingSpecCount(suite.file, runner.specs) <= 1
+                ) {
+                    continue
+                }
+
+                assignedSuiteKeys.add(suiteKey)
+                builder = isCucumberFrameworkRunner
+                    ? this._addCucumberFeatureToBuilder(builder, runner, suite.file, suite)
+                    : this._addSuiteToBuilder(builder, runner, suite.file, suite)
             }
         }
         return builder
@@ -442,21 +515,74 @@ class JunitReporter extends WDIOReporter {
         return JSON.stringify(limit(val))
     }
 
+    private _toFilePath(file: string) {
+        return file.startsWith('file://') ? url.fileURLToPath(file) : file
+    }
+
+    private _isBasenameOnly(file: string) {
+        return !file.includes('/') && !file.includes('\\')
+    }
+
+    private _fileNamesEqual(file1: string, file2: string) {
+        return file1.localeCompare(file2, undefined, { sensitivity: this._isWindows ? 'accent' : 'variant' }) === 0
+    }
+
+    private _matchingSpecCount(suiteFile: string, runnerSpecs: string[]) {
+        const suiteBase = path.basename(this._toFilePath(suiteFile))
+        return runnerSpecs.filter((spec) => (
+            this._fileNamesEqual(path.basename(this._toFilePath(spec)), suiteBase)
+        )).length
+    }
+
+    /**
+     * Decide whether a suite can be tied to a specific runner spec.
+     * - unique: full path match, or a filename-only Jasmine suite whose
+     *   basename appears once in runner.specs
+     * - ambiguous: filename-only suite that matches multiple grouped specs
+     * - none: not the same file
+     */
+    private _suiteFileAssociation(
+        specFileName?: string,
+        suiteFile?: string,
+        runnerSpecs: string[] = []
+    ): 'unique' | 'ambiguous' | 'none' {
+        if (!this._sameFileName(specFileName, suiteFile)) {
+            return 'none'
+        }
+        if (!suiteFile) {
+            return 'unique'
+        }
+
+        const suitePath = this._toFilePath(suiteFile)
+        if (!this._isBasenameOnly(suitePath)) {
+            return 'unique'
+        }
+
+        return this._matchingSpecCount(suiteFile, runnerSpecs) > 1 ? 'ambiguous' : 'unique'
+    }
+
     private _sameFileName(file1?: string, file2?: string) {
         if (!file1 && !file2) {
-            // both null -> same
             return true
         }
         if (!file1 || !file2) {
-            // only one null -> not the same
             return false
         }
 
-        // ensure both files are not a file URL
-        file1 = file1.startsWith('file://') ? url.fileURLToPath(file1) : file1
-        file2 = file2.startsWith('file://') ? url.fileURLToPath(file2) : file2
+        file1 = this._toFilePath(file1)
+        file2 = this._toFilePath(file2)
 
-        return file1.localeCompare(file2, undefined, { sensitivity: this._isWindows ? 'accent' : 'variant' }) === 0
+        /**
+         * Jasmine provides only filenames (e.g. `happyPath.spec.js`) while
+         * `runner.specs` contains full paths. Compare basenames when either
+         * side has no directory separator (issue #13052).
+         */
+        if (this._isBasenameOnly(file1) || this._isBasenameOnly(file2)) {
+            file1 = path.basename(file1)
+            file2 = path.basename(file2)
+        }
+
+        return this._fileNamesEqual(file1, file2)
     }
 }
 

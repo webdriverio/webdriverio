@@ -7,6 +7,12 @@ import {
 
 const delay = (ms?: number) => new Promise(resolve => setTimeout(() => resolve(ms), ms || 0))
 
+/* Reports a promise that never settles instead of waiting out the test timeout. */
+const settles = <T>(promise: Promise<T>) => Promise.race([
+    promise,
+    new Promise<never>((_, reject) => setTimeout(() => reject(new Error('promise never settled')), 2000))
+])
+
 test('forEach, check callbacks are run in parallel', async () => {
     let total = 0
     const parallelCheck: number[] = []
@@ -478,6 +484,16 @@ test('every should skip holes in arrays', async () => {
     })
     expect(allIncluded).toBe(true)
     expect(count).toBe(4)
+})
+
+test.each(Object.entries({ some, someSeries }))('%s resolves false for an array containing only holes', async (_, iterator) => {
+    // Holes run no callback, so nothing settles the promise unless the
+    // all-holes case is handled up front. `Array#some` reports false.
+    await expect(settles(iterator(new Array(3), async () => true))).resolves.toBe(false)
+})
+
+test.each(Object.entries({ every, everySeries }))('%s resolves true for an array containing only holes', async (_, iterator) => {
+    await expect(settles(iterator(new Array(3), async () => false))).resolves.toBe(true)
 })
 
 test('filter', async () => {

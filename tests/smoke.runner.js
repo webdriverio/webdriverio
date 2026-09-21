@@ -21,6 +21,7 @@ const ansiColorRegex = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0
 process.env.WDIO_UNIT_TESTS = '1'
 
 import launch from './helpers/launch.js'
+import watchMode from './watch-mode/run.js'
 import {
     SERVICE_LOGS,
     LAUNCHER_LOGS,
@@ -1153,6 +1154,7 @@ const jasmineAfterHookArgsValidation = async () => {
 
 (async () => {
     const smokeTests = [
+        watchMode,
         mochaTestrunner,
         jasmineTestrunner,
         multiremote,

@@ -334,4 +334,92 @@ describe('ContextManager', () => {
         expect(manager.getCurrentWindowHandle()).toBeUndefined()
         process.env.WDIO_UNIT_TESTS = wid
     })
+
+    it('drops a cached context that switchToParentFrame cannot find a parent for', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub({ isBidi: true } as any)
+        const browser = stub.browser
+        /**
+         * the cached frame was destroyed by the page, so it is not in the tree
+         * any more and has no parent to step up to
+         */
+        ;(browser as any).browsingContextGetTree.mockResolvedValue({
+            contexts: [{
+                context: 'context-1', parent: null, children: [],
+                url: '', clientWindow: 'window-1', originalOpener: null, userContext: 'default'
+            }]
+        })
+        const manager = getContextManager(browser)
+        process.env.WDIO_UNIT_TESTS = wid
+        manager.setCurrentContext('destroyed-frame')
+
+        /**
+         * the base SessionManager registers a 'command' listener of its own first,
+         * so the ContextManager's is the last one
+         */
+        const commandHandlers = stub.getListeners().command
+        await commandHandlers![commandHandlers!.length - 1]({ command: 'switchToParentFrame', body: {} })
+
+        expect(manager.getCurrentWindowHandle()).toBeUndefined()
+        /**
+         * the dead id is gone, so the next call re-resolves the context
+         * through `initialize()` instead of addressing a destroyed frame
+         */
+        expect(await manager.getCurrentContext()).not.toBe('destroyed-frame')
+    })
+
+    it('keeps a valid top-level context when switchToParentFrame finds no parent', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub({ isBidi: true } as any)
+        const browser = stub.browser
+        /**
+         * the cached context is top-level: it has no parent, but it is very much
+         * still in the tree, so stepping up is a no-op rather than a recovery
+         */
+        ;(browser as any).browsingContextGetTree.mockResolvedValue({
+            contexts: [{
+                context: 'context-1', parent: null, children: [],
+                url: '', clientWindow: 'window-1', originalOpener: null, userContext: 'default'
+            }]
+        })
+        const manager = getContextManager(browser)
+        process.env.WDIO_UNIT_TESTS = wid
+        manager.setCurrentContext('context-1')
+
+        const commandHandlers = stub.getListeners().command
+        await commandHandlers![commandHandlers!.length - 1]({ command: 'switchToParentFrame', body: {} })
+
+        expect(await manager.getCurrentContext()).toBe('context-1')
+    })
+
+    it('still switches to the parent frame when one exists', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub({ isBidi: true } as any)
+        const browser = stub.browser
+        ;(browser as any).browsingContextGetTree.mockResolvedValue({
+            contexts: [{
+                context: 'context-1', parent: null,
+                children: [{
+                    context: 'frame-1', parent: 'context-1', children: [],
+                    url: '', clientWindow: 'window-1', originalOpener: null, userContext: 'default'
+                }],
+                url: '', clientWindow: 'window-1', originalOpener: null, userContext: 'default'
+            }]
+        })
+        const manager = getContextManager(browser)
+        process.env.WDIO_UNIT_TESTS = wid
+        manager.setCurrentContext('frame-1')
+
+        /**
+         * the base SessionManager registers a 'command' listener of its own first,
+         * so the ContextManager's is the last one
+         */
+        const commandHandlers = stub.getListeners().command
+        await commandHandlers![commandHandlers!.length - 1]({ command: 'switchToParentFrame', body: {} })
+
+        expect(await manager.getCurrentContext()).toBe('context-1')
+    })
 })

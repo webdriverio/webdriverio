@@ -120,7 +120,81 @@ const defineStrategy = function (selector: SelectorStrategy) {
         return 'role'
     }
 }
-export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolean, isMobile?: boolean) {
+/**
+ * Quote a string as an XPath 1.0 literal so user-provided labels cannot
+ * break out of the surrounding quotes.
+ */
+export function escapeXPathString(value: string) {
+    if (!value.includes('"')) {
+        return `"${value}"`
+    }
+    if (!value.includes("'")) {
+        return `'${value}'`
+    }
+
+    const parts: string[] = []
+    for (const segment of value.split('"')) {
+        if (segment.length > 0) {
+            parts.push(`"${segment}"`)
+        }
+        parts.push('\'"\'')
+    }
+    parts.pop()
+    return `concat(${parts.join(', ')})`
+}
+
+/**
+ * XPath approximation of an accessible name lookup.
+ * Used for WebDriver Classic sessions and as a fallback when BiDi
+ * accessibility locators are unavailable.
+ */
+export function getAriaXPathSelector(label: string) {
+    const escaped = escapeXPathString(label)
+    const conditions = [
+        // aria label is recevied by other element with aria-labelledBy
+        // https://www.w3.org/TR/accname-1.1/#step2B
+        `.//*[@aria-labelledby=(//*[normalize-space(text()) = ${escaped}]/@id)]`,
+        // aria label is recevied by other element with aria-labelledBy
+        // https://www.w3.org/TR/accname-1.1/#step2B
+        `.//*[@aria-describedby=(//*[normalize-space(text()) = ${escaped}]/@id)]`,
+        // element has direct aria label
+        // https://www.w3.org/TR/accname-1.1/#step2C
+        `.//*[@aria-label = ${escaped}]`,
+        // input and textarea with a label
+        // https://www.w3.org/TR/accname-1.1/#step2D
+        `.//input[@id = (//label[normalize-space() = ${escaped}]/@for)]`,
+        `.//textarea[@id = (//label[normalize-space() = ${escaped}]/@for)]`,
+        // input and textarea with a label as parent
+        // https://www.w3.org/TR/accname-1.1/#step2D
+        `.//input[ancestor::label[normalize-space(text()) = ${escaped}]]`,
+        `.//textarea[ancestor::label[normalize-space(text()) = ${escaped}]]`,
+        // aria label is received by a placeholder
+        // https://www.w3.org/TR/accname-1.1/#step2D
+        `.//input[@placeholder=${escaped}]`,
+        `.//textarea[@placeholder=${escaped}]`,
+        // aria label is received by a aria-placeholder
+        // https://www.w3.org/TR/accname-1.1/#step2D
+        `.//input[@aria-placeholder=${escaped}]`,
+        `.//textarea[@aria-placeholder=${escaped}]`,
+        // aria label is received by a title
+        // https://www.w3.org/TR/accname-1.1/#step2D
+        `.//*[not(self::label)][@title=${escaped}]`,
+        // images with an alt tag
+        // https://www.w3.org/TR/accname-1.1/#step2D
+        `.//img[@alt=${escaped}]`,
+        // aria label is received from element text content
+        // https://www.w3.org/TR/accname-1.1/#step2G
+        `.//*[not(self::label)][normalize-space(text()) = ${escaped}]`
+    ]
+    return conditions.join(' | ')
+}
+
+export const findStrategy = function (
+    selector: SelectorStrategy,
+    isW3C?: boolean,
+    isMobile?: boolean,
+    isBidi?: boolean
+) {
     const stringSelector = selector as string
     let using: string = DEFAULT_STRATEGY
     let value = selector as string
@@ -161,44 +235,18 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         break
     case 'aria': {
         const label = stringSelector.slice(ARIA_SELECTOR.length)
-        const conditions = [
-            // aria label is recevied by other element with aria-labelledBy
-            // https://www.w3.org/TR/accname-1.1/#step2B
-            `.//*[@aria-labelledby=(//*[normalize-space(text()) = "${label}"]/@id)]`,
-            // aria label is recevied by other element with aria-labelledBy
-            // https://www.w3.org/TR/accname-1.1/#step2B
-            `.//*[@aria-describedby=(//*[normalize-space(text()) = "${label}"]/@id)]`,
-            // element has direct aria label
-            // https://www.w3.org/TR/accname-1.1/#step2C
-            `.//*[@aria-label = "${label}"]`,
-            // input and textarea with a label
-            // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//input[@id = (//label[normalize-space() = "${label}"]/@for)]`,
-            `.//textarea[@id = (//label[normalize-space() = "${label}"]/@for)]`,
-            // input and textarea with a label as parent
-            // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//input[ancestor::label[normalize-space(text()) = "${label}"]]`,
-            `.//textarea[ancestor::label[normalize-space(text()) = "${label}"]]`,
-            // aria label is received by a placeholder
-            // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//input[@placeholder="${label}"]`,
-            `.//textarea[@placeholder="${label}"]`,
-            // aria label is received by a aria-placeholder
-            // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//input[@aria-placeholder="${label}"]`,
-            `.//textarea[@aria-placeholder="${label}"]`,
-            // aria label is received by a title
-            // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//*[not(self::label)][@title="${label}"]`,
-            // images with an alt tag
-            // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//img[@alt="${label}"]`,
-            // aria label is received from element text content
-            // https://www.w3.org/TR/accname-1.1/#step2G
-            `.//*[not(self::label)][normalize-space(text()) = "${label}"]`
-        ]
-        using = 'xpath'
-        value = conditions.join(' | ')
+        if (isBidi) {
+            /**
+             * Use the native BiDi accessibility locator. This queries the
+             * browser accessibility tree by accessible name and avoids the
+             * expensive XPath union that WebDriver Classic has to run.
+             */
+            using = 'aria'
+            value = label
+        } else {
+            using = 'xpath'
+            value = getAriaXPathSelector(label)
+        }
         break
     }
     case '-android uiautomator': {

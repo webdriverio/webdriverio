@@ -435,6 +435,128 @@ describe('wdio-junit-reporter', () => {
         expect(reporter['_sameFileName'](undefined, undefined)).toBeTruthy()
     })
 
+    it('_sameFileName - compares basenames when one path is just a filename (issue #13052)', () => {
+        reporter = new WDIOJunitReporter({ stdout: true })
+        const fullPath = os.platform() === 'win32'
+            ? 'C:\\path\\to\\project\\test\\specs\\spec.js'
+            : '/path/to/project/test/specs/spec.js'
+        const filenameOnly = 'spec.js'
+        const differentFilename = 'other.js'
+
+        // Jasmine provides only filenames while the runner has full paths
+        expect(reporter['_sameFileName'](fullPath, filenameOnly)).toBeTruthy()
+        expect(reporter['_sameFileName'](filenameOnly, fullPath)).toBeTruthy()
+        expect(reporter['_sameFileName'](fullPath, differentFilename)).toBeFalsy()
+        expect(reporter['_sameFileName'](differentFilename, fullPath)).toBeFalsy()
+        expect(reporter['_sameFileName'](filenameOnly, filenameOnly)).toBeTruthy()
+        expect(reporter['_sameFileName'](filenameOnly, differentFilename)).toBeFalsy()
+        // Two distinct full paths that share a basename are not the same file
+        const otherFullPath = os.platform() === 'win32'
+            ? 'C:\\path\\to\\project\\test\\other\\spec.js'
+            : '/path/to/project/test/other/spec.js'
+        expect(reporter['_sameFileName'](fullPath, otherFullPath)).toBeFalsy()
+    })
+
+    it('generates xml output when suite.file is a filename only (Jasmine, issue #13052)', () => {
+        const suites = JSON.parse(JSON.stringify(suitesLog))
+        for (const suite of Object.values(suites) as SuiteStats[]) {
+            suite.file = 'sync.spec.js'
+        }
+        reporter.suites = suites as any
+
+        const xml = reporter['_buildJunitXml'](mochaRunnerLog as any)
+        expect(xml).toContain('should can do something')
+        expect(xml).toContain('testsuite')
+        expect(xml).not.toMatch(/<testsuites\s*\/>/)
+        // Unique basename → safe to report the full runner spec path
+        expect(xml).toContain('test/specs/sync.spec.js')
+    })
+
+    it('does not duplicate suites when grouped specs share a basename (issue #13052)', () => {
+        const isWin = os.platform() === 'win32'
+        const desktopSpec = isWin
+            ? 'C:\\path\\to\\project\\test\\desktop\\spec.js'
+            : '/path/to/project/test/desktop/spec.js'
+        const mobileSpec = isWin
+            ? 'C:\\path\\to\\project\\test\\mobile\\spec.js'
+            : '/path/to/project/test/mobile/spec.js'
+        const uniqueSpec = isWin
+            ? 'C:\\path\\to\\project\\test\\specs\\unique.spec.js'
+            : '/path/to/project/test/specs/unique.spec.js'
+
+        const makeSuite = (uid: string, title: string, testTitle: string, file: string): SuiteStats => ({
+            type: 'suite',
+            start: new Date('2018-04-17T09:10:10.255Z'),
+            end: new Date('2018-04-17T09:10:10.355Z'),
+            _duration: 100,
+            uid,
+            cid: '0-0',
+            file,
+            title,
+            fullTitle: title,
+            tests: [{
+                type: 'test',
+                start: new Date('2018-04-17T09:10:10.256Z'),
+                end: new Date('2018-04-17T09:10:10.306Z'),
+                _duration: 50,
+                uid: `${uid}-test`,
+                cid: '0-0',
+                title: testTitle,
+                fullTitle: `${title} ${testTitle}`,
+                state: 'passed',
+                output: [],
+                retries: 0
+            }] as any,
+            hooks: [],
+            suites: [],
+            hooksAndTests: []
+        } as SuiteStats)
+
+        reporter = new WDIOJunitReporter({ stdout: true, addFileAttribute: true })
+        reporter.suites = {
+            'Desktop suite': makeSuite('desktop-suite', 'Desktop suite', 'desktop test', 'spec.js'),
+            'Mobile suite': makeSuite('mobile-suite', 'Mobile suite', 'mobile test', 'spec.js'),
+            'Unique suite': makeSuite('unique-suite', 'Unique suite', 'unique test', 'unique.spec.js')
+        } as any
+
+        const runner = {
+            ...mochaRunnerLog,
+            specs: [desktopSpec, mobileSpec, uniqueSpec]
+        }
+
+        const xml = reporter['_buildJunitXml'](runner as any)
+        expect(xml.match(/name="desktop test"/g)).toHaveLength(1)
+        expect(xml.match(/name="mobile test"/g)).toHaveLength(1)
+        expect(xml.match(/name="unique test"/g)).toHaveLength(1)
+        expect(xml.match(/<testsuite /g)).toHaveLength(3)
+        // Ambiguous basename → do not attribute those suites to a specific full path
+        const reportedFiles = [...xml.matchAll(/<property name="file" value="([^"]+)"/g)].map((match) => match[1])
+        expect(reportedFiles.filter((file) => file === 'spec.js')).toHaveLength(2)
+        expect(reportedFiles.some((file) => file.includes('unique.spec.js'))).toBe(true)
+        expect(reportedFiles.some((file) => file.includes(`${isWin ? 'desktop\\' : 'desktop/'}spec.js`))).toBe(false)
+        expect(reportedFiles.some((file) => file.includes(`${isWin ? 'mobile\\' : 'mobile/'}spec.js`))).toBe(false)
+        // <testcase file> follows the same attribution rules
+        const testCaseFiles = [...xml.matchAll(/<testcase [^>]*file="([^"]+)"/g)].map((match) => match[1])
+        expect(testCaseFiles.filter((file) => file === 'spec.js')).toHaveLength(2)
+        expect(testCaseFiles.some((file) => file.includes('unique.spec.js'))).toBe(true)
+    })
+
+    it('_suiteFileAssociation - unique only when the basename maps to one spec', () => {
+        reporter = new WDIOJunitReporter({ stdout: true })
+        const desktopSpec = os.platform() === 'win32'
+            ? 'C:\\path\\to\\project\\test\\desktop\\spec.js'
+            : '/path/to/project/test/desktop/spec.js'
+        const mobileSpec = os.platform() === 'win32'
+            ? 'C:\\path\\to\\project\\test\\mobile\\spec.js'
+            : '/path/to/project/test/mobile/spec.js'
+
+        expect(reporter['_suiteFileAssociation'](desktopSpec, 'spec.js', [desktopSpec])).toBe('unique')
+        expect(reporter['_suiteFileAssociation'](desktopSpec, 'spec.js', [desktopSpec, mobileSpec])).toBe('ambiguous')
+        expect(reporter['_suiteFileAssociation'](mobileSpec, 'spec.js', [desktopSpec, mobileSpec])).toBe('ambiguous')
+        expect(reporter['_suiteFileAssociation'](desktopSpec, desktopSpec, [desktopSpec, mobileSpec])).toBe('unique')
+        expect(reporter['_suiteFileAssociation'](desktopSpec, 'other.js', [desktopSpec, mobileSpec])).toBe('none')
+    })
+
     const options = { stdout: true, addWorkerLogs: true }
 
     it('addWorkerLogs: should add worker console log to report for test if activated', () => {
