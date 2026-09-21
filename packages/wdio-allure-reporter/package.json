@@ -36,7 +36,7 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.20.4",
     "@wdio/reporter": "workspace:*",
     "@wdio/types": "workspace:*",
     "allure-js-commons": "^3.10.0",

@@ -37,7 +37,7 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/split2": "^4.2.3",
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.20.4",
     "@wdio/logger": "workspace:*",
     "@wdio/repl": "workspace:*",
     "@wdio/runner": "workspace:*",

@@ -41,7 +41,7 @@
     "@wdio/logger": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.20.4",
     "@wdio/types": "workspace:*"
   },
   "publishConfig": {

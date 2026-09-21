@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@types/jasmine": "^5.1.13",
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.20.4",
     "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",

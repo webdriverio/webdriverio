@@ -31,7 +31,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/node": "^20.11.28",
+    "@types/node": "^22.20.4",
     "@wdio/config": "workspace:*",
     "@wdio/dot-reporter": "workspace:*",
     "@wdio/globals": "workspace:*",

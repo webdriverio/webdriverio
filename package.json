@@ -87,7 +87,7 @@
     "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "@types/mime-types": "^3.0.1",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^20.19.43",
+    "@types/node": "^22.20.4",
     "@types/recursive-readdir": "^2.2.4",
     "@types/shelljs": "^0.10.0",
     "@types/unzipper": "^0.10.11",

@@ -38,7 +38,7 @@
     "webdriverio": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.20.4",
     "@wdio/globals": "workspace:*"
   },
   "publishConfig": {

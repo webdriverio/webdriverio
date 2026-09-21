@@ -36,7 +36,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.20.4",
     "@types/ws": "^8.5.3",
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",

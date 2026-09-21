@@ -32,7 +32,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/node": "^20.1.0"
+    "@types/node": "^22.20.4"
   },
   "publishConfig": {
     "access": "public"
