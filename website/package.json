@@ -38,7 +38,7 @@
     "workbox-strategies": "^7.1.0"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.12.0"
   },
   "browserslist": {
     "production": [
