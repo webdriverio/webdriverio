@@ -10,7 +10,7 @@ import { _setGlobal } from '@wdio/globals'
 import { setDefaultOptions, SnapshotService } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
-import type { CustomStubCommand, CustomStubCommandWithOptions, LegacyCustomStubCommand } from '../src/types.js'
+import type { CustomStubCommand } from '../src/types.js'
 
 vi.mock('fs/promises', async (orig) => ({
     ...(await orig()) as any,
@@ -514,7 +514,7 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             const myCustomFunction = () => {}
             const options = { attachToElement: true, disableElementImplicitWait: true }
-            const customCommands: CustomStubCommandWithOptions[] = [['myCustomCommandName', myCustomFunction, options]]
+            const customCommands: CustomStubCommand[] = [['myCustomCommandName', myCustomFunction, options]]
 
             runner['_browser'] = { customCommands } as any
             const browser = await runner['_startSession']({} as any, {} as any)
@@ -522,28 +522,32 @@ describe('wdio-runner', () => {
             expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction, options)
         })
 
-        it('transfers custom element commands with deprecated positional args from old instance to new one', async () => {
+        it('transfers the proto and instances the protocol stub folded into the options', async () => {
             const runner = new WDIORunner()
             const myCustomFunction = () => {}
-            const proto = { foo: 'bar' }
-            const instances: Record<string, Instances> = { baz: 'qux' as unknown as Instances }
-            const customCommands: LegacyCustomStubCommand[] = [['myCustomCommandName', myCustomFunction, true, proto, instances]]
+            const options = {
+                attachToElement: true,
+                proto: { foo: 'bar' },
+                instances: { baz: 'qux' as unknown as Instances }
+            }
+            const customCommands: CustomStubCommand[] = [['myCustomCommandName', myCustomFunction, options]]
 
             runner['_browser'] = { customCommands } as any
             const browser = await runner['_startSession']({} as any, {} as any)
 
-            expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction, true, proto, instances)
+            expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction, options)
         })
 
         it('transfers browser custom commands from old instance to new one', async () => {
             const runner = new WDIORunner()
             const myCustomFunction = () => {}
-            const customCommands: CustomStubCommand[] = [['myCustomCommandName', myCustomFunction]]
+            const options = { attachToElement: undefined, proto: undefined, instances: undefined }
+            const customCommands: CustomStubCommand[] = [['myCustomCommandName', myCustomFunction, options]]
 
             runner['_browser'] = { customCommands } as any
             const browser = await runner['_startSession']({} as any, {} as any)
 
-            expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction)
+            expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction, options)
         })
 
         it('transfers overwritten commands from old instance to new one', async () => {
