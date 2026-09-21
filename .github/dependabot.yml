@@ -7,18 +7,6 @@ updates:
     time: "11:00"
   open-pull-requests-limit: 10
   versioning-strategy: increase-if-necessary
-  ignore:
-    # requires manual upgrade as we use internal interfaces
-    - dependency-name: "lighthouse"
-    # Eslint v9 comes with breaking changes that require manual upgrade
-    # (still used by packages/eslint-plugin-wdio)
-    - dependency-name: "eslint"
-    - dependency-name: "@typescript-eslint/eslint-plugin"
-    - dependency-name: "@typescript-eslint/parser"
-    - dependency-name: "@typescript-eslint/utils"
-    # updates to Node.js requires update to .nvmrc
-    - dependency-name: "@types/node"
-      update-types: ["version-update:semver-major"]
   groups:
     patch-deps-updates-main:
       update-types:
@@ -37,29 +25,6 @@ updates:
     time: "11:00"
   open-pull-requests-limit: 10
   versioning-strategy: increase-if-necessary
-  ignore:
-    # requires manual upgrade and potential a lot of rewrites
-    - dependency-name: "@vitest/coverage-v8"
-    # requires manual upgrade as we use internal interfaces
-    - dependency-name: "lighthouse"
-    # doesn't support glob anymore in v4 (Windows)
-    - dependency-name: "rimraf"
-    # these packages don't support Node.js v16 anymore
-    - dependency-name: "got"
-    - dependency-name: "ky"
-    - dependency-name: "@octokit/rest"
-    - dependency-name: "@cucumber/cucumber"
-    - dependency-name: "jsdom"
-    - dependency-name: "pretty-ms"
-    - dependency-name: "@puppeteer/browsers"
-    - dependency-name: "inquirer"
-    - dependency-name: "read-pkg-up"
-    - dependency-name: "formdata-node"
-    # fails to update and requires investigations
-    - dependency-name: "vite"
-    - dependency-name: "puppeteer-core"
-    # requires manual upgrade
-    - dependency-name: "allure-js-commons"
   groups:
     patch-deps-updates-v8:
       update-types:
