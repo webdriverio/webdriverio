@@ -72,7 +72,7 @@ const mainPackageFolderFiles = [{
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "repository": {
     "type": "git",
