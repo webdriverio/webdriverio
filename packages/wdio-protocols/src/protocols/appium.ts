@@ -1191,6 +1191,24 @@ export default {
                 },
             },
         },
+        POST: {
+            command: 'getFormattedDeviceTime',
+            description: 'Get the time on the device in the specified format.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getdevicetime',
+            parameters: [
+                {
+                    name: 'format',
+                    type: 'string',
+                    description: 'Format to use for the returned timestamp',
+                    required: false,
+                },
+            ],
+            returns: {
+                type: 'string',
+                name: 'time',
+                description: 'Time on the device',
+            },
+        },
     },
     '/session/:sessionId/appium/device/display_density': {
         GET: {
@@ -2001,6 +2019,72 @@ export default {
                 description:
                     'The content of the resulting dictionary depends on the `mode` and `options` values. See Appium documentation for more details.',
             },
+        },
+    },
+    '/appium/storage/add': {
+        POST: {
+            command: 'addAppiumStorageItem',
+            description: 'Add a new file to the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later.***',
+            ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#addstorageitem',
+            parameters: [
+                {
+                    name: 'name',
+                    type: 'string',
+                    description: 'Name used to save the file as',
+                    required: true,
+                },
+                {
+                    name: 'sha1',
+                    type: 'string',
+                    description: 'SHA1 hash of the item to add to the storage',
+                    required: true,
+                },
+            ],
+            returns: {
+                type: 'object',
+                name: 'AddRequestResult',
+                description:
+                    'an object containing upload-related websocket URLs and their timeout value. See Appium documentation for more details.',
+            },
+        },
+    },
+    '/appium/storage/delete': {
+        POST: {
+            command: 'deleteAppiumStorageItem',
+            description: 'Delete a file from the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later.***',
+            ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#deletestorageitem',
+            parameters: [
+                {
+                    name: 'name',
+                    type: 'string',
+                    description: 'Name of the file to delete',
+                    required: true,
+                },
+            ],
+            returns: {
+                type: 'boolean',
+                name: 'deletionResult',
+                description: 'True if the file was deleted, false otherwise',
+            },
+        },
+    },
+    '/appium/storage/list': {
+        GET: {
+            command: 'listAppiumStorageItems',
+            description: 'List all files in the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later.***',
+            ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#liststorageitems',
+            returns: {
+                type: 'Object[]',
+                name: 'StorageItems',
+                description: 'an array of metadata objects for each item in the storage. See Appium documentation for more details.',
+            },
+        },
+    },
+    '/appium/storage/reset': {
+        POST: {
+            command: 'resetAppiumStorage',
+            description: 'Reset the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later.***',
+            ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#resetstorage',
         },
     },
     '/session/:sessionId/timeouts/implicit_wait': {
