@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/javascript-node:0-18
+FROM mcr.microsoft.com/devcontainers/javascript-node:1-24-bookworm
 
 # Installs Firefox ESR
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive && apt-get install -y firefox-esr
@@ -19,8 +19,8 @@ RUN if [[ $(dpkg --print-architecture) == "amd64" ]]; then \
         apt-get install -y microsoft-edge-stable ; \
 	fi
 
-RUN npm i -g \
-		http-server \
-		diff-so-fancy \
+RUN corepack enable \
+	&& corepack prepare pnpm@10.34.5 --activate \
+	&& npm i -g http-server diff-so-fancy
 
 COPY welcome-message.txt /usr/local/etc/vscode-dev-containers/first-run-notice.txt

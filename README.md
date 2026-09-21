@@ -49,7 +49,7 @@ WebdriverIO is a test automation framework, for e2e as well as unit and componen
 
 ## :woman_technologist: :man_technologist: Contributing
 
-Do you like WebdriverIO and want to help make it better? Awesome! Have a look into our [Contributor Documentation](CONTRIBUTING.md) to get started and find out what contributions can be and how to make them.
+Do you like WebdriverIO and want to help make it better? Awesome! Have a look into our [Contributor Documentation](CONTRIBUTING.md) to get started and find out what contributions can be and how to make them. AI coding agents should start with [`AGENTS.md`](AGENTS.md).
 
 ### Getting started with GitHub Codespaces
 
@@ -152,6 +152,7 @@ These packages are not released to NPM and used to work on this codebase.
 - [@wdio/compiler](https://github.com/webdriverio/webdriverio/tree/main/infra/compiler) - Esbuild script to
 compile the source code all of all packages
 - [@wdio/lerna-patch](https://github.com/webdriverio/webdriverio/tree/main/infra/lernaPatch) - This sub-package is being used to patch Lerna to not run `pnpm install` after it prepared all packages for release
+- [@wdio/repo-tools](https://github.com/webdriverio/webdriverio/tree/main/infra/repo-tools) - Typed helpers for docs discovery, scoped package tests, and CI lane selection
 
 ## :handshake: Project Governance
 
