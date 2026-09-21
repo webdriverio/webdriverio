@@ -187,6 +187,31 @@ In this example, the `myFirefoxBrowser` instance will start waiting on a message
 
 Multiremote makes it easy and convenient to control multiple browsers, whether you want them doing the same thing in parallel, or different things in concert.
 
+### What `$$` returns
+
+On a multiremote browser, `$$` (and `custom$$` / `react$$`) returns a `MultiRemoteElementArray`. Each entry is a `MultiRemoteElement` that addresses every instance at once, and the array itself carries the same information as a regular `ElementArray`:
+
+```js
+const messages = await $$('.messages')
+
+messages.length      // how many elements were found
+messages[0]          // a MultiRemoteElement, addressing all instances
+messages.selector    // '.messages'
+messages.foundWith   // '$$'
+messages.parent      // the multiremote browser or element it was fetched from
+messages.isMultiremote // true, so it can be told apart from a plain ElementArray
+
+// the async array helpers are available, as on a single browser
+await messages.map((m) => m.getText())
+await messages.filter(async (m) => await m.isDisplayed())
+```
+
+:::info
+
+Before v10 this returned a plain array unless `WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY=true` was set. The array is now the default and the environment variable has been removed. Index access is unchanged, so code that only read `elements[0]` keeps working.
+
+:::
+
 ## Accessing browser instances using strings via the browser object
 In addition to accessing the browser instance via their global variables (e.g. `myChromeBrowser`, `myFirefoxBrowser`), you can also access them via the `browser` object, e.g. `browser["myChromeBrowser"]` or `browser["myFirefoxBrowser"]`. You can get a list of all your instances via `browser.instances`. This is especially useful when writing re-usable test steps that can be performed in either browser, e.g.:
 

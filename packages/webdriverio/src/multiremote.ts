@@ -255,21 +255,14 @@ export default class MultiRemote {
                 const zippedResult = zip(...result)
                 const wrappedResult = zippedResult.map((singleResult) => MultiRemote.elementWrapper(activeInstances, singleResult, this.__propertiesObject__, self, typeof selector === 'string' ? selector : undefined))
 
-                // TODO remove this flag in v10
-                if (process.env.WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY !== 'true') {
-                    return wrappedResult
-                }
-
-                // TODO in v10, let's do a proper MultiRemoteElementArray type instead of casting
                 const elementArray = enhanceElementsArray(
-                    wrappedResult as unknown as WebdriverIO.Element[],
-                    this as unknown as WebdriverIO.Browser,
+                    wrappedResult,
+                    this,
                     selector,
                     commandName
                 )
 
-                // TODO expose this property in v10 with a new MultiRemoteElementArray type
-                Object.assign(elementArray, { isMultiremote: true })
+                elementArray.isMultiremote = true
                 return elementArray
             }
             return result

@@ -217,8 +217,7 @@ type ElementCommandNames = SingleElementCommandNames | MultiElementCommandNames
 type MultiRemoteElementCommands = {
     [K in keyof Pick<BrowserCommandsType, SingleElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElement>
 } & {
-    // TODO change MultiRemoteElement[] for a MultiRemoteElementArray type in v10
-    [K in keyof Pick<BrowserCommandsType, MultiElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElement[]>
+    [K in keyof Pick<BrowserCommandsType, MultiElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElementArray>
 }
 
 export type MultiRemoteBrowserCommandsType = {
@@ -261,6 +260,43 @@ interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof Asyn
     getElements(): Promise<WebdriverIO.ElementArray>
 }
 export type ElementArray = ElementArrayExport
+
+/**
+ * The array `$$` returns on a multiremote browser. It carries the same
+ * information as `ElementArray` — every entry is a `MultiRemoteElement` rather
+ * than an `Element`, and `isMultiremote` tells the two apart at runtime.
+ */
+interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemoteElement>, keyof AsyncIterators<WebdriverIO.MultiRemoteElement>>, AsyncIterators<WebdriverIO.MultiRemoteElement> {
+    /**
+     * selector used to fetch this element array
+     */
+    selector: Selector
+    /**
+     * parent of the element array, i.e. the multiremote browser or element it was fetched from
+     */
+    parent: WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement
+    /**
+     * command name with which these elements were found, e.g. `$$`, `react$$`, `custom$$`
+     */
+    foundWith: string
+    /**
+     * properties of the fetched elements
+     */
+    props: any[]
+    /**
+     * Amount of elements fetched.
+     */
+    length: number
+    /**
+     * always `true`, so a multiremote element array can be told apart from a plain one
+     */
+    isMultiremote: true
+    /**
+     * get the `WebdriverIO.MultiRemoteElement[]` list
+     */
+    getElements(): Promise<WebdriverIO.MultiRemoteElementArray>
+}
+export type MultiRemoteElementArray = MultiRemoteElementArrayExport
 
 type AddCommandFnScoped<
     InstanceType = WebdriverIO.Browser,
@@ -881,6 +917,15 @@ declare global {
          * @see https://webdriver.io/docs/multiremote/
          */
         interface MultiRemoteElement extends MultiRemoteElementType {}
+        /**
+         * WebdriverIO multiremote element array
+         * What `$$`, `custom$$` and `react$$` return on a multiremote browser. Like
+         * `ElementArray` it carries the selector, parent and properties of the fetched
+         * set, and `isMultiremote` marks it as the multiremote variant.
+         *
+         * @see https://webdriver.io/docs/multiremote/
+         */
+        interface MultiRemoteElementArray extends MultiRemoteElementArrayExport {}
         /**
          * WebdriverIO Mock object
          * The mock object is an object that represents a network mock and contains information about
