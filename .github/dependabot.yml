@@ -17,24 +17,6 @@ updates:
     major-deps-updates-main:
       update-types:
         - "major"
-- package-ecosystem: npm
-  directory: "/"
-  target-branch: v8
-  schedule:
-    interval: weekly
-    time: "11:00"
-  open-pull-requests-limit: 10
-  versioning-strategy: increase-if-necessary
-  groups:
-    patch-deps-updates-v8:
-      update-types:
-        - "patch"
-    minor-deps-updates-v8:
-      update-types:
-        - "minor"
-    major-deps-updates-v8:
-      update-types:
-        - "major"
 - package-ecosystem: github-actions
   directory: "/"
   schedule:

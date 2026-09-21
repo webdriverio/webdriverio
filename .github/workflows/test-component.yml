@@ -23,7 +23,9 @@ jobs:
         # They only burned checkout/install minutes, so they are omitted.
         # Ubuntu is still disabled — the suite has historically been macOS-only
         # in this workflow besides the skipped Windows jobs.
-        node: ${{ fromJSON(inputs.full_matrix && '["18","20","22","24","26"]' || '["24"]') }}
+        # Node 18 is omitted: @sveltejs/vite-plugin-svelte v6 requires
+        # Node ^20.19 || ^22.12 || >=24.
+        node: ${{ fromJSON(inputs.full_matrix && '["20","22","24","26"]' || '["24"]') }}
         os: ['macos-latest']
     runs-on: ${{ matrix.os }}
     steps:

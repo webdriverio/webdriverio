@@ -2,7 +2,7 @@
 #
 # Pull requests detect which areas changed and skip expensive suites that
 # cannot be affected (Xvfb distro matrix, component tests, docs site build,
-# etc.). PRs also use a reduced OS × Node matrix. Pushes to main (and PRs
+# etc.). PRs also use a reduced OS × Node matrix. Pushes to main/v10 (and PRs
 # that touch CI config) still run the full matrix so merge coverage stays
 # complete.
 #
@@ -13,8 +13,6 @@ on:
   push:
     branches:
       - main
-      - v7
-      - v8
       - v10
       - '!l10n_main'
     paths-ignore:
@@ -147,7 +145,7 @@ jobs:
   cloud_tests:
     name: Cloud E2E Tests
     needs: [changes, smoke_tests, unit_tests, interop_tests, typing_tests]
-    if: github.ref == 'refs/heads/main' && (needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true')
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v10') && (needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true')
     uses: ./.github/workflows/test-cloud.yml
     secrets: inherit
 
