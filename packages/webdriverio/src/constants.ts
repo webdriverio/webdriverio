@@ -71,6 +71,13 @@ export const WDIO_DEFAULTS: Options.Definition<Capabilities.WebdriverIOConfig> =
         default: 5000
     },
     /**
+     * Throw if `$` matches more than one element
+     */
+    strictSelectors: {
+        type: 'boolean',
+        default: true
+    },
+    /**
      * Hooks
      */
     onReload: HOOK_DEFINITION,

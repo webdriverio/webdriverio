@@ -355,6 +355,7 @@
       "type": "category",
       "label": "Migrate",
       "items": [
+        "v10-migration",
         "v6-migration",
         "v7-migration",
         "protractor-migration",

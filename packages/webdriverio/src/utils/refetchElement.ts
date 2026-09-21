@@ -12,13 +12,18 @@ export default async function refetchElement (
     const selectors: {
         selector: Selector
         index: number
+        strict?: boolean
     }[] = []
 
     /**
      * Crawl back to the browser object, and cache all selectors
      */
     while (currentElement.elementId && currentElement.parent) {
-        selectors.push({ selector: currentElement.selector, index: currentElement.index || 0 })
+        selectors.push({
+            selector: currentElement.selector,
+            index: currentElement.index || 0,
+            strict: currentElement.strict
+        })
         currentElement = currentElement.parent as WebdriverIO.Element
     }
     selectors.reverse()
@@ -28,10 +33,10 @@ export default async function refetchElement (
     /**
      * Beginning with the browser object, re-chain
      */
-    return selectors.reduce(async (elementPromise, { selector, index }, currentIndex) => {
+    return selectors.reduce(async (elementPromise, { selector, index, strict }, currentIndex) => {
         const resolvedElement = await elementPromise
         let nextElement = index > 0 ? await resolvedElement.$$(selector as string)[index]?.getElement() : null
-        nextElement = nextElement || await resolvedElement.$(selector).getElement()
+        nextElement = nextElement || await resolvedElement.$(selector, { strict }).getElement()
         /**
          *  For error purposes, changing command name to '$' if we aren't
          *  on the last element of the array

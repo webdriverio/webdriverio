@@ -90,7 +90,7 @@ export async function waitForExist (
             } else {
                 element = this.isShadowElement
                     ? this.parent.shadow$(this.selector)
-                    : this.parent.$(this.selector)
+                    : this.parent.$(this.selector, { strict: this.strict })
             }
 
             this.elementId = await element.elementId

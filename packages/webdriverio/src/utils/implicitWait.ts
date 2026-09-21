@@ -21,9 +21,14 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
         try {
             await currentElement.waitForExist()
             /**
-             * if waitForExist was successful requery element and assign elementId to the scope
+             * if waitForExist was successful requery element and assign elementId to the scope.
+             * Re-fetch with the same strictness the element was originally queried with,
+             * otherwise an opted-out `$(sel, { strict: false })` or an element coming from
+             * `$$` would suddenly throw here.
              */
-            return (currentElement.parent as WebdriverIO.Element).$(currentElement.selector).getElement()
+            return (currentElement.parent as WebdriverIO.Element)
+                .$(currentElement.selector, { strict: currentElement.strict })
+                .getElement()
         } catch {
             if (currentElement.selector.toString().includes('this.previousElementSibling')) {
                 throw new Error(

@@ -623,6 +623,20 @@ async function bar() {
     }, 123, 'hello', 'true')
 }
 
+async function strictSelectors() {
+    const browser = await remote({ capabilities: {} })
+
+    // strict mode can be toggled per call, on the browser and on an element
+    expectType<string>(await browser.$('button', { strict: false }).getTagName())
+    expectType<string>(await browser.$('button', { strict: true }).getTagName())
+    expectType<string>(await browser.$('div').$('button', { strict: false }).getTagName())
+
+    // @ts-expect-error unknown option
+    await browser.$('button', { strictly: false })
+    // @ts-expect-error strict needs to be a boolean
+    await browser.$('button', { strict: 'nope' })
+}
+
 function testSevereServiceError_noParameters() {
     throw new SevereServiceError()
 }

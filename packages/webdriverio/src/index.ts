@@ -9,6 +9,7 @@ import type * as WebDriverTypes from 'webdriver'
 
 import MultiRemote from './multiremote.js'
 import SevereServiceErrorImport from './utils/SevereServiceError.js'
+import { StrictSelectorError as StrictSelectorErrorImport } from './utils/strictMode.js'
 import detectBackend from './utils/detectBackend.js'
 import { getProtocolDriver } from './utils/driver.js'
 import { WDIO_DEFAULTS, Key as KeyConstant } from './constants.js'
@@ -23,6 +24,11 @@ import { IMPLICIT_WAIT_EXCLUSION_LIST } from './middlewares.js'
 export * from './types.js'
 export const Key = KeyConstant
 export const SevereServiceError = SevereServiceErrorImport
+/**
+ * Thrown by `$` when the selector matches more than one element and strict mode
+ * is enabled, see https://webdriver.io/docs/selectors#strict-mode
+ */
+export const StrictSelectorError = StrictSelectorErrorImport
 
 /**
  * A method to create a new session with WebdriverIO.

@@ -32,6 +32,65 @@ We __do__ and __do not__ recommend the following selectors:
 | `$('aria/Submit')` | ✅ Good | Good. Resembles how the user interacts with the page. It is recommended to use translation files so your tests don't break when translations are updated. On WebDriver BiDi sessions this uses the browser accessibility tree. On Classic sessions it falls back to XPath and can be slower on large pages. |
 | `$('button=Submit')` | ✅ Always | Best. Resembles how the user interacts with the page and is fast. It is recommended to use translation files so your tests don't break when translations are updated. |
 
+## Strict Mode
+
+As of v10 the [`$`](/docs/api/browser/$) command is __strict__: it represents exactly one element. If the selector matches more than one element, the command throws a `StrictSelectorError` instead of silently picking the first match:
+
+```js
+// there are 12 buttons on the page
+await $('button').click()
+// StrictSelectorError: strict mode violation: `$("button")` resolved to 12 elements, expected 1.
+```
+
+This is the same behavior as [Playwright locators](https://playwright.dev/docs/locators#strictness) and Cypress queries. It surfaces selectors that are too broad, which would otherwise silently interact with the wrong element as soon as the page grows.
+
+The rule applies to every step of a [chain](#chain-selectors) and to all selector types, including mobile, shadow DOM and [custom strategies](#custom-selector-strategies).
+
+### What is not affected
+
+- `$$` keeps returning zero or many elements.
+- A selector that matches nothing still returns a lazily-resolved element, so [`waitForExist`](/docs/api/element/waitForExist) and the [auto-waiting](/docs/autowait) behavior are unchanged.
+- Passing an element reference, e.g. `$(await browser.getActiveElement())`, always refers to a single node and is never checked.
+
+### Migrating
+
+There is no automatic codemod for this — whether two matches are a bug or intentional is a decision only you can make. To find the affected queries, look for `$(...)` calls with generic selectors and check how many elements they actually match:
+
+```js
+console.log(await $$('button').length) // 12 → the `$('button')` above is too broad
+```
+
+Then either narrow down the selector, or say explicitly that you want the first match:
+
+```js
+// v9 — clicks the first button, even if there are 12
+await $('button').click()
+
+// v10 — pick the one you mean
+await $('button[type="submit"]').click()
+// ...or take the first one on purpose
+await $$('button')[0].click()
+```
+
+### Opting out
+
+For the rare case where the first match really is what you want, pass `strict: false` for a single query:
+
+```js
+await $('button', { strict: false }).click()
+```
+
+To restore the v9 behavior for a whole project, set [`strictSelectors`](/docs/configuration#strictselectors) in your config:
+
+```js title="wdio.conf.js"
+export const config = {
+    // ...
+    strictSelectors: false
+}
+```
+
+An element remembers how it was queried, so re-fetching it — after a stale element reference, or through `waitForExist` — keeps the strictness of the original call.
+
 ## CSS Query Selector
 
 If not indicated otherwise, WebdriverIO will query elements using the [CSS selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) pattern, e.g.:
