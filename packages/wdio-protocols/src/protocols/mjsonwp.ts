@@ -43,7 +43,7 @@ export default {
         GET: {
             command: 'touchPerform',
             ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#touch-gestures',
-            deprecated: 'For Appium, use `driver.performActions(...)` instead.',
+            deprecated: 'For Appium, use `driver.performActions(...)` instead',
             parameters: [
                 {
                     name: 'actions',
@@ -59,7 +59,7 @@ export default {
         GET: {
             command: 'multiTouchPerform',
             ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#touch-gestures',
-            deprecated: 'For Appium, use `driver.performActions(...)` instead.',
+            deprecated: 'For Appium, use `driver.performActions(...)` instead',
             parameters: [
                 {
                     name: 'actions',
