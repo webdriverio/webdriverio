@@ -2,7 +2,7 @@ import { expectType } from 'tsd'
 
 import allure from '@wdio/allure-reporter'
 import { remote, multiremote, SevereServiceError, Key } from 'webdriverio'
-import type { ClickOptions, TouchAction, Selector, Action } from 'webdriverio'
+import type { ClickOptions, Selector, Action } from 'webdriverio'
 import type { DetailedContext } from '@wdio/protocols'
 
 declare global {
@@ -389,24 +389,8 @@ async function bar() {
     })
     await reactElements[0].click()
 
-    // touchAction
-    const ele = await $('')
-    const touchAction: TouchAction = {
-        action: 'longPress',
-        element: await $('').getElement(),
-        ms: 0,
-        x: 0,
-        y: 0
-    }
-    await ele.touchAction(touchAction)
-    await browser.touchAction(touchAction)
-    await browser.touchAction([
-        { action: 'press', x: 200, y: 200 },
-        { action: 'moveTo', x: 200, y: 300 },
-        'release'
-    ])
-
     // dragAndDrop
+    const ele = await $('')
     await ele.dragAndDrop(ele, { duration: 0 })
     await ele.dragAndDrop({ x: 1, y: 2 })
 

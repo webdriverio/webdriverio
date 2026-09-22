@@ -1,72 +1,65 @@
+/** @typedef {{ x: number, y: number }} Point */
+
 const h = 200
 const k = 450
 const r = 100
 
 /**
+ * draw strokes at the same time, one touch pointer (finger) per stroke
+ * @param  {WebdriverIO.Browser} driver   session to draw with
+ * @param  {...Point[]}          strokes  absolute points of each stroke
+ */
+export function draw (driver, ...strokes) {
+    return driver.actions(strokes.map(([start, ...rest]) => {
+        const finger = driver.action('pointer', { parameters: { pointerType: 'touch' } })
+            .move(start)
+            .down()
+        for (const point of rest) {
+            finger.move({ ...point, duration: 10 })
+        }
+        return finger.up()
+    }))
+}
+
+/**
  * simple helper function to draw a circle
  * @param  {number} h    horizontal center of the circle
  * @param  {number} k    vertical center of the circle
- * @return {Actions[]}   list of actions for touchAction command
+ * @return {Point[]}     points of the circle
  */
-export function circleAction (h, k) {
-    let theta = 0
-    let prev = { action: 'press', x: h + r * Math.cos(theta), y: k + r * Math.sin(theta) }
-    const actions = []
-
-    actions.push(prev)
-    for (; theta < 2*Math.PI; theta+=2*Math.PI/36) {
-        const next = { x: h + r * Math.cos(theta), y: k + r * Math.sin(theta) }
-        actions.push({ action: 'moveTo', x: next.x - prev.x, y: next.y - prev.y })
-        prev = next
+export function circlePoints (h, k) {
+    const points = []
+    for (let theta = 0; theta < 2 * Math.PI; theta += 2 * Math.PI / 36) {
+        points.push({ x: Math.round(h + r * Math.cos(theta)), y: Math.round(k + r * Math.sin(theta)) })
     }
-
-    actions.push('release')
-    return actions
+    return points
 }
 
 /**
  * helper function to draw an arc
  * @param  {number} start start point
  * @param  {number} end   end point
- * @return {Actions[]}    list of action for touchAction command
+ * @return {Point[]}      points of the arc
  */
-export function arcAction(start, end) {
-    let theta = start
-    let prev = { action: 'press', x: h + r * Math.cos(theta), y: k + r * Math.sin(theta) }
-    const actions = []
-    actions.push(prev)
-
-    for (; theta < end; theta += 2 * Math.PI / 100) {
-        const next = { x: h + r * Math.cos(theta), y: k + r * Math.sin(theta) }
-        actions.push({ action: 'moveTo', x: next.x - prev.x, y: next.y - prev.y })
-        prev = next
+export function arcPoints (start, end) {
+    const points = []
+    for (let theta = start; theta < end; theta += 2 * Math.PI / 100) {
+        points.push({ x: Math.round(h + r * Math.cos(theta)), y: Math.round(k + r * Math.sin(theta)) })
     }
-
-    actions.push('release')
-    return actions
+    return points
 }
 
 /**
  * helper function to draw an curved arc
  * @param  {number} start start point
  * @param  {number} end   end point
- * @return {Actions[]}    list of action for touchAction command
+ * @return {Point[]}      points of the curved arc
  */
-export function innerArcAction(start, end) {
-    let theta = start
-    const step = 4 * Math.PI / 100
-
-    let prev = { action: 'press', x: h - r * Math.cos(theta), y: k + r * Math.sin(theta) }
-    const actions = []
-    actions.push(prev)
-
-    for (; theta < end; theta += step) {
+export function innerArcPoints (start, end) {
+    const points = []
+    for (let theta = start; theta < end; theta += 4 * Math.PI / 100) {
         const rad = 7.5991 * Math.pow(theta - start - Math.PI, 2) + 25
-        const next = { x: h - rad * Math.cos(theta), y: k + rad * Math.sin(theta) }
-        actions.push({ action: 'moveTo', x: next.x - prev.x, y: next.y - prev.y })
-        prev = next
+        points.push({ x: Math.round(h - rad * Math.cos(theta)), y: Math.round(k + rad * Math.sin(theta)) })
     }
-
-    actions.push('release')
-    return actions
+    return points
 }

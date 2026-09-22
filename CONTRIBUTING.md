@@ -318,35 +318,13 @@ pnpm run test:typings
 
 This will run all the tests for all the type definitions WebdriverIO provides. These tests just check if TypeScript can compile them according to the generated type definitions. All the type checks are located in [`tests/typings`](https://github.com/webdriverio/webdriverio/tree/main/tests/typings). If you extend a WebdriverIO command or interfaces for other type definitions, please ensure that you have used it in these files. The directory contains tests for the asynchronous usage of WebdriverIO.
 
-For example, to test the `touchActions` properties, we have it tested in `/tests/typings/webdriverio/async.ts`:
+For example, the `dragAndDrop` signatures are tested in `/tests/typings/webdriverio/async.ts`:
 
 ```ts
-// touchAction
+// dragAndDrop
 const ele = await $('')
-const touchAction: WebdriverIO.TouchAction = {
-    action: "longPress",
-    element: await $(''),
-    ms: 0,
-    x: 0,
-    y: 0
-}
-await ele.touchAction(touchAction)
-await browser.touchAction(touchAction)
-```
-
-as well as in `/tests/typings/sync/sync.ts`:
-
-```ts
-const ele = $('')
-const touchAction: WebdriverIO.TouchAction = {
-    action: "longPress",
-    element: $(''),
-    ms: 0,
-    x: 0,
-    y: 0
-}
-ele.touchAction(touchAction)
-browser.touchAction(touchAction)
+await ele.dragAndDrop(ele, { duration: 0 })
+await ele.dragAndDrop({ x: 1, y: 2 })
 ```
 
 ## Documentation
