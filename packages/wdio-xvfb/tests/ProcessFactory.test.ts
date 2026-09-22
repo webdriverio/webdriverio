@@ -35,6 +35,9 @@ vi.mock('../src/XvfbManager.js', () => ({
 
 // Import after mocks are set up
 const { ProcessFactory } = await import('../src/ProcessFactory.js')
+type ProcessCreationOptions = Parameters<
+    InstanceType<typeof ProcessFactory>['createWorkerProcess']
+>[2]
 
 describe('ProcessFactory', () => {
     let processFactory: InstanceType<typeof ProcessFactory>
@@ -156,6 +159,38 @@ describe('ProcessFactory', () => {
                 )
                 expect(mockFork).not.toHaveBeenCalled()
                 expect(result).toBe(mockProcess)
+            })
+
+            it('should move the ipc channel off fd 3, which xvfb-run closes', async () => {
+                mockExecSync.mockReturnValue('/usr/bin/xvfb-run')
+                mockSpawn.mockReturnValue(mockChildProcess)
+
+                await processFactory.createWorkerProcess(scriptPath, args, options)
+
+                // xvfb-run keeps fd 3 for its own logging and closes it before running
+                // the command, so an ipc slot left there reaches the worker as a dead
+                // descriptor and its first process.send() fails with EINVAL.
+                expect(mockSpawn).toHaveBeenCalledWith(
+                    'xvfb-run',
+                    expect.any(Array),
+                    expect.objectContaining({
+                        stdio: ['inherit', 'pipe', 'pipe', 'ignore', 'ipc']
+                    })
+                )
+            })
+
+            it('should leave stdio alone when there is no ipc channel', async () => {
+                mockExecSync.mockReturnValue('/usr/bin/xvfb-run')
+                mockSpawn.mockReturnValue(mockChildProcess)
+
+                const stdio = ['inherit', 'pipe', 'pipe'] as ProcessCreationOptions['stdio']
+                await processFactory.createWorkerProcess(scriptPath, args, { ...options, stdio })
+
+                expect(mockSpawn).toHaveBeenCalledWith(
+                    'xvfb-run',
+                    expect.any(Array),
+                    expect.objectContaining({ stdio })
+                )
             })
 
             it('should fallback to fork when xvfb-run is not available', async () => {

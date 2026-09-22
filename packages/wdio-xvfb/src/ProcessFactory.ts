@@ -71,7 +71,7 @@ export class ProcessFactory implements ProcessCreator {
                 {
                     cwd,
                     env,
-                    stdio,
+                    stdio: this.#reserveFd3(stdio),
                 } as SpawnOptions
             )
 
@@ -100,6 +100,35 @@ export class ProcessFactory implements ProcessCreator {
                 }
             })
         })
+    }
+
+    /**
+     * Keep fd 3 free for xvfb-run.
+     *
+     * xvfb-run claims fd 3 for its own logging and closes it before running the
+     * command it wraps:
+     *
+     *     exec 3>&1                 # ...or 3>&2, or 3>>"$ERRORFILE"
+     *     DISPLAY=:$N XAUTHORITY=$AUTHFILE "$@" 3>&-
+     *
+     * Node places the IPC channel at the first stdio slot after 0/1/2 — fd 3 — and
+     * sets NODE_CHANNEL_FD to match. The worker therefore inherits a channel pointing
+     * at a descriptor xvfb-run has already clobbered and closed, so process.send() is
+     * a function but its first write fails with EINVAL and the worker dies before it
+     * runs anything.
+     *
+     * Padding the array with one 'ignore' ahead of the ipc slot moves the channel to
+     * fd 4, which xvfb-run does not touch; NODE_CHANNEL_FD follows the slot, so
+     * nothing else has to change. A stdio array with no ipc slot is left alone.
+     */
+    #reserveFd3(
+        stdio: ProcessCreationOptions['stdio']
+    ): ProcessCreationOptions['stdio'] {
+        if (!stdio || !stdio.includes('ipc')) {
+            return stdio
+        }
+
+        return [...stdio.slice(0, 3), 'ignore', ...stdio.slice(3)]
     }
 
     /**
