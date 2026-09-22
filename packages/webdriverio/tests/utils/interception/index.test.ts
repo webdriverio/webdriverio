@@ -62,6 +62,17 @@ describe('WebDriverInterception', () => {
         isBlocked: true
     } satisfies Partial<local.NetworkResponseStartedParameters> as local.NetworkResponseStartedParameters)
 
+    const getBlockedRequestStub = (requestId = 'req-123') => ({
+        isBlocked: true,
+        intercepts: ['mock-id'],
+        request: {
+            request: requestId,
+            url: 'http://test.com/api',
+            method: 'GET',
+            headers: []
+        }
+    })
+
     beforeEach(() => {
         vi.clearAllMocks()
     })
@@ -278,6 +289,85 @@ describe('WebDriverInterception', () => {
                 value: Buffer.from(JSON.stringify(binaryBody)).toString('base64')
             }
         })
+    })
+
+    it('should respond without fetching when fetchResponse is false', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond('mocked response', { fetchResponse: false })
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            statusCode: 200,
+            body: { type: 'string', value: 'mocked response' }
+        })
+
+        vi.mocked(browser.networkProvideResponse).mockClear()
+        browser.emit('network.responseStarted', {
+            ...getBlockedRequestStub(),
+            response: {
+                status: 200,
+                headers: []
+            }
+        })
+
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+        expect(mock.calls).toHaveLength(1)
+    })
+
+    it('should fetch the backend by default', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond('mocked response')
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkContinueRequest).toHaveBeenCalledWith({
+            request: 'req-123'
+        })
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+    })
+
+    it('should expose a binary response when fetchResponse is false', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+        const binaryData = Buffer.from('binary data')
+
+        mock.respond(binaryData, { fetchResponse: false })
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(mock.getBinaryResponse('req-123')).toEqual(binaryData)
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            statusCode: 200,
+            body: {
+                type: 'base64',
+                value: binaryData.toString('base64')
+            }
+        })
+    })
+
+    it('should only respond once without fetching when respondOnce is used', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respondOnce('mocked response', { fetchResponse: false })
+
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub('req-1'))
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-1',
+            statusCode: 200,
+            body: { type: 'string', value: 'mocked response' }
+        })
+
+        vi.mocked(browser.networkProvideResponse).mockClear()
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub('req-2'))
+
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+        expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-2' })
     })
 
     it('handleResponseStarted', async () => {
@@ -1304,6 +1394,23 @@ describe('WebDriverInterception', () => {
                 ...blockedBy(['mock-id-1', 'mock-id-2']),
                 response: { headers: [], status: 200 }
             })
+
+            expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        })
+
+        it('does not release the response phase after responding without fetching', async () => {
+            const browser = getBrowserMockWithUniqueIntercepts()
+            await WebDriverInterception.initiate(TARGET_URL, { method: 'post' }, browser)
+            const handling = await WebDriverInterception.initiate(TARGET_URL, { method: 'get' }, browser)
+            handling.respond({ from: 'the matching mock' }, { fetchResponse: false })
+
+            const request = blockedBy(['mock-id-1', 'mock-id-2'])
+            browser.emit('network.beforeRequestSent', request)
+            browser.emit('network.responseStarted', {
+                ...request,
+                response: { headers: [], status: 200 }
+            })
+            await waitForAsyncHandlers()
 
             expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
         })
