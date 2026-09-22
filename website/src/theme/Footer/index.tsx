@@ -1,12 +1,39 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
+import { useAnnouncementBar } from '@docusaurus/theme-common/internal'
 import Footer from '@theme-original/Footer'
 import { MendableFloatingButton } from '@mendable/search'
+
+const announcementBarHeightProperty = '--wdio-announcement-bar-height'
 
 export default function FooterWrapper(props) {
     const {
         siteConfig: { customFields },
     } = useDocusaurusContext()
+    const { isActive: isAnnouncementBarActive } = useAnnouncementBar()
+
+    useEffect(() => {
+        const root = document.documentElement
+        const announcementBar = document.querySelector<HTMLElement>('.theme-announcement-bar')
+
+        if (!isAnnouncementBarActive || !announcementBar) {
+            root.style.removeProperty(announcementBarHeightProperty)
+            return
+        }
+
+        const updateAnnouncementBarHeight = () => {
+            root.style.setProperty(announcementBarHeightProperty, `${announcementBar.offsetHeight}px`)
+        }
+        const resizeObserver = new ResizeObserver(updateAnnouncementBarHeight)
+
+        updateAnnouncementBarHeight()
+        resizeObserver.observe(announcementBar)
+
+        return () => {
+            resizeObserver.disconnect()
+            root.style.removeProperty(announcementBarHeightProperty)
+        }
+    }, [isAnnouncementBarActive])
 
     return (
         <>
@@ -23,7 +50,7 @@ export default function FooterWrapper(props) {
                     backgroundColor: '#EA5906',
                 }}
                 dialogCustomStyle={{
-                    dialogTopMargin: '64px',
+                    dialogTopMargin: 'var(--wdio-chat-dialog-top-margin)',
                 }}
                 cmdShortcutKey='j'
                 anon_key={customFields.mendableAnonKey as string}

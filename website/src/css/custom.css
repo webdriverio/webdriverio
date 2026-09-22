@@ -32,6 +32,8 @@
     --ifm-button-border-width: 0;
     --ifm-tabs-padding-vertical: 0.5rem;
     --docusaurus-announcement-bar-height: auto!important;
+    --wdio-announcement-bar-height: 0px;
+    --wdio-chat-dialog-top-margin: max(64px, calc(var(--wdio-announcement-bar-height) + 5px));
 
     --wdio-spacing-vertical: 60px;
     --wdio-link-background-color: #eee0d7;
