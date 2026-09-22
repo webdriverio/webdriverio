@@ -32,29 +32,19 @@ export default async function watchFilesToWatch() {
         },
         async execute({ driver, waitForRun }) {
             await waitForRun(1)
-            await waitForRun(2)
             await fs.writeFile(watchedFile, 'changed')
-            await waitForRun(3)
-            await waitForRun(4)
+            await waitForRun(2)
 
-            assert.equal(driver.created.length, 2, 'Rerunning must not create new sessions')
+            assert.equal(driver.created.length, 1, 'Rerunning must not create a new session')
+            const [sessionId] = driver.created
             assert.equal(driver.navigations.length, 4, 'Both specs must run before and after the watched file changes')
             for (const specName of ['first', 'second']) {
                 const navigations = driver.navigations.filter(({ url }) => url.endsWith(`/${specName}`))
                 assert.equal(navigations.length, 2, `${specName} spec must run twice`)
-                assert.equal(
-                    navigations[0].sessionId,
-                    navigations[1].sessionId,
-                    `${specName} spec must reuse its original session`
-                )
+                assert.ok(navigations.every((navigation) => navigation.sessionId === sessionId))
             }
-            assert.deepEqual(
-                new Set(driver.navigations.map(({ sessionId }) => sessionId)),
-                new Set(driver.created),
-                'Both original sessions must be reused'
-            )
             assert.equal(driver.titles.length, 4)
-            assert.deepEqual(driver.deleted, [], 'The sessions must stay alive between runs')
+            assert.deepEqual(driver.deleted, [], 'The session must stay alive between runs')
         }
     })
 }

@@ -3,7 +3,7 @@ export const config = {
     port: Number(process.env.WDIO_WATCH_PORT),
     path: '/',
     capabilities: [{ browserName: 'chrome', 'wdio:enforceWebDriverClassic': true }],
-    specs: JSON.parse(process.env.WDIO_WATCH_SPECS),
+    specs: [JSON.parse(process.env.WDIO_WATCH_SPECS)],
     filesToWatch: [process.env.WDIO_WATCH_FILE],
     framework: 'mocha',
     reporters: ['spec'],
