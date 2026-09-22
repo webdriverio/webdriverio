@@ -48,6 +48,31 @@ In practice: **a hybrid app's webview actions carry no per-action element data, 
 
 These absences are by design. They are not a capture failure, and they are the main thing to know before debugging a hybrid trace.
 
+## Running an example
+
+The repo carries one mobile example per adapter, and all four drive the same
+flow, so a difference between two dashboards is a difference in the adapter
+rather than in the test:
+
+```sh
+pnpm demo:wdio:mobile
+pnpm demo:selenium:mobile
+pnpm demo:nightwatch:mobile
+pnpm demo:python:mobile
+```
+
+They drive the **Clock app**, which ships with every Android system image — so
+there is no `.apk` to supply, nothing to upload and no credentials. The flow is
+deliberately deterministic: open the Timers tab, clear any timer a previous run
+left behind, start the 5-minute preset, pause it, and delete it. Clearing first
+is what makes them re-runnable, because a timer survives the session and while
+one exists the Timers tab shows its card instead of the presets.
+
+`DEVTOOLS_MODE=trace` switches any of them to trace mode, `DEVTOOLS_MOBILE=web`
+drives Chrome on the same device instead of an app, and `APPIUM_APP` points one
+at a real app. [`examples/MOBILE.md`](https://github.com/webdriverio/devtools/blob/main/examples/MOBILE.md)
+in the repo is the full setup guide.
+
 ## Prerequisites
 
 Running against a local Android emulator needs, beyond [Getting Started](/docs/devtools/getting-started):
