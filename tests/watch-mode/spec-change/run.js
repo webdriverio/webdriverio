@@ -3,7 +3,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { runWatchModeTest } from './utils.js'
+import { runWatchModeTest } from '../utils.js'
 
 const directory = path.dirname(fileURLToPath(import.meta.url))
 
