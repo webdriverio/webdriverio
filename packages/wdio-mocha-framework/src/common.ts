@@ -170,9 +170,6 @@ export function setupEnv (cid: string, options: MochaOpts, beforeTest: Hook, bef
             cid
         )
     })
-
-    const { compilers = [] } = options
-    return requireExternalModules([...compilers])
 }
 
 export async function loadModule (name: string) {

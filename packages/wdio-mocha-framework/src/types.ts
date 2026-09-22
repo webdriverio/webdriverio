@@ -7,11 +7,6 @@ export interface MochaOpts {
      */
     require?: string[],
     /**
-     * Use the given module(s) to compile files. Compilers will be included
-     * before requires (WebdriverIO framework option).
-     */
-    compilers?: string[],
-    /**
      * Propagate uncaught errors?
      */
     allowUncaught?: boolean;

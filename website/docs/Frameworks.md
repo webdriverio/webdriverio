@@ -35,7 +35,7 @@ describe('my awesome website', () => {
 })
 ```
 
-WebdriverIO supports Mocha's `BDD` (default), `TDD`, and `QUnit` [interfaces](https://mochajs.org/#interfaces).
+WebdriverIO v10 ships [Mocha 12](https://mochajs.org/) and supports Mocha's `BDD` (default), `TDD`, and `QUnit` [interfaces](https://mochajs.org/#interfaces).
 
 If you like to write your specs in TDD style, set the `ui` property in your `mochaOpts` config to `tdd`. Now your test files should be written like this:
 
@@ -60,7 +60,7 @@ it('should test something', (done) => {
 
 ### Mocha Options
 
-The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all options are supported, e.g. applying the `parallel` option will cause an error as the WDIO testrunner has its own way to run tests in parallel. You can pass these framework options as arguments, e.g.:
+The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all Mocha options are supported. `parallel` still belongs to Mocha's own worker pool and will error here — the WDIO testrunner already parallelizes specs across capabilities and workers. Mocha 12's CLI also moved off yargs onto Node's `util.parseArgs`; that only affects a direct `mocha` invocation, not `mochaOpts` passed through `wdio`. You can pass these framework options as arguments, e.g.:
 
 ```sh
 wdio run wdio.conf.ts --mochaOpts.grep "my test" --mochaOpts.bail --no-mochaOpts.checkLeaks
@@ -82,12 +82,6 @@ The following Mocha options are supported:
 The `require` option is useful when you want to add or extend some basic functionality (WebdriverIO framework option).
 
 Type: `string|string[]`<br />
-Default: `[]`
-
-#### compilers
-Use the given module(s) to compile files. Compilers will be included before requires (WebdriverIO framework option).
-
-Type: `string[]`<br />
 Default: `[]`
 
 #### allowUncaught
@@ -145,7 +139,7 @@ Type: `string[]`<br />
 Default: `[]`
 
 #### grep
-Test filter given regular expression.
+Test filter given regular expression. Mocha 12 accepts modern RegExp flags in this filter (for example `s` or `d`).
 
 Type: `RegExp|string`<br />
 Default: `null`

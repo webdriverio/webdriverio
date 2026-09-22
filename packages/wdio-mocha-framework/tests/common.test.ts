@@ -225,6 +225,24 @@ describe('setupEnv', () => {
         expect(hookArgsFn({ test: { foo: 'bar', parent: { title: 'parent' } } }))
             .toEqual([{ foo: 'bar', parent: 'parent' }, { test: { foo: 'bar', parent: { title: 'parent' } } }])
     })
+
+    test('setupEnv ignores leftover mochaOpts.compilers', () => {
+        const hooks = {
+            beforeHook: 'beforeHook123' as any,
+            afterHook: 'afterHook123' as any,
+            beforeTest: 'beforeTest234' as any,
+            afterTest: 'afterTest234' as any
+        }
+        expect(() => setupEnv(
+            '0-2',
+            { ui: 'bdd', compilers: ['coffee:foo'] } as any,
+            hooks.beforeTest,
+            hooks.beforeHook,
+            hooks.afterTest,
+            hooks.afterHook
+        )).not.toThrow()
+        expect(wrapGlobalTestMethod).toHaveBeenCalled()
+    })
 })
 
 afterAll(() => {

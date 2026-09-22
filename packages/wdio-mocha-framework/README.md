@@ -94,18 +94,4 @@ TEST-XXX
    ✓ Login form
 ```
 
-## `mochaOpts.compilers (string[])`
-
-Use the given module(s) to compile files. Compilers will be included before requires.
-
-CoffeeScript and similar transpilers may be used by mapping the file extensions and the module name.
-
-```js
-{
-  mochaOpts: {
-    compilers: ['coffee:foo', './bar.js']
-  }
-}
-```
-
 For more information on WebdriverIO see the [homepage](https://webdriver.io).

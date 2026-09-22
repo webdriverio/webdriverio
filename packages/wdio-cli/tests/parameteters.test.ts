@@ -106,7 +106,6 @@ describe('framework parameter conversion', () => {
         process.argv.push(
             path.resolve(__dirname, '__fixtures__', 'wdio.conf.js'),
             '--mochaOpts.require', 'foo',
-            '--mochaOpts.compilers', 'foo',
             '--no-mochaOpts.allowUncaught',
             '--mochaOpts.asyncOnly', 'true',
             '--mochaOpts.bail',
@@ -130,9 +129,6 @@ describe('framework parameter conversion', () => {
             "asyncOnly": true,
             "bail": true,
             "checkLeaks": false,
-            "compilers": [
-              "foo",
-            ],
             "delay": true,
             "fgrep": "foo",
             "forbidOnly": false,

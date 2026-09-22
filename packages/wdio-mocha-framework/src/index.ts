@@ -2,8 +2,10 @@ import url from 'node:url'
 import path from 'node:path'
 import type { Runner } from 'mocha'
 import Mocha from 'mocha'
-// @ts-expect-error not exposed from package yet, see https://github.com/mochajs/mocha/issues/4961
-import { handleRequires } from 'mocha/lib/cli/run-helpers.js'
+// Mocha 12 ships this helper as CJS and does not expose it from the package root yet
+// @see https://github.com/mochajs/mocha/issues/4961
+// @ts-expect-error not exposed from package yet
+import { handleRequires } from 'mocha/lib/cli/run-helpers.cjs'
 
 import logger from '@wdio/logger'
 import { executeHooksWithArgs } from '@wdio/utils'
