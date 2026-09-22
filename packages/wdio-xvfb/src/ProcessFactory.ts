@@ -7,6 +7,12 @@ import type {
 import logger from '@wdio/logger'
 import { XvfbManager } from './XvfbManager.js'
 
+/**
+ * `xvfb-run` opens this fd for its own diagnostics and closes it for the command it runs,
+ * so nothing the parent places there survives into the worker.
+ */
+const XVFB_RUN_DIAGNOSTIC_FD = 3
+
 export interface ProcessCreator {
     createWorkerProcess(
         scriptPath: string,
@@ -71,7 +77,7 @@ export class ProcessFactory implements ProcessCreator {
                 {
                     cwd,
                     env,
-                    stdio,
+                    stdio: stdio && withIpcPastXvfbRunFd(stdio),
                 } as SpawnOptions
             )
 
@@ -132,4 +138,16 @@ export class ProcessFactory implements ProcessCreator {
             return false
         }
     }
+}
+
+/**
+ * Move the `ipc` stdio slot past the fd `xvfb-run` takes for itself, padding with `ignore`
+ */
+function withIpcPastXvfbRunFd(stdio: NonNullable<ProcessCreationOptions['stdio']>) {
+    const ipcIndex = stdio.indexOf('ipc')
+    if (ipcIndex === -1 || ipcIndex > XVFB_RUN_DIAGNOSTIC_FD) {
+        return stdio
+    }
+    const padding = Array<'ignore'>(XVFB_RUN_DIAGNOSTIC_FD + 1 - ipcIndex).fill('ignore')
+    return [...stdio.slice(0, ipcIndex), ...padding, ...stdio.slice(ipcIndex)]
 }
