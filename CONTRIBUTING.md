@@ -118,7 +118,7 @@ You can immediately start working on the code using [a pre-setup Gitpod environm
 
 * If you need to update your fork you can do so following the steps [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)
 
-* Switch to the Node.js version in [`.nvmrc`](.nvmrc). WebdriverIO v10 requires Node.js 22.19.0 or later (22, 24, and 26). We recommend [`nvm`](https://github.com/nvm-sh/nvm) to switch between Node.js versions.
+* Switch to the Node.js version in `.nvmrc`. WebdriverIO v10 requires Node.js 22.19.0 or later (22, 24, and 26). We recommend [`nvm`](https://github.com/nvm-sh/nvm) to switch between Node.js versions.
 
 * Install Chrome, Firefox and Edge (required for running the e2e tests)
 
