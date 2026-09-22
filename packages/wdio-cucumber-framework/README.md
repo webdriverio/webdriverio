@@ -31,7 +31,7 @@ module.exports = {
 
 ## Upgrading to Cucumber 13
 
-This adapter depends on `@cucumber/cucumber` 13, which requires Node.js 22, 24, or 26. `cucumberOpts.tagExpression` has been removed; use [`tags`](#tags). Cucumber no longer exports `Cli`. See [Cucumber's upgrade guide](https://github.com/cucumber/cucumber-js/blob/main/UPGRADING.md#1300) for the rest of the 13.0.0 breaks.
+This adapter depends on `@cucumber/cucumber` 13, which runs on Node.js 22, 24, or 26 and later. `cucumberOpts.tagExpression` has been removed; use [`tags`](#tags). Cucumber no longer exports `Cli`. See [Cucumber's upgrade guide](https://github.com/cucumber/cucumber-js/blob/main/UPGRADING.md#1300) for the rest of the 13.0.0 breaks.
 
 ## `cucumberOpts` Options
 

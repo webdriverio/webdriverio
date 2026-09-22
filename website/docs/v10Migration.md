@@ -7,7 +7,7 @@ title: From v9 to v10
 
 `@wdio/cucumber-framework` depends on [`@cucumber/cucumber` 13](https://github.com/cucumber/cucumber-js/blob/main/UPGRADING.md#1300).
 
-Cucumber 13 requires Node.js 22, 24, or 26. It does not run on Node.js 20 or 25. The framework package declares `engines.node` of `>=22.19.0`, which is the v10 floor.
+Cucumber 13 requires Node.js 22, 24, or 26 or later. It does not run on Node.js 20, 23, or 25. The framework package declares that same range, starting at the v10 floor of 22.12.0.
 
 ```diff
 - cucumberOpts: { tagExpression: '@smoke' }

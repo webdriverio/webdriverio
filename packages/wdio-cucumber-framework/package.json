@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework",
   "license": "MIT",
   "engines": {
-    "node": ">=22.19.0"
+    "node": ">=22.12.0 <23 || >=24 <25 || >=26"
   },
   "repository": {
     "type": "git",
@@ -42,7 +42,7 @@
     "@cucumber/cucumber": "^13.2.1",
     "@cucumber/gherkin": "42.0.0",
     "@cucumber/messages": "34.2.0",
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.20.4",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",

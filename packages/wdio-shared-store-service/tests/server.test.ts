@@ -21,7 +21,7 @@ describe('WdioSharedStoreService exports', () => {
     beforeAll(async () => {
         vi.unstubAllGlobals()
         result = await startServer()
-        const baseUrl = `http://localhost:${result.port}`
+        const baseUrl = `http://127.0.0.1:${result.port}`
         setUrl = `${baseUrl}/`
         getUrl = `${baseUrl}`
         setResourcePoolUrl = `${baseUrl}/pool/`
