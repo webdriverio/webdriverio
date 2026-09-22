@@ -378,7 +378,7 @@ Highest wins: CLI, then ini, then the environment below. `pytest -o devtools=fal
 | `DEVTOOLS_RUN_ID=<id>` | Join several processes into one run. |
 | `DEVTOOLS_BACKEND_CMD=<cmd>` | Start the backend with an explicit command instead of the resolved one. |
 
-The backend is a Node application, so **Node 18+ must be available in every mode** - even in trace mode, where no dashboard window ever opens. It is not only the UI: the page collector is served by the backend, the whole event stream travels over its WebSocket, and in trace mode it is also what builds the archive. `enable()` checks for Node up front and names what is missing rather than failing later as a spawn timeout. The adapter finds or launches the backend for you - see [running the backend on its own](/docs/devtools/dashboard#running-the-backend-on-its-own) if you would rather manage it yourself, or point `DEVTOOLS_PORT` at one you are already running, in which case no local Node is needed.
+The backend is a Node application, so **Node.js 22.19 or later must be available in every mode** - even in trace mode, where no dashboard window ever opens. It is not only the UI: the page collector is served by the backend, the whole event stream travels over its WebSocket, and in trace mode it is also what builds the archive. `enable()` checks for Node up front and names what is missing rather than failing later as a spawn timeout. The adapter finds or launches the backend for you - see [running the backend on its own](/docs/devtools/dashboard#running-the-backend-on-its-own) if you would rather manage it yourself, or point `DEVTOOLS_PORT` at one you are already running, in which case no local Node is needed.
 
 ### Assertions
 
@@ -440,7 +440,7 @@ devtools.enable(trace=True)           # write a trace.zip instead of opening a d
 
 The archive lands in `test-results/` beside the test file the first captured command came from - the same directory screencast videos already write to - named `trace-<sessionId>.zip`, or named after each test when you ask for [one archive per test](#how-many-archives-and-which-ones-to-keep). When no command carried a source location of yours, it falls back to `test-results/` under the current directory.
 
-**No dashboard window opens.** The artifact is the output, and a live run blocks on the window until you close it - a window would turn writing a file into an interactive session. The backend still starts, because it is what *builds* the archive: the trace transforms are TypeScript, so a Python run asks the backend for them rather than shipping a second copy of them. That is the one way this differs from the Node.js adapter's backend-free trace mode, and the reason [Node 18+ is required in every mode](#configuration-options).
+**No dashboard window opens.** The artifact is the output, and a live run blocks on the window until you close it - a window would turn writing a file into an interactive session. The backend still starts, because it is what *builds* the archive: the trace transforms are TypeScript, so a Python run asks the backend for them rather than shipping a second copy of them. That is the one way this differs from the Node.js adapter's backend-free trace mode, and the reason [Node.js 22.19 or later is required in every mode](#configuration-options).
 
 Beyond the command rows, per-command screenshots and selectors, console and network that both modes capture, the archive carries:
 
@@ -673,7 +673,7 @@ The **DOM mutation stream** comes from the same browser-side collector as Node.j
 |-----------|--------|
 | No per-test screenshot, video or Allure attach | Per-test **trace archives** are supported (`--devtools-trace-granularity test`), but the Node.js adapter's per-test `screenshot` and `video` options and its inline `allure-js-commons` attachment have no Python equivalent - the archives are the artifacts. |
 | Retry-aware retention degrades | `retain-on-first-failure`, `on-first-retry`, `on-all-retries` and `retain-on-failure-and-retries` are accepted but behave exactly like `retain-on-failure`: nothing on the wire carries an attempt number, so a retried test overwrites its own earlier outcome. The backend logs the degradation. |
-| Node is required in every mode | The backend is a Node application - it serves the page collector, carries the event stream, and builds the trace archive - so Node 18+ must be present even in trace mode, where no window opens. The adapter finds or launches it for you. |
+| Node is required in every mode | The backend is a Node application - it serves the page collector, carries the event stream, and builds the trace archive - so Node.js 22.19 or later must be present even in trace mode, where no window opens. The adapter finds or launches it for you. |
 | Browser options are yours | There is no `headless` option; configure Chrome through selenium's own `Options` object as you normally would. |
 | Live-mode video needs ffmpeg | Without `ffmpeg` on `PATH` the `.webm` encode is skipped with a warning rather than an error. Trace mode encodes none - its frames go into the filmstrip - so it never needs ffmpeg. |
 
