@@ -502,7 +502,7 @@ devtools_trace_granularity = test
 devtools_trace_policy = retain-on-failure
 ```
 
-`[tool.pytest.ini_options]` in `pyproject.toml` takes the same keys, and `pytest -o devtools_trace_policy=on tests/` overrides one of them for a single run without editing the file. A fully commented version - every setting and every environment variable, with what each one is for - is in the repo at [`examples/selenium/python-test/trace-py-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/python-test/trace-py-test).
+`[tool.pytest.ini_options]` in `pyproject.toml` takes the same keys, and `pytest -o devtools_trace_policy=on tests/` overrides one of them for a single run without editing the file. A fully commented version - every setting and every environment variable, with what each one is for - is in the repo at [`examples/selenium-py/pytest/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-py/pytest).
 
 A plain script passes the same two as keyword arguments:
 
@@ -584,14 +584,14 @@ Working examples live in the repo's top-level `examples/` directory. Build the w
 
 | Directory | Runner | Command |
 |-----------|--------|---------|
-| [`examples/selenium/mocha-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/mocha-test) | Mocha | `pnpm --filter @wdio/selenium-devtools example:mocha` |
-| [`examples/selenium/jest-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/jest-test) | Jest | `pnpm --filter @wdio/selenium-devtools example:jest` |
-| [`examples/selenium/cucumber-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/cucumber-test) | Cucumber | `pnpm demo:selenium` |
+| [`examples/selenium-js/mocha/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-js/mocha) | Mocha | `pnpm --filter @wdio/selenium-devtools example:mocha` |
+| [`examples/selenium-js/jest/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-js/jest) | Jest | `pnpm --filter @wdio/selenium-devtools example:jest` |
+| [`examples/selenium-js/cucumber/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-js/cucumber) | Cucumber | `pnpm demo:selenium` |
 
 </TabItem>
 <TabItem value="python" label="Python">
 
-The Python examples live in [`examples/selenium/python-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/python-test). Install the adapter and build the workspace once (`pnpm install && pnpm build`, so the backend exists), then run from the repo root:
+The Python examples live in [`examples/selenium-py/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-py) — `scripts/` for the plain-script cases and `pytest/` for the pytest one. Install the adapter and build the workspace once (`pnpm install && pnpm build`, so the backend exists), then run from the repo root:
 
 | Example | What it shows | Command |
 |---|---|---|
