@@ -357,6 +357,7 @@
       "items": [
         "v6-migration",
         "v7-migration",
+        "v10-migration",
         "protractor-migration",
         "async-migration"
       ]
