@@ -49,3 +49,8 @@ jobs:
           done
           grep -q '<lastmod>' website/build/sitemap.xml || { echo "::error::sitemap.xml has no <lastmod> entries"; exit 1; }
           echo "ok: sitemap.xml contains $(grep -c '<lastmod>' website/build/sitemap.xml) <lastmod> entries"
+
+      # Sidebar coverage, URL preservation against website/url-baseline.txt
+      # (via the redirects in website/vercel.json) and llms.txt link integrity.
+      - name: 🔗 Check Docs Structure and URLs
+        run: pnpm run docs:check

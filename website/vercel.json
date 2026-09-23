@@ -33,7 +33,10 @@
         { "source": "/docs/what-is-webdriverio", "destination": "/docs/why-webdriverio", "permanent": true },
         { "source": "/docs/sync-vs-async", "destination": "/docs/gettingstarted", "permanent": true },
         { "source": "/docs/clioptions", "destination": "/docs/testrunner", "permanent": true },
-        { "source": "/docs/devtools-service", "destination": "/docs/wdio-devtools-service", "permanent": true }
+        { "source": "/docs/devtools-service", "destination": "/docs/wdio-devtools-service", "permanent": true },
+        { "source": "/docs/api/browser/throttle", "destination": "/docs/api/browser/throttleNetwork", "permanent": true },
+        { "source": "/docs/api/browser/touchAction", "destination": "/docs/api/browser/action", "permanent": true },
+        { "source": "/docs/api/element/touchAction", "destination": "/docs/api/browser/action", "permanent": true }
     ],
     "headers": [
         {
