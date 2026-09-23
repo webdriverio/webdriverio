@@ -79,13 +79,13 @@ const config: Config = {
         image: 'img/logo-webdriver-io.png',
         metadata: [{ name: 'twitter:card', content: 'summary' }],
         colorMode: {
-            defaultMode: 'light',
+            defaultMode: 'dark',
             disableSwitch: false,
             respectPrefersColorScheme: true
         },
         prism: {
             theme: themes.github,
-            darkTheme: themes.dracula
+            darkTheme: themes.oneDark
         },
         mermaid: {
             theme: { light: 'neutral', dark: 'dark' },
@@ -97,7 +97,7 @@ const config: Config = {
         },
         announcementBar: {
             id: 'supportus',
-            content: '🇺🇦  &nbsp;We stand with the people of Ukraine. We encourage compassion, and hope for peace. &nbsp; 🇺🇦<br>Please support humanitarian efforts for the Ukraine crisis through the <a target="_blank" rel="noopener noreferrer" href="https://www.icrc.org/en/donate/ukraine">International Committee of the Red Cross</a>! #StandWithUkraine',
+            content: '🇺🇦  &nbsp;We stand with the people of Ukraine. We encourage compassion, and hope for peace. &nbsp; 🇺🇦 Please support humanitarian efforts for the Ukraine crisis through the <a target="_blank" rel="noopener noreferrer" href="https://www.icrc.org/en/donate/ukraine">International Committee of the Red Cross</a>! #StandWithUkraine',
         },
         navbar: {
             // title: 'I/O',
@@ -347,6 +347,7 @@ const config: Config = {
         ],
     ],
     clientModules: [
+        path.resolve(__dirname, 'src', 'clientModules', 'fonts.ts'),
         path.resolve(__dirname, 'src', 'clientModules', 'vercelAnalytics.ts'),
     ],
     themes: [
@@ -358,12 +359,7 @@ const config: Config = {
         { tagName: 'meta', attributes: { name: 'theme-color', content: 'rgb(234, 90, 7)' } },
         { tagName: 'link', attributes: { rel: 'apple-touch-icon', href: '/img/logo-webdriver-io.png' } },
     ],
-    stylesheets: [
-        'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700&display=block',
-        'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=block'
-    ],
     scripts: [
-        'https://buttons.github.io/buttons.js',
         '/js/ribbons.js'
     ]
 }
