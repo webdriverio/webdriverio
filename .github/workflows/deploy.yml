@@ -76,7 +76,7 @@ jobs:
 
       - name: 🏗️ Build Site (en)
         if: env.PRODUCTION != 'true'
-        run: pnpm exec docusaurus build --locale en
+        run: pnpm run build:en
         working-directory: ./website
 
       - name: 🔼 Deploy to Vercel

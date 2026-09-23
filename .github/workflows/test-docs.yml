@@ -37,7 +37,7 @@ jobs:
       # localization when exactly one --locale is given, so two separate builds would
       # each emit at the site root and the second would overwrite the first.
       - name: 🏗️ Build Site (en + ar)
-        run: pnpm exec docusaurus build --locale en --locale ar
+        run: pnpm exec docusaurus build --locale en --locale ar && node scripts/llms.mjs
         working-directory: ./website
 
       - name: ✅ Verify Machine-Readable Output
@@ -47,6 +47,10 @@ jobs:
             test -s "website/build/$f" || { echo "::error::website/build/$f missing or empty"; exit 1; }
             echo "ok: website/build/$f ($(wc -c < "website/build/$f") bytes)"
           done
+          for f in website/build/llms/*.txt; do
+            test -s "$f" || { echo "::error::$f is empty"; exit 1; }
+          done
+          echo "ok: $(ls website/build/llms/*.txt | wc -l) llms section bundles"
           grep -q '<lastmod>' website/build/sitemap.xml || { echo "::error::sitemap.xml has no <lastmod> entries"; exit 1; }
           echo "ok: sitemap.xml contains $(grep -c '<lastmod>' website/build/sitemap.xml) <lastmod> entries"
 

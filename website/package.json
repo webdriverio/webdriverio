@@ -5,7 +5,8 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "cd ../ && npm run generate:bidi && npm run docs:generate && cd website && docusaurus start",
-    "build": "docusaurus clear && docusaurus build",
+    "build": "docusaurus clear && docusaurus build && node scripts/llms.mjs",
+    "build:en": "docusaurus build --locale en && node scripts/llms.mjs",
     "swizzle": "docusaurus swizzle",
     "serve": "docusaurus serve",
     "clear": "docusaurus clear",
