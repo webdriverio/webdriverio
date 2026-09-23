@@ -184,6 +184,13 @@ export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'before
      * @default 500
      */
     waitforInterval?: number
+    /**
+     * If set to `true`, the `$` command throws a `StrictSelectorError` when the given
+     * selector resolves to more than one element. Use `$$` when you expect multiple
+     * matches or opt out per call via `$(selector, { strict: false })`.
+     * @default true
+     */
+    strictSelectors?: boolean
 
     /**
      * Maximum size of the response body (in bytes) that can be returned when using the `mock` command.

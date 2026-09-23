@@ -3,9 +3,36 @@ id: v10-migration
 title: From v9 to v10
 ---
 
+This guide collects the breaking changes of WebdriverIO `v10` and what you have to do about them.
+
+Unlike previous majors, most of these changes cannot be applied by the WebdriverIO [codemod](https://github.com/webdriverio/codemod), because they depend on what your tests actually mean. Each section below describes how to find the affected places in your suite.
+
 ## Node.js
 
 WebdriverIO v10 requires Node.js 22.19.0 or later. Node.js 18 and 20 are no longer supported. CI covers Node.js 22, 24, and 26.
+
+## Mocha
+
+`@wdio/mocha-framework` and `@wdio/browser-runner` depend on [Mocha 12](https://mochajs.org/blog/mocha-12-rc-1/). Mocha 12 needs Node.js `^20.19.0 || >=22.12.0`, which is covered by the v10 floor of 22.19.0.
+
+```diff
+- mochaOpts: { compilers: ['ts:ts-node/register'] }
++ mochaOpts: { require: ['ts-node/register'] }
+```
+
+`mochaOpts.compilers` is gone. Mocha removed the long-deprecated `--compilers` flag, so leftover compiler mappings are ignored. Load transpilers or other setup files with `mochaOpts.require`.
+
+`failHookAffectedTests` defaults to `true`. A failing `before` or `beforeEach` hook fails the tests that hook skipped. Set `mochaOpts.failHookAffectedTests` to `false` to report only the hook.
+
+Use [`expect-webdriverio` 6.1.0](https://github.com/webdriverio/expect-webdriverio/releases/tag/v6.1.0) or newer with this adapter. Mocha can load that package twice in one process; 6.1.0 shares assertion state across those copies ([expect-webdriverio#2221](https://github.com/webdriverio/expect-webdriverio/pull/2221)).
+
+Mocha 12 changes that can leak through `mochaOpts`:
+
+- `grep` accepts modern RegExp flags.
+- `ui` is still `bdd`, `tdd`, `qunit`, or `exports`. Custom interfaces should keep the `*-bdd`, `*-tdd`, or `*-qunit` suffix.
+- `parallel` is still unsupported. WDIO owns spec parallelism; Mocha's worker pool will error if you enable it.
+
+Mocha 12 is ESM-first (`"type": "module"`). Programmatic `require('mocha')` still works on Node 22 via `require(esm)`. The WDIO Mocha CLI (`wdio run … --mochaOpts.*`) is unchanged; Mocha's own CLI now uses `util.parseArgs` instead of yargs.
 
 ## Cucumber
 
@@ -24,13 +51,83 @@ Cucumber 13 no longer exports `Cli`. Programmatic runs go through `runCucumber` 
 
 Other Cucumber 13 breaks (ambiguous formatter paths, parallel workers, `BeforeAll` / `AfterAll`) are described in [Cucumber's upgrade guide](https://github.com/cucumber/cucumber-js/blob/main/UPGRADING.md#1300).
 
+## `$` is strict
+
+`$` now represents __exactly one__ element. If the selector resolves to more than one element, the command throws a `StrictSelectorError` instead of silently using the first match:
+
+```js
+// v9 — clicks the first button, even if there are 12
+await $('button').click()
+
+// v10
+await $('button').click()
+// StrictSelectorError: strict mode violation: `$("button")` resolved to 12 elements, expected 1.
+// Use `$$("button")` to work with all matches, `$$("button")[0]` if you explicitly want the first one,
+// or narrow down the selector so it matches a single element.
+```
+
+This matches [Playwright locators](https://playwright.dev/docs/locators#strictness). Cypress differs: its queries may resolve to several elements, and it is the action commands such as [`.click()`](https://docs.cypress.io/api/commands/click#Click-all-elements-with-id-starting-with-btn) that reject a multi-element subject by default. A selector that quietly resolves to several elements is almost always a latent bug: it passes today and interacts with the wrong element as soon as someone adds a second button to the page.
+
+The rule applies to every step of a chain (`$('form').$('input')`) and to every selector type `$` accepts — string selectors (including ones that pierce the shadow DOM), JS functions, mobile selectors and custom strategy references.
+
+### What did not change
+
+- `$$` still returns zero or many elements.
+- The dedicated helper commands `custom$`, `shadow$` and `react$` are not strict — they still return their first match, as do their `$$` counterparts.
+- A selector that matches nothing still returns a lazily-resolved element, so `waitForExist` and [auto-waiting](/docs/autowait) behave as before.
+- Passing an element reference, e.g. `$(await browser.getActiveElement())`, always refers to a single node and is never checked.
+
+### How to audit your suite
+
+There is no codemod for this: only you can tell whether a second match is a bug or intentional. Two practical approaches:
+
+1. __Run your suite.__ Every violation throws with the selector and the number of matches, which is usually enough to fix it on the spot.
+2. __Check the broad selectors up front.__ For each generic `$(...)` in your page objects, print how many elements it really matches:
+
+   ```js
+   console.log(await $$('button').length) // 12 → `$('button')` is too broad
+   ```
+
+Then either narrow down the selector — ideally towards a user-facing query such as `$('button=Submit')` or `$('aria/Submit')`, see [Selectors](/docs/selectors) — or state explicitly that you want the first match:
+
+```js
+await $('button[type="submit"]').click()
+// ...or, if the first one really is what you mean
+await $$('button')[0].click()
+```
+
+### Opting out
+
+For a single query:
+
+```js
+await $('button', { strict: false }).click()
+```
+
+For a whole project, restoring the v9 behavior:
+
+```js title="wdio.conf.js"
+export const config = {
+    // ...
+    strictSelectors: false
+}
+```
+
+An element remembers how it was queried, so re-fetching it — after a stale element reference, or through `waitForExist` — keeps the strictness of the original call.
+
+:::info
+
+Under the hood a strict `$` issues a `findElements` request instead of `findElement`, since counting the matches is the only way to enforce the rule. This is a single round trip either way, but it is visible to custom services and WebDriver mocks that key off the `findElement` command.
+
+:::
+
 ## Jasmine
 
 `@wdio/jasmine-framework` depends on [Jasmine 6](https://jasmine.github.io/upgrade-guides/6.0). Jasmine 6 needs Node.js 20, 22, or 24, which the v10 floor of 22.19.0 already covers.
 
 ## Puppeteer
 
-`webdriverio` accepts `puppeteer-core` `>=22 <26`, including Puppeteer 25. `getPuppeteer()` and `@wdio/lighthouse-service` are tested against that line.
+`webdriverio` accepts `puppeteer-core` `>=24 <26`, including Puppeteer 25. `getPuppeteer()` and `@wdio/lighthouse-service` are tested against that line.
 
 ## ESLint
 

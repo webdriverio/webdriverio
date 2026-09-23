@@ -264,7 +264,7 @@ describe('multi remote test', () => {
                 })
 
                 it('should have custom commands on queried element from original multiRemoteBrowser', async () => {
-                    const selectedElement = await multiRemoteBrowser.$('h1')
+                    const selectedElement = await multiRemoteBrowser.$('header h1')
 
                     // @ts-expect-error custom element command is not part of the default type
                     expect(await selectedElement.customElementCommand()).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage', 'WebdriverJS Testpage'])
@@ -406,10 +406,10 @@ describe('multi remote test', () => {
         it('should be able to query isDisplayed on element no longer existing', async () => {
             await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
 
-            const h1 = multiRemoteBrowser.$('h1')
-            const browserAH1 = multiRemoteBrowser.getInstance('browserA').$('h1')
-            const browserBH1 = multiRemoteBrowser.getInstance('browserB').$('h1')
-            const browserCH1 = multiRemoteBrowser.getInstance('browserC').$('h1')
+            const h1 = multiRemoteBrowser.$('header h1')
+            const browserAH1 = multiRemoteBrowser.getInstance('browserA').$('header h1')
+            const browserBH1 = multiRemoteBrowser.getInstance('browserB').$('header h1')
+            const browserCH1 = multiRemoteBrowser.getInstance('browserC').$('header h1')
             await multiRemoteBrowser.getInstance('browserA').url('about:blank')
 
             expect(await browserAH1.isDisplayed()).toBe(false)

@@ -60,7 +60,11 @@ export async function selectByVisibleText (
         `./optgroup/option${spaceFormat}`,
     ]
 
-    const optionElement = await this.$(selections.join('|'))
+    /**
+     * the XPath union above intentionally matches every option variant, we only
+     * care about the first hit, so opt out of strict selector semantics here
+     */
+    const optionElement = await this.$(selections.join('|'), { strict: false })
     await optionElement.waitForExist({
         timeoutMsg: `Option with text "${text}" not found.`
     })

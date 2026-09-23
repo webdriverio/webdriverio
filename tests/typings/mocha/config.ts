@@ -3,6 +3,7 @@ import { some } from "expect-webdriverio/api"
 const config: WebdriverIO.Config = {
     mochaOpts: {
         ui: 'qunit',
+        failHookAffectedTests: false,
         // @ts-expect-error
         fullTrace: 'wrong param'
     },

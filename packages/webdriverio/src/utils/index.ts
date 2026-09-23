@@ -815,6 +815,33 @@ function returnUniqueNodes(nodes: ExtendedElementReference[]): ExtendedElementRe
 }
 
 /**
+ * build a selector-type-specific "element not found" error, mirroring the
+ * messages `findElement` produces below for each selector shape. Shared with
+ * `findStrictElement` (strictMode.ts) so a zero-match strict `$` surfaces the
+ * same level of detail as the non-strict lookup instead of a generic message.
+ */
+export function buildNotFoundError(selector: Selector): Error {
+    if (typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
+        return new Error(`shadow selector "${selector.slice(DEEP_SELECTOR.length)}" did not return an HTMLElement`)
+    }
+
+    if (selector && typeof selector === 'object' && typeof (selector as CustomStrategyReference).strategy === 'function') {
+        const { strategyName } = selector as CustomStrategyReference
+        return new Error(`Custom Strategy "${strategyName}" did not return an HTMLElement`)
+    }
+
+    if (typeof selector === 'function') {
+        return new Error(`Function selector "${selector.toString()}" did not return an HTMLElement`)
+    }
+
+    if (isElement(selector)) {
+        return new Error('DOM Node couldn\'t be found anymore')
+    }
+
+    return new Error(`Couldn't find element with selector "${String(selector)}"`)
+}
+
+/**
  * logic to find an element
  * Note: the order of if statements matters
  */

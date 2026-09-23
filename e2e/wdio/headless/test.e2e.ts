@@ -5,7 +5,7 @@ import path from 'node:path'
 import { createServer } from 'node:http'
 import { once } from 'node:events'
 import type { AddressInfo } from 'node:net'
-import { browser, $, expect } from '@wdio/globals'
+import { browser, $, $$, expect } from '@wdio/globals'
 
 import { imageSize } from 'image-size'
 import type { InputOptions } from 'webdriverio'
@@ -44,14 +44,14 @@ describe('main suite 1', () => {
 
     it('supports snapshot testing', async () => {
         await browser.url('https://guinea-pig.webdriver.io/')
-        await expect($('.findme')).toMatchSnapshot()
-        await expect($('.findme')).toMatchInlineSnapshot('"<h1 class="findme">Test CSS Attributes</h1>"')
+        await expect($$('.findme')[0]).toMatchSnapshot()
+        await expect($$('.findme')[0]).toMatchInlineSnapshot('"<h1 class="findme">Test CSS Attributes</h1>"')
     })
 
     it('should support input value with sensitive information', async () => {
         await browser.url('https://guinea-pig.webdriver.io/')
 
-        const firstInput = await $('input')
+        const firstInput = await $$('input')[0]
         await firstInput.setValue('mySecretPassword', { mask: true } satisfies InputOptions)
 
         // Note: Doing the below will expose the password in the logs, check to support this command one day!
@@ -98,7 +98,7 @@ describe('main suite 1', () => {
 
         it('should support legacy custom element command on existing elements', async () => {
             // @ts-expect-error
-            const legacyCmdResult = await $('input').myElementLegacyCustomCommand()
+            const legacyCmdResult = await $$('input')[0].myElementLegacyCustomCommand()
 
             expect(legacyCmdResult).toBe('myElementLegacyCommandResult')
         })
@@ -459,7 +459,7 @@ describe('main suite 1', () => {
              * in case the alert is not automatically accepted
              * the following line would time out
              */
-            await browser.$('div').click()
+            await browser.$$('div')[0].click()
         })
 
         it('should be able to handle dialogs manually with `browser.on`', async () => {
@@ -494,7 +494,7 @@ describe('main suite 1', () => {
              * in case the alert is not automatically accepted
              * the following line would time out
              */
-            await browser.$('div').click()
+            await browser.$$('div')[0].click()
         })
 
         it('should be able to handle dialogs manually with `browser.once`', async () => {
@@ -528,7 +528,7 @@ describe('main suite 1', () => {
              * in case the alert is not automatically accepted
              * the following line would time out
              */
-            await browser.$('div').click()
+            await browser.$$('div')[0].click()
         })
     })
 
@@ -714,7 +714,7 @@ describe('main suite 1', () => {
 
         it('can switch to a frame via element', async () => {
             await browser.url('https://the-internet.herokuapp.com/nested_frames')
-            await browser.switchFrame($('frame'))
+            await browser.switchFrame($$('frame')[0])
             expect(await browser.execute(() => document.URL))
                 .toBe('https://the-internet.herokuapp.com/frame_top')
         })
