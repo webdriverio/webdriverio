@@ -94,6 +94,7 @@ html[data-theme=dark] {
     --ifm-link-color: var(--ifm-color-primary-lightest);
     --ifm-link-hover-color: #ffa56f;
     --ifm-footer-background-color: var(--wdio-bg);
+    --ifm-table-stripe-background: transparent;
 }
 
 ::selection {
