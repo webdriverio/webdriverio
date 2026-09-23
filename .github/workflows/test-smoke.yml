@@ -20,10 +20,10 @@ jobs:
       matrix:
         # Full: 3 Node versions × 3 OS. PR: Linux on the engine minimum and
         # current LTS, plus a single Windows and macOS cell.
-        node: ${{ fromJSON(inputs.full_matrix && '["22.12.0","24","26"]' || '["22.12.0","24"]') }}
+        node: ${{ fromJSON(inputs.full_matrix && '["22.19.0","24","26"]' || '["22.19.0","24"]') }}
         os: ${{ fromJSON(inputs.full_matrix && '["ubuntu-latest","windows-latest","macos-latest"]' || '["ubuntu-latest"]') }}
-        # Redundant ubuntu/22.12.0 entry when full_matrix is true — include cannot be [].
-        include: ${{ fromJSON(inputs.full_matrix && '[{"os":"ubuntu-latest","node":"22.12.0"}]' || '[{"os":"windows-latest","node":"24"},{"os":"macos-latest","node":"24"}]') }}
+        # Redundant ubuntu/22.19.0 entry when full_matrix is true — include cannot be [].
+        include: ${{ fromJSON(inputs.full_matrix && '[{"os":"ubuntu-latest","node":"22.19.0"}]' || '[{"os":"windows-latest","node":"24"},{"os":"macos-latest","node":"24"}]') }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: ⬇️ Checkout Code

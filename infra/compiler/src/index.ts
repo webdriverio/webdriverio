@@ -112,7 +112,7 @@ const configs = packages.map(([packageDir, pkg]) => {
             tsconfig: path.resolve(absWorkingDir, 'tsconfig.json'),
             sourcemap: process.env.NODE_ENV !== 'production' ? 'inline' : false,
             external: getExternal(pkg),
-            target: 'node18',
+            target: 'node22',
             bundle: true,
             absWorkingDir,
             define: {

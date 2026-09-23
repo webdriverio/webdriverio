@@ -23,7 +23,7 @@ jobs:
         # They only burned checkout/install minutes, so they are omitted.
         # Ubuntu is still disabled — the suite has historically been macOS-only
         # in this workflow besides the skipped Windows jobs.
-        node: ${{ fromJSON(inputs.full_matrix && '["22.12.0","24","26"]' || '["24"]') }}
+        node: ${{ fromJSON(inputs.full_matrix && '["22.19.0","24","26"]' || '["24"]') }}
         os: ['macos-latest']
     runs-on: ${{ matrix.os }}
     steps:
