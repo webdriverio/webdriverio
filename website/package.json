@@ -7,7 +7,6 @@
     "start": "cd ../ && npm run generate:bidi && npm run docs:generate && cd website && docusaurus start",
     "build": "docusaurus clear && docusaurus build",
     "swizzle": "docusaurus swizzle",
-    "deploy": "docusaurus deploy",
     "serve": "docusaurus serve",
     "clear": "docusaurus clear",
     "translate": "docusaurus write-translations"

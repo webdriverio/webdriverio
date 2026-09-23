@@ -355,7 +355,7 @@ You can now modify the content of the [`/website/docs`](https://github.com/webdr
 
 ### Deploying the Documentation in Production
 
-Every time a new release is pushed to GitHub the WebdriverIO docs need to be build and re-deployed to the project's S3 bucket. The process is defined in a GitHub Actions [pipeline](https://github.com/webdriverio/webdriverio/blob/main/.github/workflows/deploy.yml). All you need to do (as maintainer) is to trigger the pipeline. The rest is handled by the workflow.
+The website is hosted on [Vercel](https://vercel.com). The [Docs Deploy](https://github.com/webdriverio/webdriverio/blob/main/.github/workflows/deploy.yml) pipeline builds the site on GitHub Actions and uploads the prebuilt output. Every pull request from a branch of this repository that touches the docs gets a preview deployment, and the preview URL is posted as a comment on the PR. After a release, a maintainer triggers the pipeline with the `production` environment to update [webdriver.io](https://webdriver.io).
 
 ## Create New Package
 

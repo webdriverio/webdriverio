@@ -1,6 +1,6 @@
 # website/
 
-Docusaurus v2 docs site. Many pages are generated. Hand-write guidelines
+Docusaurus 3 docs site, hosted on Vercel. Many pages are generated. Hand-write guidelines
 here; regenerate API and package pages from source.
 
 ## Hand-written vs generated
@@ -36,5 +36,6 @@ until `docs:generate` has been run.
 - Translations are pulled from `webdriverio/i18n` during generate. Do not
   hand-edit `website/i18n/*` except `website/i18n/en`.
 - Config keys appear in many examples. Grep the repo, not just `website/`.
-- `pnpm run docs` includes deploy. Do not run `docs:deploy` without release
-  authority.
+- Hosting is Vercel. `website/vercel.json` owns redirects, headers and
+  Markdown content negotiation; add a redirect there whenever a page URL
+  changes. Production deploys go through the `Docs Deploy` workflow only.
