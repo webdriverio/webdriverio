@@ -34,7 +34,7 @@
     "./package.json": "./package.json"
   },
   "types": "./build/index.d.ts",
-  "typeScriptVersion": "3.8.3",
+  "typeScriptVersion": "5.9.3",
   "dependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.20.4",

@@ -5,7 +5,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@types/jasmine": "^5.1.4",
+    "@types/jasmine": "^6.0.0",
     "@wdio/globals": "workspace:*",
     "@wdio/utils": "workspace:*",
     "@wdio/types": "workspace:*",
