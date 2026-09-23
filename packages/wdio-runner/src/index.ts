@@ -506,6 +506,12 @@ export default class Runner extends EventEmitter {
      * within a hook by the user
      */
     async endSession(payload?: any) {
+        if (!this._config && payload?.args.config) {
+            this._config = payload.args.config
+            this._specs = payload.specs
+            this._cid = payload.cid
+        }
+
         /**
          * make sure instance(s) exist and have `sessionId`
          */

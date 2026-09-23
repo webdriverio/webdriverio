@@ -116,6 +116,8 @@ describe('wdio-runner', () => {
         })
 
         it('should attach to existing multiremote sessions when called by a watch mode shutdown worker', async () => {
+            const hook = vi.fn()
+            const config = { sessionId: undefined, afterSession: [hook] }
             const firstInstance = { sessionId: 'first-session', capabilities: { browserName: 'chrome' } }
             const secondInstance = { sessionId: 'second-session', capabilities: { browserName: 'firefox' } }
             const browser = {
@@ -127,10 +129,11 @@ describe('wdio-runner', () => {
             vi.mocked(multiremote).mockResolvedValueOnce(browser as any)
 
             const runner = new WDIORunner()
-            runner['_config'] = { afterSession: [] } as any
             await runner.endSession({
+                cid: '0-0',
+                specs: ['/foo/watch.test.js'],
                 args: {
-                    config: { sessionId: undefined, afterSession: [] },
+                    config,
                     capabilities: {
                         first: { capabilities: { browserName: 'chrome' } },
                         second: { capabilities: { browserName: 'firefox' } }
@@ -145,12 +148,12 @@ describe('wdio-runner', () => {
 
             expect(multiremote).toBeCalledWith(
                 {
-                    first: { sessionId: undefined, afterSession: [], capabilities: { browserName: 'chrome' } },
-                    second: { sessionId: undefined, afterSession: [], capabilities: { browserName: 'firefox' } }
+                    first: { sessionId: undefined, afterSession: [hook], capabilities: { browserName: 'chrome' } },
+                    second: { sessionId: undefined, afterSession: [hook], capabilities: { browserName: 'firefox' } }
                 },
                 {
                     sessionId: undefined,
-                    afterSession: [],
+                    afterSession: [hook],
                     instances: {
                         first: { sessionId: 'first-session' },
                         second: { sessionId: 'second-session' }
@@ -160,6 +163,11 @@ describe('wdio-runner', () => {
             expect(browser.deleteSession).toBeCalledTimes(1)
             expect(firstInstance.sessionId).toBeUndefined()
             expect(secondInstance.sessionId).toBeUndefined()
+            expect(executeHooksWithArgs).toBeCalledWith(
+                'afterSession',
+                [hook],
+                [config, { first: { browserName: 'chrome' }, second: { browserName: 'firefox' } }, ['/foo/watch.test.js']]
+            )
         })
     })
 
