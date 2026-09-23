@@ -246,6 +246,7 @@ const mochaTypes: Record<string, string> = {
     bail: 'boolean',
     checkLeaks: 'boolean',
     delay: 'boolean',
+    failHookAffectedTests: 'boolean',
     fgrep: 'string',
     forbidOnly: 'boolean',
     forbidPending: 'boolean',

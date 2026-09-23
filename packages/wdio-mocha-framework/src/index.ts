@@ -11,7 +11,7 @@ import logger from '@wdio/logger'
 import { executeHooksWithArgs } from '@wdio/utils'
 import type { Services } from '@wdio/types'
 
-import { formatMessage, setupEnv } from './common.js'
+import { applyMochaDefaults, formatMessage, setupEnv } from './common.js'
 import { EVENTS, NOOP } from './constants.js'
 import type { MochaOpts as MochaOptsImport, FrameworkMessage, MochaError } from './types.js'
 import type { EventEmitter } from 'node:events'
@@ -64,6 +64,8 @@ class MochaAdapter {
             )
             Object.assign(mochaOpts, plugins)
         }
+
+        applyMochaDefaults(mochaOpts)
 
         const mocha = this._mocha = new Mocha(mochaOpts)
         // @ts-ignore outdated types

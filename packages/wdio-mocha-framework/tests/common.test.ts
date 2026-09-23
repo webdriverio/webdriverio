@@ -2,7 +2,7 @@ import path from 'node:path'
 import { describe, test, expect, vi, afterAll } from 'vitest'
 import { wrapGlobalTestMethod } from '@wdio/utils'
 
-import { loadModule, formatMessage, setupEnv, requireExternalModules } from '../src/common.js'
+import { applyMochaDefaults, loadModule, formatMessage, setupEnv, requireExternalModules } from '../src/common.js'
 declare global {
 
     var foo: string | undefined
@@ -224,6 +224,16 @@ describe('setupEnv', () => {
         const hookArgsFn = vi.mocked(wrapGlobalTestMethod).mock.calls[0][2]
         expect(hookArgsFn({ test: { foo: 'bar', parent: { title: 'parent' } } }))
             .toEqual([{ foo: 'bar', parent: 'parent' }, { test: { foo: 'bar', parent: { title: 'parent' } } }])
+    })
+
+    test('applyMochaDefaults fails tests skipped by a hook failure', () => {
+        const opts = applyMochaDefaults({})
+        expect(opts.failHookAffectedTests).toBe(true)
+    })
+
+    test('applyMochaDefaults keeps an explicit opt-out', () => {
+        const opts = applyMochaDefaults({ failHookAffectedTests: false })
+        expect(opts.failHookAffectedTests).toBe(false)
     })
 
     test('setupEnv ignores leftover mochaOpts.compilers', () => {

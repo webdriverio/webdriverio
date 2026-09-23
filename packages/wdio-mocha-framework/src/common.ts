@@ -147,6 +147,17 @@ export function requireExternalModules (mods: string[], loader = loadModule) {
     })
 }
 
+/**
+ * Mocha skips tests after a failing `before` or `beforeEach` and reports only
+ * the hook. Fail those tests unless the user turned the option off.
+ */
+export function applyMochaDefaults (mochaOpts: MochaOpts) {
+    if (mochaOpts.failHookAffectedTests === undefined) {
+        mochaOpts.failHookAffectedTests = true
+    }
+    return mochaOpts
+}
+
 type Hook = Function | Function[]
 export function setupEnv (cid: string, options: MochaOpts, beforeTest: Hook, beforeHook: Hook, afterTest: Hook, afterHook: Hook) {
     const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui!) as unknown as [string, keyof typeof INTERFACES]

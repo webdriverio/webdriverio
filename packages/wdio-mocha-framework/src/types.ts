@@ -27,6 +27,11 @@ export interface MochaOpts {
      */
     delay?: boolean;
     /**
+     * Report tests skipped by a failing `before` or `beforeEach` hook as failed.
+     * WebdriverIO defaults this to `true`.
+     */
+    failHookAffectedTests?: boolean;
+    /**
      * Test filter given string.
      */
     fgrep?: string;

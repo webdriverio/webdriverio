@@ -108,6 +108,12 @@ Delay root suite execution.
 Type: `boolean`<br />
 Default: `false`
 
+#### failHookAffectedTests
+Report each test skipped by a failing `before` or `beforeEach` hook as a failure. WebdriverIO enables this so a broken setup hook is visible on every spec it skipped. Set it to `false` to report only the hook.
+
+Type: `boolean`<br />
+Default: `true`
+
 #### fgrep
 Test filter given string.
 

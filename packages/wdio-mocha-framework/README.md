@@ -36,6 +36,8 @@ Note that interfaces supported are `bdd`, `tdd` and `qunit`. If you want to prov
 
 Options will be passed to the Mocha instance. See the list of supported Mocha options [here](https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options).
 
+`failHookAffectedTests` defaults to `true`. When a `before` or `beforeEach` hook fails, the tests that hook skipped are reported as failed. Set `failHookAffectedTests: false` to report only the hook.
+
 ----
 
 ## `mochaOpts.require (string|string[])`

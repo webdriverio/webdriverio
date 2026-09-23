@@ -18,6 +18,10 @@ WebdriverIO v10 requires Node.js 22.19.0 or later. Node.js 18 and 20 are no long
 
 `mochaOpts.compilers` is gone. Mocha removed the long-deprecated `--compilers` flag, so leftover compiler mappings are ignored. Load transpilers or other setup files with `mochaOpts.require`.
 
+`failHookAffectedTests` defaults to `true`. A failing `before` or `beforeEach` hook fails the tests that hook skipped. Set `mochaOpts.failHookAffectedTests` to `false` to report only the hook.
+
+Use [`expect-webdriverio` 6.1.0](https://github.com/webdriverio/expect-webdriverio/releases/tag/v6.1.0) or newer with this adapter. Mocha can load that package twice in one process; 6.1.0 shares assertion state across those copies ([expect-webdriverio#2221](https://github.com/webdriverio/expect-webdriverio/pull/2221)).
+
 Mocha 12 changes that can leak through `mochaOpts`:
 
 - `grep` accepts modern RegExp flags.
