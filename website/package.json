@@ -13,14 +13,15 @@
     "translate": "docusaurus write-translations"
   },
   "dependencies": {
-    "@docusaurus/core": "^3.9.2",
-    "@docusaurus/module-type-aliases": "^3.9.2",
-    "@docusaurus/plugin-ideal-image": "^3.9.2",
-    "@docusaurus/preset-classic": "^3.9.2",
-    "@docusaurus/remark-plugin-npm2yarn": "^3.9.2",
-    "@docusaurus/theme-mermaid": "3.9.2",
-    "@docusaurus/theme-search-algolia": "^3.9.2",
-    "@docusaurus/tsconfig": "^3.9.2",
+    "@docusaurus/core": "^3.10.2",
+    "@docusaurus/faster": "^3.10.2",
+    "@docusaurus/module-type-aliases": "^3.10.2",
+    "@docusaurus/plugin-ideal-image": "^3.10.2",
+    "@docusaurus/preset-classic": "^3.10.2",
+    "@docusaurus/remark-plugin-npm2yarn": "^3.10.2",
+    "@docusaurus/theme-mermaid": "^3.10.2",
+    "@docusaurus/theme-search-algolia": "^3.10.2",
+    "@docusaurus/tsconfig": "^3.10.2",
     "@mdx-js/react": "^3.0.1",
     "@mendable/search": "^0.0.206",
     "@signalwire/docusaurus-plugin-llms-txt": "^1.2.2",
@@ -49,7 +50,7 @@
     ]
   },
   "devDependencies": {
-    "@docusaurus/theme-common": "^3.9.2",
+    "@docusaurus/theme-common": "^3.10.2",
     "babel-loader": "^9.1.3"
   }
 }

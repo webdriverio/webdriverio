@@ -23,7 +23,18 @@ const config: Config = {
     tagline: 'Next-gen browser and mobile automation test framework for Node.js',
     url: 'https://webdriver.io',
     baseUrl: '/',
+    trailingSlash: false,
     onBrokenLinks: 'throw',
+    future: {
+        /**
+         * Rspack, SWC and Lightning CSS instead of Webpack, Babel and cssnano.
+         * Cuts the multi-locale production build time considerably.
+         */
+        faster: true,
+        v4: {
+            removeLegacyPostBuildHeadAttribute: true,
+        },
+    },
     favicon: 'img/favicon.png',
     organizationName: 'webdriverio',
     projectName: 'webdriverio',
