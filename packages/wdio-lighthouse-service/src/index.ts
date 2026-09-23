@@ -1,5 +1,5 @@
 import type { Capabilities, Services, FunctionProperties, ThenArg } from '@wdio/types'
-import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
+import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/puppeteer/api/Browser.js'
 
 import CommandHandler from './commands.js'
 import type Auditor from './auditor.js'
