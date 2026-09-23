@@ -36,6 +36,8 @@ export default async function watchParallelMultiremote() {
 
             // Run 3: fix the spec — sessions must survive the failure
             await fs.writeFile(watchedSpec, source.replaceAll('/first', '/second'))
+
+            await waitForRun(5)
             await waitForRun(6)
 
             assert.equal(driver.created.length, 4, 'Parallel multiremote must create exactly 4 sessions (browserA+B, browserC+D)')
