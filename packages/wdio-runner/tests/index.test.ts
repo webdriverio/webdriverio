@@ -5,7 +5,7 @@ import { describe, expect, it, vi, afterEach, beforeEach, onTestFinished } from 
 import { executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import type { Instances } from 'webdriverio'
-import { attach } from 'webdriverio'
+import { attach, multiremote } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import { setDefaultOptions, SnapshotService } from 'expect-webdriverio'
 
@@ -113,6 +113,53 @@ describe('wdio-runner', () => {
             runner['_shutdown'] = vi.fn()
             await runner.endSession()
             expect(hook).toBeCalledTimes(0)
+        })
+
+        it('should attach to existing multiremote sessions when called by a watch mode shutdown worker', async () => {
+            const firstInstance = { sessionId: 'first-session', capabilities: { browserName: 'chrome' } }
+            const secondInstance = { sessionId: 'second-session', capabilities: { browserName: 'firefox' } }
+            const browser = {
+                deleteSession: vi.fn(),
+                instances: ['first', 'second'],
+                getInstance: vi.fn((name: string) => name === 'first' ? firstInstance : secondInstance),
+                capabilities: {}
+            }
+            vi.mocked(multiremote).mockResolvedValueOnce(browser as any)
+
+            const runner = new WDIORunner()
+            runner['_config'] = { afterSession: [] } as any
+            await runner.endSession({
+                args: {
+                    config: { sessionId: undefined, afterSession: [] },
+                    capabilities: {
+                        first: { capabilities: { browserName: 'chrome' } },
+                        second: { capabilities: { browserName: 'firefox' } }
+                    },
+                    isMultiremote: true,
+                    instances: {
+                        first: { sessionId: 'first-session' },
+                        second: { sessionId: 'second-session' }
+                    }
+                }
+            })
+
+            expect(multiremote).toBeCalledWith(
+                {
+                    first: { sessionId: undefined, afterSession: [], capabilities: { browserName: 'chrome' } },
+                    second: { sessionId: undefined, afterSession: [], capabilities: { browserName: 'firefox' } }
+                },
+                {
+                    sessionId: undefined,
+                    afterSession: [],
+                    instances: {
+                        first: { sessionId: 'first-session' },
+                        second: { sessionId: 'second-session' }
+                    }
+                }
+            )
+            expect(browser.deleteSession).toBeCalledTimes(1)
+            expect(firstInstance.sessionId).toBeUndefined()
+            expect(secondInstance.sessionId).toBeUndefined()
         })
     })
 

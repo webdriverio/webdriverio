@@ -8,7 +8,7 @@ import { _setGlobal } from '@wdio/globals'
 import { expect, setDefaultOptions, getDefaultOptions, wdioCustomMatchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
 import type { Browser, Selector } from 'webdriverio'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options, Capabilities, Workers } from '@wdio/types'
 
 import BrowserFramework from './browser.js'
 import BaseReporter from './reporter.js'
@@ -155,7 +155,7 @@ export default class Runner extends EventEmitter {
             return this._shutdown(0, retries, true)
         }
 
-        browser = await this._initSession(this._config, this._caps)
+        browser = await this._initSession(this._config, this._caps, args.instances)
 
         /**
          * return if session initialization failed
@@ -326,9 +326,10 @@ export default class Runner extends EventEmitter {
      */
     private async _initSession (
         config: WebdriverIO.Config,
-        caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
+        caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities,
+        instances?: Record<string, Workers.WorkerInstanceData>
     ) {
-        const browser = await this._startSession(config, caps) as WebdriverIO.Browser
+        const browser = await this._startSession(config, caps, instances) as WebdriverIO.Browser
 
         // return null if session couldn't get established
         if (!browser) {
@@ -368,7 +369,8 @@ export default class Runner extends EventEmitter {
      */
     private async _startSession (
         config: WebdriverIO.Config,
-        caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
+        caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities,
+        instances?: Record<string, Workers.WorkerInstanceData>
     ) {
         try {
             /**
@@ -378,7 +380,7 @@ export default class Runner extends EventEmitter {
             const customStubCommands: CustomStubCommand[] = (this._browser as any | undefined)?.customCommands || []
             const overwrittenCommands: [any, (...args: any[]) => any, boolean][] = (this._browser as any | undefined)?.overwrittenCommands || []
 
-            const browser = await initializeInstance(config, caps, this._isMultiremote)
+            const browser = await initializeInstance(config, caps, this._isMultiremote, instances)
             this._browser = browser
             _setGlobal('browser', this._browser, config.injectGlobals)
             _setGlobal('driver', this._browser, config.injectGlobals)
@@ -529,7 +531,15 @@ export default class Runner extends EventEmitter {
          * session, see packages/wdio-local-runner/src/index.ts,
          * therefore we need to attach to the session to kill it
          */
-        if (!hasSessionId && payload?.args.config.sessionId) {
+        if (!hasSessionId && payload?.args.isMultiremote && payload.args.instances) {
+            this._isMultiremote = true
+            this._browser = await initializeInstance(
+                payload.args.config,
+                payload.args.capabilities,
+                true,
+                payload.args.instances
+            )
+        } else if (!hasSessionId && payload?.args.config.sessionId) {
             this._browser = await attach({
                 ...payload.args.config,
                 capabilities: payload?.args.capabilities
@@ -564,9 +574,10 @@ export default class Runner extends EventEmitter {
          * delete session(s)
          */
         if (this._isMultiremote) {
-            multiRemoteBrowser.instances.forEach((browserName: string) => {
+            const attachedMultiRemoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
+            attachedMultiRemoteBrowser.instances.forEach((browserName: string) => {
                 // @ts-ignore sessionId is usually required
-                delete multiRemoteBrowser.getInstance(browserName).sessionId
+                delete attachedMultiRemoteBrowser.getInstance(browserName).sessionId
             })
         } else if (browser) {
             browser.sessionId = undefined as unknown as string

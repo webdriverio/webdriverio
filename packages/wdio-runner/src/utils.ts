@@ -4,7 +4,7 @@ import { remote, multiremote, attach, type AttachOptions } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
 import type { AsymmetricMatchers, InverseAsymmetricMatchers } from 'expect-webdriverio'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options, Capabilities, Workers } from '@wdio/types'
 import { enableFileLogging } from '@wdio/utils'
 
 const log = logger('@wdio/runner')
@@ -55,14 +55,15 @@ export function sanitizeCaps (
 export async function initializeInstance (
     config: ConfigWithSessionId | WebdriverIO.Config,
     capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities,
-    isMultiremote?: boolean
+    isMultiremote?: boolean,
+    instances?: Record<string, Workers.WorkerInstanceData>
 ): Promise<WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser> {
     await enableFileLogging(config.outputDir)
 
     /**
      * check if config has sessionId and attach it to a running session if so
      */
-    if ('sessionId' in config) {
+    if ('sessionId' in config && config.sessionId) {
         log.debug(`attach to session with id ${config.sessionId}`)
         config.capabilities = sanitizeCaps(capabilities as WebdriverIO.Capabilities)
 
@@ -110,7 +111,8 @@ export async function initializeInstance (
         )
     }
 
-    const browser = await multiremote(options, config)
+    const multiremoteConfig = instances ? { ...config, instances } : config
+    const browser = await multiremote(options, multiremoteConfig)
 
     /**
      * only attach to global environment if `injectGlobals` is set to true
@@ -149,6 +151,7 @@ export function filterLogTypes(
 
 type BrowserData = {
     sessionId: string
+    capabilities: WebdriverIO.Capabilities
     isW3C: boolean
     protocol: string
     hostname: string
@@ -174,10 +177,11 @@ export function getInstancesData (
     const multiRemoteBrowser = browser as WebdriverIO.MultiRemoteBrowser
     const instances: Record<string, Partial<BrowserData>> = {}
     multiRemoteBrowser.instances.forEach((browserName: string) => {
-        const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser.getInstance(browserName)!.options
-        const { isW3C, sessionId } = multiRemoteBrowser.getInstance(browserName)!
+        const instance = multiRemoteBrowser.getInstance(browserName)!
+        const { protocol, hostname, port, path, queryParams } = instance.options
+        const { capabilities, isW3C, sessionId } = instance
 
-        instances[browserName] = { sessionId, isW3C, protocol, hostname, port, path, queryParams }
+        instances[browserName] = { sessionId, capabilities, isW3C, protocol, hostname, port, path, queryParams }
     })
 
     return instances

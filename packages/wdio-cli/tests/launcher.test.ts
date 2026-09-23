@@ -889,7 +889,7 @@ describe('launcher', () => {
             expect(launcher.runner!.shutdown).toBeCalled()
             expect(enableFileLogging).toHaveBeenCalledWith('tempDir')
 
-            expect(launcher.configParser.getCapabilities).toBeCalledTimes(2)
+            expect(launcher.configParser.getCapabilities).toBeCalledTimes(3)
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)
             expect(launcher.runner!.initialize).toBeCalledTimes(1)
             // @ts-ignore

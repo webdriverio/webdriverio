@@ -78,10 +78,6 @@ class Launcher {
         const config = this.configParser.getConfig()
 
         const capabilities = this.configParser.getCapabilities()
-        this.isParallelMultiremote = Array.isArray(capabilities) &&
-            capabilities.length > 0 &&
-            capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities))
-        this.isMultiremote = this.isParallelMultiremote || !Array.isArray(capabilities)
         validateConfig(TESTRUNNER_DEFAULTS, { ...config, capabilities })
 
         await enableFileLogging(config.outputDir)
@@ -213,6 +209,12 @@ class Launcher {
          * initialize config parser
          */
         await this.configParser.initialize(this._args)
+
+        const capabilities = this.configParser.getCapabilities()
+        this.isParallelMultiremote = Array.isArray(capabilities) &&
+            capabilities.length > 0 &&
+            capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities))
+        this.isMultiremote = this.isParallelMultiremote || !Array.isArray(capabilities)
     }
 
     /**
