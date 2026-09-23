@@ -285,11 +285,17 @@ export interface BrowsingContextCaptureScreenshotParameters {
     origin?: 'viewport' | 'document';
     format?: BrowsingContextImageFormat;
     clip?: BrowsingContextClipRectangle;
+    imageSize?: BrowsingContextImageSize;
 }
 
 export interface BrowsingContextImageFormat {
     type: string;
     quality?: number;
+}
+
+export interface BrowsingContextImageSize {
+    maxWidth?: JsUint;
+    maxHeight?: JsUint;
 }
 
 export type BrowsingContextClipRectangle = BrowsingContextBoxClipRectangle | BrowsingContextElementClipRectangle
@@ -479,6 +485,7 @@ export interface BrowsingContextStartScreencast {
 
 export interface BrowsingContextStartScreencastParameters {
     context: BrowsingContextBrowsingContext;
+    destinationFolder?: string;
     mimeType?: string;
     video?: BrowsingContextMediaTrackConstraints;
     audio?: boolean;
@@ -511,7 +518,7 @@ export interface BrowsingContextTraverseHistoryParameters {
     delta: JsInt;
 }
 
-export type EmulationCommand = EmulationSetForcedColorsModeThemeOverride | EmulationSetGeolocationOverride | EmulationSetLocaleOverride | EmulationSetNetworkConditions | EmulationSetScreenOrientationOverride | EmulationSetScreenSettingsOverride | EmulationSetScriptingEnabled | EmulationSetScrollbarTypeOverride | EmulationSetTimezoneOverride | EmulationSetTouchOverride | EmulationSetUserAgentOverride
+export type EmulationCommand = EmulationSetForcedColorsModeThemeOverride | EmulationSetGeolocationOverride | EmulationSetLocaleOverride | EmulationSetMediaFeaturesOverride | EmulationSetNetworkConditions | EmulationSetScreenOrientationOverride | EmulationSetScreenSettingsOverride | EmulationSetScriptingEnabled | EmulationSetScrollbarTypeOverride | EmulationSetTextLayoutModeOverride | EmulationSetTimezoneOverride | EmulationSetTouchOverride | EmulationSetUserAgentOverride | EmulationSetViewportMetaOverride
 
 export interface EmulationSetForcedColorsModeThemeOverride {
     method: 'emulation.setForcedColorsModeThemeOverride';
@@ -580,6 +587,49 @@ export interface EmulationSetLocaleOverrideParameters {
     userContexts?: BrowserUserContext[];
 }
 
+export interface EmulationSetMediaFeaturesOverride {
+    method: 'emulation.setMediaFeaturesOverride';
+    params: EmulationSetMediaFeaturesOverrideParameters;
+}
+
+export interface EmulationSetMediaFeaturesOverrideParameters {
+    features: EmulationMediaFeatures | null;
+    contexts?: BrowsingContextBrowsingContext[];
+    userContexts?: BrowserUserContext[];
+}
+
+export interface EmulationMediaFeatures {
+    anyHover?: 'none' | 'hover' | null;
+    anyPointer?: 'none' | 'coarse' | 'fine' | null;
+    color?: JsUint | null;
+    colorGamut?: 'srgb' | 'p3' | 'rec2020' | null;
+    colorIndex?: JsUint | null;
+    displayMode?: 'fullscreen' | 'standalone' | 'minimal-ui' | 'browser' | 'picture-in-picture' | null;
+    dynamicRange?: 'standard' | 'high' | null;
+    environmentBlending?: 'opaque' | 'additive' | 'subtractive' | null;
+    forcedColors?: 'none' | 'active' | null;
+    grid?: 0 | 1 | null;
+    horizontalViewportSegments?: JsUint | null;
+    hover?: 'none' | 'hover' | null;
+    invertedColors?: 'none' | 'inverted' | null;
+    monochrome?: JsUint | null;
+    navControls?: 'none' | 'back' | null;
+    overflowBlock?: 'none' | 'scroll' | 'optional-paged' | 'paged' | null;
+    overflowInline?: 'none' | 'scroll' | null;
+    pointer?: 'none' | 'coarse' | 'fine' | null;
+    prefersColorScheme?: 'light' | 'dark' | null;
+    prefersContrast?: 'no-preference' | 'more' | 'less' | 'custom' | null;
+    prefersReducedData?: 'no-preference' | 'reduce' | null;
+    prefersReducedMotion?: 'no-preference' | 'reduce' | null;
+    prefersReducedTransparency?: 'no-preference' | 'reduce' | null;
+    scan?: 'interlace' | 'progressive' | null;
+    scripting?: 'none' | 'initial-only' | 'enabled' | null;
+    update?: 'none' | 'slow' | 'fast' | null;
+    verticalViewportSegments?: JsUint | null;
+    videoColorGamut?: 'srgb' | 'p3' | 'rec2020' | null;
+    videoDynamicRange?: 'standard' | 'high' | null;
+}
+
 export interface EmulationSetNetworkConditions {
     method: 'emulation.setNetworkConditions';
     params: EmulationSetNetworkConditionsParameters;
@@ -643,6 +693,17 @@ export interface EmulationSetUserAgentOverrideParameters {
     userContexts?: BrowserUserContext[];
 }
 
+export interface EmulationSetViewportMetaOverride {
+    method: 'emulation.setViewportMetaOverride';
+    params: EmulationSetViewportMetaOverrideParameters;
+}
+
+export interface EmulationSetViewportMetaOverrideParameters {
+    viewportMeta: true | null;
+    contexts?: BrowsingContextBrowsingContext[];
+    userContexts?: BrowserUserContext[];
+}
+
 export interface EmulationSetScriptingEnabled {
     method: 'emulation.setScriptingEnabled';
     params: EmulationSetScriptingEnabledParameters;
@@ -664,6 +725,19 @@ export interface EmulationSetScrollbarTypeOverrideParameters {
     contexts?: BrowsingContextBrowsingContext[];
     userContexts?: BrowserUserContext[];
 }
+
+export interface EmulationSetTextLayoutModeOverride {
+    method: 'emulation.setTextLayoutModeOverride';
+    params: EmulationSetTextLayoutModeOverrideParameters;
+}
+
+export interface EmulationSetTextLayoutModeOverrideParameters {
+    textLayoutMode: EmulationTextLayoutMode | null;
+    contexts?: BrowsingContextBrowsingContext[];
+    userContexts?: BrowserUserContext[];
+}
+
+export type EmulationTextLayoutMode = 'mobile'
 
 export interface EmulationSetTimezoneOverride {
     method: 'emulation.setTimezoneOverride';
