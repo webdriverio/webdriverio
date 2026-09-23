@@ -22,7 +22,7 @@ const PLATFORMS = [{
 describe('webdriver.io', () => {
     it('finds the docs search', async () => {
         await browser.url('https://webdriver.io')
-        await $('aria/Search').click()
+        await $('.DocSearch-Button').click()
         await expect($('.DocSearch-Modal')).toBeDisplayed()
     })
 })`
@@ -105,7 +105,7 @@ describe('Homepage', () => {
     it('looks right', async () => {
         await browser.url('https://webdriver.io')
         await expect(browser).toMatchScreenSnapshot('homepage')
-        await expect($('nav')).toMatchElementSnapshot('navbar')
+        await expect($('.navbar')).toMatchElementSnapshot('navbar')
     })
 })`
 }] as const
