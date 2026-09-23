@@ -113,26 +113,21 @@ const config: Config = {
                 docId: 'gettingstarted',
             }, {
                 type: 'doc',
-                label: 'API',
+                label: 'Reference',
                 position: 'left',
                 docId: 'api',
             }, {
-                to: 'blog', label: 'Blog', position: 'left'
-            }, {
-                type: 'doc',
-                label: 'Contribute',
+                type: 'docSidebar',
+                label: 'Ecosystem',
                 position: 'left',
-                docId: 'contribute',
+                sidebarId: 'ecosystem',
+            }, {
+                to: 'blog', label: 'Blog', position: 'left'
             }, {
                 to: '/community/support',
                 label: 'Community',
                 position: 'left',
                 activeBaseRegex: '/community/'
-            }, {
-                type: 'doc',
-                docId: 'sponsor',
-                label: 'Sponsor',
-                position: 'left'
             }, {
                 label: currentVersion.label,
                 position: 'right',
@@ -152,25 +147,21 @@ const config: Config = {
                     label: 'Add your language',
                 }]
             }, {
+                href: discordUrl,
+                position: 'right',
+                className: 'header-discord-link',
+                'aria-label': 'Support Chat on Discord',
+            }, {
                 href: repoUrl,
                 position: 'right',
                 className: 'header-github-link',
                 'aria-label': 'GitHub repository',
             }, {
-                href: xUrl,
+                type: 'doc',
+                docId: 'sponsor',
+                label: 'Sponsor',
                 position: 'right',
-                className: 'header-twitter-link',
-                'aria-label': '@webdriverio on 𝕏',
-            }, {
-                href: youtubeUrl,
-                position: 'right',
-                className: 'header-youtube-link',
-                'aria-label': '@webdriverio on YouTube',
-            }, {
-                href: discordUrl,
-                position: 'right',
-                className: 'header-discord-link',
-                'aria-label': 'Support Chat on Discord',
+                className: 'navbar-sponsor-button',
             }],
         },
         footer: {
@@ -179,46 +170,61 @@ const config: Config = {
                 title: 'Docs',
                 items: [{
                     label: 'Getting Started',
-                    to: 'docs/gettingstarted',
+                    to: '/docs/gettingstarted',
+                }, {
+                    label: 'AI Agents & MCP',
+                    to: '/docs/mcp',
+                }, {
+                    label: 'Platforms',
+                    to: '/docs/platforms/web',
                 }, {
                     label: 'API Reference',
-                    to: 'docs/api',
+                    to: '/docs/api',
                 }, {
-                    label: 'Contribute',
-                    to: 'docs/contribute/',
-                }, {
-                    label: 'Help',
-                    to: 'community/support',
+                    label: 'Ecosystem',
+                    to: '/docs/ecosystem',
                 }],
             }, {
                 title: 'Community',
                 items: [{
+                    label: 'Support',
+                    to: '/community/support',
+                }, {
+                    label: 'Discord',
+                    href: discordUrl,
+                }, {
+                    label: 'GitHub Discussions',
+                    href: `${repoUrl}/discussions`,
+                }, {
                     label: 'Stack Overflow',
                     href: 'https://stackoverflow.com/questions/tagged/webdriver-io',
                 }, {
-                    label: 'Support Chat',
-                    href: 'https://discord.webdriver.io',
+                    label: 'X',
+                    href: xUrl,
                 }, {
-                    label: 'Slack',
-                    href: 'https://seleniumhq.slack.com/join/shared_invite/zt-f7jwg1n7-RVw4v4sMA7Zjufira_~EVw#/'
-                }, {
-                    label: '𝕏',
-                    href: 'https://x.com/webdriverio',
+                    label: 'YouTube',
+                    href: youtubeUrl,
                 }],
             }, {
-                title: 'More',
+                title: 'Project',
                 items: [{
                     label: 'Blog',
-                    to: 'blog',
+                    to: '/blog',
+                }, {
+                    label: 'Contribute',
+                    to: '/docs/contribute',
+                }, {
+                    label: 'Governance',
+                    href: `${repoUrl}/blob/main/GOVERNANCE.md`,
                 }, {
                     label: 'Sponsor',
-                    to: 'docs/sponsor',
+                    to: '/docs/sponsor',
                 }, {
                     label: 'Swag Store',
                     href: 'https://shop.webdriver.io',
                 }, {
-                    label: 'YouTube',
-                    href: youtubeUrl,
+                    label: 'llms.txt',
+                    href: 'pathname:///llms.txt',
                 }],
             }, {
                 title: 'Sponsored by',

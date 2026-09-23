@@ -149,3 +149,17 @@ body .react-toggle-thumb {
   .dropdown-version-item:hover {
     background-color: rgba(255, 255, 255, 0.1);
   }
+
+.navbar-sponsor-button.navbar__link {
+    margin-left: 0.5rem;
+    padding: 0.3rem 0.9rem;
+    border: 1px solid var(--ifm-color-primary);
+    border-radius: 999px;
+    font-size: 0.95em;
+}
+
+.navbar-sponsor-button.navbar__link::before {
+    content: '♥';
+    margin-right: 0.4rem;
+    color: #db61a2;
+}
