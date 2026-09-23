@@ -291,63 +291,6 @@ const config: Config = {
         ],
         'ideal-image',
         [
-            'pwa',
-            {
-                debug: false,
-                offlineModeActivationStrategies: ['appInstalled', 'queryString'],
-                // swRegister: false,
-                swCustom: path.resolve(__dirname, 'src', 'sw.js'),
-                pwaHead: [
-                    {
-                        tagName: 'link',
-                        rel: 'icon',
-                        href: 'img/logo-webdriver-io.png',
-                    },
-                    {
-                        tagName: 'link',
-                        rel: 'manifest',
-                        href: '/manifest.json',
-                    },
-                    {
-                        tagName: 'meta',
-                        name: 'theme-color',
-                        content: 'rgb(234, 90, 7)',
-                    },
-                    {
-                        tagName: 'meta',
-                        name: 'apple-mobile-web-app-capable',
-                        content: 'yes',
-                    },
-                    {
-                        tagName: 'meta',
-                        name: 'apple-mobile-web-app-status-bar-style',
-                        content: '#000',
-                    },
-                    {
-                        tagName: 'link',
-                        rel: 'apple-touch-icon',
-                        href: 'img/logo-webdriver-io.png',
-                    },
-                    {
-                        tagName: 'link',
-                        rel: 'mask-icon',
-                        href: 'img/logo-webdriver-io.svg',
-                        color: 'rgb(234, 90, 7)',
-                    },
-                    {
-                        tagName: 'meta',
-                        name: 'msapplication-TileImage',
-                        content: 'img/logo-webdriver-io.png',
-                    },
-                    {
-                        tagName: 'meta',
-                        name: 'msapplication-TileColor',
-                        content: '#000',
-                    },
-                ],
-            },
-        ],
-        [
             '@signalwire/docusaurus-plugin-llms-txt',
             {
                 /**
@@ -388,6 +331,11 @@ const config: Config = {
     themes: [
         path.resolve(__dirname, 'node_modules', 'docusaurus-theme-github-codeblock', 'build', 'index.js'),
         '@docusaurus/theme-mermaid',
+    ],
+    headTags: [
+        { tagName: 'link', attributes: { rel: 'manifest', href: '/manifest.json' } },
+        { tagName: 'meta', attributes: { name: 'theme-color', content: 'rgb(234, 90, 7)' } },
+        { tagName: 'link', attributes: { rel: 'apple-touch-icon', href: '/img/logo-webdriver-io.png' } },
     ],
     stylesheets: [
         'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700&display=block',

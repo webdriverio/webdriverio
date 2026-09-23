@@ -16,7 +16,6 @@
     "@docusaurus/core": "^3.9.2",
     "@docusaurus/module-type-aliases": "^3.9.2",
     "@docusaurus/plugin-ideal-image": "^3.9.2",
-    "@docusaurus/plugin-pwa": "^3.9.2",
     "@docusaurus/preset-classic": "^3.9.2",
     "@docusaurus/remark-plugin-npm2yarn": "^3.9.2",
     "@docusaurus/theme-mermaid": "3.9.2",
@@ -32,9 +31,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-lite-youtube-embed": "^2.4.0",
-    "typescript": "^5.5.4",
-    "workbox-routing": "^7.1.0",
-    "workbox-strategies": "^7.1.0"
+    "typescript": "^5.5.4"
   },
   "engines": {
     "node": ">=22.19.0"

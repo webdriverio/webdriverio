@@ -43,6 +43,12 @@
             ]
         },
         {
+            "source": "/sw.js",
+            "headers": [
+                { "key": "Cache-Control", "value": "no-cache" }
+            ]
+        },
+        {
             "source": "/:path(.*\\.md)",
             "headers": [
                 { "key": "Content-Type", "value": "text/markdown; charset=utf-8" },
