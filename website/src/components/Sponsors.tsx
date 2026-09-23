@@ -6,11 +6,11 @@ import ImageSwitcher from './ImageSwitcher.tsx'
 
 export default function Sponsors () {
     return <section className="sponsors">
-        <h1>
-            <Translate id="sponsors.title">
-                Open Source and Open Governed
+        <h2>
+            <Translate id="sponsors.heading">
+                Sponsored by companies that care
             </Translate>
-        </h1>
+        </h2>
         <p>
             <Translate id="sponsors.description.openSource" values={{
                 openJsFoundationLink: (

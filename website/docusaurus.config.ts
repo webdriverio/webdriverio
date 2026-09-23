@@ -20,7 +20,7 @@ const mendableAnonKey = 'c4096c1b-8c46-4891-8ba2-5f0e2ef4fa81'
 
 const config: Config = {
     title: 'WebdriverIO',
-    tagline: 'Next-gen browser and mobile automation test framework for Node.js',
+    tagline: 'Open source test automation for web, mobile and desktop apps',
     url: 'https://webdriver.io',
     baseUrl: '/',
     /**
@@ -322,7 +322,7 @@ const config: Config = {
                  * off every page.
                  */
                 siteTitle: 'WebdriverIO',
-                siteDescription: 'Next-gen browser and mobile automation test framework for Node.js',
+                siteDescription: 'WebdriverIO is an open source, openly governed test automation framework for web browsers, native and hybrid mobile apps, desktop apps and VS Code extensions.',
                 depth: 2,
                 content: {
                     enableMarkdownFiles: true,
@@ -359,9 +359,6 @@ const config: Config = {
         { tagName: 'meta', attributes: { name: 'theme-color', content: 'rgb(234, 90, 7)' } },
         { tagName: 'link', attributes: { rel: 'apple-touch-icon', href: '/img/logo-webdriver-io.png' } },
     ],
-    scripts: [
-        '/js/ribbons.js'
-    ]
 }
 
 export default config
