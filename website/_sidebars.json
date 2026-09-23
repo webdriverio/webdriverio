@@ -19,6 +19,10 @@
       "type": "category",
       "label": "AI Agents",
       "collapsed": false,
+      "link": {
+        "type": "doc",
+        "id": "ai-agents"
+      },
       "items": [
         {
           "type": "category",

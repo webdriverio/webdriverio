@@ -173,7 +173,7 @@ const config: Config = {
                     to: '/docs/gettingstarted',
                 }, {
                     label: 'AI Agents & MCP',
-                    to: '/docs/mcp',
+                    to: '/docs/ai-agents',
                 }, {
                     label: 'Platforms',
                     to: '/docs/platforms/web',

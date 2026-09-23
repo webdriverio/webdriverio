@@ -100,6 +100,7 @@ const index = [
     '',
     '- Every link below points to the Markdown version of a page. Any page on webdriver.io is available as Markdown by appending `.md` to its URL or by sending `Accept: text/markdown`.',
     '- Each section below is also available as one file under `/llms/<section>.txt` (listed next to the section heading), and the complete documentation is at https://webdriver.io/llms-full.txt.',
+    '- The docs are also available as an MCP server (Streamable HTTP) at https://webdriver.io/mcp with `search_docs`, `get_page` and `list_sections` tools. See https://webdriver.io/docs/ai-agents.md for how to set up coding agents.',
     '- All WebdriverIO commands are async; always `await` them. Configuration lives in `wdio.conf.ts`; run tests with `npx wdio run wdio.conf.ts`.',
     '- Documentation for WebdriverIO v9 is at https://v9.webdriver.io. Older versions are no longer documented, see https://webdriver.io/docs/v10-migration.md for upgrading.',
     '',
