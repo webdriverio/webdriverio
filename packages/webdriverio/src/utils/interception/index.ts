@@ -124,6 +124,7 @@ export default class WebDriverInterception {
     #isCollectingNetworkData: boolean
     #hasOneResponseCollected = false
     #blockedRequests = new Set<string>()
+    #requestsRespondedWithoutFetch = new Set<string>()
 
     constructor(
         pattern: URLPattern,
@@ -301,6 +302,53 @@ export default class WebDriverInterception {
 
         const requestId = request.request.request
         this.#emit('request', request)
+        const responseOverwrite = this.#respondOverwrites[0]
+
+        if (
+            responseOverwrite?.overwrite &&
+            'fetchResponse' in responseOverwrite.overwrite &&
+            responseOverwrite.overwrite.fetchResponse === false
+        ) {
+            return this.#release(request, true, () => {
+                const { overwrite } = responseOverwrite.once
+                    ? this.#respondOverwrites.shift() || {}
+                    : responseOverwrite
+
+                if (!overwrite) {
+                    return
+                }
+
+                this.#emit('overwrite', request)
+                try {
+                    const responseData = parseOverwrite(overwrite as RespondWithOptions, request)
+                    if (responseData.body) {
+                        this.#overwrittenResponseBodies.set(requestId, responseData.body)
+                    }
+                    this.#requestsRespondedWithoutFetch.add(requestId)
+                    return this.#withBlockedRequestTracking(
+                        requestId,
+                        this.#browser.networkProvideResponse({
+                            request: requestId,
+                            statusCode: 200,
+                            ...responseData
+                        }).catch((err) => {
+                            this.#requestsRespondedWithoutFetch.delete(requestId)
+                            return this.#handleNetworkProvideResponseError(err)
+                        })
+                    )
+                } catch (err) {
+                    this.#requestsRespondedWithoutFetch.delete(requestId)
+                    log.error(`Failed to apply mock.respond() overwrite: ${(err as Error).message}`)
+                    return this.#withBlockedRequestTracking(
+                        requestId,
+                        this.#browser.networkFailRequest({
+                            request: requestId
+                        }).catch(this.#handleNetworkProvideResponseError)
+                    )
+                }
+            })
+        }
+
         const hasRequestOverwrites = this.#requestOverwrites.length > 0
         if (hasRequestOverwrites) {
             const { overwrite, abort } = this.#requestOverwrites[0].once
@@ -373,6 +421,15 @@ export default class WebDriverInterception {
              * resolve correctly
              */
             this.#calls.push(request)
+        }
+
+        /**
+         * A response provided during `beforeRequestSent` still causes Chrome to
+         * emit `responseStarted`, but there is no longer a paused request to
+         * release at this phase.
+         */
+        if (this.#requestsRespondedWithoutFetch.delete(request.request.request)) {
+            return this.#release(request, true, () => undefined)
         }
 
         /**
@@ -705,6 +762,7 @@ export default class WebDriverInterception {
         this.#requestPostData.clear()
         this.#hasOneResponseCollected = false
         this.#blockedRequests.clear()
+        this.#requestsRespondedWithoutFetch.clear()
         return this
     }
 
