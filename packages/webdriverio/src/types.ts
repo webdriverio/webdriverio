@@ -666,17 +666,6 @@ export interface ActionParameter {
     actions: Action[]
 }
 
-export type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release'
-export interface TouchAction {
-    action: ActionTypes,
-    x?: number,
-    y?: number,
-    element?: WebdriverIO.Element,
-    ms?: number
-}
-export type TouchActionParameter = string | string[] | TouchAction | TouchAction[]
-export type TouchActions = TouchActionParameter | TouchActionParameter[]
-
 export type Matcher = {
     name: string,
     args: Array<string | object>

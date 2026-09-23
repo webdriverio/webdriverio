@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browser-runner",
   "license": "MIT",
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.19.0"
   },
   "repository": {
     "type": "git",
@@ -123,7 +123,7 @@
     "@types/istanbul-lib-source-maps": "^4.0.4",
     "@types/istanbul-reports": "^3.0.4",
     "esbuild": "^0.28.1",
-    "geckodriver": "^6.1.1",
+    "geckodriver": "^7.0.0",
     "mocha": "^10.8.2",
     "webdriverio": "workspace:*"
   },

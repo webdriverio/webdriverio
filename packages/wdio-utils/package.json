@@ -20,7 +20,7 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.19.0"
   },
   "repository": {
     "type": "git",
@@ -38,18 +38,18 @@
   },
   "dependencies": {
     "@types/split2": "^4.2.3",
-    "@puppeteer/browsers": "^2.2.0",
+    "@puppeteer/browsers": "^3.2.1",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "decamelize": "^6.0.0",
     "deepmerge-ts": "^8.0.0",
-    "edgedriver": "^6.3.1",
-    "geckodriver": "^6.1.1",
+    "edgedriver": "^7.0.0",
+    "geckodriver": "^7.0.0",
     "get-port": "^7.0.0",
     "import-meta-resolve": "^4.0.0",
     "locate-app": "^2.2.24",
     "mitt": "^3.0.1",
-    "safaridriver": "^1.0.0",
+    "safaridriver": "^2.0.0",
     "split2": "^4.2.0",
     "wait-port": "^1.1.0"
   },

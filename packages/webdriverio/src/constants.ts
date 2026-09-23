@@ -19,7 +19,8 @@ export const WDIO_DEFAULTS: Options.Definition<Capabilities.WebdriverIOConfig> =
             }
 
             /**
-             * skip following check if user uses Node.js v20.5 or below
+             * import.meta.resolve exists on every supported Node.js release.
+             * Skip the lookup when a bundler does not expose it.
              */
             if (typeof import.meta.resolve !== 'function') {
                 return
