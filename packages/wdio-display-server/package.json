@@ -1,12 +1,12 @@
 {
   "name": "@wdio/display-server",
-  "version": "9.30.1",
+  "version": "9.32.0",
   "description": "A standalone utility to manage display servers (Wayland/Xvfb) for headless testing",
   "author": "WebdriverIO Team",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-display-server",
   "license": "MIT",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=22.19.0"
   },
   "repository": {
     "type": "git",
@@ -42,7 +42,7 @@
     "@wdio/logger": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.20.4",
     "@wdio/types": "workspace:*"
   },
   "publishConfig": {
