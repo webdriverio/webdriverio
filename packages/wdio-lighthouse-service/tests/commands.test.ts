@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { expect, test, vi, beforeEach } from 'vitest'
-import type { CDPSession } from 'puppeteer-core/lib/puppeteer/api/CDPSession.js'
-import type { Page } from 'puppeteer-core/lib/puppeteer/api/Page.js'
+import type { CDPSession } from 'puppeteer-core'
+import type { Page } from 'puppeteer-core'
 
 import CommandHandler from '../src/commands.js'
 import Auditor from '../src/auditor.js'
