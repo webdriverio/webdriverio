@@ -1,6 +1,7 @@
 ---
 id: v10-migration
 title: From v9 to v10
+description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors and removed commands.
 ---
 
 This guide collects the breaking changes of WebdriverIO `v10` and what you have to do about them.
@@ -120,3 +121,24 @@ An element remembers how it was queried, so re-fetching it — after a stale ele
 Under the hood a strict `$` issues a `findElements` request instead of `findElement`, since counting the matches is the only way to enforce the rule. This is a single round trip either way, but it is visible to custom services and WebDriver mocks that key off the `findElement` command.
 
 :::
+
+## Removed commands
+
+`browser.throttle` and the deprecated `touchAction` commands have been removed.
+
+| v9 | v10 |
+| --- | --- |
+| `browser.throttle('Regular3G')` | [`browser.throttleNetwork('Regular3G')`](/docs/api/browser/throttleNetwork) |
+| `browser.touchAction(...)` / `element.touchAction(...)` | The [Actions API](/docs/api/browser/action) with a touch pointer, or the mobile commands [`tap`](/docs/api/mobile/tap) and [`swipe`](/docs/api/mobile/swipe) |
+
+A touch gesture with the Actions API:
+
+```js
+await browser.action('pointer', { parameters: { pointerType: 'touch' } })
+    .move({ x: 100, y: 500 })
+    .down()
+    .move({ x: 100, y: 100, duration: 300 })
+    .up()
+    .perform()
+```
+
