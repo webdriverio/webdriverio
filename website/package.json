@@ -24,6 +24,7 @@
     "@docusaurus/tsconfig": "^3.10.2",
     "@mdx-js/react": "^3.0.1",
     "@mendable/search": "^0.0.206",
+    "@modelcontextprotocol/sdk": "^1.30.1",
     "@signalwire/docusaurus-plugin-llms-txt": "^1.2.2",
     "@tsconfig/docusaurus": "^2.0.3",
     "@vercel/analytics": "^2.0.1",
@@ -32,7 +33,8 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-lite-youtube-embed": "^2.4.0",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "zod": "^4.6.5"
   },
   "engines": {
     "node": ">=22.19.0"

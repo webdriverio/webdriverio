@@ -9,6 +9,15 @@
     "git": {
         "deploymentEnabled": false
     },
+    "functions": {
+        "api/mcp.ts": {
+            "includeFiles": "build/{llms.txt,docs/**/*.md,community/**/*.md}",
+            "maxDuration": 30
+        }
+    },
+    "rewrites": [
+        { "source": "/mcp", "destination": "/api/mcp" }
+    ],
     "redirects": [
         {
             "source": "/:path*",
