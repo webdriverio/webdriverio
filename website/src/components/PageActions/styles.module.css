@@ -1,0 +1,85 @@
+.pageActions {
+    position: relative;
+    float: right;
+    margin: 0.25rem 0 1rem 1rem;
+    z-index: 3;
+}
+
+.buttonGroup {
+    display: inline-flex;
+    border: 1px solid var(--ifm-color-emphasis-300);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--ifm-background-surface-color);
+}
+
+.button,
+.toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 0;
+    background: transparent;
+    color: var(--ifm-font-color-base);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.35rem 0.7rem;
+    cursor: pointer;
+    transition: background-color 150ms ease;
+}
+
+.toggle {
+    border-left: 1px solid var(--ifm-color-emphasis-300);
+    padding: 0.35rem 0.5rem;
+}
+
+.button:hover,
+.toggle:hover {
+    background: var(--ifm-color-emphasis-100);
+}
+
+.menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    min-width: 240px;
+    margin: 0;
+    padding: 0.35rem;
+    list-style: none;
+    border: 1px solid var(--ifm-color-emphasis-300);
+    border-radius: 10px;
+    background: var(--ifm-background-surface-color);
+    box-shadow: 0 12px 32px rgb(0 0 0 / 18%);
+}
+
+.menuItem {
+    display: flex;
+    flex-direction: column;
+    padding: 0.45rem 0.6rem;
+    border-radius: 6px;
+    color: var(--ifm-font-color-base);
+}
+
+.menuItem:hover {
+    background: var(--ifm-color-emphasis-100);
+    text-decoration: none;
+    color: var(--ifm-font-color-base);
+}
+
+.menuLabel {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.menuDescription {
+    font-size: 0.75rem;
+    color: var(--ifm-color-emphasis-700);
+}
+
+@media (max-width: 996px) {
+    .pageActions {
+        float: none;
+        margin: 0 0 1rem;
+    }
+}
