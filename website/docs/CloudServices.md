@@ -215,7 +215,7 @@ export const config = {
 }
 ```
 
-The grid additionally accepts credentials embedded in the URL (`https://user:token@host`) for other WebDriver clients, but that form cannot be used from WebdriverIO: it is fetch-based, and Node 18 and above reject URL-embedded credentials.
+The grid additionally accepts credentials embedded in the URL (`https://user:token@host`) for other WebDriver clients, but that form cannot be used from WebdriverIO: it is fetch-based, and Node.js rejects URL-embedded credentials.
 
 To run against a real device, pass the browser as an Appium capability alongside either connection style above:
 
