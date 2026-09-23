@@ -467,7 +467,7 @@ describe('launcher', () => {
         it('should return correctly formatted specs', () => {
             // Define a capabilities that is sent to formatSpecs
             // - only used in function call
-            const capabilities = { specs: ['/a.js', ['/b.js', '/c.js', '/d.js'], '/e.js'] }
+            const capabilities = { 'wdio:specs': ['/a.js', ['/b.js', '/c.js', '/d.js'], '/e.js'], 'wdio:exclude': ['/f.js'] }
             const specFileRetries = 17
             // Define the golden result
             const expected = [
@@ -483,6 +483,13 @@ describe('launcher', () => {
                 )
             } as any
             expect(launcher['_formatSpecs'](capabilities as any, specFileRetries)).toStrictEqual(expected)
+            expect(launcher.configParser.getSpecs).toBeCalledWith(capabilities['wdio:specs'], ['/f.js'])
+        })
+
+        it('should ignore removed specs and exclude capabilities', () => {
+            launcher.configParser = { getSpecs: vi.fn().mockReturnValue([]) } as any
+            launcher['_formatSpecs']({ specs: ['/a.js'], exclude: ['/b.js'] } as any, 0)
+            expect(launcher.configParser.getSpecs).toBeCalledWith(undefined, undefined)
         })
     })
 
