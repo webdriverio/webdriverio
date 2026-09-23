@@ -58,3 +58,8 @@ jobs:
       # (via the redirects in website/vercel.json) and llms.txt link integrity.
       - name: 🔗 Check Docs Structure and URLs
         run: pnpm run docs:check
+
+      # Retrieval eval: the docs search (shared with the docs MCP server) must
+      # find an expected page in the top 5 for most tasks in website/evals.
+      - name: 🧪 Docs Retrieval Eval
+        run: pnpm run docs:eval -- --min-hit-rate=0.8

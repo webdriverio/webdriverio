@@ -30,6 +30,7 @@ pnpm run watch:docs          # regenerate + docusaurus start
 cd website && pnpm install && pnpm start
 pnpm run docs:build          # production build (CI docs job)
 pnpm run docs:check          # sidebar coverage, URL preservation, llms.txt links
+pnpm run docs:eval           # can the docs search find the right page? (website/evals)
 ```
 
 `pnpm start` in `website/` does not pick up JSDoc / protocol / README changes

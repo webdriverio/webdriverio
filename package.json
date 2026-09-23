@@ -33,6 +33,7 @@
     "docs:generate": "run-s clean:website generate:bidi && tsx ./scripts/docs-generation/generateDocs.ts",
     "docs:build": "cd ./website && pnpm build && cd ..",
     "docs:check": "tsx ./scripts/docs-generation/checkDocs.ts",
+    "docs:eval": "tsx ./scripts/docs-generation/evalDocs.ts",
     "oxlint:fix": "oxlint --fix packages examples scripts tests infra",
     "eslint:fix": "pnpm run oxlint:fix",
     "test": "run-s test:oxlint test:ejslint test:typings test:unit:run test:smoke test:component",
