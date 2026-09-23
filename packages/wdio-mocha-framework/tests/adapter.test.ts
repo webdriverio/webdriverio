@@ -85,6 +85,7 @@ test('should properly load mocha hooks', async () => {
     await adapter.init()
     expect(adapter['_config'].mochaOpts).toEqual({
         require: ['./__fixtures__/mochaHooks.js'],
+        failHookAffectedTests: true,
         rootHooks: {
             beforeAll: [],
             beforeEach: [expect.any(Function)],

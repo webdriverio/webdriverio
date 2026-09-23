@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import safeStringify from 'safe-stringify'
-import { setupEnv, formatMessage } from '@wdio/mocha-framework/common'
+import { applyMochaDefaults, setupEnv, formatMessage } from '@wdio/mocha-framework/common'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 
 import { getCID, filterTestArgument } from '../utils.js'
@@ -49,7 +49,7 @@ export class MochaFramework extends HTMLElement {
         }
 
         mocha.setup({
-            ...window.__wdioEnv__.args,
+            ...applyMochaDefaults({ ...window.__wdioEnv__.args }),
             reporter: HTMLReporter
         } as any)
     }
