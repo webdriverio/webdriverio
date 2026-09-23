@@ -62,11 +62,21 @@ pnpm demo:python:mobile
 ```
 
 They drive the **Clock app**, which ships with every Android system image — so
-there is no `.apk` to supply, nothing to upload and no credentials. The flow is
-deliberately deterministic: open the Timers tab, clear any timer a previous run
-left behind, start the 5-minute preset, pause it, and delete it. Clearing first
-is what makes them re-runnable, because a timer survives the session and while
-one exists the Timers tab shows its card instead of the presets.
+there is no `.apk` to supply, nothing to upload and no credentials. The flow
+stays on the timer setup screen: open the Timers tab, backspace the entry to
+zero, key a duration on the keypad, read it back, and correct it with backspace.
+
+They deliberately never **start** a timer. A running timer survives the session
+and replaces the setup screen with its card, so a spec that starts one is
+re-runnable only if it also finishes — an interrupted run would break every run
+after it. Not starting one removes that class of failure, and the keypad still
+exercises what an example is for: real input, real state change, captured.
+
+They also avoid Clock's preset chips, which look like fixed controls and are
+not: they are recently-used-duration suggestions, so a freshly reset Clock
+offers only the keypad and a preset-based flow fails on any device without
+timer history — including CI. Two Clock layouts exist on one app version, and
+the keypad is common to both.
 
 `DEVTOOLS_MODE=trace` switches any of them to trace mode, `DEVTOOLS_MOBILE=web`
 drives Chrome on the same device instead of an app, and `APPIUM_APP` points one
@@ -79,6 +89,6 @@ Running against a local Android emulator needs, beyond [Getting Started](/docs/d
 
 1. **Java JDK** and the **Android SDK** — with `ANDROID_HOME` pointing at the SDK the `sdkmanager` on your `PATH` actually installs into, which is not always `~/Library/Android/sdk`.
 2. **An AVD and a running emulator**, or a physical device with USB debugging.
-3. **Appium with the UiAutomator2 driver** (`appium driver install uiautomator2`), or XCUITest for iOS.
+3. **Appium with the UiAutomator2 driver** (`appium driver install uiautomator2`). The examples are **Android-only** and refuse `DEVTOOLS_MOBILE_PLATFORM=ios` with the reason: every flow drives Clock through UiAutomator resource-ids, which XCUITest cannot resolve. Capture itself is not Android-specific — an iOS example needs a flow and selectors, not new adapter work.
 4. **A matching Chromedriver**, for a mobile browser or a hybrid app. A webview is driven by Chromedriver, and Appium's autodownload frequently has no build matching the Chrome on the system image — in either direction. It surfaces as `No Chromedriver found that can automate Chrome '<version>'` when entering a webview, which reads as a capture failure but is an environment gap. Start Appium with `--default-capabilities '{"appium:chromedriverExecutableDir": "<path>"}'` plus `--allow-insecure=uiautomator2:chromedriver_autodownload`. **A native-app run needs none of this.**
 5. **Classic WebDriver protocol** for WebdriverIO — Appium's BiDi shim for UiAutomator2 does not implement every BiDi command, so set `'wdio:enforceWebDriverClassic': true` in the capability block.
