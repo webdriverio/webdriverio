@@ -1,6 +1,7 @@
 ---
 id: cross-framework
 title: Cross-Framework Support
+description: "Compare how completely DevTools trace mode captures WebdriverIO, Selenium and Nightwatch runs, and which gaps each adapter has."
 ---
 
 The trace format and the `show-trace` player are identical across WebdriverIO / Selenium / Nightwatch; this page shows where capture completeness differs. For the full trace-mode reference, see [Trace Mode](/docs/devtools/wdio/trace-mode).

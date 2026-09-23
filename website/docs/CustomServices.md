@@ -1,6 +1,7 @@
 ---
 id: customservices
 title: Custom Services
+description: "Write a custom launcher or worker service for the WDIO testrunner using testrunner hooks, handle service errors and publish it on NPM."
 ---
 
 You can write your own custom service for the WDIO test runner to custom-fit your needs.

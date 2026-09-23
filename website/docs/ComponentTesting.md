@@ -1,6 +1,7 @@
 ---
 id: component-testing
 title: Component Testing
+description: "Run unit and component tests in real browsers with the WebdriverIO browser runner, powered by Vite, including setup, test harness and debugging."
 ---
 
 With WebdriverIOs [Browser Runner](/docs/runner#browser-runner) you can run tests within an actual desktop or mobile browser while using WebdriverIO and the WebDriver protocol to automate and interact what gets rendered on the page. This approach has [many advantages](/docs/runner#browser-runner) compared to other test frameworks that only allow testing against [JSDOM](https://www.npmjs.com/package/jsdom).

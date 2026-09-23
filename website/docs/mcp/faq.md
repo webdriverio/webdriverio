@@ -1,6 +1,7 @@
 ---
 id: faq
 title: FAQ
+description: "Find answers to common questions about installing, using and troubleshooting the WebdriverIO MCP server for browser and mobile automation."
 ---
 
 Frequently asked questions about WebdriverIO MCP.

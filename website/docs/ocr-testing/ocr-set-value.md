@@ -1,6 +1,7 @@
 ---
 id: ocr-set-value
 title: ocrSetValue
+description: "Type into an input field located by its visible text with ocrSetValue, which finds the field with OCR and fuzzy matching."
 ---
 
 Send a sequence of key strokes to an element. It will:

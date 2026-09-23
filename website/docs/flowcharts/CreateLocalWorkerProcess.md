@@ -1,6 +1,7 @@
 ---
 id: createlocalworkerprocess
 title: Create worker process
+description: "Follow a flowchart of how the WebdriverIO local runner creates a worker process to run a spec file."
 ---
 This flowchart explains how a worker process is created.
 

@@ -1,6 +1,7 @@
 ---
 id: proxy
 title: Proxy Setup
+description: "Route requests through a proxy, either between your tests and the driver or between the browser and the internet."
 ---
 
 You can tunnel two different types of request through a proxy:

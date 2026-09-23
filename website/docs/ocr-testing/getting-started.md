@@ -1,6 +1,7 @@
 ---
 id: getting-started
 title: Getting Started
+description: "Install and configure @wdio/ocr-service, set up TypeScript support and tune contrast, image folder and language options."
 ---
 
 ## Installation

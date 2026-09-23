@@ -7,7 +7,7 @@
  * 2. every URL of the pre-restructure site still resolves, either as a page
  *    of the build or through a redirect in `website/vercel.json`
  * 3. every link in `llms.txt` points to a file of the build
- * 4. hand-written docs have a `description` (reported, not enforced yet)
+ * 4. every hand-written doc has a `description` in its frontmatter
  *
  * Usage: tsx scripts/docs-generation/checkDocs.ts [--skip-build-checks]
  */
@@ -28,7 +28,6 @@ const BUILD_DIR = path.join(WEBSITE_DIR, 'build')
 const UNLISTED_DOCS = new Set(['contribute', 'sponsor'])
 
 const errors: string[] = []
-const warnings: string[] = []
 
 function walk (dir: string): string[] {
     return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -100,6 +99,10 @@ const listed = sidebarIds(JSON.parse(fs.readFileSync(sidebarsFile, 'utf-8')))
 const handWritten = walk(DOCS_DIR).filter((file) => (
     /\.mdx?$/.test(file) &&
     !path.basename(file).startsWith('_') &&
+    /**
+     * copied from CONTRIBUTING.md by `docs:generate`
+     */
+    path.relative(DOCS_DIR, file) !== 'Contribute.md' &&
     !path.relative(DOCS_DIR, file).startsWith(`api${path.sep}`) &&
     !/^desktop-testing\/(electron|tauri|dioxus)\//.test(path.relative(DOCS_DIR, file))
 ))
@@ -112,7 +115,7 @@ for (const file of handWritten) {
         errors.push(`${path.relative(WEBSITE_DIR, file)} (id "${id}") is listed more than once (${sidebars.join(', ')})`)
     }
     if (!frontmatter(file).description) {
-        warnings.push(`${path.relative(WEBSITE_DIR, file)} has no \`description\` in its frontmatter`)
+        errors.push(`${path.relative(WEBSITE_DIR, file)} has no \`description\` in its frontmatter, see website/STYLEGUIDE.md`)
     }
 }
 
@@ -177,9 +180,6 @@ if (!process.argv.includes('--skip-build-checks')) {
     }
 }
 
-if (warnings.length) {
-    console.warn(`${warnings.length} warning(s):\n${warnings.map((w) => `  - ${w}`).join('\n')}\n`)
-}
 if (errors.length) {
     console.error(`${errors.length} error(s):\n${errors.map((e) => `  - ${e}`).join('\n')}`)
     process.exit(1)

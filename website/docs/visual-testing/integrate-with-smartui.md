@@ -1,6 +1,7 @@
 ---
 id: integrate-with-smartui
 title: SmartUI
+description: "Add AI-powered visual regression testing to WebdriverIO tests with TestMu AI (formerly LambdaTest) SmartUI, including setup and options."
 ---
 
 TestMu AI (Formerly LambdaTest) [SmartUI](https://www.testmuai.com/support/docs/smart-visual-testing/) provides AI-powered visual regression testing for your WebdriverIO tests. It captures screenshots, compares them against baselines, and highlights visual differences with intelligent comparison algorithms.

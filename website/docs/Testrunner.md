@@ -1,6 +1,7 @@
 ---
 id: testrunner
 title: Testrunner
+description: "Install the WDIO testrunner from @wdio/cli and use its config, run, install and repl commands to set up and run test suites."
 ---
 
 WebdriverIO comes with its own test runner to help you start testing as quickly as possible. It is supposed to do all the work for you, allows integrate to 3rd party services, and helps you to run your tests as efficiently as possible.

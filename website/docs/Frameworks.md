@@ -1,6 +1,7 @@
 ---
 id: frameworks
 title: Frameworks
+description: "Configure Mocha, Jasmine or Cucumber.js as the test framework for the WDIO testrunner, or integrate third-party frameworks like Serenity/JS."
 ---
 
 WebdriverIO Runner has built-in support for [Mocha](http://mochajs.org/), [Jasmine](http://jasmine.github.io/), and [Cucumber.js](https://cucumber.io/). You can also integrate it with 3rd-party open-source frameworks, such as [Serenity/JS](#using-serenityjs).

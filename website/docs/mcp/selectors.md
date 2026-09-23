@@ -1,6 +1,7 @@
 ---
 id: selectors
 title: Selectors
+description: "Choose selectors to locate elements on web pages and mobile apps when automating with the WebdriverIO MCP server."
 ---
 
 The WebdriverIO MCP server supports multiple selector strategies for locating elements on web pages and mobile apps.

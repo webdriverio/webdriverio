@@ -1,6 +1,7 @@
 ---
 id: assertion
 title: Assertion
+description: "Write assertions on browser and element state with the built-in expect-webdriverio library, use soft assertions and migrate from Chai."
 ---
 
 The [WDIO testrunner](https://webdriver.io/docs/clioptions) comes with a built in assertion library that allows you to make powerful assertions on various aspects of the browser or elements within your (web) application. It extends [Jests Matchers](https://jestjs.io/docs/en/using-matchers) functionality with additional, for e2e testing optimized, matchers, e.g.:

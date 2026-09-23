@@ -1,6 +1,7 @@
 ---
 id: service-options
 title: Service Options
+description: "Configure default options for the visual service, including screenshot capture, full-page screenshots, baselines, folders and reporting."
 ---
 
 Service options are the options that can be set when the service is instantiated and will be used for each method call.

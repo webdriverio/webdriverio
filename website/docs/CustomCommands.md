@@ -1,6 +1,7 @@
 ---
 id: customcommands
 title: Custom Commands
+description: "Add your own browser and element commands with addCommand, overwrite existing commands and extend the TypeScript type definitions."
 ---
 
 If you want to extend the `browser` instance with your own set of commands, the browser method `addCommand` is here for you. You can write your command in an asynchronous way, just as in your specs.

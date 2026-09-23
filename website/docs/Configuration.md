@@ -1,6 +1,7 @@
 ---
 id: configuration
 title: Configuration
+description: "Look up every configuration option for WebDriver, standalone WebdriverIO and the WDIO testrunner, including all testrunner hooks."
 ---
 
 Based on the [setup type](/docs/setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.

@@ -1,6 +1,7 @@
 ---
 id: automationProtocols
 title: Automation Protocols
+description: "Understand the WebDriver Bidi and WebDriver automation protocols and choose which one WebdriverIO uses to automate browsers and devices."
 ---
 
 With WebdriverIO, you can choose between multiple automation technologies when running your E2E tests locally or in the cloud. By default, WebdriverIO will attempt to start a local automation session using the [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) protocol.

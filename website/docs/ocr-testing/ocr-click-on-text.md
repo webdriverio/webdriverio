@@ -1,6 +1,7 @@
 ---
 id: ocr-click-on-text
 title: ocrClickOnText
+description: "Click on an element by its visible text with ocrClickOnText, which finds the text on screen with OCR and fuzzy matching."
 ---
 
 Click on an element based on the provided texts. The command will search for the provided text and try to find a match based on Fuzzy Logic from [Fuse.js](https://fusejs.io/). This means that if you might provide a selector with a typo, or the found text might not be a 100% match it will still try to give you back an element. See the [logs](#logs) below.

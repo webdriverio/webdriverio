@@ -1,6 +1,7 @@
 ---
 id: cloud-providers
 title: Cloud Providers
+description: "Run WebdriverIO MCP browser and mobile sessions on cloud device farms, including credentials, app uploads, tunnels and reporting."
 ---
 
 The WebdriverIO MCP server has native support for running browser and mobile automation sessions on cloud device farms. No local drivers, emulators, or simulators required. Four providers are supported:

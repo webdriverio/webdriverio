@@ -1,6 +1,7 @@
 ---
 id: resources
 title: Resources
+description: "Read live session state, session history and cloud provider setup details through the read-only wdio:// resources of the WebdriverIO MCP server."
 ---
 
 MCP resources provide read-only access to live session state. Unlike tools, resources are pulled by the AI model at will; they don't execute actions. All resources use the `wdio://` URI scheme.

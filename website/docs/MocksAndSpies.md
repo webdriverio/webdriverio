@@ -1,6 +1,7 @@
 ---
 id: mocksandspies
 title: Request Mocks and Spies
+description: "Mock network requests and responses in your tests with browser.mock, abort requests and inspect calls with spies."
 ---
 
 WebdriverIO comes with built-in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. You can define custom responses for web resources like REST API requests in your test and modify them dynamically.

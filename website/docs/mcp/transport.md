@@ -1,6 +1,7 @@
 ---
 id: transport
 title: Transport
+description: "Run the WebdriverIO MCP server over the default stdio transport or over Streamable HTTP, and pick the right mode for your client."
 ---
 
 The WebdriverIO MCP server supports two transport modes: **stdio** (default) and **HTTP**.

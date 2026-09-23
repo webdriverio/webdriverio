@@ -1,6 +1,7 @@
 ---
 id: api
 title: Introduction
+description: "Find reference docs for WebdriverIO protocol bindings and convenience commands, including WebDriver, WebDriver Bidi and Appium commands."
 ---
 
 Welcome to the WebdriverIO API docs. These pages contain reference materials for all implemented protocol bindings and convenience commands. Protocol commands, including [WebDriver](/docs/api/webdriver), [WebDriver Bidi](/docs/api/webdriverBidi) or mobile commands like [Appium](http://appium.io) are commands that are directly send to the underlying driver backend. Convenience commands provided by the [`browser`](/docs/api/browser), [`element`](/docs/api/element) or [`mock`](/docs/api/mock) object offer higher level interactivity.

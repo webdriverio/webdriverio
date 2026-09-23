@@ -1,6 +1,7 @@
 ---
 id: organizingsuites
 title: Organizing Test Suite
+description: "Organize a growing test suite by sharing config files, grouping specs into suites, running specs sequentially and including or excluding tests."
 ---
 
 As projects grow, inevitably more and more integration tests are added. This increases build time and slows productivity.

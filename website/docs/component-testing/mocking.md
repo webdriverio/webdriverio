@@ -1,6 +1,7 @@
 ---
 id: mocking
 title: Mocking
+description: "Mock functions, modules and network requests in browser runner component tests with fn, spyOn and mock from @wdio/browser-runner."
 ---
 
 When writing tests it's only a matter of time before you need to create a "fake" version of an internal — or external — service. This is commonly referred to as mocking. WebdriverIO provides utility functions to help you out. You can `import { fn, spyOn, mock, unmock } from '@wdio/browser-runner'` to access it. See more information about the available mocking utilities in the [API docs](/docs/api/modules#wdiobrowser-runner).

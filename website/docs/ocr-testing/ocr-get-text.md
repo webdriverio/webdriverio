@@ -1,6 +1,7 @@
 ---
 id: ocr-get-text
 title: ocrGetText
+description: "Read the text shown on the screen or in a specific area with ocrGetText from the OCR service."
 ---
 
 Get the text on an image.

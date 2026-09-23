@@ -1,6 +1,7 @@
 ---
 id: compare-options
 title: Compare Options
+description: "Tune how screenshots are compared with visual sensitivity, pixelmatch, mobile block-out and reporting options for the visual service."
 ---
 
 Compare options are options that influence the way the comparison is being executed.

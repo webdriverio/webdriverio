@@ -1,6 +1,7 @@
 ---
 id: sponsor
 title: Become a WebdriverIO Sponsor
+description: "Support WebdriverIO financially as a business or individual through GitHub Sponsors, Tidelift or OpenCollective, and see the tier benefits."
 ---
 
 WebdriverIO, an open-source project under the MIT license, is freely accessible for use. The sustainability of this expansive ecosystem, along with the development of innovative features, is made possible through the generous financial support of our sponsors, who contribute significantly to the maintenance and continuous growth of the project.

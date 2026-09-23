@@ -1,6 +1,7 @@
 ---
 id: githubactions
 title: Github Actions
+description: "Run your WebdriverIO tests on GitHub Actions by adding a workflow file to your repository."
 ---
 
 If your repository is hosted on Github, you can use [Github Actions](https://docs.github.com/en/actions) to run your tests on Github's infrastructure.

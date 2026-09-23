@@ -1,6 +1,7 @@
 ---
 id: method-options
 title: Method Options
+description: "Set per-method save, compare and folder options for visual testing methods that override the service-level options."
 ---
 
 Methods options are the options that can be set per [method](./methods). If the option has the same key as an option that has been set during the instantiation of the plugin, this method option will override the plugin option value.

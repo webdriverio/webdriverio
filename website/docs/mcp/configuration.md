@@ -1,6 +1,7 @@
 ---
 id: configuration
 title: Configuration
+description: "Configure the WebdriverIO MCP server, including session, browser, mobile, cloud provider, element detection and Appium options."
 ---
 
 This page documents all configuration options for the WebdriverIO MCP server.

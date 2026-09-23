@@ -1,6 +1,7 @@
 ---
 id: watcher
 title: Watch Test Files
+description: "Rerun tests automatically when spec or application files change by running the WDIO testrunner with the --watch flag and filesToWatch."
 ---
 
 With the WDIO testrunner you can watch files while you are working on them. They automatically rerun if you change either something in your app or in your test files. By adding a `--watch` flag when calling the `wdio` command the testrunner will wait for file changes after it ran all tests, e.g.

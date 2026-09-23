@@ -1,6 +1,7 @@
 ---
 id: tools
 title: Tools
+description: "Look up the tools exposed by the WebdriverIO MCP server for sessions, navigation, element interaction, screenshots, gestures and app lifecycle."
 ---
 
 The WebdriverIO MCP server exposes 29 tools organized by function. Tools marked **browser-only** require a `platform: "browser"` session. Tools marked **mobile-only** require `platform: "ios"` or `platform: "android"`.

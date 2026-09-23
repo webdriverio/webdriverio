@@ -1,6 +1,7 @@
 ---
 id: ocr-wait-for-text-displayed
 title: ocrWaitForTextDisplayed
+description: "Wait until a specific text is displayed on the screen with ocrWaitForTextDisplayed from the OCR service."
 ---
 
 Wait for a specific text to be displayed on the screen.
