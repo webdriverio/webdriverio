@@ -23,7 +23,11 @@ const config: Config = {
     tagline: 'Next-gen browser and mobile automation test framework for Node.js',
     url: 'https://webdriver.io',
     baseUrl: '/',
-    trailingSlash: false,
+    /**
+     * Leave `trailingSlash` unset: with `trailingSlash: false` Docusaurus writes
+     * the `$$` command pages (e.g. /docs/api/browser/$$) to the `$` route.
+     * Vercel serves `docs/foo/index.html` at `/docs/foo` either way.
+     */
     onBrokenLinks: 'throw',
     future: {
         /**
