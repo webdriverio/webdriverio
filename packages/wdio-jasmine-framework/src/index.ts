@@ -34,6 +34,93 @@ const FILE_PROTOCOL = 'file://'
 
 const log = logger('@wdio/jasmine-framework')
 
+/**
+ * Jasmine 6 removed Spec, Suite, and the built-in matchers from the public
+ * namespace. They still exist on `jasmine.private`, which is what this adapter
+ * has to patch. Older Jasmine versions expose them directly.
+ */
+interface JasmineInternals {
+    Spec: {
+        prototype: {
+            addExpectationResult: Function
+            execute?: (...args: unknown[]) => unknown
+        }
+    }
+    Suite: {
+        prototype: {
+            beforeAll: (...args: unknown[]) => unknown
+        }
+    }
+    matchers: jasmine.CustomMatcherFactories
+}
+
+const expectationContextPatched = Symbol.for('wdio.jasmine.expectationContext')
+
+/**
+ * Jasmine 6 stopped passing `actual` and `expected` into
+ * `addExpectationResult`. `jasmineOpts.expectationResultHandler` still
+ * receives them, so put the values back before the handler runs.
+ */
+function restoreExpectationContext (jasmineInterface: jasmine.Jasmine) {
+    const Expector = (jasmineInterface as jasmine.Jasmine & {
+        private?: {
+            Expector?: {
+                prototype: {
+                    processResult: Function & { [expectationContextPatched]?: boolean }
+                }
+            }
+        }
+    }).private?.Expector
+    if (!Expector?.prototype.processResult || Expector.prototype.processResult[expectationContextPatched]) {
+        return
+    }
+    const origProcessResult = Expector.prototype.processResult
+
+    function processResultWithContext (
+        this: { actual: unknown, expected: unknown, addExpectationResult: Function },
+        result: unknown,
+        errorForStack?: Error
+    ) {
+        const addExpectationResult = this.addExpectationResult
+        this.addExpectationResult = (passed: boolean, data: { actual?: unknown, expected?: unknown }) => {
+            if (data && !Object.hasOwn(data, 'actual')) {
+                data.actual = this.actual
+            }
+            if (data && !Object.hasOwn(data, 'expected')) {
+                data.expected = this.expected
+            }
+            return addExpectationResult.call(this, passed, data)
+        }
+        try {
+            return origProcessResult.call(this, result, errorForStack)
+        } finally {
+            this.addExpectationResult = addExpectationResult
+        }
+    }
+    processResultWithContext[expectationContextPatched] = true
+    Expector.prototype.processResult = processResultWithContext
+}
+
+function jasmineInternals (jasmineInterface: jasmine.Jasmine): JasmineInternals {
+    const candidate = jasmineInterface as jasmine.Jasmine & {
+        Spec?: JasmineInternals['Spec']
+        Suite?: JasmineInternals['Suite']
+        matchers?: jasmine.CustomMatcherFactories
+        private?: JasmineInternals
+    }
+    if (candidate.Spec && candidate.Suite && candidate.matchers) {
+        return {
+            Spec: candidate.Spec,
+            Suite: candidate.Suite,
+            matchers: candidate.matchers
+        }
+    }
+    if (candidate.private?.Spec && candidate.private.Suite && candidate.private.matchers) {
+        return candidate.private
+    }
+    return candidate as unknown as JasmineInternals
+}
+
 type HooksArray = {
     [K in keyof Required<Services.HookFunctions>]: Required<Services.HookFunctions>[K][]
 }
@@ -129,10 +216,13 @@ class JasmineAdapter {
             )
         })
 
+        restoreExpectationContext(jasmine)
+        const internals = jasmineInternals(jasmine)
+
         /**
          * enable expectHandler
          */
-        jasmine.Spec.prototype.addExpectationResult = this.getExpectationResultHandler(jasmine)
+        internals.Spec.prototype.addExpectationResult = this.getExpectationResultHandler(internals)
 
         const hookArgsFn = (context: unknown): [unknown, unknown] => [{ ...(self._lastTest || {}) }, context]
 
@@ -202,16 +292,14 @@ class JasmineAdapter {
         /**
          * wrap Suite and Spec prototypes to get access to their data
          */
-        // @ts-ignore
-        const beforeAllMock = jasmine.Suite.prototype.beforeAll
-        // @ts-ignore
-        jasmine.Suite.prototype.beforeAll = function (...args) {
+        const beforeAllMock = internals.Suite.prototype.beforeAll
+        internals.Suite.prototype.beforeAll = function (this: { result: unknown }, ...args: unknown[]) {
             self._lastSpec = this.result
             beforeAllMock.apply(this, args)
         }
-        const executeMock = jasmine.Spec.prototype.execute
+        const executeMock = internals.Spec.prototype.execute
         if (typeof executeMock === 'function') {
-            jasmine.Spec.prototype.execute = function (...args: unknown[]) {
+            internals.Spec.prototype.execute = function (this: { result: jasmine.SpecResult }, ...args: unknown[]) {
                 self._lastTest = this.result
                 // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
                 self._lastTest.start = new Date().getTime()
@@ -410,9 +498,9 @@ class JasmineAdapter {
         return message
     }
 
-    getExpectationResultHandler (jasmine: jasmine.Jasmine) {
+    getExpectationResultHandler (internals: JasmineInternals) {
         const { expectationResultHandler } = this._jasmineOpts
-        const origHandler = jasmine.Spec.prototype.addExpectationResult
+        const origHandler = internals.Spec.prototype.addExpectationResult
 
         if (typeof expectationResultHandler !== 'function') {
             return origHandler
@@ -473,8 +561,7 @@ class JasmineAdapter {
          */
         globalThis.jasmine.addMatchers = (matchers) => globalThis.jasmine.addAsyncMatchers(this.#transformMatchers(matchers))
 
-        // @ts-expect-error not exported in jasmine
-        const syncMatchers: jasmine.CustomAsyncMatcherFactories = this.#transformMatchers(jasmine.matchers)
+        const syncMatchers: jasmine.CustomAsyncMatcherFactories = this.#transformMatchers(jasmineInternals(jasmine).matchers)
         const wdioMatchers: jasmine.CustomAsyncMatcherFactories = Object.entries(wdioCustomMatchers).reduce((prev, [name, fn]) => {
             prev[name] = () => ({
                 async compare (...args: unknown[]) {
