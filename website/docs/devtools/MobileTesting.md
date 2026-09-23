@@ -83,12 +83,41 @@ drives Chrome on the same device instead of an app, and `APPIUM_APP` points one
 at a real app. [`examples/MOBILE.md`](https://github.com/webdriverio/devtools/blob/main/examples/MOBILE.md)
 in the repo is the full setup guide.
 
+## iOS
+
+```sh
+DEVTOOLS_MOBILE_PLATFORM=ios pnpm demo:wdio:mobile
+```
+
+**WebdriverIO only today.** The other three adapters refuse `ios` with a message
+rather than failing on a selector that cannot match; adding them is a spec each,
+not adapter work — capture has never been platform-specific.
+
+iOS drives **Settings**, not Clock, because Clock is not installed on the
+simulator at all: `xcrun simctl listapps` lists Settings, Calendar, Reminders,
+Maps and Safari, and no Clock. Settings is on every simulator and every device,
+which is the same property that makes Clock the Android choice. The flow
+navigates into General and back, checking the navigation bar title each way —
+the same shape as the Android flow, with the app the platform actually ships.
+
+Android and iOS are **separate specs**, not one spec with a branch, because they
+share no selectors: iOS locators are accessibility ids and labels rather than
+resource-ids.
+
+Beyond the Android prerequisites, none of which iOS uses, you need Xcode (the
+Command Line Tools ship no simulators), a simulator runtime
+(`xcodebuild -downloadPlatform iOS`, a separate ~8 GB download), a booted
+simulator, and `appium driver install xcuitest` — whose first run also builds
+WebDriverAgent. Appium loads drivers at **startup**, so a server that was
+already running when you installed the driver will report that it cannot find
+XCUITest until you restart it.
+
 ## Prerequisites
 
 Running against a local Android emulator needs, beyond [Getting Started](/docs/devtools/getting-started):
 
 1. **Java JDK** and the **Android SDK** — with `ANDROID_HOME` pointing at the SDK the `sdkmanager` on your `PATH` actually installs into, which is not always `~/Library/Android/sdk`.
 2. **An AVD and a running emulator**, or a physical device with USB debugging.
-3. **Appium with the UiAutomator2 driver** (`appium driver install uiautomator2`). The examples are **Android-only** and refuse `DEVTOOLS_MOBILE_PLATFORM=ios` with the reason: every flow drives Clock through UiAutomator resource-ids, which XCUITest cannot resolve. Capture itself is not Android-specific — an iOS example needs a flow and selectors, not new adapter work.
+3. **Appium with the UiAutomator2 driver** (`appium driver install uiautomator2`), or the XCUITest driver for iOS — see [iOS](#ios) below.
 4. **A matching Chromedriver**, for a mobile browser or a hybrid app. A webview is driven by Chromedriver, and Appium's autodownload frequently has no build matching the Chrome on the system image — in either direction. It surfaces as `No Chromedriver found that can automate Chrome '<version>'` when entering a webview, which reads as a capture failure but is an environment gap. Start Appium with `--default-capabilities '{"appium:chromedriverExecutableDir": "<path>"}'` plus `--allow-insecure=uiautomator2:chromedriver_autodownload`. **A native-app run needs none of this.**
 5. **Classic WebDriver protocol** for WebdriverIO — Appium's BiDi shim for UiAutomator2 does not implement every BiDi command, so set `'wdio:enforceWebDriverClassic': true` in the capability block.
