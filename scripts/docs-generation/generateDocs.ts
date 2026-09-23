@@ -8,6 +8,7 @@ import { generateProtocolDocs } from './protocolDocs.js'
 import { generateWdioDocs } from './wdioDocs.js'
 import { generateReportersAndServicesDocs } from './packagesDocs.js'
 import { generate3rdPartyDocs } from './3rdPartyDocs.js'
+import { generateEcosystemDocs } from './ecosystemDocs.js'
 import { generateElectronDocs } from './electronDocs.js'
 import { generateTauriDocs } from './tauriDocs.js'
 import { generateDioxusDocs } from './dioxusDocs.js'
@@ -44,6 +45,7 @@ try {
     print('Generate Reporter & Services Docs')
     generateReportersAndServicesDocs(sidebars)
     await generate3rdPartyDocs(sidebars)
+    generateEcosystemDocs()
     print('Generate Event Docs')
     await generateEventDocs()
     print('Generate Desktop Service Docs (Electron + Tauri + Dioxus)')

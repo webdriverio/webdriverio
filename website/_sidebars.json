@@ -2,45 +2,60 @@
   "docs": [
     {
       "type": "category",
-      "label": "Getting Started",
+      "label": "Get Started",
       "link": {
         "type": "doc",
         "id": "gettingstarted"
       },
+      "collapsed": false,
       "items": [
         "why-webdriverio",
-        "boilerplates"
-      ]
-    },
-    {
-      "type": "category",
-      "label": "Core Concepts",
-      "items": [
         "setuptypes",
-        "automationProtocols",
+        "boilerplates",
+        "automationProtocols"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "AI Agents",
+      "collapsed": false,
+      "items": [
+        {
+          "type": "category",
+          "label": "MCP",
+          "items": [
+            "mcp/configuration",
+            "mcp/transport",
+            "mcp/cloud-providers",
+            "mcp/selectors",
+            "mcp/tools",
+            "mcp/resources",
+            "mcp/faq"
+          ],
+          "link": {
+            "type": "doc",
+            "id": "mcp"
+          }
+        }
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Writing Tests",
+      "items": [
+        "selectors",
+        "autowait",
+        "timeouts",
+        "assertion",
+        "pageobjects",
+        "mocksandspies",
+        "emulation",
+        "snapshot",
+        "customcommands",
+        "custommatchers",
+        "parameterize-tests",
+        "organizingsuites",
         "multiremote",
-        "autowait"
-      ]
-    },
-    {
-      "type": "category",
-      "label": "Configuration",
-      "link": {
-        "type": "doc",
-        "id": "configuration"
-      },
-      "items": [
-        "driverbinaries",
-        "capabilities",
-        "appium",
-        "typescript",
-        "proxy"
-      ]
-    },
-    {
-      "type": "category",
-      "label": "Guides",
-      "items": [
         {
           "type": "category",
           "label": "Best Practices",
@@ -53,335 +68,375 @@
             "best-practices/browser-logs"
           ]
         },
-        "selectors",
-        "timeouts",
-        "emulation",
-        "snapshot",
-        "mocksandspies",
-        "customcommands",
-        "custommatchers",
-        "pageobjects",
-        "debugging",
-        "repl",
-        "record",
         "security"
       ]
     },
     {
       "type": "category",
-      "label": "Testrunner",
-      "link": {
-        "type": "doc",
-        "id": "testrunner"
-      },
+      "label": "Platforms",
+      "collapsed": false,
       "items": [
-        "configurationfile",
-        "runner",
-        "headless-and-xvfb",
-        "frameworks",
-        "assertion",
-        "organizingsuites",
-        "parameterize-tests",
-        "sharding",
-        "retry",
-        "watcher",
-        "customreporter",
-        "customservices"
-      ]
-    },
-    {
-      "type": "category",
-      "label": "DevTools",
-      "link": {
-        "type": "doc",
-        "id": "devtools"
-      },
-      "items": [
-        "devtools/getting-started",
         {
           "type": "category",
-          "label": "Live Mode",
-          "items": [
-            "devtools/dashboard",
-            "devtools/wdio/interactive-test-rerunning",
-            "devtools/wdio/preserve-and-rerun",
-            "devtools/wdio/console-logs",
-            "devtools/wdio/network-logs",
-            "devtools/wdio/metadata",
-            "devtools/wdio/testlens",
-            "devtools/wdio/multi-framework-support",
-            "devtools/wdio/screencast"
-          ]
-        },
-        {
-          "type": "category",
-          "label": "Trace Mode",
-          "items": [
-            "devtools/wdio/trace-mode",
-            "devtools/trace-player",
-            "devtools/allure",
-            "devtools/cross-framework",
-            "devtools/limitations"
-          ]
-        },
-        {
-          "type": "category",
-          "label": "Frameworks",
-          "items": [
-            "devtools/wdio",
-            "devtools/selenium",
-            "devtools/nightwatch"
-          ]
-        },
-        "devtools/reference"
-      ]
-    },
-    {
-      "type": "category",
-      "label": "Desktop Testing",
-      "items": [
-        "desktop-testing/macos",
-        "desktop-testing/windows",
-        {
-          "type": "category",
-          "label": "Electron",
+          "label": "Web Browsers",
           "link": {
             "type": "doc",
-            "id": "desktop-testing/electron"
+            "id": "platforms/web"
           },
           "items": [
-            "desktop-testing/electron/configuration",
-            "desktop-testing/electron/api",
-            "desktop-testing/electron/api-reference",
-            "desktop-testing/electron/window-management",
-            "desktop-testing/electron/deeplink-testing",
-            "desktop-testing/electron/standalone",
-            "desktop-testing/electron/debugging",
-            "desktop-testing/electron/common-issues"
+            "driverbinaries",
+            {
+              "type": "category",
+              "label": "Component Testing",
+              "link": {
+                "type": "doc",
+                "id": "component-testing"
+              },
+              "items": [
+                {
+                  "type": "category",
+                  "label": "Framework Setup",
+                  "items": [
+                    "component-testing/lit",
+                    "component-testing/vue",
+                    "component-testing/svelte",
+                    "component-testing/solid",
+                    "component-testing/react",
+                    "component-testing/preact",
+                    "component-testing/stencil"
+                  ]
+                },
+                "component-testing/coverage",
+                "component-testing/mocking"
+              ]
+            },
+            "extension-testing/web-extensions"
           ]
         },
         {
           "type": "category",
-          "label": "Tauri",
+          "label": "Mobile Apps",
           "link": {
             "type": "doc",
-            "id": "desktop-testing/tauri"
+            "id": "platforms/mobile"
           },
           "items": [
-            "desktop-testing/tauri/quick-start",
-            "desktop-testing/tauri/configuration",
-            "desktop-testing/tauri/api",
-            "desktop-testing/tauri/plugin-setup",
-            "desktop-testing/tauri/platform-support",
-            "desktop-testing/tauri/usage-examples",
-            "desktop-testing/tauri/log-forwarding",
-            "desktop-testing/tauri/edge-webdriver-windows",
-            "desktop-testing/tauri/deeplink-testing",
-            "desktop-testing/tauri/crabnebula-setup",
-            "desktop-testing/tauri/troubleshooting"
+            "appium",
+            {
+              "type": "category",
+              "label": "Flutter Testing",
+              "items": [
+                "flutter-testing/preparing-flutter-application",
+                "flutter-testing/base-appium-configuration",
+                "flutter-testing/setting-up-webdriverio",
+                "flutter-testing/writing-tests"
+              ],
+              "link": {
+                "type": "doc",
+                "id": "flutter-testing/introduction"
+              }
+            }
           ]
         },
         {
           "type": "category",
-          "label": "Dioxus",
+          "label": "Desktop Apps",
           "link": {
             "type": "doc",
-            "id": "desktop-testing/dioxus"
+            "id": "platforms/desktop"
           },
           "items": [
-            "desktop-testing/dioxus/quick-start",
-            "desktop-testing/dioxus/configuration",
-            "desktop-testing/dioxus/api",
-            "desktop-testing/dioxus/plugin-setup",
-            "desktop-testing/dioxus/platform-support",
-            "desktop-testing/dioxus/usage-examples",
-            "desktop-testing/dioxus/browser-mode",
-            "desktop-testing/dioxus/log-forwarding",
-            "desktop-testing/dioxus/edge-webdriver-windows",
-            "desktop-testing/dioxus/deeplink-testing",
-            "desktop-testing/dioxus/coexistence",
-            "desktop-testing/dioxus/troubleshooting"
+            "desktop-testing/macos",
+            "desktop-testing/windows",
+            {
+              "type": "category",
+              "label": "Electron",
+              "link": {
+                "type": "doc",
+                "id": "desktop-testing/electron"
+              },
+              "items": [
+                "desktop-testing/electron/configuration",
+                "desktop-testing/electron/api",
+                "desktop-testing/electron/api-reference",
+                "desktop-testing/electron/window-management",
+                "desktop-testing/electron/deeplink-testing",
+                "desktop-testing/electron/standalone",
+                "desktop-testing/electron/debugging",
+                "desktop-testing/electron/common-issues"
+              ]
+            },
+            {
+              "type": "category",
+              "label": "Tauri",
+              "link": {
+                "type": "doc",
+                "id": "desktop-testing/tauri"
+              },
+              "items": [
+                "desktop-testing/tauri/quick-start",
+                "desktop-testing/tauri/configuration",
+                "desktop-testing/tauri/api",
+                "desktop-testing/tauri/plugin-setup",
+                "desktop-testing/tauri/platform-support",
+                "desktop-testing/tauri/usage-examples",
+                "desktop-testing/tauri/log-forwarding",
+                "desktop-testing/tauri/edge-webdriver-windows",
+                "desktop-testing/tauri/deeplink-testing",
+                "desktop-testing/tauri/crabnebula-setup",
+                "desktop-testing/tauri/troubleshooting"
+              ]
+            },
+            {
+              "type": "category",
+              "label": "Dioxus",
+              "link": {
+                "type": "doc",
+                "id": "desktop-testing/dioxus"
+              },
+              "items": [
+                "desktop-testing/dioxus/quick-start",
+                "desktop-testing/dioxus/configuration",
+                "desktop-testing/dioxus/api",
+                "desktop-testing/dioxus/plugin-setup",
+                "desktop-testing/dioxus/platform-support",
+                "desktop-testing/dioxus/usage-examples",
+                "desktop-testing/dioxus/browser-mode",
+                "desktop-testing/dioxus/log-forwarding",
+                "desktop-testing/dioxus/edge-webdriver-windows",
+                "desktop-testing/dioxus/deeplink-testing",
+                "desktop-testing/dioxus/coexistence",
+                "desktop-testing/dioxus/troubleshooting"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Extensions & Editors",
+          "link": {
+            "type": "doc",
+            "id": "platforms/apps-and-extensions"
+          },
+          "items": [
+            "extension-testing/vscode-extensions"
           ]
         }
       ]
     },
     {
       "type": "category",
-      "label": "Component Testing",
-      "link": {
-        "type": "doc",
-        "id": "component-testing"
-      },
+      "label": "Testing Types",
       "items": [
         {
           "type": "category",
-          "label": "Framework Setup",
+          "label": "Visual Testing",
           "items": [
-            "component-testing/lit",
-            "component-testing/vue",
-            "component-testing/svelte",
-            "component-testing/solid",
-            "component-testing/react",
-            "component-testing/preact",
-            "component-testing/stencil"
-          ]
-        },
-        "component-testing/coverage",
-        "component-testing/mocking"
-      ]
-    },
-    {
-      "type": "category",
-      "label": "Extension Testing",
-      "items": [
-        "extension-testing/web-extensions",
-        "extension-testing/vscode-extensions"
-      ]
-    },
-    {
-      "type": "category",
-      "label": "Accessibility Testing",
-      "items": [
-        "accessibility-testing/axe-core",
-        "accessibility-testing/browserstack",
-        "accessibility-testing/testmuai"
-      ]
-    },
-    {
-      "type": "category",
-      "label": "OCR Testing",
-      "items": [
-        "ocr-testing/getting-started",
-        {
-          "type": "category",
-          "label": "Commands",
-          "items": [
-            "ocr-testing/ocr-click-on-text",
-            "ocr-testing/ocr-get-element-position-by-text",
-            "ocr-testing/ocr-get-text",
-            "ocr-testing/ocr-set-value",
-            "ocr-testing/ocr-wait-for-text-displayed"
-          ]
-        },
-        "ocr-testing/cli-wizard",
-        "ocr-testing/more-test-optimization",
-        "ocr-testing/ocr-faq"
-      ],
-      "link": {
-        "type": "doc",
-        "id": "ocr-testing/ocr-testing"
-      }
-    },
-    {
-      "type": "category",
-      "label": "Visual Testing",
-      "items": [
-        "visual-testing/writing-tests",
-        "visual-testing/methods",
-        {
-          "type": "category",
-          "label": "Options",
-          "items": [
-            "visual-testing/service-options",
-            "visual-testing/method-options",
-            "visual-testing/compare-options"
-          ]
-        },
-        "visual-testing/test-output",
-        "visual-testing/visual-reporter",
-        "visual-testing/considerations",
-        {
-          "type": "category",
-          "label": "Percy",
+            "visual-testing/writing-tests",
+            "visual-testing/methods",
+            {
+              "type": "category",
+              "label": "Options",
+              "items": [
+                "visual-testing/service-options",
+                "visual-testing/method-options",
+                "visual-testing/compare-options"
+              ]
+            },
+            "visual-testing/test-output",
+            "visual-testing/visual-reporter",
+            "visual-testing/considerations",
+            {
+              "type": "category",
+              "label": "Percy",
+              "link": {
+                "type": "doc",
+                "id": "percy-overview"
+              },
+              "items": [
+                "visual-testing/integrate-with-percy",
+                "visual-testing/integrate-with-app-percy"
+              ]
+            },
+            {
+              "type": "doc",
+              "id": "visual-testing/integrate-with-smartui",
+              "label": "SmartUI"
+            },
+            {
+              "type": "doc",
+              "id": "visual-testing/argos",
+              "label": "Argos"
+            },
+            "visual-testing/faq"
+          ],
           "link": {
             "type": "doc",
-            "id": "percy-overview"
-          },
+            "id": "visual-testing"
+          }
+        },
+        {
+          "type": "category",
+          "label": "Accessibility Testing",
           "items": [
-            "visual-testing/integrate-with-percy",
-            "visual-testing/integrate-with-app-percy"
+            "accessibility-testing/axe-core",
+            "accessibility-testing/browserstack",
+            "accessibility-testing/testmuai"
           ]
         },
         {
-          "type": "doc",
-          "id": "visual-testing/integrate-with-smartui",
-          "label": "SmartUI"
-        },
-        {
-          "type": "doc",
-          "id": "visual-testing/argos",
-          "label": "Argos"
-        },
-        "visual-testing/faq"
-      ],
-      "link": {
-        "type": "doc",
-        "id": "visual-testing"
-      }
-    },
-    {
-      "type": "category",
-      "label": "Flutter Testing",
-      "items": [
-        "flutter-testing/introduction",
-        "flutter-testing/preparing-flutter-application",
-        "flutter-testing/base-appium-configuration",
-        "flutter-testing/setting-up-webdriverio",
-        "flutter-testing/writing-tests"
-      ],
-      "link": {
-        "type": "doc",
-        "id": "flutter-testing/introduction"
-      }
-    },
-    {
-      "type": "category",
-      "label": "MCP",
-      "items": [
-        "mcp/configuration",
-        "mcp/transport",
-        "mcp/cloud-providers",
-        "mcp/selectors",
-        "mcp/tools",
-        "mcp/resources",
-        "mcp/faq"
-      ],
-      "link": {
-        "type": "doc",
-        "id": "mcp"
-      }
-    },
-    {
-      "type": "category",
-      "label": "Migrate",
-      "items": [
-        "v10-migration",
-        "v6-migration",
-        "v7-migration",
-        "protractor-migration",
-        "async-migration"
+          "type": "category",
+          "label": "OCR Testing",
+          "items": [
+            "ocr-testing/getting-started",
+            {
+              "type": "category",
+              "label": "Commands",
+              "items": [
+                "ocr-testing/ocr-click-on-text",
+                "ocr-testing/ocr-get-element-position-by-text",
+                "ocr-testing/ocr-get-text",
+                "ocr-testing/ocr-set-value",
+                "ocr-testing/ocr-wait-for-text-displayed"
+              ]
+            },
+            "ocr-testing/cli-wizard",
+            "ocr-testing/more-test-optimization",
+            "ocr-testing/ocr-faq"
+          ],
+          "link": {
+            "type": "doc",
+            "id": "ocr-testing/ocr-testing"
+          }
+        }
       ]
     },
     {
       "type": "category",
-      "label": "Integration",
+      "label": "Running Tests",
+      "link": {
+        "type": "doc",
+        "id": "testrunner"
+      },
       "items": [
-        "cloudservices",
-        "autocompletion",
-        "docker",
-        "githubactions",
-        "jenkins",
-        "bamboo",
-        "seleniumgrid"
+        "configurationfile",
+        "capabilities",
+        "runner",
+        "frameworks",
+        "typescript",
+        "headless-and-xvfb",
+        "sharding",
+        "retry",
+        "watcher",
+        "proxy",
+        {
+          "type": "category",
+          "label": "Cloud & CI",
+          "items": [
+            "cloudservices",
+            "seleniumgrid",
+            "docker",
+            "githubactions",
+            "jenkins",
+            "bamboo"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Debugging",
+      "items": [
+        "debugging",
+        {
+          "type": "category",
+          "label": "DevTools",
+          "link": {
+            "type": "doc",
+            "id": "devtools"
+          },
+          "items": [
+            "devtools/getting-started",
+            {
+              "type": "category",
+              "label": "Live Mode",
+              "items": [
+                "devtools/dashboard",
+                "devtools/wdio/interactive-test-rerunning",
+                "devtools/wdio/preserve-and-rerun",
+                "devtools/wdio/console-logs",
+                "devtools/wdio/network-logs",
+                "devtools/wdio/metadata",
+                "devtools/wdio/testlens",
+                "devtools/wdio/multi-framework-support",
+                "devtools/wdio/screencast"
+              ]
+            },
+            {
+              "type": "category",
+              "label": "Trace Mode",
+              "items": [
+                "devtools/wdio/trace-mode",
+                "devtools/trace-player",
+                "devtools/allure",
+                "devtools/cross-framework",
+                "devtools/limitations"
+              ]
+            },
+            {
+              "type": "category",
+              "label": "Frameworks",
+              "items": [
+                "devtools/wdio",
+                "devtools/selenium",
+                "devtools/nightwatch"
+              ]
+            },
+            "devtools/reference"
+          ]
+        },
+        "repl",
+        "record",
+        "autocompletion"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Extending",
+      "items": [
+        "customservices",
+        "customreporter"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Upgrade",
+      "items": [
+        "v10-migration",
+        {
+          "type": "category",
+          "label": "Archive",
+          "items": [
+            "v7-migration",
+            "v6-migration",
+            "async-migration",
+            "protractor-migration"
+          ]
+        }
       ]
     }
   ],
   "api": [
     "api",
+    "configuration",
     "api/expect-webdriverio",
     "api/globals",
     "api/environment",
     "api/modules"
+  ],
+  "ecosystem": [
+    "ecosystem",
+    "enterprise"
   ],
   "flowcharts": {
     "Flowcharts": [

@@ -8,7 +8,7 @@ import { getSubPackages, buildPreface } from '../utils/helpers.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const plugins = {
-    reporter: ['Reporter', 'Reporter'],
+    reporter: ['Reporters', 'Reporter'],
     service: ['Services', 'Service']
 }
 
@@ -36,7 +36,7 @@ export function generateReportersAndServicesDocs (sidebars: any) {
             items.push(id)
         }
 
-        sidebars.docs.push({
+        sidebars.ecosystem.push({
             type: 'category',
             label: namePlural,
             items
