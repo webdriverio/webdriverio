@@ -23,6 +23,11 @@ import { IMPLICIT_WAIT_EXCLUSION_LIST } from './middlewares.js'
 export * from './types.js'
 export const Key = KeyConstant
 export const SevereServiceError = SevereServiceErrorImport
+/**
+ * Thrown by `$` when the selector matches more than one element and strict mode
+ * is enabled, see https://webdriver.io/docs/selectors#strict-mode
+ */
+export { StrictSelectorError } from './utils/strictMode.js'
 
 /**
  * A method to create a new session with WebdriverIO.

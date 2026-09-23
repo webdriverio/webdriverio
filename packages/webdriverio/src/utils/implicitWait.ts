@@ -1,6 +1,13 @@
 import logger from '@wdio/logger'
 import { getBrowserObject } from '@wdio/utils'
 
+/**
+ * imported from the leaf module directly (not `./strictMode.js`) - that module
+ * pulls in the whole `utils/index.ts` barrel, which transitively closes a
+ * circular import back onto this file via `middlewares.js` -> `refetchElement.js`
+ */
+import { StrictSelectorError } from './strictSelectorError.js'
+
 const log = logger('webdriverio')
 
 /**
@@ -21,10 +28,38 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
         try {
             await currentElement.waitForExist()
             /**
-             * if waitForExist was successful requery element and assign elementId to the scope
+             * if waitForExist was successful requery element and assign elementId to the scope.
+             * An element coming from `$$` (has an index) is re-fetched through `$$` at the
+             * same index, everything else through `$` with the same strictness it was
+             * originally queried with, so an opted-out `$(sel, { strict: false })` doesn't
+             * suddenly throw here. The two paths stay separate on purpose: falling back
+             * from a missing index to the first `$` match would silently hand back a
+             * different element.
+             *
+             * This is awaited explicitly (rather than returned directly) so a
+             * `StrictSelectorError` raised by the re-fetch itself is routed through the
+             * `catch` below instead of bypassing it.
              */
-            return (currentElement.parent as WebdriverIO.Element).$(currentElement.selector).getElement()
-        } catch {
+            const parent = currentElement.parent as WebdriverIO.Element
+            const nextElement = currentElement.index !== undefined
+                ? await parent.$$(currentElement.selector as string)[currentElement.index]?.getElement()
+                : await parent.$(currentElement.selector, { strict: currentElement.strict }).getElement()
+
+            if (!nextElement) {
+                throw new Error(
+                    `element with selector "${currentElement.selector}" has no match at index ${currentElement.index}`)
+            }
+
+            return nextElement
+        } catch (err) {
+            /**
+             * a strict-mode violation that surfaced while waiting is a real
+             * error the user needs to see - don't mask it as "element wasn't found"
+             */
+            if (err instanceof StrictSelectorError) {
+                throw err
+            }
+
             if (currentElement.selector.toString().includes('this.previousElementSibling')) {
                 throw new Error(
                     `Can't call ${commandName} on previous element of element with selector "${(currentElement.parent as WebdriverIO.Element).selector}" because sibling wasn't found`)
