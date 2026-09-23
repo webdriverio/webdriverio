@@ -87,10 +87,6 @@ export class CucumberAdapter {
             throw new Error('The option "parallel" is not supported by WebdriverIO')
         }
 
-        if (this._config.cucumberOpts?.tagExpression !== undefined) {
-            throw new Error('The option "tagExpression" was removed, use "tags" instead')
-        }
-
         /**
          * Cucumber replaced this flag with `tags`. Do not alias it: a silent
          * fallback would run a different set of scenarios than the user asked for.
