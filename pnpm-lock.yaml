@@ -2070,9 +2070,6 @@ importers:
       '@docusaurus/plugin-client-redirects':
         specifier: ^3.9.2
         version: 3.9.2(@mdx-js/react@3.1.0(@types/react@19.3.0)(react@18.3.1))(@swc/core@1.15.8)(acorn@8.18.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
-      '@docusaurus/plugin-google-analytics':
-        specifier: ^3.9.2
-        version: 3.9.2(@mdx-js/react@3.1.0(@types/react@19.3.0)(react@18.3.1))(@swc/core@1.15.8)(acorn@8.18.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
       '@docusaurus/plugin-ideal-image':
         specifier: ^3.9.2
         version: 3.9.2(@mdx-js/react@3.1.0(@types/react@19.3.0)(react@18.3.1))(@swc/core@1.15.8)(acorn@8.18.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
@@ -2106,6 +2103,9 @@ importers:
       '@tsconfig/docusaurus':
         specifier: ^2.0.3
         version: 2.0.3
+      '@vercel/analytics':
+        specifier: ^2.0.1
+        version: 2.0.1(react@18.3.1)(svelte@5.57.0(@typescript-eslint/types@8.56.1))(vue@3.5.29(typescript@5.9.3))
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -6879,6 +6879,35 @@ packages:
 
   '@upsetjs/venn.js@2.0.0':
     resolution: {integrity: sha512-WbBhLrooyePuQ1VZxrJjtLvTc4NVfpOyKx0sKqioq9bX1C1m7Jgykkn8gLrtwumBioXIqam8DLxp88Adbue6Hw==}
+
+  '@vercel/analytics@2.0.1':
+    resolution: {integrity: sha512-MTQG6V9qQrt1tsDeF+2Uoo5aPjqbVPys1xvnIftXSJYG2SrwXRHnqEvVoYID7BTruDz4lCd2Z7rM1BdkUehk2g==}
+    peerDependencies:
+      '@remix-run/react': ^2
+      '@sveltejs/kit': ^1 || ^2
+      next: '>= 13'
+      nuxt: '>= 3'
+      react: ^18 || ^19 || ^19.0.0-rc
+      svelte: '>= 4'
+      vue: ^3
+      vue-router: ^4
+    peerDependenciesMeta:
+      '@remix-run/react':
+        optional: true
+      '@sveltejs/kit':
+        optional: true
+      next:
+        optional: true
+      nuxt:
+        optional: true
+      react:
+        optional: true
+      svelte:
+        optional: true
+      vue:
+        optional: true
+      vue-router:
+        optional: true
 
   '@vitejs/plugin-react@5.2.0':
     resolution: {integrity: sha512-YmKkfhOAi3wsB1PhJq5Scj3GXMn3WvtQ/JC0xoopuHoXSdmtdStOpFrYaT1kie2YgFBcIe64ROzMYRjCrYOdYw==}
@@ -20911,7 +20940,7 @@ snapshots:
   '@testing-library/dom@8.20.1':
     dependencies:
       '@babel/code-frame': 7.27.1
-      '@babel/runtime': 7.27.6
+      '@babel/runtime': 7.29.7
       '@types/aria-query': 5.0.4
       aria-query: 5.1.3
       chalk: 4.1.2
@@ -21012,8 +21041,8 @@ snapshots:
 
   '@types/babel__core@7.20.5':
     dependencies:
-      '@babel/parser': 7.27.7
-      '@babel/types': 7.27.7
+      '@babel/parser': 7.29.8
+      '@babel/types': 7.29.8
       '@types/babel__generator': 7.27.0
       '@types/babel__template': 7.4.4
       '@types/babel__traverse': 7.20.7
@@ -21619,6 +21648,12 @@ snapshots:
     optionalDependencies:
       d3-selection: 3.0.0
       d3-transition: 3.0.1(d3-selection@3.0.0)
+
+  '@vercel/analytics@2.0.1(react@18.3.1)(svelte@5.57.0(@typescript-eslint/types@8.56.1))(vue@3.5.29(typescript@5.9.3))':
+    optionalDependencies:
+      react: 18.3.1
+      svelte: 5.57.0(@typescript-eslint/types@8.56.1)
+      vue: 3.5.29(typescript@5.9.3)
 
   '@vitejs/plugin-react@5.2.0(vite@7.3.6(@types/node@22.20.4)(jiti@2.7.0)(terser@5.43.1)(tsx@4.23.15)(yaml@2.8.2))':
     dependencies:

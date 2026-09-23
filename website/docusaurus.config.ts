@@ -268,10 +268,6 @@ const config: Config = {
                 pages: {
                     remarkPlugins: [remark],
                 },
-                googleAnalytics: {
-                    trackingID: 'UA-47063382-1',
-                    anonymizeIP: true,
-                },
                 sitemap: {
                     /**
                      * emit <lastmod> so search engines and AI crawlers can tell
@@ -414,6 +410,9 @@ const config: Config = {
                 },
             },
         ],
+    ],
+    clientModules: [
+        path.resolve(__dirname, 'src', 'clientModules', 'vercelAnalytics.ts'),
     ],
     themes: [
         path.resolve(__dirname, 'node_modules', 'docusaurus-theme-github-codeblock', 'build', 'index.js'),
