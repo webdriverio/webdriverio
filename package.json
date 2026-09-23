@@ -130,34 +130,5 @@
   "engines": {
     "node": ">=22.19.0",
     "pnpm": ">=8.15.3 <11"
-  },
-  "pnpm": {
-    "overrides": {
-      "axios": "^1.16.0",
-      "yauzl": "^3.4.0",
-      "form-data": "4.0.6",
-      "protobufjs": "7.6.1",
-      "fast-xml-parser": "5.5.6",
-      "@aws-sdk/xml-builder>fast-xml-parser": "5.2.5",
-      "shell-quote": "1.8.4",
-      "compressing": "1.10.5",
-      "defu": "6.1.5",
-      "fast-uri": "3.1.2",
-      "websocket-driver": "0.7.5",
-      "@babel/plugin-transform-modules-systemjs": "7.29.4",
-      "glob@8.1.0>minimatch": "5.1.8",
-      "glob@10.5.0>minimatch": "9.0.7",
-      "express@4.22.1>path-to-regexp": "0.1.13",
-      "router@2.2.0>path-to-regexp": "8.4.0",
-      "workbox-build@7.3.0>rollup": "2.80.0",
-      "svgo@^3.0.0": "3.3.3",
-      "@percy/appium-app@2.1.0>tmp": "0.2.7",
-      "undici": "8.11.2",
-      "lighthouse>ws": "7.5.11",
-      "webdriver@9.16.2>ws": "8.21.0",
-      "puppeteer-core>ws": "8.21.0",
-      "conventional-changelog-writer@6.0.1>handlebars": "4.7.9",
-      "get-uri@6.0.5>basic-ftp": "5.3.1"
-    }
   }
 }
