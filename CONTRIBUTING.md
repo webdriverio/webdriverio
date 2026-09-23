@@ -351,7 +351,7 @@ $ pnpm start
 
 This will set up everything needed to run the page on [`localhost:3000`](http://localhost:3000/). If you need to run on a different host or port, pass them as additional arguments to pnpm start, like `-- --host 0.0.0.0`.
 
-You can now modify the content of the [`/website/docs`](https://github.com/webdriverio/webdriverio/tree/main/website/docs) files as well as change styles and templates. The page will be automatically updated. If you add documentation in other places, you have to rerun `pnpm run docs:generate` and then the `pnpm start` script to re-generate the docs. `pnpm run docs:list` prints a path + title index of contributor-relevant docs.
+You can now modify the content of the [`/website/docs`](https://github.com/webdriverio/webdriverio/tree/main/website/docs) files as well as change styles and templates. The page will be automatically updated. If you add documentation in other places, you have to rerun `pnpm run docs:generate` and then the `pnpm start` script to re-generate the docs. `pnpm run docs:list` prints a path + title index of contributor-relevant docs. Please follow the [docs style guide](https://github.com/webdriverio/webdriverio/blob/main/website/STYLEGUIDE.md) when writing documentation, and run `pnpm run docs:check` after building the site to verify that every page is listed in the sidebar and no existing URL breaks.
 
 ### Deploying the Documentation in Production
 

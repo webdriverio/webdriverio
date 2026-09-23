@@ -3,6 +3,10 @@
 Docusaurus 3 docs site, hosted on Vercel. Many pages are generated. Hand-write guidelines
 here; regenerate API and package pages from source.
 
+Before writing or restructuring a page, read [`STYLEGUIDE.md`](./STYLEGUIDE.md):
+pages are written for coding agents first (frontmatter `description`,
+complete examples, no content hidden in UI components).
+
 ## Hand-written vs generated
 
 | Edit this | To change |
@@ -25,6 +29,7 @@ pnpm run docs:generate
 pnpm run watch:docs          # regenerate + docusaurus start
 cd website && pnpm install && pnpm start
 pnpm run docs:build          # production build (CI docs job)
+pnpm run docs:check          # sidebar coverage, URL preservation, llms.txt links
 ```
 
 `pnpm start` in `website/` does not pick up JSDoc / protocol / README changes
