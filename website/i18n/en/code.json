@@ -65,6 +65,9 @@
   "homepage.sponsorSection.sponsoredBy": {
     "message": "Sponsored by"
   },
+  "homepage.sponsorSection.and": {
+    "message": "and"
+  },
   "homepage.componentTesting.heading": {
     "message": "E2E and Unit / Component Testing in real Browser!"
   },

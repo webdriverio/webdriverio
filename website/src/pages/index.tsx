@@ -11,6 +11,7 @@ import AgentDemo from '../components/home/AgentDemo.tsx'
 import DevToolsDemo from '../components/home/DevToolsDemo.tsx'
 import LogoCarousel from '../components/LogoCarousel.tsx'
 import Sponsors from '../components/Sponsors.tsx'
+import ImageSwitcher from '../components/ImageSwitcher.tsx'
 import ContributorList from '../components/Contributors/Contributors.tsx'
 import { logos } from '../constants.tsx'
 
@@ -75,6 +76,24 @@ export default function Home () {
                             </Link>
                         </div>
                         <InstallCommand />
+                        <p className={styles.heroSponsors}>
+                            <Translate id="homepage.sponsorSection.sponsoredBy">Sponsored by</Translate>
+                            <ImageSwitcher
+                                lightImageSrc="/img/sponsors/browserstack_black.svg"
+                                darkImageSrc="/img/sponsors/browserstack_white.svg"
+                                alt="BrowserStack"
+                                link="https://www.browserstack.com/automation-webdriverio"
+                                target="_blank"
+                            />
+                            <Translate id="homepage.sponsorSection.and">and</Translate>
+                            <ImageSwitcher
+                                lightImageSrc="/img/sponsors/momentic_black.svg"
+                                darkImageSrc="/img/sponsors/momentic_white.svg"
+                                alt="Momentic"
+                                link="https://momentic.ai/"
+                                target="_blank"
+                            />
+                        </p>
                     </div>
                     <div className={styles.heroVisual}>
                         <PlatformDiagram />

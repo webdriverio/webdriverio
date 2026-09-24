@@ -153,6 +153,33 @@
     padding: 0.8rem 1rem;
 }
 
+.heroSponsors {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.7rem 0.85rem;
+    margin: 1.35rem 0 0;
+    color: var(--wdio-text-muted);
+    font-size: 0.82rem;
+}
+
+.heroSponsors a {
+    display: flex;
+    align-items: center;
+    opacity: 0.85;
+}
+
+.heroSponsors a:hover {
+    opacity: 1;
+    text-decoration: none;
+}
+
+.heroSponsors img {
+    display: block;
+    height: 20px;
+    width: auto;
+}
+
 .installCommand code {
     border: 0;
     background: none;

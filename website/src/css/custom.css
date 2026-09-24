@@ -516,9 +516,17 @@ div[role="tabpanel"] .margin-vert--md,
     opacity: 0.75;
 }
 
+.footer > .container {
+    max-width: 1240px;
+    padding-left: 56px;
+    padding-right: 56px;
+}
+
 .footer__links {
     width: 75%;
     float: right;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .footer__bottom {
@@ -532,6 +540,11 @@ div[role="tabpanel"] .margin-vert--md,
 @media (max-width: 996px) {
     :root {
         --wdio-spacing-vertical: 56px;
+    }
+
+    .footer > .container {
+        padding-left: 24px;
+        padding-right: 24px;
     }
 
     body .footer__links,
