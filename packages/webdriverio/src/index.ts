@@ -7,7 +7,7 @@ import { enableFileLogging, wrapCommand, isBidi, resolveCustomCommandOptions } f
 import type { Options, Capabilities } from '@wdio/types'
 import type * as WebDriverTypes from 'webdriver'
 
-import MultiRemote from './multiRemotes.js'
+import MultiRemote from './multiRemote.js'
 import SevereServiceErrorImport from './utils/SevereServiceError.js'
 import detectBackend from './utils/detectBackend.js'
 import { getProtocolDriver } from './utils/driver.js'
