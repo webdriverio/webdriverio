@@ -395,27 +395,14 @@ On a W3C session, including Appium 3, `element.getValue()` calls Get Element Pro
 
 ## MultiRemote naming
 
-Every API that spelled [MultiRemote](/docs/multiremote) with a lowercase `r` now uses `MultiRemote`, matching the names that already did (`MultiRemoteBrowser`, `MultiRemoteElement`, `MultiRemoteConfig`). The old names are not aliased.
+APIs spelled `Multiremote` are now `MultiRemote`. The old names are not aliased.
 
-| v9 | v10 | Where |
-|----|-----|-------|
-| `browser.isMultiremote` | `browser.isMultiRemote` | Browser and element objects, including `MultiRemoteElementArray` |
-| `Capabilities.RequestedMultiremoteCapabilities` | `Capabilities.RequestedMultiRemoteCapabilities` | `@wdio/types` |
-| `Capabilities.WithRequestedMultiremoteCapabilities` | `Capabilities.WithRequestedMultiRemoteCapabilities` | `@wdio/types` |
-| `runner.isMultiremote` | `runner.isMultiRemote` | `Options.RunnerStart` and `RunnerStats`, as passed to reporter hooks such as `onRunnerStart` |
-| `isMultiremote` | `isMultiRemote` | `Workers.WorkerMessage` content |
+| v9 | v10 |
+|----|-----|
+| `WebdriverIO.MultiremoteConfig` | `WebdriverIO.MultiRemoteConfig` |
+| `browser.isMultiremote` | `browser.isMultiRemote` |
+| `Capabilities.RequestedMultiremoteCapabilities` | `Capabilities.RequestedMultiRemoteCapabilities` |
+| `Capabilities.WithRequestedMultiremoteCapabilities` | `Capabilities.WithRequestedMultiRemoteCapabilities` |
+| `runner.isMultiremote` (reporters) | `runner.isMultiRemote` |
 
-```diff
-- if (browser.isMultiremote) {
-+ if (browser.isMultiRemote) {
-```
-
-Reading the old property returns `undefined` rather than throwing, so a check like the one above silently takes the non-MultiRemote branch. Search your suite, page objects, custom services and custom reporters for `Multiremote` (case-sensitive) and replace each match; TypeScript projects will also get a compile error for every renamed type.
-
-### Output changes
-
-Some text WebdriverIO prints changed with the rename. Update anything that parses or snapshots it:
-
-- The spec reporter labels MultiRemote runs `MultiRemoteBrowser on chrome` instead of `MultiremoteBrowser on chrome`.
-- The Allure reporter sets the `isMultiRemote` test parameter instead of `isMultiremote`.
-- `getInstance()` throws `MultiRemote object has no instance named "…"` instead of `Multiremote object has no instance named "…"`.
+The old `isMultiremote` reads as `undefined`, not an error. Search for `Multiremote` (case-sensitive) and replace every match. Allure reports also label MultiRemote tests with `isMultiRemote` instead of `isMultiremote`.
