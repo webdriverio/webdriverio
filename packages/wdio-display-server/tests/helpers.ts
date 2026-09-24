@@ -1,5 +1,6 @@
 import { vi, type Mock } from 'vitest'
 import { EventEmitter } from 'node:events'
+import { PassThrough } from 'node:stream'
 
 import type { DisplayDaemon, DisplayServer } from '../src/types.js'
 import type { DisplayServerManager } from '../src/DisplayServerManager.js'
@@ -12,6 +13,8 @@ export class FakeProc extends EventEmitter {
     killed = false
     exitCode: number | null = null
     signalCode: NodeJS.Signals | null = null
+    stdio: Array<PassThrough | null> = []
+    stderr = new EventEmitter()
     kill = vi.fn((_signal?: NodeJS.Signals) => {
         this.killed = true
         return true
@@ -22,18 +25,39 @@ export class FakeProc extends EventEmitter {
     }
 }
 
-export const createFakeProc = () => new FakeProc()
-
-/**
- * Wire the spawn mock to return a fresh FakeProc. For the happy path, also make
- * the socket-poll `access` resolve immediately; non-happy tests omit `mockAccess`
- * and set their own access sequence inline.
- */
-export const arrangeSpawn = (mockSpawn: Mock, mockAccess?: Mock) => {
+export const createFakeProc = ({ exited = false } = {}) => {
     const proc = new FakeProc()
+    if (exited) {
+        proc.exitCode = 1 // a failure path then skips the 2s SIGTERM wait
+    }
+    return proc
+}
+
+export const exitOnKill = (proc: FakeProc) => {
+    proc.kill.mockImplementation((signal?: NodeJS.Signals) => {
+        proc.signalCode = signal ?? 'SIGTERM'
+        setImmediate(() => proc.emit('exit', null, proc.signalCode))
+        return true
+    })
+}
+
+/** Makes the spawn mock return a fresh FakeProc, and `mockAccess` report the socket at once. */
+export const arrangeSpawn = (mockSpawn: Mock, mockAccess?: Mock, { exited = false } = {}) => {
+    const proc = createFakeProc({ exited })
     mockSpawn.mockReturnValue(proc)
     if (mockAccess) {
         mockAccess.mockResolvedValue(undefined)
+    }
+    return proc
+}
+
+export const arrangeDisplayFdSpawn = (mockSpawn: Mock, display: number | null = 99, { exited = false } = {}) => {
+    const proc = createFakeProc({ exited })
+    const fd3 = new PassThrough()
+    proc.stdio = [null, null, null, fd3]
+    mockSpawn.mockReturnValue(proc)
+    if (display !== null) {
+        setImmediate(() => fd3.write(`${display}\n`))
     }
     return proc
 }

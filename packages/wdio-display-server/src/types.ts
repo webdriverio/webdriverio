@@ -17,7 +17,7 @@ export interface DisplayDaemonOptions {
 }
 
 export interface DisplayDaemon {
-    /** Env downstream children need, e.g. { DISPLAY: ':99' } or { WAYLAND_DISPLAY, XDG_RUNTIME_DIR }. */
+    /** Env downstream children need, e.g. { DISPLAY: ':0' } or { WAYLAND_DISPLAY, XDG_RUNTIME_DIR }. */
     env: Record<string, string>
 
     /** Safe to call multiple times. */

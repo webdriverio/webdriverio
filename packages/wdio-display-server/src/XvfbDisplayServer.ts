@@ -1,4 +1,4 @@
-import { readdir, readFile } from 'node:fs/promises'
+import { readFile } from 'node:fs/promises'
 import logger from '@wdio/logger'
 import type {
     DisplayDaemon,
@@ -7,18 +7,13 @@ import type {
     DisplayServerInstallOptions,
 } from './types.js'
 import { commandExists, installViaPackageManager, resolveDaemonDimensions } from './utils.js'
-import { runDaemon } from './daemonProcess.js'
+import { DISPLAY_FD, runDaemon } from './daemonProcess.js'
 import { sessionEnv } from './sessionEnv.js'
-
-const X_SOCKET_DIR = '/tmp/.X11-unix'
-// Xvfb hardcodes /tmp for its lock files regardless of TMPDIR.
-const X_LOCK_DIR = '/tmp'
 
 export class XvfbDisplayServer implements DisplayServer {
     readonly name = 'xvfb' as const
     private log = logger('@wdio/display-server:xvfb')
     private isCentOS10 = false
-    private static reservedDisplays = new Set<number>()
 
     async isAvailable(): Promise<boolean> {
         if (await this.checkIsCentOS10()) {
@@ -74,66 +69,24 @@ export class XvfbDisplayServer implements DisplayServer {
     async startDaemon(options?: DisplayDaemonOptions): Promise<DisplayDaemon> {
         const { width, height, depth } = resolveDaemonDimensions(options)
 
-        const displayNum = await this.findFreeDisplay()
-        const display = `:${displayNum}`
-        const socketPath = `${X_SOCKET_DIR}/X${displayNum}`
-
-        this.log.info(`Starting Xvfb daemon on ${display} (${width}x${height}x${depth})`)
-
-        // No rm of the X socket: the X server overwrites stale ones on next
-        // start, so cleanup only releases the display reservation.
-        const releaseDisplay = () => { XvfbDisplayServer.reservedDisplays.delete(displayNum) }
+        this.log.info(`Starting Xvfb daemon (${width}x${height}x${depth})`)
 
         return runDaemon({
             command: 'Xvfb',
-            args: [display, '-screen', '0', `${width}x${height}x${depth}`, '-nolisten', 'tcp'],
-            socketPath,
-            label: 'Xvfb',
-            socketLabel: 'Xvfb socket',
-            log: this.log,
-            env: {
-                DISPLAY: display,
-                ...sessionEnv('x11'),
+            args: [
+                '-displayfd', String(DISPLAY_FD), // Xvfb claims the first free display and reports it here once listening
+                '-screen', '0', `${width}x${height}x${depth}`,
+                '-nolisten', 'tcp',
+            ],
+            ready: {
+                displayFd: true,
+                env: (display) => ({
+                    DISPLAY: `:${display}`,
+                    ...sessionEnv('x11'),
+                }),
             },
-            cleanup: releaseDisplay,
-            cleanupSync: releaseDisplay,
+            label: 'Xvfb',
+            log: this.log,
         })
     }
-
-    private async findFreeDisplay(): Promise<number> {
-        const used = new Set<number>(XvfbDisplayServer.reservedDisplays)
-        try {
-            const entries = await readdir(X_SOCKET_DIR)
-            for (const entry of entries) {
-                const match = entry.match(/^X(\d+)$/)
-                if (match) {
-                    used.add(parseInt(match[1], 10))
-                }
-            }
-        } catch {
-            // socket dir may not exist yet — Xvfb will create it
-        }
-        // Also treat displays with leftover lock files as in-use. A crashed Xvfb
-        // can leave a lock file after its socket is gone; a fresh Xvfb then refuses
-        // that display, and without this scan every retry re-picks the stale one.
-        try {
-            const entries = await readdir(X_LOCK_DIR)
-            for (const entry of entries) {
-                const match = entry.match(/^\.X(\d+)-lock$/)
-                if (match) {
-                    used.add(parseInt(match[1], 10))
-                }
-            }
-        } catch {
-            // /tmp should always exist
-        }
-        for (let n = 99; n < 200; n++) {
-            if (!used.has(n) && !XvfbDisplayServer.reservedDisplays.has(n)) {
-                XvfbDisplayServer.reservedDisplays.add(n)
-                return n
-            }
-        }
-        throw new Error('No free X display number available in range :99-:199')
-    }
-
 }

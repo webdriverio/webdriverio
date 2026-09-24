@@ -12,6 +12,14 @@ import { browser, $, expect } from '@wdio/globals'
  * creation itself the assertion.
  */
 describe('display server through local runner', () => {
+    it('inherits the display', () => {
+        const { DISPLAY, WAYLAND_DISPLAY } = process.env
+        expect(DISPLAY || WAYLAND_DISPLAY).toBeTruthy()
+        if (DISPLAY) {
+            expect(DISPLAY).toMatch(/^:\d+$/)
+        }
+    })
+
     it('starts a real Chrome session backed by the display server', async () => {
         const sessionId = browser.sessionId
         expect(sessionId).toBeTruthy()

@@ -7,6 +7,9 @@ export const config: WebdriverIO.Config = {
     specs: [
         path.join(__dirname, '*.e2e.ts')
     ],
+    exclude: [
+        path.join(__dirname, 'runner.e2e.ts') // wdio.runner.conf.ts runs it with the display server enabled
+    ],
 
     capabilities: [{
         browserName: 'chrome',

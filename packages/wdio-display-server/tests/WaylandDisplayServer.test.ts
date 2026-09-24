@@ -191,7 +191,7 @@ describe('WaylandDisplayServer', () => {
         })
 
         it('rejects when weston exits before the socket appears', async () => {
-            const proc = arrangeSpawn(mockSpawn)
+            const proc = arrangeSpawn(mockSpawn, undefined, { exited: true })
             mockAccess.mockRejectedValue(new Error('ENOENT'))
 
             const server = new WaylandDisplayServer()

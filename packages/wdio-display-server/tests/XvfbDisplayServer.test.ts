@@ -1,12 +1,10 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import path from 'node:path'
 
-import { arrangeSpawn, queuePackageManagerDetection, runAsRoot } from './helpers.js'
+import { arrangeDisplayFdSpawn, queuePackageManagerDetection, runAsRoot } from './helpers.js'
 
 const mockExecAsync = vi.hoisted(() => vi.fn())
 const mockSpawn = vi.hoisted(() => vi.fn())
-const mockAccess = vi.hoisted(() => vi.fn())
-const mockReaddir = vi.hoisted(() => vi.fn())
 const mockReadFile = vi.hoisted(() => vi.fn())
 
 vi.mock('node:child_process', () => ({
@@ -20,8 +18,6 @@ vi.mock('node:util', () => ({
 }))
 
 vi.mock('node:fs/promises', () => ({
-    access: mockAccess,
-    readdir: mockReaddir,
     readFile: mockReadFile,
 }))
 
@@ -29,16 +25,9 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 
 const { XvfbDisplayServer } = await import('../src/XvfbDisplayServer.js')
 
-const clearReservedDisplays = () => {
-    // Static set shared across instances — reset between tests so cases don't leak.
-    (XvfbDisplayServer as any).reservedDisplays.clear()
-}
-
 describe('XvfbDisplayServer', () => {
     beforeEach(() => {
         vi.clearAllMocks()
-        clearReservedDisplays()
-        mockReaddir.mockResolvedValue([])
         // '' reads as non-CentOS-10, so checkIsCentOS10() is false.
         mockReadFile.mockResolvedValue('')
     })
@@ -127,29 +116,22 @@ describe('XvfbDisplayServer', () => {
     })
 
     describe('startDaemon', () => {
-        it('spawns Xvfb with the right args, waits for the socket, and returns DISPLAY', async () => {
-            arrangeSpawn(mockSpawn, mockAccess)
+        it('spawns Xvfb with -displayfd on fd 3 and derives DISPLAY from the number it reports', async () => {
+            arrangeDisplayFdSpawn(mockSpawn, 107)
 
             const server = new XvfbDisplayServer()
             const daemon = await server.startDaemon({ width: 800, height: 600, depth: 16 })
 
             expect(mockSpawn).toHaveBeenCalledWith(
                 'Xvfb',
-                expect.arrayContaining([
-                    ':99',
-                    '-screen',
-                    '0',
-                    '800x600x16',
-                    '-nolisten',
-                    'tcp',
-                ]),
-                { stdio: ['ignore', 'ignore', 'pipe'] }
+                ['-displayfd', '3', '-screen', '0', '800x600x16', '-nolisten', 'tcp'],
+                { stdio: ['ignore', 'ignore', 'pipe', 'pipe'] }
             )
-            expect(daemon.env.DISPLAY).toBe(':99')
+            expect(daemon.env.DISPLAY).toBe(':107')
         })
 
         it('publishes GDK_BACKEND, XDG_SESSION_TYPE and ELECTRON_OZONE_PLATFORM_HINT as x11 in daemon env', async () => {
-            arrangeSpawn(mockSpawn, mockAccess)
+            arrangeDisplayFdSpawn(mockSpawn)
 
             const server = new XvfbDisplayServer()
             const daemon = await server.startDaemon()
@@ -160,7 +142,7 @@ describe('XvfbDisplayServer', () => {
         })
 
         it('uses default 1920x1080x24 when options omitted', async () => {
-            arrangeSpawn(mockSpawn, mockAccess)
+            arrangeDisplayFdSpawn(mockSpawn)
 
             const server = new XvfbDisplayServer()
             await server.startDaemon()
@@ -168,13 +150,12 @@ describe('XvfbDisplayServer', () => {
             expect(mockSpawn).toHaveBeenCalledWith(
                 'Xvfb',
                 expect.arrayContaining(['1920x1080x24']),
-                { stdio: ['ignore', 'ignore', 'pipe'] }
+                expect.anything()
             )
         })
 
-        it('releases the display reservation when Xvfb exits before the socket appears', async () => {
-            const proc = arrangeSpawn(mockSpawn)
-            mockAccess.mockRejectedValue(new Error('ENOENT'))
+        it('rejects when Xvfb exits before reporting a display', async () => {
+            const proc = arrangeDisplayFdSpawn(mockSpawn, null, { exited: true })
 
             const server = new XvfbDisplayServer()
             const startPromise = server.startDaemon()
@@ -183,134 +164,6 @@ describe('XvfbDisplayServer', () => {
             proc.emit('exit', 1, null)
 
             await expect(startPromise).rejects.toThrow(/Xvfb process exited unexpectedly/)
-            expect((XvfbDisplayServer as any).reservedDisplays.has(99)).toBe(false)
-        })
-
-        describe('daemon.stop()', () => {
-            it('sends SIGTERM, releases the reservation, and is idempotent', async () => {
-                const proc = arrangeSpawn(mockSpawn, mockAccess)
-
-                const server = new XvfbDisplayServer()
-                const daemon = await server.startDaemon()
-
-                expect((XvfbDisplayServer as any).reservedDisplays.has(99)).toBe(true)
-
-                const stopPromise = daemon.stop()
-                await new Promise((r) => setImmediate(r))
-                proc.emit('exit', 0, null)
-                await stopPromise
-
-                expect(proc.kill).toHaveBeenCalledWith('SIGTERM')
-                expect((XvfbDisplayServer as any).reservedDisplays.has(99)).toBe(false)
-
-                proc.kill.mockClear()
-                await daemon.stop()
-                expect(proc.kill).not.toHaveBeenCalled()
-            })
-
-            // SIGTERM→SIGKILL escalation and stopSync() are shared runDaemon
-            // behavior, covered directly in daemonProcess.test.ts. The test above
-            // stays here because it asserts the Xvfb-specific reservation release.
-        })
-    })
-
-    describe('findFreeDisplay (via startDaemon)', () => {
-        it('skips display numbers whose sockets already exist on disk', async () => {
-            mockReaddir.mockResolvedValue(['X99', 'X100', 'X150'])
-            arrangeSpawn(mockSpawn, mockAccess)
-
-            const server = new XvfbDisplayServer()
-            const daemon = await server.startDaemon()
-
-            // 99, 100, 150 are used → next free is 101
-            expect(daemon.env.DISPLAY).toBe(':101')
-        })
-
-        it('does not pick a display already reserved in-memory', async () => {
-            mockReaddir.mockResolvedValue([])
-            // Pre-reserve :99 to simulate a concurrent caller having grabbed it.
-            ;(XvfbDisplayServer as any).reservedDisplays.add(99)
-
-            arrangeSpawn(mockSpawn, mockAccess)
-
-            const server = new XvfbDisplayServer()
-            const daemon = await server.startDaemon()
-
-            expect(daemon.env.DISPLAY).toBe(':100')
-        })
-
-        it('throws when the entire :99-:199 range is taken', async () => {
-            for (let n = 99; n < 200; n++) {
-                ;(XvfbDisplayServer as any).reservedDisplays.add(n)
-            }
-
-            const server = new XvfbDisplayServer()
-            await expect(server.startDaemon()).rejects.toThrow(/No free X display number/)
-        })
-
-        it('tolerates a missing /tmp/.X11-unix directory', async () => {
-            mockReaddir.mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }))
-            arrangeSpawn(mockSpawn, mockAccess)
-
-            const server = new XvfbDisplayServer()
-            const daemon = await server.startDaemon()
-
-            expect(daemon.env.DISPLAY).toBe(':99')
-        })
-
-        it('skips display numbers with leftover .X<n>-lock files from a crashed Xvfb', async () => {
-            // Post-crash case: lock files linger after their sockets are gone, so
-            // those displays must still count as used.
-            mockReaddir.mockImplementation(async (dir: string) => {
-                if (dir === '/tmp/.X11-unix') {
-                    return []
-                }
-                if (dir === '/tmp') {
-                    return ['.X99-lock', '.X100-lock', 'unrelated.txt']
-                }
-                return []
-            })
-            arrangeSpawn(mockSpawn, mockAccess)
-
-            const server = new XvfbDisplayServer()
-            const daemon = await server.startDaemon()
-
-            expect(daemon.env.DISPLAY).toBe(':101')
-        })
-
-        it('combines socket and lock-file evidence when finding a free display', async () => {
-            mockReaddir.mockImplementation(async (dir: string) => {
-                if (dir === '/tmp/.X11-unix') {
-                    return ['X99']
-                }
-                if (dir === '/tmp') {
-                    return ['.X100-lock']
-                }
-                return []
-            })
-            arrangeSpawn(mockSpawn, mockAccess)
-
-            const server = new XvfbDisplayServer()
-            const daemon = await server.startDaemon()
-
-            // :99 socket-used, :100 lock-stale → :101 is the first free.
-            expect(daemon.env.DISPLAY).toBe(':101')
-        })
-    })
-
-    describe('waitForSocket (via startDaemon)', () => {
-        it('polls until the socket file exists', async () => {
-            arrangeSpawn(mockSpawn)
-            mockAccess
-                .mockRejectedValueOnce(new Error('ENOENT'))
-                .mockRejectedValueOnce(new Error('ENOENT'))
-                .mockResolvedValueOnce(undefined)
-
-            const server = new XvfbDisplayServer()
-            const daemon = await server.startDaemon()
-
-            expect(daemon.env.DISPLAY).toBeTruthy()
-            expect(mockAccess.mock.calls.length).toBeGreaterThanOrEqual(3)
         })
     })
 })

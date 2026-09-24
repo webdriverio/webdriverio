@@ -32,7 +32,7 @@ export function resolveDaemonDimensions(options?: DisplayDaemonOptions): { width
 /**
  * Poll for the socket file at `path` to appear, up to `timeoutMs`.
  *
- * @param label - name used in the timeout error message (e.g. "Xvfb socket").
+ * @param label - name used in the timeout error message (e.g. "Wayland socket").
  * @param signal - stops polling early; callers abort it once the exit/socket race settles.
  */
 export async function waitForSocket(path: string, timeoutMs: number, label = 'socket', signal?: AbortSignal): Promise<void> {

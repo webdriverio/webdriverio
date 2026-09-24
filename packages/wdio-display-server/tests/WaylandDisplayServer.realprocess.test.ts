@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
-import { mkdtemp, writeFile, chmod, access, rm } from 'node:fs/promises'
-import os from 'node:os'
+import { access } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import type { DisplayDaemon } from '../src/types.js'
+import { installStubOnPath } from './realprocess-helpers.js'
 
 /**
  * Real-process lifecycle coverage for WaylandDisplayServer.startDaemon()/stop().
@@ -22,25 +22,14 @@ const stubPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtur
 const exists = (p: string) => access(p).then(() => true, () => false)
 
 describe.skipIf(process.platform === 'win32')('WaylandDisplayServer (real process lifecycle)', () => {
-    let binDir: string
-    let originalPath: string | undefined
+    let uninstall: () => Promise<void>
     let daemon: DisplayDaemon | undefined
 
     beforeAll(async () => {
-        // A `weston` on PATH that execs the stub. `exec` replaces the shell, so
-        // the resulting process IS node — signals from the parent hit it directly.
-        binDir = await mkdtemp(path.join(os.tmpdir(), 'wdio-weston-stub-'))
-        const shim = path.join(binDir, 'weston')
-        await writeFile(shim, `#!/bin/sh\nexec node "${stubPath}" "$@"\n`)
-        await chmod(shim, 0o755)
-        originalPath = process.env.PATH
-        process.env.PATH = `${binDir}${path.delimiter}${originalPath ?? ''}`
+        uninstall = await installStubOnPath('weston', stubPath)
     })
 
-    afterAll(async () => {
-        process.env.PATH = originalPath
-        await rm(binDir, { recursive: true, force: true }).catch(() => {})
-    })
+    afterAll(() => uninstall?.())
 
     afterEach(() => {
         // Best-effort: SIGKILL + rmSync any daemon a failed test left running so

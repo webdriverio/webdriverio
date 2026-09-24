@@ -16,7 +16,7 @@ export function optionsFromConfig(config: Options.Testrunner): DisplayServerOpti
     }
 }
 
-// Daemon startup can flake transiently (spawn/socket races); retry a few times.
+// Daemon startup can fail transiently on spawn or readiness.
 const DAEMON_START_MAX_RETRIES = 3
 const DAEMON_START_RETRY_DELAY_MS = 1000
 

@@ -1,7 +1,6 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { EventEmitter } from 'node:events'
 
-import { FakeProc, arrangeSpawn } from './helpers.js'
+import { arrangeDisplayFdSpawn, arrangeSpawn, exitOnKill } from './helpers.js'
 
 const mockSpawn = vi.hoisted(() => vi.fn())
 const mockWaitForSocket = vi.hoisted(() => vi.fn())
@@ -26,22 +25,13 @@ const startDaemon = (overrides: Partial<Parameters<typeof runDaemon>[0]> = {}) =
     runDaemon({
         command: 'test-daemon',
         args: ['--headless'],
-        socketPath: '/tmp/test-daemon.sock',
-        env: { TEST_VAR: 'value' },
+        ready: { socketPath: '/tmp/test-daemon.sock', socketLabel: 'test socket', env: { TEST_VAR: 'value' } },
         label: 'TestDaemon',
-        socketLabel: 'test socket',
         log: makeLog(),
         ...overrides,
     })
 
-// FakeProc has no stderr stream; the stderr-tail path needs one, so add a
-// minimal EventEmitter locally rather than changing the shared helper.
-const makeProcWithStderr = () => {
-    const proc = new FakeProc() as FakeProc & { stderr: EventEmitter }
-    proc.stderr = new EventEmitter()
-    mockSpawn.mockReturnValue(proc)
-    return proc
-}
+const displayFdReady = () => ({ displayFd: true as const, env: (display: string) => ({ DISPLAY: `:${display}` }) })
 
 const NEVER = () => new Promise<void>(() => {})
 
@@ -60,7 +50,11 @@ describe('runDaemon', () => {
             arrangeSpawn(mockSpawn)
             const env = { DISPLAY: ':1' }
 
-            const daemon = await startDaemon({ command: 'Xvfb', args: [':1'], env })
+            const daemon = await startDaemon({
+                command: 'Xvfb',
+                args: [':1'],
+                ready: { socketPath: '/tmp/test-daemon.sock', socketLabel: 'test socket', env },
+            })
 
             expect(mockSpawn).toHaveBeenCalledWith('Xvfb', [':1'], {
                 stdio: ['ignore', 'ignore', 'pipe'],
@@ -81,7 +75,7 @@ describe('runDaemon', () => {
         })
 
         it('rejects with the exit code and signal when the process exits before the socket appears', async () => {
-            const proc = arrangeSpawn(mockSpawn)
+            const proc = arrangeSpawn(mockSpawn, undefined, { exited: true })
             mockWaitForSocket.mockReturnValue(NEVER())
 
             const startPromise = startDaemon()
@@ -94,7 +88,7 @@ describe('runDaemon', () => {
         })
 
         it('includes the stderr tail in the exit rejection', async () => {
-            const proc = makeProcWithStderr()
+            const proc = arrangeSpawn(mockSpawn, undefined, { exited: true })
             mockWaitForSocket.mockReturnValue(NEVER())
 
             const startPromise = startDaemon()
@@ -107,8 +101,19 @@ describe('runDaemon', () => {
             expect((err as Error).message).toContain('boom on stderr')
         })
 
-        it('rejects with the error message when the process errors before the socket appears', async () => {
+        it('includes the stderr tail when the socket never appears', async () => {
             const proc = arrangeSpawn(mockSpawn)
+            exitOnKill(proc)
+            mockWaitForSocket.mockRejectedValue(new Error('Timed out waiting for test socket'))
+
+            const startPromise = startDaemon()
+            proc.stderr.emit('data', 'failed to load the shell')
+
+            await expect(startPromise).rejects.toThrow('Timed out waiting for test socket\nfailed to load the shell')
+        })
+
+        it('rejects with the error message when the process errors before the socket appears', async () => {
+            const proc = arrangeSpawn(mockSpawn, undefined, { exited: true })
             mockWaitForSocket.mockReturnValue(NEVER())
 
             const startPromise = startDaemon()
@@ -121,6 +126,7 @@ describe('runDaemon', () => {
         it('runs cleanup and SIGTERMs a still-running process when startup fails', async () => {
             const cleanup = vi.fn()
             const proc = arrangeSpawn(mockSpawn)
+            exitOnKill(proc)
             mockWaitForSocket.mockReturnValue(NEVER())
 
             const startPromise = startDaemon({ cleanup })
@@ -129,6 +135,46 @@ describe('runDaemon', () => {
 
             await expect(startPromise).rejects.toThrow()
             expect(cleanup).toHaveBeenCalledTimes(1)
+            expect(proc.kill).toHaveBeenCalledWith('SIGTERM')
+        })
+    })
+
+    describe('displayFd readiness', () => {
+        it('opens fd 3 as a pipe, reads the display number from it, and derives env from it', async () => {
+            arrangeDisplayFdSpawn(mockSpawn, 42)
+            const env = vi.fn((display: string) => ({ DISPLAY: `:${display}` }))
+
+            const daemon = await startDaemon({ ready: { displayFd: true, env } })
+
+            expect(mockSpawn).toHaveBeenCalledWith('test-daemon', ['--headless'], {
+                stdio: ['ignore', 'ignore', 'pipe', 'pipe'],
+            })
+            expect(env).toHaveBeenCalledWith('42')
+            expect(daemon.env).toEqual({ DISPLAY: ':42' })
+            expect(mockWaitForSocket).not.toHaveBeenCalled()
+        })
+
+        it('rejects when the process exits before reporting a display', async () => {
+            const proc = arrangeDisplayFdSpawn(mockSpawn, null, { exited: true })
+
+            const startPromise = startDaemon({ ready: displayFdReady() })
+            await new Promise((r) => setImmediate(r))
+            proc.emit('exit', 1, null)
+
+            await expect(startPromise).rejects.toThrow(/TestDaemon process exited unexpectedly/)
+        })
+
+        it('SIGTERMs the child and rejects with the stderr tail when no display arrives within the timeout', async () => {
+            const proc = arrangeDisplayFdSpawn(mockSpawn, null)
+            exitOnKill(proc)
+
+            const startPromise = startDaemon({ ready: displayFdReady(), timeoutMs: 20 })
+            await new Promise((r) => setImmediate(r))
+            proc.stderr.emit('data', 'mkdir(/tmp/.X11-unix) failed')
+
+            const err = await startPromise.catch((e: Error) => e)
+            expect((err as Error).message).toContain('Timed out waiting for TestDaemon to report its display on fd 3')
+            expect((err as Error).message).toContain('mkdir(/tmp/.X11-unix) failed')
             expect(proc.kill).toHaveBeenCalledWith('SIGTERM')
         })
     })
