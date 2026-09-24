@@ -5,7 +5,7 @@ import { describe, expect, it, vi, afterEach, beforeEach, onTestFinished } from 
 import { executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import type { Instances } from 'webdriverio'
-import { attach } from 'webdriverio'
+import { attach, multiremote } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import { setDefaultOptions, SnapshotService } from 'expect-webdriverio'
 
@@ -113,6 +113,61 @@ describe('wdio-runner', () => {
             runner['_shutdown'] = vi.fn()
             await runner.endSession()
             expect(hook).toBeCalledTimes(0)
+        })
+
+        it('should attach to existing multiremote sessions when called by a watch mode shutdown worker', async () => {
+            const hook = vi.fn()
+            const config = { sessionId: undefined, afterSession: [hook] }
+            const firstInstance = { sessionId: 'first-session', capabilities: { browserName: 'chrome' } }
+            const secondInstance = { sessionId: 'second-session', capabilities: { browserName: 'firefox' } }
+            const browser = {
+                deleteSession: vi.fn(),
+                instances: ['first', 'second'],
+                getInstance: vi.fn((name: string) => name === 'first' ? firstInstance : secondInstance),
+                capabilities: {}
+            }
+            vi.mocked(multiremote).mockResolvedValueOnce(browser as any)
+
+            const runner = new WDIORunner()
+            await runner.endSession({
+                cid: '0-0',
+                specs: ['/foo/watch.test.js'],
+                args: {
+                    config,
+                    capabilities: {
+                        first: { capabilities: { browserName: 'chrome' } },
+                        second: { capabilities: { browserName: 'firefox' } }
+                    },
+                    isMultiremote: true,
+                    instances: {
+                        first: { sessionId: 'first-session' },
+                        second: { sessionId: 'second-session' }
+                    }
+                }
+            })
+
+            expect(multiremote).toBeCalledWith(
+                {
+                    first: { sessionId: undefined, afterSession: [hook], capabilities: { browserName: 'chrome' } },
+                    second: { sessionId: undefined, afterSession: [hook], capabilities: { browserName: 'firefox' } }
+                },
+                {
+                    sessionId: undefined,
+                    afterSession: [hook],
+                    instances: {
+                        first: { sessionId: 'first-session' },
+                        second: { sessionId: 'second-session' }
+                    }
+                }
+            )
+            expect(browser.deleteSession).toBeCalledTimes(1)
+            expect(firstInstance.sessionId).toBeUndefined()
+            expect(secondInstance.sessionId).toBeUndefined()
+            expect(executeHooksWithArgs).toBeCalledWith(
+                'afterSession',
+                [hook],
+                [config, { first: { browserName: 'chrome' }, second: { browserName: 'firefox' } }, ['/foo/watch.test.js']]
+            )
         })
     })
 
@@ -262,6 +317,47 @@ describe('wdio-runner', () => {
 
             expect(failures).toBe(0)
             expect(runner['_browser']?.url).not.toBeCalled()
+        })
+
+        it('should not attach retained instances to the protocol stub', async () => {
+            const instances = {
+                browserA: { sessionId: 'session-a' },
+                browserB: { sessionId: 'session-b' }
+            }
+            const config: any = {
+                framework: 'testNoFailures',
+                reporters: [],
+                beforeSession: [],
+                runner: 'local',
+                instances
+            }
+            const caps = {
+                browserA: { capabilities: { browserName: 'chrome' } },
+                browserB: { capabilities: { browserName: 'chrome' } }
+            }
+            const runner = new WDIORunner()
+            const browsers = {
+                browserA: { sessionId: 'session-a', options: {}, capabilities: { browserName: 'chrome' } },
+                browserB: { sessionId: 'session-b', options: {}, capabilities: { browserName: 'chrome' } }
+            }
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            runner['_startSession'] = vi.fn().mockReturnValue({})
+            runner['_initSession'] = vi.fn().mockReturnValue({
+                instances: Object.keys(browsers),
+                getInstance: (name: keyof typeof browsers) => browsers[name],
+                options: {},
+                capabilities: {}
+            })
+
+            await runner.run({
+                args: { watch: true, instances },
+                caps,
+                configFile: '/foo/bar'
+            } as any)
+
+            expect(vi.mocked(runner['_startSession']).mock.calls[0][0]).not.toHaveProperty('instances')
+            expect(runner['_initSession']).toBeCalledWith(config, caps, instances)
+            expect(config.instances).toBe(instances)
         })
 
         it('should attach snapshot service to service list', async () => {

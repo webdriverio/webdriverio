@@ -4,7 +4,7 @@ import logger from '@wdio/logger'
 import WebDriver, { DEFAULTS } from 'webdriver'
 import { validateConfig } from '@wdio/config'
 import { enableFileLogging, wrapCommand, isBidi } from '@wdio/utils'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options, Capabilities, Workers } from '@wdio/types'
 import type * as WebDriverTypes from 'webdriver'
 
 import MultiRemote from './multiremote.js'
@@ -140,7 +140,10 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
  */
 export const multiremote = async function (
     params: Capabilities.RequestedMultiremoteCapabilities,
-    { automationProtocol }: { automationProtocol?: string } = {}
+    {
+        automationProtocol,
+        instances
+    }: { automationProtocol?: string, instances?: Record<string, Workers.WorkerInstanceData> } = {}
 ): Promise<WebdriverIO.MultiRemoteBrowser> {
     const multibrowser = new MultiRemote()
     const browserNames = Object.keys(params)
@@ -150,7 +153,17 @@ export const multiremote = async function (
      */
     await Promise.all(
         browserNames.map(async (browserName) => {
-            const instance = await remote(params[browserName])
+            const instanceData = instances?.[browserName]
+            const requestedCapabilities = params[browserName].capabilities as WebdriverIO.Capabilities
+            const capabilities = instanceData?.capabilities ?? requestedCapabilities
+            const instance = instanceData
+                ? await attach({
+                    ...instanceData,
+                    capabilities,
+                    requestedCapabilities,
+                    options: params[browserName]
+                })
+                : await remote(params[browserName])
             return multibrowser.addInstance(browserName, instance)
         })
     )

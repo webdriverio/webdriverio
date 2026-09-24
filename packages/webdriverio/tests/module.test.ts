@@ -212,6 +212,28 @@ describe('WebdriverIO module interface', () => {
     })
 
     describe('multiremote', () => {
+        it('uses returned capabilities when attaching to retained sessions', async () => {
+            const requestedCapabilities = { browserName: 'chrome', webSocketUrl: true }
+            const capabilities = { browserName: 'chrome', webSocketUrl: 'ws://localhost:4444/session/browser-a' }
+
+            await multiremote({
+                browserA: { automationProtocol: 'webdriver', capabilities: requestedCapabilities }
+            }, {
+                instances: {
+                    browserA: { sessionId: 'browser-a', capabilities }
+                }
+            })
+
+            const attachOptions = vi.mocked(WebDriver.attachToSession).mock.calls
+                .map(([options]) => options)
+                .find((options) => options?.sessionId === 'browser-a')
+            expect(attachOptions).toMatchObject({
+                sessionId: 'browser-a',
+                capabilities,
+                requestedCapabilities
+            })
+        })
+
         it('register multiple clients', async () => {
             await multiremote({
                 browserA: {

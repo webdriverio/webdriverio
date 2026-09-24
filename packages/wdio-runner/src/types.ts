@@ -25,6 +25,7 @@ export type AfterSessionArgs = Parameters<Required<Services.HookFunctions>['afte
 interface Args extends Partial<WebdriverIO.Config> {
     ignoredWorkerServices?: string[]
     watch?: boolean
+    instances?: Record<string, Workers.WorkerInstanceData>
 }
 
 export type RunParams = {
@@ -77,6 +78,7 @@ export interface SessionStartedMessage {
         isMultiremote: boolean
         injectGlobals: boolean
         capabilities: WebdriverIO.Capabilities
+        instances?: Record<string, Workers.WorkerInstanceData>
     },
     cid?: string
 }

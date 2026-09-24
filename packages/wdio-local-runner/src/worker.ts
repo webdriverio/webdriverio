@@ -68,7 +68,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     logsAggregator: string[] = []
     #processFactory: ProcessFactory
 
-    instances?: Record<string, { sessionId: string }>
+    instances?: Record<string, Workers.WorkerInstanceData>
     isMultiremote?: boolean
 
     isBusy = false

@@ -183,9 +183,9 @@ export default class Watcher {
          * trigger new run for non busy worker
          */
         for (const [, worker] of Object.entries(workers)) {
-            const { cid, capabilities, specs, sessionId } = worker
+            const { cid, capabilities, specs, sessionId, instances } = worker
             const { hostname, path, port, protocol, automationProtocol } = worker.config
-            const args = Object.assign({ sessionId, baseUrl: worker.config.baseUrl, hostname, path, port, protocol, automationProtocol }, params)
+            const args = Object.assign({ sessionId, instances, baseUrl: worker.config.baseUrl, hostname, path, port, protocol, automationProtocol }, params)
             worker.postMessage('run', args)
             this._launcher.interface.emit('job:start', { cid, caps: capabilities, specs })
         }

@@ -75,6 +75,19 @@ describe('Multi-Remote tests', () => {
         expect((vi.mocked(fetch).mock.calls[3][1] as any).method).toBe('POST')
     })
 
+    test('should attach to existing sessions', async () => {
+        const browser = await multiremote(caps(), {
+            instances: {
+                browserA: { sessionId: 'browser-a-session' },
+                browserB: { sessionId: 'browser-b-session' }
+            }
+        })
+
+        expect(browser.getInstance('browserA').sessionId).toBe('browser-a-session')
+        expect(browser.getInstance('browserB').sessionId).toBe('browser-b-session')
+        expect(fetch).toHaveBeenCalledTimes(0)
+    })
+
     test('should properly create stub instance', async () => {
         const params = caps()
         Object.values(params).forEach(cap => { cap.automationProtocol = './protocol-stub.js' })
