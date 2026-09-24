@@ -116,8 +116,12 @@ export default class Runner extends EventEmitter {
         /**
          * create `browser` stub only if `specFiltering` feature is enabled
          */
+        const stubConfig = { ...this._config } as WebdriverIO.Config & {
+            instances?: Record<string, Workers.WorkerInstanceData>
+        }
+        delete stubConfig.instances
         let browser = await this._startSession({
-            ...this._config,
+            ...stubConfig,
             // @ts-ignore used in `/packages/webdriverio/src/protocol-stub.ts`
             _automationProtocol: this._config.automationProtocol,
             automationProtocol: './protocol-stub.js'

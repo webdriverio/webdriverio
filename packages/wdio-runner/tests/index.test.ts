@@ -319,6 +319,47 @@ describe('wdio-runner', () => {
             expect(runner['_browser']?.url).not.toBeCalled()
         })
 
+        it('should not attach retained instances to the protocol stub', async () => {
+            const instances = {
+                browserA: { sessionId: 'session-a' },
+                browserB: { sessionId: 'session-b' }
+            }
+            const config: any = {
+                framework: 'testNoFailures',
+                reporters: [],
+                beforeSession: [],
+                runner: 'local',
+                instances
+            }
+            const caps = {
+                browserA: { capabilities: { browserName: 'chrome' } },
+                browserB: { capabilities: { browserName: 'chrome' } }
+            }
+            const runner = new WDIORunner()
+            const browsers = {
+                browserA: { sessionId: 'session-a', options: {}, capabilities: { browserName: 'chrome' } },
+                browserB: { sessionId: 'session-b', options: {}, capabilities: { browserName: 'chrome' } }
+            }
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            runner['_startSession'] = vi.fn().mockReturnValue({})
+            runner['_initSession'] = vi.fn().mockReturnValue({
+                instances: Object.keys(browsers),
+                getInstance: (name: keyof typeof browsers) => browsers[name],
+                options: {},
+                capabilities: {}
+            })
+
+            await runner.run({
+                args: { watch: true, instances },
+                caps,
+                configFile: '/foo/bar'
+            } as any)
+
+            expect(vi.mocked(runner['_startSession']).mock.calls[0][0]).not.toHaveProperty('instances')
+            expect(runner['_initSession']).toBeCalledWith(config, caps, instances)
+            expect(config.instances).toBe(instances)
+        })
+
         it('should attach snapshot service to service list', async () => {
             const runner = new WDIORunner()
             const config: any = {
