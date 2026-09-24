@@ -115,7 +115,13 @@ one that does not exist does not fail — the XCUITest driver *creates* it and
 boots it, every run, beside the simulator already running, leaving a new
 simulator behind each time. So the examples default to whichever simulator is
 already booted, and an `IOS_DEVICE_NAME` matching none of them is refused with
-the list of booted ones rather than passed through. `IOS_UDID` overrides both.
+the list of booted ones rather than passed through.
+
+That is **local** policy. `xcrun simctl` enumerates local simulators and nothing
+else, so `IOS_UDID` names a device outright and is checked against nothing — a
+real device has no entry to match — and against a remote or cloud Appium
+(`APPIUM_HOST` set to anything but localhost) a device name is passed straight
+through, since naming one is how such a service selects it.
 
 Beyond the Android prerequisites, none of which iOS uses, you need Xcode (the
 Command Line Tools ship no simulators), a simulator runtime
