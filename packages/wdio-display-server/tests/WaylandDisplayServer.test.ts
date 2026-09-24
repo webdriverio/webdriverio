@@ -154,10 +154,12 @@ describe('WaylandDisplayServer', () => {
             expect(mockSpawn).toHaveBeenCalledWith(
                 'weston',
                 expect.arrayContaining([
-                    '--backend=headless',
+                    '--backend=headless-backend.so',
                     '--width=1280',
                     '--height=720',
                     '--use-pixman',
+                    '--idle-time=0',
+                    '--no-config',
                     expect.stringMatching(/^--socket=wayland-\d+$/),
                 ]),
                 expect.objectContaining({

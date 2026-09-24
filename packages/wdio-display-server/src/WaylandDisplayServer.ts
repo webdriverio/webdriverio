@@ -55,10 +55,15 @@ export class WaylandDisplayServer implements DisplayServer {
 
         return runDaemon({
             command: 'weston',
-            // --use-pixman forces software rendering on GPU-less CI containers. Deprecated
-            // for --renderer=pixman in weston 10+, but some distros in the e2e matrix ship
-            // weston < 10 without --renderer, so the portable flag stays.
-            args: ['--backend=headless', `--width=${width}`, `--height=${height}`, '--use-pixman', `--socket=${socketName}`],
+            args: [
+                '--backend=headless-backend.so', // Weston 10 (Debian 12) needs the pre-12 name, which later versions still accept
+                `--width=${width}`,
+                `--height=${height}`,
+                '--use-pixman', // CPU rendering, since headless renders nothing by default; pre-12 name for --renderer=pixman
+                '--idle-time=0', // Weston otherwise sleeps after 300s without input
+                '--no-config', // keeps a user's weston.ini out of the test compositor
+                `--socket=${socketName}`,
+            ],
             socketPath,
             spawnEnv: { ...process.env, XDG_RUNTIME_DIR: runtimeDir },
             label: 'Weston',
