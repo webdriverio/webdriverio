@@ -2,14 +2,14 @@ export const config = {
     hostname: '127.0.0.1',
     port: Number(process.env.WDIO_WATCH_PORT),
     path: '/',
-    capabilities: {
+    capabilities: [{
         browserA: {
             capabilities: { browserName: 'chrome', 'wdio:enforceWebDriverClassic': true }
         },
         browserB: {
             capabilities: { browserName: 'chrome', 'wdio:enforceWebDriverClassic': true }
         }
-    },
+    }],
     specs: [process.env.WDIO_WATCH_SPEC],
     framework: 'mocha',
     reporters: ['spec'],

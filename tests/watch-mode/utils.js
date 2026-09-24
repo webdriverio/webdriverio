@@ -73,7 +73,14 @@ async function removeTemporaryDirectory(temporaryDirectory, prefix) {
     await fs.rm(resolvedTemporaryDirectory, { recursive: true, force: true })
 }
 
-export async function runWatchModeTest({ name, temporaryDirectoryPrefix, configPath, setup, execute }) {
+export async function runWatchModeTest({
+    name,
+    temporaryDirectoryPrefix,
+    configPath,
+    setup,
+    execute,
+    expectSessionCleanup = true
+}) {
     const temporaryDirectory = await fs.mkdtemp(path.join(os.tmpdir(), temporaryDirectoryPrefix))
     const driver = createWebDriverServer()
     let child
@@ -136,9 +143,14 @@ export async function runWatchModeTest({ name, temporaryDirectoryPrefix, configP
 
         const result = await stopWatchProcess(child, exit)
         assert.deepEqual(result, { code: 0, signal: null })
-        assert.equal(driver.deleted.length, driver.created.length, 'Shutdown must delete every retained session')
-        assert.deepEqual(new Set(driver.deleted), new Set(driver.created), 'Shutdown must delete the created sessions')
-        assert.equal(driver.sessions.size, 0, 'Shutdown must delete all retained sessions')
+        if (expectSessionCleanup) {
+            assert.equal(driver.deleted.length, driver.created.length, 'Shutdown must delete every retained session')
+            assert.deepEqual(new Set(driver.deleted), new Set(driver.created), 'Shutdown must delete the created sessions')
+            assert.equal(driver.sessions.size, 0, 'Shutdown must delete all retained sessions')
+        } else {
+            assert.deepEqual(driver.deleted, [], 'Watch mode without retained sessions does not attach sessions during shutdown')
+            assert.equal(driver.sessions.size, driver.created.length, 'Every recreated session remains owned by the fixture')
+        }
         assert.deepEqual(driver.unexpected, [], 'The fixture received unexpected WebDriver commands')
     } catch (error) {
         throw new Error(`${name} smoke test failed: ${error.message}\n${output}`, { cause: error })

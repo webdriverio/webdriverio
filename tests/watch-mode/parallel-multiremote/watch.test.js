@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 
 describe('watch mode parallel multiremote', () => {
-    it('reuses browser sessions', async () => {
+    it('runs both browser sessions', async () => {
         let firstBrowser, secondBrowser
         if (browser.browserA) {
             firstBrowser = browser.browserA

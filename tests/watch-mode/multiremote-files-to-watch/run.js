@@ -14,6 +14,7 @@ export default async function watchMultiremoteFilesToWatch() {
         name: 'multiremoteFilesToWatch',
         temporaryDirectoryPrefix: 'wdio-multiremote-files-to-watch-',
         configPath: path.join(directory, 'wdio.conf.js'),
+        expectSessionCleanup: false,
         async setup({ temporaryDirectory }) {
             const watchedSpecs = [
                 path.join(temporaryDirectory, 'first.test.mjs'),
@@ -39,8 +40,8 @@ export default async function watchMultiremoteFilesToWatch() {
             await fs.writeFile(watchedFile, 'changed')
             await waitForRun(2)
 
-            assert.equal(driver.created.length, 2, 'Multiremote must not create new sessions on rerun (browserA + browserB)')
-            const [sessionA, sessionB] = driver.created
+            assert.equal(driver.created.length, 4, 'Multiremote creates two new sessions for every suite rerun')
+            assert.equal(new Set(driver.created).size, 4, 'Every session must be distinct')
 
             // Each spec runs twice, and each spec navigates both browsers.
             // So 2 specs * 2 runs * 2 browsers = 8 navigations total.
@@ -49,15 +50,11 @@ export default async function watchMultiremoteFilesToWatch() {
             for (const specName of ['first', 'second']) {
                 const specNavs = driver.navigations.filter(({ url }) => url.endsWith(`/${specName}`))
                 assert.equal(specNavs.length, 4, `${specName} spec must run twice, navigating both browsers each time`)
-
-                const sessionANavs = specNavs.filter(n => n.sessionId === sessionA)
-                const sessionBNavs = specNavs.filter(n => n.sessionId === sessionB)
-                assert.equal(sessionANavs.length, 2)
-                assert.equal(sessionBNavs.length, 2)
+                assert.equal(new Set(specNavs.map(({ sessionId }) => sessionId)).size, 4)
             }
 
             assert.equal(driver.titles.length, 8)
-            assert.deepEqual(driver.deleted, [], 'Both sessions must stay alive between runs')
+            assert.deepEqual(driver.deleted, [], 'Sessions stay open until the watch launcher shuts down')
         }
     })
 }

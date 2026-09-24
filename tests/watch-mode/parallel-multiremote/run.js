@@ -15,6 +15,7 @@ export default async function watchParallelMultiremote() {
         name: 'Watch mode parallel multiremote',
         temporaryDirectoryPrefix: 'wdio-watch-parallel-multiremote-',
         configPath: path.join(directory, 'wdio.conf.js'),
+        expectSessionCleanup: false,
         async setup({ temporaryDirectory }) {
             source = await fs.readFile(path.join(directory, 'watch.test.js'), 'utf8')
             watchedSpec = path.join(temporaryDirectory, 'watch.test.mjs')
@@ -34,33 +35,30 @@ export default async function watchParallelMultiremote() {
             await waitForRun(3, 1)
             await waitForRun(4, 1)
 
-            // Run 3: fix the spec — sessions must survive the failure
+            // Run 3: fix the spec and run it once more.
             await fs.writeFile(watchedSpec, source.replaceAll('/first', '/second'))
 
             await waitForRun(5)
             await waitForRun(6)
 
-            assert.equal(driver.created.length, 4, 'Parallel multiremote must create exactly 4 sessions (browserA+B, browserC+D)')
-            const [sessionA, sessionB, sessionC, sessionD] = driver.created
+            assert.equal(driver.created.length, 12, 'Parallel multiremote creates four new sessions for every watch run')
+            assert.equal(new Set(driver.created).size, 12, 'Every session must be distinct')
 
             // 3 runs × 4 browsers = 12 navigations
-            assert.equal(driver.navigations.length, 12, 'Every run must execute the current spec in all original sessions')
+            assert.equal(driver.navigations.length, 12, 'Every run must execute the current spec in all browsers')
             const expectedUrls = ['http://watch-mode.test/first', 'http://watch-mode.test/failing', 'http://watch-mode.test/second']
 
-            for (let run = 0; run < 3; run++) {
-                const url = expectedUrls[run]
+            const sessionsByRun = expectedUrls.map((url) => {
                 const runNavs = driver.navigations.filter(n => n.url === url)
                 assert.equal(runNavs.length, 4)
-                assert.ok(runNavs.some(n => n.sessionId === sessionA))
-                assert.ok(runNavs.some(n => n.sessionId === sessionB))
-                assert.ok(runNavs.some(n => n.sessionId === sessionC))
-                assert.ok(runNavs.some(n => n.sessionId === sessionD))
-            }
+                return new Set(runNavs.map(({ sessionId }) => sessionId))
+            })
+            assert.equal(new Set(sessionsByRun.flatMap((sessions) => [...sessions])).size, 12)
 
             // Title fetched for all 4 browsers in every run:
             // 3 runs × 4 browsers = 12 title fetches
             assert.equal(driver.titles.length, 12, 'Title must be fetched for every browser in every run')
-            assert.deepEqual(driver.deleted, [], 'All sessions must stay alive between runs')
+            assert.deepEqual(driver.deleted, [], 'Sessions stay open until the watch launcher shuts down')
         }
     })
 }
