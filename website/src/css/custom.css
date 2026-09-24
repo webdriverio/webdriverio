@@ -124,32 +124,72 @@ h1, h2, h3, h4 {
 }
 
 .markdown > h2 {
-    --ifm-h2-font-size: 1.4rem;
-    margin-top: 2.75rem;
-    margin-bottom: 0.75rem;
-    padding-top: 0;
+    --ifm-h2-font-size: 1.45rem;
+    margin-top: 3.25rem;
+    margin-bottom: 0.85rem;
+    padding-top: 1.35rem;
+    border-top: 1px solid var(--wdio-border);
+}
+
+.markdown > h2:first-of-type {
+    margin-top: 2.25rem;
 }
 
 .markdown > h3 {
-    --ifm-h3-font-size: 1.05rem;
-    margin-top: 1.75rem;
+    --ifm-h3-font-size: 1.15rem;
+    margin-top: 2.1rem;
+    margin-bottom: 0.7rem;
 }
 
-.markdown > h3:has(+ .option),
-.markdown > h4:has(+ .option),
-.markdown > h5:has(+ .option) {
-    margin-bottom: 0.4rem;
+.markdown > :is(h3, h4, h5):has(+ .option) {
+    margin: 0.9rem 0 0;
+    padding: 0.95rem 1.15rem 0.15rem;
+    border: 1px solid var(--wdio-border);
+    border-bottom: 0;
+    border-radius: var(--wdio-radius) var(--wdio-radius) 0 0;
+    background: var(--wdio-surface);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.4;
+}
+
+.markdown > :is(h3, h4, h5):has(+ .option) code {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--wdio-text);
 }
 
 .option {
-    margin: 0 0 1.35rem;
+    margin: 0 0 0.9rem;
+    padding: 0.7rem 1.15rem 1.05rem;
+    border: 1px solid var(--wdio-border);
+    border-radius: var(--wdio-radius);
+    background: var(--wdio-surface);
+}
+
+.markdown > :is(h3, h4, h5):has(+ .option) + .option {
+    margin-top: 0;
+    padding-top: 0.45rem;
+    border-top: 0;
+    border-radius: 0 0 var(--wdio-radius) var(--wdio-radius);
 }
 
 .optionMeta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.35rem 1.15rem;
-    margin: 0 0 0.7rem;
+    gap: 0.4rem 1.15rem;
+    margin: 0 0 0.8rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--wdio-border);
+}
+
+.optionBody {
+    font-size: 0.95rem;
+    line-height: 1.6;
 }
 
 .optionMeta > div {
@@ -202,6 +242,10 @@ h1, h2, h3, h4 {
 
 .optionBody > :last-child {
     margin-bottom: 0;
+}
+
+.optionBody li {
+    margin: 0.15rem 0;
 }
 
 

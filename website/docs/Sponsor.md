@@ -45,8 +45,6 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
 - __<TierIcon tier="individual" /> Individual Backer (USD $5 / mo):__
   - Name listed in the [`BACKERS.md`](https://github.com/webdriverio/webdriverio/blob/main/BACKERS.md) file of the [`webdriverio/webdriverio`](https://github.com/webdriverio/webdriverio) repository.
 
----
-
 ## Current Sponsors
 
 ### Premium <TierIcon tier="premium" /> {#premium}

@@ -236,8 +236,6 @@ For more secure logging, regular expressions set with `maskingPatterns` can obfu
 }
 ```
 
----
-
 ## WebdriverIO
 
 The following options (including the ones listed above) can be used with WebdriverIO in standalone:
@@ -359,8 +357,6 @@ __Note:__ This only has an effect if you provide `user` and `key` options that a
 
 </Option>
 *(only for vm and or em/simulators)*
-
----
 
 ## Testrunner Options
 

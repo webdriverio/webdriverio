@@ -31,8 +31,6 @@ No! That's the main benefit of MCP. You can describe what you want to do in natu
 -   "Take a screenshot of the current page"
 -   "Start my iOS app and log in as test user"
 
----
-
 ## Installation & Setup
 
 ### How do I install WebdriverIO MCP?
@@ -66,15 +64,13 @@ Yes. Mobile automation requires:
 2. Platform drivers installed (`appium driver install xcuitest` for iOS, `appium driver install uiautomator2` for Android)
 3. Appropriate development tools (Xcode for iOS, Android SDK for Android)
 
----
-
 ## Browser Automation
 
 ### Which browsers are supported?
 
 Chrome, Firefox, Edge, and Safari are all supported. Use the `browser` parameter in `start_session`:
 
-```
+```text
 "Start a Firefox session"
 "Start Chrome in headless mode"
 ```
@@ -135,8 +131,6 @@ Yes. Use `get_tabs` to list open tabs and `switch_tab` to focus a specific one:
 
 "Get all open tabs"
 "Switch to the tab at index 1"
-
----
 
 ## Mobile Automation
 
@@ -203,13 +197,11 @@ For apps with webviews, you can switch contexts:
 
 Yes! Use the `execute_script` tool:
 
-```
+```text
 Execute script "mobile: pressKey" with args [{ keycode: 4 }]  // Press BACK on Android
 Execute script "mobile: activateApp" with args [{ bundleId: "com.example.app" }]
 Execute script "mobile: terminateApp" with args [{ bundleId: "com.example.app" }]
 ```
-
----
 
 ## Element Selection
 
@@ -250,8 +242,6 @@ The accessibility tree provides semantic information about page elements (roles,
 
 "Get accessibility tree filtered to button and link roles"
 
----
-
 ## Session Management
 
 ### Can I have multiple sessions at once?
@@ -288,8 +278,6 @@ Increase the command timeout:
 "Start my app with newCommandTimeout of 300 seconds"
 
 Default is 300 seconds. For very long debugging sessions, try 600 seconds.
-
----
 
 ## Troubleshooting
 
@@ -352,8 +340,6 @@ Future versions may include automatic Appium service management.
 
 Screenshots are automatically compressed to max 1MB, so large screenshots will work but may be lower quality.
 
----
-
 ## Performance
 
 ### Why is mobile automation slow?
@@ -387,8 +373,6 @@ Screenshots are automatically optimized:
 
 This optimization reduces processing time and ensures Claude can handle the image.
 
----
-
 ## Limitations
 
 ### What are the current limitations?
@@ -402,8 +386,6 @@ This optimization reduces processing time and ensures Claude can handle the imag
 ### Can I use this for production testing?
 
 WebdriverIO MCP is designed for interactive AI-assisted automation. For production CI/CD testing, consider using WebdriverIO's traditional test runner with full programmatic control.
-
----
 
 ## Security
 
@@ -419,8 +401,6 @@ Claude can see page content and interact with elements, but:
 -   Passwords in `<input type="password">` fields are masked
 -   You should avoid automating sensitive credentials
 -   Use test accounts for automation
-
----
 
 ## Contributing
 

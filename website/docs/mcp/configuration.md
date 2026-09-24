@@ -25,8 +25,6 @@ Edit your MCP configuration file (e.g. `./.mcp.json`) and add the following:
 }
 ```
 
----
-
 ## Session Options
 
 All session options are passed to the `start_session` tool. There is a single unified tool for browser and mobile sessions; the `platform` parameter determines the session type.
@@ -252,7 +250,7 @@ Dismiss system alerts instead of accepting them. Takes precedence over `autoAcce
 
 Override the Appium server connection on a per-session basis using `appiumConfig`:
 
-```
+```js
 start_session({
   platform: "ios",
   deviceName: "iPhone 16",
@@ -274,12 +272,12 @@ Appium server connection. Defaults to `{ host: "127.0.0.1", port: 4723, path: "/
 
 Each cloud provider requires its own environment variables:
 
-| Provider | Username Variable | Access Key Variable |
-|----------|-------------------|---------------------|
+| Provider     | Username Variable       | Access Key Variable       |
+| ------------ | ----------------------- | ------------------------- |
 | BrowserStack | `BROWSERSTACK_USERNAME` | `BROWSERSTACK_ACCESS_KEY` |
-| Sauce Labs | `SAUCE_USERNAME` | `SAUCE_ACCESS_KEY` |
-| TestMu | `TESTMU_USERNAME` | `TESTMU_ACCESS_KEY` |
-| TestingBot | `TESTINGBOT_KEY` | `TESTINGBOT_SECRET` |
+| Sauce Labs   | `SAUCE_USERNAME`        | `SAUCE_ACCESS_KEY`        |
+| TestMu       | `TESTMU_USERNAME`       | `TESTMU_ACCESS_KEY`       |
+| TestingBot   | `TESTINGBOT_KEY`        | `TESTINGBOT_SECRET`       |
 
 Set these before starting the MCP server.
 
@@ -368,7 +366,7 @@ Maximum number of elements to return.
 Number of elements to skip before returning results.
 
 **Example:** Get elements 21–40:
-```
+```text
 Get elements with limit 20 and offset 20
 ```
 
@@ -400,7 +398,7 @@ Filter to specific accessibility roles.
 **Common roles:** `button`, `link`, `textbox`, `checkbox`, `radio`, `heading`, `img`, `listitem`
 
 **Example:** Get only buttons and links:
-```
+```text
 Get accessibility tree filtered to button and link roles
 ```
 
@@ -409,22 +407,20 @@ Get accessibility tree filtered to button and link roles
 
 The `get_screenshot` tool takes no parameters. Screenshots are automatically processed:
 
-| Optimization | Value | Description |
-|--------------|-------|-------------|
-| Max dimension | 2000px | Images larger than 2000px are scaled down |
-| Max file size | 1MB | Images are compressed to stay under 1MB |
-| Format | PNG/JPEG | PNG with max compression; JPEG if needed for size |
-
----
+| Optimization  | Value    | Description                                       |
+| ------------- | -------- | ------------------------------------------------- |
+| Max dimension | 2000px   | Images larger than 2000px are scaled down         |
+| Max file size | 1MB      | Images are compressed to stay under 1MB           |
+| Format        | PNG/JPEG | PNG with max compression; JPEG if needed for size |
 
 ## Session Behavior
 
 ### Session Types
 
-| Type | Description | Auto-Detach |
-|------|-------------|-------------|
-| `browser` | Browser session | No |
-| `ios` | iOS app session | Yes (if `noReset: true` or no `appPath`) |
+| Type      | Description         | Auto-Detach                              |
+| --------- | ------------------- | ---------------------------------------- |
+| `browser` | Browser session     | No                                       |
+| `ios`     | iOS app session     | Yes (if `noReset: true` or no `appPath`) |
 | `android` | Android app session | Yes (if `noReset: true` or no `appPath`) |
 
 ### Single-Session Model
@@ -437,13 +433,11 @@ The MCP server operates with a **single-session model**:
 
 ### Detach vs Close
 
-| Action | `detach: false` (Close) | `detach: true` (Detach) |
-|--------|-------------------------|-------------------------|
-| Browser | Closes browser completely | Keeps browser running, disconnects WebDriver |
-| Mobile App | Terminates app | Keeps app running in current state |
-| Use Case | Clean slate for next session | Preserve state, manual inspection |
-
----
+| Action     | `detach: false` (Close)      | `detach: true` (Detach)                      |
+| ---------- | ---------------------------- | -------------------------------------------- |
+| Browser    | Closes browser completely    | Keeps browser running, disconnects WebDriver |
+| Mobile App | Terminates app               | Keeps app running in current state           |
+| Use Case   | Clean slate for next session | Preserve state, manual inspection            |
 
 ## Performance Considerations
 
@@ -463,14 +457,12 @@ The MCP server operates with a **single-session model**:
 
 ### Token Usage Tips
 
-| Setting | Impact |
-|---------|--------|
-| `inViewportOnly: true` | Filters off-screen elements, reducing response size |
-| `includeContainers: false` | Excludes layout elements (ViewGroup, etc.) |
-| `includeBounds: false` | Omits x/y/width/height data |
-| `limit` with pagination | Process elements in batches instead of all at once |
-
----
+| Setting                    | Impact                                              |
+| -------------------------- | --------------------------------------------------- |
+| `inViewportOnly: true`     | Filters off-screen elements, reducing response size |
+| `includeContainers: false` | Excludes layout elements (ViewGroup, etc.)          |
+| `includeBounds: false`     | Omits x/y/width/height data                         |
+| `limit` with pagination    | Process elements in batches instead of all at once  |
 
 ## Appium Server Setup
 
@@ -515,8 +507,6 @@ appium --version
 # Test connection
 curl http://localhost:4723/status
 ```
-
----
 
 ## Troubleshooting Configuration
 
