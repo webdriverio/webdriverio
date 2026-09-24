@@ -44,7 +44,7 @@ describe.skipIf(process.platform === 'win32')('WaylandDisplayServer (real proces
 
         daemon = await new WaylandDisplayServer().startDaemon({ width: 100, height: 100 })
 
-        expect(daemon.env.WAYLAND_DISPLAY).toMatch(/^wayland-\d+$/)
+        expect(daemon.env.WAYLAND_DISPLAY).toBe('wayland-0')
         expect(daemon.env.ELECTRON_OZONE_PLATFORM_HINT).toBe('wayland')
         const runtimeDir = daemon.env.XDG_RUNTIME_DIR
         expect(await exists(path.join(runtimeDir, daemon.env.WAYLAND_DISPLAY))).toBe(true)

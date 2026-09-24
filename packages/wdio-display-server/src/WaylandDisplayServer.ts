@@ -1,5 +1,6 @@
 import { rmSync } from 'node:fs'
-import { mkdir, rm } from 'node:fs/promises'
+import { mkdtemp, rm } from 'node:fs/promises'
+import path from 'node:path'
 import logger from '@wdio/logger'
 import type {
     DisplayDaemon,
@@ -14,7 +15,6 @@ import { sessionEnv } from './sessionEnv.js'
 export class WaylandDisplayServer implements DisplayServer {
     readonly name = 'wayland' as const
     private log = logger('@wdio/display-server:wayland')
-    private static daemonCounter = 0
 
     async isAvailable(): Promise<boolean> {
         if (await commandExists('weston')) {
@@ -45,12 +45,10 @@ export class WaylandDisplayServer implements DisplayServer {
     async startDaemon(options?: DisplayDaemonOptions): Promise<DisplayDaemon> {
         const { width, height } = resolveDaemonDimensions(options)
 
-        const id = ++WaylandDisplayServer.daemonCounter
-        const runtimeDir = `/tmp/wdio-wayland-${process.pid}-${id}`
-        const socketName = `wayland-${id}`
-        const socketPath = `${runtimeDir}/${socketName}`
+        const runtimeDir = await mkdtemp('/tmp/wdio-wayland-') // /tmp, not TMPDIR, keeps the socket path under the 107-byte limit
+        const socketName = 'wayland-0'
+        const socketPath = path.join(runtimeDir, socketName)
 
-        await mkdir(runtimeDir, { recursive: true, mode: 0o700 })
         this.log.info(`Starting Weston daemon on ${socketName} (${width}x${height}) in ${runtimeDir}`)
 
         return runDaemon({
