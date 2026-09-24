@@ -1,6 +1,5 @@
 import { startDisplayDaemonFromConfig } from '@wdio/display-server'
 import logger from '@wdio/logger'
-import type { Capabilities } from '@wdio/types'
 import { remote } from 'webdriverio'
 
 import { startAppium } from './appium.js'
@@ -43,10 +42,7 @@ export async function launch (plan: OpenPlan): Promise<Launched> {
 
     try {
         if (plan.display) {
-            const daemon = await startDisplayDaemonFromConfig(
-                { displayServer: 'auto' } as WebdriverIO.Config,
-                [plan.capabilities] as Capabilities.TestrunnerCapabilities
-            )
+            const daemon = await startDisplayDaemonFromConfig({ displayServer: 'auto' } as WebdriverIO.Config)
             if (daemon) {
                 log.info(`Started display server (DISPLAY=${process.env.DISPLAY || ''}, WAYLAND_DISPLAY=${process.env.WAYLAND_DISPLAY || ''})`)
                 cleanups.push(() => daemon.stop())

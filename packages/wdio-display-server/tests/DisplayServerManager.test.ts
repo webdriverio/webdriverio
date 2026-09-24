@@ -142,6 +142,17 @@ describe('DisplayServerManager (gap coverage)', () => {
         })
     })
 
+    describe('shouldRun', () => {
+        it('returns false on Linux when only WAYLAND_DISPLAY is set', () => {
+            process.env.WAYLAND_DISPLAY = 'wayland-0'
+            try {
+                expect(new DisplayServerManager().shouldRun()).toBe(false)
+            } finally {
+                delete process.env.WAYLAND_DISPLAY
+            }
+        })
+    })
+
     describe('shouldRun #initialized gate', () => {
         it('returns true after init() once a display server is active, even with DISPLAY set later', async () => {
             mockXvfb.isAvailable.mockResolvedValue(true)

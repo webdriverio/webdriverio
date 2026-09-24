@@ -308,10 +308,13 @@ test('starts a display-server daemon during initialize() when one is needed', as
     const stopSpy = vi.fn().mockResolvedValue(undefined)
     vi.mocked(displayServer.startDisplayDaemonFromConfig).mockResolvedValueOnce({ stop: stopSpy })
 
-    const runner = new LocalRunner({} as never, { displayServerEnabled: true } as any)
+    const config = { displayServerEnabled: true } as WebdriverIO.Config
+    const runner = new LocalRunner({} as never, config)
     await runner.initialize()
 
+    // The runner's own manager, so the one that later injects flags knows the active server.
     expect(displayServer.startDisplayDaemonFromConfig).toHaveBeenCalledTimes(1)
+    expect(displayServer.startDisplayDaemonFromConfig).toHaveBeenCalledWith(config, runner['displayServerManager'])
 })
 
 test('shuts down cleanly when startDisplayDaemonFromConfig returns null', async () => {

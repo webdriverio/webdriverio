@@ -117,82 +117,6 @@ describe('XvfbManager', () => {
 
             expect(disabledManager.shouldRun()).toBe(false)
         })
-
-        // A headless capability flag forces the display server on even when DISPLAY
-        // is set. The detection branch is identical across vendors and flag
-        // spellings, so drive the positive cases from a table.
-        it.each([
-            ['Chrome', 'goog:chromeOptions', '--headless'],
-            ['Chrome', 'goog:chromeOptions', '--headless=new'],
-            ['Chrome', 'goog:chromeOptions', '--headless=old'],
-            ['Firefox', 'moz:firefoxOptions', '--headless'],
-            ['Firefox', 'moz:firefoxOptions', '-headless'],
-            ['Edge', 'ms:edgeOptions', '--headless'],
-        ])('returns true when the %s headless flag %s is detected', (_vendor, optionsKey, flag) => {
-            mockPlatform.mockReturnValue('linux')
-            process.env.DISPLAY = ':0'
-
-            const capabilities = {
-                [optionsKey]: { args: [flag] },
-            } as unknown as WebdriverIO.Config['capabilities']
-
-            expect(manager.shouldRun(capabilities)).toBe(true)
-        })
-
-        it('handles an array of capabilities (multi-remote)', () => {
-            mockPlatform.mockReturnValue('linux')
-            process.env.DISPLAY = ':0'
-
-            const capabilities = {
-                browser1: {
-                    capabilities: {
-                        'goog:chromeOptions': {
-                            args: ['--headless']
-                        }
-                    }
-                },
-                browser2: {
-                    capabilities: {
-                        'moz:firefoxOptions': {
-                            args: ['--disable-gpu']
-                        }
-                    }
-                }
-            } as unknown as WebdriverIO.Config['capabilities']
-
-            expect(manager.shouldRun(capabilities)).toBe(true)
-        })
-
-        it('returns false when no headless flags in capabilities', () => {
-            mockPlatform.mockReturnValue('linux')
-            process.env.DISPLAY = ':0'
-
-            const capabilities = {
-                'goog:chromeOptions': {
-                    args: ['--disable-gpu']
-                }
-            } as unknown as WebdriverIO.Config['capabilities']
-
-            expect(manager.shouldRun(capabilities)).toBe(false)
-        })
-
-        it('handles capabilities without args', () => {
-            mockPlatform.mockReturnValue('linux')
-            process.env.DISPLAY = ':0'
-
-            const capabilities = {
-                'goog:chromeOptions': {}
-            } as unknown as WebdriverIO.Config['capabilities']
-
-            expect(manager.shouldRun(capabilities)).toBe(false)
-        })
-
-        it('handles undefined capabilities', () => {
-            mockPlatform.mockReturnValue('linux')
-            process.env.DISPLAY = ':0'
-
-            expect(manager.shouldRun(undefined)).toBe(false)
-        })
     })
 
     describe('init', () => {
@@ -215,21 +139,6 @@ describe('XvfbManager', () => {
             const result = await manager.init()
 
             expect(result).toBe(false)
-        })
-
-        it('sets up xvfb-run when headless capabilities are provided', async () => {
-            process.env.DISPLAY = ':0'
-            mockExecAsync.mockResolvedValue({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
-
-            const capabilities = {
-                'goog:chromeOptions': {
-                    args: ['--headless']
-                }
-            } as unknown as WebdriverIO.Config['capabilities']
-
-            const result = await manager.init(capabilities)
-
-            expect(result).toBe(true)
         })
 
         it('returns false and skips setup when disabled via enabled:false', async () => {

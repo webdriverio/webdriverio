@@ -6,7 +6,7 @@ import {
     startDisplayDaemonFromConfig,
     type RunningDaemon,
 } from '@wdio/display-server'
-import type { Capabilities, Workers } from '@wdio/types'
+import type { Workers } from '@wdio/types'
 
 import WorkerInstance from './worker.js'
 import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants.js'
@@ -42,12 +42,7 @@ export default class LocalRunner {
      * `onPrepare` — inherit the display. Runs before any service `onPrepare`.
      */
     async initialize() {
-        const capabilities = this.config.capabilities as Capabilities.TestrunnerCapabilities | undefined
-        this.daemon = await startDisplayDaemonFromConfig(
-            this.config,
-            capabilities ?? ([] as unknown as Capabilities.TestrunnerCapabilities),
-            this.displayServerManager,
-        )
+        this.daemon = await startDisplayDaemonFromConfig(this.config, this.displayServerManager)
         if (this.daemon) {
             log.info('Display server daemon initialized for this run')
         }

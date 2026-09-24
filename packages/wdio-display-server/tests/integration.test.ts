@@ -62,7 +62,6 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
 
         const daemon = await startDisplayDaemonFromConfig(
             {} as WebdriverIO.Config,
-            [] as never,
             manager,
         )
         expect(daemon).not.toBeNull()
@@ -92,7 +91,6 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
 
         const daemon = await startDisplayDaemonFromConfig(
             {} as WebdriverIO.Config,
-            [] as never,
             manager,
         )
         expect(daemon).not.toBeNull()
@@ -125,7 +123,6 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
 
         const daemon = await startDisplayDaemonFromConfig(
             {} as WebdriverIO.Config,
-            [] as never,
             manager,
         )
         expect(daemon).toBeNull()
@@ -149,7 +146,6 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
 
         const daemon = await startDisplayDaemonFromConfig(
             {} as WebdriverIO.Config,
-            [] as never,
             manager,
         )
         expect(daemon).toBeNull()
@@ -168,7 +164,6 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
 
         const daemon = await startDisplayDaemonFromConfig(
             {} as WebdriverIO.Config,
-            [] as never,
             manager,
         )
 
@@ -186,7 +181,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         const manager = makeRetryManager(server)
 
         await expect(
-            startDisplayDaemonFromConfig({} as WebdriverIO.Config, [] as never, manager),
+            startDisplayDaemonFromConfig({} as WebdriverIO.Config, manager),
         ).rejects.toBe(finalError)
         expect(startSpy).toHaveBeenCalledTimes(3)
         // Threw before the Object.assign step, so env stays untouched.
@@ -204,7 +199,6 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
 
         const daemon = await startDisplayDaemonFromConfig(
             {} as WebdriverIO.Config,
-            [] as never,
             manager,
         )
         expect(daemon).not.toBeNull()
@@ -231,7 +225,6 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
 
         const daemon = await startDisplayDaemonFromConfig(
             {} as WebdriverIO.Config,
-            [] as never,
             manager,
         )
         expect(process.env.NODE_ENV).toBe('daemon-set')

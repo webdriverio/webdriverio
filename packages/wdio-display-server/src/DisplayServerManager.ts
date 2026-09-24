@@ -6,8 +6,8 @@ import { WaylandDisplayServer, WAYLAND_CHROME_FLAGS } from './WaylandDisplayServ
 import { XvfbDisplayServer } from './XvfbDisplayServer.js'
 import { executeWithRetry } from './utils.js'
 
-// WDIO capabilities come in four shapes: single ({ browserName }), vendor-keyed
-// ({ 'goog:chromeOptions' }), parallel (array), and multi-remote ({ browserA: {...} }).
+// A worker's capabilities come in three shapes: single ({ browserName }), vendor-keyed
+// ({ 'goog:chromeOptions' }), and multi-remote ({ browserA: {...} }).
 
 type CapsRoot = WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }>
 
@@ -92,7 +92,7 @@ export class DisplayServerManager {
         this.#log = logger('@wdio/display-server')
     }
 
-    shouldRun(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): boolean {
+    shouldRun(): boolean {
         if (!this.#enabled) {
             return false
         }
@@ -106,20 +106,14 @@ export class DisplayServerManager {
 
         // Once init() has run on this instance we know a display is active and
         // workers must use it, regardless of what process.env now shows.
-        if (this.#enabled && this.#initialized) {
+        if (this.#initialized) {
             return true
         }
 
-        const hasDisplay = process.env.DISPLAY || process.env.WAYLAND_DISPLAY
-        const inHeadlessEnvironment = !hasDisplay
-
-        // The cast bridges the resolved→requested capability shapes; the traversal is read-only so it's safe.
-        const hasHeadlessFlag = this.#detectHeadlessMode(capabilities as unknown as WebdriverIO.Config['capabilities'])
-
-        return inHeadlessEnvironment || hasHeadlessFlag
+        return !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY
     }
 
-    async init(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): Promise<boolean> {
+    async init(): Promise<boolean> {
         this.#log.info('DisplayServerManager.init() called')
 
         // Idempotent: a second init() must not re-select and overwrite
@@ -128,7 +122,7 @@ export class DisplayServerManager {
             return true
         }
 
-        if (!this.shouldRun(capabilities)) {
+        if (!this.shouldRun()) {
             this.#log.info('Display server not needed on current platform')
             return false
         }
@@ -212,7 +206,7 @@ export class DisplayServerManager {
         if (flags.length === 0) {
             return
         }
-        forEachBrowserCapability(capabilities as never, (cap) => this.#addFlagsToCapability(cap, flags))
+        forEachBrowserCapability(capabilities, (cap) => this.#addFlagsToCapability(cap, flags))
     }
 
     #addFlagsToCapability(caps: WebdriverIO.Capabilities, flags: string[]): void {
@@ -256,54 +250,6 @@ export class DisplayServerManager {
             opts[key]!.push(...flags)
             this.#log.info(`Added display-server flags to ${label}: ${flags.join(' ')}`)
         }
-    }
-
-    #detectHeadlessMode(capabilities?: WebdriverIO.Config['capabilities']): boolean {
-        let isHeadless = false
-        forEachBrowserCapability(capabilities, (cap) => {
-            if (this.#checkCapabilityForHeadless(cap)) {
-                isHeadless = true
-            }
-        })
-        return isHeadless
-    }
-
-    #checkCapabilityForHeadless(caps: WebdriverIO.Capabilities): boolean {
-        if (!caps || typeof caps !== 'object') {
-            return false
-        }
-
-        const chromeFlags = ['--headless']
-        const firefoxFlags = ['--headless', '-headless']
-        const browsers: Array<['goog:chromeOptions' | 'ms:edgeOptions' | 'moz:firefoxOptions', string[], string]> = [
-            ['goog:chromeOptions', chromeFlags, 'Chrome'],
-            ['ms:edgeOptions', chromeFlags, 'Edge'],
-            ['moz:firefoxOptions', firefoxFlags, 'Firefox'],
-        ]
-
-        for (const [key, flags, label] of browsers) {
-            if (this.#hasHeadlessFlag(caps[key], flags)) {
-                this.#log.info(`Detected headless ${label} flag, forcing display server usage`)
-                return true
-            }
-        }
-
-        return false
-    }
-
-    #hasHeadlessFlag(options: { args?: string[] } | undefined, headlessFlags: string[]): boolean {
-        if (!options?.args || !Array.isArray(options.args)) {
-            return false
-        }
-
-        return options.args.some((arg: string) => {
-            if (typeof arg !== 'string') {
-                return false
-            }
-            return headlessFlags.some(flag =>
-                arg === flag || (flag === '--headless' && arg.startsWith('--headless='))
-            )
-        })
     }
 
     getDisplayServer(): DisplayServer | null {
