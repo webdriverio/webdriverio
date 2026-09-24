@@ -31,6 +31,7 @@
     "docs:setup": "cd ./website && pnpm install && cd ..",
     "docs:list": "tsx ./infra/repo-tools/src/docs-list.ts",
     "docs:generate": "run-s clean:website generate:bidi && tsx ./scripts/docs-generation/generateDocs.ts",
+    "docs:generate:en": "run-s clean:website generate:bidi && tsx ./scripts/docs-generation/generateDocs.ts --en",
     "docs:build": "cd ./website && pnpm build && cd ..",
     "docs:check": "tsx ./scripts/docs-generation/checkDocs.ts",
     "docs:eval": "tsx ./scripts/docs-generation/evalDocs.ts",
@@ -70,7 +71,7 @@
     "test:e2e:xvfb": "cd ./e2e && npx wdio run ./wdio/xvfb/wdio.conf.ts",
     "test:e2e": "run-s test:e2e:* ",
     "dev": "pnpm -r --filter=@wdio/compiler run build --watch",
-    "watch:docs": "pnpm docs:generate && cd website && pnpm i && pnpm start",
+    "watch:docs": "pnpm docs:generate:en && cd website && pnpm i && pnpm exec docusaurus start",
     "version": "pnpm changelog && git add CHANGELOG.md",
     "postinstall": "run-s postinstall:*",
     "postinstall:husky": "husky"

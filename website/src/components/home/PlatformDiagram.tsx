@@ -1,19 +1,24 @@
 import React from 'react'
+import useBaseUrl from '@docusaurus/useBaseUrl'
 
 import styles from './home.module.css'
 
+const TILE_W = 176
+const TILE_H = 64
+const GAP = 24
+const MARGIN = 16
+const CENTER = MARGIN + TILE_W + GAP + TILE_W / 2
+
 const TILES = [
-    { label: 'Browsers', detail: 'Chrome · Firefox · Safari · Edge', icon: 'browser', x: 20, y: 24 },
-    { label: 'Mobile', detail: 'iOS · Android · Flutter', icon: 'mobile', x: 220, y: 24 },
-    { label: 'Desktop', detail: 'macOS · Windows · Linux', icon: 'desktop', x: 420, y: 24 },
-    { label: 'VS Code', detail: 'Extensions & editors', icon: 'editor', x: 20, y: 392 },
-    { label: 'Electron', detail: 'Electron · Tauri · Dioxus', icon: 'app', x: 220, y: 392 },
-    { label: 'Visual', detail: 'Pixel-perfect diffs', icon: 'visual', x: 420, y: 392 },
+    { label: 'Browsers', detail: 'Chrome · Firefox · Safari · Edge', icon: 'browser', x: MARGIN, y: 24 },
+    { label: 'Mobile', detail: 'iOS · Android · Flutter', icon: 'mobile', x: MARGIN + TILE_W + GAP, y: 24 },
+    { label: 'Desktop', detail: 'macOS · Windows · Linux', icon: 'desktop', x: MARGIN + (TILE_W + GAP) * 2, y: 24 },
+    { label: 'VS Code', detail: 'Extensions & editors', icon: 'editor', x: MARGIN, y: 392 },
+    { label: 'Electron', detail: 'Electron · Tauri · Dioxus', icon: 'app', x: MARGIN + TILE_W + GAP, y: 392 },
+    { label: 'Visual', detail: 'Pixel-perfect diffs', icon: 'visual', x: MARGIN + (TILE_W + GAP) * 2, y: 392 },
 ] as const
 
-const TILE_W = 120
-const TILE_H = 64
-const HUB = { x: 130, y: 186, w: 300, h: 108 }
+const HUB = { x: CENTER - 150, y: 186, w: 300, h: 108 }
 const CYCLE = 4.2
 const STAGGER = 0.45
 const TRAVEL = 1.2
@@ -27,7 +32,12 @@ function pathFor (index: number) {
     const fromY = top ? HUB.y : HUB.y + HUB.h
     const toY = top ? tile.y + TILE_H : tile.y
     const midY = (fromY + toY) / 2
-    return `M280 ${fromY} C280 ${midY}, ${cx} ${midY}, ${cx} ${toY}`
+    // Mobile and Electron sit on the hub's center line. A zero-width path
+    // does not paint, so those links shift by one unit and stay straight.
+    if (cx === CENTER) {
+        return `M${CENTER} ${fromY} L${cx + 1} ${toY}`
+    }
+    return `M${CENTER} ${fromY} C${CENTER} ${midY}, ${cx} ${midY}, ${cx} ${toY}`
 }
 
 function Icon ({ name }: { name: typeof TILES[number]['icon'] }) {
@@ -53,8 +63,9 @@ function Icon ({ name }: { name: typeof TILES[number]['icon'] }) {
  * travels to every platform it can automate, which light up as it arrives.
  */
 export default function PlatformDiagram () {
+    const logo = useBaseUrl('/img/logo-webdriver-io.svg')
     return (
-        <svg className={styles.diagram} viewBox="0 0 560 480" role="img" aria-label="One WebdriverIO test running on browsers, mobile, desktop, VS Code, Electron and visual testing">
+        <svg className={styles.diagram} viewBox={`0 0 ${MARGIN * 2 + TILE_W * 3 + GAP * 2} 480`} role="img" aria-label="One WebdriverIO test running on browsers, mobile, desktop, VS Code, Electron and visual testing">
             <defs>
                 <linearGradient id="wdio-line" x1="0" x2="0" y1="0" y2="1">
                     <stop offset="0%" stopColor="var(--ifm-color-primary)" stopOpacity="0.55" />
@@ -67,7 +78,7 @@ export default function PlatformDiagram () {
                 {TILES.map((_, i) => <path key={i} id={`wdio-path-${i}`} d={pathFor(i)} />)}
             </defs>
 
-            <ellipse cx="280" cy="240" rx="220" ry="120" fill="url(#wdio-hub-glow)" className={styles.hubGlow} />
+            <ellipse cx={CENTER} cy="240" rx="220" ry="120" fill="url(#wdio-hub-glow)" className={styles.hubGlow} />
 
             {TILES.map((_, i) => (
                 <use key={i} href={`#wdio-path-${i}`} stroke="url(#wdio-line)" strokeWidth="1.4" fill="none" strokeDasharray="3 5" className={styles.wire} />
@@ -89,8 +100,7 @@ export default function PlatformDiagram () {
 
             <g transform={`translate(${HUB.x} ${HUB.y})`}>
                 <rect width={HUB.w} height={HUB.h} rx="14" className={styles.hub} />
-                <rect x="16" y="16" width="26" height="26" rx="6" fill="var(--ifm-color-primary)" />
-                <text x="29" y="34" textAnchor="middle" className={styles.hubLogo}>I/O</text>
+                <image href={logo} x="16" y="16" width="26" height="26" />
                 <text x="52" y="27" className={styles.hubTitle}>login.e2e.ts</text>
                 <text x="52" y="40" className={styles.hubMeta}>npx wdio run</text>
                 <text x="16" y="70" className={styles.hubCode}>
@@ -112,7 +122,11 @@ export default function PlatformDiagram () {
                     <g transform="translate(12 12)" className={styles.tileIcon}><Icon name={tile.icon} /></g>
                     <text x="38" y="26" className={styles.tileLabel}>{tile.label}</text>
                     <text x="12" y="50" className={styles.tileDetail}>{tile.detail}</text>
-                    <g transform={`translate(${TILE_W - 22} 10)`} className={styles.tileCheck}>
+                    <g
+                        transform={`translate(${TILE_W - 22} 10)`}
+                        className={styles.tileCheck}
+                        style={{ '--check-x': `${TILE_W - 22}px` } as React.CSSProperties}
+                    >
                         <circle cx="6" cy="6" r="6" fill="#22c55e" />
                         <path d="M3.2 6.2 5.2 8.2 8.8 4.4" stroke="#fff" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                     </g>

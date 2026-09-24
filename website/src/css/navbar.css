@@ -1,9 +1,8 @@
 .navbar {
     height: var(--ifm-navbar-height);
     padding: 0 1rem;
-    background: color-mix(in srgb, var(--wdio-bg) 82%, transparent);
-    backdrop-filter: saturate(180%) blur(12px);
-    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    background: color-mix(in srgb, var(--wdio-bg) 78%, transparent);
+    backdrop-filter: blur(20px) saturate(160%);
     border-bottom: 1px solid var(--wdio-border);
     box-shadow: none;
 }
@@ -144,15 +143,6 @@ body .react-toggle-thumb {
     }
 }
 
-
-.dropdown-version-item {
-    font-weight: bold;
-    font-size: large;
-  }
-
-  .dropdown-version-item:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
 
 .navbar-sponsor-button.navbar__link {
     margin-left: 0.25rem;

@@ -1,58 +1,195 @@
-import React from 'react'
+import React, { useEffect, useId, useRef, useState } from 'react'
 import clsx from 'clsx'
+import useBaseUrl from '@docusaurus/useBaseUrl'
+import { translate } from '@docusaurus/Translate'
 
-import { useStepper } from './useStepper'
 import styles from './home.module.css'
 
-const STEPS = [
-    { command: 'url', args: '"/login"', time: '0.00s', target: undefined },
-    { command: 'setValue', args: '"aria/Email"', time: '0.84s', target: 'email' },
-    { command: 'setValue', args: '"aria/Password"', time: '1.12s', target: 'password' },
-    { command: 'click', args: '"button=Log in"', time: '1.37s', target: 'button' },
-    { command: 'expect', args: 'toHaveText("Welcome")', time: '2.05s', target: 'title' },
+const CLIPS = [
+    {
+        gif: '/img/devtools/home-live.gif',
+        poster: '/img/devtools/home-live.png',
+        title: translate({ id: 'homepage.devtools.clip.live.title', message: 'Live mode' }),
+        text: translate({
+            id: 'homepage.devtools.clip.live.text',
+            message: 'The dashboard that opens while your tests run. Commands, the page, and source update as each step executes.',
+        }),
+        ms: 9000,
+    },
+    {
+        gif: '/img/devtools/home-inspect.gif',
+        poster: '/img/devtools/home-inspect.png',
+        title: translate({ id: 'homepage.devtools.clip.inspect.title', message: 'After the run' }),
+        text: translate({
+            id: 'homepage.devtools.clip.inspect.text',
+            message: 'Open any finished test to inspect its commands, snapshots, and network traffic.',
+        }),
+        ms: 8000,
+    },
+    {
+        gif: '/img/devtools/home-trace.gif',
+        poster: '/img/devtools/home-trace.png',
+        title: translate({ id: 'homepage.devtools.clip.trace.title', message: 'Trace replay' }),
+        text: translate({
+            id: 'homepage.devtools.clip.trace.text',
+            message: 'A portable trace.zip from CI, replayed step by step with the page, timeline, and source.',
+        }),
+        ms: 12000,
+    },
 ] as const
 
 /**
- * A trace being replayed: every command of the test is listed with its
- * timing, and the snapshot highlights the element it acted on.
+ * Cropped recordings of the real DevTools UI. Clips only start when the
+ * card is on screen; reduced-motion users get a still frame. Click the
+ * recording to open it larger.
  */
 export default function DevToolsDemo () {
-    const { ref, step } = useStepper<HTMLDivElement>(STEPS.length, 1200, 2)
-    const current = STEPS[Math.max(0, Math.min(step, STEPS.length) - 1)]
-    const done = step >= STEPS.length
+    const liveGif = useBaseUrl(CLIPS[0].gif)
+    const livePoster = useBaseUrl(CLIPS[0].poster)
+    const inspectGif = useBaseUrl(CLIPS[1].gif)
+    const inspectPoster = useBaseUrl(CLIPS[1].poster)
+    const traceGif = useBaseUrl(CLIPS[2].gif)
+    const tracePoster = useBaseUrl(CLIPS[2].poster)
+    const clips = [
+        { ...CLIPS[0], gif: liveGif, poster: livePoster },
+        { ...CLIPS[1], gif: inspectGif, poster: inspectPoster },
+        { ...CLIPS[2], gif: traceGif, poster: tracePoster },
+    ]
+    const titleId = useId()
+    const ref = useRef<HTMLDivElement>(null)
+    const dialogRef = useRef<HTMLDialogElement>(null)
+    const [index, setIndex] = useState(0)
+    const [playing, setPlaying] = useState(false)
+    const [open, setOpen] = useState(false)
+    const [reduceMotion, setReduceMotion] = useState(false)
+    const clip = clips[index]
+
+    useEffect(() => {
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        setReduceMotion(reduce)
+        const node = ref.current
+        if (!node || reduce) {
+            return
+        }
+        const observer = new IntersectionObserver(([entry]) => {
+            setPlaying(entry.isIntersecting)
+        }, { threshold: 0.35 })
+        observer.observe(node)
+        return () => observer.disconnect()
+    }, [])
+
+    useEffect(() => {
+        if (!playing || open) {
+            return
+        }
+        const timer = window.setTimeout(() => {
+            setIndex((current) => (current + 1) % CLIPS.length)
+        }, CLIPS[index].ms)
+        return () => window.clearTimeout(timer)
+    }, [playing, open, index])
+
+    const openDialog = () => {
+        setOpen(true)
+        dialogRef.current?.showModal()
+    }
+
+    const closeDialog = () => {
+        setOpen(false)
+        if (dialogRef.current?.open) {
+            dialogRef.current.close()
+        }
+    }
+
+    const animate = playing && !open
+    const srcFor = (i: number) => {
+        const item = clips[i]
+        const loadGif = (animate || open) && (i === index || i === (index + 1) % clips.length)
+        return loadGif && !reduceMotion ? item.gif : item.poster
+    }
 
     return (
-        <div className={styles.devtools} ref={ref} aria-label="WebdriverIO DevTools replaying a test trace">
-            <div className={styles.windowBar}>
-                <span /><span /><span />
-                <em>WebdriverIO DevTools · trace-login.zip</em>
-            </div>
-            <div className={styles.devtoolsBody}>
-                <ol className={styles.devtoolsSteps}>
-                    {STEPS.map((s, i) => (
-                        <li key={i} className={clsx(i < step && styles.devtoolsStepDone, current === s && styles.devtoolsStepActive)}>
-                            <span className={styles.devtoolsTime}>{s.time}</span>
-                            <code>{s.command}</code>
-                            <span className={styles.devtoolsArgs}>{s.args}</span>
-                        </li>
+        <div className={styles.devtools} ref={ref}>
+            <button
+                type="button"
+                className={styles.devtoolsStage}
+                onClick={openDialog}
+                aria-haspopup="dialog"
+                aria-expanded={open}
+                aria-label={translate({
+                    id: 'homepage.devtools.clip.enlarge',
+                    message: 'Enlarge recording: {title}',
+                }, { title: clip.title })}
+            >
+                {clips.map((item, i) => (
+                    <img
+                        key={item.gif}
+                        className={clsx(styles.devtoolsClip, i === index && styles.devtoolsClipActive)}
+                        src={srcFor(i)}
+                        alt=""
+                        width={800}
+                        height={420}
+                    />
+                ))}
+                <span className={styles.devtoolsHint}>
+                    {translate({ id: 'homepage.devtools.clip.hint', message: 'Click to enlarge' })}
+                </span>
+            </button>
+            <div className={styles.devtoolsCaption}>
+                <div>
+                    <strong>{clip.title}</strong>
+                    <p>{clip.text}</p>
+                </div>
+                <div className={styles.devtoolsNav} role="tablist" aria-label={translate({
+                    id: 'homepage.devtools.clip.pages',
+                    message: 'DevTools recordings',
+                })}>
+                    {clips.map((item, i) => (
+                        <button
+                            key={item.gif}
+                            type="button"
+                            role="tab"
+                            aria-label={item.title}
+                            aria-selected={i === index}
+                            className={clsx(styles.devtoolsDot, i === index && styles.devtoolsDotActive)}
+                            onClick={() => setIndex(i)}
+                        />
                     ))}
-                </ol>
-                <div className={styles.devtoolsSnapshot}>
-                    <div className={clsx(styles.snapTitle, current.target === 'title' && styles.snapTarget)}>
-                        {done ? 'Welcome' : 'Log in'}
-                    </div>
-                    <div className={clsx(styles.snapField, current.target === 'email' && styles.snapTarget)}>
-                        {step >= 2 ? 'jane@example.com' : ''}
-                    </div>
-                    <div className={clsx(styles.snapField, current.target === 'password' && styles.snapTarget)}>
-                        {step >= 3 ? '••••••••' : ''}
-                    </div>
-                    <div className={clsx(styles.snapButton, current.target === 'button' && styles.snapTarget)}>Log in</div>
                 </div>
             </div>
-            <div className={styles.devtoolsTimeline}>
-                <div className={styles.devtoolsProgress} style={{ width: `${(Math.min(step, STEPS.length) / STEPS.length) * 100}%` }} />
-            </div>
+            <dialog
+                ref={dialogRef}
+                className={styles.devtoolsDialog}
+                aria-labelledby={titleId}
+                onClose={closeDialog}
+                onClick={(event) => {
+                    if (event.target === event.currentTarget) {
+                        closeDialog()
+                    }
+                }}
+            >
+                <div className={styles.devtoolsDialogInner}>
+                    <div className={styles.devtoolsDialogBar}>
+                        <div>
+                            <strong id={titleId}>{clip.title}</strong>
+                            <p>{clip.text}</p>
+                        </div>
+                        <button
+                            type="button"
+                            className={styles.devtoolsDialogClose}
+                            onClick={closeDialog}
+                        >
+                            {translate({ id: 'homepage.devtools.clip.close', message: 'Close' })}
+                        </button>
+                    </div>
+                    <img
+                        className={styles.devtoolsDialogImage}
+                        src={reduceMotion ? clip.poster : clip.gif}
+                        alt={clip.title}
+                        width={800}
+                        height={420}
+                    />
+                </div>
+            </dialog>
         </div>
     )
 }

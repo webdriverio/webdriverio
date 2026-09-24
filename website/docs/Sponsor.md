@@ -27,29 +27,29 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
 
 ## Tier Benefits​
 
-- __💎 Premium (USD $1000/mo or higher):__
+- __<TierIcon tier="premium" /> Premium (USD $1000/mo or higher):__
   - Limited to two sponsors globally
   - Exclusive above-the-fold logo placement on the front page of webdriver.io (~2.8k daily unique visitors).
   - Most prominent logo placement in all locations from tiers below.
   - Guaranteed exclusivity for a minimum of one year, during which no other entity can "outbid" or replace them, ensuring a fixed period of partnership and visibility.
-- __🥇 Gold (USD $500 / mo):__
+- __<TierIcon tier="gold" /> Gold (USD $500 / mo):__
   - Large logo placement on the front page of [webdriver.io](https://webdriver.io/)
   - Large logo placement in the [`README.md`](https://github.com/webdriverio/webdriverio/blob/main/README.md) and [`BACKERS.md`](https://github.com/webdriverio/webdriverio/blob/main/BACKERS.md) of the [`webdriverio/webdriverio`](https://github.com/webdriverio/webdriverio) repository.
-- __🥈 Silver (USD $250 / mo):__
+- __<TierIcon tier="silver" /> Silver (USD $250 / mo):__
   - Medium logo placement on this sponsors page
   - Medium logo placement in the [`README.md`](https://github.com/webdriverio/webdriverio/blob/main/README.md) and [`BACKERS.md`](https://github.com/webdriverio/webdriverio/blob/main/BACKERS.md) of the [`webdriverio/webdriverio`](https://github.com/webdriverio/webdriverio) repository.
-- __🥉 Bronze (USD $100 / mo):__
+- __<TierIcon tier="bronze" /> Bronze (USD $100 / mo):__
   - Your name or company logo (small) will be put in [`webdriverio/webdriverio`](https://github.com/webdriverio/webdriverio), [`README.md`](https://github.com/webdriverio/webdriverio/blob/main/README.md) and [`BACKERS.md`](https://github.com/webdriverio/webdriverio/blob/main/BACKERS.md) files.
-- __🍺 Generous Backer (USD $50 / mo):__
+- __<TierIcon tier="backer" /> Generous Backer (USD $50 / mo):__
   - Your name will be listed under the "Generous Backers" section in [`webdriverio/webdriverio`](https://github.com/webdriverio/webdriverio), [`README.md`](https://github.com/webdriverio/webdriverio/blob/main/README.md) and [`BACKERS.md`](https://github.com/webdriverio/webdriverio/blob/main/BACKERS.md) files.
-- __☕️ Individual Backer (USD $5 / mo):__
+- __<TierIcon tier="individual" /> Individual Backer (USD $5 / mo):__
   - Name listed in the [`BACKERS.md`](https://github.com/webdriverio/webdriverio/blob/main/BACKERS.md) file of the [`webdriverio/webdriverio`](https://github.com/webdriverio/webdriverio) repository.
 
 ---
 
 ## Current Sponsors
 
-### 💎 Premium
+### Premium <TierIcon tier="premium" /> {#premium}
 
 <ImageSwitcher
     lightImageSrc="/img/sponsors/browserstack_black.svg"
@@ -72,7 +72,7 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
 <br />
 <br />
 
-### 🥇 Gold
+### Gold <TierIcon tier="gold" /> {#gold}
 
 <ImageSwitcher
     lightImageSrc="/img/sponsors/jetify_black.png"
@@ -97,7 +97,7 @@ Become a [Gold Sponsor](https://opencollective.com/webdriverio/contribute/gold-s
 
 <br />
 
-### 🥈 Silver
+### Silver <TierIcon tier="silver" /> {#silver}
 
 <ImageSwitcher
     lightImageSrc="/img/sponsors/testingbot.svg"
@@ -121,7 +121,7 @@ Become a [Silver Sponsor](https://opencollective.com/webdriverio/contribute/silv
 
 <br />
 
-### 🥉 Bronze
+### Bronze <TierIcon tier="bronze" /> {#bronze}
 
 <ImageSwitcher
     lightImageSrc="/img/sponsors/eslint_black.svg"
@@ -146,7 +146,7 @@ Become a [Bronze Sponsor](https://opencollective.com/webdriverio/contribute/bron
 <br />
 <br />
 
-### 🙇 Notable Past Sponsors
+### Notable Past Sponsors <TierIcon tier="past" /> {#past}
 
 We are grateful for the support of all our sponsors! Here are some of the companies that have supported WebdriverIO in the past.
 

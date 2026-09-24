@@ -8,12 +8,13 @@ From the repository root:
 
 ```sh
 pnpm install
-pnpm run docs:generate   # generate API, protocol and package pages
 cd website
-pnpm start               # dev server on http://localhost:3000
+pnpm start               # English-only dev server on http://localhost:3000
 ```
 
-`pnpm start` also runs the generation step, so re-run it after changing JSDoc, protocol specs or package READMEs.
+`pnpm start` regenerates the English pages and skips the translation download.
+Use `pnpm start:i18n` when the preview should include the other locales.
+Re-run it after changing JSDoc, protocol specs, or package READMEs.
 
 ## Build
 

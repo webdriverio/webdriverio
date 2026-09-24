@@ -7,31 +7,29 @@
 
 .buttonGroup {
     display: inline-flex;
-    border: 1px solid var(--ifm-color-emphasis-300);
-    border-radius: 8px;
-    overflow: hidden;
-    background: var(--ifm-background-surface-color);
+    border: 0;
+    background: transparent;
 }
 
 .button,
 .toggle {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.35rem;
     border: 0;
+    border-radius: 8px;
     background: transparent;
-    color: var(--ifm-font-color-base);
+    color: var(--wdio-text-muted);
     font: inherit;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 500;
-    padding: 0.35rem 0.7rem;
+    padding: 0.25rem 0.45rem;
     cursor: pointer;
-    transition: background-color 150ms ease;
+    transition: color 150ms ease, background-color 150ms ease;
 }
 
 .toggle {
-    border-left: 1px solid var(--ifm-color-emphasis-300);
-    padding: 0.35rem 0.5rem;
+    padding: 0.25rem 0.35rem;
 }
 
 .button:hover,
@@ -55,10 +53,24 @@
 
 .menuItem {
     display: flex;
-    flex-direction: column;
-    padding: 0.45rem 0.6rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.45rem 0.55rem;
     border-radius: 6px;
     color: var(--ifm-font-color-base);
+}
+
+.menuIcon {
+    display: flex;
+    flex: none;
+    color: var(--wdio-text);
+}
+
+.menuCopy {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
 }
 
 .menuItem:hover {

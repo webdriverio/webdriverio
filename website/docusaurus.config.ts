@@ -97,7 +97,7 @@ const config: Config = {
         },
         announcementBar: {
             id: 'supportus',
-            content: '🇺🇦  &nbsp;We stand with the people of Ukraine. We encourage compassion, and hope for peace. &nbsp; 🇺🇦 Please support humanitarian efforts for the Ukraine crisis through the <a target="_blank" rel="noopener noreferrer" href="https://www.icrc.org/en/donate/ukraine">International Committee of the Red Cross</a>! #StandWithUkraine',
+            content: '🇺🇦 We stand with Ukraine. Support humanitarian relief through the <a target="_blank" rel="noopener noreferrer" href="https://www.icrc.org/en/donate/ukraine">International Committee of the Red Cross</a>.',
         },
         navbar: {
             // title: 'I/O',
@@ -134,7 +134,6 @@ const config: Config = {
                 items: versions.map(v => ({
                     label: v.label,
                     href: v.path,
-                    className: 'dropdown-version-item'
                 }))
             }, {
                 type: 'localeDropdown',
@@ -253,10 +252,6 @@ const config: Config = {
                 <a href="https://openjsf.org/">The OpenJS Foundation</a> | <a href="https://terms-of-use.openjsf.org/">Terms of Use</a> | <a href="https://privacy-policy.openjsf.org/">Privacy Policy</a> | <a href="https://bylaws.openjsf.org/">Bylaws</a> | <a href="https://code-of-conduct.openjsf.org/">Code of Conduct</a> | <a href="https://trademark-policy.openjsf.org/">Trademark Policy</a> | <a href="https://trademark-list.openjsf.org/">Trademark List</a> | <a href="https://www.linuxfoundation.org/cookies/">Cookie Policy</a>
               </p>
             `,
-        },
-        codeblock: {
-            showRunmeLink: true,
-            runmeLinkLabel: 'Run Example'
         },
     } satisfies ThemeConfig,
     presets: [

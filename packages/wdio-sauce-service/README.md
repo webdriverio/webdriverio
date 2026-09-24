@@ -117,41 +117,45 @@ To authorize the Sauce Labs service your config needs to contain a [`user`](http
 
 ### maxErrorStackLength
 
+<Option type="number" default="5">
+
 This service will automatically push the error stack to Sauce Labs when a test fails. By default, it will only push the first 5 lines, but if needed this can be changed. Be aware that more lines will result in more WebDriver calls which might slow down the execution.
 
-Type: `number`<br />
-Default: `5`
+</Option>
 
 ### sauceConnect
 
+<Option type="Boolean" default="false">
+
 If `true` it runs Sauce Connect and opens a secure connection between a Sauce Labs virtual machine running your browser tests.
 
-Type: `Boolean`<br />
-Default: `false`
+</Option>
 
 ### sauceConnectOpts
+
+<Option type="Object" default={`{ }`}>
 
 Apply Sauce Connect options (e.g. to change port number or logFile settings). See [this list](https://docs.saucelabs.com/dev/cli/sauce-connect-5/run/) for more information.
 
 NOTE: When specifying the options the `--` should be omitted. It can also be turned into camelCase (e.g. `shared-tunnel` or `sharedTunnel`).
 
-Type: `Object`<br />
-Default: `{ }`
+</Option>
 
 ### uploadLogs
 
+<Option type="Boolean" default="true">
+
 If `true` this option uploads all WebdriverIO log files to the Sauce Labs platform for further inspection. Make sure you have [`outputDir`](https://webdriver.io/docs/options#outputdir) set in your wdio config to write logs into files, otherwise data will be streamed to stdout and can't get uploaded.
 
-Type: `Boolean`<br />
-Default: `true`
+</Option>
 
 ### setJobName
 
+<Option type="Function" default="(config, capabilities, suiteTitle) => suiteTitle">
+
 Allows users to dynamically set the job name based on worker parameters such as WebdriverIO configuration, used capabilities and the original suite title.
 
-Type: `Function`<br />
-Default: `(config, capabilities, suiteTitle) => suiteTitle`
-
+</Option>
 ----
 
 ## Overriding generated name metadata
@@ -163,3 +167,5 @@ You can override this by providing a value for the `name` desired capability, bu
 ----
 
 For more information on WebdriverIO see the [homepage](https://webdriver.io).
+
+

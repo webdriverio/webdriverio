@@ -34,6 +34,14 @@ function SectionHeader ({ eyebrow, title, children }: { eyebrow: string, title: 
 function Feature ({ title, children, to }: { title: string, children: React.ReactNode, to?: string }) {
     const content = (
         <>
+            {to && (
+                <span className={styles.featureArrow} aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M7 17 17 7" />
+                        <path d="M9 7h8v8" />
+                    </svg>
+                </span>
+            )}
             <h3>{title}</h3>
             <p>{children}</p>
         </>
@@ -49,10 +57,6 @@ export default function Home () {
             <main className={styles.home}>
                 <header className={clsx(styles.frame, styles.hero)}>
                     <div className={styles.heroText}>
-                        <Link to="/community/support" className={styles.badge}>
-                            <span className={styles.badgeDot} />
-                            <Translate id="homepage.hero.badge">Community driven · OpenJS Foundation</Translate>
-                        </Link>
                         <h1 className={styles.heroTitle}>
                             <Translate id="homepage.hero.title">One framework to test every platform your users are on</Translate>
                         </h1>

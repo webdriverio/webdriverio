@@ -58,27 +58,35 @@ Specific options passed into Safari when starting it.
 
 #### `wdio:maxInstances`
 
+<Option type="number">
+
 Maximum number of total parallel running workers for the specific browser/capability. Takes precedence over [maxInstances](#configuration#maxInstances) and [maxInstancesPerCapability](configuration/#maxinstancespercapability).
 
-Type: `number`
+</Option>
 
 #### `wdio:specs`
 
+<Option type="(String | String[])[]">
+
 Define specs for test execution for that browser/capability. Same as the [regular `specs` configuration option](configuration#specs), but specific to the browser/capability. Takes precedence over `specs`.
 
-Type: `(String | String[])[]`
+</Option>
 
 #### `wdio:exclude`
 
+<Option type="String[]">
+
 Exclude specs from test execution for that browser/capability. Same as the [regular `exclude` configuration option](configuration#exclude), but specific to the browser/capability. Excludes after the global `exclude` configuration option is applied.
 
-Type: `String[]`
+</Option>
 
 #### `wdio:enforceWebDriverClassic`
 
+<Option type="boolean">
+
 By default, WebdriverIO attempts to establish a WebDriver Bidi session. If you don't prefer that, you can set this flag to disable this behavior.
 
-Type: `boolean`
+</Option>
 
 #### Common Driver Options
 
@@ -86,19 +94,21 @@ While all driver offer different parameters for configuration, there are some co
 
 ##### `cacheDir`
 
+<Option type="string" default="process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()">
+
 The path to the root of the cache directory. This directory is used to store all drivers that are downloaded when attempting to start a session.
 
-Type: `string`<br />
-Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
+</Option>
 
 ##### `binary`
+
+<Option type="string">
 
 Path to a custom driver binary. If set WebdriverIO won't attempt to download a driver but will use the one provided by this path. Make sure the driver is compatible with the browser you are using.
 
 You can provide this path via `CHROMEDRIVER_PATH`, `GECKODRIVER_PATH` or `EDGEDRIVER_PATH` environment variables.
 
-Type: `string`
-
+</Option>
 :::caution
 
 If the driver `binary` is set, WebdriverIO won't attempt to download a driver but will use the one provided by this path. Make sure the driver is compatible with the browser you are using.
@@ -151,82 +161,120 @@ In order to propagate options to the driver you can use the following custom cap
 <TabItem value="chrome">
 
 ##### adbPort
+
+<Option type="number">
+
 The port on which the ADB driver should run.
 
 Example: `9515`
 
-Type: `number`
+</Option>
 
 ##### urlBase
+
+<Option type="string">
+
 Base URL path prefix for commands, e.g. `wd/url`.
 
 Example: `/`
 
-Type: `string`
+</Option>
 
 ##### logPath
+
+<Option type="string">
+
 Write server log to file instead of stderr, increases log level to `INFO`
 
-Type: `string`
+</Option>
 
 ##### logLevel
+
+<Option type="string">
+
 Set log level. Possible options `ALL`, `DEBUG`, `INFO`, `WARNING`, `SEVERE`, `OFF`.
 
-Type: `string`
+</Option>
 
 ##### verbose
+
+<Option type="boolean">
+
 Log verbosely (equivalent to `--log-level=ALL`)
 
-Type: `boolean`
+</Option>
 
 ##### silent
+
+<Option type="boolean">
+
 Log nothing (equivalent to `--log-level=OFF`)
 
-Type: `boolean`
+</Option>
 
 ##### appendLog
+
+<Option type="boolean">
+
 Append log file instead of rewriting.
 
-Type: `boolean`
+</Option>
 
 ##### replayable
+
+<Option type="boolean">
+
 Log verbosely and don't truncate long strings so that the log can be replayed (experimental).
 
-Type: `boolean`
+</Option>
 
 ##### readableTimestamp
+
+<Option type="boolean">
+
 Add readable timestamps to log.
 
-Type: `boolean`
+</Option>
 
 ##### enableChromeLogs
+
+<Option type="boolean">
+
 Show logs from the browser (overrides other logging options).
 
-Type: `boolean`
+</Option>
 
 ##### bidiMapperPath
+
+<Option type="string">
+
 Custom bidi mapper path.
 
-Type: `string`
+</Option>
 
 ##### allowedIps
+
+<Option type="string[]" default="['']">
+
 Comma-separated allowlist of remote IP addresses which are allowed to connect to EdgeDriver.
 
-Type: `string[]`<br />
-Default: `['']`
+</Option>
 
 ##### allowedOrigins
+
+<Option type="string[]" default="['*']">
+
 Comma-separated allowlist of request origins which are allowed to connect to EdgeDriver. Using `*` to allow any host origin is dangerous!
 
-Type: `string[]`<br />
-Default: `['*']`
+</Option>
 
 ##### spawnOpts
+
+<Option type="SpawnOptionsWithoutStdio | SpawnOptionsWithStdioTuple<StdioOption, StdioOption, StdioOption>" default="undefined">
+
 Options to be passed into the driver process.
 
-Type: `SpawnOptionsWithoutStdio | SpawnOptionsWithStdioTuple<StdioOption, StdioOption, StdioOption>`<br />
-Default: `undefined`
-
+</Option>
 </TabItem>
 <TabItem value="firefox">
 
@@ -464,3 +512,5 @@ declare global {
     }
 }
 ```
+
+

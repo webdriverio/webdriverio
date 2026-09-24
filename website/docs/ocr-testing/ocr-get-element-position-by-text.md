@@ -52,11 +52,11 @@ result = {
 
 ### `text`
 
--   **Type:** `string`
--   **Mandatory:** yes
+<Option type="string" required="yes">
 
 The text you want to search for to click on.
 
+</Option>
 #### Example
 
 ```js
@@ -65,12 +65,11 @@ await browser.ocrGetElementPositionByText({ text: "WebdriverIO" });
 
 ### `contrast`
 
--   **Type:** `number`
--   **Mandatory:** no
--   **Default:** `0.25`
+<Option type="number" default="0.25" required="no">
 
 The higher the contrast, the darker the image and vice versa. This can help to find text in an image. It accepts values between `-1` and `1`.
 
+</Option>
 #### Example
 
 ```js
@@ -82,11 +81,11 @@ await browser.ocrGetElementPositionByText({
 
 ### `haystack`
 
--   **Type:** `number`
--   **Mandatory:** `WebdriverIO.Element | ChainablePromiseElement | Rectangle`
+<Option type="number" required="WebdriverIO.Element | ChainablePromiseElement | Rectangle">
 
 This is the search area in the screen where the OCR needs to look for text. This can be an element or a rectangle containing `x`, `y`, `width` and `height`
 
+</Option>
 #### Example
 
 ```js
@@ -115,12 +114,11 @@ await browser.ocrGetElementPositionByText({
 
 ### `language`
 
--   **Type:** `string`
--   **Mandatory:** No
--   **Default:** `eng`
+<Option type="string" default="eng" required="No">
 
 The language that Tesseract will recognize. More info can be found [here](https://tesseract-ocr.github.io/tessdoc/Data-Files-in-different-versions) and the supported languages can be found [here](https://github.com/webdriverio/visual-testing/blob/main/packages/ocr-service/src/utils/constants.ts).
 
+</Option>
 #### Example
 
 ```js
@@ -138,12 +136,11 @@ You can alter the fuzzy logic to find text with the following options. This migh
 
 #### `fuzzyFindOptions.distance`
 
--   **Type:** `number`
--   **Mandatory:** no
--   **Default:** 100
+<Option type="number" default="100" required="no">
 
 Determines how close the match must be to the fuzzy location (specified by location). An exact letter match which is distance characters away from the fuzzy location would score as a complete mismatch. A distance of 0 requires the match to be at the exact location specified. A distance of 1000 would require a perfect match to be within 800 characters of the location to be found using a threshold of 0.8.
 
+</Option>
 ##### Example
 
 ```js
@@ -157,12 +154,11 @@ await browser.ocrGetElementPositionByText({
 
 #### `fuzzyFindOptions.location`
 
--   **Type:** `number`
--   **Mandatory:** no
--   **Default:** 0
+<Option type="number" default="0" required="no">
 
 Determines approximately where in the text is the pattern expected to be found.
 
+</Option>
 ##### Example
 
 ```js
@@ -176,12 +172,11 @@ await browser.ocrGetElementPositionByText({
 
 #### `fuzzyFindOptions.threshold`
 
--   **Type:** `number`
--   **Mandatory:** no
--   **Default:** 0.6
+<Option type="number" default="0.6" required="no">
 
 At what point does the matching algorithm give up. A threshold of 0 requires a perfect match (of both letters and location), a threshold of 1.0 would match anything.
 
+</Option>
 ##### Example
 
 ```js
@@ -195,12 +190,11 @@ await browser.ocrGetElementPositionByText({
 
 #### `fuzzyFindOptions.isCaseSensitive`
 
--   **Type:** `boolean`
--   **Mandatory:** no
--   **Default:** false
+<Option type="boolean" default="false" required="no">
 
 Whether the search should be case sensitive.
 
+</Option>
 ##### Example
 
 ```js
@@ -214,12 +208,11 @@ await browser.ocrGetElementPositionByText({
 
 #### `fuzzyFindOptions.minMatchCharLength`
 
--   **Type:** `number`
--   **Mandatory:** no
--   **Default:** 2
+<Option type="number" default="2" required="no">
 
 Only the matches whose length exceeds this value will be returned. (For instance, if you want to ignore single character matches in the result, set it to 2)
 
+</Option>
 ##### Example
 
 ```js
@@ -233,12 +226,11 @@ await browser.ocrGetElementPositionByText({
 
 #### `fuzzyFindOptions.findAllMatches`
 
--   **Type:** `number`
--   **Mandatory:** no
--   **Default:** false
+<Option type="number" default="false" required="no">
 
 When `true`, the matching function will continue to the end of a search pattern even if a perfect match has already been located in the string.
 
+</Option>
 ##### Example
 
 ```js

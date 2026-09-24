@@ -25,16 +25,20 @@ files listed in `.gitignore`), `website/docs/_*.md`, `website/sidebars.json`,
 
 ```sh
 pnpm run docs:list
-pnpm run docs:generate
-pnpm run watch:docs          # regenerate + docusaurus start
+pnpm run docs:generate:en    # English only; skips the i18n zip download
+pnpm run docs:generate       # includes translation download (CI / full site)
+pnpm run watch:docs          # English-only regenerate + docusaurus start
 cd website && pnpm install && pnpm start
+cd website && pnpm start:i18n
 pnpm run docs:build          # production build (CI docs job)
 pnpm run docs:check          # sidebar coverage, URL preservation, llms.txt links
 pnpm run docs:eval           # can the docs search find the right page? (website/evals)
 ```
 
-`pnpm start` in `website/` does not pick up JSDoc / protocol / README changes
-until `docs:generate` has been run.
+`pnpm start` in `website/` regenerates English docs, then starts the dev server.
+It does not download translations. Use `pnpm start:i18n` (or `pnpm run docs:generate`
+from the repo root) when a local preview needs the other locales. JSDoc,
+protocol, and README edits are picked up on the next start.
 
 ## Guardrails
 

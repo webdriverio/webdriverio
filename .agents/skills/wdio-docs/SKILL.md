@@ -31,8 +31,8 @@ Do not edit `website/docs/api/**` (except the few hand-written files in
 ## Verify
 
 ```sh
-pnpm run docs:generate
-# optional local preview
+pnpm run docs:generate:en
+# optional local preview (English only, no i18n download)
 cd website && pnpm install && pnpm start
 ```
 

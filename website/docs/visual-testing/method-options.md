@@ -26,9 +26,8 @@ Methods options are the options that can be set per [method](./methods). If the 
 
 ### `hideScrollBars`
 
-- **Type:** `boolean`
-- **Mandatory:** No
-- **Default:** `true`
+<Option type="boolean" default="true" required="No">
+
 - **Used with:** All [methods](./methods)
 - **Supported Application Contexts:** Web, Hybrid App (Webview)
 
@@ -43,11 +42,11 @@ await browser.saveScreen(
 )
 ```
 
+</Option>
 ### `disableBlinkingCursor`
 
-- **Type:** `boolean`
-- **Mandatory:** No
-- **Default:** `false`
+<Option type="boolean" default="false" required="No">
+
 - **Used with:** All [methods](./methods)
 - **Supported Application Contexts:** Web, Hybrid App (Webview)
 
@@ -63,11 +62,11 @@ await browser.saveScreen(
 )
 ```
 
+</Option>
 ### `disableCSSAnimation`
 
-- **Type:** `boolean`
-- **Mandatory:** No
-- **Default:** `false`
+<Option type="boolean" default="false" required="No">
+
 - **Used with:** All [methods](./methods)
 - **Supported Application Contexts:** Web, Hybrid App (Webview)
 
@@ -83,11 +82,11 @@ await browser.saveScreen(
 )
 ```
 
+</Option>
 ### `enableLayoutTesting`
 
-- **Type:** `boolean`
-- **Mandatory:** No
-- **Default:** `false`
+<Option type="boolean" default="false" required="No">
+
 - **Used with:** All [methods](./methods)
 - **Supported Application Contexts:** Web, Hybrid App (Webview)
 
@@ -108,11 +107,11 @@ await browser.saveScreen(
 )
 ```
 
+</Option>
 ### `enableLegacyScreenshotMethod`
 
-- **Type:** `boolean`
-- **Mandatory:** No
-- **Default:** `false`
+<Option type="boolean" default="false" required="No">
+
 - **Used with:** All [methods](./methods)
 - **Supported Application Contexts:** Web, Hybrid App (Webview)
 
@@ -128,11 +127,11 @@ await browser.saveScreen(
 )
 ```
 
+</Option>
 ### `ignoreRegionPadding`
 
-- **Type:** `number`
-- **Mandatory:** No
-- **Default:** `1`
+<Option type="number" default="1" required="No">
+
 - **Used with:** All [methods](./methods)
 - **Supported Application Contexts:** Web, Hybrid App (Webview)
 
@@ -147,11 +146,11 @@ await browser.saveScreen(
 )
 ```
 
+</Option>
 ### `waitForFontsLoaded`
 
-- **Type:** `boolean`
-- **Mandatory:** No
-- **Default:** `true`
+<Option type="boolean" default="true" required="No">
+
 - **Used with:** All [methods](./methods)
 - **Supported Application Contexts:** Web, Hybrid App (Webview)
 
@@ -166,14 +165,15 @@ await browser.saveScreen(
 )
 ```
 
+</Option>
 ## Element visibility
 
 ---
 
 ### `hideElements`
 
-- **Type:** `array`
-- **Mandatory:** No
+<Option type="array" required="No">
+
 - **Used with:** All [methods](./methods)
 - **Supported Application Contexts:** Web, Hybrid App (Webview)
 
@@ -191,10 +191,11 @@ await browser.saveScreen(
 )
 ```
 
+</Option>
 ### `removeElements`
 
-- **Type:** `array`
-- **Mandatory:** No
+<Option type="array" required="No">
+
 - **Used with:** All [methods](./methods)
 - **Supported Application Contexts:** Web, Hybrid App (Webview)
 
@@ -212,15 +213,15 @@ await browser.saveScreen(
 )
 ```
 
+</Option>
 ## Element-specific
 
 ---
 
 ### `resizeDimensions`
 
-- **Type:** `object`
-- **Mandatory:** No
-- **Default:** `{ top: 0, right: 0, bottom: 0, left: 0}`
+<Option type="object" default={`{ top: 0, right: 0, bottom: 0, left: 0}`} required="No">
+
 - **Used with:** Only for [`saveElement`](./methods#saveelement) or [`checkElement`](./methods#checkelement)
 - **Supported Application Contexts:** Web, Hybrid App (Webview), Native App
 
@@ -240,11 +241,11 @@ await browser.saveElement(
 )
 ```
 
+</Option>
 ### `biDiOrigin`
 
-- **Type:** `'document' | 'viewport'`
-- **Mandatory:** No
-- **Default:** `'document'`
+<Option type="'document' | 'viewport'" default="'document'" required="No">
+
 - **Used with:** Only for [`saveElement`](./methods#saveelement) or [`checkElement`](./methods#checkelement)
 - **Supported Application Contexts:** Web, Hybrid App (Webview)
 
@@ -263,15 +264,15 @@ await browser.saveElement(
 )
 ```
 
+</Option>
 ## Full-page specific
 
 ---
 
 ### `userBasedFullPageScreenshot`
 
-- **Type:** `boolean`
-- **Mandatory:** No
-- **Default:** `false`
+<Option type="boolean" default="false" required="No">
+
 - **Used with:** Only for [`saveFullPageScreen`](./methods#savefullpagescreen), [`saveTabbablePage`](./methods#savetabbablepage), [`checkFullPageScreen`](./methods#checkfullpagescreen) or [`checkTabbablePage`](./methods#checktabbablepage)
 - **Supported Application Contexts:** Web, Hybrid App (Webview)
 
@@ -288,11 +289,11 @@ await browser.saveScreen(
 )
 ```
 
+</Option>
 ### `fullPageScrollTimeout`
 
-- **Type:** `number`
-- **Mandatory:** No
-- **Default:** `1500`
+<Option type="number" default="1500" required="No">
+
 - **Used with:** Only for [`saveFullPageScreen`](./methods#savefullpagescreen) or [`saveTabbablePage`](./methods#savetabbablepage)
 - **Supported Application Contexts:** Web, Hybrid App (Webview)
 
@@ -309,10 +310,11 @@ await browser.saveFullPageScreen(
 )
 ```
 
+</Option>
 ### `hideAfterFirstScroll`
 
-- **Type:** `array`
-- **Mandatory:** No
+<Option type="array" required="No">
+
 - **Used with:** Only for [`saveFullPageScreen`](./methods#savefullpagescreen) or [`saveTabbablePage`](./methods#savetabbablepage)
 - **Supported Application Contexts:** Web, Hybrid App (Webview)
 
@@ -337,6 +339,7 @@ await browser.saveFullPageScreen(
 
 Compare options are options that influence the way the comparison is being executed.
 
+</Option>
 ## Visual sensitivity
 
 ---
@@ -349,9 +352,8 @@ These presets changed behavior once, as a breaking change, when the comparison e
 
 ### `ignoreColors`
 
-- **Type:** `boolean`
-- **Default:** `false`
-- **Mandatory:** No
+<Option type="boolean" default="false" required="No">
+
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
 - **Since:** `v10.1.0`: brightness-only comparison using resemble luma weights (`0.3/0.59/0.11`).
@@ -367,11 +369,11 @@ await browser.checkScreen(
 )
 ```
 
+</Option>
 ### `ignoreAlpha`
 
-- **Type:** `boolean`
-- **Default:** `false`
-- **Mandatory:** No
+<Option type="boolean" default="false" required="No">
+
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
 - **Since:** `v10.1.0`: applies its own threshold/AA rule independently of other `ignore*` flags.
@@ -387,11 +389,11 @@ await browser.checkScreen(
 )
 ```
 
+</Option>
 ### `ignoreAntialiasing`
 
-- **Type:** `boolean`
-- **Default:** `true`
-- **Mandatory:** No
+<Option type="boolean" default="true" required="No">
+
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
 - **Since:** `v10`: default changed to `true` (was `false` in v9 and below).
@@ -407,11 +409,11 @@ await browser.checkScreen(
 )
 ```
 
+</Option>
 ### `ignoreLess`
 
-- **Type:** `boolean`
-- **Default:** `false`
-- **Mandatory:** No
+<Option type="boolean" default="false" required="No">
+
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
 - **Since:** `v10.1.0`: applies its own threshold/AA rule independently of other `ignore*` flags.
@@ -427,11 +429,11 @@ await browser.checkScreen(
 )
 ```
 
+</Option>
 ### `ignoreNothing`
 
-- **Type:** `boolean`
-- **Default:** `false`
-- **Mandatory:** No
+<Option type="boolean" default="false" required="No">
+
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
 - **Since:** `v10.1.0`: applies its own threshold/AA rule independently of other `ignore*` flags.
@@ -447,11 +449,11 @@ await browser.checkScreen(
 )
 ```
 
+</Option>
 ### `pixelmatch`
 
-- **Type:** `object`
-- **Default:** `undefined`
-- **Mandatory:** No
+<Option type="object" default="undefined" required="No">
+
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
 - **Added in:** `v10.1.0`
@@ -469,11 +471,11 @@ await browser.checkScreen(
 )
 ```
 
+</Option>
 ### `scaleImagesToSameSize`
 
-- **Type:** `boolean`
-- **Default:** `false`
-- **Mandatory:** No
+<Option type="boolean" default="false" required="No">
+
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
 
@@ -488,15 +490,15 @@ await browser.checkScreen(
 )
 ```
 
+</Option>
 ## Mobile block-outs
 
 ---
 
 ### `blockOutStatusBar`
 
-- **Type:** `boolean`
-- **Default:** `true`
-- **Mandatory:** No
+<Option type="boolean" default="true" required="No">
+
 - **Used with:** _This is **Mobile only**_
 - **Supported Application Contexts:** Hybrid (native part) and Native Apps
 
@@ -511,11 +513,11 @@ await browser.checkScreen(
 )
 ```
 
+</Option>
 ### `blockOutToolBar`
 
-- **Type:** `boolean`
-- **Default:** `true`
-- **Mandatory:** No
+<Option type="boolean" default="true" required="No">
+
 - **Used with:** _This is **Mobile only**_
 - **Supported Application Contexts:** Hybrid (native part) and Native Apps
 
@@ -530,11 +532,11 @@ await browser.checkScreen(
 )
 ```
 
+</Option>
 ### `blockOutSideBar`
 
-- **Type:** `boolean`
-- **Default:** `true`
-- **Mandatory:** No
+<Option type="boolean" default="true" required="No">
+
 - **Used with:** _Can only be used for `checkScreen()`. This is **iPad only**_
 - **Supported Application Contexts:** All
 
@@ -549,14 +551,15 @@ await browser.checkScreen(
 )
 ```
 
+</Option>
 ## Region handling
 
 ---
 
 ### `blockOut`
 
-- **Type:** `array`
-- **Mandatory:** No
+<Option type="array" required="No">
+
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
 
@@ -574,10 +577,11 @@ await browser.checkScreen(
 )
 ```
 
+</Option>
 ### `ignore`
 
-- **Type:** `array`
-- **Mandatory:** No
+<Option type="array" required="No">
+
 - **Used with:** Only with the `checkScreen`-method, **NOT** with the `checkElement`-method
 - **Supported Application Contexts:** Native App
 
@@ -601,16 +605,15 @@ await browser.checkScreen(
 )
 ```
 
+</Option>
 ## Results & reporting
 
 ---
 
-
 ### `rawMisMatchPercentage`
 
-- **Type:** `boolean`
-- **Default:** `false`
-- **Mandatory:** No
+<Option type="boolean" default="false" required="No">
+
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
 
@@ -625,11 +628,11 @@ await browser.checkScreen(
 )
 ```
 
+</Option>
 ### `returnAllCompareData`
 
-- **Type:** `boolean`
-- **Default:** `false`
-- **Mandatory:** No
+<Option type="boolean" default="false" required="No">
+
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
 
@@ -644,11 +647,11 @@ await browser.checkScreen(
 )
 ```
 
+</Option>
 ### `saveAboveTolerance`
 
-- **Type:** `number`
-- **Default:** `0`
-- **Mandatory:** No
+<Option type="number" default="0" required="No">
+
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
 
@@ -663,11 +666,11 @@ await browser.checkScreen(
 )
 ```
 
+</Option>
 ### `diffPixelBoundingBoxProximity`
 
-- **Type:** `number`
-- **Default:** `5`
-- **Mandatory:** No
+<Option type="number" default="5" required="No">
+
 - **Used with:** All [Check methods](./methods#check-methods)
 - **Supported Application Contexts:** All
 
@@ -707,26 +710,25 @@ await expect(
 ).toEqual(0)
 ```
 
+</Option>
 ### `actualFolder`
 
-- **Type:** `string`
-- **Mandatory:** No
-- **Supported Application Contexts:** All
+<Option type="string" required="No" contexts="All">
 
 Folder for the snapshot that has been captured in the test.
 
+</Option>
 ### `baselineFolder`
 
-- **Type:** `string`
-- **Mandatory:** No
-- **Supported Application Contexts:** All
+<Option type="string" required="No" contexts="All">
 
 Folder for the baseline image that is being used to compare against.
 
+</Option>
 ### `diffFolder`
 
-- **Type:** `string`
-- **Mandatory:** No
-- **Supported Application Contexts:** All
+<Option type="string" required="No" contexts="All">
 
 Folder for the image difference rendered during comparison.
+
+</Option>

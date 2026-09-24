@@ -14,6 +14,9 @@
 }
 
 .sponsors h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
     margin-bottom: 1.25rem;
     color: var(--wdio-text-muted);
     font-family: var(--ifm-font-family-monospace);
@@ -22,6 +25,46 @@
     letter-spacing: 0.1em;
     text-align: left !important;
     text-transform: uppercase;
+}
+
+.tierIcon {
+    flex: 0 0 auto;
+}
+
+.tierIcon--premium {
+    color: #7eb6ff;
+}
+
+.tierIcon--gold {
+    color: #e2b340;
+}
+
+.tierIcon--silver {
+    color: #b7bdc8;
+}
+
+.tierIcon--bronze {
+    color: #c4844a;
+}
+
+.tierIcon--backer {
+    color: #e07a7a;
+}
+
+.tierIcon--individual,
+.tierIcon--past {
+    color: var(--wdio-text-muted);
+}
+
+.markdown .tierIcon {
+    display: inline-block;
+    margin-left: 0.35rem;
+    vertical-align: -3px;
+}
+
+.markdown li .tierIcon {
+    margin-left: 0;
+    margin-right: 0.35rem;
 }
 
 .sponsors .sponsors-grid {
