@@ -508,6 +508,11 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
      */
     isShadowElement?: boolean
     /**
+     * whether the element was queried with strict selector semantics, used to
+     * keep the same behavior when the element is re-fetched
+     */
+    strict?: boolean
+    /**
      * error response if element was not found
      */
     error?: Error
@@ -584,6 +589,18 @@ export type CustomStrategyReference = {
     strategyArguments: any[]
 }
 export type Selector = string | ElementReference | ElementFunction | CustomStrategyReference | HTMLElement
+
+/**
+ * options to modify how a single element is queried via `$`
+ */
+export interface ElementQueryOptions {
+    /**
+     * If `true` the query throws a `StrictSelectorError` when the selector resolves
+     * to more than one element. Defaults to the `strictSelectors` config option
+     * which itself defaults to `true`.
+     */
+    strict?: boolean
+}
 
 interface CSSValue {
     type: string

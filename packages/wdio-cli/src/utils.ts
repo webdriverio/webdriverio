@@ -241,12 +241,12 @@ const cucumberTypes: Record<string, string> = {
 
 const mochaTypes: Record<string, string> = {
     require: 'array',
-    compilers: 'array',
     allowUncaught: 'boolean',
     asyncOnly: 'boolean',
     bail: 'boolean',
     checkLeaks: 'boolean',
     delay: 'boolean',
+    failHookAffectedTests: 'boolean',
     fgrep: 'string',
     forbidOnly: 'boolean',
     forbidPending: 'boolean',

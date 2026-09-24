@@ -36,6 +36,8 @@ Note that interfaces supported are `bdd`, `tdd` and `qunit`. If you want to prov
 
 Options will be passed to the Mocha instance. See the list of supported Mocha options [here](https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options).
 
+`failHookAffectedTests` defaults to `true`. When a `before` or `beforeEach` hook fails, the tests that hook skipped are reported as failed. Set `failHookAffectedTests: false` to report only the hook.
+
 ----
 
 ## `mochaOpts.require (string|string[])`
@@ -92,20 +94,6 @@ describe(() => {
 ```
 TEST-XXX
    ✓ Login form
-```
-
-## `mochaOpts.compilers (string[])`
-
-Use the given module(s) to compile files. Compilers will be included before requires.
-
-CoffeeScript and similar transpilers may be used by mapping the file extensions and the module name.
-
-```js
-{
-  mochaOpts: {
-    compilers: ['coffee:foo', './bar.js']
-  }
-}
 ```
 
 For more information on WebdriverIO see the [homepage](https://webdriver.io).

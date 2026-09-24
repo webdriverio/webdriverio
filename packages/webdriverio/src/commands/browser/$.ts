@@ -2,9 +2,10 @@ import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
 import { DEEP_SELECTOR } from '../../constants.js'
-import { findElement } from '../../utils/index.js'
+import { findElement, buildNotFoundError } from '../../utils/index.js'
+import { findStrictElement, isCountableSelector, isStrictQuery, StrictSelectorError } from '../../utils/strictMode.js'
 import { getElement } from '../../utils/getElementObject.js'
-import type { Selector } from '../../types.js'
+import type { ElementQueryOptions, Selector } from '../../types.js'
 
 /**
  * The `$` command is a short and handy way in order to fetch a single element on the page.
@@ -19,6 +20,11 @@ import type { Selector } from '../../types.js'
  * __Note:__ only use these element objects if you are certain they still exist on the
  * page, e.g. using the `isExisting` command. WebdriverIO is unable to refetch them given
  * that there are no selector information available.
+ *
+ * As of v10 this command is __strict__: if the selector resolves to more than one element it throws a
+ * `StrictSelectorError` rather than silently returning the first match. Use `$$` when you expect multiple
+ * elements, pass `{ strict: false }` to opt out for a single call, or set `strictSelectors: false` in your
+ * config to opt out globally. See the [Selectors](/docs/selectors#strict-mode) guide for details.
  *
  * Using the wdio testrunner this command is a global variable, see [Globals](https://webdriver.io/docs/api/globals)
  * for more information. Using WebdriverIO within a [standalone](https://webdriver.io/docs/setuptypes#standalone-mode)
@@ -57,6 +63,8 @@ import type { Selector } from '../../types.js'
  *
  * @alias $
  * @param {String|Function|Matcher} selector  selector, JS Function, or Matcher object to fetch a certain element
+ * @param {Object=}                 options          command options
+ * @param {Boolean=}                options.strict   throw if the selector matches more than one element (default: the `strictSelectors` config option, which defaults to `true`)
  * @return {WebdriverIO.Element}
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/example.html
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/singleElements.js#L9-L10
@@ -67,21 +75,47 @@ import type { Selector } from '../../types.js'
  */
 export async function $ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
-    selector: Selector
+    selector: Selector,
+    options?: ElementQueryOptions
 ): Promise<WebdriverIO.Element> {
+    const strict = isCountableSelector(selector) && isStrictQuery(this, options)
+
     /**
      * run this in Node.js land if we are using browser runner because we collect
      * more browser information there that allows better lookups
      */
     if (globalThis.wdio && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR)) {
         /**
+         * in strict mode we have to query all matches to be able to tell how
+         * many elements the selector resolves to
+         */
+        if (strict) {
+            const matches = ('elementId' in this
+                ? await globalThis.wdio.executeWithScope('$$' as const, this.elementId, selector)
+                : await globalThis.wdio.execute('$$' as const, selector)) as unknown as ElementReference[]
+
+            if (matches.length > 1) {
+                throw new StrictSelectorError(selector, matches.length)
+            }
+
+            return getElement.call(
+                this,
+                selector,
+                matches[0] || buildNotFoundError(selector),
+                { strict }
+            )
+        }
+
+        /**
          * `res` is an element reference as we strip down the element
-         * result to its element id
+         * result to its element id. Forward the options so a per-call
+         * `{ strict: false }` opt-out survives the worker bridge - otherwise the
+         * worker would recompute strictness from the global config and throw.
          */
         const res: ElementReference = 'elementId' in this
-            ? await globalThis.wdio.executeWithScope('$' as const, this.elementId, selector)
-            : await globalThis.wdio.execute('$' as const, selector)
-        return getElement.call(this, selector as string, res)
+            ? await globalThis.wdio.executeWithScope('$' as const, this.elementId, selector, options)
+            : await globalThis.wdio.execute('$' as const, selector, options)
+        return getElement.call(this, selector as string, res, { strict })
     }
 
     /**
@@ -95,6 +129,8 @@ export async function $ (
         }
     }
 
-    const res = await findElement.call(this, selector)
-    return getElement.call(this, selector as string, res)
+    const res = strict
+        ? await findStrictElement.call(this, selector)
+        : await findElement.call(this, selector)
+    return getElement.call(this, selector as string, res, { strict })
 }

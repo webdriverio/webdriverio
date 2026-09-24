@@ -105,12 +105,17 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
         /**
          * check if options is given
          */
-        if (typeof options[name] === 'undefined' && !expectedOption.default && expectedOption.required) {
+        const hasDefault = typeof expectedOption.default !== 'undefined'
+
+        if (typeof options[name] === 'undefined' && !hasDefault && expectedOption.required) {
             throw new Error(`Required option "${name.toString()}" is missing`)
         }
 
-        if (typeof options[name] === 'undefined' && expectedOption.default) {
-            params[name] = expectedOption.default
+        /**
+         * note: falsy defaults such as `false`, `0` or `''` are applied as well
+         */
+        if (typeof options[name] === 'undefined' && hasDefault) {
+            params[name] = expectedOption.default as T[keyof T]
         }
 
         if (typeof options[name] !== 'undefined') {

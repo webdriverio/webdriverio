@@ -324,7 +324,7 @@ export default class Runner extends EventEmitter {
         /**
          * register global helper method to fetch elements
          */
-        _setGlobal('$', (selector: Selector) => browser.$(selector), config.injectGlobals)
+        _setGlobal('$', (...args: Parameters<WebdriverIO.Browser['$']>) => browser.$(...args), config.injectGlobals)
         _setGlobal('$$', (selector: Selector) => browser.$$(selector), config.injectGlobals)
 
         /**
