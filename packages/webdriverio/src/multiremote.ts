@@ -49,7 +49,13 @@ export default class MultiRemote {
         propertiesObject.commandList = { value: wrapperClient.commandList }
         propertiesObject.options = { value: wrapperClient.options }
         propertiesObject.getInstance = {
-            value: (browserName: string) => this.instances[browserName]
+            value: (browserName: string) => {
+                const instance = this.instances[browserName]
+                if (!instance) {
+                    throw new Error(`Multiremote object has no instance named "${browserName}"`)
+                }
+                return instance
+            }
         }
 
         propertiesObject.select = {

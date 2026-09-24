@@ -54,6 +54,13 @@ describe('Multi-Remote tests', () => {
         }
     })
 
+    test('getInstance should throw for an unknown instance', async () => {
+        const browser = await multiremote(caps())
+
+        expect(() => browser.getInstance('browserC'))
+            .toThrow('Multiremote object has no instance named "browserC"')
+    })
+
     test('should run command on all instances', async () => {
         const browser = await multiremote(caps())
 
