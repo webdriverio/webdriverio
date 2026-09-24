@@ -49,13 +49,13 @@ export function sanitizeCaps (
  * initialize browser instance depending whether remote or multiremote is requested
  * @param  {Object}  config        configuration of sessions
  * @param  {Object}  capabilities  desired session capabilities
- * @param  {boolean} isMultiremote isMultiremote
+ * @param  {boolean} isMultiRemote isMultiRemote
  * @return {Promise}               resolves with browser object
  */
 export async function initializeInstance (
     config: ConfigWithSessionId | WebdriverIO.Config,
-    capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities,
-    isMultiremote?: boolean
+    capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiRemoteCapabilities,
+    isMultiRemote?: boolean
 ): Promise<WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser> {
     await enableFileLogging(config.outputDir)
 
@@ -83,7 +83,7 @@ export async function initializeInstance (
     /**
      * start a normal standalone session
      */
-    if (!isMultiremote) {
+    if (!isMultiRemote) {
         log.debug('init remote session')
         const sessionConfig: Capabilities.WebdriverIOConfig = {
             ...config,
@@ -99,14 +99,14 @@ export async function initializeInstance (
     /**
      * initiate multiremote sessions
      */
-    const options: Capabilities.RequestedMultiremoteCapabilities = {}
+    const options: Capabilities.RequestedMultiRemoteCapabilities = {}
     log.debug('init multiremote session')
     // @ts-expect-error ToDo(Christian): can be removed?
     delete config.capabilities
     for (const browserName of Object.keys(capabilities)) {
         options[browserName] = deepmerge(
             config,
-            (capabilities as Capabilities.RequestedMultiremoteCapabilities)[browserName]
+            (capabilities as Capabilities.RequestedMultiRemoteCapabilities)[browserName]
         )
     }
 
@@ -157,16 +157,16 @@ type BrowserData = {
 }
 
 /**
- * Gets { sessionId, protocol, hostname, port, path, queryParams } of every Multiremote instance
+ * Gets { sessionId, protocol, hostname, port, path, queryParams } of every MultiRemote instance
  * @param {object} browser browser
- * @param {boolean} isMultiremote isMultiremote
+ * @param {boolean} isMultiRemote isMultiRemote
  * @return {object}
  */
 export function getInstancesData (
     browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
-    isMultiremote: boolean
+    isMultiRemote: boolean
 ) {
-    if (!isMultiremote) {
+    if (!isMultiRemote) {
         return
     }
 

@@ -209,7 +209,7 @@ export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototyp
 export type ElementCommandsType = Omit<$ElementCommands, keyof ChainablePrototype> & ChainablePrototype
 
 /**
- * Multiremote command definition
+ * MultiRemote command definition
  */
 type SingleElementCommandNames = '$' | 'custom$' | 'react$'
 type MultiElementCommandNames = '$$' | 'custom$$' | 'react$$'
@@ -271,7 +271,7 @@ export type ElementArray = ElementArrayExport
 /**
  * The array `$$` returns on a multiremote browser. It carries the same
  * information as `ElementArray` — every entry is a `MultiRemoteElement` rather
- * than an `Element`, and `isMultiremote` tells the two apart at runtime.
+ * than an `Element`, and `isMultiRemote` tells the two apart at runtime.
  */
 interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemoteElement>, keyof AsyncIterators<WebdriverIO.MultiRemoteElement>>, AsyncIterators<WebdriverIO.MultiRemoteElement> {
     /**
@@ -297,7 +297,7 @@ interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemo
     /**
      * always `true`, so a multiremote element array can be told apart from a plain one
      */
-    isMultiremote: true
+    isMultiRemote: true
     /**
      * get the `WebdriverIO.MultiRemoteElement[]` list
      */
@@ -401,7 +401,7 @@ interface InstanceBase extends EventEmitter, SessionFlags {
  * a browser base that has everything besides commands which are defined for sync and async separately
  */
 export interface BrowserBase extends InstanceBase, CustomInstanceCommands<WebdriverIO.Browser> {
-    isMultiremote: false
+    isMultiRemote: false
     /**
      * capabilities of the browser instance
      */
@@ -481,7 +481,7 @@ interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanc
     /**
      * capabilities of the browser instance
      */
-    capabilities: Capabilities.RequestedMultiremoteCapabilities
+    capabilities: Capabilities.RequestedMultiRemoteCapabilities
     /**
      * multiremote browser instance names
      */
@@ -489,7 +489,7 @@ interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanc
     /**
      * flag to indicate multiremote browser session
      */
-    isMultiremote: true
+    isMultiRemote: true
     /**
      * get a specific instance to run commands on it
      */
@@ -515,7 +515,7 @@ interface MultiRemoteElementBase {
     /**
      * flag to indicate multiremote browser session
      */
-    isMultiremote: true
+    isMultiRemote: true
     /**
      * get a specific instance to run commands on it
      */
@@ -882,7 +882,7 @@ declare global {
          * WebdriverIO multiremote element array
          * What `$$`, `custom$$` and `react$$` return on a multiremote browser. Like
          * `ElementArray` it carries the selector, parent and properties of the fetched
-         * set, and `isMultiremote` marks it as the multiremote variant.
+         * set, and `isMultiRemote` marks it as the multiremote variant.
          *
          * @see https://webdriver.io/docs/multiremote/
          */

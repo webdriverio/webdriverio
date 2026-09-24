@@ -12,7 +12,7 @@ To do so, just use the `multiremote()` function, and pass in an object with name
 
 :::info
 
-Multiremote is _not_ meant to execute all your tests in parallel.
+MultiRemote is _not_ meant to execute all your tests in parallel.
 It is intended to help coordinate multiple browsers and/or mobile devices for special integration tests (e.g. chat applications).
 
 :::
@@ -186,7 +186,7 @@ assert.true(
 
 In this example, the `myFirefoxBrowser` instance will start waiting on a message once the `myChromeBrowser` instance has clicked on `#send` button.
 
-Multiremote makes it easy and convenient to control multiple browsers, whether you want them doing the same thing in parallel, or different things in concert.
+MultiRemote makes it easy and convenient to control multiple browsers, whether you want them doing the same thing in parallel, or different things in concert.
 
 ### What `$$` returns
 
@@ -200,7 +200,7 @@ messages[0]          // a MultiRemoteElement, addressing all instances
 messages.selector    // '.messages'
 messages.foundWith   // '$$'
 messages.parent      // the multiremote browser or element it was fetched from
-messages.isMultiremote // true, so it can be told apart from a plain ElementArray
+messages.isMultiRemote // true, so it can be told apart from a plain ElementArray
 
 // the async array helpers are available, as on a single browser
 await messages.map((m) => m.getText())

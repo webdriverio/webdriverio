@@ -57,7 +57,7 @@ async function bar() {
 
     // $$ on a multiremote browser resolves to a MultiRemoteElementArray
     const mrElems = await mr.$$('foobar')
-    expectType<true>(mrElems.isMultiremote)
+    expectType<true>(mrElems.isMultiRemote)
     expectType<Selector>(mrElems.selector)
     expectType<string>(mrElems.foundWith)
     expectType<WebdriverIO.MultiRemoteElement>(mrElems[0])

@@ -82,7 +82,7 @@ export default class TestingBotService implements Services.ServiceInstance {
             return
         }
 
-        if (this._browser.isMultiremote) {
+        if (this._browser.isMultiRemote) {
             return Promise.all(Object.keys(this._capabilities).map(async (browserName) => {
                 const multiRemoteBrowser = (this._browser as WebdriverIO.MultiRemoteBrowser).getInstance(browserName)!
                 return multiRemoteBrowser.executeScript(annotation, [])
@@ -177,7 +177,7 @@ export default class TestingBotService implements Services.ServiceInstance {
 
         const status = 'status: ' + (failures > 0 ? 'failing' : 'passing')
 
-        if (!this._browser.isMultiremote) {
+        if (!this._browser.isMultiRemote) {
             log.info(`Update job with sessionId ${this._browser.sessionId}, ${status}`)
             return this.updateJob(this._browser.sessionId, failures)
         }
@@ -195,7 +195,7 @@ export default class TestingBotService implements Services.ServiceInstance {
         }
         const status = 'status: ' + (this._failures > 0 ? 'failing' : 'passing')
 
-        if (!this._browser.isMultiremote) {
+        if (!this._browser.isMultiRemote) {
             log.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
             return this.updateJob(oldSessionId, this._failures, true)
         }
@@ -254,7 +254,7 @@ export default class TestingBotService implements Services.ServiceInstance {
          */
         if ((calledOnReload || this._testCnt) && this._browser) {
             let testCnt = ++this._testCnt
-            if (this._browser.isMultiremote) {
+            if (this._browser.isMultiRemote) {
                 testCnt = Math.ceil(testCnt / (this._browser as WebdriverIO.MultiRemoteBrowser).instances.length)
             }
 

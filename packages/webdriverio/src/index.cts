@@ -100,7 +100,7 @@ exports.attach = async function(attachOptions: any) {
  * you can simply create a multiremote instance and control all browsers at the same time.
  *
  * <b>
- * NOTE: Multiremote is not meant to execute all your tests in parallel.
+ * NOTE: MultiRemote is not meant to execute all your tests in parallel.
  * It is intended to help coordinate multiple browsers and/or mobile devices for special integration tests (e.g. chat applications).
  * </b>
  *

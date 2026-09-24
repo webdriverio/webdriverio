@@ -319,7 +319,7 @@ export async function getCapabilities(arg: ReplCommandArguments) {
             // multi capabilities
             (requiredCaps as (Capabilities.RequestedStandaloneCapabilities)[])[parseInt(arg.capabilities, 10)] ||
             // multiremote
-            (requiredCaps as Capabilities.RequestedMultiremoteCapabilities)[arg.capabilities]?.capabilities
+            (requiredCaps as Capabilities.RequestedMultiRemoteCapabilities)[arg.capabilities]?.capabilities
         )
         const requiredW3CCaps = pickBy(requiredCaps, (_: never, key: string) => CAPABILITY_KEYS.includes(key) || key.includes(':'))
         if (!Object.keys(requiredW3CCaps).length) {

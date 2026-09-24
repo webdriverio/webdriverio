@@ -56,7 +56,7 @@ declare global {
     }
 }
 
-const multiremoteConfig: Capabilities.RequestedMultiremoteCapabilities = {
+const multiremoteConfig: Capabilities.RequestedMultiRemoteCapabilities = {
     browserA: {
         logLevel: 'debug',
         capabilities: {

@@ -24,9 +24,9 @@ function mapCapabilities (
     taskItemLabel: string) {
     const capabilitiesToRequireSetup = (
         Array.isArray(caps)
-            ? caps.map((cap: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities) => {
+            ? caps.map((cap: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiRemoteCapabilities) => {
                 const w3cCaps = cap as Capabilities.W3CCapabilities
-                const multiremoteCaps = cap as Capabilities.RequestedMultiremoteCapabilities
+                const multiremoteCaps = cap as Capabilities.RequestedMultiRemoteCapabilities
                 const multiremoteInstanceNames = Object.keys(multiremoteCaps)
 
                 if (typeof multiremoteCaps[multiremoteInstanceNames[0]] === 'object' && 'capabilities' in multiremoteCaps[multiremoteInstanceNames[0]]) {
@@ -42,7 +42,7 @@ function mapCapabilities (
                 }
                 return cap as WebdriverIO.Capabilities
             }).flat()
-            : Object.values(caps as Capabilities.WithRequestedMultiremoteCapabilities['capabilities']).map((mrOpts) => {
+            : Object.values(caps as Capabilities.WithRequestedMultiRemoteCapabilities['capabilities']).map((mrOpts) => {
                 const w3cCaps = mrOpts.capabilities as Capabilities.W3CCapabilities
                 if (w3cCaps.alwaysMatch) {
                     return w3cCaps.alwaysMatch

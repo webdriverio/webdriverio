@@ -121,7 +121,7 @@ function splitTitlePathPart(part?: string): string[] {
 export default class AllureReporter extends WDIOReporter {
     private _allureRuntime: ReporterRuntime
     private _capabilities: Capabilities.ResolvedTestrunnerCapabilities
-    private _isMultiremote?: boolean
+    private _isMultiRemote?: boolean
     private _config?: Options.Testrunner
     private _options: AllureReporterOptions
     private _consoleOutput = ''
@@ -383,7 +383,7 @@ export default class AllureReporter extends WDIOReporter {
      * Must NOT include cid. Used to make historyId unique per environment.
      */
     private _getCapabilityKey(): string {
-        if (this._isMultiremote) { return 'multiremote' }
+        if (this._isMultiRemote) { return 'multiremote' }
         const capsUnknown: unknown = this._capabilities
         const desired: Record<string, unknown> | undefined = ((): Record<string, unknown> | undefined => {
             const maybe = (capsUnknown as Record<string, unknown>)?.['desired']
@@ -432,7 +432,7 @@ export default class AllureReporter extends WDIOReporter {
     private _setTestParameters(): void {
         const cid = getCid()
 
-        if (!this._isMultiremote) {
+        if (!this._isMultiRemote) {
             const capsUnknown: unknown = this._capabilities
 
             const browserName = getStringField(capsUnknown, 'browserName')
@@ -478,7 +478,7 @@ export default class AllureReporter extends WDIOReporter {
         } else {
             this._pushRuntimeMessage({
                 type: 'metadata',
-                data: { parameters: [{ name: 'isMultiremote', value: 'true' }] },
+                data: { parameters: [{ name: 'isMultiRemote', value: 'true' }] },
             })
         }
 
@@ -559,7 +559,7 @@ export default class AllureReporter extends WDIOReporter {
         this._ensureState(runner.cid)
         this._config = runner.config
         this._capabilities = runner.capabilities
-        this._isMultiremote = runner.isMultiremote || false
+        this._isMultiRemote = runner.isMultiRemote || false
 
         const specs = (runner as unknown as { specs?: string[] }).specs || []
         if (specs.length) {
@@ -987,7 +987,7 @@ export default class AllureReporter extends WDIOReporter {
         if (!allow) { return }
 
         const { disableWebdriverStepsReporting } = this._options
-        if (disableWebdriverStepsReporting || this._isMultiremote) { return }
+        if (disableWebdriverStepsReporting || this._isMultiRemote) { return }
 
         const { method, endpoint } = command
         const named = typeof command.command === 'string' && command.command.length > 0
@@ -1020,7 +1020,7 @@ export default class AllureReporter extends WDIOReporter {
             }
         }
 
-        if (disableWebdriverStepsReporting || this._isMultiremote || !allow) { return }
+        if (disableWebdriverStepsReporting || this._isMultiRemote || !allow) { return }
 
         const commandResult = resObj && 'value' in resObj ? resObj['value'] : resUnknown
 

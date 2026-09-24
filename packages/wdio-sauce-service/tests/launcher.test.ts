@@ -191,7 +191,7 @@ test('onPrepare multiremote', async () => {
             tunnelName: 'my-tunnel'
         }
     }
-    const caps: Capabilities.RequestedMultiremoteCapabilities = {
+    const caps: Capabilities.RequestedMultiRemoteCapabilities = {
         browserA: {
             capabilities: { browserName: 'chrome' }
         },
@@ -234,7 +234,7 @@ test('onPrepare parallel multiremote', async () => {
             tunnelName: 'my-tunnel'
         }
     }
-    const caps: Capabilities.RequestedMultiremoteCapabilities[] = [{
+    const caps: Capabilities.RequestedMultiRemoteCapabilities[] = [{
         browserA: {
             capabilities: { browserName: 'chrome' }
         },
@@ -323,7 +323,7 @@ test('onPrepare multiremote with tunnel identifier and with w3c caps ', async ()
             tunnelName: 'my-tunnel'
         }
     }
-    const caps: Capabilities.RequestedMultiremoteCapabilities = {
+    const caps: Capabilities.RequestedMultiRemoteCapabilities = {
         browserA: {
             capabilities: {
                 browserName: 'chrome',

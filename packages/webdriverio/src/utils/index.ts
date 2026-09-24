@@ -1112,7 +1112,7 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
          * `custom$` / `custom$$` resolve strategies on the instances rather
          * than on the wrapper client — propagate the strategy to all of them
          */
-        if ((scope as WebdriverIO.MultiRemoteBrowser).isMultiremote) {
+        if ((scope as WebdriverIO.MultiRemoteBrowser).isMultiRemote) {
             const multiRemoteScope = scope as WebdriverIO.MultiRemoteBrowser
             for (const instanceName of multiRemoteScope.instances) {
                 const instance = multiRemoteScope.getInstance(instanceName)

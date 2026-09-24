@@ -99,7 +99,7 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'key'
         }
-        const caps: Capabilities.RequestedMultiremoteCapabilities = {
+        const caps: Capabilities.RequestedMultiRemoteCapabilities = {
             browserA: {
                 capabilities: {
                     'tb:options': {
@@ -151,7 +151,7 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'key'
         }
-        const caps: Capabilities.RequestedMultiremoteCapabilities[] = [{
+        const caps: Capabilities.RequestedMultiRemoteCapabilities[] = [{
             browserA: {
                 capabilities: {
                     'tb:options': {
@@ -258,7 +258,7 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'key'
         }
-        const caps: Capabilities.RequestedMultiremoteCapabilities = {
+        const caps: Capabilities.RequestedMultiRemoteCapabilities = {
             browserA: {
                 capabilities: {}
             },

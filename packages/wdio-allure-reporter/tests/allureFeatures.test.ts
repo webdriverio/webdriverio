@@ -279,14 +279,14 @@ describe('reporter runtime implementation', () => {
             const reporter = new AllureReporter({ outputDir })
             reporter.onRunnerStart({
                 ...runnerStart(),
-                isMultiremote: true,
+                isMultiRemote: true,
                 capabilities: { myBrowser: { browserName: 'chrome' } },
             })
             reporter.onTestStart(testStart())
             reporter.onTestPass(testPassed())
             await reporter.onRunnerEnd(runnerEnd())
             const { results } = getResults(outputDir)
-            expect(results[0].parameters[0]).toEqual({ name: 'isMultiremote', value: 'true' })
+            expect(results[0].parameters[0]).toEqual({ name: 'isMultiRemote', value: 'true' })
         })
     })
 })

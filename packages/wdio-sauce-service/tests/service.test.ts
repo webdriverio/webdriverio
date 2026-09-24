@@ -515,7 +515,7 @@ test('after', async () => {
     service['_uploadLogs'] = vi.fn()
 
     // @ts-expect-error
-    browser.isMultiremote = false
+    browser.isMultiRemote = false
     // @ts-expect-error
     browser.sessionId = 'foobar'
     await service.after(1)
@@ -534,7 +534,7 @@ test('after for RDC', async () => {
     service['_failures'] = 5
 
     // @ts-expect-error
-    browser.isMultiremote = false
+    browser.isMultiRemote = false
     await service.after(1)
 
     expect(service.setAnnotation).toBeCalledWith('sauce:job-result=false')
@@ -562,7 +562,7 @@ test('after for RDC with multi remote', async () => {
     service.setAnnotation = vi.fn()
     vi.mocked(isRDC).mockImplementation(() => true)
 
-    browser.isMultiremote = true
+    browser.isMultiRemote = true
     // @ts-expect-error
     browser.sessionId = 'foobar'
     await service.after(123)
@@ -627,7 +627,7 @@ test('after with bail set', async () => {
     service.updateJob = vi.fn()
 
     // @ts-expect-error
-    browser.isMultiremote = false
+    browser.isMultiRemote = false
     // @ts-expect-error
     browser.sessionId = 'foobar'
     await service.after(1)
@@ -644,7 +644,7 @@ test('beforeScenario should not set context if no sauce user was applied', async
     service.updateJob = vi.fn()
 
     // @ts-expect-error
-    browser.isMultiremote = false
+    browser.isMultiRemote = false
     // @ts-expect-error
     browser.sessionId = 'foobar'
     await service.after(1)
@@ -665,7 +665,7 @@ test('after in multiremote', async () => {
     service['_failures'] = 5
     service.updateJob = vi.fn()
 
-    browser.isMultiremote = true
+    browser.isMultiRemote = true
     // @ts-expect-error
     browser.sessionId = 'foobar'
     await service.after(1)
@@ -684,7 +684,7 @@ test('onReload', () => {
     service.updateJob = vi.fn()
 
     // @ts-expect-error
-    browser.isMultiremote = false
+    browser.isMultiRemote = false
     // @ts-expect-error
     browser.sessionId = 'foobar'
     service.onReload('oldbar', 'newbar')
@@ -703,7 +703,7 @@ test('onReload without failures', () => {
     service.updateJob = vi.fn()
 
     // @ts-expect-error
-    browser.isMultiremote = false
+    browser.isMultiRemote = false
     // @ts-expect-error
     browser.sessionId = 'foobar'
     service.onReload('oldbar', 'newbar')
@@ -722,7 +722,7 @@ test('onReload should not set context if no sauce user was applied', () => {
     service.updateJob = vi.fn()
 
     // @ts-expect-error
-    browser.isMultiremote = false
+    browser.isMultiRemote = false
     // @ts-expect-error
     browser.sessionId = 'foobar'
     service.onReload('oldbar', 'newbar')
@@ -743,7 +743,7 @@ test('after in multiremote', () => {
     service['_failures'] = 5
     service.updateJob = vi.fn()
 
-    browser.isMultiremote = true
+    browser.isMultiRemote = true
     // @ts-expect-error
     browser.sessionId = 'foobar'
     browser.getInstance('chromeB').sessionId = 'newSessionChromeB'
@@ -820,7 +820,7 @@ test('getBody', () => {
 
     service.getBody(1, true)
     service.getBody(1, true)
-    browser.isMultiremote = true
+    browser.isMultiRemote = true
     expect(service.getBody(12, true)).toEqual({
         name: 'jojo (2)',
         passed: false
@@ -866,7 +866,7 @@ test('getBody', () => {
 
     service.getBody(1, true)
     service.getBody(1, true)
-    browser.isMultiremote = true
+    browser.isMultiRemote = true
     expect(service.getBody(12, true)).toEqual({
         name: 'jojo (2)',
         passed: false
@@ -899,7 +899,7 @@ test('getBody with name Capability (JSON WP)', () => {
 
     service.getBody(1, true)
     service.getBody(1, true)
-    browser.isMultiremote = true
+    browser.isMultiRemote = true
     expect(service.getBody(12, true)).toEqual({
         name: 'bizarre',
         passed: false
@@ -934,7 +934,7 @@ test('getBody with name Capability (W3C)', () => {
 
     service.getBody(1, true)
     service.getBody(1, true)
-    browser.isMultiremote = true
+    browser.isMultiRemote = true
     expect(service.getBody(12, true)).toEqual({
         name: 'bizarre',
         passed: false
@@ -979,7 +979,7 @@ test('getBody without multiremote', () => {
     service['_testCnt'] = 3
 
     // @ts-expect-error
-    browser.isMultiremote = false
+    browser.isMultiRemote = false
     expect(service.getBody(0, true)).toEqual({
         name: 'jojo (4)',
         tags: ['jobTag'],
@@ -1039,7 +1039,7 @@ test('setAnnotation', async () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
     // @ts-expect-error
-    browser.isMultiremote = false
+    browser.isMultiRemote = false
     await service.setAnnotation('foo')
 
     expect(browser.executeScript).toBeCalledWith('foo', [])
@@ -1054,7 +1054,7 @@ test('setAnnotation for VDC and RDC with multi remote', async () => {
     const service = new SauceService({}, caps, {} as any)
     service['_browser'] = browser
     vi.mocked(isRDC).mockReturnValueOnce(true)
-    browser.isMultiremote = true
+    browser.isMultiRemote = true
     // @ts-expect-error
     browser.sessionId = 'foobar'
     await service.setAnnotation('sauce:context=foo')

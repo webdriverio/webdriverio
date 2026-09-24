@@ -644,9 +644,9 @@ const multiremote = async () => {
 /**
  * parallel multiremote wdio testrunner tests
  */
-const parallelMultiremote = async () => {
+const parallelMultiRemote = async () => {
     console.log(parallelMultiRemoteBaseConfig)
-    await launch('parallelMultiremote', parallelMultiRemoteBaseConfig, {
+    await launch('parallelMultiRemote', parallelMultiRemoteBaseConfig, {
         specs: [path.resolve(__dirname, 'multiremote', 'test.js')],
     })
 }
@@ -1202,7 +1202,7 @@ const displayServerSmoke = async () => {
         mochaTestrunner,
         jasmineTestrunner,
         multiremote,
-        parallelMultiremote,
+        parallelMultiRemote,
         wdioHooks,
         cjsTestrunner,
         sharedStoreServiceTest,

@@ -18,7 +18,7 @@
     }
   },
   "sanitizedCapabilities": "multiremote",
-  "isMultiremote": true,
+  "isMultiRemote": true,
   "config": {
     "hostname": "127.0.0.1",
     "port": 4444,

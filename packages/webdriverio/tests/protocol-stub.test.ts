@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import ProtocolStub from '../src/protocol-stub.js'
-import Multiremote from '../src/multiremote.js'
+import MultiRemote from '../src/multiremote.js'
 
 describe('reloadSession', () => {
     it('should throw', () => {
@@ -98,7 +98,7 @@ describe('attachToSession', () => {
     })
 
     it('should call modifier if multiremote', async () => {
-        const multiremote = new Multiremote()
+        const multiremote = new MultiRemote()
         multiremote.instances.set('instanceName', 'instance' as unknown as WebdriverIO.Browser)
 
         const session = await ProtocolStub.attachToSession(

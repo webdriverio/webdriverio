@@ -80,18 +80,18 @@ describe('handleMessage', () => {
         expect(worker.sessionId).toEqual('abc123')
     })
 
-    it('stores instances to worker instance in Multiremote mode', () => {
+    it('stores instances to worker instance in MultiRemote mode', () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const payload = {
             name: 'sessionStarted',
             content: {
                 instances: { foo: { sessionId: 'abc123' } },
-                isMultiremote: true
+                isMultiRemote: true
             }
         }
         worker['_handleMessage'](payload as unknown as Workers.WorkerMessage)
         expect(worker.instances).toEqual({ foo: { sessionId: 'abc123' } })
-        expect(worker.isMultiremote).toEqual(true)
+        expect(worker.isMultiRemote).toEqual(true)
     })
 })
 

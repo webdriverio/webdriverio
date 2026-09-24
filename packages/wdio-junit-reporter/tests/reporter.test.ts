@@ -9,7 +9,7 @@ import type { SuiteStats } from '@wdio/reporter'
 const mochaRunnerLog = (await vi.importActual('./__fixtures__/mocha-runner.json') as any).default
 const mochaRunnerNestedArrayOfSuitesLog = (await vi.importActual('./__fixtures__/mocha-runner-nested-array-specs.json') as any).default
 const cucumberRunnerLog = (await vi.importActual('./__fixtures__/cucumber-runner.json') as any).default
-const cucumberRunnerMultiremoteLog = (await vi.importActual('./__fixtures__/cucumber-runner-multiremote.json') as any).default
+const cucumberRunnerMultiRemoteLog = (await vi.importActual('./__fixtures__/cucumber-runner-multiremote.json') as any).default
 const cucumberRunnerBrowserstackIosLog = (await vi.importActual('./__fixtures__/cucumber-runner-browserstack-ios.json') as any).default
 const cucumberRunnerBrowserstackAndroidLog = (await vi.importActual('./__fixtures__/cucumber-runner-browserstack-android.json') as any).default
 const cucumberRunnerBrowserstackAndroidLogMissingOS = (await vi.importActual('./__fixtures__/cucumber-runner-browserstack-android-missing-os.json') as any).default
@@ -35,7 +35,7 @@ vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@w
 
 if (os.platform() === 'win32') {
     cucumberRunnerLog.specs = ['file:///C:/features/sample_feature.feature']
-    cucumberRunnerMultiremoteLog.specs = ['file:///C:/features/sample_feature.feature']
+    cucumberRunnerMultiRemoteLog.specs = ['file:///C:/features/sample_feature.feature']
     mochaRunnerLog.specs = ['file:///C:/path/to/project/test/specs/sync.spec.js']
     mochaRunnerNestedArrayOfSuitesLog.specs = ['file:///C:/path/to/project/test/specs/sync_0.spec.js', 'file:///C:/path/to/project/test/specs/sync_1.spec.js']
     cucumberRunnerBrowserstackAndroidLogMissingOS.specs = ['file:///C:/features/sample_feature.feature']
@@ -159,7 +159,7 @@ describe('wdio-junit-reporter', () => {
          * `framework` key. The reporter must still detect Cucumber via suite type.
          * Steps should be grouped per scenario (1 testcase per scenario), not per step.
          */
-        const output = reporter['_buildJunitXml'](cucumberRunnerMultiremoteLog as any)
+        const output = reporter['_buildJunitXml'](cucumberRunnerMultiRemoteLog as any)
             .replace(/\s/g, '').replace(/C:\//g, '')
 
         // Should contain a testcase for the scenario (not for each step)

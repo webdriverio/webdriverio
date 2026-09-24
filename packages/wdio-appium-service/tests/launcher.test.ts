@@ -246,7 +246,7 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
+            const capabilities: Capabilities.RequestedMultiRemoteCapabilities = {
                 browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
                 browserB: { capabilities: { 'appium:deviceName': 'baz' } }
             }
@@ -268,7 +268,7 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
+            const capabilities: Capabilities.RequestedMultiRemoteCapabilities = {
                 browserA: { port: 1234, capabilities: { browserName: 'chrome' } },
                 browserB: { capabilities: { 'appium:deviceName': 'baz' } }
             }
@@ -290,7 +290,7 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.RequestedMultiremoteCapabilities[] = [{
+            const capabilities: Capabilities.RequestedMultiRemoteCapabilities[] = [{
                 browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
                 browserB: { capabilities: { 'appium:deviceName': 'baz' } }
             }, {
@@ -323,7 +323,7 @@ describe('Appium launcher', () => {
                 args: { address: 'foo' },
                 installArgs: { bar: 'bar' },
             }
-            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
+            const capabilities: Capabilities.RequestedMultiRemoteCapabilities = {
                 browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
                 browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
             }
@@ -636,7 +636,7 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
+            const capabilities: Capabilities.RequestedMultiRemoteCapabilities = {
                 browserA: { capabilities: { browserName: 'baz' } },
                 browserB: { capabilities: { 'appium:deviceName': 'baz' } }
             }
@@ -658,7 +658,7 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.RequestedMultiremoteCapabilities[] = [{
+            const capabilities: Capabilities.RequestedMultiRemoteCapabilities[] = [{
                 browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
                 browserB: { capabilities: { browserName: 'baz' } }
             }, {
@@ -691,7 +691,7 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
+            const capabilities: Capabilities.RequestedMultiRemoteCapabilities = {
                 chromiumDriver: {
                     capabilities: {
                         browserName: 'chrome',

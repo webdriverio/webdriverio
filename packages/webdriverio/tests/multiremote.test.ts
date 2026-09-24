@@ -7,7 +7,7 @@ import { multiremote } from '../src/index.js'
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-const caps = (): Capabilities.RequestedMultiremoteCapabilities => ({
+const caps = (): Capabilities.RequestedMultiRemoteCapabilities => ({
     browserA: {
         logLevel: 'debug',
         capabilities: {
@@ -34,7 +34,7 @@ describe('Multi-Remote tests', () => {
             expect(elements.selector).toBe('#foo')
             expect(elements.foundWith).toBe('$$')
             expect(elements.parent).toBeDefined()
-            expect(elements.isMultiremote).toBe(true)
+            expect(elements.isMultiRemote).toBe(true)
         })
 
         test('gives every entry the instances of the multiremote browser', async () => {

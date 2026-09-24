@@ -132,7 +132,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
  * you can simply create a multiremote instance and control all browsers at the same time.
  *
  * <b>
- * NOTE: Multiremote is not meant to execute all your tests in parallel.
+ * NOTE: MultiRemote is not meant to execute all your tests in parallel.
  * It is intended to help coordinate multiple browsers and/or mobile devices for special integration tests (e.g. chat applications).
  * </b>
  *
@@ -144,7 +144,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
  * @see <a href="https://webdriver.io/docs/multiremote">External document and example usage</a>.
  */
 export const multiremote = async function (
-    params: Capabilities.RequestedMultiremoteCapabilities,
+    params: Capabilities.RequestedMultiRemoteCapabilities,
     { automationProtocol }: { automationProtocol?: string } = {}
 ): Promise<WebdriverIO.MultiRemoteBrowser> {
     const multibrowser = new MultiRemote()

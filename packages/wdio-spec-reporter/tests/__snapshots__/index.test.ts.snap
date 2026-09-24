@@ -16,7 +16,7 @@ exports[`SpecReporter > getHeaderDisplay > should validate header output 1`] = `
 
 exports[`SpecReporter > getHeaderDisplay > should validate header output in multiremote 1`] = `
 [
-  "Running: MultiremoteBrowser on chrome and firefox",
+  "Running: MultiRemoteBrowser on chrome and firefox",
 ]
 `;
 
@@ -294,34 +294,34 @@ exports[`SpecReporter > printReport > with normal setup > should print jobs of a
 [
   [
     "------------------------------------------------------------------
-[MultiremoteBrowser on chrome and firefox #0-0] Running: MultiremoteBrowser on chrome and firefox
-[MultiremoteBrowser on chrome and firefox #0-0]
-[MultiremoteBrowser on chrome and firefox #0-0] » foo/bar/loo.e2e.js
-[MultiremoteBrowser on chrome and firefox #0-0] Foo test
-[MultiremoteBrowser on chrome and firefox #0-0]    green ✓ foo
-[MultiremoteBrowser on chrome and firefox #0-0]    green ✓ bar
-[MultiremoteBrowser on chrome and firefox #0-0]
-[MultiremoteBrowser on chrome and firefox #0-0] » bar/foo/loo.e2e.js
-[MultiremoteBrowser on chrome and firefox #0-0] Bar test
-[MultiremoteBrowser on chrome and firefox #0-0]    green ✓ some test
-[MultiremoteBrowser on chrome and firefox #0-0]    red ✖ a failed test
-[MultiremoteBrowser on chrome and firefox #0-0]    red ✖ a failed test with no stack
-[MultiremoteBrowser on chrome and firefox #0-0]
-[MultiremoteBrowser on chrome and firefox #0-0] » bar/loo/foo.e2e.js
-[MultiremoteBrowser on chrome and firefox #0-0] Baz test
-[MultiremoteBrowser on chrome and firefox #0-0]    green ✓ foo bar baz
-[MultiremoteBrowser on chrome and firefox #0-0]    cyan - a skipped test
-[MultiremoteBrowser on chrome and firefox #0-0]
-[MultiremoteBrowser on chrome and firefox #0-0] green 4 passing (5s)
-[MultiremoteBrowser on chrome and firefox #0-0] red 1 failing
-[MultiremoteBrowser on chrome and firefox #0-0] cyan 1 skipped
-[MultiremoteBrowser on chrome and firefox #0-0]
-[MultiremoteBrowser on chrome and firefox #0-0] 1) Bar test a failed test
-[MultiremoteBrowser on chrome and firefox #0-0] red expected foo to equal bar
-[MultiremoteBrowser on chrome and firefox #0-0] gray Failed test stack trace
-[MultiremoteBrowser on chrome and firefox #0-0]
-[MultiremoteBrowser on chrome and firefox #0-0] 2) Bar test a failed test with no stack
-[MultiremoteBrowser on chrome and firefox #0-0] red expected foo to equal bar
+[MultiRemoteBrowser on chrome and firefox #0-0] Running: MultiRemoteBrowser on chrome and firefox
+[MultiRemoteBrowser on chrome and firefox #0-0]
+[MultiRemoteBrowser on chrome and firefox #0-0] » foo/bar/loo.e2e.js
+[MultiRemoteBrowser on chrome and firefox #0-0] Foo test
+[MultiRemoteBrowser on chrome and firefox #0-0]    green ✓ foo
+[MultiRemoteBrowser on chrome and firefox #0-0]    green ✓ bar
+[MultiRemoteBrowser on chrome and firefox #0-0]
+[MultiRemoteBrowser on chrome and firefox #0-0] » bar/foo/loo.e2e.js
+[MultiRemoteBrowser on chrome and firefox #0-0] Bar test
+[MultiRemoteBrowser on chrome and firefox #0-0]    green ✓ some test
+[MultiRemoteBrowser on chrome and firefox #0-0]    red ✖ a failed test
+[MultiRemoteBrowser on chrome and firefox #0-0]    red ✖ a failed test with no stack
+[MultiRemoteBrowser on chrome and firefox #0-0]
+[MultiRemoteBrowser on chrome and firefox #0-0] » bar/loo/foo.e2e.js
+[MultiRemoteBrowser on chrome and firefox #0-0] Baz test
+[MultiRemoteBrowser on chrome and firefox #0-0]    green ✓ foo bar baz
+[MultiRemoteBrowser on chrome and firefox #0-0]    cyan - a skipped test
+[MultiRemoteBrowser on chrome and firefox #0-0]
+[MultiRemoteBrowser on chrome and firefox #0-0] green 4 passing (5s)
+[MultiRemoteBrowser on chrome and firefox #0-0] red 1 failing
+[MultiRemoteBrowser on chrome and firefox #0-0] cyan 1 skipped
+[MultiRemoteBrowser on chrome and firefox #0-0]
+[MultiRemoteBrowser on chrome and firefox #0-0] 1) Bar test a failed test
+[MultiRemoteBrowser on chrome and firefox #0-0] red expected foo to equal bar
+[MultiRemoteBrowser on chrome and firefox #0-0] gray Failed test stack trace
+[MultiRemoteBrowser on chrome and firefox #0-0]
+[MultiRemoteBrowser on chrome and firefox #0-0] 2) Bar test a failed test with no stack
+[MultiRemoteBrowser on chrome and firefox #0-0] red expected foo to equal bar
 ",
   ],
 ]

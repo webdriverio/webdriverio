@@ -142,7 +142,7 @@ describe('launcher', () => {
 
         it('should start instance in multiremote', () => {
             launcher['_runSpecs'] = vi.fn()
-            launcher.isMultiremote = true
+            launcher.isMultiRemote = true
             launcher['_runMode'](
                 { specs: ['./'], specFileRetries: 2 } as any,
                 { foo: { capabilities: { browserName: 'chrome' } } }
@@ -157,8 +157,8 @@ describe('launcher', () => {
 
         it('should start instances with parallel multiremote', () => {
             launcher['_runSpecs'] = vi.fn()
-            launcher.isMultiremote = true
-            launcher.isParallelMultiremote = true
+            launcher.isMultiRemote = true
+            launcher.isParallelMultiRemote = true
             launcher['_runMode'](
                 { specs: ['./'], specFileRetries: 2 } as any,
                 [
@@ -177,7 +177,7 @@ describe('launcher', () => {
 
         it('should start instance with grouped specs', () => {
             launcher['_runSpecs'] = vi.fn()
-            launcher.isMultiremote = false
+            launcher.isMultiRemote = false
             launcher['_runMode'](
                 { specs: [['/a.js', '/b.js']], specFileRetries: 2 } as any,
                 [caps]
@@ -192,7 +192,7 @@ describe('launcher', () => {
 
         it('should start instance in multiremote with grouped specs', () => {
             launcher['_runSpecs'] = vi.fn()
-            launcher.isMultiremote = true
+            launcher.isMultiRemote = true
             launcher['_runMode'](
                 { specs: [['/a.js', '/b.js']], specFileRetries: 2 } as any,
                 { foo: { capabilities: { browserName: 'chrome' } } }

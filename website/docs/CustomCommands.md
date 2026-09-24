@@ -125,7 +125,7 @@ Be careful to not overload the `browser` scope with too many custom commands.
 
 We recommend defining custom logic in [page objects](pageobjects), so they are bound to a specific page.
 
-### Multiremote
+### MultiRemote
 
 `addCommand` works in a similar way for multiremote, except the new command will propagate down to the children instances. You have to be mindful when using `this` object since the multiremote `browser` and its children instances have different `this`.
 

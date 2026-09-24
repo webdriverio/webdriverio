@@ -61,7 +61,7 @@ npm run test:kobiton
 
 All files inside this directory demonstrate how some commands can get used. To run these examples just execute them with node.
 
-# Multiremote
+# MultiRemote
 
 The multiremote examples demonstrate how you can use more than one browser to test a specific thing. This feature is not meant to run tests in parallel, it helps you test interactive features (e.g. a chat system) where you need more than one browser to test.
 

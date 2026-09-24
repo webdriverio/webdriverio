@@ -155,7 +155,7 @@ jobs:
     uses: ./.github/workflows/test-testrunner.yml
 
   multiremote_tests:
-    name: Multiremote E2E Tests
+    name: MultiRemote E2E Tests
     needs: [changes, smoke_tests, unit_tests, interop_tests, typing_tests]
     if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/test-multiremote.yml

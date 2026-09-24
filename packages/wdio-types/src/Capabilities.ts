@@ -102,7 +102,7 @@ export interface W3CCapabilities {
     firstMatch: WebdriverIO.Capabilities[]
 }
 export type RequestedStandaloneCapabilities = W3CCapabilities | WebdriverIO.Capabilities
-export type RequestedMultiremoteCapabilities = {
+export type RequestedMultiRemoteCapabilities = {
     [instanceName: string]: WebDriverIOOptions & WithRequestedCapabilities
 }
 
@@ -115,13 +115,13 @@ export type RemoteConfig = WebDriverOptions & WithRequestedCapabilities
  * Configuration object for the `webdriverio` package
  */
 export type WebdriverIOConfig = WebDriverIOOptions & WithRequestedCapabilities
-export type WebdriverIOMultiRemoteConfig = WebDriverIOOptions & { capabilities: RequestedMultiremoteCapabilities }
+export type WebdriverIOMultiRemoteConfig = WebDriverIOOptions & { capabilities: RequestedMultiRemoteCapabilities }
 
 /**
  * A type referencing all possible capability types when using Testrunner
  * e.g. everything a user can provide in the `capabilities` property
  */
-export type TestrunnerCapabilities = RequestedStandaloneCapabilities[] | RequestedMultiremoteCapabilities | RequestedMultiremoteCapabilities[]
+export type TestrunnerCapabilities = RequestedStandaloneCapabilities[] | RequestedMultiRemoteCapabilities | RequestedMultiRemoteCapabilities[]
 
 /**
  * The capabilities that will be resolved within a worker instance, e.g. either
@@ -209,9 +209,9 @@ export interface WithRequestedTestrunnerCapabilities {
 /**
  * The `capabilities` property is a required property when using the `remote` method to initiate a multiremote session.
  */
-export interface WithRequestedMultiremoteCapabilities {
+export interface WithRequestedMultiRemoteCapabilities {
     /**
-     * Defines the capabilities for each Multiremote client. Check out the
+     * Defines the capabilities for each MultiRemote client. Check out the
      * documentation on [Capabilities](https://webdriver.io/docs/capabilities) for more details.
      *
      * @example
@@ -275,7 +275,7 @@ export interface WithRequestedMultiremoteCapabilities {
      * })
      * ```
      */
-    capabilities: RequestedMultiremoteCapabilities | RequestedMultiremoteCapabilities[]
+    capabilities: RequestedMultiRemoteCapabilities | RequestedMultiRemoteCapabilities[]
 }
 
 export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIOCapabilities,

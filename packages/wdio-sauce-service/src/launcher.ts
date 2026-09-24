@@ -66,11 +66,11 @@ export default class SauceLauncher implements Services.ServiceInstance {
         if (Array.isArray(capabilities)) {
             for (const capability of capabilities) {
                 /**
-                 * Parallel Multiremote
+                 * Parallel MultiRemote
                  */
                 if (Object.values(capability).length > 0 && Object.values(capability).every(c => typeof c === 'object' && c.capabilities)) {
                     for (const browserName of Object.keys(capability)) {
-                        const caps = (capability as Capabilities.RequestedMultiremoteCapabilities)[browserName].capabilities
+                        const caps = (capability as Capabilities.RequestedMultiRemoteCapabilities)[browserName].capabilities
                         prepareCapability((caps as Capabilities.W3CCapabilities).alwaysMatch || caps)
                     }
                 } else {

@@ -76,7 +76,7 @@ describe('wdio-runner', () => {
         it('should work normally when called after framework run in multiremote', async () => {
             const hook = vi.fn()
             const runner = new WDIORunner()
-            runner['_isMultiremote'] = true
+            runner['_isMultiRemote'] = true
             runner['_shutdown'] = vi.fn()
             runner['_browser'] = {
                 deleteSession: vi.fn(),
@@ -109,7 +109,7 @@ describe('wdio-runner', () => {
         it('should do nothing when triggered by run method without session in multiremote', async () => {
             const hook = vi.fn()
             const runner = new WDIORunner()
-            runner['_isMultiremote'] = true
+            runner['_isMultiRemote'] = true
             runner['_shutdown'] = vi.fn()
             await runner.endSession()
             expect(hook).toBeCalledTimes(0)
@@ -648,7 +648,7 @@ describe('wdio-runner', () => {
                     'cid': undefined,
                     'config': undefined,
                     'instanceOptions': {},
-                    'isMultiremote': false,
+                    'isMultiRemote': false,
                     'retry': 0,
                     'specs': undefined
                 }],

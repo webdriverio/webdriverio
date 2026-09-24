@@ -44,8 +44,8 @@ class Launcher {
     #isInitialized: boolean = false
 
     public configParser: ConfigParser
-    public isMultiremote = false
-    public isParallelMultiremote = false
+    public isMultiRemote = false
+    public isParallelMultiRemote = false
     public runner?: Services.RunnerInstance
     public interface?: CLInterface
 
@@ -77,10 +77,10 @@ class Launcher {
         const config = this.configParser.getConfig()
 
         const capabilities = this.configParser.getCapabilities()
-        this.isParallelMultiremote = Array.isArray(capabilities) &&
+        this.isParallelMultiRemote = Array.isArray(capabilities) &&
             capabilities.length > 0 &&
             capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities))
-        this.isMultiremote = this.isParallelMultiremote || !Array.isArray(capabilities)
+        this.isMultiRemote = this.isParallelMultiRemote || !Array.isArray(capabilities)
         validateConfig(TESTRUNNER_DEFAULTS, { ...config, capabilities })
 
         await enableFileLogging(config.outputDir)
@@ -117,14 +117,14 @@ class Launcher {
             await runServiceHook(this._launcher, 'onPrepare', config, caps)
 
             /**
-             * For Parallel-Multiremote, only get the specs and excludes from the first object
+             * For Parallel-MultiRemote, only get the specs and excludes from the first object
              */
             const totalWorkerCnt = Array.isArray(capabilities)
                 ? capabilities
                     .map((c) => {
-                        if (this.isParallelMultiremote) {
-                            const keys = Object.keys(c as Capabilities.RequestedMultiremoteCapabilities)
-                            const caps = (c as Capabilities.RequestedMultiremoteCapabilities)[keys[0]].capabilities as WebdriverIO.Capabilities
+                        if (this.isParallelMultiRemote) {
+                            const keys = Object.keys(c as Capabilities.RequestedMultiRemoteCapabilities)
+                            const caps = (c as Capabilities.RequestedMultiRemoteCapabilities)[keys[0]].capabilities as WebdriverIO.Capabilities
                             return this.configParser.getSpecs(caps['wdio:specs'], caps['wdio:exclude']).length
                         }
                         const standaloneCaps = c as Capabilities.RequestedStandaloneCapabilities
@@ -287,26 +287,26 @@ class Launcher {
          * schedule test runs
          */
         let cid = 0
-        if (this.isMultiremote && !this.isParallelMultiremote) {
+        if (this.isMultiRemote && !this.isParallelMultiRemote) {
             /**
-             * Multiremote mode
+             * MultiRemote mode
              */
             this._schedule.push({
                 cid: cid++,
-                caps: caps as Capabilities.RequestedMultiremoteCapabilities,
-                specs: this._formatSpecs(caps as Capabilities.RequestedMultiremoteCapabilities, specFileRetries),
+                caps: caps as Capabilities.RequestedMultiRemoteCapabilities,
+                specs: this._formatSpecs(caps as Capabilities.RequestedMultiRemoteCapabilities, specFileRetries),
                 availableInstances: config.maxInstances || 1,
                 runningInstances: 0
             })
         } else {
             /**
-             * Regular mode & Parallel Multiremote
+             * Regular mode & Parallel MultiRemote
              */
             for (const capabilities of caps as Capabilities.RequestedStandaloneCapabilities[]) {
                 /**
                  * when using browser runner we only allow one session per browser
                  */
-                const availableInstances = this.isParallelMultiremote ? config.maxInstances || 1 : config.runner === 'browser'
+                const availableInstances = this.isParallelMultiRemote ? config.maxInstances || 1 : config.runner === 'browser'
                     ? 1
                     : (capabilities as WebdriverIO.Capabilities)['wdio:maxInstances'] || config.maxInstancesPerCapability || DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE
 
@@ -349,11 +349,11 @@ class Launcher {
     /**
      * Format the specs into an array of objects with files and retries
      */
-    private _formatSpecs(capabilities: (Capabilities.RequestedMultiremoteCapabilities | Capabilities.RequestedStandaloneCapabilities), specFileRetries: number) {
+    private _formatSpecs(capabilities: (Capabilities.RequestedMultiRemoteCapabilities | Capabilities.RequestedStandaloneCapabilities), specFileRetries: number) {
         let caps: WebdriverIO.Capabilities
         if ('alwaysMatch' in capabilities) {
             caps = capabilities.alwaysMatch as WebdriverIO.Capabilities
-        } else if (typeof Object.keys(capabilities)[0] === 'object' && 'capabilities' in (capabilities as Capabilities.RequestedMultiremoteCapabilities)[Object.keys(capabilities)[0]]) {
+        } else if (typeof Object.keys(capabilities)[0] === 'object' && 'capabilities' in (capabilities as Capabilities.RequestedMultiRemoteCapabilities)[Object.keys(capabilities)[0]]) {
             caps = {} as WebdriverIO.Capabilities
         } else {
             caps = capabilities as WebdriverIO.Capabilities

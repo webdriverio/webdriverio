@@ -136,7 +136,7 @@ describe('utils', () => {
     })
 
     describe('getInstancesData', () => {
-        it('isMultiremote = true', () => {
+        it('isMultiRemote = true', () => {
             const { sessionId, protocol, hostname, port, path, queryParams } = {
                 sessionId: 'bar',
                 protocol: 'http',
@@ -157,7 +157,7 @@ describe('utils', () => {
                 .toEqual({ foo: { sessionId, protocol, hostname, port, path, queryParams } })
         })
 
-        it('isMultiremote = false', () => {
+        it('isMultiRemote = false', () => {
             expect(getInstancesData({} as any, false))
                 .toEqual(undefined)
         })
