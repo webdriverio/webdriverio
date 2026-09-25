@@ -24,7 +24,7 @@ infra/compiler           esbuild + protocol type generation
 infra/repo-tools         docs index, scoped tests, CI lane helpers
 scripts/                 docs generation, BiDi CDDL, release helpers
 tests/                   smoke suites (mock driver, no real browser)
-e2e/                     real-browser / component / xvfb suites
+e2e/                     real-browser / component / display-server suites
 website/                 Docusaurus site (many pages are generated)
 ```
 
@@ -82,7 +82,7 @@ Prefer the smallest proof that covers the touched contract. Do not start with
 | Public command / interface shape | package unit tests **and** `pnpm run test:typings` (or the matching `test:typings:*`) |
 | Testrunner, CLI, reporter, service, framework wiring | `pnpm run test:smoke:list` then `pnpm run test:smoke <suite>` (see [tests/AGENTS.md](tests/AGENTS.md)) |
 | `@wdio/browser-runner` / `e2e/browser-runner` | `pnpm run test:component` |
-| `@wdio/xvfb` / xvfb e2e | `pnpm run test:e2e:xvfb` |
+| `@wdio/display-server` / display-server e2e | `pnpm run test:e2e:display-server` |
 | Docs-only (`website/docs`, JSDoc, package README) | `pnpm run docs:list` then `pnpm run docs:generate` |
 | Root CI / toolchain files | treat as `run-all`; run `pnpm run test:local` |
 

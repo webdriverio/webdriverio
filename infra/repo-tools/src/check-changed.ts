@@ -50,7 +50,7 @@ export function planChecks (
         return steps
     }
 
-    if (report.lanes.code || report.lanes.component || report.lanes.xvfb) {
+    if (report.lanes.code || report.lanes.component || report.lanes.display_server) {
         steps.push({ name: 'test:oxlint', cmd: ['pnpm', 'run', 'test:oxlint'] })
     }
 
@@ -97,15 +97,15 @@ export function planChecks (
         }
     }
 
-    if (report.lanes.xvfb) {
+    if (report.lanes.display_server) {
         if (e2e) {
-            steps.push({ name: 'test:e2e:xvfb', cmd: ['pnpm', 'run', 'test:e2e:xvfb'] })
+            steps.push({ name: 'test:e2e:display-server', cmd: ['pnpm', 'run', 'test:e2e:display-server'] })
         } else {
-            steps.push({ name: 'xvfb', reason: 'pass --e2e to run pnpm run test:e2e:xvfb' })
+            steps.push({ name: 'display-server', reason: 'pass --e2e to run pnpm run test:e2e:display-server' })
         }
     }
 
-    if (report.lanes.docs && !report.lanes.code && !report.lanes.component && !report.lanes.xvfb && !report.runAll) {
+    if (report.lanes.docs && !report.lanes.code && !report.lanes.component && !report.lanes.display_server && !report.runAll) {
         steps.push({
             name: 'docs',
             reason: 'docs lane only; run pnpm run docs:list and regenerate if you changed JSDoc, protocols, or package READMEs'

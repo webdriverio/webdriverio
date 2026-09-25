@@ -34,18 +34,18 @@ export const LANE_FILTERS: LaneFilters = {
         'packages/wdio-browser-runner/**',
         'e2e/browser-runner/**'
     ],
-    xvfb: [
-        'packages/wdio-xvfb/**',
+    display_server: [
+        'packages/wdio-display-server/**',
         'packages/wdio-local-runner/**',
-        'e2e/wdio/xvfb/**'
+        'e2e/wdio/display-server/**'
     ],
     code: [
         'packages/**',
-        '!packages/wdio-xvfb/**',
+        '!packages/wdio-display-server/**',
         '!packages/wdio-browser-runner/**',
         'tests/**',
         'e2e/**',
-        '!e2e/wdio/xvfb/**',
+        '!e2e/wdio/display-server/**',
         '!e2e/browser-runner/**',
         'scripts/**',
         '!scripts/docs-generation/**',
@@ -127,7 +127,7 @@ export function classify (files: readonly string[]): Omit<ChangeReport, 'base'> 
         ci: false,
         docs: false,
         component: false,
-        xvfb: false,
+        display_server: false,
         code: false
     }
     for (const lane of Object.keys(LANE_FILTERS) as LaneName[]) {
