@@ -14,6 +14,9 @@
 #
 # Required secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID. The Vercel
 # project's "Root Directory" setting must be empty, the CLI runs in `website/`.
+# Because that root is the repo root, Git deployments read /vercel.json, not
+# website/vercel.json. /vercel.json turns those deployments off so Vercel does
+# not build the monorepo beside this workflow.
 name: Docs Deploy
 
 on:
