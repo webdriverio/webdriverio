@@ -44,9 +44,6 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
         enforce: 'post',
         transform(code, id) {
             const isSpecFile = id === spec
-            if (isSpecFile) {
-                isTestDependency = true
-            }
 
             /**
              * only transform files:
@@ -331,6 +328,8 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
             if (sessionMocks.size === 0) {
                 return { code }
             }
+
+            isTestDependency = true
 
             try {
                 const newCode = print(ast, { sourceMapName: id })
