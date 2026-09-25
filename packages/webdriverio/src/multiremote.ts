@@ -51,7 +51,7 @@ export default class MultiRemote {
         propertiesObject.getInstance = {
             value: (browserName: string) => {
                 const instance = this.instances[browserName]
-                if (!instance) {
+                if (!Object.prototype.hasOwnProperty.call(this.instances, browserName) || !instance) {
                     throw new Error(`Multiremote object has no instance named "${browserName}"`)
                 }
                 return instance
