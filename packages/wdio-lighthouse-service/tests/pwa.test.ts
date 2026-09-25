@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import type { CDPSession } from 'puppeteer-core/lib/puppeteer/api/CDPSession.js'
-import type { Page } from 'puppeteer-core/lib/puppeteer/api/Page.js'
+import type { CDPSession } from 'puppeteer-core'
+import type { Page } from 'puppeteer-core'
 
 import PWAAuditor, { evaluatePWAChecks } from '../src/pwa.js'
 

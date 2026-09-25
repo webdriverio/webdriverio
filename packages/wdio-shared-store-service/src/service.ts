@@ -63,7 +63,7 @@ export default class SharedStoreService implements Services.ServiceInstance {
         if (!this._browser.capabilities && browser.instances) {
 
             browser.instances.forEach((browserName) => {
-                browser.getInstance(browserName).sharedStore = sharedStore
+                browser.getInstance(browserName)!.sharedStore = sharedStore
             })
         }
     }
