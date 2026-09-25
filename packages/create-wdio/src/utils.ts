@@ -576,15 +576,17 @@ function getPreset(parsedAnswers: ParsedAnswers) {
 }
 export function addServiceDeps(names: SupportedPackage[], packages: string[], update = false) {
     /**
-     * install Appium if it is not installed globally if `@wdio/appium-service`
-     * was selected for install
+     * Install Appium 3+ when `@wdio/appium-service` is selected. Reuse a global
+     * Appium binary only when it is already major 3 or newer.
      */
     if (names.some(({ short }) => short === 'appium')) {
         const result = execSync('appium --version || echo APPIUM_MISSING', { stdio: 'pipe' }).toString().trim()
-        if (result === 'APPIUM_MISSING') {
-            packages.push('appium')
-        } else if (update) {
+        const major = Number.parseInt(result.replace(/^v/i, '').split('.')[0] || '', 10)
+        const hasAppium3 = result !== 'APPIUM_MISSING' && !Number.isNaN(major) && major >= 3
 
+        if (!hasAppium3) {
+            packages.push('appium@^3')
+        } else if (update) {
             console.log(
                 '\n=======',
                 '\nUsing globally installed appium', result,

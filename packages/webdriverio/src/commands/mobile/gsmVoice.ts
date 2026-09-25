@@ -1,11 +1,9 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Set the GSM voice state on the Android emulator. Valid values: 'unregistered', 'home',
  * 'roaming', 'searching', 'denied', 'off', 'on'.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :gsmVoice.js
@@ -32,14 +30,5 @@ export async function gsmVoice(
         throw new Error('The `gsmVoice` command is only available for Android.')
     }
 
-    try {
-        return await browser.execute('mobile: gsmVoice', { state })
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: gsmVoice', '/appium/device/gsm_voice')
-        return browser.appiumGsmVoice(state)
-    }
+    return executeMobile(browser, 'mobile: gsmVoice', { state })
 }

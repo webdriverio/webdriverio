@@ -1,12 +1,10 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Get performance data for a specific application. Returns system state information like cpu,
  * memory, network traffic, and battery. Use `getPerformanceDataTypes()` to find available
  * data types.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :getPerformanceData.js
@@ -42,14 +40,5 @@ export async function getPerformanceData(
         throw new Error('The `getPerformanceData` command is only available for Android.')
     }
 
-    try {
-        return await browser.execute('mobile: getPerformanceData', { packageName, dataType, dataReadTimeout }) as string[]
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: getPerformanceData', '/appium/getPerformanceData')
-        return browser.appiumGetPerformanceData(packageName, dataType, dataReadTimeout) as Promise<string[]>
-    }
+    return executeMobile<string[]>(browser, 'mobile: getPerformanceData', { packageName, dataType, dataReadTimeout })
 }

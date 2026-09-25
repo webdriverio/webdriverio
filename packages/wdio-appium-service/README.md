@@ -12,8 +12,10 @@ Additionally, this package also includes a **BETA feature** - the **Native Mobil
 The easiest way is to keep `@wdio/appium-service` as a devDependency in your `package.json`, via:
 
 ```sh
-npm install @wdio/appium-service --save-dev
+npm install @wdio/appium-service appium@^3 --save-dev
 ```
+
+WebdriverIO 10 requires **Appium 3** (server and current official drivers). The service refuses to launch Appium 1.x or 2.x. If you pass Appium CLI args such as `--allow-insecure`, Appium 3 requires a driver or `*` scope prefix (for example `uiautomator2:adb_shell` or `*:adb_shell`).
 
 Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted)
 

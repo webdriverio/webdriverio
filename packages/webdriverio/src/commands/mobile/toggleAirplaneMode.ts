@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Set the airplane mode state on the device.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * :::note
  * Unlike the deprecated API which toggled the airplane mode state, this command requires an
@@ -41,14 +39,5 @@ export async function toggleAirplaneMode(
         throw new Error('The `toggleAirplaneMode` command is only available for Android.')
     }
 
-    try {
-        return await browser.execute('mobile: setConnectivity', { airplaneMode: enabled })
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: setConnectivity', '/appium/device/toggle_airplane_mode')
-        return browser.appiumToggleAirplaneMode()
-    }
+    return executeMobile(browser, 'mobile: setConnectivity', { airplaneMode: enabled })
 }

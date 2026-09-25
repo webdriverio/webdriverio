@@ -1,11 +1,9 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Returns the information types of the system state which is supported to read
  * as part of performance data (e.g. cpu, memory, network traffic, battery).
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :getPerformanceDataTypes.js
@@ -32,14 +30,5 @@ export async function getPerformanceDataTypes(
         throw new Error('The `getPerformanceDataTypes` command is only available for Android.')
     }
 
-    try {
-        return await browser.execute('mobile: getPerformanceDataTypes', {}) as string[]
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: getPerformanceDataTypes', '/appium/performanceData/types')
-        return browser.appiumGetPerformanceDataTypes() as Promise<string[]>
-    }
+    return executeMobile<string[]>(browser, 'mobile: getPerformanceDataTypes', {})
 }

@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Set the mobile data state on the device.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * :::note
  * Unlike the deprecated API which toggled the data state, this command requires an explicit
@@ -39,14 +37,5 @@ export async function toggleData(
         throw new Error('The `toggleData` command is only available for Android.')
     }
 
-    try {
-        return await browser.execute('mobile: setConnectivity', { data: enabled })
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: setConnectivity', '/appium/device/toggle_data')
-        return browser.appiumToggleData()
-    }
+    return executeMobile(browser, 'mobile: setConnectivity', { data: enabled })
 }

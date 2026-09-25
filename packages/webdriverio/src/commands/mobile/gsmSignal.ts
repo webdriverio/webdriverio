@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Set the GSM signal strength on the Android emulator.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :gsmSignal.js
@@ -34,14 +32,5 @@ export async function gsmSignal(
         throw new Error('The `gsmSignal` command is only available for Android.')
     }
 
-    try {
-        return await browser.execute('mobile: gsmSignal', { signalStrength })
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: gsmSignal', '/appium/device/gsm_signal')
-        return browser.appiumGsmSignal(String(signalStrength))
-    }
+    return executeMobile(browser, 'mobile: gsmSignal', { signalStrength })
 }

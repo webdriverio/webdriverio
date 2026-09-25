@@ -75,9 +75,8 @@ describe('utils', () => {
         })
         expect(mobilePrototype instanceof Object).toBe(true)
         expect(typeof mobilePrototype.performActions.value).toBe('function')
-        expect(typeof mobilePrototype.sendKeys.value).toBe('function')
-        expect(typeof mobilePrototype.appiumLock.value).toBe('function')
-        expect(typeof mobilePrototype.getNetworkConnection.value).toBe('function')
+        expect(typeof mobilePrototype.installApp.value).toBe('function')
+        expect(typeof mobilePrototype.getGeoLocation.value).toBe('function')
 
         const mobileChromePrototype = getPrototype({
             isW3C: true, isChromium: true, isMobile: true, isSauce, isSeleniumStandalone, isIOS, isAndroid
@@ -85,8 +84,7 @@ describe('utils', () => {
         expect(mobileChromePrototype instanceof Object).toBe(true)
         expect(typeof mobileChromePrototype.sendCommand.value).toBe('function')
         expect(typeof mobileChromePrototype.performActions.value).toBe('function')
-        expect(typeof mobileChromePrototype.sendKeys.value).toBe('function')
-        expect(typeof mobileChromePrototype.appiumLock.value).toBe('function')
+        expect(typeof mobileChromePrototype.installApp.value).toBe('function')
         expect(typeof mobileChromePrototype.getNetworkConnection.value).toBe('function')
 
         const saucePrototype = getPrototype({

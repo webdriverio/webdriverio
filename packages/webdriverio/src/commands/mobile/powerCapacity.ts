@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Set the battery percentage on the Android emulator. Value must be in the range [0, 100].
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :powerCapacity.js
@@ -31,14 +29,5 @@ export async function powerCapacity(
         throw new Error('The `powerCapacity` command is only available for Android.')
     }
 
-    try {
-        return await browser.execute('mobile: powerCapacity', { percent })
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: powerCapacity', '/appium/device/power_capacity')
-        return browser.appiumPowerCapacity(percent)
-    }
+    return executeMobile(browser, 'mobile: powerCapacity', { percent })
 }
