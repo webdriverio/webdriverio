@@ -33,7 +33,9 @@ const mockHandler: any = {
 }
 
 test('exposes correct format', () => {
-    expect(mockHoisting(mockHandler)).toEqual([{
+    const plugins = mockHoisting(mockHandler)
+    expect(plugins.prime).toBeTypeOf('function')
+    expect(Array.from(plugins)).toEqual([{
         name: 'wdio:mockHoisting:pre',
         enforce: 'pre',
         load: expect.any(Function),

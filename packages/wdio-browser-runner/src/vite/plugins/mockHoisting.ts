@@ -18,13 +18,13 @@ const INTERNALS_TO_IGNORE = [
 
 const b = types.builders
 const MOCK_PREFIX = '/@mock'
-export function mockHoisting(mockHandler: MockHandler): Plugin[] {
+export function mockHoisting(mockHandler: MockHandler): Plugin[] & { prime: (specPath: string) => void } {
     let spec: string | null = null
     let isTestDependency = false
     const sessionMocks = new Set<string>()
     const importMap = new Map<string, string>()
 
-    return [{
+    const plugins: Plugin[] = [{
         name: 'wdio:mockHoisting:pre',
         enforce: 'pre',
         resolveId: mockHandler.resolveId.bind(mockHandler),
@@ -370,4 +370,17 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
             }
         }
     }]
+
+    return Object.assign(plugins, {
+        prime(specPath: string) {
+            if (spec === specPath) {
+                return
+            }
+            mockHandler.resetMocks()
+            isTestDependency = false
+            sessionMocks.clear()
+            importMap.clear()
+            spec = specPath
+        }
+    })
 }
