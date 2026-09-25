@@ -8,6 +8,7 @@
 #
 # - workflow_dispatch: production deploy of the selected branch (all locales)
 # - pull_request:      preview deploy (English only) with a sticky PR comment.
+#                      The deployment is aliased to <PR>.preview.webdriver.io.
 #                      Skipped for forks and Dependabot, which don't get
 #                      secrets; a maintainer can dispatch a preview instead.
 #
@@ -87,6 +88,7 @@ jobs:
         working-directory: ./website
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
           if [ -z "${VERCEL_TOKEN:-}" ] || [ -z "${VERCEL_ORG_ID:-}" ] || [ -z "${VERCEL_PROJECT_ID:-}" ]; then
@@ -106,6 +108,11 @@ jobs:
           # .vercel/output so deploy --prebuilt does not reject them.
           npx --yes vercel@59 build $PROD_FLAG --standalone --token="$VERCEL_TOKEN"
           URL=$(npx --yes vercel@59 deploy --prebuilt $PROD_FLAG --token="$VERCEL_TOKEN")
+          if [ -n "${PR_NUMBER}" ]; then
+            ALIAS="${PR_NUMBER}.preview.webdriver.io"
+            npx --yes vercel@59 alias set "$URL" "$ALIAS" --token="$VERCEL_TOKEN" --scope webdriverios-projects
+            URL="https://${ALIAS}"
+          fi
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "### Deployed to [$URL]($URL)" >> "$GITHUB_STEP_SUMMARY"
 
