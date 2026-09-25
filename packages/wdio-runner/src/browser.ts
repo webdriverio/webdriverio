@@ -43,7 +43,6 @@ interface LogMessage {
 declare global {
     interface Window {
         __wdioErrors__: WDIOErrorEvent[]
-        __wdioEnv__?: unknown
         __wdioEvents__: Event[]
         __wdioFailures__: number
         __coverage__?: unknown
@@ -52,8 +51,6 @@ declare global {
 
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     #retryOutdatedOptimizeDep = false
-    #bootMisses = 0
-    #retriedBoot = false
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     #runnerOptions: any // `any` here because we don't want to create a dependency to @wdio/browser-runner
     #resolveTestStatePromise?: (value: TestState) => void
@@ -117,8 +114,6 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
     async #runSpec (spec: string, retried = false): Promise<number> {
         this.#retryOutdatedOptimizeDep = false
-        this.#bootMisses = 0
-        this.#retriedBoot = false
         const timeout = this._config.mochaOpts?.timeout || DEFAULT_TIMEOUT
         log.info(`Run spec file ${spec} for cid ${this._cid}`)
 
@@ -494,7 +489,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 ?  [{ message: `Failed to load test page (title = "${document.title}", source: ${document.documentElement.innerHTML})` }]
                 : null
             const errors = viteError || window.__wdioErrors__ || loadError
-            return { errors, hasViteError: Boolean(viteError), booted: typeof window.__wdioEnv__ !== 'undefined' }
+            return { errors, hasViteError: Boolean(viteError) }
         }).catch((err) => {
             /**
              * ignore error, see https://github.com/GoogleChromeLabs/chromium-bidi/issues/1102
@@ -508,22 +503,6 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
         if (!testError) {
             return
-        }
-
-        /**
-         * Vite reloads the page once dependencies are optimized. Safari often
-         * never evaluates modules after that reload. One extra navigation
-         * runs them after the optimizer has settled.
-         */
-        if (testError.booted === false) {
-            this.#bootMisses++
-            if (this.#bootMisses >= 6 && !this.#retriedBoot) {
-                this.#retriedBoot = true
-                log.info('Reload test page because browser modules did not start')
-                return browser.refresh()
-            }
-        } else {
-            this.#bootMisses = 0
         }
 
         if ((testError.errors && testError.errors.length > 0) || testError.hasViteError) {
