@@ -1,6 +1,7 @@
 ---
 id: browser-logs
 title: Browser Logs
+description: "Capture browser console logs during a test with WebDriver Bidi log events and assert against the collected messages."
 ---
 
 When running tests the browser may log important information that you are interested or want to assert against.

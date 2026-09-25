@@ -1,6 +1,7 @@
 ---
 id: parameterize-tests
 title: Parameterize Tests
+description: "Parameterize tests with loops and dynamic functions, environment variables, .env files or data from a CSV file."
 ---
 
 You can simply parameterize tests on a test level, via simple `for` loops e.g.:

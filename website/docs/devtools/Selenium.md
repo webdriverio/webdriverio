@@ -1,6 +1,7 @@
 ---
 id: selenium
 title: Selenium DevTools
+description: "Add the DevTools debugging UI to Selenium WebDriver tests in Node.js or Python with any test runner, and enable trace mode."
 ---
 
 import Tabs from '@theme/Tabs';

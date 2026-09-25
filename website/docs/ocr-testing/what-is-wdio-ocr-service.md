@@ -1,6 +1,7 @@
 ---
 id: ocr-testing
 title: OCR Testing
+description: "Locate and interact with elements by their visible text on web and mobile apps with the OCR service when regular selectors fall short."
 ---
 
 Automated testing on mobile native apps and desktop sites can be particularly challenging when dealing with elements that lack unique identifiers. Standard [WebdriverIO selectors](https://webdriver.io/docs/selectors) may not always help you. Enter the world of the `@wdio/ocr-service`, a powerful service that leverages OCR ([Optical Character Recognition](https://en.wikipedia.org/wiki/Optical_character_recognition)) to search, wait for, and interact with on-screen elements based on their **visible text**.

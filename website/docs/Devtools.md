@@ -1,6 +1,7 @@
 ---
 id: devtools
 title: DevTools
+description: "Visualize, control and inspect test runs in a browser-based debugging UI that works with WebdriverIO, Nightwatch.js and Selenium WebDriver."
 ---
 
 DevTools is a powerful browser-based debugging interface for visualizing, controlling, and inspecting your test executions in real-time. It works with **WebdriverIO**, **Nightwatch.js**, and **Selenium WebDriver** (any runner) — same backend, same UI, same capture infrastructure.

@@ -1,6 +1,7 @@
 ---
 id: boilerplates
 title: Boilerplate Projects
+description: "Browse community boilerplate projects for WebdriverIO with Mocha, Jasmine, Cucumber, Electron and mobile setups to bootstrap your own test suite."
 ---
 
 Over time, our community has developed several projects that you can use as inspiration to set up your own test suite.

@@ -51,10 +51,12 @@ export const config = {
 ```
 
 ### logPath
+
+<Option type="String">
+
 The path where all logs from the Appium server should be stored.
 
-Type: `String`
-
+</Option>
 Example:
 ```js
 export const config = {
@@ -69,10 +71,12 @@ export const config = {
 ```
 
 ### command
+
+<Option type="String">
+
 To use your installation of Appium, e.g. globally installed, specify the command which should be started.
 
-Type: `String`
-
+</Option>
 Example:
 ```js
 export const config = {
@@ -87,14 +91,15 @@ export const config = {
 ```
 
 ### args
+
+<Option type="Object" default="{}">
+
 Map of arguments for the Appium server, passed directly to `appium`.
 
 See [the documentation](https://appium.io/docs/en/latest/cli/args/) for possible arguments.
 The arguments are supplied in lower camel case. For instance, `debugLogSpacing: true` transforms into `--debug-log-spacing`, or they can be supplied as outlined in the Appium documentation.
 
-Type: `Object`
-
-Default: `{}`
+</Option>
 
 Example:
 ```js
@@ -116,11 +121,12 @@ export const config = {
 **Note:** The utilization of aliases is discouraged and unsupported. Instead, please use the full property name in lower camel case.
 
 ### appiumStartTimeout
+
+<Option type="Number" default="30000">
+
 Timeout in milliseconds for Appium to start successfully.
 
-Type: `Number`
-
-Default: `30000`
+</Option>
 
 Example:
 ```js
@@ -256,13 +262,13 @@ export const config = {
 
 #### enableCliReport
 
+<Option type="boolean" default="false">
+
 Enable or disable the CLI report output to the terminal. When enabled, a formatted performance report is printed to the terminal after test execution.
 
 **Note:** The JSON report is always generated when `trackSelectorPerformance` is configured. This option only controls whether the report is also printed to the terminal.
 
-Type: `boolean`
-
-Default: `false`
+</Option>
 
 Example:
 ```js
@@ -282,13 +288,13 @@ export const config = {
 
 #### enableMarkdownReport
 
+<Option type="boolean" default="false">
+
 Enable markdown report file generation. When enabled, a markdown file with the same content as the CLI report is written to the logs folder (the same directory as the JSON report).
 
 **Note:** The JSON report is always generated when `trackSelectorPerformance` is configured. This option only controls whether the report is also printed to the terminal.
 
-Type: `boolean`
-
-Default: `false`
+</Option>
 
 Example:
 ```js
@@ -308,10 +314,11 @@ export const config = {
 
 #### reportPath
 
+<Option type="string">
+
 Path where the performance report files (JSON, and optionally markdown) should be saved. If not provided, falls back to `config.outputDir`, then `appium` service `logPath`. If none are set, an error will be thrown.
 
-Type: `string`
-
+</Option>
 Example:
 ```js
 export const config = {
@@ -330,11 +337,11 @@ export const config = {
 
 #### maxLineLength
 
+<Option type="number" default="100">
+
 Maximum line length for terminal and markdown report output. Lines longer than this will be wrapped at word boundaries.
 
-Type: `number`
-
-Default: `100`
+</Option>
 
 Example:
 ```js
@@ -354,12 +361,13 @@ export const config = {
 
 #### pageObjectPaths
 
+<Option type="string[]">
+
 Paths to directories containing page objects or helper files where selectors may be defined. The service will search these directories to find selector locations and show file paths (e.g., "📍 Found at: TabBar.ts:3") in the report.
 
 **This option is required.** The service will throw an error if it is not provided.
 
-Type: `string[]`
-
+</Option>
 Example:
 ```js
 export const config = {
@@ -849,3 +857,5 @@ When running on Android or with MultiRemote, the service will log a warning mess
 ----
 
 For more information on WebdriverIO see the [homepage](https://webdriver.io).
+
+

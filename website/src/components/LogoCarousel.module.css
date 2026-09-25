@@ -13,71 +13,75 @@ body .companyUsage h3 {
 
 .logos ul {
     display: flex;
-    justify-content: space-around;
-    width: 3200px;
+    width: max-content;
     margin: 0;
     padding: 0;
-    transition: transform 1000ms ease;
-}
-
-@media screen and (max-width: 1100px) {
-    .logos {
-        margin: 0;
-        padding: 0;
-    }
-    .logos ul {
-        padding: 0;
-        width: 3000px;
-    }
-    .logos ul li {
-        min-width: 125px;
-    }
+    list-style: none;
+    transition: transform 700ms ease;
 }
 
 .logos ul li {
     display: flex;
-    min-width: 150px;
+    flex: 0 0 160px;
+    height: 72px;
     justify-content: center;
     align-items: center;
 }
+
 .logos ul img {
-    transition: filter 200ms;
-    width: 100px;
+    max-width: 112px;
+    max-height: 44px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
 }
 
 .logos ul a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: none;
     border: 0;
 }
 
 .logoNavigation {
-    text-align: center;
-}
-
-.button:focus {
-    outline: none;
-}
-
-.button::before {
-    content: "\2022";
-    color: var(--wdio-link-color);
-    font-size: 50px;
-    opacity: .25;
-}
-
-.button.buttonActive::before {
-    opacity: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 1.5rem;
+    padding: 6px 0;
+    overflow: visible;
 }
 
 .button {
-    transition: opacity 200ms ease;
-    color: transparent;
+    appearance: none;
+    display: block;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    width: 8px;
+    height: 8px;
+    margin: 0;
+    padding: 0;
     border: 0;
-    background: 0;
+    border-radius: 999px;
+    background: var(--wdio-border-strong);
     cursor: pointer;
-    padding: 10px 10px 0 10px;
-    width: 30px;
-    line-height: 10px;
-    margin: 0 5px;
-    transform: translateY(20px);
+    line-height: 0;
+    transition: width 200ms ease, background 200ms ease;
+}
+
+.button:hover {
+    background: var(--wdio-text-muted);
+}
+
+.buttonActive,
+.buttonActive:hover {
+    width: 22px;
+    background: var(--ifm-color-primary);
+}
+
+.button:focus-visible {
+    outline: 2px solid var(--ifm-color-primary);
+    outline-offset: 3px;
 }

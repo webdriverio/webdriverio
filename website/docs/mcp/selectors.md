@@ -1,6 +1,7 @@
 ---
 id: selectors
 title: Selectors
+description: "Choose selectors to locate elements on web pages and mobile apps when automating with the WebdriverIO MCP server."
 ---
 
 The WebdriverIO MCP server supports multiple selector strategies for locating elements on web pages and mobile apps.
@@ -15,17 +16,15 @@ For comprehensive selector documentation including all WebdriverIO selector stra
 
 For browser automation, the MCP server supports all standard WebdriverIO selectors. The most commonly used include:
 
-| Selector | Example | Description |
-|----------|---------|-------------|
-| CSS | `#login-button`, `.submit-btn` | Standard CSS selectors |
-| XPath | `//button[@id='submit']` | XPath expressions |
-| Text | `button=Submit`, `a*=Click` | WebdriverIO text selectors |
-| ARIA | `aria/Submit Button` | Accessibility name selectors |
-| Test ID | `[data-testid="submit"]` | Recommended for testing |
+| Selector | Example                        | Description                  |
+| -------- | ------------------------------ | ---------------------------- |
+| CSS      | `#login-button`, `.submit-btn` | Standard CSS selectors       |
+| XPath    | `//button[@id='submit']`       | XPath expressions            |
+| Text     | `button=Submit`, `a*=Click`    | WebdriverIO text selectors   |
+| ARIA     | `aria/Submit Button`           | Accessibility name selectors |
+| Test ID  | `[data-testid="submit"]`       | Recommended for testing      |
 
 For detailed examples and best practices, see the [Selectors](/docs/selectors) documentation.
-
----
 
 ## Mobile Selectors
 
@@ -35,7 +34,7 @@ Mobile selectors work with both iOS and Android platforms through Appium.
 
 Accessibility IDs are the **most reliable cross-platform selector**. They work on both iOS and Android and are stable across app updates.
 
-```
+```text
 # Syntax
 ~accessibilityId
 
@@ -59,7 +58,7 @@ Always prefer accessibility IDs when available. They provide:
 
 UiAutomator selectors are powerful and fast for Android.
 
-```
+```text
 # By Text
 android=new UiSelector().text("Login")
 
@@ -86,7 +85,7 @@ android=new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new U
 
 Resource IDs provide stable element identification on Android.
 
-```
+```text
 # Full Resource ID
 id=com.example.app:id/login_button
 
@@ -98,7 +97,7 @@ id=login_button
 
 XPath works on Android but is slower than UiAutomator.
 
-```
+```text
 # By Class and Text
 //android.widget.Button[@text='Login']
 
@@ -118,7 +117,7 @@ XPath works on Android but is slower than UiAutomator.
 
 iOS Predicate Strings are fast and powerful for iOS automation.
 
-```
+```text
 # By Label
 -ios predicate string:label == "Login"
 
@@ -146,23 +145,23 @@ iOS Predicate Strings are fast and powerful for iOS automation.
 
 **Predicate Operators:**
 
-| Operator | Description |
-|----------|-------------|
-| `==` | Equals |
-| `!=` | Not equals |
-| `CONTAINS` | Contains substring |
-| `BEGINSWITH` | Starts with |
-| `ENDSWITH` | Ends with |
-| `LIKE` | Wildcard match |
-| `MATCHES` | Regex match |
-| `AND` | Logical AND |
-| `OR` | Logical OR |
+| Operator     | Description        |
+| ------------ | ------------------ |
+| `==`         | Equals             |
+| `!=`         | Not equals         |
+| `CONTAINS`   | Contains substring |
+| `BEGINSWITH` | Starts with        |
+| `ENDSWITH`   | Ends with          |
+| `LIKE`       | Wildcard match     |
+| `MATCHES`    | Regex match        |
+| `AND`        | Logical AND        |
+| `OR`         | Logical OR         |
 
 #### Class Chain
 
 iOS Class Chains provide hierarchical element location with good performance.
 
-```
+```text
 # Direct Child
 -ios class chain:**/XCUIElementTypeButton[`label == "Login"`]
 
@@ -186,7 +185,7 @@ iOS Class Chains provide hierarchical element location with good performance.
 
 XPath works on iOS but is slower than predicate strings.
 
-```
+```text
 # By Type and Label
 //XCUIElementTypeButton[@label='Login']
 
@@ -200,15 +199,13 @@ XPath works on iOS but is slower than predicate strings.
 //XCUIElementTypeTable/XCUIElementTypeCell[1]
 ```
 
----
-
 ## Cross-Platform Selector Strategy
 
 When writing tests that need to work on both iOS and Android, use this priority order:
 
 ### 1. Accessibility ID (Best)
 
-```
+```text
 # Works on both platforms
 ~loginButton
 ```
@@ -218,12 +215,12 @@ When writing tests that need to work on both iOS and Android, use this priority 
 When accessibility IDs aren't available, use platform-specific selectors:
 
 **Android:**
-```
+```text
 android=new UiSelector().text("Login")
 ```
 
 **iOS:**
-```
+```text
 -ios predicate string:label == "Login"
 ```
 
@@ -232,54 +229,50 @@ android=new UiSelector().text("Login")
 XPath works on both platforms but with different element types:
 
 **Android:**
-```
+```text
 //android.widget.Button[@text='Login']
 ```
 
 **iOS:**
-```
+```text
 //XCUIElementTypeButton[@label='Login']
 ```
-
----
 
 ## Element Types Reference
 
 ### Android Element Types
 
-| Type | Description |
-|------|-------------|
-| `android.widget.Button` | Button |
-| `android.widget.EditText` | Text input |
-| `android.widget.TextView` | Text label |
-| `android.widget.ImageView` | Image |
-| `android.widget.ImageButton` | Image button |
-| `android.widget.CheckBox` | Checkbox |
-| `android.widget.RadioButton` | Radio button |
-| `android.widget.Switch` | Toggle switch |
-| `android.widget.Spinner` | Dropdown |
-| `android.widget.ListView` | List view |
-| `android.widget.RecyclerView` | Recycler view |
-| `android.widget.ScrollView` | Scroll container |
+| Type                          | Description      |
+| ----------------------------- | ---------------- |
+| `android.widget.Button`       | Button           |
+| `android.widget.EditText`     | Text input       |
+| `android.widget.TextView`     | Text label       |
+| `android.widget.ImageView`    | Image            |
+| `android.widget.ImageButton`  | Image button     |
+| `android.widget.CheckBox`     | Checkbox         |
+| `android.widget.RadioButton`  | Radio button     |
+| `android.widget.Switch`       | Toggle switch    |
+| `android.widget.Spinner`      | Dropdown         |
+| `android.widget.ListView`     | List view        |
+| `android.widget.RecyclerView` | Recycler view    |
+| `android.widget.ScrollView`   | Scroll container |
 
 ### iOS Element Types
 
-| Type | Description |
-|------|-------------|
-| `XCUIElementTypeButton` | Button |
-| `XCUIElementTypeTextField` | Text input |
-| `XCUIElementTypeSecureTextField` | Password input |
-| `XCUIElementTypeStaticText` | Text label |
-| `XCUIElementTypeImage` | Image |
-| `XCUIElementTypeSwitch` | Toggle switch |
-| `XCUIElementTypeSlider` | Slider |
-| `XCUIElementTypePicker` | Picker wheel |
-| `XCUIElementTypeTable` | Table view |
-| `XCUIElementTypeCell` | Table cell |
-| `XCUIElementTypeCollectionView` | Collection view |
-| `XCUIElementTypeScrollView` | Scroll view |
-
----
+| Type                             | Description     |
+| -------------------------------- | --------------- |
+| `XCUIElementTypeButton`          | Button          |
+| `XCUIElementTypeTextField`       | Text input      |
+| `XCUIElementTypeSecureTextField` | Password input  |
+| `XCUIElementTypeStaticText`      | Text label      |
+| `XCUIElementTypeImage`           | Image           |
+| `XCUIElementTypeSwitch`          | Toggle switch   |
+| `XCUIElementTypeSlider`          | Slider          |
+| `XCUIElementTypePicker`          | Picker wheel    |
+| `XCUIElementTypeTable`           | Table view      |
+| `XCUIElementTypeCell`            | Table cell      |
+| `XCUIElementTypeCollectionView`  | Collection view |
+| `XCUIElementTypeScrollView`      | Scroll view     |
 
 ## Best Practices
 
@@ -300,7 +293,7 @@ XPath works on both platforms but with different element types:
 
 ### Examples of Good vs Bad Selectors
 
-```
+```text
 # Good - Stable accessibility ID
 ~loginButton
 
@@ -319,8 +312,6 @@ android=new UiSelector().resourceId("com.app:id/submit")
 # Bad - Text that might be localized
 android=new UiSelector().text("Submit")
 ```
-
----
 
 ## Debugging Selectors
 
@@ -342,7 +333,7 @@ android=new UiSelector().text("Submit")
 
 The MCP server's `get_elements` tool returns multiple selector strategies for each element:
 
-```
+```text
 Ask: "Get all visible elements on the screen"
 ```
 
@@ -352,7 +343,7 @@ This returns elements with pre-generated selectors you can use directly.
 
 For more control over element discovery:
 
-```
+```text
 # Get only images and visual elements
 Get visible elements with elementType "visual"
 
@@ -380,7 +371,7 @@ The tool returns a paginated response:
 
 For browser automation, the `get_accessibility` tool provides semantic information about page elements:
 
-```
+```text
 # Get all named accessibility nodes
 Get accessibility tree
 

@@ -1,6 +1,7 @@
 ---
 id: metadata
 title: Metadata
+description: "Inspect the capabilities, environment and timing of each browser session in the DevTools Metadata tab to diagnose environment-specific failures."
 ---
 
 Inspect the full context of every browser session your test opens. The Metadata tab surfaces the capabilities, environment, and timing behind each run, so you can confirm exactly what was under test without digging through logs.

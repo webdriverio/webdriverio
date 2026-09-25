@@ -1,6 +1,7 @@
 ---
 id: multiremote
 title: Multiremote
+description: "Control multiple browser or device sessions from a single test with multiremote, in standalone mode or with the WDIO testrunner."
 ---
 
 WebdriverIO allows you to run multiple automated sessions in a single test. This becomes handy when you’re testing features that require multiple users (for example, chat or WebRTC applications).

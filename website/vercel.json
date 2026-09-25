@@ -1,0 +1,93 @@
+{
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "framework": "docusaurus-2",
+    "installCommand": "",
+    "buildCommand": "test -f build/index.html || (echo 'website/build is missing: the site is built by .github/workflows/website-deploy.yml before `vercel build` runs' && exit 1)",
+    "outputDirectory": "build",
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "git": {
+        "deploymentEnabled": false
+    },
+    "functions": {
+        "api/mcp.ts": {
+            "includeFiles": "build/{llms.txt,docs/**/*.md,community/**/*.md}",
+            "maxDuration": 30
+        }
+    },
+    "rewrites": [
+        { "source": "/mcp", "destination": "/api/mcp" }
+    ],
+    "redirects": [
+        {
+            "source": "/:path*",
+            "has": [{ "type": "host", "value": "www\\.webdriver\\.io" }],
+            "destination": "https://webdriver.io/:path*",
+            "permanent": true
+        },
+        {
+            "source": "/:path*",
+            "has": [{ "type": "host", "value": "v[4-8]\\.webdriver\\.io" }],
+            "destination": "https://webdriver.io/:path*",
+            "permanent": true
+        },
+        {
+            "source": "/:section(docs|community)/:path((?!.*\\.md$).+)",
+            "has": [{ "type": "header", "key": "accept", "value": ".*text/markdown.*" }],
+            "destination": "/:section/:path.md",
+            "permanent": false
+        },
+        { "source": "/docs/browserobject", "destination": "/docs/api/browser", "permanent": true },
+        { "source": "/docs/options", "destination": "/docs/configuration", "permanent": true },
+        { "source": "/docs/what-is-webdriverio", "destination": "/docs/why-webdriverio", "permanent": true },
+        { "source": "/docs/sync-vs-async", "destination": "/docs/gettingstarted", "permanent": true },
+        { "source": "/docs/clioptions", "destination": "/docs/testrunner", "permanent": true },
+        { "source": "/docs/devtools-service", "destination": "/docs/wdio-devtools-service", "permanent": true },
+        { "source": "/docs/api/browser/throttle", "destination": "/docs/api/browser/throttleNetwork", "permanent": true },
+        { "source": "/docs/api/browser/touchAction", "destination": "/docs/api/browser/action", "permanent": true },
+        { "source": "/docs/api/element/touchAction", "destination": "/docs/api/browser/action", "permanent": true },
+        { "source": "/docs/api/browser/executeAsync", "destination": "/docs/api/browser/execute", "permanent": true },
+        { "source": "/docs/api/element/executeAsync", "destination": "/docs/api/element/execute", "permanent": true }
+    ],
+    "headers": [
+        {
+            "source": "/assets/:path*",
+            "headers": [
+                { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+            ]
+        },
+        {
+            "source": "/sw.js",
+            "headers": [
+                { "key": "Cache-Control", "value": "no-cache" }
+            ]
+        },
+        {
+            "source": "/:path(.*\\.md)",
+            "headers": [
+                { "key": "Content-Type", "value": "text/markdown; charset=utf-8" },
+                { "key": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+        },
+        {
+            "source": "/:file(llms.*\\.txt)",
+            "headers": [
+                { "key": "Content-Type", "value": "text/plain; charset=utf-8" },
+                { "key": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+        },
+        {
+            "source": "/:section(docs|community)/:path*",
+            "headers": [
+                { "key": "Vary", "value": "Accept" }
+            ]
+        },
+        {
+            "source": "/:path*",
+            "headers": [
+                { "key": "X-Content-Type-Options", "value": "nosniff" },
+                { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+            ]
+        }
+    ]
+}

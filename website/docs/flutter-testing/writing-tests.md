@@ -1,6 +1,7 @@
 ---
 id: writing-tests
 title: Writing Tests
+description: "Write WebdriverIO tests for Flutter apps by switching to the Flutter context and interacting with widgets through the flutter_driver extension."
 ---
 
 This section covers the practical structure for creating automated test scenarios, how to interact directly with Flutter's internal component tree using WebdriverIO.

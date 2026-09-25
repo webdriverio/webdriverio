@@ -1,6 +1,7 @@
 ---
 id: typegeneration
 title: Type generation
+description: "See how protocol specs are turned into TypeScript types, typings tests and API docs, and which source files to edit before regenerating."
 ---
 How protocol specs become TypeScript types, typings tests, and API docs.
 Agents: do not hand-edit generated files — change the source in this chart

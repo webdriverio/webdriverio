@@ -38,13 +38,18 @@ export const config = {
 To authorize the TestingBot service your config needs to contain a [`user`](https://webdriver.io/docs/options#user) and [`key`](https://webdriver.io/docs/options#key) option.
 
 ### tbTunnel
+
+<Option type="Boolean" default="false">
+
 If true it runs the TestingBot Tunnel and opens a secure connection between a TestingBot Virtual Machine running your browser tests.
 
-Type: `Boolean`<br />
-Default: `false`
+</Option>
 
 ### tbTunnelOpts
+
+<Option type="Object" default={`{}`}>
+
 Apply TestingBot Tunnel options (e.g. to change port number or logFile settings). See [this list](https://github.com/testingbot/testingbot-tunnel-launcher) for more information.
 
-Type: `Object`<br />
-Default: `{}`
+</Option>
+

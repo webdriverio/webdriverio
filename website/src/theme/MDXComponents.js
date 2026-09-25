@@ -11,6 +11,8 @@ import { ImageSwitcher } from '../components/ImageSwitcher.tsx'
 import { EventList, EventSignup, EventDetails } from '../components/Events.tsx'
 import { PhoneMock } from '../components/phoneMock.tsx'
 import Card from './card.tsx'
+import TierIcon from '../components/TierIcon.tsx'
+import Option from '../components/Option.tsx'
 
 export default {
     // Re-use the default mapping
@@ -25,5 +27,7 @@ export default {
     EventSignup,
     EventDetails,
     Card,
-    PhoneMock
+    PhoneMock,
+    TierIcon,
+    Option,
 }

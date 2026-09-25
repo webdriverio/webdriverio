@@ -1,6 +1,7 @@
 ---
 id: v7-migration
 title: From v6 to v7
+description: "Upgrade a WebdriverIO project from v6 to v7 by updating dependencies, transforming the config file and updating Cucumber step definitions."
 ---
 
 This tutorial is for people who are still using `v6` of WebdriverIO and want to migrate to `v7`. As mentioned in our [release blog post](https://webdriver.io/blog/2021/02/09/webdriverio-v7-released) the changes are mostly under the hood and upgrading should be a straight forward process.

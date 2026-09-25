@@ -1,6 +1,7 @@
 ---
 id: coverage
 title: Coverage
+description: "Collect code coverage for component tests with the browser runner, which instruments your code with istanbul through Vite."
 ---
 
 WebdriverIO's browser runner supports code coverage reporting using [`istanbul`](https://istanbul.js.org/). The testrunner will automatically instrument your code using Vite and capture code coverage for you.

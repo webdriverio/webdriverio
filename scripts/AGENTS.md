@@ -27,6 +27,6 @@ Prefer the root `pnpm run` entry points over calling these files with raw
   pages. Those outputs are gitignored; do not commit them.
 - `docs-generation/3rd-party/` is the source for community plugin docs.
 - Release / changelog / tag scripts are maintainer-only. Do not run
-  `docs:deploy`, `pushReleaseTag`, or `publish` workflows without explicit
-  TSC approval.
+  `pushReleaseTag`, the `publish` workflow or a production `Docs Deploy`
+  without explicit TSC approval.
 - Keep scripts ESM (`type: module` at the repo root). Use `tsx` for TypeScript.

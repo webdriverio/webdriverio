@@ -1,30 +1,22 @@
 ---
 id: gettingstarted
 title: Getting Started
+description: Create a WebdriverIO project with npm init wdio@latest, run your first test and find the next guide for your platform.
 ---
 
-Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Discord Support Server](https://discord.webdriver.io) or you can hit us on [𝕏](https://x.com/webdriverio).
+Set up WebdriverIO in an existing or new project with one command, then run your first test. The configuration wizard asks what you want to test (web, mobile, desktop or VS Code extensions), which framework and reporters to use, and installs everything for you.
 
 :::info
-These are the docs for the latest version (__>=9.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
+These are the docs for WebdriverIO __v10__. Still on v9? Use the [v9 documentation](https://v9.webdriver.io) or follow the [v10 migration guide](/docs/v10-migration).
 :::
 
-<LiteYouTubeEmbed
-    id="rA4IFNyW54c"
-    title="Getting Started with WebdriverIO"
-/>
-
-:::tip Official YouTube Channel 🎥
-
-You can find more videos around WebdriverIO on the [official YouTube channel](https://youtube.com/@webdriverio). Make sure you subscribe!
-
+:::tip Using a coding agent?
+Point it at [`https://webdriver.io/llms.txt`](https://webdriver.io/llms.txt) or connect the docs MCP server at `https://webdriver.io/mcp`. See [WebdriverIO for Coding Agents](/docs/ai-agents).
 :::
 
 ## Initiate a WebdriverIO Setup
 
-To add a full WebdriverIO setup to an existing or new project using the [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio), run:
-
-If you're in the root directory of an existing project, run:
+The [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio) adds a complete WebdriverIO setup to an existing or new project. In the root directory of an existing project, run:
 
 <Tabs
   defaultValue="npm"
@@ -188,3 +180,19 @@ You’ll need [Node.js](http://nodejs.org) installed.
 - Only releases that are or will become an LTS release are officially supported
 
 If Node is not currently installed on your system, we suggest utilizing a tool such as [NVM](https://github.com/creationix/nvm) or [Volta](https://volta.sh/) to assist in managing multiple active Node.js versions. NVM is a popular choice, while Volta is also a good alternative.
+
+## Watch the Introduction
+
+<LiteYouTubeEmbed
+    id="rA4IFNyW54c"
+    title="Getting Started with WebdriverIO"
+/>
+
+More videos are on the [official YouTube channel](https://youtube.com/@webdriverio).
+
+## Next Steps
+
+- Pick your platform: [Web Browsers](/docs/platforms/web), [Mobile Apps](/docs/platforms/mobile), [Desktop Apps](/docs/platforms/desktop) or [Extensions & Editors](/docs/platforms/apps-and-extensions)
+- Learn how to [select elements](/docs/selectors) and write [assertions](/docs/assertion)
+- Configure the test runner in [`wdio.conf.ts`](/docs/configurationfile)
+- Get help on [Discord](https://discord.webdriver.io)

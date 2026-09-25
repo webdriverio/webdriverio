@@ -2,22 +2,43 @@
 #
 # WebdriverIO's documentation is openly licensed and we want it to be findable,
 # both by traditional search engines and by AI assistants that people now ask
-# WebdriverIO questions instead of visiting the site directly.
+# WebdriverIO questions instead of visiting the site directly. Being part of
+# model training data is how assistants learn the current WebdriverIO APIs, so
+# training crawlers and retrieval agents are both explicitly welcome.
 #
 # Machine-readable entry points for LLM consumers:
 #   https://webdriver.io/llms.txt       - index of the documentation
 #   https://webdriver.io/llms-full.txt  - full documentation text in one file
 # Any documentation page is also available as clean Markdown by appending
-# `.md` to its URL, e.g. https://webdriver.io/docs/api/browser.md
-#
-# NOTE: no per-crawler stanzas are declared yet. Whether to allow or disallow
-# specific AI training crawlers (GPTBot, ClaudeBot, CCBot, Google-Extended,
-# Applebot-Extended, ...) separately from retrieval/citation agents
-# (OAI-SearchBot, ChatGPT-User, Claude-User, PerplexityBot, ...) is a project
-# policy decision, not a technical one. Until that is settled the site stays
-# open to everything, which matches the behaviour before this file existed.
+# `.md` to its URL, e.g. https://webdriver.io/docs/api/browser.md, or by
+# requesting it with an `Accept: text/markdown` header.
+
+# AI training crawlers
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: anthropic-ai
+User-agent: CCBot
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Meta-ExternalAgent
+User-agent: Bytespider
+Allow: /
+Disallow: /search
+
+# AI retrieval and citation agents
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: Claude-User
+User-agent: Claude-SearchBot
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+Allow: /
+Disallow: /search
 
 User-agent: *
 Allow: /
+Disallow: /search
+
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
 
 Sitemap: https://webdriver.io/sitemap.xml

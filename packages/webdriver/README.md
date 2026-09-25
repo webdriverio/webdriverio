@@ -88,89 +88,110 @@ const client = await WebDriver.newSession(options)
 The following options are available:
 
 ### capabilities
+
+<Option type="Object">
+
 Defines the [capabilities](https://w3c.github.io/webdriver/webdriver-spec.html#capabilities) you want to run in your WebDriver session. Note: by default, it will automatically set the `webSocketUrl` to establish a [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) session, if you don't want this, make sure to set `'wdio:enforceWebDriverClassic': true` in your capabilities.
 
-Type: `Object`<br />
+</Option>
 Required: `true`
 
 ### logLevel
+
+<Option type="String" default="info" values="trace | debug | info | warn | error | silent">
+
 Level of logging verbosity.
 
-Type: `String`<br />
-Default: *info*<br />
-Options: *trace* | *debug* | *info* | *warn* | *error* | *silent*
+</Option>
 
 ### protocol
+
+<Option type="String" default="http" values="http | https">
+
 Protocol to use when communicating with the Selenium standalone server (or driver).
 
-Type: `String`<br />
-Default: *http*
-Options: *http* | *https*
+</Option>
 
 ### hostname
+
+<Option type="String" default="localhost">
+
 Host of your WebDriver server.
 
-Type: `String`<br />
-Default: *localhost*
+</Option>
 
 ### port
+
+<Option type="Number" default="undefined">
+
 Port your WebDriver server is on.
 
-Type: `Number`<br />
-Default: `undefined`
+</Option>
 
 ### path
+
+<Option type="String" default="/">
+
 Path to WebDriver endpoint or grid server.
 
-Type: `String`<br />
-Default: */*
+</Option>
 
 ### queryParams
+
+<Option type="Object" default="undefined">
+
 Query parameters that are propagated to the driver server.
 
-Type: `Object`
-Default: `undefined`
+</Option>
 
 ### connectionRetryTimeout
+
+<Option type="Number" default="120000">
+
 Timeout for any WebDriver request to a driver or grid.
 
-Type: `Number`<br />
-Default: *120000*
+</Option>
 
 ### connectionRetryCount
+
+<Option type="Number" default="3">
+
 Count of request retries to the Selenium server.
 
-Type: `Number`<br />
-Default: *3*
+</Option>
 
 ### bidiResponseTimeout
+
+<Option type="Number" default="180000">
+
 Timeout (in ms) for a WebDriver Bidi command to receive a response from the browser. Increase this if you run commands, e.g. `execute`, that legitimately take longer than the default to resolve.
 
-Type: `Number`<br />
-Default: *180000*
+</Option>
 
 ### agent
 
-Allows you to use a custom` http`/`https`/`http2` [agent](https://www.npmjs.com/package/got#agent) to make requests.
-
-Type: `Object`<br />
-Default:
-
-```js
-{
+<Option type="Object" default={`{
     http: new http.Agent({ keepAlive: true }),
     https: new https.Agent({ keepAlive: true })
-}
-```
+}`}>
+
+Allows you to use a custom` http`/`https`/`http2` [agent](https://www.npmjs.com/package/got#agent) to make requests.
+
+</Option>
 
 ### transformRequest
+
+<Option type="(RequestOptions) => RequestOptions" default="none">
+
 Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made to a driver.
 
-Type: `(RequestOptions) => RequestOptions`<br />
-Default: *none*
+</Option>
 
 ### transformResponse
+
+<Option type="(Response, RequestOptions) => Response" default="none">
+
 Function intercepting HTTP response objects after a WebDriver response has arrived.
 
-Type: `(Response, RequestOptions) => Response`<br />
-Default: *none*
+</Option>
+

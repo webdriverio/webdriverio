@@ -65,6 +65,9 @@
   "homepage.sponsorSection.sponsoredBy": {
     "message": "Sponsored by"
   },
+  "homepage.sponsorSection.and": {
+    "message": "and"
+  },
   "homepage.componentTesting.heading": {
     "message": "E2E and Unit / Component Testing in real Browser!"
   },
@@ -632,10 +635,10 @@
     "message": "Open Source and Open Governed"
   },
   "sponsors.premiumSponsors": {
-    "message": "💎 Premium Sponsors"
+    "message": "Premium Sponsors"
   },
   "sponsors.goldSponsors": {
-    "message": "🥇 Gold Sponsors"
+    "message": "Gold Sponsors"
   },
   "sponsors.becomeASponsor": {
     "message": "becoming a sponsor"

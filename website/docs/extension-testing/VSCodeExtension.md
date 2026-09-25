@@ -1,6 +1,7 @@
 ---
 id: vscode-extensions
 title: VS Code Extension Testing
+description: "Test VS Code extensions end to end in the desktop IDE or as web extensions with WebdriverIO and the VS Code service."
 ---
 
 WebdriverIO allows you to seamlessly test your [VS Code](https://code.visualstudio.com/) extensions from end to end in the VS Code Desktop IDE or as web extension. You only need to provide a path to your extension and the framework does the rest. With the [`wdio-vscode-service`](https://www.npmjs.com/package/wdio-vscode-service) everything is taken care of and much more:

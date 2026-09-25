@@ -1,6 +1,7 @@
 ---
 id: integrate-with-app-percy
 title: For Mobile Application
+description: "Integrate WebdriverIO mobile app tests with BrowserStack App Percy for visual testing, starting with setting your PERCY_TOKEN."
 ---
 
 ## Integrate your WebdriverIO tests with App Percy
