@@ -270,15 +270,21 @@ async function loadBaseline (baselinePath) {
         return null
     }
     const repoRoot = path.resolve(__dirname, '../..')
-    const candidates = [
+    const isBareFilename = path.basename(baselinePath) === baselinePath
+    /**
+     * Prefer exact path forms first. Only treat a bare filename as a result
+     * under `benchmark/results/` — never rewrite `snapshots/foo.json` to
+     * `results/foo.json` via basename, which would load the wrong baseline.
+     */
+    const candidates = [...new Set([
         path.isAbsolute(baselinePath) ? baselinePath : null,
-        // `pnpm run bench:runner` cds into tests/, so accept repo-root-relative paths too
+        // `pnpm run bench:runner` cds into tests/, so accept repo-root-relative paths
         path.resolve(repoRoot, baselinePath),
-        path.resolve(resultsDir, baselinePath),
-        path.resolve(resultsDir, path.basename(baselinePath)),
         path.resolve(process.cwd(), baselinePath),
-        path.resolve(__dirname, baselinePath)
-    ].filter(Boolean)
+        path.resolve(resultsDir, baselinePath),
+        path.resolve(__dirname, baselinePath),
+        isBareFilename ? path.resolve(resultsDir, baselinePath) : null
+    ].filter(Boolean))]
 
     let lastError
     for (const candidate of candidates) {
