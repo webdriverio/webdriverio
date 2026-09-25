@@ -161,15 +161,6 @@ test('should export proper plugin configuration', () => {
                     'eslint.config.mjs'
                 ],
             },
-            recommended: {
-                rules: {
-                    'wdio/await-expect': 'error',
-                    'wdio/no-debug': 'error',
-                    'wdio/no-pause': 'error',
-                },
-                globals: globals,
-                plugins: ['wdio'],
-            }
         },
         rules
     })

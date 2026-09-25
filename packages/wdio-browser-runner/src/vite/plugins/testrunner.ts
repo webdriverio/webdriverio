@@ -141,7 +141,18 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                     /**
                      * don't return test page when sourcemaps are requested
                      */
-                    if (!req.originalUrl || req.url?.endsWith('.map') || req.url?.endsWith('.wasm')) {
+                    if (
+                        !req.originalUrl ||
+                        req.url?.endsWith('.map') ||
+                        req.url?.endsWith('.wasm') ||
+                        /**
+                         * Vite turns inline scripts into `?html-proxy` modules. Those
+                         * requests carry the session cookies, but they are not the test page.
+                         * Match the query parameter only, so a spec path that contains
+                         * the text `html-proxy` still renders.
+                         */
+                        new URL(req.originalUrl, 'http://localhost').searchParams.has('html-proxy')
+                    ) {
                         return next()
                     }
 
@@ -161,17 +172,26 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                     }
 
                     const env = SESSIONS.get(cid)!
+                    /**
+                     * Inline scripts become `<page>?html-proxy` modules. The document
+                     * URL already has a query (`cid`, `spec`); passing it through adds
+                     * a second `?`, which Safari will not fetch. Vite 7 turns a path
+                     * of `/` into `/@id/__x00__/`, which Safari never requests. Use an
+                     * HTML file that exists under the Vite root so the module URL stays
+                     * a normal `*.html?html-proxy` path.
+                     */
+                    const pagePath = '/wdio/headless/__fixtures__/test.html'
                     try {
                         const template = await getTemplate(options, env, spec)
                         log.debug(`Render template for ${req.originalUrl}`)
-                        res.end(await server.transformIndexHtml(`${req.originalUrl}`, template))
+                        res.end(await server.transformIndexHtml(pagePath, template))
                     } catch (err) {
                         const template = getErrorTemplate(req.originalUrl, err as Error)
                         log.error(`Failed to render template: ${(err as Error).message}`)
-                        res.end(await server.transformIndexHtml(`${req.originalUrl}`, template))
+                        res.end(await server.transformIndexHtml(pagePath, template))
                     }
 
-                    return next()
+                    return
                 })
             }
         }

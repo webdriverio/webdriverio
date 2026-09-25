@@ -37,7 +37,7 @@
       "require": "./build/index.cjs"
     }
   },
-  "typeScriptVersion": "3.8.3",
+  "typeScriptVersion": "5.9.3",
   "dependencies": {
     "@vitest/snapshot": "^3.2.7",
     "@wdio/config": "workspace:*",
@@ -58,7 +58,7 @@
     "read-pkg-up": "^10.0.0",
     "tsx": "^4.7.2",
     "webdriverio": "workspace:*",
-    "yargs": "^17.7.2"
+    "yargs": "^18.2.0"
   },
   "devDependencies": {
     "@types/async-exit-hook": "^2.0.0",

@@ -41,7 +41,7 @@
       "types": "./build/cli.d.ts"
     }
   },
-  "typeScriptVersion": "3.8.3",
+  "typeScriptVersion": "5.9.3",
   "dependencies": {
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",

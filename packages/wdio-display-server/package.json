@@ -37,7 +37,7 @@
     },
     "./package.json": "./package.json"
   },
-  "typeScriptVersion": "3.8.3",
+  "typeScriptVersion": "5.9.3",
   "dependencies": {
     "@wdio/logger": "workspace:*"
   },
