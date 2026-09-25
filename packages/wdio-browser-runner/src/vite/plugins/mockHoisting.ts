@@ -323,6 +323,15 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                 return mc
             }))
 
+            /**
+             * Reprinting a spec that never calls `mock()` changes the module
+             * Vite already transformed. Safari then loads that page and never
+             * starts the tests. Leave those files untouched.
+             */
+            if (sessionMocks.size === 0) {
+                return { code }
+            }
+
             try {
                 const newCode = print(ast, { sourceMapName: id })
                 log.trace(`Transformed file for mocking: ${id} in ${Date.now() - start}ms`)
