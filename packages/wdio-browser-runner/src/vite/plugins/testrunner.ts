@@ -161,17 +161,23 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                     }
 
                     const env = SESSIONS.get(cid)!
+                    /**
+                     * Inline scripts become `/<page>?html-proxy` modules. The document
+                     * URL already has a query (`cid`, `spec`); passing it through adds
+                     * a second `?`, which Safari will not fetch.
+                     */
+                    const pagePath = new URL(req.originalUrl, 'http://localhost').pathname
                     try {
                         const template = await getTemplate(options, env, spec)
                         log.debug(`Render template for ${req.originalUrl}`)
-                        res.end(await server.transformIndexHtml(`${req.originalUrl}`, template))
+                        res.end(await server.transformIndexHtml(pagePath, template))
                     } catch (err) {
                         const template = getErrorTemplate(req.originalUrl, err as Error)
                         log.error(`Failed to render template: ${(err as Error).message}`)
-                        res.end(await server.transformIndexHtml(`${req.originalUrl}`, template))
+                        res.end(await server.transformIndexHtml(pagePath, template))
                     }
 
-                    return next()
+                    return
                 })
             }
         }

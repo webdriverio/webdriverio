@@ -88,7 +88,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                 addEventListener('error', (ev) => window.__wdioErrors__.push({
                     filename: ev.filename,
                     message: ev.message,
-                    error: ev.error.stack
+                    error: ev.error && ev.error.stack
                 }))
                 /**
                  * mock process
