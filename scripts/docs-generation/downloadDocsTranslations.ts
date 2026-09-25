@@ -64,6 +64,33 @@ async function getFlowchartDiagrams() {
  *
  * Add entries here whenever a doc restructure breaks translated pages.
  */
+const EXECUTE_ASYNC_LINK = /api\/(browser|element)\/executeAsync/g
+
+/**
+ * Translated docs still point at the removed `executeAsync` pages. Rewrite those
+ * links to `execute` until the i18n repo catches up.
+ */
+async function rewriteExecuteAsyncLinks(contentPath: string, locale: string) {
+    const files = await fs.readdir(contentPath, { recursive: true }).catch((err: NodeJS.ErrnoException) => {
+        if (err.code === 'ENOENT') {
+            return [] as string[]
+        }
+        throw err
+    })
+    for (const file of files) {
+        if (typeof file !== 'string' || !file.endsWith('.md')) {
+            continue
+        }
+        const filePath = path.join(contentPath, file)
+        const content = await fs.readFile(filePath, 'utf-8')
+        const fixed = content.replace(EXECUTE_ASYNC_LINK, 'api/$1/execute')
+        if (fixed !== content) {
+            await fs.writeFile(filePath, fixed)
+            console.log(`Rewrote executeAsync links in ${locale}/${file}`)
+        }
+    }
+}
+
 async function applyTranslationFixes(i18nPath: string) {
     const entries = await fs.readdir(i18nPath, { withFileTypes: true }).catch((err: NodeJS.ErrnoException) => {
         if (err.code === 'ENOENT') {
@@ -130,6 +157,9 @@ async function applyTranslationFixes(i18nPath: string) {
                 throw err
             }
         }
+
+        // Fix: v10 removed executeAsync. Translated pages still link at the old API path.
+        await rewriteExecuteAsyncLinks(contentPath, locale)
 
         // Fix: Electron.md links to /mocking page which no longer exists — point to
         // /api-reference instead (matches the English source's "how to mock" link)

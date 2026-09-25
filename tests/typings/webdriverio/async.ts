@@ -187,9 +187,9 @@ async function bar() {
     expectType<number>(executeResult)
 
     expectType<number>(
-        await browser.executeAsync((arg: number, cb: (arg: number) => void) => {
+        await browser.execute(async (arg: number) => {
             arg.toFixed()
-            cb(123)
+            return 123
         }, 456)
     )
 
@@ -206,9 +206,9 @@ async function bar() {
         (await browser.getContexts()) as DetailedContext[]
     )
 
-    expectType<undefined>(
-        await browser.executeAsync((done) => {
-            done()
+    expectType<void>(
+        await browser.execute(async () => {
+            await Promise.resolve()
         })
     )
 

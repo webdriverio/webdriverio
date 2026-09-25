@@ -46,12 +46,12 @@ describe('classify', () => {
         const report = classify(['packages/wdio-browser-runner/src/index.ts'])
         expect(report.lanes.component).toBe(true)
         expect(report.lanes.code).toBe(false)
-        expect(report.lanes.xvfb).toBe(false)
+        expect(report.lanes.display_server).toBe(false)
     })
 
-    it('keeps xvfb trees out of the code lane', () => {
-        const report = classify(['packages/wdio-xvfb/src/index.ts', 'e2e/wdio/xvfb/wdio.conf.ts'])
-        expect(report.lanes.xvfb).toBe(true)
+    it('keeps display-server trees out of the code lane', () => {
+        const report = classify(['packages/wdio-display-server/src/index.ts', 'e2e/wdio/display-server/wdio.conf.ts'])
+        expect(report.lanes.display_server).toBe(true)
         expect(report.lanes.code).toBe(false)
     })
 
@@ -92,9 +92,9 @@ describe('packageFromFile', () => {
 
 describe('matchesFilters', () => {
     it('honors negation after a broader include', () => {
-        const patterns = ['packages/**', '!packages/wdio-xvfb/**']
+        const patterns = ['packages/**', '!packages/wdio-display-server/**']
         expect(matchesFilters('packages/webdriverio/src/a.ts', patterns)).toBe(true)
-        expect(matchesFilters('packages/wdio-xvfb/src/a.ts', patterns)).toBe(false)
+        expect(matchesFilters('packages/wdio-display-server/src/a.ts', patterns)).toBe(false)
     })
 })
 

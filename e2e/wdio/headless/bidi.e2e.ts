@@ -213,36 +213,21 @@ describe('bidi e2e test', () => {
         expect(result).toBe(29)
     })
 
-    describe('executeAsync', () => {
-        it('allows to pass in a string', async () => {
-            const script = `
-                const callback = arguments[arguments.length - 1]
-                Promise.resolve(...arguments)
-                    .then(() => { return 2 * arguments[0] })
-                    .then(callback)
-            `
-            const res = await browser.executeAsync(script, 2)
-            expect(res).toBe(4)
-        })
-
+    describe('execute async function', () => {
         it('works in browser scope', async () => {
-            const result = await browser.executeAsync(function (a, b, c, d, done) {
-                // browser context - you may not access client or console
-                setTimeout(() => {
-                    done(a + b + c + d)
-                }, 3000)
+            const result = await browser.execute(async (a, b, c, d) => {
+                await new Promise((resolve) => setTimeout(resolve, 10))
+                return a + b + c + d
             }, 1, 2, 3, 4)
             expect(result).toBe(10)
         })
 
         it('works on element scope', async () => {
             await browser.url('https://guinea-pig.webdriver.io')
-            const result = await browser.$$('.findme')[0].executeAsync(function (elem, a, b, c, d, done) {
-                // browser context - you may not access client or console
-                setTimeout(() => {
-                    // "Test CSS Attributes" = 19 + 1 + 2 + 3 + 4 = 29
-                    done((elem as unknown as HTMLElement).innerText.length + a + b + c + d)
-                }, 3000)
+            const result = await browser.$$('.findme')[0].execute(async (elem, a, b, c, d) => {
+                await new Promise((resolve) => setTimeout(resolve, 10))
+                // "Test CSS Attributes" = 19 + 1 + 2 + 3 + 4 = 29
+                return (elem as unknown as HTMLElement).innerText.length + a + b + c + d
             }, 1, 2, 3, 4)
             expect(result).toBe(29)
         })

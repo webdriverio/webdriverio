@@ -19,7 +19,8 @@ export default function launch (testName, configPath, args = {}, ...rest) {
             return {
                 passed: launcher.interface.result.passed,
                 skippedSpecs: launcher.interface._skippedSpecs,
-                failed: launcher.interface.result.failed
+                failed: launcher.interface.result.failed,
+                workerTimings: launcher.interface.workerTimings
             }
         }
 

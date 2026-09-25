@@ -20,9 +20,9 @@ A session has an associated session script timeout that specifies a time to wait
 
 ```js
 await browser.setTimeout({ 'script': 60000 })
-await browser.executeAsync((done) => {
+await browser.execute(async () => {
     console.log('this should not fail')
-    setTimeout(done, 59000)
+    await new Promise((resolve) => setTimeout(resolve, 59000))
 })
 ```
 

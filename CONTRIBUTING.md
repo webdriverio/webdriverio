@@ -215,8 +215,8 @@ This will run a simple test suite using the testrunner with Mochajs. There are s
 
 When a PR gets submitted, WebdriverIO runs the following checks. Suites are
 selected from the files you change (see [`.github/workflows/test.yml`](https://github.com/webdriverio/webdriverio/blob/main/.github/workflows/test.yml)):
-component tests run for `@wdio/browser-runner` / `e2e/browser-runner`, Xvfb
-distro tests run for `@wdio/xvfb`, `@wdio/local-runner` and `e2e/wdio/xvfb`,
+component tests run for `@wdio/browser-runner` / `e2e/browser-runner`, display-server
+distro tests run for `@wdio/display-server`, `@wdio/local-runner` and `e2e/wdio/display-server`,
 and the docs site build runs for `website/` and docs-generation scripts.
 Pushes to `main` (and PRs that touch CI or root package config) still run
 every suite. Pull requests also use a smaller OS × Node matrix; the full
