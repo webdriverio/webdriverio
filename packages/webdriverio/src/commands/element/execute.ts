@@ -7,7 +7,7 @@ import type { TransformElement, TransformReturn } from '../../types.js'
  * frame using the given element as scope, because it is on the element scope it means that WebdriverIO will
  * automatically wait for the element to exist before executing the script.
  * The executed script is assumed to be synchronous and the result of evaluating the script is returned to
- * the client.
+ * the client. An `async` function is awaited, which replaces `executeAsync`.
  *
  * The script argument defines the script to execute in the form of a function body. The value returned by
  * that function will be returned to the client. The function will be invoked with the provided args array
@@ -39,9 +39,9 @@ import type { TransformElement, TransformReturn } from '../../types.js'
  */
 export async function execute<ReturnValue, InnerArguments extends unknown[]> (
     this: WebdriverIO.Element,
-    script: string | ((...innerArgs: TransformElement<[WebdriverIO.Element, ...InnerArguments]>) => ReturnValue),
+    script: string | ((...innerArgs: TransformElement<[WebdriverIO.Element, ...InnerArguments]>) => ReturnValue | Promise<ReturnValue>),
     ...args: InnerArguments
-): Promise<TransformReturn<ReturnValue>> {
+): Promise<TransformReturn<Awaited<ReturnValue>>> {
     const scope = this as WebdriverIO.Element
     const browser = getBrowserObject(scope)
     await scope.waitForExist()
