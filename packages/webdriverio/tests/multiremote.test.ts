@@ -103,6 +103,10 @@ describe('Multi-Remote tests', () => {
         expect(elem.getInstance('browserB')).toBeDefined()
         expect(elem.getInstance('browserA').elementId).toBe('some-elem-123')
         expect(elem.getInstance('browserB').elementId).toBe('some-elem-123')
+        for (const name of ['browserC', 'selector', 'instances', 'click']) {
+            expect(() => elem.getInstance(name))
+                .toThrow(`Multiremote object has no instance named "${name}"`)
+        }
 
         // @ts-expect-error invalid params
         const result = await elem.getSize()

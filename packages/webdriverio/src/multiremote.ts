@@ -220,8 +220,9 @@ export default class MultiRemote {
 
         // This redefines the command when chaining with for example `$()` else it uses `propertiesObject.getInstance` by default
         if (commandName === 'getInstance') {
-            return function commandWrapperGetInstance(this: Record<string, WebdriverIO.Browser | WebdriverIO.Element>, browserName: string) {
-                if (!this[browserName]) {
+            return function commandWrapperGetInstance(this: { instances: string[] } & Record<string, WebdriverIO.Browser | WebdriverIO.Element>, browserName: string) {
+                // `this` also holds element props and commands, so only accept configured instance names
+                if (!this.instances.includes(browserName) || !this[browserName]) {
                     throw new Error(`Multiremote object has no instance named "${browserName}"`)
                 }
                 return this[browserName]
