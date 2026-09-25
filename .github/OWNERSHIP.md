@@ -31,12 +31,12 @@ published as user docs — do not add developer footers there.
 | Logs | `@wdio/logger` | |
 | Globals | `@wdio/globals` | |
 | CLI / launcher | `@wdio/cli` | EJS templates are linted by `test:ejslint` |
-| Worker process | `@wdio/local-runner` | Also in the CI xvfb path filter |
+| Worker process | `@wdio/local-runner` | Also in the CI display-server path filter |
 | Test worker / hooks | `@wdio/runner` | |
 | Reporter base class | `@wdio/reporter` | Concrete reporters extend this |
 | Mocha / Jasmine / Cucumber | `@wdio/*-framework` | |
 | Browser component tests | `@wdio/browser-runner` | CI `component` lane |
-| Xvfb helper | `@wdio/xvfb` | CI `xvfb` lane |
+| Display server (Wayland / Xvfb) | `@wdio/display-server` | CI `display_server` lane |
 | Type generation / esbuild | `@wdio/compiler` | `infra/compiler` |
 | Docs index / scoped tests / CI lanes | `@wdio/repo-tools` | `infra/repo-tools` |
 | Mock driver for smoke tests | `@wdio/webdriver-mock-service` | Not `@wdio/smoke-test-service` |

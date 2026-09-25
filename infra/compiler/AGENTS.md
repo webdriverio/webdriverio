@@ -13,7 +13,7 @@ Root scripts:
 ```sh
 pnpm run compile                     # compiler package itself
 pnpm run compile:all:core            # logger, types, globals, protocols, repl
-pnpm run compile:all:main            # utils, reporter, config, xvfb, webdriver, webdriverio
+pnpm run compile:all:main            # utils, reporter, config, display-server, webdriver, webdriverio
 pnpm run compile:all                 # every package (core → main → rest)
 pnpm run dev [package]
 ```

@@ -1,10 +1,9 @@
 import url from 'node:url'
 import path from 'node:path'
+import { fork, type ChildProcess } from 'node:child_process'
 import { constants } from 'node:os'
 import { EventEmitter } from 'node:events'
-import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
-import { ProcessFactory, type XvfbManager } from '@wdio/xvfb'
 import type { Workers } from '@wdio/types'
 import type { ReplConfig } from '@wdio/repl'
 
@@ -66,7 +65,6 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     sessionId?: string
     server?: Record<string, string>
     logsAggregator: string[] = []
-    #processFactory: ProcessFactory
 
     instances?: Record<string, { sessionId: string }>
     isMultiremote?: boolean
@@ -87,14 +85,12 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
      * @param  {string[]} specs       list of paths to test files to run in this worker
      * @param  {number}   retries     number of retries remaining
      * @param  {object}   execArgv    execution arguments for the test run
-     * @param  {XvfbManager} xvfbManager configured XvfbManager instance
      */
     constructor(
         config: WebdriverIO.Config,
         { cid, configFile, caps, specs, execArgv, retries }: Workers.WorkerRunPayload,
         stdout: WritableStreamBuffer,
         stderr: WritableStreamBuffer,
-        xvfbManager: XvfbManager
     ) {
         super()
         this.cid = cid
@@ -107,7 +103,6 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         this.retries = retries
         this.stdout = stdout
         this.stderr = stderr
-        this.#processFactory = new ProcessFactory(xvfbManager)
 
         this.isReady = new Promise((resolve) => { this.isReadyResolver = resolve })
         this.isSetup = new Promise((resolve) => { this.isSetupResolver = resolve })
@@ -143,8 +138,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
 
         log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
 
-        // Use ProcessFactory to create the appropriate process
-        const childProcess = this.childProcess = await this.#processFactory.createWorkerProcess(
+        const childProcess = this.childProcess = fork(
             path.join(__dirname, 'run.js'),
             argv,
             {

@@ -61,6 +61,9 @@ tests/typings/**/dist
 # dotenv environment variables file
 .env
 
+# local MCP config
+.mcp.json
+
 # lerna changelog cachedir
 .changelog
 
