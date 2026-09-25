@@ -126,5 +126,9 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
 }
 
 function isScriptError (result: unknown): result is { __wdioError: true, message: string, name?: string, stack?: string } {
-    return Boolean(result && typeof result === 'object' && '__wdioError' in result)
+    return Boolean(
+        result &&
+        typeof result === 'object' &&
+        (result as { __wdioError?: unknown }).__wdioError === true
+    )
 }

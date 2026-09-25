@@ -51,6 +51,19 @@ describe('execute test', () => {
         expect(JSON.parse((request as { body: string }).body).script).toContain('async (value)')
     })
 
+    it('should return objects that mention __wdioError without throwing', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        vi.mocked(fetch).mockClear()
+        const result = await browser.execute(async () => ({ __wdioError: false, data: 1 }))
+        expect(result).toEqual({ __wdioError: false, data: 1 })
+    })
+
     it('should throw if script is wrong type', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',

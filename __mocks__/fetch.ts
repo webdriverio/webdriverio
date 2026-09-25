@@ -60,7 +60,7 @@ const transformPropertyWithMockFunction = (collection: any[]) => {
     })
 }
 
-const requestMock: any = vi.fn().mockImplementation((uri, params) => {
+const requestMock: any = vi.fn().mockImplementation(async (uri, params) => {
     let value: any = {}
     let jsonwpMode = false
     let sessionResponse: any = {
@@ -378,8 +378,11 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         break
     } case `/session/${sessionId}/execute/async`: {
         const script = Function(body.script)
-        let result
+        let result: any
         script.call(this, ...body.args, (_result: any) => result = _result)
+        // Async `execute` reports failures through a microtask. Flush once so the
+        // callback has run before the command result is read.
+        await Promise.resolve()
         value = result ?? {}
         break
     } case `${path}/${sessionId}/element/${genericElementId}/elements`:
