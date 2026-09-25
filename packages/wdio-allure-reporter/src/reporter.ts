@@ -383,6 +383,7 @@ export default class AllureReporter extends WDIOReporter {
      * Must NOT include cid. Used to make historyId unique per environment.
      */
     private _getCapabilityKey(): string {
+        // hash input only, never shown; changing it resets Allure history for multi-remote tests
         if (this._isMultiRemote) { return 'multiremote' }
         const capsUnknown: unknown = this._capabilities
         const desired: Record<string, unknown> | undefined = ((): Record<string, unknown> | undefined => {

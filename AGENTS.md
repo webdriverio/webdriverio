@@ -136,6 +136,15 @@ User docs come from several sources. Update the source, then regenerate:
 `pnpm run docs:list` prints a path + title index. Config examples are copied
 through the repo; search for every occurrence before renaming a key.
 
+## Terminology
+
+Preferred spellings. Code identifiers follow camelCase; prose follows the
+"Prose" column (capitalize the first letter at the start of a sentence or heading).
+
+| Term | Prose | Code | Notes |
+|------|-------|------|-------|
+| multi-remote | multi-remote | `multiRemote`, `MultiRemote`, `isMultiRemote` | #14975. Kept for compatibility: the `/docs/multiremote` URL, the deprecated `multiremotebrowser` global, and the Allure historyId key `'multiremote'`. |
+
 ## Working agreement
 
 - Inspect `git status -sb` before editing. Do not switch branches or rewrite
