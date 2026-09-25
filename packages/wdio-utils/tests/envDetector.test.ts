@@ -69,6 +69,25 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: chromiumAppiumCaps, requestedCapabilities }).isMobile).toBe(false)
     })
 
+    it('isAppium', () => {
+        const requestedCapabilities = { browserName: '' }
+        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isAppium).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isAppium).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isAppium).toBe(false)
+
+        // browser driver based Appium sessions should be considered Appium sessions
+        const geckoAppiumCaps = { 'appium:automationName': 'Gecko' }
+        expect(sessionEnvironmentDetector({ capabilities: geckoAppiumCaps, requestedCapabilities }).isAppium).toBe(true)
+        const safariAppiumCaps = { 'appium:options': { automationName: 'safari' } }
+        expect(sessionEnvironmentDetector({ capabilities: safariAppiumCaps, requestedCapabilities }).isAppium).toBe(true)
+        const chromiumAppiumCaps = { 'appium:automationName': 'chrome' }
+        expect(sessionEnvironmentDetector({ capabilities: chromiumAppiumCaps, requestedCapabilities }).isAppium).toBe(true)
+
+        // non-Appium sessions should not be considered Appium sessions
+        const nonAppiumCaps = { 'appium:options': {} }
+        expect(sessionEnvironmentDetector({ capabilities: nonAppiumCaps, requestedCapabilities }).isAppium).toBe(false)
+    })
+
     it('isW3C', () => {
         const requestedCapabilities = { browserName: '' }
         expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isW3C).toBe(false)
