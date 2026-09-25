@@ -61,9 +61,9 @@ npm run test:kobiton
 
 All files inside this directory demonstrate how some commands can get used. To run these examples just execute them with node.
 
-# MultiRemote
+# Multi-remote
 
-The multiremote examples demonstrate how you can use more than one browser to test a specific thing. This feature is not meant to run tests in parallel, it helps you test interactive features (e.g. a chat system) where you need more than one browser to test.
+The multi-remote examples demonstrate how you can use more than one browser to test a specific thing. This feature is not meant to run tests in parallel, it helps you test interactive features (e.g. a chat system) where you need more than one browser to test.
 
 ## webrtc.js
 
@@ -104,7 +104,7 @@ npm test
 
 # WDIO Testrunner Examples
 
-This directory contains examples for each framework and variation for the wdio test runner. It also shows you how to run multiremote test with the test runner or how to embed a custom reporter. First change directory to the example folder:
+This directory contains examples for each framework and variation for the wdio test runner. It also shows you how to run multi-remote test with the test runner or how to embed a custom reporter. First change directory to the example folder:
 
 ```sh
 cd ./examples/wdio
@@ -119,8 +119,8 @@ $ npm run test:mocha
 $ npm run test:jasmine
 # cucumber tests
 $ npm run test:cucumber
-# testsuite with multiremote
-$ npm run test:multiremote
+# testsuite with multi-remote
+$ npm run test:multi-remote
 # test suite with custom reporter
 $ npm run test:customReporter
 # component tests

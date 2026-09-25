@@ -154,8 +154,8 @@ jobs:
     if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/test-testrunner.yml
 
-  multiremote_tests:
-    name: MultiRemote E2E Tests
+  multi_remote_tests:
+    name: Multi-remote E2E Tests
     needs: [changes, smoke_tests, unit_tests, interop_tests, typing_tests]
     if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/test-multiremote.yml
@@ -190,7 +190,7 @@ jobs:
       - launch_tests
       - cloud_tests
       - testrunner_tests
-      - multiremote_tests
+      - multi_remote_tests
       - standalone_tests
       - display_server_tests
     runs-on: ubuntu-latest
