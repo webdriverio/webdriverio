@@ -86,7 +86,7 @@ describe('Firefox profile service', () => {
             expect(capabilities[1]).not.toHaveProperty('moz:firefoxOptions')
         })
 
-        test('should set capabilities when in multiremote', async () => {
+        test('should set capabilities when in multi-remote', async () => {
             const options = {
                 'browser.startup.homepage': 'https://webdriver.io',
             }
@@ -105,7 +105,7 @@ describe('Firefox profile service', () => {
             expect(capabilities.firefox.capabilities['moz:firefoxOptions']).toEqual({ profile : 'foobar' })
         })
 
-        test('should set capabilities when in parallel multiremote', async () => {
+        test('should set capabilities when in parallel multi-remote', async () => {
             const options = {
                 'browser.startup.homepage': 'https://webdriver.io',
             }

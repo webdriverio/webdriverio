@@ -497,7 +497,7 @@ export default class Runner extends EventEmitter {
         const browser = this._browser as WebdriverIO.Browser
         const hasSessionId = Boolean(this._browser) && (this._isMultiRemote
             /**
-             * every multiremote instance should exist and should have `sessionId`
+             * every multi-remote instance should exist and should have `sessionId`
              */
             ? !multiRemoteBrowser.instances.some((browserName: string) => (
                 multiRemoteBrowser.getInstance(browserName) &&

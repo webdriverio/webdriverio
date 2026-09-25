@@ -1,6 +1,6 @@
 import { deepmerge } from 'deepmerge-ts'
 import logger from '@wdio/logger'
-import { remote, multiremote, attach, type AttachOptions } from 'webdriverio'
+import { remote, multiRemote, attach, type AttachOptions } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
 import type { AsymmetricMatchers, InverseAsymmetricMatchers } from 'expect-webdriverio'
@@ -46,7 +46,7 @@ export function sanitizeCaps (
 }
 
 /**
- * initialize browser instance depending whether remote or multiremote is requested
+ * initialize browser instance depending whether remote or multi-remote is requested
  * @param  {Object}  config        configuration of sessions
  * @param  {Object}  capabilities  desired session capabilities
  * @param  {boolean} isMultiRemote isMultiRemote
@@ -97,10 +97,10 @@ export async function initializeInstance (
     }
 
     /**
-     * initiate multiremote sessions
+     * initiate multi-remote sessions
      */
     const options: Capabilities.RequestedMultiRemoteCapabilities = {}
-    log.debug('init multiremote session')
+    log.debug('init multi-remote session')
     // @ts-expect-error ToDo(Christian): can be removed?
     delete config.capabilities
     for (const browserName of Object.keys(capabilities)) {
@@ -110,7 +110,7 @@ export async function initializeInstance (
         )
     }
 
-    const browser = await multiremote(options, config)
+    const browser = await multiRemote(options, config)
 
     /**
      * only attach to global environment if `injectGlobals` is set to true

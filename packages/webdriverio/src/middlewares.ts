@@ -81,9 +81,9 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
 }
 
 /**
- * handle single command calls from multiremote instances
+ * handle single command calls from multi-remote instances
  */
-export const multiremoteHandler = (
+export const multiRemoteHandler = (
     wrapCommand: Function
 ) => (commandName: keyof WebdriverIO.Browser) => {
     return wrapCommand(commandName, function (this: WebdriverIO.MultiRemoteBrowser, ...args: unknown[]) {

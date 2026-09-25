@@ -32,7 +32,7 @@ describe('SharedStoreService', () => {
             expect(setPort).toBeCalledWith(3000)
         })
 
-        it('using multiremote caps', async () => {
+        it('using multi-remote caps', async () => {
             const capabilities = {
                 browserA: { capabilities: { browserName: 'chrome' } },
                 browserB: { capabilities: { browserName: 'firefox' } }
@@ -43,7 +43,7 @@ describe('SharedStoreService', () => {
             expect(setPort).toBeCalledWith(3000)
         })
 
-        it('using parallel multiremote caps', async () => {
+        it('using parallel multi-remote caps', async () => {
             const capabilities = [{
                 browserA: { capabilities: { browserName: 'chrome' } },
                 browserB: { capabilities: { browserName: 'firefox' } }

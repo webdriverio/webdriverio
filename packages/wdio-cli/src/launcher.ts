@@ -117,7 +117,7 @@ class Launcher {
             await runServiceHook(this._launcher, 'onPrepare', config, caps)
 
             /**
-             * For Parallel-MultiRemote, only get the specs and excludes from the first object
+             * For parallel multi-remote, only get the specs and excludes from the first object
              */
             const totalWorkerCnt = Array.isArray(capabilities)
                 ? capabilities
@@ -267,7 +267,7 @@ class Launcher {
              */
             (Array.isArray(caps) && caps.length === 0) ||
             /**
-             * user wants to use multiremote but capability object is empty
+             * user wants to use multi-remote but capability object is empty
              */
             (!Array.isArray(caps) && Object.keys(caps).length === 0)
         ) {
@@ -289,7 +289,7 @@ class Launcher {
         let cid = 0
         if (this.isMultiRemote && !this.isParallelMultiRemote) {
             /**
-             * MultiRemote mode
+             * Multi-remote mode
              */
             this._schedule.push({
                 cid: cid++,
@@ -300,7 +300,7 @@ class Launcher {
             })
         } else {
             /**
-             * Regular mode & Parallel MultiRemote
+             * Regular mode & parallel multi-remote
              */
             for (const capabilities of caps as Capabilities.RequestedStandaloneCapabilities[]) {
                 /**

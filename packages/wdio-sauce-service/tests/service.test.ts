@@ -652,7 +652,7 @@ test('beforeScenario should not set context if no sauce user was applied', async
     expect(service.updateJob).not.toBeCalled()
 })
 
-test('after in multiremote', async () => {
+test('after in multi-remote', async () => {
     const caps: Capabilities.MultiRemoteCapabilities = {
         chromeA: { capabilities: {} },
         chromeB: { capabilities: {} },
@@ -730,7 +730,7 @@ test('onReload should not set context if no sauce user was applied', () => {
     expect(service.updateJob).not.toBeCalled()
 })
 
-test('after in multiremote', () => {
+test('after in multi-remote', () => {
     const caps: Capabilities.MultiRemoteCapabilities = {
         chromeA: { capabilities: {} },
         chromeB: { capabilities: {} },
@@ -965,7 +965,7 @@ test('getBody with custom setJobName method', () => {
     })
 })
 
-test('getBody without multiremote', () => {
+test('getBody without multi-remote', () => {
     const service = new SauceService({}, {
         tags: ['jobTag'],
         public: true,

@@ -1,5 +1,5 @@
 import { multiRemoteBrowser, expect } from '@wdio/globals'
-import { Key, multiremote } from 'webdriverio'
+import { Key, multiRemote } from 'webdriverio'
 
 let browserA: WebdriverIO.Browser
 let browserB: WebdriverIO.Browser
@@ -184,10 +184,10 @@ describe('multi remote test', () => {
                 expect(elementTextFromChainedParentSelected).toEqual(['WebdriverJS Testpage'])
             })
 
-            describe('Dynamically created multiremote browser', () => {
+            describe('Dynamically created multi-remote browser', () => {
                 let customMultiRemoteBrowser: WebdriverIO.MultiRemoteBrowser
                 before(async () => {
-                    customMultiRemoteBrowser = await multiremote({
+                    customMultiRemoteBrowser = await multiRemote({
                         browserA: {
                             capabilities: {
                                 browserName: 'chrome',
@@ -221,7 +221,7 @@ describe('multi remote test', () => {
                     expect(selected.instances).toEqual(['browserA', 'browserB'])
                     expect(selected.getInstance('browserA')).toBeDefined()
                     expect(selected.getInstance('browserB')).toBeDefined()
-                    expect(() => selected.getInstance('browserC')).toThrow('MultiRemote object has no instance named "browserC"')
+                    expect(() => selected.getInstance('browserC')).toThrow('Multi-remote object has no instance named "browserC"')
                 })
 
                 it('should be able to chain select', async () => {
@@ -229,7 +229,7 @@ describe('multi remote test', () => {
 
                     expect(selected.instances).toEqual(['browserA'])
                     expect(selected.getInstance('browserA')).toBeDefined()
-                    expect(() => selected.getInstance('browserB')).toThrow('MultiRemote object has no instance named "browserB"')
+                    expect(() => selected.getInstance('browserB')).toThrow('Multi-remote object has no instance named "browserB"')
                 })
 
                 it('should be able to select 2 instances on the element', async () => {

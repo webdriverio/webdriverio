@@ -73,7 +73,7 @@ describe('wdio-runner', () => {
             expect(hook).toBeCalledTimes(0)
         })
 
-        it('should work normally when called after framework run in multiremote', async () => {
+        it('should work normally when called after framework run in multi-remote', async () => {
             const hook = vi.fn()
             const runner = new WDIORunner()
             runner['_isMultiRemote'] = true
@@ -106,7 +106,7 @@ describe('wdio-runner', () => {
             expect(runner['_shutdown']).toBeCalledTimes(0)
         })
 
-        it('should do nothing when triggered by run method without session in multiremote', async () => {
+        it('should do nothing when triggered by run method without session in multi-remote', async () => {
             const hook = vi.fn()
             const runner = new WDIORunner()
             runner['_isMultiRemote'] = true

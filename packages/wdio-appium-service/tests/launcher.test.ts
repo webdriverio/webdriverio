@@ -240,7 +240,7 @@ describe('Appium launcher', () => {
             expect(capabilities[0].path).toBe('/')
         })
 
-        test('should set correct config properties using multiremote', async () => {
+        test('should set correct config properties using multi-remote', async () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
@@ -262,7 +262,7 @@ describe('Appium launcher', () => {
             expect(capabilities.browserB.path).toBe('/')
         })
 
-        test('should set correct config properties of mixed browser and device using multiremote', async () => {
+        test('should set correct config properties of mixed browser and device using multi-remote', async () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
@@ -284,7 +284,7 @@ describe('Appium launcher', () => {
             expect(capabilities.browserB.path).toBe('/')
         })
 
-        test('should set correct config properties using parallel multiremote', async () => {
+        test('should set correct config properties using parallel multi-remote', async () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
@@ -317,7 +317,7 @@ describe('Appium launcher', () => {
             expect(capabilities[1].browserD.path).toBe('/')
         })
 
-        test('should not override cloud config using multiremote', async () => {
+        test('should not override cloud config using multi-remote', async () => {
             const options = {
                 logPath: './',
                 args: { address: 'foo' },
@@ -630,7 +630,7 @@ describe('Appium launcher', () => {
             expect(launcher['_process']).toEqual(undefined)
         })
 
-        test('should not set host, port and path for non Appium capabilities using multiremote', async () => {
+        test('should not set host, port and path for non Appium capabilities using multi-remote', async () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
@@ -652,7 +652,7 @@ describe('Appium launcher', () => {
             expect(capabilities.browserB.path).toBe('/')
         })
 
-        test('should not set host, port and path for non Appium capabilities using parallel multiremote', async () => {
+        test('should not set host, port and path for non Appium capabilities using parallel multi-remote', async () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
@@ -685,7 +685,7 @@ describe('Appium launcher', () => {
             expect(capabilities[1].browserD.path).toBe('/')
         })
 
-        test('should set host and port capabilities for normal multiremote capabilities', async () => {
+        test('should set host and port capabilities for normal multi-remote capabilities', async () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',

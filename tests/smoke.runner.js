@@ -602,10 +602,10 @@ const wdioHooks = async () => {
 }
 
 /**
- * multiremote wdio testrunner tests
+ * Multi-remote wdio testrunner tests
  */
-const multiremote = async () => {
-    await launch('multiremote', baseConfig, {
+const multiRemote = async () => {
+    await launch('multi-remote', baseConfig, {
         specs: [path.resolve(__dirname, 'multiremote', 'test.js')],
         capabilities: {
             browserA: {
@@ -617,7 +617,7 @@ const multiremote = async () => {
         }
     })
 
-    const { skippedSpecs, passed, failed } = await launch('multiremote', baseConfig, {
+    const { skippedSpecs, passed, failed } = await launch('multi-remote', baseConfig, {
         specs: [
             path.resolve(__dirname, 'multiremote', 'test-filter1.js'),
             path.resolve(__dirname, 'multiremote', 'test-filter2.js')
@@ -642,7 +642,7 @@ const multiremote = async () => {
 }
 
 /**
- * parallel multiremote wdio testrunner tests
+ * parallel multi-remote wdio testrunner tests
  */
 const parallelMultiRemote = async () => {
     console.log(parallelMultiRemoteBaseConfig)
@@ -1201,7 +1201,7 @@ const displayServerSmoke = async () => {
         displayServerSmoke,
         mochaTestrunner,
         jasmineTestrunner,
-        multiremote,
+        multiRemote,
         parallelMultiRemote,
         wdioHooks,
         cjsTestrunner,

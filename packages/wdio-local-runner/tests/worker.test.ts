@@ -80,7 +80,7 @@ describe('handleMessage', () => {
         expect(worker.sessionId).toEqual('abc123')
     })
 
-    it('stores instances to worker instance in MultiRemote mode', () => {
+    it('stores instances to worker instance in multi-remote mode', () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const payload = {
             name: 'sessionStarted',

@@ -151,11 +151,11 @@ describe('wdio-junit-reporter', () => {
         expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
-    it('generates xml output (Cucumber-style) with multiremote (no framework in config)', () => {
+    it('generates xml output (Cucumber-style) with multi-remote (no framework in config)', () => {
         reporter.suites = featuresLog as any
 
         /**
-         * In multiremote mode, runner.config may come from browser.options which lacks the
+         * In multi-remote mode, runner.config may come from browser.options which lacks the
          * `framework` key. The reporter must still detect Cucumber via suite type.
          * Steps should be grouped per scenario (1 testcase per scenario), not per step.
          */

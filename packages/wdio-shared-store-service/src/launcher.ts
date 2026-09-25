@@ -23,12 +23,12 @@ export default class SharedStoreLauncher implements Services.HookFunctions {
 
         const capsList = Array.isArray(capabilities)
             ? capabilities
-            : Object.values(capabilities).map((multiremoteOption) => multiremoteOption.capabilities)
+            : Object.values(capabilities).map((multiRemoteOption) => multiRemoteOption.capabilities)
 
         const caps: Partial<SharedStoreServiceCapabilities>[] = capsList.flatMap((c) => {
-            const multiremote = c as Capabilities.RequestedMultiRemoteCapabilities
-            if (!multiremote.browserName && multiremote[Object.keys(multiremote)[0]].capabilities) {
-                return Object.values(multiremote).map((options) =>
+            const multiRemote = c as Capabilities.RequestedMultiRemoteCapabilities
+            if (!multiRemote.browserName && multiRemote[Object.keys(multiRemote)[0]].capabilities) {
+                return Object.values(multiRemote).map((options) =>
                     (options.capabilities as Capabilities.W3CCapabilities)?.alwaysMatch ||
                     (options.capabilities as WebdriverIO.Capabilities)
                 )

@@ -1,4 +1,4 @@
-describe('multiremote example', () => {
+describe('multi-remote example', () => {
     it('should open chat application', async () => {
         await browser.url('https://socketio-chat-h9jt.herokuapp.com/')
     })

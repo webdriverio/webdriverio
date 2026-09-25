@@ -83,7 +83,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         let capabilityWasUpdated = false
 
         /**
-         * MultiRemote sessions
+         * Multi-remote sessions
          */
         if (!Array.isArray(this._capabilities)) {
             for (const [, capability] of Object.entries(this._capabilities)) {
@@ -106,7 +106,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             const w3cCap = cap as Capabilities.W3CCapabilities
 
             /**
-             * Parallel MultiRemote
+             * Parallel multi-remote
              */
             if (Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && c.capabilities)) {
                 Object.values(cap).forEach(c => {

@@ -26,11 +26,11 @@ function mapCapabilities (
         Array.isArray(caps)
             ? caps.map((cap: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiRemoteCapabilities) => {
                 const w3cCaps = cap as Capabilities.W3CCapabilities
-                const multiremoteCaps = cap as Capabilities.RequestedMultiRemoteCapabilities
-                const multiremoteInstanceNames = Object.keys(multiremoteCaps)
+                const multiRemoteCaps = cap as Capabilities.RequestedMultiRemoteCapabilities
+                const multiRemoteInstanceNames = Object.keys(multiRemoteCaps)
 
-                if (typeof multiremoteCaps[multiremoteInstanceNames[0]] === 'object' && 'capabilities' in multiremoteCaps[multiremoteInstanceNames[0]]) {
-                    return Object.values(multiremoteCaps).map((c: Capabilities.WithRequestedCapabilities) => (
+                if (typeof multiRemoteCaps[multiRemoteInstanceNames[0]] === 'object' && 'capabilities' in multiRemoteCaps[multiRemoteInstanceNames[0]]) {
+                    return Object.values(multiRemoteCaps).map((c: Capabilities.WithRequestedCapabilities) => (
                         'alwaysMatch' in c.capabilities
                             ? c.capabilities.alwaysMatch
                             : c.capabilities

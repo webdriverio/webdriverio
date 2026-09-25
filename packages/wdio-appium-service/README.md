@@ -852,9 +852,9 @@ The optimizer helps you find clear wins, and most selectors will show genuine im
 
 - ✅ **iOS**: Fully supported and optimized
 - ⚠️ **Android**: Currently disabled (support coming in a future release)
-- ⚠️ **MultiRemote**: Not supported yet (feature is automatically disabled for MultiRemote sessions)
+- ⚠️ **Multi-remote**: Not supported yet (feature is automatically disabled for multi-remote sessions)
 
-When running on Android or with MultiRemote, the service will log a warning message indicating it's disabled and skip optimization.
+When running on Android or with multi-remote, the service will log a warning message indicating it's disabled and skip optimization.
 
 ----
 

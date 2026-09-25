@@ -97,10 +97,10 @@ exports.attach = async function(attachOptions: any) {
  * This is handy when you're testing features that require multiple users (for example, chat or WebRTC applications).
  *
  * Instead of creating a couple of remote instances where you need to execute common commands like newSession() or url() on each instance,
- * you can simply create a multiremote instance and control all browsers at the same time.
+ * you can simply create a multi-remote instance and control all browsers at the same time.
  *
  * <b>
- * NOTE: MultiRemote is not meant to execute all your tests in parallel.
+ * NOTE: Multi-remote is not meant to execute all your tests in parallel.
  * It is intended to help coordinate multiple browsers and/or mobile devices for special integration tests (e.g. chat applications).
  * </b>
  *
@@ -111,10 +111,10 @@ exports.attach = async function(attachOptions: any) {
  *
  * @see <a href="https://webdriver.io/docs/multiremote">External document and example usage</a>.
  */
-exports.multiremote = async function(
+exports.multiRemote = async function(
     params: any,
     { automationProtocol }: { automationProtocol?: string } = {}
 ) {
-    const { multiremote } = await import('./node.js')
-    return multiremote(params, { automationProtocol })
+    const { multiRemote } = await import('./node.js')
+    return multiRemote(params, { automationProtocol })
 }

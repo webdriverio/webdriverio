@@ -125,11 +125,11 @@ Be careful to not overload the `browser` scope with too many custom commands.
 
 We recommend defining custom logic in [page objects](pageobjects), so they are bound to a specific page.
 
-### MultiRemote
+### Multi-remote
 
-`addCommand` works in a similar way for multiremote, except the new command will propagate down to the children instances. You have to be mindful when using `this` object since the multiremote `browser` and its children instances have different `this`.
+`addCommand` works in a similar way for multi-remote, except the new command will propagate down to the children instances. You have to be mindful when using `this` object since the multi-remote `browser` and its children instances have different `this`.
 
-This example shows how to add a new command for multiremote.
+This example shows how to add a new command for multi-remote.
 
 ```js
 import { multiRemoteBrowser } from '@wdio/globals'

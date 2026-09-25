@@ -56,7 +56,7 @@ export default class ProtocolStub {
         }
 
         /**
-         * MultiRemote is needed
+         * Multi-remote is needed
          */
         return modifier({
             commandList: []

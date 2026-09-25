@@ -264,7 +264,7 @@ describe('SpecReporter', () => {
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
-            it('should print jobs of all instance when run with multiremote', () => {
+            it('should print jobs of all instance when run with multi-remote', () => {
                 const options = {
                     hostname: 'ondemand.saucelabs.com',
                     user: 'foobar',
@@ -410,7 +410,7 @@ describe('SpecReporter', () => {
             expect(result).toMatchSnapshot()
         })
 
-        it('should validate header output in multiremote', () => {
+        it('should validate header output in multi-remote', () => {
             const result = tmpReporter.getHeaderDisplay(
                 getRunnerConfig({
                     capabilities: {
@@ -905,7 +905,7 @@ describe('SpecReporter', () => {
     })
 
     describe('getEnviromentCombo', () => {
-        it('should return Multibrowser as capability if multiremote is used', () => {
+        it('should return Multibrowser as capability if multi-remote is used', () => {
             expect(tmpReporter.getEnviromentCombo({
                 myBrowser: {
                     browserName: 'chrome',

@@ -284,16 +284,16 @@ export default class SpecReporter extends WDIOReporter {
 
         const isSauceJob = (
             (config && config.hostname && config.hostname.includes('saucelabs')) ||
-            // only show if multiremote is not used
+            // only show if multi-remote is not used
             capabilities['sauce:options']
         )
 
         if (isSauceJob && config && config.user && config.key && sessionId) {
-            const multiremoteNote = isMultiRemote ? ` ${instanceName}` : ''
+            const multiRemoteNote = isMultiRemote ? ` ${instanceName}` : ''
             const note = 'Check out%s job at %s'
             // The report url of RDC is in the caps that are returned
             if ('testobject_test_report_url' in capabilities){
-                return [format(note, multiremoteNote, capabilities.testobject_test_report_url)]
+                return [format(note, multiRemoteNote, capabilities.testobject_test_report_url)]
             }
 
             // VDC urls can be constructed / be made shared
@@ -305,7 +305,7 @@ export default class SpecReporter extends WDIOReporter {
                 : ''
             const sauceUrl = `https://app${dc}.saucelabs.com/tests/${sessionId}${sauceLabsSharableLinks}`
 
-            return [format(note, multiremoteNote, sauceUrl)]
+            return [format(note, multiRemoteNote, sauceUrl)]
         }
 
         return []
@@ -323,7 +323,7 @@ export default class SpecReporter extends WDIOReporter {
         const output = [`Running: ${combo}`]
 
         /**
-         * print session ID if not multiremote
+         * print session ID if not multi-remote
          */
         // @ts-expect-error
         if (runner.capabilities.sessionId) {

@@ -209,7 +209,7 @@ export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototyp
 export type ElementCommandsType = Omit<$ElementCommands, keyof ChainablePrototype> & ChainablePrototype
 
 /**
- * MultiRemote command definition
+ * Multi-remote command definition
  */
 type SingleElementCommandNames = '$' | 'custom$' | 'react$'
 type MultiElementCommandNames = '$$' | 'custom$$' | 'react$$'
@@ -220,7 +220,7 @@ type MultiRemoteElementCommands = {
     [K in keyof Pick<BrowserCommandsType, '$$'>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElementArray>
 } & {
     /**
-     * only `$$` zips the per-instance results into one multiremote array; `custom$$`
+     * only `$$` zips the per-instance results into one multi-remote array; `custom$$`
      * and `react$$` still resolve to one result per instance, so they keep the
      * element-list type rather than claiming to be a `MultiRemoteElementArray`
      */
@@ -269,7 +269,7 @@ interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof Asyn
 export type ElementArray = ElementArrayExport
 
 /**
- * The array `$$` returns on a multiremote browser. It carries the same
+ * The array `$$` returns on a multi-remote browser. It carries the same
  * information as `ElementArray` — every entry is a `MultiRemoteElement` rather
  * than an `Element`, and `isMultiRemote` tells the two apart at runtime.
  */
@@ -279,7 +279,7 @@ interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemo
      */
     selector: Selector
     /**
-     * parent of the element array, i.e. the multiremote browser or element it was fetched from
+     * parent of the element array, i.e. the multi-remote browser or element it was fetched from
      */
     parent: WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement
     /**
@@ -295,7 +295,7 @@ interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemo
      */
     length: number
     /**
-     * always `true`, so a multiremote element array can be told apart from a plain one
+     * always `true`, so a multi-remote element array can be told apart from a plain one
      */
     isMultiRemote: true
     /**
@@ -483,11 +483,11 @@ interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanc
      */
     capabilities: Capabilities.RequestedMultiRemoteCapabilities
     /**
-     * multiremote browser instance names
+     * Multi-remote browser instance names
      */
     instances: string[]
     /**
-     * flag to indicate multiremote browser session
+     * flag to indicate multi-remote browser session
      */
     isMultiRemote: true
     /**
@@ -506,14 +506,14 @@ interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanc
 interface MultiRemoteElementBase {
     selector: string
     /**
-     * multiremote browser instance names
+     * Multi-remote browser instance names
      */
     instances: string[]
     commandList: string[]
     addCommand: Function
     overwriteCommand: Function
     /**
-     * flag to indicate multiremote browser session
+     * flag to indicate multi-remote browser session
      */
     isMultiRemote: true
     /**
@@ -861,8 +861,8 @@ declare global {
          */
         interface ElementArray extends ElementArrayExport {}
         /**
-         * WebdriverIO multiremote browser object
-         * A multiremote browser instance is a property on the global WebdriverIO browser object that
+         * WebdriverIO multi-remote browser object
+         * A multi-remote browser instance is a property on the global WebdriverIO browser object that
          * allows to control multiple browser instances at once. It can be represented as `Record<string, WebdriverIO.Browser>`
          * where `string` is the capability name defined in the WebdriverIO options.
          *
@@ -870,8 +870,8 @@ declare global {
          */
         interface MultiRemoteBrowser extends MultiRemoteBrowserType {}
         /**
-         * WebdriverIO multiremote browser object
-         * A multiremote browser instance is a property on the global WebdriverIO browser object that
+         * WebdriverIO multi-remote browser object
+         * A multi-remote browser instance is a property on the global WebdriverIO browser object that
          * allows to control multiple browser instances at once. It can be represented as `Record<string, WebdriverIO.Element>`
          * where `string` is the capability name defined in the WebdriverIO options.
          *
@@ -879,10 +879,10 @@ declare global {
          */
         interface MultiRemoteElement extends MultiRemoteElementType {}
         /**
-         * WebdriverIO multiremote element array
-         * What `$$`, `custom$$` and `react$$` return on a multiremote browser. Like
+         * WebdriverIO multi-remote element array
+         * What `$$`, `custom$$` and `react$$` return on a multi-remote browser. Like
          * `ElementArray` it carries the selector, parent and properties of the fetched
-         * set, and `isMultiRemote` marks it as the multiremote variant.
+         * set, and `isMultiRemote` marks it as the multi-remote variant.
          *
          * @see https://webdriver.io/docs/multiremote/
          */

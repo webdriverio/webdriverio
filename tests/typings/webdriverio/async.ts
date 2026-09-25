@@ -1,7 +1,7 @@
 import { expectType } from 'tsd'
 
 import allure from '@wdio/allure-reporter'
-import { remote, multiremote, SevereServiceError, Key } from 'webdriverio'
+import { remote, multiRemote, SevereServiceError, Key } from 'webdriverio'
 import type { ClickOptions, Selector, Action } from 'webdriverio'
 import type { DetailedContext } from '@wdio/protocols'
 
@@ -32,8 +32,8 @@ const actions: Action[] = [{
 }]
 
 async function bar() {
-    // multiremote
-    const mr = await multiremote({
+    // Multi-remote
+    const mr = await multiRemote({
         myBrowserInstance: {
             capabilities: { browserName: 'chrome' }
         }
@@ -49,20 +49,20 @@ async function bar() {
     const url = await multiRemoteBrowser.getUrl()
     expectType<string[]>(url)
 
-    multiremote({
+    multiRemote({
         myBrowserInstance: {
             capabilities: { browserName: 'chrome' }
         }
     }).then(() => {}, () => {})
 
-    // $$ on a multiremote browser resolves to a MultiRemoteElementArray
+    // $$ on a multi-remote browser resolves to a MultiRemoteElementArray
     const mrElems = await mr.$$('foobar')
     expectType<true>(mrElems.isMultiRemote)
     expectType<Selector>(mrElems.selector)
     expectType<string>(mrElems.foundWith)
     expectType<WebdriverIO.MultiRemoteElement>(mrElems[0])
 
-    // the async iterators keep the multiremote element type
+    // the async iterators keep the multi-remote element type
     expectType<string[][]>(await mrElems.map((el) => el.instances))
     expectType<WebdriverIO.MultiRemoteElement[]>(await mrElems.filter(async () => true))
     await mrElems.forEach((el) => el.click())

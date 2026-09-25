@@ -125,7 +125,7 @@ export type TestrunnerCapabilities = RequestedStandaloneCapabilities[] | Request
 
 /**
  * The capabilities that will be resolved within a worker instance, e.g. either
- * a single set of capabilities or a single multiremote instance
+ * a single set of capabilities or a single multi-remote instance
  */
 export type ResolvedTestrunnerCapabilities = WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities>
 
@@ -148,7 +148,7 @@ export interface WithRequestedCapabilities {
      *   }
      * })
      *
-     * // multiremote session
+     * // multi-remote session
      * const browser = remote({
      *   capabilities: {
      *     browserA: {
@@ -207,18 +207,18 @@ export interface WithRequestedTestrunnerCapabilities {
 }
 
 /**
- * The `capabilities` property is a required property when using the `remote` method to initiate a multiremote session.
+ * The `capabilities` property is a required property when using the `remote` method to initiate a multi-remote session.
  */
 export interface WithRequestedMultiRemoteCapabilities {
     /**
-     * Defines the capabilities for each MultiRemote client. Check out the
+     * Defines the capabilities for each multi-remote client. Check out the
      * documentation on [Capabilities](https://webdriver.io/docs/capabilities) for more details.
      *
      * @example
      * ```
      * // wdio.conf.js
      * export const config = {
-     *   // multiremote example
+     *   // multi-remote example
      *   capabilities: {
      *     browserA: {
      *       browserName: 'chrome',
@@ -233,7 +233,7 @@ export interface WithRequestedMultiRemoteCapabilities {
      *   }
      * })
      * ```
-     * // or with parallel multiremote sessions
+     * // or with parallel multi-remote sessions
      * ```
      * // wdio.conf.js
      * export const config = {

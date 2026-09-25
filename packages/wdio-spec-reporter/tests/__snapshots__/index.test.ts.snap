@@ -14,7 +14,7 @@ exports[`SpecReporter > getHeaderDisplay > should validate header output 1`] = `
 ]
 `;
 
-exports[`SpecReporter > getHeaderDisplay > should validate header output in multiremote 1`] = `
+exports[`SpecReporter > getHeaderDisplay > should validate header output in multi-remote 1`] = `
 [
   "Running: MultiRemoteBrowser on chrome and firefox",
 ]
@@ -290,7 +290,7 @@ exports[`SpecReporter > printReport > should print a report even if session coul
 
 exports[`SpecReporter > printReport > with disabled sharable Sauce report links > should print the default Sauce Labs job details page link 1`] = `[]`;
 
-exports[`SpecReporter > printReport > with normal setup > should print jobs of all instance when run with multiremote 1`] = `
+exports[`SpecReporter > printReport > with normal setup > should print jobs of all instance when run with multi-remote 1`] = `
 [
   [
     "------------------------------------------------------------------

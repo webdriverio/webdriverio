@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { describe, expect, expectTypeOf, test, vi } from 'vitest'
 import type { ClickOptions } from '../src/index.js'
-import { remote, multiremote } from '../src/index.js'
+import { remote, multiRemote } from '../src/index.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -13,7 +13,7 @@ const remoteConfig = {
     }
 }
 
-const multiremoteConfig = {
+const multiRemoteConfig = {
     browserA: {
         logLevel: 'debug',
         capabilities: {
@@ -264,15 +264,15 @@ describe('overwriteCommand', () => {
 
     describe('multiremote', () => {
         test('should allow to overwrite commands', async () => {
-            const browser = await multiremote(multiremoteConfig as any)
+            const browser = await multiRemote(multiRemoteConfig as any)
             browser.overwriteCommand('pause', customBrowserCommand)
 
             // @ts-expect-error command overwritten. Using 19 instead of 20 since rounding down of 19.8 can happen.
             expect(await browser.pause(10, 10)).toBeGreaterThanOrEqual(19)
         })
 
-        test.skip('should allow to overwrite commands for a single multiremote instance', async () => {
-            const browser = await multiremote(multiremoteConfig as any)
+        test.skip('should allow to overwrite commands for a single multi-remote instance', async () => {
+            const browser = await multiRemote(multiRemoteConfig as any)
             browser.getInstance('browserA').overwriteCommand('pause', customBrowserCommand)
 
             // @ts-expect-error command overwritten
@@ -285,8 +285,8 @@ describe('overwriteCommand', () => {
             expect(results[1]).toBe(undefined)
         })
 
-        test('should be able to overwrite element command in multiremote mode', async () => {
-            const browser = await multiremote(multiremoteConfig as any)
+        test('should be able to overwrite element command in multi-remote mode', async () => {
+            const browser = await multiRemote(multiRemoteConfig as any)
             browser.overwriteCommand('getAttribute', customElementCommand, { attachToElement: true })
             const elem = await browser.$('#foo')
 

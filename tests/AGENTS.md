@@ -53,7 +53,7 @@ CLI / specs: `mochaSpecGrouping`, `mochaSpecFiltering`, `mochaHooksTestrunner`,
 Plugins: `customService`, `customCJSService`, `customReporterString`,
 `customReporterObject`, `reporterTestrunner`, `sharedStoreServiceTest`
 
-Other: `multiremote`, `parallelMultiRemote`, `wdioHooks`, `retryFail`,
+Other: `multiRemote`, `parallelMultiRemote`, `wdioHooks`, `retryFail`,
 `retryPass`, `severeErrorTest`
 
 Unknown names fail with a list of valid suite names.

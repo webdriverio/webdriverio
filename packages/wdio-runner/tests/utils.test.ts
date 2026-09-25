@@ -1,7 +1,7 @@
 import path from 'node:path'
 // @ts-expect-error - mock
 import { logMock } from '@wdio/logger'
-import { attach, remote, multiremote } from 'webdriverio'
+import { attach, remote, multiRemote } from 'webdriverio'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import { expect as wdioExpect } from 'expect-webdriverio'
 
@@ -50,11 +50,11 @@ describe('utils', () => {
 
             expect(attach).toBeCalledWith({ ...attachParams, options: attachParams })
             expect(config.capabilities).toEqual({ browserName: 'chrome' })
-            expect(multiremote).toHaveBeenCalledTimes(0)
+            expect(multiRemote).toHaveBeenCalledTimes(0)
             expect(remote).toHaveBeenCalledTimes(0)
         })
 
-        it('should run multiremote tests if flag is given', async () => {
+        it('should run multi-remote tests if flag is given', async () => {
             const capabilities = { someBrowser: { browserName: 'chrome' } }
             await initializeInstance(
                 // @ts-ignore test invalid params
@@ -63,7 +63,7 @@ describe('utils', () => {
                 true
             )
             expect(attach).toHaveBeenCalledTimes(0)
-            expect(multiremote).toBeCalledWith({
+            expect(multiRemote).toBeCalledWith({
                 someBrowser: {
                     browserName: 'chrome',
                     foo: 'bar'
@@ -82,7 +82,7 @@ describe('utils', () => {
                 maxInstances: 123
             })
             expect(attach).toHaveBeenCalledTimes(0)
-            expect(multiremote).toHaveBeenCalledTimes(0)
+            expect(multiRemote).toHaveBeenCalledTimes(0)
             expect(remote).toBeCalledWith({
                 foo: 'bar',
                 maxInstances: 123,
@@ -112,7 +112,7 @@ describe('utils', () => {
 
         afterEach(() => {
             vi.mocked(attach).mockClear()
-            vi.mocked(multiremote).mockClear()
+            vi.mocked(multiRemote).mockClear()
             vi.mocked(remote).mockClear()
         })
     })

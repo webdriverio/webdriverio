@@ -1,5 +1,6 @@
 import { vi } from 'vitest'
-const SevereServiceErrorImport = await vi.importActual('../packages/webdriverio/src/utils/SevereServiceError') as { default: any }
+import type SevereServiceErrorType from '../packages/webdriverio/src/utils/SevereServiceError.js'
+const SevereServiceErrorImport = await vi.importActual('../packages/webdriverio/src/utils/SevereServiceError') as { default: typeof SevereServiceErrorType }
 
 const getWdioMock = () => {
     const mock = {
@@ -22,11 +23,11 @@ const getWdioMock = () => {
 
 export const attach = vi.fn().mockImplementation(() => (getWdioMock()))
 export const remote = vi.fn().mockImplementation(() => {
-    if ((global as any).throwRemoteCall) {
+    if ((global as typeof globalThis & { throwRemoteCall?: boolean }).throwRemoteCall) {
         throw new Error('boom')
     }
     return getWdioMock()
 })
-export const multiremote = vi.fn().mockImplementation(() => (getWdioMock()))
+export const multiRemote = vi.fn().mockImplementation(() => (getWdioMock()))
 
 export const SevereServiceError = SevereServiceErrorImport.default

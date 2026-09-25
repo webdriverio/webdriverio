@@ -329,7 +329,7 @@ describe('DisplayServerManager (gap coverage)', () => {
             ])
         })
 
-        it('injects Wayland flags into every browser in a multiremote config', async () => {
+        it('injects Wayland flags into every browser in a multi-remote config', async () => {
             mockWayland.isAvailable.mockResolvedValue(true)
             const mgr = new DisplayServerManager({ displayServer: 'wayland' })
             await mgr.init()

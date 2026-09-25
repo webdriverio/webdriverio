@@ -2,7 +2,7 @@ import path from 'node:path'
 import { describe, test, expect, vi } from 'vitest'
 import type { Capabilities } from '@wdio/types'
 
-import { remote, multiremote } from '../src/index.js'
+import { remote, multiRemote } from '../src/index.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -56,7 +56,7 @@ declare global {
     }
 }
 
-const multiremoteConfig: Capabilities.RequestedMultiRemoteCapabilities = {
+const multiRemoteConfig: Capabilities.RequestedMultiRemoteCapabilities = {
     browserA: {
         logLevel: 'debug',
         capabilities: {
@@ -389,9 +389,9 @@ describe('addCommand', () => {
         })
     })
 
-    describe('multiremote', () => {
-        test('should allow to register custom commands to multiremote instance', async () => {
-            const browser = await multiremote(multiremoteConfig)
+    describe('multi-remote', () => {
+        test('should allow to register custom commands to multi-remote instance', async () => {
+            const browser = await multiRemote(multiRemoteConfig)
             expect(typeof browser.myCustomCommand).toBe('undefined')
 
             browser.addCommand('myCustomCommand', async function (this: WebdriverIO.Browser, param: any) {
@@ -419,8 +419,8 @@ describe('addCommand', () => {
             expect(resultB.commandResult).toEqual('foobar')
         })
 
-        test('should allow to register custom commands to a single multiremote instance', async () => {
-            const browser = await multiremote(multiremoteConfig)
+        test('should allow to register custom commands to a single multi-remote instance', async () => {
+            const browser = await multiRemote(multiRemoteConfig)
 
             expect(typeof browser.myOtherCustomCommand).toBe('undefined')
             browser.getInstance('browserA').addCommand('myOtherCustomCommand', async function (this: WebdriverIO.Browser, param: string) {
@@ -437,7 +437,7 @@ describe('addCommand', () => {
         })
 
         test('should not allow to call custom multi browser commands on elements', async () => {
-            const browser = await multiremote(multiremoteConfig)
+            const browser = await multiRemote(multiRemoteConfig)
             browser.addCommand('myCustomOtherOtherCommand', async function (this: WebdriverIO.Browser, param: any) {
                 const commandResult = await this.execute(() => 'foobar')
                 return { param, commandResult }
@@ -455,7 +455,7 @@ describe('addCommand', () => {
             mockImplicitWait.mockImplementation((element) => Promise.resolve(element))
             const disableElementImplicitWait = true
 
-            const browser = await multiremote(multiremoteConfig)
+            const browser = await multiRemote(multiRemoteConfig)
             browser.addCommand(
                 'noImplicitWait',
                 () => {return 'noImplicitWait'},

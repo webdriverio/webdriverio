@@ -66,7 +66,7 @@ export default class SauceLauncher implements Services.ServiceInstance {
         if (Array.isArray(capabilities)) {
             for (const capability of capabilities) {
                 /**
-                 * Parallel MultiRemote
+                 * Parallel multi-remote
                  */
                 if (Object.values(capability).length > 0 && Object.values(capability).every(c => typeof c === 'object' && c.capabilities)) {
                     for (const browserName of Object.keys(capability)) {

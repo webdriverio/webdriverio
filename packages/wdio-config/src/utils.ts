@@ -13,7 +13,7 @@ export function applyHeadlessFlag(caps: WebdriverIO.Capabilities, headless: bool
     const target = (caps as { alwaysMatch?: WebdriverIO.Capabilities }).alwaysMatch || caps
     const browser = (target.browserName || '').toLowerCase()
 
-    // MultiRemote: object whose values are individual capability objects
+    // Multi-remote: object whose values are individual capability objects
     if (!browser && !('alwaysMatch' in caps)) {
         for (const key of Object.keys(caps)) {
             const val = (caps as Record<string, unknown>)[key]

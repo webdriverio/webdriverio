@@ -276,7 +276,7 @@ describe('monad', () => {
         expect(calls).toEqual(['third', 'second', 'first', 'base'])
     })
 
-    it('should add element commands to the __propertiesObject__ cache in multiremote', () => {
+    it('should add element commands to the __propertiesObject__ cache in multi-remote', () => {
         const monad = webdriverMonad({}, (client: any) => client, prototype)
         const client = monad(sessionId)
         const instances = { foo: { __propertiesObject__: { myCustomElementCommand: { value: undefined } } } }
@@ -288,7 +288,7 @@ describe('monad', () => {
         expect(instances.foo.__propertiesObject__.myCustomElementCommand.value).toBe(func)
     })
 
-    it('should compose element command overrides in multiremote', () => {
+    it('should compose element command overrides in multi-remote', () => {
         const monad = webdriverMonad({}, (client: any) => client, { ...prototype })
         const client = monad(sessionId)
         const calls: string[] = []

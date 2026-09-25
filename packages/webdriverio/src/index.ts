@@ -129,10 +129,10 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
  * This is handy when you're testing features that require multiple users (for example, chat or WebRTC applications).
  *
  * Instead of creating a couple of remote instances where you need to execute common commands like newSession() or url() on each instance,
- * you can simply create a multiremote instance and control all browsers at the same time.
+ * you can simply create a multi-remote instance and control all browsers at the same time.
  *
  * <b>
- * NOTE: MultiRemote is not meant to execute all your tests in parallel.
+ * NOTE: Multi-remote is not meant to execute all your tests in parallel.
  * It is intended to help coordinate multiple browsers and/or mobile devices for special integration tests (e.g. chat applications).
  * </b>
  *
@@ -143,7 +143,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
  *
  * @see <a href="https://webdriver.io/docs/multiremote">External document and example usage</a>.
  */
-export const multiremote = async function (
+export const multiRemote = async function (
     params: Capabilities.RequestedMultiRemoteCapabilities,
     { automationProtocol }: { automationProtocol?: string } = {}
 ): Promise<WebdriverIO.MultiRemoteBrowser> {
@@ -185,7 +185,7 @@ export const multiremote = async function (
     ) as WebdriverIO.MultiRemoteBrowser
 
     /**
-     * in order to get custom command overwritten or added to multiremote instance
+     * in order to get custom command overwritten or added to multi-remote instance
      * we need to pass in the prototype of the multibrowser
      */
     if (!isStub(automationProtocol)) {

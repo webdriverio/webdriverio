@@ -63,7 +63,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._browser.addCommand('clickScenario', this.clickScenario.bind(this))
         this._browser.addCommand('isExistingScenario', this.isExistingScenario.bind(this))
         this._browser.addCommand('isNotExistingScenario', this.isNotExistingScenario.bind(this))
-        this._browser.addCommand('multiremoteFetch', this.multiremoteFetch.bind(this))
+        this._browser.addCommand('multiRemoteFetch', this.multiRemoteFetch.bind(this))
         this._browser.addCommand('asyncIterationScenario', this.asyncIterationScenario.bind(this))
         this._browser.addCommand('parentElementChaining', this.parentNextPreviousElementChaining.bind(this))
         this._browser.addCommand('refetchElementScenario', this.refetchElementScenario.bind(this))
@@ -198,7 +198,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._mock.command.getElementText(ELEMENT_REFETCHED).reply(200, { value: 'some element text' })
     }
 
-    multiremoteFetch () {
+    multiRemoteFetch () {
         const elemResponse = { [ELEM_PROP]: ELEMENT_ID }
         const elem2Response = { [ELEM_PROP]: ELEMENT_REFETCHED }
 

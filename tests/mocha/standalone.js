@@ -1,5 +1,5 @@
 import assert from 'node:assert'
-import { remote, attach, multiremote } from '../../packages/webdriverio/build/index.js'
+import { remote, attach, multiRemote } from '../../packages/webdriverio/build/index.js'
 
 function sleep (ms) {
     return new Promise((resolve) => setTimeout(resolve, ms))
@@ -76,11 +76,11 @@ describe('scripts run in standalone mode', () => {
         })
     })
 
-    describe('multiremote', () => {
+    describe('multi-remote', () => {
         let remoteBrowser
 
         before(async () => {
-            remoteBrowser = await multiremote({
+            remoteBrowser = await multiRemote({
                 foo: {
                     hostname: 'localhost',
                     port: 4444,
