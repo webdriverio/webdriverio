@@ -31,12 +31,21 @@ on:
           - production
           - preview
   pull_request:
+    # A docs preview is published only when the diff can change the site.
+    # Manual dispatch below still deploys any ref.
     paths:
       - 'website/**'
-      - 'scripts/docs-generation/**'
-      - 'packages/*/README.md'
-      - 'packages/webdriverio/src/commands/**'
+      - 'vercel.json'
       - '.github/workflows/deploy.yml'
+      - 'CONTRIBUTING.md'
+      - 'scripts/docs-generation/**'
+      - 'scripts/templates/**'
+      - 'scripts/protocols.ts'
+      - 'scripts/utils/formatter.ts'
+      - 'scripts/utils/compiler.ts'
+      - 'packages/webdriverio/src/commands/**'
+      - 'packages/wdio-protocols/src/protocols/**'
+      - 'packages/*/README.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
