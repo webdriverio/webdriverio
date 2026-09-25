@@ -1,4 +1,4 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 export interface StartActivityOptions {
     /**
@@ -49,8 +49,6 @@ export interface StartActivityOptions {
  * Supports both the legacy positional argument style and a new object-based style.
  * When the first argument is an object, the object properties are used. When it is a
  * string, the call is treated as the old positional API for backward compatibility.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :startActivity.js
@@ -141,24 +139,5 @@ export async function startActivity(
         mobileArgs.stop = opts.dontStopAppOnReset !== 'true'
     }
 
-    try {
-        return await browser.execute('mobile: startActivity', mobileArgs)
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: startActivity', '/appium/device/start_activity')
-        return browser.appiumStartActivity(
-            opts.appPackage,
-            opts.appActivity,
-            opts.appWaitPackage,
-            opts.appWaitActivity,
-            opts.intentAction,
-            opts.intentCategory,
-            opts.intentFlags,
-            opts.optionalIntentArguments,
-            opts.dontStopAppOnReset
-        )
-    }
+    return executeMobile(browser, 'mobile: startActivity', mobileArgs)
 }

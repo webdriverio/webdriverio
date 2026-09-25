@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Perform a shake action on the device. Supports iOS Simulator and real devices.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :shake.js
@@ -28,14 +26,5 @@ export async function shake(
         throw new Error('The `shake` command is only available for iOS.')
     }
 
-    try {
-        return await browser.execute('mobile: shake', {})
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: shake', '/appium/device/shake')
-        return browser.appiumShake()
-    }
+    return executeMobile(browser, 'mobile: shake', {})
 }

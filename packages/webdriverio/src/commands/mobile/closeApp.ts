@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Close a specific app or the currently active app on the device.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * If no `bundleId` (iOS) or `appId` (Android) is provided, the command will automatically detect and close the currently active app.
  *
@@ -54,14 +52,5 @@ export async function closeApp(
         terminateArgs = { appId }
     }
 
-    try {
-        return await browser.execute('mobile: terminateApp', terminateArgs)
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: terminateApp', '/appium/app/close')
-        return browser.appiumCloseApp()
-    }
+    return executeMobile(browser, 'mobile: terminateApp', terminateArgs)
 }

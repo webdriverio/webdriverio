@@ -1,18 +1,13 @@
-import path from 'node:path'
 import { expect, describe, it, vi, beforeEach } from 'vitest'
-import logger from '@wdio/logger'
 import { remote } from '../../../src/index.js'
 
 vi.mock('fetch')
-const log = logger('test')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('powerAC', () => {
     let browser: WebdriverIO.Browser
 
     beforeEach(async () => {
         vi.mocked(fetch).mockClear()
-        log.warn = vi.fn()
     })
 
     describe('non-mobile', () => {
@@ -56,38 +51,6 @@ describe('powerAC', () => {
         it('should re-throw non-unknown-method errors', async () => {
             vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.powerAC('on')).rejects.toThrow('device disconnected')
-        })
-    })
-
-    describe('legacy driver fallback (mobile: powerAC returns unknown method)', () => {
-        beforeEach(async () => {
-            browser = await remote({
-                baseUrl: 'http://foobar.com',
-                capabilities: {
-                    browserName: 'foobar',
-                    mobileMode: true,
-                    platformName: 'Android',
-                } as any
-            })
-        })
-
-        it('should fall back to appiumPowerAC and log a warning', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('unknown method: mobile: powerAC'))
-            const appiumSpy = vi.spyOn(browser, 'appiumPowerAC').mockResolvedValue(undefined)
-
-            await browser.powerAC('on')
-
-            expect(appiumSpy).toHaveBeenCalledWith('on')
-            expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('mobile: powerAC'))
-        })
-
-        it('should pass state to appiumPowerAC on fallback', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('unknown command'))
-            const appiumSpy = vi.spyOn(browser, 'appiumPowerAC').mockResolvedValue(undefined)
-
-            await browser.powerAC('off')
-
-            expect(appiumSpy).toHaveBeenCalledWith('off')
         })
     })
 })

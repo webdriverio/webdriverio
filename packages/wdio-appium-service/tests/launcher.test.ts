@@ -3,7 +3,7 @@ import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 import treeKill from 'tree-kill'
-import { spawn, type ChildProcessByStdio } from 'node:child_process'
+import { spawn, execFileSync, type ChildProcessByStdio } from 'node:child_process'
 import type cp from 'node:child_process'
 import getPort from 'get-port'
 import { Readable, type Writable } from 'node:stream'
@@ -19,7 +19,9 @@ const log = logger('@wdio/appium-service')
 
 vi.mock('node:fs', () => ({
     default: {
-        createWriteStream: vi.fn()
+        createWriteStream: vi.fn(),
+        existsSync: vi.fn().mockReturnValue(true),
+        readFileSync: vi.fn().mockReturnValue(JSON.stringify({ name: 'appium', version: '3.1.0' }))
     }
 }))
 
@@ -40,7 +42,13 @@ vi.mock('node:fs/promises', () => ({
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('child_process', () => ({
     spawn: vi.fn(),
-    exec: vi.fn()
+    exec: vi.fn(),
+    execFileSync: vi.fn().mockReturnValue('3.0.0\n')
+}))
+vi.mock('node:child_process', () => ({
+    spawn: vi.fn(),
+    exec: vi.fn(),
+    execFileSync: vi.fn().mockReturnValue('3.0.0\n')
 }))
 vi.mock('import-meta-resolve', () => ({
     resolve: vi.fn().mockResolvedValue(
@@ -891,6 +899,41 @@ describe('Appium launcher', () => {
         test('should throw if appium is not installed', async () => {
             vi.mocked(resolve).mockRejectedValue(new Error('Not found'))
             await expect(AppiumLauncher['_getAppiumCommand']('appium')).rejects.toThrow()
+        })
+    })
+
+    describe('ensureAppiumVersion', () => {
+        beforeEach(() => {
+            vi.mocked(resolve).mockResolvedValue(
+                url.pathToFileURL(path.resolve(process.cwd(), '/', 'foo', 'bar', 'appium'))
+            )
+            vi.mocked(fs.existsSync).mockReturnValue(true)
+            vi.mocked(fs.readFileSync).mockReturnValue(
+                JSON.stringify({ name: 'appium', version: '3.1.0' })
+            )
+            vi.mocked(execFileSync).mockReturnValue('3.0.0\n')
+        })
+
+        test('accepts a local Appium 3 package', async () => {
+            await expect(AppiumLauncher.ensureAppiumVersion()).resolves.toBeUndefined()
+        })
+
+        test('rejects a local Appium 2 package', async () => {
+            vi.mocked(fs.readFileSync).mockReturnValue(
+                JSON.stringify({ name: 'appium', version: '2.19.0' })
+            )
+            await expect(AppiumLauncher.ensureAppiumVersion()).rejects.toThrow(/requires Appium 3/)
+        })
+
+        test('accepts an explicit command reporting Appium 3', async () => {
+            vi.mocked(execFileSync).mockReturnValue('3.0.2\n')
+            await expect(AppiumLauncher.ensureAppiumVersion('appium')).resolves.toBeUndefined()
+            expect(execFileSync).toHaveBeenCalledWith('appium', ['--version'], expect.any(Object))
+        })
+
+        test('rejects an explicit command reporting Appium 2', async () => {
+            vi.mocked(execFileSync).mockReturnValue('2.5.4\n')
+            await expect(AppiumLauncher.ensureAppiumVersion('appium')).rejects.toThrow(/Detected Appium 2\.5\.4/)
         })
     })
 

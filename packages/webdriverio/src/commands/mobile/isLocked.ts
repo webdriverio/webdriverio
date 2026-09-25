@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Check whether the device screen is locked.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :isLocked.js
@@ -27,14 +25,5 @@ export async function isLocked(
         throw new Error('The `isLocked` command is only available for mobile platforms.')
     }
 
-    try {
-        return await browser.execute('mobile: isLocked', {}) as boolean
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: isLocked', '/appium/device/is_locked')
-        return browser.appiumIsLocked() as Promise<boolean>
-    }
+    return executeMobile<boolean>(browser, 'mobile: isLocked', {})
 }
