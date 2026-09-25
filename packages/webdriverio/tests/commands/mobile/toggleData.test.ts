@@ -43,19 +43,19 @@ describe('toggleData', () => {
         })
 
         it('should call mobile: setConnectivity with data=true', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.toggleData(true)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: setConnectivity', { data: true })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: setConnectivity', [{ data: true }])
         })
 
         it('should call mobile: setConnectivity with data=false', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.toggleData(false)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: setConnectivity', { data: false })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: setConnectivity', [{ data: false }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.toggleData(true)).rejects.toThrow('device disconnected')
         })
     })

@@ -33,19 +33,19 @@ describe('lock', () => {
         })
 
         it('should call mobile: lock without seconds', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.lock()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: lock', { seconds: undefined })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: lock', [{ seconds: undefined }])
         })
 
         it('should call mobile: lock with seconds (iOS)', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.lock(5)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: lock', { seconds: 5 })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: lock', [{ seconds: 5 }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.lock()).rejects.toThrow('device disconnected')
         })
     })

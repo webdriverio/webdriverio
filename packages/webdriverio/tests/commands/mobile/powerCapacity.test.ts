@@ -43,13 +43,13 @@ describe('powerCapacity', () => {
         })
 
         it('should call mobile: powerCapacity with the given percent', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.powerCapacity(75)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: powerCapacity', { percent: 75 })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: powerCapacity', [{ percent: 75 }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.powerCapacity(75)).rejects.toThrow('device disconnected')
         })
     })

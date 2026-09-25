@@ -33,25 +33,25 @@ describe('background', () => {
         })
 
         it('should call mobile: backgroundApp with seconds', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.background(5)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: backgroundApp', { seconds: 5 })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: backgroundApp', [{ seconds: 5 }])
         })
 
         it('should call mobile: backgroundApp with -1 for indefinite background', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.background(-1)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: backgroundApp', { seconds: -1 })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: backgroundApp', [{ seconds: -1 }])
         })
 
         it('should call mobile: backgroundApp with null to not restore', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.background(null)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: backgroundApp', { seconds: null })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: backgroundApp', [{ seconds: null }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.background(5)).rejects.toThrow('device disconnected')
         })
     })

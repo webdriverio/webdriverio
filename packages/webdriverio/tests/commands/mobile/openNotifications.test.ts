@@ -43,13 +43,13 @@ describe('openNotifications', () => {
         })
 
         it('should call mobile: openNotifications with no args', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.openNotifications()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: openNotifications', {})
+            expect(executeSpy).toHaveBeenCalledWith('mobile: openNotifications', [{}])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.openNotifications()).rejects.toThrow('device disconnected')
         })
     })

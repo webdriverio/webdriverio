@@ -43,13 +43,13 @@ describe('shake', () => {
         })
 
         it('should call mobile: shake with no args', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.shake()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: shake', {})
+            expect(executeSpy).toHaveBeenCalledWith('mobile: shake', [{}])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.shake()).rejects.toThrow('device disconnected')
         })
     })

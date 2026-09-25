@@ -33,21 +33,21 @@ describe('isLocked', () => {
         })
 
         it('should call mobile: isLocked and return true when locked', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(true)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(true)
             const result = await browser.isLocked()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: isLocked', {})
+            expect(executeSpy).toHaveBeenCalledWith('mobile: isLocked', [{}])
             expect(result).toBe(true)
         })
 
         it('should call mobile: isLocked and return false when unlocked', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(false)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(false)
             const result = await browser.isLocked()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: isLocked', {})
+            expect(executeSpy).toHaveBeenCalledWith('mobile: isLocked', [{}])
             expect(result).toBe(false)
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.isLocked()).rejects.toThrow('device disconnected')
         })
     })

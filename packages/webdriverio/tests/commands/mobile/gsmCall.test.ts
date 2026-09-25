@@ -43,13 +43,13 @@ describe('gsmCall', () => {
         })
 
         it('should call mobile: gsmCall with phoneNumber and action', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.gsmCall('+15551234567', 'call')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: gsmCall', { phoneNumber: '+15551234567', action: 'call' })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: gsmCall', [{ phoneNumber: '+15551234567', action: 'call' }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.gsmCall('+15551234567', 'call')).rejects.toThrow('device disconnected')
         })
     })

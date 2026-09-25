@@ -44,14 +44,14 @@ describe('getPerformanceDataTypes', () => {
 
         it('should call mobile: getPerformanceDataTypes and return the list', async () => {
             const mockTypes = ['cpuinfo', 'memoryinfo', 'batteryinfo', 'networkinfo']
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(mockTypes)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(mockTypes)
             const result = await browser.getPerformanceDataTypes()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: getPerformanceDataTypes', {})
+            expect(executeSpy).toHaveBeenCalledWith('mobile: getPerformanceDataTypes', [{}])
             expect(result).toEqual(mockTypes)
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.getPerformanceDataTypes()).rejects.toThrow('device disconnected')
         })
     })

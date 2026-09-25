@@ -44,7 +44,7 @@ describe('saveRecordingScreen', () => {
     })
 
     it('should capture video', async () => {
-        const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue('c29tZSBzY3JlZW5zaG90')
+        const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue('c29tZSBzY3JlZW5zaG90')
         const video = await browser.saveRecordingScreen('./packages/bar.mp4')
 
         // get path
@@ -55,7 +55,7 @@ describe('saveRecordingScreen', () => {
         expect(assertDirectoryExistsSpy).toHaveBeenCalledTimes(1)
         expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(pathResolveSpy.mock.results[0].value)
 
-        expect(executeSpy).toHaveBeenCalledWith('mobile: stopMediaProjectionRecording')
+        expect(executeSpy).toHaveBeenCalledWith('mobile: stopMediaProjectionRecording', [])
         expect(video.toString()).toBe('some screenshot')
 
         // write to file

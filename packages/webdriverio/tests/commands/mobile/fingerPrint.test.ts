@@ -43,13 +43,13 @@ describe('fingerPrint', () => {
         })
 
         it('should call mobile: fingerprint with the given fingerprintId', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.fingerPrint(1)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: fingerprint', { fingerprintId: 1 })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: fingerprint', [{ fingerprintId: 1 }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.fingerPrint(1)).rejects.toThrow('device disconnected')
         })
     })

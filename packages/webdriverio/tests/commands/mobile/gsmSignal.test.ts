@@ -43,19 +43,19 @@ describe('gsmSignal', () => {
         })
 
         it('should call mobile: gsmSignal with signalStrength as a number', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.gsmSignal(4)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: gsmSignal', { signalStrength: 4 })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: gsmSignal', [{ signalStrength: 4 }])
         })
 
         it('should call mobile: gsmSignal with signalStrength 0', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.gsmSignal(0)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: gsmSignal', { signalStrength: 0 })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: gsmSignal', [{ signalStrength: 0 }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.gsmSignal(4)).rejects.toThrow('device disconnected')
         })
     })

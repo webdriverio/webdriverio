@@ -33,20 +33,20 @@ describe('getClipboard', () => {
         })
 
         it('should call mobile: getClipboard without contentType', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue('SGVsbG8=')
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue('SGVsbG8=')
             const result = await browser.getClipboard()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: getClipboard', { contentType: undefined })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: getClipboard', [{ contentType: undefined }])
             expect(result).toBe('SGVsbG8=')
         })
 
         it('should call mobile: getClipboard with contentType', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue('SGVsbG8=')
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue('SGVsbG8=')
             await browser.getClipboard('plaintext')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: getClipboard', { contentType: 'plaintext' })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: getClipboard', [{ contentType: 'plaintext' }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.getClipboard()).rejects.toThrow('device disconnected')
         })
     })

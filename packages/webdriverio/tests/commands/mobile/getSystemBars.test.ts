@@ -44,14 +44,14 @@ describe('getSystemBars', () => {
 
         it('should call mobile: getSystemBars and return bar info', async () => {
             const mockBars = { statusBar: { visible: true }, navigationBar: { visible: true } }
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(mockBars)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(mockBars)
             const result = await browser.getSystemBars()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: getSystemBars', {})
+            expect(executeSpy).toHaveBeenCalledWith('mobile: getSystemBars', [{}])
             expect(result).toEqual(mockBars)
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.getSystemBars()).rejects.toThrow('device disconnected')
         })
     })

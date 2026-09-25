@@ -43,19 +43,19 @@ describe('toggleAirplaneMode', () => {
         })
 
         it('should call mobile: setConnectivity with airplaneMode=true', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.toggleAirplaneMode(true)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: setConnectivity', { airplaneMode: true })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: setConnectivity', [{ airplaneMode: true }])
         })
 
         it('should call mobile: setConnectivity with airplaneMode=false', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.toggleAirplaneMode(false)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: setConnectivity', { airplaneMode: false })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: setConnectivity', [{ airplaneMode: false }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.toggleAirplaneMode(true)).rejects.toThrow('device disconnected')
         })
     })

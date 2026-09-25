@@ -45,7 +45,7 @@ export async function closeApp(
 
     if (browser.isIOS) {
         const bundleId = options?.bundleId
-            ?? (await browser.execute('mobile: activeAppInfo') as { bundleId: string }).bundleId
+            ?? (await executeMobile<{ bundleId: string }>(browser, 'mobile: activeAppInfo')).bundleId
         terminateArgs = { bundleId }
     } else {
         const appId = options?.appId ?? await browser.getCurrentPackage()

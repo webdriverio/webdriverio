@@ -43,14 +43,14 @@ describe('getCurrentActivity', () => {
         })
 
         it('should call mobile: getCurrentActivity and return the activity name', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue('.MainActivity')
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue('.MainActivity')
             const result = await browser.getCurrentActivity()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: getCurrentActivity', {})
+            expect(executeSpy).toHaveBeenCalledWith('mobile: getCurrentActivity', [{}])
             expect(result).toBe('.MainActivity')
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.getCurrentActivity()).rejects.toThrow('device disconnected')
         })
     })

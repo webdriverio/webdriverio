@@ -33,27 +33,27 @@ describe('launchApp', () => {
         })
 
         it('should auto-detect bundleId and call mobile: launchApp', async () => {
-            vi.spyOn(browser, 'execute')
+            vi.spyOn(browser, 'executeScript')
                 .mockResolvedValueOnce({ bundleId: 'com.example.app' })
                 .mockResolvedValueOnce(undefined)
 
             await browser.launchApp()
 
-            expect(browser.execute).toHaveBeenNthCalledWith(1, 'mobile: activeAppInfo')
-            expect(browser.execute).toHaveBeenNthCalledWith(2, 'mobile: launchApp', { bundleId: 'com.example.app' })
+            expect(browser.executeScript).toHaveBeenNthCalledWith(1, 'mobile: activeAppInfo', [])
+            expect(browser.executeScript).toHaveBeenNthCalledWith(2, 'mobile: launchApp', [{ bundleId: 'com.example.app' }])
         })
 
         it('should use provided bundleId', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
 
             await browser.launchApp({ bundleId: 'com.example.myapp' })
 
             expect(executeSpy).toHaveBeenCalledOnce()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: launchApp', { bundleId: 'com.example.myapp' })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: launchApp', [{ bundleId: 'com.example.myapp' }])
         })
 
         it('should pass arguments and environment to mobile: launchApp', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
 
             await browser.launchApp({
                 bundleId: 'com.example.myapp',
@@ -61,15 +61,15 @@ describe('launchApp', () => {
                 environment: { MY_VAR: 'value' },
             })
 
-            expect(executeSpy).toHaveBeenCalledWith('mobile: launchApp', {
+            expect(executeSpy).toHaveBeenCalledWith('mobile: launchApp', [{
                 bundleId: 'com.example.myapp',
                 arguments: ['-AppleLanguages', '(en)'],
                 environment: { MY_VAR: 'value' },
-            })
+            }])
         })
 
         it('should re-throw non-unknown-method errors on iOS', async () => {
-            vi.spyOn(browser, 'execute')
+            vi.spyOn(browser, 'executeScript')
                 .mockResolvedValueOnce({ bundleId: 'com.example.app' })
                 .mockRejectedValueOnce(new Error('device disconnected'))
             await expect(browser.launchApp()).rejects.toThrow('device disconnected')
@@ -90,26 +90,26 @@ describe('launchApp', () => {
 
         it('should auto-detect appId and call mobile: activateApp', async () => {
             vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.example.app')
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
 
             await browser.launchApp()
 
             expect(browser.getCurrentPackage).toHaveBeenCalledOnce()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: activateApp', { appId: 'com.example.app' })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: activateApp', [{ appId: 'com.example.app' }])
         })
 
         it('should use provided appId and call mobile: activateApp', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
 
             await browser.launchApp({ appId: 'com.example.myapp' })
 
             expect(executeSpy).toHaveBeenCalledOnce()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: activateApp', { appId: 'com.example.myapp' })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: activateApp', [{ appId: 'com.example.myapp' }])
         })
 
         it('should re-throw non-unknown-method errors on Android', async () => {
             vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.example.app')
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.launchApp()).rejects.toThrow('device disconnected')
         })
     })

@@ -43,14 +43,14 @@ describe('getCurrentPackage', () => {
         })
 
         it('should call mobile: getCurrentPackage and return the package name', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue('com.example.app')
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue('com.example.app')
             const result = await browser.getCurrentPackage()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: getCurrentPackage', {})
+            expect(executeSpy).toHaveBeenCalledWith('mobile: getCurrentPackage', [{}])
             expect(result).toBe('com.example.app')
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.getCurrentPackage()).rejects.toThrow('device disconnected')
         })
     })

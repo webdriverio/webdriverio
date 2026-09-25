@@ -6,37 +6,38 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 
 import type { PinchAndZoomOptions } from '../../src/types.js'
 
-function mockBrowser(execute: ReturnType<typeof vi.fn>) {
-    return { execute } as unknown as WebdriverIO.Browser
+function mockBrowser(executeScript: ReturnType<typeof vi.fn>) {
+    return { executeScript } as unknown as WebdriverIO.Browser
 }
 
 describe(executeMobile, () => {
-    it('returns the execute result', async () => {
-        const execute = vi.fn().mockResolvedValue('ok')
-        await expect(executeMobile(mockBrowser(execute), 'mobile: lock', { seconds: 1 })).resolves.toBe('ok')
-        expect(execute).toHaveBeenCalledWith('mobile: lock', { seconds: 1 })
+    it('returns the executeScript result', async () => {
+        const executeScript = vi.fn().mockResolvedValue('ok')
+        await expect(executeMobile(mockBrowser(executeScript), 'mobile: lock', { seconds: 1 })).resolves.toBe('ok')
+        expect(executeScript).toHaveBeenCalledWith('mobile: lock', [{ seconds: 1 }])
     })
 
-    it('calls execute without args when none are provided', async () => {
-        const execute = vi.fn().mockResolvedValue(undefined)
-        await executeMobile(mockBrowser(execute), 'mobile: shake')
-        expect(execute).toHaveBeenCalledWith('mobile: shake')
+    it('calls executeScript with an empty args list when none are provided', async () => {
+        const executeScript = vi.fn().mockResolvedValue(undefined)
+        await executeMobile(mockBrowser(executeScript), 'mobile: shake')
+        expect(executeScript).toHaveBeenCalledWith('mobile: shake', [])
     })
 
     it('rethrows non-unknown-method errors', async () => {
-        const execute = vi.fn().mockRejectedValue(new Error('device disconnected'))
-        await expect(executeMobile(mockBrowser(execute), 'mobile: lock', {})).rejects.toThrow('device disconnected')
+        const executeScript = vi.fn().mockRejectedValue(new Error('device disconnected'))
+        await expect(executeMobile(mockBrowser(executeScript), 'mobile: lock', {})).rejects.toThrow('device disconnected')
     })
 
     it('throws an Appium 3 upgrade error for unknown method', async () => {
-        const execute = vi.fn().mockRejectedValue(new Error('unknown method: mobile: lock'))
-        await expect(executeMobile(mockBrowser(execute), 'mobile: lock', {})).rejects.toThrow(/requires Appium 3/)
-        await expect(executeMobile(mockBrowser(execute), 'mobile: lock', {})).rejects.toThrow(/unknown method: mobile: lock/)
+        const executeScript = vi.fn().mockRejectedValue(new Error('unknown method: mobile: lock'))
+        await expect(executeMobile(mockBrowser(executeScript), 'mobile: lock', {})).rejects.toThrow(/requires Appium 3/)
+        await expect(executeMobile(mockBrowser(executeScript), 'mobile: lock', {})).rejects.toThrow(/unknown method: mobile: lock/)
+        await expect(executeMobile(mockBrowser(executeScript), 'mobile: lock', {})).rejects.toThrow(/may not implement/)
     })
 
     it('throws an Appium 3 upgrade error for unknown command', async () => {
-        const execute = vi.fn().mockRejectedValue(new Error('Unknown Command'))
-        await expect(executeMobile(mockBrowser(execute), 'mobile: shake', {})).rejects.toThrow(/appium@\^3/)
+        const executeScript = vi.fn().mockRejectedValue(new Error('Unknown Command'))
+        await expect(executeMobile(mockBrowser(executeScript), 'mobile: shake', {})).rejects.toThrow(/appium@\^3/)
     })
 })
 

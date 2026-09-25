@@ -43,13 +43,13 @@ describe('powerAC', () => {
         })
 
         it('should call mobile: powerAC with the given state', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.powerAC('on')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: powerAC', { state: 'on' })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: powerAC', [{ state: 'on' }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.powerAC('on')).rejects.toThrow('device disconnected')
         })
     })

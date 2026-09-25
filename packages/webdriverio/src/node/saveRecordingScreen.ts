@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { assertDirectoryExists } from './utils.js'
+import { executeMobile } from '../utils/mobile.js'
 
 /**
  * Command implementation of the `saveRecordingScreen` command.
@@ -33,7 +34,10 @@ export async function saveRecordingScreen (
         )
     }
 
-    const videoResult = await this.execute(stopScript) as string | { payload?: string, content?: string }
+    const videoResult = await executeMobile<string | { payload?: string, content?: string }>(
+        this,
+        stopScript
+    )
     const videoBase64 = typeof videoResult === 'string'
         ? videoResult
         : videoResult?.payload || videoResult?.content

@@ -383,7 +383,14 @@ export default class AppiumLauncher implements Services.ServiceInstance {
 
     private static _readCommandVersion(command: string) {
         try {
-            return execFileSync(command, ['--version'], {
+            /**
+             * On Windows, `appium` is typically a `.cmd` shim. `execFileSync` cannot
+             * run those directly, so mirror the launch path and invoke via `cmd /c`.
+             */
+            const useWindowsCmd = os.platform() === 'win32'
+            const bin = useWindowsCmd ? 'cmd' : command
+            const args = useWindowsCmd ? ['/c', command, '--version'] : ['--version']
+            return execFileSync(bin, args, {
                 encoding: 'utf8',
                 stdio: ['ignore', 'pipe', 'pipe']
             }).trim().split(/\r?\n/).find(Boolean) || ''

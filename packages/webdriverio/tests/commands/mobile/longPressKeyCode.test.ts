@@ -43,19 +43,19 @@ describe('longPressKeyCode', () => {
         })
 
         it('should call mobile: pressKey with isLongPress: true and keycode only', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.longPressKeyCode(3)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: pressKey', { keycode: 3, metastate: undefined, flags: undefined, isLongPress: true })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: pressKey', [{ keycode: 3, metastate: undefined, flags: undefined, isLongPress: true }])
         })
 
         it('should call mobile: pressKey with all args and isLongPress: true', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.longPressKeyCode(29, 1, 0)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: pressKey', { keycode: 29, metastate: 1, flags: 0, isLongPress: true })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: pressKey', [{ keycode: 29, metastate: 1, flags: 0, isLongPress: true }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.longPressKeyCode(3)).rejects.toThrow('device disconnected')
         })
     })

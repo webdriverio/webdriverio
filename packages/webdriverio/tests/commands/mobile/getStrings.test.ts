@@ -33,26 +33,26 @@ describe('getStrings', () => {
         })
 
         it('should call mobile: getAppStrings without params', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue({ key: 'value' })
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue({ key: 'value' })
             const result = await browser.getStrings()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: getAppStrings', { language: undefined, stringFile: undefined })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: getAppStrings', [{ language: undefined, stringFile: undefined }])
             expect(result).toEqual({ key: 'value' })
         })
 
         it('should call mobile: getAppStrings with language', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue({ key: 'value' })
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue({ key: 'value' })
             await browser.getStrings('fr')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: getAppStrings', { language: 'fr', stringFile: undefined })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: getAppStrings', [{ language: 'fr', stringFile: undefined }])
         })
 
         it('should call mobile: getAppStrings with language and stringFile', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue({ key: 'value' })
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue({ key: 'value' })
             await browser.getStrings('de', 'strings.xml')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: getAppStrings', { language: 'de', stringFile: 'strings.xml' })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: getAppStrings', [{ language: 'de', stringFile: 'strings.xml' }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.getStrings()).rejects.toThrow('device disconnected')
         })
     })

@@ -35,19 +35,19 @@ describe('sendKeyEvent', () => {
         })
 
         it('should call mobile: pressKey with integer keycode', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.sendKeyEvent('3')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: pressKey', { keycode: 3 })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: pressKey', [{ keycode: 3 }])
         })
 
         it('should call mobile: pressKey with integer keycode and metastate', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.sendKeyEvent('29', '1')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: pressKey', { keycode: 29, metastate: 1 })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: pressKey', [{ keycode: 29, metastate: 1 }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.sendKeyEvent('3')).rejects.toThrow('device disconnected')
         })
     })

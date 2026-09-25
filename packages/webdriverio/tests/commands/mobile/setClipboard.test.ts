@@ -33,25 +33,25 @@ describe('setClipboard', () => {
         })
 
         it('should call mobile: setClipboard with content only', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.setClipboard('SGVsbG8=')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: setClipboard', { content: 'SGVsbG8=', contentType: undefined, label: undefined })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: setClipboard', [{ content: 'SGVsbG8=', contentType: undefined, label: undefined }])
         })
 
         it('should call mobile: setClipboard with content and contentType', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.setClipboard('SGVsbG8=', 'plaintext')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: setClipboard', { content: 'SGVsbG8=', contentType: 'plaintext', label: undefined })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: setClipboard', [{ content: 'SGVsbG8=', contentType: 'plaintext', label: undefined }])
         })
 
         it('should call mobile: setClipboard with all params', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.setClipboard('SGVsbG8=', 'plaintext', 'myLabel')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: setClipboard', { content: 'SGVsbG8=', contentType: 'plaintext', label: 'myLabel' })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: setClipboard', [{ content: 'SGVsbG8=', contentType: 'plaintext', label: 'myLabel' }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.setClipboard('SGVsbG8=')).rejects.toThrow('device disconnected')
         })
     })

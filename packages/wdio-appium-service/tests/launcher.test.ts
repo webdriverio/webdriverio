@@ -204,7 +204,8 @@ describe('Appium launcher', () => {
         })
 
         test('windows: should set correct config properties', async () => {
-            vi.mocked(os.platform).mockReturnValueOnce('win32')
+            // version check and spawn both call os.platform()
+            vi.mocked(os.platform).mockReturnValue('win32')
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
@@ -371,7 +372,8 @@ describe('Appium launcher', () => {
         })
 
         test('win: should respect custom Appium port', async () => {
-            vi.mocked(os.platform).mockReturnValueOnce('win32')
+            // version check and spawn both call os.platform()
+            vi.mocked(os.platform).mockReturnValue('win32')
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
@@ -461,7 +463,8 @@ describe('Appium launcher', () => {
         })
 
         test('should set correct config properties for Windows', async () => {
-            vi.mocked(os.platform).mockReturnValueOnce('win32')
+            // version check and spawn both call os.platform()
+            vi.mocked(os.platform).mockReturnValue('win32')
             const launcher = new AppiumLauncher({
                 logPath: './',
                 command: 'path/to/my_custom_appium',
@@ -926,14 +929,23 @@ describe('Appium launcher', () => {
         })
 
         test('accepts an explicit command reporting Appium 3', async () => {
+            vi.mocked(os.platform).mockReturnValue('Darwin')
             vi.mocked(execFileSync).mockReturnValue('3.0.2\n')
             await expect(AppiumLauncher.ensureAppiumVersion('appium')).resolves.toBeUndefined()
             expect(execFileSync).toHaveBeenCalledWith('appium', ['--version'], expect.any(Object))
         })
 
         test('rejects an explicit command reporting Appium 2', async () => {
+            vi.mocked(os.platform).mockReturnValue('Darwin')
             vi.mocked(execFileSync).mockReturnValue('2.5.4\n')
             await expect(AppiumLauncher.ensureAppiumVersion('appium')).rejects.toThrow(/Detected Appium 2\.5\.4/)
+        })
+
+        test('reads version through cmd /c on Windows', async () => {
+            vi.mocked(os.platform).mockReturnValue('win32')
+            vi.mocked(execFileSync).mockReturnValue('3.1.0\n')
+            await expect(AppiumLauncher.ensureAppiumVersion('appium')).resolves.toBeUndefined()
+            expect(execFileSync).toHaveBeenCalledWith('cmd', ['/c', 'appium', '--version'], expect.any(Object))
         })
     })
 

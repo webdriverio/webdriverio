@@ -43,25 +43,25 @@ describe('toggleEnrollTouchId', () => {
         })
 
         it('should call mobile: enrollBiometric with enabled=true', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.toggleEnrollTouchId(true)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: enrollBiometric', { enabled: true })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: enrollBiometric', [{ enabled: true }])
         })
 
         it('should call mobile: enrollBiometric with enabled=false', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.toggleEnrollTouchId(false)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: enrollBiometric', { enabled: false })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: enrollBiometric', [{ enabled: false }])
         })
 
         it('should call mobile: enrollBiometric without enabled (undefined)', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.toggleEnrollTouchId()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: enrollBiometric', { enabled: undefined })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: enrollBiometric', [{ enabled: undefined }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.toggleEnrollTouchId(true)).rejects.toThrow('device disconnected')
         })
     })

@@ -44,15 +44,15 @@ describe('startActivity', () => {
 
         describe('legacy positional API', () => {
             it('should build component from appPackage and appActivity', async () => {
-                const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+                const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
                 await browser.startActivity('com.example.app', '.MainActivity')
-                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', {
+                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', [{
                     component: 'com.example.app/.MainActivity',
-                })
+                }])
             })
 
             it('should map intentAction, intentCategory and intentFlags', async () => {
-                const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+                const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
                 await browser.startActivity(
                     'com.example.app',
                     '.MainActivity',
@@ -62,16 +62,16 @@ describe('startActivity', () => {
                     'android.intent.category.LAUNCHER',
                     '0x10200000'
                 )
-                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', {
+                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', [{
                     component: 'com.example.app/.MainActivity',
                     action: 'android.intent.action.MAIN',
                     categories: 'android.intent.category.LAUNCHER',
                     flags: '0x10200000',
-                })
+                }])
             })
 
             it('should map dontStopAppOnReset=true to stop=false', async () => {
-                const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+                const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
                 await browser.startActivity(
                     'com.example.app',
                     '.MainActivity',
@@ -83,14 +83,14 @@ describe('startActivity', () => {
                     undefined,
                     'true'
                 )
-                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', {
+                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', [{
                     component: 'com.example.app/.MainActivity',
                     stop: false,
-                })
+                }])
             })
 
             it('should map dontStopAppOnReset=false to stop=true', async () => {
-                const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+                const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
                 await browser.startActivity(
                     'com.example.app',
                     '.MainActivity',
@@ -102,24 +102,24 @@ describe('startActivity', () => {
                     undefined,
                     'false'
                 )
-                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', {
+                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', [{
                     component: 'com.example.app/.MainActivity',
                     stop: true,
-                })
+                }])
             })
         })
 
         describe('object-based API', () => {
             it('should accept an options object with required fields', async () => {
-                const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+                const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
                 await browser.startActivity({ appPackage: 'com.example.app', appActivity: '.MainActivity' })
-                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', {
+                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', [{
                     component: 'com.example.app/.MainActivity',
-                })
+                }])
             })
 
             it('should map intent options from the object', async () => {
-                const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+                const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
                 await browser.startActivity({
                     appPackage: 'com.example.app',
                     appActivity: '.MainActivity',
@@ -127,30 +127,30 @@ describe('startActivity', () => {
                     intentCategory: 'android.intent.category.LAUNCHER',
                     intentFlags: '0x10200000',
                 })
-                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', {
+                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', [{
                     component: 'com.example.app/.MainActivity',
                     action: 'android.intent.action.MAIN',
                     categories: 'android.intent.category.LAUNCHER',
                     flags: '0x10200000',
-                })
+                }])
             })
 
             it('should map dontStopAppOnReset from the object', async () => {
-                const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+                const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
                 await browser.startActivity({
                     appPackage: 'com.example.app',
                     appActivity: '.MainActivity',
                     dontStopAppOnReset: 'true',
                 })
-                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', {
+                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', [{
                     component: 'com.example.app/.MainActivity',
                     stop: false,
-                })
+                }])
             })
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.startActivity('com.example.app', '.MainActivity')).rejects.toThrow('device disconnected')
         })
     })

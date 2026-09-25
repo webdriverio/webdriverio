@@ -43,13 +43,13 @@ describe('sendSms', () => {
         })
 
         it('should call mobile: sendSms with phoneNumber and message', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.sendSms('+15551234567', 'Hello from the test!')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: sendSms', { phoneNumber: '+15551234567', message: 'Hello from the test!' })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: sendSms', [{ phoneNumber: '+15551234567', message: 'Hello from the test!' }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.sendSms('+15551234567', 'Hello')).rejects.toThrow('device disconnected')
         })
     })

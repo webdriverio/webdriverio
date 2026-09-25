@@ -43,13 +43,13 @@ describe('toggleLocationServices', () => {
         })
 
         it('should call mobile: toggleGps with no args', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.toggleLocationServices()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: toggleGps', {})
+            expect(executeSpy).toHaveBeenCalledWith('mobile: toggleGps', [{}])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.toggleLocationServices()).rejects.toThrow('device disconnected')
         })
     })

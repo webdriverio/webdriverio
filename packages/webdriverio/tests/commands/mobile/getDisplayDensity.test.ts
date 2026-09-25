@@ -43,14 +43,14 @@ describe('getDisplayDensity', () => {
         })
 
         it('should call mobile: getDisplayDensity and return the density value', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(420)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(420)
             const result = await browser.getDisplayDensity()
-            expect(executeSpy).toHaveBeenCalledWith('mobile: getDisplayDensity', {})
+            expect(executeSpy).toHaveBeenCalledWith('mobile: getDisplayDensity', [{}])
             expect(result).toBe(420)
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.getDisplayDensity()).rejects.toThrow('device disconnected')
         })
     })

@@ -58,7 +58,7 @@ export async function launchApp(
     if (browser.isIOS) {
         mobileCmd = 'mobile: launchApp'
         const bundleId = options?.bundleId
-            ?? (await browser.execute('mobile: activeAppInfo') as { bundleId: string }).bundleId
+            ?? (await executeMobile<{ bundleId: string }>(browser, 'mobile: activeAppInfo')).bundleId
         mobileArgs = { bundleId }
         if (options?.arguments !== undefined) {
             mobileArgs.arguments = options.arguments

@@ -43,13 +43,13 @@ describe('toggleNetworkSpeed', () => {
         })
 
         it('should call mobile: networkSpeed with the given netspeed', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.toggleNetworkSpeed('lte')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: networkSpeed', { netspeed: 'lte' })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: networkSpeed', [{ netspeed: 'lte' }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.toggleNetworkSpeed('lte')).rejects.toThrow('device disconnected')
         })
     })

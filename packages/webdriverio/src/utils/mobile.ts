@@ -7,7 +7,8 @@ const APPIUM3_UPGRADE_HINT =
 
 /**
  * Returns true if the error indicates that the driver does not know about the
- * requested `mobile:` execute method (Appium 1/2 or an outdated driver).
+ * requested `mobile:` execute method (Appium 1/2, an outdated driver, or a
+ * current driver that simply does not implement this extension).
  */
 function isUnknownMethodError(err: unknown): boolean {
     if (!(err instanceof Error)) {
@@ -18,9 +19,11 @@ function isUnknownMethodError(err: unknown): boolean {
 }
 
 /**
- * Run a `mobile:` / platform execute script. On drivers that only speak the
- * removed Appium 1/2 HTTP endpoints, unknown-method errors become a hard
- * upgrade error instead of a silent protocol fallback.
+ * Run a `mobile:` / platform execute script over classic WebDriver
+ * `executeScript` so Appium extensions are not routed through BiDi
+ * `scriptCallFunction`. Unknown-method errors become a hard error that
+ * names both the upgrade path and the possibility that the current
+ * driver simply does not implement the extension.
  */
 export async function executeMobile<T = unknown>(
     browser: WebdriverIO.Browser,
@@ -28,9 +31,10 @@ export async function executeMobile<T = unknown>(
     args?: unknown
 ): Promise<T> {
     try {
-        return args === undefined
-            ? await browser.execute(script) as T
-            : await browser.execute(script, args as never) as T
+        return await browser.executeScript(
+            script,
+            args === undefined ? [] : [args]
+        ) as T
     } catch (err: unknown) {
         if (!isUnknownMethodError(err)) {
             throw err
@@ -39,7 +43,8 @@ export async function executeMobile<T = unknown>(
         const original = err instanceof Error ? err.message : String(err)
         throw new Error(
             `The \`${script}\` execute method is not supported by your Appium driver ` +
-            `(${original}). ${APPIUM3_UPGRADE_HINT}`
+            `(${original}). ${APPIUM3_UPGRADE_HINT} ` +
+            `If you are already on Appium 3 with current drivers, this platform may not implement \`${script}\`.`
         )
     }
 }

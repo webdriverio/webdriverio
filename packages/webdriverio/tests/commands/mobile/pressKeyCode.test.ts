@@ -43,19 +43,19 @@ describe('pressKeyCode', () => {
         })
 
         it('should call mobile: pressKey with keycode only', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.pressKeyCode(3)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: pressKey', { keycode: 3, metastate: undefined, flags: undefined })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: pressKey', [{ keycode: 3, metastate: undefined, flags: undefined }])
         })
 
         it('should call mobile: pressKey with keycode, metastate and flags', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
             await browser.pressKeyCode(29, 1, 0)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: pressKey', { keycode: 29, metastate: 1, flags: 0 })
+            expect(executeSpy).toHaveBeenCalledWith('mobile: pressKey', [{ keycode: 29, metastate: 1, flags: 0 }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.pressKeyCode(3)).rejects.toThrow('device disconnected')
         })
     })

@@ -43,28 +43,28 @@ describe('getPerformanceData', () => {
         })
 
         it('should call mobile: getPerformanceData without timeout', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(['user', '2000'])
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(['user', '2000'])
             const result = await browser.getPerformanceData('com.example.app', 'cpuinfo')
-            expect(executeSpy).toHaveBeenCalledWith('mobile: getPerformanceData', {
+            expect(executeSpy).toHaveBeenCalledWith('mobile: getPerformanceData', [{
                 packageName: 'com.example.app',
                 dataType: 'cpuinfo',
                 dataReadTimeout: undefined,
-            })
+            }])
             expect(result).toEqual(['user', '2000'])
         })
 
         it('should call mobile: getPerformanceData with timeout', async () => {
-            const executeSpy = vi.spyOn(browser, 'execute').mockResolvedValue(['user', '2000'])
+            const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(['user', '2000'])
             await browser.getPerformanceData('com.example.app', 'cpuinfo', 5)
-            expect(executeSpy).toHaveBeenCalledWith('mobile: getPerformanceData', {
+            expect(executeSpy).toHaveBeenCalledWith('mobile: getPerformanceData', [{
                 packageName: 'com.example.app',
                 dataType: 'cpuinfo',
                 dataReadTimeout: 5,
-            })
+            }])
         })
 
         it('should re-throw non-unknown-method errors', async () => {
-            vi.spyOn(browser, 'execute').mockRejectedValue(new Error('device disconnected'))
+            vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
             await expect(browser.getPerformanceData('com.example.app', 'cpuinfo')).rejects.toThrow('device disconnected')
         })
     })
