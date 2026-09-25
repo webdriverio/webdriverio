@@ -16,7 +16,7 @@ describe('smoke test multi-remote', () => {
     })
 
     it('should allow to chain element calls', async () => {
-        await browser.multiremoteFetch()
+        await browser.multiRemoteFetch()
         const elem = await $('foo').$('bar')
         await elem.click()
     })
