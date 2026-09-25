@@ -45,6 +45,9 @@ export function generateProtocolDocs (sidebars: any) {
 
         for (const [, methods] of Object.entries(definition)) {
             for (const [, description] of Object.entries(methods) as any) {
+                if (description.internal) {
+                    continue
+                }
                 description.paramTags = [...(description.variables || []).map((variable: any) => {
                     return Object.assign(variable, { required: true, type: 'String' })
                 }), ...description.parameters || []]

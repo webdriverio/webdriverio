@@ -36,6 +36,21 @@ describe('execute test', () => {
         expect(result).toEqual('foobar')
     })
 
+    it('should await an async function via execute/async', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        vi.mocked(fetch).mockClear()
+        await browser.execute(async (value: string) => value, 'foobar')
+        const [requestUrl, request] = vi.mocked(fetch).mock.calls.at(-1)!
+        expect((requestUrl as URL).pathname).toBe('/session/foobar-123/execute/async')
+        expect(JSON.parse((request as { body: string }).body).script).toContain('async (value)')
+    })
+
     it('should throw if script is wrong type', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',

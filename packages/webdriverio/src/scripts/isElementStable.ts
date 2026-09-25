@@ -1,28 +1,26 @@
 /**
  * check if element is stable (an element is considered unstable when it is animating/moving)
  * @param  {HTMLElement} elem  element to check
- * @param  {Function} done     callback function to be called when done
- * @return {void}
+ * @return {Promise<boolean>}
  */
-export default function isElementStable(elem: HTMLElement, done: (returnValue: boolean) => void) {
+export default async function isElementStable(elem: HTMLElement): Promise<boolean> {
     if (document.visibilityState === 'hidden') {
         throw Error('You are checking for animations on an inactive tab, animations do not run for inactive tabs')
     }
+
     try {
         const previousPosition = elem.getBoundingClientRect()
-        // wait for two consecutive frames to make sure there are no animations
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                const currentPosition = elem.getBoundingClientRect()
-                for (const prop in previousPosition) {
-                    if (previousPosition[(prop as keyof DOMRect)] !== currentPosition[(prop as keyof DOMRect)]) {
-                        done(false)
-                    }
-                }
-                done(true)
-            })
+        await new Promise<void>((resolve) => {
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
         })
+        const currentPosition = elem.getBoundingClientRect()
+        for (const prop in previousPosition) {
+            if (previousPosition[(prop as keyof DOMRect)] !== currentPosition[(prop as keyof DOMRect)]) {
+                return false
+            }
+        }
+        return true
     } catch {
-        done(false)
+        return false
     }
 }
