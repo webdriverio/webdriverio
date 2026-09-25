@@ -3,6 +3,7 @@ import path from 'node:path'
 import url from 'node:url'
 import { downloadFromGitHub } from '../utils/index.js'
 import { buildLinkRewriter, type PageProps } from './docsUtils.js'
+import { formatOptionDocs } from './optionDocs.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -97,7 +98,7 @@ id: ${id}
 title: ${title}
 custom_edit_url: https://github.com/${GITHUB_REPO}/edit/main/${remotePath}
 ---
-${transformed}`)
+${formatOptionDocs(transformed)}`)
         console.log(`Generated docs for ${newDocsPath}`)
     }
 }

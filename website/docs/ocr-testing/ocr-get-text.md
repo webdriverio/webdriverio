@@ -1,6 +1,7 @@
 ---
 id: ocr-get-text
 title: ocrGetText
+description: "Read the text shown on the screen or in a specific area with ocrGetText from the OCR service."
 ---
 
 Get the text on an image.
@@ -33,12 +34,11 @@ result = "VS docs API Blog Contribute Community Sponsor v8 *Engishy CV} Q OQ G a
 
 ### `contrast`
 
--   **Type:** `number`
--   **Mandatory:** no
--   **Default:** `0.25`
+<Option type="number" default="0.25" required="no">
 
 The higher the contrast, the darker the image and vice versa. This can help to find text in an image. It accepts values between `-1` and `1`.
 
+</Option>
 #### Example
 
 ```js
@@ -47,11 +47,11 @@ await browser.ocrGetText({ contrast: 0.5 });
 
 ### `haystack`
 
--   **Type:** `number`
--   **Mandatory:** `WebdriverIO.Element | ChainablePromiseElement | Rectangle`
+<Option type="number" required="WebdriverIO.Element | ChainablePromiseElement | Rectangle">
 
 This is the search area in the screen where the OCR needs to look for text. This can be an element or a rectangle containing `x`, `y`, `width` and `height`
 
+</Option>
 #### Example
 
 ```js
@@ -73,12 +73,11 @@ await browser.ocrGetText({
 
 ### `language`
 
--   **Type:** `string`
--   **Mandatory:** No
--   **Default:** `eng`
+<Option type="string" default="eng" required="No">
 
 The language that Tesseract will recognize. More info can be found [here](https://tesseract-ocr.github.io/tessdoc/Data-Files-in-different-versions) and the supported languages can be found [here](https://github.com/webdriverio/visual-testing/blob/main/packages/ocr-service/src/utils/constants.ts).
 
+</Option>
 #### Example
 
 ```js

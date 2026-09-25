@@ -2,6 +2,7 @@
 index: 1
 id: considerations
 title: Considerations
+description: "Understand the limits of image comparison, platform consistency, mismatch percentages and headless browsers before relying on visual tests."
 ---
 
 # Key Considerations for Optimal Use

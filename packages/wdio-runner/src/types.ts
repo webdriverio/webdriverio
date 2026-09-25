@@ -86,6 +86,18 @@ export interface SessionEndedMessage {
     cid: string
 }
 
+export interface WorkerTimingsMessage {
+    origin: 'worker'
+    name: 'workerTimings'
+    cid?: string
+    content: {
+        setup?: number
+        execution?: number
+        teardown?: number
+        total?: number
+    }
+}
+
 export interface WorkerResponseMessage {
     origin: 'worker'
     name: 'workerResponse',

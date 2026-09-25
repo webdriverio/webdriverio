@@ -1,6 +1,7 @@
 ---
 id: limitations
 title: Trace Mode Limitations
+description: "Review what DevTools trace mode deliberately does not capture and the known limitations across the WebdriverIO, Selenium and Nightwatch adapters."
 ---
 
 What [Trace Mode](/docs/devtools/wdio/trace-mode) deliberately skips, plus the known gaps across adapters.

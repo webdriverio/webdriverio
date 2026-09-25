@@ -1,334 +1,235 @@
-import React, { useRef, useEffect } from 'react'
+import React from 'react'
 import clsx from 'clsx'
 import Layout from '@theme/Layout'
-import CodeBlock from '@theme/CodeBlock'
 import Link from '@docusaurus/Link'
 import Translate, { translate } from '@docusaurus/Translate'
-import useBaseUrl from '@docusaurus/useBaseUrl'
 
+import PlatformDiagram from '../components/home/PlatformDiagram.tsx'
+import InstallCommand from '../components/home/InstallCommand.tsx'
+import Platforms from '../components/home/Platforms.tsx'
+import AgentDemo from '../components/home/AgentDemo.tsx'
+import DevToolsDemo from '../components/home/DevToolsDemo.tsx'
 import LogoCarousel from '../components/LogoCarousel.tsx'
-import Features from '../components/Features.tsx'
-import Section from '../components/Section.tsx'
-import ImageSwitcher from '../components/ImageSwitcher.tsx'
-import Highlight from '../components/Highlight.tsx'
-import Robot from '../components/Robot.tsx'
 import Sponsors from '../components/Sponsors.tsx'
-import { CreateProjectAnimation } from '../components/CreateProjectAnimation.tsx'
+import ImageSwitcher from '../components/ImageSwitcher.tsx'
 import ContributorList from '../components/Contributors/Contributors.tsx'
+import { logos } from '../constants.tsx'
 
-import styles from './styles.module.css'
-import { logos, features, LHIntregrationExample, SetupExample, ComponentTestingExample } from '../constants.tsx'
+import styles from '../components/home/home.module.css'
 
 const tagline = translate({
     id: 'homepage.tagline',
-    message: 'Next-gen browser and mobile automation test framework for Node.js'
+    message: 'Open source test automation for web, mobile and desktop apps'
 })
-function Home() {
-    const ref = useRef(null)
 
-    useEffect(() => {
-
-        if (!window.Ribbons) {
-            return
-        }
-
-        new window.Ribbons({
-            colorSaturation: '60%',
-            colorBrightness: '50%',
-            colorAlpha: 0.2,
-            colorCycleSpeed: 5,
-            verticalPosition: 'random',
-            horizontalSpeed: 100,
-            ribbonCount: 3,
-            strokeSize: 0,
-            parallaxAmount: -0.2,
-            animateSections: true,
-            element: ref.current
-        })
-    })
-
+function SectionHeader ({ eyebrow, title, children }: { eyebrow: string, title: string, children?: React.ReactNode }) {
     return (
-        <Layout
-            title={`WebdriverIO · ${tagline}`}
-            description={tagline}>
-            <header className={clsx('hero hero--primary', styles.heroBanner)} ref={ref}>
-                <div className="container">
-                    <h1 className="hero__title">
-                        <Robot />
-                    </h1>
-                    <p className="hero__subtitle">
-                        {tagline}
-                    </p>
-                    <div className={styles.buttons}>
-                        <Link
-                            className={clsx(
-                                'button button--outline button--secondary button--lg',
-                                styles.getStarted,
-                            )}
-                            to={useBaseUrl('/docs/gettingstarted')}
-                        >
-                            <Translate id="homepage.getStarted">Get Started</Translate>
-                        </Link>
-                        <Link
-                            to="/docs/why-webdriverio"
-                            className={clsx(
-                                'button button--outline button--secondary button--lg',
-                                styles.getStarted,
-                            )}
-                        >
-                            <Translate id="homepage.whyWebdriverIO">Why WebdriverIO?</Translate>
-                        </Link>
-                        <Link
-                            to="https://github.com/webdriverio"
-                            className={clsx(
-                                'button button--outline button--secondary button--lg',
-                                styles.getStarted,
-                            )}
-                        >
-                            <Translate id="homepage.viewOnGitHub">View on GitHub</Translate>
-                        </Link>
-                        <Link
-                            to="https://youtube.com/@webdriverio"
-                            className={clsx(
-                                'button button--outline button--secondary button--lg',
-                                styles.getStarted,
-                            )}
-                        >
-                            <Translate id="homepage.watchOnYouTube">Watch on YouTube</Translate>
-                        </Link>
-                    </div>
-                    <section className="sponsorSection">
-                        <div>
-                            <em><Translate id="homepage.sponsorSection.sponsoredBy">Sponsored by</Translate></em>
+        <div className={styles.sectionHeader}>
+            <span className={styles.eyebrow}>{eyebrow}</span>
+            <h2>{title}</h2>
+            {children && <p>{children}</p>}
+        </div>
+    )
+}
+
+function Feature ({ title, children, to }: { title: string, children: React.ReactNode, to?: string }) {
+    const content = (
+        <>
+            {to && (
+                <span className={styles.featureArrow} aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M7 17 17 7" />
+                        <path d="M9 7h8v8" />
+                    </svg>
+                </span>
+            )}
+            <h3>{title}</h3>
+            <p>{children}</p>
+        </>
+    )
+    return to
+        ? <Link to={to} className={clsx(styles.feature, styles.featureLink)}>{content}</Link>
+        : <div className={styles.feature}>{content}</div>
+}
+
+export default function Home () {
+    return (
+        <Layout title={`WebdriverIO · ${tagline}`} description={tagline}>
+            <main className={styles.home}>
+                <header className={clsx(styles.frame, styles.hero)}>
+                    <div className={styles.heroText}>
+                        <h1 className={styles.heroTitle}>
+                            <Translate id="homepage.hero.title">One framework to test every platform your users are on</Translate>
+                        </h1>
+                        <p className={styles.heroSubtitle}>
+                            <Translate id="homepage.hero.subtitle">
+                                Browsers, native and hybrid mobile apps, desktop apps, VS Code extensions and visual regressions,
+                                all with one API. Built on web standards, openly governed, and ready for your coding agent.
+                            </Translate>
+                        </p>
+                        <div className={styles.heroActions}>
+                            <Link className={clsx('button button--primary button--lg', styles.primaryButton)} to="/docs/gettingstarted">
+                                <Translate id="homepage.getStarted">Get Started</Translate>
+                            </Link>
+                            <Link className={clsx('button button--lg', styles.secondaryButton)} to="/docs/ai-agents">
+                                <Translate id="homepage.hero.agents">Set up with your agent</Translate>
+                            </Link>
+                        </div>
+                        <InstallCommand />
+                        <p className={styles.heroSponsors}>
+                            <Translate id="homepage.sponsorSection.sponsoredBy">Sponsored by</Translate>
                             <ImageSwitcher
-                                target="_blank"
                                 lightImageSrc="/img/sponsors/browserstack_black.svg"
                                 darkImageSrc="/img/sponsors/browserstack_white.svg"
                                 alt="BrowserStack"
                                 link="https://www.browserstack.com/automation-webdriverio"
-                            />
-                            <em style={{ marginRight: 0 }}>&nbsp; and &nbsp;</em>
-                            <ImageSwitcher
                                 target="_blank"
+                            />
+                            <Translate id="homepage.sponsorSection.and">and</Translate>
+                            <ImageSwitcher
                                 lightImageSrc="/img/sponsors/momentic_black.svg"
                                 darkImageSrc="/img/sponsors/momentic_white.svg"
                                 alt="Momentic"
                                 link="https://momentic.ai/"
-                                style={{ width: '220px', maxWidth: '220px' }}
+                                target="_blank"
                             />
+                        </p>
+                    </div>
+                    <div className={styles.heroVisual}>
+                        <PlatformDiagram />
+                    </div>
+                </header>
+
+                <section className={clsx(styles.frame, styles.section)}>
+                    <SectionHeader
+                        eyebrow={translate({ id: 'homepage.platforms.eyebrow', message: 'One API' })}
+                        title={translate({ id: 'homepage.platforms.heading', message: 'Write it once. Run it on every platform.' })}>
+                        <Translate id="homepage.platforms.description">
+                            The same test runner, selectors, assertions and reporters, whether you are testing a web app, a phone, a desktop app or an editor extension.
+                        </Translate>
+                    </SectionHeader>
+                    <Platforms />
+                </section>
+
+                <section className={clsx(styles.frame, styles.section, styles.split)}>
+                    <div>
+                        <SectionHeader
+                            eyebrow={translate({ id: 'homepage.agents.eyebrow', message: 'AI-native' })}
+                            title={translate({ id: 'homepage.agents.heading', message: 'Built for coding agents' })}>
+                            <Translate id="homepage.agents.description">
+                                Most tests are now written together with an agent. WebdriverIO gives it everything it needs to write, run and fix them on its own.
+                            </Translate>
+                        </SectionHeader>
+                        <div className={styles.featureList}>
+                            <Feature to="/docs/mcp" title={translate({ id: 'homepage.agents.mcp.title', message: 'WebdriverIO MCP' })}>
+                                <Translate id="homepage.agents.mcp.text">Let agents drive browsers and mobile apps to explore your UI and find robust selectors.</Translate>
+                            </Feature>
+                            <Feature to="/docs/ai-agents" title={translate({ id: 'homepage.agents.docs.title', message: 'Agent-ready docs' })}>
+                                <Translate id="homepage.agents.docs.text">Every page as Markdown, llms.txt, per-section bundles and a docs MCP server at webdriver.io/mcp.</Translate>
+                            </Feature>
+                            <Feature to="/docs/devtools/wdio/trace-mode" title={translate({ id: 'homepage.agents.traces.title', message: 'Traces agents can read' })}>
+                                <Translate id="homepage.agents.traces.text">Failing tests leave a Markdown transcript, screenshots and accessibility snapshots behind.</Translate>
+                            </Feature>
                         </div>
-                    </section>
-                    <Features features={features} />
-                </div>
-            </header>
-            <main>
-                <Highlight
-                    img={<CodeBlock language="js" children={ComponentTestingExample}></CodeBlock>}
-                    isDark
-                    title={translate({
-                        id: 'homepage.componentTesting.heading',
-                        message: 'E2E and Unit / Component Testing in real Browser!'
-                    })}
-                    text={<>
-                        <p>
-                            <Translate
-                                id="homepage.componentTesting.para1"
-                                values={{
-                                    allInOne: (<b><Translate id="homepage.componentTesting.allInOne">all in one</Translate></b>),
-                                    usedBy: (<b><Translate id="homepage.componentTesting.usedBy">used by your users</Translate></b>)
-                                }}>
-                                {'WebdriverIO is an {allInOne} framework for your web app development. It enables you to run ' +
-                                    'small and lightweight component tests as well as running e2e test scenarios in the browser or on ' +
-                                    'a mobile device. This guarantees that you to do the testing in an environment {usedBy}.'}
+                    </div>
+                    <AgentDemo />
+                </section>
+
+                <section className={clsx(styles.frame, styles.section, styles.split, styles.splitReverse)}>
+                    <DevToolsDemo />
+                    <div>
+                        <SectionHeader
+                            eyebrow={translate({ id: 'homepage.devtools.eyebrow', message: 'Debugging' })}
+                            title={translate({ id: 'homepage.devtools.heading', message: 'See exactly what your test did' })}>
+                            <Translate id="homepage.devtools.description">
+                                WebdriverIO DevTools shows every command, network request, console message and screenshot of a run. Watch tests live and rerun single tests with a click, or record portable traces in CI and replay them later.
                             </Translate>
-                        </p>
-                        <p>
-                            <Translate
-                                id="homepage.componentTesting.para2"
-                                values={{ reactComponents: (<b>React components</b>) }}>
-                                {'It comes with smart selector strategies that simplify interacting e.g. with {reactComponents} or ' +
-                                    'running deep selector queries with nested shadow DOM trees. As interactions happen through a standardized ' +
-                                    'automation protocol it is guaranteed they behave natively and aren\'t just JavaScript emulated.'}
-                            </Translate>
-                        </p>
-                        <div>
-                            <h4><Translate id="homepage.componentTesting.easySetup">Easy setup for web component testing with:</Translate></h4>
-                            <a href="/docs/component-testing/react" className={styles.frameworkLogos}><img src="/img/icons/react.svg" alt="React" /></a>
-                            <a href="/docs/component-testing/vue" className={styles.frameworkLogos}><img src="/img/icons/vue.png" alt="Vue.js" /></a>
-                            <a href="/docs/component-testing/vue#testing-vue-components-in-nuxt" className={styles.frameworkLogos}><img src="/img/icons/nuxt.svg" alt="Nuxt" /></a>
-                            <a href="/docs/component-testing/svelte" className={styles.frameworkLogos}><img src="/img/icons/svelte.png" alt="Svelte" /></a>
-                            <a href="/docs/component-testing/preact" className={styles.frameworkLogos}><img src="/img/icons/preact.png" alt="Preact" /></a>
-                            <a href="/docs/component-testing/solid" className={styles.frameworkLogos}><img src="/img/icons/solidjs.svg" alt="SolidJS" /></a>
-                            <a href="/docs/component-testing/lit" className={styles.frameworkLogos}><img src="/img/icons/lit.svg" alt="Lit" /></a>
-                            <a href="/docs/component-testing/stencil" className={styles.frameworkLogos}><img src="/img/icons/stencil.svg" alt="Stencil" /></a>
+                        </SectionHeader>
+                        <div className={styles.featureList}>
+                            <Feature to="/docs/devtools/dashboard" title={translate({ id: 'homepage.devtools.live.title', message: 'Live mode' })}>
+                                <Translate id="homepage.devtools.live.text">An interactive dashboard that opens while your tests run.</Translate>
+                            </Feature>
+                            <Feature to="/docs/devtools/wdio/trace-mode" title={translate({ id: 'homepage.devtools.trace.title', message: 'Trace mode' })}>
+                                <Translate id="homepage.devtools.trace.text">A trace.zip per session, spec or test for offline replay.</Translate>
+                            </Feature>
+                            <Feature to="/docs/devtools/cross-framework" title={translate({ id: 'homepage.devtools.frameworks.title', message: 'Not only WebdriverIO' })}>
+                                <Translate id="homepage.devtools.frameworks.text">Also works with Selenium WebDriver and Nightwatch.js.</Translate>
+                            </Feature>
                         </div>
-                    </>} reversed={undefined} />
-                <Highlight
-                    img={<CreateProjectAnimation />}
-                    reversed
-                    title={translate({
-                        id: 'homepage.hightlight.createProject',
-                        message: 'Get Started With WebdriverIO within Seconds'
-                    })}
-                    text={<>
-                        <p>
-                            <Translate id="homepage.hightlight.createProject.para1">
-                                The WebdriverIO testrunner comes with a command line interface that
-                                provides a powerful configuration utility and helps you to create your
-                                test setup in less than a minute. It lets you pick from available
-                                test framework integrations and easily allows to add all supported
-                                reporter and service plugins!
-                            </Translate>
-                            <br />
-                            <br />
-                            <Translate id="homepage.hightlight.createProject.para2">
-                                With just one simple command you can set up a complete test suite:
-                            </Translate>
-                        </p>
-                        <div>
-                            <CodeBlock className="bash" children={SetupExample}></CodeBlock>
-                        </div>
-                        <p>
-                            <Translate
-                                id="homepage.highlight.getStartedOnYouTube"
-                                values={{
-                                    youtubeLink: (
-                                        <Link to="https://www.youtube.com/watch?v=GAc031zGWTM&list=PLPO0LFyCaSo3oedws079pCNtppXAZdjv6">
-                                            <Translate
-                                                id="homepage.highlight.getStartedOnYouTube.label;"
-                                                description="The label for the link to my YouTube">
-                                                on YouTube
-                                            </Translate>
-                                        </Link>
-                                    )
-                                }}>
-                                {'Start learning more about WebdriverIO and how to get started {youtubeLink}.'}
-                            </Translate>
-                        </p>
-                    </>} isDark={undefined} />
-                <Highlight
-                    img={<iframe
-                        width="560"
-                        height="315"
-                        src="https://www.youtube.com/embed/CHcjEI3YZ7Y"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen />}
-                    isDark
-                    title={translate({
-                        id: 'homepage.hightlight.watch',
-                        message: 'Watch Talks about WebdriverIO'
-                    })}
-                    text={<>
-                        <p>
-                            <Translate
-                                id="homepage.highlight.conferenceTalk"
-                                values={{
-                                    youtubeLink: (
-                                        <Link to="https://www.youtube.com/watch?v=CHcjEI3YZ7Y">
-                                            <Translate
-                                                id="homepage.highlight.conferenceTalk.label"
-                                                description="The conference talk title">
-                                                My favourite features of WebdriverIO
-                                            </Translate>
-                                        </Link>
-                                    ),
-                                    videoAuthor: (
-                                        <Link to="https://x.com/ailuj876">
-                                            Julia Pottinger
-                                        </Link>
-                                    ),
-                                    conferenceLink: (
-                                        <Link to="https://openqualityconf.com/">
-                                            Open Quality Conference
-                                        </Link>
-                                    )
-                                }}>
-                                {'The community around WebdriverIO is actively speaking on various user groups or ' +
-                                    'conferences about specific topics around automated testing with WebdriverIO. Check out ' +
-                                    'this talk on {youtubeLink} by {videoAuthor} at {conferenceLink}.'}
-                            </Translate>
-                        </p>
-                        <p>
-                            <Translate
-                                id="homepage.highlight.youtubeChannels"
-                                values={{
-                                    channelOne: (
-                                        <Link to="https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0">
-                                            Klamping
-                                        </Link>
-                                    ),
-                                    channelTwo: (
-                                        <Link to="https://www.youtube.com/channel/UCqaDA1xslraCbam2CxuKhUw">
-                                            Seventeenth Sep
-                                        </Link>
-                                    ),
-                                    channelThree: (
-                                        <Link to="https://www.youtube.com/watch?v=e8goAKb6CC0&list=PL6AdzyjjD5HBbt9amjf3wIVMaobb28ZYN">
-                                            Automation Bro
-                                        </Link>
-                                    )
-                                }}>
-                                {'There is also many YouTube Channels with useful tutorials by community members ' +
-                                    'such as {channelOne}, {channelTwo} or {channelThree}.'}
-                            </Translate>
-                        </p>
-                    </>} reversed={undefined} />
-                <Highlight
-                    img={<CodeBlock language="js" children={LHIntregrationExample}></CodeBlock>}
-                    reversed
-                    title={translate({
-                        id: 'homepage.hightlight.lighthouse',
-                        message: 'Google Lighthouse Integration'
-                    })}
-                    text={<>
-                        <p>
-                            <Translate
-                                id="homepage.highlight.devtools"
-                                values={{
-                                    devtoolsLink: (
-                                        <Link to="https://chromedevtools.github.io/devtools-protocol/">
-                                            Chrome DevTools
-                                        </Link>
-                                    ),
-                                    lighthouseLink: (
-                                        <Link to="https://developers.google.com/web/tools/lighthouse">
-                                            Google Lighthouse
-                                        </Link>
-                                    ),
-                                    devtoolsServiceLink: (
-                                        <Link to={useBaseUrl('/docs/lighthouse-service')}>
-                                            <code>@wdio/lighthouse-service</code>
-                                        </Link>
-                                    )
-                                }}>
-                                {'WebdriverIO not only runs automation based on the WebDriver protocol, it also leverages ' +
-                                    'native browser APIs to enable integrations to popular developer tools such as ' +
-                                    '{devtoolsLink} or {lighthouseLink}. With the {devtoolsServiceLink} plugin you have access to ' +
-                                    'commands for validating if your app is a valid PWA application as well as to commands for ' +
-                                    'capturing frontend performance metrics such as `speedIndex` and others.'}
-                            </Translate>
-                        </p>
-                        <div>
-                            <h4><Translate id="homepage.hightlight.devtools">Integration to developer tools such as:</Translate></h4>
-                            <a href="https://chromedevtools.github.io/devtools-protocol" className={styles.frameworkLogos}><img src="/img/icons/devtools.png" alt="Chrome DevTools" /></a>
-                            <a href="https://developers.google.com/web/tools/lighthouse" className={styles.frameworkLogos}><img src="/img/icons/lighthouse-logo.svg" alt="Google Lighthouse" /></a>
-                            <a href="https://www.deque.com/axe/" className={styles.frameworkLogos}><img src="/img/icons/axe.png" alt="Axe Accessibility Engine" /></a>
-                        </div>
-                    </>} isDark={undefined} />
-                <Section isDark={true}>
-                    <LogoCarousel logos={logos}></LogoCarousel>
-                </Section>
-                <Section>
+                    </div>
+                </section>
+
+                <section className={clsx(styles.frame, styles.section)}>
+                    <SectionHeader
+                        eyebrow={translate({ id: 'homepage.community.eyebrow', message: 'Open source' })}
+                        title={translate({ id: 'homepage.community.heading', message: 'Community driven. Openly governed.' })}>
+                        <Translate id="homepage.community.description">
+                            WebdriverIO is not a product of a testing company. It is run by its community under the umbrella of the OpenJS Foundation, so its direction follows the needs of its users.
+                        </Translate>
+                    </SectionHeader>
+                    <div className={styles.grid4}>
+                        <Feature to="https://openjsf.org/projects" title={translate({ id: 'homepage.community.openjs.title', message: 'OpenJS Foundation' })}>
+                            <Translate id="homepage.community.openjs.text">Owned by a vendor-neutral non-profit, next to Node.js, Electron and webpack.</Translate>
+                        </Feature>
+                        <Feature to="https://github.com/webdriverio/webdriverio/blob/main/GOVERNANCE.md" title={translate({ id: 'homepage.community.governance.title', message: 'Open governance' })}>
+                            <Translate id="homepage.community.governance.text">A public governance model: anyone can contribute, and committers and the TSC grow out of the community.</Translate>
+                        </Feature>
+                        <Feature title={translate({ id: 'homepage.community.free.title', message: 'Every feature is free' })}>
+                            <Translate id="homepage.community.free.text">No paid tier, no feature gates, no lock-in to a cloud vendor. Run anywhere.</Translate>
+                        </Feature>
+                        <Feature to="/blog/2024/02/15/new-contributor-stipend-program" title={translate({ id: 'homepage.community.stipend.title', message: 'Paid contributors' })}>
+                            <Translate id="homepage.community.stipend.text">Sponsorship money flows back to contributors through the stipend program.</Translate>
+                        </Feature>
+                    </div>
+                    <div className={styles.contributors}>
+                        <ContributorList />
+                    </div>
+                </section>
+
+                <section className={clsx(styles.frame, styles.section)}>
+                    <SectionHeader
+                        eyebrow={translate({ id: 'homepage.standards.eyebrow', message: 'Web standards' })}
+                        title={translate({ id: 'homepage.standards.heading', message: 'Real browsers, real devices, real users' })}>
+                        <Translate id="homepage.standards.description">
+                            WebdriverIO automates through WebDriver and WebDriver BiDi, the W3C standards every browser vendor ships. No patched browser builds and no JavaScript-emulated clicks: your tests interact with your app the way your users do.
+                        </Translate>
+                    </SectionHeader>
+                    <div className={styles.grid3}>
+                        <Feature to="/docs/automationProtocols" title={translate({ id: 'homepage.standards.bidi.title', message: 'WebDriver BiDi' })}>
+                            <Translate id="homepage.standards.bidi.text">Network mocking, console logs and events in every browser, not just Chromium.</Translate>
+                        </Feature>
+                        <Feature to="/docs/autowait" title={translate({ id: 'homepage.standards.autowait.title', message: 'Auto-waiting' })}>
+                            <Translate id="homepage.standards.autowait.text">Commands wait for elements to be interactable, so tests stay stable without sleeps.</Translate>
+                        </Feature>
+                        <Feature to="/docs/ecosystem" title={translate({ id: 'homepage.standards.ecosystem.title', message: '70+ plugins' })}>
+                            <Translate id="homepage.standards.ecosystem.text">Services and reporters for clouds, frameworks and CI, from the team and the community.</Translate>
+                        </Feature>
+                    </div>
+                </section>
+
+                <section className={clsx(styles.frame, styles.section, styles.logos)}>
+                    <LogoCarousel logos={logos} />
+                </section>
+
+                <section className={clsx(styles.frame, styles.section)}>
                     <Sponsors />
-                </Section>
-                <Section isDark={true}>
-                    <ContributorList />
-                </Section>
+                </section>
+
+                <section className={clsx(styles.frame, styles.cta)}>
+                    <h2>
+                        <Translate id="homepage.cta.heading">Start testing in under a minute</Translate>
+                    </h2>
+                    <InstallCommand />
+                    <div className={styles.heroActions}>
+                        <Link className={clsx('button button--primary button--lg', styles.primaryButton)} to="/docs/gettingstarted">
+                            <Translate id="homepage.getStarted">Get Started</Translate>
+                        </Link>
+                        <Link className={clsx('button button--lg', styles.secondaryButton)} to="https://discord.webdriver.io">
+                            <Translate id="homepage.cta.discord">Join the Discord</Translate>
+                        </Link>
+                    </div>
+                </section>
             </main>
         </Layout>
     )
 }
-
-export default Home
-

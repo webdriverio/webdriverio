@@ -70,7 +70,7 @@
     "build:copy:css": "cp ./node_modules/mocha/mocha.css ./build/third_party/mocha.css",
     "build:copy:js": "sed '$d' ./node_modules/mocha/mocha.js > ./build/third_party/mocha.js"
   },
-  "typeScriptVersion": "3.8.3",
+  "typeScriptVersion": "5.9.3",
   "dependencies": {
     "@originjs/vite-plugin-commonjs": "^1.0.3",
     "@vitest/spy": "^3.2.7",
@@ -95,8 +95,8 @@
     "recast": "^0.23.6",
     "safe-stringify": "^1.1.0",
     "source-map-support": "^0.5.21",
-    "vite": "^6.4.3",
-    "vite-plugin-istanbul": "^6.0.0",
+    "vite": "^7.3.6",
+    "vite-plugin-istanbul": "^7.2.1",
     "vite-plugin-top-level-await": "^1.4.1",
     "webdriver": "workspace:*"
   },

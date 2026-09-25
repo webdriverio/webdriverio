@@ -8,7 +8,7 @@ import { getSubPackages, buildPreface } from '../utils/helpers.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const plugins = {
-    reporter: ['Reporter', 'Reporter'],
+    reporter: ['Reporters', 'Reporter'],
     service: ['Services', 'Service']
 }
 
@@ -28,7 +28,8 @@ export function generateReportersAndServicesDocs (sidebars: any) {
             const id = `${name.join('-')}-${type}`
             const pkgName = name.map((n) => n[0].toUpperCase() + n.slice(1)).join(' ')
             const readme = fs.readFileSync(path.join(__dirname, '..', '..', 'packages', pkg, 'README.md')).toString()
-            const preface = buildPreface(id, pkgName, nameSingular, `https://github.com/webdriverio/webdriverio/edit/main/packages/${pkg}/README.md`)
+            const { description } = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'packages', pkg, 'package.json'), 'utf-8'))
+            const preface = buildPreface(id, pkgName, nameSingular, `https://github.com/webdriverio/webdriverio/edit/main/packages/${pkg}/README.md`, description)
             const doc = [...preface, ...readme.split('\n').slice(3)].join('\n')
             fs.writeFileSync(path.join(__dirname, '..', '..', 'website', 'docs', `_${id}.md`), doc, { encoding: 'utf-8' })
 
@@ -36,7 +37,7 @@ export function generateReportersAndServicesDocs (sidebars: any) {
             items.push(id)
         }
 
-        sidebars.docs.push({
+        sidebars.ecosystem.push({
             type: 'category',
             label: namePlural,
             items

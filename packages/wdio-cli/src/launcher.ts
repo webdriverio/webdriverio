@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises'
 import exitHook from 'async-exit-hook'
-import { resolve } from 'import-meta-resolve'
 
 import logger from '@wdio/logger'
 import { validateConfig, DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE } from '@wdio/config'
@@ -10,7 +9,7 @@ import { setupDriver, setupBrowser } from '@wdio/utils/node'
 import type { Capabilities, Services } from '@wdio/types'
 
 import CLInterface from './interface.js'
-import { runLauncherHook, runOnCompleteHook, runServiceHook, type HookError } from './utils.js'
+import { runLauncherHook, runOnCompleteHook, runServiceHook, type HookError, shouldEnableTsx, enableTsx } from './utils.js'
 import { TESTRUNNER_DEFAULTS, TS_FILE_EXTENSIONS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
 import type { RunCommandArguments } from './types.js'
 const log = logger('@wdio/cli:launcher')
@@ -174,7 +173,7 @@ class Launcher {
     }
 
     /**
-     * initialize launcher by loading `tsx` if needed
+     * initialize launcher by loading `tsx` only when TypeScript is involved
      */
     async initialize() {
         /**
@@ -185,26 +184,48 @@ class Launcher {
         }
 
         /**
-         * add tsx to process NODE_OPTIONS so it will be passed along the worker process
+         * Load tsx before parsing a TypeScript config (or when a custom
+         * tsconfig path was provided). For plain JS configs, wait until after
+         * config load so we can inspect specs / require hooks.
          */
-        const tsxPath = resolve('tsx', import.meta.url)
-        if (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes(tsxPath)) {
-            process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS || ''} --import ${tsxPath}`
-        }
-
-        /**
-         * load tsx in the main process if config file is a .ts file to allow config parser to load it
-         */
-        if (TS_FILE_EXTENSIONS.some((ext) => this._configFilePath.endsWith(ext))) {
-            await import(tsxPath)
+        if (shouldEnableTsx(this._configFilePath, this._args)) {
+            const tsxPath = await enableTsx()
+            if (TS_FILE_EXTENSIONS.some((ext) => this._configFilePath.endsWith(ext))) {
+                await import(tsxPath)
+            }
         }
 
         this.#isInitialized = true
 
         /**
-         * initialize config parser
+         * initialize config parser — a JS config may still import TypeScript
+         * helpers, so retry once with tsx if the first load fails.
          */
-        await this.configParser.initialize(this._args)
+        try {
+            await this.configParser.initialize(this._args)
+        } catch (err) {
+            const alreadyHasTsx = Boolean(process.env.NODE_OPTIONS?.includes('tsx'))
+            if (alreadyHasTsx) {
+                throw err
+            }
+            log.info('Config load failed without tsx; enabling tsx and retrying once')
+            const tsxPath = await enableTsx()
+            await import(tsxPath)
+            await this.configParser.initialize(this._args)
+        }
+
+        /**
+         * Specs or framework require entries may still need tsx in workers
+         * even when the config file itself is JavaScript.
+         */
+        if (shouldEnableTsx(
+            this._configFilePath,
+            this._args,
+            this.configParser.getConfig(),
+            this.configParser.getCapabilities() as Capabilities.TestrunnerCapabilities
+        )) {
+            await enableTsx()
+        }
     }
 
     /**

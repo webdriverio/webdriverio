@@ -12,7 +12,7 @@ import type { TransformElement, TransformReturn } from '../../types.js'
  *
  * Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
  * The executed script is assumed to be synchronous and the result of evaluating the script is returned to
- * the client.
+ * the client. An `async` function is awaited on both WebDriver Classic and BiDi, which replaces `executeAsync`.
  *
  * The script argument defines the script to execute in the form of a function body. The value returned by
  * that function will be returned to the client. The function will be invoked with the provided args array
@@ -45,9 +45,9 @@ import type { TransformElement, TransformReturn } from '../../types.js'
  */
 export async function execute<ReturnValue, InnerArguments extends unknown[]> (
     this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
-    script: string | ((...innerArgs: TransformElement<InnerArguments>) => ReturnValue),
+    script: string | ((...innerArgs: TransformElement<InnerArguments>) => ReturnValue | Promise<ReturnValue>),
     ...args: InnerArguments
-): Promise<TransformReturn<ReturnValue>> {
+): Promise<TransformReturn<Awaited<ReturnValue>>> {
     /**
      * parameter check
      */
@@ -76,14 +76,59 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
     /**
      * instances started as multibrowserinstance can't getting called with
      * a function parameter, therefore we need to check if it starts with "function () {"
+     *
+     * Classic Execute Script does not wait for a returned promise. Async functions
+     * go through Execute Async Script so `await` inside the script still resolves.
      */
+    const isAsyncFn = typeof script === 'function' && script.constructor.name === 'AsyncFunction'
     if (typeof script === 'function') {
-        script = `
+        script = isAsyncFn
+            ? `
+            ${polyfillFn}
+            webdriverioPolyfill();
+            var done = arguments[arguments.length - 1];
+            var args = Array.prototype.slice.call(arguments, 0, -1);
+            Promise.resolve((${script}).apply(null, args)).then(function (result) {
+                done(result)
+            }, function (error) {
+                done({
+                    __wdioError: true,
+                    message: error && error.message ? error.message : String(error),
+                    stack: error && error.stack,
+                    name: error && error.name
+                })
+            })
+        `
+            : `
             ${polyfillFn}
             webdriverioPolyfill();
             return (${script}).apply(null, arguments)
         `
     }
 
-    return this.executeScript(script, verifyArgsAndStripIfElement(args) as (string | number | boolean)[])
+    const scriptArgs = verifyArgsAndStripIfElement(args) as (string | number | boolean)[]
+    if (isAsyncFn) {
+        const result = await this.executeAsyncScript(script, scriptArgs)
+        if (isScriptError(result)) {
+            const error = new Error(result.message)
+            if (result.name) {
+                error.name = result.name
+            }
+            if (result.stack) {
+                error.stack = result.stack
+            }
+            throw error
+        }
+        return result as TransformReturn<Awaited<ReturnValue>>
+    }
+
+    return this.executeScript(script, scriptArgs)
+}
+
+function isScriptError (result: unknown): result is { __wdioError: true, message: string, name?: string, stack?: string } {
+    return Boolean(
+        result &&
+        typeof result === 'object' &&
+        (result as { __wdioError?: unknown }).__wdioError === true
+    )
 }

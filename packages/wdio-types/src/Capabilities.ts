@@ -615,7 +615,7 @@ export interface AppiumCapabilities {
      * + xctrace device name, which comes from 'xcrun xctrace list devices' command. (since Xcode 12)
      *
      * ### For Android, this capability is currently ignored, though it remains required.
-     * Note: This document is written with appium 1.22.1 release, this behavior may changed later.
+     * Note: historically documented against Appium 1.22.1; prefer current Appium 3 driver docs for platform-specific behavior.
      */
     'appium:deviceName'?: string
     /**

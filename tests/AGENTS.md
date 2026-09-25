@@ -17,6 +17,20 @@ pnpm run test:smoke mochaTestrunner # one suite (function name)
 
 Shared config: `tests/helpers/config.js`. Suites call `tests/helpers/launch.js`.
 
+## Runner benchmark
+
+Hot-path wall-clock measurements (mock driver, generated fixtures):
+
+```sh
+pnpm run bench:runner
+pnpm run bench:runner -- --scenario mocha-large-quiet --iterations 3
+pnpm run bench:runner -- --baseline benchmark/results/<sha>.json
+# or from repo root path style (also accepted):
+pnpm run bench:runner -- --baseline tests/benchmark/results/<sha>.json
+```
+
+Results land in `tests/benchmark/results/` (gitignored).
+
 ## Named suites (from `smoke.runner.js`)
 
 Frameworks: `mochaTestrunner`, `mochaAsyncTestrunner`, `jasmineTestrunner`,

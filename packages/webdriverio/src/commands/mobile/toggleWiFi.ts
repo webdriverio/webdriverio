@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Set the WiFi state on the device.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * :::note
  * Unlike the deprecated API which toggled the WiFi state, this command requires an explicit
@@ -39,14 +37,5 @@ export async function toggleWiFi(
         throw new Error('The `toggleWiFi` command is only available for Android.')
     }
 
-    try {
-        return await browser.execute('mobile: setConnectivity', { wifi: enabled })
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: setConnectivity', '/appium/device/toggle_wifi')
-        return browser.appiumToggleWiFi()
-    }
+    return executeMobile(browser, 'mobile: setConnectivity', { wifi: enabled })
 }

@@ -64,14 +64,14 @@
     }
   },
   "types": "./build/index.d.ts",
-  "typeScriptVersion": "3.8.3",
+  "typeScriptVersion": "5.9.3",
   "devDependencies": {
     "@sinonjs/fake-timers": "^14.0.0",
     "@types/archiver": "^8.0.0",
     "@types/aria-query": "^5.0.4",
     "@types/lodash.clonedeep": "^4.5.9",
     "@types/lodash.zip": "^4.2.9",
-    "puppeteer-core": "^24.12.1",
+    "puppeteer-core": "^25.11.0",
     "safe-stable-stringify": "^2.4.3"
   },
   "dependencies": {
@@ -102,7 +102,7 @@
     "webdriver": "workspace:*"
   },
   "peerDependencies": {
-    "puppeteer-core": ">=22.x <=24.x"
+    "puppeteer-core": ">=24 <26"
   },
   "peerDependenciesMeta": {
     "puppeteer-core": {

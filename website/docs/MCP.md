@@ -1,6 +1,7 @@
 ---
 id: mcp
 title: MCP (Model Context Protocol)
+description: "Let AI assistants automate browsers and mobile apps through the WebdriverIO MCP server, including installation, usage with Claude and available tools."
 ---
 
 ## What can it do?

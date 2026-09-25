@@ -1,6 +1,7 @@
 ---
 id: coverage
 title: Coverage
+description: "Collect code coverage for component tests with the browser runner, which instruments your code with istanbul through Vite."
 ---
 
 WebdriverIO's browser runner supports code coverage reporting using [`istanbul`](https://istanbul.js.org/). The testrunner will automatically instrument your code using Vite and capture code coverage for you.
@@ -79,7 +80,7 @@ There may be some sections of your codebase that you wish to purposefully exclud
 
 :::info
 
-It is recommended to exclude your test files from the coverage reporting as it could cause errors, e.g. when calling `execute` or `executeAsync` commands. If you like to keep them in your report, ensure your exclude instrumenting them via:
+It is recommended to exclude your test files from the coverage reporting as it could cause errors, e.g. when calling the `execute` command. If you like to keep them in your report, ensure your exclude instrumenting them via:
 
 ```ts
 await browser.execute(/* istanbul ignore next */() => {

@@ -16,7 +16,7 @@ import { initializeInstance, getInstancesData } from './utils.js'
 import type {
     BeforeArgs, AfterArgs, BeforeSessionArgs, AfterSessionArgs, RunParams,
     TestFramework, SessionStartedMessage, SessionEndedMessage, SnapshotResultMessage,
-    CustomStubCommand
+    WorkerTimingsMessage, CustomStubCommand
 } from './types.js'
 
 const log = logger('@wdio/runner')
@@ -65,13 +65,11 @@ export default class Runner extends EventEmitter {
         this._config = this._configParser.getConfig()
 
         /**
-         * Initialize timing tracker if profiling is enabled.
-         * Note: CPU and Heap profiling is handled natively by Node.js via execArgv flags.
+         * Track setup / execution / teardown wall-clock for the worker.
+         * CPU and Heap profiling is handled natively by Node.js via execArgv flags.
          */
-        if (this._config.cpuProf || this._config.heapProf) {
-            this._timingTracker = new TimingTracker()
-            this._timingTracker.markTiming('setupStart')
-        }
+        this._timingTracker = new TimingTracker()
+        this._timingTracker.markTiming('setupStart')
 
         logger.setLogLevelsConfig(this._config.logLevels, this._config.logLevel)
         if (this._config.maskingPatterns) {
@@ -441,9 +439,19 @@ export default class Runner extends EventEmitter {
         this._timingTracker?.markTiming('teardownEnd')
 
         if (this._timingTracker) {
-            const output = this._timingTracker.formatTimingOutput()
-            if (output) {
-                log.info(output)
+            const timings = this._timingTracker.getTimings()
+            process.send!(<WorkerTimingsMessage>{
+                origin: 'worker',
+                name: 'workerTimings',
+                cid: this._cid,
+                content: timings
+            })
+
+            if (this._config?.cpuProf || this._config?.heapProf) {
+                const output = this._timingTracker.formatTimingOutput()
+                if (output) {
+                    log.info(output)
+                }
             }
         }
 

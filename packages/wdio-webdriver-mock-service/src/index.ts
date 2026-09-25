@@ -1,5 +1,3 @@
-import nock from 'nock'
-import { v4 as uuidv4 } from 'uuid'
 import type { Services } from '@wdio/types'
 
 import WebDriverMock from './WebDriverMock.js'
@@ -25,7 +23,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         // define required responses
         this._mock.command.status().times(Infinity).reply(200, { value: {} })
         this._mock.command.newSession().times(Infinity).reply(200, () => {
-            newSession.value.sessionId = uuidv4()
+            newSession.value.sessionId = crypto.randomUUID()
             return newSession
         })
         this._mock.command.deleteSession().times(2).reply(200, deleteSession)
@@ -258,8 +256,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
             value: 'mockResponse',
         })
 
-        // due to memory leaks in nock, we have to reset it from within the test
-        // before measuring our actual memory usage
+        // reset mock state from within the test before measuring memory usage
         return () => this.nockReset()
     }
 
@@ -270,9 +267,13 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._mock.command.navigateTo().reply(200, { value: null })
     }
 
+    /**
+     * Reset all mock interceptors and re-register the default command stubs.
+     * Kept as `nockReset` for compatibility with smoke tests that call it by name.
+     */
     nockReset() {
-        nock.cleanAll()
-        nock.abortPendingRequests()
+        WebDriverMock.reset()
+        this._mock = new WebDriverMock()
         this.init()
     }
 }
@@ -288,7 +289,12 @@ export const launcher = class WebdriverMockLauncher {
         config.port = 4444
         config.runnerEnv = {
             ...(config.runnerEnv || {}),
-            WDIO_USE_NATIVE_FETCH: 'true'
+            /**
+             * Opt workers into undici + MockAgent instead of native fetch + nock.
+             * `WDIO_UNIT_TESTS` alone still selects the web fetch implementation for
+             * Vitest unit tests that stub `globalThis.fetch`.
+             */
+            WDIO_USE_UNDICI_MOCK: 'true'
         }
     }
 }

@@ -1,11 +1,9 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Launch or activate an app on the device. If no `bundleId` (iOS) or `appId` (Android) is provided,
  * the command will automatically detect and activate the currently active app.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :launchApp.js
@@ -60,7 +58,7 @@ export async function launchApp(
     if (browser.isIOS) {
         mobileCmd = 'mobile: launchApp'
         const bundleId = options?.bundleId
-            ?? (await browser.execute('mobile: activeAppInfo') as { bundleId: string }).bundleId
+            ?? (await executeMobile<{ bundleId: string }>(browser, 'mobile: activeAppInfo')).bundleId
         mobileArgs = { bundleId }
         if (options?.arguments !== undefined) {
             mobileArgs.arguments = options.arguments
@@ -74,14 +72,5 @@ export async function launchApp(
         mobileArgs = { appId }
     }
 
-    try {
-        return await browser.execute(mobileCmd, mobileArgs)
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning(mobileCmd, '/appium/app/launch')
-        return browser.appiumLaunchApp()
-    }
+    return executeMobile(browser, mobileCmd, mobileArgs)
 }

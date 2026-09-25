@@ -25,7 +25,9 @@ export function downloadDocsTranslations() {
     return downloadAndExtractRepo(REPO_OWNER, REPO_NAME)
 }
 
-const FLOWCHARTS_DIR = path.resolve(__dirname, '..', '..', 'website', 'docs', 'flowcharts')
+const DOCS_DIR = path.resolve(__dirname, '..', '..', 'website', 'docs')
+const FLOWCHARTS_DIR = path.join(DOCS_DIR, 'flowcharts')
+const WEBDRIVER_IMAGE = /!\[[^\]]*]\(\/img\/webdriver\.png\)/g
 const CREATE_FLOWCHARTS_TAG = /^[^\S\n]*<CreateFlowcharts\s+id=['"]([^'"]+)['"]\s*\/>[^\S\n]*$/gm
 
 /**
@@ -64,6 +66,33 @@ async function getFlowchartDiagrams() {
  *
  * Add entries here whenever a doc restructure breaks translated pages.
  */
+const EXECUTE_ASYNC_LINK = /api\/(browser|element)\/executeAsync/g
+
+/**
+ * Translated docs still point at the removed `executeAsync` pages. Rewrite those
+ * links to `execute` until the i18n repo catches up.
+ */
+async function rewriteExecuteAsyncLinks(contentPath: string, locale: string) {
+    const files = await fs.readdir(contentPath, { recursive: true }).catch((err: NodeJS.ErrnoException) => {
+        if (err.code === 'ENOENT') {
+            return [] as string[]
+        }
+        throw err
+    })
+    for (const file of files) {
+        if (typeof file !== 'string' || !file.endsWith('.md')) {
+            continue
+        }
+        const filePath = path.join(contentPath, file)
+        const content = await fs.readFile(filePath, 'utf-8')
+        const fixed = content.replace(EXECUTE_ASYNC_LINK, 'api/$1/execute')
+        if (fixed !== content) {
+            await fs.writeFile(filePath, fixed)
+            console.log(`Rewrote executeAsync links in ${locale}/${file}`)
+        }
+    }
+}
+
 async function applyTranslationFixes(i18nPath: string) {
     const entries = await fs.readdir(i18nPath, { withFileTypes: true }).catch((err: NodeJS.ErrnoException) => {
         if (err.code === 'ENOENT') {
@@ -75,6 +104,7 @@ async function applyTranslationFixes(i18nPath: string) {
     const locales = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 
     const flowchartDiagrams = await getFlowchartDiagrams()
+    const protocolDiagram = await getProtocolDiagram()
 
     for (const locale of locales) {
         const contentPath = path.join(i18nPath, locale, 'docusaurus-plugin-content-docs', 'current')
@@ -131,6 +161,9 @@ async function applyTranslationFixes(i18nPath: string) {
             }
         }
 
+        // Fix: v10 removed executeAsync. Translated pages still link at the old API path.
+        await rewriteExecuteAsyncLinks(contentPath, locale)
+
         // Fix: Electron.md links to /mocking page which no longer exists — point to
         // /api-reference instead (matches the English source's "how to mock" link)
         const electronPath = path.join(contentPath, 'desktop-testing', 'Electron.md')
@@ -150,7 +183,37 @@ async function applyTranslationFixes(i18nPath: string) {
                 throw err
             }
         }
+
+        // Fix: translated AutomationProtocols.md still embeds /img/webdriver.png,
+        // which the English page replaced with a mermaid diagram. Without this the
+        // docs build fails on every locale that still has the image.
+        const protocolsPath = path.join(contentPath, 'AutomationProtocols.md')
+        try {
+            const content = await fs.readFile(protocolsPath, 'utf-8')
+            const fixed = content.replace(WEBDRIVER_IMAGE, () => protocolDiagram)
+            if (fixed !== content) {
+                await fs.writeFile(protocolsPath, fixed)
+                console.log(`Applied protocol diagram fix to ${locale}/AutomationProtocols.md`)
+            }
+        } catch (err) {
+            if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+                throw err
+            }
+        }
     }
+}
+
+/**
+ * The English Automation Protocols page replaced the WebDriver setup image with
+ * a mermaid diagram. Translations still point at the deleted file.
+ */
+async function getProtocolDiagram() {
+    const source = await fs.readFile(path.join(DOCS_DIR, 'AutomationProtocols.md'), 'utf-8')
+    const diagram = source.match(/```mermaid[\s\S]*?```/)?.[0]
+    if (!diagram) {
+        throw new Error('No mermaid diagram found in website/docs/AutomationProtocols.md. Translated pages still reference the deleted /img/webdriver.png.')
+    }
+    return diagram
 }
 
 async function downloadAndExtractRepo(owner: string, repo: string, branch?: string) {

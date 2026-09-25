@@ -142,6 +142,7 @@ describe('scrollIntoView test', () => {
                 vi.spyOn(browser, 'execute')
                     .mockResolvedValueOnce(offScreenRect)
                     .mockResolvedValueOnce(visibleRect(400))
+                    .mockResolvedValueOnce(undefined)
                     .mockResolvedValueOnce(visibleRect(385))
 
                 await elem.scrollIntoView({ block: 'center', inline: 'center' })
@@ -172,6 +173,7 @@ describe('scrollIntoView test', () => {
                 vi.spyOn(browser, 'execute')
                     .mockResolvedValueOnce(offScreenRect)
                     .mockResolvedValueOnce(offScreenRect)
+                    .mockResolvedValueOnce(undefined)
                     .mockResolvedValueOnce(offScreenRect)
                 // @ts-expect-error mock feature
                 elem.elementId = { scrollIntoView: 'mockFunction' }
@@ -187,6 +189,7 @@ describe('scrollIntoView test', () => {
                 vi.spyOn(browser, 'execute')
                     .mockResolvedValueOnce(offScreenRect)
                     .mockResolvedValueOnce(offScreenRect)
+                    .mockResolvedValueOnce(undefined)
                     .mockResolvedValueOnce({ ...offScreenRect, elemRect: { ...offScreenRect.elemRect, y: 900 } })
                 // @ts-expect-error mock feature
                 elem.elementId = { scrollIntoView: 'mockFunction' }
@@ -212,6 +215,7 @@ describe('scrollIntoView test', () => {
                 vi.spyOn(browser, 'execute')
                     .mockResolvedValueOnce(clippedButInBoundsRect)
                     .mockResolvedValueOnce({ ...clippedButInBoundsRect, elemRect: { ...clippedButInBoundsRect.elemRect, y: 100 }, isPainted: true })
+                    .mockResolvedValueOnce(undefined)
                     .mockResolvedValueOnce({ ...clippedButInBoundsRect, elemRect: { ...clippedButInBoundsRect.elemRect, y: 385 }, isPainted: true })
 
                 await elem.scrollIntoView({ block: 'center', inline: 'center' })
@@ -248,6 +252,7 @@ describe('scrollIntoView test', () => {
                 vi.spyOn(browser, 'execute')
                     .mockResolvedValueOnce(clippedZeroDeltaRect)
                     .mockResolvedValueOnce({ ...clippedZeroDeltaRect, isPainted: true })
+                    .mockResolvedValueOnce(undefined)
                     .mockResolvedValueOnce({ ...clippedZeroDeltaRect, isPainted: true })
 
                 await elem.scrollIntoView({ block: 'nearest', inline: 'nearest' })

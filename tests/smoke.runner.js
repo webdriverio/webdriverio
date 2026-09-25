@@ -243,7 +243,7 @@ const jasmineAfterAll = async () => {
         'spec did not execute the expected describe'
     )
     assert.ok(
-        specLogs.includes('actual expected') && specLogs.includes('truefalse'),
+        specLogs.includes('Expected true to be false.'),
         'spec did not fail with the expected check'
     )
     assert.ok(

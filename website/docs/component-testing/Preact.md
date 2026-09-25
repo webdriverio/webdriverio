@@ -1,6 +1,7 @@
 ---
 id: preact
 title: Preact
+description: "Set up the WebdriverIO browser runner for a Preact project with the preact preset and write component tests with Testing Library."
 ---
 
 [Preact](https://preactjs.com/) is a fast 3kB alternative to React with the same modern API. You can test Preact components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).

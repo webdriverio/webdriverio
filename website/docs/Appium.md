@@ -1,6 +1,7 @@
 ---
 id: appium
 title: Appium Setup
+description: "Set up Appium and its drivers with the appium-installer toolkit to test native mobile, hybrid and desktop apps with WebdriverIO."
 ---
 
 With WebdriverIO you can test not only web application in the browser but also other platforms such as:

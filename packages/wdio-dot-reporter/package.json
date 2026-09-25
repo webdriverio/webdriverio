@@ -28,7 +28,7 @@
       "types": "./build/index.d.ts"
     }
   },
-  "typeScriptVersion": "3.8.3",
+  "typeScriptVersion": "5.9.3",
   "dependencies": {
     "@wdio/reporter": "workspace:*",
     "@wdio/types": "workspace:*",
@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "@types/tmp": "^0.2.3",
-    "tmp": "^0.2.1"
+    "tmp": "^0.2.7"
   },
   "publishConfig": {
     "access": "public"

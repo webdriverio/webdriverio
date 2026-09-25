@@ -1,6 +1,7 @@
 ---
 id: base-appium-configuration
 title: Base Appium Configuration
+description: "Install the Appium service and Flutter finder package and configure the base Appium setup for testing Flutter apps with WebdriverIO."
 ---
 
 WebdriverIO uses Appium to run tests across mobile emulators, simulators, and real devices. The `@wdio/appium-service` automatically manages the Appium server lifecycle during test execution.

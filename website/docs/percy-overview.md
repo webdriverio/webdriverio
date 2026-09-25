@@ -1,6 +1,7 @@
 ---
 id: percy-overview
 title: Unlocking Percy - An Overview 
+description: "Get an overview of visual testing for websites and native mobile apps with Percy and App Percy, and how Percy compares snapshots."
 ---
 
 ## Introduction

@@ -1,6 +1,7 @@
 ---
 id: security
 title: Security
+description: "Protect sensitive test data by following security best practices and masking passwords and keys in logs and reports."
 ---
 
 WebdriverIO has the security aspect in mind when providing solutions. Below are some ways to better secure your test.

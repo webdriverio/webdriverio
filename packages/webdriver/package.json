@@ -20,7 +20,7 @@
     }
   },
   "types": "./build/index.d.ts",
-  "typeScriptVersion": "3.8.3",
+  "typeScriptVersion": "5.9.3",
   "engines": {
     "node": ">=22.19.0"
   },
@@ -45,7 +45,7 @@
     "@wdio/utils": "workspace:*",
     "deepmerge-ts": "^8.0.0",
     "https-proxy-agent": "^7.0.6",
-    "undici": "^6.27.0",
+    "undici": "^8.11.2",
     "ws": "^8.21.0"
   }
 }

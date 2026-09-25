@@ -1,6 +1,7 @@
 ---
 id: network-logs
 title: Network Logs
+description: "Inspect every HTTP request and response captured by DevTools during a test to debug API calls, payloads and slow requests."
 ---
 
 Monitor and inspect all network activity during your tests. DevTools captures every HTTP request and response, giving you complete visibility into API calls, resource loading, and network timing - just like browser DevTools.

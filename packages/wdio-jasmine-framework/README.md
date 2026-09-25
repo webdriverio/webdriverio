@@ -32,67 +32,88 @@ module.exports = {
 ## `jasmineOpts` Options
 
 ### defaultTimeoutInterval
+
+<Option type="Number" default="10000">
+
 Timeout until specs will be marked as failed.
 
-Type: `Number`<br />
-Default: 10000
+</Option>
 
 ### expectationResultHandler
+
+<Option type="Function" default="null">
+
 The Jasmine framework allows it to intercept each assertion in order to log the state of the application
 or website depending on the result. For example it is pretty handy to take a screenshot every time
 an assertion fails.
 
-Type: `Function`<br />
-Default: null
+</Option>
 
 ### grep
+
+<Option type="RegExp | string" default="undefined">
+
 Optional pattern to selectively select it/describe cases to run from spec files.
 
-Type: `RegExp | string`<br />
-Default: undefined
+</Option>
 
 ### invertGrep
+
+<Option type="Boolean" default="false">
+
 Inverts 'grep' matches.
 
-Type: `Boolean`<br />
-Default: false
+</Option>
 
 ### cleanStack
+
+<Option type="Boolean" default="true">
+
 Clean up stack trace and remove all traces of node module packages.
 
-Type: `Boolean`<br />
-Default: true
+</Option>
 
 ### random
+
+<Option type="Boolean" default="false">
+
 Run specs in semi-random order.
 
-Type: `Boolean`<br />
-Default: `false`
+</Option>
 
 ### stopOnSpecFailure
+
+<Option type="Boolean" default="false">
+
 Stops test suite (`describe`) execution on first spec (`it`) failure (other suites continue running)
 
-Type: `Boolean`<br />
-Default: `false`
+</Option>
 
 ### stopSpecOnExpectationFailure
+
+<Option type="Boolean" default="false">
+
 Stops a spec (`it`) execution on a first expectation failure (other specs continue running)
 
-Type: `Boolean`<br />
-Default: `false`
+</Option>
 
 ### requires
+
+<Option type="String[]" default="[]">
+
 Require modules prior to requiring any helper or spec files.
 
-Type: `String[]`<br />
-Default: `[]`
+</Option>
 
 ### helpers
+
+<Option type="String[]" default="[]">
+
 Require helper files prior to requiring any spec files.
 
-Type: `String[]`<br />
-Default: `[]`
-
+</Option>
 ----
 
 For more information on WebdriverIO see the [homepage](https://webdriver.io).
+
+

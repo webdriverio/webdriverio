@@ -1,6 +1,7 @@
 ---
 id: dioxus
 title: Dioxus
+description: "Test Dioxus desktop apps on Windows, macOS and Linux with the WebdriverIO Dioxus service, using the setup wizard or a manual configuration."
 ---
 
 [Dioxus](https://dioxuslabs.com/) is a Rust framework for building cross-platform apps from a single codebase. Its desktop apps render in the operating system's native webview (Wry), and WebdriverIO's Dioxus service automates their discovery, launch, and driving on Windows (WebView2), macOS (WKWebView), and Linux (WebKitGTK) so the same test suite works everywhere.

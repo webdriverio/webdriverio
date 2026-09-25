@@ -4,7 +4,6 @@ import path from 'node:path'
 
 import webdriver from '../packages/wdio-protocols/src/protocols/webdriver.js'
 import appium from '../packages/wdio-protocols/src/protocols/appium.js'
-import mjsonwp from '../packages/wdio-protocols/src/protocols/mjsonwp.js'
 import chromium from '../packages/wdio-protocols/src/protocols/chromium.js'
 import gecko from '../packages/wdio-protocols/src/protocols/gecko.js'
 import saucelabs from '../packages/wdio-protocols/src/protocols/saucelabs.js'
@@ -18,7 +17,6 @@ export const PROTOCOL_NAMES = {
     appium: 'Appium',
     chromium: 'Chromium',
     gecko: 'Firefox',
-    mjsonwp: 'Mobile JSON Wire Protocol',
     saucelabs: 'Sauce Labs',
     selenium: 'Selenium Standalone',
     webdriver: 'WebDriver Protocol',
@@ -36,11 +34,11 @@ const webdriverBidi = hasBidiTypesGenerated
     : {}
 
 export const PROTOCOLS: Protocols = {
-    appium, chromium, gecko, mjsonwp,
+    appium, chromium, gecko,
     saucelabs, selenium, webdriver, webdriverBidi
 }
 
-export const MOBILE_PROTOCOLS = ['appium', 'mjsonwp']
+export const MOBILE_PROTOCOLS = ['appium']
 export const VENDOR_PROTOCOLS = ['chromium']
 export const IGNORED_SUBPACKAGES_FOR_DOCS = [
     'eslint-plugin-wdio',

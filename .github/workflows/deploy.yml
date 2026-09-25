@@ -1,28 +1,148 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+# Builds webdriver.io on GitHub Actions and deploys the prebuilt output to Vercel.
+#
+# The site is not built by Vercel itself: `docs:generate` needs the whole
+# monorepo (JSDoc, protocol specs, package READMEs, translations from
+# webdriverio/i18n) and the multi-locale build would exceed Vercel's build
+# limits. `website/vercel.json` therefore has no install step and a build
+# command that only asserts `website/build` exists.
+#
+# - workflow_dispatch: production deploy of the selected branch (all locales)
+# - pull_request:      preview deploy (English only) with a sticky PR comment.
+#                      The deployment is aliased to <PR>.preview.webdriver.io.
+#                      Skipped for forks and Dependabot, which don't get
+#                      secrets; a maintainer can dispatch a preview instead.
+#
+# Required secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID. The Vercel
+# project's "Root Directory" setting must be empty, the CLI runs in `website/`.
+# Because that root is the repo root, Git deployments read /vercel.json, not
+# website/vercel.json. /vercel.json turns those deployments off so Vercel does
+# not build the monorepo beside this workflow.
 name: Docs Deploy
 
-on: [workflow_dispatch]
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Vercel environment'
+        required: true
+        type: choice
+        default: production
+        options:
+          - production
+          - preview
+  pull_request:
+    # A docs preview is published only when the diff can change the site.
+    # Manual dispatch below still deploys any ref.
+    paths:
+      - 'website/**'
+      - 'vercel.json'
+      - '.github/workflows/deploy.yml'
+      - 'CONTRIBUTING.md'
+      - 'scripts/docs-generation/**'
+      - 'scripts/templates/**'
+      - 'scripts/protocols.ts'
+      - 'scripts/utils/formatter.ts'
+      - 'scripts/utils/compiler.ts'
+      - 'packages/webdriverio/src/commands/**'
+      - 'packages/wdio-protocols/src/protocols/**'
+      - 'packages/*/README.md'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
-  packages: read
 
 jobs:
   deploy:
+    name: ${{ (github.event_name == 'workflow_dispatch' && inputs.environment == 'production') && 'Production' || 'Preview' }}
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
     runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      PRODUCTION: ${{ github.event_name == 'workflow_dispatch' && inputs.environment == 'production' }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TELEMETRY_DISABLED: 1
     steps:
       - name: ⬇️ Checkout Code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Full history so the sitemap plugin can write <lastmod> from git.
+          fetch-depth: 0
 
       - name: 🧑‍🔧 Get Core Dependencies
         uses: ./.github/workflows/actions/get-core-dependencies
 
-      - run: pnpm run docs
+      - name: 📖 Generate Docs
+        run: pnpm run docs:setup && pnpm run docs:generate
         env:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          DISTRIBUTION_ID: ${{ secrets.DISTRIBUTION_ID }}
-          DISTRIBUTION_ID_V6: ${{ secrets.DISTRIBUTION_ID_V6 }}
-          DISTRIBUTION_ID_V7: ${{ secrets.DISTRIBUTION_ID_V7 }}
+
+      - name: 🏗️ Build Site (all locales)
+        if: env.PRODUCTION == 'true'
+        run: pnpm run build
+        working-directory: ./website
+
+      - name: 🏗️ Build Site (en)
+        if: env.PRODUCTION != 'true'
+        run: pnpm run build:en
+        working-directory: ./website
+
+      - name: 🔼 Deploy to Vercel
+        id: vercel
+        working-directory: ./website
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          if [ -z "${VERCEL_TOKEN:-}" ] || [ -z "${VERCEL_ORG_ID:-}" ] || [ -z "${VERCEL_PROJECT_ID:-}" ]; then
+            echo "::error::Set VERCEL_TOKEN, VERCEL_ORG_ID, and VERCEL_PROJECT_ID before deploying. Nothing was published."
+            exit 1
+          fi
+          if [ "$PRODUCTION" = "true" ]; then
+            ENVIRONMENT=production
+            PROD_FLAG=--prod
+          else
+            ENVIRONMENT=preview
+            PROD_FLAG=
+          fi
+          npx --yes vercel@59 pull --yes --environment="$ENVIRONMENT" --token="$VERCEL_TOKEN"
+          # pnpm links function dependencies (zod, the MCP SDK) to the repo
+          # root, outside website/. --standalone copies those files into
+          # .vercel/output so deploy --prebuilt does not reject them.
+          npx --yes vercel@59 build $PROD_FLAG --standalone --token="$VERCEL_TOKEN"
+          URL=$(npx --yes vercel@59 deploy --prebuilt $PROD_FLAG --token="$VERCEL_TOKEN")
+          if [ -n "${PR_NUMBER}" ]; then
+            ALIAS="${PR_NUMBER}.preview.webdriver.io"
+            npx --yes vercel@59 alias set "$URL" "$ALIAS" --token="$VERCEL_TOKEN" --scope webdriverios-projects
+            URL="https://${ALIAS}"
+          fi
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "### Deployed to [$URL]($URL)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 💬 Comment Preview URL
+        if: github.event_name == 'pull_request' && steps.vercel.outputs.url != ''
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PREVIEW_URL: ${{ steps.vercel.outputs.url }}
+        with:
+          script: |
+            const marker = '<!-- webdriverio-docs-preview -->'
+            const body = `${marker}\n📖 Docs preview for ${context.sha.slice(0, 7)}: ${process.env.PREVIEW_URL}`
+            const { owner, repo } = context.repo
+            const issue_number = context.issue.number
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number })
+            const existing = comments.find((c) => c.body?.includes(marker))
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body })
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body })
+            }

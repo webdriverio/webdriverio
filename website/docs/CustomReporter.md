@@ -1,6 +1,7 @@
 ---
 id: customreporter
 title: Custom Reporter
+description: "Build a custom reporter for the WDIO testrunner on top of @wdio/reporter, handle runner events and publish it on NPM."
 ---
 
 You can write your own custom reporter for the WDIO test runner that is tailored to your needs. And it’s easy!

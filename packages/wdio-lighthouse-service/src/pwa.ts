@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
-import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
-import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
+import type { CDPSession } from 'puppeteer-core'
+import type { Page } from 'puppeteer-core'
 
 import { PWA_AUDIT_NAMES } from './constants.js'
 import type { AuditResult, LHAuditResult, PWAAudits } from './types.js'

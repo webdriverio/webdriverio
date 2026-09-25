@@ -1,6 +1,7 @@
 ---
 id: stencil
 title: Stencil
+description: "Set up the WebdriverIO browser runner for Stencil components, render them with the render helper and wait for element updates."
 ---
 
 [Stencil](https://stenciljs.com/) is a library for building reusable, scalable component libraries. You can test Stencil components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).

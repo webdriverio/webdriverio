@@ -4,38 +4,40 @@
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
-    "start": "cd ../ && npm run generate:bidi && npm run docs:generate && cd website && docusaurus start",
-    "build": "docusaurus clear && docusaurus build",
+    "start": "cd ../ && npm run docs:generate:en && cd website && docusaurus start",
+    "start:i18n": "cd ../ && npm run docs:generate && cd website && docusaurus start",
+    "build": "docusaurus clear && docusaurus build && node scripts/llms.mjs",
+    "build:en": "docusaurus build --locale en && node scripts/llms.mjs",
     "swizzle": "docusaurus swizzle",
-    "deploy": "docusaurus deploy",
     "serve": "docusaurus serve",
     "clear": "docusaurus clear",
     "translate": "docusaurus write-translations"
   },
   "dependencies": {
-    "@docusaurus/core": "^3.9.2",
-    "@docusaurus/module-type-aliases": "^3.9.2",
-    "@docusaurus/plugin-client-redirects": "^3.9.2",
-    "@docusaurus/plugin-google-analytics": "^3.9.2",
-    "@docusaurus/plugin-ideal-image": "^3.9.2",
-    "@docusaurus/plugin-pwa": "^3.9.2",
-    "@docusaurus/preset-classic": "^3.9.2",
-    "@docusaurus/remark-plugin-npm2yarn": "^3.9.2",
-    "@docusaurus/theme-mermaid": "3.9.2",
-    "@docusaurus/theme-search-algolia": "^3.9.2",
-    "@docusaurus/tsconfig": "^3.9.2",
+    "@docusaurus/core": "^3.10.2",
+    "@docusaurus/faster": "^3.10.2",
+    "@docusaurus/module-type-aliases": "^3.10.2",
+    "@docusaurus/plugin-ideal-image": "^3.10.2",
+    "@docusaurus/preset-classic": "^3.10.2",
+    "@docusaurus/remark-plugin-npm2yarn": "^3.10.2",
+    "@docusaurus/theme-mermaid": "^3.10.2",
+    "@docusaurus/theme-search-algolia": "^3.10.2",
+    "@docusaurus/tsconfig": "^3.10.2",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@mdx-js/react": "^3.0.1",
     "@mendable/search": "^0.0.206",
+    "@modelcontextprotocol/sdk": "^1.30.1",
     "@signalwire/docusaurus-plugin-llms-txt": "^1.2.2",
     "@tsconfig/docusaurus": "^2.0.3",
+    "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
     "docusaurus-theme-github-codeblock": "^2.0.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-lite-youtube-embed": "^2.4.0",
     "typescript": "^5.5.4",
-    "workbox-routing": "^7.1.0",
-    "workbox-strategies": "^7.1.0"
+    "zod": "^4.6.5"
   },
   "engines": {
     "node": ">=22.19.0"
@@ -53,7 +55,7 @@
     ]
   },
   "devDependencies": {
-    "@docusaurus/theme-common": "^3.9.2",
+    "@docusaurus/theme-common": "^3.10.2",
     "babel-loader": "^9.1.3"
   }
 }

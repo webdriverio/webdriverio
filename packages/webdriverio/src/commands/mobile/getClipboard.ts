@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Get the content of the system clipboard as a base64-encoded string.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * Android only supports the `plaintext` content type.
  *
@@ -32,14 +30,5 @@ export async function getClipboard(
         throw new Error('The `getClipboard` command is only available for mobile platforms.')
     }
 
-    try {
-        return await browser.execute('mobile: getClipboard', { contentType }) as string
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: getClipboard', '/appium/device/get_clipboard')
-        return browser.appiumGetClipboard(contentType) as Promise<string>
-    }
+    return executeMobile<string>(browser, 'mobile: getClipboard', { contentType })
 }

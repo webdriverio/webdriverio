@@ -1,6 +1,7 @@
 ---
 id: automationProtocols
 title: Automation Protocols
+description: "Understand the WebDriver Bidi and WebDriver automation protocols and choose which one WebdriverIO uses to automate browsers and devices."
 ---
 
 With WebdriverIO, you can choose between multiple automation technologies when running your E2E tests locally or in the cloud. By default, WebdriverIO will attempt to start a local automation session using the [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) protocol.
@@ -29,6 +30,11 @@ For browser automation, the proxy server is usually the browser driver. There ar
 
 For any kind of mobile automation, you’ll need to install and setup [Appium](http://appium.io). It will allow you to automate mobile (iOS/Android) or even desktop (macOS/Windows) applications using the same WebdriverIO setup.
 
-There are also plenty of services that allow you to run your automation test in the cloud at high scale. Instead of having to setup all these drivers locally, you can just talk to these services (e.g. [Sauce Labs](https://saucelabs.com)) in the cloud and inspect the results on their platform. The communication between test script and automation environment will look as follows:
+There are also plenty of services that allow you to run your automation test in the cloud at high scale. Instead of having to setup all these drivers locally, you can just talk to these services (e.g. [Sauce Labs](https://saucelabs.com)) in the cloud and inspect the results on their platform. The communication between the test script and the automation environment looks like this:
 
-![WebDriver Setup](/img/webdriver.png)
+```mermaid
+flowchart LR
+    Script["Test script"] <--> Driver["Browser driver or Appium"]
+    Driver <--> Network["Local network or Internet"]
+    Network <--> Target["Browser or device"]
+```

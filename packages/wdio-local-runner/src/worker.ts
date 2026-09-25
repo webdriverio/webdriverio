@@ -116,7 +116,11 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         const argv = process.argv.slice(2)
 
         const runnerEnv = Object.assign({
-            NODE_OPTIONS: '--enable-source-maps',
+            /**
+             * Source maps help debug stack traces but add worker boot cost.
+             * Enable them for verbose logging or when the user opts in.
+             */
+            ...(this.shouldEnableSourceMaps() ? { NODE_OPTIONS: '--enable-source-maps' } : {}),
         }, process.env, this.config.runnerEnv, {
             WDIO_WORKER_ID: cid,
             NODE_ENV: process.env.NODE_ENV || 'test'
@@ -172,6 +176,18 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         }
 
         return childProcess
+    }
+
+    /**
+     * Source maps help debug stack traces but cost worker boot time.
+     * Enable for verbose log levels, or when WDIO_SOURCE_MAPS=1.
+     */
+    private shouldEnableSourceMaps () {
+        if (process.env.WDIO_SOURCE_MAPS === '1' || process.env.WDIO_SOURCE_MAPS === 'true') {
+            return true
+        }
+        const level = this.config.logLevel
+        return level === 'trace' || level === 'debug'
     }
 
     private _handleMessage (payload: Workers.WorkerMessage) {

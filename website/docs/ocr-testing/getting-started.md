@@ -1,6 +1,7 @@
 ---
 id: getting-started
 title: Getting Started
+description: "Install and configure @wdio/ocr-service, set up TypeScript support and tune contrast, image folder and language options."
 ---
 
 ## Installation
@@ -64,17 +65,14 @@ exports.config = {
 
 #### `contrast`
 
--   **Type:** `number`
--   **Mandatory:** No
--   **Default:** `0.25`
+<Option type="number" default="0.25" required="No">
 
 The higher the contrast, the darker the image and vice versa. This can help to find text in an image. It accepts values between `-1` and `1`.
 
+</Option>
 #### `imagesFolder`
 
--   **Type:** `string`
--   **Mandatory:** No
--   **Default:** `{project-root}/.tmp/ocr`
+<Option type="string" default={`{project-root}/.tmp/ocr`} required="No">
 
 The folder where the OCR results are stored.
 
@@ -82,14 +80,14 @@ The folder where the OCR results are stored.
 If you provide a custom `imagesFolder`, then the service will automatically add the subfolder `ocr` to it.
 :::
 
+</Option>
 #### `language`
 
--   **Type:** `string`
--   **Mandatory:** No
--   **Default:** `eng`
+<Option type="string" default="eng" required="No">
 
 The language that Tesseract will recognize. More info can be found [here](https://tesseract-ocr.github.io/tessdoc/Data-Files-in-different-versions) and the supported languages can be found [here](https://github.com/webdriverio/visual-testing/blob/main/packages/ocr-service/src/utils/constants.ts).
 
+</Option>
 ## Logs
 
 This module will automatically add extra logs to the WebdriverIO logs. It writes to the `INFO` and `WARN` logs with the name `@wdio/ocr-service`.

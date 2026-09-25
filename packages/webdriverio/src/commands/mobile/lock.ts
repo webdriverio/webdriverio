@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Lock the device screen.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :lock.js
@@ -36,14 +34,5 @@ export async function lock(
         throw new Error('The `lock` command is only available for mobile platforms.')
     }
 
-    try {
-        return await browser.execute('mobile: lock', { seconds })
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: lock', '/appium/device/lock')
-        return browser.appiumLock(seconds)
-    }
+    return executeMobile(browser, 'mobile: lock', { seconds })
 }

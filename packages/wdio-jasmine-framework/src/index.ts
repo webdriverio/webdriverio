@@ -34,6 +34,127 @@ const FILE_PROTOCOL = 'file://'
 
 const log = logger('@wdio/jasmine-framework')
 
+/**
+ * Jasmine 6 removed Spec, Suite, and the built-in matchers from the public
+ * namespace. They still exist on `jasmine.private`, which is what this adapter
+ * has to patch. Older Jasmine versions expose them directly.
+ */
+interface JasmineInternals {
+    Spec: {
+        prototype: {
+            addExpectationResult: Function
+            execute?: (...args: unknown[]) => unknown
+        }
+    }
+    Suite: {
+        prototype: {
+            beforeAll: (...args: unknown[]) => unknown
+        }
+    }
+    matchers: jasmine.CustomMatcherFactories
+}
+
+const expectationContextPatched = Symbol.for('wdio.jasmine.expectationContext')
+const recordedByWdio = Symbol.for('wdio.jasmine.recordedExpectations')
+
+/**
+ * Jasmine 6 stopped passing `actual` and `expected` into
+ * `addExpectationResult`. `jasmineOpts.expectationResultHandler` still
+ * receives them, so put the values back before the handler runs.
+ */
+function restoreExpectationContext (jasmineInterface: jasmine.Jasmine) {
+    const Expector = (jasmineInterface as jasmine.Jasmine & {
+        private?: {
+            Expector?: {
+                prototype: {
+                    processResult: Function & { [expectationContextPatched]?: boolean }
+                }
+            }
+        }
+    }).private?.Expector
+    if (!Expector?.prototype.processResult || Expector.prototype.processResult[expectationContextPatched]) {
+        return
+    }
+    const origProcessResult = Expector.prototype.processResult
+
+    function processResultWithContext (
+        this: { actual: unknown, expected: unknown, addExpectationResult: Function },
+        result: unknown,
+        errorForStack?: Error
+    ) {
+        const addExpectationResult = this.addExpectationResult
+        this.addExpectationResult = (passed: boolean, data: { actual?: unknown, expected?: unknown }) => {
+            if (data && !Object.hasOwn(data, 'actual')) {
+                data.actual = this.actual
+            }
+            if (data && !Object.hasOwn(data, 'expected')) {
+                data.expected = this.expected
+            }
+            return addExpectationResult.call(this, passed, data)
+        }
+        try {
+            return origProcessResult.call(this, result, errorForStack)
+        } finally {
+            this.addExpectationResult = addExpectationResult
+        }
+    }
+    processResultWithContext[expectationContextPatched] = true
+    Expector.prototype.processResult = processResultWithContext
+}
+
+function jasmineInternals (jasmineInterface: jasmine.Jasmine): JasmineInternals {
+    const candidate = jasmineInterface as jasmine.Jasmine & {
+        Spec?: JasmineInternals['Spec']
+        Suite?: JasmineInternals['Suite']
+        matchers?: jasmine.CustomMatcherFactories
+        private?: JasmineInternals
+    }
+    if (candidate.Spec && candidate.Suite && candidate.matchers) {
+        return {
+            Spec: candidate.Spec,
+            Suite: candidate.Suite,
+            matchers: candidate.matchers
+        }
+    }
+    if (candidate.private?.Spec && candidate.private.Suite && candidate.private.matchers) {
+        return candidate.private
+    }
+    return candidate as unknown as JasmineInternals
+}
+
+/**
+ * Jasmine 6 keeps expectation results on a private execution state and only
+ * copies them into the spec-done event. `afterTest` runs before that event, so
+ * record each result onto the spec-started object the hook already reads.
+ */
+function recordExpectation (
+    lastTest: { failedExpectations?: unknown[], passedExpectations?: unknown[] } & Record<symbol, unknown>,
+    jasmineInterface: jasmine.Jasmine,
+    passed: boolean,
+    data: { matcherName?: string, message?: string, expected?: unknown, actual?: unknown, error?: Error, errorForStack?: Error }
+) {
+    if (!lastTest?.[recordedByWdio]) {
+        return
+    }
+    const build = (jasmineInterface as jasmine.Jasmine & {
+        private?: { buildExpectationResult?: (options: unknown) => { message?: string, stack?: string } }
+    }).private?.buildExpectationResult
+    const built = typeof build === 'function' ? build({ ...data, passed }) : {}
+    const recorded: Record<string, unknown> = {
+        matcherName: data?.matcherName,
+        message: built.message ?? data?.message,
+        stack: built.stack ?? data?.error?.stack ?? data?.errorForStack?.stack ?? '',
+        passed
+    }
+    if (!passed) {
+        recorded.expected = data?.expected
+        recorded.actual = data?.actual
+    }
+    const list = passed ? lastTest.passedExpectations : lastTest.failedExpectations
+    list?.push(recorded)
+    globalThis._wdioDynamicJasmineResultErrorList = lastTest.failedExpectations
+}
+
 type HooksArray = {
     [K in keyof Required<Services.HookFunctions>]: Required<Services.HookFunctions>[K][]
 }
@@ -101,6 +222,20 @@ class JasmineAdapter {
             self._lastTest.start = new Date().getTime()
             // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
             self._lastTest.file = test.filename
+            /**
+             * Jasmine 6's spec-started event has no expectation lists. Own the
+             * arrays so afterTest can see failures recorded during the spec.
+             */
+            if (!Array.isArray(test.failedExpectations)) {
+                test.failedExpectations = []
+                test.passedExpectations = []
+                test.deprecationWarnings = []
+                test.pendingReason = ''
+                test.duration = null
+                test.properties = null
+                test.debugLogs = null
+                ;(test as jasmine.SpecResult & Record<symbol, unknown>)[recordedByWdio] = true
+            }
             globalThis._wdioDynamicJasmineResultErrorList = test.failedExpectations
             globalThis._jasmineTestResult = test
             return origSpecStarted(test)
@@ -127,7 +262,22 @@ class JasmineAdapter {
         /**
          * enable expectHandler
          */
-        jasmine.Spec.prototype.addExpectationResult = this.getExpectationResultHandler(jasmine)
+        restoreExpectationContext(jasmine)
+        const internals = jasmineInternals(jasmine)
+        const origAddExpectationResult = internals.Spec.prototype.addExpectationResult
+        const expectationHandler = this.getExpectationResultHandler(internals)
+        const recordsBeforeHandler = expectationHandler === origAddExpectationResult
+        internals.Spec.prototype.addExpectationResult = function (passed: boolean, data: { matcherName?: string, message?: string, expected?: unknown, actual?: unknown, error?: Error, errorForStack?: Error }, isError?: boolean) {
+            /**
+             * A custom handler can turn a passing assertion into a failure.
+             * That path records the adjusted result itself. Recording here
+             * first would leave afterTest with a pass Jasmine already failed.
+             */
+            if (recordsBeforeHandler) {
+                recordExpectation(self._lastTest as never, jasmine, passed, data)
+            }
+            return expectationHandler.call(this, passed, data, isError)
+        }
 
         const hookArgsFn = (context: unknown): [unknown, unknown] => [{ ...(self._lastTest || {}) }, context]
 
@@ -197,16 +347,14 @@ class JasmineAdapter {
         /**
          * wrap Suite and Spec prototypes to get access to their data
          */
-        // @ts-ignore
-        const beforeAllMock = jasmine.Suite.prototype.beforeAll
-        // @ts-ignore
-        jasmine.Suite.prototype.beforeAll = function (...args) {
+        const beforeAllMock = internals.Suite.prototype.beforeAll
+        internals.Suite.prototype.beforeAll = function (this: { result: unknown }, ...args: unknown[]) {
             self._lastSpec = this.result
             beforeAllMock.apply(this, args)
         }
-        const executeMock = jasmine.Spec.prototype.execute
+        const executeMock = internals.Spec.prototype.execute
         if (typeof executeMock === 'function') {
-            jasmine.Spec.prototype.execute = function (...args: unknown[]) {
+            internals.Spec.prototype.execute = function (this: { result: jasmine.SpecResult }, ...args: unknown[]) {
                 self._lastTest = this.result
                 // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
                 self._lastTest.start = new Date().getTime()
@@ -405,9 +553,9 @@ class JasmineAdapter {
         return message
     }
 
-    getExpectationResultHandler (jasmine: jasmine.Jasmine) {
+    getExpectationResultHandler (internals: JasmineInternals) {
         const { expectationResultHandler } = this._jasmineOpts
-        const origHandler = jasmine.Spec.prototype.addExpectationResult
+        const origHandler = internals.Spec.prototype.addExpectationResult
 
         if (typeof expectationResultHandler !== 'function') {
             return origHandler
@@ -418,6 +566,7 @@ class JasmineAdapter {
 
     expectationResultHandler (origHandler: Function) {
         const { expectationResultHandler } = this._jasmineOpts
+        const adapter = this
         return function (this: jasmine.Spec, passed: boolean, data: ResultHandlerPayload) {
             try {
                 expectationResultHandler!.call(this, passed, data)
@@ -436,6 +585,10 @@ class JasmineAdapter {
                 }
             }
 
+            const jasmineInterface = adapter['_jrunner']?.jasmine
+            if (jasmineInterface) {
+                recordExpectation(adapter['_lastTest'] as never, jasmineInterface, passed, data)
+            }
             return origHandler.call(this, passed, data)
         }
     }
@@ -468,8 +621,7 @@ class JasmineAdapter {
          */
         globalThis.jasmine.addMatchers = (matchers) => globalThis.jasmine.addAsyncMatchers(this.#transformMatchers(matchers))
 
-        // @ts-expect-error not exported in jasmine
-        const syncMatchers: jasmine.CustomAsyncMatcherFactories = this.#transformMatchers(jasmine.matchers)
+        const syncMatchers: jasmine.CustomAsyncMatcherFactories = this.#transformMatchers(jasmineInternals(jasmine).matchers)
         const wdioMatchers: jasmine.CustomAsyncMatcherFactories = Object.entries(wdioCustomMatchers).reduce((prev, [name, fn]) => {
             prev[name] = () => ({
                 async compare (...args: unknown[]) {

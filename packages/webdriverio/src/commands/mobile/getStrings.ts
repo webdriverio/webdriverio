@@ -1,11 +1,9 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Get app strings for a specific language. Returns a key-value object of all string resources
  * defined in the application for the given language.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :getStrings.js
@@ -35,14 +33,5 @@ export async function getStrings(
         throw new Error('The `getStrings` command is only available for mobile platforms.')
     }
 
-    try {
-        return await browser.execute('mobile: getAppStrings', { language, stringFile }) as Record<string, string>
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: getAppStrings', '/appium/app/strings')
-        return browser.appiumGetStrings(language, stringFile) as Promise<Record<string, string>>
-    }
+    return executeMobile<Record<string, string>>(browser, 'mobile: getAppStrings', { language, stringFile })
 }

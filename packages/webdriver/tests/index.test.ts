@@ -322,8 +322,8 @@ describe('WebDriver', () => {
                 }
             }) as unknown as TestClient
             expect(client.isMobile).toBe(true)
-            expect(client.appiumIsLocked).toBeTruthy()
-            expect(client.appiumShake).toBeTruthy()
+            expect(client.installApp).toBeTruthy()
+            expect(client.getGeoLocation).toBeTruthy()
         })
 
         it('should fail attaching to session if sessionId is not given', () => {

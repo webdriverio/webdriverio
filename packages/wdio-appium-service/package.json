@@ -41,7 +41,7 @@
       "types": "./build/cli.d.ts"
     }
   },
-  "typeScriptVersion": "3.8.3",
+  "typeScriptVersion": "5.9.3",
   "dependencies": {
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",
@@ -55,6 +55,14 @@
     "tree-kill": "^1.2.2",
     "webdriverio": "workspace:*",
     "xpath": "^0.0.34"
+  },
+  "peerDependencies": {
+    "appium": ">=3"
+  },
+  "peerDependenciesMeta": {
+    "appium": {
+      "optional": true
+    }
   },
   "publishConfig": {
     "access": "public"
