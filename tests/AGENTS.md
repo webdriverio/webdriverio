@@ -24,6 +24,8 @@ Hot-path wall-clock measurements (mock driver, generated fixtures):
 ```sh
 pnpm run bench:runner
 pnpm run bench:runner -- --scenario mocha-large-quiet --iterations 3
+pnpm run bench:runner -- --baseline benchmark/results/<sha>.json
+# or from repo root path style (also accepted):
 pnpm run bench:runner -- --baseline tests/benchmark/results/<sha>.json
 ```
 

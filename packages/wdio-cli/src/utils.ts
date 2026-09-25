@@ -63,12 +63,62 @@ function collectConfigPaths (config: Partial<WebdriverIO.Config>): string[] {
 }
 
 /**
+ * Specs declared on capabilities (or `wdio:specs`) are not always mirrored on
+ * the top-level config object.
+ */
+function collectCapabilityPaths (
+    capabilities?: Capabilities.TestrunnerCapabilities
+): string[] {
+    if (!capabilities) {
+        return []
+    }
+
+    const paths: string[] = []
+    const push = (value: unknown) => {
+        if (typeof value === 'string') {
+            paths.push(value)
+        } else if (Array.isArray(value)) {
+            for (const item of value) {
+                push(item)
+            }
+        }
+    }
+
+    const entries = Array.isArray(capabilities)
+        ? capabilities
+        : Object.values(capabilities)
+
+    for (const entry of entries) {
+        const caps = (
+            entry && typeof entry === 'object' && 'capabilities' in entry
+                ? (entry as { capabilities: WebdriverIO.Capabilities }).capabilities
+                : entry
+        ) as WebdriverIO.Capabilities & {
+            specs?: unknown
+            exclude?: unknown
+            'wdio:specs'?: unknown
+            'wdio:exclude'?: unknown
+        }
+        if (!caps || typeof caps !== 'object') {
+            continue
+        }
+        push(caps.specs)
+        push(caps.exclude)
+        push(caps['wdio:specs'])
+        push(caps['wdio:exclude'])
+    }
+
+    return paths
+}
+
+/**
  * Decide whether the launcher / worker processes need the tsx loader.
  */
 export function shouldEnableTsx (
     configFilePath: string,
     args: Partial<{ tsConfigPath?: string }> = {},
-    config?: Partial<WebdriverIO.Config>
+    config?: Partial<WebdriverIO.Config>,
+    capabilities?: Capabilities.TestrunnerCapabilities
 ): boolean {
     if (TS_FILE_EXTENSIONS.some((ext) => configFilePath.endsWith(ext))) {
         return true
@@ -76,10 +126,10 @@ export function shouldEnableTsx (
     if (typeof args.tsConfigPath === 'string' && args.tsConfigPath.length > 0) {
         return true
     }
-    if (!config) {
-        return false
+    if (config && collectConfigPaths(config).some(looksLikeTypeScriptPath)) {
+        return true
     }
-    return collectConfigPaths(config).some(looksLikeTypeScriptPath)
+    return collectCapabilityPaths(capabilities).some(looksLikeTypeScriptPath)
 }
 
 /**

@@ -235,23 +235,31 @@ function evaluateGate (results, baselineMap, targetIds) {
     for (const r of results) {
         const base = baselineMap.get(r.id)
         if (!base) {
+            ok = false
+            notes.push(`${r.id}: missing from baseline`)
             continue
         }
         const wallDelta = (r.wallMs.median - base.wallMs.median) / base.wallMs.median
         const execDelta = (r.executionSec.median - base.executionSec.median) /
             (base.executionSec.median || Number.EPSILON)
+        const wallLabel = formatDelta(r.wallMs.median, base.wallMs.median)
+        const execLabel = formatDelta(r.executionSec.median, base.executionSec.median)
+        const regressed = wallDelta > REGRESS_THRESHOLD || execDelta > REGRESS_THRESHOLD
 
         if (targets.has(r.id)) {
             const improved = wallDelta <= -IMPROVE_THRESHOLD || execDelta <= -IMPROVE_THRESHOLD
-            if (!improved) {
+            if (regressed) {
                 ok = false
-                notes.push(`${r.id}: no ≥3% improvement (wall ${formatDelta(r.wallMs.median, base.wallMs.median)}, exec ${formatDelta(r.executionSec.median, base.executionSec.median)})`)
+                notes.push(`${r.id}: regression (wall ${wallLabel}, exec ${execLabel})`)
+            } else if (!improved) {
+                ok = false
+                notes.push(`${r.id}: no ≥3% improvement (wall ${wallLabel}, exec ${execLabel})`)
             } else {
-                notes.push(`${r.id}: improved (wall ${formatDelta(r.wallMs.median, base.wallMs.median)}, exec ${formatDelta(r.executionSec.median, base.executionSec.median)})`)
+                notes.push(`${r.id}: improved (wall ${wallLabel}, exec ${execLabel})`)
             }
-        } else if (wallDelta > REGRESS_THRESHOLD || execDelta > REGRESS_THRESHOLD) {
+        } else if (regressed) {
             ok = false
-            notes.push(`${r.id}: regression (wall ${formatDelta(r.wallMs.median, base.wallMs.median)}, exec ${formatDelta(r.executionSec.median, base.executionSec.median)})`)
+            notes.push(`${r.id}: regression (wall ${wallLabel}, exec ${execLabel})`)
         }
     }
     return { ok, notes }
@@ -261,9 +269,13 @@ async function loadBaseline (baselinePath) {
     if (!baselinePath) {
         return null
     }
+    const repoRoot = path.resolve(__dirname, '../..')
     const candidates = [
         path.isAbsolute(baselinePath) ? baselinePath : null,
+        // `pnpm run bench:runner` cds into tests/, so accept repo-root-relative paths too
+        path.resolve(repoRoot, baselinePath),
         path.resolve(resultsDir, baselinePath),
+        path.resolve(resultsDir, path.basename(baselinePath)),
         path.resolve(process.cwd(), baselinePath),
         path.resolve(__dirname, baselinePath)
     ].filter(Boolean)
@@ -319,6 +331,9 @@ async function main () {
             console.log(`  - ${note}`)
         }
         console.log(gate.ok ? 'PASS' : 'FAIL')
+        if (!gate.ok) {
+            process.exitCode = 1
+        }
     }
 
     if (opts.write) {

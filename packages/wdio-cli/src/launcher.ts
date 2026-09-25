@@ -198,15 +198,32 @@ class Launcher {
         this.#isInitialized = true
 
         /**
-         * initialize config parser
+         * initialize config parser — a JS config may still import TypeScript
+         * helpers, so retry once with tsx if the first load fails.
          */
-        await this.configParser.initialize(this._args)
+        try {
+            await this.configParser.initialize(this._args)
+        } catch (err) {
+            const alreadyHasTsx = Boolean(process.env.NODE_OPTIONS?.includes('tsx'))
+            if (alreadyHasTsx) {
+                throw err
+            }
+            log.info('Config load failed without tsx; enabling tsx and retrying once')
+            const tsxPath = await enableTsx()
+            await import(tsxPath)
+            await this.configParser.initialize(this._args)
+        }
 
         /**
          * Specs or framework require entries may still need tsx in workers
          * even when the config file itself is JavaScript.
          */
-        if (shouldEnableTsx(this._configFilePath, this._args, this.configParser.getConfig())) {
+        if (shouldEnableTsx(
+            this._configFilePath,
+            this._args,
+            this.configParser.getConfig(),
+            this.configParser.getCapabilities() as Capabilities.TestrunnerCapabilities
+        )) {
             await enableTsx()
         }
     }

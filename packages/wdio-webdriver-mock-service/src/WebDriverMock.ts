@@ -40,7 +40,11 @@ let sharedAgent: MockAgent | undefined
 function getOrCreateAgent(): MockAgent {
     if (!sharedAgent) {
         sharedAgent = new MockAgent()
-        sharedAgent.disableNetConnect()
+        /**
+         * Do not call `disableNetConnect()`: workers still need real HTTP for
+         * services like `@wdio/shared-store-service`. Unmatched origins fall
+         * through to the network; only intercepted WebDriver paths are mocked.
+         */
         setGlobalDispatcher(sharedAgent)
     }
     return sharedAgent
@@ -190,12 +194,10 @@ export default class WebDriverMock {
     static reset() {
         const previous = sharedAgent
         sharedAgent = new MockAgent()
-        sharedAgent.disableNetConnect()
         setGlobalDispatcher(sharedAgent)
         if (previous) {
             void previous.close()
         }
-        // drop dangling non-mock global dispatchers from prior runs
         if (getGlobalDispatcher().constructor.name !== 'MockAgent') {
             setGlobalDispatcher(sharedAgent)
         }
