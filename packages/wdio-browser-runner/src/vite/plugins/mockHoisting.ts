@@ -333,24 +333,32 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
             }
         },
         configureServer(server) {
-            return () => {
-                server.middlewares.use('/', async (req, res, next) => {
-                    if (!req.originalUrl) {
-                        return next()
-                    }
-
-                    const urlParsed = url.parse(req.originalUrl)
-                    const urlParamString = new URLSearchParams(urlParsed.query || '')
-                    const specParam = urlParamString.get('spec')
-
-                    if (specParam) {
-                        mockHandler.resetMocks()
-                        isTestDependency = false
-                        spec = os.platform() === 'win32' ? specParam.slice(1) : specParam
-                    }
-
+            /**
+             * Record the spec before Vite transforms the page. This has to run
+             * ahead of the test-page middleware: Vite 7 pre-transforms imported
+             * modules while rendering HTML, and a post hook would see that
+             * happen before `spec` is set, so mocks never rewrite the imports.
+             */
+            const captureSpec = async (req: { originalUrl?: string }, _res: unknown, next: () => void) => {
+                if (!req.originalUrl) {
                     return next()
-                })
+                }
+
+                const urlParsed = url.parse(req.originalUrl)
+                const urlParamString = new URLSearchParams(urlParsed.query || '')
+                const specParam = urlParamString.get('spec')
+
+                if (specParam) {
+                    mockHandler.resetMocks()
+                    isTestDependency = false
+                    spec = os.platform() === 'win32' ? specParam.slice(1) : specParam
+                }
+
+                return next()
+            }
+            server.middlewares.use('/', captureSpec)
+            return () => {
+                server.middlewares.use('/', captureSpec)
             }
         }
     }]

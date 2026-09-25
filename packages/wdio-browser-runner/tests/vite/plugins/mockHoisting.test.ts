@@ -65,7 +65,7 @@ test('transforms test file properly for mocking', () => {
     delete newCode.map.sources
 
     expect(newCode).toMatchSnapshot()
-    expect(mockHandler.resetMocks).toBeCalledTimes(1)
+    expect(mockHandler.resetMocks).toBeCalledTimes(2)
 })
 
 test('transforms any other imported file properly for mocking', () => {
