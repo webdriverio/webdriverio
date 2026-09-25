@@ -258,6 +258,9 @@ const config: Config = {
         [
             'classic', {
                 docs: {
+                    // Feeds sitemap <lastmod>. The sitemap plugin skips its own
+                    // git lookup when this is left unset.
+                    showLastUpdateTime: true,
                     sidebarPath: path.resolve(__dirname, 'sidebars.ts'),
                     // Please change this to your repo.
                     editUrl:`${repoUrl}/edit/${branch}/website/`,
@@ -271,6 +274,7 @@ const config: Config = {
                     ]
                 },
                 blog: {
+                    showLastUpdateTime: true,
                     showReadingTime: true,
                     postsPerPage: 3,
                     blogSidebarCount: 7,
@@ -299,6 +303,7 @@ const config: Config = {
             'content-docs',
             {
                 id: 'community',
+                showLastUpdateTime: true,
                 path: 'community',
                 editUrl: `https://github.com/${organizationName}/${projectName}/edit/${branch}/website/`,
                 routeBasePath: 'community',
