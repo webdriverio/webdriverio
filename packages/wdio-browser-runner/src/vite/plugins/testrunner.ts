@@ -141,7 +141,16 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                     /**
                      * don't return test page when sourcemaps are requested
                      */
-                    if (!req.originalUrl || req.url?.endsWith('.map') || req.url?.endsWith('.wasm')) {
+                    if (
+                        !req.originalUrl ||
+                        req.url?.endsWith('.map') ||
+                        req.url?.endsWith('.wasm') ||
+                        /**
+                         * Vite turns inline scripts into `?html-proxy` modules. Those
+                         * requests carry the session cookies, but they are not the test page.
+                         */
+                        req.originalUrl.includes('html-proxy')
+                    ) {
                         return next()
                     }
 

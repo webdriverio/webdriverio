@@ -103,6 +103,16 @@ test('configureServer continues if no url given', async () => {
     expect(next).toBeCalledWith()
     next.mockClear()
 
+    SESSIONS.set('1-2', {} as any)
+    middleware({
+        ...req,
+        headers: { cookie: 'WDIO_CID=1-2; WDIO_SPEC=/spec.tsx' },
+        originalUrl: '/?html-proxy&index=0.js'
+    }, {}, next)
+    expect(getTemplate).toBeCalledTimes(0)
+    expect(next).toBeCalledWith()
+    next.mockClear()
+
     vi.mocked(getTemplate).mockResolvedValue('some html')
     await middleware({ ...req, originalUrl: 'http://localhost:1234/?cid=1-2&spec=foobar' }, res, next)
     expect(getTemplate).toBeCalledTimes(1)
