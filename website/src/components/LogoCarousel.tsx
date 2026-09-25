@@ -5,9 +5,10 @@ import Translate from '@docusaurus/Translate'
 import styles from './LogoCarousel.module.css'
 
 const INTERVAL_LENGTH = 5000
-const LOGO_WIDTH = 150
+const LOGO_WIDTH = 160
 
 let ticks = 0
+
 type LogoProps = {
     logos: Array<{
         img: string
@@ -15,101 +16,125 @@ type LogoProps = {
         url: string
     }>
 }
+
 type LogoState = {
-    position: number;
-    activePage: number;
-    swapInterval: ReturnType<typeof setInterval>;
-    pages: number;
-    margin: number;
+    position: number
+    activePage: number
+    swapInterval: ReturnType<typeof setInterval>
+    pages: number
+    logosPerPage: number
 }
 
 export default class LogoCarousel extends React.Component<LogoProps, LogoState> {
     containerRef: React.RefObject<HTMLDivElement>
-    list: () => React.JSX.Element
-    buttons: () => React.JSX.Element[]
 
     state: LogoState
 
     constructor(props: LogoProps) {
         super(props)
         this.state = {
-            position: -0,
+            position: 0,
             activePage: 0,
             swapInterval: null,
-            pages: Math.ceil(props.logos ? props.logos.length / 6 : 1),
-            margin: 70
+            pages: 1,
+            logosPerPage: 6,
         }
-
         this.containerRef = React.createRef()
     }
 
     componentDidMount() {
-        const rect = this.containerRef.current.getBoundingClientRect()
-        const logosPerPage = Math.floor(rect.width / LOGO_WIDTH)
+        this.measure()
+        window.addEventListener('resize', this.measure)
         this.setState({
-            swapInterval: setInterval(this.nextPage.bind(this), INTERVAL_LENGTH),
-            pages: Math.ceil(this.props.logos ? this.props.logos.length / logosPerPage : 1),
-            margin: rect.width < 700 ? 0 : 210
+            swapInterval: setInterval(this.nextPage, INTERVAL_LENGTH),
         })
     }
 
     componentWillUnmount() {
         clearInterval(this.state.swapInterval)
+        window.removeEventListener('resize', this.measure)
     }
 
-    animateTo(i) {
-        const width = this.containerRef.current.getBoundingClientRect().width - this.state.margin
-        const x = i * -width
-        this.setState({ position: x, activePage: i })
-    }
-
-    handleClick(i) {
-        this.animateTo(i)
-        clearInterval(this.state.swapInterval)
-        this.setState({
-            swapInterval: setInterval(this.nextPage.bind(this), INTERVAL_LENGTH)
+    measure = () => {
+        const width = this.containerRef.current?.getBoundingClientRect().width
+        if (!width || !this.props.logos) {
+            return
+        }
+        const logosPerPage = Math.max(1, Math.floor(width / LOGO_WIDTH))
+        const pages = Math.ceil(this.props.logos.length / logosPerPage)
+        this.setState((state) => {
+            const activePage = Math.min(state.activePage, pages - 1)
+            return {
+                logosPerPage,
+                pages,
+                activePage,
+                position: activePage * -logosPerPage * LOGO_WIDTH,
+            }
         })
     }
 
-    nextPage() {
-        const pages = this.state.pages - 1
-        const direction = Math.floor(ticks / pages) % 2
+    animateTo(i: number) {
+        const page = Math.max(0, Math.min(i, this.state.pages - 1))
+        this.setState({
+            position: page * -this.state.logosPerPage * LOGO_WIDTH,
+            activePage: page,
+        })
+    }
+
+    handleClick(i: number) {
+        this.animateTo(i)
+        clearInterval(this.state.swapInterval)
+        ticks = i
+        this.setState({
+            swapInterval: setInterval(this.nextPage, INTERVAL_LENGTH),
+        })
+    }
+
+    nextPage = () => {
+        const last = this.state.pages - 1
+        if (last <= 0) {
+            return
+        }
+        const direction = Math.floor(ticks / last) % 2
         this.animateTo(direction
-            ? pages - (ticks % pages)
-            : ticks % pages
+            ? last - (ticks % last)
+            : ticks % last
         )
         ++ticks
     }
 
     render() {
-        if (!this.props || !this.props.logos) {
-            return (
-                <div></div>
-            )
+        if (!this.props?.logos) {
+            return <div />
         }
-
-        this.buttons = () => [...Array(this.state.pages)].map((_, index) => (
-            <button onClick={() => this.handleClick(index)} key={index} className={clsx(styles.button, index === this.state.activePage ? styles.buttonActive : '')}>{index + 1}</button>
-        ))
-
-        this.list = () => (
-            <ul style={{ transform: `translate(${this.state.position}px, 0px)` }}>
-                {this.props.logos.map((value, index) => (
-                    <li key={index}><a href={value.url} target="_blank" rel="noopener noreferrer"><img src={'/img/logos/' + value.img} alt={value.alt} /></a></li>
-                ))}
-            </ul>
-        )
 
         return (
             <div className={styles.companyUsage} ref={this.containerRef}>
                 <h3>
                     <Translate id="homepage.logoCarousel.title">Who is using WebdriverIO?</Translate>
                 </h3>
-                <div className={clsx(styles.logos)}>
-                    {this.list()}
-                    <div className={styles.logoNavigation}>
-                        {this.buttons()}
-                    </div>
+                <div className={styles.logos}>
+                    <ul style={{ transform: `translate(${this.state.position}px, 0px)` }}>
+                        {this.props.logos.map((value) => (
+                            <li key={value.alt} style={{ flexBasis: LOGO_WIDTH, width: LOGO_WIDTH }}>
+                                <a href={value.url} target="_blank" rel="noopener noreferrer">
+                                    <img src={'/img/logos/' + value.img} alt={value.alt} />
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+                <div className={styles.logoNavigation}>
+                    {[...Array(this.state.pages)].map((_, index) => (
+                        <button
+                            type="button"
+                            onClick={() => this.handleClick(index)}
+                            key={index}
+                            aria-label={`Logo page ${index + 1}`}
+                            aria-current={index === this.state.activePage ? 'true' : undefined}
+                            className={clsx(styles.button, index === this.state.activePage && styles.buttonActive)}
+                        />
+                    ))}
                 </div>
             </div>
         )

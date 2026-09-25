@@ -1,6 +1,7 @@
 ---
 id: repl
 title: REPL interface
+description: "Use the WebdriverIO REPL to try out commands and debug tests interactively from the command line or from within a running test."
 ---
 
 With `v4.5.0`, WebdriverIO introduced a [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) interface that helps you to not only learn the framework API, but also debug and inspect your tests. It can be used in multiple ways.

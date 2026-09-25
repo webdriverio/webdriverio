@@ -1,6 +1,7 @@
 ---
 id: customcommands
 title: Custom Commands
+description: "Add your own browser and element commands with addCommand, overwrite existing commands and extend the TypeScript type definitions."
 ---
 
 If you want to extend the `browser` instance with your own set of commands, the browser method `addCommand` is here for you. You can write your command in an asynchronous way, just as in your specs.
@@ -9,15 +10,19 @@ If you want to extend the `browser` instance with your own set of commands, the 
 
 ### Command Name
 
+<Option type="String">
+
 A name that defines the command and will be attached to the browser or element scope.
 
-Type: `String`
+</Option>
 
 ### Custom Function
 
+<Option type="Function">
+
 A function that is being executed when the command is called. The `this` scope is either [`WebdriverIO.Browser`](/docs/api/browser) or [`WebdriverIO.Element`](/docs/api/element) depending whether the command gets attached to the browser or element scope.
 
-Type: `Function`
+</Option>
 
 ### Options
 
@@ -25,19 +30,19 @@ Object with configuration options modifying the custom command behavior
 
 #### Target Scope
 
+<Option type="Boolean" default="false" name="attachToElement">
+
 Flag to decide whether to attach the command to the browser or element scope. If set to `true` the command will be an element command.
 
-Option Name: `attachToElement`
-Type: `Boolean`<br />
-Default: `false`
+</Option>
 
 #### Disable implicitWait
 
+<Option type="Boolean" default="false" name="disableElementImplicitWait">
+
 Flag to decide whether to implicitly wait for the element to exist before calling the custom command.
 
-Option Name: `disableElementImplicitWait`
-Type: `Boolean`<br />
-Default: `false`
+</Option>
 
 ## Examples
 
@@ -73,7 +78,6 @@ browser.addCommand("waitAndClick", async function () {
     await this.click()
 }, { attachToElement: true, disableElementImplicitWait: true })
 ```
-
 
 Custom commands give you the opportunity to bundle a specific sequence of commands you use frequently as a single call. You can define custom commands at any point in your test suite; just make sure that the command is defined *before* its first use. (The `before` hook in your `wdio.conf.js` is one good place to create them.)
 
@@ -412,3 +416,5 @@ The `:sessionId` url parameter will be automatically substituted with the sessio
 :::
 
 See examples of how protocol commands can be defined in the [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols) package.
+
+

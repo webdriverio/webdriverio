@@ -28,11 +28,12 @@ export const getSubPackages = (ignorePackages: string[] = []) => {
     )) as string[]
 }
 
-export function buildPreface(id: string, title: string, titleSuffix: string, editUrl: string) {
+export function buildPreface(id: string, title: string, titleSuffix: string, editUrl: string, description?: string) {
     return [
         '---',
         `id: ${id}`,
         `title: ${title} ${titleSuffix}`,
+        ...(description ? [`description: ${JSON.stringify(description)}`] : []),
         `custom_edit_url: ${editUrl}`,
         '---\n',
         'import Tabs from \'@theme/Tabs\';',

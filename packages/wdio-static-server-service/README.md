@@ -30,9 +30,11 @@ export const config = {
 
 ### `folders` (required)
 
+<Option type="Array<Object>">
+
 Array of folder paths and mount points.
 
-Type: `Array<Object>`
+</Option>
 Props:
  - mount `{String}` - URL endpoint where folder will be mounted.
  - path `{String}` - Path to the folder to mount.
@@ -55,22 +57,22 @@ Props:
 
 ### `port`
 
+<Option type="Number" default="4567">
+
 Port to bind the server.
 
-Type: `Number`
-
-Default: `4567`
+</Option>
 
 ### `middleware`
 
+<Option type="Array<Object>" default="[]">
+
 Array of middleware objects. Load and instatiate these in the config, and pass them in for the static server to use.
 
-Type: `Array<Object>`
+</Option>
 Props:
  - mount `{String}` - URL endpoint where middleware will be mounted.
  - middleware `<Object>` - Middleware function callback.
-
-Default: `[]`
 
 ``` javascript
 // wdio.conf.js
@@ -93,3 +95,5 @@ export const config = {
 ----
 
 For more information on WebdriverIO, see the [homepage](http://webdriver.io).
+
+

@@ -1,6 +1,7 @@
 ---
 id: bestpractices
 title: Best Practices
+description: "Write fast, resilient tests with WebdriverIO by using stable selectors, fewer element queries, built-in assertions and no manual pauses."
 ---
 
 # Best Practices

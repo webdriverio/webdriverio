@@ -1,6 +1,7 @@
 ---
 id: lit
 title: Lit
+description: "Set up the WebdriverIO browser runner for Lit web components and write tests that query elements inside nested shadow roots."
 ---
 
 Lit is a simple library for building fast, lightweight web components. Testing Lit web components with WebdriverIO is very easy thanks to WebdriverIOs [shadow DOM selectors](/docs/selectors#deep-selectors) you can query in shadow roots nested elements with just one single command.

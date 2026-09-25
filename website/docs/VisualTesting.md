@@ -1,6 +1,7 @@
 ---
 id: visual-testing
 title: Visual Testing
+description: "Compare screenshots of screens, elements or full pages against baselines with the @wdio/visual-service, including installation and usage."
 ---
 
 import Tabs from '@theme/Tabs';

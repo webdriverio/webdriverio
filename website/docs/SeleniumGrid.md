@@ -1,6 +1,7 @@
 ---
 id: seleniumgrid
 title: Selenium Grid
+description: "Connect WebdriverIO tests to an existing Selenium Grid by setting the protocol, hostname, port and path in your configuration."
 ---
 
 You can use WebdriverIO with your existing Selenium Grid instance. To connect your tests to Selenium Grid, you just need to update the options in your test runner configurations.

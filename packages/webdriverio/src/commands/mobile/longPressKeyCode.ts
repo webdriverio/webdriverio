@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Press and hold a particular key code on the device.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :longPressKeyCode.js
@@ -35,14 +33,5 @@ export async function longPressKeyCode(
         throw new Error('The `longPressKeyCode` command is only available for Android.')
     }
 
-    try {
-        return await browser.execute('mobile: pressKey', { keycode, metastate, flags, isLongPress: true })
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: pressKey', '/appium/device/long_press_keycode')
-        return browser.appiumLongPressKeyCode(keycode, metastate, flags)
-    }
+    return executeMobile(browser, 'mobile: pressKey', { keycode, metastate, flags, isLongPress: true })
 }

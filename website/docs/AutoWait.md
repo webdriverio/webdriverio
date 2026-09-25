@@ -1,6 +1,7 @@
 ---
 id: autowait
 title: Auto-waiting
+description: "Understand how WebdriverIO automatically waits for elements to become interactable, when to wait manually, and why implicit timeouts are discouraged."
 ---
 
 When using a command that directly interacts with an element WebdriverIO will automatically wait for the element to be visible and interactable, no manual waits are needed when using the commands (think of click, setValue etc).

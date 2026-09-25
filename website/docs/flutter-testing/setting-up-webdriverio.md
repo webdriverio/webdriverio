@@ -1,6 +1,7 @@
 ---
 id: setting-up-webdriverio
 title: Setting up WebdriverIO in your environment
+description: "Configure wdio.conf.ts and Appium capabilities to start a Flutter app with the Appium Flutter Driver on Android and iOS."
 ---
 
 The `wdio.conf.ts` file is the core configuration file of any WebdriverIO project. This is where you define where tests run, which test frameworks to use, and the necessary `capabilities` for Appium to correctly initialize the Flutter application.

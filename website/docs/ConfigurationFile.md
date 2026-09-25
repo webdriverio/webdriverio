@@ -1,6 +1,7 @@
 ---
 id: configurationfile
 title: Configuration File
+description: "Browse an annotated example wdio.conf.js that lists every supported testrunner option, capability and hook with explanations."
 ---
 
 The configuration file contains all necessary information to run your test suite. It’s a NodeJS module that exports a JSON.

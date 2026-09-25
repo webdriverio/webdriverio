@@ -2,14 +2,14 @@ import { MockAgent, setGlobalDispatcher, getGlobalDispatcher, type Interceptable
 import type { CommandEndpoint, Protocol } from '@wdio/protocols'
 
 import {
-    WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
+    WebDriverProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol
 } from '@wdio/protocols'
 
 const REGEXP_SESSION_ID = /\/[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}/
 const SESSION_ID = 'XXX'
 const protocols: Protocol[] = [
-    WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
+    WebDriverProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol
 ]
 

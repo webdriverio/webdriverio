@@ -1,6 +1,7 @@
 ---
 id: nightwatch
 title: Nightwatch DevTools
+description: "Add the DevTools debugging UI to a Nightwatch test suite without changing tests, and configure screencasts, BiDi capture and trace mode."
 ---
 
 Nightwatch adapter for [WebdriverIO DevTools](https://github.com/webdriverio/devtools) - brings the same visual debugging UI to your Nightwatch test suite with zero test code changes.

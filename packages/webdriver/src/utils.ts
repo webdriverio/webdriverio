@@ -4,7 +4,7 @@ import { deepmergeCustom } from 'deepmerge-ts'
 import logger, { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
 import type { CommandEndpoint, Protocol } from '@wdio/protocols'
 import {
-    WebDriverProtocol, MJsonWProtocol, AppiumProtocol, ChromiumProtocol,
+    WebDriverProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
 } from '@wdio/protocols'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
@@ -297,9 +297,8 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ProtocolCommands = deepmerge<any>(
         /**
-         * if mobile apply JSONWire and WebDriver protocol because
-         * some legacy JSONWire commands are still used in Appium
-         * (e.g. set/get geolocation)
+         * if mobile also apply Appium protocol (geolocation, orientation,
+         * context, settings, and other endpoints current Appium 3 drivers still expose)
          */
         isMobile
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -309,11 +308,6 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
          * enable Bidi protocol for W3C sessions
          */
         isW3C ? WebDriverBidiProtocol : {},
-        /**
-         * only apply mobile protocol if session is actually for mobile
-         */
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        isMobile ? deepmerge<any>(MJsonWProtocol, AppiumProtocol) : {},
         /**
          * only apply special Chromium commands if session is using Chrome or Edge
          */

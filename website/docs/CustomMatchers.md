@@ -1,6 +1,7 @@
 ---
 id: custommatchers
 title: Custom Matchers
+description: "Register custom browser and element matchers with expect.extend and add TypeScript types for them."
 ---
 
 WebdriverIO uses a Jest style [`expect`](https://webdriver.io/docs/api/expect-webdriverio) assertion library that comes with special features and custom matchers specific for running web and mobile tests. While the library of matchers is big, it certainly doesn't fit all possible situations. Therefore it is possible to extend the existing matchers with custom ones defined by you.

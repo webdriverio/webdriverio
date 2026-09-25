@@ -1,6 +1,7 @@
 ---
 id: selectors
 title: Selectors
+description: "Find elements with CSS, text, XPath, accessibility name, ARIA role and other selector strategies, and learn which ones are most resilient."
 ---
 
 The [WebDriver Protocol](https://w3c.github.io/webdriver/) provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. Please note that even though the command to query elements is called `$` and `$$`, they have nothing to do with jQuery or the [Sizzle Selector Engine](https://github.com/jquery/sizzle).

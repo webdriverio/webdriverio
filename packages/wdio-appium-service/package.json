@@ -56,6 +56,14 @@
     "webdriverio": "workspace:*",
     "xpath": "^0.0.34"
   },
+  "peerDependencies": {
+    "appium": ">=3"
+  },
+  "peerDependenciesMeta": {
+    "appium": {
+      "optional": true
+    }
+  },
   "publishConfig": {
     "access": "public"
   }

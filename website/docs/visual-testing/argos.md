@@ -1,6 +1,7 @@
 ---
 id: argos
 title: Elevate Your Visual Testing with Argos
+description: "Send WebdriverIO screenshots to Argos to review grouped visual changes from pull requests, approve intended ones and catch regressions."
 ---
 
 ## Introduction

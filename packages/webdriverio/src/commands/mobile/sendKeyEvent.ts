@@ -1,4 +1,4 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
@@ -6,8 +6,6 @@ import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/m
  *
  * This command is the legacy Android key event API. For new tests, prefer using
  * `pressKeyCode()` with numeric keycodes from the Android `KeyEvent` constants.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :sendKeyEvent.js
@@ -39,17 +37,9 @@ export async function sendKeyEvent(
         throw new Error('The `sendKeyEvent` command is only available for Android.')
     }
 
-    try {
-        const args: Record<string, number> = { keycode: parseInt(keycode, 10) }
-        if (metastate !== undefined) {
-            args.metastate = parseInt(metastate, 10)
-        }
-        return await browser.execute('mobile: pressKey', args)
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-        logAppiumDeprecationWarning('mobile: pressKey', '/appium/device/keyevent')
-        return browser.appiumSendKeyEvent(keycode, metastate)
+    const args: Record<string, number> = { keycode: parseInt(keycode, 10) }
+    if (metastate !== undefined) {
+        args.metastate = parseInt(metastate, 10)
     }
+    return executeMobile(browser, 'mobile: pressKey', args)
 }

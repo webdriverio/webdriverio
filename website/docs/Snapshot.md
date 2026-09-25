@@ -1,6 +1,7 @@
 ---
 id: snapshot
 title: Snapshot
+description: "Assert objects, DOM structures and command results with snapshot and inline snapshot tests, and compare visual snapshots."
 ---
 
 Snapshot tests can be very useful for asserting a wide range of aspects of your component or logic at the same time. In WebdriverIO you can take snapshots of any arbitrary object as well as a WebElement DOM structure or WebdriverIO command results.

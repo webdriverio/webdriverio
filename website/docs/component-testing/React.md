@@ -1,6 +1,7 @@
 ---
 id: react
 title: React
+description: "Set up the WebdriverIO browser runner for a React project with the react preset and write component tests with Testing Library."
 ---
 
 [React](https://reactjs.org/) makes it painless to create interactive UIs. Design simple views for each state in your application, and React will efficiently update and render just the right components when your data changes. You can test React components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).

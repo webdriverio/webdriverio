@@ -1,6 +1,7 @@
 ---
 id: cloudservices
 title: Using Cloud Services
+description: "Run WebdriverIO tests on Sauce Labs, BrowserStack, TestingBot, TestMu AI (formerly LambdaTest), Perfecto and other cloud providers."
 ---
 
 Using on-demand services like Sauce Labs, Browserstack, TestingBot, TestMu AI (Formerly LambdaTest) or Perfecto with WebdriverIO is pretty simple. All you need to do is to set your service's `user` and `key` in your options.

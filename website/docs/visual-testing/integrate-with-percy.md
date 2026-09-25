@@ -1,6 +1,7 @@
 ---
 id: integrate-with-percy
 title: For Web Application
+description: "Integrate WebdriverIO tests for web applications with BrowserStack Percy for visual testing, from creating a project to running builds."
 ---
 
 ## Integrate your WebdriverIO tests with Percy
