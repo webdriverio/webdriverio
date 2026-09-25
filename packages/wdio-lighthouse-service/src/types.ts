@@ -1,4 +1,4 @@
-import type { Viewport } from 'puppeteer-core/lib/puppeteer/common/Viewport.js'
+import type { Viewport } from 'puppeteer-core'
 import type { NETWORK_STATES, PWA_AUDIT_NAMES } from './constants.js'
 
 export interface DevtoolsConfig {

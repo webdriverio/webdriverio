@@ -43,7 +43,9 @@
     "jasmine": "^6.3.0"
   },
   "devDependencies": {
-    "expect-webdriverio": "^6.1.0"
+    "@wdio/runner": "workspace:*",
+    "expect-webdriverio": "^6.1.0",
+    "webdriverio": "workspace:*"
   },
   "peerDependencies": {
     "@wdio/runner": "^9.31.2",

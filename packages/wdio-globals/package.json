@@ -50,5 +50,8 @@
     "webdriverio": {
       "optional": false
     }
+  },
+  "devDependencies": {
+    "webdriverio": "workspace:*"
   }
 }
