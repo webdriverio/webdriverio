@@ -126,6 +126,14 @@ Under the hood a strict `$` issues a `findElements` request instead of `findElem
 
 v9 still accepted older positional forms and warned. v10 accepts only the options object.
 
+`addCommand`, `overwriteCommand`, `getHTML(boolean)`, `getCookies(string)`, and `getCookie(string)` are applied by the v10 [codemod](https://github.com/webdriverio/codemod). A `getCookies` call with more than one name is left unchanged, because one filter matches one name.
+
+```sh
+npx jscodeshift -t ./node_modules/@wdio/codemod/v10 ./e2e/
+```
+
+Use `--parser=tsx` for TypeScript files.
+
 ### `addCommand` and `overwriteCommand`
 
 ```diff
