@@ -101,7 +101,10 @@ jobs:
             PROD_FLAG=
           fi
           npx --yes vercel@59 pull --yes --environment="$ENVIRONMENT" --token="$VERCEL_TOKEN"
-          npx --yes vercel@59 build $PROD_FLAG --token="$VERCEL_TOKEN"
+          # pnpm links function dependencies (zod, the MCP SDK) to the repo
+          # root, outside website/. --standalone copies those files into
+          # .vercel/output so deploy --prebuilt does not reject them.
+          npx --yes vercel@59 build $PROD_FLAG --standalone --token="$VERCEL_TOKEN"
           URL=$(npx --yes vercel@59 deploy --prebuilt $PROD_FLAG --token="$VERCEL_TOKEN")
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "### Deployed to [$URL]($URL)" >> "$GITHUB_STEP_SUMMARY"
