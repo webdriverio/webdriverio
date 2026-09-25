@@ -37,14 +37,19 @@ for (const protocol of protocols) {
 
 let sharedAgent: MockAgent | undefined
 
+/**
+ * Mock WebDriver on :4444, but still allow other localhost traffic
+ * (e.g. `@wdio/shared-store-service` on an ephemeral port).
+ */
+function configureNetConnect(agent: MockAgent) {
+    agent.disableNetConnect()
+    agent.enableNetConnect((host) => !String(host).endsWith(':4444'))
+}
+
 function getOrCreateAgent(): MockAgent {
     if (!sharedAgent) {
         sharedAgent = new MockAgent()
-        /**
-         * Do not call `disableNetConnect()`: workers still need real HTTP for
-         * services like `@wdio/shared-store-service`. Unmatched origins fall
-         * through to the network; only intercepted WebDriver paths are mocked.
-         */
+        configureNetConnect(sharedAgent)
         setGlobalDispatcher(sharedAgent)
     }
     return sharedAgent
@@ -194,6 +199,7 @@ export default class WebDriverMock {
     static reset() {
         const previous = sharedAgent
         sharedAgent = new MockAgent()
+        configureNetConnect(sharedAgent)
         setGlobalDispatcher(sharedAgent)
         if (previous) {
             void previous.close()
