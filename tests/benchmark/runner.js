@@ -261,8 +261,23 @@ async function loadBaseline (baselinePath) {
     if (!baselinePath) {
         return null
     }
-    const raw = JSON.parse(await fs.readFile(baselinePath, 'utf8'))
-    return new Map(raw.results.map((r) => [r.id, r]))
+    const candidates = [
+        path.isAbsolute(baselinePath) ? baselinePath : null,
+        path.resolve(resultsDir, baselinePath),
+        path.resolve(process.cwd(), baselinePath),
+        path.resolve(__dirname, baselinePath)
+    ].filter(Boolean)
+
+    let lastError
+    for (const candidate of candidates) {
+        try {
+            const raw = JSON.parse(await fs.readFile(candidate, 'utf8'))
+            return new Map(raw.results.map((r) => [r.id, r]))
+        } catch (err) {
+            lastError = err
+        }
+    }
+    throw lastError
 }
 
 async function main () {
