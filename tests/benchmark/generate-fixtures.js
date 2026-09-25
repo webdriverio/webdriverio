@@ -1,17 +1,21 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import os from 'node:os'
+import url from 'node:url'
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+const FIXTURE_ROOT = path.join(__dirname, '.tmp')
 
 /**
  * Write ephemeral Mocha / Jasmine / Cucumber fixtures for the runner benchmark.
- * Specs are generated into a temp directory so they are not committed.
+ * Specs live under tests/benchmark/.tmp so workspace package resolution works
+ * for Cucumber step definition imports.
  *
- * Each test hits `browser.getTitle()` (Infinity-mocked) so the command/
- * reporter hot path stays on the critical path without depending on
- * scenario-specific findElement stubs.
+ * Each test hits `browser.getTitle()` via expect-webdriverio (Infinity-mocked)
+ * so the command/reporter hot path stays on the critical path.
  */
 export async function generateFixtures ({ testCount = 20, includeSkips = 0 } = {}) {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-bench-'))
+    await fs.mkdir(FIXTURE_ROOT, { recursive: true })
+    const root = await fs.mkdtemp(path.join(FIXTURE_ROOT, 'run-'))
     const mochaDir = path.join(root, 'mocha')
     const jasmineDir = path.join(root, 'jasmine')
     const cucumberDir = path.join(root, 'cucumber')
