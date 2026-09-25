@@ -1,4 +1,4 @@
-import nock from 'nock'
+import { MockAgent, setGlobalDispatcher, getGlobalDispatcher, type Interceptable } from 'undici'
 import type { CommandEndpoint, Protocol } from '@wdio/protocols'
 
 import {
@@ -13,12 +13,18 @@ const protocols: Protocol[] = [
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol
 ]
 
-type RequestMethods = 'get' | 'post'
 type protocolFlattenedType = { method: string, endpoint: string, commandData: CommandEndpoint }
 const protocolFlattened: Map<string, protocolFlattenedType> = new Map()
 
 export interface CommandMock {
-    [commandName: string]: (...args: unknown[]) => nock.Interceptor
+    [commandName: string]: (...args: unknown[]) => MockInterceptor
+}
+
+export interface MockInterceptor {
+    times(n: number): MockInterceptor
+    once(): MockInterceptor
+    twice(): MockInterceptor
+    reply(statusCode: number, data?: unknown | (() => unknown)): void
 }
 
 for (const protocol of protocols) {
@@ -29,13 +35,90 @@ for (const protocol of protocols) {
     }
 }
 
+let sharedAgent: MockAgent | undefined
+
+/**
+ * Mock WebDriver on :4444, but still allow other localhost traffic
+ * (e.g. `@wdio/shared-store-service` on an ephemeral port).
+ */
+function configureNetConnect(agent: MockAgent) {
+    agent.disableNetConnect()
+    agent.enableNetConnect((host) => !String(host).endsWith(':4444'))
+}
+
+function getOrCreateAgent(): MockAgent {
+    if (!sharedAgent) {
+        sharedAgent = new MockAgent()
+        configureNetConnect(sharedAgent)
+        setGlobalDispatcher(sharedAgent)
+    }
+    return sharedAgent
+}
+
+class UndiciMockInterceptor implements MockInterceptor {
+    #times: number | null = null
+
+    constructor(
+        private readonly pool: Interceptable,
+        private readonly opts: {
+            path: (path: string) => boolean
+            method: string
+            body?: (body: Record<string, unknown>) => boolean
+        }
+    ) {}
+
+    times(n: number) {
+        this.#times = n
+        return this
+    }
+
+    once() {
+        return this.times(1)
+    }
+
+    twice() {
+        return this.times(2)
+    }
+
+    reply(statusCode: number, data?: unknown | (() => unknown)) {
+        const interceptOpts: Parameters<Interceptable['intercept']>[0] = {
+            path: this.opts.path,
+            method: this.opts.method,
+        }
+        if (this.opts.body) {
+            interceptOpts.body = (body: string) => {
+                try {
+                    const parsed = typeof body === 'string' ? JSON.parse(body) : body
+                    return this.opts.body!(parsed as Record<string, unknown>)
+                } catch {
+                    return false
+                }
+            }
+        }
+
+        const dataOrFn = typeof data === 'function'
+            ? () => (data as () => unknown)()
+            : data
+
+        const mock = this.pool.intercept(interceptOpts).reply(statusCode, dataOrFn as never)
+        if (this.#times === Infinity) {
+            mock.persist()
+        } else if (this.#times !== null && this.#times > 0) {
+            mock.times(this.#times)
+        }
+        // undici defaults to a single reply when neither times() nor persist() is set
+    }
+}
+
 export default class WebDriverMock {
     command: CommandMock
-    scope: nock.Scope
+    #origin: string
+    #pool: Interceptable
+
     constructor(host: string = 'localhost', port: number = 4444, public path: string = '/') {
-        this.scope = nock(`http://${host}:${port}`, {
-            encodedQueryParams: true
-        })
+        this.#origin = `http://${host}:${port}`
+        const agent = getOrCreateAgent()
+        this.#pool = agent.get(this.#origin)
         this.command = new Proxy({}, { get: this.get.bind(this) }) as unknown as CommandMock
     }
 
@@ -44,9 +127,9 @@ export default class WebDriverMock {
      * matcher that strips out the sessionID part from the expected url
      * and actual url and replaces it with a constant session id
      * @param   {String}   expectedPath path to match against
-     * @returns {Function}              to be called by Nock to match actual path
+     * @returns {Function}              to be called by the mock agent to match actual path
      */
-    static pathMatcher(expectedPath: string): (path:string) =>boolean {
+    static pathMatcher(expectedPath: string): (path: string) => boolean {
         return (path: string) => {
             const sessionId = path.match(REGEXP_SESSION_ID)
 
@@ -61,14 +144,13 @@ export default class WebDriverMock {
              * remove the session ID from expected and actual path
              * to only compare non arbitrary parts
              */
-            expectedPath = expectedPath.replace(':sessionId', SESSION_ID)
-            path = path.replace(`${sessionId[0].slice(1)}`, SESSION_ID)
-            return path === expectedPath
+            const normalizedExpected = expectedPath.replace(':sessionId', SESSION_ID)
+            const normalizedPath = path.replace(`${sessionId[0].slice(1)}`, SESSION_ID)
+            return normalizedPath === normalizedExpected
         }
     }
 
     get(_obj: unknown, commandName: string) {
-
         const { method, endpoint, commandData } = protocolFlattened.get(commandName) as protocolFlattenedType
 
         return (...args: unknown[]) => {
@@ -77,34 +159,53 @@ export default class WebDriverMock {
                 urlPath = urlPath.replace(`:${param.name}`, args[parseInt(i)] as string)
             }
 
+            const path = WebDriverMock.pathMatcher(urlPath)
             if (method === 'POST') {
-                const reqMethod = method.toLowerCase() as RequestMethods
-                return this.scope[reqMethod](WebDriverMock.pathMatcher(urlPath), (body: Record<string, unknown>) => {
-                    for (const param of commandData.parameters) {
-                        /**
-                         * check if parameter was set
-                         */
-                        if (!body[param.name]) {
-                            return false
+                return new UndiciMockInterceptor(this.#pool, {
+                    path,
+                    method,
+                    body: (body: Record<string, unknown>) => {
+                        for (const param of commandData.parameters) {
+                            /**
+                             * check if parameter was set
+                             */
+                            if (!body[param.name]) {
+                                return false
+                            }
+
+                            /**
+                             * check if parameter has correct type
+                             */
+                            if (param.required && typeof body[param.name] === 'undefined') {
+                                return false
+                            }
                         }
 
                         /**
-                         * check if parameter has correct type
+                         * all parameters are valid
                          */
-                        if (param.required && typeof body[param.name] === 'undefined') {
-                            return false
-                        }
+                        return true
                     }
-
-                    /**
-                     * all parameters are valid
-                     */
-                    return true
                 })
             }
 
-            const reqMethod = method.toLowerCase() as RequestMethods
-            return this.scope[reqMethod](WebDriverMock.pathMatcher(urlPath))
+            return new UndiciMockInterceptor(this.#pool, { path, method })
+        }
+    }
+
+    /**
+     * Clear all interceptors and recreate the shared MockAgent.
+     */
+    static reset() {
+        const previous = sharedAgent
+        sharedAgent = new MockAgent()
+        configureNetConnect(sharedAgent)
+        setGlobalDispatcher(sharedAgent)
+        if (previous) {
+            void previous.close()
+        }
+        if (getGlobalDispatcher().constructor.name !== 'MockAgent') {
+            setGlobalDispatcher(sharedAgent)
         }
     }
 }

@@ -162,5 +162,6 @@ Read the matching guide in full before editing that tree.
 - **E2E / component:** [e2e/AGENTS.md](e2e/AGENTS.md)
 - **Docs site:** [website/AGENTS.md](website/AGENTS.md)
 - **Testing skill:** [.agents/skills/wdio-testing/SKILL.md](.agents/skills/wdio-testing/SKILL.md)
+- **Hot-path perf skill:** [.agents/skills/wdio-perf/SKILL.md](.agents/skills/wdio-perf/SKILL.md)
 - **Ownership map:** [.github/OWNERSHIP.md](.github/OWNERSHIP.md)
 - **Docs skill:** [.agents/skills/wdio-docs/SKILL.md](.agents/skills/wdio-docs/SKILL.md)

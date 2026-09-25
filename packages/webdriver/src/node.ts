@@ -17,18 +17,18 @@ import { environment } from './environment.js'
 environment.value = {
     Request: (
         /**
-         * Currently Nock doesn't support the mocking of undici requests, therefore for all
-         * Smoke test we use the native fetch implementation.
-         *
-         * @see https://github.com/nock/nock/issues/2183#issuecomment-2252525890
+         * Prefer undici MockAgent (set by `@wdio/webdriver-mock-service`) when opted in.
+         * Otherwise unit tests and explicit native-fetch runs use the web `fetch` impl.
          */
-        process.env.WDIO_USE_NATIVE_FETCH ||
-        /**
-         * For unit tests we use the WebFetchRequest implementation as we can better mock the
-         * requests in the unit tests.
-         */
-        process.env.WDIO_UNIT_TESTS
-    ) ? WebFetchRequest : FetchRequest,
+        process.env.WDIO_USE_UNDICI_MOCK
+            ? FetchRequest
+            : (
+                process.env.WDIO_USE_NATIVE_FETCH ||
+                process.env.WDIO_UNIT_TESTS
+            )
+                ? WebFetchRequest
+                : FetchRequest
+    ),
     Socket: ws as unknown as typeof BrowserSocket,
     createBidiConnection,
     killDriverProcess,

@@ -107,6 +107,8 @@ website/docs/_*.md
 wallaby.conf.js
 tags
 tests/.retry_succeeded
+tests/benchmark/results/
+tests/benchmark/.tmp/
 *.tsbuildinfo
 website/docs/Contribute.md
 website/community/Resources.md

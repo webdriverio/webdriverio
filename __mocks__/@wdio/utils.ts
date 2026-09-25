@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { vi } from 'vitest'
 import {
     sleep as sleepOrig,
@@ -120,3 +121,7 @@ export const startWebDriver = vi.fn((params) => {
 export const setupBrowser = vi.fn()
 export const setupDriver = vi.fn()
 export const enableFileLogging = vi.fn()
+export class TimingTracker {
+    markTiming = vi.fn()
+    getTimings = vi.fn().mockReturnValue({})
+}
