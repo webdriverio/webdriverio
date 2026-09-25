@@ -21,9 +21,9 @@ import type { Timeouts } from '@wdio/protocols'
             'script': 60000
         });
         // Execute code which takes a long time
-        await browser.executeAsync((done) => {
+        await browser.execute(async () => {
             console.log('Wake me up before you go!');
-            setTimeout(done, 59000);
+            await new Promise((resolve) => setTimeout(resolve, 59000));
         });
     });
  * </example>
@@ -31,7 +31,7 @@ import type { Timeouts } from '@wdio/protocols'
  * @param {Timeouts}  timeouts            Object containing session timeout values
  * @param {Number=}   timeouts.implicit  Time in milliseconds to retry the element location strategy when finding an element.
  * @param {Number=}   timeouts.pageLoad  Time in milliseconds to wait for the document to finish loading.
- * @param {Number=}   timeouts.script    Scripts injected with [`execute`](https://webdriver.io/docs/api/browser/execute) or [`executeAsync`](https://webdriver.io/docs/api/browser/executeAsync) will run until they hit the script timeout duration, which is also given in milliseconds.
+ * @param {Number=}   timeouts.script    Scripts injected with [`execute`](https://webdriver.io/docs/api/browser/execute) will run until they hit the script timeout duration, which is also given in milliseconds. Async functions are awaited and count against this timeout.
  * @see https://w3c.github.io/webdriver/#set-timeouts
  *
  */

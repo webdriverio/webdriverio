@@ -36,6 +36,51 @@ describe('execute test', () => {
         expect(result).toEqual('foobar')
     })
 
+    it('should await an async function via execute/async', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        vi.mocked(fetch).mockClear()
+        await browser.execute(async (value: string) => value, 'foobar')
+        const [requestUrl, request] = vi.mocked(fetch).mock.calls.at(-1)!
+        expect((requestUrl as URL).pathname).toBe('/session/foobar-123/execute/async')
+        expect(JSON.parse((request as { body: string }).body).script).toContain('async (value)')
+    })
+
+    it('should return objects that mention __wdioError without throwing', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        vi.mocked(fetch).mockClear()
+        const result = await browser.execute(async () => ({ __wdioError: false, data: 1 }))
+        expect(result).toEqual({ __wdioError: false, data: 1 })
+    })
+
+    it('should return the value of an async function that awaits', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        vi.mocked(fetch).mockClear()
+        const result = await browser.execute(async () => {
+            await Promise.resolve()
+            await Promise.resolve()
+            return 7
+        })
+        expect(result).toBe(7)
+    })
+
     it('should throw if script is wrong type', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',

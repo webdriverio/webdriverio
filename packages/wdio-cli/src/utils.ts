@@ -18,6 +18,132 @@ import type {
 
 const log = logger('@wdio/cli:utils')
 
+const TS_PATH_HINT = /\.(m|c)?tsx?(?:$|[?*])/
+
+/**
+ * True when a path, glob, or require entry looks like TypeScript source.
+ */
+export function looksLikeTypeScriptPath (value: string): boolean {
+    return TS_PATH_HINT.test(value.replace(/\\/g, '/'))
+}
+
+/**
+ * Collect string paths from specs / suites / framework require options.
+ */
+function collectConfigPaths (config: Partial<WebdriverIO.Config>): string[] {
+    const paths: string[] = []
+    const push = (value: unknown) => {
+        if (typeof value === 'string') {
+            paths.push(value)
+        } else if (Array.isArray(value)) {
+            for (const item of value) {
+                push(item)
+            }
+        } else if (value && typeof value === 'object') {
+            for (const item of Object.values(value as Record<string, unknown>)) {
+                push(item)
+            }
+        }
+    }
+
+    push(config.specs)
+    push(config.exclude)
+    push((config as { spec?: string | string[] }).spec)
+    push((config as { suite?: string | string[] }).suite)
+    if (config.suites) {
+        push(Object.values(config.suites))
+    }
+    push(config.mochaOpts?.require)
+    push((config.jasmineOpts as { require?: unknown, requires?: unknown } | undefined)?.requires)
+    push((config.jasmineOpts as { require?: unknown, requires?: unknown } | undefined)?.require)
+    push(config.cucumberOpts?.require)
+    push(config.cucumberOpts?.requireModule)
+
+    return paths
+}
+
+/**
+ * Specs declared on capabilities (or `wdio:specs`) are not always mirrored on
+ * the top-level config object.
+ */
+function collectCapabilityPaths (
+    capabilities?: Capabilities.TestrunnerCapabilities
+): string[] {
+    if (!capabilities) {
+        return []
+    }
+
+    const paths: string[] = []
+    const push = (value: unknown) => {
+        if (typeof value === 'string') {
+            paths.push(value)
+        } else if (Array.isArray(value)) {
+            for (const item of value) {
+                push(item)
+            }
+        }
+    }
+
+    const entries = Array.isArray(capabilities)
+        ? capabilities
+        : Object.values(capabilities)
+
+    for (const entry of entries) {
+        const caps = (
+            entry && typeof entry === 'object' && 'capabilities' in entry
+                ? (entry as { capabilities: WebdriverIO.Capabilities }).capabilities
+                : entry
+        ) as WebdriverIO.Capabilities & {
+            specs?: unknown
+            exclude?: unknown
+            'wdio:specs'?: unknown
+            'wdio:exclude'?: unknown
+        }
+        if (!caps || typeof caps !== 'object') {
+            continue
+        }
+        push(caps.specs)
+        push(caps.exclude)
+        push(caps['wdio:specs'])
+        push(caps['wdio:exclude'])
+    }
+
+    return paths
+}
+
+/**
+ * Decide whether the launcher / worker processes need the tsx loader.
+ */
+export function shouldEnableTsx (
+    configFilePath: string,
+    args: Partial<{ tsConfigPath?: string }> = {},
+    config?: Partial<WebdriverIO.Config>,
+    capabilities?: Capabilities.TestrunnerCapabilities
+): boolean {
+    if (TS_FILE_EXTENSIONS.some((ext) => configFilePath.endsWith(ext))) {
+        return true
+    }
+    if (typeof args.tsConfigPath === 'string' && args.tsConfigPath.length > 0) {
+        return true
+    }
+    if (config && collectConfigPaths(config).some(looksLikeTypeScriptPath)) {
+        return true
+    }
+    return collectCapabilityPaths(capabilities).some(looksLikeTypeScriptPath)
+}
+
+/**
+ * Ensure tsx is registered for the current process and inherited by workers.
+ */
+export async function enableTsx (importMetaUrl = import.meta.url): Promise<string> {
+    const { resolve } = await import('import-meta-resolve')
+    const tsxPath = resolve('tsx', importMetaUrl)
+    if (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes(tsxPath)) {
+        process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS || ''} --import ${tsxPath}`
+    }
+    return tsxPath
+}
+
 export class HookError extends SevereServiceError {
     public origin: string
     constructor(message: string, origin: string) {

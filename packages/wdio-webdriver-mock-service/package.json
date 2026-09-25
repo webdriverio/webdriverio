@@ -27,11 +27,9 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/uuid": "^10.0.0",
     "@wdio/protocols": "workspace:*",
     "@wdio/types": "workspace:*",
-    "nock": "14.0.15",
-    "uuid": "^11.1.0",
+    "undici": "^8.11.2",
     "webdriverio": "workspace:*"
   },
   "devDependencies": {

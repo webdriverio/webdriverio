@@ -46,6 +46,7 @@ export class FetchRequest extends WebDriverRequest {
             // a ProxyAgent or has proxy-specific properties
             if (globalDispatcher && (
                 globalDispatcher.constructor.name === 'ProxyAgent' ||
+                globalDispatcher.constructor.name === 'MockAgent' ||
                 'proxy' in globalDispatcher ||
                 // Also check for other custom dispatcher types
                 (globalDispatcher.constructor.name !== 'Agent' && globalDispatcher.constructor.name !== 'MockAgent')

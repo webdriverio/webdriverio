@@ -68,10 +68,6 @@ class MochaAdapter {
         applyMochaDefaults(mochaOpts)
 
         const mocha = this._mocha = new Mocha(mochaOpts)
-        // @ts-ignore outdated types
-        await mocha.loadFilesAsync({
-            esmDecorator: (file: string) => `${file}?invalidateCache=${Math.random()}`
-        })
         mocha.reporter(NOOP as unknown as Mocha.Reporter)
         mocha.fullTrace()
 

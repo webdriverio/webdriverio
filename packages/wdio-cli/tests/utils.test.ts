@@ -15,6 +15,8 @@ import {
     getRunnerName,
     findInConfig,
     getCapabilities,
+    shouldEnableTsx,
+    looksLikeTypeScriptPath,
 } from '../src/utils.js'
 
 vi.mock('recursive-readdir', () => ({
@@ -357,6 +359,46 @@ describe('getCapabilities', () => {
 
         expect(await getCapabilities({ option: '/path/to/config.js', capabilities: 'myChromeBrowser' } as any))
             .toMatchSnapshot()
+    })
+})
+
+describe('shouldEnableTsx', () => {
+    it('detects TypeScript config files and tsConfigPath', () => {
+        expect(shouldEnableTsx('/tmp/wdio.conf.ts')).toBe(true)
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', { tsConfigPath: './tsconfig.json' })).toBe(true)
+        expect(shouldEnableTsx('/tmp/wdio.conf.js')).toBe(false)
+    })
+
+    it('detects TypeScript specs and require hooks on the config', () => {
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {
+            specs: ['./test/**/*.ts']
+        })).toBe(true)
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {
+            mochaOpts: { require: ['./helpers/setup.ts'] }
+        })).toBe(true)
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {
+            specs: ['./test/**/*.js']
+        })).toBe(false)
+    })
+
+    it('detects TypeScript specs declared on capabilities', () => {
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {}, [{
+            browserName: 'chrome',
+            specs: ['./e2e/**/*.ts']
+        } as WebdriverIO.Capabilities])).toBe(true)
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {}, [{
+            browserName: 'chrome',
+            'wdio:specs': ['./e2e/app.spec.ts']
+        } as WebdriverIO.Capabilities])).toBe(true)
+    })
+})
+
+describe('looksLikeTypeScriptPath', () => {
+    it('matches common TypeScript path forms', () => {
+        expect(looksLikeTypeScriptPath('./foo.ts')).toBe(true)
+        expect(looksLikeTypeScriptPath('./foo.tsx')).toBe(true)
+        expect(looksLikeTypeScriptPath('./foo/**/*.mts')).toBe(true)
+        expect(looksLikeTypeScriptPath('./foo.js')).toBe(false)
     })
 })
 
