@@ -173,12 +173,12 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                     /**
                      * Inline scripts become `<page>?html-proxy` modules. The document
                      * URL already has a query (`cid`, `spec`); passing it through adds
-                     * a second `?`, which Safari will not fetch. A path of `/` makes
-                     * Vite emit a virtual `/@id/__x00__/` URL, which Safari never
-                     * requests. The id has to be a file that exists under the Vite
-                     * root and is not JSON, or `vite:json` parses the HTML as JSON.
+                     * a second `?`, which Safari will not fetch. Vite 7 turns a path
+                     * of `/` into `/@id/__x00__/`, which Safari never requests. Use an
+                     * HTML file that exists under the Vite root so the module URL stays
+                     * a normal `*.html?html-proxy` path.
                      */
-                    const pagePath = '/AGENTS.md'
+                    const pagePath = '/wdio/headless/__fixtures__/test.html'
                     try {
                         const template = await getTemplate(options, env, spec)
                         log.debug(`Render template for ${req.originalUrl}`)

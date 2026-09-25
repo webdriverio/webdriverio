@@ -118,7 +118,7 @@ test('configureServer continues if no url given', async () => {
     expect(getTemplate).toBeCalledTimes(1)
     expect(next).not.toBeCalled()
     expect(res.end).toBeCalledWith([
-        '/AGENTS.md',
+        '/wdio/headless/__fixtures__/test.html',
         'some html'
     ])
     next.mockClear()
@@ -131,7 +131,7 @@ test('configureServer continues if no url given', async () => {
     expect(getErrorTemplate).toBeCalledTimes(1)
     expect(next).not.toBeCalled()
     expect(res.end).toBeCalledWith([
-        '/AGENTS.md',
+        '/wdio/headless/__fixtures__/test.html',
         'some error html'
     ])
 })
