@@ -58,6 +58,7 @@
     "test:component:run": "cd e2e && pnpm test:browser",
     "test:smoke": "cd ./tests && node ./smoke.runner.js",
     "test:smoke:list": "tsx ./infra/repo-tools/src/smoke-list.ts",
+    "bench:runner": "cd ./tests && WDIO_UNIT_TESTS=1 node ./benchmark/runner.js",
     "test:e2e:testrunner": "cd ./e2e && npx wdio run ./wdio/wdio.conf.ts",
     "test:e2e:lighthouse": "cd ./e2e && npx wdio run ./wdio/lighthouse.conf.ts",
     "test:e2e:multiremote": "cd ./e2e && npx wdio run ./wdio/wdio-multiRemote.conf.ts",
