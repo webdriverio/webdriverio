@@ -457,6 +457,37 @@ test('expectationResultHandler failing', () => {
     )
 })
 
+test('expectationResultHandler records a thrown handler as a failure', () => {
+    const origHandler = vi.fn()
+    const err = new Error('uuups')
+    const config = { jasmineOpts: { expectationResultHandler: () => {
+        throw err
+    } } }
+    const adapter = adapterFactory(config)
+    const lastTest = {
+        failedExpectations: [] as { passed?: boolean, message?: string }[],
+        passedExpectations: [] as unknown[],
+        [Symbol.for('wdio.jasmine.recordedExpectations')]: true
+    }
+    adapter['_lastTest'] = lastTest as any
+    adapter['_jrunner'] = {
+        jasmine: {
+            private: {
+                buildExpectationResult: (options: { message?: string, passed?: boolean }) => options
+            }
+        }
+    } as any
+
+    const resultHandler = adapter.expectationResultHandler(origHandler)
+    // @ts-ignore mock feature
+    resultHandler(true, { message: 'ok' })
+    expect(lastTest.passedExpectations).toHaveLength(0)
+    expect(lastTest.failedExpectations).toEqual([expect.objectContaining({
+        passed: false,
+        message: 'expectationResultHandlerError: uuups'
+    })])
+})
+
 test('expectationResultHandler failing with failing test', () => {
     const origHandler = vi.fn()
     const config = { jasmineOpts: { expectationResultHandler: () => {

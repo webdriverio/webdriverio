@@ -269,9 +269,18 @@ class JasmineAdapter {
          */
         restoreExpectationContext(jasmine)
         const internals = jasmineInternals(jasmine)
+        const origAddExpectationResult = internals.Spec.prototype.addExpectationResult
         const expectationHandler = this.getExpectationResultHandler(internals)
+        const recordsBeforeHandler = expectationHandler === origAddExpectationResult
         internals.Spec.prototype.addExpectationResult = function (passed: boolean, data: { matcherName?: string, message?: string, expected?: unknown, actual?: unknown, error?: Error, errorForStack?: Error }, isError?: boolean) {
-            recordExpectation(self._lastTest as never, jasmine, passed, data)
+            /**
+             * A custom handler can turn a passing assertion into a failure.
+             * That path records the adjusted result itself. Recording here
+             * first would leave afterTest with a pass Jasmine already failed.
+             */
+            if (recordsBeforeHandler) {
+                recordExpectation(self._lastTest as never, jasmine, passed, data)
+            }
             return expectationHandler.call(this, passed, data, isError)
         }
 
@@ -562,6 +571,7 @@ class JasmineAdapter {
 
     expectationResultHandler (origHandler: Function) {
         const { expectationResultHandler } = this._jasmineOpts
+        const adapter = this
         return function (this: jasmine.Spec, passed: boolean, data: ResultHandlerPayload) {
             try {
                 expectationResultHandler!.call(this, passed, data)
@@ -580,6 +590,10 @@ class JasmineAdapter {
                 }
             }
 
+            const jasmineInterface = adapter['_jrunner']?.jasmine
+            if (jasmineInterface) {
+                recordExpectation(adapter['_lastTest'] as never, jasmineInterface, passed, data)
+            }
             return origHandler.call(this, passed, data)
         }
     }

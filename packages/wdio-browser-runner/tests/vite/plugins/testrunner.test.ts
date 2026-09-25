@@ -114,6 +114,17 @@ test('configureServer continues if no url given', async () => {
     next.mockClear()
 
     vi.mocked(getTemplate).mockResolvedValue('some html')
+    await middleware({
+        ...req,
+        originalUrl: 'http://localhost:1234/?cid=1-2&spec=/tests/html-proxy/example.ts'
+    }, res, next)
+    expect(getTemplate).toBeCalledTimes(1)
+    expect(next).not.toBeCalled()
+    next.mockClear()
+    res.end.mockClear()
+    vi.mocked(getTemplate).mockClear()
+
+    vi.mocked(getTemplate).mockResolvedValue('some html')
     await middleware({ ...req, originalUrl: 'http://localhost:1234/?cid=1-2&spec=foobar' }, res, next)
     expect(getTemplate).toBeCalledTimes(1)
     expect(next).not.toBeCalled()

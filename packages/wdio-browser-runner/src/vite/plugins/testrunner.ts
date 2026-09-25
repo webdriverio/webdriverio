@@ -148,8 +148,10 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                         /**
                          * Vite turns inline scripts into `?html-proxy` modules. Those
                          * requests carry the session cookies, but they are not the test page.
+                         * Match the query parameter only, so a spec path that contains
+                         * the text `html-proxy` still renders.
                          */
-                        req.originalUrl.includes('html-proxy')
+                        new URL(req.originalUrl, 'http://localhost').searchParams.has('html-proxy')
                     ) {
                         return next()
                     }

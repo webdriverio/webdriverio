@@ -173,24 +173,23 @@ export class ViteServer extends EventEmitter {
             return
         }
 
-        const urls = [
+        const sharedUrls = [
             '@wdio/browser-runner/setup',
-            '@wdio/browser-runner/third_party/mocha.js',
-            ...specPaths.map((specPath) => specToViteUrl(specPath, root))
+            '@wdio/browser-runner/third_party/mocha.js'
         ]
-        let seen = ''
-        for (let pass = 0; pass < 4; pass++) {
-            for (const specPath of specPaths) {
-                this.#hoisting.prime?.(specPath)
-            }
-            /**
-             * Specs rewrite static imports into `import()` so mocks can run
-             * first. Vite only pre-transforms static imports, so follow the
-             * dynamic ones or their dependencies show up after the browser
-             * has already loaded the page.
-             */
+        /**
+         * Specs rewrite static imports into `import()` so mocks can run
+         * first. Vite only pre-transforms static imports, so follow the
+         * dynamic ones or their dependencies show up after the browser
+         * has already loaded the page.
+         *
+         * Prime one spec at a time. Priming every spec up front leaves only
+         * the last one active, and earlier specs are then cached without
+         * their mocks hoisted.
+         */
+        const crawl = async (startUrls: string[]) => {
             const visited = new Set<string>()
-            const queue = [...urls]
+            const queue = [...startUrls]
             while (queue.length) {
                 const url = queue.shift()!
                 if (!url || visited.has(url) || url.includes('node_modules') || url.includes('\0')) {
@@ -212,6 +211,15 @@ export class ViteServer extends EventEmitter {
                 } catch (err) {
                     log.debug(`Failed to prebundle ${url}: ${(err as Error).message}`)
                 }
+            }
+        }
+
+        let seen = ''
+        for (let pass = 0; pass < 4; pass++) {
+            await crawl(sharedUrls)
+            for (const specPath of specPaths) {
+                this.#hoisting.prime?.(specPath)
+                await crawl([specToViteUrl(specPath, root)])
             }
             await new Promise((resolve) => setTimeout(resolve, 400))
             const optimized = Object.keys(environment.depsOptimizer?.metadata.optimized ?? {}).sort().join('\n')
