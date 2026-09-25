@@ -185,8 +185,25 @@ export class ViteServer extends EventEmitter {
          *
          * Prime one spec at a time. Priming every spec up front leaves only
          * the last one active, and earlier specs are then cached without
-         * their mocks hoisted.
+         * their mocks hoisted. Drop user-module transforms between specs
+         * so a helper cached for one spec is rewritten for the next. The
+         * optimized dependency cache stays. After the last spec, drop those
+         * transforms again so the browser rewrites them for the spec it
+         * actually loads.
          */
+        const forgetUserModules = () => {
+            const graph = environment.moduleGraph
+            if (!graph?.idToModuleMap || !graph.invalidateModule) {
+                return
+            }
+            for (const mod of [...graph.idToModuleMap.values()]) {
+                const id = mod.id || mod.url || ''
+                if (id.includes('node_modules') || id.includes('\0')) {
+                    continue
+                }
+                graph.invalidateModule(mod)
+            }
+        }
         const crawl = async (startUrls: string[]) => {
             const visited = new Set<string>()
             const queue = [...startUrls]
@@ -219,6 +236,7 @@ export class ViteServer extends EventEmitter {
             await crawl(sharedUrls)
             for (const specPath of specPaths) {
                 this.#hoisting.prime?.(specPath)
+                forgetUserModules()
                 await crawl([specToViteUrl(specPath, root)])
             }
             await new Promise((resolve) => setTimeout(resolve, 400))
@@ -228,6 +246,7 @@ export class ViteServer extends EventEmitter {
             }
             seen = optimized
         }
+        forgetUserModules()
     }
 
     async close () {
