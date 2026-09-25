@@ -25,7 +25,7 @@
       "import": "./build/index.js"
     }
   },
-  "typeScriptVersion": "3.8.3",
+  "typeScriptVersion": "5.9.3",
   "dependencies": {
     "@wdio/protocols": "workspace:*",
     "@wdio/types": "workspace:*",

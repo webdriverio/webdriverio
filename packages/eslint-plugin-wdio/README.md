@@ -20,34 +20,17 @@ npm install eslint-plugin-wdio --save-dev
 
 ## Recommended configuration
 
-This plugin exports a recommended configuration that enforces good practices.
-
-### With ESLint v8 and below
-
-To enable this configuration use the `extends` property in your `.eslintrc` config file:
-
-```json
-{
-    "plugins": ["wdio"],
-    "extends": [
-        "eslint:recommended",
-        "plugin:wdio/recommended"
-    ]
-}
-```
-
-### With ESLint v9 and Flat Config
-
-If you are using the latest version of ESLint with the [flat configuration](https://eslint.org/docs/latest/use/configure/migration-guide), you can embed this plugin as follows:
+This plugin exports a flat config that enforces good practices. Add it to `eslint.config.mjs`:
 
 ```js
-// eslint.config.mjs
 import { configs as wdioConfig } from "eslint-plugin-wdio";
 
 export default [
     wdioConfig['flat/recommended'],
 ];
 ```
+
+The eslintrc export `plugin:wdio/recommended` is gone. ESLint 9 flat config is the supported setup.
 
 See [ESLint documentation](https://eslint.org/docs/latest/use/configure/configuration-files) for more information about extending configuration files.
 

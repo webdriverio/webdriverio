@@ -1,4 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/**
+ * Absolute files are imported through Vite's `/@fs/` prefix so the browser
+ * requests a module URL rather than a bare filesystem path.
+ */
+export function toViteFsUrl (file: string) {
+    if (file.startsWith('/@fs/') || file.startsWith('http://') || file.startsWith('https://')) {
+        return file
+    }
+    const normalized = file.replace(/\\/g, '/')
+    const absolute = normalized.startsWith('/') ? normalized.slice(1) : normalized
+    return `/@fs/${absolute}`
+}
+
 export function getCID() {
     const urlParamString = new URLSearchParams(window.location.search)
     const cid = (

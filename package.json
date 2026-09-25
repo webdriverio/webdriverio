@@ -115,7 +115,7 @@
     "mime-types": "^3.0.2",
     "npm-run-all2": "^8.0.4",
     "oxlint": "^1.83.0",
-    "puppeteer-core": "^24.43.1",
+    "puppeteer-core": "^25.11.0",
     "recast": "^0.23.21",
     "recursive-readdir": "^2.2.3",
     "rimraf": "^6.1.3",

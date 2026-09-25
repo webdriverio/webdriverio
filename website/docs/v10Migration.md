@@ -120,3 +120,27 @@ An element remembers how it was queried, so re-fetching it — after a stale ele
 Under the hood a strict `$` issues a `findElements` request instead of `findElement`, since counting the matches is the only way to enforce the rule. This is a single round trip either way, but it is visible to custom services and WebDriver mocks that key off the `findElement` command.
 
 :::
+
+## Jasmine
+
+`@wdio/jasmine-framework` depends on [Jasmine 6](https://jasmine.github.io/upgrade-guides/6.0). Jasmine 6 needs Node.js 20, 22, or 24, which the v10 floor of 22.19.0 already covers.
+
+## Puppeteer
+
+`webdriverio` accepts `puppeteer-core` `>=24 <26`, including Puppeteer 25. `getPuppeteer()` and `@wdio/lighthouse-service` are tested against that line.
+
+## ESLint
+
+`eslint-plugin-wdio` exports only the flat config `flat/recommended`. The eslintrc name `plugin:wdio/recommended` is removed.
+
+```js
+import { configs as wdioConfig } from 'eslint-plugin-wdio'
+
+export default [
+    wdioConfig['flat/recommended'],
+]
+```
+
+## TypeScript
+
+Published packages set `typeScriptVersion` to 5.9.3, matching the TypeScript version this repository compiles with.

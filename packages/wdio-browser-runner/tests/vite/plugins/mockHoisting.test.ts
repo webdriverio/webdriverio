@@ -33,7 +33,9 @@ const mockHandler: any = {
 }
 
 test('exposes correct format', () => {
-    expect(mockHoisting(mockHandler)).toEqual([{
+    const plugins = mockHoisting(mockHandler)
+    expect(plugins.prime).toBeTypeOf('function')
+    expect(Array.from(plugins)).toEqual([{
         name: 'wdio:mockHoisting:pre',
         enforce: 'pre',
         load: expect.any(Function),
@@ -65,7 +67,7 @@ test('transforms test file properly for mocking', () => {
     delete newCode.map.sources
 
     expect(newCode).toMatchSnapshot()
-    expect(mockHandler.resetMocks).toBeCalledTimes(1)
+    expect(mockHandler.resetMocks).toBeCalledTimes(2)
 })
 
 test('transforms any other imported file properly for mocking', () => {

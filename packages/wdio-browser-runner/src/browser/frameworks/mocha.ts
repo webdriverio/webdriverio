@@ -3,7 +3,7 @@ import safeStringify from 'safe-stringify'
 import { applyMochaDefaults, setupEnv, formatMessage } from '@wdio/mocha-framework/common'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 
-import { getCID, filterTestArgument } from '../utils.js'
+import { getCID, filterTestArgument, toViteFsUrl } from '../utils.js'
 import { EVENTS, WDIO_EVENT_NAME } from '../../constants.js'
 
 const startTime = Date.now()
@@ -90,7 +90,7 @@ export class MochaFramework extends HTMLElement {
         const globalTeardownScripts: Function[] = []
         const globalSetupScripts: Function[] = []
         for (const r of this.#require) {
-            const { mochaGlobalSetup, mochaGlobalTeardown } = (await import(/* @vite-ignore */r)) || {}
+            const { mochaGlobalSetup, mochaGlobalTeardown } = (await import(/* @vite-ignore */ toViteFsUrl(r))) || {}
             if (typeof mochaGlobalSetup === 'function') {
                 globalSetupScripts.push(mochaGlobalSetup)
             }
@@ -114,7 +114,7 @@ export class MochaFramework extends HTMLElement {
          * import test case (order is important here)
          */
         const file = this.#spec
-        await import(/* @vite-ignore */file)
+        await import(/* @vite-ignore */ toViteFsUrl(file))
 
         /**
          * run setup scripts
