@@ -124,7 +124,14 @@ export const testFrameworkFnWrapper = async function (
         /**
          * To address skipping tests for Mocha and Jasmine
          */
-        if (!(JSON.stringify(_err, Object.getOwnPropertyNames(_err)).includes('sync skip; aborting execution') || JSON.stringify(_err, Object.getOwnPropertyNames(_err)).includes('marked Pending'))) {
+        const errMessage = _err instanceof Error
+            ? _err.message
+            : (typeof _err === 'string' ? _err : '')
+        const isFrameworkSkip = (
+            errMessage.includes('sync skip; aborting execution') ||
+            errMessage.includes('marked Pending')
+        )
+        if (!isFrameworkSkip) {
             const err = _err instanceof Error
                 ? _err
                 : new Error(
