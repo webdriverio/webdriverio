@@ -421,38 +421,6 @@ async function findElementsViaClassic(
 type BidiStartNode = { sharedId: string }
 
 /**
- * Compute the `startNodes` for a `browsingContext.locateNodes` call.
- *
- * Shadow roots are only valid start nodes for locators the browser resolves by
- * walking the tree. An XPath expression needs an element or a document as its
- * context node, so a shadow root - a `DocumentFragment` - makes the browser reject
- * the whole command, e.g. in Chrome:
- *
- *   NotSupportedError: Failed to execute 'evaluate' on 'XPathExpression': The node
- *   provided is '#document-fragment', which is not a valid context node type.
- *
- * Every XPath lookup on a page that has a shadow root therefore failed, logged a
- * warning and fell back to WebDriver Classic. Classic searches the light DOM only,
- * which is also all an XPath expression can reach, so leaving the shadow roots out
- * keeps the result identical while dropping the failed round trip.
- */
-function getBidiStartNodes(
-    locator: remote.BrowsingContextLocator,
-    elementId: string | undefined,
-    shadowRoots: string[]
-): BidiStartNode[] | undefined {
-    const shadowRootStartNodes = locator.type === 'xpath'
-        ? []
-        : shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
-
-    if (elementId) {
-        return [{ sharedId: elementId }, ...shadowRootStartNodes]
-    }
-
-    return shadowRootStartNodes.length > 0 ? shadowRootStartNodes : undefined
-}
-
-/**
  * Retry an `aria/` lookup with the XPath heuristic, searching the same
  * shadow-root start nodes as the primary BiDi query. Classic XPath is
  * used when BiDi rejects the relative expression or finds nothing.
@@ -587,6 +555,26 @@ export async function findDeepElement(
     const isScopedContext = shadowRoots.length > 0 || Boolean((this as WebdriverIO.Element).elementId)
     ;({ using, value } = applyFirefoxRootSelectorWorkaround(using, value, isScopedContext, browser))
 
+    /**
+     * An XPath expression needs an element or a document as its context node. A
+     * shadow root is a `DocumentFragment`, so `browsingContext.locateNodes` rejects
+     * the whole call as soon as one appears in `startNodes`, e.g. in Chrome:
+     *
+     *   NotSupportedError: Failed to execute 'evaluate' on 'XPathExpression': The node
+     *   provided is '#document-fragment', which is not a valid context node type.
+     *
+     * Every XPath lookup on a page that has a shadow root therefore failed, logged a
+     * warning and ran a second time through Classic (#14313). Leaving the shadow roots
+     * out of `startNodes` is not enough to keep the result the same: an XPath
+     * expression cannot cross a shadow boundary either, and Classic queries every
+     * known shadow root on its own, which is what keeps a match inside Shadow DOM
+     * findable. Use that path directly instead - it returns what the fallback already
+     * returned, in one round trip less and without the warning.
+     */
+    if (using === 'xpath' && shadowRoots.length > 0) {
+        return findElementViaClassic(this, browser, using, value, shadowRoots)
+    }
+
     const locator = transformClassicToBidiSelector(using, value)
 
     /**
@@ -598,11 +586,14 @@ export async function findDeepElement(
      * versa. Extra candidates from the scope itself are safe: they're narrowed
      * back down by the containment check below.
      */
-    const startNodes = getBidiStartNodes(
-        locator,
-        (this as WebdriverIO.Element).elementId,
-        shadowRoots
-    )
+    const startNodes = (this as WebdriverIO.Element).elementId
+        ? [
+            { sharedId: (this as WebdriverIO.Element).elementId },
+            ...shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
+        ]
+        : shadowRoots.length > 0
+            ? shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
+            : undefined
     const deepElementResult = await browser.browsingContextLocateNodes({ locator, context, startNodes }).then(async (result) => {
         let nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
             [ELEMENT_KEY]: node.sharedId as string,
@@ -734,6 +725,14 @@ export async function findDeepElements(
     const isScopedContext = shadowRoots.length > 0 || Boolean((this as WebdriverIO.Element).elementId)
     ;({ using, value } = applyFirefoxRootSelectorWorkaround(using, value, isScopedContext, browser))
 
+    /**
+     * See `findDeepElement`: a shadow root is not a valid XPath context node, and
+     * only Classic can reach an XPath match inside one.
+     */
+    if (using === 'xpath' && shadowRoots.length > 0) {
+        return findElementsViaClassic(this, browser, using, value, shadowRoots)
+    }
+
     const locator = transformClassicToBidiSelector(using, value)
 
     /**
@@ -745,11 +744,14 @@ export async function findDeepElements(
      * versa. Extra candidates from the scope itself are safe: they're narrowed
      * back down by the containment check below.
      */
-    const startNodes = getBidiStartNodes(
-        locator,
-        (this as WebdriverIO.Element).elementId,
-        shadowRoots
-    )
+    const startNodes = (this as WebdriverIO.Element).elementId
+        ? [
+            { sharedId: (this as WebdriverIO.Element).elementId },
+            ...shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
+        ]
+        : shadowRoots.length > 0
+            ? shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
+            : undefined
     const deepElementResult = await browser.browsingContextLocateNodes({ locator, context, startNodes }).then(async (result) => {
         let nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId))
             .map((node) => ({
