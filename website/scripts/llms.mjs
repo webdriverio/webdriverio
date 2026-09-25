@@ -161,6 +161,40 @@ for (const { bundle, label, pages } of bundles) {
     fs.writeFileSync(path.join(BUILD_DIR, bundle), content)
 }
 
+/**
+ * The llms-txt plugin also writes a per-locale index. Those are not replaced
+ * by the curated English index, and a locale build can list pages (such as
+ * search) that have no Markdown twin. Drop those lines so every remaining
+ * link is a file in the build.
+ */
+function pageExists (pathname) {
+    const clean = decodeURIComponent(pathname.split('#')[0]).replace(/\/$/, '')
+    return [
+        path.join(BUILD_DIR, clean),
+        path.join(BUILD_DIR, `${clean}.html`),
+        path.join(BUILD_DIR, clean, 'index.html'),
+    ].some((candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isFile())
+}
+
+for (const entry of fs.readdirSync(BUILD_DIR, { withFileTypes: true })) {
+    if (!entry.isDirectory()) {
+        continue
+    }
+    const index = path.join(BUILD_DIR, entry.name, 'llms.txt')
+    if (!fs.existsSync(index)) {
+        continue
+    }
+    const lines = fs.readFileSync(index, 'utf-8').split('\n')
+    const kept = lines.filter((line) => {
+        const match = line.match(/\]\((?:https:\/\/webdriver\.io)?(\/[^)\s]+)\)/)
+        return !match || pageExists(match[1])
+    })
+    if (kept.length !== lines.length) {
+        fs.writeFileSync(index, `${kept.join('\n')}\n`)
+        console.log(`Dropped ${lines.length - kept.length} broken link(s) from ${entry.name}/llms.txt`)
+    }
+}
+
 const size = (file) => `${Math.round(fs.statSync(path.join(BUILD_DIR, file)).size / 1024)} KB`
 console.log(`Wrote llms.txt (${size('llms.txt')}) and ${bundles.length} bundles:`)
 for (const { bundle, pages } of bundles) {

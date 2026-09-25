@@ -340,6 +340,7 @@ const config: Config = {
                     includePages: false,
                     excludeRoutes: [
                         '/search',
+                        '**/search',
                         '/404',
                     ],
                 },
