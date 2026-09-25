@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
+import React from 'react'
 import clsx from 'clsx'
 import Link from '@docusaurus/Link'
 import CodeBlock from '@theme/CodeBlock'
 import { translate } from '@docusaurus/Translate'
 
 import styles from './home.module.css'
+import { panelId, tabId, useRovingTabs } from './useRovingTabs'
 
 const PLATFORMS = [{
     id: 'browser',
@@ -110,19 +111,24 @@ describe('Homepage', () => {
 })`
 }] as const
 
+const PLATFORM_IDS = PLATFORMS.map((p) => p.id)
+
 export default function Platforms () {
-    const [active, setActive] = useState<string>(PLATFORMS[0].id)
+    const { active, setActive, onKeyDown } = useRovingTabs(PLATFORM_IDS, PLATFORM_IDS[0])
     const platform = PLATFORMS.find((p) => p.id === active)!
 
     return (
         <div className={styles.platforms}>
-            <div className={styles.platformTabs} role="tablist" aria-label="Platforms">
+            <div className={styles.platformTabs} role="tablist" aria-label="Platforms" onKeyDown={onKeyDown}>
                 {PLATFORMS.map((p) => (
                     <button
                         key={p.id}
+                        id={tabId(p.id)}
                         type="button"
                         role="tab"
                         aria-selected={p.id === active}
+                        aria-controls={panelId(p.id)}
+                        tabIndex={p.id === active ? 0 : -1}
                         className={clsx(styles.platformTab, p.id === active && styles.platformTabActive)}
                         onClick={() => setActive(p.id)}
                     >
@@ -130,7 +136,13 @@ export default function Platforms () {
                     </button>
                 ))}
             </div>
-            <div className={styles.platformPanel} role="tabpanel">
+            <div
+                id={panelId(active)}
+                className={styles.platformPanel}
+                role="tabpanel"
+                aria-labelledby={tabId(active)}
+                tabIndex={0}
+            >
                 <div className={styles.platformText}>
                     <h3>{platform.title}</h3>
                     <ul>

@@ -145,6 +145,12 @@
     color: var(--wdio-text);
 }
 
+.installTab:focus-visible,
+.platformTab:focus-visible {
+    outline: 2px solid var(--ifm-color-primary);
+    outline-offset: 2px;
+}
+
 .installCommand {
     display: flex;
     align-items: center;

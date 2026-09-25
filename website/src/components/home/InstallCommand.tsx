@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import clsx from 'clsx'
 
 import styles from './home.module.css'
+import { panelId, tabId, useRovingTabs } from './useRovingTabs'
 
 const COMMANDS = {
     npm: 'npm init wdio@latest .',
@@ -12,8 +13,10 @@ const COMMANDS = {
 
 type Manager = keyof typeof COMMANDS
 
+const MANAGERS = Object.keys(COMMANDS) as Manager[]
+
 export default function InstallCommand () {
-    const [manager, setManager] = useState<Manager>('npm')
+    const { active: manager, setActive: setManager, onKeyDown } = useRovingTabs(MANAGERS, 'npm')
     const [copied, setCopied] = useState(false)
 
     const copy = async () => {
@@ -28,13 +31,16 @@ export default function InstallCommand () {
 
     return (
         <div className={styles.install}>
-            <div className={styles.installTabs} role="tablist" aria-label="Package manager">
-                {(Object.keys(COMMANDS) as Manager[]).map((name) => (
+            <div className={styles.installTabs} role="tablist" aria-label="Package manager" onKeyDown={onKeyDown}>
+                {MANAGERS.map((name) => (
                     <button
                         key={name}
+                        id={tabId(name)}
                         type="button"
                         role="tab"
                         aria-selected={manager === name}
+                        aria-controls={panelId(name)}
+                        tabIndex={manager === name ? 0 : -1}
                         className={clsx(styles.installTab, manager === name && styles.installTabActive)}
                         onClick={() => setManager(name)}
                     >
@@ -42,7 +48,7 @@ export default function InstallCommand () {
                     </button>
                 ))}
             </div>
-            <div className={styles.installCommand}>
+            <div id={panelId(manager)} className={styles.installCommand} role="tabpanel" aria-labelledby={tabId(manager)}>
                 <code>
                     <span className={styles.prompt} aria-hidden="true">$</span> {COMMANDS[manager]}
                 </code>
