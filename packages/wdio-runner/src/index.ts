@@ -8,7 +8,7 @@ import { _setGlobal } from '@wdio/globals'
 import { expect, setDefaultOptions, getDefaultOptions, wdioCustomMatchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
 import type { Browser, Selector } from 'webdriverio'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options, Capabilities, CustomCommands } from '@wdio/types'
 
 import BrowserFramework from './browser.js'
 import BaseReporter from './reporter.js'
@@ -360,7 +360,7 @@ export default class Runner extends EventEmitter {
              * test started, e.g. after all imports
              */
             const customStubCommands: CustomStubCommand[] = (this._browser as any | undefined)?.customCommands || []
-            const overwrittenCommands: [any, (...args: any[]) => any, boolean][] = (this._browser as any | undefined)?.overwrittenCommands || []
+            const overwrittenCommands: [any, (...args: any[]) => any, CustomCommands.CustomCommandOptions<boolean>][] = (this._browser as any | undefined)?.overwrittenCommands || []
 
             const browser = await initializeInstance(config, caps, this._isMultiremote)
             this._browser = browser

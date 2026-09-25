@@ -3,7 +3,7 @@ import logger from '@wdio/logger'
 
 import WebDriver, { DEFAULTS } from 'webdriver'
 import { validateConfig } from '@wdio/config'
-import { enableFileLogging, wrapCommand, isBidi } from '@wdio/utils'
+import { enableFileLogging, wrapCommand, isBidi, resolveCustomCommandOptions } from '@wdio/utils'
 import type { Options, Capabilities } from '@wdio/types'
 import type * as WebDriverTypes from 'webdriver'
 
@@ -186,20 +186,18 @@ export const multiremote = async function (
      */
     if (!isStub(automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
-        driver.addCommand = function (name: string, fn: any, attachToElementOrOptions?: boolean | CustomCommandOptions<boolean>): void {
-            const options: CustomCommandOptions<boolean> = (typeof attachToElementOrOptions === 'object' && attachToElementOrOptions !== null)
-                ? attachToElementOrOptions
-                : { attachToElement: attachToElementOrOptions } satisfies CustomCommandOptions<boolean>
+        driver.addCommand = function (name: string, fn: any, options?: CustomCommandOptions<boolean>): void {
+            const resolved = resolveCustomCommandOptions('addCommand', options)
 
             driver.instances.forEach(instanceName =>
-                driver.getInstance(instanceName)!.addCommand(name, fn, options)
+                driver.getInstance(instanceName)!.addCommand(name, fn, resolved)
             )
 
             return origAddCommand(
                 name,
                 fn,
                 {
-                    attachToElement: options.attachToElement,
+                    attachToElement: resolved.attachToElement,
                     proto: Object.getPrototypeOf(multibrowser.baseInstance),
                     instances: multibrowser.instances
                 }
@@ -207,13 +205,16 @@ export const multiremote = async function (
         }
 
         const origOverwriteCommand = driver.overwriteCommand.bind(driver) as typeof driver.overwriteCommand
-        driver.overwriteCommand = (name, fn, attachToElement) => {
+        driver.overwriteCommand = (name, fn, options) => {
+            const resolved = resolveCustomCommandOptions('overwriteCommand', options)
             return origOverwriteCommand<keyof typeof elementCommands, any, any>(
                 name,
                 fn,
-                attachToElement,
-                Object.getPrototypeOf(multibrowser.baseInstance),
-                multibrowser.instances
+                {
+                    attachToElement: resolved.attachToElement,
+                    proto: Object.getPrototypeOf(multibrowser.baseInstance),
+                    instances: multibrowser.instances
+                }
             )
         }
     }

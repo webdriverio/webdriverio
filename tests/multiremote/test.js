@@ -74,7 +74,7 @@ describe('smoke test multiremote', () => {
                 const start = Date.now() - 1
                 await browser.pause(30)
                 return Promise.resolve(Date.now() - start)
-            }, true)
+            }, { attachToElement: true })
             const elem = await $('elem')
             const results = await elem.myCustomPromiseCommand()
 
@@ -113,7 +113,7 @@ describe('smoke test multiremote', () => {
             browser.overwriteCommand('getSize', async function (origCommand, ratio = 1) {
                 const { width, height } = await origCommand()
                 return { width: width * ratio, height: height * ratio }
-            }, true)
+            }, { attachToElement: true })
             const elem = await $('elem')
 
             assert.equal(
@@ -147,7 +147,7 @@ describe('smoke test multiremote', () => {
             await browser.customCommandScenario(Object.keys(browser.instances).length)
             browser.overwriteCommand('getHTML', async function (origCommand) {
                 return Promise.resolve('' + await origCommand())
-            }, true)
+            }, { attachToElement: true })
             const elem = await $('elem')
 
             assert.equal(await elem.getHTML(), '2,2')

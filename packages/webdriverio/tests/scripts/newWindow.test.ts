@@ -7,9 +7,9 @@ describe('newWindow script', () => {
     })
 
     it('should check if elem is active', () => {
-        newWindow('foo', 'bar', 'loo')
+        newWindow('foo')
         expect(vi.mocked(global.window.open).mock.calls).toHaveLength(1)
-        expect(vi.mocked(global.window.open).mock.calls[0]).toEqual(['foo', 'bar', 'loo'])
+        expect(vi.mocked(global.window.open).mock.calls[0]).toEqual(['foo'])
     })
 
     afterEach(() => {

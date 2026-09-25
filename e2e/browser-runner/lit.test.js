@@ -402,8 +402,8 @@ describe('Lit Component testing', () => {
                 html`<div><div><div>Find me</div></div></div>`,
                 document.body
             )
-            expect(await $('div=Find me').getHTML(false)).toBe('Find me')
-            expect(await $('div*=me').getHTML(false)).toBe('Find me')
+            expect(await $('div=Find me').getHTML({ includeSelectorTag: false })).toBe('Find me')
+            expect(await $('div*=me').getHTML({ includeSelectorTag: false })).toBe('Find me')
         })
 
         it('fetches inner element by content correctly', async () => {
@@ -411,7 +411,7 @@ describe('Lit Component testing', () => {
                 html`<div><div><span>Find me</span></div></div>`,
                 document.body
             )
-            expect(await $('div*=me').getHTML(false)).toBe('<span>Find me</span>')
+            expect(await $('div*=me').getHTML({ includeSelectorTag: false })).toBe('<span>Find me</span>')
         })
 
         it('fetches inner element by content correctly with class names', async () => {
@@ -490,8 +490,8 @@ describe('Lit Component testing', () => {
                 html`<button><span>Click Me!</span></button>`,
                 document.body
             )
-            expect(await $('span=Click Me!').getHTML(false)).toBe('Click Me!')
-            expect(await $('button=Click Me!').getHTML(false)).toBe('<span>Click Me!</span>')
+            expect(await $('span=Click Me!').getHTML({ includeSelectorTag: false })).toBe('Click Me!')
+            expect(await $('button=Click Me!').getHTML({ includeSelectorTag: false })).toBe('<span>Click Me!</span>')
             const elem = $('button=Click Me!')
             await expect(elem).toHaveText('Click Me!')
         })
@@ -587,7 +587,7 @@ describe('Lit Component testing', () => {
                     html`<div><div><div>Find me</div></div></div>`,
                     document.body
                 )
-                expect(await $('aria/Find me').getHTML(false)).toBe('Find me')
+                expect(await $('aria/Find me').getHTML({ includeSelectorTag: false })).toBe('Find me')
             })
 
             it('images with an alt tag', async () => {

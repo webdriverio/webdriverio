@@ -94,7 +94,7 @@ describe('Mocha smoke test', () => {
             function (this: WebdriverIO.Element) {
                 return Promise.resolve('foo').then((r) => `${r}_${this.selector}_bar`)
             },
-            true
+            { attachToElement: true }
         )
 
         // @ts-expect-error invalid type assertion
@@ -240,7 +240,7 @@ describe('Mocha smoke test', () => {
             await browser.customCommandScenario()
             browser.addCommand('myCustomPromiseCommand', function () {
                 return Promise.resolve('foobar')
-            }, true)
+            }, { attachToElement: true })
             const elem = await $('elem')
 
             // @ts-expect-error custom command
@@ -266,7 +266,7 @@ describe('Mocha smoke test', () => {
             browser.overwriteCommand('getSize', (async (origCommand: Function, ratio = 1) => {
                 const { width, height } = await origCommand()
                 return { width: width * ratio, height: height * ratio }
-            }) as any, true)
+            }) as any, { attachToElement: true })
             const elem = await $('elem')
 
             assert.equal(
@@ -283,7 +283,7 @@ describe('Mocha smoke test', () => {
                 const elemAlt = await $('elemAlt')
                 const { width, height } = await origCommand.call(elemAlt)
                 return { width: width * ratio, height: height * ratio }
-            }) as any, true)
+            }) as any, { attachToElement: true })
             const elem = await $('elem')
 
             assert.equal(
@@ -328,7 +328,7 @@ describe('Mocha smoke test', () => {
             await browser.customCommandScenario()
             browser.overwriteCommand('getHTML', async function (origCommand) {
                 return Promise.resolve(await origCommand())
-            }, true)
+            }, { attachToElement: true })
             const elem = await $('elem')
 
             assert.equal(await elem.getHTML(), '2')

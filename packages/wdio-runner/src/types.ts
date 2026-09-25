@@ -6,8 +6,7 @@ import type BaseReporter from './reporter.js'
 
 /**
  * Represents a custom command stored by the protocol stub before the session starts.
- * The stub folds the deprecated positional `addCommand` form into the options object,
- * so only `[name, fn, CustomCommandOptions]` reaches the runner.
+ * Both `addCommand` and `overwriteCommand` are stored as `[name, fn, options]`.
  */
 export type CustomStubCommand = [string, AddCommandFunction<boolean>, CustomCommandOptions<boolean>]
 

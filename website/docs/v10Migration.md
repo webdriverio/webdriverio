@@ -1,12 +1,12 @@
 ---
 id: v10-migration
 title: From v9 to v10
-description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors and removed commands.
+description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures and removed commands.
 ---
 
 This guide collects the breaking changes of WebdriverIO `v10` and what you have to do about them.
 
-Unlike previous majors, most of these changes cannot be applied by the WebdriverIO [codemod](https://github.com/webdriverio/codemod), because they depend on what your tests actually mean. Each section below describes how to find the affected places in your suite.
+Unlike previous majors, most of these changes cannot be applied by the WebdriverIO [codemod](https://github.com/webdriverio/codemod), because they depend on what your tests actually mean. The [legacy command signatures](#legacy-command-signatures) below are mechanical replacements. Each other section describes how to find the affected places in your suite.
 
 ## Node.js
 
@@ -121,6 +121,76 @@ An element remembers how it was queried, so re-fetching it — after a stale ele
 Under the hood a strict `$` issues a `findElements` request instead of `findElement`, since counting the matches is the only way to enforce the rule. This is a single round trip either way, but it is visible to custom services and WebDriver mocks that key off the `findElement` command.
 
 :::
+
+## Legacy command signatures
+
+v9 still accepted older positional forms and warned. v10 accepts only the options object.
+
+### `addCommand` and `overwriteCommand`
+
+```diff
+- browser.addCommand('myFn', fn, true)
++ browser.addCommand('myFn', fn, { attachToElement: true })
+
+- browser.overwriteCommand('click', fn, true)
++ browser.overwriteCommand('click', fn, { attachToElement: true })
+```
+
+A boolean third argument is a TypeScript error. At runtime it throws:
+
+```
+Passing a boolean as the third argument to `addCommand` was removed in WebdriverIO v10. Use `addCommand(name, fn, { attachToElement: true })`.
+```
+
+`proto` and `instances` belong on that same options object. Omit the third argument to attach a command to the browser.
+
+### `getCookies`
+
+String and string-array filters are rejected. Pass a [cookie filter object](https://w3c.github.io/webdriver-bidi/#type-storage-CookieFilter). One call filters one name; call it again for another name.
+
+```diff
+- await browser.getCookies('session')
+- await browser.getCookies(['session', 'auth'])
++ await browser.getCookies({ name: 'session' })
++ await browser.getCookies({ name: 'auth' })
+```
+
+`getCookies()` with no arguments still returns every cookie visible to the page.
+
+### `getHTML`
+
+```diff
+- await $('h1').getHTML(false)
++ await $('h1').getHTML({ includeSelectorTag: false })
+```
+
+`getHTML()` with no arguments still includes the element's own tag.
+
+### `newWindow`
+
+`windowName` and `windowFeatures` are gone. They only applied to WebDriver Classic. The command still accepts `type`:
+
+```diff
+- await browser.newWindow('https://webdriver.io', {
+-     windowName: 'WebdriverIO window',
+-     windowFeatures: 'width=420,height=230,resizable,scrollbars=yes,status=1',
+- })
++ await browser.newWindow('https://webdriver.io', { type: 'window' })
+```
+
+Use `type: 'tab'` to open a tab.
+
+### `startActivity`
+
+Only the options object is accepted.
+
+```diff
+- await browser.startActivity('com.example.app', '.MainActivity')
++ await browser.startActivity({
++     appPackage: 'com.example.app',
++     appActivity: '.MainActivity',
++ })
+```
 
 ## Removed commands
 

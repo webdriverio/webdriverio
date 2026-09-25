@@ -16,6 +16,12 @@
         return ms
     })
 
+    // overwrite an element command
+    await browser.overwriteCommand('click', function (origClickFunction) {
+        console.log('clicking')
+        return origClickFunction()
+    }, { attachToElement: true })
+
     // usage
     it('should use my overwrite command', async () => {
         await browser.url('https://webdriver.io')
@@ -25,7 +31,8 @@
  * @alias browser.overwriteCommand
  * @param {string} name name of the original command
  * @param {Function} callback  pass original function
- * @param {Boolean=} elementScope extend the Element object instead of the Browser object
+ * @param {Object=} options options object
+ * @param {Boolean=} options.attachToElement extend the Element object instead of the Browser object
  * @type utility
  * @skipAwait
  *

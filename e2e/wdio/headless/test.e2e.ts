@@ -67,9 +67,9 @@ describe('main suite 1', () => {
             disableElementImplicitWait: true
         })
 
-        browser.addCommand('myElementLegacyCustomCommand', async function () {
-            return 'myElementLegacyCommandResult'
-        }, true)
+        browser.addCommand('myElementCustomCommand', async function () {
+            return 'myElementCommandResult'
+        }, { attachToElement: true })
 
         browser.addCommand('myBrowserCustomCommand', async function () {
             return 'myBrowserCommandResult'
@@ -96,11 +96,11 @@ describe('main suite 1', () => {
             expect(globalCmdResult).toBe('myElementGlobalCommandResult')
         })
 
-        it('should support legacy custom element command on existing elements', async () => {
+        it('should support a custom element command on existing elements', async () => {
             // @ts-expect-error
-            const legacyCmdResult = await $$('input')[0].myElementLegacyCustomCommand()
+            const commandResult = await $$('input')[0].myElementCustomCommand()
 
-            expect(legacyCmdResult).toBe('myElementLegacyCommandResult')
+            expect(commandResult).toBe('myElementCommandResult')
         })
 
         it('should support browser custom command', async () => {
@@ -972,7 +972,7 @@ describe('main suite 1', () => {
                 { name: 'test1-2', value: '789' }
             ])
 
-            const testCookie = await browser.getCookies(['test1-0'])
+            const testCookie = await browser.getCookies({ name: 'test1-0' })
             expect(testCookie).toEqual([
                 expect.objectContaining({
                     'domain': 'guinea-pig.webdriver.io',
@@ -982,7 +982,7 @@ describe('main suite 1', () => {
                 })
             ])
 
-            const testCookie2 = await browser.getCookies(['test1-1'])
+            const testCookie2 = await browser.getCookies({ name: 'test1-1' })
             expect(testCookie2).toEqual([
                 expect.objectContaining({
                     'domain': 'guinea-pig.webdriver.io',
@@ -991,7 +991,7 @@ describe('main suite 1', () => {
                     'value': '456',
                 })
             ])
-            const testCookie3 = await browser.getCookies(['test1-2'])
+            const testCookie3 = await browser.getCookies({ name: 'test1-2' })
             expect(testCookie3).toEqual([
                 expect.objectContaining({
                     'domain': 'guinea-pig.webdriver.io',

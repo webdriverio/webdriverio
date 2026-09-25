@@ -92,7 +92,7 @@ describe('addCommand', () => {
                     await this.click()
                     return
                 },
-                true,
+                { attachToElement: true },
             )
 
             const element = await browser.$('.someRandomElement')
@@ -136,7 +136,7 @@ describe('addCommand', () => {
             browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const size = await this.getSize()
                 return size.width
-            }, true)
+            }, { attachToElement: true })
 
             const elem = await browser.$('#foo')
 
@@ -301,11 +301,11 @@ describe('addCommand', () => {
             const browser = await remote(remoteConfig)
             browser.addCommand('function1', function () {
                 throw error1
-            }, true)
+            }, { attachToElement: true })
             browser.addCommand('function2', function () {
                 browser.$('#foo')
                 throw error2
-            }, true)
+            }, { attachToElement: true })
             const elem = await browser.$('#foo')
 
             await expect(elem.function1()).rejects.toThrow(error1)
@@ -316,11 +316,11 @@ describe('addCommand', () => {
             const browser = await remote(remoteConfig)
             browser.addCommand('function1', function () {
                 throw error1
-            }, true)
+            }, { attachToElement: true })
             browser.addCommand('function2', function () {
                 browser.$('#foo')
                 throw error2
-            }, true)
+            }, { attachToElement: true })
             const elem = await browser.$('#foo')
 
             try {
@@ -356,7 +356,7 @@ describe('addCommand', () => {
                 browser.addCommand(
                     'press2',
                     () => {return 'command result'},
-                    true
+                    { attachToElement: true }
                 )
 
                 const element = await browser.$('.someRandomElement')

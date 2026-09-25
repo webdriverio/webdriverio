@@ -120,12 +120,14 @@ async function bar() {
             await this.waitForClickable().catch()
         }
         return clickFn.call(this, opts).catch()
-    }, true)
+    }, { attachToElement: true })
+
+    // @ts-expect-error boolean third argument was removed in v10
+    browser.addCommand('legacyElementCommand', async function () { return this.getAttribute('class') }, true)
 
     // browser
-    browser.overwriteCommand('pause', async function (pause: Function, ms = 1000) {
-        return pause(ms).catch()
-    }, false)
+    // @ts-expect-error boolean third argument was removed in v10
+    browser.overwriteCommand('pause', async function (pause: Function, ms = 1000) { return pause(ms) }, false)
 
     browser.overwriteCommand('pause', async function (pause: Function, ms = 1000) {
         return pause(ms).catch()
@@ -136,9 +138,10 @@ async function bar() {
     // browser
     await browser.pause(1)
     await browser.newWindow('https://webdriver.io', {
-        windowName: 'some name',
-        windowFeatures: 'some features'
+        type: 'window'
     })
+    // @ts-expect-error windowName and windowFeatures were removed in v10
+    await browser.newWindow('https://webdriver.io', { windowName: 'some name', windowFeatures: 'some features' })
 
     await browser.createWindow('tab')
     await browser.createWindow('window')
@@ -162,8 +165,23 @@ async function bar() {
     expectType<WebdriverIO.ElementArray>(waitUntilElems)
 
     await browser.getCookies()
+    await browser.getCookies({ name: 'foobar' })
+    // @ts-expect-error string filters were removed in v10
     await browser.getCookies('foobar')
+    // @ts-expect-error string filters were removed in v10
     await browser.getCookies(['foobar'])
+
+    const htmlElement = await browser.$('h1')
+    await htmlElement.getHTML({ includeSelectorTag: false })
+    // @ts-expect-error boolean argument was removed in v10
+    await htmlElement.getHTML(false)
+
+    await browser.startActivity({
+        appPackage: 'com.example.app',
+        appActivity: '.MainActivity'
+    })
+    // @ts-expect-error positional arguments were removed in v10
+    await browser.startActivity('com.example.app', '.MainActivity')
     await browser.setCookies({
         name: '',
         value: ''

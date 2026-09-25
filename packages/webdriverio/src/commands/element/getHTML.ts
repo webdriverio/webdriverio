@@ -78,13 +78,13 @@ export async function getHTML(
 ): Promise<string> {
     const browser = getBrowserObject(this)
 
-    /**
-     * `getHTML` options used to be a string that was the `includeSelectorTag` option
-     * and we need to ensure backwards compatibility
-     */
-    if (typeof options !== 'object' && typeof options === 'boolean') {
-        options = { includeSelectorTag: options }
-    } else if (typeof options !== 'object') {
+    if (typeof options === 'boolean') {
+        throw new Error(
+            'Passing a boolean to `getHTML` was removed in WebdriverIO v10. ' +
+            `Use \`element.getHTML({ includeSelectorTag: ${options} })\`.`
+        )
+    }
+    if (typeof options !== 'object' || options === null) {
         throw new Error('The `getHTML` options parameter must be an object')
     }
 

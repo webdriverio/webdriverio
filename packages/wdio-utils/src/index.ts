@@ -1,6 +1,7 @@
 /* istanbul ignore file */
 
 import webdriverMonad from './monad.js'
+import { resolveCustomCommandOptions } from './customCommands.js'
 import initializePlugin from './initializePlugin.js'
 import { startWebDriver } from './startWebDriver.js'
 import { initializeLauncherService, initializeWorkerService } from './initializeServices.js'
@@ -24,6 +25,7 @@ export {
     isFunctionAsync,
     transformCommandLogResult,
     webdriverMonad,
+    resolveCustomCommandOptions,
     commandCallStructure,
     isValidParameter,
     getArgumentType,
