@@ -61,6 +61,15 @@ describe('Multi-Remote tests', () => {
             .toThrow('Multiremote object has no instance named "browserC"')
     })
 
+    test('getInstance should not return inherited Object.prototype members', async () => {
+        const browser = await multiremote(caps())
+
+        for (const name of ['toString', 'constructor', 'hasOwnProperty']) {
+            expect(() => browser.getInstance(name))
+                .toThrow(`Multiremote object has no instance named "${name}"`)
+        }
+    })
+
     test('should run command on all instances', async () => {
         const browser = await multiremote(caps())
 
