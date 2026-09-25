@@ -55,6 +55,7 @@ interface JasmineInternals {
 }
 
 const expectationContextPatched = Symbol.for('wdio.jasmine.expectationContext')
+const recordedByWdio = Symbol.for('wdio.jasmine.recordedExpectations')
 
 /**
  * Jasmine 6 stopped passing `actual` and `expected` into
@@ -119,6 +120,39 @@ function jasmineInternals (jasmineInterface: jasmine.Jasmine): JasmineInternals 
         return candidate.private
     }
     return candidate as unknown as JasmineInternals
+}
+
+/**
+ * Jasmine 6 keeps expectation results on a private execution state and only
+ * copies them into the spec-done event. `afterTest` runs before that event, so
+ * record each result onto the spec-started object the hook already reads.
+ */
+function recordExpectation (
+    lastTest: { failedExpectations?: unknown[], passedExpectations?: unknown[] } & Record<symbol, unknown>,
+    jasmineInterface: jasmine.Jasmine,
+    passed: boolean,
+    data: { matcherName?: string, message?: string, expected?: unknown, actual?: unknown, error?: Error, errorForStack?: Error }
+) {
+    if (!lastTest?.[recordedByWdio]) {
+        return
+    }
+    const build = (jasmineInterface as jasmine.Jasmine & {
+        private?: { buildExpectationResult?: (options: unknown) => { message?: string, stack?: string } }
+    }).private?.buildExpectationResult
+    const built = typeof build === 'function' ? build({ ...data, passed }) : {}
+    const recorded: Record<string, unknown> = {
+        matcherName: data?.matcherName,
+        message: built.message ?? data?.message,
+        stack: built.stack ?? data?.error?.stack ?? data?.errorForStack?.stack ?? '',
+        passed
+    }
+    if (!passed) {
+        recorded.expected = data?.expected
+        recorded.actual = data?.actual
+    }
+    const list = passed ? lastTest.passedExpectations : lastTest.failedExpectations
+    list?.push(recorded)
+    globalThis._wdioDynamicJasmineResultErrorList = lastTest.failedExpectations
 }
 
 type HooksArray = {
@@ -192,6 +226,20 @@ class JasmineAdapter {
             self._lastTest.start = new Date().getTime()
             // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
             self._lastTest.file = test.filename
+            /**
+             * Jasmine 6's spec-started event has no expectation lists. Own the
+             * arrays so afterTest can see failures recorded during the spec.
+             */
+            if (!Array.isArray(test.failedExpectations)) {
+                test.failedExpectations = []
+                test.passedExpectations = []
+                test.deprecationWarnings = []
+                test.pendingReason = ''
+                test.duration = null
+                test.properties = null
+                test.debugLogs = null
+                ;(test as jasmine.SpecResult & Record<symbol, unknown>)[recordedByWdio] = true
+            }
             globalThis._wdioDynamicJasmineResultErrorList = test.failedExpectations
             globalThis._jasmineTestResult = test
             return origSpecStarted(test)
@@ -221,7 +269,11 @@ class JasmineAdapter {
          */
         restoreExpectationContext(jasmine)
         const internals = jasmineInternals(jasmine)
-        internals.Spec.prototype.addExpectationResult = this.getExpectationResultHandler(internals)
+        const expectationHandler = this.getExpectationResultHandler(internals)
+        internals.Spec.prototype.addExpectationResult = function (passed: boolean, data: { matcherName?: string, message?: string, expected?: unknown, actual?: unknown, error?: Error, errorForStack?: Error }, isError?: boolean) {
+            recordExpectation(self._lastTest as never, jasmine, passed, data)
+            return expectationHandler.call(this, passed, data, isError)
+        }
 
         const hookArgsFn = (context: unknown): [unknown, unknown] => [{ ...(self._lastTest || {}) }, context]
 
