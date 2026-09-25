@@ -378,12 +378,15 @@ const requestMock: any = vi.fn().mockImplementation(async (uri, params) => {
         break
     } case `/session/${sessionId}/execute/async`: {
         const script = Function(body.script)
-        let result: any
-        script.call(this, ...body.args, (_result: any) => result = _result)
-        // Async `execute` reports failures through a microtask. Flush once so the
-        // callback has run before the command result is read.
-        await Promise.resolve()
-        value = result ?? {}
+        const pending = Symbol('pending')
+        let result: any = pending
+        script.call(this, ...body.args, (_result: any) => { result = _result })
+        // An async script can `await` several times before calling the callback.
+        // Drain microtasks until it does, and stop if it is waiting on a timer.
+        for (let i = 0; i < 20 && result === pending; i++) {
+            await Promise.resolve()
+        }
+        value = result === pending ? {} : (result ?? {})
         break
     } case `${path}/${sessionId}/element/${genericElementId}/elements`:
         value = [

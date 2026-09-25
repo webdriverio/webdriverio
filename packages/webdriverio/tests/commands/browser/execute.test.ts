@@ -64,6 +64,23 @@ describe('execute test', () => {
         expect(result).toEqual({ __wdioError: false, data: 1 })
     })
 
+    it('should return the value of an async function that awaits', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        vi.mocked(fetch).mockClear()
+        const result = await browser.execute(async () => {
+            await Promise.resolve()
+            await Promise.resolve()
+            return 7
+        })
+        expect(result).toBe(7)
+    })
+
     it('should throw if script is wrong type', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
