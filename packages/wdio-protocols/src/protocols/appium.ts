@@ -10,35 +10,51 @@ const chromiumLogCommands = {
 
 export default {
     ...chromiumLogCommands,
+    '/appium/sessions': {
+        GET: {
+            command: 'getAppiumSessions',
+            description: 'Retrieve information about all active Appium sessions. Requires Appium 2.19 or later. ***Using this command requires enabling Appium\'s [`session_discovery`](https://appium.io/docs/en/latest/reference/cli/insecure-features/) insecure server feature.***',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getappiumsessions',
+            parameters: [],
+            returns: {
+                type: 'Object[]',
+                name: 'sessionData',
+                description: 'an array of session data objects',
+            },
+        },
+    },
     '/session/:sessionId': {
         GET: {
             command: 'getSession',
             description: 'Retrieve the capabilities of the current session.',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#getsession',
-            deprecated: 'Use `getAppiumSessionCapabilities` instead',
+            deprecated: 'Use `getAppiumSessionCapabilities` starting from Appium 2.16. No longer supported since Appium 4.',
             parameters: [],
             returns: {
                 type: 'Object',
                 name: 'capabilities',
-                description: "An object describing the session's capabilities.",
+                description: "an object describing the session's capabilities",
             },
         },
     },
     '/session/:sessionId/context': {
         GET: {
             command: 'getAppiumContext',
+            description: 'Retrieve the active application context.',
             ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#getcurrentcontext',
+            deprecated: 'Use `getCurrentAppiumContext` starting from Appium 3.7',
             parameters: [],
             returns: {
-                type: 'Context',
+                type: 'string',
                 name: 'context',
-                description:
-                    "a string representing the current context or null representing 'no context'",
+                description: 'a string representing the current context',
             },
         },
         POST: {
             command: 'switchAppiumContext',
+            description: 'Set the active application context.',
             ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#setcontext',
+            deprecated: 'Use `setAppiumContext` starting from Appium 3.7',
             parameters: [
                 {
                     name: 'name',
@@ -52,10 +68,52 @@ export default {
     '/session/:sessionId/contexts': {
         GET: {
             command: 'getAppiumContexts',
+            description: 'Retrieve all available application contexts.',
             ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#getcontexts',
+            deprecated: 'Use `getAppiumProtocolContexts` starting from Appium 3.7',
             parameters: [],
             returns: {
-                type: 'Context[]',
+                type: 'string[]',
+                name: 'contexts',
+                description:
+                    "an array of strings representing available contexts, e.g. 'WEBVIEW', or 'NATIVE'",
+            },
+        },
+    },
+    '/session/:sessionId/appium/context': {
+        GET: {
+            command: 'getCurrentAppiumContext',
+            description: 'Retrieve the active application context. Requires Appium 3.7 or later.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getcurrentappiumcontext',
+            parameters: [],
+            returns: {
+                type: 'string',
+                name: 'context',
+                description: 'a string representing the current context',
+            },
+        },
+        POST: {
+            command: 'setAppiumContext',
+            description: 'Set the active application context. Requires Appium 3.7 or later.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#setappiumcontext',
+            parameters: [
+                {
+                    name: 'name',
+                    type: 'string',
+                    description: 'a string representing an available context',
+                    required: true,
+                },
+            ],
+        },
+    },
+    '/session/:sessionId/appium/contexts': {
+        GET: {
+            command: 'getAppiumProtocolContexts',
+            description: 'Retrieve all available application contexts. Requires Appium 3.7 or later.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getappiumcontexts',
+            parameters: [],
+            returns: {
+                type: 'string[]',
                 name: 'contexts',
                 description:
                     "an array of strings representing available contexts, e.g. 'WEBVIEW', or 'NATIVE'",
@@ -65,7 +123,7 @@ export default {
     '/session/:sessionId/appium/commands': {
         GET: {
             command: 'getAppiumCommands',
-            description: 'Retrieve the endpoints and BiDi commands supported in the current session.',
+            description: 'Retrieve the endpoints and BiDi commands supported in the current session. Requires Appium 2.16 or later.',
             ref: 'https://appium.io/docs/en/latest/reference/api/appium/#listcommands',
             parameters: [],
             returns: {
@@ -79,7 +137,7 @@ export default {
     '/session/:sessionId/appium/extensions': {
         GET: {
             command: 'getAppiumExtensions',
-            description: 'Retrieve the extension commands supported in the current session.',
+            description: 'Retrieve the extension commands supported in the current session. Requires Appium 2.16 or later.',
             ref: 'https://appium.io/docs/en/latest/reference/api/appium/#listextensions',
             parameters: [],
             returns: {
@@ -93,7 +151,7 @@ export default {
     '/session/:sessionId/appium/capabilities': {
         GET: {
             command: 'getAppiumSessionCapabilities',
-            description: 'Retrieve the capabilities of the current session.',
+            description: 'Retrieve the capabilities of the current session. Requires Appium 2.16 or later.',
             ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getappiumsessioncapabilities',
             parameters: [],
             returns: {
@@ -424,6 +482,7 @@ export default {
             command: 'rotateDevice',
             description: 'Rotate the device in three dimensions.',
             ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#setrotation',
+            deprecated: 'Use `setAppiumRotation` starting from Appium 3.7',
             parameters: [
                 {
                     name: 'x',
@@ -458,6 +517,47 @@ export default {
                     UiAutomator: '4.2+',
                 },
             },
+        },
+    },
+    '/session/:sessionId/appium/device/rotation': {
+        GET: {
+            command: 'getAppiumRotation',
+            description: 'Get the current spatial orientation of the device. Requires Appium 3.7 or later.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getappiumrotation',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'rotation',
+                description: 'Object containing device positional offsets in degrees for the X, Y and Z axis',
+            },
+        },
+        POST: {
+            command: 'setAppiumRotation',
+            description: 'Rotate the device in three dimensions. Requires Appium 3.7 or later.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#setappiumrotation',
+            parameters: [
+                {
+                    name: 'x',
+                    type: 'number',
+                    description: 'degrees on the X axis to rotate the device by',
+                    required: true,
+                    default: 0,
+                },
+                {
+                    name: 'y',
+                    type: 'number',
+                    description: 'degrees on the Y axis to rotate the device by',
+                    required: true,
+                    default: 0,
+                },
+                {
+                    name: 'z',
+                    type: 'number',
+                    description: 'degrees on the Z axis to rotate the device by',
+                    required: true,
+                    default: 0,
+                },
+            ],
         },
     },
     '/session/:sessionId/appium/device/current_activity': {
@@ -1088,6 +1188,24 @@ export default {
                 },
             },
         },
+        POST: {
+            command: 'getFormattedDeviceTime',
+            description: 'Get the time on the device in the specified format.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getdevicetime',
+            parameters: [
+                {
+                    name: 'format',
+                    type: 'string',
+                    description: 'Format to use for the returned timestamp',
+                    required: false,
+                },
+            ],
+            returns: {
+                type: 'string',
+                name: 'time',
+                description: 'Time on the device',
+            },
+        },
     },
     '/session/:sessionId/appium/device/display_density': {
         GET: {
@@ -1224,7 +1342,7 @@ export default {
             command: 'endCoverage',
             description: 'Get test coverage data.',
             ref: 'https://appium.github.io/appium.io/docs/en/commands/device/app/end-test-coverage/',
-            deprecated: 'Use `driver.execute(\'mobile: shell\', { ... })` instead',
+            deprecated: 'Use `driver.execute(\'mobile: shell\', { ... })` instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'intent',
@@ -1287,7 +1405,7 @@ export default {
         POST: {
             command: 'setValueImmediate',
             ref: 'https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints',
-            deprecated: 'Use `driver.addValue(...)` or `driver.setValue(...)` instead',
+            deprecated: 'Use `driver.addValue(...)` or `driver.setValue(...)` instead. No longer supported since Appium 3.',
             variables: [
                 {
                     name: 'elementId',
@@ -1318,7 +1436,7 @@ export default {
             command: 'replaceValue',
             description: 'Replace the value to element directly.',
             ref: 'https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints',
-            deprecated: 'Use `driver.addValue(...)` or `driver.setValue(...)` instead',
+            deprecated: 'Use `driver.addValue(...)` or `driver.setValue(...)` instead. No longer supported since Appium 3.',
             variables: [
                 {
                     name: 'elementId',
@@ -1402,7 +1520,7 @@ export default {
             description:
                 'Callback url for asynchronous execution of JavaScript.',
             ref: 'https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints',
-            deprecated: 'Use `driver.executeAsyncScript(...)` instead',
+            deprecated: 'Use `driver.executeAsyncScript(...)` instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'response',
@@ -1900,13 +2018,81 @@ export default {
             },
         },
     },
+    '/appium/storage/add': {
+        POST: {
+            command: 'addAppiumStorageItem',
+            description: 'Add a new file to the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later.***',
+            ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#addstorageitem',
+            parameters: [
+                {
+                    name: 'name',
+                    type: 'string',
+                    description: 'Name used to save the file as',
+                    required: true,
+                },
+                {
+                    name: 'sha1',
+                    type: 'string',
+                    description: 'SHA1 hash of the item to add to the storage',
+                    required: true,
+                },
+            ],
+            returns: {
+                type: 'object',
+                name: 'AddRequestResult',
+                description:
+                    'an object containing upload-related websocket URLs and their timeout value. See Appium documentation for more details.',
+            },
+        },
+    },
+    '/appium/storage/delete': {
+        POST: {
+            command: 'deleteAppiumStorageItem',
+            description: 'Delete a file from the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later.***',
+            ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#deletestorageitem',
+            parameters: [
+                {
+                    name: 'name',
+                    type: 'string',
+                    description: 'Name of the file to delete',
+                    required: true,
+                },
+            ],
+            returns: {
+                type: 'boolean',
+                name: 'deletionResult',
+                description: 'True if the file was deleted, false otherwise',
+            },
+        },
+    },
+    '/appium/storage/list': {
+        GET: {
+            command: 'listAppiumStorageItems',
+            description: 'List all files in the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later.***',
+            ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#liststorageitems',
+            parameters: [],
+            returns: {
+                type: 'Object[]',
+                name: 'StorageItems',
+                description: 'an array of metadata objects for each item in the storage. See Appium documentation for more details.',
+            },
+        },
+    },
+    '/appium/storage/reset': {
+        POST: {
+            command: 'resetAppiumStorage',
+            description: 'Reset the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later.***',
+            ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#resetstorage',
+            parameters: [],
+        },
+    },
     '/session/:sessionId/timeouts/implicit_wait': {
         POST: {
             command: 'implicitWait',
             description:
                 'Set the amount of time the driver should wait when searching for elements. When searching for a single element, the driver should poll the page until an element is found or the timeout expires, whichever occurs first. When searching for multiple elements, the driver should poll the page until at least one element is found or the timeout expires, at which point it should return an empty list. If this command is never sent, the driver should default to an implicit wait of 0ms.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            deprecated: 'Use `driver.setTimeouts(...)` instead',
+            deprecated: 'Use `driver.setTimeouts(...)` instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'ms',
@@ -2075,7 +2261,7 @@ export default {
             description:
                 'Set the amount of time, in milliseconds, that asynchronous scripts executed by `/session/:sessionId/execute_async` are permitted to run before they are aborted and a `Timeout` error is returned to the client.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            deprecated: 'Use `driver.setTimeouts(...)` instead',
+            deprecated: 'Use `driver.setTimeouts(...)` instead. No longer supported since Appium 3.',
             parameters: [
                 {
                     name: 'ms',
@@ -2097,7 +2283,7 @@ export default {
             command: 'submit',
             description: 'Submit a form element.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            deprecated: 'Please explicitly find and click the submit element',
+            deprecated: 'Please explicitly find and click the submit element. No longer supported since Appium 3.',
             variables: [
                 {
                     name: 'elementId',
@@ -2355,6 +2541,7 @@ export default {
             command: 'getOrientation',
             description: 'Get the current device orientation.',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#getorientation',
+            deprecated: 'Use `getAppiumOrientation` starting from Appium 3.7',
             parameters: [],
             returns: {
                 type: 'String',
@@ -2375,6 +2562,7 @@ export default {
             command: 'setOrientation',
             description: 'Set the device orientation',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#setorientation',
+            deprecated: 'Use `setAppiumOrientation` starting from Appium 3.7',
             parameters: [
                 {
                     name: 'orientation',
@@ -2394,11 +2582,40 @@ export default {
             },
         },
     },
+    '/session/:sessionId/appium/device/orientation': {
+        GET: {
+            command: 'getAppiumOrientation',
+            description: 'Get the current device orientation. Requires Appium 3.7 or later.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getappiumorientation',
+            parameters: [],
+            returns: {
+                type: 'String',
+                name: 'orientation',
+                description:
+                    'The current orientation corresponding to a value defined in ScreenOrientation: `LANDSCAPE|PORTRAIT`.',
+            },
+        },
+        POST: {
+            command: 'setAppiumOrientation',
+            description: 'Set the device orientation. Requires Appium 3.7 or later.',
+            ref: 'https://appium.io/docs/en/latest/reference/api/appium/#setappiumorientation',
+            parameters: [
+                {
+                    name: 'orientation',
+                    type: 'string',
+                    description:
+                        'the new device orientation as defined in ScreenOrientation: `LANDSCAPE|PORTRAIT`',
+                    required: true,
+                },
+            ],
+        },
+    },
     '/session/:sessionId/location': {
         GET: {
             command: 'getGeoLocation',
             description: 'Get the current geo location.',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#getgeolocation',
+            deprecated: 'Use driver-specific methods like `driver.execute(\'mobile: getGeolocation\')` or `driver.execute(\'mobile: getSimulatedLocation\')` instead. No longer supported since Appium 4.',
             parameters: [],
             returns: {
                 type: 'Object',
@@ -2410,6 +2627,7 @@ export default {
             command: 'setGeoLocation',
             description: 'Set the current geo location.',
             ref: 'https://appium.io/docs/en/latest/reference/api/jsonwp/#setgeolocation',
+            deprecated: 'Use driver-specific methods like `driver.execute(\'mobile: setGeolocation\', { ... })` or `driver.execute(\'mobile: setSimulatedLocation\', { ... })` instead. No longer supported since Appium 4.',
             parameters: [
                 {
                     name: 'location',
